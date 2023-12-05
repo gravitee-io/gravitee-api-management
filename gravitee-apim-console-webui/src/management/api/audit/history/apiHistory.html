@@ -131,7 +131,13 @@
           <pre ng-show="$ctrl.mode === $ctrl.modes.Payload" class="api-history-definition">
 {{$ctrl.eventSelectedPayloadDefinition | json}}</pre
           >
-          <pre ng-show="$ctrl.hasDiff()" class="api-history-definition" api-history-diff old-value="$ctrl.left" new-value="$ctrl.right"></pre>
+          <pre
+            ng-show="$ctrl.hasDiff()"
+            class="api-history-definition"
+            api-history-diff
+            old-value="$ctrl.left"
+            new-value="$ctrl.right"
+          ></pre>
           <gv-policy-studio
             class="api-event_policy-studio"
             flows-title="API Flows"

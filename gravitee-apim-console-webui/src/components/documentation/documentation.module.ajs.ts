@@ -34,6 +34,7 @@ import { PageAsyncApiComponent } from './page/page-asyncapi.component';
 import { PageEditorMarkdownComponent } from './page/page-editormarkdown.component';
 import { PageMarkdownComponent } from './page/page-markdown.component';
 import { PageSwaggerComponent } from './page/page-swagger.component';
+import ErrorComponent from './error/error.component';
 
 angular.module('gravitee-component-documentation', []);
 
@@ -58,3 +59,4 @@ graviteeDocumentationModule.component('gvPageAsyncApi', PageAsyncApiComponent);
 graviteeDocumentationModule.component('gvPageEditorMarkdown', PageEditorMarkdownComponent);
 graviteeDocumentationModule.component('gvPageMarkdown', PageMarkdownComponent);
 graviteeDocumentationModule.component('gvPageSwagger', PageSwaggerComponent);
+graviteeDocumentationModule.component('gvError', ErrorComponent);
