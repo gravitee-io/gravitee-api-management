@@ -26,7 +26,7 @@ import { ApiPrimaryOwnerType } from './apiPrimaryOwnerMode.service';
 
 import { User } from '../entities/user';
 import { UserDetails } from '../entities/user/userDetails';
-import { RoleName, RoleScope } from '../management/configuration/groups/group/membershipState';
+import { RoleName, RoleScope } from '../management/settings/groups/group/membershipState';
 
 class UserService {
   /**

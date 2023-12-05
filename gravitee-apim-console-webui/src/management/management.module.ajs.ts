@@ -135,12 +135,12 @@ import PlatformLogsController from './analytics/logs/platform-logs.controller';
 import PlatformLogsComponentAjs from './analytics/logs/platform-logs.component.ajs';
 import PlatformLogComponentAjs from './analytics/logs/platform-log.component.ajs';
 
-import CategoriesController from '../management/configuration/categories/categories.controller';
-import CategoryController from './configuration/categories/category/category.controller';
+import CategoriesController from './settings/categories/categories.controller';
+import CategoryController from './settings/categories/category/category.controller';
 import CategoryService from '../services/category.service';
-import DeleteCategoryDialogController from '../management/configuration/categories/delete.category.dialog.controller';
-import DeleteAPICategoryDialogController from './configuration/categories/category/delete-api-category.dialog.controller';
-import DialogAddGroupMemberController from './configuration/groups/group/addMemberDialog.controller';
+import DeleteCategoryDialogController from './settings/categories/delete.category.dialog.controller';
+import DeleteAPICategoryDialogController from './settings/categories/category/delete-api-category.dialog.controller';
+import DialogAddGroupMemberController from './settings/groups/group/addMemberDialog.controller';
 import SubscriptionService from '../services/subscription.service';
 import EmptyStateDirective from '../components/emptystate/emptystate.directive';
 import TagService from '../services/tag.service';
@@ -157,8 +157,8 @@ import DialogConfirmAndValidateController from '../components/dialog/confirmAndV
 import DialogDynamicProviderHttpController from './api/proxy/properties-v1/dynamic-provider-http-dialog.controller';
 import TenantService from '../services/tenant.service';
 
-import CategoriesComponentAjs from './configuration/categories/categories.component.ajs';
-import CategoryComponentAjs from './configuration/categories/category/category.component.ajs';
+import CategoriesComponentAjs from './settings/categories/categories.component.ajs';
+import CategoryComponentAjs from './settings/categories/category/category.component.ajs';
 import MetadataValidatorDirective from '../components/metadata/metadata.validator.directive';
 
 import RoleService from '../services/role.service';
@@ -193,18 +193,18 @@ import ConsoleSettingsService from '../services/consoleSettings.service';
 import PortalSettingsService from '../services/portalSettings.service';
 import PortalConfigService from '../services/portalConfig.service';
 // Groups
-import GroupsComponentAjs from './configuration/groups/groups.component.ajs';
-import GroupComponentAjs from './configuration/groups/group/group.component.ajs';
+import GroupsComponentAjs from './settings/groups/groups.component.ajs';
+import GroupComponentAjs from './settings/groups/group/group.component.ajs';
 import GroupService from '../services/group.service';
 // Dictionaries
 import DictionaryService from '../services/dictionary.service';
-import DictionariesComponentAjs from './configuration/dictionaries/dictionaries.component.ajs';
-import DictionariesController from '../management/configuration/dictionaries/dictionaries.controller';
-import DictionaryComponentAjs from './configuration/dictionaries/dictionary.component.ajs';
-import DictionaryController from '../management/configuration/dictionaries/dictionary.controller';
-import DialogDictionaryAddPropertyController from '../management/configuration/dictionaries/add-property.dialog.controller';
+import DictionariesComponentAjs from './settings/dictionaries/dictionaries.component.ajs';
+import DictionariesController from './settings/dictionaries/dictionaries.controller';
+import DictionaryComponentAjs from './settings/dictionaries/dictionary.component.ajs';
+import DictionaryController from './settings/dictionaries/dictionary.controller';
+import DialogDictionaryAddPropertyController from './settings/dictionaries/add-property.dialog.controller';
 // Settings - Identity providers
-import IdentityProvidersComponentAjs from './configuration/identityProviders/identity-providers.component.ajs';
+import IdentityProvidersComponentAjs from './settings/identityProviders/identity-providers.component.ajs';
 import IdentityProviderService from '../services/identityProvider.service';
 // Others
 import StringService from '../services/string.service';
@@ -216,22 +216,22 @@ import { permission, uiPermission } from 'angular-permission';
 
 import DialogAddNotificationSettingsController from '../components/notifications/notificationsettings/addnotificationsettings.dialog.controller';
 
-import TopApisController from './configuration/top-apis/top-apis.controller';
+import TopApisController from './settings/top-apis/top-apis.controller';
 import TopApiService from '../services/top-api.service';
-import TopApisComponentAjs from './configuration/top-apis/top-apis.component.ajs';
-import AddTopApiDialogController from '../management/configuration/top-apis/dialog/add.top-api.dialog.controller';
-import DeleteTopApiDialogController from '../management/configuration/top-apis/dialog/delete.top-api.dialog.controller';
-import PortalSettingsComponentAjs from './configuration/portal/portal.component.ajs';
+import TopApisComponentAjs from './settings/top-apis/top-apis.component.ajs';
+import AddTopApiDialogController from './settings/top-apis/dialog/add.top-api.dialog.controller';
+import DeleteTopApiDialogController from './settings/top-apis/dialog/delete.top-api.dialog.controller';
+import PortalSettingsComponentAjs from './settings/portal/portal.component.ajs';
 
 import RouterService from '../services/router.service';
 
 import MessageService from '../services/message.service';
 
-import ApiPortalHeaderComponentAjs from './configuration/api-portal-header/api-portal-header.component.ajs';
+import ApiPortalHeaderComponentAjs from './settings/api-portal-header/api-portal-header.component.ajs';
 import ApiHeaderService from '../services/apiHeader.service';
 
-import UpdateApiPortalHeaderDialogController from './configuration/api-portal-header/update.api-portal-header.dialog.controller';
-import NewApiPortalHeaderDialogController from './configuration/api-portal-header/new.api-portal-header.dialog.controller';
+import UpdateApiPortalHeaderDialogController from './settings/api-portal-header/update.api-portal-header.dialog.controller';
+import NewApiPortalHeaderDialogController from './settings/api-portal-header/new.api-portal-header.dialog.controller';
 import Base64Service from '../services/base64.service';
 // Alerts
 import AlertService from '../services/alert.service';
@@ -271,7 +271,7 @@ import SelectPageDialogController from '../components/documentation/dialog/selec
 // Settings - Client Registration
 
 import DashboardService from '../services/dashboard.service';
-import SettingsAnalyticsDashboardComponentAjs from './configuration/analytics/dashboard/settings-analytics-dashboard.components.ajs';
+import SettingsAnalyticsDashboardComponentAjs from './settings/analytics/dashboard/settings-analytics-dashboard.components.ajs';
 // Tokens
 import TokenService from '../services/token.service';
 import DialogGenerateTokenController from '../user/my-accout/token/generateTokenDialog.controller';
@@ -288,24 +288,24 @@ import ApplicationSubscribeController from './application/details/subscribe/appl
 import ApiKeyModeChoiceDialogController from '../components/dialog/apiKeyMode/api-key-mode-choice-dialog.controller';
 
 import QualityRuleService from '../services/qualityRule.service';
-import ApiQualityRulesComponentAjs from './configuration/api-quality-rules/api-quality-rules.component.ajs';
-import ApiQualityRuleComponentAjs from './configuration/api-quality-rules/api-quality-rule/api-quality-rule-component.ajs';
-import ApiQualityRuleController from '../management/configuration/api-quality-rules/api-quality-rule/api-quality-rule.controller';
-import DeleteApiQualityRuleDialogController from '../management/configuration/api-quality-rules/api-quality-rule/delete-api-quality-rule.dialog.controller';
-import DialogQueryFilterInformationController from './configuration/analytics/dashboard/query-filter-information.dialog.controller';
+import ApiQualityRulesComponentAjs from './settings/api-quality-rules/api-quality-rules.component.ajs';
+import ApiQualityRuleComponentAjs from './settings/api-quality-rules/api-quality-rule/api-quality-rule-component.ajs';
+import ApiQualityRuleController from './settings/api-quality-rules/api-quality-rule/api-quality-rule.controller';
+import DeleteApiQualityRuleDialogController from './settings/api-quality-rules/api-quality-rule/delete-api-quality-rule.dialog.controller';
+import DialogQueryFilterInformationController from './settings/analytics/dashboard/query-filter-information.dialog.controller';
 
 import ReCaptchaService from '../services/reCaptcha.service';
 
-import PortalThemeController from './configuration/portal-theme/portalTheme.controller';
-import PortalThemeComponentAjs from './configuration/portal-theme/portalTheme.component.ajs';
+import PortalThemeController from './settings/portal-theme/portalTheme.controller';
+import PortalThemeComponentAjs from './settings/portal-theme/portalTheme.component.ajs';
 import PortalThemeService from '../services/portalTheme.service';
 
-import CustomUserFieldsComponentAjs from './configuration/custom-user-fields/custom-user-fields.component.ajs';
-import CustomUserFieldsController from './configuration/custom-user-fields/custom-user-fields.controller';
+import CustomUserFieldsComponentAjs from './settings/custom-user-fields/custom-user-fields.component.ajs';
+import CustomUserFieldsController from './settings/custom-user-fields/custom-user-fields.controller';
 import CustomUserFieldsService from '../services/custom-user-fields.service';
-import NewFieldDialogController from './configuration/custom-user-fields/dialog/new.custom-user-field.dialog.controller';
-import DeleteFieldDialogController from './configuration/custom-user-fields/dialog/delete.custom-user-field.dialog.controller';
-import UpdateFieldDialogController from './configuration/custom-user-fields/dialog/update.custom-user-field.dialog.controller';
+import NewFieldDialogController from './settings/custom-user-fields/dialog/new.custom-user-field.dialog.controller';
+import DeleteFieldDialogController from './settings/custom-user-fields/dialog/delete.custom-user-field.dialog.controller';
+import UpdateFieldDialogController from './settings/custom-user-fields/dialog/update.custom-user-field.dialog.controller';
 import FlowService from '../services/flow.service';
 import TicketDetailComponentAjs from '../user/support/ticket-detail.component.ajs';
 import SpelService from '../services/spel.service';
@@ -386,7 +386,7 @@ require('highcharts/modules/map')(Highcharts);
 require('@highcharts/map-collection/custom/world');
 import { DebugApiService } from '../services/debugApi.service';
 import { downgradeInjectable } from '@angular/upgrade/static';
-import DialogTransferOwnershipController from './configuration/groups/group/transferOwnershipDialog.controller';
+import DialogTransferOwnershipController from './settings/groups/group/transferOwnershipDialog.controller';
 
 import { upgradeModule } from '@uirouter/angular-hybrid';
 import uiRouter from '@uirouter/angularjs';
@@ -403,7 +403,7 @@ import { GioPermissionService } from '../shared/components/gio-permission/gio-pe
 import { ApiAnalyticsOverviewComponentAjs } from './api/analytics/overview/analytics-overview.component.ajs';
 import { Router } from '@angular/router';
 import SupportTicketsListComponentAjs from '../user/support/tickets-list.component.ajs';
-import SettingsAnalyticsComponentAjs from './configuration/analytics/settings-analytics.component.ajs';
+import SettingsAnalyticsComponentAjs from './settings/analytics/settings-analytics.component.ajs';
 import ApplicationGeneralComponentAjs from './application/details/general/application-general.component.ajs';
 import AnalyticsDashboardComponentAjs from './analytics/analytics-dashboard/analytics-dashboard.component.ajs';
 

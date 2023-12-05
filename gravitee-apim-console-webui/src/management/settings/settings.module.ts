@@ -19,29 +19,29 @@ import { GioBreadcrumbModule, GioSubmenuModule } from '@gravitee/ui-particles-an
 import { CommonModule } from '@angular/common';
 
 import { SettingsRoutingModule } from './settings.route';
+import { SettingsAnalyticsComponent } from './analytics/settings-analytics.component';
+import { SettingsNavigationComponent } from './settings-navigation/settings-navigation.component';
+import { SettingsAnalyticsDashboardComponent } from './analytics/dashboard/settings-analytics-dashboard.component';
+import { ApiPortalHeaderComponent } from './api-portal-header/api-portal-header.component';
+import { ApiQualityRulesComponent } from './api-quality-rules/api-quality-rules.component';
+import { ApiQualityRuleComponent } from './api-quality-rules/api-quality-rule/api-quality-rule.component';
+import { IdentityProvidersComponent } from './identityProviders/identity-providers.component';
+import { CategoriesComponent } from './categories/categories.component';
+import { CategoryComponent } from './categories/category/category.component';
+import { GroupsComponent } from './groups/groups.component';
+import { GroupComponent } from './groups/group/group.component';
+import { EnvironmentMetadataModule } from './metadata/environment-metadata.module';
+import { PortalComponent } from './portal/portal.component';
+import { ClientRegistrationProvidersModule } from './client-registration-providers/client-registration-providers.module';
+import { PortalThemeComponent } from './portal-theme/portalTheme.component';
+import { TopApisComponent } from './top-apis/top-apis.component';
+import { ApiLoggingModule } from './api-logging/api-logging.module';
+import { DictionariesComponent } from './dictionaries/dictionaries.component';
+import { DictionaryComponent } from './dictionaries/dictionary.component';
+import { CustomUserFieldsComponent } from './custom-user-fields/custom-user-fields.component';
+import { EnvironmentNotificationSettingsModule } from './notifications/notification-settings/environment-notification-settings.module';
 
-import { SettingsAnalyticsComponent } from '../configuration/analytics/settings-analytics.component';
-import { SettingsNavigationComponent } from '../configuration/settings-navigation/settings-navigation.component';
-import { SettingsAnalyticsDashboardComponent } from '../configuration/analytics/dashboard/settings-analytics-dashboard.component';
-import { ApiPortalHeaderComponent } from '../configuration/api-portal-header/api-portal-header.component';
-import { ApiQualityRulesComponent } from '../configuration/api-quality-rules/api-quality-rules.component';
-import { ApiQualityRuleComponent } from '../configuration/api-quality-rules/api-quality-rule/api-quality-rule.component';
-import { IdentityProvidersComponent } from '../configuration/identityProviders/identity-providers.component';
-import { CategoriesComponent } from '../configuration/categories/categories.component';
-import { CategoryComponent } from '../configuration/categories/category/category.component';
-import { GroupsComponent } from '../configuration/groups/groups.component';
-import { GroupComponent } from '../configuration/groups/group/group.component';
 import { DocumentationModule } from '../../components/documentation/documentation.module';
-import { EnvironmentMetadataModule } from '../configuration/metadata/environment-metadata.module';
-import { PortalComponent } from '../configuration/portal/portal.component';
-import { ClientRegistrationProvidersModule } from '../configuration/client-registration-providers/client-registration-providers.module';
-import { PortalThemeComponent } from '../configuration/portal-theme/portalTheme.component';
-import { TopApisComponent } from '../configuration/top-apis/top-apis.component';
-import { ApiLoggingModule } from '../configuration/api-logging/api-logging.module';
-import { DictionariesComponent } from '../configuration/dictionaries/dictionaries.component';
-import { DictionaryComponent } from '../configuration/dictionaries/dictionary.component';
-import { CustomUserFieldsComponent } from '../configuration/custom-user-fields/custom-user-fields.component';
-import { EnvironmentNotificationSettingsModule } from '../configuration/notifications/notification-settings/environment-notification-settings.module';
 
 @NgModule({
   imports: [

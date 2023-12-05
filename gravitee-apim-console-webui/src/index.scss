@@ -45,10 +45,10 @@
 
   @import 'management/api/api';
   @import 'management/analytics';
-  @import 'management/configuration/portal-theme/portal-theme';
-  @import 'management/configuration/portal/portal';
-  @import 'management/configuration/groups/group/group';
-  @import 'management/configuration/categories/category/category';
+  @import 'management/settings/portal-theme/portal-theme';
+  @import 'management/settings/portal/portal';
+  @import 'management/settings/groups/group/group';
+  @import 'management/settings/categories/category/category';
   @import 'management/datatable';
   @import 'management/forms';
   @import 'management/stepper';
