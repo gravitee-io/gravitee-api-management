@@ -20,6 +20,7 @@ import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
 import io.gravitee.apim.core.integration.domain_service.IntegrationDomainService;
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationEntity;
+import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
 import io.gravitee.apim.infra.adapter.IntegrationAdapter;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.exchange.api.command.CommandStatus;
@@ -43,6 +44,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import static io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService.APIM_INTEGRATION;
+
 /**
  * @author Remi Baptiste (remi.baptiste at graviteesource.com)
  * @author GraviteeSource Team
@@ -52,16 +55,25 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class IntegrationDomainServiceImpl extends AbstractService<IntegrationDomainService> implements IntegrationDomainService {
 
+    private final GraviteeLicenseDomainService graviteeLicenseDomainService;
     private final ExchangeController exchangeController;
     private final DefaultIntegrationProviderPluginManager integrationProviderPluginManager;
     private final IntegrationCrudService integrationCrudService;
 
+    // TODO To be removed when the license is up to date
+    private final boolean FORCE_INTEGRATION = true;
+
     @Override
     public void doStart() throws Exception {
         super.doStart();
+        if (graviteeLicenseDomainService.isFeatureEnabled(APIM_INTEGRATION) || FORCE_INTEGRATION) {
+            exchangeController.start();
 
-        integrationCrudService.findAll().forEach(this::startIntegration);
-        log.info("Integrations started");
+            integrationCrudService.findAll().forEach(this::startIntegration);
+            log.info("Integrations started.");
+        } else {
+            log.warn("License doesn't contain Integrations feature.");
+        }
     }
 
     @Override
@@ -105,6 +117,7 @@ public class IntegrationDomainServiceImpl extends AbstractService<IntegrationDom
 
     @Override
     public Flowable<IntegrationEntity> getIntegrationEntities(Integration integration) {
+
         ListCommand listCommand = new ListCommand();
 
         return sendListCommand(listCommand, integration.getId())

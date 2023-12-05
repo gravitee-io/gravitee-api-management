@@ -20,6 +20,8 @@ import io.gravitee.node.api.license.LicenseManager;
 public class GraviteeLicenseDomainService {
 
     public static final String OEM_CUSTOMIZATION_FEATURE = "oem-customization";
+    public static final String APIM_INTEGRATION = "apim-integration";
+
     private final LicenseManager licenseManager;
 
     public GraviteeLicenseDomainService(LicenseManager licenseManager) {

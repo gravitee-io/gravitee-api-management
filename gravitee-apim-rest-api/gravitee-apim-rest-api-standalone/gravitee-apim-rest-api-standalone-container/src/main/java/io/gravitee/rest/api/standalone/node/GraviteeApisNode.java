@@ -72,8 +72,6 @@ public class GraviteeApisNode extends AbstractNode {
         components.add(AlertEventProducerManager.class);
         components.add(ScheduledCommandService.class);
         components.add(IntegrationDomainService.class);
-        components.add(ControllerClusterManager.class);
-        components.add(ExchangeController.class);
 
         // Keep it at the end
         components.addAll(UpgraderConfiguration.getComponents());
