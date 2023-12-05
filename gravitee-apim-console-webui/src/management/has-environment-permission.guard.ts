@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivate, CanActivateChild, CanDeactivate, Router, RouterStateSnapshot } from '@angular/router';
-import { switchMap } from 'rxjs/operators';
+import { switchMap, tap } from 'rxjs/operators';
 import { Observable, of } from 'rxjs';
 
 import { ManagementComponent } from './management.component';
 
 import { GioPermissionService } from '../shared/components/gio-permission/gio-permission.service';
 import { EnvironmentService } from '../services-ngx/environment.service';
+import { Constants } from '../entities/Constants';
+import { EnvironmentSettingsService } from '../services-ngx/environment-settings.service';
 
 @Injectable({
   providedIn: 'root',
@@ -30,21 +32,36 @@ export class HasEnvironmentPermissionGuard implements CanActivate, CanActivateCh
   constructor(
     private readonly gioPermissionService: GioPermissionService,
     private readonly environmentService: EnvironmentService,
+    private readonly environmentSettingsService: EnvironmentSettingsService,
+    @Inject('Constants') private constants: Constants,
     private router: Router,
   ) {}
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
-    const currentEnv = route.params.envId;
+    const paramEnv = route.params.envId;
 
     return this.environmentService.list().pipe(
       switchMap((environments) => {
-        const currentEnvironment = environments.find((e) => e.id === currentEnv || e.hrids?.includes(currentEnv));
+        this.constants.org.environments = environments;
+
+        const currentEnvironment = environments.find((e) => e.id === paramEnv || e.hrids?.includes(paramEnv));
 
         if (!currentEnvironment) {
-          this.router.navigate([environments[0].id]);
+          this.router.navigate([environments[0].hrids[0] ?? environments[0].id]);
         }
 
-        return this.gioPermissionService.loadEnvironmentPermissions(route.params.envId);
+        this.constants.org.currentEnv = currentEnvironment;
+
+        if (paramEnv === currentEnvironment.id && currentEnvironment.hrids?.length > 0) {
+          this.router.navigate([currentEnvironment.hrids[0]]);
+        }
+
+        return this.gioPermissionService.loadEnvironmentPermissions(paramEnv);
+      }),
+      switchMap(() => this.environmentSettingsService.get()),
+      tap((settings) => {
+        // FIXME: this is a hack to make the environment settings available in the constants. Try to remove it.
+        this.constants.env.settings = settings;
       }),
       switchMap(() => this.canActivateChild(route, state)),
     );

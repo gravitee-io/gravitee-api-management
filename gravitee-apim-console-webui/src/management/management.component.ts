@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { ActivatedRoute, Router, RoutesRecognized } from '@angular/router';
 import { Subject } from 'rxjs';
-import { filter, map, startWith, takeUntil } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map, startWith, takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'management-root',
@@ -28,7 +28,9 @@ import { filter, map, startWith, takeUntil } from 'rxjs/operators';
         class="header"
       ></gio-top-nav>
       <gio-side-nav class="sidebar"></gio-side-nav>
-      <div class="content gio-toc-scrolling-container"><router-outlet></router-outlet></div>
+      <div class="content gio-toc-scrolling-container" *ngIf="!isLoading">
+        <router-outlet></router-outlet>
+      </div>
       <gio-contextual-doc
         class="documentation"
         *ngIf="openContextualDoc"
@@ -83,10 +85,30 @@ export class ManagementComponent {
 
   openContextualDoc: boolean = localStorage.getItem(this.contextualDocVisibilityKey) === 'true';
   contextualDocumentationPage: string;
+  public isLoading = false;
 
-  constructor(public readonly router: Router, public readonly activatedRoute: ActivatedRoute) {}
+  constructor(
+    public readonly router: Router,
+    public readonly activatedRoute: ActivatedRoute,
+    private changeDetectorRef: ChangeDetectorRef,
+  ) {}
 
   ngOnInit() {
+    // Necessary to refresh view when envId changes
+    this.activatedRoute.params
+      .pipe(
+        map((p) => p.envId),
+        distinctUntilChanged(),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe({
+        next: (_) => {
+          this.isLoading = true;
+          this.changeDetectorRef.detectChanges();
+          this.isLoading = false;
+        },
+      });
+
     this.router.events
       .pipe(
         filter((event) => event instanceof RoutesRecognized),

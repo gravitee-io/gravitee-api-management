@@ -15,7 +15,7 @@
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { GioLicenseService, LicenseOptions, SelectorItem } from '@gravitee/ui-particles-angular';
-import { map } from 'rxjs/operators';
+import { distinctUntilChanged, map, takeUntil } from 'rxjs/operators';
 import { Observable, Subject } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -53,8 +53,6 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
 
   public currentEnv: Environment;
 
-  public readonly currentEnvironment: Environment;
-
   constructor(
     private readonly permissionService: GioPermissionService,
     @Inject('Constants') private readonly constants: Constants,
@@ -64,14 +62,21 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.environments = this.activatedRoute.snapshot.data.environmentResolver.environments.map((env) => ({
-      value: env.id,
-      displayValue: env.name,
-    }));
-    this.currentEnv = this.activatedRoute.snapshot.data.environmentResolver.currentEnvironment;
+    this.activatedRoute.params
+      .pipe(
+        map((p) => p.envId),
+        distinctUntilChanged(),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe({
+        next: (_) => {
+          this.environments = this.constants.org.environments.map((env) => ({ value: env.id, displayValue: env.name }));
+          this.currentEnv = this.constants.org.currentEnv;
 
-    this.mainMenuItems = this.buildMainMenuItems();
-    this.footerMenuItems = this.buildFooterMenuItems();
+          this.mainMenuItems = this.buildMainMenuItems();
+          this.footerMenuItems = this.buildFooterMenuItems();
+        },
+      });
   }
 
   ngOnDestroy(): void {
@@ -212,9 +217,7 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
     return menuItems.filter((item) => !item.permissions || this.permissionService.hasAnyMatching(item.permissions));
   }
 
-  changeCurrentEnv($event: string): void {
-    localStorage.setItem('gv-last-environment-loaded', $event);
-
-    this.router.navigate(['/', $event]);
+  changeCurrentEnv(envId: string): void {
+    this.router.navigate(['/', envId]);
   }
 }
