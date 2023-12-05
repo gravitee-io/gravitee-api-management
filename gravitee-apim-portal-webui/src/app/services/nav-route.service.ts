@@ -101,7 +101,9 @@ export class NavRouteService {
 
       let children = _route.routeConfig ? _route.routeConfig.children : _route.children;
       if (_route.routeConfig && _route.routeConfig.loadChildren) {
-        children = _route.routeConfig._loadedConfig.routes;
+        // FIXME: this is a hack to get the children of a lazy loaded module
+        // we shouldn't rely on a private property as it could change in the future...
+        children = _route.routeConfig._loadedRoutes;
       }
 
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
