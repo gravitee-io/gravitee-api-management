@@ -24,7 +24,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { GioConnectorDialogComponent, GioConnectorDialogData } from './gio-connector-dialog.component';
 import { GioConnectorDialogModule } from './gio-connector-dialog.module';
 
-import { PluginMoreInformation } from '../../entities/plugin/PluginMoreInformation';
+import { PluginMoreInformation } from '../../../../entities/plugin/PluginMoreInformation';
 
 @Component({
   selector: 'gio-connector-dialog-story',

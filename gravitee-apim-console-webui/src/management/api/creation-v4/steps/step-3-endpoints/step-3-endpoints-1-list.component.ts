@@ -30,7 +30,7 @@ import { ConnectorVM, fromConnector } from '../../../../../entities/management-a
 import {
   GioConnectorDialogComponent,
   GioConnectorDialogData,
-} from '../../../../../components/gio-connector-dialog/gio-connector-dialog.component';
+} from '../../../component/gio-connector-dialog/gio-connector-dialog.component';
 import { IconService } from '../../../../../services-ngx/icon.service';
 import { ApimFeature, UTMTags } from '../../../../../shared/components/gio-license/gio-license-data';
 

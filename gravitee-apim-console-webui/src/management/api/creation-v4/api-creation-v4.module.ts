@@ -61,7 +61,7 @@ import { GioConnectorListModule } from '../../../shared/components/gio-connector
 import { GioFormListenersContextPathModule } from '../component/gio-form-listeners/gio-form-listeners-context-path/gio-form-listeners-context-path.module';
 import { GioFormListenersVirtualHostModule } from '../component/gio-form-listeners/gio-form-listeners-virtual-host/gio-form-listeners-virtual-host.module';
 import { GioEntrypointsSelectionListModule } from '../component/gio-entrypoints-selection-list/gio-entrypoints-selection-list.module';
-import { GioConnectorDialogModule } from '../../../components/gio-connector-dialog/gio-connector-dialog.module';
+import { GioConnectorDialogModule } from '../component/gio-connector-dialog/gio-connector-dialog.module';
 import { ApiPlanFormModule } from '../component/plan/api-plan-form.module';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { GioFormQosModule } from '../component/gio-form-qos/gio-form-qos.module';

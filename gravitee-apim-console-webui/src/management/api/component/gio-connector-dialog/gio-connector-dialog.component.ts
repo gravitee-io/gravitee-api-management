@@ -16,7 +16,7 @@
 import { Component, Inject } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 
-import { PluginMoreInformation } from '../../entities/plugin/PluginMoreInformation';
+import { PluginMoreInformation } from '../../../../entities/plugin/PluginMoreInformation';
 
 export type GioConnectorDialogData = {
   name: string;

@@ -20,10 +20,7 @@ import { of, Subject } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { isEmpty } from 'lodash';
 
-import {
-  GioConnectorDialogComponent,
-  GioConnectorDialogData,
-} from '../../../../components/gio-connector-dialog/gio-connector-dialog.component';
+import { GioConnectorDialogComponent, GioConnectorDialogData } from '../gio-connector-dialog/gio-connector-dialog.component';
 import { ConnectorPluginsV2Service } from '../../../../services-ngx/connector-plugins-v2.service';
 import { ConnectorVM } from '../../../../entities/management-api-v2';
 
