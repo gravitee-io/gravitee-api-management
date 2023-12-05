@@ -18,7 +18,7 @@ import { IPromise, IScope } from 'angular';
 import { ActivatedRoute, Router } from '@angular/router';
 import '@gravitee/ui-components/wc/gv-chart-bar';
 
-import { ITimeframe, TimeframeRanges } from '../../quick-time-range/quick-time-range.component';
+import { ITimeframe, TimeframeRanges } from '../quick-time-range/quick-time-range.component';
 import { Alert, Scope } from '../../../entities/alert';
 import AlertService, { IAlertTriggerAnalytics } from '../../../services/alert.service';
 import UserService from '../../../services/user.service';

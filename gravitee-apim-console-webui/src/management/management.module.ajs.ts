@@ -261,8 +261,8 @@ import SettingsAnalyticsDashboardComponentAjs from './settings/analytics/dashboa
 import TokenService from '../services/token.service';
 import DialogGenerateTokenController from '../user/my-accout/token/generateTokenDialog.controller';
 // Quick Time Range
-import QuickTimeRangeComponent from '../components/quick-time-range/quick-time-range.component';
-import QuickTimeRangeController from '../components/quick-time-range/quick-time-range.controller';
+import QuickTimeRangeComponent from '../components/alerts/quick-time-range/quick-time-range.component';
+import QuickTimeRangeController from '../components/alerts/quick-time-range/quick-time-range.controller';
 
 // User-Autocomplete
 import UserAutocompleteComponent from '../components/user-autocomplete/user-autocomplete.component';
