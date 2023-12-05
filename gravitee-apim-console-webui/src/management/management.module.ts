@@ -30,7 +30,6 @@ import { TicketComponent } from '../user/support/ticket.component';
 import { TicketDetailComponent } from '../user/support/ticket-detail.component';
 import { TicketsListComponent } from '../user/support/tickets-list.component';
 import { GioPermissionModule } from '../shared/components/gio-permission/gio-permission.module';
-import { NotificationsModule } from '../components/notifications/notifications.module';
 import { GioSideNavModule } from '../components/gio-side-nav/gio-side-nav.module';
 import { GioTopNavModule } from '../components/gio-top-nav/gio-top-nav.module';
 import { ContextualDocComponentComponent } from '../components/contextual/contextual-doc.component';
@@ -54,7 +53,6 @@ import { ContextualDocComponentComponent } from '../components/contextual/contex
 
     // For User menu
     TasksModule,
-    NotificationsModule,
   ],
   declarations: [ManagementComponent, ContextualDocComponentComponent, TicketComponent, TicketDetailComponent, TicketsListComponent],
   exports: [RouterModule],
