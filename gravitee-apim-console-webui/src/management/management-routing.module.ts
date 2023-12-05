@@ -18,7 +18,6 @@ import { RouterModule, Routes } from '@angular/router';
 
 import { ManagementComponent } from './management.component';
 import { HasEnvironmentPermissionGuard } from './has-environment-permission.guard';
-import { EnvironmentResolver } from './environement.resolver';
 import { InstanceListComponent } from './instances/instance-list/instance-list.component';
 import { InstanceDetailsComponent } from './instances/instance-details/instance-details.component';
 import { InstanceDetailsEnvironmentComponent } from './instances/instance-details/instance-details-environment/instance-details-environment.component';
@@ -41,9 +40,6 @@ const managementRoutes: Routes = [
     canActivate: [HasEnvironmentPermissionGuard],
     canActivateChild: [HasEnvironmentPermissionGuard, HasLicenseGuard],
     canDeactivate: [HasEnvironmentPermissionGuard],
-    resolve: {
-      environmentResolver: EnvironmentResolver,
-    },
     children: [
       {
         path: 'home',
