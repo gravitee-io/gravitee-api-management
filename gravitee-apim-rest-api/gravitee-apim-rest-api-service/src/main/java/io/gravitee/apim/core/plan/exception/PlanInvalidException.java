@@ -13,21 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.plan.domain_service;
+package io.gravitee.apim.core.plan.exception;
 
-import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.plan.model.Plan;
-import io.gravitee.definition.model.v4.flow.Flow;
-import io.gravitee.rest.api.model.v4.plan.PlanEntity;
-import java.util.List;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 
-/**
- * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
- * @author GraviteeSource Team
- */
-public interface CreatePlanDomainService {
-    PlanEntity create(PlanEntity plan, AuditInfo auditInfo);
+public class PlanInvalidException extends ValidationDomainException {
 
-    Plan create(Plan plan, List<Flow> flows, Api api, AuditInfo auditInfo);
+    public PlanInvalidException(String message) {
+        super(message);
+    }
 }

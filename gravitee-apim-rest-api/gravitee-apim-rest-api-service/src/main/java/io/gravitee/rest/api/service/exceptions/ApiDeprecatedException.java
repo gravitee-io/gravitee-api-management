@@ -24,7 +24,9 @@ import java.util.Map;
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
+ * @deprecated use {@link io.gravitee.apim.core.api.exception.ApiDeprecatedException} instead
  */
+@Deprecated
 public class ApiDeprecatedException extends AbstractManagementException {
 
     private final String api;

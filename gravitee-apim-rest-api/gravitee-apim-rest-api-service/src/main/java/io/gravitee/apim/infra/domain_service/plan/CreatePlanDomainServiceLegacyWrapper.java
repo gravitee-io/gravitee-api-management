@@ -15,12 +15,16 @@
  */
 package io.gravitee.apim.infra.domain_service.plan;
 
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
+import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.infra.adapter.PlanAdapter;
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.v4.PlanService;
+import java.util.List;
 import org.springframework.stereotype.Service;
 
 /**
@@ -42,5 +46,10 @@ public class CreatePlanDomainServiceLegacyWrapper implements CreatePlanDomainSer
             new ExecutionContext(auditInfo.organizationId(), auditInfo.environmentId()),
             PlanAdapter.INSTANCE.entityToNewPlanEntity(plan)
         );
+    }
+
+    @Override
+    public Plan create(Plan plan, List<Flow> flows, Api api, AuditInfo auditInfo) {
+        return null;
     }
 }

@@ -15,17 +15,17 @@
  */
 package io.gravitee.rest.api.service.exceptions;
 
-import static java.util.Collections.singletonMap;
 import static java.util.Optional.ofNullable;
 
 import io.gravitee.common.http.HttpStatusCode;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
+ * @deprecated use {@link io.gravitee.apim.core.plan.exception.PlanInvalidException} instead
  */
+@Deprecated
 public class PlanInvalidException extends AbstractManagementException {
 
     private final String plan;

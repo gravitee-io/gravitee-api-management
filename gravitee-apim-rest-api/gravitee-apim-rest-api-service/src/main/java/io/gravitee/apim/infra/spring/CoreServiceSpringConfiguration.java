@@ -36,8 +36,11 @@ import io.gravitee.apim.core.documentation.query_service.PageQueryService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
 import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
+import io.gravitee.apim.core.parameters.query_service.ParametersQueryService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
+import io.gravitee.apim.core.plan.domain_service.PlanValidatorDomainService;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
+import io.gravitee.apim.core.plugin.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.core.sanitizer.HtmlSanitizer;
 import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
@@ -178,5 +181,14 @@ public class CoreServiceSpringConfiguration {
     @Bean
     DocumentationValidationDomainService documentationValidationDomainService(HtmlSanitizer htmlSanitizer) {
         return new DocumentationValidationDomainService(htmlSanitizer);
+    }
+
+    @Bean
+    public PlanValidatorDomainService planValidatorDomainService(
+        ParametersQueryService parametersQueryService,
+        PolicyValidationDomainService policyValidationDomainService,
+        PageCrudService pageCrudService
+    ) {
+        return new PlanValidatorDomainService(parametersQueryService, policyValidationDomainService, pageCrudService);
     }
 }

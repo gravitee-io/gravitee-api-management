@@ -131,4 +131,16 @@ public class Plan implements GenericPlanEntity {
         API,
         CATALOG,
     }
+
+    public boolean isClosed() {
+        return this.status == PlanStatus.CLOSED;
+    }
+
+    public boolean isDeprecated() {
+        return this.status == PlanStatus.DEPRECATED;
+    }
+
+    public boolean isPublished() {
+        return this.status == PlanStatus.PUBLISHED;
+    }
 }
