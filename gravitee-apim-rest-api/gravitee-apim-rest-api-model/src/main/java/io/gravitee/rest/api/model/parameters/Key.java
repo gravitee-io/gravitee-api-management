@@ -353,7 +353,9 @@ public enum Key {
 
     V4_EMULATION_ENGINE_DEFAULT("api.v2.emulateV4Engine.default", "yes", Set.of(SYSTEM)),
 
-    ALERT_ENGINE_ENABLED("alerts.alert-engine.enabled", "false", Set.of(SYSTEM));
+    ALERT_ENGINE_ENABLED("alerts.alert-engine.enabled", "false", Set.of(SYSTEM)),
+
+    INSTALLATION_TYPE("installation.type", "standalone", Set.of(SYSTEM));
 
     String key;
     String defaultValue;
