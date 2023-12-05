@@ -1,5 +1,4 @@
 {{- if and (.Values.ui.enabled) (not .Values.apim.dbLess) -}}
-{{- $base_href := include "ui.base_href" . -}}
 {{- $base_href_defined := include "ui.base_href.defined" . -}}
 apiVersion: apps/v1
 kind: Deployment
@@ -109,7 +108,7 @@ spec:
               value: "https://{{index .Values.api.ingress.management.hosts 0 }}{{ .Values.api.ingress.management.path }}/"
             {{- if not (eq $base_href_defined "true") }}
             - name: CONSOLE_BASE_HREF
-              value: {{ $base_href }}
+              value: {{ print (regexFind "/[a-zA-Z0-9-\\/_.~]+" .Values.ui.ingress.path) "/" }}
             {{- end }}
 {{- if .Values.ui.env | default .Values.ui.deployment.extraEnvs }}
 {{ toYaml ( .Values.ui.env | default .Values.ui.deployment.extraEnvs ) | indent 12 }}
