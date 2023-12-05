@@ -29,17 +29,13 @@ import { ActivatedRoute } from '@angular/router';
 import { ApiPathMappingsComponent } from './api-path-mappings.component';
 import { ApiPathMappingsModule } from './api-path-mappings.module';
 
-import { CurrentUserService } from '../../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
-import { User } from '../../../../entities/user';
 import { Page } from '../../../../entities/page';
 import { ApiV2, fakeApiV2 } from '../../../../entities/management-api-v2';
+import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiPathMappingsComponent', () => {
   const API_ID = 'apiId';
-
-  const currentUser = new User();
-  currentUser.userPermissions = ['api-definition-u', 'api-definition-r'];
 
   let fixture: ComponentFixture<ApiPathMappingsComponent>;
   let loader: HarnessLoader;
@@ -51,7 +47,10 @@ describe('ApiPathMappingsComponent', () => {
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiPathMappingsModule, MatIconTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
-        { provide: CurrentUserService, useValue: { currentUser } },
+        {
+          provide: GioTestingPermissionProvider,
+          useValue: ['api-definition-u', 'api-definition-r'],
+        },
       ],
     })
       .overrideProvider(InteractivityChecker, {

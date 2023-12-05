@@ -26,19 +26,16 @@ import { By } from '@angular/platform-browser';
 import { ApiListModule } from './api-list.module';
 import { ApiListComponent } from './api-list.component';
 
-import { CurrentUserService } from '../../../ajs-upgraded-providers';
-import { User as DeprecatedUser } from '../../../entities/user';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { GioTableWrapperHarness } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
 import { fakePagedResult, fakeApiV2, fakeApiV4, Api } from '../../../entities/management-api-v2';
+import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApisListComponent', () => {
   let fixture: ComponentFixture<ApiListComponent>;
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
   const fakeConstants = CONSTANTS_TESTING;
-  const currentUser = new DeprecatedUser();
-  currentUser.userPermissions = ['environment-api-c'];
 
   afterEach(() => {
     jest.clearAllMocks();
@@ -49,7 +46,7 @@ describe('ApisListComponent', () => {
       await TestBed.configureTestingModule({
         imports: [ApiListModule, MatIconTestingModule, NoopAnimationsModule, GioHttpTestingModule],
         providers: [
-          { provide: CurrentUserService, useValue: { currentUser } },
+          { provide: GioTestingPermissionProvider, useValue: ['environment-api-c'] },
           { provide: 'Constants', useValue: fakeConstants },
         ],
       }).compileComponents();
@@ -394,7 +391,7 @@ describe('ApisListComponent', () => {
       await TestBed.configureTestingModule({
         imports: [ApiListModule, MatIconTestingModule, NoopAnimationsModule, GioHttpTestingModule],
         providers: [
-          { provide: CurrentUserService, useValue: { currentUser } },
+          { provide: GioTestingPermissionProvider, useValue: ['environment-api-c'] },
           { provide: 'Constants', useValue: withQualityEnabled },
         ],
       }).compileComponents();

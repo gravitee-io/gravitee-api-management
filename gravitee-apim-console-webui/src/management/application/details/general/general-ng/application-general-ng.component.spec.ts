@@ -28,20 +28,12 @@ import { ApplicationGeneralNgComponent } from './application-general-ng.componen
 import { ApplicationGeneralNgModule } from './application-general-ng.module';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
-import { CurrentUserService } from '../../../../../ajs-upgraded-providers';
-import { User } from '../../../../../entities/user';
 import { fakeApplication, fakeApplicationType } from '../../../../../entities/application/Application.fixture';
 import { Application, ApplicationType } from '../../../../../entities/application/application';
+import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApplicationGeneralInfoComponent', () => {
   const APPLICATION_ID = 'id_test';
-  const currentUser = new User();
-  currentUser.userPermissions = [
-    'application-definition-u',
-    'application-definition-d',
-    'application-definition-c',
-    'application-definition-r',
-  ];
 
   let fixture: ComponentFixture<ApplicationGeneralNgComponent>;
   let loader: HarnessLoader;
@@ -50,7 +42,12 @@ describe('ApplicationGeneralInfoComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApplicationGeneralNgModule, MatIconTestingModule],
-      providers: [{ provide: CurrentUserService, useValue: { currentUser } }],
+      providers: [
+        {
+          provide: GioTestingPermissionProvider,
+          useValue: ['application-definition-u', 'application-definition-d', 'application-definition-c', 'application-definition-r'],
+        },
+      ],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {

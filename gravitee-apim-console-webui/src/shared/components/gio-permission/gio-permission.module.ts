@@ -17,12 +17,10 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { GioPermissionDirective } from './gio-permission.directive';
-import { GioPermissionService } from './gio-permission.service';
 
 @NgModule({
   imports: [CommonModule],
   declarations: [GioPermissionDirective],
   exports: [GioPermissionDirective],
-  providers: [GioPermissionService],
 })
 export class GioPermissionModule {}

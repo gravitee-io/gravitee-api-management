@@ -28,23 +28,19 @@ import { ApiProxyEntrypointsModule } from './api-proxy-entrypoints.module';
 import { ApiProxyEntrypointsComponent } from './api-proxy-entrypoints.component';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
-import { CurrentUserService } from '../../../../ajs-upgraded-providers';
-import { User } from '../../../../entities/user';
 import { PortalSettings } from '../../../../entities/portal/portalSettings';
 import { ApiV1, ApiV2, fakeApiV1, fakeApiV2 } from '../../../../entities/management-api-v2';
 import { GioFormListenersContextPathHarness } from '../../component/gio-form-listeners/gio-form-listeners-context-path/gio-form-listeners-context-path.harness';
 import { GioFormListenersVirtualHostHarness } from '../../component/gio-form-listeners/gio-form-listeners-virtual-host/gio-form-listeners-virtual-host.harness';
 import { RestrictedDomain } from '../../../../entities/restricted-domain/restrictedDomain';
 import { fakeRestrictedDomains } from '../../../../entities/restricted-domain/restrictedDomain.fixture';
+import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiProxyEntrypointsComponent', () => {
   let fixture: ComponentFixture<ApiProxyEntrypointsComponent>;
   let loader: HarnessLoader;
   let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
-
-  const currentUser = new User();
-  currentUser.userPermissions = ['api-definition-u', 'api-gateway_definition-u'];
 
   const API_ID = 'apiId';
 
@@ -53,7 +49,7 @@ describe('ApiProxyEntrypointsComponent', () => {
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiProxyEntrypointsModule, MatIconTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
-        { provide: CurrentUserService, useValue: { currentUser } },
+        { provide: GioTestingPermissionProvider, useValue: ['api-definition-u', 'api-gateway_definition-u'] },
       ],
     }).overrideProvider(InteractivityChecker, {
       useValue: {

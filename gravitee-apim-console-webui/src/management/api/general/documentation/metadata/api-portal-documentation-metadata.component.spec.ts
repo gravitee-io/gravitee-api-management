@@ -25,14 +25,13 @@ import { ActivatedRoute } from '@angular/router';
 
 import { ApiPortalDocumentationMetadataComponent } from './api-portal-documentation-metadata.component';
 
-import { CurrentUserService } from '../../../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { Metadata } from '../../../../../entities/metadata/metadata';
 import { fakeMetadata } from '../../../../../entities/metadata/metadata.fixture';
 import { GioMetadataHarness } from '../../../../../components/gio-metadata/gio-metadata.harness';
-import { User } from '../../../../../entities/user';
 import { ApiGeneralDocumentationModule } from '../api-general-documentation.module';
 import { GioMetadataDialogHarness } from '../../../../../components/gio-metadata/dialog/gio-metadata-dialog.harness';
+import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiPortalDocumentationMetadataComponent', () => {
   let fixture: ComponentFixture<ApiPortalDocumentationMetadataComponent>;
@@ -42,14 +41,11 @@ describe('ApiPortalDocumentationMetadataComponent', () => {
   const API_ID = 'my-api';
 
   const init = async () => {
-    const currentUser = new User();
-    currentUser.userPermissions = ['api-metadata-u', 'api-metadata-d', 'api-metadata-c'];
-
     await TestBed.configureTestingModule({
       declarations: [ApiPortalDocumentationMetadataComponent],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
-        { provide: CurrentUserService, useValue: { currentUser } },
+        { provide: GioTestingPermissionProvider, useValue: ['api-metadata-u', 'api-metadata-d', 'api-metadata-c'] },
       ],
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiGeneralDocumentationModule, MatIconTestingModule],
     })

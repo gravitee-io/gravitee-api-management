@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Inject, Injectable } from '@angular/core';
+import { Inject, Injectable, InjectionToken, Optional } from '@angular/core';
 import { intersection, toLower } from 'lodash';
 import { map } from 'rxjs/operators';
 import { Observable } from 'rxjs';
@@ -25,19 +25,29 @@ import { User } from '../../../entities/user/user';
 import { CurrentUserService as AjsCurrentUserService } from '../../../ajs-upgraded-providers';
 import { ApplicationService } from '../../../services-ngx/application.service';
 
+export type GioTestingPermission = string[];
+
+export const GioTestingPermissionProvider = new InjectionToken<GioTestingPermission>('GioTestingPermission');
+
 @Injectable({ providedIn: 'root' })
 export class GioPermissionService {
   private currentOrganizationPermissions: string[] = [];
   private currentApiPermissions: string[] = [];
   private currentEnvironmentPermissions: string[] = [];
   private currentApplicationPermissions: string[] = [];
+  private permissions: string[] = [];
 
   constructor(
-    @Inject(AjsCurrentUserService) private readonly ajsCurrentUserService: UserService,
+    @Optional() @Inject(AjsCurrentUserService) private readonly ajsCurrentUserService: UserService | null,
+    @Optional() @Inject(GioTestingPermissionProvider) private readonly gioTestingPermission: GioTestingPermission | null,
     private readonly apiService: ApiService,
     private readonly environmentService: EnvironmentService,
     private readonly applicationService: ApplicationService,
-  ) {}
+  ) {
+    if (this.gioTestingPermission) {
+      this._setPermissions(this.gioTestingPermission);
+    }
+  }
 
   loadOrganizationPermissions(user: User): void {
     const organizationPermissions = user.roles.filter((role) => role.scope === 'ORGANIZATION');
@@ -45,10 +55,12 @@ export class GioPermissionService {
       .flatMap((role) => Object.entries(role.permissions))
       .flatMap(([key, crudValues]) => crudValues.map((crudValue) => toLower(`ORGANIZATION-${key}-${crudValue}`)));
 
-    // For legacy AngularJS permissions. Make permission ajs directive work (see : PermPermissionStore)
-    // TODO: Remove when AngularJS API permissions are removed
-    this.ajsCurrentUserService.currentUser.userPermissions = this.currentOrganizationPermissions;
-    this.ajsCurrentUserService.reloadPermissions();
+    if (this.ajsCurrentUserService) {
+      // For legacy AngularJS permissions. Make permission ajs directive work (see : PermPermissionStore)
+      // TODO: Remove when AngularJS API permissions are removed
+      this.ajsCurrentUserService.currentUser.userPermissions = this.currentOrganizationPermissions;
+      this.ajsCurrentUserService.reloadPermissions();
+    }
   }
 
   loadApiPermissions(apiId: string): Observable<void> {
@@ -58,10 +70,12 @@ export class GioPermissionService {
           crudValues.map((crudValue) => toLower(`API-${key}-${crudValue}`)),
         );
 
-        // For legacy AngularJS permissions. Make permission ajs directive work (see : PermPermissionStore)
-        // TODO: Remove when AngularJS API permissions are removed
-        this.ajsCurrentUserService.currentUser.userApiPermissions = this.currentApiPermissions;
-        this.ajsCurrentUserService.reloadPermissions();
+        if (this.ajsCurrentUserService) {
+          // For legacy AngularJS permissions. Make permission ajs directive work (see : PermPermissionStore)
+          // TODO: Remove when AngularJS API permissions are removed
+          this.ajsCurrentUserService.currentUser.userApiPermissions = this.currentApiPermissions;
+          this.ajsCurrentUserService.reloadPermissions();
+        }
       }),
     );
   }
@@ -73,9 +87,12 @@ export class GioPermissionService {
           crudValues.map((crudValue) => toLower(`ENVIRONMENT-${key}-${crudValue}`)),
         );
 
-        // For legacy AngularJS permissions. Make permission ajs directive work (see : PermPermissionStore)
-        this.ajsCurrentUserService.currentUser.userEnvironmentPermissions = this.currentEnvironmentPermissions;
-        this.ajsCurrentUserService.reloadPermissions();
+        if (this.ajsCurrentUserService) {
+          // For legacy AngularJS permissions. Make permission ajs directive work (see : PermPermissionStore)
+          // TODO: Remove when AngularJS API permissions are removed
+          this.ajsCurrentUserService.currentUser.userEnvironmentPermissions = this.currentEnvironmentPermissions;
+          this.ajsCurrentUserService.reloadPermissions();
+        }
       }),
     );
   }
@@ -87,27 +104,32 @@ export class GioPermissionService {
           crudValues.map((crudValue) => toLower(`APPLICATION-${key}-${crudValue}`)),
         );
 
-        // For legacy AngularJS permissions. Make permission ajs directive work (see : PermPermissionStore)
-        // TODO: Remove when AngularJS API permissions are removed
-        this.ajsCurrentUserService.currentUser.userApplicationPermissions = this.currentApplicationPermissions;
-        this.ajsCurrentUserService.reloadPermissions();
+        if (this.ajsCurrentUserService) {
+          // For legacy AngularJS permissions. Make permission ajs directive work (see : PermPermissionStore)
+          // TODO: Remove when AngularJS API permissions are removed
+          this.ajsCurrentUserService.currentUser.userApplicationPermissions = this.currentApplicationPermissions;
+          this.ajsCurrentUserService.reloadPermissions();
+        }
       }),
     );
   }
 
+  // Set static permissions for tests
+  _setPermissions(permissions: GioTestingPermission): void {
+    this.permissions = permissions ?? [];
+  }
+
   hasAnyMatching(permissions: string[]): boolean {
-    if (!permissions || !this.ajsCurrentUserService.currentUser.userPermissions) {
+    if (!permissions) {
       return false;
     }
+
     return (
-      intersection(this.ajsCurrentUserService.currentUser.userPermissions, permissions).length > 0 ||
-      intersection(this.ajsCurrentUserService.currentUser.userEnvironmentPermissions, permissions).length > 0 ||
-      // Legacy: When AngularJS API|Application permissions are loaded
-      intersection(this.ajsCurrentUserService.currentUser.userApiPermissions, permissions).length > 0 ||
-      intersection(this.ajsCurrentUserService.currentUser.userApplicationPermissions, permissions).length > 0 ||
-      // When Angular API permissions are loaded
+      intersection(this.currentOrganizationPermissions, permissions).length > 0 ||
+      intersection(this.currentEnvironmentPermissions, permissions).length > 0 ||
       intersection(this.currentApiPermissions, permissions).length > 0 ||
-      intersection(this.currentEnvironmentPermissions, permissions).length > 0
+      intersection(this.currentApplicationPermissions, permissions).length > 0 ||
+      intersection(this.permissions, permissions).length > 0
     );
   }
 

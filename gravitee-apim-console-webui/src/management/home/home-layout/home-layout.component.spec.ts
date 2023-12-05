@@ -23,8 +23,6 @@ import { MatTabNavBarHarness } from '@angular/material/tabs/testing';
 
 import { HomeLayoutComponent } from './home-layout.component';
 
-import { CurrentUserService } from '../../../ajs-upgraded-providers';
-import { User } from '../../../entities/user';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { HomeModule } from '../home.module';
 
@@ -33,13 +31,10 @@ describe('HomeLayoutComponent', () => {
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
-  const currentUser = new User();
-
   beforeEach(() => {
     TestBed.configureTestingModule({
       declarations: [HomeLayoutComponent],
       imports: [NoopAnimationsModule, GioHttpTestingModule, HomeModule, MatTabsModule],
-      providers: [{ provide: CurrentUserService, useValue: { currentUser } }],
     });
   });
 

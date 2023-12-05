@@ -28,11 +28,10 @@ import { GioMetadataModule } from './gio-metadata.module';
 import { GioMetadataComponent } from './gio-metadata.component';
 import { GioMetadataDialogHarness } from './dialog/gio-metadata-dialog.harness';
 
-import { CurrentUserService } from '../../ajs-upgraded-providers';
 import { GioHttpTestingModule } from '../../shared/testing';
-import { User } from '../../entities/user';
 import { fakeMetadata } from '../../entities/metadata/metadata.fixture';
 import { NewMetadata, UpdateMetadata } from '../../entities/metadata/metadata';
+import { GioTestingPermission, GioTestingPermissionProvider } from '../../shared/components/gio-permission/gio-permission.service';
 
 describe('GioMetadataComponent', () => {
   let fixture: ComponentFixture<GioMetadataComponent>;
@@ -40,10 +39,10 @@ describe('GioMetadataComponent', () => {
   let loader: HarnessLoader;
   let rootLoader: HarnessLoader;
 
-  const init = async (currentUser: User) => {
+  const init = async (permissions: GioTestingPermission) => {
     await TestBed.configureTestingModule({
       imports: [GioMetadataModule, MatIconTestingModule, NoopAnimationsModule, GioHttpTestingModule],
-      providers: [{ provide: CurrentUserService, useValue: { currentUser } }],
+      providers: [{ provide: GioTestingPermissionProvider, useValue: permissions }],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {
@@ -72,9 +71,7 @@ describe('GioMetadataComponent', () => {
 
   describe('with full permissions', () => {
     beforeEach(async () => {
-      const currentUser = new User();
-      currentUser.userPermissions = ['api-metadata-u', 'api-metadata-d', 'api-metadata-c'];
-      await init(currentUser);
+      await init(['api-metadata-u', 'api-metadata-d', 'api-metadata-c']);
     });
 
     it('should load', async () => {
@@ -213,9 +210,7 @@ describe('GioMetadataComponent', () => {
 
   describe('without delete permissions', () => {
     beforeEach(async () => {
-      const currentUser = new User();
-      currentUser.userPermissions = ['api-metadata-u', 'api-metadata-c'];
-      await init(currentUser);
+      await init(['api-metadata-u', 'api-metadata-c']);
     });
 
     it('should not allow user to delete without correct permissions', async () => {
@@ -241,9 +236,7 @@ describe('GioMetadataComponent', () => {
 
   describe('without create permissions', () => {
     beforeEach(async () => {
-      const currentUser = new User();
-      currentUser.userPermissions = ['api-metadata-r'];
-      await init(currentUser);
+      await init(['api-metadata-r']);
     });
 
     it('should not allow user to create new metadata', async () => {
@@ -269,9 +262,7 @@ describe('GioMetadataComponent', () => {
 
   describe('without update permissions', () => {
     beforeEach(async () => {
-      const currentUser = new User();
-      currentUser.userPermissions = ['api-metadata-d', 'api-metadata-c'];
-      await init(currentUser);
+      await init(['api-metadata-d', 'api-metadata-c']);
     });
 
     it('should not allow user to update without correct permissions', async () => {

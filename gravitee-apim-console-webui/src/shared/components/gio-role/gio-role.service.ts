@@ -13,24 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Inject, Injectable } from '@angular/core';
+import { Inject, Injectable, InjectionToken, Optional } from '@angular/core';
 
-import UserService from '../../../services/user.service';
-import { CurrentUserService } from '../../../ajs-upgraded-providers';
+import { User } from '../../../entities/user/user';
+
+export type GioTestingRole = { scope?: string; name?: string }[];
+
+export const GioTestingRoleProvider = new InjectionToken<GioTestingRole>('GioTestingRole');
 
 @Injectable({ providedIn: 'root' })
 export class GioRoleService {
-  constructor(@Inject(CurrentUserService) private readonly currentUserService: UserService) {}
+  private currentUserRoles: { scope?: string; name?: string }[];
+
+  constructor(@Optional() @Inject(GioTestingRoleProvider) roles: GioTestingRole) {
+    this._setRoles(roles);
+  }
+
+  loadCurrentUserRoles(user: User): void {
+    this.currentUserRoles = user.roles;
+  }
+
+  _setRoles(roles: GioTestingRole) {
+    this.currentUserRoles = roles;
+  }
 
   hasRole(role: { scope: string; name: string }): boolean {
-    if (!role || !this.currentUserService.currentUser.roles) {
+    if (!role) {
       return false;
     }
     const { scope, name } = role;
-    return this.currentUserService.currentUser.roles.some((role) => role.scope === scope && role.name === name);
+    return this.currentUserRoles.some((role) => role.scope === scope && role.name === name);
   }
 
   hasAnyMatching(roles: { scope: string; name: string }[]) {
     return roles.filter((role) => this.hasRole(role)).length > 0;
+  }
+
+  isOrganizationAdmin(): boolean {
+    return this.currentUserRoles?.some((role) => role.scope === 'ORGANIZATION' && role.name === 'ADMIN');
   }
 }

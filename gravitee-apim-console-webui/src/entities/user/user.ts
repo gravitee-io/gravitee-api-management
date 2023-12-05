@@ -41,7 +41,7 @@ export interface User {
 }
 
 export interface UserRole {
-  id: string;
+  id?: string;
   name?: string;
   scope?: 'API' | 'APPLICATION' | 'GROUP' | 'ENVIRONMENT' | 'ORGANIZATION' | 'PLATFORM';
   permissions?: Record<string, string[]>;

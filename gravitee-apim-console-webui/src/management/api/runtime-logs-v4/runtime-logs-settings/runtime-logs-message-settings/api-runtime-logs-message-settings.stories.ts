@@ -24,12 +24,7 @@ import { ApiRuntimeLogsMessageSettingsComponent } from './api-runtime-logs-messa
 
 import { ApiV4, fakeApiV4 } from '../../../../../entities/management-api-v2';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
-import { CurrentUserService } from '../../../../../services-ngx/current-user.service';
-import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
-import { User } from '../../../../../entities/user';
-
-const currentUser = new User();
-currentUser.userPermissions = ['api-definition-u'];
+import { GioPermissionService, GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
 
 const api = fakeApiV4({
   analytics: {
@@ -68,8 +63,8 @@ export default {
           },
         },
         {
-          provide: CurrentUserService,
-          useValue: { currentUser },
+          provide: GioTestingPermissionProvider,
+          useValue: ['api-definition-u'],
         },
         {
           provide: GioPermissionService,

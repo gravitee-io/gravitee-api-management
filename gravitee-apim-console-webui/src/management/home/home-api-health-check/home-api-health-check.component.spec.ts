@@ -25,8 +25,6 @@ import { HighchartsChartModule } from 'highcharts-angular';
 
 import { HomeApiHealthCheckComponent } from './home-api-health-check.component';
 
-import { CurrentUserService } from '../../../ajs-upgraded-providers';
-import { User } from '../../../entities/user';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { HomeModule } from '../home.module';
 import { Api } from '../../../entities/api';
@@ -39,12 +37,9 @@ describe('HomeApiHealthCheckComponent', () => {
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
-  const currentUser = new User();
-
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, HomeModule, MatIconTestingModule, HighchartsChartModule],
-      providers: [{ provide: CurrentUserService, useValue: { currentUser } }],
     });
   });
 

@@ -19,6 +19,11 @@
  */
 import { InjectionToken, Injector } from '@angular/core';
 
+/**
+ * @Deprecated
+ * - For testing use GioTestingPermissionProvider
+ * - For current user use ngx CurrentUserService
+ */
 export const CurrentUserService = new InjectionToken('CurrentUserService');
 
 function currentUserServiceFactory(i: any) {

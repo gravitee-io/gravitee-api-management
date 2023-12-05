@@ -31,10 +31,8 @@ import { ActivatedRoute } from '@angular/router';
 import { ApiGeneralSubscriptionEditComponent } from './api-general-subscription-edit.component';
 import { ApiGeneralSubscriptionEditHarness } from './api-general-subscription-edit.harness';
 
-import { CurrentUserService } from '../../../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { ApiGeneralSubscriptionsModule } from '../api-general-subscriptions.module';
-import { User as DeprecatedUser } from '../../../../../entities/user';
 import {
   AcceptSubscription,
   BaseApplication,
@@ -49,6 +47,7 @@ import {
 } from '../../../../../entities/management-api-v2';
 import { ApiKeyValidationHarness } from '../components/api-key-validation/api-key-validation.harness';
 import { ApiKey, fakeApiKey } from '../../../../../entities/management-api-v2/api-key';
+import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
 
 const SUBSCRIPTION_ID = 'my-nice-subscription';
 const API_ID = 'api_1';
@@ -73,9 +72,6 @@ const BASIC_SUBSCRIPTION = (apiKeyMode: BaseApplication['apiKeyMode'] = 'UNSPECI
   });
 
 describe('ApiGeneralSubscriptionEditComponent', () => {
-  const currentUser = new DeprecatedUser();
-  currentUser.userPermissions = ['api-subscription-u', 'api-subscription-r', 'api-subscription-d'];
-
   let fixture: ComponentFixture<ApiGeneralSubscriptionEditComponent>;
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
@@ -84,7 +80,7 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
     await TestBed.configureTestingModule({
       imports: [ApiGeneralSubscriptionsModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
       providers: [
-        { provide: CurrentUserService, useValue: { currentUser } },
+        { provide: GioTestingPermissionProvider, useValue: ['api-subscription-u', 'api-subscription-r', 'api-subscription-d'] },
         { provide: 'Constants', useValue: CONSTANTS_TESTING },
         {
           provide: InteractivityChecker,
@@ -1044,9 +1040,7 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       useValue: { snapshot: { params: { apiId: API_ID, subscriptionId: SUBSCRIPTION_ID } } },
     }).compileComponents();
     if (permissions) {
-      const overrideUser = currentUser;
-      overrideUser.userPermissions = permissions;
-      await TestBed.overrideProvider(CurrentUserService, { useValue: { currentUser: overrideUser } });
+      await TestBed.overrideProvider(GioTestingPermissionProvider, { useValue: permissions });
     }
 
     await TestBed.overrideProvider('Constants', {

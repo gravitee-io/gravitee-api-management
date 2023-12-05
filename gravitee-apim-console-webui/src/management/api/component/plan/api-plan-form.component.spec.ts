@@ -30,8 +30,6 @@ import { ApiPlanFormModule } from './api-plan-form.module';
 import { ApiPlanFormHarness } from './api-plan-form.harness';
 import { ApiPlanFormComponent } from './api-plan-form.component';
 
-import { CurrentUserService } from '../../../../ajs-upgraded-providers';
-import { User } from '../../../../entities/user';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { fakeGroup } from '../../../../entities/group/group.fixture';
 import { fakeTag } from '../../../../entities/tag/tag.fixture';
@@ -49,6 +47,7 @@ import {
   PlanV4,
 } from '../../../../entities/management-api-v2';
 import { AVAILABLE_PLANS_FOR_MENU, PlanFormType, PlanMenuItemVM } from '../../../../services-ngx/constants.service';
+import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 @Component({
   template: `
@@ -85,9 +84,6 @@ const fakeApiKeySchema = {
 };
 
 describe('ApiPlanFormComponent', () => {
-  const currentUser = new User();
-  currentUser.userPermissions = ['api-plan-u'];
-
   let fixture: ComponentFixture<TestComponent>;
   let testComponent: TestComponent;
   let loader: HarnessLoader;
@@ -98,7 +94,7 @@ describe('ApiPlanFormComponent', () => {
       declarations: [TestComponent],
       imports: [ReactiveFormsModule, NoopAnimationsModule, GioHttpTestingModule, ApiPlanFormModule, MatIconTestingModule],
       providers: [
-        { provide: CurrentUserService, useValue: { currentUser } },
+        { provide: GioTestingPermissionProvider, useValue: ['api-plan-u'] },
         {
           provide: 'Constants',
           useFactory: () => {

@@ -27,7 +27,6 @@ import { PolicyStudioConfigModule } from './policy-studio-config.module';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { fakeFlowConfigurationSchema } from '../../../../entities/flow/configurationSchema.fixture';
-import { User } from '../../../../entities/user';
 import { PolicyStudioService } from '../policy-studio.service';
 import { toApiDefinition } from '../models/ApiDefinition';
 import { fakeApiV2 } from '../../../../entities/management-api-v2';
@@ -38,9 +37,6 @@ describe('PolicyStudioConfigComponent', () => {
   let component: PolicyStudioConfigComponent;
   let httpTestingController: HttpTestingController;
   let policyStudioService: PolicyStudioService;
-
-  const currentUser = new User();
-  currentUser.userApiPermissions = ['api-plan-r', 'api-plan-u'];
 
   const configurationSchema = fakeFlowConfigurationSchema();
   const api = fakeApiV2();

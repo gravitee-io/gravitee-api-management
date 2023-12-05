@@ -29,14 +29,11 @@ import { ActivatedRoute } from '@angular/router';
 import { ApiProxyHealthCheckComponent } from './api-proxy-health-check.component';
 import { ApiProxyHealthCheckModule } from './api-proxy-health-check.module';
 
-import { User } from '../../../../entities/user';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
-import { CurrentUserService } from '../../../../ajs-upgraded-providers';
 import { ApiV2, fakeApiV2 } from '../../../../entities/management-api-v2';
+import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiProxyHealthCheckComponent', () => {
-  const currentUser = new User();
-  currentUser.userPermissions = ['api-health-c'];
   const API_ID = 'my-api';
 
   let fixture: ComponentFixture<ApiProxyHealthCheckComponent>;
@@ -48,7 +45,7 @@ describe('ApiProxyHealthCheckComponent', () => {
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiProxyHealthCheckModule, MatIconTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
-        { provide: CurrentUserService, useValue: { currentUser } },
+        { provide: GioTestingPermissionProvider, useValue: ['api-health-c'] },
       ],
     }).overrideProvider(InteractivityChecker, {
       useValue: {

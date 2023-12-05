@@ -29,14 +29,13 @@ import { ActivatedRoute } from '@angular/router';
 import { ApiProxyGroupEditComponent } from './api-proxy-group-edit.component';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../../shared/testing';
-import { CurrentUserService } from '../../../../../../ajs-upgraded-providers';
 import { ApiProxyGroupsModule } from '../api-proxy-groups.module';
 import { SnackBarService } from '../../../../../../services-ngx/snack-bar.service';
 import { ResourceListItem } from '../../../../../../entities/resource/resourceListItem';
 import { fakeResourceListItem } from '../../../../../../entities/resource/resourceListItem.fixture';
-import { User } from '../../../../../../entities/user';
 import { ApiV2, fakeApiV2 } from '../../../../../../entities/management-api-v2';
 import { EndpointHttpConfigHarness } from '../../components/endpoint-http-config/endpoint-http-config.harness';
+import { GioTestingPermissionProvider } from '../../../../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiProxyGroupEditComponent', () => {
   const API_ID = 'apiId';
@@ -47,15 +46,12 @@ describe('ApiProxyGroupEditComponent', () => {
   let httpTestingController: HttpTestingController;
   let serviceDiscovery: ResourceListItem;
 
-  const currentUser = new User();
-  currentUser.userPermissions = ['api-definition-u'];
-
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiProxyGroupsModule, MatIconTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID, groupName: DEFAULT_GROUP_NAME } } } },
-        { provide: CurrentUserService, useValue: { currentUser } },
+        { provide: GioTestingPermissionProvider, useValue: ['api-definition-u'] },
       ],
     });
 

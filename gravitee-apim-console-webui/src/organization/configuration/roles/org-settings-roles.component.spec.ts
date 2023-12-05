@@ -28,49 +28,35 @@ import { OrgSettingsRolesComponent } from './org-settings-roles.component';
 import { OrganizationSettingsModule } from '../organization-settings.module';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { fakeRole } from '../../../entities/role/role.fixture';
-import { CurrentUserService } from '../../../ajs-upgraded-providers';
-import { User } from '../../../entities/user';
 import { Role } from '../../../entities/role/role';
+import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 
 describe('OrgSettingsRolesComponent', () => {
   let fixture: ComponentFixture<OrgSettingsRolesComponent>;
   let component: OrgSettingsRolesComponent;
   let httpTestingController: HttpTestingController;
+  let permissionsService: GioPermissionService;
   let loader: HarnessLoader;
   let rootLoader: HarnessLoader;
-
-  const currentUser = new User();
-  currentUser.userPermissions = [];
-  currentUser.userApiPermissions = [];
-  currentUser.userEnvironmentPermissions = [];
-  currentUser.userApplicationPermissions = [];
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule, MatIconTestingModule, GioLicenseTestingModule],
-      providers: [{ provide: CurrentUserService, useValue: { currentUser } }],
     }).overrideProvider(InteractivityChecker, {
       useValue: {
         isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
       },
     });
     httpTestingController = TestBed.inject(HttpTestingController);
+    permissionsService = TestBed.inject(GioPermissionService);
     fixture = TestBed.createComponent(OrgSettingsRolesComponent);
     component = fixture.componentInstance;
     loader = TestbedHarnessEnvironment.loader(fixture);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
-
-    fixture.detectChanges();
-  });
-
-  afterEach(() => {
-    currentUser.userPermissions = [];
-    currentUser.userApiPermissions = [];
-    currentUser.userEnvironmentPermissions = [];
-    currentUser.userApplicationPermissions = [];
   });
 
   it('should init properly', () => {
+    fixture.detectChanges();
     respondToGetRolesRequests(
       [
         fakeRole({
@@ -194,7 +180,8 @@ describe('OrgSettingsRolesComponent', () => {
 
   describe('onDeleteRoleClicked', () => {
     beforeEach(() => {
-      currentUser.userPermissions = ['organization-role-d'];
+      permissionsService._setPermissions(['organization-role-d']);
+      fixture.detectChanges();
     });
 
     it('should send a DELETE request', async () => {

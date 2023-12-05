@@ -27,11 +27,10 @@ import { ApiEndpointGroupHarness } from './api-endpoint-group.harness';
 import { ApiEndpointGroupModule } from './api-endpoint-group.module';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
-import { CurrentUserService } from '../../../../ajs-upgraded-providers';
-import { User as DeprecatedUser } from '../../../../entities/user';
 import { ApiV4, EndpointGroupV4, fakeApiV4 } from '../../../../entities/management-api-v2';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { fakeEndpointGroupV4 } from '../../../../entities/management-api-v2/api/v4/endpointGroupV4.fixture';
+import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 /**
  * Test data
@@ -98,10 +97,6 @@ describe('ApiEndpointGroupComponent', () => {
   let api: ApiV4;
 
   const initComponent = async (testApi: ApiV4) => {
-    const currentUser = new DeprecatedUser();
-
-    currentUser.userPermissions = ['api-definition-u', 'api-definition-c', 'api-definition-r'];
-
     const routerParams: unknown = { apiId: API_ID, groupIndex: GROUP_INDEX };
 
     api = testApi;
@@ -110,7 +105,7 @@ describe('ApiEndpointGroupComponent', () => {
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiEndpointGroupModule, MatIconTestingModule, FormsModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: routerParams } } },
-        { provide: CurrentUserService, useValue: { currentUser } },
+        { provide: GioTestingPermissionProvider, useValue: ['api-definition-u', 'api-definition-c', 'api-definition-r'] },
         { provide: SnackBarService, useValue: SnackBarService },
       ],
     }).overrideProvider(InteractivityChecker, {

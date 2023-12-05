@@ -18,9 +18,10 @@ import { Component, Input } from '@angular/core';
 
 import { GioRoleModule } from './gio-role.module';
 import { GioRoleCheckOptions } from './gio-role.directive';
+import { GioRoleService } from './gio-role.service';
 
-import { CurrentUserService } from '../../../ajs-upgraded-providers';
-import { User } from '../../../entities/user';
+import { User } from '../../../entities/user/user';
+import { fakeAdminUser } from '../../../entities/user/user.fixture';
 
 @Component({ template: `<div *gioRole="role">A Content</div>` })
 class TestRoleComponent {
@@ -30,15 +31,18 @@ class TestRoleComponent {
 
 describe('GioRoleDirective', () => {
   let fixture: ComponentFixture<TestRoleComponent>;
-  const currentUser = new User();
+  let gioRoleService: GioRoleService;
+  const currentUser: User = fakeAdminUser();
   currentUser.roles = [];
 
   function prepareTestRoleComponent(role: GioRoleCheckOptions) {
     fixture = TestBed.configureTestingModule({
       declarations: [TestRoleComponent],
       imports: [GioRoleModule],
-      providers: [{ provide: CurrentUserService, useValue: { currentUser } }],
     }).createComponent(TestRoleComponent);
+
+    gioRoleService = TestBed.inject(GioRoleService);
+    gioRoleService.loadCurrentUserRoles(currentUser);
 
     fixture.componentInstance.role = role;
     fixture.detectChanges();

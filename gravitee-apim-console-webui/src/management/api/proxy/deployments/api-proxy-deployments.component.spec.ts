@@ -27,11 +27,10 @@ import { ApiProxyDeploymentsModule } from './api-proxy-deployments.module';
 import { ApiProxyDeploymentsComponent } from './api-proxy-deployments.component';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
-import { CurrentUserService } from '../../../../ajs-upgraded-providers';
-import { User } from '../../../../entities/user';
 import { fakeTag } from '../../../../entities/tag/tag.fixture';
 import { Tag } from '../../../../entities/tag/tag';
 import { ApiV2, fakeApiV2 } from '../../../../entities/management-api-v2';
+import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiProxyDeploymentsComponent', () => {
   const API_ID = 'apiId';
@@ -41,15 +40,12 @@ describe('ApiProxyDeploymentsComponent', () => {
   let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
-  const currentUser = new User();
-  currentUser.userPermissions = ['api-definition-u'];
-
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiProxyDeploymentsModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
-        { provide: CurrentUserService, useValue: { currentUser } },
+        { provide: GioTestingPermissionProvider, useValue: ['api-definition-u'] },
       ],
     });
   });

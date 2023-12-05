@@ -33,31 +33,19 @@ import {
   IdentityProviderActivation,
   IdentityProviderListItem,
 } from '../../../entities/identity-provider';
-import { CurrentUserService } from '../../../ajs-upgraded-providers';
-import { User } from '../../../entities/user';
+import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 
 describe('OrgSettingsIdentityProvidersComponent', () => {
-  const currentUser = new User();
-  currentUser.userPermissions = [];
-  currentUser.userApiPermissions = [];
-  currentUser.userEnvironmentPermissions = [];
-  currentUser.userApplicationPermissions = [];
-
   let fixture: ComponentFixture<OrgSettingsIdentityProvidersComponent>;
   let loader: HarnessLoader;
   let rootLoader: HarnessLoader;
+  let permissionsService: GioPermissionService;
 
   let httpTestingController: HttpTestingController;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, OrganizationSettingsModule, GioHttpTestingModule],
-      providers: [
-        {
-          provide: CurrentUserService,
-          useValue: { currentUser },
-        },
-      ],
     }).overrideProvider(InteractivityChecker, {
       useValue: {
         isFocusable: () => true, // This checks focus trap, set it to true to  avoid the warning
@@ -65,6 +53,7 @@ describe('OrgSettingsIdentityProvidersComponent', () => {
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);
+    permissionsService = TestBed.inject(GioPermissionService);
     fixture = TestBed.createComponent(OrgSettingsIdentityProvidersComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
@@ -112,7 +101,7 @@ describe('OrgSettingsIdentityProvidersComponent', () => {
 
   describe('onDeleteActionClicked', () => {
     beforeEach(() => {
-      currentUser.userPermissions = ['organization-identity_provider-d'];
+      permissionsService._setPermissions(['organization-identity_provider-d']);
     });
 
     it('sends a DELETE request', async () => {
@@ -151,7 +140,7 @@ describe('OrgSettingsIdentityProvidersComponent', () => {
 
   describe('onActivationToggleActionClicked', () => {
     beforeEach(() => {
-      currentUser.userPermissions = ['organization-identity_provider_activation-u'];
+      permissionsService._setPermissions(['organization-identity_provider_activation-u']);
     });
 
     it('sends a PUT request to activate an identity provider', async () => {

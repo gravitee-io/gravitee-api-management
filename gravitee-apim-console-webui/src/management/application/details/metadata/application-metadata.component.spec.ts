@@ -26,13 +26,12 @@ import { ActivatedRoute } from '@angular/router';
 import { ApplicationMetadataComponent } from './application-metadata.component';
 import { ApplicationMetadataModule } from './application-metadata.module';
 
-import { User } from '../../../../entities/user';
 import { GioMetadataHarness } from '../../../../components/gio-metadata/gio-metadata.harness';
-import { CurrentUserService } from '../../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { fakeMetadata } from '../../../../entities/metadata/metadata.fixture';
 import { Metadata } from '../../../../entities/metadata/metadata';
 import { GioMetadataDialogHarness } from '../../../../components/gio-metadata/dialog/gio-metadata-dialog.harness';
+import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApplicationMetadataComponent', () => {
   let fixture: ComponentFixture<ApplicationMetadataComponent>;
@@ -42,14 +41,14 @@ describe('ApplicationMetadataComponent', () => {
   const APPLICATION_ID = 'my-application';
 
   const init = async () => {
-    const currentUser = new User();
-    currentUser.userPermissions = ['application-metadata-u', 'application-metadata-d', 'application-metadata-c'];
-
     await TestBed.configureTestingModule({
       declarations: [ApplicationMetadataComponent],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { applicationId: APPLICATION_ID } } } },
-        { provide: CurrentUserService, useValue: { currentUser } },
+        {
+          provide: GioTestingPermissionProvider,
+          useValue: ['application-metadata-u', 'application-metadata-d', 'application-metadata-c'],
+        },
       ],
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApplicationMetadataModule, MatIconTestingModule],
     })

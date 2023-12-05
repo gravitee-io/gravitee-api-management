@@ -33,12 +33,11 @@ import { ApiDocumentationV4EditFolderDialogHarness } from './dialog/documentatio
 import { ApiDocumentationV4PagesListHarness } from './documentation-pages-list/api-documentation-v4-pages-list.harness';
 import { ApiDocumentationV4PageTitleHarness } from './components/api-documentation-v4-page-title/api-documentation-v4-page-title.harness';
 
-import { CurrentUserService } from '../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { Breadcrumb, Page } from '../../../entities/management-api-v2/documentation/page';
 import { fakeFolder, fakeMarkdown } from '../../../entities/management-api-v2/documentation/page.fixture';
-import { User } from '../../../entities/user';
 import { ApiLifecycleState, fakeApiV4 } from '../../../entities/management-api-v2';
+import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiDocumentationV4', () => {
   let fixture: ComponentFixture<ApiDocumentationV4Component>;
@@ -46,9 +45,6 @@ describe('ApiDocumentationV4', () => {
   const API_ID = 'api-id';
   let httpTestingController: HttpTestingController;
   let routerNavigateSpy: jest.SpyInstance;
-
-  const currentUser = new User();
-  currentUser.userPermissions = ['api-documentation-u', 'api-documentation-c', 'api-documentation-r', 'api-documentation-d'];
 
   const init = async (
     pages: Page[],
@@ -68,7 +64,10 @@ describe('ApiDocumentationV4', () => {
             queryParams: new BehaviorSubject({ parentId }),
           },
         },
-        { provide: CurrentUserService, useValue: { currentUser } },
+        {
+          provide: GioTestingPermissionProvider,
+          useValue: ['api-documentation-u', 'api-documentation-c', 'api-documentation-r', 'api-documentation-d'],
+        },
         {
           provide: 'Constants',
           useFactory: () => {

@@ -30,21 +30,18 @@ import { ApiGeneralMembersHarness } from './api-general-members.harness';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { ApiGeneralUserGroupModule } from '../api-general-user-group.module';
-import { CurrentUserService } from '../../../../../ajs-upgraded-providers';
 import { RoleService } from '../../../../../services-ngx/role.service';
 import { Role } from '../../../../../entities/role/role';
 import { fakeRole } from '../../../../../entities/role/role.fixture';
-import { User } from '../../../../../entities/user';
 import { fakeSearchableUser } from '../../../../../entities/user/searchableUser.fixture';
 import { Api, fakeApiV1, fakeApiV4, fakeGroup, fakeGroupsResponse, MembersResponse } from '../../../../../entities/management-api-v2';
+import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiGeneralMembersComponent', () => {
   let fixture: ComponentFixture<ApiGeneralMembersComponent>;
   let httpTestingController: HttpTestingController;
   let harness: ApiGeneralMembersHarness;
 
-  const currentUser = new User();
-  currentUser.userPermissions = ['api-member-u', 'api-member-c', 'api-member-d'];
   const apiId = 'apiId';
   const roles: Role[] = [
     fakeRole({ name: 'PRIMARY_OWNER', default: false }),
@@ -58,7 +55,7 @@ describe('ApiGeneralMembersComponent', () => {
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId } } } },
         { provide: RoleService, useValue: { list: () => of(roles) } },
-        { provide: CurrentUserService, useValue: { currentUser } },
+        { provide: GioTestingPermissionProvider, useValue: ['api-member-u', 'api-member-c', 'api-member-d'] },
       ],
       schemas: [NO_ERRORS_SCHEMA],
     }).overrideProvider(InteractivityChecker, {

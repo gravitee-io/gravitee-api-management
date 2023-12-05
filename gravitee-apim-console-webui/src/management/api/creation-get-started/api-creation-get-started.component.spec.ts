@@ -26,10 +26,9 @@ import { ApiCreationGetStartedComponent } from './api-creation-get-started.compo
 import { ApiCreationGetStartedModule } from './api-creation-get-started.module';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
-import { CurrentUserService } from '../../../ajs-upgraded-providers';
 import { fakeInstallation } from '../../../entities/installation/installation.fixture';
-import { User } from '../../../entities/user';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
+import { GioTestingPermission, GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiCreationGetStartedComponent', () => {
   let fixture: ComponentFixture<ApiCreationGetStartedComponent>;
@@ -37,13 +36,13 @@ describe('ApiCreationGetStartedComponent', () => {
   let component: ApiCreationGetStartedComponent;
   let httpTestingController: HttpTestingController;
 
-  const initConfigureTestingModule = (currentUser: User) => {
+  const initConfigureTestingModule = (permissions: GioTestingPermission) => {
     TestBed.configureTestingModule({
       imports: [GioPermissionModule, GioHttpTestingModule, ApiCreationGetStartedModule, MatIconTestingModule, NoopAnimationsModule],
       providers: [
         {
-          provide: CurrentUserService,
-          useValue: { currentUser },
+          provide: GioTestingPermissionProvider,
+          useValue: permissions,
         },
       ],
     })
@@ -69,9 +68,7 @@ describe('ApiCreationGetStartedComponent', () => {
 
   describe('as Admin', function () {
     beforeEach(() => {
-      const currentUser = new User();
-      currentUser.userPermissions = ['organization-installation-r'];
-      initConfigureTestingModule(currentUser);
+      initConfigureTestingModule(['organization-installation-r']);
     });
 
     it('should use the cockpit link if installation registered', async () => {
@@ -113,9 +110,7 @@ describe('ApiCreationGetStartedComponent', () => {
 
   describe('as ApiUser', function () {
     beforeEach(() => {
-      const currentUser = new User();
-      currentUser.userPermissions = [];
-      initConfigureTestingModule(currentUser);
+      initConfigureTestingModule([]);
     });
 
     it('should always use the cockpit.gravitee.io link even if no right to access the installation', async () => {

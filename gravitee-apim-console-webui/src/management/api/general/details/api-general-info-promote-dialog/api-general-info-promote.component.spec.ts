@@ -26,20 +26,17 @@ import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/materia
 
 import { ApiGeneralInfoPromoteDialogComponent } from './api-general-info-promote-dialog.component';
 
-import { CurrentUserService } from '../../../../../ajs-upgraded-providers';
-import { User } from '../../../../../entities/user';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { ApiGeneralInfoModule } from '../api-general-info.module';
 import { fakePromotion, fakePromotionTarget, Promotion, PromotionTarget } from '../../../../../entities/promotion';
 import { fakeApiV2 } from '../../../../../entities/management-api-v2';
+import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiPortalDetailsPromoteDialogComponent', () => {
   const API_ID = 'apiId';
   const api = fakeApiV2({
     id: API_ID,
   });
-  const currentUser = new User();
-  currentUser.userPermissions = ['api-definition-u', 'api-definition-d', 'api-definition-c'];
 
   let fixture: ComponentFixture<ApiGeneralInfoPromoteDialogComponent>;
   let loader: HarnessLoader;
@@ -49,7 +46,10 @@ describe('ApiPortalDetailsPromoteDialogComponent', () => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiGeneralInfoModule, MatIconTestingModule, MatDialogModule],
       providers: [
-        { provide: CurrentUserService, useValue: { currentUser } },
+        {
+          provide: GioTestingPermissionProvider,
+          useValue: ['api-definition-u', 'api-definition-d', 'api-definition-c'],
+        },
         { provide: MatDialogRef, useValue: {} },
         { provide: MAT_DIALOG_DATA, useValue: { api } },
         {

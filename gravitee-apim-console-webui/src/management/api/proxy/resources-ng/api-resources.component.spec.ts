@@ -27,10 +27,9 @@ import { ApiResourcesComponent } from './api-resources.component';
 import { ApiResourcesModule } from './api-resources.module';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
-import { User } from '../../../../entities/user';
 import { fakeResourceListItem } from '../../../../entities/resource/resourceListItem.fixture';
-import { CurrentUserService } from '../../../../ajs-upgraded-providers';
 import { ApiV4, fakeApiV4 } from '../../../../entities/management-api-v2';
+import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 describe('PolicyStudioResourcesComponent', () => {
   let fixture: ComponentFixture<ApiResourcesComponent>;
@@ -38,8 +37,6 @@ describe('PolicyStudioResourcesComponent', () => {
   let httpTestingController: HttpTestingController;
   let loader: HarnessLoader;
 
-  const currentUser = new User();
-  currentUser.userPermissions = ['api-plan-r', 'api-plan-u'];
   const API_ID = 'apiId';
 
   const resources = [fakeResourceListItem()];
@@ -52,8 +49,8 @@ describe('PolicyStudioResourcesComponent', () => {
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
         {
-          provide: CurrentUserService,
-          useValue: { currentUser },
+          provide: GioTestingPermissionProvider,
+          useValue: ['api-plan-r', 'api-plan-u'],
         },
         {
           provide: GioLicenseService,

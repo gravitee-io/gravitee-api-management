@@ -25,13 +25,12 @@ import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 import { EnvironmentMetadataComponent } from './environment-metadata.component';
 import { EnvironmentMetadataModule } from './environment-metadata.module';
 
-import { User } from '../../../entities/user';
-import { CurrentUserService } from '../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { GioMetadataHarness } from '../../../components/gio-metadata/gio-metadata.harness';
 import { GioMetadataDialogHarness } from '../../../components/gio-metadata/dialog/gio-metadata-dialog.harness';
 import { fakeMetadata } from '../../../entities/metadata/metadata.fixture';
 import { Metadata } from '../../../entities/metadata/metadata';
+import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 
 describe('EnvironmentMetadataComponent', () => {
   let fixture: ComponentFixture<EnvironmentMetadataComponent>;
@@ -40,12 +39,14 @@ describe('EnvironmentMetadataComponent', () => {
   let httpTestingController: HttpTestingController;
 
   const init = async () => {
-    const currentUser = new User();
-    currentUser.userPermissions = ['environment-metadata-u', 'environment-metadata-d', 'environment-metadata-c'];
-
     await TestBed.configureTestingModule({
       declarations: [EnvironmentMetadataComponent],
-      providers: [{ provide: CurrentUserService, useValue: { currentUser } }],
+      providers: [
+        {
+          provide: GioTestingPermissionProvider,
+          useValue: ['environment-metadata-u', 'environment-metadata-d', 'environment-metadata-c'],
+        },
+      ],
       imports: [NoopAnimationsModule, GioHttpTestingModule, EnvironmentMetadataModule, MatIconTestingModule],
     })
       .overrideProvider(InteractivityChecker, {
