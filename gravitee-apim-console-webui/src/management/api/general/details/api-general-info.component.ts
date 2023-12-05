@@ -48,7 +48,6 @@ import {
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { Api, ApiV2, ApiV4, UpdateApi, UpdateApiV2, UpdateApiV4 } from '../../../../entities/management-api-v2';
-import { ApiService } from '../../../../services-ngx/api.service';
 
 @Component({
   selector: 'api-general-info',
@@ -93,7 +92,6 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
     @Inject(UIRouterState) private readonly ajsState: StateService,
-    private readonly legacyApiService: ApiService,
     private readonly apiService: ApiV2Service,
     private readonly policyService: PolicyService,
     private readonly categoryService: CategoryService,
@@ -165,7 +163,10 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
             canDelete: !(api.state === 'STARTED' || api.lifecycleState === 'PUBLISHED'),
           };
           this.canDisplayV4EmulationEngineToggle = (api.definitionVersion != null && api.definitionVersion === 'V2') ?? false;
-          this.canPromote = this.dangerActions.canChangeApiLifecycle && api.lifecycleState !== 'DEPRECATED';
+          this.canPromote =
+            this.dangerActions.canChangeApiLifecycle &&
+            api.lifecycleState !== 'DEPRECATED' &&
+            this.constants.org.settings.management.installationType !== 'multi-tenant';
 
           this.apiDetailsForm = new FormGroup({
             name: new FormControl(
