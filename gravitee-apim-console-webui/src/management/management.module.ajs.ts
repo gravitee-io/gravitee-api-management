@@ -125,8 +125,7 @@ import EnvironmentService from '../services/environment.service';
 import OrganizationService from '../services/organization.service';
 import InstallationService from '../services/installation.service';
 
-import ErrorComponent from '../components/error/error.component';
-import ErrorController from '../components/error/error.controller';
+import ErrorController from '../components/documentation/error/error.controller';
 import IdentityPictureDirective from '../components/identityPicture/identityPicture.directive';
 import ImageDirective from '../components/image/image.directive';
 import { EventService } from '../services/event.service';
@@ -609,7 +608,6 @@ graviteeManagementModule.component('gvWidgetDataLineConfiguration', WidgetChartL
 graviteeManagementModule.component('gvWidgetDataMapConfiguration', WidgetChartMapConfigurationComponent);
 graviteeManagementModule.component('gvWidgetDataPieConfiguration', WidgetChartPieConfigurationComponent);
 graviteeManagementModule.component('gvWidgetDataStatsConfiguration', WidgetDataStatsConfigurationComponent);
-graviteeManagementModule.component('gvError', ErrorComponent);
 graviteeManagementModule.controller('ErrorController', ErrorController);
 
 graviteeManagementModule.component('settingsCategoriesAjs', CategoriesComponentAjs);
