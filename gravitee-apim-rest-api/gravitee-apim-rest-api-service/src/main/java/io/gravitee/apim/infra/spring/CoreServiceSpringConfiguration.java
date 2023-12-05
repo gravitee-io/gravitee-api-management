@@ -41,7 +41,11 @@ import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDoma
 import io.gravitee.apim.core.parameters.query_service.ParametersQueryService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
+import io.gravitee.apim.core.plan.domain_service.DeletePlanDomainService;
+import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
 import io.gravitee.apim.core.plan.domain_service.PlanValidatorDomainService;
+import io.gravitee.apim.core.plan.domain_service.ReorderPlanDomainService;
+import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.apim.core.plugin.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.core.plugin.query_service.EntrypointPluginQueryService;
@@ -49,6 +53,7 @@ import io.gravitee.apim.core.sanitizer.HtmlSanitizer;
 import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomainService;
+import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.node.api.license.NodeLicenseService;
@@ -219,5 +224,42 @@ public class CoreServiceSpringConfiguration {
             flowCrudService,
             auditDomainService
         );
+    }
+
+    @Bean
+    public ReorderPlanDomainService reorderPlanDomainService(PlanQueryService planQueryService, PlanCrudService planCrudService) {
+        return new ReorderPlanDomainService(planQueryService, planCrudService);
+    }
+
+    @Bean
+    public UpdatePlanDomainService updatePlansDomainService(
+        PlanQueryService planQueryService,
+        PlanCrudService planCrudService,
+        PlanValidatorDomainService planValidatorDomainService,
+        FlowValidationDomainService flowValidationDomainService,
+        FlowCrudService flowCrudService,
+        AuditDomainService auditDomainService,
+        PlanSynchronizationService planSynchronizationService,
+        ReorderPlanDomainService reorderPlanDomainService
+    ) {
+        return new UpdatePlanDomainService(
+            planQueryService,
+            planCrudService,
+            planValidatorDomainService,
+            flowValidationDomainService,
+            flowCrudService,
+            auditDomainService,
+            planSynchronizationService,
+            reorderPlanDomainService
+        );
+    }
+
+    @Bean
+    public DeletePlanDomainService deletePlanDomainService(
+        PlanCrudService planCrudService,
+        SubscriptionQueryService subscriptionQueryService,
+        AuditDomainService auditDomainService
+    ) {
+        return new DeletePlanDomainService(planCrudService, subscriptionQueryService, auditDomainService);
     }
 }

@@ -20,6 +20,7 @@ import io.gravitee.apim.core.api.model.crd.ApiCRD;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import java.io.IOException;
 import java.util.stream.Stream;
 import org.mapstruct.Mapper;
@@ -52,6 +53,10 @@ public interface ApiAdapter {
 
     @Mapping(target = "apiVersion", source = "version")
     io.gravitee.definition.model.v4.Api toApiDefinition(ApiCRD source);
+
+    @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
+    @Mapping(source = "version", target = "apiVersion")
+    UpdateApiEntity toUpdateApiEntity(ApiCRD api);
 
     @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
     @Mapping(source = "version", target = "apiVersion")
