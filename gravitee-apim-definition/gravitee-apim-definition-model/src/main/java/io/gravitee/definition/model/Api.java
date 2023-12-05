@@ -20,14 +20,25 @@ import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.regex.Pattern;
+import lombok.AllArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@AllArgsConstructor
+@SuperBuilder(toBuilder = true)
 public class Api implements Serializable {
 
     @JsonProperty("id")

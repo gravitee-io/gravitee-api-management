@@ -16,7 +16,6 @@
 package io.gravitee.apim.infra.adapter;
 
 import fixtures.core.model.ApiFixtures;
-import io.gravitee.definition.model.ApiBuilder;
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
@@ -180,7 +179,7 @@ class ApiAdapterTest {
                 soft
                     .assertThat(api.getApiDefinition())
                     // V2 Api definition is defining a equals/hashcode checking only the id
-                    .isEqualTo(ApiBuilder.anApiV2().id("my-id").name("api-name").apiVersion("1.0.0").build());
+                    .isEqualTo(io.gravitee.definition.model.Api.builder().id("my-id").name("api-name").version("1.0.0").build());
                 soft.assertThat(api.getType()).isEqualTo(ApiType.PROXY);
                 soft.assertThat(api.getName()).isEqualTo("api-name");
                 soft.assertThat(api.getDeployedAt()).isEqualTo(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC));
