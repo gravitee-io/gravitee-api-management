@@ -163,7 +163,6 @@ import UserService from '../services/user.service';
 import UserController from '../user/my-accout/user.controller';
 import UserComponentAjs from '../user/my-accout/user.component.ajs';
 // Notification Settings
-import NotificationsComponentAjs from '../components/notifications/notifications.component.ajs';
 import NotificationSettingsService from '../services/notificationSettings.service';
 import NotificationTemplatesService from '../services/notificationTemplates.service';
 
@@ -208,8 +207,6 @@ import AuthenticationService from '../services/authentication.service';
 import interceptorConfig from './management.interceptor.ajs';
 
 import { permission, uiPermission } from 'angular-permission';
-
-import DialogAddNotificationSettingsController from '../components/notifications/notificationsettings/addnotificationsettings.dialog.controller';
 
 import TopApisController from './settings/top-apis/top-apis.controller';
 import TopApiService from '../services/top-api.service';
@@ -687,8 +684,6 @@ graviteeManagementModule.component('user', UserComponentAjs);
 
 graviteeManagementModule.service('NotificationSettingsService', NotificationSettingsService);
 graviteeManagementModule.service('NotificationTemplatesService', NotificationTemplatesService);
-graviteeManagementModule.controller('DialogAddNotificationSettingsController', DialogAddNotificationSettingsController);
-graviteeManagementModule.component('notificationsComponentAjs', NotificationsComponentAjs);
 
 graviteeManagementModule.component('apiAnalyticsLogsComponentAjs', ApiAnalyticsLogsComponentAjs);
 graviteeManagementModule.component('gvLogsTimeframe', LogsTimeframeComponent);
