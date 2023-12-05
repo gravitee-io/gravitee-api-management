@@ -251,9 +251,6 @@ import AlertTriggerProjectionsComponent from '../components/alerts/alert/trigger
 import AlertTriggerProjectionComponent from '../components/alerts/alert/triggers/projections/trigger-projection.component';
 import AlertTriggerTimeframesComponent from '../components/alerts/alert/triggers/trigger-timeframe.component';
 
-import CircularPercentageComponent from '../components/circularPercentage/circularPercentage.component';
-import CircularPercentageController from '../components/circularPercentage/circularPercentage.controller';
-
 import EntrypointService from '../services/entrypoint.service';
 
 import SelectFolderDialogController from '../components/documentation/dialog/selectfolder.controller';
@@ -757,10 +754,6 @@ graviteeManagementModule.component('gvAlertTriggerApplicationQuota', AlertTrigge
 graviteeManagementModule.component('gvAlertTriggerProjections', AlertTriggerProjectionsComponent);
 graviteeManagementModule.component('gvAlertTriggerProjection', AlertTriggerProjectionComponent);
 graviteeManagementModule.component('gvAlertTriggerTimeframe', AlertTriggerTimeframesComponent);
-
-// CircularPercentageComponent
-graviteeManagementModule.component('circularPercentage', CircularPercentageComponent);
-graviteeManagementModule.controller('CircularPercentageController', CircularPercentageController);
 
 graviteeManagementModule.service('EntrypointService', EntrypointService);
 
