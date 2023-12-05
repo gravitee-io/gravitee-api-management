@@ -145,7 +145,7 @@ import SubscriptionService from '../services/subscription.service';
 import EmptyStateDirective from '../components/emptystate/emptystate.directive';
 import TagService from '../services/tag.service';
 import MetadataService from '../services/metadata.service';
-import ChartDirective from '../components/chart/chart.directive';
+import ChartDirective from './api/proxy/health-check-dashboard/chart/chart.directive';
 import FileChooserDialogController from '../components/dialog/fileChooserDialog.controller';
 import DialogConfirmController from '../components/dialog/confirmDialog.controller';
 import DialogConfirmAndValidateController from '../components/dialog/confirmAndValidateDialog.controller';
@@ -507,6 +507,7 @@ graviteeManagementModule.config(themeConfig);
 graviteeManagementModule.component('apiAnalyticsOverviewComponentAjs', ApiAnalyticsOverviewComponentAjs);
 graviteeManagementModule.component('apiV1PoliciesComponentAjs', ApiV1PoliciesComponentAjs);
 graviteeManagementModule.controller('AddPoliciesPathController', AddPoliciesPathController);
+graviteeManagementModule.directive('apiHealthcheckDashboardChart', () => new ChartDirective());
 graviteeManagementModule.component('apiHealthcheckDashboardComponentAjs', ApiHealthcheckDashboardComponentAjs);
 
 graviteeManagementModule.component('apiV1PropertiesComponentAjs', ApiV1PropertiesComponentAjs);
@@ -598,7 +599,6 @@ graviteeManagementModule.directive('graviteeIdentityPicture', () => new Identity
 graviteeManagementModule.directive('gvModel', () => new GvModelDirective());
 graviteeManagementModule.directive('graviteeImage', () => new ImageDirective());
 graviteeManagementModule.directive('graviteeEmptyState', () => new EmptyStateDirective());
-graviteeManagementModule.directive('graviteeChart', () => new ChartDirective());
 
 graviteeManagementModule.component('gvWidget', WidgetComponent);
 graviteeManagementModule.component('gvWidgetDataTable', WidgetDataTableComponent);
