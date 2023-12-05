@@ -168,7 +168,6 @@ import RoleService from '../services/role.service';
 import UserService from '../services/user.service';
 import UserController from '../user/my-accout/user.controller';
 import UserComponentAjs from '../user/my-accout/user.component.ajs';
-import { TasksComponent } from '../user/tasks/tasks.component';
 // Notification Settings
 import NotificationsComponentAjs from '../components/notifications/notifications.component.ajs';
 import NotificationSettingsService from '../services/notificationSettings.service';
@@ -229,7 +228,6 @@ import PortalSettingsComponentAjs from './configuration/portal/portal.component.
 import RouterService from '../services/router.service';
 
 import MessageService from '../services/message.service';
-import { MessagesComponent } from './messages/messages.component';
 
 import ApiPortalHeaderComponentAjs from './configuration/api-portal-header/api-portal-header.component.ajs';
 import ApiHeaderService from '../services/apiHeader.service';
@@ -273,7 +271,6 @@ import EntrypointService from '../services/entrypoint.service';
 import SelectFolderDialogController from '../components/documentation/dialog/selectfolder.controller';
 import SelectPageDialogController from '../components/documentation/dialog/selectpage.controller';
 // Settings - Client Registration
-import { ClientRegistrationProvidersComponent } from './configuration/client-registration-providers/client-registration-providers.component';
 
 import DashboardService from '../services/dashboard.service';
 import SettingsAnalyticsDashboardComponentAjs from './configuration/analytics/dashboard/settings-analytics-dashboard.components.ajs';
@@ -393,45 +390,23 @@ require('highcharts/modules/map')(Highcharts);
 
 require('@highcharts/map-collection/custom/world');
 import { DebugApiService } from '../services/debugApi.service';
-import { downgradeComponent, downgradeInjectable } from '@angular/upgrade/static';
+import { downgradeInjectable } from '@angular/upgrade/static';
 import DialogTransferOwnershipController from './configuration/groups/group/transferOwnershipDialog.controller';
-import { CockpitService } from '../services-ngx/cockpit.service';
 
 import { upgradeModule } from '@uirouter/angular-hybrid';
 import uiRouter from '@uirouter/angularjs';
-import { GioBannerComponent } from '@gravitee/ui-particles-angular';
-import { GioPendoService } from '@gravitee/ui-analytics';
 import ApplicationSubscriptionsListComponent from '../management/application/details/subscriptions/application-subscriptions-list.component';
 import ApplicationSubscriptionsListController from '../management/application/details/subscriptions/application-subscriptions-list.controller';
 import ApiKeysComponent from './application/components/api-key/api-keys.component';
 import ApiKeysController from './application/components/api-key/api-keys.controller';
-import { EnvAuditComponent } from './audit/env-audit.component';
-import { EnvApplicationListComponent } from './application/list/env-application-list.component';
-import { GioSideNavComponent } from '../components/gio-side-nav/gio-side-nav.component';
-import { GioTopNavComponent } from '../components/gio-top-nav/gio-top-nav.component';
-import { SettingsNavigationComponent } from './configuration/settings-navigation/settings-navigation.component';
-import { ApplicationNavigationComponent } from './application/application-navigation/application-navigation.component';
 import { IfMatchEtagInterceptor } from '../shared/interceptors/if-match-etag.interceptor';
 import SearchAndSelectComponent from '../components/search-and-select/search-and-select.component';
 import { SearchAndSelectController } from '../components/search-and-select/search-and-select.controller';
 import AlertsActivityComponentAjs from './alerts/activity/alerts-activity.component.ajs';
 import { ApiV2Service } from '../services-ngx/api-v2.service';
-import { OrgNavigationComponent } from '../organization/configuration/navigation/org-navigation.component';
-import { ClientRegistrationProviderComponent } from './configuration/client-registration-providers/client-registration-provider/client-registration-provider.component';
-import { ApiLoggingComponent } from './configuration/api-logging/api-logging.component';
 import { GioPermissionService } from '../shared/components/gio-permission/gio-permission.service';
 import { ApiAnalyticsOverviewComponentAjs } from './api/analytics/overview/analytics-overview.component.ajs';
-import { ApplicationNotificationSettingsListComponent } from './application/details/notifications/notification-settings/notification-settings-list/application-notification-settings-list.component';
-import { ApplicationNotificationSettingsDetailsComponent } from './application/details/notifications/notification-settings/notification-settings-details/application-notification-settings-details.component';
-import { EnvironmentNotificationSettingsListComponent } from './configuration/notifications/notification-settings/notification-settings-list/environment-notification-settings-list.component';
-import { EnvironmentNotificationSettingsDetailsComponent } from './configuration/notifications/notification-settings/notification-settings-details/environment-notification-settings-details.component';
-import { EnvironmentMetadataComponent } from './configuration/metadata/environment-metadata.component';
-import { ApplicationMetadataComponent } from './application/details/metadata/application-metadata.component';
 import { Router } from '@angular/router';
-import { ApplicationGeneralNgComponent } from './application/details/general/general-ng/application-general-ng.component';
-import { ApplicationGeneralMembersComponent } from './application/details/user-group-access/members/application-general-members.component';
-import { ApplicationGeneralGroupsComponent } from './application/details/user-group-access/groups/application-general-groups.component';
-import { ApplicationGeneralTransferOwnershipComponent } from './application/details/user-group-access/transfer-ownership/application-general-transfer-ownership.component';
 import SupportTicketsListComponentAjs from '../user/support/tickets-list.component.ajs';
 import SettingsAnalyticsComponentAjs from './configuration/analytics/settings-analytics.component.ajs';
 import ApplicationGeneralComponentAjs from './application/details/general/application-general.component.ajs';
@@ -555,13 +530,6 @@ graviteeManagementModule.config(themeConfig);
 // graviteeManagementModule.run(runBlock);
 
 // New Navigation components
-graviteeManagementModule.directive('gioSideNav', downgradeComponent({ component: GioSideNavComponent }));
-graviteeManagementModule.directive('gioTopNav', downgradeComponent({ component: GioTopNavComponent }));
-graviteeManagementModule.directive('settingsNavigation', downgradeComponent({ component: SettingsNavigationComponent }));
-graviteeManagementModule.directive('applicationNavigation', downgradeComponent({ component: ApplicationNavigationComponent }));
-
-// Pendo Analytics
-graviteeManagementModule.factory('ngGioPendoService', downgradeInjectable(GioPendoService));
 
 graviteeManagementModule.component('apiAnalyticsOverviewComponentAjs', ApiAnalyticsOverviewComponentAjs);
 graviteeManagementModule.component('apiV1PoliciesComponentAjs', ApiV1PoliciesComponentAjs);
@@ -599,7 +567,6 @@ graviteeManagementModule.controller('DialogConfirmAndValidateController', Dialog
 graviteeManagementModule.controller('DialogDynamicProviderHttpController', DialogDynamicProviderHttpController);
 graviteeManagementModule.component('supportTicketComponentAjs', SupportTicketComponentAjs);
 graviteeManagementModule.component('supportTicketsListComponentAjs', SupportTicketsListComponentAjs);
-graviteeManagementModule.directive('ngEnvAudit', downgradeComponent({ component: EnvAuditComponent }));
 graviteeManagementModule.component('apiAuditComponentAjs', ApiAuditComponentAjs);
 graviteeManagementModule.controller('PortalThemeController', PortalThemeController);
 graviteeManagementModule.controller('CustomUserFieldsController', CustomUserFieldsController);
@@ -684,10 +651,8 @@ graviteeManagementModule.controller('ErrorController', ErrorController);
 graviteeManagementModule.component('settingsCategoriesAjs', CategoriesComponentAjs);
 graviteeManagementModule.component('settingsCategoryEditAjs', CategoryComponentAjs);
 
-graviteeManagementModule.directive('ngEnvironmentMetadata', downgradeComponent({ component: EnvironmentMetadataComponent }));
 graviteeManagementModule.component('settingsThemeAjs', PortalThemeComponentAjs);
 graviteeManagementModule.component('settingsTopApis', TopApisComponentAjs);
-graviteeManagementModule.factory('ngCockpitService', downgradeInjectable(CockpitService));
 
 graviteeManagementModule.component('settingsPortalAjs', PortalSettingsComponentAjs);
 graviteeManagementModule.component('settingsAnalyticsAjs', SettingsAnalyticsComponentAjs);
@@ -711,10 +676,6 @@ graviteeManagementModule.controller('DashboardTimeframeController', DashboardTim
 // API subscriptions
 graviteeManagementModule.component('apiKeys', ApiKeysComponent);
 graviteeManagementModule.controller('ApiKeysController', ApiKeysController);
-
-graviteeManagementModule.directive('ngBanner', downgradeComponent({ component: GioBannerComponent }));
-
-graviteeManagementModule.directive('ngEnvApplicationList', downgradeComponent({ component: EnvApplicationListComponent }));
 
 graviteeManagementModule.component('applicationSubscribe', ApplicationSubscribeComponentAjs);
 graviteeManagementModule.controller('ApplicationSubscribeController', ApplicationSubscribeController);
@@ -749,38 +710,10 @@ graviteeManagementModule.component('apiPlan', ApiPlanComponent);
 
 graviteeManagementModule.component('user', UserComponentAjs);
 
-graviteeManagementModule.directive('tasks', downgradeComponent({ component: TasksComponent }));
-
 graviteeManagementModule.service('NotificationSettingsService', NotificationSettingsService);
 graviteeManagementModule.service('NotificationTemplatesService', NotificationTemplatesService);
 graviteeManagementModule.controller('DialogAddNotificationSettingsController', DialogAddNotificationSettingsController);
 graviteeManagementModule.component('notificationsComponentAjs', NotificationsComponentAjs);
-
-graviteeManagementModule.directive(
-  'environmentNotificationSettingsList',
-  downgradeComponent({ component: EnvironmentNotificationSettingsListComponent }),
-);
-graviteeManagementModule.directive(
-  'environmentNotificationSettingsDetails',
-  downgradeComponent({ component: EnvironmentNotificationSettingsDetailsComponent }),
-);
-
-graviteeManagementModule.directive(
-  'applicationNotificationSettingsList',
-  downgradeComponent({ component: ApplicationNotificationSettingsListComponent }),
-);
-graviteeManagementModule.directive('applicationGeneralMembersNg', downgradeComponent({ component: ApplicationGeneralMembersComponent }));
-graviteeManagementModule.directive('applicationGeneralGroupsNg', downgradeComponent({ component: ApplicationGeneralGroupsComponent }));
-graviteeManagementModule.directive(
-  'applicationGeneralTransferOwnershipNg',
-  downgradeComponent({ component: ApplicationGeneralTransferOwnershipComponent }),
-);
-graviteeManagementModule.directive(
-  'applicationNotificationSettingsDetails',
-  downgradeComponent({ component: ApplicationNotificationSettingsDetailsComponent }),
-);
-graviteeManagementModule.directive('ngApplicationMetadata', downgradeComponent({ component: ApplicationMetadataComponent }));
-graviteeManagementModule.directive('ngApplicationGeneralNg', downgradeComponent({ component: ApplicationGeneralNgComponent }));
 
 graviteeManagementModule.component('apiAnalyticsLogsComponentAjs', ApiAnalyticsLogsComponentAjs);
 graviteeManagementModule.component('gvLogsTimeframe', LogsTimeframeComponent);
@@ -802,15 +735,12 @@ graviteeManagementModule.component('gvHealthcheckMetric', HealthCheckMetricCompo
 
 // Configuration
 graviteeManagementModule.component('settings', SettingsComponent);
-graviteeManagementModule.directive('orgNavigation', downgradeComponent({ component: OrgNavigationComponent }));
 graviteeManagementModule.service('ConsoleSettingsService', ConsoleSettingsService);
 graviteeManagementModule.service('PortalSettingsService', PortalSettingsService);
 graviteeManagementModule.service('PortalConfigService', PortalConfigService);
 
 // Router
 graviteeManagementModule.service('RouterService', RouterService);
-
-graviteeManagementModule.directive('ngMessages', downgradeComponent({ component: MessagesComponent }));
 
 // Dictionaries
 graviteeManagementModule.service('DictionaryService', DictionaryService);
@@ -837,15 +767,6 @@ graviteeManagementModule.component('settingsIdentityProvidersAjs', IdentityProvi
 
 graviteeManagementModule.service('IdentityProviderService', IdentityProviderService);
 
-// Settings: Client Registration
-graviteeManagementModule.directive(
-  'ngClientRegistrationProviders',
-  downgradeComponent({ component: ClientRegistrationProvidersComponent }),
-);
-graviteeManagementModule.directive('ngClientRegistrationProvider', downgradeComponent({ component: ClientRegistrationProviderComponent }));
-
-// Settings: API Logging
-graviteeManagementModule.directive('ngApiLogging', downgradeComponent({ component: ApiLoggingComponent }));
 // Alerts
 graviteeManagementModule.service('AlertService', AlertService);
 graviteeManagementModule.component('alertsComponentAjs', AlertsComponentAjs);
