@@ -129,6 +129,12 @@ class PlanAdapterTest {
                 .closedAt(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneOffset.UTC))
                 .needRedeployAt(Date.from(Instant.parse("2020-02-05T20:22:02.00Z")))
                 .publishedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC))
+                .characteristics(List.of("characteristic1", "characteristic2"))
+                .commentMessage("Comment message")
+                .generalConditions("General conditions")
+                .tags(Set.of("tag1", "tag2"))
+                .excludedGroups(List.of("excludedGroup1", "excludedGroup2"))
+                .selectionRule("{#request.attribute['selectionRule'] != null}")
                 .build();
 
             var plan = PlanAdapter.INSTANCE.toRepository(model);
@@ -170,6 +176,12 @@ class PlanAdapterTest {
                 .closedAt(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneOffset.UTC))
                 .needRedeployAt(Date.from(Instant.parse("2020-02-05T20:22:02.00Z")))
                 .publishedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC))
+                .characteristics(List.of("characteristic1", "characteristic2"))
+                .commentMessage("Comment message")
+                .generalConditions("General conditions")
+                .tags(Set.of("tag1", "tag2"))
+                .excludedGroups(List.of("excludedGroup1", "excludedGroup2"))
+                .selectionRule("{#request.attribute['selectionRule'] != null}")
                 .build();
 
             var plan = PlanAdapter.INSTANCE.toRepository(model);
