@@ -371,7 +371,6 @@ require('angular-timeline');
 require('ng-file-upload');
 require('md-steppers');
 require('angular-ui-tree');
-require('angular-jwt');
 
 require('angular-gridster');
 require('angular-scroll');
@@ -436,7 +435,6 @@ angular.module('gravitee-management', [
   'ngFileUpload',
   'md-steppers',
   'ui.tree',
-  'angular-jwt',
   'gridster',
   'ngAnimate',
   'LocalStorageModule',
