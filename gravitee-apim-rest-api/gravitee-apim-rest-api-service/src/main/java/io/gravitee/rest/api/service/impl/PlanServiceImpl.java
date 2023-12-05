@@ -37,6 +37,7 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Plan;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
+import io.gravitee.rest.api.model.BasePlanEntity;
 import io.gravitee.rest.api.model.NewPlanEntity;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PlanEntity;
@@ -294,7 +295,10 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             flowService.save(FlowReferenceType.PLAN, updatePlan.getId(), updatePlan.getFlows());
             PlanEntity newPlanEntity = convert(newPlan);
 
-            if (!synchronizationService.checkSynchronization(PlanEntity.class, oldPlanEntity, newPlanEntity)) {
+            if (
+                !synchronizationService.checkSynchronization(PlanEntity.class, oldPlanEntity, newPlanEntity) ||
+                !synchronizationService.checkSynchronization(BasePlanEntity.class, oldPlanEntity, newPlanEntity)
+            ) {
                 newPlan.setNeedRedeployAt(newPlan.getUpdatedAt());
             }
 
