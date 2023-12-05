@@ -16,33 +16,34 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
-import { SettingsNavigationComponent } from '../configuration/settings-navigation/settings-navigation.component';
-import { SettingsAnalyticsComponent } from '../configuration/analytics/settings-analytics.component';
-import { SettingsAnalyticsDashboardComponent } from '../configuration/analytics/dashboard/settings-analytics-dashboard.component';
-import { ApiPortalHeaderComponent } from '../configuration/api-portal-header/api-portal-header.component';
-import { ApiQualityRulesComponent } from '../configuration/api-quality-rules/api-quality-rules.component';
-import { ApiQualityRuleComponent } from '../configuration/api-quality-rules/api-quality-rule/api-quality-rule.component';
-import { IdentityProvidersComponent } from '../configuration/identityProviders/identity-providers.component';
-import { CategoriesComponent } from '../configuration/categories/categories.component';
-import { CategoryComponent } from '../configuration/categories/category/category.component';
-import { GroupsComponent } from '../configuration/groups/groups.component';
-import { GroupComponent } from '../configuration/groups/group/group.component';
-import { ClientRegistrationProvidersComponent } from '../configuration/client-registration-providers/client-registration-providers.component';
-import { ClientRegistrationProviderComponent } from '../configuration/client-registration-providers/client-registration-provider/client-registration-provider.component';
-import { DocumentationManagementComponent } from '../../components/documentation/documentation-management.component';
-import { DocumentationNewPageComponent } from '../../components/documentation/new-page.component';
-import { DocumentationImportPagesComponent } from '../../components/documentation/import-pages.component';
+import { SettingsNavigationComponent } from './settings-navigation/settings-navigation.component';
+import { SettingsAnalyticsComponent } from './analytics/settings-analytics.component';
+import { SettingsAnalyticsDashboardComponent } from './analytics/dashboard/settings-analytics-dashboard.component';
+import { ApiPortalHeaderComponent } from './api-portal-header/api-portal-header.component';
+import { ApiQualityRulesComponent } from './api-quality-rules/api-quality-rules.component';
+import { ApiQualityRuleComponent } from './api-quality-rules/api-quality-rule/api-quality-rule.component';
+import { IdentityProvidersComponent } from './identityProviders/identity-providers.component';
+import { CategoriesComponent } from './categories/categories.component';
+import { CategoryComponent } from './categories/category/category.component';
+import { GroupsComponent } from './groups/groups.component';
+import { GroupComponent } from './groups/group/group.component';
+import { ClientRegistrationProvidersComponent } from './client-registration-providers/client-registration-providers.component';
+import { ClientRegistrationProviderComponent } from './client-registration-providers/client-registration-provider/client-registration-provider.component';
+import { EnvironmentMetadataComponent } from './metadata/environment-metadata.component';
+import { PortalComponent } from './portal/portal.component';
+import { PortalThemeComponent } from './portal-theme/portalTheme.component';
+import { TopApisComponent } from './top-apis/top-apis.component';
+import { ApiLoggingComponent } from './api-logging/api-logging.component';
+import { DictionariesComponent } from './dictionaries/dictionaries.component';
+import { DictionaryComponent } from './dictionaries/dictionary.component';
+import { CustomUserFieldsComponent } from './custom-user-fields/custom-user-fields.component';
+import { EnvironmentNotificationSettingsListComponent } from './notifications/notification-settings/notification-settings-list/environment-notification-settings-list.component';
+import { EnvironmentNotificationSettingsDetailsComponent } from './notifications/notification-settings/notification-settings-details/environment-notification-settings-details.component';
+
 import { DocumentationEditPageComponent } from '../../components/documentation/edit-page.component';
-import { EnvironmentMetadataComponent } from '../configuration/metadata/environment-metadata.component';
-import { PortalComponent } from '../configuration/portal/portal.component';
-import { PortalThemeComponent } from '../configuration/portal-theme/portalTheme.component';
-import { TopApisComponent } from '../configuration/top-apis/top-apis.component';
-import { ApiLoggingComponent } from '../configuration/api-logging/api-logging.component';
-import { DictionariesComponent } from '../configuration/dictionaries/dictionaries.component';
-import { DictionaryComponent } from '../configuration/dictionaries/dictionary.component';
-import { CustomUserFieldsComponent } from '../configuration/custom-user-fields/custom-user-fields.component';
-import { EnvironmentNotificationSettingsListComponent } from '../configuration/notifications/notification-settings/notification-settings-list/environment-notification-settings-list.component';
-import { EnvironmentNotificationSettingsDetailsComponent } from '../configuration/notifications/notification-settings/notification-settings-details/environment-notification-settings-details.component';
+import { DocumentationImportPagesComponent } from '../../components/documentation/import-pages.component';
+import { DocumentationNewPageComponent } from '../../components/documentation/new-page.component';
+import { DocumentationManagementComponent } from '../../components/documentation/documentation-management.component';
 
 export const settingsRoutes: Routes = [
   {

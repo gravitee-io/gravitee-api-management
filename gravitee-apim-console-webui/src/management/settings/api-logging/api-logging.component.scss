@@ -14,62 +14,64 @@
  * limitations under the License.
  */
 @use 'sass:map';
-@use '@angular/material' as mat;
-@use '@gravitee/ui-particles-angular' as gio;
+@use '../../../../node_modules/@angular/material/index' as mat;
+@use '../../../../node_modules/@gravitee/ui-particles-angular/index' as gio;
 @use '../../../scss/gio-layout' as gio-layout;
 
+$foreground: map.get(gio.$mat-theme, foreground);
+$typography: map.get(gio.$mat-theme, typography);
 $textColor: map.get(gio.$mat-dove-palette, default);
 
 :host {
-  @include gio-layout.gio-responsive-content-container;
+  @include gio-layout.gio-responsive-margin-container;
   display: flex;
   flex-direction: column;
 }
 
-.title {
+.api-logging {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
+  align-items: flex-start;
 
-  h1 {
-    margin-bottom: 0;
-  }
-}
-
-.client-registration-providers {
-  &__card {
-    margin-bottom: 24px;
-    padding: 32px 24px;
-
-    &__title {
+  &__form {
+    &__info {
       display: flex;
-      flex-direction: row;
       align-items: center;
-      justify-content: space-between;
-      margin-bottom: 24px;
-      gap: 16px;
     }
 
-    &__subtitle {
-      display: block;
-      padding: 12px 0;
-    }
+    &__card {
+      margin-bottom: 16px;
 
-    &__toggle {
-      display: block;
-    }
+      &__form-error {
+        margin-top: -16px;
+        padding-bottom: 16px;
+      }
 
-    &__table {
-      width: 100%;
+      &__form-field {
+        width: 100%;
 
-      .mat-column-actions {
-        width: 0%;
-
-        .actions {
-          display: flex;
-          justify-content: flex-end;
+        &__icon {
+          color: mat.get-color-from-palette($foreground, disabled);
         }
+
+        &.margin-top {
+          margin-top: 16px;
+        }
+        &.margin-bottom {
+          margin-bottom: 32px;
+        }
+      }
+
+      &__label {
+        @include mat.typography-level($typography, body-2);
+
+        & ~ & {
+          padding-top: 8px;
+        }
+      }
+
+      &__h3 {
+        margin-top: 8px;
       }
     }
   }
