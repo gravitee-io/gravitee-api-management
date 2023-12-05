@@ -92,17 +92,17 @@ import ApplicationLogComponentAjs from './application/details/logs/application-l
 import DialogAddMemberController from './application/details/members/addMemberDialog.controller';
 import DialogTransferApplicationController from './application/details/members/transferApplicationDialog.controller';
 // Analytics / widgets
-import WidgetComponent from '../components/widget/widget.component';
-import WidgetDataTableComponent from '../components/widget/table/widget-data-table.component';
-import WidgetChartLineComponent from '../components/widget/line/widget-chart-line.component';
-import WidgetChartPieComponent from '../components/widget/pie/widget-chart-pie.component';
-import WidgetChartMapComponent from '../components/widget/map/widget-chart-map.component';
-import WidgetDataStatsComponent from '../components/widget/stats/widget-data-stats.component';
-import WidgetDataTableConfigurationComponent from '../components/widget/table/widget-data-table-configuration.component';
-import WidgetChartLineConfigurationComponent from '../components/widget/line/widget-chart-line-configuration.component';
-import WidgetChartMapConfigurationComponent from '../components/widget/map/widget-chart-map-configuration.component';
-import WidgetChartPieConfigurationComponent from '../components/widget/pie/widget-chart-pie-configuration.component';
-import WidgetDataStatsConfigurationComponent from '../components/widget/stats/widget-data-stats-configuration.component';
+import WidgetComponent from '../components/dashboard/widget/widget.component';
+import WidgetDataTableComponent from '../components/dashboard/widget/table/widget-data-table.component';
+import WidgetChartLineComponent from '../components/dashboard/widget/line/widget-chart-line.component';
+import WidgetChartPieComponent from '../components/dashboard/widget/pie/widget-chart-pie.component';
+import WidgetChartMapComponent from '../components/dashboard/widget/map/widget-chart-map.component';
+import WidgetDataStatsComponent from '../components/dashboard/widget/stats/widget-data-stats.component';
+import WidgetDataTableConfigurationComponent from '../components/dashboard/widget/table/widget-data-table-configuration.component';
+import WidgetChartLineConfigurationComponent from '../components/dashboard/widget/line/widget-chart-line-configuration.component';
+import WidgetChartMapConfigurationComponent from '../components/dashboard/widget/map/widget-chart-map-configuration.component';
+import WidgetChartPieConfigurationComponent from '../components/dashboard/widget/pie/widget-chart-pie-configuration.component';
+import WidgetDataStatsConfigurationComponent from '../components/dashboard/widget/stats/widget-data-stats-configuration.component';
 
 import DashboardComponent from '../components/dashboard/dashboard.component';
 import DashboardFilterComponent from '../components/dashboard/dashboard-filter.component';
@@ -295,7 +295,7 @@ import FlowService from '../services/flow.service';
 import TicketDetailComponentAjs from '../user/support/ticket-detail.component.ajs';
 import SpelService from '../services/spel.service';
 import AlertsDashboardComponent from '../components/alerts/dashboard/alerts-dashboard.component';
-import WidgetChartCountComponent from '../components/widget/count/widget-chart-count.component';
+import WidgetChartCountComponent from '../components/dashboard/widget/count/widget-chart-count.component';
 
 import { PromotionService } from '../services/promotion.service';
 

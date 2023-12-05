@@ -17,7 +17,7 @@
 import { merge } from 'lodash';
 import { IOnInit } from 'angular';
 
-import DashboardService, { AverageableField } from '../../../services/dashboard.service';
+import DashboardService, { AverageableField } from '../../../../services/dashboard.service';
 
 interface Stat {
   key: string;

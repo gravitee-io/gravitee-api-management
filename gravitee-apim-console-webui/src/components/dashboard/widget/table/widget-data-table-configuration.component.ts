@@ -15,7 +15,7 @@
  */
 import * as _ from 'lodash';
 
-import DashboardService from '../../../services/dashboard.service';
+import DashboardService from '../../../../services/dashboard.service';
 
 const WidgetDataTableConfigurationComponent: ng.IComponentOptions = {
   template: require('./widget-data-table-configuration.html'),
