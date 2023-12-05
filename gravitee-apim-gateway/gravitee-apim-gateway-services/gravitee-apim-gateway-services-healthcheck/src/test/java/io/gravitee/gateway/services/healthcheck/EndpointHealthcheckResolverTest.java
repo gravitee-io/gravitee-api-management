@@ -15,11 +15,11 @@
  */
 package io.gravitee.gateway.services.healthcheck;
 
+import static fixtures.definition.ApiDefinitionFixtures.anApiV2;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 
-import io.gravitee.definition.model.ApiBuilder;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.definition.model.HttpProxy;
@@ -266,7 +266,7 @@ public class EndpointHealthcheckResolverTest {
         var proxy = new Proxy();
         proxy.setGroups(Set.of(group));
 
-        var apiDefinition = ApiBuilder.anApiV2().id("api-id").proxy(proxy).services(services).build();
+        var apiDefinition = anApiV2().toBuilder().id("api-id").proxy(proxy).services(services).build();
 
         return new Api(apiDefinition);
     }
