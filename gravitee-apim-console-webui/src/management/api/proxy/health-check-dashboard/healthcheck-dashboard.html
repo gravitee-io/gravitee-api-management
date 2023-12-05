@@ -44,7 +44,12 @@
                 </md-card-title>
                 <md-card-content>
                   <div>
-                    <gravitee-chart options="$ctrl.chartData" zoom="true" type="areaspline" height="180"></gravitee-chart>
+                    <api-healthcheck-dashboard-chart
+                      options="$ctrl.chartData"
+                      zoom="true"
+                      type="areaspline"
+                      height="180"
+                    ></api-healthcheck-dashboard-chart>
                   </div>
                   <div layout="row" layout-padding layout-align="center center">
                     <div flex="15"><h5>Last minute</h5></div>
