@@ -23,3 +23,4 @@ annotations:
     - Allow users to define extra manifests
     - Make optional HTTP2 request processing via `gateway.http.alpn` set at `true` by default.
     - "fix 'gravitee.yml' > 'services.metrics' definition from helm `values.yaml`"
+    - Update regex for portal and console base_href
