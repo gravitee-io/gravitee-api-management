@@ -29,7 +29,6 @@
 
 // Try to encapsulate all scss with .bootstrap class
 :where(.bootstrap) {
-  @import 'components/circularPercentage/circularPercentage';
   @import 'components/dashboard/dashboard';
   @import 'components/documentation/page/page';
   @import 'components/identityPicture/identityPicture';
