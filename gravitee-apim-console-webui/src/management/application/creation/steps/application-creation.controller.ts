@@ -39,7 +39,6 @@ class ApplicationCreationController {
 
   constructor(
     private Constants,
-    private $state,
     private $mdDialog,
     private ApplicationService: ApplicationService,
     private NotificationService: NotificationService,
@@ -175,7 +174,6 @@ class ApplicationCreationController {
 }
 ApplicationCreationController.$inject = [
   'Constants',
-  '$state',
   '$mdDialog',
   'ApplicationService',
   'NotificationService',

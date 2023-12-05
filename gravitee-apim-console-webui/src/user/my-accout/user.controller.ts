@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { StateService } from '@uirouter/core';
-
 import { User } from '../../entities/user';
 import NotificationService from '../../services/notification.service';
 import TokenService from '../../services/token.service';
@@ -33,7 +31,6 @@ class UserController {
   constructor(
     private UserService: UserService,
     private NotificationService: NotificationService,
-    private $state: StateService,
     private TokenService: TokenService,
     private $mdDialog: angular.material.IDialogService,
     private Constants,
@@ -104,7 +101,7 @@ class UserController {
   cancel() {
     delete this.user.picture;
     delete this.user.picture_url;
-    this.$state.reload();
+    this.$onInit();
   }
 
   getUserPicture() {
@@ -130,7 +127,7 @@ class UserController {
       })
       .then((tokenGenerated) => {
         if (tokenGenerated) {
-          this.$state.reload();
+          this.$onInit();
         }
       });
   }
@@ -152,12 +149,12 @@ class UserController {
         if (response) {
           this.TokenService.revoke(token).then(() => {
             this.NotificationService.show('Token "' + token.name + '" has been revoked.');
-            this.$state.reload();
+            this.$onInit();
           });
         }
       });
   }
 }
-UserController.$inject = ['UserService', 'NotificationService', '$state', 'TokenService', '$mdDialog', 'Constants'];
+UserController.$inject = ['UserService', 'NotificationService', 'TokenService', '$mdDialog', 'Constants'];
 
 export default UserController;

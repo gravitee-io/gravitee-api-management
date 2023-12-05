@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { StateService } from '@uirouter/core';
 import * as angular from 'angular';
 import * as _ from 'lodash';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -45,7 +44,6 @@ class ApplicationMembersController {
     private ApplicationService: ApplicationService,
     private NotificationService: NotificationService,
     private $mdDialog: angular.material.IDialogService,
-    private $state: StateService,
     private RoleService: RoleService,
     private GroupService: GroupService,
     private UserService: UserService,
@@ -225,7 +223,6 @@ ApplicationMembersController.$inject = [
   'ApplicationService',
   'NotificationService',
   '$mdDialog',
-  '$state',
   'RoleService',
   'GroupService',
   'UserService',

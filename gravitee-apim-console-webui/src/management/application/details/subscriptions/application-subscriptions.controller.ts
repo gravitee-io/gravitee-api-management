@@ -16,7 +16,6 @@
 
 import * as _ from 'lodash';
 import { BehaviorSubject } from 'rxjs';
-import { StateService } from '@uirouter/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { PagedResult } from '../../../../entities/pagedResult';
@@ -46,7 +45,7 @@ class ApplicationSubscriptionsController {
     REJECTED: 'Rejected',
   };
 
-  constructor(private $state: StateService, private readonly ngRouter: Router) {}
+  constructor(private readonly ngRouter: Router) {}
 
   $onInit(): void {
     if (this.activatedRoute.snapshot.queryParams.status) {
@@ -106,6 +105,6 @@ class ApplicationSubscriptionsController {
     this.ngRouter.navigate(['subscribe'], { relativeTo: this.activatedRoute });
   }
 }
-ApplicationSubscriptionsController.$inject = ['$state', 'ngRouter'];
+ApplicationSubscriptionsController.$inject = ['ngRouter'];
 
 export default ApplicationSubscriptionsController;

@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { StateService } from '@uirouter/core';
 import * as _ from 'lodash';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -26,12 +25,7 @@ class ApplicationAnalyticsController {
   private dashboards: any;
   private activatedRoute: ActivatedRoute;
 
-  constructor(
-    private ApplicationService: ApplicationService,
-    private DashboardService: DashboardService,
-    private $state: StateService,
-    private ngRouter: Router,
-  ) {}
+  constructor(private ApplicationService: ApplicationService, private DashboardService: DashboardService, private ngRouter: Router) {}
 
   $onInit() {
     this.DashboardService.list('APPLICATION', true).then((response) => {
@@ -86,6 +80,6 @@ class ApplicationAnalyticsController {
     this.ngRouter.navigate(['../', 'logs'], { relativeTo: this.activatedRoute });
   }
 }
-ApplicationAnalyticsController.$inject = ['ApplicationService', 'DashboardService', '$state', 'ngRouter'];
+ApplicationAnalyticsController.$inject = ['ApplicationService', 'DashboardService', 'ngRouter'];
 
 export default ApplicationAnalyticsController;

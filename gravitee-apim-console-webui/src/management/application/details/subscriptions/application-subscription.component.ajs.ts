@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { StateService } from '@uirouter/core';
 import { Subject } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -33,7 +32,6 @@ const ApplicationSubscriptionComponentAjs: ng.IComponentOptions = {
     '$mdDialog',
     'NotificationService',
     'ApplicationService',
-    '$state',
     'ngRouter',
     class {
       private subscription: any;
@@ -47,7 +45,6 @@ const ApplicationSubscriptionComponentAjs: ng.IComponentOptions = {
         private $mdDialog: angular.material.IDialogService,
         private NotificationService: NotificationService,
         private ApplicationService: ApplicationService,
-        private $state: StateService,
         private ngRouter: Router,
       ) {}
 

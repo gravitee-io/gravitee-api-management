@@ -16,7 +16,6 @@
 
 import * as _ from 'lodash';
 import { BehaviorSubject } from 'rxjs';
-import { StateService } from '@uirouter/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { SubscriptionFilter } from './application-subscriptions.controller';
@@ -46,7 +45,7 @@ class ApplicationSubscriptionsListController {
 
   private isFirstFilter = true;
 
-  constructor(private ApplicationService: ApplicationService, private $state: StateService, private ngRouter: Router) {
+  constructor(private ApplicationService: ApplicationService, private ngRouter: Router) {
     this.onPaginate = this.onPaginate.bind(this);
   }
 
@@ -134,6 +133,6 @@ class ApplicationSubscriptionsListController {
     this.ngRouter.navigate([subscriptionId], { relativeTo: this.activatedRoute, queryParamsHandling: 'preserve' });
   }
 }
-ApplicationSubscriptionsListController.$inject = ['ApplicationService', '$state', 'ngRouter'];
+ApplicationSubscriptionsListController.$inject = ['ApplicationService', 'ngRouter'];
 
 export default ApplicationSubscriptionsListController;

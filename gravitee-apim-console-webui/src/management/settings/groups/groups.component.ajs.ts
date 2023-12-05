@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { StateService } from '@uirouter/core';
 import { IScope } from 'angular';
 import * as _ from 'lodash';
 import { Router } from '@angular/router';
@@ -32,7 +31,6 @@ const GroupsComponentAjs: ng.IComponentOptions = {
     'UserService',
     'NotificationService',
     '$mdDialog',
-    '$state',
     '$rootScope',
     'ngRouter',
     function (
@@ -40,7 +38,6 @@ const GroupsComponentAjs: ng.IComponentOptions = {
       UserService: UserService,
       NotificationService: NotificationService,
       $mdDialog: angular.material.IDialogService,
-      $state: StateService,
       $rootScope: IScope,
       ngRouter: Router,
     ) {

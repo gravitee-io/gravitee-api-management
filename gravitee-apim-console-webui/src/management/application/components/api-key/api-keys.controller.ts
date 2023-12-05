@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { StateService } from '@uirouter/core';
 import { Observable } from 'rxjs';
 
 import NotificationService from '../../../../services/notification.service';
@@ -31,7 +30,6 @@ class ApiKeysController {
     private $mdDialog: angular.material.IDialogService,
     private NotificationService: NotificationService,
     private ApplicationService: ApplicationService,
-    private $state: StateService,
   ) {}
 
   $onInit() {
@@ -118,6 +116,6 @@ class ApiKeysController {
     return this.isSharedApiKey() ? 'Shared API Key' : 'API Keys';
   }
 }
-ApiKeysController.$inject = ['$mdDialog', 'NotificationService', 'ApplicationService', '$state'];
+ApiKeysController.$inject = ['$mdDialog', 'NotificationService', 'ApplicationService'];
 
 export default ApiKeysController;
