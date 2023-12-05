@@ -18,7 +18,7 @@ import { NgModule } from '@angular/core';
 import { EnvironmentNotificationSettingsListComponent } from './notification-settings-list/environment-notification-settings-list.component';
 import { EnvironmentNotificationSettingsDetailsComponent } from './notification-settings-details/environment-notification-settings-details.component';
 
-import { NotificationSettingsListModule } from '../../../../components/notifications/notification-settings/notification-settings-list.module';
+import { NotificationSettingsListModule } from '../../../../components/notification-settings/notification-settings-list.module';
 
 @NgModule({
   declarations: [EnvironmentNotificationSettingsDetailsComponent, EnvironmentNotificationSettingsListComponent],

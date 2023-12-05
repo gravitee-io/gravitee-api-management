@@ -30,13 +30,13 @@ import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 
 import { NotificationSettingsDetailsServices } from './notification-settings-details.component';
 
-import { User } from '../../../../entities/user';
-import { GioHttpTestingModule } from '../../../../shared/testing';
-import { CurrentUserService } from '../../../../ajs-upgraded-providers';
-import { fakeHooks } from '../../../../entities/notification/hooks.fixture';
-import { fakeNotificationSettings } from '../../../../entities/notification/notificationSettings.fixture';
-import { fakeNotifier } from '../../../../entities/notification/notifier.fixture';
-import { NotificationSettings } from '../../../../entities/notification/notificationSettings';
+import { User } from '../../../entities/user';
+import { GioHttpTestingModule } from '../../../shared/testing';
+import { CurrentUserService } from '../../../ajs-upgraded-providers';
+import { fakeHooks } from '../../../entities/notification/hooks.fixture';
+import { fakeNotificationSettings } from '../../../entities/notification/notificationSettings.fixture';
+import { fakeNotifier } from '../../../entities/notification/notifier.fixture';
+import { NotificationSettings } from '../../../entities/notification/notificationSettings';
 import { NotificationSettingsListModule } from '../notification-settings-list.module';
 
 @Component({

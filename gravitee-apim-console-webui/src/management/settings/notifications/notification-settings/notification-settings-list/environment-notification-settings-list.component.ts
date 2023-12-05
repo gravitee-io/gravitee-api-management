@@ -18,7 +18,7 @@ import { Component, OnInit } from '@angular/core';
 import { Subject } from 'rxjs';
 
 import { EnvironmentNotificationSettingsService } from '../../../../../services-ngx/environment-notification-settings.service';
-import { NotificationSettingsListServices } from '../../../../../components/notifications/notification-settings/notification-settings-list.component';
+import { NotificationSettingsListServices } from '../../../../../components/notification-settings/notification-settings-list.component';
 
 @Component({
   selector: 'environment-notification-settings-list-settings',

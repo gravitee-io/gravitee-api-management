@@ -20,7 +20,7 @@ import { ActivatedRoute } from '@angular/router';
 
 import { EnvironmentNotificationSettingsService } from '../../../../../services-ngx/environment-notification-settings.service';
 import { NotificationSettings } from '../../../../../entities/notification/notificationSettings';
-import { NotificationSettingsDetailsServices } from '../../../../../components/notifications/notification-settings/notification-settings-details/notification-settings-details.component';
+import { NotificationSettingsDetailsServices } from '../../../../../components/notification-settings/notification-settings-details/notification-settings-details.component';
 
 @Component({
   selector: 'environment-notification-settings-details',

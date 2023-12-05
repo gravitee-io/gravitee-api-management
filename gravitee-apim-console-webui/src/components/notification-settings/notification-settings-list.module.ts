@@ -41,9 +41,9 @@ import { NotificationSettingsAddDialogModule } from './notifications-settings-ad
 import { NotificationSettingsListComponent } from './notification-settings-list.component';
 import { NotificationSettingsDetailsComponent } from './notification-settings-details/notification-settings-details.component';
 
-import { GioGoBackButtonModule } from '../../../shared/components/gio-go-back-button/gio-go-back-button.module';
-import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
-import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
+import { GioGoBackButtonModule } from '../../shared/components/gio-go-back-button/gio-go-back-button.module';
+import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
+import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 
 @NgModule({
   declarations: [NotificationSettingsListComponent, NotificationSettingsDetailsComponent],

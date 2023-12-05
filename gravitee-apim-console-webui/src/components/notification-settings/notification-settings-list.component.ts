@@ -26,12 +26,12 @@ import {
   NotificationSettingsAddDialogResult,
 } from './notifications-settings-add-dialog/notification-settings-add-dialog.component';
 
-import { SnackBarService } from '../../../services-ngx/snack-bar.service';
-import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
-import { gioTableFilterCollection } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
-import { NotificationSettings } from '../../../entities/notification/notificationSettings';
-import { NewNotificationSettings } from '../../../entities/notification/newNotificationSettings';
-import { Notifier } from '../../../entities/notification/notifier';
+import { SnackBarService } from '../../services-ngx/snack-bar.service';
+import { GioTableWrapperFilters } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
+import { gioTableFilterCollection } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
+import { NotificationSettings } from '../../entities/notification/notificationSettings';
+import { NewNotificationSettings } from '../../entities/notification/newNotificationSettings';
+import { Notifier } from '../../entities/notification/notifier';
 
 export interface NotificationSettingsListServices {
   reference: {

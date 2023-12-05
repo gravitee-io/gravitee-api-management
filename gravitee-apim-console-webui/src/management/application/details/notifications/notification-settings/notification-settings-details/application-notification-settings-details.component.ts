@@ -19,7 +19,7 @@ import { ActivatedRoute } from '@angular/router';
 
 import { ApplicationNotificationSettingsService } from '../../../../../../services-ngx/application-notification-settings.service';
 import { NotificationSettings } from '../../../../../../entities/notification/notificationSettings';
-import { NotificationSettingsDetailsServices } from '../../../../../../components/notifications/notification-settings/notification-settings-details/notification-settings-details.component';
+import { NotificationSettingsDetailsServices } from '../../../../../../components/notification-settings/notification-settings-details/notification-settings-details.component';
 
 @Component({
   selector: 'application-notification-settings-details',
