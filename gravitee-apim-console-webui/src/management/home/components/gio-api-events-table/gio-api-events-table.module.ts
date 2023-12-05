@@ -17,14 +17,13 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { GioLoaderModule } from '@gravitee/ui-particles-angular';
-import { UIRouterModule } from '@uirouter/angular';
 
 import { GioApiEventsTableComponent } from './gio-api-events-table.component';
 
 import { GioTableWrapperModule } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 
 @NgModule({
-  imports: [CommonModule, MatTableModule, GioTableWrapperModule, GioLoaderModule, UIRouterModule.forChild()],
+  imports: [CommonModule, MatTableModule, GioTableWrapperModule, GioLoaderModule],
   declarations: [GioApiEventsTableComponent],
   exports: [GioApiEventsTableComponent],
 })

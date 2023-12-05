@@ -18,7 +18,6 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatStepperHarness } from '@angular/material/stepper/testing';
-import { UIRouterModule } from '@uirouter/angular';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { FormsModule } from '@angular/forms';
 import { GioConfirmDialogHarness, GioMonacoEditorHarness } from '@gravitee/ui-particles-angular';
@@ -32,7 +31,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ApiDocumentationV4EditPageHarness } from './api-documentation-v4-edit-page.harness';
 import { ApiDocumentationV4EditPageComponent } from './api-documentation-v4-edit-page.component';
 
-import { GioUiRouterTestingModule } from '../../../../shared/testing/gio-uirouter-testing-module';
 import { ApiDocumentationV4Module } from '../api-documentation-v4.module';
 import { CurrentUserService } from '../../../../ajs-upgraded-providers';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
@@ -69,15 +67,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
 
     await TestBed.configureTestingModule({
       declarations: [ApiDocumentationV4EditPageComponent],
-      imports: [
-        NoopAnimationsModule,
-        ApiDocumentationV4Module,
-        GioUiRouterTestingModule,
-        UIRouterModule.forRoot({ useHash: true }),
-        MatIconTestingModule,
-        FormsModule,
-        GioHttpTestingModule,
-      ],
+      imports: [NoopAnimationsModule, ApiDocumentationV4Module, MatIconTestingModule, FormsModule, GioHttpTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID, pageId }, queryParams: { parentId } } } },
         { provide: CurrentUserService, useValue: { currentUser } },

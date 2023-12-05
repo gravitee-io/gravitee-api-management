@@ -35,7 +35,6 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
-import { UIRouterModule } from '@uirouter/angular';
 import { MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -51,7 +50,6 @@ import { GioTableOfContentsModule } from '../../../shared/components/gio-table-o
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    UIRouterModule,
 
     MatButtonModule,
     MatCardModule,

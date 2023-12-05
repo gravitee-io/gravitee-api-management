@@ -23,7 +23,6 @@ import { ApiRuntimeLogsProxyComponent } from './api-runtime-logs-proxy.component
 import { ApiRuntimeLogsProxyHarness } from './api-runtime-logs-proxy.harness';
 import { ApiRuntimeLogsProxyModule } from './api-runtime-logs-proxy.module';
 
-import { GioUiRouterTestingModule } from '../../../../../../shared/testing/gio-uirouter-testing-module';
 import {
   ConnectionLogDetail,
   fakeConnectionLogDetail,
@@ -43,7 +42,7 @@ describe('ApiRuntimeLogsProxyComponent', () => {
 
   const initComponent = async () => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, ApiRuntimeLogsProxyModule, GioUiRouterTestingModule, GioHttpTestingModule],
+      imports: [NoopAnimationsModule, ApiRuntimeLogsProxyModule, GioHttpTestingModule],
       providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID, requestId: REQUEST_ID } } } }],
     });
 

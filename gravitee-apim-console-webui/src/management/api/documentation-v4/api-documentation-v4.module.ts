@@ -22,7 +22,6 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatDialogModule } from '@angular/material/dialog';
-import { UIRouterModule } from '@uirouter/angular';
 import { MatStepperModule } from '@angular/material/stepper';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatTableModule } from '@angular/material/table';
@@ -65,7 +64,6 @@ import { GioTooltipOnEllipsisModule } from '../../../shared/components/gio-toolt
     FormsModule,
     ReactiveFormsModule,
     RouterModule,
-    UIRouterModule,
 
     MatCardModule,
     MatButtonModule,

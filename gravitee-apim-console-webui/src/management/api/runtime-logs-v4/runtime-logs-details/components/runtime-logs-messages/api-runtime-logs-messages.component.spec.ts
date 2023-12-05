@@ -24,7 +24,6 @@ import { ApiRuntimeLogsMessagesComponent } from './api-runtime-logs-messages.com
 import { ApiRuntimeLogsMessagesModule } from './api-runtime-logs-messages.module';
 import { ApiRuntimeLogsMessagesHarness } from './api-runtime-logs-messages.harness';
 
-import { GioUiRouterTestingModule } from '../../../../../../shared/testing/gio-uirouter-testing-module';
 import {
   AggregatedMessageLog,
   ConnectionLogDetail,
@@ -47,7 +46,7 @@ describe('ApiRuntimeLogsMessagesComponent', () => {
 
   const initComponent = async () => {
     TestBed.configureTestingModule({
-      imports: [ApiRuntimeLogsMessagesModule, GioUiRouterTestingModule, GioHttpTestingModule, MatIconTestingModule, NoopAnimationsModule],
+      imports: [ApiRuntimeLogsMessagesModule, GioHttpTestingModule, MatIconTestingModule, NoopAnimationsModule],
       providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID, requestId: REQUEST_ID } } } }],
     });
 

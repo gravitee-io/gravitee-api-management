@@ -31,7 +31,6 @@ import { ApiDynamicPropertiesComponent } from './api-dynamic-properties.componen
 import { ApiDynamicPropertiesModule } from './api-dynamic-properties.module';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
-import { GioUiRouterTestingModule } from '../../../../../shared/testing/gio-uirouter-testing-module';
 import { Api, fakeApiV2 } from '../../../../../entities/management-api-v2';
 
 describe('ApiDynamicPropertiesComponent', () => {
@@ -42,7 +41,7 @@ describe('ApiDynamicPropertiesComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiDynamicPropertiesModule, GioUiRouterTestingModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiDynamicPropertiesModule, MatIconTestingModule],
       providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } }],
     }).overrideProvider(InteractivityChecker, {
       useValue: {

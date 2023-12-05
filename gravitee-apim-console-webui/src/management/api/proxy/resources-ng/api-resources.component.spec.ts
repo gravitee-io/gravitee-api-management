@@ -29,7 +29,6 @@ import { ApiResourcesModule } from './api-resources.module';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { User } from '../../../../entities/user';
 import { fakeResourceListItem } from '../../../../entities/resource/resourceListItem.fixture';
-import { GioUiRouterTestingModule } from '../../../../shared/testing/gio-uirouter-testing-module';
 import { CurrentUserService } from '../../../../ajs-upgraded-providers';
 import { ApiV4, fakeApiV4 } from '../../../../entities/management-api-v2';
 
@@ -49,14 +48,7 @@ describe('PolicyStudioResourcesComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [
-        NoopAnimationsModule,
-        GioHttpTestingModule,
-        ApiResourcesModule,
-        GioUiRouterTestingModule,
-        MatDialogModule,
-        GioLicenseTestingModule,
-      ],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiResourcesModule, MatDialogModule, GioLicenseTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
         {

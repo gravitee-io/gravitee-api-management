@@ -15,16 +15,14 @@
  */
 
 import { CommonModule } from '@angular/common';
-import { UIRouterModule } from '@uirouter/angular';
 import { NgModule } from '@angular/core';
 
 import { InstanceDetailsModule } from './instance-details/instance-details.module';
 import { InstanceListModule } from './instance-list/instance-list.module';
-import { states } from './instances.route';
 
 @NgModule({
   declarations: [],
   exports: [],
-  imports: [CommonModule, UIRouterModule.forChild({ states }), InstanceListModule, InstanceDetailsModule],
+  imports: [CommonModule, InstanceListModule, InstanceDetailsModule],
 })
 export class InstancesModule {}

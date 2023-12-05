@@ -15,7 +15,6 @@
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { UIRouterModule } from '@uirouter/angular';
 import { GioLicenseTestingModule } from '@gravitee/ui-particles-angular';
 
 import { OrgNavigationComponent } from './org-navigation.component';
@@ -23,7 +22,6 @@ import { OrgNavigationComponent } from './org-navigation.component';
 import { OrganizationSettingsModule } from '../organization-settings.module';
 import { GioHttpTestingModule } from '../../../shared/testing';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
-import { GioUiRouterTestingModule } from '../../../shared/testing/gio-uirouter-testing-module';
 
 describe('OrgNavigationComponent', () => {
   let fixture: ComponentFixture<OrgNavigationComponent>;
@@ -31,14 +29,7 @@ describe('OrgNavigationComponent', () => {
 
   function createComponent(hasAnyMatching: boolean) {
     TestBed.configureTestingModule({
-      imports: [
-        NoopAnimationsModule,
-        GioUiRouterTestingModule,
-        GioHttpTestingModule,
-        OrganizationSettingsModule,
-        GioLicenseTestingModule,
-        UIRouterModule.forRoot({ useHash: true }),
-      ],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule, GioLicenseTestingModule],
       providers: [
         {
           provide: GioPermissionService,

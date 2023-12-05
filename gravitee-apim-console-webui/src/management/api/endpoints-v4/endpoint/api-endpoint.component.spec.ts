@@ -22,7 +22,6 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatInputHarness } from '@angular/material/input/testing';
-import { UIRouterModule } from '@uirouter/angular';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApiEndpointComponent } from './api-endpoint.component';
@@ -31,7 +30,6 @@ import { ApiEndpointHarness } from './api-endpoint.harness';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { ApiV4, fakeApiV4, fakeConnectorPlugin } from '../../../../entities/management-api-v2';
-import { GioUiRouterTestingModule } from '../../../../shared/testing/gio-uirouter-testing-module';
 
 @Component({
   template: `<api-endpoint #apiEndpoint></api-endpoint>`,
@@ -53,16 +51,7 @@ describe('ApiEndpointComponent', () => {
   const initComponent = async (api: ApiV4, routerParams: unknown = { apiId: API_ID, groupIndex: 0 }) => {
     TestBed.configureTestingModule({
       declarations: [TestComponent],
-      imports: [
-        NoopAnimationsModule,
-        GioHttpTestingModule,
-        ApiEndpointModule,
-        MatIconTestingModule,
-        UIRouterModule.forRoot({
-          useHash: true,
-        }),
-        GioUiRouterTestingModule,
-      ],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiEndpointModule, MatIconTestingModule],
       providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: routerParams } } }],
     });
 

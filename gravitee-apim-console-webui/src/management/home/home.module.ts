@@ -21,7 +21,6 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { GioAvatarModule, GioBannerModule, GioIconsModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
-import { Ng2StateDeclaration, UIRouterModule } from '@uirouter/angular';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -43,61 +42,6 @@ import { GioApiEventsTableModule } from './components/gio-api-events-table/gio-a
 import { GioCircularPercentageModule } from '../../shared/components/gio-circular-percentage/gio-circular-percentage.module';
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { TasksComponent } from '../../user/tasks/tasks.component';
-
-export const states: Ng2StateDeclaration[] = [
-  {
-    parent: 'management',
-    name: 'home',
-    url: '/home',
-    redirectTo: 'home.overview',
-    data: {
-      useAngularMaterial: true,
-      docs: null,
-    },
-    component: HomeLayoutComponent,
-  },
-  {
-    name: 'home.overview',
-    url: '/overview',
-    data: {
-      useAngularMaterial: true,
-      docs: null,
-    },
-    component: HomeOverviewComponent,
-  },
-  {
-    name: 'home.apiHealthCheck',
-    url: '/api-health-check?{q:string}{page:int}{size:int}{order:string}',
-    data: {
-      useAngularMaterial: true,
-      docs: null,
-    },
-    params: {
-      q: {
-        dynamic: true,
-      },
-      page: {
-        dynamic: true,
-      },
-      size: {
-        dynamic: true,
-      },
-      order: {
-        dynamic: true,
-      },
-    },
-    component: HomeApiHealthCheckComponent,
-  },
-  {
-    name: 'home.tasks',
-    url: '/tasks',
-    data: {
-      useAngularMaterial: true,
-      docs: null,
-    },
-    component: TasksComponent,
-  },
-];
 
 const homeRoutes: Route[] = [
   {
@@ -129,7 +73,6 @@ const homeRoutes: Route[] = [
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    UIRouterModule.forChild({ states }),
     RouterModule.forChild(homeRoutes),
 
     MatTabsModule,

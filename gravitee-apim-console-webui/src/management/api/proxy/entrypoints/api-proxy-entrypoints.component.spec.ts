@@ -22,7 +22,6 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
-import { UIRouterModule } from '@uirouter/angular';
 import { ActivatedRoute } from '@angular/router';
 
 import { ApiProxyEntrypointsModule } from './api-proxy-entrypoints.module';
@@ -51,15 +50,7 @@ describe('ApiProxyEntrypointsComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [
-        NoopAnimationsModule,
-        GioHttpTestingModule,
-        ApiProxyEntrypointsModule,
-        MatIconTestingModule,
-        UIRouterModule.forRoot({
-          useHash: true,
-        }),
-      ],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiProxyEntrypointsModule, MatIconTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
         { provide: CurrentUserService, useValue: { currentUser } },
