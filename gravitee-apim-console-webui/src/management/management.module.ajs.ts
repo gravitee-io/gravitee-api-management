@@ -144,11 +144,7 @@ import DialogAddGroupMemberController from './settings/groups/group/addMemberDia
 import SubscriptionService from '../services/subscription.service';
 import EmptyStateDirective from '../components/emptystate/emptystate.directive';
 import TagService from '../services/tag.service';
-import MetadataController from '../components/metadata/metadata.controller';
 import MetadataService from '../services/metadata.service';
-import DeleteMetadataDialogController from '../components/metadata/dialog/delete.metadata.dialog.controller';
-import NewMetadataDialogController from '../components/metadata/dialog/new.metadata.dialog.controller';
-import UpdateMetadataDialogController from '../components/metadata/dialog/update.metadata.dialog.controller';
 import ChartDirective from '../components/chart/chart.directive';
 import UserAvatarDirective from '../components/avatar/user-avatar.directive';
 import FileChooserDialogController from '../components/dialog/fileChooserDialog.controller';
@@ -159,7 +155,6 @@ import TenantService from '../services/tenant.service';
 
 import CategoriesComponentAjs from './settings/categories/categories.component.ajs';
 import CategoryComponentAjs from './settings/categories/category/category.component.ajs';
-import MetadataValidatorDirective from '../components/metadata/metadata.validator.directive';
 
 import RoleService from '../services/role.service';
 
@@ -539,10 +534,6 @@ graviteeManagementModule.component('settingsGroupsAjs', GroupsComponentAjs);
 graviteeManagementModule.component('settingsGroupEditAjs', GroupComponentAjs);
 graviteeManagementModule.controller('DialogAddGroupMemberController', DialogAddGroupMemberController);
 graviteeManagementModule.controller('DialogTransferOwnershipController', DialogTransferOwnershipController);
-graviteeManagementModule.controller('MetadataController', MetadataController);
-graviteeManagementModule.controller('DeleteMetadataDialogController', DeleteMetadataDialogController);
-graviteeManagementModule.controller('NewMetadataDialogController', NewMetadataDialogController);
-graviteeManagementModule.controller('UpdateMetadataDialogController', UpdateMetadataDialogController);
 graviteeManagementModule.controller('DeleteFieldDialogController', DeleteFieldDialogController);
 graviteeManagementModule.controller('NewFieldDialogController', NewFieldDialogController);
 graviteeManagementModule.controller('UpdateFieldDialogController', UpdateFieldDialogController);
@@ -641,7 +632,6 @@ graviteeManagementModule.component('settingsTopApis', TopApisComponentAjs);
 
 graviteeManagementModule.component('settingsPortalAjs', PortalSettingsComponentAjs);
 graviteeManagementModule.component('settingsAnalyticsAjs', SettingsAnalyticsComponentAjs);
-graviteeManagementModule.directive('gvMetadataValidator', () => MetadataValidatorDirective);
 graviteeManagementModule.component('customUserFieldsAjs', CustomUserFieldsComponentAjs);
 graviteeManagementModule.component('ticketDetail', TicketDetailComponentAjs);
 

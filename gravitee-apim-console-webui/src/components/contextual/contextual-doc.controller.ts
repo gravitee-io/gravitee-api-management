@@ -21,7 +21,7 @@ class ContextualDocController {
 
   public page: any = {};
 
-  constructor(private $http, public $state) {}
+  constructor(private $http) {}
 
   $onChanges(changes) {
     if (changes.contextualDocumentationPage) {
@@ -41,6 +41,6 @@ class ContextualDocController {
     }
   }
 }
-ContextualDocController.$inject = ['$http', '$state'];
+ContextualDocController.$inject = ['$http'];
 
 export default ContextualDocController;
