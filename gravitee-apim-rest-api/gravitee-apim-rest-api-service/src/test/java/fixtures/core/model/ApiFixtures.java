@@ -23,6 +23,7 @@ import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
@@ -68,7 +69,9 @@ public class ApiFixtures {
                     .builder()
                     .id("my-api")
                     .name("My Api")
+                    .apiVersion("1.0.0")
                     .analytics(Analytics.builder().enabled(false).build())
+                    .definitionVersion(DefinitionVersion.V4)
                     .type(ApiType.PROXY)
                     .tags(Set.of("tag1"))
                     .listeners(
@@ -102,6 +105,7 @@ public class ApiFixtures {
                         )
                     )
                     .flows(List.of())
+                    .flowExecution(new FlowExecution())
                     .build()
             )
             .build();

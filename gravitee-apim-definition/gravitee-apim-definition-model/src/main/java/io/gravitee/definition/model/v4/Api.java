@@ -22,7 +22,6 @@ import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
-import io.gravitee.definition.model.v4.flow.execution.FlowMode;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.property.Property;
@@ -52,10 +51,12 @@ import lombok.ToString;
  * @author GraviteeSource Team
  */
 @NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
 @ToString
 @EqualsAndHashCode
+@Builder(toBuilder = true)
 public class Api implements Serializable {
 
     @JsonProperty(required = true)
@@ -125,7 +126,18 @@ public class Api implements Serializable {
         }
     }
 
-    public static ApiBuilder builder() {
-        return new ApiBuilder();
+    public static class ApiBuilder {
+
+        public Api.ApiBuilder withProperties(Map<String, String> properties) {
+            if (properties != null) {
+                this.properties =
+                    properties
+                        .entrySet()
+                        .stream()
+                        .map(p -> new Property(p.getKey(), p.getValue(), false, false))
+                        .collect(Collectors.toList());
+            }
+            return this;
+        }
     }
 }
