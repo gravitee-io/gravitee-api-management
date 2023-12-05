@@ -379,8 +379,8 @@ import ApplicationSubscriptionsListController from '../management/application/de
 import ApiKeysComponent from './application/components/api-key/api-keys.component';
 import ApiKeysController from './application/components/api-key/api-keys.controller';
 import { IfMatchEtagInterceptor } from '../shared/interceptors/if-match-etag.interceptor';
-import SearchAndSelectComponent from '../components/search-and-select/search-and-select.component';
-import { SearchAndSelectController } from '../components/search-and-select/search-and-select.controller';
+import SearchAndSelectComponent from '../components/logs/search-and-select/search-and-select.component';
+import { SearchAndSelectController } from '../components/logs/search-and-select/search-and-select.controller';
 import AlertsActivityComponentAjs from './alerts/activity/alerts-activity.component.ajs';
 import { ApiV2Service } from '../services-ngx/api-v2.service';
 import { GioPermissionService } from '../shared/components/gio-permission/gio-permission.service';
