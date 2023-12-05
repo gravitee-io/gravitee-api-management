@@ -22,12 +22,17 @@ import io.gravitee.definition.model.services.Services;
 import java.io.Serializable;
 import java.util.*;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@AllArgsConstructor
+@Builder(toBuilder = true)
 public class Api implements Serializable {
 
     @JsonProperty("id")
@@ -245,5 +250,22 @@ public class Api implements Serializable {
 
     public String toString() {
         return "Api{" + "id='" + id + '\'' + ", name='" + name + '\'' + ", version='" + version + '\'' + '}';
+    }
+
+    public static class ApiBuilder {
+
+        public io.gravitee.definition.model.Api.ApiBuilder withProperties(Map<String, String> properties) {
+            if (properties != null) {
+                this.properties = new Properties();
+                this.properties.setProperties(
+                        properties
+                            .entrySet()
+                            .stream()
+                            .map(p -> new io.gravitee.definition.model.Property(p.getKey(), p.getValue(), false))
+                            .collect(Collectors.toList())
+                    );
+            }
+            return this;
+        }
     }
 }
