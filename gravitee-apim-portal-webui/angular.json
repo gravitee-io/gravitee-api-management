@@ -120,12 +120,12 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "gravitee-portal-webui:build",
-            "proxyConfig": "src/proxy.conf.json"
+            "proxyConfig": "src/proxy.conf.json",
+            "buildTarget": "gravitee-portal-webui:build"
           },
           "configurations": {
             "production": {
-              "browserTarget": "gravitee-portal-webui:build:production"
+              "buildTarget": "gravitee-portal-webui:build:production"
             },
             "apim-master": {
               "proxyConfig": "src/proxy-apim-master.conf.js"
@@ -135,7 +135,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "gravitee-portal-webui:build"
+            "buildTarget": "gravitee-portal-webui:build"
           }
         },
         "test": {
