@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { StateService } from '@uirouter/core';
 import { IScope } from 'angular';
 import * as _ from 'lodash';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -31,12 +30,7 @@ class ApplicationLogsController {
   private init: boolean;
   private activatedRoute: ActivatedRoute;
 
-  constructor(
-    private ApplicationService: ApplicationService,
-    private $state: StateService,
-    private $scope: IScope,
-    private ngRouter: Router,
-  ) {
+  constructor(private ApplicationService: ApplicationService, private $scope: IScope, private ngRouter: Router) {
     this.ApplicationService = ApplicationService;
 
     this.onPaginate = this.onPaginate.bind(this);
@@ -130,6 +124,6 @@ class ApplicationLogsController {
     });
   }
 }
-ApplicationLogsController.$inject = ['ApplicationService', '$state', '$scope', 'ngRouter'];
+ApplicationLogsController.$inject = ['ApplicationService', '$scope', 'ngRouter'];
 
 export default ApplicationLogsController;

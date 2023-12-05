@@ -44,7 +44,6 @@ class ApplicationSubscribeController {
     private ApplicationService: ApplicationService,
     private NotificationService: NotificationService,
     private $mdDialog,
-    private $state,
     private $transitions,
   ) {}
 
@@ -122,7 +121,7 @@ class ApplicationSubscribeController {
 
     this.ApplicationService.subscribe(this.application.id, plan.id, message, apikeyMode).then(() => {
       this.NotificationService.show('Subscription to application ' + this.application.name + ' has been successfully created');
-      this.$state.reload();
+      this.$onInit();
     });
   }
 
@@ -152,7 +151,7 @@ class ApplicationSubscribeController {
     this.$mdDialog.show(alert).then(() => {
       this.ApplicationService.closeSubscription(this.application.id, _.find(this.subscriptions.data, { plan: plan.id }).id).then(() => {
         this.NotificationService.show('Subscription has been successfully closed');
-        this.$state.reload();
+        this.$onInit();
       });
     });
   }
@@ -207,7 +206,6 @@ ApplicationSubscribeController.$inject = [
   'ApplicationService',
   'NotificationService',
   '$mdDialog',
-  '$state',
   '$transitions',
 ];
 

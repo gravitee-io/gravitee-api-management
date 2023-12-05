@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { StateService } from '@uirouter/core';
 import * as _ from 'lodash';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -35,7 +34,6 @@ class ApplicationGeneralController {
   constructor(
     private ApplicationService: ApplicationService,
     private NotificationService: NotificationService,
-    private $state: StateService,
     private $scope: IApplicationScope,
     private $mdDialog: angular.material.IDialogService,
     private readonly ngRouter: Router,
@@ -145,6 +143,6 @@ class ApplicationGeneralController {
     this.readonly = true;
   }
 }
-ApplicationGeneralController.$inject = ['ApplicationService', 'NotificationService', '$state', '$scope', '$mdDialog', 'ngRouter'];
+ApplicationGeneralController.$inject = ['ApplicationService', 'NotificationService', '$scope', '$mdDialog', 'ngRouter'];
 
 export default ApplicationGeneralController;

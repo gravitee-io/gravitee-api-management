@@ -1,4 +1,3 @@
-import { StateService } from '@uirouter/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import NotificationService from '../../../../services/notification.service';
@@ -24,19 +23,13 @@ const ApplicationLogComponentAjs: ng.IComponentOptions = {
     activatedRoute: '<',
   },
   controller: [
-    '$state',
     'NotificationService',
     'Constants',
     'ngRouter',
     class {
       private activatedRoute: ActivatedRoute;
 
-      constructor(
-        private $state: StateService,
-        private NotificationService: NotificationService,
-        private Constants: any,
-        private ngRouter: Router,
-      ) {}
+      constructor(private NotificationService: NotificationService, private Constants: any, private ngRouter: Router) {}
 
       getMimeType(log: any) {
         if (log.headers['Content-Type'] !== undefined) {
