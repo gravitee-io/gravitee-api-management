@@ -15,6 +15,22 @@ tests:
           path: spec.template.spec.containers[0].env[1].value
           value: "/"
 
+  - it: Should generate a CONSOLE_BASE_HREF environment variable when modifying ingress path with subpath
+    template: portal/portal-deployment.yaml
+    set:
+      portal:
+        ingress:
+          path: /4pi-test/portal(/.*)?
+    asserts:
+      - hasDocuments:
+          count: 1
+      - equal:
+          path: spec.template.spec.containers[0].env[1].name
+          value: "PORTAL_BASE_HREF"
+      - equal:
+          path: spec.template.spec.containers[0].env[1].value
+          value: "/4pi-test/portal/"
+
   - it: Should generate a PORTAL_BASE_HREF environment variable when modifying ingress path
     template: portal/portal-deployment.yaml
     set:
@@ -29,7 +45,7 @@ tests:
           value: "PORTAL_BASE_HREF"
       - equal:
           path: spec.template.spec.containers[0].env[1].value
-          value: "/portal"
+          value: "/portal/"
 
   - it: Should override generated CONSOLE_BASE_HREF environment variable
     template: portal/portal-deployment.yaml

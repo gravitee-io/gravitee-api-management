@@ -320,15 +320,6 @@ Usage:
 {{- end }}
 {{- end }}
 
-{{- define "ui.base_href" -}}
-{{- if eq .Values.ui.ingress.path "/" }}
-{{- print "/" -}}
-{{ else}}
-{{- $name := regexFind "\\w+" .Values.ui.ingress.path -}}
-{{- print "/" $name "/" -}}
-{{- end }}
-{{- end }}
-
 {{- define "portal.base_href.defined" -}}
 {{- if contains "PORTAL_BASE_HREF" (.Values.portal.env | toString) -}}
 {{- print "true" -}}
@@ -337,11 +328,3 @@ Usage:
 {{- end }}
 {{- end }}
 
-{{- define "portal.base_href" -}}
-{{- if eq .Values.portal.ingress.path "/" }}
-{{- print "/" -}}
-{{ else}}
-{{- $name := regexFind "\\w+" .Values.portal.ingress.path -}}
-{{- print "/" $name -}}
-{{- end }}
-{{- end }}
