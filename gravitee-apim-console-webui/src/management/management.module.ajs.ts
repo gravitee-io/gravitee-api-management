@@ -146,7 +146,6 @@ import EmptyStateDirective from '../components/emptystate/emptystate.directive';
 import TagService from '../services/tag.service';
 import MetadataService from '../services/metadata.service';
 import ChartDirective from '../components/chart/chart.directive';
-import UserAvatarDirective from '../components/avatar/user-avatar.directive';
 import FileChooserDialogController from '../components/dialog/fileChooserDialog.controller';
 import DialogConfirmController from '../components/dialog/confirmDialog.controller';
 import DialogConfirmAndValidateController from '../components/dialog/confirmAndValidateDialog.controller';
@@ -600,7 +599,6 @@ graviteeManagementModule.directive('gvModel', () => new GvModelDirective());
 graviteeManagementModule.directive('graviteeImage', () => new ImageDirective());
 graviteeManagementModule.directive('graviteeEmptyState', () => new EmptyStateDirective());
 graviteeManagementModule.directive('graviteeChart', () => new ChartDirective());
-graviteeManagementModule.directive('graviteeUserAvatar', () => new UserAvatarDirective());
 
 graviteeManagementModule.component('gvWidget', WidgetComponent);
 graviteeManagementModule.component('gvWidgetDataTable', WidgetDataTableComponent);
