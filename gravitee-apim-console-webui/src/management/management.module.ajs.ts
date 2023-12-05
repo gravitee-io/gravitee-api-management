@@ -189,7 +189,6 @@ import AuditService from '../services/audit.service';
 import { ApiAuditComponentAjs } from './api/audit/general/audit.component.ajs';
 import AuditComponent from '../components/audit/audit.component';
 // Configuration
-import SettingsComponent from '../management/configuration/settings.component';
 import ConsoleSettingsService from '../services/consoleSettings.service';
 import PortalSettingsService from '../services/portalSettings.service';
 import PortalConfigService from '../services/portalConfig.service';
@@ -720,7 +719,6 @@ graviteeManagementModule.component('progressBar', ProgressBarComponent);
 graviteeManagementModule.component('gvHealthcheckMetric', HealthCheckMetricComponent);
 
 // Configuration
-graviteeManagementModule.component('settings', SettingsComponent);
 graviteeManagementModule.service('ConsoleSettingsService', ConsoleSettingsService);
 graviteeManagementModule.service('PortalSettingsService', PortalSettingsService);
 graviteeManagementModule.service('PortalConfigService', PortalConfigService);
