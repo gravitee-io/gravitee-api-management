@@ -40,7 +40,7 @@ import { ApiHistoryComponentAjs } from './api/audit/history/apiHistory.component
 import DialogAddPropertyController from './api/proxy/properties-v1/add-property.dialog.controller';
 import DialogEditPolicyController from './api/policy-studio-v1/policies/dialog/policyDialog.controller';
 import FileContentDirective from '../components/filecontent/filecontent.directive';
-import FileLoaderDirective from '../components/fileloader/fileloader.directive';
+import FileLoaderDirective from '../components/dialog/fileloader/fileloader.directive';
 
 import { DocumentationService } from '../services/documentation.service';
 import NotificationService from '../services/notification.service';
