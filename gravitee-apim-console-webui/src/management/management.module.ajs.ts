@@ -202,7 +202,6 @@ import IdentityProvidersComponentAjs from './settings/identityProviders/identity
 import IdentityProviderService from '../services/identityProvider.service';
 // Others
 import StringService from '../services/string.service';
-import AuthenticationService from '../services/authentication.service';
 
 import interceptorConfig from './management.interceptor.ajs';
 
@@ -321,7 +320,6 @@ marked.setOptions({
 
 (<any>window).CodeMirror = CodeMirror;
 
-require('satellizer');
 require('angular-highlightjs');
 
 require('codemirror/mode/xml/xml.js');
@@ -427,7 +425,6 @@ angular.module('gravitee-management', [
   'ui.tree',
   'gridster',
   'ngAnimate',
-  'satellizer',
   'moment-picker',
   'mdColorPicker',
   'gravitee-component-documentation',
@@ -573,7 +570,6 @@ graviteeManagementModule.service('MetadataService', MetadataService);
 graviteeManagementModule.service('CustomUserFieldsService', CustomUserFieldsService);
 graviteeManagementModule.service('TenantService', TenantService);
 graviteeManagementModule.service('StringService', StringService);
-graviteeManagementModule.service('AuthenticationService', AuthenticationService);
 graviteeManagementModule.service('RoleService', RoleService);
 graviteeManagementModule.service('TicketService', TicketService);
 graviteeManagementModule.service('AuditService', AuditService);
