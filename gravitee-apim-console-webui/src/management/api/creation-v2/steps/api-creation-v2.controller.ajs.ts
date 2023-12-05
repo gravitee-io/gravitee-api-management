@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { StateService } from '@uirouter/core';
 import { IPromise } from 'angular';
 import * as _ from 'lodash';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -93,20 +92,18 @@ class ApiCreationV2ControllerAjs {
     private $scope,
     private $timeout,
     private $mdDialog,
-    private $stateParams,
     private $window,
     private ApiService: ApiService,
     private ngApiV2Service: ApiV2Service,
     private NotificationService: NotificationService,
     private UserService: UserService,
-    private $state: StateService,
     private Constants: any,
     private $rootScope,
     private readonly ngIfMatchEtagInterceptor: IfMatchEtagInterceptor,
     private readonly ngRouter: Router,
   ) {
     this.api = {
-      gravitee: ['2.0.0', '1.0.0'].includes($stateParams.definitionVersion) ? $stateParams.definitionVersion : '2.0.0',
+      gravitee: '2.0.0',
       proxy: {
         endpoints: [],
       },
@@ -536,13 +533,11 @@ ApiCreationV2ControllerAjs.$inject = [
   '$scope',
   '$timeout',
   '$mdDialog',
-  '$stateParams',
   '$window',
   'ApiService',
   'ngApiV2Service',
   'NotificationService',
   'UserService',
-  '$state',
   'Constants',
   '$rootScope',
   'ngIfMatchEtagInterceptor',
