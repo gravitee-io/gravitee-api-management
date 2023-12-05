@@ -25,7 +25,7 @@ import { IconService } from '../../../../../services-ngx/icon.service';
 import {
   GioConnectorDialogComponent,
   GioConnectorDialogData,
-} from '../../../../../components/gio-connector-dialog/gio-connector-dialog.component';
+} from '../../../component/gio-connector-dialog/gio-connector-dialog.component';
 
 @Component({
   selector: 'api-endpoints-group-selection',
