@@ -323,7 +323,6 @@ import { PromotionService } from '../services/promotion.service';
 
 import * as angular from 'angular';
 
-const ngInfiniteScroll = require('ng-infinite-scroll');
 import { ApiAlertsDashboardComponentAjs } from './api/analytics/alerts/api-alerts-dashboard.component.ajs';
 
 (<any>window).traverse = traverse;
@@ -471,7 +470,6 @@ angular.module('gravitee-management', [
   'ngAnimate',
   'LocalStorageModule',
   'satellizer',
-  ngInfiniteScroll,
   'moment-picker',
   'mdColorPicker',
   'gravitee-component-documentation',
