@@ -16,6 +16,8 @@
 
 package io.gravitee.apim.infra.domain_service.integration;
 
+import static io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService.APIM_INTEGRATION;
+
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
 import io.gravitee.apim.core.integration.domain_service.IntegrationDomainService;
 import io.gravitee.apim.core.integration.model.Integration;
@@ -24,7 +26,9 @@ import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService
 import io.gravitee.apim.infra.adapter.IntegrationAdapter;
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.exchange.api.command.CommandStatus;
+import io.gravitee.exchange.api.connector.ExchangeConnectorManager;
 import io.gravitee.exchange.api.controller.ExchangeController;
+import io.gravitee.exchange.connector.embedded.EmbeddedExchangeConnector;
 import io.gravitee.exchange.controller.embedded.channel.EmbeddedChannel;
 import io.gravitee.integration.api.DeploymentType;
 import io.gravitee.integration.api.Entity;
@@ -36,6 +40,7 @@ import io.gravitee.integration.api.command.fetch.FetchCommandPayload;
 import io.gravitee.integration.api.command.fetch.FetchReply;
 import io.gravitee.integration.api.command.list.ListCommand;
 import io.gravitee.integration.api.command.list.ListReply;
+import io.gravitee.plugin.integrationprovider.IntegrationProviderPluginManager;
 import io.gravitee.plugin.integrationprovider.internal.DefaultIntegrationProviderPluginManager;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
@@ -43,8 +48,6 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
-import static io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService.APIM_INTEGRATION;
 
 /**
  * @author Remi Baptiste (remi.baptiste at graviteesource.com)
@@ -56,8 +59,9 @@ import static io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomain
 public class IntegrationDomainServiceImpl extends AbstractService<IntegrationDomainService> implements IntegrationDomainService {
 
     private final GraviteeLicenseDomainService graviteeLicenseDomainService;
+    private final ExchangeConnectorManager exchangeConnectorManager;
     private final ExchangeController exchangeController;
-    private final DefaultIntegrationProviderPluginManager integrationProviderPluginManager;
+    private final IntegrationProviderPluginManager integrationProviderPluginManager;
     private final IntegrationCrudService integrationCrudService;
 
     // TODO To be removed when the license is up to date
@@ -101,14 +105,14 @@ public class IntegrationDomainServiceImpl extends AbstractService<IntegrationDom
 
             integrationProvider.start();
 
+            EmbeddedChannel embeddedChannel = EmbeddedChannel
+                .builder()
+                .targetId(integration.getId())
+                .commandHandlers(IntegrationProviderCommandHandlerFactory.buildHandlers(integrationProvider))
+                .build();
             exchangeController
-                .register(
-                    EmbeddedChannel
-                        .builder()
-                        .targetId(integration.getId())
-                        .commandHandlers(IntegrationProviderCommandHandlerFactory.buildHandlers(integrationProvider))
-                        .build()
-                )
+                .register(embeddedChannel)
+                .andThen(exchangeConnectorManager.register(EmbeddedExchangeConnector.builder().connectorChannel(embeddedChannel).build()))
                 .blockingAwait();
         } catch (Exception e) {
             log.warn("Unable to properly start the integration provider {}: {}. Skipped.", integration.getProvider(), e.getMessage());
@@ -117,7 +121,6 @@ public class IntegrationDomainServiceImpl extends AbstractService<IntegrationDom
 
     @Override
     public Flowable<IntegrationEntity> getIntegrationEntities(Integration integration) {
-
         ListCommand listCommand = new ListCommand();
 
         return sendListCommand(listCommand, integration.getId())
