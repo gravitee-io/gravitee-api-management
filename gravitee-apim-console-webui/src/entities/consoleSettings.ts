@@ -128,6 +128,7 @@ export interface ConsoleSettingsManagement {
   };
   title?: string;
   url?: string;
+  installationType?: 'standalone' | 'multi-tenant';
   userCreation?: {
     enabled?: boolean;
   };
