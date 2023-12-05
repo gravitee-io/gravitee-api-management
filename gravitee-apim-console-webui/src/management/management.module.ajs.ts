@@ -19,7 +19,6 @@ import 'angular-aria';
 import 'angular-animate';
 import 'angular-material';
 import 'angular-sanitize';
-import 'angular-local-storage';
 import { marked } from 'marked';
 
 import * as traverse from 'traverse';
@@ -437,7 +436,6 @@ angular.module('gravitee-management', [
   'ui.tree',
   'gridster',
   'ngAnimate',
-  'LocalStorageModule',
   'satellizer',
   'moment-picker',
   'mdColorPicker',
@@ -451,12 +449,6 @@ const includeSpinnerConfig = (cfpLoadingBarProvider) => {
 };
 includeSpinnerConfig.$inject = ['cfpLoadingBarProvider'];
 graviteeManagementModule.config(includeSpinnerConfig);
-
-const localStorageConfig = (localStorageServiceProvider) => {
-  localStorageServiceProvider.setPrefix('gravitee');
-};
-localStorageConfig.$inject = ['localStorageServiceProvider'];
-graviteeManagementModule.config(localStorageConfig);
 
 graviteeManagementModule.config(interceptorConfig);
 
