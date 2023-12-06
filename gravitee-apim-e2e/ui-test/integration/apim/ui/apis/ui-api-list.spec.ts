@@ -154,7 +154,7 @@ describe('API List feature', { defaultCommandTimeout: 10000 }, () => {
         cy.getByDataTestId('paginator-header').within(() => {
           cy.get('.mat-select-arrow-wrapper').click();
         });
-        cy.get('#mat-option-0').click();
+        cy.get('mat-option').contains('5').first().click();
         cy.url().should('include', 'size=5');
       });
     });
