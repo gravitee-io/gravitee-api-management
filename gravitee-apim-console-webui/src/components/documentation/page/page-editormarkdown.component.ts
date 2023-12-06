@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 import { EditorOptions, Editor } from '@toast-ui/editor';
-import { StateService } from '@uirouter/core';
 // eslint-disable-next-line import/no-unresolved
 import { ToolbarItemOptions } from '@toast-ui/editor/types/ui';
 import codeSyntaxHighlightPlugin from '@toast-ui/editor-plugin-code-syntax-highlight';
 import Prism from 'prismjs';
+import { ActivatedRoute } from '@angular/router';
 
 import NotificationService from '../../../services/notification.service';
 
@@ -38,15 +38,15 @@ class ComponentCtrl implements ng.IComponentController {
   constructor(
     private readonly $http: ng.IHttpService,
     private readonly Constants,
-    private readonly $state: StateService,
+    private readonly activatedRoute: ActivatedRoute,
     private readonly $mdDialog: angular.material.IDialogService,
     private readonly NotificationService: NotificationService,
   ) {}
 
   $onInit() {
     let mediaURL;
-    if (this.$state.params.apiId) {
-      mediaURL = this.Constants.env.baseURL + '/apis/' + this.$state.params.apiId + '/media/';
+    if (this.activatedRoute?.snapshot?.params?.apiId) {
+      mediaURL = this.Constants.env.baseURL + '/apis/' + this.activatedRoute.snapshot.params.apiId + '/media/';
     } else {
       mediaURL = this.Constants.env.baseURL + '/portal/media/';
     }
@@ -127,8 +127,8 @@ class ComponentCtrl implements ng.IComponentController {
         })
         .then((page) => {
           if (page) {
-            if (this.$state.params.apiId) {
-              const pageLinkTag = `[${page.name}](/#!/apis/${this.$state.params.apiId}/documentation/${page.id})`;
+            if (this.activatedRoute?.snapshot?.params?.apiId) {
+              const pageLinkTag = `[${page.name}](/#!/apis/${this.activatedRoute?.snapshot?.params?.apiId}/documentation/${page.id})`;
               this.tuiEditor.insertText(pageLinkTag);
             } else {
               const pageLinkTag = `[${page.name}](/#!/settings/pages/${page.id})`;
@@ -140,7 +140,7 @@ class ComponentCtrl implements ng.IComponentController {
     });
   }
 }
-ComponentCtrl.$inject = ['$http', 'Constants', '$state', '$mdDialog', 'NotificationService'];
+ComponentCtrl.$inject = ['$http', 'Constants', '$mdDialog', 'NotificationService'];
 
 export const PageEditorMarkdownComponent: ng.IComponentOptions = {
   template: require('./page-editormarkdown.html'),

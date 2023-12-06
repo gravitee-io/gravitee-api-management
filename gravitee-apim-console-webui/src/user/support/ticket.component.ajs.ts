@@ -30,7 +30,6 @@ class SupportTicketController {
   private applications: [any];
   private isAuthenticated: boolean;
   private userHasAnEmail: boolean;
-  private stateParams: any;
   private formTicket: any;
 
   constructor(
@@ -67,14 +66,7 @@ class SupportTicketController {
     });
   }
 }
-SupportTicketController.$inject = [
-  'TicketService',
-  'NotificationService',
-  'UserService',
-  'ApiService',
-  'ApplicationService',
-  '$stateParams',
-];
+SupportTicketController.$inject = ['TicketService', 'NotificationService', 'UserService', 'ApiService', 'ApplicationService'];
 
 const SupportTicketComponentAjs: ng.IComponentOptions = {
   bindings: {
