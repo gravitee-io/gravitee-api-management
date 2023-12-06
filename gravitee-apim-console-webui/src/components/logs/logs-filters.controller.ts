@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { StateService } from '@uirouter/core';
 import { ILogService, IScope, ITimeoutService } from 'angular';
 import * as _ from 'lodash';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -139,7 +138,6 @@ class LogsFiltersController {
 
   constructor(
     private $scope: ILogsFiltersScope,
-    private $state: StateService,
     private $timeout: ITimeoutService,
     private $log: ILogService,
     private ApiService: ApiService,
@@ -347,7 +345,7 @@ class LogsFiltersController {
 
   async searchApis(term) {
     if (this.context === 'application') {
-      const searchResult = await this.ApplicationService.getSubscribedAPI(this.$state.params.applicationId);
+      const searchResult = await this.ApplicationService.getSubscribedAPI(this.activatedRoute.snapshot.params.applicationId);
       let result = searchResult.data;
       if (term) {
         result = searchResult.data.filter((api) => {
@@ -381,6 +379,6 @@ class LogsFiltersController {
     return applications;
   }
 }
-LogsFiltersController.$inject = ['$scope', '$state', '$timeout', '$log', 'ApiService', 'ApplicationService', 'ngRouter'];
+LogsFiltersController.$inject = ['$scope', '$timeout', '$log', 'ApiService', 'ApplicationService', 'ngRouter'];
 
 export default LogsFiltersController;

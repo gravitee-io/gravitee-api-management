@@ -30,10 +30,9 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
     '$scope',
     '$element',
     '$rootScope',
-    '$state',
     'AnalyticsService',
     'eventService',
-    function ($scope, $element, $rootScope, $state, AnalyticsService: AnalyticsService, eventService: EventService) {
+    function ($scope, $element, $rootScope, AnalyticsService: AnalyticsService, eventService: EventService) {
       this.AnalyticsService = AnalyticsService;
       this.eventService = eventService;
       this.$scope = $scope;

@@ -94,7 +94,6 @@ const AlertComponentAjs: ng.IComponentOptions = {
       this.selectTab = (idx: number) => {
         this.selectedTab = idx;
         this.currentTab = this.tabs[this.selectedTab];
-        // $state.transitionTo("^.alert", {alertId: this.alert.id, tab: this.currentTab}, {notify: false});
       };
 
       this.$onDestroy = () => {

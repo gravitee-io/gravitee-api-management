@@ -28,7 +28,6 @@ const WidgetDataTableComponent: ng.IComponentOptions = {
   },
   controller: [
     '$scope',
-    '$state',
     'AnalyticsService',
     function ($scope, $state: StateService, AnalyticsService: AnalyticsService) {
       this.AnalyticsService = AnalyticsService;

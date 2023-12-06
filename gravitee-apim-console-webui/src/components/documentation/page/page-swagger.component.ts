@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { StateService } from '@uirouter/core';
 import angular, { IController } from 'angular';
 import * as jsyaml from 'js-yaml';
 import * as _ from 'lodash';
 import { SwaggerUIBundle } from 'swagger-ui-dist';
+import { ActivatedRoute } from '@angular/router';
 
 import UserService from '../../../services/user.service';
 
@@ -41,12 +41,9 @@ class PageSwaggerComponentController implements IController {
 
   cfg: Record<string, unknown>;
 
-  constructor(
-    private readonly Constants,
-    private readonly UserService: UserService,
-    private $state: StateService,
-    private $window: ng.IWindowService,
-  ) {
+  private activatedRoute: ActivatedRoute;
+
+  constructor(private readonly Constants, private readonly UserService: UserService, private $window: ng.IWindowService) {
     this.cfg = {
       dom_id: '#swagger-container',
       presets: [SwaggerUIBundle.presets.apis],
@@ -104,10 +101,10 @@ class PageSwaggerComponentController implements IController {
 
     if (this.pageConfiguration?.showURL === 'true') {
       let url = '';
-      if (this.$state.params.apiId) {
-        url = `${this.Constants.env.baseURL}/apis/${this.$state.params.apiId}/pages/${this.$state.params.pageId}/content`;
+      if (this.activatedRoute.snapshot.params.apiId) {
+        url = `${this.Constants.env.baseURL}/apis/${this.activatedRoute.snapshot.params.apiId}/pages/${this.activatedRoute.snapshot.params.pageId}/content`;
       } else {
-        url = `${this.Constants.env.baseURL}/portal/pages/${this.$state.params.pageId}/content`;
+        url = `${this.Constants.env.baseURL}/portal/pages/${this.activatedRoute.snapshot.params.pageId}/content`;
       }
       if (url.includes('{:envId}')) {
         url = url.replace('{:envId}', this.Constants.org.currentEnv.id);
@@ -142,7 +139,7 @@ class PageSwaggerComponentController implements IController {
     );
   }
 }
-PageSwaggerComponentController.$inject = ['Constants', 'UserService', '$state', '$window'];
+PageSwaggerComponentController.$inject = ['Constants', 'UserService', '$window'];
 
 export const PageSwaggerComponent: ng.IComponentOptions = {
   template: require('./page-swagger.html'),
