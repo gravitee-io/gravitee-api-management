@@ -176,11 +176,15 @@
                   <gv-alert-trigger-metrics-simple-condition
                     ng-if="$ctrl.alert.type === 'REQUEST@METRICS_SIMPLE_CONDITION'"
                     alert="$ctrl.alert"
+                    reference-type="$ctrl.referenceType"
+                    reference-id="$ctrl.referenceId"
                   ></gv-alert-trigger-metrics-simple-condition>
 
                   <gv-alert-trigger-metrics-simple-condition
                     ng-if="$ctrl.alert.type === 'NODE_HEARTBEAT@METRICS_SIMPLE_CONDITION'"
                     alert="$ctrl.alert"
+                    reference-type="$ctrl.referenceType"
+                    reference-id="$ctrl.referenceId"
                   ></gv-alert-trigger-metrics-simple-condition>
 
                   <gv-alert-trigger-metrics-aggregation
@@ -196,11 +200,15 @@
                   <gv-alert-trigger-metrics-rate
                     ng-if="$ctrl.alert.type === 'REQUEST@METRICS_RATE'"
                     alert="$ctrl.alert"
+                    reference-type="$ctrl.referenceType"
+                    reference-id="$ctrl.referenceId"
                   ></gv-alert-trigger-metrics-rate>
 
                   <gv-alert-trigger-metrics-rate
                     ng-if="$ctrl.alert.type === 'NODE_HEARTBEAT@METRICS_RATE'"
                     alert="$ctrl.alert"
+                    reference-type="$ctrl.referenceType"
+                    reference-id="$ctrl.referenceId"
                   ></gv-alert-trigger-metrics-rate>
 
                   <gv-alert-trigger-api-health-check-status-changed

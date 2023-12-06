@@ -24,6 +24,8 @@ const AlertTriggerFilterComponent: ng.IComponentOptions = {
     alert: '<',
     onFilterRemove: '&',
     isReadonly: '<',
+    referenceType: '<',
+    referenceId: '<',
   },
   template: require('./trigger-filter.html'),
   controller: function () {
