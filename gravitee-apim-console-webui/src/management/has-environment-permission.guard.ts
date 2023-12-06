@@ -53,7 +53,8 @@ export class HasEnvironmentPermissionGuard implements CanActivate, CanActivateCh
         this.constants.org.currentEnv = currentEnvironment;
 
         if (paramEnv === currentEnvironment.id && currentEnvironment.hrids?.length > 0) {
-          this.router.navigate([currentEnvironment.hrids[0]]);
+          // Replace environment ID by hrid but keep url path
+          this.router.navigateByUrl(state.url.replace(currentEnvironment.id, currentEnvironment.hrids[0]));
         }
 
         return this.gioPermissionService.loadEnvironmentPermissions(paramEnv);
