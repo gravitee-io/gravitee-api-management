@@ -7,6 +7,7 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 
 - Update regex for portal and console base_href
 - 'fix: license deleted after helm upgrade [issues/9411](https://github.com/gravitee-io/issues/issues/9411)'
+- 'fix AE system mail notification without keystore'
 
 ### 4.0.13
 
