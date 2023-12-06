@@ -30,12 +30,12 @@
           </mat-card>
         </div>
       </mat-tab>
-      <mat-tab label="Configuration" *ngIf="configurationForm && endpointGroupType != 'mock'">
+      <mat-tab label="Configuration" *ngIf="configurationForm && endpointGroup.type != 'mock'">
         <!-- Configuration tab content -->
         <div class="tab-body-wrapper">
           <api-endpoint-group-configuration
             [configurationForm]="configurationForm"
-            [endpointGroupType]="endpointGroupType"
+            [endpointGroupType]="endpointGroup.type"
           ></api-endpoint-group-configuration>
         </div>
       </mat-tab>
