@@ -15,8 +15,13 @@
  */
 package io.gravitee.rest.api.management.rest.mapper;
 
+import io.gravitee.definition.model.Plan;
 import io.gravitee.definition.model.debug.DebugApi;
 import io.gravitee.rest.api.model.DebugApiEntity;
+import io.gravitee.rest.api.model.PlanEntity;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
@@ -27,4 +32,10 @@ public interface DebugApiMapper {
 
     @Mapping(target = "pathMappings", ignore = true)
     DebugApi fromEntity(DebugApiEntity source);
+
+    default Map<String, Plan> mapPlans(Set<PlanEntity> plans) {
+        return plans.stream().map(this::fromEntity).collect(Collectors.toMap(Plan::getId, plan -> plan));
+    }
+
+    Plan fromEntity(PlanEntity source);
 }
