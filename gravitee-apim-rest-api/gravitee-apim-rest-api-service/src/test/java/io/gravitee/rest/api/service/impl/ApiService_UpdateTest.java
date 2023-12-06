@@ -547,6 +547,25 @@ public class ApiService_UpdateTest {
         fail("should throw InvalidDataException");
     }
 
+    private void prepareUpdate(DefinitionVersion existingAPIDefinitionVersion, DefinitionVersion updateAPIDefinitionVersion)
+        throws TechnicalException {
+        prepareUpdate();
+        if (existingAPIDefinitionVersion != null) {
+            api.setDefinition(
+                "{\"id\": \"" +
+                API_ID +
+                "\",\"name\": \"" +
+                API_NAME +
+                "\",\"gravitee\": \"" +
+                existingAPIDefinitionVersion.getLabel() +
+                "\",\"proxy\": {\"context_path\": \"/old\"}}"
+            );
+        }
+        if (updateAPIDefinitionVersion != null) {
+            updateApiEntity.setGraviteeDefinitionVersion(updateAPIDefinitionVersion.getLabel());
+        }
+    }
+
     private void prepareUpdate() throws TechnicalException {
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
         when(apiRepository.update(any())).thenReturn(updatedApi);
@@ -554,7 +573,7 @@ public class ApiService_UpdateTest {
         api.setName(API_NAME);
         api.setApiLifecycleState(ApiLifecycleState.CREATED);
         api.setPicture("picture");
-        api.setPicture("background");
+        api.setBackground("background");
 
         updateApiEntity.setName(API_NAME);
         updateApiEntity.setVersion("v1");
@@ -921,13 +940,33 @@ public class ApiService_UpdateTest {
     }
 
     @Test
-    public void shouldNotUpdateADeprecatedApi() throws TechnicalException {
-        prepareUpdate();
+    public void shouldNotUpdateADeprecatedApiWithSameDefinitionVersion_V1() throws TechnicalException {
+        prepareUpdate(DefinitionVersion.V1, DefinitionVersion.V1);
         assertUpdate(ApiLifecycleState.DEPRECATED, CREATED, true);
         assertUpdate(ApiLifecycleState.DEPRECATED, PUBLISHED, true);
         assertUpdate(ApiLifecycleState.DEPRECATED, UNPUBLISHED, true);
         assertUpdate(ApiLifecycleState.DEPRECATED, ARCHIVED, true);
         assertUpdate(ApiLifecycleState.DEPRECATED, DEPRECATED, true);
+    }
+
+    @Test
+    public void shouldNotUpdateADeprecatedApiWithSameDefinitionVersion_V2() throws TechnicalException {
+        prepareUpdate(DefinitionVersion.V2, DefinitionVersion.V2);
+        assertUpdate(ApiLifecycleState.DEPRECATED, CREATED, true);
+        assertUpdate(ApiLifecycleState.DEPRECATED, PUBLISHED, true);
+        assertUpdate(ApiLifecycleState.DEPRECATED, UNPUBLISHED, true);
+        assertUpdate(ApiLifecycleState.DEPRECATED, ARCHIVED, true);
+        assertUpdate(ApiLifecycleState.DEPRECATED, DEPRECATED, true);
+    }
+
+    @Test
+    public void shouldUpdateADeprecatedApiIfDuringAConversion() throws TechnicalException {
+        prepareUpdate(DefinitionVersion.V1, DefinitionVersion.V2);
+        assertUpdate(ApiLifecycleState.DEPRECATED, CREATED, true);
+        assertUpdate(ApiLifecycleState.DEPRECATED, PUBLISHED, true);
+        assertUpdate(ApiLifecycleState.DEPRECATED, UNPUBLISHED, true);
+        assertUpdate(ApiLifecycleState.DEPRECATED, ARCHIVED, true);
+        assertUpdate(ApiLifecycleState.DEPRECATED, DEPRECATED, false);
     }
 
     @Test
