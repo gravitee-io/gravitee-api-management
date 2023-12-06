@@ -21,7 +21,6 @@ import 'angular-material';
 import 'angular-sanitize';
 import { marked } from 'marked';
 
-import * as traverse from 'traverse';
 import * as hljs from 'highlight.js';
 // Codemirror
 import * as CodeMirror from 'codemirror';
@@ -304,8 +303,6 @@ import { PromotionService } from './services/promotion.service';
 import * as angular from 'angular';
 
 import { ApiAlertsDashboardComponentAjs } from './management/api/analytics/alerts/api-alerts-dashboard.component.ajs';
-
-(<any>window).traverse = traverse;
 
 (<any>window).hljs = hljs;
 marked.setOptions({
