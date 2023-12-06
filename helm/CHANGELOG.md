@@ -6,6 +6,7 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 ### 3.20.25
 
 - Update regex for portal and console base_href
+- 'fix AE system mail notification without keystore'
 
 ### 3.20.23
 

@@ -20,3 +20,5 @@ annotations:
   # https://artifacthub.io/packages/helm/graviteeio/apim?modal=changelog
   artifacthub.io/changes: |
     - Update regex for portal and console base_href
+    - 'fix AE system mail notification without keystore'
+
