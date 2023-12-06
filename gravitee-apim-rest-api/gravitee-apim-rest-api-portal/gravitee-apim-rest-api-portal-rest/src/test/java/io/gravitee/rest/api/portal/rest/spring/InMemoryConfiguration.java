@@ -112,4 +112,19 @@ public class InMemoryConfiguration {
     public PageRevisionCrudServiceInMemory pageRevisionCrudServiceInMemory() {
         return new PageRevisionCrudServiceInMemory();
     }
+
+    @Bean
+    public ParametersQueryServiceInMemory parametersQueryServiceInMemory() {
+        return new ParametersQueryServiceInMemory();
+    }
+
+    @Bean
+    public EntrypointPluginQueryServiceInMemory entrypointPluginQueryServiceInMemory() {
+        return new EntrypointPluginQueryServiceInMemory();
+    }
+
+    @Bean
+    public FlowCrudServiceInMemory flowCrudServiceInMemory() {
+        return new FlowCrudServiceInMemory();
+    }
 }

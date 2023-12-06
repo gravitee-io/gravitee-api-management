@@ -20,9 +20,12 @@ import static org.mockito.Mockito.mock;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.DeployApiDomainService;
+import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
+import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
+import io.gravitee.apim.core.plugin.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
 import io.gravitee.apim.infra.sanitizer.SanitizerSpringConfiguration;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
@@ -268,5 +271,20 @@ public class ResourceContextConfiguration {
     @Bean
     public ApiMetadataDomainService apiMetadataDomainService() {
         return mock(ApiMetadataDomainService.class);
+    }
+
+    @Bean
+    public PolicyValidationDomainService policyValidationDomainService() {
+        return mock(PolicyValidationDomainService.class);
+    }
+
+    @Bean
+    public PlanSynchronizationService planSynchronizationService() {
+        return mock(PlanSynchronizationService.class);
+    }
+
+    @Bean
+    public UpdateApiDomainService updateApiDomainService() {
+        return mock(UpdateApiDomainService.class);
     }
 }
