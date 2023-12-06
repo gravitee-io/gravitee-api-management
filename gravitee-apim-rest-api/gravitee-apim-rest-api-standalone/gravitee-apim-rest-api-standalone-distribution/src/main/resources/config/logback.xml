@@ -58,6 +58,8 @@
         <appender-ref ref="FILE-UPGRADERS" />
     </logger>
     <logger name="io.gravitee" level="INFO" />
+    <logger name="io.gravitee.exchange" level="DEBUG" />
+    <logger name="io.gravitee.integration" level="DEBUG" />
     <logger name="org.eclipse.jetty" level="INFO" />
 
     <!-- Strictly speaking, the level attribute is not necessary since -->
