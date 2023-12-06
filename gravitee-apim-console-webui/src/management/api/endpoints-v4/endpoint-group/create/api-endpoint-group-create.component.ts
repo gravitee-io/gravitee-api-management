@@ -25,10 +25,10 @@ import { ApiEndpointGroupSelectionComponent } from '../selection/api-endpoint-gr
 import { ApiEndpointGroupConfigurationComponent } from '../configuration/api-endpoint-group-configuration.component';
 import { ApiEndpointGroupGeneralComponent } from '../general/api-endpoint-group-general.component';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
-import { isUnique } from '../../../../../shared/utils';
 import { ApiType, ApiV4, EndpointGroupV4, EndpointV4Default, UpdateApiV4 } from '../../../../../entities/management-api-v2';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
+import { isEndpointNameUnique } from '../../api-endpoint-v4-unique-name';
 
 @Component({
   selector: 'api-endpoints-group-create',
@@ -79,7 +79,7 @@ export class ApiEndpointGroupCreateComponent implements OnInit {
       .subscribe({
         next: (api) => {
           const apiV4 = api as ApiV4;
-          this.generalForm.get('name').addValidators([isUnique(apiV4.endpointGroups.map((group) => group.name))]);
+          this.generalForm.get('name').addValidators([isEndpointNameUnique(apiV4)]);
           this.apiType = apiV4.type;
           if (this.apiType === 'PROXY') {
             this.endpointGroupTypeForm.get('endpointGroupType').setValue('http-proxy');
@@ -116,12 +116,13 @@ export class ApiEndpointGroupCreateComponent implements OnInit {
   createEndpointGroup() {
     const formValue = this.createForm.getRawValue();
     const sharedConfiguration = formValue.configuration;
+    const cleanName = formValue.general.name.trim();
 
     const newEndpointGroup: EndpointGroupV4 = {
-      name: formValue.general.name,
+      name: cleanName,
       loadBalancer: { type: formValue.general.loadBalancerType },
       type: formValue.type.endpointGroupType,
-      endpoints: [EndpointV4Default.byType(formValue.type.endpointGroupType)],
+      endpoints: [EndpointV4Default.byTypeAndGroupName(formValue.type.endpointGroupType, cleanName)],
       ...(sharedConfiguration ? { sharedConfiguration } : {}),
     };
 

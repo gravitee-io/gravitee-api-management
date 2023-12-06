@@ -43,6 +43,9 @@
               <input id="name" type="text" matInput formControlName="name" required="true" />
               <mat-label>Endpoint name</mat-label>
               <mat-error *ngIf="formGroup.controls.name.errors?.required">Endpoint name is required</mat-error>
+              <mat-error *ngIf="formGroup.controls.name.errors?.isUnique">
+                This name is used by another endpoint or endpoint group.
+              </mat-error>
             </mat-form-field>
             <div class="endpoint-card__form__config">
               <gio-form-json-schema formControlName="configuration" [jsonSchema]="endpointSchema?.config"></gio-form-json-schema>

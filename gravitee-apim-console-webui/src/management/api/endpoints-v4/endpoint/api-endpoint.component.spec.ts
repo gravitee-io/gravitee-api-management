@@ -30,6 +30,7 @@ import { ApiEndpointHarness } from './api-endpoint.harness';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { ApiV4, fakeApiV4, fakeConnectorPlugin } from '../../../../entities/management-api-v2';
+import { fakeEndpointGroupV4 } from '../../../../entities/management-api-v2/api/v4/endpointGroupV4.fixture';
 
 @Component({
   template: `<api-endpoint #apiEndpoint></api-endpoint>`,
@@ -77,7 +78,7 @@ describe('ApiEndpointComponent', () => {
     httpTestingController.verify();
   });
 
-  describe('add endpoints in a group', () => {
+  describe('endpoints in a group', () => {
     it('should load kafka endpoint form dynamically', async () => {
       const apiV4 = fakeApiV4({
         id: API_ID,
@@ -85,7 +86,7 @@ describe('ApiEndpointComponent', () => {
       await initComponent(apiV4);
     });
 
-    it('should add a new endpoint', async () => {
+    describe('should create new endpoint', () => {
       const apiV4 = fakeApiV4({
         id: API_ID,
       });
@@ -100,80 +101,184 @@ describe('ApiEndpointComponent', () => {
           },
         ],
       };
-      await initComponent(apiV4WithSharedConfiguration, { apiId: API_ID, groupIndex: 0 });
+      afterEach(async () => {
+        expect(await componentHarness.isSaveButtonDisabled()).toBeFalsy();
+        await componentHarness.clickSaveButton();
 
-      expect(await componentHarness.isSaveButtonDisabled()).toBeTruthy();
-
-      await componentHarness.fillInputName('endpoint-name');
-      await componentHarness.fillWeightButton(10);
-      fixture.detectChanges();
-
-      expect(await componentHarness.isSaveButtonDisabled()).toBeFalsy();
-      await componentHarness.clickSaveButton();
-
-      expectApiGetRequest(apiV4WithSharedConfiguration);
-      const updatedApi: ApiV4 = {
-        ...apiV4WithSharedConfiguration,
-        endpointGroups: [
-          {
-            ...apiV4WithSharedConfiguration.endpointGroups[0],
-            endpoints: [
-              { ...apiV4WithSharedConfiguration.endpointGroups[0].endpoints[0] },
-              {
-                configuration: {
-                  bootstrapServers: undefined,
+        expectApiGetRequest(apiV4WithSharedConfiguration);
+        const updatedApi: ApiV4 = {
+          ...apiV4WithSharedConfiguration,
+          endpointGroups: [
+            {
+              ...apiV4WithSharedConfiguration.endpointGroups[0],
+              endpoints: [
+                { ...apiV4WithSharedConfiguration.endpointGroups[0].endpoints[0] },
+                {
+                  configuration: {
+                    bootstrapServers: undefined,
+                  },
+                  inheritConfiguration: true,
+                  sharedConfigurationOverride: {},
+                  name: 'endpoint-name',
+                  type: 'kafka',
+                  weight: 10,
                 },
-                inheritConfiguration: true,
-                sharedConfigurationOverride: {},
-                name: 'endpoint-name',
-                type: 'kafka',
-                weight: 10,
+              ],
+            },
+          ],
+        };
+        expectApiPutRequest(updatedApi);
+        expect(routerNavigationSpy).toHaveBeenCalledWith(['../../'], { relativeTo: expect.anything() });
+      });
+
+      it('should trim new endpoint name', async () => {
+        await initComponent(apiV4WithSharedConfiguration, { apiId: API_ID, groupIndex: 0 });
+
+        expect(await componentHarness.isSaveButtonDisabled()).toBeTruthy();
+
+        await componentHarness.fillInputName(' endpoint-name  ');
+        await componentHarness.fillWeightButton(10);
+      });
+
+      it('should add a new endpoint', async () => {
+        const apiV4 = fakeApiV4({
+          id: API_ID,
+        });
+        const apiV4WithSharedConfiguration: ApiV4 = {
+          ...apiV4,
+          endpointGroups: [
+            {
+              ...apiV4.endpointGroups[0],
+              sharedConfiguration: {
+                test: 'test-from-parent',
               },
-            ],
-          },
-        ],
-      };
-      expectApiPutRequest(updatedApi);
-      expect(routerNavigationSpy).toHaveBeenCalledWith(['../../'], { relativeTo: expect.anything() });
+            },
+          ],
+        };
+        await initComponent(apiV4WithSharedConfiguration, { apiId: API_ID, groupIndex: 0 });
+
+        expect(await componentHarness.isSaveButtonDisabled()).toBeTruthy();
+
+        await componentHarness.fillInputName('endpoint-name');
+        await componentHarness.fillWeightButton(10);
+      });
     });
 
-    it('should edit and save an existing endpoint', async () => {
-      const apiV4 = fakeApiV4({
-        id: API_ID,
-      });
-      await initComponent(apiV4, { apiId: API_ID, groupIndex: 0, endpointIndex: 0 });
+    describe('should update endpoint', () => {
+      it('should edit and save an existing endpoint', async () => {
+        const apiV4 = fakeApiV4({
+          id: API_ID,
+        });
 
-      fixture.detectChanges();
-      expect(await componentHarness.getEndpointName()).toStrictEqual('default');
+        await initComponent(apiV4, { apiId: API_ID, groupIndex: 0, endpointIndex: 0 });
 
-      await componentHarness.fillInputName('endpoint-name updated');
-      fixture.detectChanges();
+        fixture.detectChanges();
+        expect(await componentHarness.getEndpointName()).toStrictEqual('default');
 
-      expect(await componentHarness.getEndpointName()).toStrictEqual('endpoint-name updated');
+        await componentHarness.fillInputName('endpoint-name updated');
+        fixture.detectChanges();
 
-      await componentHarness.clickSaveButton();
+        expect(await componentHarness.getEndpointName()).toStrictEqual('endpoint-name updated');
 
-      expectApiGetRequest(apiV4);
+        await componentHarness.clickSaveButton();
 
-      const updatedApi: ApiV4 = {
-        ...apiV4,
-        endpointGroups: [
-          {
-            ...apiV4.endpointGroups[0],
-            endpoints: [
-              {
-                ...apiV4.endpointGroups[0].endpoints[0],
-                name: 'endpoint-name updated',
-                sharedConfigurationOverride: {
-                  test: undefined,
+        expectApiGetRequest(apiV4);
+
+        const updatedApi: ApiV4 = {
+          ...apiV4,
+          endpointGroups: [
+            {
+              ...apiV4.endpointGroups[0],
+              endpoints: [
+                {
+                  ...apiV4.endpointGroups[0].endpoints[0],
+                  name: 'endpoint-name updated',
+                  sharedConfigurationOverride: {
+                    test: undefined,
+                  },
                 },
-              },
-            ],
-          },
-        ],
-      };
-      expectApiPutRequest(updatedApi);
-      expect(routerNavigationSpy).toHaveBeenCalledWith(['../../'], { relativeTo: expect.anything() });
+              ],
+            },
+          ],
+        };
+        expectApiPutRequest(updatedApi);
+        expect(routerNavigationSpy).toHaveBeenCalledWith(['../../'], { relativeTo: expect.anything() });
+      });
+
+      it('should not be valid if input name has a space', async () => {
+        const apiV4 = fakeApiV4({
+          id: API_ID,
+          endpointGroups: [
+            fakeEndpointGroupV4({
+              endpoints: [
+                {
+                  name: 'default',
+                  type: 'kafka',
+                  weight: 1,
+                  inheritConfiguration: false,
+                  configuration: {
+                    bootstrapServers: 'localhost:9092',
+                  },
+                },
+                {
+                  name: 'existing name',
+                  type: 'kafka',
+                  weight: 1,
+                  inheritConfiguration: false,
+                  configuration: {
+                    bootstrapServers: 'localhost:9092',
+                  },
+                },
+              ],
+            }),
+          ],
+        });
+        await initComponent(apiV4, { apiId: API_ID, groupIndex: 0, endpointIndex: 0 });
+
+        await componentHarness.fillInputName(apiV4.endpointGroups[0].endpoints[1].name + ' ');
+        expect(await componentHarness.isSaveButtonDisabled()).toEqual(true);
+
+        await componentHarness.fillInputName('different name');
+        expect(await componentHarness.isSaveButtonDisabled()).toEqual(false);
+      });
+
+      it('should not be valid if existing endpoint name has a space', async () => {
+        const apiV4 = fakeApiV4({
+          id: API_ID,
+          endpointGroups: [
+            fakeEndpointGroupV4({
+              endpoints: [
+                {
+                  name: 'default',
+                  type: 'kafka',
+                  weight: 1,
+                  inheritConfiguration: false,
+                  configuration: {
+                    bootstrapServers: 'localhost:9092',
+                  },
+                },
+                {
+                  name: ' a spacey name ',
+                  type: 'kafka',
+                  weight: 1,
+                  inheritConfiguration: false,
+                  configuration: {
+                    bootstrapServers: 'localhost:9092',
+                  },
+                },
+              ],
+            }),
+          ],
+        });
+
+        await initComponent(apiV4, { apiId: API_ID, groupIndex: 0, endpointIndex: 0 });
+
+        await componentHarness.fillInputName('a spacey name');
+        expect(await componentHarness.isSaveButtonDisabled()).toEqual(true);
+
+        await componentHarness.fillInputName('different name');
+        expect(await componentHarness.isSaveButtonDisabled()).toEqual(false);
+      });
     });
 
     it('should inherit configuration from parent', async () => {
