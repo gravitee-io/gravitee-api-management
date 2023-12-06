@@ -97,7 +97,7 @@ describe('ApiEntrypointsV4EditComponent', () => {
         loadBalancer: {
           type: 'ROUND_ROBIN',
         },
-        endpoints: [EndpointV4Default.byType('mock')],
+        endpoints: [EndpointV4Default.byTypeAndGroupName('mock', 'mock-group')],
       },
     ],
   });
@@ -227,7 +227,7 @@ describe('ApiEntrypointsV4EditComponent', () => {
             loadBalancer: {
               type: 'ROUND_ROBIN',
             },
-            endpoints: [EndpointV4Default.byType('mock')],
+            endpoints: [EndpointV4Default.byTypeAndGroupName('mock', 'mock-group')],
           },
         ],
       });
@@ -305,7 +305,7 @@ describe('ApiEntrypointsV4EditComponent', () => {
                   },
                 },
                 dlq: {
-                  endpoint: 'Default Mock Endpoint',
+                  endpoint: API.endpointGroups[1].endpoints[0].name,
                 },
               },
             ],
@@ -392,7 +392,7 @@ describe('ApiEntrypointsV4EditComponent', () => {
                 type: 'webhook',
                 qos: 'AUTO',
                 dlq: {
-                  endpoint: 'Default Mock Endpoint',
+                  endpoint: 'mock-group default endpoint',
                 },
                 configuration: {
                   proxy: {
@@ -435,7 +435,7 @@ describe('ApiEntrypointsV4EditComponent', () => {
             loadBalancer: {
               type: 'ROUND_ROBIN',
             },
-            endpoints: [EndpointV4Default.byType('mock')],
+            endpoints: [EndpointV4Default.byTypeAndGroupName('mock', 'mock-group')],
           },
         ],
       });
@@ -458,7 +458,7 @@ describe('ApiEntrypointsV4EditComponent', () => {
       expect(await dlqToggle.isChecked()).toBeTruthy();
 
       const dlqSelect = await loader.getHarness(MatSelectHarness.with({ selector: '[aria-label="Dead letter queue endpoint"]' }));
-      expect(await dlqSelect.getValueText()).toContain('Default Mock Endpoint');
+      expect(await dlqSelect.getValueText()).toContain('default');
     });
   });
 
