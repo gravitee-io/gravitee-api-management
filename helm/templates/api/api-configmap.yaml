@@ -400,8 +400,12 @@ data:
         {{- if .Values.notifiers.smtp.ssl }}
         ssl:
           trustAll: {{ .Values.notifiers.smtp.ssl.trustAll }}
+          {{- if .Values.notifiers.smtp.ssl.keyStore }}
           keyStore: {{ .Values.notifiers.smtp.ssl.keyStore }}
+          {{- end }}
+          {{- if .Values.notifiers.smtp.ssl.keyStorePassword }}
           keyStorePassword: {{ .Values.notifiers.smtp.ssl.keyStorePassword }}
+          {{- end }}
         {{- end }}
         {{- end }}
 
