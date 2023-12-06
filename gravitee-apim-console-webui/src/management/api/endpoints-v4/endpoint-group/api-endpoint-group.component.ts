@@ -43,7 +43,6 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
   public configurationForm: FormGroup;
 
   public initialGroupFormValue: any;
-  public endpointGroupType: string;
   public endpointGroup: EndpointGroupV4;
 
   constructor(
@@ -93,7 +92,6 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
   private initializeComponent(api: ApiV4): void {
     this.api = api;
     this.initialApi = this.api;
-    this.endpointGroupType = this.api.endpointGroups[this.ajsStateParams.groupIndex].type;
 
     this.endpointGroup = this.api.endpointGroups[this.ajsStateParams.groupIndex];
 
