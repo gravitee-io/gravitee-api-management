@@ -20,6 +20,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { FormsModule } from '@angular/forms';
+import { fakeKafkaMessageEndpoint } from '@gravitee/ui-policy-studio-angular/testing';
 
 import { ApiEndpointGroupComponent } from './api-endpoint-group.component';
 import { ApiEndpointGroupHarness } from './api-endpoint-group.harness';
@@ -265,6 +266,57 @@ describe('ApiEndpointGroupComponent', () => {
 
     it('THEN the configuration tab is not visible', async () => {
       expect(await componentHarness.configurationTabIsVisible()).toEqual(false);
+    });
+  });
+
+  describe('Endpoint group name validation', () => {
+    const TRIM_ENDPOINT_GROUP_NAME = 'Neat and trim';
+    const SPACEY_ENDPOINT_GROUP_NAME = 'Space after ';
+    const TRIM_ENDPOINT_NAME = 'Trim and neat';
+    const SPACEY_ENDPOINT_NAME = ' Space before';
+
+    const EXISTING_ENDPOINT_GROUP_0 = fakeEndpointGroupV4({
+      type: 'kafka',
+      name: TRIM_ENDPOINT_GROUP_NAME,
+      endpoints: [fakeKafkaMessageEndpoint({ name: SPACEY_ENDPOINT_NAME }), fakeKafkaMessageEndpoint({ name: TRIM_ENDPOINT_NAME })],
+    });
+    const EXISTING_ENDPOINT_GROUP_1 = fakeEndpointGroupV4({
+      type: 'kafka',
+      name: SPACEY_ENDPOINT_GROUP_NAME,
+      endpoints: [],
+    });
+    const API = fakeApiV4({ id: API_ID, type: 'MESSAGE', endpointGroups: [EXISTING_ENDPOINT_GROUP_0, EXISTING_ENDPOINT_GROUP_1] });
+
+    beforeEach(async () => {
+      await initComponent(API);
+
+      await componentHarness.clickGeneralTab();
+      expectApiSchemaGetRequests(API, fixture, httpTestingController);
+    });
+
+    afterEach(async () => {
+      await componentHarness.writeToEndpointGroupNameInput('Unique name');
+      expect(await componentHarness.isGeneralTabSaveButtonInvalid()).toEqual(false);
+    });
+
+    it('should not allow trim name of an existing spacey endpoint group', async () => {
+      await componentHarness.writeToEndpointGroupNameInput(SPACEY_ENDPOINT_GROUP_NAME.trim());
+      expect(await componentHarness.isGeneralTabSaveButtonInvalid()).toEqual(true);
+    });
+
+    it('should not allow spacey name matching a spacey existing endpoint group name', async () => {
+      await componentHarness.writeToEndpointGroupNameInput(' ' + SPACEY_ENDPOINT_GROUP_NAME + ' ');
+      expect(await componentHarness.isGeneralTabSaveButtonInvalid()).toEqual(true);
+    });
+
+    it('should not allow spacey name of an existing spacey endpoint name', async () => {
+      await componentHarness.writeToEndpointGroupNameInput(SPACEY_ENDPOINT_NAME + ' ');
+      expect(await componentHarness.isGeneralTabSaveButtonInvalid()).toEqual(true);
+    });
+
+    it('should not allow trim name of an existing trim endpoint', async () => {
+      await componentHarness.writeToEndpointGroupNameInput(TRIM_ENDPOINT_NAME);
+      expect(await componentHarness.isGeneralTabSaveButtonInvalid()).toEqual(true);
     });
   });
 });

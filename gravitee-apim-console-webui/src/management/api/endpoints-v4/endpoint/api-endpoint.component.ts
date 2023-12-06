@@ -26,6 +26,7 @@ import { ApiV4, ConnectorPlugin, EndpointGroupV4, EndpointV4 } from '../../../..
 import { ConnectorPluginsV2Service } from '../../../../services-ngx/connector-plugins-v2.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { IconService } from '../../../../services-ngx/icon.service';
+import { isEndpointNameUnique, isEndpointNameUniqueAndDoesNotMatchDefaultValue } from '../api-endpoint-v4-unique-name';
 
 @Component({
   selector: 'api-endpoint',
@@ -41,6 +42,9 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
   public endpointSchema: { config: GioJsonSchema; sharedConfig: GioJsonSchema };
   public connectorPlugin: ConnectorPlugin;
   public isLoading = false;
+  private api: ApiV4;
+  private endpoint: EndpointV4;
+  private mode: 'edit' | 'create';
 
   constructor(
     @Inject(UIRouterState) private readonly ajsState: StateService,
@@ -55,11 +59,13 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     const apiId = this.ajsStateParams.apiId;
     this.groupIndex = +this.ajsStateParams.groupIndex;
+    this.mode = this.ajsStateParams.endpointIndex !== undefined ? 'edit' : 'create';
 
     this.apiService
       .get(apiId)
       .pipe(
         switchMap((api: ApiV4) => {
+          this.api = api;
           this.endpointGroup = api.endpointGroups[this.groupIndex];
           return combineLatest([
             this.connectorPluginsV2Service.getEndpointPluginSchema(this.endpointGroup.type),
@@ -90,7 +96,7 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
 
     const updatedEndpoint: EndpointV4 = {
       type: this.endpointGroup.type,
-      name: this.formGroup.get('name').value,
+      name: this.formGroup.get('name').value.trim(),
       weight: this.formGroup.get('weight').value,
       configuration: this.formGroup.get('configuration').value,
       sharedConfigurationOverride: inheritConfiguration ? {} : this.formGroup.get('sharedConfigurationOverride').value,
@@ -143,29 +149,30 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
     let sharedConfigurationOverride = this.endpointGroup.sharedConfiguration;
     let weight = null;
 
-    if (this.isEditing()) {
+    if (this.mode === 'edit') {
       this.endpointIndex = +this.ajsStateParams.endpointIndex;
-      const endpoint = this.endpointGroup.endpoints[this.endpointIndex];
-      name = endpoint.name;
-      weight = endpoint.weight;
-      inheritConfiguration = endpoint.inheritConfiguration;
-      configuration = endpoint.configuration;
+      this.endpoint = this.endpointGroup.endpoints[this.endpointIndex];
+
+      name = this.endpoint.name;
+      weight = this.endpoint.weight;
+      inheritConfiguration = this.endpoint.inheritConfiguration;
+      configuration = this.endpoint.configuration;
       if (!inheritConfiguration) {
-        sharedConfigurationOverride = endpoint.sharedConfigurationOverride;
+        sharedConfigurationOverride = this.endpoint.sharedConfigurationOverride;
       }
     }
 
     this.formGroup = new FormGroup({
-      name: new FormControl(name, Validators.required),
+      name: new FormControl(name, [
+        Validators.required,
+        this.mode === 'edit'
+          ? isEndpointNameUniqueAndDoesNotMatchDefaultValue(this.api, this.endpoint.name)
+          : isEndpointNameUnique(this.api),
+      ]),
       weight: new FormControl(weight, Validators.required),
       inheritConfiguration: new FormControl(inheritConfiguration),
       configuration: new FormControl(configuration),
       sharedConfigurationOverride: new FormControl({ value: sharedConfigurationOverride, disabled: inheritConfiguration }),
     });
-  }
-
-  private isEditing() {
-    // If endpointIndex is defined, then we are editing an endpoint
-    return this.ajsStateParams.endpointIndex !== undefined;
   }
 }

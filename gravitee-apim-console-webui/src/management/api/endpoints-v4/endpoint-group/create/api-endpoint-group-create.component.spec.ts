@@ -21,6 +21,7 @@ import { FormsModule } from '@angular/forms';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatStepHarness } from '@angular/material/stepper/testing';
+import { fakeKafkaMessageEndpoint } from '@gravitee/ui-policy-studio-angular/testing';
 
 import { ApiEndpointGroupCreateComponent } from './api-endpoint-group-create.component';
 import { ApiEndpointGroupCreateHarness } from './api-endpoint-group-create.harness';
@@ -29,6 +30,7 @@ import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-
 import { ApiEndpointGroupModule } from '../api-endpoint-group.module';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { ApiV4, EndpointGroupV4, EndpointV4Default, fakeApiV4 } from '../../../../../entities/management-api-v2';
+import { fakeEndpointGroupV4 } from '../../../../../entities/management-api-v2/api/v4/endpointGroupV4.fixture';
 
 const API_ID = 'api-id';
 const ENDPOINT_GROUP_NAME = 'My Endpoint Group';
@@ -217,7 +219,7 @@ describe('ApiEndpointGroupCreateComponent', () => {
           name: ENDPOINT_GROUP_NAME,
           type: 'kafka',
           loadBalancer: { type: 'ROUND_ROBIN' },
-          endpoints: [EndpointV4Default.byType('kafka')],
+          endpoints: [EndpointV4Default.byTypeAndGroupName('kafka', ENDPOINT_GROUP_NAME)],
           sharedConfiguration: {
             topic: 'my-kafka-topic',
           },
@@ -232,7 +234,7 @@ describe('ApiEndpointGroupCreateComponent', () => {
           name: ENDPOINT_GROUP_NAME,
           type: 'rabbitmq',
           loadBalancer: { type: 'ROUND_ROBIN' },
-          endpoints: [EndpointV4Default.byType('rabbitmq')],
+          endpoints: [EndpointV4Default.byTypeAndGroupName('rabbitmq', ENDPOINT_GROUP_NAME)],
           sharedConfiguration: {
             rabbitFood: 'lettuce',
           },
@@ -245,7 +247,7 @@ describe('ApiEndpointGroupCreateComponent', () => {
           name: ENDPOINT_GROUP_NAME,
           type: 'mock',
           loadBalancer: { type: 'ROUND_ROBIN' },
-          endpoints: [EndpointV4Default.byType('mock')],
+          endpoints: [EndpointV4Default.byTypeAndGroupName('mock', ENDPOINT_GROUP_NAME)],
         });
       });
     });
@@ -264,7 +266,7 @@ describe('ApiEndpointGroupCreateComponent', () => {
           name: ENDPOINT_GROUP_NAME,
           type: 'mock',
           loadBalancer: { type: 'ROUND_ROBIN' },
-          endpoints: [EndpointV4Default.byType('mock')],
+          endpoints: [EndpointV4Default.byTypeAndGroupName('mock', ENDPOINT_GROUP_NAME)],
         });
       });
 
@@ -278,11 +280,42 @@ describe('ApiEndpointGroupCreateComponent', () => {
           name: ENDPOINT_GROUP_NAME,
           type: 'kafka',
           loadBalancer: { type: 'ROUND_ROBIN' },
-          endpoints: [EndpointV4Default.byType('kafka')],
+          endpoints: [EndpointV4Default.byTypeAndGroupName('kafka', ENDPOINT_GROUP_NAME)],
           sharedConfiguration: {
             topic: 'my-kafka-topic',
           },
         });
+      });
+    });
+
+    describe('Endpoint group name validation', () => {
+      const EXISTING_ENDPOINT_GROUP = fakeEndpointGroupV4({
+        type: 'kafka',
+        name: 'Existing endpoint group ',
+        endpoints: [fakeKafkaMessageEndpoint({ name: 'Existing endpoint ' })],
+      });
+      beforeEach(async () => {
+        await initComponent(fakeApiV4({ id: API_ID, endpointGroups: [EXISTING_ENDPOINT_GROUP] }));
+        await fillOutAndValidateEndpointSelection('kafka');
+      });
+
+      afterEach(async () => {
+        await harness.setNameValue('A unique name');
+        expect(await harness.canGoToConfigurationStep()).toEqual(true);
+      });
+
+      it('cannot have the same name as another group', async () => {
+        expect(await harness.isGeneralStepSelected()).toEqual(true);
+        await harness.setNameValue(EXISTING_ENDPOINT_GROUP.name);
+        await harness.setLoadBalancerValue('ROUND_ROBIN');
+        expect(await harness.canGoToConfigurationStep()).toEqual(false);
+      });
+
+      it('cannot have the same name as another endpoint', async () => {
+        expect(await harness.isGeneralStepSelected()).toEqual(true);
+        await harness.setNameValue('Existing endpoint');
+        await harness.setLoadBalancerValue('ROUND_ROBIN');
+        expect(await harness.canGoToConfigurationStep()).toEqual(false);
       });
     });
   });
@@ -312,7 +345,7 @@ describe('ApiEndpointGroupCreateComponent', () => {
           name: ENDPOINT_GROUP_NAME,
           type: 'http-proxy',
           loadBalancer: { type: 'ROUND_ROBIN' },
-          endpoints: [EndpointV4Default.byType('http-proxy')],
+          endpoints: [EndpointV4Default.byTypeAndGroupName('http-proxy', ENDPOINT_GROUP_NAME)],
           sharedConfiguration: {
             proxyParam: 'my-proxy-param',
           },
