@@ -66,6 +66,7 @@ public interface PlanAdapter {
 
     NewPlanEntity entityToNewPlanEntity(PlanEntity entity);
 
+    PlanCRD toCRD(Plan source);
     PlanEntity toEntityV4(PlanCRD source);
     io.gravitee.definition.model.v4.plan.Plan toApiDefinition(PlanCRD source);
 

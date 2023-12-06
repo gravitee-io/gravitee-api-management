@@ -15,11 +15,13 @@
  */
 package io.gravitee.apim.core.plan.model;
 
+import io.gravitee.apim.core.datetime.TimeProvider;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
+import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Date;
@@ -142,5 +144,29 @@ public class Plan implements GenericPlanEntity {
 
     public boolean isPublished() {
         return this.status == PlanStatus.PUBLISHED;
+    }
+
+    public Plan update(Plan updated) {
+        return toBuilder()
+            .name(updated.name)
+            .description(updated.description)
+            .order(updated.order)
+            .updatedAt(TimeProvider.now())
+            .security(updated.security)
+            .status(updated.status)
+            .commentRequired(updated.commentRequired)
+            .commentMessage(updated.commentMessage)
+            .tags(updated.tags)
+            .selectionRule(updated.selectionRule)
+            .generalConditions(updated.generalConditions)
+            .excludedGroups(updated.excludedGroups)
+            .characteristics(updated.characteristics)
+            .crossId(updated.crossId == null ? crossId : updated.crossId)
+            .validation(
+                updated.security != null && updated.security.getType().equals(PlanSecurityType.KEY_LESS.getLabel())
+                    ? PlanValidationType.AUTO
+                    : updated.validation
+            )
+            .build();
     }
 }
