@@ -5,11 +5,8 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 
 ### 4.2.0
 
-- Add unknownExpireAfter in management-api configuration
-- Allow users to define extra manifests
-- Make optional HTTP2 request processing via `gateway.http.alpn` set at `true` by default.
-- "fix 'gravitee.yml' > 'services.metrics' definition from helm `values.yaml`"
-- Add requestTimeout and requestTimeoutGraceDelay in gateway
+- Update regex for portal and console base_href
+- 'fix AE system mail notification without keystore'
 
 ### 4.1.4
 

@@ -104,3 +104,54 @@ tests:
       - matchRegex:
           path: data.[gravitee.yml]
           pattern: "keyStorePassword: TEST.keyStorePassword"
+
+  - it: Set notifiers smtp with SSL enabled but without keystore
+    template: api/api-configmap.yaml
+    set:
+      notifiers:
+        smtp:
+          enabled: true
+          host: TEST.host
+          subject: TEST.subject
+          port: 4242
+          from: TEST.from
+          username: TEST.username
+          password: TEST.password
+          starttlsEnabled: true
+          ssl:
+            trustAll: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: ConfigMap
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: " *notifiers:\n
+                     *  email:\n
+                     *    enabled: true\n                                                                                                                                                                  
+                     *    host: TEST.host\n                                                                                                                                                            
+                     *    subject: \"TEST.subject\"\n
+                     *    port: 4242\n
+                     *    from: TEST.from\n
+                     *    username: TEST.username\n
+                     *    password: TEST.password\n
+                     *    starttls.enabled: true\n
+                     *    ssl:\n
+                     *      trustAll: true"
+      - notMatchRegex:
+          path: data.[gravitee.yml]
+          pattern: " *notifiers:\n
+                     *  email:\n
+                     *    enabled: true\n                                                                                                                                                                  
+                     *    host: TEST.host\n                                                                                                                                                            
+                     *    subject: \"TEST.subject\"\n
+                     *    port: 4242\n
+                     *    from: TEST.from\n
+                     *    username: TEST.username\n
+                     *    password: TEST.password\n
+                     *    starttls.enabled: true\n
+                     *    ssl:\n
+                     *      trustAll: true\n
+                     *      keyStore: \n
+                     *      keyStorePassword: "
