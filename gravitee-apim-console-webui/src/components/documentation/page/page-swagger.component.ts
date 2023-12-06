@@ -21,7 +21,7 @@ import { SwaggerUIBundle } from 'swagger-ui-dist';
 
 import UserService from '../../../services/user.service';
 
-const yamlSchema = jsyaml.Schema.create(jsyaml.FAILSAFE_SCHEMA, []);
+const yamlSchema = jsyaml.Schema.create(jsyaml.JSON_SCHEMA, []);
 
 const DisableTryItOutPlugin = function () {
   return {
