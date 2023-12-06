@@ -2,7 +2,6 @@ import { defineConfig } from "cypress";
 import { unlinkSync } from "fs";
 
 export default defineConfig({
-    projectId: "88vnc3",
     env: {
         failOnStatusCode: false,
         api_publisher_user_login: "api1",

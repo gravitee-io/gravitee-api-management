@@ -20,7 +20,7 @@ services:
   cypress:
     image: cypress/included:13.3.3
     working_dir: /test
-    command: "--e2e --browser=chrome --spec 'ui-test/integration/apim/ui/**/*.ts' --config-file '/test/cypress-ui-config.ts' --record"
+    command: "--e2e --browser=chrome --spec 'ui-test/integration/apim/ui/**/*.ts' --config-file '/test/cypress-ui-config.ts'"
     volumes:
       - ./:/test
       - ./docker/ui-tests/conf/cypress-ui-config.ts:/test/cypress-ui-config.ts
