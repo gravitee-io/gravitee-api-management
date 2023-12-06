@@ -20,6 +20,8 @@ import { Rule } from '../../../../entities/alerts/rule.metrics';
 const AlertTriggerMetricsSimpleConditionComponent: ng.IComponentOptions = {
   bindings: {
     alert: '<',
+    referenceType: '<',
+    referenceId: '<',
   },
   require: {
     parent: '^alertComponentAjs',

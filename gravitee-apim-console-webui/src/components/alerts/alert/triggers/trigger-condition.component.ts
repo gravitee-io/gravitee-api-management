@@ -23,6 +23,8 @@ const AlertTriggerConditionComponent: ng.IComponentOptions = {
     metrics: '<',
     label: '<',
     isReadonly: '<',
+    referenceType: '<',
+    referenceId: '<',
   },
   template: require('./trigger-condition.html'),
   controller: function () {

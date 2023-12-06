@@ -22,12 +22,10 @@ setupAngularJsTesting();
 
 describe('AlertTriggerConditionStringComponent', () => {
   let $componentController: IComponentControllerService;
-  let $state;
   let alertTriggerConditionStringComponent: any;
 
-  beforeEach(inject((_$state_, _$componentController_) => {
+  beforeEach(inject((_$componentController_) => {
     $componentController = _$componentController_;
-    $state = _$state_;
     alertTriggerConditionStringComponent = $componentController('gvAlertTriggerConditionString', null, {});
   }));
 
@@ -47,8 +45,7 @@ describe('AlertTriggerConditionStringComponent', () => {
     });
 
     it('should call loader with environment type', () => {
-      $state.params.apiId = undefined;
-      $state.params.applicationId = undefined;
+      alertTriggerConditionStringComponent.referenceType = Scope.ENVIRONMENT;
 
       alertTriggerConditionStringComponent.$onInit();
 
@@ -56,8 +53,8 @@ describe('AlertTriggerConditionStringComponent', () => {
     });
 
     it('should call loader with API type', () => {
-      $state.params.apiId = 'test-api-id';
-      $state.params.applicationId = undefined;
+      alertTriggerConditionStringComponent.referenceType = Scope.API;
+      alertTriggerConditionStringComponent.referenceId = 'test-api-id';
 
       alertTriggerConditionStringComponent.$onInit();
 
@@ -65,8 +62,8 @@ describe('AlertTriggerConditionStringComponent', () => {
     });
 
     it('should call loader with APPLICATION type', () => {
-      $state.params.apiId = undefined;
-      $state.params.applicationId = 'test-application-id';
+      alertTriggerConditionStringComponent.referenceType = Scope.APPLICATION;
+      alertTriggerConditionStringComponent.referenceId = 'test-application-id';
 
       alertTriggerConditionStringComponent.$onInit();
 

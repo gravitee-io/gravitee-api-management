@@ -58,35 +58,32 @@ const AlertComponentAjs: ng.IComponentOptions = {
         this.selectedTab = indexOfTab > -1 ? indexOfTab : 0;
         this.currentTab = this.tabs[this.selectedTab];
 
-        let referenceId;
-        let referenceType;
-
         if (this.activatedRoute.snapshot.params.apiId) {
-          referenceType = Scope.API;
-          referenceId = this.activatedRoute.snapshot.params.apiId;
+          this.referenceType = Scope.API;
+          this.referenceId = this.activatedRoute.snapshot.params.apiId;
           this.groups = ['API metrics', 'Health-check'];
           this.titlePrefix = this.resolvedApi.name;
         } else if (this.activatedRoute.snapshot.params.applicationId) {
-          referenceType = Scope.APPLICATION;
-          referenceId = this.activatedRoute.snapshot.params.applicationId;
+          this.referenceType = Scope.APPLICATION;
+          this.referenceId = this.activatedRoute.snapshot.params.applicationId;
           this.groups = ['Application'];
           this.titlePrefix = ($scope.$parent as any).$resolve.resolvedApplication.data.name;
         } else {
-          referenceType = Scope.ENVIRONMENT;
+          this.referenceType = Scope.ENVIRONMENT;
           this.groups = ['Node', 'API metrics', 'Health-check'];
           this.titlePrefix = 'Platform';
         }
 
-        this.rules = Rule.findByScope(referenceType);
+        this.rules = Rule.findByScope(this.referenceType);
         this.updateMode = this.activatedRoute.snapshot.params.alertId !== undefined;
 
         if (!this.updateMode) {
-          this.alert = new Alert('New alert', 'INFO', undefined, undefined, undefined, referenceType, referenceId);
+          this.alert = new Alert('New alert', 'INFO', undefined, undefined, undefined, this.referenceType, this.referenceId);
           this.alerts.push(this.alert);
         } else {
           this.alert = _.find(this.alerts, { id: this.activatedRoute.snapshot.params.alertId }) || this.alerts[0];
           this.alert.type = (this.alert.source + '@' + this.alert.type).toUpperCase();
-          this.alert.reference_type = referenceType;
+          this.alert.reference_type = this.referenceType;
         }
 
         this.template = this.alert.template || false;

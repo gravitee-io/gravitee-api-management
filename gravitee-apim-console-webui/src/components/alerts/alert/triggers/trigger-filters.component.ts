@@ -18,6 +18,8 @@ const AlertTriggerFiltersComponent: ng.IComponentOptions = {
     alert: '<',
     form: '<',
     isReadonly: '<',
+    referenceType: '<',
+    referenceId: '<',
   },
   template: require('./trigger-filters.html'),
   controller: function () {

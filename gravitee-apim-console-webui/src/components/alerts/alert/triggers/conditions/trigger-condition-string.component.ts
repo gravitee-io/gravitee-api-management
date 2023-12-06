@@ -16,38 +16,26 @@
 
 import * as _ from 'lodash';
 
-import { Metrics, Scope } from '../../../../../entities/alert';
+import { Metrics } from '../../../../../entities/alert';
 
 const AlertTriggerConditionStringComponent: ng.IComponentOptions = {
   bindings: {
     condition: '<',
     metrics: '<',
     isReadonly: '<',
+    referenceType: '<',
+    referenceId: '<',
   },
   template: require('./trigger-condition-string.html'),
   controller: [
     '$injector',
-    '$state',
-    function ($injector, $state) {
+    function ($injector) {
       this.$onInit = () => {
         // Get the metric field according to the condition property
         const metric = _.find(this.metrics as Metrics[], (metric) => metric.key === this.condition.property);
 
         if (metric.loader) {
-          let referenceId;
-          let referenceType;
-
-          if ($state.params.apiId) {
-            referenceType = Scope.API;
-            referenceId = $state.params.apiId;
-          } else if ($state.params.applicationId) {
-            referenceType = Scope.APPLICATION;
-            referenceId = $state.params.applicationId;
-          } else {
-            referenceType = Scope.ENVIRONMENT;
-          }
-
-          this.values = metric.loader(referenceType, referenceId, $injector);
+          this.values = metric.loader(this.referenceType, this.referenceId, $injector);
         }
       };
 
