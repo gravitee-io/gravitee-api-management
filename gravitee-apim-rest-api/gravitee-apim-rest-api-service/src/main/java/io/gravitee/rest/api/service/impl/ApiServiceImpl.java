@@ -1350,8 +1350,15 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     private void checkLifecycleState(final UpdateApiEntity updateApiEntity, final ApiEntity existingAPI) {
         if (io.gravitee.rest.api.model.api.ApiLifecycleState.DEPRECATED.equals(existingAPI.getLifecycleState())) {
-            throw new LifecycleStateChangeNotAllowedException(updateApiEntity.getLifecycleState().name());
+            // We can update a DEPRECATED API only if the definition version has changed AND the updateApiEntity is also DEPRECATED (used when converting from v1 to v2)
+            if (
+                updateApiEntity.getGraviteeDefinitionVersion().equals(existingAPI.getGraviteeDefinitionVersion()) ||
+                updateApiEntity.getLifecycleState() != existingAPI.getLifecycleState()
+            ) {
+                throw new LifecycleStateChangeNotAllowedException(updateApiEntity.getLifecycleState().name());
+            }
         }
+
         if (existingAPI.getLifecycleState().name().equals(updateApiEntity.getLifecycleState().name())) {
             return;
         }
