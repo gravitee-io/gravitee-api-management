@@ -39,66 +39,11 @@ export interface EndpointV4 {
   secondary?: boolean;
 }
 
-const KAFKA_ENDPOINT: EndpointV4 = {
-  name: 'Default Kafka Endpoint',
-  type: 'kafka',
-  inheritConfiguration: true,
-};
-
-const MOCK_ENDPOINT: EndpointV4 = {
-  name: 'Default Mock Endpoint',
-  type: 'mock',
-  configuration: {},
-};
-
-const MQTT_5_ENDPOINT: EndpointV4 = {
-  name: 'Default MQTT 5.X Endpoint',
-  type: 'mqtt5',
-  inheritConfiguration: true,
-};
-
-const RABBIT_MQ_ENDPOINT: EndpointV4 = {
-  name: 'Default RabbitMQ Endpoint',
-  type: 'rabbitmq',
-  inheritConfiguration: true,
-};
-
-const SOLACE_ENDPOINT: EndpointV4 = {
-  name: 'Default Solace Endpoint',
-  type: 'solace',
-  inheritConfiguration: true,
-};
-
-const HTTP_PROXY_ENDPOINT: EndpointV4 = {
-  name: 'Default HTTP Proxy Endpoint',
-  type: 'http-proxy',
-  inheritConfiguration: true,
-};
-
 export const EndpointV4Default = {
-  byType: (type: string): EndpointV4 => {
-    switch (type) {
-      case 'kafka': {
-        return KAFKA_ENDPOINT;
-      }
-      case 'mqtt5': {
-        return MQTT_5_ENDPOINT;
-      }
-      case 'rabbitmq': {
-        return RABBIT_MQ_ENDPOINT;
-      }
-      case 'solace': {
-        return SOLACE_ENDPOINT;
-      }
-      case 'mock': {
-        return MOCK_ENDPOINT;
-      }
-      case 'http-proxy': {
-        return HTTP_PROXY_ENDPOINT;
-      }
-      default: {
-        return undefined;
-      }
+  byTypeAndGroupName(type: string, groupName: string): EndpointV4 {
+    if (type === 'mock') {
+      return { name: `${groupName} default endpoint`, type, configuration: {} };
     }
+    return { name: `${groupName} default endpoint`, type, inheritConfiguration: true };
   },
 };

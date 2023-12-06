@@ -19,12 +19,12 @@ import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { switchMap, takeUntil } from 'rxjs/operators';
 import { Observable, Subject } from 'rxjs';
 
-import { Api, ApiV4, UpdateApiV4 } from '../../../../entities/management-api-v2';
+import { Api, ApiV4, EndpointGroupV4, UpdateApiV4 } from '../../../../entities/management-api-v2';
 import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
-import { isUniqueAndDoesNotMatchDefaultValue } from '../../../../shared/utils';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { isEndpointNameUniqueAndDoesNotMatchDefaultValue } from '../api-endpoint-v4-unique-name';
 
 @Component({
   selector: 'api-endpoint-group',
@@ -44,6 +44,7 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
 
   public initialGroupFormValue: any;
   public endpointGroupType: string;
+  public endpointGroup: EndpointGroupV4;
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
@@ -94,31 +95,28 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
     this.initialApi = this.api;
     this.endpointGroupType = this.api.endpointGroups[this.ajsStateParams.groupIndex].type;
 
-    this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-r']) || api.definitionContext?.origin === 'KUBERNETES';
+    this.endpointGroup = this.api.endpointGroups[this.ajsStateParams.groupIndex];
 
-    const group = { ...this.api.endpointGroups[this.ajsStateParams.groupIndex] };
+    this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-r']) || api.definitionContext?.origin === 'KUBERNETES';
 
     this.generalForm = new FormGroup({
       name: new FormControl(
         {
-          value: group?.name ?? null,
+          value: this.endpointGroup.name ?? null,
           disabled: this.isReadOnly,
         },
         [
           Validators.required,
           Validators.pattern(/^[^:]*$/),
-          isUniqueAndDoesNotMatchDefaultValue(
-            this.api.endpointGroups.reduce((acc, group) => [...acc, group.name], []),
-            group?.name,
-          ),
+          isEndpointNameUniqueAndDoesNotMatchDefaultValue(this.api, this.endpointGroup.name),
         ],
       ),
-      loadBalancerType: new FormControl({ value: group?.loadBalancer?.type ?? null, disabled: false }, [Validators.required]),
+      loadBalancerType: new FormControl({ value: this.endpointGroup.loadBalancer?.type ?? null, disabled: false }, [Validators.required]),
     });
 
     this.configurationForm = new FormGroup({
       groupConfiguration: new FormControl({
-        value: group?.sharedConfiguration ?? {},
+        value: this.endpointGroup.sharedConfiguration ?? {},
         disabled: this.isReadOnly,
       }),
     });
@@ -140,8 +138,8 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
   private updateApiObjectWithFormData(api: ApiV4): UpdateApiV4 {
     const updatedEndpointGroups = [...api.endpointGroups];
     updatedEndpointGroups[this.ajsStateParams.groupIndex] = {
-      ...this.api.endpointGroups[this.ajsStateParams.groupIndex],
-      name: this.generalForm.getRawValue().name,
+      ...this.endpointGroup,
+      name: this.generalForm.getRawValue().name.trim(),
       loadBalancer: {
         type: this.generalForm.getRawValue().loadBalancerType,
       },
