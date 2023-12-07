@@ -52,7 +52,7 @@ const GroupsComponentAjs: ng.IComponentOptions = {
       };
 
       this.create = () => {
-        this.ngRouter.navigate(['/new'], { relativeTo: this.activatedRoute });
+        this.ngRouter.navigate(['./new'], { relativeTo: this.activatedRoute });
       };
 
       this.removeGroup = (ev, groupId, groupName) => {
