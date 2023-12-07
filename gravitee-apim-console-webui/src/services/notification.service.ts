@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 class NotificationService {
-  constructor(private $mdToast: ng.material.IToastService, private $state) {}
+  constructor(private $mdToast: ng.material.IToastService) {}
 
   show(message: any, errorStatus?: number) {
     const msg = message.statusText || message;
@@ -31,7 +31,7 @@ class NotificationService {
       )
       .then((response) => {
         if (response === 'ok') {
-          this.$state.go(this.$state.current, {}, { reload: true });
+          window.location.reload();
         }
       });
   }
@@ -48,6 +48,6 @@ class NotificationService {
     );
   }
 }
-NotificationService.$inject = ['$mdToast', '$state'];
+NotificationService.$inject = ['$mdToast'];
 
 export default NotificationService;

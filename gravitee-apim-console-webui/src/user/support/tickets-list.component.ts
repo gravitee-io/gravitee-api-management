@@ -51,6 +51,7 @@ export class TicketsListComponent extends UpgradeComponent {
     // Hack to Force the binding between Angular and AngularJS
     this.ngOnChanges({
       apiId: new SimpleChange(null, apiId, true),
+      activatedRoute: new SimpleChange(null, this.activatedRoute, true),
     });
 
     this.navigateToTicketNew.pipe(takeUntil(this.unsubscribe$)).subscribe(() => {

@@ -22,6 +22,7 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
   template: require('./widget-chart-line.html'),
   bindings: {
     data: '<',
+    activatedRoute: '<',
   },
   require: {
     parent: '^gvWidget',
@@ -91,7 +92,7 @@ const WidgetChartLineComponent: ng.IComponentOptions = {
             if (this.parent.widget.chart.request.aggs && this.parent.widget.chart.request.aggs.includes('field:')) {
               field = this.parent.widget.chart.request.aggs.replace('field:', '');
             }
-            const queryFilters = this.AnalyticsService.getQueryFilters();
+            const queryFilters = this.AnalyticsService.getQueryFilters(this.activatedRoute);
             value.buckets.forEach((bucket) => {
               if (bucket) {
                 let isFieldRequest = this.parent.widget.chart.request.aggs.split('%3B')[idx].includes('field:');
