@@ -190,7 +190,7 @@ import StringService from './services/string.service';
 
 import interceptorConfig from './app.interceptor.ajs';
 
-import { permission, uiPermission } from 'angular-permission';
+import { permission } from 'angular-permission';
 
 import TopApisController from './management/settings/top-apis/top-apis.controller';
 import TopApiService from './services/top-api.service';
@@ -345,8 +345,6 @@ require('@highcharts/map-collection/custom/world');
 import { downgradeInjectable } from '@angular/upgrade/static';
 import DialogTransferOwnershipController from './management/settings/groups/group/transferOwnershipDialog.controller';
 
-import { upgradeModule } from '@uirouter/angular-hybrid';
-import uiRouter from '@uirouter/angularjs';
 import ApplicationSubscriptionsListComponent from './management/application/details/subscriptions/application-subscriptions-list.component';
 import ApplicationSubscriptionsListController from './management/application/details/subscriptions/application-subscriptions-list.controller';
 import ApiKeysComponent from './management/application/components/api-key/api-keys.component';
@@ -372,10 +370,7 @@ require('md-color-picker');
 
 angular.module('gravitee-management', [
   'angular-loading-bar',
-  uiRouter,
-  upgradeModule.name,
   permission,
-  uiPermission,
   'ngMaterial',
   'ngMdIcons',
   'ui.codemirror',
