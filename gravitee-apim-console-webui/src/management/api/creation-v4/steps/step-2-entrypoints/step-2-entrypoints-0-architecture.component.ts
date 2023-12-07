@@ -15,18 +15,14 @@
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { takeUntil, tap } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
 
-import { Step2Entrypoints2ConfigComponent } from './step-2-entrypoints-2-config.component';
 import { Step2Entrypoints1ListComponent } from './step-2-entrypoints-1-list.component';
 
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
-import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
-import { IconService } from '../../../../../services-ngx/icon.service';
-import { ApiType, ConnectorPlugin } from '../../../../../entities/management-api-v2';
+import { ApiType } from '../../../../../entities/management-api-v2';
 import { UTMTags, ApimFeature } from '../../../../../shared/components/gio-license/gio-license-data';
 
 @Component({
@@ -36,7 +32,6 @@ import { UTMTags, ApimFeature } from '../../../../../shared/components/gio-licen
 })
 export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
-  private httpProxyEntrypoint: ConnectorPlugin;
   private initialValue: { type: ApiType };
 
   public form: FormGroup;
@@ -49,28 +44,18 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
   constructor(
     private readonly formBuilder: FormBuilder,
     private readonly stepService: ApiCreationStepService,
-    private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
     private readonly confirmDialog: MatDialog,
-    private readonly matDialog: MatDialog,
-    private readonly iconService: IconService,
     private readonly licenseService: GioLicenseService,
   ) {}
 
   ngOnInit(): void {
     const currentStepPayload = this.stepService.payload;
 
-    this.connectorPluginsV2Service
-      .listSyncEntrypointPlugins()
-      .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((entrypoints) => {
-        this.httpProxyEntrypoint = entrypoints.find((e) => e.id === 'http-proxy');
+    this.form = this.formBuilder.group({
+      type: this.formBuilder.control(currentStepPayload.type ?? null, [Validators.required]),
+    });
 
-        this.form = this.formBuilder.group({
-          type: this.formBuilder.control(currentStepPayload.type ?? null, [Validators.required]),
-        });
-
-        this.initialValue = this.form.getRawValue();
-      });
+    this.initialValue = this.form.getRawValue();
   }
 
   ngOnDestroy() {
@@ -112,39 +97,14 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
   }
 
   private doSaveSync() {
-    this.connectorPluginsV2Service
-      .getEndpointPlugin('http-proxy')
-      .pipe(
-        tap((httpProxyEndpoint) => {
-          this.stepService.validStep((previousPayload) => ({
-            ...previousPayload,
-            type: 'PROXY',
-            selectedEntrypoints: [
-              {
-                id: this.httpProxyEntrypoint.id,
-                name: this.httpProxyEntrypoint.name,
-                icon: this.iconService.registerSvg(this.httpProxyEntrypoint.id, this.httpProxyEntrypoint.icon),
-                supportedListenerType: this.httpProxyEntrypoint.supportedListenerType,
-                deployed: this.httpProxyEntrypoint.deployed,
-              },
-            ],
-            selectedEndpoints: [
-              {
-                id: httpProxyEndpoint.id,
-                name: httpProxyEndpoint.name,
-                icon: this.iconService.registerSvg(httpProxyEndpoint.id, httpProxyEndpoint.icon),
-                deployed: httpProxyEndpoint.deployed,
-              },
-            ],
-          }));
-          this.stepService.goToNextStep({
-            groupNumber: 2,
-            component: Step2Entrypoints2ConfigComponent,
-          });
-        }),
-        takeUntil(this.unsubscribe$),
-      )
-      .subscribe();
+    this.stepService.validStep((previousPayload) => ({
+      ...previousPayload,
+      type: 'PROXY',
+    }));
+    this.stepService.goToNextStep({
+      groupNumber: 2,
+      component: Step2Entrypoints1ListComponent,
+    });
   }
 
   private doSaveAsync() {

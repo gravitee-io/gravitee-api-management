@@ -88,7 +88,9 @@ export class Step1ApiDetailsHarness extends ComponentHarness {
   async fillAndValidate(name = 'API name', version = '1.0', description = 'description'): Promise<void> {
     await this.setName(name);
     await this.setVersion(version);
-    await this.setDescription(description);
+    if (description) {
+      await this.setDescription(description);
+    }
     await this.clickValidate();
   }
 }

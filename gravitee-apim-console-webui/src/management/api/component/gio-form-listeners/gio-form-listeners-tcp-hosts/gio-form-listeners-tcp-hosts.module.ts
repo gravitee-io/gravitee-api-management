@@ -14,18 +14,16 @@
  * limitations under the License.
  */
 import { NgModule } from '@angular/core';
+import { GioIconsModule } from '@gravitee/ui-particles-angular';
 import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
-import { MatListModule } from '@angular/material/list';
-import { GioIconsModule } from '@gravitee/ui-particles-angular';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatButtonModule } from '@angular/material/button';
-import { MatRadioModule } from '@angular/material/radio';
+import { MatIconModule } from '@angular/material/icon';
 
-import { GioEntrypointsSelectionListComponent } from './gio-entrypoints-selection-list.component';
-
-import { GioConnectorListModule } from '../../../../shared/components/gio-connector-list-option/gio-connector-list.module';
+import { GioFormListenersTcpHostsComponent } from './gio-form-listeners-tcp-hosts.component';
 
 @NgModule({
   imports: [
@@ -33,14 +31,12 @@ import { GioConnectorListModule } from '../../../../shared/components/gio-connec
     MatInputModule,
     MatFormFieldModule,
     ReactiveFormsModule,
-    MatListModule,
-    GioConnectorListModule,
+    MatIconModule,
     GioIconsModule,
     MatButtonModule,
-    FormsModule,
-    MatRadioModule,
+    MatTooltipModule,
   ],
-  declarations: [GioEntrypointsSelectionListComponent],
-  exports: [GioEntrypointsSelectionListComponent],
+  declarations: [GioFormListenersTcpHostsComponent],
+  exports: [GioFormListenersTcpHostsComponent],
 })
-export class GioEntrypointsSelectionListModule {}
+export class GioFormListenersTcpHostsModule {}

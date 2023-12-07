@@ -190,7 +190,12 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
 
       const listenerConfig = {
         type: listenersType,
-        ...(listenersType === 'HTTP' ? { paths: apiCreationPayload.paths } : {}),
+        ...(listenersType === 'HTTP'
+          ? { paths: apiCreationPayload.paths }
+          : listenersType === 'TCP'
+          ? // api is expecting hosts as a list of strings
+            { hosts: apiCreationPayload.hosts.map((host) => host.host) }
+          : {}),
         entrypoints,
       };
       return [...listeners, listenerConfig];

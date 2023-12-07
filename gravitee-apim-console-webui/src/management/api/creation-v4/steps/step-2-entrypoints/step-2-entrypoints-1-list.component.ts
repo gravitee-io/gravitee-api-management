@@ -25,7 +25,7 @@ import { isEqual } from 'lodash';
 import { Step2Entrypoints2ConfigComponent } from './step-2-entrypoints-2-config.component';
 
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
-import { ConnectorVM, fromConnector } from '../../../../../entities/management-api-v2';
+import { ApiType, ConnectorVM, fromConnector } from '../../../../../entities/management-api-v2';
 import { IconService } from '../../../../../services-ngx/icon.service';
 import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
 import { ApimFeature, UTMTags } from '../../../../../shared/components/gio-license/gio-license-data';
@@ -43,6 +43,7 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
   public entrypoints: ConnectorVM[];
 
   public shouldUpgrade = false;
+  public apiType: ApiType;
 
   constructor(
     private readonly formBuilder: FormBuilder,
@@ -56,6 +57,7 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     const currentStepPayload = this.stepService.payload;
+    this.apiType = currentStepPayload.type;
 
     this.formGroup = this.formBuilder.group({
       selectedEntrypointsIds: this.formBuilder.control(
@@ -64,19 +66,35 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
       ),
     });
 
-    this.connectorPluginsV2Service
-      .listAsyncEntrypointPlugins()
-      .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((entrypointPlugins) => {
-        this.entrypoints = entrypointPlugins
-          .map((entrypoint) => fromConnector(this.iconService, entrypoint))
-          .sort((entrypoint1, entrypoint2) => {
-            const name1 = entrypoint1.name.toUpperCase();
-            const name2 = entrypoint2.name.toUpperCase();
-            return name1 < name2 ? -1 : name1 > name2 ? 1 : 0;
-          });
-        this.changeDetectorRef.detectChanges();
-      });
+    if (currentStepPayload.type === 'MESSAGE') {
+      this.connectorPluginsV2Service
+        .listAsyncEntrypointPlugins()
+        .pipe(takeUntil(this.unsubscribe$))
+        .subscribe((entrypointPlugins) => {
+          this.entrypoints = entrypointPlugins
+            .map((entrypoint) => fromConnector(this.iconService, entrypoint))
+            .sort((entrypoint1, entrypoint2) => {
+              const name1 = entrypoint1.name.toUpperCase();
+              const name2 = entrypoint2.name.toUpperCase();
+              return name1 < name2 ? -1 : name1 > name2 ? 1 : 0;
+            });
+          this.changeDetectorRef.detectChanges();
+        });
+    } else {
+      this.connectorPluginsV2Service
+        .listSyncEntrypointPlugins()
+        .pipe(takeUntil(this.unsubscribe$))
+        .subscribe((entrypointPlugins) => {
+          this.entrypoints = entrypointPlugins
+            .map((entrypoint) => fromConnector(this.iconService, entrypoint))
+            .sort((entrypoint1, entrypoint2) => {
+              const name1 = entrypoint1.name.toUpperCase();
+              const name2 = entrypoint2.name.toUpperCase();
+              return name1 < name2 ? -1 : name1 > name2 ? 1 : 0;
+            });
+          this.changeDetectorRef.detectChanges();
+        });
+    }
 
     this.formGroup
       .get('selectedEntrypointsIds')
@@ -117,10 +135,12 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
           if (confirmed) {
             this.stepService.invalidateAllNextSteps();
             this.saveChanges();
+          } else {
+            this.formGroup.setValue({ selectedEntrypointsIds: previousSelection });
           }
         });
     }
-    return this.saveChanges();
+    this.saveChanges();
   }
 
   goBack(): void {
@@ -128,6 +148,50 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
   }
 
   private saveChanges() {
+    this.apiType === 'PROXY' ? this.doSaveSync() : this.doSaveAsync();
+  }
+
+  private doSaveSync() {
+    const selectedEntrypointId = this.formGroup.getRawValue().selectedEntrypointsIds[0];
+    const selectedEntrypoint = this.entrypoints.find((e) => selectedEntrypointId.includes(e.id));
+
+    // pre-select the endpoint associated to current proxy entrypoint
+    this.connectorPluginsV2Service
+      .getEndpointPlugin(selectedEntrypoint.id)
+      .pipe(
+        tap((proxyEndpoint) => {
+          this.stepService.validStep((previousPayload) => ({
+            ...previousPayload,
+            type: 'PROXY',
+            selectedEntrypoints: [
+              {
+                id: selectedEntrypoint.id,
+                name: selectedEntrypoint.name,
+                icon: this.iconService.registerSvg(proxyEndpoint.id, selectedEntrypoint.icon),
+                supportedListenerType: selectedEntrypoint.supportedListenerType,
+                deployed: selectedEntrypoint.deployed,
+              },
+            ],
+            selectedEndpoints: [
+              {
+                id: proxyEndpoint.id,
+                name: proxyEndpoint.name,
+                icon: this.iconService.registerSvg(proxyEndpoint.id, proxyEndpoint.icon),
+                deployed: proxyEndpoint.deployed,
+              },
+            ],
+          }));
+          this.stepService.goToNextStep({
+            groupNumber: 2,
+            component: Step2Entrypoints2ConfigComponent,
+          });
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
+  }
+
+  private doSaveAsync() {
     const selectedEntrypointsIds = this.formGroup.getRawValue().selectedEntrypointsIds ?? [];
     const selectedEntrypoints = this.entrypoints
       .map(({ id, name, supportedListenerType, supportedQos, icon, deployed }) => ({

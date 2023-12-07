@@ -66,6 +66,7 @@ import { ApiPlanFormModule } from '../component/plan/api-plan-form.module';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { GioFormQosModule } from '../component/gio-form-qos/gio-form-qos.module';
 import { GioLicenseBannerModule } from '../../../shared/components/gio-license-banner/gio-license-banner.module';
+import { GioFormListenersTcpHostsModule } from '../component/gio-form-listeners/gio-form-listeners-tcp-hosts/gio-form-listeners-tcp-hosts.module';
 
 @NgModule({
   imports: [
@@ -92,6 +93,7 @@ import { GioLicenseBannerModule } from '../../../shared/components/gio-license-b
     ApiCreationStepperMenuModule,
     GioFormQosModule,
     GioFormListenersContextPathModule,
+    GioFormListenersTcpHostsModule,
     GioFormListenersVirtualHostModule,
     GioEntrypointsSelectionListModule,
     GioConnectorDialogModule,

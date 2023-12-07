@@ -30,6 +30,7 @@ import { Constants } from '../../../../../entities/Constants';
 export class Step5SummaryComponent implements OnInit {
   public currentStepPayload: ApiCreationPayload;
   public paths: string[];
+  public hosts: string[];
   public listenerTypes: string[];
   public entrypointsDeployable: boolean;
   public endpointsDeployable: boolean;
@@ -49,7 +50,8 @@ export class Step5SummaryComponent implements OnInit {
     this.currentStepPayload = this.stepService.payload;
     this.apiType = this.currentStepPayload.type;
 
-    this.paths = this.currentStepPayload.paths.map((path) => path.path);
+    this.paths = this.currentStepPayload.paths?.map((path) => path.path);
+    this.hosts = this.currentStepPayload.hosts?.map((host) => host.host);
     this.listenerTypes = [
       ...new Set(this.currentStepPayload.selectedEntrypoints.map(({ supportedListenerType }) => supportedListenerType)),
     ];

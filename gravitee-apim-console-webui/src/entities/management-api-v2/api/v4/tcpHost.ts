@@ -13,21 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentHarness } from '@angular/cdk/testing';
-import { MatSelectionListHarness } from '@angular/material/list/testing';
-import { MatRadioGroupHarness } from '@angular/material/radio/testing';
-
-export class GioEntrypointsSelectionListHarness extends ComponentHarness {
-  public static hostSelector = 'gio-entrypoints-selection-list';
-
-  private selectionListLocator = this.locatorFor(MatSelectionListHarness);
-  private radioGroupLocator = this.locatorFor(MatRadioGroupHarness);
-
-  async getSelectionList() {
-    return this.selectionListLocator();
-  }
-
-  async getRadioGroup() {
-    return this.radioGroupLocator();
-  }
+/**
+ * Used for TCP-proxy API listeners
+ */
+export interface TcpHost {
+  host?: string;
 }

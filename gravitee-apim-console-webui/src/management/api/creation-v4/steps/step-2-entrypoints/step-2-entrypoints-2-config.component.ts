@@ -29,6 +29,7 @@ import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector
 import { PathV4, Qos } from '../../../../../entities/management-api-v2';
 import { ApimFeature, UTMTags } from '../../../../../shared/components/gio-license/gio-license-data';
 import { RestrictedDomainService } from '../../../../../services-ngx/restricted-domain.service';
+import { TcpHost } from '../../../../../entities/management-api-v2/api/v4/tcpHost';
 
 @Component({
   selector: 'step-2-entrypoints-2-config',
@@ -42,7 +43,8 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
   public formGroup: FormGroup;
   public selectedEntrypoints: { id: string; name: string; supportedListenerType: string; supportedQos?: Qos[] }[];
   public entrypointSchemas: Record<string, GioJsonSchema>;
-  public hasListeners: boolean;
+  public hasHttpListeners: boolean;
+  public hasTcpListeners: boolean;
   public enableVirtualHost: boolean;
   public domainRestrictions: string[] = [];
   public shouldUpgrade = false;
@@ -63,6 +65,7 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
     this.apiType = currentStepPayload.type;
 
     const paths = currentStepPayload.paths ?? [];
+    const hosts = currentStepPayload.hosts ?? [];
 
     this.restrictedDomainService
       .get()
@@ -77,10 +80,7 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
       .subscribe();
     this.formGroup = this.formBuilder.group({});
 
-    this.hasListeners = currentStepPayload.selectedEntrypoints.find((entrypoint) => entrypoint.supportedListenerType === 'HTTP') != null;
-    if (this.hasListeners) {
-      this.formGroup.addControl('paths', this.formBuilder.control(paths, Validators.required));
-    }
+    this.initFormForSyncEntrypoints(currentStepPayload, paths, hosts);
 
     currentStepPayload.selectedEntrypoints.forEach(({ id, configuration, selectedQos }) => {
       this.formGroup.addControl(`${id}-config`, this.formBuilder.control(configuration ?? {}));
@@ -109,6 +109,18 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
       });
   }
 
+  private initFormForSyncEntrypoints(currentStepPayload: ApiCreationPayload, paths: PathV4[], hosts: any) {
+    this.hasHttpListeners =
+      currentStepPayload.selectedEntrypoints.find((entrypoint) => entrypoint.supportedListenerType === 'HTTP') != null;
+    if (this.hasHttpListeners) {
+      this.formGroup.addControl('paths', this.formBuilder.control(paths, Validators.required));
+    }
+    this.hasTcpListeners = currentStepPayload.selectedEntrypoints.find((entrypoint) => entrypoint.supportedListenerType === 'TCP') != null;
+    if (this.hasTcpListeners) {
+      this.formGroup.addControl('hosts', this.formBuilder.control(hosts, Validators.required));
+    }
+  }
+
   ngOnDestroy() {
     this.unsubscribe$.next();
     this.unsubscribe$.unsubscribe();
@@ -116,13 +128,22 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
 
   save(): void {
     const pathsValue = this.formGroup.get('paths')?.value ?? [];
+    const hostsValues = this.formGroup.get('hosts')?.value ?? [];
 
     this.stepService.validStep((previousPayload) => {
-      const paths: PathV4[] = this.enableVirtualHost
-        ? // Remove host and overrideAccess from virualHost if is not necessary
-          pathsValue.map(({ path, host, overrideAccess }) => ({ path, host, overrideAccess }))
-        : // Clear private properties from gio-listeners-virtual-host component
-          pathsValue.map(({ path }) => ({ path }));
+      let paths: PathV4[];
+      let hosts: TcpHost[];
+      if (this.selectedEntrypoints.some((entrypoint) => entrypoint.supportedListenerType === 'TCP')) {
+        paths = undefined;
+        hosts = hostsValues;
+      } else {
+        paths = this.enableVirtualHost
+          ? // Remove host and overrideAccess from virualHost if is not necessary
+            pathsValue.map(({ path, host, overrideAccess }) => ({ path, host, overrideAccess }))
+          : // Clear private properties from gio-listeners-virtual-host component
+            pathsValue.map(({ path }) => ({ path }));
+        hosts = undefined;
+      }
 
       const selectedEntrypoints: ApiCreationPayload['selectedEntrypoints'] = previousPayload.selectedEntrypoints.map((entrypoint) => ({
         ...entrypoint,
@@ -130,7 +151,7 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
         selectedQos: this.formGroup.get(`${entrypoint.id}-qos`)?.value,
       }));
 
-      return { ...previousPayload, paths, selectedEntrypoints };
+      return { ...previousPayload, paths, hosts, selectedEntrypoints };
     });
     // Skip step 3-list if api type is sync
     this.stepService.goToNextStep({
