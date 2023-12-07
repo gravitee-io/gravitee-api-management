@@ -43,13 +43,10 @@ import FileLoaderDirective from './components/dialog/fileloader/fileloader.direc
 import { DocumentationService } from './services/documentation.service';
 import NotificationService from './services/notification.service';
 
-import ConnectorService from './services/connector.service';
 import PolicyService from './services/policy.service';
-import PortalService from './services/portal.service';
 import ResourceService from './services/resource.service';
 import FetcherService from './services/fetcher.service';
 import NotifierService from './services/notifier.service';
-import ServiceDiscoveryService from './services/serviceDiscovery.service';
 
 import DiffDirective from './management/api/audit/history/diff/diff.directive';
 // Api
@@ -120,8 +117,6 @@ import LogsFiltersController from './components/logs/logs-filters.controller';
 import { ApiAnalyticsLogComponentAjs } from './management/api/analytics/logs/analytics-log.component.ajs';
 // Others
 import EnvironmentService from './services/environment.service';
-import OrganizationService from './services/organization.service';
-import InstallationService from './services/installation.service';
 
 import ErrorController from './components/documentation/error/error.controller';
 import IdentityPictureDirective from './components/identityPicture/identityPicture.directive';
@@ -141,7 +136,6 @@ import DialogAddGroupMemberController from './management/settings/groups/group/a
 import SubscriptionService from './services/subscription.service';
 import EmptyStateDirective from './components/emptystate/emptystate.directive';
 import TagService from './services/tag.service';
-import MetadataService from './services/metadata.service';
 import ChartDirective from './management/api/proxy/health-check-dashboard/chart/chart.directive';
 import FileChooserDialogController from './components/dialog/fileChooserDialog.controller';
 import DialogConfirmController from './components/dialog/confirmDialog.controller';
@@ -158,9 +152,6 @@ import RoleService from './services/role.service';
 import UserService from './services/user.service';
 import UserController from './user/my-accout/user.controller';
 import UserComponentAjs from './user/my-accout/user.component.ajs';
-// Notification Settings
-import NotificationSettingsService from './services/notificationSettings.service';
-import NotificationTemplatesService from './services/notificationTemplates.service';
 
 // Documentation
 import './components/documentation/documentation.module.ajs';
@@ -179,9 +170,7 @@ import AuditService from './services/audit.service';
 import { ApiAuditComponentAjs } from './management/api/audit/general/audit.component.ajs';
 import AuditComponent from './components/audit/audit.component';
 // Configuration
-import ConsoleSettingsService from './services/consoleSettings.service';
 import PortalSettingsService from './services/portalSettings.service';
-import PortalConfigService from './services/portalConfig.service';
 // Groups
 import GroupsComponentAjs from './management/settings/groups/groups.component.ajs';
 import GroupComponentAjs from './management/settings/groups/group/group.component.ajs';
@@ -210,16 +199,11 @@ import AddTopApiDialogController from './management/settings/top-apis/dialog/add
 import DeleteTopApiDialogController from './management/settings/top-apis/dialog/delete.top-api.dialog.controller';
 import PortalSettingsComponentAjs from './management/settings/portal/portal.component.ajs';
 
-import RouterService from './services/router.service';
-
-import MessageService from './services/message.service';
-
 import ApiPortalHeaderComponentAjs from './management/settings/api-portal-header/api-portal-header.component.ajs';
 import ApiHeaderService from './services/apiHeader.service';
 
 import UpdateApiPortalHeaderDialogController from './management/settings/api-portal-header/update.api-portal-header.dialog.controller';
 import NewApiPortalHeaderDialogController from './management/settings/api-portal-header/new.api-portal-header.dialog.controller';
-import Base64Service from './services/base64.service';
 // Alerts
 import AlertService from './services/alert.service';
 import AlertsComponentAjs from './components/alerts/alerts.component.ajs';
@@ -247,8 +231,6 @@ import AlertTriggerApplicationQuotaComponent from './components/alerts/alert/tri
 import AlertTriggerProjectionsComponent from './components/alerts/alert/triggers/projections/trigger-projections.component';
 import AlertTriggerProjectionComponent from './components/alerts/alert/triggers/projections/trigger-projection.component';
 import AlertTriggerTimeframesComponent from './components/alerts/alert/triggers/trigger-timeframe.component';
-
-import EntrypointService from './services/entrypoint.service';
 
 import SelectFolderDialogController from './components/documentation/dialog/selectfolder.controller';
 import SelectPageDialogController from './components/documentation/dialog/selectpage.controller';
@@ -278,8 +260,6 @@ import ApiQualityRuleController from './management/settings/api-quality-rules/ap
 import DeleteApiQualityRuleDialogController from './management/settings/api-quality-rules/api-quality-rule/delete-api-quality-rule.dialog.controller';
 import DialogQueryFilterInformationController from './management/settings/analytics/dashboard/query-filter-information.dialog.controller';
 
-import ReCaptchaService from './services/reCaptcha.service';
-
 import PortalThemeController from './management/settings/portal-theme/portalTheme.controller';
 import PortalThemeComponentAjs from './management/settings/portal-theme/portalTheme.component.ajs';
 import PortalThemeService from './services/portalTheme.service';
@@ -292,11 +272,8 @@ import DeleteFieldDialogController from './management/settings/custom-user-field
 import UpdateFieldDialogController from './management/settings/custom-user-fields/dialog/update.custom-user-field.dialog.controller';
 import FlowService from './services/flow.service';
 import TicketDetailComponentAjs from './user/support/ticket-detail.component.ajs';
-import SpelService from './services/spel.service';
 import AlertsDashboardComponent from './components/alerts/dashboard/alerts-dashboard.component';
 import WidgetChartCountComponent from './components/dashboard/widget/count/widget-chart-count.component';
-
-import { PromotionService } from './services/promotion.service';
 
 (<any>window).jQuery = jQuery;
 
@@ -365,7 +342,6 @@ require('highcharts/modules/no-data-to-display')(Highcharts);
 require('highcharts/modules/map')(Highcharts);
 
 require('@highcharts/map-collection/custom/world');
-import { DebugApiService } from './services/debugApi.service';
 import { downgradeInjectable } from '@angular/upgrade/static';
 import DialogTransferOwnershipController from './management/settings/groups/group/transferOwnershipDialog.controller';
 
@@ -542,7 +518,6 @@ graviteeManagementModule.controller('SelectPageDialogController', SelectPageDial
 graviteeManagementModule.service('ApplicationService', ApplicationService);
 graviteeManagementModule.service('ApplicationTypesService', ApplicationTypesService);
 graviteeManagementModule.service('ApiService', ApiService);
-graviteeManagementModule.service('debugApiService', DebugApiService);
 graviteeManagementModule.service('ApiPrimaryOwnerModeService', ApiPrimaryOwnerModeService);
 graviteeManagementModule.service('CorsService', CorsService);
 graviteeManagementModule.service('DocumentationService', DocumentationService);
@@ -550,17 +525,14 @@ graviteeManagementModule.service('NotificationService', NotificationService);
 graviteeManagementModule.service('PolicyService', PolicyService);
 graviteeManagementModule.service('NotifierService', NotifierService);
 graviteeManagementModule.service('UserService', UserService);
-graviteeManagementModule.service('Base64Service', Base64Service);
 graviteeManagementModule.service('ResourceService', ResourceService);
 graviteeManagementModule.service('FetcherService', FetcherService);
-graviteeManagementModule.service('ServiceDiscoveryService', ServiceDiscoveryService);
 graviteeManagementModule.service('eventService', EventService);
 graviteeManagementModule.service('AnalyticsService', AnalyticsService);
 graviteeManagementModule.service('CategoryService', CategoryService);
 graviteeManagementModule.service('GroupService', GroupService);
 graviteeManagementModule.service('SubscriptionService', SubscriptionService);
 graviteeManagementModule.service('TagService', TagService);
-graviteeManagementModule.service('MetadataService', MetadataService);
 graviteeManagementModule.service('CustomUserFieldsService', CustomUserFieldsService);
 graviteeManagementModule.service('TenantService', TenantService);
 graviteeManagementModule.service('StringService', StringService);
@@ -568,17 +540,10 @@ graviteeManagementModule.service('RoleService', RoleService);
 graviteeManagementModule.service('TicketService', TicketService);
 graviteeManagementModule.service('AuditService', AuditService);
 graviteeManagementModule.service('TopApiService', TopApiService);
-graviteeManagementModule.service('MessageService', MessageService);
-graviteeManagementModule.service('PortalService', PortalService);
 graviteeManagementModule.service('PortalThemeService', PortalThemeService);
-graviteeManagementModule.service('ReCaptchaService', ReCaptchaService);
 graviteeManagementModule.service('TokenService', TokenService);
 graviteeManagementModule.service('EnvironmentService', EnvironmentService);
-graviteeManagementModule.service('OrganizationService', OrganizationService);
-graviteeManagementModule.service('InstallationService', InstallationService);
 graviteeManagementModule.service('FlowService', FlowService);
-graviteeManagementModule.service('SpelService', SpelService);
-graviteeManagementModule.service('ConnectorService', ConnectorService);
 graviteeManagementModule.factory('ngApiV2Service', downgradeInjectable(ApiV2Service));
 graviteeManagementModule.factory('ngGioPermissionService', downgradeInjectable(GioPermissionService));
 
@@ -667,9 +632,6 @@ graviteeManagementModule.component('apiPlan', ApiPlanComponent);
 
 graviteeManagementModule.component('user', UserComponentAjs);
 
-graviteeManagementModule.service('NotificationSettingsService', NotificationSettingsService);
-graviteeManagementModule.service('NotificationTemplatesService', NotificationTemplatesService);
-
 graviteeManagementModule.component('apiAnalyticsLogsComponentAjs', ApiAnalyticsLogsComponentAjs);
 graviteeManagementModule.component('gvLogsTimeframe', LogsTimeframeComponent);
 graviteeManagementModule.controller('LogsTimeframeController', LogsTimeframeController);
@@ -688,12 +650,7 @@ graviteeManagementModule.component('apiHealthcheckLogComponentAjs', ApiHealthche
 graviteeManagementModule.component('progressBar', ProgressBarComponent);
 
 // Configuration
-graviteeManagementModule.service('ConsoleSettingsService', ConsoleSettingsService);
 graviteeManagementModule.service('PortalSettingsService', PortalSettingsService);
-graviteeManagementModule.service('PortalConfigService', PortalConfigService);
-
-// Router
-graviteeManagementModule.service('RouterService', RouterService);
 
 // Dictionaries
 graviteeManagementModule.service('DictionaryService', DictionaryService);
@@ -748,8 +705,6 @@ graviteeManagementModule.component('gvAlertTriggerProjections', AlertTriggerProj
 graviteeManagementModule.component('gvAlertTriggerProjection', AlertTriggerProjectionComponent);
 graviteeManagementModule.component('gvAlertTriggerTimeframe', AlertTriggerTimeframesComponent);
 
-graviteeManagementModule.service('EntrypointService', EntrypointService);
-
 graviteeManagementModule.service('DashboardService', DashboardService);
 graviteeManagementModule.component('settingsAnalyticsDashboardAjs', SettingsAnalyticsDashboardComponentAjs);
 graviteeManagementModule.controller('DialogQueryFilterInformationController', DialogQueryFilterInformationController);
@@ -768,7 +723,6 @@ graviteeManagementModule.component('gvQuickTimeRange', QuickTimeRangeComponent);
 graviteeManagementModule.controller('QuickTimeRangeController', QuickTimeRangeController);
 
 // Promotions
-graviteeManagementModule.service('promotionService', PromotionService);
 
 graviteeManagementModule.factory('ngIfMatchEtagInterceptor', downgradeInjectable(IfMatchEtagInterceptor));
 graviteeManagementModule.factory('ngRouter', downgradeInjectable(Router));

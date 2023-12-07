@@ -15,7 +15,6 @@
  */
 
 import NotificationService from './services/notification.service';
-import ReCaptchaService from './services/reCaptcha.service';
 import { CsrfInterceptor } from './shared/interceptors/csrf.interceptor';
 
 function interceptorConfig($httpProvider: angular.IHttpProvider, Constants) {
@@ -75,23 +74,6 @@ function interceptorConfig($httpProvider: angular.IHttpProvider, Constants) {
   };
   csrfInterceptor.$inject = ['$q'];
 
-  const reCaptchaInterceptor = function ($q: angular.IQService, $injector: angular.auto.IInjectorService): angular.IHttpInterceptor {
-    return {
-      request: function (config) {
-        const reCaptchaService: ReCaptchaService = $injector.get('ReCaptchaService');
-
-        if (reCaptchaService && reCaptchaService.isEnabled()) {
-          const currentReCaptchaToken = reCaptchaService.getCurrentToken();
-          if (currentReCaptchaToken) {
-            config.headers[reCaptchaService.getHeaderName()] = currentReCaptchaToken;
-          }
-        }
-        return config;
-      },
-    };
-  };
-  reCaptchaInterceptor.$inject = ['$q', '$injector'];
-
   // This interceptor aims to resolve the problem with Satellizer which, after exchanging oauth provider's token with apim's one, adds the apim token on all requests (through Authorization bearer header).
   // It caused logout problems between Portal and Management console because session Cookie is successfully removed but token is still sent by Satellizer using Authorization header.
   // See https://github.com/sahat/satellizer#question-how-can-i-avoid-sending-authorization-header-on-all-http-requests
@@ -123,7 +105,6 @@ function interceptorConfig($httpProvider: angular.IHttpProvider, Constants) {
     // Add custom noSatellizerAuthorizationInterceptor at the beginning of the list to make sure they are activated before others interceptors such as Satellizer's interceptors.
     $httpProvider.interceptors.unshift(noSatellizerAuthorizationInterceptor);
     $httpProvider.interceptors.push(csrfInterceptor);
-    $httpProvider.interceptors.push(reCaptchaInterceptor);
     $httpProvider.interceptors.push(interceptorTimeout);
     $httpProvider.interceptors.push(replaceEnvInterceptor);
   }
