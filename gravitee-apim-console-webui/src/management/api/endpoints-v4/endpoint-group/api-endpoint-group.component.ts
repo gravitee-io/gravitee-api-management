@@ -95,6 +95,12 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
 
     this.endpointGroup = this.api.endpointGroups[this.ajsStateParams.groupIndex];
 
+    if (!this.endpointGroup) {
+      this.snackBarService.error(`Endpoint group at index [ ${this.ajsStateParams.groupIndex} ] does not exist.`);
+      this.ajsState.go('management.apis.endpoint-groups');
+      return;
+    }
+
     this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-r']) || api.definitionContext?.origin === 'KUBERNETES';
 
     this.generalForm = new FormGroup({

@@ -67,6 +67,13 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
         switchMap((api: ApiV4) => {
           this.api = api;
           this.endpointGroup = api.endpointGroups[this.groupIndex];
+
+          if (!this.endpointGroup) {
+            this.snackBarService.error(`Endpoint group at index [ ${this.groupIndex} ] does not exist.`);
+            this.ajsState.go('management.apis.endpoint-groups');
+            return EMPTY;
+          }
+
           return combineLatest([
             this.connectorPluginsV2Service.getEndpointPluginSchema(this.endpointGroup.type),
             this.connectorPluginsV2Service.getEndpointPluginSharedConfigurationSchema(this.endpointGroup.type),
@@ -152,6 +159,12 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
     if (this.mode === 'edit') {
       this.endpointIndex = +this.ajsStateParams.endpointIndex;
       this.endpoint = this.endpointGroup.endpoints[this.endpointIndex];
+
+      if (!this.endpoint) {
+        this.snackBarService.error(`Endpoint at index [ ${this.endpointIndex} ] does not exist.`);
+        this.ajsState.go('management.apis.endpoint-groups');
+        return;
+      }
 
       name = this.endpoint.name;
       weight = this.endpoint.weight;
