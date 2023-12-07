@@ -216,7 +216,7 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
         .map((l) => l.path)
         .includes(listenerPathControl.value);
       if (contextPathAlreadyExist) {
-        error = { contextPath: 'Context path is already use.' };
+        error = { contextPath: 'Context path is already used.' };
       }
     }
     setTimeout(() => listenerPathControl.setErrors(error), 0);

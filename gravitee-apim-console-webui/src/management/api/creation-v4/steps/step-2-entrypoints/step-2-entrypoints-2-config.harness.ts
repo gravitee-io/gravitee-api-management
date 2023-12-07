@@ -20,6 +20,7 @@ import { GioFormListenersContextPathHarness } from '../../../component/gio-form-
 import { GioFormListenersVirtualHostHarness } from '../../../component/gio-form-listeners/gio-form-listeners-virtual-host/gio-form-listeners-virtual-host.harness';
 import { Qos } from '../../../../../entities/management-api-v2';
 import { GioFormQosHarness } from '../../../component/gio-form-qos/gio-form-qos.harness';
+import { GioFormListenersTcpHostsHarness } from '../../../component/gio-form-listeners/gio-form-listeners-tcp-hosts/gio-form-listeners-tcp-hosts.harness';
 
 export class Step2Entrypoints2ConfigHarness extends ComponentHarness {
   static hostSelector = 'step-2-entrypoints-2-config';
@@ -42,7 +43,7 @@ export class Step2Entrypoints2ConfigHarness extends ComponentHarness {
     }),
   );
 
-  protected getListenersDiv = this.locatorFor('#listeners');
+  protected getHttpListenersDiv = this.locatorFor('#http-listeners');
 
   protected getQosSelect = (entrypointId: string) =>
     this.locatorFor(GioFormQosHarness.with({ selector: '[ng-reflect-id="' + entrypointId + '"]' }));
@@ -60,7 +61,7 @@ export class Step2Entrypoints2ConfigHarness extends ComponentHarness {
   }
 
   async hasListenersForm(): Promise<boolean> {
-    return this.getListenersDiv()
+    return this.getHttpListenersDiv()
       .then((elt) => elt != null)
       .catch(() => false);
   }
@@ -87,6 +88,27 @@ export class Step2Entrypoints2ConfigHarness extends ComponentHarness {
 
   async fillPathsAndValidate(...paths: string[]) {
     await this.fillPaths(...paths);
+    await this.clickValidate();
+  }
+
+  async fillHosts(...hosts: string[]) {
+    const formHosts = await this.locatorFor(GioFormListenersTcpHostsHarness.with())();
+
+    // Add first path on existing ContextPathRow
+    const firstHost = hosts.shift();
+    const existingContextPathRow = await formHosts.getLastListenerRow();
+    await existingContextPathRow.hostInput.setValue(firstHost);
+
+    // Add others paths
+    for (const host of hosts) {
+      await formHosts.addListener({
+        host,
+      });
+    }
+  }
+
+  async fillHostsAndValidate(...hosts: string[]) {
+    await this.fillHosts(...hosts);
     await this.clickValidate();
   }
 

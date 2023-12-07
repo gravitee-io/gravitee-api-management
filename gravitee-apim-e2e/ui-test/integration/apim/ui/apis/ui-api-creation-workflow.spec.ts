@@ -29,7 +29,7 @@ describe('API creation workflow', () => {
       cy.getByDataTestId('api_create_v4_button').should('be.visible');
     });
 
-    it(`should create V4 API using the default API creation workflow`, () => {
+    it(`should create V4 HTTP Proxy API using the default API creation workflow`, () => {
       cy.getByDataTestId('api_create_v4_button').click();
 
       // Step 1
@@ -47,8 +47,13 @@ describe('API creation workflow', () => {
       cy.getByDataTestId('api_creation_proxy_checkbox').click();
       cy.getByDataTestId('select_architecture_button').click();
 
-      // Step 2 (entrypoints)
+      // Step 2 (select proxy entrypoint)
       cy.contains('Step 2');
+      cy.contains('Select your API entrypoints');
+      cy.contains('HTTP Proxy').click();
+      cy.getByDataTestId('select_entrypoints_button').click();
+
+      // Step 2 (entrypoint configuration)
       cy.contains('Configure your API entrypoints');
       cy.getByDataTestId('validate_entrypoints_button').should('be.disabled');
       cy.get('input[formcontrolname=path]').type(apiPath);

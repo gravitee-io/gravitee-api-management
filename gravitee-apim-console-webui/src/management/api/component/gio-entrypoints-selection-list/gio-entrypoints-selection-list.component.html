@@ -16,7 +16,7 @@
 
 -->
 <mat-selection-list
-  *ngIf="entrypoints.length > 0; else noEntrypoints"
+  *ngIf="entrypoints.length > 0 && !singleChoice"
   class="gio-connector-list"
   disableRipple="true"
   [(ngModel)]="entrypointSelection"
@@ -28,29 +28,44 @@
     #listOption
     [class.gio-connector__selected]="listOption.selected"
   >
-    <gio-connector-list-option-layout>
-      <gio-connector-list-option-layout-title>
-        <div class="title">
-          <mat-icon class="api-creation-v4__icon" [svgIcon]="entrypoint.icon"></mat-icon>
-          {{ entrypoint.name }}
-          <span class="gio-badge-primary api-creation-v4__badge">New</span>
-          <span class="gio-badge-accent api-creation-v4__badge" *ngIf="entrypoint.isEnterprise">Enterprise</span>
-          <span class="gio-badge-warning api-creation-v4__badge" *ngIf="!entrypoint.deployed">Not deployed</span>
-        </div>
-      </gio-connector-list-option-layout-title>
-
-      <gio-connector-list-option-layout-body>
-        {{ entrypoint.description }}
-      </gio-connector-list-option-layout-body>
-
-      <gio-connector-list-option-layout-action>
-        <button type="button" mat-stroked-button (click)="onMoreInfoClick($event, entrypoint)">
-          <mat-icon svgIcon="gio:eye-empty"></mat-icon>
-          More information
-        </button>
-      </gio-connector-list-option-layout-action>
-    </gio-connector-list-option-layout>
+    <ng-template *ngTemplateOutlet="listItem; context: { entrypoint }"></ng-template>
   </mat-list-option>
 </mat-selection-list>
 
-<ng-template #noEntrypoints> No entrypoints available </ng-template>
+<mat-radio-group *ngIf="entrypoints.length > 0 && singleChoice" class="gio-connector-list" [(ngModel)]="entrypointSelection">
+  <mat-radio-button
+    *ngFor="let entrypoint of entrypoints"
+    [value]="entrypoint.id"
+    #radioOption
+    [class.gio-connector__checked]="radioOption.checked"
+  >
+    <ng-template *ngTemplateOutlet="listItem; context: { entrypoint }"></ng-template>
+  </mat-radio-button>
+</mat-radio-group>
+
+<ng-template #listItem let-entrypoint="entrypoint">
+  <gio-connector-list-option-layout>
+    <gio-connector-list-option-layout-title>
+      <div class="title">
+        <mat-icon class="api-creation-v4__icon" [svgIcon]="entrypoint.icon"></mat-icon>
+        {{ entrypoint.name }}
+        <span class="gio-badge-primary api-creation-v4__badge">New</span>
+        <span class="gio-badge-accent api-creation-v4__badge" *ngIf="entrypoint.isEnterprise">Enterprise</span>
+        <span class="gio-badge-warning api-creation-v4__badge" *ngIf="!entrypoint.deployed">Not deployed</span>
+      </div>
+    </gio-connector-list-option-layout-title>
+
+    <gio-connector-list-option-layout-body>
+      {{ entrypoint.description }}
+    </gio-connector-list-option-layout-body>
+
+    <gio-connector-list-option-layout-action>
+      <button type="button" mat-stroked-button (click)="onMoreInfoClick($event, entrypoint)">
+        <mat-icon svgIcon="gio:eye-empty"></mat-icon>
+        More information
+      </button>
+    </gio-connector-list-option-layout-action>
+  </gio-connector-list-option-layout>
+</ng-template>
+
+<ng-template *ngIf="entrypoints.length <= 0"> No entrypoints available </ng-template>

@@ -51,9 +51,13 @@
       <div class="mat-h3">Entrypoints</div>
       <div class="step-5-summary__step__body">
         <div class="step-5-summary__step__info">
-          <div class="step-5-summary__step__info__row">
+          <div class="step-5-summary__step__info__row" *ngIf="paths?.length > 0">
             <span class="step-5-summary__step__info__key">Path:</span>
             <span class="step-5-summary__step__info__value">{{ paths.join(', ') }}</span>
+          </div>
+          <div class="step-5-summary__step__info__row" *ngIf="hosts?.length > 0">
+            <span class="step-5-summary__step__info__key">Host:</span>
+            <span class="step-5-summary__step__info__value">{{ hosts.join(', ') }}</span>
           </div>
           <div class="step-5-summary__step__info__row">
             <span class="step-5-summary__step__info__key">Type:</span>

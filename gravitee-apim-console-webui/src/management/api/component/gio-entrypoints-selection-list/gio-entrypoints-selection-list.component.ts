@@ -40,16 +40,21 @@ export class GioEntrypointsSelectionListComponent implements OnDestroy, ControlV
   private unsubscribe$: Subject<void> = new Subject<void>();
   @Input()
   public entrypoints: ConnectorVM[];
+  @Input()
+  public singleChoice = false;
 
-  public _entrypointSelection: string[];
+  public _entrypointSelection: string[] | string;
 
   get entrypointSelection() {
     return this._entrypointSelection;
   }
-  set entrypointSelection(selection: string[]) {
-    this._entrypointSelection = selection;
+  set entrypointSelection(selection: string[] | string) {
+    const selectionAsArray = Array.isArray(selection) ? selection : [selection];
+    // If single choice (radio button), then return the first element, else the whole array
+    this._entrypointSelection = this.singleChoice ? selectionAsArray[0] : selectionAsArray;
     this._onTouched();
-    this._onChange(selection);
+    // Always use selection as an array for consistency
+    this._onChange(selectionAsArray);
   }
   protected _onChange: (_selection: string[] | null) => void = () => ({});
 
@@ -86,7 +91,7 @@ export class GioEntrypointsSelectionListComponent implements OnDestroy, ControlV
   }
 
   // From ControlValueAccessor interface
-  public writeValue(selection: string[] | null): void {
+  public writeValue(selection: string[] | string | null): void {
     if (!selection || isEmpty(selection)) {
       return;
     }

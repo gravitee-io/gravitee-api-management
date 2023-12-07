@@ -27,6 +27,7 @@
       *ngIf="entrypoints; else loadingTpl"
       formControlName="selectedEntrypointsIds"
       [entrypoints]="entrypoints"
+      [singleChoice]="apiType === 'PROXY'"
     ></gio-entrypoints-selection-list>
 
     <mat-card class="step-2-entrypoints-1-list__banner">
@@ -44,7 +45,9 @@
 
     <div class="api-creation-v4__step__footer">
       <button mat-stroked-button type="button" (click)="goBack()">Previous</button>
-      <button mat-flat-button color="primary" type="submit" [disabled]="formGroup.invalid">Select my entrypoints</button>
+      <button data-testid="select_entrypoints_button" mat-flat-button color="primary" type="submit" [disabled]="formGroup.invalid">
+        Select my entrypoints
+      </button>
     </div>
   </form>
 </mat-card>

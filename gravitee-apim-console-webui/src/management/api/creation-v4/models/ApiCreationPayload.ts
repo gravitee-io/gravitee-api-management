@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { ApiType, CreatePlanV4, ListenerType, PathV4, Qos } from '../../../../entities/management-api-v2';
+import { TcpHost } from '../../../../entities/management-api-v2/api/v4/tcpHost';
 
 export type ApiCreationPayload = Partial<{
   // API details
@@ -24,6 +25,7 @@ export type ApiCreationPayload = Partial<{
   // Entrypoints
   type?: ApiType;
   paths?: PathV4[];
+  hosts?: TcpHost[];
   selectedEntrypoints?: {
     id: string;
     name: string;

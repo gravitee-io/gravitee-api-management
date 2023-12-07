@@ -23,7 +23,7 @@
   </div>
 
   <form *ngIf="formGroup" [formGroup]="formGroup" (ngSubmit)="save()">
-    <div id="listeners" class="api-creation-v4__form-container" *ngIf="hasListeners">
+    <div id="http-listeners" class="api-creation-v4__form-container" *ngIf="hasHttpListeners">
       <h3>Configure common entrypoints fields</h3>
 
       <div class="step-2-entrypoints-2-config__listeners-context__title">
@@ -47,6 +47,15 @@
         formControlName="paths"
         [domainRestrictions]="domainRestrictions"
       ></gio-form-listeners-virtual-host>
+    </div>
+    <div id="tcp-listeners" class="api-creation-v4__form-container" *ngIf="hasTcpListeners">
+      <h3>Configure common entrypoints fields</h3>
+
+      <div class="step-2-entrypoints-2-config__listeners-context__title">
+        <span class="mat-body-strong">Entrypoints context</span>
+      </div>
+
+      <gio-form-listeners-tcp-hosts formControlName="hosts"></gio-form-listeners-tcp-hosts>
     </div>
 
     <ng-container *ngFor="let entrypoint of selectedEntrypoints">
