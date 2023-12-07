@@ -1451,7 +1451,7 @@ describe('ApiCreationV4Component', () => {
 
         expectCallsForApiDeployment(API_ID, PLAN_ID);
 
-        expect(routerNavigateSpy).toHaveBeenCalledWith(['../..', 'my-api', 'confirmation'], expect.anything());
+        expect(routerNavigateSpy).toHaveBeenCalledWith(['.', 'my-api'], expect.anything());
       });
     });
 
