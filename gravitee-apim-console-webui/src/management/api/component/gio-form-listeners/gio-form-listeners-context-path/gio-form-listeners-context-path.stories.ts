@@ -19,22 +19,23 @@ import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { action } from '@storybook/addon-actions';
 import { of } from 'rxjs';
+import { HttpClientModule } from '@angular/common/http';
 
 import { GioFormListenersContextPathComponent } from './gio-form-listeners-context-path.component';
 import { GioFormListenersContextPathModule } from './gio-form-listeners-context-path.module';
 
 import { PortalSettingsService } from '../../../../../services-ngx/portal-settings.service';
-import { ApiService } from '../../../../../services-ngx/api.service';
+import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 
 export default {
   title: 'Shared / Form listeners context path',
   component: GioFormListenersContextPathComponent,
   decorators: [
     moduleMetadata({
-      imports: [BrowserAnimationsModule, GioFormListenersContextPathModule, FormsModule, ReactiveFormsModule],
+      imports: [BrowserAnimationsModule, GioFormListenersContextPathModule, FormsModule, ReactiveFormsModule, HttpClientModule],
       providers: [
         { provide: PortalSettingsService, useValue: { get: () => of({ portal: { entrypoint: '' } }) } },
-        { provide: ApiService, useValue: { verify: () => of() } },
+        { provide: ApiV2Service, useValue: { verifyPath: () => of() } },
       ],
     }),
   ],
