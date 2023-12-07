@@ -153,7 +153,7 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
             this.snackBarService.error(finalResult.errorMessages.join('\n'));
           }
           if (finalResult.result?.api?.id) {
-            this.router.navigate(['../..', finalResult.result.api.id, 'confirmation'], { relativeTo: this.activatedRoute });
+            this.router.navigate(['.', finalResult.result.api.id], { relativeTo: this.activatedRoute });
           }
         },
         (error) => {

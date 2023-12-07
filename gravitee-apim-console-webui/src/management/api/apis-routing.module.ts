@@ -105,6 +105,15 @@ const apisRoutes: Routes = [
    * New API
    */
   {
+    path: 'new/v4/:apiId',
+    component: ApiCreationV4ConfirmationComponent,
+    data: {
+      perms: {
+        only: ['environment-api-c'],
+      },
+    },
+  },
+  {
     path: 'new/v4',
     component: ApiCreationV4Component,
     data: {
@@ -798,15 +807,6 @@ const apisRoutes: Routes = [
       /**
        * V4 Api state only
        */
-      {
-        path: 'confirmation',
-        component: ApiCreationV4ConfirmationComponent,
-        data: {
-          perms: {
-            only: ['environment-api-c'],
-          },
-        },
-      },
       {
         path: 'v4/documentation',
         data: {
