@@ -18,6 +18,7 @@ package io.gravitee.apim.infra.crud_service.api;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
@@ -47,5 +48,14 @@ public class ApiCrudServiceImpl implements ApiCrudService {
             logger.error("An error occurred while finding Api by id {}", id, e);
         }
         throw new ApiNotFoundException(id);
+    }
+
+    @Override
+    public Api update(Api api) {
+        try {
+            return ApiAdapter.INSTANCE.toCoreModel(apiRepository.update(ApiAdapter.INSTANCE.toRepository(api)));
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("An error occurs while trying to update the api: " + api.getId(), e);
+        }
     }
 }

@@ -19,4 +19,6 @@ import io.gravitee.apim.core.api.model.Api;
 
 public interface ApiCrudService {
     Api get(String id);
+
+    Api update(Api api);
 }
