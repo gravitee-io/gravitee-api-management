@@ -17,7 +17,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { switchMap, takeUntil } from 'rxjs/operators';
 import { Observable, Subject } from 'rxjs';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { Api, ApiV4, EndpointGroupV4, UpdateApiV4 } from '../../../../entities/management-api-v2';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
@@ -45,6 +45,7 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
   public endpointGroup: EndpointGroupV4;
 
   constructor(
+    private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
     private readonly apiService: ApiV2Service,
     private readonly snackBarService: SnackBarService,
@@ -92,6 +93,12 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
     this.initialApi = this.api;
 
     this.endpointGroup = this.api.endpointGroups[this.activatedRoute.snapshot.params.groupIndex];
+
+    if (!this.endpointGroup) {
+      this.snackBarService.error(`Endpoint group at index [ ${this.activatedRoute.snapshot.params.groupIndex} ] does not exist.`);
+      this.router.navigate(['../'], { relativeTo: this.activatedRoute });
+      return;
+    }
 
     this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-r']) || api.definitionContext?.origin === 'KUBERNETES';
 
