@@ -18,7 +18,6 @@ import * as _ from 'lodash';
 
 import { ApiService } from './api.service';
 import ApplicationService from './application.service';
-import Base64Service from './base64.service';
 import EnvironmentService from './environment.service';
 import RoleService from './role.service';
 import StringService from './string.service';
@@ -47,7 +46,6 @@ class UserService {
     private $location: ILocationService,
     private $window,
     private StringService: StringService,
-    private Base64Service: Base64Service,
     private $rootScope: IScope,
   ) {}
 
@@ -240,18 +238,6 @@ class UserService {
     return this.currentUser !== undefined && this.currentUser.id !== undefined;
   }
 
-  login(user): ng.IPromise<any> {
-    return this.$http.post(
-      `${this.Constants.org.baseURL}/user/login`,
-      {},
-      {
-        headers: {
-          Authorization: `Basic ${this.Base64Service.encode(`${user.username}:${user.password}`)}`,
-        },
-      },
-    );
-  }
-
   currentUserPicture(): string {
     if (this.currentUser && this.currentUser.id) {
       return `${this.Constants.org.baseURL}/user/avatar?${this.StringService.hashCode(this.currentUser.id)}`;
@@ -361,7 +347,6 @@ UserService.$inject = [
   '$location',
   '$window',
   'StringService',
-  'Base64Service',
   '$rootScope',
 ];
 
