@@ -13,26 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { StateService } from '@uirouter/core';
 import * as _ from 'lodash';
+import { Router } from '@angular/router';
 
 import AnalyticsService from '../../../../services/analytics.service';
+import { Constants } from '../../../../entities/Constants';
 
 const WidgetDataTableComponent: ng.IComponentOptions = {
   template: require('./widget-data-table.html'),
   bindings: {
     data: '<',
+    activatedRoute: '<',
   },
   require: {
     parent: '^gvWidget',
   },
   controller: [
+    'Constants',
     '$scope',
     'AnalyticsService',
-    function ($scope, $state: StateService, AnalyticsService: AnalyticsService) {
-      this.AnalyticsService = AnalyticsService;
+    'ngRouter',
+    function (constants: Constants, $scope, AnalyticsService: AnalyticsService, ngRouter: Router) {
+      this.constants = constants;
       this.$scope = $scope;
-      this.$state = $state;
+      this.AnalyticsService = AnalyticsService;
+      this.ngRouter = ngRouter;
       this.selected = [];
 
       this.$onInit = function () {
@@ -58,7 +63,7 @@ const WidgetDataTableComponent: ng.IComponentOptions = {
             };
             const widget = this.widget || this.parent.widget;
             if (widget) {
-              const queryFilters = this.AnalyticsService.getQueryFilters();
+              const queryFilters = this.AnalyticsService.getQueryFilters(this.activatedRoute);
               if (queryFilters) {
                 const queryFilter = queryFilters[widget.chart.request.field];
                 if (queryFilter && queryFilter.includes(key)) {
@@ -94,7 +99,7 @@ const WidgetDataTableComponent: ng.IComponentOptions = {
 
       this.isClickable = function (result) {
         return (
-          ($state.current.name === 'management.analytics' || $state.current.name === 'management.dashboard.home') &&
+          this.ngRouter.url.includes('/dashboard') &&
           !result.metadata.unknown &&
           (this.widget.chart.request.field === 'api' || this.widget.chart.request.field === 'application')
         );
@@ -102,20 +107,14 @@ const WidgetDataTableComponent: ng.IComponentOptions = {
 
       this.goto = function (key) {
         // only on platform analytics
-        if ($state.current.name === 'management.analytics' || $state.current.name === 'management.dashboard.home') {
+        if (this.ngRouter.url.includes('/dashboard')) {
           if (this.widget.chart.request.field === 'api') {
-            this.$state.go('management.apis.analytics-overview-v2', {
-              apiId: key,
-              from: this.widget.chart.request.from,
-              to: this.widget.chart.request.to,
-              q: this.widget.chart.request.query,
+            this.ngRouter.navigate([this.constants.org.currentEnv.id, 'apis', key, 'v2', 'analytics-overview'], {
+              queryParams: { from: this.widget.chart.request.from, to: this.widget.chart.request.to, q: this.widget.chart.request.query },
             });
           } else if (this.widget.chart.request.field === 'application') {
-            this.$state.go('management.applications.application.analytics', {
-              applicationId: key,
-              from: this.widget.chart.request.from,
-              to: this.widget.chart.request.to,
-              q: this.widget.chart.request.query,
+            this.ngRouter.navigate([this.constants.org.currentEnv.id, 'applications', key, 'analytics'], {
+              queryParams: { from: this.widget.chart.request.from, to: this.widget.chart.request.to, q: this.widget.chart.request.query },
             });
           }
         }

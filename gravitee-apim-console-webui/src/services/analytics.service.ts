@@ -15,7 +15,7 @@
  */
 
 import * as _ from 'lodash';
-import { Params } from '@angular/router';
+import { ActivatedRoute, Params } from '@angular/router';
 
 export class LogsQuery {
   from: number;
@@ -32,7 +32,7 @@ class AnalyticsService {
   private analyticsURL: string;
   private logs: [any];
 
-  constructor(private $http, private Constants, public $stateParams) {}
+  constructor(private $http, private Constants) {}
 
   /*
    * Analytics
@@ -73,8 +73,8 @@ class AnalyticsService {
     return this.$http.get(`${this.Constants.env.baseURL}/platform` + '/logs/' + logId + (timestamp ? '?timestamp=' + timestamp : ''));
   }
 
-  getQueryFilters() {
-    const q = this.$stateParams.q;
+  getQueryFilters(activatedRoute: ActivatedRoute) {
+    const q = activatedRoute?.snapshot?.queryParams?.q;
     if (q) {
       const queryFilters = {};
       q.split(/\s(OR|AND)\s/).forEach((q) => {
@@ -151,6 +151,6 @@ class AnalyticsService {
     return param.replace('%20', ' ').replace(/[()]/g, '').replace(/[\\"]/g, '');
   }
 }
-AnalyticsService.$inject = ['$http', 'Constants', '$stateParams'];
+AnalyticsService.$inject = ['$http', 'Constants'];
 
 export default AnalyticsService;

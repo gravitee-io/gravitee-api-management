@@ -70,8 +70,13 @@
     </div>
 
     <div style="height: 100%" ng-if="!$ctrl.fetchData && $ctrl.results" ng-switch on="$ctrl.widget.chart.type">
-      <gv-widget-data-table class="test" ng-switch-when="table" data="$ctrl.results"></gv-widget-data-table>
-      <gv-widget-chart-line ng-switch-when="line" data="$ctrl.results"></gv-widget-chart-line>
+      <gv-widget-data-table
+        class="test"
+        ng-switch-when="table"
+        data="$ctrl.results"
+        activated-route="$ctrl.activatedRoute"
+      ></gv-widget-data-table>
+      <gv-widget-chart-line ng-switch-when="line" data="$ctrl.results" activated-route="$ctrl.activatedRoute"></gv-widget-chart-line>
       <gv-widget-chart-pie ng-switch-when="pie" data="$ctrl.results"></gv-widget-chart-pie>
       <gv-widget-chart-map ng-switch-when="map" data="$ctrl.results"></gv-widget-chart-map>
       <gv-widget-data-stats ng-switch-when="stats" data="$ctrl.results"></gv-widget-data-stats>

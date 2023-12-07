@@ -171,13 +171,10 @@ class AnalyticsDashboardControllerAjs {
     });
   }
 
-  gotToApiAnalytics(params: { apiId: string; from: string; to: string }) {
-    this.ngRouter.navigate(['../../apis', params.apiId, 'v2', 'analytics-overview'], {
+  gotToApiAnalytics(apiId: string) {
+    this.ngRouter.navigate(['../../apis', apiId, 'v2', 'analytics-overview'], {
       relativeTo: this.activatedRoute,
-      queryParams: {
-        from: params.from,
-        to: params.to,
-      },
+      queryParamsHandling: 'preserve',
     });
   }
 }

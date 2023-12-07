@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { StateService } from '@uirouter/core';
 import { IScope } from 'angular';
+import { ActivatedRoute } from '@angular/router';
 
 import TicketService, { TicketsQuery } from '../../services/ticket.service';
 
@@ -24,16 +24,16 @@ class TicketsListComponentAjs {
 
   private query: TicketsQuery;
   private tickets: { totalElements: number; content: any[] };
-
-  constructor(private TicketService: TicketService, private $scope: IScope, private $state: StateService) {}
+  private activatedRoute: ActivatedRoute;
+  constructor(private TicketService: TicketService, private $scope: IScope) {}
 
   $onInit() {
     this.onPaginate = this.onPaginate.bind(this);
 
     this.query = new TicketsQuery();
-    this.query.page = this.$state.params.page || 1;
-    this.query.size = this.$state.params.size || 15;
-    this.query.order = this.$state.params.order || '-created_at';
+    this.query.page = this.activatedRoute.snapshot.params.page || 1;
+    this.query.size = this.activatedRoute.snapshot.params.size || 15;
+    this.query.order = this.activatedRoute.snapshot.params.order || '-created_at';
 
     this.$scope.$watch('$ctrl.query.order', (order) => {
       if (order) {
@@ -54,13 +54,14 @@ class TicketsListComponentAjs {
     });
   }
 }
-TicketsListComponentAjs.$inject = ['TicketService', '$scope', '$state'];
+TicketsListComponentAjs.$inject = ['TicketService', '$scope'];
 
 const SupportTicketsListComponentAjs: ng.IComponentOptions = {
   bindings: {
     apiId: '<',
     navigateToTicketNew: '&',
     navigateToTicketDetail: '&',
+    activatedRoute: '<',
   },
   controller: TicketsListComponentAjs,
   template: require('./tickets-list.html'),

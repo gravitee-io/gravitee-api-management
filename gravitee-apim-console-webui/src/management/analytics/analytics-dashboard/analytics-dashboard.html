@@ -70,9 +70,7 @@
                   <td md-cell>{{event.properties.deployment_label}}</td>
                   <td md-cell>{{$ctrl.getEventLabel(event.type)}}</td>
                   <td md-cell>
-                    <a
-                      ng-click="$ctrl.gotToApiAnalytics({ apiId: event.properties.api_id, from: $ctrl.$state.params.from, to: $ctrl.$state.params.to})"
-                    >
+                    <a ng-click="$ctrl.gotToApiAnalytics(event.properties.api_id)">
                       {{event.properties.api_name}} <small>({{event.properties.api_version}})</small>
                     </a>
                   </td>

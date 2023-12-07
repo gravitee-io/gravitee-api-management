@@ -26,15 +26,14 @@ const WidgetComponent: ng.IComponentOptions = {
     updateMode: '<',
     globalQuery: '<',
     customTimeframe: '<',
+    activatedRoute: '<',
   },
   controller: [
     '$scope',
-    '$state',
     'AnalyticsService',
     'eventService',
     'ApiService',
-    function ($scope, $state, AnalyticsService: AnalyticsService, eventService: EventService, ApiService: ApiService) {
-      this.$state = $state;
+    function ($scope, AnalyticsService: AnalyticsService, eventService: EventService, ApiService: ApiService) {
       this.AnalyticsService = AnalyticsService;
       this.eventService = eventService;
       this.ApiService = ApiService;
@@ -95,7 +94,7 @@ const WidgetComponent: ng.IComponentOptions = {
         if (this.widget.chart.request.aggs && this.widget.chart.request.aggs.includes('field:')) {
           field = this.widget.chart.request.aggs.replace('field:', '');
         }
-        const queryFilters = this.AnalyticsService.getQueryFilters();
+        const queryFilters = this.AnalyticsService.getQueryFilters(this.activatedRoute);
         if (queryFilters) {
           let filters;
           if (Object.keys(queryFilters).find((q) => q === field)) {
@@ -137,10 +136,10 @@ const WidgetComponent: ng.IComponentOptions = {
             if (this.widget.chart.type === 'line') {
               if (response.data.timestamp) {
                 // call searchEvent only if there are some results to the aggregation call
-                if (this.$state.params.apiId) {
+                if (this.activatedRoute.snapshot.params.apiId) {
                   return this.ApiService.searchApiEvents(
                     ['PUBLISH_API'],
-                    this.$state.params.apiId,
+                    this.activatedRoute.snapshot.params.apiId,
                     response.data.timestamp.from,
                     response.data.timestamp.to,
                     0,

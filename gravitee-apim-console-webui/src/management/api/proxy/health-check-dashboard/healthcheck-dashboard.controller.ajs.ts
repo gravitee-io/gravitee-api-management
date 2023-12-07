@@ -100,18 +100,7 @@ class ApiHealthcheckDashboardControllerAjs {
 
   refresh() {
     this.$window.localStorage.lastHealthCheckQuery = JSON.stringify(this.query);
-    // FIXME: this transition breaks the navigation. We need to find another way to update the URL when data are updated
-    // this.$state.transitionTo(
-    //   this.$state.current,
-    //   {
-    //     apiId: this.api.id,
-    //     page: this.query.page,
-    //     size: this.query.size,
-    //     from: this.query.from,
-    //     to: this.query.to,
-    //   },
-    //   { notify: false },
-    // );
+    this.$onInit();
 
     this.ApiService.apiHealthLogs(this.api.id, this.query).then((logs) => {
       this.logs = logs.data;

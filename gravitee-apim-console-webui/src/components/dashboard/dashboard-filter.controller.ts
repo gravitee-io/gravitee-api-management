@@ -51,7 +51,7 @@ class DashboardFilterController implements IOnInit, IOnDestroy {
 
   $onInit() {
     // init filters based on stateParams
-    const queryFilters = this.AnalyticsService.getQueryFilters();
+    const queryFilters = this.AnalyticsService.getQueryFilters(this.activatedRoute);
     if (queryFilters) {
       this.decodeQueryFilters(queryFilters);
     } else {
