@@ -17,15 +17,17 @@ import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 
 export const isUnique = (paths: string[]): ValidatorFn | null => {
   return (control: AbstractControl): ValidationErrors | null => {
-    const formControlValue = control.value;
-    return paths.includes(formControlValue) ? { isUnique: true } : null;
+    const formControlValue = control.value?.trim();
+    return paths.map((v) => v.trim()).includes(formControlValue) ? { isUnique: true } : null;
   };
 };
 
 export const isUniqueAndDoesNotMatchDefaultValue = (values: string[], defaultValue: string): ValidatorFn | null => {
   return (control: AbstractControl): ValidationErrors | null => {
-    const formControlValue = control.value;
-    return formControlValue !== defaultValue && values.includes(formControlValue) ? { isUnique: true } : null;
+    const formControlValue = control.value?.trim();
+    return formControlValue !== defaultValue?.trim() && values?.map((v) => v?.trim()).includes(formControlValue)
+      ? { isUnique: true }
+      : null;
   };
 };
 
