@@ -45,7 +45,7 @@ export class DocumentationManagementComponent extends UpgradeComponent {
 
   ngOnInit() {
     const apiId = this.activatedRoute.snapshot.params.apiId;
-    const parent = this.activatedRoute.snapshot.queryParams.parent;
+    const parent = this.activatedRoute.snapshot.queryParams.parent ?? '';
 
     Promise.all([
       this.ajsDocumentationService.search(isEmpty(parent) ? { root: true } : { parent: parent }, apiId).then((response) => {
