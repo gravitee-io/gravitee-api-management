@@ -198,7 +198,7 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
     };
 
     this.configurationForm = this.formBuilder.group({
-      inherit: [{ value: this.endpoint?.inherit ?? true, disabled: this.isReadOnly }],
+      inherit: [{ value: this.endpoint?.inherit ?? false, disabled: this.isReadOnly }],
       proxyConfiguration: [
         {
           value: proxyConfigurationValue,
