@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.core.integration.crud_service;
 
-import io.gravitee.apim.core.integration.model.Integration;
+import io.gravitee.integration.api.model.Integration;
 import java.util.Set;
 
 /**

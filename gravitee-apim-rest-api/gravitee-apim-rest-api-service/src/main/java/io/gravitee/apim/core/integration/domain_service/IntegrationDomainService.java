@@ -16,9 +16,9 @@
 
 package io.gravitee.apim.core.integration.domain_service;
 
-import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationEntity;
 import io.gravitee.common.component.LifecycleComponent;
+import io.gravitee.integration.api.model.Integration;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;

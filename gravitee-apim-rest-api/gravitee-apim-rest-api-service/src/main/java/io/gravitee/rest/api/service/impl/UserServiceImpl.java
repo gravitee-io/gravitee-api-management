@@ -372,6 +372,11 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     }
 
     @Override
+    public UserEntity findById(final String id) {
+        return findById(null, id, false);
+    }
+
+    @Override
     public UserEntity findById(ExecutionContext executionContext, String id, boolean defaultValue) {
         return GraviteeContext
             .getCurrentUsers()

@@ -15,9 +15,9 @@
  */
 package io.gravitee.apim.infra.adapter;
 
-import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationEntity;
 import io.gravitee.integration.api.Entity;
+import io.gravitee.integration.api.model.Integration;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 

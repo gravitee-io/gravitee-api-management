@@ -16,7 +16,7 @@
 package io.gravitee.apim.core.integration.usecase;
 
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
-import io.gravitee.apim.core.integration.model.Integration;
+import io.gravitee.integration.api.model.Integration;
 import lombok.Builder;
 
 /**

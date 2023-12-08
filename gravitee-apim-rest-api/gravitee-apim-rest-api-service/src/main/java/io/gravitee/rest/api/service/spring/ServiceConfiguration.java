@@ -25,9 +25,12 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.common.event.impl.EventManagerImpl;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.exchange.connector.core.ConnectorCoreConfiguration;
-import io.gravitee.exchange.controller.core.ControllerCoreConfiguration;
+import io.gravitee.exchange.connector.core.spring.ConnectorCoreConfiguration;
+import io.gravitee.exchange.controller.core.spring.ControllerCoreConfiguration;
+import io.gravitee.exchange.controller.websocket.spring.ControllerWebsocketConfiguration;
 import io.gravitee.gateway.reactive.api.helper.PluginConfigurationHelper;
+import io.gravitee.integration.connector.spring.IntegrationConnectorConfiguration;
+import io.gravitee.integration.controller.spring.IntegrationControllerConfiguration;
 import io.gravitee.json.validation.JsonSchemaValidator;
 import io.gravitee.json.validation.JsonSchemaValidatorImpl;
 import io.gravitee.node.services.initializer.spring.InitializerConfiguration;
@@ -68,8 +71,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
         UpgraderConfiguration.class,
         InitializerConfiguration.class,
         InfraServiceSpringConfiguration.class,
-        ConnectorCoreConfiguration.class,
-        ControllerCoreConfiguration.class,
+        IntegrationControllerConfiguration.class,
+        IntegrationConnectorConfiguration.class,
     }
 )
 public class ServiceConfiguration {

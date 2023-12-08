@@ -58,7 +58,7 @@ import org.mockito.junit.MockitoJUnitRunner;
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
-public class HelloCommandProducerTest {
+public class IntegrationHelloCommandProducerTest {
 
     private static final String HOSTNAME = "test.gravitee.io";
     private static final String CUSTOM_VALUE = "customValue";

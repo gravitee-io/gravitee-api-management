@@ -181,38 +181,15 @@
 			<groupId>io.gravitee.node.services</groupId>
 			<artifactId>gravitee-node-services-initializer</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>io.gravitee.integration</groupId>
-			<artifactId>gravitee-integration-api</artifactId>
+			<artifactId>gravitee-integration-controller</artifactId>
 			<version>1.0.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>io.gravitee.exchange</groupId>
-			<artifactId>gravitee-exchange-api</artifactId>
+			<groupId>io.gravitee.integration</groupId>
+			<artifactId>gravitee-integration-connector</artifactId>
 			<version>1.0.0-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>io.gravitee.exchange</groupId>
-			<artifactId>gravitee-exchange-controller-core</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>io.gravitee.exchange</groupId>
-			<artifactId>gravitee-exchange-controller-embedded</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>io.gravitee.exchange</groupId>
-			<artifactId>gravitee-exchange-connector-core</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>io.gravitee.exchange</groupId>
-			<artifactId>gravitee-exchange-connector-embedded</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
-			<scope>compile</scope>
 		</dependency>
 		<!-- Lucene -->
 		<dependency>
@@ -333,6 +310,13 @@
 			<scope>provided</scope>
 		</dependency>
 
+		<dependency>
+			<groupId>io.gravitee.exchange</groupId>
+			<artifactId>gravitee-exchange-connector-embedded</artifactId>
+			<version>1.0.0-SNAPSHOT</version>
+			<scope>compile</scope>
+		</dependency>
+
 		<!-- Test dependencies -->
 		<dependency>
 			<groupId>org.javassist</groupId>
@@ -354,7 +338,7 @@
 			<artifactId>gravitee-apim-rest-api-test-fixtures</artifactId>
 			<version>${project.version}</version>
 			<scope>test</scope>
-		</dependency>
+        </dependency>
         <dependency>
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-mongodb</artifactId>

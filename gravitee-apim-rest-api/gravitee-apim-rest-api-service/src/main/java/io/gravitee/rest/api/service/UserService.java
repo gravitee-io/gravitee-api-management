@@ -34,6 +34,8 @@ import java.util.*;
 public interface UserService {
     UserEntity connect(ExecutionContext executionContext, String userId);
 
+    UserEntity findById(String id);
+
     UserEntity findById(ExecutionContext executionContext, String id, boolean defaultValue);
 
     default UserEntity findById(ExecutionContext executionContext, String id) {

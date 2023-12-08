@@ -20,31 +20,36 @@ import static io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomain
 
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
 import io.gravitee.apim.core.integration.domain_service.IntegrationDomainService;
-import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationEntity;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
 import io.gravitee.apim.infra.adapter.IntegrationAdapter;
 import io.gravitee.common.service.AbstractService;
+import io.gravitee.exchange.api.command.Command;
+import io.gravitee.exchange.api.command.CommandHandler;
 import io.gravitee.exchange.api.command.CommandStatus;
+import io.gravitee.exchange.api.command.Reply;
+import io.gravitee.exchange.api.connector.ConnectorCommandContext;
+import io.gravitee.exchange.api.connector.ConnectorCommandHandlersFactory;
 import io.gravitee.exchange.api.connector.ExchangeConnectorManager;
 import io.gravitee.exchange.api.controller.ExchangeController;
 import io.gravitee.exchange.connector.embedded.EmbeddedExchangeConnector;
 import io.gravitee.exchange.controller.embedded.channel.EmbeddedChannel;
-import io.gravitee.integration.api.DeploymentType;
 import io.gravitee.integration.api.Entity;
 import io.gravitee.integration.api.IntegrationProvider;
 import io.gravitee.integration.api.IntegrationProviderFactory;
-import io.gravitee.integration.api.command.IntegrationProviderCommandHandlerFactory;
 import io.gravitee.integration.api.command.fetch.FetchCommand;
 import io.gravitee.integration.api.command.fetch.FetchCommandPayload;
 import io.gravitee.integration.api.command.fetch.FetchReply;
 import io.gravitee.integration.api.command.list.ListCommand;
 import io.gravitee.integration.api.command.list.ListReply;
+import io.gravitee.integration.api.model.Integration;
+import io.gravitee.integration.connector.command.IntegrationConnectorCommandContext;
+import io.gravitee.integration.connector.command.IntegrationProviderCommandHandlerFactory;
 import io.gravitee.plugin.integrationprovider.IntegrationProviderPluginManager;
-import io.gravitee.plugin.integrationprovider.internal.DefaultIntegrationProviderPluginManager;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -61,6 +66,7 @@ public class IntegrationDomainServiceImpl extends AbstractService<IntegrationDom
     private final GraviteeLicenseDomainService graviteeLicenseDomainService;
     private final ExchangeConnectorManager exchangeConnectorManager;
     private final ExchangeController exchangeController;
+    private final IntegrationProviderCommandHandlerFactory connectorCommandHandlersFactory;
     private final IntegrationProviderPluginManager integrationProviderPluginManager;
     private final IntegrationCrudService integrationCrudService;
 
@@ -82,40 +88,48 @@ public class IntegrationDomainServiceImpl extends AbstractService<IntegrationDom
 
     @Override
     public void startIntegration(Integration integration) {
-        try {
-            IntegrationProviderFactory<?> integrationProviderFactory = integrationProviderPluginManager.getIntegrationProviderFactory(
-                integration.getProvider().toLowerCase()
-            );
+        if (integration.getDeploymentType() == Integration.DeploymentType.EMBEDDED) {
+            try {
+                IntegrationProviderFactory<?> integrationProviderFactory = integrationProviderPluginManager.getIntegrationProviderFactory(
+                    integration.getProvider().toLowerCase()
+                );
 
-            if (integrationProviderFactory == null) {
-                log.warn("Integration provider {} cannot be instantiated (no factory found). Skipped.", integration.getProvider());
-                return;
+                if (integrationProviderFactory == null) {
+                    log.warn("Integration provider {} cannot be instantiated (no factory found). Skipped.", integration.getProvider());
+                    return;
+                }
+
+                IntegrationProvider integrationProvider = integrationProviderFactory.createIntegrationProvider(
+                    integration.getId(),
+                    integration.getConfiguration()
+                );
+
+                if (integrationProvider == null) {
+                    log.warn("Integration provider {} cannot be started. Skipped.", integration.getProvider());
+                    return;
+                }
+
+                integrationProvider.start();
+
+                IntegrationConnectorCommandContext integrationConnectorCommandContext = new IntegrationConnectorCommandContext(
+                    integrationProvider
+                );
+                Map<String, CommandHandler<? extends Command<?>, ? extends Reply<?>>> connectorCommandHandlers =
+                    connectorCommandHandlersFactory.buildHandlers(integrationConnectorCommandContext);
+                EmbeddedChannel embeddedChannel = EmbeddedChannel
+                    .builder()
+                    .targetId(integration.getId())
+                    .commandHandlers(connectorCommandHandlers)
+                    .build();
+                exchangeController
+                    .register(embeddedChannel)
+                    .andThen(
+                        exchangeConnectorManager.register(EmbeddedExchangeConnector.builder().connectorChannel(embeddedChannel).build())
+                    )
+                    .blockingAwait();
+            } catch (Exception e) {
+                log.warn("Unable to properly start the integration provider {}: {}. Skipped.", integration.getProvider(), e.getMessage());
             }
-
-            IntegrationProvider integrationProvider = integrationProviderFactory.createIntegrationProvider(
-                integration.getId(),
-                DeploymentType.valueOf(integration.getDeploymentType().name()),
-                integration.getConfiguration()
-            );
-
-            if (integrationProvider == null) {
-                log.warn("Integration provider {} cannot be started. Skipped.", integration.getProvider());
-                return;
-            }
-
-            integrationProvider.start();
-
-            EmbeddedChannel embeddedChannel = EmbeddedChannel
-                .builder()
-                .targetId(integration.getId())
-                .commandHandlers(IntegrationProviderCommandHandlerFactory.buildHandlers(integrationProvider))
-                .build();
-            exchangeController
-                .register(embeddedChannel)
-                .andThen(exchangeConnectorManager.register(EmbeddedExchangeConnector.builder().connectorChannel(embeddedChannel).build()))
-                .blockingAwait();
-        } catch (Exception e) {
-            log.warn("Unable to properly start the integration provider {}: {}. Skipped.", integration.getProvider(), e.getMessage());
         }
     }
 
