@@ -18,39 +18,36 @@ package inmemory;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Predicate;
 
 public class ApiCrudServiceInMemory implements ApiCrudService, InMemoryAlternative<Api> {
 
-    final ArrayList<Api> apis = new ArrayList<>();
+    Storage<Api> apisStorage = new Storage<>();
 
     @Override
     public Api get(String id) {
-        var foundApi = apis.stream().filter(api -> id.equals(api.getId())).findFirst();
+        var foundApi = apisStorage.data().stream().filter(api -> id.equals(api.getId())).findFirst();
         return foundApi.orElseThrow(() -> new ApiNotFoundException(id));
     }
 
     @Override
     public boolean existsById(String id) {
-        return apis.stream().anyMatch(api -> id.equals(api.getId()));
-    }
-
-    @Override
-    public void initWith(List<Api> items) {
-        apis.clear();
-        apis.addAll(items);
+        return apisStorage.data().stream().anyMatch(api -> id.equals(api.getId()));
     }
 
     @Override
     public void reset() {
-        apis.clear();
+        apisStorage.clear();
     }
 
     @Override
-    public List<Api> storage() {
-        return Collections.unmodifiableList(apis);
+    public Storage<Api> storage() {
+        return apisStorage;
+    }
+
+    @Override
+    public void syncStorageWith(InMemoryAlternative<Api> other) {
+        apisStorage = other.storage();
     }
 }

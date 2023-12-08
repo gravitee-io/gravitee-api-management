@@ -29,7 +29,7 @@ import lombok.SneakyThrows;
 
 public class EventCrudInMemory implements EventCrudService, InMemoryAlternative<Event> {
 
-    private final List<Event> storage = new ArrayList<>();
+    private Storage<Event> storage = new Storage<>();
 
     @SneakyThrows
     @Override
@@ -48,14 +48,8 @@ public class EventCrudInMemory implements EventCrudService, InMemoryAlternative<
             .properties(new EnumMap<>(properties))
             .payload(GraviteeJacksonMapper.getInstance().writeValueAsString(content))
             .build();
-        storage.add(event);
+        storage.data().add(event);
         return event;
-    }
-
-    @Override
-    public void initWith(List<Event> items) {
-        reset();
-        storage.addAll(items);
     }
 
     @Override
@@ -64,7 +58,12 @@ public class EventCrudInMemory implements EventCrudService, InMemoryAlternative<
     }
 
     @Override
-    public List<Event> storage() {
+    public Storage<Event> storage() {
         return storage;
+    }
+
+    @Override
+    public void syncStorageWith(InMemoryAlternative<Event> other) {
+        storage = other.storage();
     }
 }

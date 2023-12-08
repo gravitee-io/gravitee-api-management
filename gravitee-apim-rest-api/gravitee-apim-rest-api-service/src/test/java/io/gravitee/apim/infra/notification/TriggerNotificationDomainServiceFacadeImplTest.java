@@ -25,6 +25,7 @@ import static org.mockito.Mockito.verify;
 
 import inmemory.ApiMetadataQueryServiceInMemory;
 import inmemory.PrimaryOwnerDomainServiceInMemory;
+import inmemory.Storage;
 import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
@@ -133,9 +134,21 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
         @Test
         public void should_fetch_api_notification_data() {
             // Given
-            givenExistingApi(
-                anApi().withId("api-id"),
-                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type("USER").build()
+            primaryOwnerDomainService.initWith(
+                Storage.from(
+                    List.of(
+                        givenExistingApi(
+                            anApi().withId("api-id"),
+                            PrimaryOwnerEntity
+                                .builder()
+                                .id("user-id")
+                                .displayName("Jane Doe")
+                                .email("jane.doe@gravitee.io")
+                                .type("USER")
+                                .build()
+                        )
+                    )
+                )
             );
 
             // When
@@ -181,13 +194,30 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
         @Test
         public void should_fetch_api_notification_data_with_metadata() {
             // Given
-            givenExistingApi(
-                anApi().withId("api-id"),
-                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type("USER").build(),
-                List.of(
-                    ApiMetadata.builder().key("key1").value("value1").format(MetadataFormat.STRING).build(),
-                    ApiMetadata.builder().key("null_key").value(null).format(MetadataFormat.STRING).build(),
-                    ApiMetadata.builder().key("email-support").value("${(api.primaryOwner.email)!''}").format(MetadataFormat.STRING).build()
+            primaryOwnerDomainService.initWith(
+                Storage.from(
+                    List.of(
+                        givenExistingApi(
+                            anApi().withId("api-id"),
+                            PrimaryOwnerEntity
+                                .builder()
+                                .id("user-id")
+                                .displayName("Jane Doe")
+                                .email("jane.doe@gravitee.io")
+                                .type("USER")
+                                .build(),
+                            List.of(
+                                ApiMetadata.builder().key("key1").value("value1").format(MetadataFormat.STRING).build(),
+                                ApiMetadata.builder().key("null_key").value(null).format(MetadataFormat.STRING).build(),
+                                ApiMetadata
+                                    .builder()
+                                    .key("email-support")
+                                    .value("${(api.primaryOwner.email)!''}")
+                                    .format(MetadataFormat.STRING)
+                                    .build()
+                            )
+                        )
+                    )
                 )
             );
 
@@ -234,23 +264,41 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
         @Test
         public void should_fetch_application_notification_data() {
             // Given
-            givenExistingApi(
-                anApi().withId("api-id"),
-                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type("USER").build()
-            );
-            givenExistingApplication(
-                Application
-                    .builder()
-                    .id("application-id")
-                    .name("application-name")
-                    .type(ApplicationType.SIMPLE)
-                    .status(ApplicationStatus.ACTIVE)
-                    .description("application-description")
-                    .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
-                    .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
-                    .apiKeyMode(ApiKeyMode.SHARED)
-                    .build(),
-                PrimaryOwnerEntity.builder().id("user-2").displayName("Jen Doe").email("jen.doe@gravitee.io").type("USER").build()
+            primaryOwnerDomainService.initWith(
+                Storage.from(
+                    List.of(
+                        givenExistingApi(
+                            anApi().withId("api-id"),
+                            PrimaryOwnerEntity
+                                .builder()
+                                .id("user-id")
+                                .displayName("Jane Doe")
+                                .email("jane.doe@gravitee.io")
+                                .type("USER")
+                                .build()
+                        ),
+                        givenExistingApplication(
+                            Application
+                                .builder()
+                                .id("application-id")
+                                .name("application-name")
+                                .type(ApplicationType.SIMPLE)
+                                .status(ApplicationStatus.ACTIVE)
+                                .description("application-description")
+                                .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                                .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                                .apiKeyMode(ApiKeyMode.SHARED)
+                                .build(),
+                            PrimaryOwnerEntity
+                                .builder()
+                                .id("user-2")
+                                .displayName("Jen Doe")
+                                .email("jen.doe@gravitee.io")
+                                .type("USER")
+                                .build()
+                        )
+                    )
+                )
             );
 
             // When
@@ -297,9 +345,21 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
         @Test
         public void should_fetch_plan_notification_data() {
             // Given
-            givenExistingApi(
-                anApi().withId("api-id"),
-                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type("USER").build()
+            primaryOwnerDomainService.initWith(
+                Storage.from(
+                    List.of(
+                        givenExistingApi(
+                            anApi().withId("api-id"),
+                            PrimaryOwnerEntity
+                                .builder()
+                                .id("user-id")
+                                .displayName("Jane Doe")
+                                .email("jane.doe@gravitee.io")
+                                .type("USER")
+                                .build()
+                        )
+                    )
+                )
             );
 
             givenExistingPlan(
@@ -359,9 +419,21 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
         @Test
         public void should_fetch_push_plan_notification_data() {
             // Given
-            givenExistingApi(
-                anApi().withId("api-id"),
-                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type("USER").build()
+            primaryOwnerDomainService.initWith(
+                Storage.from(
+                    List.of(
+                        givenExistingApi(
+                            anApi().withId("api-id"),
+                            PrimaryOwnerEntity
+                                .builder()
+                                .id("user-id")
+                                .displayName("Jane Doe")
+                                .email("jane.doe@gravitee.io")
+                                .type("USER")
+                                .build()
+                        )
+                    )
+                )
             );
 
             givenExistingPlan(
@@ -419,9 +491,21 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
         @Test
         public void should_fetch_subscription_notification_data() {
             // Given
-            givenExistingApi(
-                anApi().withId("api-id"),
-                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type("USER").build()
+            primaryOwnerDomainService.initWith(
+                Storage.from(
+                    List.of(
+                        givenExistingApi(
+                            anApi().withId("api-id"),
+                            PrimaryOwnerEntity
+                                .builder()
+                                .id("user-id")
+                                .displayName("Jane Doe")
+                                .email("jane.doe@gravitee.io")
+                                .type("USER")
+                                .build()
+                        )
+                    )
+                )
             );
 
             givenExistingSubscription(Subscription.builder().id("subscription-id").request("my-request").reason("my-reason").build());
@@ -474,19 +558,31 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
         @Test
         public void should_fetch_application_notification_data() {
             // Given
-            givenExistingApplication(
-                Application
-                    .builder()
-                    .id("application-id")
-                    .name("application-name")
-                    .type(ApplicationType.SIMPLE)
-                    .status(ApplicationStatus.ACTIVE)
-                    .description("application-description")
-                    .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
-                    .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
-                    .apiKeyMode(ApiKeyMode.SHARED)
-                    .build(),
-                PrimaryOwnerEntity.builder().id("user-2").displayName("Jen Doe").email("jen.doe@gravitee.io").type("USER").build()
+            primaryOwnerDomainService.initWith(
+                Storage.from(
+                    List.of(
+                        givenExistingApplication(
+                            Application
+                                .builder()
+                                .id("application-id")
+                                .name("application-name")
+                                .type(ApplicationType.SIMPLE)
+                                .status(ApplicationStatus.ACTIVE)
+                                .description("application-description")
+                                .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                                .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                                .apiKeyMode(ApiKeyMode.SHARED)
+                                .build(),
+                            PrimaryOwnerEntity
+                                .builder()
+                                .id("user-2")
+                                .displayName("Jen Doe")
+                                .email("jen.doe@gravitee.io")
+                                .type("USER")
+                                .build()
+                        )
+                    )
+                )
             );
 
             // When
@@ -531,23 +627,41 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
         @Test
         public void should_fetch_api_notification_data() {
             // Given
-            givenExistingApplication(
-                Application
-                    .builder()
-                    .id("application-id")
-                    .name("application-name")
-                    .description("application-description")
-                    .type(ApplicationType.SIMPLE)
-                    .status(ApplicationStatus.ACTIVE)
-                    .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
-                    .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
-                    .apiKeyMode(ApiKeyMode.SHARED)
-                    .build(),
-                PrimaryOwnerEntity.builder().id("user-2").displayName("Jen Doe").email("jen.doe@gravitee.io").type("USER").build()
-            );
-            givenExistingApi(
-                anApi().withId("api-id"),
-                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type("USER").build()
+            primaryOwnerDomainService.initWith(
+                Storage.from(
+                    List.of(
+                        givenExistingApplication(
+                            Application
+                                .builder()
+                                .id("application-id")
+                                .name("application-name")
+                                .description("application-description")
+                                .type(ApplicationType.SIMPLE)
+                                .status(ApplicationStatus.ACTIVE)
+                                .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                                .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                                .apiKeyMode(ApiKeyMode.SHARED)
+                                .build(),
+                            PrimaryOwnerEntity
+                                .builder()
+                                .id("user-2")
+                                .displayName("Jen Doe")
+                                .email("jen.doe@gravitee.io")
+                                .type("USER")
+                                .build()
+                        ),
+                        givenExistingApi(
+                            anApi().withId("api-id"),
+                            PrimaryOwnerEntity
+                                .builder()
+                                .id("user-id")
+                                .displayName("Jane Doe")
+                                .email("jane.doe@gravitee.io")
+                                .type("USER")
+                                .build()
+                        )
+                    )
+                )
             );
 
             // When
@@ -597,13 +711,30 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
         @Test
         public void should_fetch_api_notification_data_with_metadata() {
             // Given
-            givenExistingApi(
-                anApi().withId("api-id"),
-                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type("USER").build(),
-                List.of(
-                    ApiMetadata.builder().key("key1").value("value1").format(MetadataFormat.STRING).build(),
-                    ApiMetadata.builder().key("null_key").value(null).format(MetadataFormat.STRING).build(),
-                    ApiMetadata.builder().key("email-support").value("${(api.primaryOwner.email)!''}").format(MetadataFormat.STRING).build()
+            primaryOwnerDomainService.initWith(
+                Storage.from(
+                    List.of(
+                        givenExistingApi(
+                            anApi().withId("api-id"),
+                            PrimaryOwnerEntity
+                                .builder()
+                                .id("user-id")
+                                .displayName("Jane Doe")
+                                .email("jane.doe@gravitee.io")
+                                .type("USER")
+                                .build(),
+                            List.of(
+                                ApiMetadata.builder().key("key1").value("value1").format(MetadataFormat.STRING).build(),
+                                ApiMetadata.builder().key("null_key").value(null).format(MetadataFormat.STRING).build(),
+                                ApiMetadata
+                                    .builder()
+                                    .key("email-support")
+                                    .value("${(api.primaryOwner.email)!''}")
+                                    .format(MetadataFormat.STRING)
+                                    .build()
+                            )
+                        )
+                    )
                 )
             );
 
@@ -654,9 +785,21 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
         @Test
         public void should_fetch_plan_notification_data() {
             // Given
-            givenExistingApi(
-                anApi().withId("api-id"),
-                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type("USER").build()
+            primaryOwnerDomainService.initWith(
+                Storage.from(
+                    List.of(
+                        givenExistingApi(
+                            anApi().withId("api-id"),
+                            PrimaryOwnerEntity
+                                .builder()
+                                .id("user-id")
+                                .displayName("Jane Doe")
+                                .email("jane.doe@gravitee.io")
+                                .type("USER")
+                                .build()
+                        )
+                    )
+                )
             );
 
             givenExistingPlan(
@@ -717,9 +860,21 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
         @Test
         public void should_fetch_push_plan_notification_data() {
             // Given
-            givenExistingApi(
-                anApi().withId("api-id"),
-                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type("USER").build()
+            primaryOwnerDomainService.initWith(
+                Storage.from(
+                    List.of(
+                        givenExistingApi(
+                            anApi().withId("api-id"),
+                            PrimaryOwnerEntity
+                                .builder()
+                                .id("user-id")
+                                .displayName("Jane Doe")
+                                .email("jane.doe@gravitee.io")
+                                .type("USER")
+                                .build()
+                        )
+                    )
+                )
             );
 
             givenExistingPlan(
@@ -778,9 +933,21 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
         @Test
         public void should_fetch_subscription_notification_data() {
             // Given
-            givenExistingApi(
-                anApi().withId("api-id"),
-                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type("USER").build()
+            primaryOwnerDomainService.initWith(
+                Storage.from(
+                    List.of(
+                        givenExistingApi(
+                            anApi().withId("api-id"),
+                            PrimaryOwnerEntity
+                                .builder()
+                                .id("user-id")
+                                .displayName("Jane Doe")
+                                .email("jane.doe@gravitee.io")
+                                .type("USER")
+                                .build()
+                        )
+                    )
+                )
             );
 
             givenExistingSubscription(Subscription.builder().id("subscription-id").request("my-request").reason("my-reason").build());
@@ -811,19 +978,31 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
         @Test
         public void should_send_notification_to_additional_recipient() {
             // Given
-            givenExistingApplication(
-                Application
-                    .builder()
-                    .id("application-id")
-                    .name("application-name")
-                    .type(ApplicationType.SIMPLE)
-                    .status(ApplicationStatus.ACTIVE)
-                    .description("application-description")
-                    .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
-                    .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
-                    .apiKeyMode(ApiKeyMode.SHARED)
-                    .build(),
-                PrimaryOwnerEntity.builder().id("user-2").displayName("Jen Doe").email("jen.doe@gravitee.io").type("USER").build()
+            primaryOwnerDomainService.initWith(
+                Storage.from(
+                    List.of(
+                        givenExistingApplication(
+                            Application
+                                .builder()
+                                .id("application-id")
+                                .name("application-name")
+                                .type(ApplicationType.SIMPLE)
+                                .status(ApplicationStatus.ACTIVE)
+                                .description("application-description")
+                                .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                                .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                                .apiKeyMode(ApiKeyMode.SHARED)
+                                .build(),
+                            PrimaryOwnerEntity
+                                .builder()
+                                .id("user-2")
+                                .displayName("Jen Doe")
+                                .email("jen.doe@gravitee.io")
+                                .type("USER")
+                                .build()
+                        )
+                    )
+                )
             );
 
             // When
@@ -887,26 +1066,29 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
     }
 
     @SneakyThrows
-    private void givenExistingApi(Api api, PrimaryOwnerEntity primaryOwnerEntity) {
-        givenExistingApi(api, primaryOwnerEntity, List.of());
+    private Map.Entry<String, PrimaryOwnerEntity> givenExistingApi(Api api, PrimaryOwnerEntity primaryOwnerEntity) {
+        return givenExistingApi(api, primaryOwnerEntity, List.of());
     }
 
     @SneakyThrows
-    private void givenExistingApi(Api api, PrimaryOwnerEntity primaryOwnerEntity, List<ApiMetadata> metadata) {
+    private Map.Entry<String, PrimaryOwnerEntity> givenExistingApi(
+        Api api,
+        PrimaryOwnerEntity primaryOwnerEntity,
+        List<ApiMetadata> metadata
+    ) {
         lenient().when(apiRepository.findById(any())).thenReturn(Optional.empty());
         lenient().when(apiRepository.findById(api.getId())).thenReturn(Optional.of(api));
 
-        primaryOwnerDomainService.add(api.getId(), primaryOwnerEntity);
-
-        apiMetadataQueryService.initWith(List.of(Map.entry(api.getId(), metadata)));
+        apiMetadataQueryService.initWith(Storage.from(List.of(Map.entry(api.getId(), metadata))));
+        return Map.entry(api.getId(), primaryOwnerEntity);
     }
 
     @SneakyThrows
-    private void givenExistingApplication(Application application, PrimaryOwnerEntity primaryOwnerEntity) {
+    private Map.Entry<String, PrimaryOwnerEntity> givenExistingApplication(Application application, PrimaryOwnerEntity primaryOwnerEntity) {
         lenient().when(applicationRepository.findById(any())).thenReturn(Optional.empty());
         lenient().when(applicationRepository.findById(eq(application.getId()))).thenReturn(Optional.of(application));
 
-        primaryOwnerDomainService.add(application.getId(), primaryOwnerEntity);
+        return Map.entry(application.getId(), primaryOwnerEntity);
     }
 
     @SneakyThrows

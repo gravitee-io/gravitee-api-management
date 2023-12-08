@@ -30,28 +30,27 @@ import java.util.Optional;
 
 public class PageRevisionCrudServiceInMemory implements InMemoryAlternative<PageRevision>, PageRevisionCrudService {
 
-    List<PageRevision> pageRevisions = new ArrayList<>();
-
-    @Override
-    public void initWith(List<PageRevision> items) {
-        this.reset();
-        this.pageRevisions.addAll(items);
-    }
+    Storage<PageRevision> pageRevisions = new Storage<>();
 
     @Override
     public void reset() {
-        pageRevisions = new ArrayList<>();
+        pageRevisions.clear();
     }
 
     @Override
-    public List<PageRevision> storage() {
-        return ImmutableList.copyOf(pageRevisions);
+    public Storage<PageRevision> storage() {
+        return pageRevisions;
     }
 
     @Override
     public PageRevision create(Page page) {
         var pageRevisionToAdd = PageAdapter.INSTANCE.toPageRevision(page);
-        pageRevisions.add(pageRevisionToAdd);
+        pageRevisions.data().add(pageRevisionToAdd);
         return pageRevisionToAdd;
+    }
+
+    @Override
+    public void syncStorageWith(InMemoryAlternative<PageRevision> other) {
+        pageRevisions = other.storage();
     }
 }

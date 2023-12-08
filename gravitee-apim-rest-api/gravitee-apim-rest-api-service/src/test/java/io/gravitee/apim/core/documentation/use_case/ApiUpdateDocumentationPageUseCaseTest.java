@@ -194,7 +194,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
                     .build()
             );
 
-            var audit = auditCrudService.storage().get(0);
+            var audit = auditCrudService.data().get(0);
             assertThat(audit)
                 .isNotNull()
                 .hasFieldOrPropertyWithValue("referenceId", API_ID)
@@ -219,7 +219,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
                     .build()
             );
 
-            var pageRevision = pageRevisionCrudService.storage().get(0);
+            var pageRevision = pageRevisionCrudService.data().get(0);
             assertThat(pageRevision)
                 .isNotNull()
                 .hasFieldOrPropertyWithValue("pageId", PAGE_ID)
@@ -246,7 +246,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
                     .build()
             );
 
-            var pageRevision = pageRevisionCrudService.storage().get(0);
+            var pageRevision = pageRevisionCrudService.data().get(0);
             assertThat(pageRevision)
                 .isNotNull()
                 .hasFieldOrPropertyWithValue("pageId", PAGE_ID)
@@ -273,7 +273,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
                     .build()
             );
 
-            assertThat(pageRevisionCrudService.storage()).hasSize(0);
+            assertThat(pageRevisionCrudService.data()).hasSize(0);
         }
 
         @Test
@@ -308,7 +308,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
 
             assertThat(res.page()).isNotNull().hasFieldOrPropertyWithValue("homepage", true);
 
-            var formerHomepage = pageCrudService.storage().stream().filter(p -> p.getId().equals(EXISTING_PAGE_ID)).toList().get(0);
+            var formerHomepage = pageCrudService.data().stream().filter(p -> p.getId().equals(EXISTING_PAGE_ID)).toList().get(0);
             assertThat(formerHomepage).isNotNull().hasFieldOrPropertyWithValue("homepage", false);
         }
 
@@ -476,7 +476,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
                     .build()
             );
 
-            var audit = auditCrudService.storage().get(0);
+            var audit = auditCrudService.data().get(0);
             assertThat(audit)
                 .isNotNull()
                 .hasFieldOrPropertyWithValue("referenceId", "api-id")
@@ -500,7 +500,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
                     .build()
             );
 
-            assertThat(pageRevisionCrudService.storage()).hasSize(0);
+            assertThat(pageRevisionCrudService.data()).hasSize(0);
         }
 
         @Test
@@ -713,12 +713,11 @@ class ApiUpdateDocumentationPageUseCaseTest {
     }
 
     private void initPageServices(List<Page> pages) {
-        pageQueryService.initWith(pages);
-        pageCrudService.initWith(pages);
+        pageQueryService.syncStorageWith(pageCrudService.initWith(Storage.from(pages)));
     }
 
     private void initApiServices(List<Api> apis) {
-        apiCrudService.initWith(apis);
+        apiCrudService.initWith(Storage.from(apis));
     }
 
     private String getNotSafe() {

@@ -26,6 +26,7 @@ import inmemory.PageCrudServiceInMemory;
 import inmemory.PageQueryServiceInMemory;
 import inmemory.PageRevisionCrudServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
+import inmemory.Storage;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
@@ -148,7 +149,7 @@ class ApiUnpublishDocumentationPageUseCaseTest {
             )
         );
         useCase.execute(new ApiUnpublishDocumentationPageUseCase.Input(API_ID, PAGE_ID, AUDIT_INFO));
-        assertThat(auditCrudService.storage().get(0)).isNotNull().hasFieldOrPropertyWithValue("event", "PAGE_UPDATED");
+        assertThat(auditCrudService.data().get(0)).isNotNull().hasFieldOrPropertyWithValue("event", "PAGE_UPDATED");
     }
 
     @Test
@@ -188,7 +189,7 @@ class ApiUnpublishDocumentationPageUseCaseTest {
             )
         );
         planQueryService.initWith(
-            List.of(
+            Storage.of(
                 PlanFixtures
                     .aPlanV4()
                     .toBuilder()
@@ -275,11 +276,10 @@ class ApiUnpublishDocumentationPageUseCaseTest {
     }
 
     private void initPageServices(List<Page> pages) {
-        pageCrudService.initWith(pages);
-        pageQueryService.initWith(pages);
+        pageQueryService.syncStorageWith(pageCrudService.initWith(Storage.from(pages)));
     }
 
     private void initApiServices(List<Api> apis) {
-        apiCrudService.initWith(apis);
+        apiCrudService.initWith(Storage.from(apis));
     }
 }

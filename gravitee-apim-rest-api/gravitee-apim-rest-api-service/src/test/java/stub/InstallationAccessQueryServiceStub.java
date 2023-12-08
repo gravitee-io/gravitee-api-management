@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package inmemory;
+package stub;
 
 import io.gravitee.apim.core.installation.model.RestrictedDomain;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
@@ -23,7 +23,7 @@ import java.util.List;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class InstallationAccessQueryServiceInMemory implements InstallationAccessQueryService {
+public class InstallationAccessQueryServiceStub implements InstallationAccessQueryService {
 
     @Override
     public List<String> getConsoleUrls() {

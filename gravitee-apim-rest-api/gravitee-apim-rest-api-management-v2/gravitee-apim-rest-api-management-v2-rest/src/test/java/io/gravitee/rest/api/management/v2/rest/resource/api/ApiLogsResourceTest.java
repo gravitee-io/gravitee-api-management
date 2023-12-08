@@ -32,6 +32,7 @@ import inmemory.ConnectionLogsCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.MessageLogCrudServiceInMemory;
 import inmemory.PlanCrudServiceInMemory;
+import inmemory.Storage;
 import io.gravitee.apim.core.log.model.MessageOperation;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLog;
@@ -102,8 +103,8 @@ public class ApiLogsResourceTest extends ApiResourceTest {
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
 
-        planStorageService.initWith(List.of(PLAN_1, PLAN_2));
-        applicationStorageService.initWith(List.of(APPLICATION));
+        planStorageService.initWith(Storage.of(PLAN_1, PLAN_2));
+        applicationStorageService.initWith(Storage.of(APPLICATION));
     }
 
     @Override
@@ -147,7 +148,7 @@ public class ApiLogsResourceTest extends ApiResourceTest {
 
         @Test
         public void should_return_connection_logs() {
-            connectionLogStorageService.initWith(List.of(connectionLogFixtures.aConnectionLog("req1")));
+            connectionLogStorageService.initWith(Storage.of(connectionLogFixtures.aConnectionLog("req1")));
 
             final Response response = connectionLogsTarget.request().get();
 
@@ -184,7 +185,7 @@ public class ApiLogsResourceTest extends ApiResourceTest {
             var total = 20L;
             var pageSize = 5;
             connectionLogStorageService.initWithConnectionLogs(
-                LongStream.range(0, total).mapToObj(i -> connectionLogFixtures.aConnectionLog()).toList()
+                Storage.from(LongStream.range(0, total).mapToObj(i -> connectionLogFixtures.aConnectionLog()).toList())
             );
 
             connectionLogsTarget =
@@ -206,7 +207,7 @@ public class ApiLogsResourceTest extends ApiResourceTest {
             var page = 2;
             var pageSize = 5;
             connectionLogStorageService.initWithConnectionLogs(
-                LongStream.range(0, total).mapToObj(i -> connectionLogFixtures.aConnectionLog()).toList()
+                Storage.from(LongStream.range(0, total).mapToObj(i -> connectionLogFixtures.aConnectionLog()).toList())
             );
 
             final Response response = connectionLogsTarget
@@ -276,7 +277,7 @@ public class ApiLogsResourceTest extends ApiResourceTest {
         @Test
         public void should_return_connection_logs_filtered_by_interval() {
             connectionLogStorageService.initWith(
-                List.of(
+                Storage.of(
                     connectionLogFixtures.aConnectionLog("req1").toBuilder().timestamp("2020-02-01T20:00:00.00Z").build(),
                     connectionLogFixtures.aConnectionLog("req2").toBuilder().timestamp("2020-02-02T20:00:00.00Z").build(),
                     connectionLogFixtures.aConnectionLog("req3").toBuilder().timestamp("2020-02-04T20:00:00.00Z").build()
@@ -326,7 +327,7 @@ public class ApiLogsResourceTest extends ApiResourceTest {
         @Test
         public void should_return_connection_logs_filtered_by_applications() {
             connectionLogStorageService.initWith(
-                List.of(
+                Storage.of(
                     connectionLogFixtures.aConnectionLog("req1").toBuilder().applicationId("app1").build(),
                     connectionLogFixtures.aConnectionLog("req2").toBuilder().applicationId("app1").build(),
                     connectionLogFixtures.aConnectionLog("req3").toBuilder().applicationId("app2").build()
@@ -363,7 +364,7 @@ public class ApiLogsResourceTest extends ApiResourceTest {
         @Test
         public void should_return_connection_logs_filtered_by_plans() {
             connectionLogStorageService.initWith(
-                List.of(
+                Storage.of(
                     connectionLogFixtures.aConnectionLog("req1").toBuilder().planId(PLAN_1.getId()).build(),
                     connectionLogFixtures.aConnectionLog("req2").toBuilder().planId(PLAN_1.getId()).build(),
                     connectionLogFixtures.aConnectionLog("req3").toBuilder().planId(PLAN_2.getId()).build()
@@ -400,7 +401,7 @@ public class ApiLogsResourceTest extends ApiResourceTest {
         @Test
         public void should_return_connection_logs_filtered_by_methods() {
             connectionLogStorageService.initWith(
-                List.of(
+                Storage.of(
                     connectionLogFixtures.aConnectionLog("req1").toBuilder().method(io.gravitee.common.http.HttpMethod.POST).build(),
                     connectionLogFixtures.aConnectionLog("req2").toBuilder().method(io.gravitee.common.http.HttpMethod.GET).build(),
                     connectionLogFixtures.aConnectionLog("req3").toBuilder().method(io.gravitee.common.http.HttpMethod.POST).build()
@@ -441,7 +442,7 @@ public class ApiLogsResourceTest extends ApiResourceTest {
         @Test
         public void should_return_connection_logs_filtered_by_statuses() {
             connectionLogStorageService.initWith(
-                List.of(
+                Storage.of(
                     connectionLogFixtures.aConnectionLog("req1").toBuilder().status(200).build(),
                     connectionLogFixtures.aConnectionLog("req2").toBuilder().status(202).build(),
                     connectionLogFixtures.aConnectionLog("req3").toBuilder().status(200).build()
@@ -506,7 +507,7 @@ public class ApiLogsResourceTest extends ApiResourceTest {
 
         @Test
         public void should_return_message_logs() {
-            messageLogStorageService.initWith(List.of(MessageLogFixtures.aMessageLog(API, REQUEST_ID)));
+            messageLogStorageService.initWith(Storage.of(MessageLogFixtures.aMessageLog(API, REQUEST_ID)));
 
             final Response response = messageLogsTarget.request().get();
 
@@ -560,10 +561,12 @@ public class ApiLogsResourceTest extends ApiResourceTest {
             var total = 20L;
             var pageSize = 5;
             messageLogStorageService.initWith(
-                LongStream
-                    .range(0, total)
-                    .mapToObj(i -> MessageLogFixtures.aMessageLog(API, REQUEST_ID).toBuilder().correlationId(String.valueOf(i)).build())
-                    .toList()
+                Storage.from(
+                    LongStream
+                        .range(0, total)
+                        .mapToObj(i -> MessageLogFixtures.aMessageLog(API, REQUEST_ID).toBuilder().correlationId(String.valueOf(i)).build())
+                        .toList()
+                )
             );
 
             messageLogsTarget =
@@ -585,10 +588,12 @@ public class ApiLogsResourceTest extends ApiResourceTest {
             var page = 2;
             var pageSize = 5;
             messageLogStorageService.initWith(
-                LongStream
-                    .range(0, total)
-                    .mapToObj(i -> MessageLogFixtures.aMessageLog(API, REQUEST_ID).toBuilder().correlationId(String.valueOf(i)).build())
-                    .toList()
+                Storage.from(
+                    LongStream
+                        .range(0, total)
+                        .mapToObj(i -> MessageLogFixtures.aMessageLog(API, REQUEST_ID).toBuilder().correlationId(String.valueOf(i)).build())
+                        .toList()
+                )
             );
 
             final Response response = messageLogsTarget
@@ -641,7 +646,7 @@ public class ApiLogsResourceTest extends ApiResourceTest {
         @Test
         void should_return_connection_log() {
             final ConnectionLogDetail connectionLogDetail = new ConnectionLogDetailFixtures(API, REQUEST_ID).aConnectionLogDetail();
-            connectionLogStorageService.initWithConnectionLogDetails(List.of(connectionLogDetail));
+            connectionLogStorageService.initWithConnectionLogDetails(Storage.of(connectionLogDetail));
 
             final Response response = connectionLogTarget.request().get();
 
@@ -693,7 +698,7 @@ public class ApiLogsResourceTest extends ApiResourceTest {
         @Test
         void should_return_404_if_no_connection_log() {
             final ConnectionLogDetail connectionLogDetail = new ConnectionLogDetailFixtures(API, "other-request-id").aConnectionLogDetail();
-            connectionLogStorageService.initWithConnectionLogDetails(List.of(connectionLogDetail));
+            connectionLogStorageService.initWithConnectionLogDetails(Storage.of(connectionLogDetail));
 
             final Response response = connectionLogTarget.request().get();
 

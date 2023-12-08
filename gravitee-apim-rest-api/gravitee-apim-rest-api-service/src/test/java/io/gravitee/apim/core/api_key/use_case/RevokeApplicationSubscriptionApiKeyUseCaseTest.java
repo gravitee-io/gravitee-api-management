@@ -27,8 +27,8 @@ import inmemory.ApiKeyQueryServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
+import inmemory.Storage;
 import inmemory.SubscriptionCrudServiceInMemory;
-import inmemory.TriggerNotificationDomainServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api_key.domain_service.RevokeApiKeyDomainService;
 import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
@@ -59,6 +59,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import stub.TriggerNotificationDomainServiceStub;
 
 class RevokeApplicationSubscriptionApiKeyUseCaseTest {
 
@@ -77,7 +78,7 @@ class RevokeApplicationSubscriptionApiKeyUseCaseTest {
     ApiKeyQueryServiceInMemory apiKeyQueryService = new ApiKeyQueryServiceInMemory(apiKeyCrudService);
     SubscriptionCrudServiceInMemory subscriptionCrudService = new SubscriptionCrudServiceInMemory();
     AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
-    TriggerNotificationDomainServiceInMemory triggerNotificationDomainService = new TriggerNotificationDomainServiceInMemory();
+    TriggerNotificationDomainServiceStub triggerNotificationDomainService = new TriggerNotificationDomainServiceStub();
     RevokeApplicationSubscriptionApiKeyUseCase usecase;
 
     @BeforeAll
@@ -233,7 +234,7 @@ class RevokeApplicationSubscriptionApiKeyUseCaseTest {
         var result = usecase.execute(new Input(API_KEY_ID, APPLICATION_ID, SUBSCRIPTION_ID, AUDIT_INFO));
 
         // Then
-        assertThat(auditCrudService.storage())
+        assertThat(auditCrudService.data())
             .hasSize(1)
             .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
             .contains(
@@ -283,7 +284,7 @@ class RevokeApplicationSubscriptionApiKeyUseCaseTest {
     }
 
     private SubscriptionEntity givenASubscription(SubscriptionEntity subscription) {
-        subscriptionCrudService.initWith(List.of(subscription));
+        subscriptionCrudService.initWith(Storage.of(subscription));
         return subscription;
     }
 
@@ -292,12 +293,12 @@ class RevokeApplicationSubscriptionApiKeyUseCaseTest {
     }
 
     private BaseApplicationEntity givenAnApplication(BaseApplicationEntity application) {
-        applicationCrudService.initWith(List.of(application));
+        applicationCrudService.initWith(Storage.of(application));
         return application;
     }
 
     private ApiKeyEntity givenAnApiKey(ApiKeyEntity apiKey) {
-        apiKeyCrudService.initWith(List.of(apiKey));
+        apiKeyCrudService.initWith(Storage.of(apiKey));
         return apiKey;
     }
 }

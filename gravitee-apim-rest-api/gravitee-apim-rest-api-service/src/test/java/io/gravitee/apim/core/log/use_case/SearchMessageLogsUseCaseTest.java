@@ -19,6 +19,7 @@ import static fixtures.core.log.model.MessageLogFixtures.aMessageLog;
 import static org.assertj.core.api.Assertions.tuple;
 
 import inmemory.MessageLogCrudServiceInMemory;
+import inmemory.Storage;
 import io.gravitee.apim.core.log.model.AggregatedMessageLog;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -55,7 +56,7 @@ class SearchMessageLogsUseCaseTest {
     void should_return_messages_logs_of_an_api() {
         var expectedMessageLog = aMessageLog(API_ID, REQUEST_ID);
         messageLogStorageService.initWith(
-            List.of(
+            Storage.of(
                 expectedMessageLog,
                 aMessageLog("other-api", "a-request-id"),
                 aMessageLog(API_ID, "other-request-id"),
@@ -92,7 +93,7 @@ class SearchMessageLogsUseCaseTest {
     @Test
     void should_return_api_message_logs_sorted_by_desc_timestamp() {
         messageLogStorageService.initWith(
-            List.of(
+            Storage.of(
                 aMessageLog(API_ID, REQUEST_ID).toBuilder().correlationId("correlation-1").timestamp("2020-02-01T20:00:00.00Z").build(),
                 aMessageLog(API_ID, REQUEST_ID).toBuilder().correlationId("correlation-2").timestamp("2020-02-02T20:00:00.00Z").build(),
                 aMessageLog(API_ID, REQUEST_ID).toBuilder().correlationId("correlation-3").timestamp("2020-02-04T20:00:00.00Z").build()
@@ -120,10 +121,12 @@ class SearchMessageLogsUseCaseTest {
         var pageNumber = 2;
         var pageSize = 5;
         messageLogStorageService.initWith(
-            IntStream
-                .range(0, expectedTotal)
-                .mapToObj(i -> aMessageLog(API_ID, REQUEST_ID).toBuilder().correlationId(String.valueOf(i)).build())
-                .toList()
+            Storage.from(
+                IntStream
+                    .range(0, expectedTotal)
+                    .mapToObj(i -> aMessageLog(API_ID, REQUEST_ID).toBuilder().correlationId(String.valueOf(i)).build())
+                    .toList()
+            )
         );
 
         var result = usecase.execute(new SearchMessageLogsUseCase.Input(API_ID, REQUEST_ID, new PageableImpl(pageNumber, pageSize)));

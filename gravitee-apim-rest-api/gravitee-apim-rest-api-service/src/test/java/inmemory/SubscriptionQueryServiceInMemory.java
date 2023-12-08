@@ -24,19 +24,12 @@ import java.util.List;
 
 public class SubscriptionQueryServiceInMemory implements SubscriptionQueryService, InMemoryAlternative<SubscriptionEntity> {
 
-    private final ArrayList<SubscriptionEntity> storage;
-
-    public SubscriptionQueryServiceInMemory() {
-        storage = new ArrayList<>();
-    }
-
-    public SubscriptionQueryServiceInMemory(SubscriptionCrudServiceInMemory subscriptionCrudServiceInMemory) {
-        storage = subscriptionCrudServiceInMemory.storage;
-    }
+    private Storage<SubscriptionEntity> storage = new Storage<>();
 
     @Override
     public List<SubscriptionEntity> findExpiredSubscriptions() {
         return storage
+            .data()
             .stream()
             .filter(subscription ->
                 subscription.getStatus().equals(SubscriptionEntity.Status.ACCEPTED) &&
@@ -46,18 +39,17 @@ public class SubscriptionQueryServiceInMemory implements SubscriptionQueryServic
     }
 
     @Override
-    public void initWith(List<SubscriptionEntity> items) {
-        storage.clear();
-        storage.addAll(items);
-    }
-
-    @Override
     public void reset() {
         storage.clear();
     }
 
     @Override
-    public List<SubscriptionEntity> storage() {
-        return Collections.unmodifiableList(storage);
+    public Storage<SubscriptionEntity> storage() {
+        return storage;
+    }
+
+    @Override
+    public void syncStorageWith(InMemoryAlternative<SubscriptionEntity> other) {
+        storage = other.storage();
     }
 }

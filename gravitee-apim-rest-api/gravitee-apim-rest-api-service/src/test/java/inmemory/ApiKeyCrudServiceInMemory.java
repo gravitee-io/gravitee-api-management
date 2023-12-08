@@ -15,6 +15,7 @@
  */
 package inmemory;
 
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_key.crud_service.ApiKeyCrudService;
 import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
 import java.util.ArrayList;
@@ -24,23 +25,17 @@ import java.util.OptionalInt;
 
 public class ApiKeyCrudServiceInMemory implements ApiKeyCrudService, InMemoryAlternative<ApiKeyEntity> {
 
-    final ArrayList<ApiKeyEntity> storage = new ArrayList<>();
+    Storage<ApiKeyEntity> storage = new Storage<>();
 
     @Override
     public ApiKeyEntity update(ApiKeyEntity entity) {
-        OptionalInt index = this.findIndex(this.storage, apiKey -> apiKey.getId().equals(entity.getId()));
+        OptionalInt index = this.findIndex(this.storage.data(), apiKey -> apiKey.getId().equals(entity.getId()));
         if (index.isPresent()) {
-            storage.set(index.getAsInt(), entity);
+            storage.data().set(index.getAsInt(), entity);
             return entity;
         }
 
         throw new IllegalStateException("ApiKey not found");
-    }
-
-    @Override
-    public void initWith(List<ApiKeyEntity> items) {
-        storage.clear();
-        storage.addAll(items);
     }
 
     @Override
@@ -49,7 +44,12 @@ public class ApiKeyCrudServiceInMemory implements ApiKeyCrudService, InMemoryAlt
     }
 
     @Override
-    public List<ApiKeyEntity> storage() {
-        return Collections.unmodifiableList(storage);
+    public Storage<ApiKeyEntity> storage() {
+        return storage;
+    }
+
+    @Override
+    public void syncStorageWith(InMemoryAlternative<ApiKeyEntity> other) {
+        storage = other.storage();
     }
 }

@@ -24,15 +24,25 @@ import java.util.stream.IntStream;
 public interface InMemoryAlternative<T> {
     /**
      * Init the storage with the given items
-     * @param items the items to store
+     * @param storage the items to store
      */
-    void initWith(List<T> items);
+    default InMemoryAlternative<T> initWith(Storage<T> storage) {
+        reset();
+        storage().addAll(storage);
+        return this;
+    }
+
+    void syncStorageWith(InMemoryAlternative<T> other);
 
     /** Reset the storage */
     void reset();
 
     /** @return the storage */
-    List<T> storage();
+    Storage<T> storage();
+
+    default List<T> data() {
+        return storage().unmodifiableData();
+    }
 
     default OptionalInt findIndex(List<T> storage, Predicate<T> predicate) {
         IntPredicate intPredicate = i -> predicate.test(storage.get(i));

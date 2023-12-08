@@ -13,18 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package inmemory;
+package stub;
 
-import io.gravitee.apim.core.api.domain_service.ApiHostValidatorDomainService;
-import io.gravitee.apim.infra.domain_service.api.ApiHostValidatorDomainServiceImpl;
-import java.util.List;
+import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 
-public class ApiHostValidatorDomainServiceGoogleImpl implements ApiHostValidatorDomainService {
-
-    private final ApiHostValidatorDomainService validator = new ApiHostValidatorDomainServiceImpl();
+public class PolicyValidationDomainServiceStub implements PolicyValidationDomainService {
 
     @Override
-    public boolean isValidDomainOrSubDomain(String domain, List<String> domainRestrictions) {
-        return validator.isValidDomainOrSubDomain(domain, domainRestrictions);
+    public String validateAndSanitizeConfiguration(String policyName, String configuration) {
+        return configuration;
     }
 }

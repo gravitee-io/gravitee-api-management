@@ -24,9 +24,8 @@ import fixtures.core.model.SubscriptionFixtures;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.PlanCrudServiceInMemory;
+import inmemory.Storage;
 import inmemory.SubscriptionCrudServiceInMemory;
-import inmemory.TriggerNotificationDomainServiceInMemory;
-import inmemory.TriggerNotificationDomainServiceInMemory.ApplicationNotification;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
@@ -58,6 +57,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import stub.TriggerNotificationDomainServiceStub;
+import stub.TriggerNotificationDomainServiceStub.ApplicationNotification;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class RejectSubscriptionDomainServiceTest {
@@ -73,7 +74,7 @@ public class RejectSubscriptionDomainServiceTest {
 
     AuditCrudServiceInMemory auditCrudServiceInMemory;
     PlanCrudServiceInMemory planCrudService;
-    TriggerNotificationDomainServiceInMemory triggerNotificationDomainService;
+    TriggerNotificationDomainServiceStub triggerNotificationDomainService;
     UserCrudServiceInMemory userCrudService;
     RejectSubscriptionDomainService cut;
 
@@ -81,7 +82,7 @@ public class RejectSubscriptionDomainServiceTest {
     void setUp() {
         UuidString.overrideGenerator(() -> "audit-id");
 
-        triggerNotificationDomainService = new TriggerNotificationDomainServiceInMemory();
+        triggerNotificationDomainService = new TriggerNotificationDomainServiceStub();
 
         auditCrudServiceInMemory = new AuditCrudServiceInMemory();
         planCrudService = new PlanCrudServiceInMemory();
@@ -96,7 +97,7 @@ public class RejectSubscriptionDomainServiceTest {
                 userCrudService
             );
         planCrudService.initWith(
-            List.of(
+            Storage.of(
                 PlanFixtures.aPlanV4().toBuilder().id(PLAN_CLOSED).status(PlanStatus.CLOSED).build(),
                 PlanFixtures.aPlanV4().toBuilder().id(PLAN_PUBLISHED).status(PlanStatus.PUBLISHED).build()
             )
@@ -157,7 +158,7 @@ public class RejectSubscriptionDomainServiceTest {
                 .build();
             givenExistingSubscription(subscription);
             if (shouldTriggerEmailNotification) {
-                userCrudService.initWith(List.of(BaseUserEntity.builder().id("subscriber").email("subscriber@mail.fake").build()));
+                userCrudService.initWith(Storage.of(BaseUserEntity.builder().id("subscriber").email("subscriber@mail.fake").build()));
             }
 
             // When
@@ -192,7 +193,7 @@ public class RejectSubscriptionDomainServiceTest {
                     );
             }
 
-            assertThat(auditCrudServiceInMemory.storage())
+            assertThat(auditCrudServiceInMemory.data())
                 .usingRecursiveFieldByFieldElementComparatorIgnoringFields("createdAt", "patch")
                 .containsExactly(
                     new AuditEntity(
@@ -275,7 +276,7 @@ public class RejectSubscriptionDomainServiceTest {
                     .build()
             );
             if (shouldTriggerEmailNotification) {
-                userCrudService.initWith(List.of(BaseUserEntity.builder().id("subscriber").email("subscriber@mail.fake").build()));
+                userCrudService.initWith(Storage.of(BaseUserEntity.builder().id("subscriber").email("subscriber@mail.fake").build()));
             }
 
             // When
@@ -310,7 +311,7 @@ public class RejectSubscriptionDomainServiceTest {
                     );
             }
 
-            assertThat(auditCrudServiceInMemory.storage())
+            assertThat(auditCrudServiceInMemory.data())
                 .usingRecursiveFieldByFieldElementComparatorIgnoringFields("createdAt", "patch")
                 .containsExactly(
                     new AuditEntity(
@@ -342,6 +343,6 @@ public class RejectSubscriptionDomainServiceTest {
     }
 
     private void givenExistingSubscription(SubscriptionEntity subscription) {
-        subscriptionCrudService.initWith(List.of(subscription));
+        subscriptionCrudService.initWith(Storage.of(subscription));
     }
 }

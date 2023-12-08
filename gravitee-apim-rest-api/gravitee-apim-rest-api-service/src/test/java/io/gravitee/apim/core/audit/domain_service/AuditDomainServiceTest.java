@@ -17,6 +17,7 @@ package io.gravitee.apim.core.audit.domain_service;
 
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
+import inmemory.Storage;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
 import io.gravitee.apim.core.audit.model.ApplicationAuditLogEntity;
@@ -97,7 +98,7 @@ public class AuditDomainServiceTest {
                 .patch("[]")
                 .build();
 
-            Assertions.assertThat(auditCrudService.storage()).containsOnly(expectedAudit);
+            Assertions.assertThat(auditCrudService.data()).containsOnly(expectedAudit);
         }
 
         @Test
@@ -140,12 +141,12 @@ public class AuditDomainServiceTest {
                 )
                 .build();
 
-            Assertions.assertThat(auditCrudService.storage()).containsOnly(expectedAudit);
+            Assertions.assertThat(auditCrudService.data()).containsOnly(expectedAudit);
         }
 
         @Test
         void should_fetch_user_display_name_when_using_a_token() {
-            userCrudService.initWith(List.of(BaseUserEntity.builder().id("user-id").firstname("Jane").lastname("Doe").build()));
+            userCrudService.initWith(Storage.of(BaseUserEntity.builder().id("user-id").firstname("Jane").lastname("Doe").build()));
 
             var audit = ApiAuditLogEntity
                 .builder()
@@ -174,7 +175,7 @@ public class AuditDomainServiceTest {
                 .patch("[]")
                 .build();
 
-            Assertions.assertThat(auditCrudService.storage()).containsOnly(expectedAudit);
+            Assertions.assertThat(auditCrudService.data()).containsOnly(expectedAudit);
         }
     }
 
@@ -212,7 +213,7 @@ public class AuditDomainServiceTest {
                 .patch("[]")
                 .build();
 
-            Assertions.assertThat(auditCrudService.storage()).hasSize(1).containsOnly(expectedAudit);
+            Assertions.assertThat(auditCrudService.data()).hasSize(1).containsOnly(expectedAudit);
         }
 
         @Test
@@ -255,12 +256,12 @@ public class AuditDomainServiceTest {
                 )
                 .build();
 
-            Assertions.assertThat(auditCrudService.storage()).containsOnly(expectedAudit);
+            Assertions.assertThat(auditCrudService.data()).containsOnly(expectedAudit);
         }
 
         @Test
         void should_fetch_user_display_name_when_using_a_token() {
-            userCrudService.initWith(List.of(BaseUserEntity.builder().id("user-id").firstname("Jane").lastname("Doe").build()));
+            userCrudService.initWith(Storage.of(BaseUserEntity.builder().id("user-id").firstname("Jane").lastname("Doe").build()));
 
             var audit = ApplicationAuditLogEntity
                 .builder()
@@ -289,7 +290,7 @@ public class AuditDomainServiceTest {
                 .patch("[]")
                 .build();
 
-            Assertions.assertThat(auditCrudService.storage()).containsOnly(expectedAudit);
+            Assertions.assertThat(auditCrudService.data()).containsOnly(expectedAudit);
         }
     }
 }

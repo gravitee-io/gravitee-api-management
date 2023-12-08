@@ -23,6 +23,7 @@ import inmemory.ApiCrudServiceInMemory;
 import inmemory.PageCrudServiceInMemory;
 import inmemory.PageQueryServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
+import inmemory.Storage;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.exception.InvalidPageParentException;
@@ -136,7 +137,7 @@ class ApiGetDocumentationPagesUseCaseTest {
             );
 
             planQueryService.initWith(
-                List.of(
+                Storage.of(
                     PlanFixtures
                         .aPlanV4()
                         .toBuilder()
@@ -254,12 +255,11 @@ class ApiGetDocumentationPagesUseCaseTest {
     }
 
     private void initPageServices(List<Page> pages) {
-        pageQueryService.initWith(pages);
-        pageCrudService.initWith(pages);
+        pageQueryService.syncStorageWith(pageCrudService.initWith(Storage.from(pages)));
     }
 
     private void initApiServices(List<Api> apis) {
-        apiCrudService.initWith(apis);
+        apiCrudService.initWith(Storage.from(apis));
     }
 
     private Page basicPageWithParent(String id, String parentId) {

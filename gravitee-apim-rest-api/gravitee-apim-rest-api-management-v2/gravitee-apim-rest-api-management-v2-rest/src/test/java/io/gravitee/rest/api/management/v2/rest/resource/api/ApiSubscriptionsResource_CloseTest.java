@@ -24,6 +24,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 import inmemory.ApplicationCrudServiceInMemory;
+import inmemory.Storage;
 import inmemory.SubscriptionCrudServiceInMemory;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.use_case.CloseSubscriptionUseCase;
@@ -76,7 +77,7 @@ public class ApiSubscriptionsResource_CloseTest extends AbstractResourceTest {
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
 
-        applicationCrudServiceInMemory.initWith(List.of(BaseApplicationEntity.builder().id(APPLICATION).build()));
+        applicationCrudServiceInMemory.initWith(Storage.of(BaseApplicationEntity.builder().id(APPLICATION).build()));
     }
 
     @AfterEach
@@ -93,7 +94,7 @@ public class ApiSubscriptionsResource_CloseTest extends AbstractResourceTest {
     @Test
     public void should_return_404_if_subscription_associated_to_another_api() {
         subscriptionCrudServiceInMemory.initWith(
-            List.of(
+            Storage.of(
                 SubscriptionEntity
                     .builder()
                     .id(SUBSCRIPTION)
@@ -128,7 +129,7 @@ public class ApiSubscriptionsResource_CloseTest extends AbstractResourceTest {
     @Test
     public void should_return_subscription_when_subscription_closed() {
         subscriptionCrudServiceInMemory.initWith(
-            List.of(
+            Storage.of(
                 SubscriptionEntity
                     .builder()
                     .id(SUBSCRIPTION)

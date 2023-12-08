@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.management.v2.rest.spring;
 
-import inmemory.AccessPointQueryServiceInMemory;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiKeyCrudServiceInMemory;
 import inmemory.ApiKeyQueryServiceInMemory;
@@ -25,7 +24,6 @@ import inmemory.AuditCrudServiceInMemory;
 import inmemory.ConnectionLogsCrudServiceInMemory;
 import inmemory.EnvironmentCrudServiceInMemory;
 import inmemory.EventCrudInMemory;
-import inmemory.InstallationAccessQueryServiceInMemory;
 import inmemory.InstanceQueryServiceInMemory;
 import inmemory.MessageLogCrudServiceInMemory;
 import inmemory.PageCrudServiceInMemory;
@@ -36,13 +34,15 @@ import inmemory.PlanCrudServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
 import inmemory.SubscriptionCrudServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
-import inmemory.TriggerNotificationDomainServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.gateway.query_service.InstanceQueryService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import stub.AccessPointQueryServiceStub;
+import stub.InstallationAccessQueryServiceStub;
+import stub.TriggerNotificationDomainServiceStub;
 
 @Configuration
 public class InMemoryConfiguration {
@@ -108,15 +108,13 @@ public class InMemoryConfiguration {
     }
 
     @Bean
-    public SubscriptionQueryServiceInMemory subscriptionQueryServiceInMemory(
-        SubscriptionCrudServiceInMemory subscriptionCrudServiceInMemory
-    ) {
-        return new SubscriptionQueryServiceInMemory(subscriptionCrudServiceInMemory);
+    public SubscriptionQueryServiceInMemory subscriptionQueryServiceInMemory() {
+        return new SubscriptionQueryServiceInMemory();
     }
 
     @Bean
-    TriggerNotificationDomainServiceInMemory triggerNotificationDomainServiceInMemory() {
-        return new TriggerNotificationDomainServiceInMemory();
+    TriggerNotificationDomainServiceStub triggerNotificationDomainServiceInMemory() {
+        return new TriggerNotificationDomainServiceStub();
     }
 
     @Bean
@@ -140,13 +138,13 @@ public class InMemoryConfiguration {
     }
 
     @Bean
-    public AccessPointQueryServiceInMemory accessPointQueryServiceInMemory() {
-        return new AccessPointQueryServiceInMemory();
+    public AccessPointQueryServiceStub accessPointQueryServiceInMemory() {
+        return new AccessPointQueryServiceStub();
     }
 
     @Bean
     public InstallationAccessQueryService installationAccessServiceInMemory() {
-        return new InstallationAccessQueryServiceInMemory();
+        return new InstallationAccessQueryServiceStub();
     }
 
     @Bean

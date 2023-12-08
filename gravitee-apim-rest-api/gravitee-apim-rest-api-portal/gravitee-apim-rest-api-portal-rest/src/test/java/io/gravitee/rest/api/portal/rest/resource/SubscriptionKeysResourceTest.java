@@ -24,6 +24,7 @@ import static org.mockito.Mockito.*;
 import fixtures.core.model.ApiKeyFixtures;
 import inmemory.ApiKeyCrudServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
+import inmemory.Storage;
 import inmemory.SubscriptionCrudServiceInMemory;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.ApiKeyEntity;
@@ -192,7 +193,7 @@ public class SubscriptionKeysResourceTest extends AbstractResourceTest {
     @Test
     public void should_revoke_key() {
         subscriptionCrudServiceInMemory.initWith(
-            List.of(
+            Storage.of(
                 fixtures.core.model.SubscriptionFixtures
                     .aSubscription()
                     .toBuilder()
@@ -203,10 +204,12 @@ public class SubscriptionKeysResourceTest extends AbstractResourceTest {
             )
         );
         applicationCrudServiceInMemory.initWith(
-            List.of(BaseApplicationEntity.builder().id(APPLICATION).apiKeyMode(ApiKeyMode.EXCLUSIVE).build())
+            Storage.of(BaseApplicationEntity.builder().id(APPLICATION).apiKeyMode(ApiKeyMode.EXCLUSIVE).build())
         );
         apiKeyCrudServiceInMemory.initWith(
-            List.of(ApiKeyFixtures.anApiKey().toBuilder().key(KEY).applicationId(APPLICATION).subscriptions(List.of(SUBSCRIPTION)).build())
+            Storage.of(
+                ApiKeyFixtures.anApiKey().toBuilder().key(KEY).applicationId(APPLICATION).subscriptions(List.of(SUBSCRIPTION)).build()
+            )
         );
 
         final Response response = target(SUBSCRIPTION).path("keys/" + KEY + "/_revoke").request().post(null);
@@ -260,7 +263,7 @@ public class SubscriptionKeysResourceTest extends AbstractResourceTest {
             );
 
         subscriptionCrudServiceInMemory.initWith(
-            List.of(
+            Storage.of(
                 fixtures.core.model.SubscriptionFixtures
                     .aSubscription()
                     .toBuilder()
@@ -271,10 +274,12 @@ public class SubscriptionKeysResourceTest extends AbstractResourceTest {
             )
         );
         applicationCrudServiceInMemory.initWith(
-            List.of(BaseApplicationEntity.builder().id(APPLICATION).apiKeyMode(ApiKeyMode.EXCLUSIVE).build())
+            Storage.of(BaseApplicationEntity.builder().id(APPLICATION).apiKeyMode(ApiKeyMode.EXCLUSIVE).build())
         );
         apiKeyCrudServiceInMemory.initWith(
-            List.of(ApiKeyFixtures.anApiKey().toBuilder().key(KEY).applicationId(APPLICATION).subscriptions(List.of(SUBSCRIPTION)).build())
+            Storage.of(
+                ApiKeyFixtures.anApiKey().toBuilder().key(KEY).applicationId(APPLICATION).subscriptions(List.of(SUBSCRIPTION)).build()
+            )
         );
 
         assertThat(target(SUBSCRIPTION).path("keys/" + KEY + "/_revoke").request().post(null).getStatus())
@@ -303,7 +308,7 @@ public class SubscriptionKeysResourceTest extends AbstractResourceTest {
             );
 
         subscriptionCrudServiceInMemory.initWith(
-            List.of(
+            Storage.of(
                 fixtures.core.model.SubscriptionFixtures
                     .aSubscription()
                     .toBuilder()
@@ -314,10 +319,12 @@ public class SubscriptionKeysResourceTest extends AbstractResourceTest {
             )
         );
         applicationCrudServiceInMemory.initWith(
-            List.of(BaseApplicationEntity.builder().id(APPLICATION).apiKeyMode(ApiKeyMode.EXCLUSIVE).build())
+            Storage.of(BaseApplicationEntity.builder().id(APPLICATION).apiKeyMode(ApiKeyMode.EXCLUSIVE).build())
         );
         apiKeyCrudServiceInMemory.initWith(
-            List.of(ApiKeyFixtures.anApiKey().toBuilder().key(KEY).applicationId(APPLICATION).subscriptions(List.of(SUBSCRIPTION)).build())
+            Storage.of(
+                ApiKeyFixtures.anApiKey().toBuilder().key(KEY).applicationId(APPLICATION).subscriptions(List.of(SUBSCRIPTION)).build()
+            )
         );
 
         assertThat(target(SUBSCRIPTION).path("keys/" + KEY + "/_revoke").request().post(null).getStatus())

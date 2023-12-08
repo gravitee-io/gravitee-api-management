@@ -28,24 +28,23 @@ import java.util.stream.Stream;
 
 public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlternative<Api> {
 
-    private final List<Api> storage = new ArrayList<>();
+    private Storage<Api> storage = new Storage<>();
 
     /**
      * WARNING: this implementation doesn't actually filter the API present in the storage. Instead, it will return all applications from storage.
      */
     @Override
     public Stream<Api> search(ApiSearchCriteria apiCriteria, Sortable sortable, ApiFieldFilter apiFieldFilter) {
-        return this.storage().stream();
+        return this.storage().data().stream();
     }
 
     @Override
     public Optional<Api> findByEnvironmentIdAndCrossId(String environmentId, String crossId) {
-        return storage.stream().filter(api -> api.getEnvironmentId().equals(environmentId) && api.getCrossId().equals(crossId)).findFirst();
-    }
-
-    @Override
-    public void initWith(List<Api> items) {
-        storage.addAll(items);
+        return storage
+            .data()
+            .stream()
+            .filter(api -> api.getEnvironmentId().equals(environmentId) && api.getCrossId().equals(crossId))
+            .findFirst();
     }
 
     @Override
@@ -54,7 +53,12 @@ public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlterna
     }
 
     @Override
-    public List<Api> storage() {
-        return Collections.unmodifiableList(storage);
+    public Storage<Api> storage() {
+        return storage;
+    }
+
+    @Override
+    public void syncStorageWith(InMemoryAlternative<Api> other) {
+        storage = other.storage();
     }
 }

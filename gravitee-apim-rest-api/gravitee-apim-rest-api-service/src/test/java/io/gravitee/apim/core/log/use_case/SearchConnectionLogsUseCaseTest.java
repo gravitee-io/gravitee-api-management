@@ -25,6 +25,7 @@ import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.ConnectionLogsCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.PlanCrudServiceInMemory;
+import inmemory.Storage;
 import io.gravitee.apim.core.log.use_case.SearchConnectionLogsUseCase.Input;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.common.http.HttpMethod;
@@ -76,8 +77,8 @@ public class SearchConnectionLogsUseCaseTest {
     void setUp() {
         usecase = new SearchConnectionLogsUseCase(logStorageService, planStorageService, applicationStorageService);
 
-        planStorageService.initWith(List.of(PLAN_1, PLAN_2));
-        applicationStorageService.initWith(List.of(APPLICATION_1, APPLICATION_2));
+        planStorageService.initWith(Storage.of(PLAN_1, PLAN_2));
+        applicationStorageService.initWith(Storage.of(APPLICATION_1, APPLICATION_2));
     }
 
     @AfterEach
@@ -90,7 +91,7 @@ public class SearchConnectionLogsUseCaseTest {
     @Test
     void should_return_connection_logs_of_an_api() {
         logStorageService.initWithConnectionLogs(
-            List.of(
+            Storage.of(
                 connectionLogFixtures.aConnectionLog("req1").toBuilder().build(),
                 connectionLogFixtures.aConnectionLog().toBuilder().apiId("other-api").planId("other-plan").build()
             )
@@ -128,7 +129,7 @@ public class SearchConnectionLogsUseCaseTest {
     @Test
     void should_return_api_connection_logs_sorted_by_desc_timestamp() {
         logStorageService.initWithConnectionLogs(
-            List.of(
+            Storage.of(
                 connectionLogFixtures.aConnectionLog("req1").toBuilder().timestamp("2020-02-01T20:00:00.00Z").build(),
                 connectionLogFixtures.aConnectionLog("req2").toBuilder().timestamp("2020-02-02T20:00:00.00Z").build(),
                 connectionLogFixtures.aConnectionLog("req3").toBuilder().timestamp("2020-02-04T20:00:00.00Z").build()
@@ -159,7 +160,7 @@ public class SearchConnectionLogsUseCaseTest {
         var pageNumber = 2;
         var pageSize = 5;
         logStorageService.initWithConnectionLogs(
-            IntStream.range(0, expectedTotal).mapToObj(i -> connectionLogFixtures.aConnectionLog(String.valueOf(i))).toList()
+            Storage.from(IntStream.range(0, expectedTotal).mapToObj(i -> connectionLogFixtures.aConnectionLog(String.valueOf(i))).toList())
         );
 
         var result = usecase.execute(
@@ -181,7 +182,9 @@ public class SearchConnectionLogsUseCaseTest {
     void should_return_api_connection_logs_with_only_plan_id_if_plan_cannot_be_found() {
         var unknownPlan = "unknown";
 
-        logStorageService.initWithConnectionLogs(List.of(connectionLogFixtures.aConnectionLog().toBuilder().planId(unknownPlan).build()));
+        logStorageService.initWithConnectionLogs(
+            Storage.of(connectionLogFixtures.aConnectionLog().toBuilder().planId(unknownPlan).build())
+        );
 
         var result = usecase.execute(
             GraviteeContext.getExecutionContext(),
@@ -195,7 +198,7 @@ public class SearchConnectionLogsUseCaseTest {
     @Test
     void should_return_api_connection_logs_with_only_available_info() {
         logStorageService.initWithConnectionLogs(
-            List.of(connectionLogFixtures.aConnectionLog().toBuilder().planId(null).clientIdentifier(null).applicationId("1").build())
+            Storage.of(connectionLogFixtures.aConnectionLog().toBuilder().planId(null).clientIdentifier(null).applicationId("1").build())
         );
 
         var result = usecase.execute(
@@ -212,7 +215,7 @@ public class SearchConnectionLogsUseCaseTest {
         var unknownApp = "unknown";
 
         logStorageService.initWithConnectionLogs(
-            List.of(connectionLogFixtures.aConnectionLog().toBuilder().applicationId(unknownApp).build())
+            Storage.of(connectionLogFixtures.aConnectionLog().toBuilder().applicationId(unknownApp).build())
         );
 
         var result = usecase.execute(
@@ -227,7 +230,7 @@ public class SearchConnectionLogsUseCaseTest {
     @Test
     void should_return_api_connection_logs_for_applications() {
         logStorageService.initWithConnectionLogs(
-            List.of(
+            Storage.of(
                 connectionLogFixtures.aConnectionLog().toBuilder().requestId("req1").applicationId("app1").build(),
                 connectionLogFixtures.aConnectionLog().toBuilder().requestId("req2").applicationId("app1").build(),
                 connectionLogFixtures.aConnectionLog().toBuilder().requestId("req3").applicationId("app2").build(),
@@ -252,7 +255,7 @@ public class SearchConnectionLogsUseCaseTest {
     @Test
     void should_return_api_connection_logs_for_plans() {
         logStorageService.initWithConnectionLogs(
-            List.of(
+            Storage.of(
                 connectionLogFixtures.aConnectionLog().toBuilder().requestId("req1").planId("plan1").build(),
                 connectionLogFixtures.aConnectionLog().toBuilder().requestId("req2").planId("plan1").build(),
                 connectionLogFixtures.aConnectionLog().toBuilder().requestId("req3").planId("plan2").build(),
@@ -277,7 +280,7 @@ public class SearchConnectionLogsUseCaseTest {
     @Test
     void should_return_api_connection_logs_filtered_by_timestamp_date_range() {
         logStorageService.initWithConnectionLogs(
-            List.of(
+            Storage.of(
                 connectionLogFixtures.aConnectionLog("req1").toBuilder().timestamp("2020-02-01T20:00:00.00Z").build(),
                 connectionLogFixtures.aConnectionLog("req2").toBuilder().timestamp("2020-02-02T20:00:00.00Z").build(),
                 connectionLogFixtures.aConnectionLog("req3").toBuilder().timestamp("2020-02-04T20:00:00.00Z").build()
@@ -301,7 +304,7 @@ public class SearchConnectionLogsUseCaseTest {
     @Test
     void should_return_api_connection_logs_from_timestamp() {
         logStorageService.initWithConnectionLogs(
-            List.of(
+            Storage.of(
                 connectionLogFixtures.aConnectionLog("req1").toBuilder().timestamp("2020-02-01T20:00:00.00Z").build(),
                 connectionLogFixtures.aConnectionLog("req2").toBuilder().timestamp("2020-02-02T20:00:00.00Z").build(),
                 connectionLogFixtures.aConnectionLog("req3").toBuilder().timestamp("2020-02-04T20:00:00.00Z").build()
@@ -325,7 +328,7 @@ public class SearchConnectionLogsUseCaseTest {
     @Test
     void should_return_api_connection_logs_to_timestamp() {
         logStorageService.initWithConnectionLogs(
-            List.of(
+            Storage.of(
                 connectionLogFixtures.aConnectionLog("req1").toBuilder().timestamp("2020-02-01T20:00:00.00Z").build(),
                 connectionLogFixtures.aConnectionLog("req2").toBuilder().timestamp("2020-02-02T20:00:00.00Z").build(),
                 connectionLogFixtures.aConnectionLog("req3").toBuilder().timestamp("2020-02-04T20:00:00.00Z").build()

@@ -27,7 +27,7 @@ import inmemory.ApiCrudServiceInMemory;
 import inmemory.EventCrudInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.InstanceQueryServiceInMemory;
-import inmemory.PolicyValidationDomainServiceInMemory;
+import inmemory.Storage;
 import io.gravitee.apim.core.api.domain_service.ApiPolicyValidatorDomainService;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -73,6 +73,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
+import stub.PolicyValidationDomainServiceStub;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class DebugApiUseCaseTest {
@@ -86,7 +87,7 @@ class DebugApiUseCaseTest {
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
     private DebugApiUseCase cut;
     private final ApiPolicyValidatorDomainService apiPolicyValidatorDomainService = new ApiPolicyValidatorDomainService(
-        new PolicyValidationDomainServiceInMemory()
+        new PolicyValidationDomainServiceStub()
     );
     private final ApiCrudServiceInMemory apiCrudServiceInMemory = new ApiCrudServiceInMemory();
     private final InstanceQueryServiceInMemory instanceQueryService = new InstanceQueryServiceInMemory();
@@ -126,10 +127,10 @@ class DebugApiUseCaseTest {
     @MethodSource("provideNonEligibleGateways")
     @SneakyThrows
     void should_throw_when_no_gateway_available(List<Instance> instances) {
-        instanceQueryService.initWith(instances);
+        instanceQueryService.initWith(Storage.from(instances));
         final DebugApi debugApi = debugApiDefinition();
 
-        apiCrudServiceInMemory.initWith(List.of(originalApi(debugApi)));
+        apiCrudServiceInMemory.initWith(Storage.of(originalApi(debugApi)));
         debugApi.setDefinitionVersion(DefinitionVersion.V2);
         debugApi.setTags(Set.of("valid-tag"));
         assertThatThrownBy(() -> cut.execute(DebugApiUseCase.Input.builder().apiId(API_ID).debugApi(debugApi).auditInfo(AUDIT_INFO).build())
@@ -142,8 +143,8 @@ class DebugApiUseCaseTest {
     @EnumSource(value = PlanStatus.class, names = { "STAGING", "PUBLISHED" }, mode = EnumSource.Mode.EXCLUDE)
     @SneakyThrows
     void should_throw_when_no_active_plan(PlanStatus planStatus) {
-        instanceQueryService.initWith(List.of(validInstance()));
-        apiCrudServiceInMemory.initWith(List.of(originalApi(debugApiDefinition())));
+        instanceQueryService.initWith(Storage.of(validInstance()));
+        apiCrudServiceInMemory.initWith(Storage.of(originalApi(debugApiDefinition())));
         final DebugApi debugApi = debugApiDefinition();
         debugApi.getPlan(PLAN_ID).setStatus(planStatus.name());
         debugApi.setTags(Set.of("valid-tag"));
@@ -156,9 +157,9 @@ class DebugApiUseCaseTest {
     @Test
     @SneakyThrows
     void should_create_debug_event() {
-        instanceQueryService.initWith(List.of(validInstance()));
+        instanceQueryService.initWith(Storage.of(validInstance()));
         final DebugApi debugApi = debugApiDefinition();
-        apiCrudServiceInMemory.initWith(List.of(originalApi(debugApi)));
+        apiCrudServiceInMemory.initWith(Storage.of(originalApi(debugApi)));
         debugApi.setExecutionMode(ExecutionMode.V4_EMULATION_ENGINE);
         debugApi.setPlans(List.of(keylessPlan()));
         debugApi.setProxy(proxyWithLogging(true));
@@ -168,7 +169,7 @@ class DebugApiUseCaseTest {
             DebugApiUseCase.Input.builder().apiId(API_ID).debugApi(debugApi).auditInfo(AUDIT_INFO).build()
         );
         assertThat(output.debugApiEvent()).isNotNull();
-        assertThat(eventCrudService.storage()).hasSize(1).first().isEqualTo(output.debugApiEvent());
+        assertThat(eventCrudService.data()).hasSize(1).first().isEqualTo(output.debugApiEvent());
         assertThat(output.debugApiEvent())
             .extracting(Event::getType, Event::getEnvironments, Event::getProperties)
             .contains(EventType.DEBUG_API, Index.atIndex(0))

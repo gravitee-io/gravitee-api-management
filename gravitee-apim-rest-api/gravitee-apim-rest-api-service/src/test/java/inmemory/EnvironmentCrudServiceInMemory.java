@@ -24,12 +24,7 @@ import java.util.List;
 
 public class EnvironmentCrudServiceInMemory implements EnvironmentCrudService, InMemoryAlternative<Environment> {
 
-    private final List<Environment> storage = new ArrayList<>();
-
-    @Override
-    public void initWith(List<Environment> items) {
-        storage.addAll(items);
-    }
+    private Storage<Environment> storage = new Storage<>();
 
     @Override
     public void reset() {
@@ -37,16 +32,22 @@ public class EnvironmentCrudServiceInMemory implements EnvironmentCrudService, I
     }
 
     @Override
-    public List<Environment> storage() {
-        return Collections.unmodifiableList(storage);
+    public Storage<Environment> storage() {
+        return storage;
     }
 
     @Override
     public Environment get(String environmentId) {
         return storage
+            .data()
             .stream()
             .filter(env -> environmentId.equals(env.getId()))
             .findFirst()
             .orElseThrow(() -> new EnvironmentNotFoundException(environmentId));
+    }
+
+    @Override
+    public void syncStorageWith(InMemoryAlternative<Environment> other) {
+        storage = other.storage();
     }
 }

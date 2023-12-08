@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 import inmemory.ParametersDomainServiceInMemory;
+import inmemory.Storage;
 import io.gravitee.apim.core.console.model.ConsoleCustomization;
 import io.gravitee.apim.core.console.model.ConsoleTheme;
 import io.gravitee.apim.core.console.model.CtaConfiguration;
@@ -51,7 +52,7 @@ class GetConsoleCustomizationUseCaseTest {
     @Test
     void should_return_console_customization() {
         parametersDomainServiceInMemory.initWith(
-            List.of(
+            Storage.of(
                 Parameter.builder().key(Key.CONSOLE_CUSTOMIZATION_TITLE.key()).value("title").build(),
                 Parameter.builder().key(Key.CONSOLE_CUSTOMIZATION_FAVICON.key()).value("favicon").build(),
                 Parameter.builder().key(Key.CONSOLE_CUSTOMIZATION_LOGO.key()).value("logo").build(),

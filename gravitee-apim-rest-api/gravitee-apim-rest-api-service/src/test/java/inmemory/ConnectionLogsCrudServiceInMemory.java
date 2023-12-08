@@ -63,6 +63,7 @@ public class ConnectionLogsCrudServiceInMemory implements ConnectionLogsCrudServ
 
         var matches = connectionLogs
             .storage()
+            .data()
             .stream()
             .filter(predicate)
             .sorted(Comparator.comparing(BaseConnectionLog::getTimestamp).reversed())
@@ -84,22 +85,25 @@ public class ConnectionLogsCrudServiceInMemory implements ConnectionLogsCrudServ
             predicate = predicate.and(connectionLog -> connectionLog.getRequestId().equals(requestId));
         }
 
-        return connectionLogDetails.storage().stream().filter(predicate).findFirst();
+        return connectionLogDetails.storage().data().stream().filter(predicate).findFirst();
     }
 
     @Override
-    public void initWith(List<Object> items) {
-        connectionLogs.initWith(items.stream().filter(BaseConnectionLog.class::isInstance).map(BaseConnectionLog.class::cast).toList());
-        connectionLogDetails.initWith(
-            items.stream().filter(ConnectionLogDetail.class::isInstance).map(ConnectionLogDetail.class::cast).toList()
+    public ConnectionLogsCrudServiceInMemory initWith(Storage<Object> items) {
+        connectionLogs.initWith(
+            Storage.from(items.data().stream().filter(BaseConnectionLog.class::isInstance).map(BaseConnectionLog.class::cast).toList())
         );
+        connectionLogDetails.initWith(
+            Storage.from(items.data().stream().filter(ConnectionLogDetail.class::isInstance).map(ConnectionLogDetail.class::cast).toList())
+        );
+        return this;
     }
 
-    public void initWithConnectionLogs(List<BaseConnectionLog> items) {
+    public void initWithConnectionLogs(Storage<BaseConnectionLog> items) {
         connectionLogs.initWith(items);
     }
 
-    public void initWithConnectionLogDetails(List<ConnectionLogDetail> items) {
+    public void initWithConnectionLogDetails(Storage<ConnectionLogDetail> items) {
         connectionLogDetails.initWith(items);
     }
 
@@ -110,21 +114,21 @@ public class ConnectionLogsCrudServiceInMemory implements ConnectionLogsCrudServ
     }
 
     @Override
-    public List<Object> storage() {
-        final ArrayList<Object> merge = new ArrayList<>();
+    public Storage<Object> storage() {
+        final Storage<Object> merge = new Storage<>();
         merge.addAll(connectionLogs.storage());
         merge.addAll(connectionLogDetails.storage());
         return merge;
     }
 
+    @Override
+    public void syncStorageWith(InMemoryAlternative<Object> other) {
+        // FIXME: to implement
+    }
+
     static class InMemoryConnectionLogs implements InMemoryAlternative<BaseConnectionLog> {
 
-        private final List<BaseConnectionLog> storage = new ArrayList<>();
-
-        @Override
-        public void initWith(List<BaseConnectionLog> items) {
-            storage.addAll(items);
-        }
+        private Storage<BaseConnectionLog> storage = new Storage<>();
 
         @Override
         public void reset() {
@@ -132,19 +136,19 @@ public class ConnectionLogsCrudServiceInMemory implements ConnectionLogsCrudServ
         }
 
         @Override
-        public List<BaseConnectionLog> storage() {
-            return Collections.unmodifiableList(storage);
+        public Storage<BaseConnectionLog> storage() {
+            return storage;
+        }
+
+        @Override
+        public void syncStorageWith(InMemoryAlternative<BaseConnectionLog> other) {
+            storage = other.storage();
         }
     }
 
     static class InMemoryConnectionLogDetails implements InMemoryAlternative<ConnectionLogDetail> {
 
-        private final List<ConnectionLogDetail> storage = new ArrayList<>();
-
-        @Override
-        public void initWith(List<ConnectionLogDetail> items) {
-            storage.addAll(items);
-        }
+        private Storage<ConnectionLogDetail> storage = new Storage<>();
 
         @Override
         public void reset() {
@@ -152,8 +156,13 @@ public class ConnectionLogsCrudServiceInMemory implements ConnectionLogsCrudServ
         }
 
         @Override
-        public List<ConnectionLogDetail> storage() {
-            return Collections.unmodifiableList(storage);
+        public Storage<ConnectionLogDetail> storage() {
+            return storage;
+        }
+
+        @Override
+        public void syncStorageWith(InMemoryAlternative<ConnectionLogDetail> other) {
+            storage = other.storage();
         }
     }
 }

@@ -16,6 +16,7 @@
 package inmemory;
 
 import com.google.common.collect.ImmutableList;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
 import java.util.ArrayList;
@@ -25,11 +26,12 @@ import java.util.Optional;
 
 public class PageQueryServiceInMemory implements InMemoryAlternative<Page>, PageQueryService {
 
-    List<Page> pages = new ArrayList<>();
+    Storage<Page> pages = new Storage<>();
 
     @Override
     public List<Page> searchByApiId(String apiId) {
         return pages
+            .data()
             .stream()
             .filter(page -> apiId.equals(page.getReferenceId()) && Page.ReferenceType.API.equals(page.getReferenceType()))
             .toList();
@@ -38,6 +40,7 @@ public class PageQueryServiceInMemory implements InMemoryAlternative<Page>, Page
     @Override
     public Optional<Page> findHomepageByApiId(String apiId) {
         return pages
+            .data()
             .stream()
             .filter(page ->
                 apiId.equals(page.getReferenceId()) && Page.ReferenceType.API.equals(page.getReferenceType()) && page.isHomepage()
@@ -49,6 +52,7 @@ public class PageQueryServiceInMemory implements InMemoryAlternative<Page>, Page
     public List<Page> searchByApiIdAndParentId(String apiId, String parentId) {
         if (Objects.isNull(parentId) || parentId.isEmpty()) {
             return pages
+                .data()
                 .stream()
                 .filter(page ->
                     apiId.equals(page.getReferenceId()) &&
@@ -58,6 +62,7 @@ public class PageQueryServiceInMemory implements InMemoryAlternative<Page>, Page
                 .toList();
         }
         return pages
+            .data()
             .stream()
             .filter(page ->
                 apiId.equals(page.getReferenceId()) &&
@@ -71,6 +76,7 @@ public class PageQueryServiceInMemory implements InMemoryAlternative<Page>, Page
     public Optional<Page> findByApiIdAndParentIdAndNameAndType(String apiId, String parentId, String name, Page.Type type) {
         var noParentId = Objects.isNull(parentId) || parentId.isEmpty();
         return pages
+            .data()
             .stream()
             .filter(page ->
                 noParentId ? Objects.isNull(page.getParentId()) || page.getParentId().isEmpty() : parentId.equals(page.getParentId())
@@ -86,21 +92,21 @@ public class PageQueryServiceInMemory implements InMemoryAlternative<Page>, Page
 
     @Override
     public long countByParentIdAndIsPublished(String parentId) {
-        return pages.stream().filter(page -> Objects.equals(page.getParentId(), parentId) && page.isPublished()).count();
-    }
-
-    @Override
-    public void initWith(List<Page> items) {
-        pages = List.copyOf(items);
+        return pages.data().stream().filter(page -> Objects.equals(page.getParentId(), parentId) && page.isPublished()).count();
     }
 
     @Override
     public void reset() {
-        pages = new ArrayList<>();
+        pages.clear();
     }
 
     @Override
-    public List<Page> storage() {
-        return ImmutableList.copyOf(pages);
+    public Storage<Page> storage() {
+        return pages;
+    }
+
+    @Override
+    public void syncStorageWith(InMemoryAlternative<Page> other) {
+        pages = other.storage();
     }
 }

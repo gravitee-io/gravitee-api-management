@@ -27,9 +27,9 @@ import inmemory.AuditCrudServiceInMemory;
 import inmemory.EnvironmentCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.PlanCrudServiceInMemory;
+import inmemory.Storage;
 import inmemory.SubscriptionCrudServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
-import inmemory.TriggerNotificationDomainServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_key.domain_service.RevokeApiKeyDomainService;
@@ -52,6 +52,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import stub.TriggerNotificationDomainServiceStub;
 
 class CloseExpiredSubscriptionsUseCaseTest {
 
@@ -61,7 +62,7 @@ class CloseExpiredSubscriptionsUseCaseTest {
     private final ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory();
     private final EnvironmentCrudServiceInMemory environmentCrudService = new EnvironmentCrudServiceInMemory();
     private final SubscriptionCrudServiceInMemory subscriptionCrudService = new SubscriptionCrudServiceInMemory();
-    private final SubscriptionQueryServiceInMemory subscriptionQueryService = new SubscriptionQueryServiceInMemory(subscriptionCrudService);
+    private final SubscriptionQueryServiceInMemory subscriptionQueryService = new SubscriptionQueryServiceInMemory();
     private final AuditCrudServiceInMemory auditCrudServiceInMemory = new AuditCrudServiceInMemory();
     private final ApplicationCrudServiceInMemory applicationCrudService = new ApplicationCrudServiceInMemory();
     private final PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
@@ -72,7 +73,7 @@ class CloseExpiredSubscriptionsUseCaseTest {
     void setUp() {
         UuidString.overrideGenerator(() -> "audit-id");
 
-        var triggerNotificationService = new TriggerNotificationDomainServiceInMemory();
+        var triggerNotificationService = new TriggerNotificationDomainServiceStub();
         var userCrudService = new UserCrudServiceInMemory();
         var auditDomainService = new AuditDomainService(auditCrudServiceInMemory, userCrudService, new JacksonJsonDiffProcessor());
 
@@ -209,7 +210,7 @@ class CloseExpiredSubscriptionsUseCaseTest {
         usecase.execute(new CloseExpiredSubscriptionsUseCase.Input(AUDIT_ACTOR));
 
         // Then
-        assertThat(auditCrudServiceInMemory.storage())
+        assertThat(auditCrudServiceInMemory.data())
             .hasSize(4)
             .extracting(
                 AuditEntity::getOrganizationId,
@@ -259,22 +260,22 @@ class CloseExpiredSubscriptionsUseCaseTest {
 
         // Then
         assertThat(result.closedSubscriptions()).isEmpty();
-        assertThat(auditCrudServiceInMemory.storage()).isEmpty();
+        assertThat(auditCrudServiceInMemory.data()).isEmpty();
     }
 
     private void givenExistingEnvironments(List<Environment> environments) {
-        environmentCrudService.initWith(environments);
+        environmentCrudService.initWith(Storage.from(environments));
     }
 
     private void givenExistingApis(List<Api> apis) {
-        apiQueryService.initWith(apis);
+        apiQueryService.initWith(Storage.from(apis));
     }
 
     private void givenExistingApplication(List<BaseApplicationEntity> applications) {
-        applicationCrudService.initWith(applications);
+        applicationCrudService.initWith(Storage.from(applications));
     }
 
     private void givenExistingSubscriptions(List<SubscriptionEntity> subscriptions) {
-        subscriptionCrudService.initWith(subscriptions);
+        subscriptionQueryService.syncStorageWith(subscriptionCrudService.initWith(Storage.from(subscriptions)));
     }
 }

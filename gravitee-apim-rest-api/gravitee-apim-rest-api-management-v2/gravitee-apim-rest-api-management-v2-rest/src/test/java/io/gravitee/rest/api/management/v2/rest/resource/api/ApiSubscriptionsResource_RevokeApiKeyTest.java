@@ -28,6 +28,7 @@ import fixtures.core.model.ApiKeyFixtures;
 import inmemory.ApiKeyCrudServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
+import inmemory.Storage;
 import inmemory.SubscriptionCrudServiceInMemory;
 import io.gravitee.rest.api.management.v2.rest.model.ApiKey;
 import io.gravitee.rest.api.model.ApiKeyMode;
@@ -75,7 +76,7 @@ public class ApiSubscriptionsResource_RevokeApiKeyTest extends ApiSubscriptionsR
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
 
         applicationCrudServiceInMemory.initWith(
-            List.of(BaseApplicationEntity.builder().id(APPLICATION).apiKeyMode(ApiKeyMode.EXCLUSIVE).build())
+            Storage.of(BaseApplicationEntity.builder().id(APPLICATION).apiKeyMode(ApiKeyMode.EXCLUSIVE).build())
         );
     }
 
@@ -91,7 +92,7 @@ public class ApiSubscriptionsResource_RevokeApiKeyTest extends ApiSubscriptionsR
     @Test
     public void should_return_404_if_subscription_not_found() {
         apiKeyCrudServiceInMemory.initWith(
-            List.of(
+            Storage.of(
                 ApiKeyFixtures.anApiKey().toBuilder().id(API_KEY_ID).applicationId(APPLICATION).subscriptions(List.of(SUBSCRIPTION)).build()
             )
         );
@@ -104,10 +105,10 @@ public class ApiSubscriptionsResource_RevokeApiKeyTest extends ApiSubscriptionsR
     @Test
     public void should_return_404_if_subscription_associated_to_another_api() {
         subscriptionCrudServiceInMemory.initWith(
-            List.of(fixtures.core.model.SubscriptionFixtures.aSubscription().toBuilder().id(SUBSCRIPTION).apiId("another-api").build())
+            Storage.of(fixtures.core.model.SubscriptionFixtures.aSubscription().toBuilder().id(SUBSCRIPTION).apiId("another-api").build())
         );
         apiKeyCrudServiceInMemory.initWith(
-            List.of(
+            Storage.of(
                 ApiKeyFixtures.anApiKey().toBuilder().id(API_KEY_ID).applicationId(APPLICATION).subscriptions(List.of(SUBSCRIPTION)).build()
             )
         );
@@ -127,10 +128,10 @@ public class ApiSubscriptionsResource_RevokeApiKeyTest extends ApiSubscriptionsR
     @Test
     public void should_return_404_if_api_key_associated_to_another_subscription() {
         subscriptionCrudServiceInMemory.initWith(
-            List.of(fixtures.core.model.SubscriptionFixtures.aSubscription().toBuilder().id(SUBSCRIPTION).apiId(API).build())
+            Storage.of(fixtures.core.model.SubscriptionFixtures.aSubscription().toBuilder().id(SUBSCRIPTION).apiId(API).build())
         );
         apiKeyCrudServiceInMemory.initWith(
-            List.of(
+            Storage.of(
                 ApiKeyFixtures
                     .anApiKey()
                     .toBuilder()
@@ -149,7 +150,7 @@ public class ApiSubscriptionsResource_RevokeApiKeyTest extends ApiSubscriptionsR
     @Test
     public void should_return_400_if_application_is_in_shared_api_key_mode() {
         subscriptionCrudServiceInMemory.initWith(
-            List.of(
+            Storage.of(
                 fixtures.core.model.SubscriptionFixtures
                     .aSubscription()
                     .toBuilder()
@@ -160,10 +161,10 @@ public class ApiSubscriptionsResource_RevokeApiKeyTest extends ApiSubscriptionsR
             )
         );
         applicationCrudServiceInMemory.initWith(
-            List.of(BaseApplicationEntity.builder().id(APPLICATION).apiKeyMode(ApiKeyMode.SHARED).build())
+            Storage.of(BaseApplicationEntity.builder().id(APPLICATION).apiKeyMode(ApiKeyMode.SHARED).build())
         );
         apiKeyCrudServiceInMemory.initWith(
-            List.of(
+            Storage.of(
                 ApiKeyFixtures.anApiKey().toBuilder().id(API_KEY_ID).applicationId(APPLICATION).subscriptions(List.of(SUBSCRIPTION)).build()
             )
         );
@@ -196,7 +197,7 @@ public class ApiSubscriptionsResource_RevokeApiKeyTest extends ApiSubscriptionsR
     @Test
     public void should_revoke_api_key() {
         subscriptionCrudServiceInMemory.initWith(
-            List.of(
+            Storage.of(
                 fixtures.core.model.SubscriptionFixtures
                     .aSubscription()
                     .toBuilder()
@@ -207,10 +208,10 @@ public class ApiSubscriptionsResource_RevokeApiKeyTest extends ApiSubscriptionsR
             )
         );
         applicationCrudServiceInMemory.initWith(
-            List.of(BaseApplicationEntity.builder().id(APPLICATION).apiKeyMode(ApiKeyMode.EXCLUSIVE).build())
+            Storage.of(BaseApplicationEntity.builder().id(APPLICATION).apiKeyMode(ApiKeyMode.EXCLUSIVE).build())
         );
         apiKeyCrudServiceInMemory.initWith(
-            List.of(
+            Storage.of(
                 ApiKeyFixtures.anApiKey().toBuilder().id(API_KEY_ID).applicationId(APPLICATION).subscriptions(List.of(SUBSCRIPTION)).build()
             )
         );

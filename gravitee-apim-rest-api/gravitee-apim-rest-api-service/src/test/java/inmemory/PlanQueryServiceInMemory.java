@@ -26,11 +26,12 @@ import java.util.Objects;
 
 public class PlanQueryServiceInMemory implements PlanQueryService, InMemoryAlternative<Plan> {
 
-    private final List<Plan> storage = new ArrayList<>();
+    private Storage<Plan> storage = new Storage<>();
 
     @Override
     public List<Plan> findAllByApiIdAndGeneralConditionsAndIsActive(String apiId, DefinitionVersion definitionVersion, String pageId) {
         return storage
+            .data()
             .stream()
             .filter(plan ->
                 Objects.equals(apiId, plan.getApiId()) &&
@@ -41,17 +42,17 @@ public class PlanQueryServiceInMemory implements PlanQueryService, InMemoryAlter
     }
 
     @Override
-    public void initWith(List<Plan> items) {
-        storage.addAll(items);
-    }
-
-    @Override
     public void reset() {
         storage.clear();
     }
 
     @Override
-    public List<Plan> storage() {
-        return Collections.unmodifiableList(storage);
+    public Storage<Plan> storage() {
+        return storage;
+    }
+
+    @Override
+    public void syncStorageWith(InMemoryAlternative<Plan> other) {
+        storage = other.storage();
     }
 }

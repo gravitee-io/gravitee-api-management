@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.PageQueryServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
+import inmemory.Storage;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import java.util.List;
@@ -44,7 +45,7 @@ class ApiDocumentationDomainServiceTest {
         @Test
         void should_return_all_pages_with_null_parent_id() {
             pageQueryService.initWith(
-                List.of(
+                Storage.of(
                     Page.builder().id("page#1").referenceType(Page.ReferenceType.API).referenceId("api-id").build(),
                     Page.builder().id("page#2").referenceType(Page.ReferenceType.API).referenceId("api-id").build(),
                     Page.builder().id("page#3").referenceType(Page.ReferenceType.API).referenceId("api-id").parentId("not-root").build()
@@ -60,7 +61,7 @@ class ApiDocumentationDomainServiceTest {
         @Test
         void should_return_all_pages_with_empty_parent_id() {
             pageQueryService.initWith(
-                List.of(
+                Storage.of(
                     Page.builder().id("page#1").referenceType(Page.ReferenceType.API).referenceId("api-id").build(),
                     Page.builder().id("page#2").referenceType(Page.ReferenceType.API).referenceId("api-id").build(),
                     Page.builder().id("page#3").referenceType(Page.ReferenceType.API).referenceId("api-id").parentId("not-root").build()
@@ -80,7 +81,7 @@ class ApiDocumentationDomainServiceTest {
         @Test
         void should_return_all_root_pages() {
             pageQueryService.initWith(
-                List.of(
+                Storage.of(
                     Page.builder().id("page#1").referenceType(Page.ReferenceType.API).referenceId("api-id").build(),
                     Page.builder().id("page#2").referenceType(Page.ReferenceType.API).referenceId("api-id").parentId("not-root").build(),
                     Page.builder().id("page#3").referenceType(Page.ReferenceType.API).referenceId("api-id").parentId("").build()
@@ -99,7 +100,7 @@ class ApiDocumentationDomainServiceTest {
         @Test
         void should_return_all_pages_with_parent_id() {
             pageQueryService.initWith(
-                List.of(
+                Storage.of(
                     Page.builder().id("page#1").referenceType(Page.ReferenceType.API).referenceId("api-id").build(),
                     Page.builder().id("page#2").referenceType(Page.ReferenceType.API).referenceId("api-id").parentId("not-root").build(),
                     Page.builder().id("page#3").referenceType(Page.ReferenceType.API).referenceId("api-id").parentId("parent-id").build(),

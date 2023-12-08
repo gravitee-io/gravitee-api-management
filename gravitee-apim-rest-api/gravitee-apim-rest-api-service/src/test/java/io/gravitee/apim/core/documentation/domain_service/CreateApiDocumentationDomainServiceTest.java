@@ -72,7 +72,7 @@ public class CreateApiDocumentationDomainServiceTest {
                 .parentId("")
                 .name("parent")
                 .build();
-            pageCrudService.initWith(List.of(parentPage));
+            pageCrudService.initWith(Storage.of(parentPage));
 
             var res = createApiDocumentationDomainService.createPage(
                 Page
@@ -127,7 +127,7 @@ public class CreateApiDocumentationDomainServiceTest {
                     .build(),
                 AUDIT_INFO
             );
-            var audit = auditCrudService.storage().get(0);
+            var audit = auditCrudService.data().get(0);
             assertThat(audit)
                 .isNotNull()
                 .hasFieldOrPropertyWithValue("referenceId", "api-id")
@@ -155,7 +155,7 @@ public class CreateApiDocumentationDomainServiceTest {
                 AUDIT_INFO
             );
 
-            var pageRevision = pageRevisionCrudService.storage().get(0);
+            var pageRevision = pageRevisionCrudService.data().get(0);
             assertThat(pageRevision)
                 .isNotNull()
                 .hasFieldOrPropertyWithValue("pageId", PAGE_ID)
@@ -178,7 +178,7 @@ public class CreateApiDocumentationDomainServiceTest {
                 .parentId("")
                 .name("parent")
                 .build();
-            pageCrudService.initWith(List.of(parentPage));
+            pageCrudService.initWith(Storage.of(parentPage));
 
             var res = createApiDocumentationDomainService.createPage(
                 Page
@@ -210,9 +210,9 @@ public class CreateApiDocumentationDomainServiceTest {
 
             assertThat(res.getCreatedAt()).isNotNull().isEqualTo(res.getUpdatedAt());
 
-            assertThat(pageRevisionCrudService.storage().size()).isEqualTo(0);
+            assertThat(pageRevisionCrudService.data().size()).isEqualTo(0);
 
-            var audit = auditCrudService.storage().get(0);
+            var audit = auditCrudService.data().get(0);
             assertThat(audit)
                 .isNotNull()
                 .hasFieldOrPropertyWithValue("referenceId", "api-id")
@@ -238,7 +238,7 @@ public class CreateApiDocumentationDomainServiceTest {
                 AUDIT_INFO
             );
 
-            var audit = auditCrudService.storage().get(0);
+            var audit = auditCrudService.data().get(0);
             assertThat(audit)
                 .isNotNull()
                 .hasFieldOrPropertyWithValue("referenceId", "api-id")
@@ -264,7 +264,7 @@ public class CreateApiDocumentationDomainServiceTest {
                 AUDIT_INFO
             );
 
-            assertThat(pageRevisionCrudService.storage().size()).isEqualTo(0);
+            assertThat(pageRevisionCrudService.data()).isEmpty();
         }
     }
 }

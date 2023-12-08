@@ -28,9 +28,8 @@ import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.PlanCrudServiceInMemory;
+import inmemory.Storage;
 import inmemory.SubscriptionCrudServiceInMemory;
-import inmemory.TriggerNotificationDomainServiceInMemory;
-import inmemory.TriggerNotificationDomainServiceInMemory.ApplicationNotification;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api_key.domain_service.RevokeApiKeyDomainService;
 import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
@@ -64,6 +63,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import stub.TriggerNotificationDomainServiceStub;
+import stub.TriggerNotificationDomainServiceStub.ApplicationNotification;
 
 class CloseSubscriptionUseCaseTest {
 
@@ -76,7 +77,7 @@ class CloseSubscriptionUseCaseTest {
 
     private final SubscriptionCrudServiceInMemory subscriptionCrudService = new SubscriptionCrudServiceInMemory();
     private final AuditCrudServiceInMemory auditCrudServiceInMemory = new AuditCrudServiceInMemory();
-    private final TriggerNotificationDomainServiceInMemory triggerNotificationService = new TriggerNotificationDomainServiceInMemory();
+    private final TriggerNotificationDomainServiceStub triggerNotificationService = new TriggerNotificationDomainServiceStub();
     private final ApplicationCrudServiceInMemory applicationCrudService = new ApplicationCrudServiceInMemory();
     private final ApiKeyCrudServiceInMemory apiKeyCrudService = new ApiKeyCrudServiceInMemory();
     private final PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
@@ -93,7 +94,7 @@ class CloseSubscriptionUseCaseTest {
             subscriptionCrudService,
             planCrudService,
             auditDomainService,
-            new TriggerNotificationDomainServiceInMemory(),
+            new TriggerNotificationDomainServiceStub(),
             userCrudService
         );
         var revokeApiKeyDomainService = new RevokeApiKeyDomainService(
@@ -270,7 +271,7 @@ class CloseSubscriptionUseCaseTest {
         usecase.execute(new Input(SUBSCRIPTION_ID, AUDIT_INFO));
 
         // Then
-        assertThat(auditCrudServiceInMemory.storage())
+        assertThat(auditCrudServiceInMemory.data())
             .usingRecursiveFieldByFieldElementComparatorIgnoringFields("createdAt", "patch")
             .containsExactly(
                 new AuditEntity(
@@ -329,7 +330,7 @@ class CloseSubscriptionUseCaseTest {
         usecase.execute(new Input(SUBSCRIPTION_ID, AUDIT_INFO));
 
         // Then
-        var revokedKeys = apiKeyCrudService.storage().stream().filter(ApiKeyEntity::isRevoked).toList();
+        var revokedKeys = apiKeyCrudService.data().stream().filter(ApiKeyEntity::isRevoked).toList();
         assertThat(revokedKeys).isEmpty();
     }
 
@@ -362,26 +363,26 @@ class CloseSubscriptionUseCaseTest {
         usecase.execute(new Input(SUBSCRIPTION_ID, AUDIT_INFO));
 
         // Then
-        var revokedKeys = apiKeyCrudService.storage().stream().filter(ApiKeyEntity::isRevoked).toList();
+        var revokedKeys = apiKeyCrudService.data().stream().filter(ApiKeyEntity::isRevoked).toList();
         assertThat(revokedKeys).hasSize(1);
     }
 
     private void givenExistingApiKeysForSubscription(List<ApiKeyEntity> apiKeys) {
-        apiKeyCrudService.initWith(apiKeys);
+        apiKeyCrudService.initWith(Storage.from(apiKeys));
     }
 
     private BaseApplicationEntity givenExistingApplication(BaseApplicationEntity application) {
-        applicationCrudService.initWith(List.of(application));
+        applicationCrudService.initWith(Storage.of(application));
         return application;
     }
 
     private SubscriptionEntity givenExistingSubscription(SubscriptionEntity subscription) {
-        subscriptionCrudService.initWith(List.of(subscription));
+        subscriptionCrudService.initWith(Storage.of(subscription));
         return subscription;
     }
 
     private Plan givenExistingPlan(Plan plan) {
-        planCrudService.initWith(List.of(plan));
+        planCrudService.initWith(Storage.of(plan));
         return plan;
     }
 }

@@ -16,6 +16,7 @@
 package inmemory;
 
 import com.google.common.collect.ImmutableList;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.model.*;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
@@ -26,19 +27,19 @@ import java.util.stream.Collectors;
 
 public class PageCrudServiceInMemory implements InMemoryAlternative<Page>, PageCrudService {
 
-    List<Page> pages = new ArrayList<>();
+    Storage<Page> pages = new Storage<>();
 
     @Override
     public Page createDocumentationPage(Page page) {
-        pages.add(page);
+        pages.data().add(page);
         return page;
     }
 
     @Override
     public Page updateDocumentationPage(Page pageToUpdate) {
         // Remove page from DB
-        pages = pages.stream().filter(p -> !p.getId().equals(pageToUpdate.getId())).collect(Collectors.toList());
-        pages.add(pageToUpdate);
+        pages.data().removeIf(p -> p.getId().equals(pageToUpdate.getId()));
+        pages.data().add(pageToUpdate);
 
         return pageToUpdate;
     }
@@ -50,27 +51,26 @@ public class PageCrudServiceInMemory implements InMemoryAlternative<Page>, PageC
 
     @Override
     public Optional<Page> findById(String id) {
-        return pages.stream().filter(p -> p.getId().equals(id)).findFirst();
+        return pages.data().stream().filter(p -> p.getId().equals(id)).findFirst();
     }
 
     @Override
     public void delete(String id) {
-        pages.removeIf(page -> page.getId().equals(id));
-    }
-
-    @Override
-    public void initWith(List<Page> items) {
-        this.reset();
-        this.pages.addAll(items);
+        pages.data().removeIf(page -> page.getId().equals(id));
     }
 
     @Override
     public void reset() {
-        pages = new ArrayList<>();
+        pages.clear();
     }
 
     @Override
-    public List<Page> storage() {
-        return ImmutableList.copyOf(pages);
+    public Storage<Page> storage() {
+        return pages;
+    }
+
+    @Override
+    public void syncStorageWith(InMemoryAlternative<Page> other) {
+        pages = other.storage();
     }
 }

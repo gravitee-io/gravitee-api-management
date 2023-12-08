@@ -21,7 +21,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 
-import inmemory.ApiHostValidatorDomainServiceGoogleImpl;
 import io.gravitee.apim.core.api.exception.InvalidPathsException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiFieldFilter;
@@ -50,6 +49,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import stub.ApiHostValidatorDomainServiceGoogleStub;
 
 @ExtendWith(MockitoExtension.class)
 class VerifyApiPathDomainServiceTest {
@@ -88,7 +88,7 @@ class VerifyApiPathDomainServiceTest {
     @BeforeEach
     void setup() {
         service =
-            new VerifyApiPathDomainService(apiSearchService, installationAccessQueryService, new ApiHostValidatorDomainServiceGoogleImpl());
+            new VerifyApiPathDomainService(apiSearchService, installationAccessQueryService, new ApiHostValidatorDomainServiceGoogleStub());
     }
 
     @AfterEach

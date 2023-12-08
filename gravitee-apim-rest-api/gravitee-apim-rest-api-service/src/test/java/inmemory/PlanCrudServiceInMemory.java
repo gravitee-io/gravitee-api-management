@@ -25,7 +25,7 @@ import java.util.List;
 
 public class PlanCrudServiceInMemory implements PlanCrudService, InMemoryAlternative<Plan> {
 
-    private final List<Plan> storage = new ArrayList<>();
+    private Storage<Plan> storage = new Storage<>();
 
     @Override
     public Plan findById(String planId) {
@@ -33,15 +33,11 @@ public class PlanCrudServiceInMemory implements PlanCrudService, InMemoryAlterna
             throw new TechnicalManagementException("planId should not be null");
         }
         return storage
+            .data()
             .stream()
             .filter(plan -> planId.equals(plan.getId()))
             .findFirst()
             .orElseThrow(() -> new PlanNotFoundException(planId));
-    }
-
-    @Override
-    public void initWith(List<Plan> items) {
-        storage.addAll(items);
     }
 
     @Override
@@ -50,7 +46,12 @@ public class PlanCrudServiceInMemory implements PlanCrudService, InMemoryAlterna
     }
 
     @Override
-    public List<Plan> storage() {
-        return Collections.unmodifiableList(storage);
+    public Storage<Plan> storage() {
+        return storage;
+    }
+
+    @Override
+    public void syncStorageWith(InMemoryAlternative<Plan> other) {
+        storage = other.storage();
     }
 }

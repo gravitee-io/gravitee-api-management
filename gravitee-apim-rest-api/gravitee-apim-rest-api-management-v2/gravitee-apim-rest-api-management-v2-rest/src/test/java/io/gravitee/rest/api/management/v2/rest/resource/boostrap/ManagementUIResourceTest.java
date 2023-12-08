@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 import inmemory.ParametersDomainServiceInMemory;
+import inmemory.Storage;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.node.api.license.NodeLicenseService;
 import io.gravitee.repository.management.model.Parameter;
@@ -46,7 +47,7 @@ class ManagementUIResourceTest extends AbstractResourceTest {
         GraviteeContext.fromExecutionContext(new ExecutionContext(ORGANIZATION));
 
         parametersDomainServiceInMemory.initWith(
-            List.of(Parameter.builder().key(Key.CONSOLE_CUSTOMIZATION_TITLE.key()).value("title").build())
+            Storage.of(Parameter.builder().key(Key.CONSOLE_CUSTOMIZATION_TITLE.key()).value("title").build())
         );
     }
 

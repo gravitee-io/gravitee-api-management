@@ -24,8 +24,8 @@ import inmemory.ApiKeyCrudServiceInMemory;
 import inmemory.ApiKeyQueryServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
+import inmemory.Storage;
 import inmemory.SubscriptionCrudServiceInMemory;
-import inmemory.TriggerNotificationDomainServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
@@ -50,6 +50,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import stub.TriggerNotificationDomainServiceStub;
 
 class RevokeApiKeyDomainServiceTest {
 
@@ -70,7 +71,7 @@ class RevokeApiKeyDomainServiceTest {
     AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     SubscriptionCrudServiceInMemory subscriptionCrudService = new SubscriptionCrudServiceInMemory();
-    TriggerNotificationDomainServiceInMemory triggerNotificationDomainService = new TriggerNotificationDomainServiceInMemory();
+    TriggerNotificationDomainServiceStub triggerNotificationDomainService = new TriggerNotificationDomainServiceStub();
     RevokeApiKeyDomainService service;
 
     @BeforeEach
@@ -113,7 +114,7 @@ class RevokeApiKeyDomainServiceTest {
             );
 
             // Then
-            assertThat(auditCrudService.storage()).isEmpty();
+            assertThat(auditCrudService.data()).isEmpty();
         }
 
         @Test
@@ -146,7 +147,7 @@ class RevokeApiKeyDomainServiceTest {
 
             // Then
             // No modification
-            assertThat(auditCrudService.storage()).isEmpty();
+            assertThat(auditCrudService.data()).isEmpty();
         }
 
         @Test
@@ -180,7 +181,7 @@ class RevokeApiKeyDomainServiceTest {
             assertThat(revokedKey.get().isRevoked()).isTrue();
             assertThat(revokedKey.get().getRevokedAt()).isAfterOrEqualTo(now);
 
-            assertThat(auditCrudService.storage())
+            assertThat(auditCrudService.data())
                 .usingRecursiveFieldByFieldElementComparatorIgnoringFields("createdAt", "patch")
                 .containsExactly(
                     AuditEntity
@@ -221,7 +222,7 @@ class RevokeApiKeyDomainServiceTest {
             );
 
             // Then
-            assertThat(auditCrudService.storage())
+            assertThat(auditCrudService.data())
                 .usingRecursiveFieldByFieldElementComparatorIgnoringFields("createdAt", "patch")
                 .containsExactly(
                     AuditEntity
@@ -251,7 +252,7 @@ class RevokeApiKeyDomainServiceTest {
             var result = service.revoke(apiKey, AUDIT_INFO);
 
             // Then
-            assertThat(auditCrudService.storage()).isEmpty();
+            assertThat(auditCrudService.data()).isEmpty();
             assertThat(result).isSameAs(apiKey);
         }
 
@@ -264,7 +265,7 @@ class RevokeApiKeyDomainServiceTest {
             var result = service.revoke(apiKey, AUDIT_INFO);
 
             // Then
-            assertThat(auditCrudService.storage()).isEmpty();
+            assertThat(auditCrudService.data()).isEmpty();
             assertThat(result).isSameAs(apiKey);
         }
 
@@ -301,7 +302,7 @@ class RevokeApiKeyDomainServiceTest {
             var result = service.revoke(apiKey, AUDIT_INFO);
 
             // Then
-            assertThat(auditCrudService.storage())
+            assertThat(auditCrudService.data())
                 .hasSize(2)
                 .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
                 .contains(
@@ -354,17 +355,17 @@ class RevokeApiKeyDomainServiceTest {
 
     @SneakyThrows
     private void givenApiKeys(List<ApiKeyEntity> keys) {
-        apiKeyCrudService.initWith(keys);
+        apiKeyCrudService.initWith(Storage.from(keys));
     }
 
     @SneakyThrows
     private ApiKeyEntity givenApiKey(ApiKeyEntity key) {
-        apiKeyCrudService.initWith(List.of(key));
+        apiKeyCrudService.initWith(Storage.of(key));
         return key;
     }
 
     private List<SubscriptionEntity> givenSubscriptions(List<SubscriptionEntity> subscriptions) {
-        subscriptionCrudService.initWith(subscriptions);
+        subscriptionCrudService.initWith(Storage.from(subscriptions));
         return subscriptions;
     }
 
@@ -387,7 +388,7 @@ class RevokeApiKeyDomainServiceTest {
                 .planId(PLAN_ID_2)
                 .build()
         );
-        subscriptionCrudService.initWith(subscriptions);
+        subscriptionCrudService.initWith(Storage.from(subscriptions));
         return subscriptions;
     }
 }

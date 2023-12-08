@@ -28,7 +28,6 @@ import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentation
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
-import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 import java.util.Date;
@@ -165,7 +164,7 @@ class ApiPublishDocumentationPageUseCaseTest {
             )
         );
         useCase.execute(new ApiPublishDocumentationPageUseCase.Input(API_ID, PAGE_ID, AUDIT_INFO)).page();
-        assertThat(auditCrudService.storage().get(0)).isNotNull().hasFieldOrPropertyWithValue("event", "PAGE_UPDATED");
+        assertThat(auditCrudService.data().get(0)).isNotNull().hasFieldOrPropertyWithValue("event", "PAGE_UPDATED");
     }
 
     @Test
@@ -260,11 +259,10 @@ class ApiPublishDocumentationPageUseCaseTest {
     }
 
     private void initPageServices(List<Page> pages) {
-        pageCrudService.initWith(pages);
-        pageQueryService.initWith(pages);
+        pageQueryService.syncStorageWith(pageCrudService.initWith(Storage.from(pages)));
     }
 
     private void initApiServices(List<Api> apis) {
-        apiCrudService.initWith(apis);
+        apiCrudService.initWith(Storage.from(apis));
     }
 }

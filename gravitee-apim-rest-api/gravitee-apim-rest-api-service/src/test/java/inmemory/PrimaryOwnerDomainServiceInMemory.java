@@ -20,19 +20,17 @@ import io.gravitee.apim.core.application.domain_service.ApplicationPrimaryOwnerD
 import io.gravitee.apim.core.membership.exception.ApiPrimaryOwnerNotFoundException;
 import io.gravitee.apim.core.membership.exception.ApplicationPrimaryOwnerNotFoundException;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class PrimaryOwnerDomainServiceInMemory
     implements
         ApiPrimaryOwnerDomainService, ApplicationPrimaryOwnerDomainService, InMemoryAlternative<Map.Entry<String, PrimaryOwnerEntity>> {
 
-    Map<String, PrimaryOwnerEntity> storage = new HashMap<>();
+    MapStorage<String, PrimaryOwnerEntity> storage = new MapStorage<>();
 
     @Override
     public PrimaryOwnerEntity getApiPrimaryOwner(String organizationId, String apiId) throws ApiPrimaryOwnerNotFoundException {
-        PrimaryOwnerEntity primaryOwnerEntity = storage.get(apiId);
+        PrimaryOwnerEntity primaryOwnerEntity = storage.data().get(apiId);
         if (primaryOwnerEntity == null) {
             throw new ApiPrimaryOwnerNotFoundException(apiId);
         }
@@ -42,7 +40,7 @@ public class PrimaryOwnerDomainServiceInMemory
     @Override
     public PrimaryOwnerEntity getApplicationPrimaryOwner(String organizationId, String applicationId)
         throws ApplicationPrimaryOwnerNotFoundException {
-        PrimaryOwnerEntity primaryOwnerEntity = storage.get(applicationId);
+        PrimaryOwnerEntity primaryOwnerEntity = storage.data().get(applicationId);
         if (primaryOwnerEntity == null) {
             throw new ApplicationPrimaryOwnerNotFoundException(applicationId);
         }
@@ -50,13 +48,10 @@ public class PrimaryOwnerDomainServiceInMemory
     }
 
     @Override
-    public void initWith(List<Map.Entry<String, PrimaryOwnerEntity>> items) {
+    public PrimaryOwnerDomainServiceInMemory initWith(Storage<Map.Entry<String, PrimaryOwnerEntity>> items) {
         storage.clear();
-        items.forEach(entry -> storage.put(entry.getKey(), entry.getValue()));
-    }
-
-    public void add(String id, PrimaryOwnerEntity primaryOwnerEntity) {
-        storage.put(id, primaryOwnerEntity);
+        items.data().forEach(entry -> storage.data().put(entry.getKey(), entry.getValue()));
+        return this;
     }
 
     @Override
@@ -65,7 +60,13 @@ public class PrimaryOwnerDomainServiceInMemory
     }
 
     @Override
-    public List<Map.Entry<String, PrimaryOwnerEntity>> storage() {
-        return storage.entrySet().stream().toList();
+    public Storage<Map.Entry<String, PrimaryOwnerEntity>> storage() {
+        // FIXME ugly
+        return Storage.from(storage.data().entrySet().stream().toList());
+    }
+
+    @Override
+    public void syncStorageWith(InMemoryAlternative<Map.Entry<String, PrimaryOwnerEntity>> other) {
+        // FIXME: to implement
     }
 }

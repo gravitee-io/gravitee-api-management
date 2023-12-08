@@ -25,11 +25,12 @@ import java.util.OptionalInt;
 
 public class SubscriptionCrudServiceInMemory implements SubscriptionCrudService, InMemoryAlternative<SubscriptionEntity> {
 
-    final ArrayList<SubscriptionEntity> storage = new ArrayList<>();
+    Storage<SubscriptionEntity> storage = new Storage<>();
 
     @Override
     public SubscriptionEntity get(String subscriptionId) {
         return storage
+            .data()
             .stream()
             .filter(subscription -> subscriptionId.equals(subscription.getId()))
             .findFirst()
@@ -38,19 +39,13 @@ public class SubscriptionCrudServiceInMemory implements SubscriptionCrudService,
 
     @Override
     public SubscriptionEntity update(SubscriptionEntity subscriptionEntity) {
-        OptionalInt index = this.findIndex(this.storage, subscription -> subscription.getId().equals(subscriptionEntity.getId()));
+        OptionalInt index = this.findIndex(this.storage.data(), subscription -> subscription.getId().equals(subscriptionEntity.getId()));
         if (index.isPresent()) {
-            storage.set(index.getAsInt(), subscriptionEntity);
+            storage.data().set(index.getAsInt(), subscriptionEntity);
             return subscriptionEntity;
         }
 
         throw new IllegalStateException("Subscription not found");
-    }
-
-    @Override
-    public void initWith(List<SubscriptionEntity> items) {
-        storage.clear();
-        storage.addAll(items);
     }
 
     @Override
@@ -59,7 +54,12 @@ public class SubscriptionCrudServiceInMemory implements SubscriptionCrudService,
     }
 
     @Override
-    public List<SubscriptionEntity> storage() {
-        return Collections.unmodifiableList(storage);
+    public Storage<SubscriptionEntity> storage() {
+        return storage;
+    }
+
+    @Override
+    public void syncStorageWith(InMemoryAlternative<SubscriptionEntity> other) {
+        storage = other.storage();
     }
 }

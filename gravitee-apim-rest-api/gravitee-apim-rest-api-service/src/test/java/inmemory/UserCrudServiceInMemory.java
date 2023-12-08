@@ -27,30 +27,26 @@ import java.util.stream.Collectors;
 
 public class UserCrudServiceInMemory implements UserCrudService, InMemoryAlternative<BaseUserEntity> {
 
-    private final List<BaseUserEntity> storage = new ArrayList<>();
+    private Storage<BaseUserEntity> storage = new Storage<>();
 
     @Override
     public Optional<BaseUserEntity> findBaseUserById(String userId) {
-        return storage.stream().filter(user -> userId.equals(user.getId())).findFirst();
+        return storage.data().stream().filter(user -> userId.equals(user.getId())).findFirst();
     }
 
     @Override
     public Set<BaseUserEntity> findBaseUsersByIds(List<String> userIds) {
-        return storage.stream().filter(user -> userIds.contains(user.getId())).collect(Collectors.toSet());
+        return storage.data().stream().filter(user -> userIds.contains(user.getId())).collect(Collectors.toSet());
     }
 
     @Override
     public BaseUserEntity getBaseUser(String userId) {
         return storage
+            .data()
             .stream()
             .filter(user -> userId.equals(user.getId()))
             .findFirst()
             .orElseThrow(() -> new UserNotFoundException(userId));
-    }
-
-    @Override
-    public void initWith(List<BaseUserEntity> items) {
-        storage.addAll(items);
     }
 
     @Override
@@ -59,7 +55,12 @@ public class UserCrudServiceInMemory implements UserCrudService, InMemoryAlterna
     }
 
     @Override
-    public List<BaseUserEntity> storage() {
-        return Collections.unmodifiableList(storage);
+    public Storage<BaseUserEntity> storage() {
+        return storage;
+    }
+
+    @Override
+    public void syncStorageWith(InMemoryAlternative<BaseUserEntity> other) {
+        storage = other.storage();
     }
 }

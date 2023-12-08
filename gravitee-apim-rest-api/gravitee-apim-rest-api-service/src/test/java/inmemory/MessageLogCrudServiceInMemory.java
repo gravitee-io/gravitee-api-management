@@ -27,7 +27,7 @@ import java.util.function.Predicate;
 
 public class MessageLogCrudServiceInMemory implements MessageLogCrudService, InMemoryAlternative<AggregatedMessageLog> {
 
-    private final List<AggregatedMessageLog> storage = new ArrayList<>();
+    private Storage<AggregatedMessageLog> storage = new Storage<>();
 
     @Override
     public SearchLogsResponse<AggregatedMessageLog> searchApiMessageLog(String apiId, String requestId, Pageable pageable) {
@@ -37,6 +37,7 @@ public class MessageLogCrudServiceInMemory implements MessageLogCrudService, InM
         var pageSize = pageable.getPageSize();
 
         var matches = storage()
+            .data()
             .stream()
             .filter(predicate)
             .sorted(Comparator.comparing(AggregatedMessageLog::getTimestamp).reversed())
@@ -48,17 +49,17 @@ public class MessageLogCrudServiceInMemory implements MessageLogCrudService, InM
     }
 
     @Override
-    public void initWith(List<AggregatedMessageLog> items) {
-        storage.addAll(items);
-    }
-
-    @Override
     public void reset() {
         storage.clear();
     }
 
     @Override
-    public List<AggregatedMessageLog> storage() {
-        return Collections.unmodifiableList(storage);
+    public Storage<AggregatedMessageLog> storage() {
+        return storage;
+    }
+
+    @Override
+    public void syncStorageWith(InMemoryAlternative<AggregatedMessageLog> other) {
+        storage = other.storage();
     }
 }

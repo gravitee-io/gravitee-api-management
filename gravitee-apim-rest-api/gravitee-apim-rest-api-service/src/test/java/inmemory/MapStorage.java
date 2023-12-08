@@ -15,33 +15,37 @@
  */
 package inmemory;
 
-import io.gravitee.apim.core.audit.crud_service.AuditCrudService;
-import io.gravitee.apim.core.audit.model.AuditEntity;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-public class AuditCrudServiceInMemory implements AuditCrudService, InMemoryAlternative<AuditEntity> {
+public class MapStorage<K, V> {
 
-    private Storage<AuditEntity> storage = new Storage<>();
+    private Map<K, V> data = new HashMap<>();
 
-    @Override
-    public void create(AuditEntity auditEntity) {
-        storage.data().add(auditEntity);
+    public MapStorage() {}
+
+    public Map<K, V> unmodifiableData() {
+        return Collections.unmodifiableMap(data);
     }
 
-    @Override
-    public void reset() {
-        storage.clear();
+    Map<K, V> data() {
+        return data;
     }
 
-    @Override
-    public Storage<AuditEntity> storage() {
+    void clear() {
+        data.clear();
+    }
+
+    public static <K, V> MapStorage<K, V> from(Map<K, V> map) {
+        final MapStorage<K, V> storage = new MapStorage<>();
+        storage.data = map;
         return storage;
     }
 
-    @Override
-    public void syncStorageWith(InMemoryAlternative<AuditEntity> other) {
-        storage = other.storage();
+    public static <K, V> MapStorage<K, V> of() {
+        return MapStorage.from(Map.of());
     }
 }

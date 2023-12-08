@@ -355,6 +355,7 @@
 						<configuration>
 							<includes>
 								<include>inmemory/**</include>
+								<include>stub/**</include>
 								<include>fixtures/**</include>
 							</includes>
 						</configuration>

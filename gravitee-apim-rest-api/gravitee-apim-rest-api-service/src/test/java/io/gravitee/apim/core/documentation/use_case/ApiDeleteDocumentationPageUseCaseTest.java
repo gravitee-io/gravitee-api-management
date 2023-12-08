@@ -26,6 +26,7 @@ import inmemory.PageCrudServiceInMemory;
 import inmemory.PageQueryServiceInMemory;
 import inmemory.PageRevisionCrudServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
+import inmemory.Storage;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
@@ -36,7 +37,6 @@ import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
-import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -104,9 +104,8 @@ class ApiDeleteDocumentationPageUseCaseTest {
             .referenceType(Page.ReferenceType.API)
             .type(Page.Type.MARKDOWN)
             .build();
-        pageCrudService.initWith(List.of(page));
-        pageQueryService.initWith(List.of(page));
-        apiCrudService.initWith(List.of(API));
+        pageQueryService.syncStorageWith(pageCrudService.initWith(Storage.of(page)));
+        apiCrudService.initWith(Storage.of(API));
         assertThat(pageCrudService.findById(PAGE_ID)).isPresent();
         cut.execute(new ApiDeleteDocumentationPageUseCase.Input(API.getId(), PAGE_ID, AUDIT_INFO));
         assertThat(pageCrudService.findById(PAGE_ID)).isEmpty();

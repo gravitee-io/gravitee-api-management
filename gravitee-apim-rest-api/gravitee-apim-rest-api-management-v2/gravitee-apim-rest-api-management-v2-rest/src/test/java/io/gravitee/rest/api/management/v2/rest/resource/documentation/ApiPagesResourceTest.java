@@ -33,6 +33,7 @@ import inmemory.PageCrudServiceInMemory;
 import inmemory.PageQueryServiceInMemory;
 import inmemory.PageRevisionCrudServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
+import inmemory.Storage;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.documentation.model.Page;
@@ -133,7 +134,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
         @BeforeEach
         void setUp() {
-            apiCrudServiceInMemory.initWith(List.of(Api.builder().id("api-id").build()));
+            apiCrudServiceInMemory.initWith(Storage.of(Api.builder().id("api-id").build()));
         }
 
         @Test
@@ -491,7 +492,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .build();
             givenApiPagesQuery(List.of(page1, page2));
             planQueryServiceInMemory.initWith(
-                List.of(
+                Storage.of(
                     PlanFixtures
                         .aPlanV4()
                         .toBuilder()
@@ -573,7 +574,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
         @BeforeEach
         void setUp() {
-            apiCrudServiceInMemory.initWith(List.of(Api.builder().id("api-id").build()));
+            apiCrudServiceInMemory.initWith(Storage.of(Api.builder().id("api-id").build()));
         }
 
         @Test
@@ -700,7 +701,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
+            apiCrudServiceInMemory.initWith(Storage.of(Api.builder().id(API_ID).build()));
 
             when(
                 permissionService.hasPermission(
@@ -736,7 +737,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_404_if_page_does_not_exist() {
-            apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
+            apiCrudServiceInMemory.initWith(Storage.of(Api.builder().id(API_ID).build()));
 
             final Response response = rootTarget().path(PAGE_ID).request().get();
 
@@ -750,7 +751,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
         @Test
         void should_get_page() {
-            apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
+            apiCrudServiceInMemory.initWith(Storage.of(Api.builder().id(API_ID).build()));
 
             Page page1 = Page
                 .builder()
@@ -792,7 +793,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
         @BeforeEach
         void setUp() {
-            apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
+            apiCrudServiceInMemory.initWith(Storage.of(Api.builder().id(API_ID).build()));
         }
 
         @Test
@@ -1003,7 +1004,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
+            apiCrudServiceInMemory.initWith(Storage.of(Api.builder().id(API_ID).build()));
 
             when(
                 permissionService.hasPermission(
@@ -1039,7 +1040,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_404_if_page_does_not_exist() {
-            apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
+            apiCrudServiceInMemory.initWith(Storage.of(Api.builder().id(API_ID).build()));
 
             final Response response = rootTarget().path(PATH).request().post(Entity.json(""));
 
@@ -1053,7 +1054,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
         @Test
         void should_publish_page() {
-            apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
+            apiCrudServiceInMemory.initWith(Storage.of(Api.builder().id(API_ID).build()));
 
             Page page1 = Page
                 .builder()
@@ -1080,7 +1081,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_403_if_incorrect_permissions() {
-            apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
+            apiCrudServiceInMemory.initWith(Storage.of(Api.builder().id(API_ID).build()));
 
             when(
                 permissionService.hasPermission(
@@ -1116,7 +1117,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_return_404_if_page_does_not_exist() {
-            apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
+            apiCrudServiceInMemory.initWith(Storage.of(Api.builder().id(API_ID).build()));
 
             final Response response = rootTarget().path(PATH).request().post(Entity.json(""));
 
@@ -1130,7 +1131,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
         @Test
         void should_unpublish_page() {
-            apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
+            apiCrudServiceInMemory.initWith(Storage.of(Api.builder().id(API_ID).build()));
 
             Page page1 = Page
                 .builder()
@@ -1157,7 +1158,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_403_if_incorrect_permissions() {
-            apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
+            apiCrudServiceInMemory.initWith(Storage.of(Api.builder().id(API_ID).build()));
 
             when(
                 permissionService.hasPermission(
@@ -1193,7 +1194,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_404_if_page_does_not_exist() {
-            apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
+            apiCrudServiceInMemory.initWith(Storage.of(Api.builder().id(API_ID).build()));
 
             final Response response = rootTarget().path(PATH).request().delete();
 
@@ -1207,7 +1208,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_400_if_page_is_not_api_page() {
-            apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
+            apiCrudServiceInMemory.initWith(Storage.of(Api.builder().id(API_ID).build()));
 
             Page page1 = Page
                 .builder()
@@ -1233,7 +1234,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
         @ParameterizedTest
         @EnumSource(value = PlanStatus.class, names = { "PUBLISHED", "DEPRECATED" })
         void should_return_400_if_page_is_used_as_general_condition(PlanStatus planStatus) {
-            apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
+            apiCrudServiceInMemory.initWith(Storage.of(Api.builder().id(API_ID).build()));
 
             Page page1 = Page
                 .builder()
@@ -1247,7 +1248,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
             givenApiPagesQuery(List.of(page1));
 
             planQueryServiceInMemory.initWith(
-                List.of(
+                Storage.of(
                     PlanFixtures.aPlanV4().toBuilder().id("plan-id").status(planStatus).apiId(API_ID).generalConditions(PAGE_ID).build()
                 )
             );
@@ -1264,7 +1265,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
         @Test
         void should_return_400_if_page_is_a_non_empty_folder() {
-            apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
+            apiCrudServiceInMemory.initWith(Storage.of(Api.builder().id(API_ID).build()));
 
             Page folder = Page
                 .builder()
@@ -1299,7 +1300,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
         @Test
         void should_delete_page() {
-            apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
+            apiCrudServiceInMemory.initWith(Storage.of(Api.builder().id(API_ID).build()));
 
             Page page1 = Page
                 .builder()
@@ -1322,7 +1323,6 @@ class ApiPagesResourceTest extends AbstractResourceTest {
     }
 
     private void givenApiPagesQuery(List<Page> pages) {
-        pageQueryServiceInMemory.initWith(pages);
-        pageCrudServiceInMemory.initWith(pages);
+        pageCrudServiceInMemory.syncStorageWith(pageQueryServiceInMemory.initWith(Storage.from(pages)));
     }
 }

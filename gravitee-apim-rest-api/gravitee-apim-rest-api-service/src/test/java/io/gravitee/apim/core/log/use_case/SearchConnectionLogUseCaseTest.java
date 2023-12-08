@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import fixtures.repository.ConnectionLogDetailFixtures;
 import inmemory.ConnectionLogsCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
+import inmemory.Storage;
 import io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.time.Instant;
@@ -59,7 +60,7 @@ class SearchConnectionLogUseCaseTest {
     @Test
     void should_return_connection_log_for_a_request_on_api() {
         final ConnectionLogDetail connectionLogDetail = connectionLogDetailFixtures.aConnectionLogDetail().toBuilder().build();
-        logStorageService.initWithConnectionLogDetails(List.of(connectionLogDetail));
+        logStorageService.initWithConnectionLogDetails(Storage.of(connectionLogDetail));
 
         var result = usecase.execute(new SearchConnectionLogUseCase.Input(API_ID, REQUEST_ID));
 
@@ -69,7 +70,7 @@ class SearchConnectionLogUseCaseTest {
     @Test
     void should_return_empty_connection_log_for_non_existing_request() {
         logStorageService.initWithConnectionLogDetails(
-            List.of(connectionLogDetailFixtures.aConnectionLogDetail("other-req").toBuilder().build())
+            Storage.of(connectionLogDetailFixtures.aConnectionLogDetail("other-req").toBuilder().build())
         );
 
         var result = usecase.execute(new SearchConnectionLogUseCase.Input(API_ID, REQUEST_ID));
@@ -80,7 +81,7 @@ class SearchConnectionLogUseCaseTest {
     @Test
     void should_return_empty_connection_log_for_non_existing_api() {
         logStorageService.initWithConnectionLogDetails(
-            List.of(connectionLogDetailFixtures.aConnectionLogDetail().toBuilder().apiId("other-api").build())
+            Storage.of(connectionLogDetailFixtures.aConnectionLogDetail().toBuilder().apiId("other-api").build())
         );
 
         var result = usecase.execute(new SearchConnectionLogUseCase.Input(API_ID, REQUEST_ID));

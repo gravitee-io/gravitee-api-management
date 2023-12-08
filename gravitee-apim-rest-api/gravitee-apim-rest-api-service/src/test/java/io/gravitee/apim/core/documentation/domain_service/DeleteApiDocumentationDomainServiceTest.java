@@ -27,6 +27,7 @@ import inmemory.PageCrudServiceInMemory;
 import inmemory.PageQueryServiceInMemory;
 import inmemory.PageRevisionCrudServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
+import inmemory.Storage;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
@@ -105,17 +106,17 @@ class DeleteApiDocumentationDomainServiceTest {
 
         @Test
         void should_throw_if_page_to_delete_has_not_api_reference_type() {
-            pageCrudService.initWith(List.of(Page.builder().id(PAGE_ID).referenceType(Page.ReferenceType.ENVIRONMENT).build()));
+            pageCrudService.initWith(Storage.of(Page.builder().id(PAGE_ID).referenceType(Page.ReferenceType.ENVIRONMENT).build()));
             assertThatThrownBy(() -> cut.delete(API, PAGE_ID, AUDIT_INFO)).isInstanceOf(ApiPageInvalidReferenceTypeException.class);
         }
 
         @Test
         void should_throw_if_page_used_as_general_condition() {
             pageCrudService.initWith(
-                List.of(Page.builder().id(PAGE_ID).referenceType(Page.ReferenceType.API).type(Page.Type.MARKDOWN).build())
+                Storage.of(Page.builder().id(PAGE_ID).referenceType(Page.ReferenceType.API).type(Page.Type.MARKDOWN).build())
             );
             planQueryService.initWith(
-                List.of(
+                Storage.of(
                     PlanFixtures
                         .aPlanV4()
                         .toBuilder()
@@ -146,10 +147,9 @@ class DeleteApiDocumentationDomainServiceTest {
                 .parentId(FOLDER_ID)
                 .type(Page.Type.MARKDOWN)
                 .build();
-            pageCrudService.initWith(List.of(folder, page));
-            pageQueryService.initWith(List.of(folder, page));
+            pageQueryService.syncStorageWith(pageCrudService.initWith(Storage.of(folder, page)));
             planQueryService.initWith(
-                List.of(
+                Storage.of(
                     PlanFixtures
                         .aPlanV4()
                         .toBuilder()
@@ -184,14 +184,12 @@ class DeleteApiDocumentationDomainServiceTest {
             final Page fourth = pageWithIdAndOrder("fourth", 3);
 
             final List<Page> storedPages = List.of(first, second, third, fourth);
-            pageCrudService.initWith(storedPages);
-            pageQueryService.initWith(storedPages);
+            final Storage<Page> storage = Storage.from(List.of(first, second, third, fourth));
+
+            pageQueryService.syncStorageWith(pageCrudService.initWith(storage));
 
             // Should be able to delete folder
             cut.delete(API, second.getId(), AUDIT_INFO);
-
-            // Hack to synchronize pageCrudService and pageQueryService
-            syncPageStorage();
 
             assertThat(pageQueryService.searchByApiId(API.getId()))
                 .hasSize(3)
@@ -201,9 +199,6 @@ class DeleteApiDocumentationDomainServiceTest {
             // should be able to delete first page
             cut.delete(API, first.getId(), AUDIT_INFO);
 
-            // Hack to synchronize pageCrudService and pageQueryService
-            syncPageStorage();
-
             assertThat(pageQueryService.searchByApiId(API.getId()))
                 .hasSize(2)
                 .extracting(Page::getId, Page::getOrder)
@@ -211,9 +206,6 @@ class DeleteApiDocumentationDomainServiceTest {
 
             // should be able to delete last page
             cut.delete(API, fourth.getId(), AUDIT_INFO);
-
-            // Hack to synchronize pageCrudService and pageQueryService
-            syncPageStorage();
 
             assertThat(pageQueryService.searchByApiId(API.getId()))
                 .hasSize(1)
@@ -223,23 +215,16 @@ class DeleteApiDocumentationDomainServiceTest {
             // should be able to delete remaining page
             cut.delete(API, third.getId(), AUDIT_INFO);
 
-            // Hack to synchronize pageCrudService and pageQueryService
-            syncPageStorage();
-
             assertThat(pageQueryService.searchByApiId(API.getId())).isEmpty();
 
             assertThat(
                 auditCrudService
-                    .storage()
+                    .data()
                     .stream()
                     .filter(auditEntity -> auditEntity.getEvent().equals(PageAuditEvent.PAGE_DELETED.name()))
                     .toList()
             )
                 .hasSize(4);
-        }
-
-        private void syncPageStorage() {
-            pageQueryService.initWith(pageCrudService.storage());
         }
 
         private static Page pageWithIdAndOrder(String id, int order) {

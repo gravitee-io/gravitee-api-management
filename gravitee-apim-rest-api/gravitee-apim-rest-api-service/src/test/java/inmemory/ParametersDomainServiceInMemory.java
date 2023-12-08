@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 
 public class ParametersDomainServiceInMemory implements ParametersDomainService, InMemoryAlternative<Parameter> {
 
-    final ArrayList<Parameter> parameters = new ArrayList<>();
+    Storage<Parameter> parameters = new Storage<>();
 
     @Override
     public Map<Key, String> getSystemParameters(List<Key> keys) {
@@ -35,15 +35,10 @@ public class ParametersDomainServiceInMemory implements ParametersDomainService,
         }
 
         return parameters
+            .data()
             .stream()
             .filter(parameter -> keys.contains(Key.findByKey(parameter.getKey())))
             .collect(Collectors.toMap(parameter -> Key.findByKey(parameter.getKey()), Parameter::getValue));
-    }
-
-    @Override
-    public void initWith(List<Parameter> items) {
-        parameters.clear();
-        parameters.addAll(items);
     }
 
     @Override
@@ -52,7 +47,12 @@ public class ParametersDomainServiceInMemory implements ParametersDomainService,
     }
 
     @Override
-    public List<Parameter> storage() {
-        return Collections.unmodifiableList(parameters);
+    public Storage<Parameter> storage() {
+        return parameters;
+    }
+
+    @Override
+    public void syncStorageWith(InMemoryAlternative<Parameter> other) {
+        parameters = other.storage();
     }
 }

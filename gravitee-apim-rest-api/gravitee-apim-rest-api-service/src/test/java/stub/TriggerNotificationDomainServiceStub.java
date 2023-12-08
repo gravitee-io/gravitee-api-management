@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package inmemory;
+package stub;
 
 import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
 import io.gravitee.apim.core.notification.model.Recipient;
@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class TriggerNotificationDomainServiceInMemory implements TriggerNotificationDomainService {
+public class TriggerNotificationDomainServiceStub implements TriggerNotificationDomainService {
 
     public record ApplicationNotification(Recipient recipient, ApplicationHookContext context) {
         public ApplicationNotification(ApplicationHookContext context) {

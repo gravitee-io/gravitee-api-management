@@ -23,20 +23,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class ApiMetadataQueryServiceInMemory implements ApiMetadataQueryService, InMemoryAlternative<Map.Entry<String, List<ApiMetadata>>> {
 
-    Map<String, List<ApiMetadata>> storage = new HashMap<>();
+    MapStorage<String, List<ApiMetadata>> storage = new MapStorage<>();
 
     @Override
     public Map<String, ApiMetadata> findApiMetadata(String apiId) {
-        return storage.get(apiId).stream().collect(toMap(ApiMetadata::getKey, Function.identity()));
+        return storage.data().get(apiId).stream().collect(toMap(ApiMetadata::getKey, Function.identity()));
     }
 
     @Override
-    public void initWith(List<Map.Entry<String, List<ApiMetadata>>> items) {
+    public ApiMetadataQueryServiceInMemory initWith(Storage<Map.Entry<String, List<ApiMetadata>>> items) {
         storage.clear();
-        items.forEach(entry -> storage.put(entry.getKey(), entry.getValue()));
+        items.data().forEach(entry -> storage.data().put(entry.getKey(), entry.getValue()));
+        return this;
     }
 
     @Override
@@ -45,7 +47,13 @@ public class ApiMetadataQueryServiceInMemory implements ApiMetadataQueryService,
     }
 
     @Override
-    public List<Map.Entry<String, List<ApiMetadata>>> storage() {
-        return storage.entrySet().stream().toList();
+    public Storage<Map.Entry<String, List<ApiMetadata>>> storage() {
+        // FIXME ugly
+        return Storage.from(storage.data().entrySet().stream().toList());
+    }
+
+    @Override
+    public void syncStorageWith(InMemoryAlternative<Map.Entry<String, List<ApiMetadata>>> other) {
+        // FIXME: to implement
     }
 }

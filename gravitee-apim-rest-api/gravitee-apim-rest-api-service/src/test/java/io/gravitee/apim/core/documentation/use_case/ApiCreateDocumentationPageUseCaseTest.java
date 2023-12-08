@@ -34,7 +34,6 @@ import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.PageContentUnsafeException;
-import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -110,7 +109,7 @@ class ApiCreateDocumentationPageUseCaseTest {
                 .name("parent")
                 .type(Page.Type.FOLDER)
                 .build();
-            pageCrudService.initWith(List.of(parentPage));
+            pageCrudService.initWith(Storage.of(parentPage));
 
             var res = apiCreateDocumentationPageUsecase.execute(
                 ApiCreateDocumentationPageUseCase.Input
@@ -144,12 +143,7 @@ class ApiCreateDocumentationPageUseCaseTest {
                 .hasFieldOrPropertyWithValue("parentId", "parent-id")
                 .hasFieldOrPropertyWithValue("order", 0);
 
-            var savedPage = pageCrudService
-                .storage()
-                .stream()
-                .filter(page -> page.getId().equals(res.createdPage().getId()))
-                .toList()
-                .get(0);
+            var savedPage = pageCrudService.data().stream().filter(page -> page.getId().equals(res.createdPage().getId())).toList().get(0);
             assertThat(savedPage).isEqualTo(res.createdPage());
         }
 
@@ -176,7 +170,7 @@ class ApiCreateDocumentationPageUseCaseTest {
                     .build()
             );
 
-            var audit = auditCrudService.storage().get(0);
+            var audit = auditCrudService.data().get(0);
             assertThat(audit)
                 .isNotNull()
                 .hasFieldOrPropertyWithValue("referenceId", "api-id")
@@ -206,7 +200,7 @@ class ApiCreateDocumentationPageUseCaseTest {
                     .build()
             );
 
-            var pageRevision = pageRevisionCrudService.storage().get(0);
+            var pageRevision = pageRevisionCrudService.data().get(0);
             assertThat(pageRevision)
                 .isNotNull()
                 .hasFieldOrPropertyWithValue("pageId", PAGE_ID)
@@ -227,8 +221,7 @@ class ApiCreateDocumentationPageUseCaseTest {
                 .name("existing homepage")
                 .homepage(true)
                 .build();
-            pageCrudService.initWith(List.of(existingHomepage));
-            pageQueryService.initWith(List.of(existingHomepage));
+            pageQueryService.syncStorageWith(pageCrudService.initWith(Storage.of(existingHomepage)));
 
             var res = apiCreateDocumentationPageUsecase.execute(
                 ApiCreateDocumentationPageUseCase.Input
@@ -253,7 +246,7 @@ class ApiCreateDocumentationPageUseCaseTest {
 
             assertThat(res.createdPage()).isNotNull().hasFieldOrPropertyWithValue("homepage", true);
 
-            var formerHomepage = pageCrudService.storage().stream().filter(p -> p.getId().equals(EXISTING_PAGE_ID)).toList().get(0);
+            var formerHomepage = pageCrudService.data().stream().filter(p -> p.getId().equals(EXISTING_PAGE_ID)).toList().get(0);
             assertThat(formerHomepage).isNotNull().hasFieldOrPropertyWithValue("homepage", false);
         }
 
@@ -281,8 +274,7 @@ class ApiCreateDocumentationPageUseCaseTest {
                 .homepage(true)
                 .order(99)
                 .build();
-            pageCrudService.initWith(List.of(existingPage, existingParent));
-            pageQueryService.initWith(List.of(existingPage, existingParent));
+            pageQueryService.syncStorageWith(pageCrudService.initWith(Storage.of(existingPage, existingParent)));
 
             var res = apiCreateDocumentationPageUsecase.execute(
                 ApiCreateDocumentationPageUseCase.Input
@@ -395,7 +387,7 @@ class ApiCreateDocumentationPageUseCaseTest {
                 .parentId("")
                 .name("parent")
                 .build();
-            pageCrudService.initWith(List.of(parentPage));
+            pageCrudService.initWith(Storage.of(parentPage));
 
             assertThatThrownBy(() ->
                     apiCreateDocumentationPageUsecase.execute(
@@ -433,7 +425,7 @@ class ApiCreateDocumentationPageUseCaseTest {
                 .name("parent")
                 .type(Page.Type.FOLDER)
                 .build();
-            pageCrudService.initWith(List.of(parentPage));
+            pageCrudService.initWith(Storage.of(parentPage));
 
             assertThatThrownBy(() ->
                     apiCreateDocumentationPageUsecase.execute(
@@ -478,8 +470,7 @@ class ApiCreateDocumentationPageUseCaseTest {
                 .parentId(PARENT_ID)
                 .name("sub-page")
                 .build();
-            pageCrudService.initWith(List.of(parentFolder, subPage));
-            pageQueryService.initWith(List.of(parentFolder, subPage));
+            pageQueryService.syncStorageWith(pageCrudService.initWith(Storage.of(parentFolder, subPage)));
 
             assertThatThrownBy(() ->
                     apiCreateDocumentationPageUsecase.execute(
@@ -520,7 +511,7 @@ class ApiCreateDocumentationPageUseCaseTest {
                 .name("parent")
                 .type(Page.Type.FOLDER)
                 .build();
-            pageCrudService.initWith(List.of(parentPage));
+            pageCrudService.initWith(Storage.of(parentPage));
 
             var res = apiCreateDocumentationPageUsecase.execute(
                 ApiCreateDocumentationPageUseCase.Input
@@ -552,12 +543,7 @@ class ApiCreateDocumentationPageUseCaseTest {
                 .hasFieldOrPropertyWithValue("order", 0)
                 .hasFieldOrPropertyWithValue("hidden", true);
 
-            var savedPage = pageCrudService
-                .storage()
-                .stream()
-                .filter(page -> page.getId().equals(res.createdPage().getId()))
-                .toList()
-                .get(0);
+            var savedPage = pageCrudService.data().stream().filter(page -> page.getId().equals(res.createdPage().getId())).toList().get(0);
             assertThat(savedPage).isEqualTo(res.createdPage());
         }
 
@@ -582,7 +568,7 @@ class ApiCreateDocumentationPageUseCaseTest {
                     .build()
             );
 
-            var audit = auditCrudService.storage().get(0);
+            var audit = auditCrudService.data().get(0);
             assertThat(audit)
                 .isNotNull()
                 .hasFieldOrPropertyWithValue("referenceId", "api-id")
@@ -599,7 +585,7 @@ class ApiCreateDocumentationPageUseCaseTest {
                 .parentId("")
                 .name("parent")
                 .build();
-            pageCrudService.initWith(List.of(parentPage));
+            pageCrudService.initWith(Storage.of(parentPage));
 
             assertThatThrownBy(() ->
                     apiCreateDocumentationPageUsecase.execute(
@@ -644,8 +630,7 @@ class ApiCreateDocumentationPageUseCaseTest {
                 .parentId(PARENT_ID)
                 .name("sub-page")
                 .build();
-            pageCrudService.initWith(List.of(parentFolder, subFolder));
-            pageQueryService.initWith(List.of(parentFolder, subFolder));
+            pageQueryService.syncStorageWith(pageCrudService.initWith(Storage.of(parentFolder, subFolder)));
 
             assertThatThrownBy(() ->
                     apiCreateDocumentationPageUsecase.execute(

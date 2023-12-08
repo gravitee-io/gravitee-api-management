@@ -21,6 +21,7 @@ import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.gateway.query_service.InstanceQueryService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import stub.TriggerNotificationDomainServiceStub;
 
 @Configuration
 public class InMemoryConfiguration {
@@ -81,8 +82,8 @@ public class InMemoryConfiguration {
     }
 
     @Bean
-    SubscriptionQueryServiceInMemory subscriptionQueryServiceInMemory(SubscriptionCrudServiceInMemory subscriptionCrudServiceInMemory) {
-        return new SubscriptionQueryServiceInMemory(subscriptionCrudServiceInMemory);
+    SubscriptionQueryServiceInMemory subscriptionQueryServiceInMemory() {
+        return new SubscriptionQueryServiceInMemory();
     }
 
     @Bean
@@ -96,8 +97,8 @@ public class InMemoryConfiguration {
     }
 
     @Bean
-    TriggerNotificationDomainServiceInMemory triggerNotificationDomainServiceInMemory() {
-        return new TriggerNotificationDomainServiceInMemory();
+    TriggerNotificationDomainServiceStub triggerNotificationDomainServiceInMemory() {
+        return new TriggerNotificationDomainServiceStub();
     }
 
     @Bean

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package inmemory;
+package stub;
 
 import io.gravitee.apim.core.access_point.model.AccessPoint;
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
@@ -21,7 +21,7 @@ import io.gravitee.rest.api.service.common.ReferenceContext;
 import java.util.List;
 import java.util.Optional;
 
-public class AccessPointQueryServiceInMemory implements AccessPointQueryService {
+public class AccessPointQueryServiceStub implements AccessPointQueryService {
 
     @Override
     public Optional<ReferenceContext> getReferenceContext(String host) {

@@ -25,21 +25,16 @@ import java.util.List;
 
 public class ApplicationCrudServiceInMemory implements ApplicationCrudService, InMemoryAlternative<BaseApplicationEntity> {
 
-    private final List<BaseApplicationEntity> storage = new ArrayList<>();
+    private Storage<BaseApplicationEntity> storage = new Storage<>();
 
     @Override
     public BaseApplicationEntity findById(ExecutionContext executionContext, String applicationId) {
         return storage
+            .data()
             .stream()
             .filter(application -> applicationId.equals(application.getId()))
             .findFirst()
             .orElseThrow(() -> new ApplicationNotFoundException(applicationId));
-    }
-
-    @Override
-    public void initWith(List<BaseApplicationEntity> items) {
-        storage.clear();
-        storage.addAll(items);
     }
 
     @Override
@@ -48,7 +43,12 @@ public class ApplicationCrudServiceInMemory implements ApplicationCrudService, I
     }
 
     @Override
-    public List<BaseApplicationEntity> storage() {
-        return Collections.unmodifiableList(storage);
+    public Storage<BaseApplicationEntity> storage() {
+        return storage;
+    }
+
+    @Override
+    public void syncStorageWith(InMemoryAlternative<BaseApplicationEntity> other) {
+        storage = other.storage();
     }
 }

@@ -23,17 +23,11 @@ import java.util.List;
 
 public class InstanceQueryServiceInMemory implements InstanceQueryService, InMemoryAlternative<Instance> {
 
-    private final List<Instance> storage = new ArrayList<>();
+    private Storage<Instance> storage = new Storage<>();
 
     @Override
     public List<Instance> findAllStarted(String organizationId, String environmentId) {
-        return storage.stream().filter(instance -> instance.getStartedAt() != null).toList();
-    }
-
-    @Override
-    public void initWith(List<Instance> items) {
-        reset();
-        storage.addAll(items);
+        return storage.data().stream().filter(instance -> instance.getStartedAt() != null).toList();
     }
 
     @Override
@@ -42,7 +36,12 @@ public class InstanceQueryServiceInMemory implements InstanceQueryService, InMem
     }
 
     @Override
-    public List<Instance> storage() {
+    public Storage<Instance> storage() {
         return storage;
+    }
+
+    @Override
+    public void syncStorageWith(InMemoryAlternative<Instance> other) {
+        storage = other.storage();
     }
 }

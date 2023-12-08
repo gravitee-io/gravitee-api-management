@@ -15,6 +15,7 @@
  */
 package inmemory;
 
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
 import io.gravitee.apim.core.api_key.query_service.ApiKeyQueryService;
 import java.util.ArrayList;
@@ -25,10 +26,10 @@ import java.util.stream.Stream;
 
 public class ApiKeyQueryServiceInMemory implements ApiKeyQueryService, InMemoryAlternative<ApiKeyEntity> {
 
-    private final ArrayList<ApiKeyEntity> storage;
+    private Storage<ApiKeyEntity> storage;
 
     public ApiKeyQueryServiceInMemory() {
-        storage = new ArrayList<>();
+        storage = new Storage<>();
     }
 
     public ApiKeyQueryServiceInMemory(ApiKeyCrudServiceInMemory apiKeyCrudServiceInMemory) {
@@ -37,23 +38,17 @@ public class ApiKeyQueryServiceInMemory implements ApiKeyQueryService, InMemoryA
 
     @Override
     public Optional<ApiKeyEntity> findById(String apiKeyId) {
-        return storage.stream().filter(apiKey -> apiKey.getId().equals(apiKeyId)).findFirst();
+        return storage.data().stream().filter(apiKey -> apiKey.getId().equals(apiKeyId)).findFirst();
     }
 
     @Override
     public Optional<ApiKeyEntity> findByKeyAndApiId(String key, String apiId) {
-        return storage.stream().filter(apiKey -> apiKey.getKey().equals(key)).findFirst();
+        return storage.data().stream().filter(apiKey -> apiKey.getKey().equals(key)).findFirst();
     }
 
     @Override
     public Stream<ApiKeyEntity> findBySubscription(String subscriptionId) {
-        return storage.stream().filter(apiKey -> apiKey.getSubscriptions().contains(subscriptionId));
-    }
-
-    @Override
-    public void initWith(List<ApiKeyEntity> items) {
-        storage.clear();
-        storage.addAll(items);
+        return storage.data().stream().filter(apiKey -> apiKey.getSubscriptions().contains(subscriptionId));
     }
 
     @Override
@@ -62,7 +57,12 @@ public class ApiKeyQueryServiceInMemory implements ApiKeyQueryService, InMemoryA
     }
 
     @Override
-    public List<ApiKeyEntity> storage() {
-        return Collections.unmodifiableList(storage);
+    public Storage<ApiKeyEntity> storage() {
+        return storage;
+    }
+
+    @Override
+    public void syncStorageWith(InMemoryAlternative<ApiKeyEntity> other) {
+        storage = other.storage();
     }
 }

@@ -28,6 +28,7 @@ import fixtures.core.model.ApiFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.InstanceQueryServiceInMemory;
+import inmemory.Storage;
 import io.gravitee.apim.core.gateway.model.Instance;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.Proxy;
@@ -114,9 +115,9 @@ public class ApiResourceDebugTest extends AbstractResourceTest {
     @Test
     public void shouldDebugApi() {
         when(nodeLicenseService.isFeatureMissing("apim-debug-mode")).thenReturn(false);
-        apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aProxyApiV2().toBuilder().id(API).build()));
+        apiCrudServiceInMemory.initWith(Storage.of(ApiFixtures.aProxyApiV2().toBuilder().id(API).build()));
         instanceQueryServiceInMemory.initWith(
-            List.of(
+            Storage.of(
                 Instance
                     .builder()
                     .id("gateway")

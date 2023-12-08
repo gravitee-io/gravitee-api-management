@@ -32,6 +32,7 @@ import fixtures.core.model.SubscriptionFixtures;
 import inmemory.ApiKeyCrudServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
+import inmemory.Storage;
 import inmemory.SubscriptionCrudServiceInMemory;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.ApiKeyEntity;
@@ -95,13 +96,13 @@ public class ApiSubscriptionApikeyResourceTest extends AbstractResourceTest {
     @Test
     public void delete_should_revoke_and_return_http_204() {
         subscriptionCrudServiceInMemory.initWith(
-            List.of(SubscriptionFixtures.aSubscription().toBuilder().id(SUBSCRIPTION_ID).apiId(API_ID).build())
+            Storage.of(SubscriptionFixtures.aSubscription().toBuilder().id(SUBSCRIPTION_ID).apiId(API_ID).build())
         );
         applicationCrudServiceInMemory.initWith(
-            List.of(BaseApplicationEntity.builder().apiKeyMode(ApiKeyMode.EXCLUSIVE).id(APPLICATION_ID).build())
+            Storage.of(BaseApplicationEntity.builder().apiKeyMode(ApiKeyMode.EXCLUSIVE).id(APPLICATION_ID).build())
         );
         apiKeyCrudServiceInMemory.initWith(
-            List.of(
+            Storage.of(
                 ApiKeyFixtures
                     .anApiKey()
                     .toBuilder()
@@ -115,7 +116,7 @@ public class ApiSubscriptionApikeyResourceTest extends AbstractResourceTest {
         Response response = envTarget().request().delete();
 
         Assertions
-            .assertThat(apiKeyCrudServiceInMemory.storage())
+            .assertThat(apiKeyCrudServiceInMemory.data())
             .extracting(
                 io.gravitee.apim.core.api_key.model.ApiKeyEntity::getId,
                 io.gravitee.apim.core.api_key.model.ApiKeyEntity::isRevoked
@@ -127,13 +128,13 @@ public class ApiSubscriptionApikeyResourceTest extends AbstractResourceTest {
     @Test
     public void delete_should_return_http_404_when_apikey_on_another_subscription() {
         subscriptionCrudServiceInMemory.initWith(
-            List.of(SubscriptionFixtures.aSubscription().toBuilder().id(SUBSCRIPTION_ID).apiId(API_ID).build())
+            Storage.of(SubscriptionFixtures.aSubscription().toBuilder().id(SUBSCRIPTION_ID).apiId(API_ID).build())
         );
         applicationCrudServiceInMemory.initWith(
-            List.of(BaseApplicationEntity.builder().apiKeyMode(ApiKeyMode.EXCLUSIVE).id(APPLICATION_ID).build())
+            Storage.of(BaseApplicationEntity.builder().apiKeyMode(ApiKeyMode.EXCLUSIVE).id(APPLICATION_ID).build())
         );
         apiKeyCrudServiceInMemory.initWith(
-            List.of(
+            Storage.of(
                 ApiKeyFixtures
                     .anApiKey()
                     .toBuilder()
@@ -147,7 +148,7 @@ public class ApiSubscriptionApikeyResourceTest extends AbstractResourceTest {
 
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
         Assertions
-            .assertThat(apiKeyCrudServiceInMemory.storage())
+            .assertThat(apiKeyCrudServiceInMemory.data())
             .extracting(
                 io.gravitee.apim.core.api_key.model.ApiKeyEntity::getId,
                 io.gravitee.apim.core.api_key.model.ApiKeyEntity::isRevoked
@@ -158,13 +159,13 @@ public class ApiSubscriptionApikeyResourceTest extends AbstractResourceTest {
     @Test
     public void delete_should_return_http_500_on_exception() {
         subscriptionCrudServiceInMemory.initWith(
-            List.of(SubscriptionFixtures.aSubscription().toBuilder().id(SUBSCRIPTION_ID).apiId(API_ID).build())
+            Storage.of(SubscriptionFixtures.aSubscription().toBuilder().id(SUBSCRIPTION_ID).apiId(API_ID).build())
         );
         applicationCrudServiceInMemory.initWith(
-            List.of(BaseApplicationEntity.builder().apiKeyMode(ApiKeyMode.EXCLUSIVE).id(APPLICATION_ID).build())
+            Storage.of(BaseApplicationEntity.builder().apiKeyMode(ApiKeyMode.EXCLUSIVE).id(APPLICATION_ID).build())
         );
         apiKeyCrudServiceInMemory.initWith(
-            List.of(
+            Storage.of(
                 ApiKeyFixtures
                     .anApiKey()
                     .toBuilder()

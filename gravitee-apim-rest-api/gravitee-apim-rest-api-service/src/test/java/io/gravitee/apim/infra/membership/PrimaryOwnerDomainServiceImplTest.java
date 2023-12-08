@@ -22,6 +22,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
+import inmemory.Storage;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.membership.exception.ApiPrimaryOwnerNotFoundException;
 import io.gravitee.apim.core.membership.exception.ApplicationPrimaryOwnerNotFoundException;
@@ -486,7 +487,7 @@ public class PrimaryOwnerDomainServiceImplTest {
     }
 
     private void givenExistingUsers(List<BaseUserEntity> users) {
-        userRepository.initWith(users);
+        userRepository.initWith(Storage.from(users));
     }
 
     @SneakyThrows
