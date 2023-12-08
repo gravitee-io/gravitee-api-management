@@ -15,15 +15,15 @@
  */
 
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 
 import { PlanMenuItemVM } from '../../../../../services-ngx/constants.service';
 import { ApiType, CreatePlanV4 } from '../../../../../entities/management-api-v2';
 
 @Component({
   selector: 'step-4-security-1-plans-add',
-  template: require('./step-4-security-1-plans-add.component.html'),
-  styles: [require('./step-4-security-1-plans-add.component.scss'), require('../api-creation-steps-common.component.scss')],
+  templateUrl: './step-4-security-1-plans-add.component.html',
+  styleUrls: ['./step-4-security-1-plans-add.component.scss', '../api-creation-steps-common.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Step4Security1PlansAddComponent implements OnInit {
@@ -42,11 +42,11 @@ export class Step4Security1PlansAddComponent implements OnInit {
   @Output()
   exitPlanCreation = new EventEmitter<void>();
 
-  public form: FormGroup;
+  public form: UntypedFormGroup;
 
   ngOnInit() {
-    this.form = new FormGroup({
-      plan: new FormControl(this.plan),
+    this.form = new UntypedFormGroup({
+      plan: new UntypedFormControl(this.plan),
     });
   }
 

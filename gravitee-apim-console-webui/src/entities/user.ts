@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
+import { concat, difference, intersection } from 'lodash';
 
 /**
  * @deprecated No longer seems to reflect the real user type.
@@ -48,10 +48,10 @@ export class User {
       return false;
     }
     return (
-      _.intersection(this.userPermissions, permissions).length > 0 ||
-      _.intersection(this.userEnvironmentPermissions, permissions).length > 0 ||
-      _.intersection(this.userApiPermissions, permissions).length > 0 ||
-      _.intersection(this.userApplicationPermissions, permissions).length > 0
+      intersection(this.userPermissions, permissions).length > 0 ||
+      intersection(this.userEnvironmentPermissions, permissions).length > 0 ||
+      intersection(this.userApiPermissions, permissions).length > 0 ||
+      intersection(this.userApplicationPermissions, permissions).length > 0
     );
   }
 
@@ -60,14 +60,14 @@ export class User {
       return false;
     }
 
-    const allPermissions = _.concat(
+    const allPermissions = concat(
       this.userPermissions,
       this.userEnvironmentPermissions,
       this.userApiPermissions,
       this.userApplicationPermissions,
     );
 
-    return _.difference(permissions, allPermissions).length === 0;
+    return difference(permissions, allPermissions).length === 0;
   }
 
   isOrganizationAdmin(): boolean {

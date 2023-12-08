@@ -20,7 +20,7 @@ import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 
 @Component({
   selector: 'api-runtime-logs-details',
-  template: require('./api-runtime-logs-details.component.html'),
+  templateUrl: './api-runtime-logs-details.component.html',
 })
 export class ApiRuntimeLogsDetailsComponent {
   api$ = this.apiService.get(this.activatedRoute.snapshot.params.apiId);

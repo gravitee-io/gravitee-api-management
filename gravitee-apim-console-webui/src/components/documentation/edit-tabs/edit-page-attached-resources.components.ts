@@ -35,7 +35,7 @@ class EditPageAttachedResourcesComponentController implements IController {
       .show({
         controller: 'FileChooserDialogController',
         controllerAs: 'ctrl',
-        template: require('../../dialog/fileChooser.dialog.html'),
+        template: require('html-loader!../../dialog/fileChooser.dialog.html'),
         clickOutsideToClose: true,
         locals: {
           title: 'Select a file to attach',
@@ -65,7 +65,7 @@ class EditPageAttachedResourcesComponentController implements IController {
       .show({
         controller: 'DialogConfirmController',
         controllerAs: 'ctrl',
-        template: require('../../dialog/confirmWarning.dialog.html'),
+        template: require('html-loader!../../dialog/confirmWarning.dialog.html'),
         clickOutsideToClose: true,
         locals: {
           title: 'Would you like to remove "' + resource.fileName + '"?',
@@ -94,6 +94,6 @@ export const EditPageAttachedResourcesComponent: ng.IComponentOptions = {
     page: '=',
     onSave: '&',
   },
-  template: require('./edit-page-attached-resources.html'),
+  template: require('html-loader!./edit-page-attached-resources.html'),
   controller: EditPageAttachedResourcesComponentController,
 };

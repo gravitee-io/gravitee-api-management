@@ -19,7 +19,7 @@ const DashboardFilterComponent: ng.IComponentOptions = {
     onFilterChange: '&',
     activatedRoute: '<',
   },
-  template: require('./dashboard-filter.html'),
+  template: require('html-loader!./dashboard-filter.html'),
   controller: 'DashboardFilterController',
   require: {
     parent: '^gvDashboard',

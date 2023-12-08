@@ -115,7 +115,7 @@ export const SelectionList: Story = {
         },
         onSubmit: (val) => action('Submit values')(val),
       },
-      styles: ['./gio-connector-list-option-layout.component.scss'],
+      styleUrls: ['./gio-connector-list-option-layout.component.scss'],
     };
   },
 };
@@ -182,7 +182,7 @@ export const RadioGroup: Story = {
         },
         onSubmit: (val) => action('Submit values')(val),
       },
-      styles: ['./gio-connector-list-option-layout.component.scss'],
+      styleUrls: ['./gio-connector-list-option-layout.component.scss'],
     };
   },
 };

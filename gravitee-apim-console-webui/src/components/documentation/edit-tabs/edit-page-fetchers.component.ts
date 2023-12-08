@@ -60,7 +60,7 @@ export const EditPageFetchersComponent: ng.IComponentOptions = {
     title: '<',
     withPublishOption: '<',
   },
-  template: require('./edit-page-fetchers.html'),
+  template: require('html-loader!./edit-page-fetchers.html'),
   controller: EditPageFetchersComponentController,
 };
 

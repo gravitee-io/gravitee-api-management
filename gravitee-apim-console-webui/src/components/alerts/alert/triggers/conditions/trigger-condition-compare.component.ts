@@ -15,6 +15,7 @@
  */
 
 import * as _ from 'lodash';
+import { filter } from 'lodash';
 
 import { Metrics } from '../../../../../entities/alert';
 
@@ -24,10 +25,10 @@ const AlertTriggerConditionCompareComponent: ng.IComponentOptions = {
     metrics: '<',
     isReadonly: '<',
   },
-  template: require('./trigger-condition-compare.html'),
+  template: require('html-loader!./trigger-condition-compare.html'),
   controller: function () {
     this.$onInit = () => {
-      this.metrics = _.filter(
+      this.metrics = filter(
         this.metrics as Metrics[],
         (metric) => metric.conditions.indexOf('COMPARE') !== -1 && metric.key !== this.condition.property,
       );

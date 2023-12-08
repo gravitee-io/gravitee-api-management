@@ -18,8 +18,8 @@ import { Component, EventEmitter, Output } from '@angular/core';
 
 @Component({
   selector: 'api-runtime-logs-details-empty-state',
-  template: require('./api-runtime-logs-details-empty-state.component.html'),
-  styles: [require('./api-runtime-logs-details-empty-state.component.scss')],
+  templateUrl: './api-runtime-logs-details-empty-state.component.html',
+  styleUrls: ['./api-runtime-logs-details-empty-state.component.scss'],
 })
 export class ApiRuntimeLogsDetailsEmptyStateComponent {
   @Output()

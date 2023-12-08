@@ -20,7 +20,7 @@ const UserComponentAjs: ng.IComponentOptions = {
     onDeleteMyAccount: '&',
   },
   controller: 'UserController',
-  template: require('./user.html'),
+  template: require('html-loader!./user.html'),
 };
 
 export default UserComponentAjs;

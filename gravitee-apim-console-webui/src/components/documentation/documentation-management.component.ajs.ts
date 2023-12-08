@@ -15,8 +15,9 @@
  */
 
 import { IController, IScope } from 'angular';
-import * as _ from 'lodash';
+
 import { ActivatedRoute, Router } from '@angular/router';
+import { concat, Dictionary, filter, keyBy, orderBy, reduceRight } from 'lodash';
 
 import { DocumentationQuery, DocumentationService, FolderSituation, PageType } from '../../services/documentation.service';
 import NotificationService from '../../services/notification.service';
@@ -35,8 +36,8 @@ class DocumentationManagementComponentController implements IController {
   activatedRoute: ActivatedRoute;
 
   rootDir: string;
-  foldersById: _.Dictionary<any>;
-  systemFoldersById: _.Dictionary<any>;
+  foldersById: Dictionary<any>;
+  systemFoldersById: Dictionary<any>;
   currentFolder: any;
   supportedTypes: { type: PageType; tooltip: string }[];
   breadcrumb: { id: string; name: string }[];
@@ -58,8 +59,8 @@ class DocumentationManagementComponentController implements IController {
     this.pages = this.filterROOTAndSystemPages(this.pages);
 
     this.rootDir = this.parent;
-    this.foldersById = _.keyBy(this.folders, 'id');
-    this.systemFoldersById = _.keyBy(this.systemFolders, 'id');
+    this.foldersById = keyBy(this.folders, 'id');
+    this.systemFoldersById = keyBy(this.systemFolders, 'id');
 
     this.currentFolder = this.getFolder(this.rootDir);
     const folderSituation = this.DocumentationService.getFolderSituation(this.systemFoldersById, this.foldersById, this.rootDir);
@@ -106,7 +107,7 @@ class DocumentationManagementComponentController implements IController {
   }
 
   filterROOTAndSystemPages(pagesToFilter: any[]) {
-    return _.filter(pagesToFilter, (p) => p.type !== 'ROOT' && p.type !== 'SYSTEM_FOLDER' && p.type !== 'TRANSLATION');
+    return filter(pagesToFilter, (p) => p.type !== 'ROOT' && p.type !== 'SYSTEM_FOLDER' && p.type !== 'TRANSLATION');
   }
 
   toggleRenameFolder() {
@@ -160,7 +161,7 @@ class DocumentationManagementComponentController implements IController {
       .show({
         controller: 'SelectFolderDialogController',
         controllerAs: 'ctrl',
-        template: require('./dialog/selectfolder.dialog.html'),
+        template: require('html-loader!./dialog/selectfolder.dialog.html'),
         clickOutsideToClose: true,
         locals: {
           title: 'Create shortcut for "' + page.name + '" in...',
@@ -196,7 +197,7 @@ class DocumentationManagementComponentController implements IController {
       return result;
     }
 
-    const allFolders = _.concat(this.folders, this.systemFolders);
+    const allFolders = concat(this.folders, this.systemFolders);
 
     allFolders.forEach((f) => {
       const situation = this.DocumentationService.getFolderSituation(this.systemFoldersById, this.foldersById, f.id);
@@ -214,7 +215,7 @@ class DocumentationManagementComponentController implements IController {
         }
       }
     });
-    return _.orderBy(result, ['path'], ['asc']);
+    return orderBy(result, ['path'], ['asc']);
   }
 
   moveToFolder(page: any) {
@@ -222,7 +223,7 @@ class DocumentationManagementComponentController implements IController {
       .show({
         controller: 'SelectFolderDialogController',
         controllerAs: 'ctrl',
-        template: require('./dialog/selectfolder.dialog.html'),
+        template: require('html-loader!./dialog/selectfolder.dialog.html'),
         clickOutsideToClose: true,
         locals: {
           title: 'Move "' + page.name + '" to...',
@@ -245,7 +246,7 @@ class DocumentationManagementComponentController implements IController {
       return result;
     }
 
-    const allFolders = _.concat(this.folders, this.systemFolders);
+    const allFolders = concat(this.folders, this.systemFolders);
 
     // If it can ba a link, it can't be moved in a system folder. If not, it can only be moved inside a system folder
     const canBeALink = this.canCreateShortCut(pageId, pageType);
@@ -277,7 +278,7 @@ class DocumentationManagementComponentController implements IController {
         }
       }
     });
-    return _.orderBy(result, ['path'], ['asc']);
+    return orderBy(result, ['path'], ['asc']);
   }
 
   getFolderPath(folderId: string, pageToMoveId?: string) {
@@ -290,7 +291,7 @@ class DocumentationManagementComponentController implements IController {
     }
     return (
       '/ ' +
-      _.reduceRight(hierarchyNames, (path, name) => {
+      reduceRight(hierarchyNames, (path, name) => {
         return path + ' / ' + name;
       })
     );
@@ -376,7 +377,7 @@ class DocumentationManagementComponentController implements IController {
       .show({
         controller: 'DialogConfirmController',
         controllerAs: 'ctrl',
-        template: require('../dialog/confirmWarning.dialog.html'),
+        template: require('html-loader!../dialog/confirmWarning.dialog.html'),
         clickOutsideToClose: true,
         locals: {
           title: 'Would you like to remove "' + page.name + '"?',
@@ -490,6 +491,6 @@ export const DocumentationManagementComponentAjs: ng.IComponentOptions = {
     parent: '<',
     activatedRoute: '<',
   },
-  template: require('./documentation-management.html'),
+  template: require('html-loader!./documentation-management.html'),
   controller: DocumentationManagementComponentController,
 };

@@ -26,8 +26,8 @@ interface MenuItem {
 
 @Component({
   selector: 'instance-details-header',
-  template: require('./instance-details-header.component.html'),
-  styles: [require('./instance-details-header.component.scss')],
+  templateUrl: './instance-details-header.component.html',
+  styleUrls: ['./instance-details-header.component.scss'],
 })
 export class InstanceDetailsHeaderComponent implements OnInit {
   @Input()

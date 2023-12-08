@@ -28,8 +28,8 @@ import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 
 @Component({
   selector: 'api-proxy-response-templates-list',
-  template: require('./api-proxy-response-templates-list.component.html'),
-  styles: [require('./api-proxy-response-templates-list.component.scss')],
+  templateUrl: './api-proxy-response-templates-list.component.html',
+  styleUrls: ['./api-proxy-response-templates-list.component.scss'],
 })
 export class ApiProxyResponseTemplatesListComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

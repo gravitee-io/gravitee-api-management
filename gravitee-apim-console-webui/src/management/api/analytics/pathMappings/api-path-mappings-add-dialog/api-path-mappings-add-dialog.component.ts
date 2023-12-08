@@ -15,7 +15,7 @@
  */
 
 import { Component, Inject, OnInit } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { EMPTY, Subject } from 'rxjs';
@@ -36,15 +36,15 @@ export interface ApiPathMappingsAddDialogData {
 
 @Component({
   selector: 'api-path-mappings-add-dialog',
-  template: require('./api-path-mappings-add-dialog.component.html'),
-  styles: [require('./api-path-mappings-add-dialog.component.scss')],
+  templateUrl: './api-path-mappings-add-dialog.component.html',
+  styleUrls: ['./api-path-mappings-add-dialog.component.scss'],
 })
 export class ApiPathMappingsAddDialogComponent implements OnInit {
   public tabLabels = {
     AddPathMapping: 'Path',
     SwaggerDocument: 'Swagger Document',
   };
-  public pathFormGroup: FormGroup;
+  public pathFormGroup: UntypedFormGroup;
   public swaggerDocs: Page[];
   public selectedSwaggerDoc: string;
   private api: ApiV1 | ApiV2;
@@ -104,9 +104,9 @@ export class ApiPathMappingsAddDialogComponent implements OnInit {
     }
   }
 
-  private initFormGroup(): FormGroup {
-    return new FormGroup({
-      path: new FormControl(null, [Validators.required, isUnique(this.api.pathMappings), Validators.pattern('^/[a-zA-Z0-9:/]+')]),
+  private initFormGroup(): UntypedFormGroup {
+    return new UntypedFormGroup({
+      path: new UntypedFormControl(null, [Validators.required, isUnique(this.api.pathMappings), Validators.pattern('^/[a-zA-Z0-9:/]+')]),
     });
   }
 }

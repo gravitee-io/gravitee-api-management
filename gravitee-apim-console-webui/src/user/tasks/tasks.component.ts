@@ -45,8 +45,8 @@ class TaskData {
 }
 @Component({
   selector: 'tasks',
-  template: require('./tasks.component.html'),
-  styles: [require('./tasks.component.scss')],
+  templateUrl: './tasks.component.html',
+  styleUrls: ['./tasks.component.scss'],
 })
 export class TasksComponent implements OnInit, OnDestroy {
   private unsubscribe$ = new Subject();

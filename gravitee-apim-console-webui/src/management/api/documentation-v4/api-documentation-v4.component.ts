@@ -36,8 +36,8 @@ import { Api } from '../../../entities/management-api-v2';
 
 @Component({
   selector: 'api-documentation-v4',
-  template: require('./api-documentation-v4.component.html'),
-  styles: [require('./api-documentation-v4.component.scss')],
+  templateUrl: './api-documentation-v4.component.html',
+  styleUrls: ['./api-documentation-v4.component.scss'],
 })
 export class ApiDocumentationV4Component implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();

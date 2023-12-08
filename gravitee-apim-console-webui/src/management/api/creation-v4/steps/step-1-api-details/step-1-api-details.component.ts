@@ -15,7 +15,7 @@
  */
 
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -25,16 +25,16 @@ import { Step2Entrypoints0ArchitectureComponent } from '../step-2-entrypoints/st
 
 @Component({
   selector: 'step-1-api-details',
-  template: require('./step-1-api-details.component.html'),
-  styles: [require('./step-1-api-details.component.scss'), require('../api-creation-steps-common.component.scss')],
+  templateUrl: './step-1-api-details.component.html',
+  styleUrls: ['./step-1-api-details.component.scss', '../api-creation-steps-common.component.scss'],
 })
 export class Step1ApiDetailsComponent implements OnInit {
-  public form: FormGroup;
+  public form: UntypedFormGroup;
 
   constructor(
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
-    private readonly formBuilder: FormBuilder,
+    private readonly formBuilder: UntypedFormBuilder,
     private readonly confirmDialog: MatDialog,
     private readonly stepService: ApiCreationStepService,
   ) {}

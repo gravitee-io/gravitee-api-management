@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
+import { map, toUpper } from 'lodash';
 
 class RoleService {
   private permissionsByScope: any;
@@ -43,15 +43,15 @@ class RoleService {
   get(roleScope, roleName) {
     return this.$http.get(`${this.Constants.org.baseURL}/configuration/rolescopes/` + roleScope + '/roles/' + roleName).then((response) => {
       const role = response.data;
-      role.scope = _.toUpper(role.scope);
+      role.scope = toUpper(role.scope);
       return role;
     });
   }
 
   list(scope: string) {
     return this.$http.get(`${this.Constants.org.baseURL}/configuration/rolescopes/` + scope + '/roles').then((response) => {
-      return _.map(response.data, (role: any) => {
-        role.scope = _.toUpper(role.scope);
+      return map(response.data, (role: any) => {
+        role.scope = toUpper(role.scope);
         return role;
       });
     });
@@ -60,7 +60,7 @@ class RoleService {
   create(role) {
     return this.$http.post(`${this.Constants.org.baseURL}/configuration/rolescopes/` + role.scope + '/roles', role).then((response) => {
       const role = response.data;
-      role.scope = _.toUpper(role.scope);
+      role.scope = toUpper(role.scope);
       return role;
     });
   }
@@ -70,7 +70,7 @@ class RoleService {
       .put(`${this.Constants.org.baseURL}/configuration/rolescopes/` + role.scope + '/roles/' + role.name, role)
       .then((response) => {
         const role = response.data;
-        role.scope = _.toUpper(role.scope);
+        role.scope = toUpper(role.scope);
         return role;
       });
   }

@@ -15,7 +15,7 @@
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { from, Subject } from 'rxjs';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { switchMap, takeUntil } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
 import { MatIconRegistry } from '@angular/material/icon';
@@ -30,16 +30,16 @@ import { AuthService } from '../auth.service';
 
 @Component({
   selector: 'login',
-  template: require('./login.component.html'),
-  styles: [require('../auth-common.component.scss'), require('./login.component.scss')],
+  templateUrl: './login.component.html',
+  styleUrls: ['../auth-common.component.scss', './login.component.scss'],
 })
 export class LoginComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
 
   public identityProviders: SocialIdentityProvider[] = [];
-  public loginForm = new FormGroup({
-    username: new FormControl('', Validators.required),
-    password: new FormControl('', Validators.required),
+  public loginForm = new UntypedFormGroup({
+    username: new UntypedFormControl('', Validators.required),
+    password: new UntypedFormControl('', Validators.required),
   });
   public localLoginDisabled = false;
   public userCreationEnabled = false;

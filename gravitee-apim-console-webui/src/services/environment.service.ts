@@ -15,7 +15,8 @@
  */
 
 import { IHttpResponse } from 'angular';
-import * as _ from 'lodash';
+
+import { forEach } from 'lodash';
 
 import { IdentityProviderActivation } from '../entities/identity-provider';
 
@@ -28,7 +29,7 @@ class EnvironmentService {
   analytics(request) {
     let url = this.Constants.env.baseURL + '/analytics?';
     const keys = Object.keys(request);
-    _.forEach(keys, (key) => {
+    forEach(keys, (key) => {
       const val = request[key];
       if (val !== undefined) {
         url += key + '=' + val + '&';

@@ -21,7 +21,7 @@ const ApiKeysComponent: ng.IComponentOptions = {
     api: '<',
     listEvent: '<',
   },
-  template: require('./api-keys.html'),
+  template: require('html-loader!./api-keys.html'),
   controller: 'ApiKeysController',
 };
 

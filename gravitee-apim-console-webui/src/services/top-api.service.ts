@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
+import { map } from 'lodash';
 
 class TopApiService {
   constructor(private $http, private Constants) {}
@@ -32,7 +32,7 @@ class TopApiService {
     if (topApis && topApis.length) {
       return this.$http.put(
         `${this.Constants.env.baseURL}/configuration/top-apis/`,
-        _.map(topApis, (topApi: any) => {
+        map(topApis, (topApi: any) => {
           return { api: topApi.api };
         }),
       );

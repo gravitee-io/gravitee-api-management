@@ -29,6 +29,5 @@ import { GioNotificationMenuComponent } from './gio-notification-menu.component'
   imports: [CommonModule, MatIconModule, GioIconsModule, MatButtonModule, MatDividerModule, MatListModule, OverlayModule, MatCardModule],
   declarations: [GioNotificationMenuComponent],
   exports: [GioNotificationMenuComponent],
-  entryComponents: [GioNotificationMenuComponent],
 })
 export class GioNotificationMenuModule {}

@@ -19,7 +19,7 @@ import { Component, DoCheck, ElementRef, HostBinding, Input, OnDestroy, Optional
 import {
   AbstractControl,
   ControlValueAccessor,
-  FormControl,
+  UntypedFormControl,
   NgControl,
   NG_VALIDATORS,
   ValidationErrors,
@@ -43,8 +43,8 @@ export const colorValidator: ValidatorFn = (control: AbstractControl): Validatio
 
 @Component({
   selector: 'gio-form-color-input',
-  template: require('./gio-form-color-input.component.html'),
-  styles: [require('./gio-form-color-input.component.scss')],
+  templateUrl: './gio-form-color-input.component.html',
+  styleUrls: ['./gio-form-color-input.component.scss'],
   host: {
     '[id]': 'id',
     '[attr.aria-describedby]': 'describedBy',
@@ -64,7 +64,7 @@ export const colorValidator: ValidatorFn = (control: AbstractControl): Validatio
 export class GioFormColorInputComponent implements MatFormFieldControl<Color>, ControlValueAccessor, DoCheck, OnDestroy {
   static nextId = 0;
 
-  colorFormControl = new FormControl();
+  colorFormControl = new UntypedFormControl();
 
   _onChange: (value: any) => void = () => ({});
 

@@ -99,17 +99,20 @@ describe('PolicyStudioConfigComponent', () => {
     });
   });
 
-  it('should emulate v4 engine', async (done) => {
+  it('should emulate v4 engine', async () => {
     const activateSupportSlideToggle = await loader.getHarness(MatSlideToggleHarness.with({ name: 'emulateV4Engine' }));
     expect(await activateSupportSlideToggle.isDisabled()).toEqual(false);
 
+    let done = false;
     // Expect last apiDefinition
     policyStudioService.getApiDefinitionToSave$().subscribe((apiDefinition) => {
       expect(apiDefinition.execution_mode).toEqual('v4-emulation-engine');
-      done();
+      done = true;
     });
 
     await activateSupportSlideToggle.check();
+
+    expect(done).toEqual(true);
   });
 
   it('should disable field when origin is kubernetes', async () => {

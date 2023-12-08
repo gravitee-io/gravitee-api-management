@@ -15,7 +15,7 @@
  */
 
 import { Component, Inject, OnDestroy } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { EMPTY, Subject } from 'rxjs';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
@@ -31,8 +31,8 @@ export type ApiPortalDetailsDuplicateDialogData = {
 
 @Component({
   selector: 'api-general-info-duplicate-dialog',
-  template: require('./api-general-info-duplicate-dialog.component.html'),
-  styles: [require('./api-general-info-duplicate-dialog.component.scss')],
+  templateUrl: './api-general-info-duplicate-dialog.component.html',
+  styleUrls: ['./api-general-info-duplicate-dialog.component.scss'],
 })
 export class ApiGeneralInfoDuplicateDialogComponent implements OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
@@ -44,7 +44,7 @@ export class ApiGeneralInfoDuplicateDialogComponent implements OnDestroy {
     { id: 'PLANS', label: 'Plans', checked: true },
   ];
 
-  public duplicateApiForm: FormGroup;
+  public duplicateApiForm: UntypedFormGroup;
 
   public apiId: string;
   public contextPathPlaceholder: string;
@@ -61,12 +61,12 @@ export class ApiGeneralInfoDuplicateDialogComponent implements OnDestroy {
     this.contextPathPlaceholder = extractContextPath(dialogData.api);
     this.versionPlaceholder = dialogData.api.apiVersion;
 
-    this.duplicateApiForm = new FormGroup({
-      contextPath: new FormControl('', [Validators.required], [this.apiService.contextPathValidator({})]),
-      version: new FormControl('', [Validators.required]),
-      options: new FormGroup(
+    this.duplicateApiForm = new UntypedFormGroup({
+      contextPath: new UntypedFormControl('', [Validators.required], [this.apiService.contextPathValidator({})]),
+      version: new UntypedFormControl('', [Validators.required]),
+      options: new UntypedFormGroup(
         this.optionsCheckbox.reduce((acc, option) => {
-          acc[option.id] = new FormControl(option.checked);
+          acc[option.id] = new UntypedFormControl(option.checked);
           return acc;
         }, {}),
       ),

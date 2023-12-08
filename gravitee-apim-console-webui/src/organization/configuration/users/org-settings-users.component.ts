@@ -41,8 +41,8 @@ type TableData = {
 
 @Component({
   selector: 'org-settings-users',
-  styles: [require('./org-settings-users.component.scss')],
-  template: require('./org-settings-users.component.html'),
+  styleUrls: ['./org-settings-users.component.scss'],
+  templateUrl: './org-settings-users.component.html',
 })
 export class OrgSettingsUsersComponent implements OnInit, OnDestroy {
   displayedColumns: string[] = ['userPicture', 'displayName', 'status', 'email', 'source', 'actions'];

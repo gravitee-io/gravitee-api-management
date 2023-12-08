@@ -21,8 +21,8 @@ import '@gravitee/ui-components/wc/gv-code';
 
 @Component({
   selector: 'gio-diff',
-  template: require('./gio-diff.component.html'),
-  styles: [require('./gio-diff.component.scss')],
+  templateUrl: './gio-diff.component.html',
+  styleUrls: ['./gio-diff.component.scss'],
   encapsulation: ViewEncapsulation.None,
 })
 export class GioDiffComponent implements OnChanges {
@@ -50,7 +50,7 @@ export class GioDiffComponent implements OnChanges {
     }
   }
 
-  private computeDiff() {
+  public computeDiff() {
     const diff = Diff.createPatch(' ', this.left, this.right);
 
     this.hasChanges = !!Diff.parsePatch(diff).some((d) => d.hunks.length);

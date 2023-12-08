@@ -18,7 +18,7 @@ const AlertTriggerNodeHealthcheckComponent: ng.IComponentOptions = {
   bindings: {
     alert: '<',
   },
-  template: require('./trigger-node-healthcheck.html'),
+  template: require('html-loader!./trigger-node-healthcheck.html'),
   controller: function () {
     this.$onInit = () => {
       // New alert, initialize it with the condition model

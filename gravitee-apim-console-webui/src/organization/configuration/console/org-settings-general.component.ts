@@ -17,7 +17,7 @@
 import { Subject } from 'rxjs';
 import { takeUntil, tap } from 'rxjs/operators';
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { cloneDeep, get, merge } from 'lodash';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
@@ -29,13 +29,13 @@ import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
 @Component({
   selector: 'org-settings-general',
-  template: require('./org-settings-general.component.html'),
-  styles: [require('./org-settings-general.component.scss')],
+  templateUrl: './org-settings-general.component.html',
+  styleUrls: ['./org-settings-general.component.scss'],
 })
 export class OrgSettingsGeneralComponent implements OnInit, OnDestroy {
   isLoading = true;
 
-  formSettings: FormGroup;
+  formSettings: UntypedFormGroup;
 
   settings: ConsoleSettings;
 
@@ -51,7 +51,7 @@ export class OrgSettingsGeneralComponent implements OnInit, OnDestroy {
   public formInitialValues: unknown;
 
   constructor(
-    private readonly fb: FormBuilder,
+    private readonly fb: UntypedFormBuilder,
     private readonly consoleSettingsService: ConsoleSettingsService,
     private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,

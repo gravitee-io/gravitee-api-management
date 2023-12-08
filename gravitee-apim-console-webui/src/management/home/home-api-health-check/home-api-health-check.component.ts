@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormControl, Validators } from '@angular/forms';
+import { UntypedFormControl, Validators } from '@angular/forms';
 import { get, has, isEmpty, isEqual, isNumber } from 'lodash';
 import { BehaviorSubject, combineLatest, merge, Observable, of, Subject } from 'rxjs';
 import {
@@ -69,8 +69,8 @@ export type ApisTableDS = {
 
 @Component({
   selector: 'home-api-health-check',
-  template: require('./home-api-health-check.component.html'),
-  styles: [require('./home-api-health-check.component.scss')],
+  templateUrl: './home-api-health-check.component.html',
+  styleUrls: ['./home-api-health-check.component.scss'],
 })
 export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
   displayedColumns = ['picture', 'name', 'states', 'availability', 'actions'];
@@ -81,7 +81,7 @@ export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
     searchTerm: '',
   };
   isLoadingData = true;
-  timeFrameControl = new FormControl('1m', Validators.required);
+  timeFrameControl = new UntypedFormControl('1m', Validators.required);
 
   allApisHCStatus: { inError: number; inWarning: number; isLoading: boolean };
 

@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
+import { forEach, map, mapValues } from 'lodash';
 
 import { AuditQuery, default as AuditService } from '../../services/audit.service';
 
 const AuditComponent: ng.IComponentOptions = {
-  template: require('./audit.html'),
+  template: require('html-loader!./audit.html'),
   bindings: {
     api: '<',
     apis: '<',
@@ -29,7 +29,7 @@ const AuditComponent: ng.IComponentOptions = {
     'AuditService',
     function (AuditService: AuditService) {
       this.$onInit = () => {
-        this.events = _.map(this.events, (ev: string) => {
+        this.events = map(this.events, (ev: string) => {
           return ev.toUpperCase();
         });
         this.query = new AuditQuery();
@@ -50,7 +50,7 @@ const AuditComponent: ng.IComponentOptions = {
       };
 
       this.enhanceAuditLogs = (auditLogs) => {
-        _.forEach(auditLogs, (log) => {
+        forEach(auditLogs, (log) => {
           log.prettyPatch = JSON.stringify(JSON.parse(log.patch), null, '  ');
           log.displayPatch = false;
           log.displayProperties = false;
@@ -71,7 +71,7 @@ const AuditComponent: ng.IComponentOptions = {
       };
 
       this.getDisplayableProperties = (properties) => {
-        return _.mapValues(properties, (v, k) => this.metadata[k + ':' + v + ':name']);
+        return mapValues(properties, (v, k) => this.metadata[k + ':' + v + ':name']);
       };
 
       this.onOrgEnvFilterChange = () => {

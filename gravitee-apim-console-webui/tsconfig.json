@@ -1,24 +1,34 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
+    "baseUrl": "./",
+    "paths": {
+      "path": ["./node_modules/path-browserify"]
+    },
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "downlevelIteration": true,
     "incremental": true,
-    "lib": ["dom", "es2018"],
+    "lib": ["dom", "es2020"],
     "noImplicitAny": false,
     "outDir": "dist-tsc",
     "removeComments": false,
     "skipLibCheck": true,
     "sourceMap": true,
-    "target": "ES2015",
+    "target": "es2020",
     "types": ["jest", "angular-mocks", "node"],
     "resolveJsonModule": true,
     "moduleResolution": "Node",
     "allowSyntheticDefaultImports": true,
     "allowJs": true,
     "checkJs": false,
-    "module": "es2020"
+    "module": "es2020",
+    "importHelpers": true
   },
-  "include": ["src/**/*.ts", "node_modules/@gravitee/ui-components"]
+  "angularCompilerOptions": {
+    "enableI18nLegacyMessageIdFormat": false,
+    "strictInjectionParameters": false,
+    "strictInputAccessModifiers": false,
+    "strictTemplates": false
+  }
 }

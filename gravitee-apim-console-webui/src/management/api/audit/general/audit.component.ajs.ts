@@ -17,7 +17,7 @@
 import ApiAuditControllerAjs from './audit.controller.ajs';
 
 export const ApiAuditComponentAjs = {
-  template: require('./audit.html'),
+  template: require('html-loader!./audit.html'),
   controller: ApiAuditControllerAjs,
   bindings: {
     activatedRoute: '<',

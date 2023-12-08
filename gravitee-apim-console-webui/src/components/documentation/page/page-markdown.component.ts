@@ -29,7 +29,7 @@ export class PageMarkdownController implements ng.IComponentController, ng.IOnIn
 PageMarkdownController.$inject = ['$sanitize'];
 
 export const PageMarkdownComponent: ng.IComponentOptions = {
-  template: require('./page-markdown.html'),
+  template: require('html-loader!./page-markdown.html'),
   bindings: {
     page: '<',
   },

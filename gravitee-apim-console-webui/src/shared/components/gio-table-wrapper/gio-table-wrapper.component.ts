@@ -25,7 +25,7 @@ import {
   SimpleChanges,
   ViewChild,
 } from '@angular/core';
-import { FormControl } from '@angular/forms';
+import { UntypedFormControl } from '@angular/forms';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { isEqual } from 'lodash';
@@ -59,8 +59,8 @@ const INITIAL_FILTERS_VALUE: GioTableWrapperFilters = {
 
 @Component({
   selector: 'gio-table-wrapper',
-  template: require('./gio-table-wrapper.component.html'),
-  styles: [require('./gio-table-wrapper.component.scss')],
+  templateUrl: './gio-table-wrapper.component.html',
+  styleUrls: ['./gio-table-wrapper.component.scss'],
 })
 export class GioTableWrapperComponent implements AfterViewInit, OnChanges {
   // Change filters value
@@ -94,7 +94,7 @@ export class GioTableWrapperComponent implements AfterViewInit, OnChanges {
   @ViewChild('paginatorTop') paginatorTop: MatPaginator;
   @ViewChild('paginatorBottom') paginatorBottom: MatPaginator;
 
-  inputSearch = new FormControl(this.filters.searchTerm ?? INITIAL_FILTERS_VALUE.searchTerm);
+  inputSearch = new UntypedFormControl(this.filters.searchTerm ?? INITIAL_FILTERS_VALUE.searchTerm);
 
   @ContentChild(MatSort)
   sort?: MatSort;

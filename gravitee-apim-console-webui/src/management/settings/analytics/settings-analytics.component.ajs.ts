@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
 import { Router } from '@angular/router';
+import { cloneDeep, flattenDeep, merge, values } from 'lodash';
 
 import { Dashboard } from '../../../entities/dashboard';
 import DashboardService from '../../../services/dashboard.service';
@@ -28,7 +28,7 @@ const SettingsAnalyticsComponentAjs: ng.IComponentOptions = {
     dashboardsApi: '<',
     dashboardsApplication: '<',
   },
-  template: require('./settings-analytics.html'),
+  template: require('html-loader!./settings-analytics.html'),
   controller: [
     'NotificationService',
     'PortalSettingsService',
@@ -47,7 +47,7 @@ const SettingsAnalyticsComponentAjs: ng.IComponentOptions = {
       router: Router,
     ) {
       this.router = router;
-      this.settings = _.cloneDeep(Constants.env.settings);
+      this.settings = cloneDeep(Constants.env.settings);
       this.providedConfigurationMessage = 'Configuration provided by the system';
 
       this.$onInit = () => {
@@ -69,19 +69,19 @@ const SettingsAnalyticsComponentAjs: ng.IComponentOptions = {
       };
 
       this.isDashboardsEmpty = () => {
-        return _.flattenDeep(_.values(this.dashboardsByType)).length === 0;
+        return flattenDeep(values(this.dashboardsByType)).length === 0;
       };
 
       this.save = () => {
         PortalSettingsService.save(this.settings).then((response) => {
-          _.merge(Constants.env.settings, response.data);
+          merge(Constants.env.settings, response.data);
           NotificationService.show('Configuration saved');
           this.formSettings.$setPristine();
         });
       };
 
       this.reset = () => {
-        this.settings = _.cloneDeep(Constants.env.settings);
+        this.settings = cloneDeep(Constants.env.settings);
         this.formSettings.$setPristine();
       };
 
@@ -90,7 +90,7 @@ const SettingsAnalyticsComponentAjs: ng.IComponentOptions = {
           .show({
             controller: 'DialogConfirmController',
             controllerAs: 'ctrl',
-            template: require('../../../components/dialog/confirmWarning.dialog.html'),
+            template: require('html-loader!../../../components/dialog/confirmWarning.dialog.html'),
             clickOutsideToClose: true,
             locals: {
               title: `Are you sure you want to delete the dashboard '${dashboard.name}'?`,

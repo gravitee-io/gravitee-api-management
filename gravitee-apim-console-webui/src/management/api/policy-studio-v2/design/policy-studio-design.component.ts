@@ -44,8 +44,8 @@ export interface UrlParams {
 
 @Component({
   selector: 'policy-studio-design',
-  template: require('./policy-studio-design.component.html'),
-  styles: [require('./policy-studio-design.component.scss')],
+  templateUrl: './policy-studio-design.component.html',
+  styleUrls: ['./policy-studio-design.component.scss'],
 })
 export class PolicyStudioDesignComponent implements OnInit, OnDestroy {
   organization: Organization;

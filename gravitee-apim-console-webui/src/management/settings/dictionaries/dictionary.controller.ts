@@ -15,8 +15,9 @@
  */
 
 import angular from 'angular';
-import * as _ from 'lodash';
+
 import { ActivatedRoute, Router } from '@angular/router';
+import { cloneDeep, filter, forEach } from 'lodash';
 
 import DictionaryService from '../../../services/dictionary.service';
 import NotificationService from '../../../services/notification.service';
@@ -111,7 +112,7 @@ class DictionaryController {
           this.dictionary.provider.configuration.method = this.dictionary.provider.configuration.method ?? 'GET';
         }
 
-        this.initialDictionary = _.cloneDeep(this.dictionary);
+        this.initialDictionary = cloneDeep(this.dictionary);
         this.dictProperties = this.computeProperties();
 
         this.query = {
@@ -139,7 +140,7 @@ class DictionaryController {
   };
 
   reset() {
-    this.dictionary = _.cloneDeep(this.initialDictionary);
+    this.dictionary = cloneDeep(this.initialDictionary);
     this.dictProperties = this.computeProperties();
     this.formDictionary.$setPristine();
   }
@@ -164,7 +165,7 @@ class DictionaryController {
       .show({
         controller: 'DialogConfirmController',
         controllerAs: 'ctrl',
-        template: require('../../../components/dialog/confirmWarning.dialog.html'),
+        template: require('html-loader!../../../components/dialog/confirmWarning.dialog.html'),
         clickOutsideToClose: true,
         locals: {
           title: 'Are you sure you want to delete this dictionary?',
@@ -214,7 +215,7 @@ class DictionaryController {
       .show({
         controller: 'DialogAddPropertyController',
         controllerAs: 'dialogDictionaryAddPropertyCtrl',
-        template: require('./add-property.dialog.html'),
+        template: require('html-loader!./add-property.dialog.html'),
         clickOutsideToClose: true,
       })
       .then((property) => {
@@ -254,7 +255,7 @@ class DictionaryController {
   }
 
   deleteSelectedProperties() {
-    _.forEach(this.selectedProperties, (v, k) => {
+    forEach(this.selectedProperties, (v, k) => {
       if (v) {
         this.deleteProperty(k);
         delete this.selectedProperties[k];
@@ -272,18 +273,18 @@ class DictionaryController {
 
   toggleSelectAll(selectAll) {
     if (selectAll) {
-      _.forEach(this.dictionary.properties, (v, k) => (this.selectedProperties[k] = true));
+      forEach(this.dictionary.properties, (v, k) => (this.selectedProperties[k] = true));
     } else {
       this.selectedProperties = {};
     }
   }
 
   checkSelectAll() {
-    this.selectAll = _.filter(this.selectedProperties, (p) => p).length === Object.keys(this.dictionary.properties).length;
+    this.selectAll = filter(this.selectedProperties, (p) => p).length === Object.keys(this.dictionary.properties).length;
   }
 
   hasSelectedProperties() {
-    return _.filter(this.selectedProperties, (p) => p).length > 0;
+    return filter(this.selectedProperties, (p) => p).length > 0;
   }
 
   addHTTPHeader() {

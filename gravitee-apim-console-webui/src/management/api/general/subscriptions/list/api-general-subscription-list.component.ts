@@ -16,11 +16,10 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { BehaviorSubject, EMPTY, Observable, of, Subject } from 'rxjs';
-import { isEqual } from 'lodash';
-import { FormControl, FormGroup } from '@angular/forms';
+import { isEqual, now } from 'lodash';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { AutocompleteOptions } from '@gravitee/ui-particles-angular';
-import * as _ from 'lodash';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { SubscriptionStatus } from '../../../../../entities/subscription/subscription';
@@ -51,15 +50,15 @@ type SubscriptionsTableDS = {
 
 @Component({
   selector: 'api-general-subscription-list',
-  template: require('./api-general-subscription-list.component.html'),
-  styles: [require('./api-general-subscription-list.component.scss')],
+  templateUrl: './api-general-subscription-list.component.html',
+  styleUrls: ['./api-general-subscription-list.component.scss'],
 })
 export class ApiGeneralSubscriptionListComponent implements OnInit, OnDestroy {
   public displayedColumns = ['plan', 'application', 'createdAt', 'processedAt', 'startingAt', 'endAt', 'status', 'actions'];
   public subscriptionsTableDS: SubscriptionsTableDS[] = [];
   public nbTotalSubscriptions = 0;
 
-  public filtersForm: FormGroup;
+  public filtersForm: UntypedFormGroup;
 
   public plans: Plan[] = [];
   public statuses: { id: SubscriptionStatus; name: string }[] = [
@@ -234,7 +233,7 @@ export class ApiGeneralSubscriptionListComponent implements OnInit, OnDestroy {
       .exportAsCSV(apiId, page, perPage, planIds, applicationIds, statuses, apiKey)
       .pipe(
         tap((blob) => {
-          let fileName = `subscriptions-${this.api.name}-${this.api.apiVersion}-${_.now()}.csv`;
+          let fileName = `subscriptions-${this.api.name}-${this.api.apiVersion}-${now()}.csv`;
           fileName = fileName.replace(/[\s]/gi, '-').replace(/[^\w]/gi, '-');
 
           const anchor = document.createElement('a');
@@ -308,11 +307,11 @@ export class ApiGeneralSubscriptionListComponent implements OnInit, OnDestroy {
       : ['ACCEPTED', 'PAUSED', 'PENDING'];
     const initialApiKey = this.activatedRoute.snapshot.queryParams?.apiKey ? this.activatedRoute.snapshot.queryParams.apiKey : undefined;
 
-    this.filtersForm = new FormGroup({
-      planIds: new FormControl(initialPlanIds),
-      applicationIds: new FormControl(initialApplicationIds),
-      statuses: new FormControl(initialStatuses),
-      apiKey: new FormControl(initialApiKey),
+    this.filtersForm = new UntypedFormGroup({
+      planIds: new UntypedFormControl(initialPlanIds),
+      applicationIds: new UntypedFormControl(initialApplicationIds),
+      statuses: new UntypedFormControl(initialStatuses),
+      apiKey: new UntypedFormControl(initialApiKey),
     });
 
     this.filtersStream.next({

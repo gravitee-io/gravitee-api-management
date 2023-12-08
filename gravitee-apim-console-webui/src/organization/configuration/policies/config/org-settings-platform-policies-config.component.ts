@@ -17,7 +17,7 @@
 import { Component, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
 import { combineLatest, Subject } from 'rxjs';
 import { takeUntil, tap } from 'rxjs/operators';
-import { FormControl } from '@angular/forms';
+import { UntypedFormControl } from '@angular/forms';
 
 import { OrganizationService } from '../../../../services-ngx/organization.service';
 import { OrgSettingsPlatformPoliciesService } from '../org-settings-platform-policies.service';
@@ -26,13 +26,13 @@ import { FlowConfigurationSchema } from '../../../../entities/flow/configuration
 
 @Component({
   selector: 'org-settings-platform-policies-config',
-  template: require('./org-settings-platform-policies-config.component.html'),
-  styles: [require('./org-settings-platform-policies-config.component.scss')],
+  templateUrl: './org-settings-platform-policies-config.component.html',
+  styleUrls: ['./org-settings-platform-policies-config.component.scss'],
 })
 export class OrgSettingsPlatformPoliciesConfigComponent implements OnInit, OnDestroy {
   flowConfigurationSchema: FlowConfigurationSchema;
 
-  formControl: FormControl;
+  formControl: UntypedFormControl;
   isLoading = true;
 
   @Output()
@@ -53,7 +53,7 @@ export class OrgSettingsPlatformPoliciesConfigComponent implements OnInit, OnDes
         tap(([flowSchema, organization]) => {
           this.flowConfigurationSchema = flowSchema;
 
-          this.formControl = new FormControl({
+          this.formControl = new UntypedFormControl({
             flow_mode: organization.flowMode,
           });
 

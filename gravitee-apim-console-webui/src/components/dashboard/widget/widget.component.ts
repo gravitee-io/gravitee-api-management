@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
+
+import { assignIn, cloneDeep, forEach, includes, round } from 'lodash';
 
 import AnalyticsService from '../../../services/analytics.service';
 import { ApiService } from '../../../services/api.service';
 import { EventService } from '../../../services/event.service';
 
 const WidgetComponent: ng.IComponentOptions = {
-  template: require('./widget.html'),
+  template: require('html-loader!./widget.html'),
   bindings: {
     widget: '<',
     updateMode: '<',
@@ -74,7 +75,7 @@ const WidgetComponent: ng.IComponentOptions = {
           }
 
           // Associate the new timeframe to the chart request
-          _.assignIn(this.widget.chart.request, {
+          assignIn(this.widget.chart.request, {
             interval: timeframe.interval,
             from: timeframe.from,
             to: timeframe.to,
@@ -89,7 +90,7 @@ const WidgetComponent: ng.IComponentOptions = {
         this.fetchData = true;
 
         // Prepare arguments
-        const chartRequest = _.cloneDeep(this.widget.chart.request);
+        const chartRequest = cloneDeep(this.widget.chart.request);
         let field = this.widget.chart.request.field;
         if (this.widget.chart.request.aggs && this.widget.chart.request.aggs.includes('field:')) {
           field = this.widget.chart.request.aggs.replace('field:', '');
@@ -115,7 +116,7 @@ const WidgetComponent: ng.IComponentOptions = {
 
         if (this.globalQuery) {
           if (chartRequest.query) {
-            if (!_.includes(chartRequest.query, this.globalQuery)) {
+            if (!includes(chartRequest.query, this.globalQuery)) {
               chartRequest.query += ' AND ' + this.globalQuery;
             }
           } else {
@@ -159,8 +160,8 @@ const WidgetComponent: ng.IComponentOptions = {
               delete chartRequest.query;
               chartRequest.type = 'count';
               return this.widget.chart.service.function.apply(this.widget.chart.service.caller, args).then((responseTotal) => {
-                _.forEach(this.results.values, (value, key) => {
-                  this.results.values[key] = value + '/' + _.round((value / responseTotal.data.hits) * 100, 2);
+                forEach(this.results.values, (value, key) => {
+                  this.results.values[key] = value + '/' + round((value / responseTotal.data.hits) * 100, 2);
                 });
               });
             }

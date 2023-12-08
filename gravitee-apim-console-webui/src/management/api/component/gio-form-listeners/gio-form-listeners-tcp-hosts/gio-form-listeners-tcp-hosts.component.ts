@@ -35,8 +35,8 @@ import { TcpHost } from '../../../../../entities/management-api-v2/api/v4/tcpHos
 
 @Component({
   selector: 'gio-form-listeners-tcp-hosts',
-  template: require('./gio-form-listeners-tcp-hosts.component.html'),
-  styles: [require('../gio-form-listeners.common.scss')],
+  templateUrl: './gio-form-listeners-tcp-hosts.component.html',
+  styleUrls: ['../gio-form-listeners.common.scss'],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,

@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 import { IOnDestroy, IOnInit, IRootScopeService } from 'angular';
-import * as _ from 'lodash';
+
 import { ActivatedRoute, Router } from '@angular/router';
+import { isEmpty, keys, map, remove, uniqBy } from 'lodash';
 
 import AnalyticsService from '../../services/analytics.service';
 
@@ -70,7 +71,7 @@ class DashboardFilterController implements IOnInit, IOnDestroy {
     const label = (filter.fieldLabel ? filter.fieldLabel : filter.field) + " = '" + filter.name + "'";
     const query =
       '(' +
-      _.map(_.keys(field.filters), (key) =>
+      map(keys(field.filters), (key) =>
         filter.field.includes('path') || filter.field.includes('host')
           ? filter.field + ':' + '\\"' + key + '\\"'
           : filter.field + ':' + key,
@@ -83,7 +84,7 @@ class DashboardFilterController implements IOnInit, IOnDestroy {
       label: label,
     });
 
-    this.filters = _.uniqBy(this.filters, 'key');
+    this.filters = uniqBy(this.filters, 'key');
 
     field.query = query;
 
@@ -106,7 +107,7 @@ class DashboardFilterController implements IOnInit, IOnDestroy {
   }
 
   removeFilter(field, key, silent) {
-    const filters = _.remove(this.filters, (current) => {
+    const filters = remove(this.filters, (current) => {
       return current.key === field + '_' + key;
     });
 
@@ -125,14 +126,14 @@ class DashboardFilterController implements IOnInit, IOnDestroy {
       }
     }
 
-    if (Object.keys(fieldObject.filters).length === 0 || _.isEmpty(fieldObject.filters)) {
+    if (Object.keys(fieldObject.filters).length === 0 || isEmpty(fieldObject.filters)) {
       delete fieldObject.filters;
     }
 
-    if (!_.isEmpty(fieldObject.filters)) {
+    if (!isEmpty(fieldObject.filters)) {
       fieldObject.query =
         '(' +
-        _.map(_.keys(fieldObject.filters), (key) =>
+        map(keys(fieldObject.filters), (key) =>
           field.includes('path') || field.includes('host') ? field + ':' + '\\"' + key + '\\"' : field + ':' + key,
         ).join(' OR ') +
         ')';

@@ -15,7 +15,7 @@
  */
 
 const SearchAndSelectComponent: ng.IComponentOptions = {
-  template: require('./search-and-select.html'),
+  template: require('html-loader!./search-and-select.html'),
   controller: 'SearchAndSelectController',
   bindings: {
     selectModel: '=', // md-select model (a list of id strings)

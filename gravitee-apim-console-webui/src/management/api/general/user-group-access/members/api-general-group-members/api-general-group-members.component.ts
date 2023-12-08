@@ -31,8 +31,8 @@ interface MemberDataSource {
 
 @Component({
   selector: 'api-general-group-members',
-  template: require('./api-general-group-members.component.html'),
-  styles: [require('./api-general-group-members.component.scss')],
+  templateUrl: './api-general-group-members.component.html',
+  styleUrls: ['./api-general-group-members.component.scss'],
 })
 export class ApiGeneralGroupMembersComponent implements OnInit, OnDestroy {
   @Input()

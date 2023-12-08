@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, Inject, OnDestroy } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { EMPTY, Subject } from 'rxjs';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
@@ -32,12 +32,12 @@ export type OrgSettingsUserGenerateTokenDialogData = {
 
 @Component({
   selector: 'org-settings-add-tenant',
-  template: require('./org-settings-user-generate-token.component.html'),
-  styles: [require('./org-settings-user-generate-token.component.scss')],
+  templateUrl: './org-settings-user-generate-token.component.html',
+  styleUrls: ['./org-settings-user-generate-token.component.scss'],
 })
 export class OrgSettingsUserGenerateTokenComponent implements OnDestroy {
   token?: Token;
-  tokenForm: FormGroup;
+  tokenForm: UntypedFormGroup;
   hasBeenGenerated = false;
 
   private unsubscribe$ = new Subject<boolean>();
@@ -53,8 +53,8 @@ export class OrgSettingsUserGenerateTokenComponent implements OnDestroy {
     this.token = confirmDialogData.token;
     this.userId = confirmDialogData.userId;
 
-    this.tokenForm = new FormGroup({
-      name: new FormControl(this.token?.name, [Validators.required, Validators.minLength(2), Validators.maxLength(64)]),
+    this.tokenForm = new UntypedFormGroup({
+      name: new UntypedFormControl(this.token?.name, [Validators.required, Validators.minLength(2), Validators.maxLength(64)]),
     });
   }
 

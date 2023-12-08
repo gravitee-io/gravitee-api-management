@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormGroup, FormControl } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormControl } from '@angular/forms';
 import { isEqual, mapValues } from 'lodash';
 import { BehaviorSubject, EMPTY, forkJoin, Observable, Subject } from 'rxjs';
 import { catchError, distinctUntilChanged, shareReplay, switchMap, takeUntil, throttleTime } from 'rxjs/operators';
@@ -41,23 +41,23 @@ interface AuditDataTable {
 
 @Component({
   selector: 'org-settings-audit',
-  template: require('./org-settings-audit.component.html'),
-  styles: [require('./org-settings-audit.component.scss')],
+  templateUrl: './org-settings-audit.component.html',
+  styleUrls: ['./org-settings-audit.component.scss'],
 })
 export class OrgSettingsAuditComponent implements OnInit, OnDestroy {
   public displayedColumns = ['date', 'user', 'referenceType', 'reference', 'event', 'targets', 'patch'];
   public filteredTableData: AuditDataTable[] = [];
   public nbTotalAudit = 0;
 
-  public filtersForm = new FormGroup({
-    event: new FormControl(),
-    referenceType: new FormControl(),
-    environmentId: new FormControl(),
-    applicationId: new FormControl(),
-    apiId: new FormControl(),
-    range: new FormGroup({
-      start: new FormControl(),
-      end: new FormControl(),
+  public filtersForm = new UntypedFormGroup({
+    event: new UntypedFormControl(),
+    referenceType: new UntypedFormControl(),
+    environmentId: new UntypedFormControl(),
+    applicationId: new UntypedFormControl(),
+    apiId: new UntypedFormControl(),
+    range: new UntypedFormGroup({
+      start: new UntypedFormControl(),
+      end: new UntypedFormControl(),
     }),
   });
 
@@ -101,7 +101,7 @@ export class OrgSettingsAuditComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   // Create filters stream
-  private filtersStream = new BehaviorSubject<{
+  public filtersStream = new BehaviorSubject<{
     tableWrapper: GioTableWrapperFilters;
     auditFilters: {
       event?: string;

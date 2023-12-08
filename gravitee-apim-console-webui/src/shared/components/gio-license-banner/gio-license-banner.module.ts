@@ -25,6 +25,5 @@ import { GioLicenseBannerComponent } from './gio-license-banner.component';
   imports: [CommonModule, MatButtonModule, MatIconModule, GioBannerModule],
   declarations: [GioLicenseBannerComponent],
   exports: [GioLicenseBannerComponent],
-  entryComponents: [GioLicenseBannerComponent],
 })
 export class GioLicenseBannerModule {}

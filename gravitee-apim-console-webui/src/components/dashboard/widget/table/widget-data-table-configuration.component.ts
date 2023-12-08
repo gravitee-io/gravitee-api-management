@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
+import { concat, find, merge } from 'lodash';
 
 import DashboardService from '../../../../services/dashboard.service';
 
 const WidgetDataTableConfigurationComponent: ng.IComponentOptions = {
-  template: require('./widget-data-table-configuration.html'),
+  template: require('html-loader!./widget-data-table-configuration.html'),
   bindings: {
     chart: '<',
   },
@@ -26,7 +26,7 @@ const WidgetDataTableConfigurationComponent: ng.IComponentOptions = {
     'DashboardService',
     function (DashboardService: DashboardService) {
       this.fields = DashboardService.getIndexedFields();
-      this.projections = _.concat(
+      this.projections = concat(
         {
           label: 'Hits',
           value: '_count',
@@ -41,7 +41,7 @@ const WidgetDataTableConfigurationComponent: ng.IComponentOptions = {
 
       this.$onInit = () => {
         if (!this.chart.request) {
-          _.merge(this.chart, {
+          merge(this.chart, {
             request: {
               type: 'group_by',
               field: this.fields[0].value,
@@ -86,12 +86,12 @@ const WidgetDataTableConfigurationComponent: ng.IComponentOptions = {
           this.chart.request.field = this.field;
         }
 
-        const existingField = _.find(this.fields, (f) => f.value === this.field);
+        const existingField = find(this.fields, (f) => f.value === this.field);
         this.chart.columns[0] = existingField ? existingField.label : this.field;
       };
 
       this.onProjectionChanged = () => {
-        this.chart.columns[1] = _.find(this.projections, (p) => p.value === this.projection).label;
+        this.chart.columns[1] = find(this.projections, (p) => p.value === this.projection).label;
         if (this.projection) {
           this.chart.request.order = this.order + this.aggregate + ':' + this.projection;
           if (this.projection !== '_count') {

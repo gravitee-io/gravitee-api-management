@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, Input } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 
 import {
   EndpointHttpConfigComponent,
@@ -24,17 +24,17 @@ import { EndpointGroupV2 } from '../../../../../../../entities/management-api-v2
 
 @Component({
   selector: 'api-proxy-group-configuration',
-  template: require('./api-proxy-group-configuration.component.html'),
-  styles: [require('./api-proxy-group-configuration.component.scss')],
+  templateUrl: './api-proxy-group-configuration.component.html',
+  styleUrls: ['./api-proxy-group-configuration.component.scss'],
 })
 export class ApiProxyGroupConfigurationComponent {
-  public static getGroupConfigurationFormGroup(endpointGroup: EndpointGroupV2, isReadonly: boolean): FormGroup {
+  public static getGroupConfigurationFormGroup(endpointGroup: EndpointGroupV2, isReadonly: boolean): UntypedFormGroup {
     return EndpointHttpConfigComponent.getHttpConfigFormGroup(endpointGroup, isReadonly);
   }
 
-  public static getGroupConfigurationFormValue(groupConfigurationFormGroup: FormGroup): EndpointHttpConfigValue {
+  public static getGroupConfigurationFormValue(groupConfigurationFormGroup: UntypedFormGroup): EndpointHttpConfigValue {
     return EndpointHttpConfigComponent.getHttpConfigValue(groupConfigurationFormGroup);
   }
 
-  @Input() groupConfigurationFormGroup: FormGroup;
+  @Input() groupConfigurationFormGroup: UntypedFormGroup;
 }

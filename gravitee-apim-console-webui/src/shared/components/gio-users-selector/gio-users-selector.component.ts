@@ -15,7 +15,7 @@
  */
 import { Component, EventEmitter, Inject, OnInit, Output } from '@angular/core';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { FormControl } from '@angular/forms';
+import { UntypedFormControl } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, map, share, switchMap } from 'rxjs/operators';
 import { Observable, of } from 'rxjs';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
@@ -29,8 +29,8 @@ export interface GioUsersSelectorData {
 
 @Component({
   selector: 'gio-users-selector',
-  template: require('./gio-users-selector.component.html'),
-  styles: [require('./gio-users-selector.component.scss')],
+  templateUrl: './gio-users-selector.component.html',
+  styleUrls: ['./gio-users-selector.component.scss'],
 })
 export class GioUsersSelectorComponent implements OnInit {
   private readonly userFilterPredicate: (user: SearchableUser) => boolean;
@@ -40,7 +40,7 @@ export class GioUsersSelectorComponent implements OnInit {
 
   users: Observable<SearchableUser[]>;
   selectedUsers: Array<SearchableUser & { userPicture: string }> = [];
-  userSearchTerm: FormControl = new FormControl('', []);
+  userSearchTerm: UntypedFormControl = new UntypedFormControl('', []);
 
   constructor(@Inject(MAT_DIALOG_DATA) dialogData: GioUsersSelectorData, private readonly usersService: UsersService) {
     this.userFilterPredicate = dialogData.userFilterPredicate ?? (() => true);

@@ -25,7 +25,7 @@ const AlertNotificationComponent: ng.IComponentOptions = {
   require: {
     parent: '^gvAlertNotifications',
   },
-  template: require('./alert-notification.html'),
+  template: require('html-loader!./alert-notification.html'),
   controller: [
     'NotificationService',
     'NotifierService',

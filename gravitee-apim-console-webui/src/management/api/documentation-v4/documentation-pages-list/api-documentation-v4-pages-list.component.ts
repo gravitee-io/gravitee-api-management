@@ -21,8 +21,8 @@ import { Page } from '../../../../entities/management-api-v2/documentation/page'
 
 @Component({
   selector: 'api-documentation-v4-pages-list',
-  template: require('./api-documentation-v4-pages-list.component.html'),
-  styles: [require('./api-documentation-v4-pages-list.component.scss')],
+  templateUrl: './api-documentation-v4-pages-list.component.html',
+  styleUrls: ['./api-documentation-v4-pages-list.component.scss'],
 })
 export class ApiDocumentationV4PagesListComponent implements OnInit, OnChanges {
   @Input()

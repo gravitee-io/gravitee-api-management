@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 import angular from 'angular';
-import * as _ from 'lodash';
+
 import { ActivatedRoute, Router } from '@angular/router';
+import { clone, cloneDeep, forEach, forOwn, includes, isArray, keys, map, reduce, remove, sortBy } from 'lodash';
 
 class ApiV1PoliciesControllerAjs {
   api: any;
@@ -54,17 +55,17 @@ class ApiV1PoliciesControllerAjs {
     this.policiesMap = {};
     this.selectedApiPolicy = {};
     this.httpMethods = ['GET', 'POST', 'PUT', 'DELETE', 'HEAD', 'PATCH', 'OPTIONS', 'TRACE', 'CONNECT'];
-    this.httpMethodsFilter = _.clone(this.httpMethods);
+    this.httpMethodsFilter = clone(this.httpMethods);
     this.httpMethodsUpdated = false;
     this.schemaByPolicyId = {};
 
     this.listAllPolicies().then((policies) => {
-      _.forEach(policies, ({ policy }) => {
+      forEach(policies, ({ policy }) => {
         this.policiesToCopy.push(policy);
         this.policiesMap[policy.policyId] = policy;
       });
-      _.forEach(this.api.paths, (policies, path) => {
-        this.apiPoliciesByPath[path] = _.cloneDeep(policies);
+      forEach(this.api.paths, (policies, path) => {
+        this.apiPoliciesByPath[path] = cloneDeep(policies);
       });
       this.completeApiPolicies(this.apiPoliciesByPath);
       this.initDragular();
@@ -90,15 +91,15 @@ class ApiV1PoliciesControllerAjs {
   }
 
   generatePathsToCompare() {
-    return _.map(_.keys(this.apiPoliciesByPath), (p) => {
+    return map(keys(this.apiPoliciesByPath), (p) => {
       return this.clearPathParam(p);
     });
   }
 
   completeApiPolicies(pathMap) {
-    _.forEach(pathMap, (policies) => {
-      _.forEach(policies, (policy) => {
-        _.forEach(policy, (value, property) => {
+    forEach(pathMap, (policies) => {
+      forEach(policies, (policy) => {
+        forEach(policy, (value, property) => {
           if (property !== 'methods' && property !== 'enabled' && property !== 'description' && property !== '$$hashKey') {
             policy.policyId = property;
             const currentPolicy = this.policiesMap[policy.policyId];
@@ -112,9 +113,9 @@ class ApiV1PoliciesControllerAjs {
         });
 
         if (!policy.methods) {
-          policy.methods = _.clone(this.httpMethods);
+          policy.methods = clone(this.httpMethods);
         } else {
-          policy.methods = _.map(policy.methods, (method: string) => {
+          policy.methods = map(policy.methods, (method: string) => {
             return method.toUpperCase();
           });
         }
@@ -164,7 +165,7 @@ class ApiV1PoliciesControllerAjs {
 
   listAllPolicies() {
     return this.PolicyService.list({ expandSchema: true }).then((policies) => {
-      return _.map(policies.data, (originalPolicy: any) => {
+      return map(policies.data, (originalPolicy: any) => {
         const policy = {
           policyId: originalPolicy.id,
           methods: this.httpMethods,
@@ -241,8 +242,8 @@ class ApiV1PoliciesControllerAjs {
   }
 
   filterByMethod(policy) {
-    return _.reduce(
-      _.map(policy.methods, (method: string) => {
+    return reduce(
+      map(policy.methods, (method: string) => {
         return this.httpMethodsFilter.indexOf(method) < 0;
       }),
       (result, n) => {
@@ -260,7 +261,7 @@ class ApiV1PoliciesControllerAjs {
       .show({
         controller: 'DialogConfirmController',
         controllerAs: 'ctrl',
-        template: require('../../../../components/dialog/confirmWarning.dialog.html'),
+        template: require('html-loader!../../../../components/dialog/confirmWarning.dialog.html'),
         clickOutsideToClose: true,
         locals: {
           title: 'Are you sure you want to remove this policy?',
@@ -269,7 +270,7 @@ class ApiV1PoliciesControllerAjs {
       })
       .then((response) => {
         if (response) {
-          _.forEach(this.apiPoliciesByPath[path], (policy, idx) => {
+          forEach(this.apiPoliciesByPath[path], (policy, idx) => {
             // eslint-disable-next-line angular/no-private-call
             if (policy.$$hashKey === hashKey) {
               this.apiPoliciesByPath[path].splice(idx, 1);
@@ -290,7 +291,7 @@ class ApiV1PoliciesControllerAjs {
       .show({
         controller: 'DialogEditPolicyController',
         controllerAs: 'editPolicyDialogCtrl',
-        template: require('./dialog/policy.dialog.html'),
+        template: require('html-loader!./dialog/policy.dialog.html'),
         clickOutsideToClose: true,
         locals: {
           description: policy.description,
@@ -317,9 +318,9 @@ class ApiV1PoliciesControllerAjs {
   }
 
   savePaths() {
-    this.$scope.api.paths = _.cloneDeep(this.apiPoliciesByPath);
-    _.forEach(this.$scope.api.paths, (policies) => {
-      _.forEach(policies, (policy) => {
+    this.$scope.api.paths = cloneDeep(this.apiPoliciesByPath);
+    forEach(this.$scope.api.paths, (policies) => {
+      forEach(policies, (policy) => {
         delete policy.policyId;
         delete policy.name;
         delete policy.type;
@@ -327,10 +328,10 @@ class ApiV1PoliciesControllerAjs {
         delete policy.schema;
 
         // do not save empty fields on arrays
-        _.forOwn(policy, (policyAttributeValueObject) => {
-          _.forOwn(policyAttributeValueObject, (policyAttributeAttribute) => {
-            if (_.isArray(policyAttributeAttribute)) {
-              _.remove(policyAttributeAttribute, (policyAttributeAttributeItem) => {
+        forOwn(policy, (policyAttributeValueObject) => {
+          forOwn(policyAttributeValueObject, (policyAttributeAttribute) => {
+            if (isArray(policyAttributeAttribute)) {
+              remove(policyAttributeAttribute, (policyAttributeAttributeItem) => {
                 return policyAttributeAttributeItem === undefined || '' === policyAttributeAttributeItem;
               });
             }
@@ -354,7 +355,7 @@ class ApiV1PoliciesControllerAjs {
       .show({
         controller: 'AddPoliciesPathController',
         controllerAs: 'addPoliciesPathCtrl',
-        template: require('./addPoliciesPath.html'),
+        template: require('html-loader!./addPoliciesPath.html'),
         parent: angular.element(document.body),
         targetEvent: event,
         clickOutsideToClose: true,
@@ -374,7 +375,7 @@ class ApiV1PoliciesControllerAjs {
       .show({
         controller: 'DialogConfirmController',
         controllerAs: 'ctrl',
-        template: require('../../../../components/dialog/confirmWarning.dialog.html'),
+        template: require('html-loader!../../../../components/dialog/confirmWarning.dialog.html'),
         clickOutsideToClose: true,
         locals: {
           title: 'Are you sure you want to migrate to Policy Studio?',
@@ -397,7 +398,7 @@ class ApiV1PoliciesControllerAjs {
       .show({
         controller: 'DialogConfirmController',
         controllerAs: 'ctrl',
-        template: require('../../../../components/dialog/confirmWarning.dialog.html'),
+        template: require('html-loader!../../../../components/dialog/confirmWarning.dialog.html'),
         clickOutsideToClose: true,
         locals: {
           title: 'Are you sure you want to remove this path?',
@@ -422,7 +423,7 @@ class ApiV1PoliciesControllerAjs {
       return true;
     }
 
-    return !_.includes(this.pathsToCompare, this.clearPathParam(path));
+    return !includes(this.pathsToCompare, this.clearPathParam(path));
   }
 
   pathStartWithSlash(path) {
@@ -444,8 +445,8 @@ class ApiV1PoliciesControllerAjs {
   }
 
   sortedPaths() {
-    const paths = _.keys(this.apiPoliciesByPath);
-    return _.sortBy(paths, (path) => {
+    const paths = keys(this.apiPoliciesByPath);
+    return sortBy(paths, (path) => {
       return this.clearPathParam(path);
     });
   }

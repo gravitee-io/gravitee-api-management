@@ -26,8 +26,8 @@ import { ConnectorVM } from '../../../../entities/management-api-v2';
 
 @Component({
   selector: 'gio-entrypoints-selection-list',
-  template: require('./gio-entrypoints-selection-list.component.html'),
-  styles: [require('./gio-entrypoints-selection-list.component.scss')],
+  templateUrl: './gio-entrypoints-selection-list.component.html',
+  styleUrls: ['./gio-entrypoints-selection-list.component.scss'],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,

@@ -21,7 +21,7 @@ const ApplicationSubscribeComponentAjs: ng.IComponentOptions = {
     subscriptions: '<',
     activatedRoute: '<',
   },
-  template: require('./application-subscribe.html'),
+  template: require('html-loader!./application-subscribe.html'),
   controller: 'ApplicationSubscribeController',
 };
 

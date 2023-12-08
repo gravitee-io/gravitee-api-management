@@ -18,8 +18,8 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 @Component({
   selector: 'api-documentation-content',
-  template: require('./api-documentation-v4-content-editor.component.html'),
-  styles: [require('./api-documentation-v4-content-editor.component.scss')],
+  templateUrl: './api-documentation-v4-content-editor.component.html',
+  styleUrls: ['./api-documentation-v4-content-editor.component.scss'],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -36,7 +36,7 @@ export class ApiDocumentationV4ContentEditorComponent implements ControlValueAcc
   _value: string;
   private _disabled = false;
 
-  protected _onChange: (_selection: string) => void = () => ({});
+  public _onChange: (_selection: string) => void = () => ({});
 
   protected _onTouched: () => void = () => ({});
 

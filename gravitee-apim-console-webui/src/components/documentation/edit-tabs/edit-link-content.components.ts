@@ -85,6 +85,6 @@ export const EditLinkContentComponent: ng.IComponentOptions = {
     pageList: '<',
     systemFoldersById: '<',
   },
-  template: require('./edit-link-content.html'),
+  template: require('html-loader!./edit-link-content.html'),
   controller: EditLinkContentComponentController,
 };

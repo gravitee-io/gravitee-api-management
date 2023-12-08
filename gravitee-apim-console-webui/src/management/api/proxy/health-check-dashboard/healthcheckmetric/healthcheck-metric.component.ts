@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 const HealthCheckMetricComponent: ng.IComponentOptions = {
-  template: require('./healthcheck-metric.html'),
+  template: require('html-loader!./healthcheck-metric.html'),
   bindings: {
     availability: '<',
     responsetime: '<',

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { switchMap, takeUntil } from 'rxjs/operators';
 import { Observable, Subject } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -27,8 +27,8 @@ import { isEndpointNameUniqueAndDoesNotMatchDefaultValue } from '../api-endpoint
 
 @Component({
   selector: 'api-endpoint-group',
-  template: require('./api-endpoint-group.component.html'),
-  styles: [require('./api-endpoint-group.component.scss')],
+  templateUrl: './api-endpoint-group.component.html',
+  styleUrls: ['./api-endpoint-group.component.scss'],
 })
 export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
@@ -37,9 +37,9 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
   public api: ApiV4;
   public initialApi: ApiV4;
   public isReadOnly: boolean;
-  public generalForm: FormGroup;
-  public groupForm: FormGroup;
-  public configurationForm: FormGroup;
+  public generalForm: UntypedFormGroup;
+  public groupForm: UntypedFormGroup;
+  public configurationForm: UntypedFormGroup;
 
   public initialGroupFormValue: any;
   public endpointGroup: EndpointGroupV4;
@@ -102,8 +102,8 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
 
     this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-r']) || api.definitionContext?.origin === 'KUBERNETES';
 
-    this.generalForm = new FormGroup({
-      name: new FormControl(
+    this.generalForm = new UntypedFormGroup({
+      name: new UntypedFormControl(
         {
           value: this.endpointGroup.name ?? null,
           disabled: this.isReadOnly,
@@ -114,17 +114,19 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
           isEndpointNameUniqueAndDoesNotMatchDefaultValue(this.api, this.endpointGroup.name),
         ],
       ),
-      loadBalancerType: new FormControl({ value: this.endpointGroup.loadBalancer?.type ?? null, disabled: false }, [Validators.required]),
+      loadBalancerType: new UntypedFormControl({ value: this.endpointGroup.loadBalancer?.type ?? null, disabled: false }, [
+        Validators.required,
+      ]),
     });
 
-    this.configurationForm = new FormGroup({
-      groupConfiguration: new FormControl({
+    this.configurationForm = new UntypedFormGroup({
+      groupConfiguration: new UntypedFormControl({
         value: this.endpointGroup.sharedConfiguration ?? {},
         disabled: this.isReadOnly,
       }),
     });
 
-    this.groupForm = new FormGroup({
+    this.groupForm = new UntypedFormGroup({
       general: this.generalForm,
       configuration: this.configurationForm,
     });

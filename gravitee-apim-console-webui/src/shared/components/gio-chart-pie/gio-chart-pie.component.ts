@@ -25,8 +25,8 @@ export interface GioChartPieInput {
 
 @Component({
   selector: 'gio-chart-pie',
-  template: require('./gio-chart-pie.component.html'),
-  styles: [require('./gio-chart-pie.component.scss')],
+  templateUrl: './gio-chart-pie.component.html',
+  styleUrls: ['./gio-chart-pie.component.scss'],
 })
 export class GioChartPieComponent implements OnInit {
   @Input()

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
+import { find } from 'lodash';
 
 import { Conditions, Metrics } from '../../../../entities/alert';
 
@@ -26,7 +26,7 @@ const AlertTriggerConditionComponent: ng.IComponentOptions = {
     referenceType: '<',
     referenceId: '<',
   },
-  template: require('./trigger-condition.html'),
+  template: require('html-loader!./trigger-condition.html'),
   controller: function () {
     this.$onInit = () => {
       this.onMetricsChange(false);
@@ -47,7 +47,7 @@ const AlertTriggerConditionComponent: ng.IComponentOptions = {
         }
 
         // Get the metric field according to the condition property
-        this.conditions = _.find(this.metrics as Metrics[], (metric) => metric.key === this.condition.property).conditions;
+        this.conditions = find(this.metrics as Metrics[], (metric) => metric.key === this.condition.property).conditions;
 
         this.onConditionChange();
       }

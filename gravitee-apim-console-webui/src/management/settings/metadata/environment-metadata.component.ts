@@ -21,8 +21,8 @@ import { EnvironmentMetadataService } from '../../../services-ngx/environment-me
 
 @Component({
   selector: 'environment-metadata',
-  template: require('./environment-metadata.component.html'),
-  styles: [require('./environment-metadata.component.scss')],
+  templateUrl: './environment-metadata.component.html',
+  styleUrls: ['./environment-metadata.component.scss'],
 })
 export class EnvironmentMetadataComponent implements OnInit {
   metadataSaveServices: MetadataSaveServices;

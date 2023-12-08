@@ -56,7 +56,7 @@ class CustomUserFieldsController {
       .show({
         controller: 'NewFieldDialogController',
         controllerAs: '$ctrl',
-        template: require('./dialog/save.custom-user-field.dialog.html'),
+        template: require('html-loader!./dialog/save.custom-user-field.dialog.html'),
         locals: {
           fieldFormats: this.fieldFormats,
           predefinedKeys: this.predefinedKeys,
@@ -76,7 +76,7 @@ class CustomUserFieldsController {
       .show({
         controller: 'UpdateFieldDialogController',
         controllerAs: '$ctrl',
-        template: require('./dialog/save.custom-user-field.dialog.html'),
+        template: require('html-loader!./dialog/save.custom-user-field.dialog.html'),
         locals: {
           field: field,
           fieldFormats: this.fieldFormats,
@@ -97,7 +97,7 @@ class CustomUserFieldsController {
       .show({
         controller: 'DeleteFieldDialogController',
         controllerAs: '$ctrl',
-        template: require('./dialog/delete.custom-user-field.dialog.html'),
+        template: require('html-loader!./dialog/delete.custom-user-field.dialog.html'),
         locals: {
           field: field,
         },

@@ -17,7 +17,7 @@
 import ApiV1PoliciesControllerAjs from './policies.controller.ajs';
 
 export const ApiV1PoliciesComponentAjs = {
-  template: require('./apiPolicies.html'),
+  template: require('html-loader!./apiPolicies.html'),
   controller: ApiV1PoliciesControllerAjs,
   bindings: {
     api: '<',

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import * as _ from 'lodash';
 import { BehaviorSubject } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
+import { difference, isEmpty } from 'lodash';
 
 import { PagedResult } from '../../../../entities/pagedResult';
 
@@ -72,9 +72,9 @@ class ApplicationSubscriptionsController {
   hasFilter(): boolean {
     return (
       (this.filter.apis && this.filter.apis.length > 0) ||
-      !_.isEmpty(this.filter.apiKey) ||
-      _.difference(defaultStatus, this.filter.status).length > 0 ||
-      _.difference(this.filter.status, defaultStatus).length > 0
+      !isEmpty(this.filter.apiKey) ||
+      difference(defaultStatus, this.filter.status).length > 0 ||
+      difference(this.filter.status, defaultStatus).length > 0
     );
   }
 

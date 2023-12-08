@@ -132,16 +132,4 @@ const bootstrapDecoratorConfig = (schemaFormDecoratorsProvider) => {
   });
 };
 bootstrapDecoratorConfig.$inject = ['schemaFormDecoratorsProvider'];
-angular
-  .module('schemaForm')
-  .config(bootstrapDecoratorConfig)
-  .directive('sfFieldset', () => {
-    return {
-      transclude: true,
-      scope: true,
-      templateUrl: 'directives/decorators/bootstrap/fieldset-trcl.html',
-      link: function (scope, element, attrs) {
-        (<any>scope).title = scope.$eval((<any>attrs).title);
-      },
-    };
-  });
+angular.module('schemaForm').config(bootstrapDecoratorConfig);

@@ -27,8 +27,8 @@ export interface TasksAcceptPromotionDialogResult {
 
 @Component({
   selector: 'tasks-accept-promotion-dialog',
-  template: require('./tasks-accept-promotion-dialog.component.html'),
-  styles: [require('./tasks-accept-promotion-dialog.component.scss')],
+  templateUrl: './tasks-accept-promotion-dialog.component.html',
+  styleUrls: ['./tasks-accept-promotion-dialog.component.scss'],
 })
 export class TasksAcceptPromotionDialogComponent {
   data: TasksAcceptPromotionDialogData;

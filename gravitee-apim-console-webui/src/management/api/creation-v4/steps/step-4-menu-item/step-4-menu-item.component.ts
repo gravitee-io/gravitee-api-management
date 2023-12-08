@@ -26,8 +26,8 @@ interface MenuItemVM {
 
 @Component({
   selector: 'step-4-menu-item',
-  template: require('./step-4-menu-item.component.html'),
-  styles: [require('./step-4-menu-item.component.scss')],
+  templateUrl: './step-4-menu-item.component.html',
+  styleUrls: ['./step-4-menu-item.component.scss'],
 })
 export class Step4MenuItemComponent implements OnInit {
   public menuItems: MenuItemVM[];

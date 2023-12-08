@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 import { IHttpResponse, ILocationService, IScope } from 'angular';
+
 import * as _ from 'lodash';
+import { forEach, includes, keys, toLower } from 'lodash';
 
 import { ApiService } from './api.service';
 import ApplicationService from './application.service';
@@ -160,12 +162,12 @@ class UserService {
           this.currentUser = Object.assign(new User(), response[0].data as UserDetails);
 
           this.currentUser.userPermissions = [];
-          _.forEach(this.currentUser.roles, (role) => {
-            _.forEach(_.keys(role.permissions), (permission) => {
-              _.forEach(role.permissions[permission], (right) => {
+          forEach(this.currentUser.roles, (role) => {
+            forEach(keys(role.permissions), (permission) => {
+              forEach(role.permissions[permission], (right) => {
                 if (role.scope === 'ORGANIZATION') {
                   const permissionName = role.scope + '-' + permission + '-' + right;
-                  this.currentUser.userPermissions.push(_.toLower(permissionName));
+                  this.currentUser.userPermissions.push(toLower(permissionName));
                 }
               });
             });
@@ -175,20 +177,20 @@ class UserService {
           if (apiOrApplicationResponse) {
             this.currentUser.userEnvironmentPermissions = this.getEnvironmentPermissions(apiOrApplicationResponse);
 
-            if (_.includes(apiOrApplicationResponse.config.url, 'applications')) {
+            if (includes(apiOrApplicationResponse.config.url, 'applications')) {
               this.currentUser.userApplicationPermissions = [];
-              _.forEach(_.keys(apiOrApplicationResponse.data), (permission) => {
-                _.forEach(apiOrApplicationResponse.data[permission], (right) => {
+              forEach(keys(apiOrApplicationResponse.data), (permission) => {
+                forEach(apiOrApplicationResponse.data[permission], (right) => {
                   const permissionName = 'APPLICATION-' + permission + '-' + right;
-                  this.currentUser.userApplicationPermissions.push(_.toLower(permissionName));
+                  this.currentUser.userApplicationPermissions.push(toLower(permissionName));
                 });
               });
-            } else if (_.includes(apiOrApplicationResponse.config.url, 'apis')) {
+            } else if (includes(apiOrApplicationResponse.config.url, 'apis')) {
               this.currentUser.userApiPermissions = [];
-              _.forEach(_.keys(apiOrApplicationResponse.data), (permission) => {
-                _.forEach(apiOrApplicationResponse.data[permission], (right) => {
+              forEach(keys(apiOrApplicationResponse.data), (permission) => {
+                forEach(apiOrApplicationResponse.data[permission], (right) => {
                   const permissionName = 'API-' + permission + '-' + right;
-                  this.currentUser.userApiPermissions.push(_.toLower(permissionName));
+                  this.currentUser.userApiPermissions.push(toLower(permissionName));
                 });
               });
             }
@@ -214,21 +216,21 @@ class UserService {
     const rights: string[] = this.RoleService.listRights();
     this.RoleService.listScopes().then((permissionsByScope) => {
       const allPermissions: string[] = [];
-      _.forEach(permissionsByScope, (permissions, scope) => {
-        _.forEach(permissions, (permission) => {
-          _.forEach(rights, (right) => {
+      forEach(permissionsByScope, (permissions, scope) => {
+        forEach(permissions, (permission) => {
+          forEach(rights, (right) => {
             const permissionName = scope + '-' + permission + '-' + right;
-            allPermissions.push(_.toLower(permissionName));
+            allPermissions.push(toLower(permissionName));
           });
         });
       });
 
       this.PermPermissionStore.defineManyPermissions(allPermissions, (permissionName) => {
         return (
-          _.includes(this.currentUser.userPermissions, permissionName) ||
-          _.includes(this.currentUser.userEnvironmentPermissions, permissionName) ||
-          _.includes(this.currentUser.userApiPermissions, permissionName) ||
-          _.includes(this.currentUser.userApplicationPermissions, permissionName)
+          includes(this.currentUser.userPermissions, permissionName) ||
+          includes(this.currentUser.userEnvironmentPermissions, permissionName) ||
+          includes(this.currentUser.userApiPermissions, permissionName) ||
+          includes(this.currentUser.userApplicationPermissions, permissionName)
         );
       });
     });
@@ -310,8 +312,8 @@ class UserService {
     }
 
     const permissions = [] as string[];
-    _.forEach(_.keys(response.data), (permission) => {
-      _.forEach(response.data[permission], (right) => {
+    forEach(keys(response.data), (permission) => {
+      forEach(response.data[permission], (right) => {
         const permissionName = `ENVIRONMENT-${permission}-${right}`.toLowerCase();
         permissions.push(permissionName);
       });

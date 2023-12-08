@@ -23,8 +23,8 @@ import { NotificationSettingsDetailsServices } from '../../../../../../component
 
 @Component({
   selector: 'application-notification-settings-details',
-  template: require('./application-notification-settings-details.component.html'),
-  styles: [require('./application-notification-settings-details.component.scss')],
+  templateUrl: './application-notification-settings-details.component.html',
+  styleUrls: ['./application-notification-settings-details.component.scss'],
 })
 export class ApplicationNotificationSettingsDetailsComponent implements OnInit, OnDestroy {
   public notificationSettingsDetailsServices: NotificationSettingsDetailsServices;

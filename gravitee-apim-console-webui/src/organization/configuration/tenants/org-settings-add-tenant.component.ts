@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, Inject } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 
 import { Tenant } from '../../../entities/tenant/tenant';
@@ -25,13 +25,13 @@ export type OrgSettingAddTenantDialogData = {
 
 @Component({
   selector: 'org-settings-add-tenant',
-  template: require('./org-settings-add-tenant.component.html'),
-  styles: [require('./org-settings-add-tenant.component.scss')],
+  templateUrl: './org-settings-add-tenant.component.html',
+  styleUrls: ['./org-settings-add-tenant.component.scss'],
 })
 export class OrgSettingAddTenantComponent {
   tenant?: Tenant;
   isUpdate = false;
-  tenantForm: FormGroup;
+  tenantForm: UntypedFormGroup;
 
   constructor(
     public dialogRef: MatDialogRef<OrgSettingAddTenantComponent>,
@@ -40,13 +40,13 @@ export class OrgSettingAddTenantComponent {
     this.tenant = confirmDialogData.tenant;
     this.isUpdate = !!this.tenant;
 
-    this.tenantForm = new FormGroup({
-      name: new FormControl(this.tenant?.name, [Validators.required, Validators.minLength(1), Validators.maxLength(30)]),
-      description: new FormControl(this.tenant?.description, [Validators.maxLength(160)]),
+    this.tenantForm = new UntypedFormGroup({
+      name: new UntypedFormControl(this.tenant?.name, [Validators.required, Validators.minLength(1), Validators.maxLength(30)]),
+      description: new UntypedFormControl(this.tenant?.description, [Validators.maxLength(160)]),
     });
 
     if (this.isUpdate) {
-      this.tenantForm.addControl('id', new FormControl({ value: this.tenant.id, disabled: true }, [Validators.required]));
+      this.tenantForm.addControl('id', new UntypedFormControl({ value: this.tenant.id, disabled: true }, [Validators.required]));
     }
   }
 

@@ -21,8 +21,8 @@ import { ConnectionLog, Pagination } from '../../../../../../entities/management
 
 @Component({
   selector: 'api-runtime-logs-list',
-  template: require('./api-runtime-logs-list.component.html'),
-  styles: [require('./api-runtime-logs-list.component.scss')],
+  templateUrl: './api-runtime-logs-list.component.html',
+  styleUrls: ['./api-runtime-logs-list.component.scss'],
 })
 export class ApiRuntimeLogsListComponent {
   @Input()

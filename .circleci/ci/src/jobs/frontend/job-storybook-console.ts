@@ -37,7 +37,7 @@ export class StorybookConsoleJob {
         command: 'npm run build-storybook',
         working_directory: config.dockerImages.console.project,
         environment: {
-          NODE_OPTIONS: '--max_old_space_size=3072',
+          NODE_OPTIONS: '--max_old_space_size=8192',
         },
       }),
       new reusable.ReusedCommand(notifyOnFailureCommand),

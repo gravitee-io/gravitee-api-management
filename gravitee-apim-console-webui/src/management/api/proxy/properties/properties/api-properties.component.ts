@@ -18,7 +18,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { EMPTY, Subject } from 'rxjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { isEmpty, omit, uniqueId } from 'lodash';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { GIO_DIALOG_WIDTH } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute } from '@angular/router';
@@ -52,8 +52,8 @@ type TableDataSource = {
 
 @Component({
   selector: 'api-properties',
-  template: require('./api-properties.component.html'),
-  styles: [require('./api-properties.component.scss')],
+  templateUrl: './api-properties.component.html',
+  styleUrls: ['./api-properties.component.scss'],
 })
 export class ApiPropertiesComponent implements OnInit, OnDestroy {
   private unsubscribe$ = new Subject<void>();
@@ -71,7 +71,7 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
   public displayedColumns = ['key', 'value', 'characteristic', 'actions'];
   public filteredTableData: TableDataSource[] = [];
   public apiProperties: (Property & { _id: string; dynamic: boolean })[] = [];
-  public propertiesFormGroup: FormGroup = new FormGroup({});
+  public propertiesFormGroup: UntypedFormGroup = new UntypedFormGroup({});
   public isDirty = false;
 
   constructor(
@@ -247,9 +247,9 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
   private initPropertiesFormGroup() {
     if (isEmpty(this.apiProperties)) return;
 
-    this.propertiesFormGroup = new FormGroup(
+    this.propertiesFormGroup = new UntypedFormGroup(
       this.apiProperties.reduce((previousValue, currentValue) => {
-        const keyControl = new FormControl(
+        const keyControl = new UntypedFormControl(
           {
             value: currentValue.key,
             disabled: currentValue.dynamic,
@@ -264,20 +264,20 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
         );
         keyControl.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe((value) => this.editKeyProperty(currentValue._id, value));
 
-        const valueControl = new FormControl({
+        const valueControl = new UntypedFormControl({
           value: currentValue.encrypted ? '*************' : currentValue.value,
           disabled: currentValue.encrypted || currentValue.dynamic,
         });
         valueControl.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe((value) => this.editValueProperty(currentValue._id, value));
 
-        const encryptedControl = new FormControl(currentValue.encrypted);
+        const encryptedControl = new UntypedFormControl(currentValue.encrypted);
         encryptedControl.valueChanges
           .pipe(takeUntil(this.unsubscribe$))
           .subscribe((value) => this.editEncryptedProperty(currentValue._id, value));
 
         return {
           ...previousValue,
-          [currentValue._id]: new FormGroup({
+          [currentValue._id]: new UntypedFormGroup({
             key: keyControl,
             value: valueControl,
             encrypted: encryptedControl,

@@ -53,7 +53,7 @@ export const Simple: Story = {
       </mat-card>
       `,
       props: { source: input },
-      styles: [],
+      styleUrls: [],
     };
   },
 };

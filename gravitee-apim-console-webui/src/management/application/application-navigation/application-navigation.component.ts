@@ -40,8 +40,8 @@ export interface MenuItemHeader {
 
 @Component({
   selector: 'application-navigation',
-  template: require('./application-navigation.component.html'),
-  styles: [require('./application-navigation.component.scss')],
+  templateUrl: './application-navigation.component.html',
+  styleUrls: ['./application-navigation.component.scss'],
 })
 export class ApplicationNavigationComponent implements OnInit, OnDestroy {
   public application: Application;

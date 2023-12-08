@@ -17,7 +17,7 @@ import { Component } from '@angular/core';
 
 @Component({
   selector: 'application-general-transfer-ownership',
-  template: require('./application-general-transfer-ownership.component.html'),
-  styles: [require('./application-general-transfer-ownership.component.scss')],
+  templateUrl: './application-general-transfer-ownership.component.html',
+  styleUrls: ['./application-general-transfer-ownership.component.scss'],
 })
 export class ApplicationGeneralTransferOwnershipComponent {}

@@ -41,8 +41,8 @@ type TableData = {
 
 @Component({
   selector: 'org-settings-identity-providers',
-  styles: [require('./org-settings-identity-providers.component.scss')],
-  template: require('./org-settings-identity-providers.component.html'),
+  styleUrls: ['./org-settings-identity-providers.component.scss'],
+  templateUrl: './org-settings-identity-providers.component.html',
 })
 export class OrgSettingsIdentityProvidersComponent implements OnInit, OnDestroy {
   providedConfigurationMessage = 'Configuration provided by the system';

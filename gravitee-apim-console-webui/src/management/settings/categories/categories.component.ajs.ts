@@ -18,7 +18,7 @@ const CategoriesComponentAjs: ng.IComponentOptions = {
     activatedRoute: '<',
   },
   controller: 'CategoriesController',
-  template: require('./categories.html'),
+  template: require('html-loader!./categories.html'),
 };
 
 export default CategoriesComponentAjs;

@@ -16,7 +16,7 @@
 const TopApisComponentAjs: ng.IComponentOptions = {
   bindings: {},
   controller: 'TopApisController',
-  template: require('./top-apis.html'),
+  template: require('html-loader!./top-apis.html'),
 };
 
 export default TopApisComponentAjs;

@@ -20,10 +20,10 @@ import { DebugStepError } from '../../../models/DebugStep';
 
 @Component({
   selector: 'policy-studio-debug-inspector-error',
-  template: require('./policy-studio-debug-inspector-error.component.html'),
-  styles: [require('./policy-studio-debug-inspector-error.component.scss')],
+  templateUrl: './policy-studio-debug-inspector-error.component.html',
+  styleUrls: ['./policy-studio-debug-inspector-error.component.scss'],
 })
 export class PolicyStudioDebugInspectorErrorComponent {
   @Input()
-  private error: DebugStepError;
+  public error: DebugStepError;
 }

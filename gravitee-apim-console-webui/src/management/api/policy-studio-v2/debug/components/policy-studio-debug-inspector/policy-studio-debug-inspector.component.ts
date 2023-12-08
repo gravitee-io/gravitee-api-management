@@ -93,8 +93,8 @@ export function getDiffState(input: string, output: string): 'added' | 'deleted'
 
 @Component({
   selector: 'policy-studio-debug-inspector',
-  template: require('./policy-studio-debug-inspector.component.html'),
-  styles: [require('./policy-studio-debug-inspector.component.scss')],
+  templateUrl: './policy-studio-debug-inspector.component.html',
+  styleUrls: ['./policy-studio-debug-inspector.component.scss'],
 })
 export class PolicyStudioDebugInspectorComponent implements OnChanges {
   @Input()

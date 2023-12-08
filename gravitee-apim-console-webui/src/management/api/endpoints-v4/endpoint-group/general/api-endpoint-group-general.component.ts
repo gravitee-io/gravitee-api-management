@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 import { Component, Input } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 
 import { LOAD_BALANCER_TYPES } from '../../../../../entities/management-api-v2';
 
 @Component({
   selector: 'api-endpoint-group-general',
-  template: require('./api-endpoint-group-general.component.html'),
-  styles: [require('./api-endpoint-group-general.component.scss')],
+  templateUrl: './api-endpoint-group-general.component.html',
+  styleUrls: ['./api-endpoint-group-general.component.scss'],
 })
 export class ApiEndpointGroupGeneralComponent {
-  @Input() generalForm: FormGroup;
+  @Input() generalForm: UntypedFormGroup;
   public loadBalancerTypes = LOAD_BALANCER_TYPES;
 }

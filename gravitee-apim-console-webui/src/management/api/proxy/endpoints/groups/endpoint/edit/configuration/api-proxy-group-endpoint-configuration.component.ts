@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, Input } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { startWith, takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 
@@ -28,12 +28,12 @@ export type EndpointConfigurationData = {
 
 @Component({
   selector: 'api-proxy-group-endpoint-configuration',
-  template: require('./api-proxy-group-endpoint-configuration.component.html'),
-  styles: [require('./api-proxy-group-endpoint-configuration.component.scss')],
+  templateUrl: './api-proxy-group-endpoint-configuration.component.html',
+  styleUrls: ['./api-proxy-group-endpoint-configuration.component.scss'],
 })
 export class ApiProxyGroupEndpointConfigurationComponent {
-  public static getConfigurationFormGroup(endpoint: EndpointV2, isReadonly: boolean, unsubscribe$: Subject<boolean>): FormGroup {
-    const inherit = new FormControl({ value: endpoint.inherit ?? false, disabled: isReadonly });
+  public static getConfigurationFormGroup(endpoint: EndpointV2, isReadonly: boolean, unsubscribe$: Subject<boolean>): UntypedFormGroup {
+    const inherit = new UntypedFormControl({ value: endpoint.inherit ?? false, disabled: isReadonly });
     const configuration = EndpointHttpConfigComponent.getHttpConfigFormGroup(endpoint, isReadonly);
 
     inherit.valueChanges.pipe(startWith(inherit.value), takeUntil(unsubscribe$)).subscribe((inheritValue) => {
@@ -44,19 +44,19 @@ export class ApiProxyGroupEndpointConfigurationComponent {
       configuration.disable({ emitEvent: false });
     });
 
-    return new FormGroup({
+    return new UntypedFormGroup({
       inherit,
       configuration,
     });
   }
 
-  public static getConfigurationFormValue(configurationFormGroup: FormGroup): EndpointConfigurationData {
+  public static getConfigurationFormValue(configurationFormGroup: UntypedFormGroup): EndpointConfigurationData {
     return {
       inherit: configurationFormGroup.get('inherit').value,
-      configuration: EndpointHttpConfigComponent.getHttpConfigValue(configurationFormGroup.get('configuration') as FormGroup),
+      configuration: EndpointHttpConfigComponent.getHttpConfigValue(configurationFormGroup.get('configuration') as UntypedFormGroup),
     };
   }
 
-  @Input() configurationFormGroup: FormGroup;
-  protected readonly FormGroup = FormGroup;
+  @Input() configurationFormGroup: UntypedFormGroup;
+  protected readonly FormGroup = UntypedFormGroup;
 }

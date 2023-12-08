@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
+import { merge } from 'lodash';
 const WidgetChartMapConfigurationComponent: ng.IComponentOptions = {
-  template: require('./widget-chart-map-configuration.html'),
+  template: require('html-loader!./widget-chart-map-configuration.html'),
   bindings: {
     chart: '<',
   },
   controller: function () {
     this.$onInit = () => {
       if (!this.chart.request) {
-        _.merge(this.chart, {
+        merge(this.chart, {
           request: {
             type: 'group_by',
             field: 'geoip.city_name',

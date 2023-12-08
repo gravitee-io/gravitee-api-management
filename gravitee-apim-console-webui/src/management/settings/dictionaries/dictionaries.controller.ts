@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { IScope } from 'angular';
+
 import { ActivatedRoute, Router } from '@angular/router';
 
 import DictionaryService from '../../../services/dictionary.service';

@@ -15,7 +15,7 @@
  */
 import { AfterViewChecked, ChangeDetectorRef, Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { distinctUntilChanged, takeUntil, tap } from 'rxjs/operators';
 
@@ -34,15 +34,15 @@ export interface GioMetadataDialogData {
 
 @Component({
   selector: 'gio-metadata-dialog',
-  template: require('./gio-metadata-dialog.component.html'),
-  styles: [require('./gio-metadata-dialog.component.scss')],
+  templateUrl: './gio-metadata-dialog.component.html',
+  styleUrls: ['./gio-metadata-dialog.component.scss'],
 })
 export class GioMetadataDialogComponent implements OnInit, AfterViewChecked {
   private unsubscribe$: Subject<void> = new Subject<void>();
 
   metadata: GioMetadataDialogData;
   hasChange: boolean;
-  form: FormGroup;
+  form: UntypedFormGroup;
   formats: string[];
   mailPattern = MAIL_PATTERN;
   urlPattern = URL_PATTERN;
@@ -51,7 +51,7 @@ export class GioMetadataDialogComponent implements OnInit, AfterViewChecked {
     private readonly changeDetectorRef: ChangeDetectorRef,
     private readonly dialogRef: MatDialogRef<GioMetadataDialogData, GioMetadataDialogData>,
     @Inject(MAT_DIALOG_DATA) dialogData: GioMetadataDialogData,
-    private readonly formBuilder: FormBuilder,
+    private readonly formBuilder: UntypedFormBuilder,
   ) {
     this.metadata = dialogData;
   }

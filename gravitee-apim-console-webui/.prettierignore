@@ -17,6 +17,7 @@ Jenkinsfile
 .idea
 .tmp
 .circleci
+.angular
 
 !.eslintrc.js
 

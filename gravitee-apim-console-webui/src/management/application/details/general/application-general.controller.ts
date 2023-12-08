@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import * as _ from 'lodash';
 import { ActivatedRoute, Router } from '@angular/router';
+import { assign, cloneDeep } from 'lodash';
 
 import ApplicationService from '../../../../services/application.service';
 import NotificationService from '../../../../services/notification.service';
@@ -52,12 +52,12 @@ class ApplicationGeneralController {
       this.$scope.formApplication.$setDirty();
     });
 
-    this.initialApplication = _.cloneDeep(this.application);
+    this.initialApplication = cloneDeep(this.application);
   }
 
   update() {
     this.ApplicationService.update(this.application).then(() => {
-      this.initialApplication = _.cloneDeep(this.application);
+      this.initialApplication = cloneDeep(this.application);
       this.$scope.formApplication.$setPristine();
       this.NotificationService.show(this.application.name + ' has been updated');
     });
@@ -71,7 +71,7 @@ class ApplicationGeneralController {
   }
 
   reset() {
-    _.assign(this.application, this.initialApplication);
+    assign(this.application, this.initialApplication);
     this.$scope.formApplication.$setPristine();
   }
 
@@ -85,7 +85,7 @@ class ApplicationGeneralController {
       .show({
         controller: 'DialogConfirmAndValidateController',
         controllerAs: 'ctrl',
-        template: require('../../../../components/dialog/confirmAndValidate.dialog.html'),
+        template: require('html-loader!../../../../components/dialog/confirmAndValidate.dialog.html'),
         clickOutsideToClose: true,
         locals: {
           title: 'Would you like to delete your application?',
@@ -109,7 +109,7 @@ class ApplicationGeneralController {
       .show({
         controller: 'DialogConfirmController',
         controllerAs: 'ctrl',
-        template: require('../../../../components/dialog/confirmWarning.dialog.html'),
+        template: require('html-loader!../../../../components/dialog/confirmWarning.dialog.html'),
         clickOutsideToClose: true,
         locals: {
           msg: 'By renewing the client secret, you will no longer be able to generate new access tokens and call APIs.',
@@ -122,7 +122,7 @@ class ApplicationGeneralController {
           this.ApplicationService.renewClientSecret(this.application.id).then((response) => {
             this.NotificationService.show('Client secret has been renew');
             this.application = response.data;
-            this.initialApplication = _.cloneDeep(this.application);
+            this.initialApplication = cloneDeep(this.application);
             this.$scope.formApplication.$setPristine();
           });
         }

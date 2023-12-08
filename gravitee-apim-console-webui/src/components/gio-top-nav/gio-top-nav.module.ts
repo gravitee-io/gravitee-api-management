@@ -43,6 +43,5 @@ import { GioNotificationMenuModule } from '../gio-notification-menu/gio-notifica
   ],
   declarations: [GioTopNavComponent],
   exports: [GioTopNavComponent],
-  entryComponents: [GioTopNavComponent],
 })
 export class GioTopNavModule {}

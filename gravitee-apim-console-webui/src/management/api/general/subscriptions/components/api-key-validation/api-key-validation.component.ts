@@ -18,7 +18,7 @@ import {
   AbstractControl,
   AsyncValidatorFn,
   ControlValueAccessor,
-  FormControl,
+  UntypedFormControl,
   NG_ASYNC_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -32,8 +32,8 @@ import { ApiSubscriptionV2Service } from '../../../../../../services-ngx/api-sub
 
 @Component({
   selector: 'api-key-validation',
-  template: require('./api-key-validation.component.html'),
-  styles: [require('./api-key-validation.component.scss')],
+  templateUrl: './api-key-validation.component.html',
+  styleUrls: ['./api-key-validation.component.scss'],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -54,7 +54,7 @@ export class ApiKeyValidationComponent implements OnInit, ControlValueAccessor, 
   @Input()
   applicationId: string;
 
-  private apiKeyFormControl = new FormControl('', [], [this.apiKeyAsyncValidator()]);
+  public apiKeyFormControl = new UntypedFormControl('', [], [this.apiKeyAsyncValidator()]);
   private apiKey: string;
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   private _onChange: (_apiKey: string | null) => void = () => ({});

@@ -221,7 +221,7 @@ describe('ApiGeneralInfoDangerZoneComponent', () => {
     createComponent(api);
 
     const licenseService = fixture.debugElement.injector.get(GioLicenseService);
-    spyOn(licenseService, 'isMissingFeature$').and.returnValue(of(true));
+    jest.spyOn(licenseService, 'isMissingFeature$').mockReturnValue(of(true));
     fixture.detectChanges();
 
     const upgradeButton = fixture.debugElement.query(

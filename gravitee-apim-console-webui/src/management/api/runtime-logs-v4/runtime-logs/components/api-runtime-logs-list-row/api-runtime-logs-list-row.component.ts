@@ -20,8 +20,8 @@ import { ConnectionLog } from '../../../../../../entities/management-api-v2';
 
 @Component({
   selector: 'api-runtime-logs-list-row',
-  template: require('./api-runtime-logs-list-row.component.html'),
-  styles: [require('./api-runtime-logs-list-row.component.scss')],
+  templateUrl: './api-runtime-logs-list-row.component.html',
+  styleUrls: ['./api-runtime-logs-list-row.component.scss'],
 })
 export class ApiRuntimeLogsListRowComponent {
   @Input()

@@ -28,8 +28,8 @@ export class RequestStats {
 
 @Component({
   selector: 'gio-request-stats',
-  template: require('./gio-request-stats.component.html'),
-  styles: [require('./gio-request-stats.component.scss')],
+  templateUrl: './gio-request-stats.component.html',
+  styleUrls: ['./gio-request-stats.component.scss'],
 })
 export class GioRequestStatsComponent {
   @Input()

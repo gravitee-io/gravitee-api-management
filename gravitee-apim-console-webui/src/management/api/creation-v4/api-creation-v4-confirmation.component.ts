@@ -23,8 +23,8 @@ import { Api } from '../../../entities/management-api-v2';
 
 @Component({
   selector: 'api-creation-v4-confirmation',
-  template: require('./api-creation-v4-confirmation.component.html'),
-  styles: [require('./api-creation-v4-confirmation.component.scss')],
+  templateUrl: './api-creation-v4-confirmation.component.html',
+  styleUrls: ['./api-creation-v4-confirmation.component.scss'],
 })
 export class ApiCreationV4ConfirmationComponent implements OnInit {
   private unsubscribe$: Subject<void> = new Subject<void>();

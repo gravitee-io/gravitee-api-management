@@ -18,7 +18,7 @@ import { Component } from '@angular/core';
 
 @Component({
   selector: 'policy-studio-debug-timeline-legend',
-  template: require('./policy-studio-debug-timeline-legend.component.html'),
-  styles: [require('./policy-studio-debug-timeline-legend.component.scss')],
+  templateUrl: './policy-studio-debug-timeline-legend.component.html',
+  styleUrls: ['./policy-studio-debug-timeline-legend.component.scss'],
 })
 export class PolicyStudioDebugTimelineLegendComponent {}

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
+import { find } from 'lodash';
 
 import { RoleName } from './membershipState';
 
@@ -41,8 +41,8 @@ function DialogAddGroupMemberController(
   this.defaultApiRole = defaultApiRole;
   this.defaultApplicationRole = defaultApplicationRole;
   this.usersSelected = [];
-  this.defaultApiRole = defaultApiRole ? defaultApiRole : _.find(apiRoles, { default: true })?.name;
-  this.defaultApplicationRole = defaultApplicationRole ? defaultApplicationRole : _.find(applicationRoles, { default: true }).name;
+  this.defaultApiRole = defaultApiRole ? defaultApiRole : find(apiRoles, { default: true })?.name;
+  this.defaultApplicationRole = defaultApplicationRole ? defaultApplicationRole : find(applicationRoles, { default: true }).name;
 
   this.canChangeDefaultApiRole = canChangeDefaultApiRole;
   this.canChangeDefaultApplicationRole = canChangeDefaultApplicationRole;

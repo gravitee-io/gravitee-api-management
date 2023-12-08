@@ -25,6 +25,5 @@ import { GioDiffComponent } from './gio-diff.component';
   imports: [CommonModule, FormsModule, MatButtonToggleModule, GioClipboardModule],
   declarations: [GioDiffComponent],
   exports: [GioDiffComponent],
-  entryComponents: [GioDiffComponent],
 })
 export class GioDiffModule {}

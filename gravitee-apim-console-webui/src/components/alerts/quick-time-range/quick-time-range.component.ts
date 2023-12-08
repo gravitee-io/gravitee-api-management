@@ -57,7 +57,7 @@ export interface ITimeframe {
 }
 
 const QuickTimeRangeComponent: ng.IComponentOptions = {
-  template: require('./quick-time-range.html'),
+  template: require('html-loader!./quick-time-range.html'),
   controller: 'QuickTimeRangeController',
   bindings: {
     onTimeframeChange: '&',

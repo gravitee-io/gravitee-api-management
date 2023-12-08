@@ -26,6 +26,5 @@ import { GioFormCardGroupComponent } from './gio-form-card-group.component';
   imports: [CommonModule, MatCardModule, MatIconModule, MatRippleModule],
   declarations: [GioFormCardGroupComponent, GioFormCardComponent],
   exports: [GioFormCardGroupComponent, GioFormCardComponent],
-  entryComponents: [GioFormCardGroupComponent],
 })
 export class GioFormCardGroupModule {}

@@ -15,7 +15,8 @@
  */
 
 import angular from 'angular';
-import * as _ from 'lodash';
+
+import { cloneDeep, filter, forEach, remove } from 'lodash';
 
 import { ApiService } from '../../../../services/api.service';
 import NotificationService from '../../../../services/notification.service';
@@ -83,8 +84,8 @@ class ApiV1PropertiesControllerAjs {
       controller: this,
     };
 
-    this._initialDynamicPropertyService = _.cloneDeep(this.api.services && this.api.services['dynamic-property']);
-    this.dynamicPropertyService = _.cloneDeep(this._initialDynamicPropertyService);
+    this._initialDynamicPropertyService = cloneDeep(this.api.services && this.api.services['dynamic-property']);
+    this.dynamicPropertyService = cloneDeep(this._initialDynamicPropertyService);
 
     if (this.dynamicPropertyService !== undefined) {
       this.$scope.dynamicPropertyEnabled = this.dynamicPropertyService.enabled;
@@ -110,7 +111,7 @@ class ApiV1PropertiesControllerAjs {
       .show({
         controller: 'DialogConfirmController',
         controllerAs: 'ctrl',
-        template: require('../../../../components/dialog/confirmWarning.dialog.html'),
+        template: require('html-loader!../../../../components/dialog/confirmWarning.dialog.html'),
         clickOutsideToClose: true,
         locals: {
           title: 'Are you sure you want to remove property [' + key + ']?',
@@ -120,7 +121,7 @@ class ApiV1PropertiesControllerAjs {
       })
       .then((response) => {
         if (response) {
-          _.remove(this.api.properties, (property: any) => {
+          remove(this.api.properties, (property: any) => {
             return property.key === key;
           });
 
@@ -134,7 +135,7 @@ class ApiV1PropertiesControllerAjs {
       .show({
         controller: 'DialogAddPropertyController',
         controllerAs: 'dialogAddPropertyCtrl',
-        template: require('./add-property.dialog.html'),
+        template: require('html-loader!./add-property.dialog.html'),
         clickOutsideToClose: true,
       })
       .then((property) => {
@@ -222,7 +223,7 @@ class ApiV1PropertiesControllerAjs {
     this.$mdDialog.show({
       controller: 'DialogDynamicProviderHttpController',
       controllerAs: 'ctrl',
-      template: require('./dynamic-provider-http.dialog.html'),
+      template: require('html-loader!./dynamic-provider-http.dialog.html'),
       parent: angular.element(document.body),
       clickOutsideToClose: true,
     });
@@ -233,7 +234,7 @@ class ApiV1PropertiesControllerAjs {
       .show({
         controller: 'DialogConfirmController',
         controllerAs: 'ctrl',
-        template: require('../../../../components/dialog/confirmWarning.dialog.html'),
+        template: require('html-loader!../../../../components/dialog/confirmWarning.dialog.html'),
         clickOutsideToClose: true,
         locals: {
           title: 'Are you sure you want to remove selected properties?',
@@ -243,9 +244,9 @@ class ApiV1PropertiesControllerAjs {
       })
       .then((response) => {
         if (response) {
-          _.forEach(this.selectedProperties, (v, k) => {
+          forEach(this.selectedProperties, (v, k) => {
             if (v) {
-              _.remove(this.api.properties, (property: any) => {
+              remove(this.api.properties, (property: any) => {
                 return property.key === k;
               });
               delete this.selectedProperties[k];
@@ -258,22 +259,22 @@ class ApiV1PropertiesControllerAjs {
 
   toggleSelectAll(selectAll) {
     if (selectAll) {
-      _.forEach(this.api.properties, (p) => (this.selectedProperties[p.key] = true));
+      forEach(this.api.properties, (p) => (this.selectedProperties[p.key] = true));
     } else {
       this.selectedProperties = {};
     }
   }
 
   checkSelectAll() {
-    this.selectAll = _.filter(this.selectedProperties, (p) => p).length === Object.keys(this.api.properties).length;
+    this.selectAll = filter(this.selectedProperties, (p) => p).length === Object.keys(this.api.properties).length;
   }
 
   hasSelectedProperties() {
-    return _.filter(this.selectedProperties, (p) => p).length > 0;
+    return filter(this.selectedProperties, (p) => p).length > 0;
   }
 
   reset() {
-    this.dynamicPropertyService = _.cloneDeep(this._initialDynamicPropertyService);
+    this.dynamicPropertyService = cloneDeep(this._initialDynamicPropertyService);
     this.$scope.formDynamicProperties.$setPristine();
     this.$scope.formDynamicProperties.$setUntouched();
   }

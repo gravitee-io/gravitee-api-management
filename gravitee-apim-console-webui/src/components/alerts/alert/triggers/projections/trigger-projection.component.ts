@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
+import { filter } from 'lodash';
 
 import { Metrics } from '../../../../../entities/alert';
 import { ApiMetrics } from '../../../../../entities/alerts/api.metrics';
@@ -27,7 +27,7 @@ const AlertTriggerProjectionComponent: ng.IComponentOptions = {
     onProjectionRemove: '&',
     isReadonly: '<',
   },
-  template: require('./trigger-projection.html'),
+  template: require('html-loader!./trigger-projection.html'),
   controller: function () {
     this.$onInit = () => {
       // Metrics are depending on the source of the trigger
@@ -41,7 +41,7 @@ const AlertTriggerProjectionComponent: ng.IComponentOptions = {
         this.metrics = Metrics.filterByScope(NodeLifecycleMetrics.METRICS, this.alert.reference_type);
       }
 
-      this.metrics = _.filter(this.metrics, (metric) => {
+      this.metrics = filter(this.metrics, (metric) => {
         return metric.supportPropertyProjection;
       });
     };

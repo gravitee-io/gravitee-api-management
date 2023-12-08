@@ -15,7 +15,7 @@
  */
 
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { combineLatest, forkJoin, Observable, Subject } from 'rxjs';
 import { GioFormJsonSchemaComponent, GioJsonSchema, GioLicenseService } from '@gravitee/ui-particles-angular';
 import { takeUntil } from 'rxjs/operators';
@@ -29,13 +29,13 @@ import { ApimFeature, UTMTags } from '../../../../../shared/components/gio-licen
 
 @Component({
   selector: 'step-3-endpoints-2-config',
-  template: require('./step-3-endpoints-2-config.component.html'),
-  styles: [require('./step-3-endpoints-2-config.component.scss'), require('../api-creation-steps-common.component.scss')],
+  templateUrl: './step-3-endpoints-2-config.component.html',
+  styleUrls: ['./step-3-endpoints-2-config.component.scss', '../api-creation-steps-common.component.scss'],
 })
 export class Step3Endpoints2ConfigComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
 
-  public formGroup: FormGroup;
+  public formGroup: UntypedFormGroup;
   public selectedEndpoints: { id: string; name: string; deployed: boolean }[];
   public endpointSchemas: Record<string, { config: GioJsonSchema; sharedConfig: GioJsonSchema }>;
 
@@ -78,12 +78,12 @@ export class Step3Endpoints2ConfigComponent implements OnInit, OnDestroy {
         this.selectedEndpoints = currentStepPayload.selectedEndpoints;
         this.shouldUpgrade = this.selectedEndpoints.some(({ deployed }) => !deployed);
 
-        this.formGroup = new FormGroup({
+        this.formGroup = new UntypedFormGroup({
           ...(currentStepPayload.selectedEndpoints?.reduce(
             (map, { id, configuration, sharedConfiguration }) => ({
               ...map,
-              [id + '-configuration']: new FormControl(configuration ?? {}),
-              [id + '-sharedConfiguration']: new FormControl(sharedConfiguration ?? {}),
+              [id + '-configuration']: new UntypedFormControl(configuration ?? {}),
+              [id + '-sharedConfiguration']: new UntypedFormControl(sharedConfiguration ?? {}),
             }),
             {},
           ) ?? {}),

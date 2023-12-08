@@ -15,7 +15,7 @@
  */
 import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { AbstractControl, UntypedFormBuilder, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { tap } from 'rxjs/operators';
 
 import { Visibility } from '../../../../../entities/management-api-v2/documentation/visibility';
@@ -29,11 +29,11 @@ export interface ApiDocumentationV4EditFolderDialogData {
 
 @Component({
   selector: 'api-documentation-v4-edit-folder-dialog',
-  template: require('./api-documentation-v4-edit-folder-dialog.component.html'),
-  styles: [require('./api-documentation-v4-edit-folder-dialog.component.scss')],
+  templateUrl: './api-documentation-v4-edit-folder-dialog.component.html',
+  styleUrls: ['./api-documentation-v4-edit-folder-dialog.component.scss'],
 })
 export class ApiDocumentationV4EditFolderDialog implements OnInit {
-  public formGroup: FormGroup;
+  public formGroup: UntypedFormGroup;
   public formValueChanged = false;
   public data: ApiDocumentationV4EditFolderDialogData;
 
@@ -43,7 +43,7 @@ export class ApiDocumentationV4EditFolderDialog implements OnInit {
   constructor(
     public dialogRef: MatDialogRef<ApiDocumentationV4EditFolderDialog, ApiDocumentationV4EditFolderDialogData>,
     @Inject(MAT_DIALOG_DATA) dialogData: ApiDocumentationV4EditFolderDialogData,
-    private formBuilder: FormBuilder,
+    private formBuilder: UntypedFormBuilder,
   ) {
     this.data = dialogData;
   }

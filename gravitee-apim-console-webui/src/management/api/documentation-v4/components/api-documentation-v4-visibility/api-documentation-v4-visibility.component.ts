@@ -18,8 +18,8 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 @Component({
   selector: 'api-documentation-visibility',
-  template: require('./api-documentation-v4-visibility.component.html'),
-  styles: [require('./api-documentation-v4-visibility.component.scss')],
+  templateUrl: './api-documentation-v4-visibility.component.html',
+  styleUrls: ['./api-documentation-v4-visibility.component.scss'],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -39,7 +39,7 @@ export class ApiDocumentationV4VisibilityComponent implements ControlValueAccess
 
   private _disabled = false;
 
-  protected _onChange: (_selection: 'PUBLIC' | 'PRIVATE') => void = () => ({});
+  public _onChange: (_selection: 'PUBLIC' | 'PRIVATE') => void = () => ({});
 
   protected _onTouched: () => void = () => ({});
 

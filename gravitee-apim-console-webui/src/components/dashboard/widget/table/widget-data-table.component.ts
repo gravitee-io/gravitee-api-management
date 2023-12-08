@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
 import { Router } from '@angular/router';
+import { includes, map } from 'lodash';
 
 import AnalyticsService from '../../../../services/analytics.service';
 import { Constants } from '../../../../entities/Constants';
 
 const WidgetDataTableComponent: ng.IComponentOptions = {
-  template: require('./widget-data-table.html'),
+  template: require('html-loader!./widget-data-table.html'),
   bindings: {
     data: '<',
     activatedRoute: '<',
@@ -48,9 +48,9 @@ const WidgetDataTableComponent: ng.IComponentOptions = {
         if (changes.data) {
           const data = changes.data.currentValue;
           this.paging = 1;
-          this.results = _.map(data.values, (value, key) => {
+          this.results = map(data.values, (value, key) => {
             let percent;
-            if (_.includes(value, '/')) {
+            if (includes(value, '/')) {
               const splittedValue = value.split('/');
               value = parseInt(splittedValue[0], 10);
               percent = parseFloat(splittedValue[1]);

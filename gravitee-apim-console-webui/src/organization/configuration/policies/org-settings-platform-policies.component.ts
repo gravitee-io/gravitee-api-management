@@ -43,8 +43,8 @@ export interface DefinitionVM {
 
 @Component({
   selector: 'org-settings-platform-policies',
-  template: require('./org-settings-platform-policies.component.html'),
-  styles: [require('./org-settings-platform-policies.component.scss')],
+  templateUrl: './org-settings-platform-policies.component.html',
+  styleUrls: ['./org-settings-platform-policies.component.scss'],
 })
 export class OrgSettingsPlatformPoliciesComponent implements OnInit, OnDestroy {
   isLoading = true;

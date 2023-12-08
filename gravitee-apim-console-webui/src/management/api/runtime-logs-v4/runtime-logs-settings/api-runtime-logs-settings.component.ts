@@ -22,8 +22,8 @@ import { Api } from '../../../../entities/management-api-v2';
 
 @Component({
   selector: 'api-runtime-logs-settings',
-  template: require('./api-runtime-logs-settings.component.html'),
-  styles: [require('./api-runtime-logs-settings.component.scss')],
+  templateUrl: './api-runtime-logs-settings.component.html',
+  styleUrls: ['./api-runtime-logs-settings.component.scss'],
 })
 export class ApiRuntimeLogsSettingsComponent {
   api$: Observable<Api> = this.apiService.get(this.activatedRoute.snapshot.params.apiId);

@@ -23,7 +23,7 @@ const AlertHistoryComponent: ng.IComponentOptions = {
   require: {
     parent: '^alertComponentAjs',
   },
-  template: require('./alert-history.html'),
+  template: require('html-loader!./alert-history.html'),
   controller: [
     'AlertService',
     function (AlertService: AlertService) {

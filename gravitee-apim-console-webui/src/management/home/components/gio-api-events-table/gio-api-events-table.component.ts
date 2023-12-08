@@ -34,8 +34,8 @@ type TableDataSource = {
 };
 @Component({
   selector: 'gio-api-events-table',
-  template: require('./gio-api-events-table.component.html'),
-  styles: [require('./gio-api-events-table.component.scss')],
+  templateUrl: './gio-api-events-table.component.html',
+  styleUrls: ['./gio-api-events-table.component.scss'],
 })
 export class GioApiEventsTableComponent implements OnChanges {
   private filters$ = new BehaviorSubject<(GioTableWrapperFilters & TimeRangeParams) | null>(null);

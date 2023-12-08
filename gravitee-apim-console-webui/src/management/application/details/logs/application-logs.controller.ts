@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 import { IScope } from 'angular';
-import * as _ from 'lodash';
+
 import { ActivatedRoute, Router } from '@angular/router';
+import { now } from 'lodash';
 
 import ApplicationService, { LogsQuery } from '../../../../services/application.service';
 
@@ -100,7 +101,7 @@ class ApplicationLogsController {
       const hiddenElement = document.createElement('a');
       hiddenElement.href = 'data:attachment/csv,' + response.data;
       hiddenElement.target = '_self';
-      let fileName = 'logs-' + this.application.name + '-' + _.now();
+      let fileName = 'logs-' + this.application.name + '-' + now();
       fileName = fileName.replace(/[\s]/gi, '-');
       fileName = fileName.replace(/[^\w]/gi, '-');
       hiddenElement.download = fileName + '.csv';

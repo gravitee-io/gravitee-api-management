@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
 import { IQService } from 'angular';
+
 import { ActivatedRoute, Router } from '@angular/router';
+import { filter, find, forEach, merge } from 'lodash';
 
 import DashboardService from '../../../../services/dashboard.service';
 
@@ -44,11 +45,11 @@ class ApiAnalyticsOverviewControllerAjs {
       })
       .then((results) => {
         this.api = results.api;
-        this.dashboards = _.filter(results.dashboards, 'enabled');
+        this.dashboards = filter(results.dashboards, 'enabled');
 
         const dashboardId = this.activatedRoute.snapshot.queryParams.dashboard;
         if (dashboardId) {
-          this.dashboard = _.find(this.dashboards, { id: dashboardId });
+          this.dashboard = find(this.dashboards, { id: dashboardId });
           if (!this.dashboard) {
             delete this.activatedRoute.snapshot.queryParams.dashboard;
 
@@ -64,12 +65,12 @@ class ApiAnalyticsOverviewControllerAjs {
           this.dashboard = this.dashboards[0];
         }
 
-        _.forEach(this.dashboards, (dashboard) => {
+        forEach(this.dashboards, (dashboard) => {
           if (dashboard.definition) {
             dashboard.definition = JSON.parse(dashboard.definition);
           }
-          _.forEach(dashboard.definition, (widget) => {
-            _.merge(widget, {
+          forEach(dashboard.definition, (widget) => {
+            merge(widget, {
               root: this.api.id,
               chart: {
                 service: {

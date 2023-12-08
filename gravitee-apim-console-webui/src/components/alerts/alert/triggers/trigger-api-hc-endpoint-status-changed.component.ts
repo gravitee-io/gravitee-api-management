@@ -18,7 +18,7 @@ const AlertTriggerApiHealthCheckEndpointStatusChangedComponent: ng.IComponentOpt
   bindings: {
     alert: '<',
   },
-  template: require('./trigger-api-hc-endpoint-status-changed.html'),
+  template: require('html-loader!./trigger-api-hc-endpoint-status-changed.html'),
   controller: function () {
     this.$onInit = () => {
       // New alert, initialize it with the condition model

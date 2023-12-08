@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, Inject } from '@angular/core';
-import { AbstractControl, FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { AbstractControl, UntypedFormControl, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { map, shareReplay } from 'rxjs/operators';
 import { Observable } from 'rxjs';
@@ -36,12 +36,12 @@ export type OrgSettingsUserDetailAddGroupDialogData = {
 
 @Component({
   selector: 'org-settings-user-detail-add-group-dialog',
-  template: require('./org-settings-user-detail-add-group-dialog.component.html'),
-  styles: [require('./org-settings-user-detail-add-group-dialog.component.scss')],
+  templateUrl: './org-settings-user-detail-add-group-dialog.component.html',
+  styleUrls: ['./org-settings-user-detail-add-group-dialog.component.scss'],
 })
 export class OrgSettingsUserDetailAddGroupDialogComponent {
   isUpdate = false;
-  addGroupForm: FormGroup;
+  addGroupForm: UntypedFormGroup;
   groups$: Observable<Group[]>;
   apiRoles$ = this.roleService.list('API').pipe(shareReplay(1));
   applicationRoles$ = this.roleService.list('APPLICATION').pipe(shareReplay(1));
@@ -57,12 +57,12 @@ export class OrgSettingsUserDetailAddGroupDialogComponent {
       map((groups) => groups.filter((g) => !this.userDetailData.groupIdAlreadyAdded.includes(g.id))),
     );
 
-    this.addGroupForm = new FormGroup(
+    this.addGroupForm = new UntypedFormGroup(
       {
-        groupId: new FormControl(null, [Validators.required]),
-        isAdmin: new FormControl(null),
-        apiRole: new FormControl(null),
-        applicationRole: new FormControl(null),
+        groupId: new UntypedFormControl(null, [Validators.required]),
+        isAdmin: new UntypedFormControl(null),
+        apiRole: new UntypedFormControl(null),
+        applicationRole: new UntypedFormControl(null),
       },
       [leastOneGroupRoleIsRequiredValidator],
     );
@@ -76,7 +76,7 @@ export class OrgSettingsUserDetailAddGroupDialogComponent {
 }
 
 const leastOneGroupRoleIsRequiredValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
-  const groupRolesFormGroup = control as FormGroup;
+  const groupRolesFormGroup = control as UntypedFormGroup;
 
   const isAdmin = groupRolesFormGroup.get('isAdmin').value;
   const apiRoleValue = groupRolesFormGroup.get('apiRole').value;

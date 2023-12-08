@@ -26,7 +26,7 @@ const AlertTriggerTimeframeComponent: ng.IComponentOptions = {
     alert: '<',
     form: '<',
   },
-  template: require('./trigger-timeframe.html'),
+  template: require('html-loader!./trigger-timeframe.html'),
   controller: [
     '$scope',
     function ($scope) {

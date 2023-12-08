@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { ChangeDetectorRef, Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil, tap } from 'rxjs/operators';
 import { Moment } from 'moment';
@@ -24,8 +24,8 @@ import { DEFAULT_FILTERS, DEFAULT_PERIOD, MoreFiltersForm, MultiFilter, PERIODS 
 
 @Component({
   selector: 'api-runtime-logs-more-filters-form',
-  template: require('./api-runtime-logs-more-filters-form.component.html'),
-  styles: [require('./api-runtime-logs-more-filters-form.component.scss')],
+  templateUrl: './api-runtime-logs-more-filters-form.component.html',
+  styleUrls: ['./api-runtime-logs-more-filters-form.component.scss'],
 })
 export class ApiRuntimeLogsMoreFiltersFormComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
@@ -34,8 +34,8 @@ export class ApiRuntimeLogsMoreFiltersFormComponent implements OnInit, OnDestroy
   @Output() valuesChangeEvent: EventEmitter<MoreFiltersForm> = new EventEmitter<MoreFiltersForm>();
   @Output() isInvalidEvent: EventEmitter<boolean> = new EventEmitter<boolean>();
   readonly periods = PERIODS;
-  datesForm: FormGroup;
-  moreFiltersForm: FormGroup;
+  datesForm: UntypedFormGroup;
+  moreFiltersForm: UntypedFormGroup;
   minDate: Moment;
   statuses: Set<number>;
   applicationsCache: MultiFilter;
@@ -43,19 +43,19 @@ export class ApiRuntimeLogsMoreFiltersFormComponent implements OnInit, OnDestroy
   constructor(private readonly cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
-    this.datesForm = new FormGroup({
-      period: new FormControl(this.formValues.period),
-      from: new FormControl(this.formValues.from),
-      to: new FormControl(this.formValues.to),
+    this.datesForm = new UntypedFormGroup({
+      period: new UntypedFormControl(this.formValues.period),
+      from: new UntypedFormControl(this.formValues.from),
+      to: new UntypedFormControl(this.formValues.to),
     });
     this.minDate = this.formValues.from;
     this.onDatesChange();
 
     this.statuses = new Set(this.formValues.statuses);
     this.applicationsCache = this.formValues.applications;
-    this.moreFiltersForm = new FormGroup({
-      statuses: new FormControl(this.statuses),
-      applications: new FormControl(this.formValues.applications?.map((application) => application.value)),
+    this.moreFiltersForm = new UntypedFormGroup({
+      statuses: new UntypedFormControl(this.statuses),
+      applications: new UntypedFormControl(this.formValues.applications?.map((application) => application.value)),
     });
     this.moreFiltersForm.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe(() => this.emitValues());
   }

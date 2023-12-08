@@ -48,8 +48,8 @@ export interface Result {
 
 @Component({
   selector: 'api-creation-v4',
-  template: require('./api-creation-v4.component.html'),
-  styles: [require('./api-creation-v4.component.scss')],
+  templateUrl: './api-creation-v4.component.html',
+  styleUrls: ['./api-creation-v4.component.scss'],
 })
 export class ApiCreationV4Component implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, Inject } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { shareReplay } from 'rxjs/operators';
 
@@ -27,13 +27,13 @@ export type OrgSettingAddTagDialogData = {
 
 @Component({
   selector: 'org-settings-add-tag-dialog',
-  template: require('./org-settings-add-tag-dialog.component.html'),
-  styles: [require('./org-settings-add-tag-dialog.component.scss')],
+  templateUrl: './org-settings-add-tag-dialog.component.html',
+  styleUrls: ['./org-settings-add-tag-dialog.component.scss'],
 })
 export class OrgSettingAddTagDialogComponent {
   tag?: Tag;
   isUpdate = false;
-  tagForm: FormGroup;
+  tagForm: UntypedFormGroup;
   groups$? = this.groupService.listByOrganization().pipe(shareReplay(1));
 
   constructor(
@@ -44,10 +44,10 @@ export class OrgSettingAddTagDialogComponent {
     this.tag = confirmDialogData.tag;
     this.isUpdate = !!this.tag;
 
-    this.tagForm = new FormGroup({
-      name: new FormControl(this.tag?.name, [Validators.required, Validators.minLength(1), Validators.maxLength(64)]),
-      description: new FormControl(this.tag?.description),
-      restrictedGroups: new FormControl(this.tag?.restricted_groups ?? []),
+    this.tagForm = new UntypedFormGroup({
+      name: new UntypedFormControl(this.tag?.name, [Validators.required, Validators.minLength(1), Validators.maxLength(64)]),
+      description: new UntypedFormControl(this.tag?.description),
+      restrictedGroups: new UntypedFormControl(this.tag?.restricted_groups ?? []),
     });
   }
 

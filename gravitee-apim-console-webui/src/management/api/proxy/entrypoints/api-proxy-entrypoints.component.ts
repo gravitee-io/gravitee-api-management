@@ -19,7 +19,7 @@ import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-pa
 import { get, isEmpty, isNil } from 'lodash';
 import { combineLatest, EMPTY, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
@@ -31,16 +31,16 @@ import { RestrictedDomainService } from '../../../../services-ngx/restricted-dom
 
 @Component({
   selector: 'api-proxy-entrypoints',
-  template: require('./api-proxy-entrypoints.component.html'),
-  styles: [require('./api-proxy-entrypoints.component.scss')],
+  templateUrl: './api-proxy-entrypoints.component.html',
+  styleUrls: ['./api-proxy-entrypoints.component.scss'],
 })
 export class ApiProxyEntrypointsComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   public virtualHostModeEnabled = false;
   public domainRestrictions: string[] = [];
-  public formGroup: FormGroup;
-  public pathsFormControl: FormControl;
+  public formGroup: UntypedFormGroup;
+  public pathsFormControl: UntypedFormControl;
 
   public apiProxy: Proxy;
   public isReadOnly = false;
@@ -53,7 +53,7 @@ export class ApiProxyEntrypointsComponent implements OnInit, OnDestroy {
     private readonly matDialog: MatDialog,
     private readonly permissionService: GioPermissionService,
     private readonly snackBarService: SnackBarService,
-    private readonly formBuilder: FormBuilder,
+    private readonly formBuilder: UntypedFormBuilder,
     private readonly changeDetector: ChangeDetectorRef,
   ) {}
 
@@ -161,7 +161,7 @@ export class ApiProxyEntrypointsComponent implements OnInit, OnDestroy {
 
   private initForm(api: ApiV1 | ApiV2) {
     this.apiProxy = api.proxy;
-    this.formGroup = new FormGroup({});
+    this.formGroup = new UntypedFormGroup({});
 
     this.isReadOnly =
       !this.permissionService.hasAnyMatching(['api-definition-u', 'api-gateway_definition-u']) ||

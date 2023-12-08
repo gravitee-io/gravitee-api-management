@@ -21,7 +21,7 @@ const AlertTriggerWindowComponent: ng.IComponentOptions = {
     condition: '<',
     isReadonly: '<',
   },
-  template: require('./trigger-window.html'),
+  template: require('html-loader!./trigger-window.html'),
   controller: function () {
     this.$onInit = () => {
       this.timeUnits = DurationTimeUnit.TIME_UNITS;

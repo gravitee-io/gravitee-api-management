@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
@@ -27,14 +27,14 @@ import { UTMTags, ApimFeature } from '../../../../../shared/components/gio-licen
 
 @Component({
   selector: 'step-2-entrypoints-0-architecture',
-  template: require('./step-2-entrypoints-0-architecture.component.html'),
-  styles: [require('./step-2-entrypoints-0-architecture.component.scss'), require('../api-creation-steps-common.component.scss')],
+  templateUrl: './step-2-entrypoints-0-architecture.component.html',
+  styleUrls: ['./step-2-entrypoints-0-architecture.component.scss', '../api-creation-steps-common.component.scss'],
 })
 export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
   private initialValue: { type: ApiType };
 
-  public form: FormGroup;
+  public form: UntypedFormGroup;
   private licenseOptions = { feature: ApimFeature.APIM_EN_MESSAGE_REACTOR, context: UTMTags.API_CREATION_TRY_MESSAGE };
 
   public get shouldUpgrade$() {
@@ -42,7 +42,7 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
   }
 
   constructor(
-    private readonly formBuilder: FormBuilder,
+    private readonly formBuilder: UntypedFormBuilder,
     private readonly stepService: ApiCreationStepService,
     private readonly confirmDialog: MatDialog,
     private readonly licenseService: GioLicenseService,

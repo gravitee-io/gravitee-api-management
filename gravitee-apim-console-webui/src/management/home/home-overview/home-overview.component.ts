@@ -15,7 +15,7 @@
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { forkJoin, Subject } from 'rxjs';
-import { FormControl, Validators } from '@angular/forms';
+import { UntypedFormControl, Validators } from '@angular/forms';
 import { switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import { AnalyticsService } from '../../../services-ngx/analytics.service';
@@ -28,8 +28,8 @@ import { ApiLifecycleStateData } from '../components/gio-api-lifecycle-state/gio
 
 @Component({
   selector: 'home-overview',
-  template: require('./home-overview.component.html'),
-  styles: [require('./home-overview.component.scss')],
+  templateUrl: './home-overview.component.html',
+  styleUrls: ['./home-overview.component.scss'],
 })
 export class HomeOverviewComponent implements OnInit, OnDestroy {
   loading = false;
@@ -46,7 +46,7 @@ export class HomeOverviewComponent implements OnInit, OnDestroy {
   apiNb?: number;
   applicationNb?: number;
 
-  timeRangeControl = new FormControl('1m', Validators.required);
+  timeRangeControl = new UntypedFormControl('1m', Validators.required);
   timeRangeParams: TimeRangeParams;
 
   ngOnInit(): void {

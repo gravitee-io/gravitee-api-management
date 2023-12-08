@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
+import { cloneDeep } from 'lodash';
 // eslint:disable-next-line:no-var-requires
 require('@gravitee/ui-components/wc/gv-stats');
 const WidgetDataStatsComponent: ng.IComponentOptions = {
-  template: require('./widget-data-stats.html'),
+  template: require('html-loader!./widget-data-stats.html'),
   bindings: {
     data: '<',
   },
@@ -29,7 +29,7 @@ const WidgetDataStatsComponent: ng.IComponentOptions = {
     '$element',
     function ($scope, $element) {
       this.$onInit = () => {
-        this.chartData = _.cloneDeep(this.parent.widget.chart.data);
+        this.chartData = cloneDeep(this.parent.widget.chart.data);
         checkFallback();
       };
       const checkFallback = () => {

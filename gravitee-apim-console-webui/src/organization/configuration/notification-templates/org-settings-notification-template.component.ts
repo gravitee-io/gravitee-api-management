@@ -17,7 +17,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { combineLatest, EMPTY, Subject } from 'rxjs';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 
 import { NotificationTemplateService } from '../../../services-ngx/notification-template.service';
@@ -28,13 +28,13 @@ import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
 @Component({
   selector: 'org-settings-notification-template',
-  styles: [require('./org-settings-notification-template.component.scss')],
-  template: require('./org-settings-notification-template.component.html'),
+  styleUrls: ['./org-settings-notification-template.component.scss'],
+  templateUrl: './org-settings-notification-template.component.html',
 })
 export class OrgSettingsNotificationTemplateComponent implements OnInit, OnDestroy {
   notificationTemplates: NotificationTemplate[] = [];
 
-  notificationTemplatesForm: FormGroup;
+  notificationTemplatesForm: UntypedFormGroup;
   formInitialValues: unknown;
 
   notificationTemplateName = '';
@@ -83,18 +83,18 @@ export class OrgSettingsNotificationTemplateComponent implements OnInit, OnDestr
   }
 
   private setupNotificationTemplateForm() {
-    this.notificationTemplatesForm = new FormGroup({});
+    this.notificationTemplatesForm = new UntypedFormGroup({});
 
     this.notificationTemplates.forEach((notificationTemplate) => {
-      const useCustomTemplateFormControl = new FormControl(!!notificationTemplate.enabled);
-      const titleFormControl = new FormControl({ value: notificationTemplate.title, disabled: !notificationTemplate.enabled }, [
+      const useCustomTemplateFormControl = new UntypedFormControl(!!notificationTemplate.enabled);
+      const titleFormControl = new UntypedFormControl({ value: notificationTemplate.title, disabled: !notificationTemplate.enabled }, [
         Validators.required,
       ]);
-      const contentFormControl = new FormControl({ value: notificationTemplate.content, disabled: !notificationTemplate.enabled }, [
+      const contentFormControl = new UntypedFormControl({ value: notificationTemplate.content, disabled: !notificationTemplate.enabled }, [
         Validators.required,
       ]);
 
-      const notificationTemplateForm = new FormGroup({
+      const notificationTemplateForm = new UntypedFormGroup({
         useCustomTemplate: useCustomTemplateFormControl,
         content: contentFormControl,
       });

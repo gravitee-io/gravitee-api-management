@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 import { IScope } from 'angular';
-import * as _ from 'lodash';
+
 import { Router } from '@angular/router';
+import { cloneDeep, find } from 'lodash';
 
 import { Alert, Scope } from '../../../entities/alert';
 import { Rule } from '../../../entities/alerts/rule.metrics';
@@ -33,7 +34,7 @@ const AlertComponentAjs: ng.IComponentOptions = {
     activatedRoute: '<',
     reload: '&',
   },
-  template: require('./alert.html'),
+  template: require('html-loader!./alert.html'),
   controller: [
     'Constants',
     '$scope',
@@ -81,14 +82,14 @@ const AlertComponentAjs: ng.IComponentOptions = {
           this.alert = new Alert('New alert', 'INFO', undefined, undefined, undefined, this.referenceType, this.referenceId);
           this.alerts.push(this.alert);
         } else {
-          this.alert = _.find(this.alerts, { id: this.activatedRoute.snapshot.params.alertId }) || this.alerts[0];
+          this.alert = find(this.alerts, { id: this.activatedRoute.snapshot.params.alertId }) || this.alerts[0];
           this.alert.type = (this.alert.source + '@' + this.alert.type).toUpperCase();
           this.alert.reference_type = this.referenceType;
         }
 
         this.template = this.alert.template || false;
         this.apiByDefault = this.alert.event_rules && this.alert.event_rules.findIndex((rule) => rule.event === 'API_CREATE') !== -1;
-        this.initialAlert = _.cloneDeep(this.alert);
+        this.initialAlert = cloneDeep(this.alert);
       };
 
       this.selectTab = (idx: number) => {
@@ -150,7 +151,7 @@ const AlertComponentAjs: ng.IComponentOptions = {
       };
 
       this.reset = () => {
-        this.alert = _.cloneDeep(this.initialAlert);
+        this.alert = cloneDeep(this.initialAlert);
         this.formAlert.$setPristine();
       };
 
@@ -163,7 +164,7 @@ const AlertComponentAjs: ng.IComponentOptions = {
       };
 
       this.onRuleChange = () => {
-        const rule: Rule = _.find(this.rules, (rule) => rule.source + '@' + rule.type === this.alert.type);
+        const rule: Rule = find(this.rules, (rule) => rule.source + '@' + rule.type === this.alert.type);
         this.alert.source = rule.source;
         if (this.alert.filters) {
           this.alert.filters.length = 0;

@@ -25,8 +25,8 @@ export type GioConnectorDialogData = {
 
 @Component({
   selector: 'gio-connector-dialog',
-  template: require('./gio-connector-dialog.component.html'),
-  styles: [require('./gio-connector-dialog.component.scss')],
+  templateUrl: './gio-connector-dialog.component.html',
+  styleUrls: ['./gio-connector-dialog.component.scss'],
 })
 export class GioConnectorDialogComponent {
   public name: string;

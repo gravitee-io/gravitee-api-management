@@ -22,6 +22,5 @@ import { GioCircularPercentageComponent } from './gio-circular-percentage.compon
   imports: [CommonModule],
   declarations: [GioCircularPercentageComponent],
   exports: [GioCircularPercentageComponent],
-  entryComponents: [GioCircularPercentageComponent],
 })
 export class GioCircularPercentageModule {}

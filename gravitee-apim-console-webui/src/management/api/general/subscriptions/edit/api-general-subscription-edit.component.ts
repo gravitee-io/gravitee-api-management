@@ -92,8 +92,8 @@ interface ApiKeyVM {
 
 @Component({
   selector: 'api-general-subscription-detail',
-  template: require('./api-general-subscription-edit.component.html'),
-  styles: [require('./api-general-subscription-edit.component.scss')],
+  templateUrl: './api-general-subscription-edit.component.html',
+  styleUrls: ['./api-general-subscription-edit.component.scss'],
 })
 export class ApiGeneralSubscriptionEditComponent implements OnInit {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

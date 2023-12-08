@@ -26,7 +26,7 @@ const ApiPortalHeaderComponentAjs: ng.IComponentOptions = {
     apiPortalHeaders: '<',
     settings: '<',
   },
-  template: require('./api-portal-header.html'),
+  template: require('html-loader!./api-portal-header.html'),
   controller: [
     'ApiHeaderService',
     'NotificationService',
@@ -80,7 +80,7 @@ const ApiPortalHeaderComponentAjs: ng.IComponentOptions = {
           .show({
             controller: 'NewApiPortalHeaderDialogController',
             controllerAs: '$ctrl',
-            template: require('./save.api-portal-header.dialog.html'),
+            template: require('html-loader!./save.api-portal-header.dialog.html'),
             locals: {},
           })
           .then((newHeader) => {
@@ -94,7 +94,7 @@ const ApiPortalHeaderComponentAjs: ng.IComponentOptions = {
           .show({
             controller: 'UpdateApiPortalHeaderDialogController',
             controllerAs: '$ctrl',
-            template: require('./save.api-portal-header.dialog.html'),
+            template: require('html-loader!./save.api-portal-header.dialog.html'),
             locals: {
               header: Object.assign({}, header),
             },
@@ -110,7 +110,7 @@ const ApiPortalHeaderComponentAjs: ng.IComponentOptions = {
           .show({
             controller: 'DialogConfirmController',
             controllerAs: 'ctrl',
-            template: require('../../../components/dialog/confirmWarning.dialog.html'),
+            template: require('html-loader!../../../components/dialog/confirmWarning.dialog.html'),
             clickOutsideToClose: true,
             locals: {
               title: 'Are you sure you want to delete this header?',

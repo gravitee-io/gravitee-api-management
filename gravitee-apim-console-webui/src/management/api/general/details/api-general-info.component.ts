@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { FormGroup, FormControl, Validators } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormControl, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { combineLatest, EMPTY, of, Subject } from 'rxjs';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
@@ -50,8 +50,8 @@ import { Api, ApiV2, ApiV4, UpdateApi, UpdateApiV2, UpdateApiV4 } from '../../..
 
 @Component({
   selector: 'api-general-info',
-  template: require('./api-general-info.component.html'),
-  styles: [require('./api-general-info.component.scss')],
+  templateUrl: './api-general-info.component.html',
+  styleUrls: ['./api-general-info.component.scss'],
 })
 export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
@@ -59,9 +59,9 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
   public apiId: string;
   public api: Api;
 
-  public apiDetailsForm: FormGroup;
-  public apiImagesForm: FormGroup;
-  public parentForm: FormGroup;
+  public apiDetailsForm: UntypedFormGroup;
+  public apiImagesForm: UntypedFormGroup;
+  public parentForm: UntypedFormGroup;
   public initialApiDetailsFormValue: unknown;
   public labelsAutocompleteOptions: string[] = [];
   public apiCategories: Category[] = [];
@@ -168,49 +168,49 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
             api.lifecycleState !== 'DEPRECATED' &&
             this.constants.org.settings.management.installationType !== 'multi-tenant';
 
-          this.apiDetailsForm = new FormGroup({
-            name: new FormControl(
+          this.apiDetailsForm = new UntypedFormGroup({
+            name: new UntypedFormControl(
               {
                 value: api.name,
                 disabled: this.isReadOnly,
               },
               [Validators.required],
             ),
-            version: new FormControl(
+            version: new UntypedFormControl(
               {
                 value: api.apiVersion,
                 disabled: this.isReadOnly,
               },
               [Validators.required],
             ),
-            description: new FormControl({
+            description: new UntypedFormControl({
               value: api.description,
               disabled: this.isReadOnly,
             }),
-            labels: new FormControl({
+            labels: new UntypedFormControl({
               value: api.labels,
               disabled: this.isReadOnly,
             }),
-            categories: new FormControl({
+            categories: new UntypedFormControl({
               value: api.categories,
               disabled: this.isReadOnly,
             }),
-            emulateV4Engine: new FormControl({
+            emulateV4Engine: new UntypedFormControl({
               value: api.definitionVersion === 'V2' && (api as ApiV2).executionMode === 'V4_EMULATION_ENGINE',
               disabled: this.isReadOnly,
             }),
           });
-          this.apiImagesForm = new FormGroup({
-            picture: new FormControl({
+          this.apiImagesForm = new UntypedFormGroup({
+            picture: new UntypedFormControl({
               value: api._links['pictureUrl'] ? [api._links['pictureUrl']] : [],
               disabled: this.isReadOnly,
             }),
-            background: new FormControl({
+            background: new UntypedFormControl({
               value: api._links['backgroundUrl'] ? [api._links['backgroundUrl']] : [],
               disabled: this.isReadOnly,
             }),
           });
-          this.parentForm = new FormGroup({
+          this.parentForm = new UntypedFormGroup({
             details: this.apiDetailsForm,
             images: this.apiImagesForm,
           });

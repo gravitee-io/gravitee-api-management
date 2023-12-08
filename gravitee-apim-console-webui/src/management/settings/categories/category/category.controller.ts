@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 import { IScope } from 'angular';
-import * as _ from 'lodash';
+
 import { ActivatedRoute, Router } from '@angular/router';
+import { cloneDeep, filter, remove } from 'lodash';
 
 import { ApiService } from '../../../../services/api.service';
 import CategoryService from '../../../../services/category.service';
@@ -58,7 +59,7 @@ class CategoryController {
         this.category = categoriesResponse.data;
         this.categoryApis = apisResponse.data;
         this.selectedAPIs = this.categoryApis ? this.categoryApis.slice(0) : [];
-        this.initialCategory = _.cloneDeep(this.category);
+        this.initialCategory = cloneDeep(this.category);
       });
     }
     const q = new DocumentationQuery();
@@ -100,7 +101,7 @@ class CategoryController {
   }
 
   reset() {
-    this.category = _.cloneDeep(this.initialCategory);
+    this.category = cloneDeep(this.initialCategory);
     this.formChanged = false;
     if (this.categoryForm) {
       this.categoryForm.$setPristine();
@@ -128,14 +129,14 @@ class CategoryController {
 
   searchAPI(searchText) {
     if (this.allApis) {
-      const apisFound = _.filter(this.allApis, (api) => !this.selectedAPIs.some((a) => a.id === api.id));
+      const apisFound = filter(this.allApis, (api) => !this.selectedAPIs.some((a) => a.id === api.id));
       return this.$filter('filter')(apisFound, searchText);
     } else {
       return this.ApiService.list().then((response) => {
         // Map the response object to the data object.
         const apis = response.data;
         this.allApis = apis;
-        const apisFound = _.filter(apis, (api) => !this.selectedAPIs.some((a) => a.id === api.id));
+        const apisFound = filter(apis, (api) => !this.selectedAPIs.some((a) => a.id === api.id));
         return this.$filter('filter')(apisFound, searchText);
       });
     }
@@ -159,7 +160,7 @@ class CategoryController {
     this.$mdDialog
       .show({
         controller: 'DeleteAPICategoryDialogController',
-        template: require('./delete-api-category.dialog.html'),
+        template: require('html-loader!./delete-api-category.dialog.html'),
         locals: {
           api: api,
         },
@@ -170,15 +171,15 @@ class CategoryController {
             // we need to retrieve the API to get the all information required for the update
             this.ApiService.get(api.id).then((response) => {
               const apiFound = response.data;
-              _.remove(apiFound.categories, (c) => c === this.category.key);
+              remove(apiFound.categories, (c) => c === this.category.key);
               this.ApiService.update(apiFound).then(() => {
                 this.NotificationService.show("API '" + api.name + "' detached with success");
-                _.remove(this.selectedAPIs, api);
-                _.remove(this.categoryApis, api);
+                remove(this.selectedAPIs, api);
+                remove(this.categoryApis, api);
               });
             });
           } else {
-            _.remove(this.selectedAPIs, api);
+            remove(this.selectedAPIs, api);
           }
         }
       });

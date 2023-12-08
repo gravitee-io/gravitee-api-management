@@ -16,7 +16,7 @@
 import { Component, OnInit } from '@angular/core';
 import { combineLatest, EMPTY, forkJoin, Observable, Subject } from 'rxjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { isEmpty, uniqueId } from 'lodash';
@@ -49,13 +49,13 @@ export interface GroupData {
 }
 @Component({
   selector: 'api-general-members',
-  template: require('./api-general-members.component.html'),
-  styles: [require('./api-general-members.component.scss')],
+  templateUrl: './api-general-members.component.html',
+  styleUrls: ['./api-general-members.component.scss'],
 })
 export class ApiGeneralMembersComponent implements OnInit {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
-  form: FormGroup;
+  form: UntypedFormGroup;
 
   roles: string[];
   defaultRole?: Role;
@@ -78,7 +78,7 @@ export class ApiGeneralMembersComponent implements OnInit {
     private readonly groupService: GroupV2Service,
     private readonly permissionService: GioPermissionService,
     private readonly snackBarService: SnackBarService,
-    private readonly formBuilder: FormBuilder,
+    private readonly formBuilder: UntypedFormBuilder,
     private readonly matDialog: MatDialog,
   ) {}
 
@@ -127,7 +127,7 @@ export class ApiGeneralMembersComponent implements OnInit {
     }
     if (this.form.controls['members'].dirty) {
       queries.push(
-        ...Object.entries((this.form.controls['members'] as FormGroup).controls)
+        ...Object.entries((this.form.controls['members'] as UntypedFormGroup).controls)
           .filter(([_, formControl]) => formControl.dirty)
           .map(([memberFormId, roleFormControl]) => {
             return this.getSaveMemberQuery$(memberFormId, roleFormControl.value);
@@ -215,8 +215,8 @@ export class ApiGeneralMembersComponent implements OnInit {
 
   private initForm(api: Api) {
     this.isReadOnly = !this.permissionService.hasAnyMatching(['api-member-u']) || api.definitionVersion === 'V1';
-    this.form = new FormGroup({
-      isNotificationsEnabled: new FormControl({
+    this.form = new UntypedFormGroup({
+      isNotificationsEnabled: new UntypedFormControl({
         value: !api.disableMembershipNotifications,
         disabled: this.isReadOnly,
       }),
@@ -224,7 +224,7 @@ export class ApiGeneralMembersComponent implements OnInit {
         this.members.reduce((formGroup, member) => {
           return {
             ...formGroup,
-            [member.id]: new FormControl({
+            [member.id]: new UntypedFormControl({
               value: member.roles[0].name,
               disabled: member.roles[0].name === 'PRIMARY_OWNER' || this.isReadOnly,
             }),
@@ -257,10 +257,10 @@ export class ApiGeneralMembersComponent implements OnInit {
         role: this.defaultRole.name,
       },
     ];
-    const roleFormControl = new FormControl({ value: this.defaultRole?.name, disabled: this.isReadOnly }, [Validators.required]);
+    const roleFormControl = new UntypedFormControl({ value: this.defaultRole?.name, disabled: this.isReadOnly }, [Validators.required]);
     roleFormControl.markAsDirty();
     roleFormControl.markAsTouched();
-    const membersForm = this.form.get('members') as FormGroup;
+    const membersForm = this.form.get('members') as UntypedFormGroup;
     membersForm.addControl(member._viewId, roleFormControl);
     membersForm.markAsDirty();
   }
@@ -272,8 +272,8 @@ export class ApiGeneralMembersComponent implements OnInit {
         this.initDataSource();
         // remove from form
         // reset before removing to discard save bar if changes only on this element
-        (this.form.get('members') as FormGroup).get(member.id).reset();
-        (this.form.get('members') as FormGroup).removeControl(member.id);
+        (this.form.get('members') as UntypedFormGroup).get(member.id).reset();
+        (this.form.get('members') as UntypedFormGroup).removeControl(member.id);
         // remove from form initial value
 
         this.snackBarService.success(`Member ${member.displayName} has been removed.`);

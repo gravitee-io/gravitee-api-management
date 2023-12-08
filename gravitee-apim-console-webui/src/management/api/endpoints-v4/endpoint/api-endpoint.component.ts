@@ -17,7 +17,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { catchError, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { combineLatest, EMPTY, Subject } from 'rxjs';
 import { GioFormJsonSchemaComponent, GioJsonSchema } from '@gravitee/ui-particles-angular';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
@@ -29,15 +29,15 @@ import { isEndpointNameUnique, isEndpointNameUniqueAndDoesNotMatchDefaultValue }
 
 @Component({
   selector: 'api-endpoint',
-  template: require('./api-endpoint.component.html'),
-  styles: [require('./api-endpoint.component.scss')],
+  templateUrl: './api-endpoint.component.html',
+  styleUrls: ['./api-endpoint.component.scss'],
 })
 export class ApiEndpointComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   private groupIndex: number;
   private endpointIndex: number;
   public endpointGroup: EndpointGroupV4;
-  public formGroup: FormGroup;
+  public formGroup: UntypedFormGroup;
   public endpointSchema: { config: GioJsonSchema; sharedConfig: GioJsonSchema };
   public connectorPlugin: ConnectorPlugin;
   public isLoading = false;
@@ -174,17 +174,17 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
       }
     }
 
-    this.formGroup = new FormGroup({
-      name: new FormControl(name, [
+    this.formGroup = new UntypedFormGroup({
+      name: new UntypedFormControl(name, [
         Validators.required,
         this.mode === 'edit'
           ? isEndpointNameUniqueAndDoesNotMatchDefaultValue(this.api, this.endpoint.name)
           : isEndpointNameUnique(this.api),
       ]),
-      weight: new FormControl(weight, Validators.required),
-      inheritConfiguration: new FormControl(inheritConfiguration),
-      configuration: new FormControl(configuration),
-      sharedConfigurationOverride: new FormControl({ value: sharedConfigurationOverride, disabled: inheritConfiguration }),
+      weight: new UntypedFormControl(weight, Validators.required),
+      inheritConfiguration: new UntypedFormControl(inheritConfiguration),
+      configuration: new UntypedFormControl(configuration),
+      sharedConfigurationOverride: new UntypedFormControl({ value: sharedConfigurationOverride, disabled: inheritConfiguration }),
     });
   }
 }

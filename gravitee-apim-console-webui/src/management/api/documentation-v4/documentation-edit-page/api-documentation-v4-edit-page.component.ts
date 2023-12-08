@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { AbstractControl, UntypedFormBuilder, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { EMPTY, Observable, of, Subject } from 'rxjs';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
@@ -31,12 +31,12 @@ import { GioPermissionService } from '../../../../shared/components/gio-permissi
 
 @Component({
   selector: 'api-documentation-edit-page',
-  template: require('./api-documentation-v4-edit-page.component.html'),
-  styles: [require('./api-documentation-v4-edit-page.component.scss')],
+  templateUrl: './api-documentation-v4-edit-page.component.html',
+  styleUrls: ['./api-documentation-v4-edit-page.component.scss'],
 })
 export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
-  form: FormGroup;
-  stepOneForm: FormGroup;
+  form: UntypedFormGroup;
+  stepOneForm: UntypedFormGroup;
   mode: 'create' | 'edit';
   pageTitle = 'Add new page';
   exitLabel = 'Exit without saving';
@@ -53,7 +53,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
   constructor(
     private readonly activatedRoute: ActivatedRoute,
     private readonly router: Router,
-    private readonly formBuilder: FormBuilder,
+    private readonly formBuilder: UntypedFormBuilder,
     private readonly apiV2Service: ApiV2Service,
     private readonly apiDocumentationService: ApiDocumentationV2Service,
     private readonly permissionService: GioPermissionService,

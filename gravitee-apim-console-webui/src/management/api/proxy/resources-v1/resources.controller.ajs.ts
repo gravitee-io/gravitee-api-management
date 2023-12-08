@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
+import { find } from 'lodash';
 
 class ApiV1ResourcesControllerAjs {
   resolvedApi: any;
@@ -132,7 +132,7 @@ class ApiV1ResourcesControllerAjs {
       .show({
         controller: 'DialogConfirmController',
         controllerAs: 'ctrl',
-        template: require('../../../../components/dialog/confirmWarning.dialog.html'),
+        template: require('html-loader!../../../../components/dialog/confirmWarning.dialog.html'),
         clickOutsideToClose: true,
         locals: {
           title: 'Are you sure you want to remove this resource?',
@@ -174,7 +174,7 @@ class ApiV1ResourcesControllerAjs {
   }
 
   getResourceTypeName(resourceTypeId) {
-    return _.find(this.types, { id: resourceTypeId }).name;
+    return find(this.types, { id: resourceTypeId }).name;
   }
 }
 ApiV1ResourcesControllerAjs.$inject = [

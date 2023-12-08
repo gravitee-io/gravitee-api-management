@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 import { IQService, IRootScopeService } from 'angular';
-import * as _ from 'lodash';
+
 import * as moment from 'moment';
 import { ActivatedRoute, Router } from '@angular/router';
+import { assign, forEach } from 'lodash';
 
 import { ApiService, LogsQuery } from '../../../../services/api.service';
 import UserService from '../../../../services/user.service';
@@ -64,11 +65,7 @@ class ApiHealthcheckDashboardControllerAjs {
   timeframeChange(timeframe: { from: number; to: number }) {
     this.query.from = timeframe.from;
     this.query.to = timeframe.to;
-    if (!this.api) {
-      this.$onInit();
-    } else {
-      this.updateChart();
-    }
+    this.updateChart();
   }
 
   updateChart() {
@@ -100,12 +97,11 @@ class ApiHealthcheckDashboardControllerAjs {
 
   refresh() {
     this.$window.localStorage.lastHealthCheckQuery = JSON.stringify(this.query);
-    this.$onInit();
 
     this.ApiService.apiHealthLogs(this.api.id, this.query).then((logs) => {
       this.logs = logs.data;
     });
-    this.ApiService.apiHealthLogs(this.api.id, _.assign({ transition: true }, this.query)).then((logs) => {
+    this.ApiService.apiHealthLogs(this.api.id, assign({ transition: true }, this.query)).then((logs) => {
       this.transitionLogs = logs.data;
     });
 
@@ -131,11 +127,11 @@ class ApiHealthcheckDashboardControllerAjs {
     this.$q.all(promises).then((responses) => {
       let i = 0;
       const series = [];
-      _.forEach(responses, (response) => {
+      forEach(responses, (response) => {
         const values = response.data.values;
         if (values && values.length > 0) {
-          _.forEach(values, (value) => {
-            _.forEach(value.buckets, (bucket) => {
+          forEach(values, (value) => {
+            forEach(value.buckets, (bucket) => {
               if (bucket) {
                 // eslint-disable-next-line eqeqeq
                 const responseTimeLine = i == 0;

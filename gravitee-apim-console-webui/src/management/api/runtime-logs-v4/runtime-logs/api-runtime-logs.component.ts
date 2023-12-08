@@ -32,8 +32,8 @@ import { ApiPlanV2Service } from '../../../../services-ngx/api-plan-v2.service';
 
 @Component({
   selector: 'api-runtime-logs',
-  template: require('./api-runtime-logs.component.html'),
-  styles: [require('./api-runtime-logs.component.scss')],
+  templateUrl: './api-runtime-logs.component.html',
+  styleUrls: ['./api-runtime-logs.component.scss'],
 })
 export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();

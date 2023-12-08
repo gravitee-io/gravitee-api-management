@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
 import { IHttpPromise } from 'angular';
+
 import { ActivatedRoute } from '@angular/router';
+import { filter, find, forEach, groupBy, includes, join, map, merge, noop } from 'lodash';
 
 import { ApiService } from '../../../../services/api.service';
 import ApplicationService from '../../../../services/application.service';
@@ -48,22 +49,22 @@ class ApplicationSubscribeController {
   ) {}
 
   async $onInit() {
-    const subscriptionsByAPI = _.groupBy(this.subscriptions.data, 'api');
+    const subscriptionsByAPI = groupBy(this.subscriptions.data, 'api');
 
     this.apis = (await this.ApiService.list(null, true, null, null, null, Object.keys(subscriptionsByAPI))).data;
 
-    _.forEach(subscriptionsByAPI, (subscriptions, api) => {
+    forEach(subscriptionsByAPI, (subscriptions, api) => {
       this.subscribedAPIs.push(
-        _.merge(_.find(this.apis, { id: api }), {
-          plans: _.join(
-            _.map(subscriptions, (sub) => this.subscriptions.metadata[sub.plan].name),
+        merge(find(this.apis, { id: api }), {
+          plans: join(
+            map(subscriptions, (sub) => this.subscriptions.metadata[sub.plan].name),
             ', ',
           ),
         }),
       );
     });
 
-    this.subscribedPlans = _.map(this.subscriptions.data, 'plan');
+    this.subscribedPlans = map(this.subscriptions.data, 'plan');
   }
 
   searchApiByName(searchText): IHttpPromise<any> {
@@ -78,11 +79,11 @@ class ApplicationSubscribeController {
       this.ApiService.getApiPlans(api.id, 'PUBLISHED')
         .then((response) => {
           this.canAccessSelectedApiPlans = true;
-          this.plans = _.filter(response.data, (plan) => {
-            plan.alreadySubscribed = _.includes(this.subscribedPlans, plan.id);
-            const subscription = _.find(this.subscriptions.data, { plan: plan.id });
+          this.plans = filter(response.data, (plan) => {
+            plan.alreadySubscribed = includes(this.subscribedPlans, plan.id);
+            const subscription = find(this.subscriptions.data, { plan: plan.id });
             plan.pending = subscription && 'PENDING' === subscription.status;
-            return _.includes(authorizedSecurity, plan.security);
+            return includes(authorizedSecurity, plan.security);
           });
           this.selectedAPI = api;
           this.refreshPlansExcludedGroupsNames();
@@ -110,7 +111,7 @@ class ApplicationSubscribeController {
 
   async onSubscribe(api, plan) {
     if (this.shouldPromptForKeyMode(plan)) {
-      this.selectKeyMode().then((mode) => this.doSubscribe(plan, mode), _.noop);
+      this.selectKeyMode().then((mode) => this.doSubscribe(plan, mode), noop);
     } else {
       await this.doSubscribe(plan);
     }
@@ -136,7 +137,7 @@ class ApplicationSubscribeController {
         .ok('Confirm')
         .cancel('Cancel');
 
-      return this.$mdDialog.show(confirm, _.noop);
+      return this.$mdDialog.show(confirm, noop);
     }
   }
 
@@ -149,7 +150,7 @@ class ApplicationSubscribeController {
     });
 
     this.$mdDialog.show(alert).then(() => {
-      this.ApplicationService.closeSubscription(this.application.id, _.find(this.subscriptions.data, { plan: plan.id }).id).then(() => {
+      this.ApplicationService.closeSubscription(this.application.id, find(this.subscriptions.data, { plan: plan.id }).id).then(() => {
         this.NotificationService.show('Subscription has been successfully closed');
         this.$onInit();
       });
@@ -169,7 +170,7 @@ class ApplicationSubscribeController {
     const dialog = {
       controller: 'ApiKeyModeChoiceDialogController',
       controllerAs: '$ctrl',
-      template: require('/src/components/dialog/apiKeyMode/api-key-mode-choice.dialog.html'),
+      template: require('html-loader!/src/components/dialog/apiKeyMode/api-key-mode-choice.dialog.html'),
       clickOutsideToClose: true,
     };
 

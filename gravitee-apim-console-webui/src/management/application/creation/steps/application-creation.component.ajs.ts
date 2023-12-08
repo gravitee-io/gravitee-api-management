@@ -19,7 +19,7 @@ const ApplicationCreationComponentAjs: ng.IComponentOptions = {
     groups: '<',
     activatedRoute: '<',
   },
-  template: require('./application-creation.html'),
+  template: require('html-loader!./application-creation.html'),
   controller: 'ApplicationCreationController',
 };
 

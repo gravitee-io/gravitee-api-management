@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, Inject } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { shareReplay } from 'rxjs/operators';
 
@@ -27,13 +27,13 @@ export type OrgSettingAddMappingDialogData = {
 
 @Component({
   selector: 'org-settings-add-mapping-dialog',
-  template: require('./org-settings-add-mapping-dialog.component.html'),
-  styles: [require('./org-settings-add-mapping-dialog.component.scss')],
+  templateUrl: './org-settings-add-mapping-dialog.component.html',
+  styleUrls: ['./org-settings-add-mapping-dialog.component.scss'],
 })
 export class OrgSettingAddMappingDialogComponent {
   entrypoint?: Entrypoint;
   isUpdate = false;
-  mappingForm: FormGroup;
+  mappingForm: UntypedFormGroup;
   tags$? = this.tagService.list().pipe(shareReplay(1));
 
   constructor(
@@ -44,9 +44,9 @@ export class OrgSettingAddMappingDialogComponent {
     this.entrypoint = confirmDialogData.entrypoint;
     this.isUpdate = !!this.entrypoint;
 
-    this.mappingForm = new FormGroup({
-      value: new FormControl(this.entrypoint?.value, [Validators.required]),
-      tags: new FormControl(this.entrypoint?.tags ?? []),
+    this.mappingForm = new UntypedFormGroup({
+      value: new UntypedFormControl(this.entrypoint?.value, [Validators.required]),
+      tags: new UntypedFormControl(this.entrypoint?.tags ?? []),
     });
   }
 

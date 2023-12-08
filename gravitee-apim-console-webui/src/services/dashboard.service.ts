@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
+import { concat, lowerCase, map } from 'lodash';
 
 import AnalyticsService from './analytics.service';
 
@@ -191,18 +191,18 @@ class DashboardService {
   }
 
   getNumericFields() {
-    return _.concat(this.getHttpStatusField(), this.getAverageableFields());
+    return concat(this.getHttpStatusField(), this.getAverageableFields());
   }
 
   getAggregateFields() {
-    return _.concat(
-      _.map(this.getAverageableFields(), (field: any) => {
-        field.aggLabel = 'Average ' + _.lowerCase(field.label);
+    return concat(
+      map(this.getAverageableFields(), (field: any) => {
+        field.aggLabel = 'Average ' + lowerCase(field.label);
         field.aggValue = 'avg:' + field.value;
         return field;
       }),
-      _.map(this.getIndexedFields(), (field: any) => {
-        field.aggLabel = 'By ' + _.lowerCase(field.label);
+      map(this.getIndexedFields(), (field: any) => {
+        field.aggLabel = 'By ' + lowerCase(field.label);
         field.aggValue = 'field:' + field.value;
         return field;
       }),

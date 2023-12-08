@@ -15,7 +15,7 @@
  */
 import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 
 export interface ApiPortalSubscriptionAcceptDialogData {
   apiId: string;
@@ -31,12 +31,12 @@ export interface ApiPortalSubscriptionAcceptDialogResult {
 }
 @Component({
   selector: 'api-portal-subscription-validate-dialog',
-  template: require('./api-portal-subscription-validate-dialog.component.html'),
-  styles: [require('./api-portal-subscription-validate-dialog.component.scss')],
+  templateUrl: './api-portal-subscription-validate-dialog.component.html',
+  styleUrls: ['./api-portal-subscription-validate-dialog.component.scss'],
 })
 export class ApiPortalSubscriptionValidateDialogComponent implements OnInit {
   data: ApiPortalSubscriptionAcceptDialogData;
-  form: FormGroup = new FormGroup({});
+  form: UntypedFormGroup = new UntypedFormGroup({});
   minDate: Date;
 
   constructor(
@@ -49,10 +49,10 @@ export class ApiPortalSubscriptionValidateDialogComponent implements OnInit {
   ngOnInit(): void {
     this.minDate = new Date();
 
-    this.form = new FormGroup({
-      dateTimeRange: new FormControl(),
-      message: new FormControl(''),
-      apiKey: new FormControl(''),
+    this.form = new UntypedFormGroup({
+      dateTimeRange: new UntypedFormControl(),
+      message: new UntypedFormControl(''),
+      apiKey: new UntypedFormControl(''),
     });
   }
 

@@ -19,9 +19,9 @@ import {
   AsyncValidator,
   AsyncValidatorFn,
   ControlValueAccessor,
-  FormArray,
-  FormControl,
-  FormGroup,
+  UntypedFormArray,
+  UntypedFormControl,
+  UntypedFormGroup,
   NG_ASYNC_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -44,8 +44,8 @@ const DEFAULT_LISTENER: PathV4 = {
 
 @Component({
   selector: 'gio-form-listeners-context-path',
-  template: require('./gio-form-listeners-context-path.component.html'),
-  styles: [require('../gio-form-listeners.common.scss')],
+  templateUrl: './gio-form-listeners-context-path.component.html',
+  styleUrls: ['../gio-form-listeners.common.scss'],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -64,8 +64,8 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
   public apiId?: string;
 
   public listeners: PathV4[] = [DEFAULT_LISTENER];
-  public mainForm: FormGroup;
-  public listenerFormArray = new FormArray(
+  public mainForm: UntypedFormGroup;
+  public listenerFormArray = new UntypedFormArray(
     [this.newListenerFormGroup(DEFAULT_LISTENER)],
     [this.listenersValidator()],
     [this.listenersAsyncValidator()],
@@ -93,7 +93,7 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
     protected readonly apiV2Service: ApiV2Service,
     private readonly portalSettingsService: PortalSettingsService,
   ) {
-    this.mainForm = new FormGroup({
+    this.mainForm = new UntypedFormGroup({
       listeners: this.listenerFormArray,
     });
   }
@@ -173,8 +173,8 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
   }
 
   public newListenerFormGroup(listener: PathV4) {
-    return new FormGroup({
-      path: new FormControl(listener.path || '/'),
+    return new UntypedFormGroup({
+      path: new UntypedFormControl(listener.path || '/'),
     });
   }
 
@@ -189,7 +189,7 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
   }
 
   private listenersValidator(): ValidatorFn {
-    return (listenerFormArrayControl: FormArray): ValidationErrors | null => {
+    return (listenerFormArrayControl: UntypedFormArray): ValidationErrors | null => {
       const listenerFormArrayControls = listenerFormArrayControl.controls;
       const listenerValues = listenerFormArrayControls.map((listener) => listener.value);
 
@@ -242,7 +242,7 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
   }
 
   private listenersAsyncValidator(): AsyncValidatorFn {
-    return (listenerFormArrayControl: FormArray): Observable<ValidationErrors | null> => {
+    return (listenerFormArrayControl: UntypedFormArray): Observable<ValidationErrors | null> => {
       if (listenerFormArrayControl) {
         return this.apiV2Service
           .verifyPath(

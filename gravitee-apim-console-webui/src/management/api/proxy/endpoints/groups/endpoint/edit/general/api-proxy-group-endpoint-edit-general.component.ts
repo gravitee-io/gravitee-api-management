@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, Input } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 
 import { EndpointV2 } from '../../../../../../../../entities/management-api-v2';
 import { Tenant } from '../../../../../../../../entities/tenant/tenant';
@@ -23,11 +23,11 @@ export type EndpointGeneralData = Pick<EndpointV2, 'name' | 'type' | 'target' | 
 
 @Component({
   selector: 'api-proxy-group-endpoint-edit-general',
-  template: require('./api-proxy-group-endpoint-edit-general.component.html'),
-  styles: [require('./api-proxy-group-endpoint-edit-general.component.scss')],
+  templateUrl: './api-proxy-group-endpoint-edit-general.component.html',
+  styleUrls: ['./api-proxy-group-endpoint-edit-general.component.scss'],
 })
 export class ApiProxyGroupEndpointEditGeneralComponent {
-  @Input() generalForm: FormGroup;
+  @Input() generalForm: UntypedFormGroup;
   @Input() endpoint: EndpointV2;
   @Input() supportedTypes: string[];
   @Input() tenants: Tenant[];

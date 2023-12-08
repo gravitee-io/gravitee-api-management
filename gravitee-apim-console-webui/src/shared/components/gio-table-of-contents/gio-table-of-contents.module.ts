@@ -23,6 +23,5 @@ import { GioTableOfContentsDirective } from './gio-table-of-contents.directive';
   imports: [CommonModule],
   declarations: [GioTableOfContentsComponent, GioTableOfContentsDirective],
   exports: [GioTableOfContentsComponent, GioTableOfContentsDirective],
-  entryComponents: [GioTableOfContentsComponent],
 })
 export class GioTableOfContentsModule {}

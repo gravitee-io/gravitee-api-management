@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { AbstractControl, FormControl, FormGroup, ValidationErrors, ValidatorFn } from '@angular/forms';
+import { AbstractControl, UntypedFormControl, UntypedFormGroup, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { combineLatest, EMPTY, from, Observable, Subject, zip } from 'rxjs';
 import { catchError, filter, mergeMap, shareReplay, switchMap, takeUntil, tap } from 'rxjs/operators';
@@ -85,8 +85,8 @@ interface TokenDS {
 
 @Component({
   selector: 'org-settings-user-detail',
-  template: require('./org-settings-user-detail.component.html'),
-  styles: [require('./org-settings-user-detail.component.scss')],
+  templateUrl: './org-settings-user-detail.component.html',
+  styleUrls: ['./org-settings-user-detail.component.scss'],
 })
 export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
   user: UserVM;
@@ -96,9 +96,9 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
   apiRoles$ = this.roleService.list('API').pipe(shareReplay(1));
   applicationRoles$ = this.roleService.list('APPLICATION').pipe(shareReplay(1));
 
-  organizationRolesControl: FormControl;
-  environmentsRolesFormGroup: FormGroup;
-  groupsRolesFormGroup: FormGroup;
+  organizationRolesControl: UntypedFormControl;
+  environmentsRolesFormGroup: UntypedFormGroup;
+  groupsRolesFormGroup: UntypedFormGroup;
 
   environmentsTableDS: EnvironmentDS[];
   environmentsTableDisplayedColumns = ['name', 'description', 'roles'];
@@ -242,7 +242,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
       observableToZip.push(
         from(Object.keys(this.environmentsRolesFormGroup.controls)).pipe(
           mergeMap((envId) => {
-            const envRolesControl = this.environmentsRolesFormGroup.get(envId) as FormControl;
+            const envRolesControl = this.environmentsRolesFormGroup.get(envId) as UntypedFormControl;
             if (envRolesControl.dirty) {
               return this.usersService.updateUserRoles(this.user.id, 'ENVIRONMENT', envId, envRolesControl.value);
             }
@@ -258,7 +258,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
       observableToZip.push(
         from(Object.keys(this.groupsRolesFormGroup.controls)).pipe(
           mergeMap((groupId) => {
-            const groupRolesFormGroup = this.groupsRolesFormGroup.get(groupId) as FormGroup;
+            const groupRolesFormGroup = this.groupsRolesFormGroup.get(groupId) as UntypedFormGroup;
             if (groupRolesFormGroup.dirty) {
               const { GROUP, API, APPLICATION } = groupRolesFormGroup.value;
 
@@ -459,7 +459,10 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
   private initOrganizationRolesForm() {
     const organizationRoles = this.user.roles.filter((r) => r.scope === 'ORGANIZATION');
 
-    this.organizationRolesControl = new FormControl({ value: organizationRoles.map((r) => r.id), disabled: this.user.status !== 'ACTIVE' });
+    this.organizationRolesControl = new UntypedFormControl({
+      value: organizationRoles.map((r) => r.id),
+      disabled: this.user.status !== 'ACTIVE',
+    });
 
     this.organizationRolesControl.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe(() => {
       this.toggleSaveBar(true);
@@ -467,13 +470,13 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
   }
 
   private initEnvironmentsRolesForm(environments: Environment[]) {
-    this.environmentsRolesFormGroup = new FormGroup(
+    this.environmentsRolesFormGroup = new UntypedFormGroup(
       environments.reduce((result, environment) => {
         const userEnvRoles = this.user.envRoles[environment.id] ?? [];
 
         return {
           ...result,
-          [environment.id]: new FormControl({ value: userEnvRoles.map((r) => r.id), disabled: this.user.status !== 'ACTIVE' }),
+          [environment.id]: new UntypedFormControl({ value: userEnvRoles.map((r) => r.id), disabled: this.user.status !== 'ACTIVE' }),
         };
       }, {}),
     );
@@ -485,7 +488,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
 
   private initGroupsRolesForm(groups: Group[]) {
     const leastOneGroupRoleIsRequiredValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
-      const groupRolesFormGroup = control as FormGroup;
+      const groupRolesFormGroup = control as UntypedFormGroup;
 
       const GROUP = groupRolesFormGroup.get('GROUP').value;
       const API = groupRolesFormGroup.get('API').value;
@@ -500,15 +503,15 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
       };
     };
 
-    this.groupsRolesFormGroup = new FormGroup({
+    this.groupsRolesFormGroup = new UntypedFormGroup({
       ...groups.reduce((result, group) => {
         return {
           ...result,
-          [group.id]: new FormGroup(
+          [group.id]: new UntypedFormGroup(
             {
-              GROUP: new FormControl({ value: group.roles['GROUP'], disabled: this.user.status !== 'ACTIVE' }),
-              API: new FormControl({ value: group.roles['API'], disabled: this.user.status !== 'ACTIVE' }),
-              APPLICATION: new FormControl({ value: group.roles['APPLICATION'], disabled: this.user.status !== 'ACTIVE' }),
+              GROUP: new UntypedFormControl({ value: group.roles['GROUP'], disabled: this.user.status !== 'ACTIVE' }),
+              API: new UntypedFormControl({ value: group.roles['API'], disabled: this.user.status !== 'ACTIVE' }),
+              APPLICATION: new UntypedFormControl({ value: group.roles['APPLICATION'], disabled: this.user.status !== 'ACTIVE' }),
             },
             [leastOneGroupRoleIsRequiredValidator],
           ),

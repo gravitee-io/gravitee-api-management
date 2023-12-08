@@ -5,7 +5,7 @@
     "node_modules/**",
     "**/*.svg",
     "wc/**",
-    "docs/**",
+    "src/docs/**",
     "docker/**",
     "index.js",
     "src/index.js",

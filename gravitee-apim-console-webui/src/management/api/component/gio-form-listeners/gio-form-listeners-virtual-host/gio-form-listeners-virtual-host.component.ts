@@ -14,7 +14,14 @@
  * limitations under the License.
  */
 import { Component, forwardRef, Input } from '@angular/core';
-import { AbstractControl, FormControl, FormGroup, NG_ASYNC_VALIDATORS, NG_VALUE_ACCESSOR, ValidationErrors } from '@angular/forms';
+import {
+  AbstractControl,
+  UntypedFormControl,
+  UntypedFormGroup,
+  NG_ASYNC_VALIDATORS,
+  NG_VALUE_ACCESSOR,
+  ValidationErrors,
+} from '@angular/forms';
 import { escapeRegExp, isEmpty } from 'lodash';
 
 import { GioFormListenersContextPathComponent } from '../gio-form-listeners-context-path/gio-form-listeners-context-path.component';
@@ -27,8 +34,8 @@ interface InternalPathV4 extends PathV4 {
 
 @Component({
   selector: 'gio-form-listeners-virtual-host',
-  template: require('./gio-form-listeners-virtual-host.component.html'),
-  styles: [require('../gio-form-listeners.common.scss'), require('./gio-form-listeners-virtual-host.component.scss')],
+  templateUrl: './gio-form-listeners-virtual-host.component.html',
+  styleUrls: ['../gio-form-listeners.common.scss', './gio-form-listeners-virtual-host.component.scss'],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -46,16 +53,16 @@ export class GioFormListenersVirtualHostComponent extends GioFormListenersContex
   @Input()
   public domainRestrictions: string[] = [];
 
-  public newListenerFormGroup(listener: PathV4): FormGroup {
+  public newListenerFormGroup(listener: PathV4): UntypedFormGroup {
     const { host, hostDomain } = extractDomainToHost(listener?.host, this.domainRestrictions);
 
-    return new FormGroup({
-      host: new FormControl(listener?.host || ''),
+    return new UntypedFormGroup({
+      host: new UntypedFormControl(listener?.host || ''),
       // Private controls for internal process
-      _hostSubDomain: new FormControl(host || ''),
-      _hostDomain: new FormControl(hostDomain || ''),
-      path: new FormControl(listener.path),
-      overrideAccess: new FormControl(listener.overrideAccess || false),
+      _hostSubDomain: new UntypedFormControl(host || ''),
+      _hostDomain: new UntypedFormControl(hostDomain || ''),
+      path: new UntypedFormControl(listener.path),
+      overrideAccess: new UntypedFormControl(listener.overrideAccess || false),
     });
   }
 

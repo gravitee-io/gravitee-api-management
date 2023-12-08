@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 import { IScope } from 'angular';
-import * as _ from 'lodash';
+
 import { Router } from '@angular/router';
+import { filter } from 'rxjs/operators';
 
 import GroupService from '../../../services/group.service';
 import NotificationService from '../../../services/notification.service';
@@ -25,7 +26,7 @@ const GroupsComponentAjs: ng.IComponentOptions = {
   bindings: {
     activatedRoute: '<',
   },
-  template: require('./groups.html'),
+  template: require('html-loader!./groups.html'),
   controller: [
     'GroupService',
     'UserService',
@@ -46,7 +47,7 @@ const GroupsComponentAjs: ng.IComponentOptions = {
 
       this.$onInit = () => {
         GroupService.list().then((response) => {
-          this.groups = _.filter(response.data, 'manageable');
+          this.groups = filter(response.data, 'manageable');
         });
         this.canRemoveGroup = UserService.isUserHasPermissions(['environment-group-d']);
       };
@@ -61,7 +62,7 @@ const GroupsComponentAjs: ng.IComponentOptions = {
           .show({
             controller: 'DialogConfirmController',
             controllerAs: 'ctrl',
-            template: require('../../../components/dialog/confirmWarning.dialog.html'),
+            template: require('html-loader!../../../components/dialog/confirmWarning.dialog.html'),
             clickOutsideToClose: true,
             locals: {
               title: 'Would you like to remove the group "' + groupName + '"?',
@@ -73,7 +74,7 @@ const GroupsComponentAjs: ng.IComponentOptions = {
               GroupService.remove(groupId).then(() => {
                 NotificationService.show('Group ' + groupName + ' has been deleted.');
                 GroupService.list().then((response) => {
-                  this.groups = _.filter(response.data, 'manageable');
+                  this.groups = filter(response.data, 'manageable');
                   this.initEventRules();
                 });
               });

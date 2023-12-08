@@ -19,8 +19,8 @@ import {
   AbstractControl,
   ControlContainer,
   ControlValueAccessor,
-  FormControl,
-  FormGroup,
+  UntypedFormControl,
+  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   ValidationErrors,
@@ -72,8 +72,8 @@ export const KEYSTORE_TYPE_LABELS: { label: string; value: KeyStore['type'] }[] 
 
 @Component({
   selector: 'ssl-keystore-form',
-  template: require('./ssl-keystore-form.component.html'),
-  styles: [require('./ssl-keystore-form.component.scss')],
+  templateUrl: './ssl-keystore-form.component.html',
+  styleUrls: ['./ssl-keystore-form.component.scss'],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -101,25 +101,25 @@ export class SslKeyStoreFormComponent implements OnInit, DoCheck, OnDestroy, Con
 
   public types = KEYSTORE_TYPE_LABELS;
 
-  public internalFormGroup = new FormGroup({
+  public internalFormGroup = new UntypedFormGroup({
     // Base fields
-    type: new FormControl('NONE'),
+    type: new UntypedFormControl('NONE'),
 
     // JKS fields
-    jksPath: new FormControl(),
-    jksContent: new FormControl(),
-    jksPassword: new FormControl(),
+    jksPath: new UntypedFormControl(),
+    jksContent: new UntypedFormControl(),
+    jksPassword: new UntypedFormControl(),
 
     // PKCS12 fields
-    pkcs12Password: new FormControl(),
-    pkcs12Path: new FormControl(),
-    pkcs12Content: new FormControl(),
+    pkcs12Password: new UntypedFormControl(),
+    pkcs12Path: new UntypedFormControl(),
+    pkcs12Content: new UntypedFormControl(),
 
     // PEM fields
-    pemKeyPath: new FormControl(),
-    pemKeyContent: new FormControl(),
-    pemCertPath: new FormControl(),
-    pemCertContent: new FormControl(),
+    pemKeyPath: new UntypedFormControl(),
+    pemKeyContent: new UntypedFormControl(),
+    pemCertPath: new UntypedFormControl(),
+    pemCertContent: new UntypedFormControl(),
   });
   public isDisabled = false;
 
@@ -222,7 +222,7 @@ const pathOrContentRequired: (pathControlName: string, contentControlName: strin
   pathControlName: string,
   contentControlName: string,
 ) => {
-  return (formGroup: FormGroup): ValidationErrors | null => {
+  return (formGroup: UntypedFormGroup): ValidationErrors | null => {
     const pathControl = formGroup.get(pathControlName);
     const contentControl = formGroup.get(contentControlName);
 

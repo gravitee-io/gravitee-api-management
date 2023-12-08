@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
+
+import { cloneDeep, merge } from 'lodash';
 
 import { ApiService } from '../../../services/api.service';
 import CorsService from '../../../services/cors.service';
@@ -24,7 +25,7 @@ import TagService from '../../../services/tag.service';
 
 const PortalSettingsComponentAjs: ng.IComponentOptions = {
   bindings: {},
-  template: require('./portal.html'),
+  template: require('html-loader!./portal.html'),
   controller: [
     'NotificationService',
     'PortalSettingsService',
@@ -59,21 +60,21 @@ const PortalSettingsComponentAjs: ng.IComponentOptions = {
           this.settings.cors.exposedHeaders = this.settings.cors.exposedHeaders || [];
           this.settings.authentication.localLogin.enabled = this.settings.authentication.localLogin.enabled || !this.hasIdpDefined();
           this.overrideHomepageTitle = this.settings.portal.homepageTitle !== null && this.settings.portal.homepageTitle !== undefined;
-          this.initialSettings = _.cloneDeep(this.settings);
+          this.initialSettings = cloneDeep(this.settings);
         });
         this.isReadonlyPage = !UserService.isUserHasPermissions(['environment-settings-u']);
       };
 
       this.save = () => {
         PortalSettingsService.save(this.settings).then((response) => {
-          _.merge(Constants.env.settings, response.data);
+          merge(Constants.env.settings, response.data);
           NotificationService.show('Configuration saved');
           this.$onInit();
         });
       };
 
       this.reset = () => {
-        this.settings = _.cloneDeep(this.initialSettings);
+        this.settings = cloneDeep(this.initialSettings);
         this.overrideHomepageTitle = this.settings.portal.homepageTitle !== null && this.settings.portal.homepageTitle !== undefined;
         this.formSettings.$setPristine();
       };

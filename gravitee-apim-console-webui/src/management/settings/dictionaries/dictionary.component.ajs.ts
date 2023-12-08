@@ -18,7 +18,7 @@ const DictionaryComponentAjs: ng.IComponentOptions = {
     activatedRoute: '<',
   },
   controller: 'DictionaryController',
-  template: require('./dictionary.html'),
+  template: require('html-loader!./dictionary.html'),
 };
 
 export default DictionaryComponentAjs;

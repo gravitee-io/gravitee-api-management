@@ -14,39 +14,39 @@
  * limitations under the License.
  */
 import { Component } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 
 import { ProviderConfiguration } from '../org-settings-identity-provider.component';
 
 @Component({
   selector: 'org-settings-identity-provider-oidc',
-  styles: [require('./org-settings-identity-provider-oidc.component.scss')],
-  template: require('./org-settings-identity-provider-oidc.component.html'),
+  styleUrls: ['./org-settings-identity-provider-oidc.component.scss'],
+  templateUrl: './org-settings-identity-provider-oidc.component.html',
 })
 export class OrgSettingsIdentityProviderOidcComponent implements ProviderConfiguration {
   name = 'OrgSettingsIdentityProviderOidcComponent';
 
-  configurationFormGroup: FormGroup = new FormGroup({
-    clientId: new FormControl(null, Validators.required),
-    clientSecret: new FormControl(null, Validators.required),
-    tokenEndpoint: new FormControl(null, Validators.required),
-    tokenIntrospectionEndpoint: new FormControl(),
-    authorizeEndpoint: new FormControl(null, Validators.required),
-    userInfoEndpoint: new FormControl(null, Validators.required),
-    userLogoutEndpoint: new FormControl(),
-    scopes: new FormControl(),
-    color: new FormControl(),
+  configurationFormGroup: UntypedFormGroup = new UntypedFormGroup({
+    clientId: new UntypedFormControl(null, Validators.required),
+    clientSecret: new UntypedFormControl(null, Validators.required),
+    tokenEndpoint: new UntypedFormControl(null, Validators.required),
+    tokenIntrospectionEndpoint: new UntypedFormControl(),
+    authorizeEndpoint: new UntypedFormControl(null, Validators.required),
+    userInfoEndpoint: new UntypedFormControl(null, Validators.required),
+    userLogoutEndpoint: new UntypedFormControl(),
+    scopes: new UntypedFormControl(),
+    color: new UntypedFormControl(),
   });
 
-  userProfileMappingFormGroup: FormGroup = new FormGroup({
-    id: new FormControl('sub', Validators.required),
-    firstname: new FormControl('given_name'),
-    lastname: new FormControl('family_name'),
-    email: new FormControl('email'),
-    picture: new FormControl('picture'),
+  userProfileMappingFormGroup: UntypedFormGroup = new UntypedFormGroup({
+    id: new UntypedFormControl('sub', Validators.required),
+    firstname: new UntypedFormControl('given_name'),
+    lastname: new UntypedFormControl('family_name'),
+    email: new UntypedFormControl('email'),
+    picture: new UntypedFormControl('picture'),
   });
 
-  getFormGroups(): Record<string, FormGroup> {
+  getFormGroups(): Record<string, UntypedFormGroup> {
     return { configuration: this.configurationFormGroup, userProfileMapping: this.userProfileMappingFormGroup };
   }
 }

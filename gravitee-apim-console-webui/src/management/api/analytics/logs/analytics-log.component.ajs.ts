@@ -267,5 +267,5 @@ export const ApiAnalyticsLogComponentAjs: ng.IComponentOptions = {
   bindings: {
     activatedRoute: '<',
   },
-  template: require('./analytics-log.html'),
+  template: require('html-loader!./analytics-log.html'),
 };

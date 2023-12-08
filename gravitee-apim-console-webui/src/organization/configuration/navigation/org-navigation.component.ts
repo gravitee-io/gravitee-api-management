@@ -39,8 +39,8 @@ interface GroupItem {
 
 @Component({
   selector: 'org-navigation',
-  styles: [require('./org-navigation.component.scss')],
-  template: require('./org-navigation.component.html'),
+  styleUrls: ['./org-navigation.component.scss'],
+  templateUrl: './org-navigation.component.html',
 })
 export class OrgNavigationComponent implements OnInit {
   public groupItems: GroupItem[] = [];

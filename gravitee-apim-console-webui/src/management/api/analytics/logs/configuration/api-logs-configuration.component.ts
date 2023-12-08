@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { EMPTY, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { isEmpty } from 'lodash';
@@ -38,8 +38,8 @@ interface LoggingConfiguration {
 
 @Component({
   selector: 'api-log-configuration',
-  template: require('./api-logs-configuration.component.html'),
-  styles: [require('./api-logs-configuration.component.scss')],
+  templateUrl: './api-logs-configuration.component.html',
+  styleUrls: ['./api-logs-configuration.component.scss'],
 })
 export class ApiLogsConfigurationComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
@@ -47,10 +47,10 @@ export class ApiLogsConfigurationComponent implements OnInit, OnDestroy {
   private defaultLogging = DEFAULT_LOGGING;
   private defaultConfiguration: LoggingConfiguration;
 
-  public logsConfigurationForm: FormGroup;
-  public mode: FormControl;
-  public scope: FormControl;
-  public content: FormControl;
+  public logsConfigurationForm: UntypedFormGroup;
+  public mode: UntypedFormControl;
+  public scope: UntypedFormControl;
+  public content: UntypedFormControl;
   public loggingModes = LOGGING_MODES;
   public contentModes = CONTENT_MODES;
   public scopeModes = SCOPE_MODES;
@@ -153,21 +153,21 @@ export class ApiLogsConfigurationComponent implements OnInit, OnDestroy {
     const { mode, content, scope } = { ...this.defaultLogging, ...this.api.proxy.logging };
     const isReadOnly = !this.permissionService.hasAnyMatching(['api-log-u']) || api.definitionContext?.origin === 'KUBERNETES';
     const enabled = !!api.proxy.logging && api.proxy.logging.mode !== 'NONE';
-    this.mode = new FormControl({
+    this.mode = new UntypedFormControl({
       value: mode !== 'NONE' ? mode : 'CLIENT_PROXY',
       disabled: !enabled || isReadOnly,
     });
-    this.content = new FormControl({
+    this.content = new UntypedFormControl({
       value: content !== 'NONE' ? content : 'HEADERS_PAYLOADS',
       disabled: !enabled || isReadOnly,
     });
-    this.scope = new FormControl({
+    this.scope = new UntypedFormControl({
       value: scope !== 'NONE' ? scope : 'REQUEST_RESPONSE',
       disabled: !enabled || isReadOnly,
     });
-    this.logsConfigurationForm = new FormGroup({
-      enabled: new FormControl({ value: enabled, disabled: isReadOnly }),
-      condition: new FormControl({ value: api.proxy.logging?.condition, disabled: !enabled || isReadOnly }),
+    this.logsConfigurationForm = new UntypedFormGroup({
+      enabled: new UntypedFormControl({ value: enabled, disabled: isReadOnly }),
+      condition: new UntypedFormControl({ value: api.proxy.logging?.condition, disabled: !enabled || isReadOnly }),
       mode: this.mode,
       content: this.content,
       scope: this.scope,

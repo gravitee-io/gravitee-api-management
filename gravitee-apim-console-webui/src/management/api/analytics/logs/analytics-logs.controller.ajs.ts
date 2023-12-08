@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 import { IScope } from 'angular';
-import * as _ from 'lodash';
+
 import { ActivatedRoute, Router } from '@angular/router';
+import { chain, has, now } from 'lodash';
 
 import AnalyticsService from '../../../../services/analytics.service';
 import TenantService from '../../../../services/tenant.service';
@@ -61,9 +62,9 @@ class ApiAnalyticsLogsControllerAjs {
           plans: plans.data,
         };
 
-        const hasTenants = _.chain(this.api.proxy.groups)
+        const hasTenants = chain(this.api.proxy.groups)
           .map((group) => group.endpoints)
-          .find((endpoint) => _.has(endpoint, 'tenants'));
+          .find((endpoint) => has(endpoint, 'tenants'));
 
         if (hasTenants !== undefined) {
           this.metadata.tenants = tenants.data;
@@ -130,7 +131,7 @@ class ApiAnalyticsLogsControllerAjs {
       const hiddenElement = document.createElement('a');
       hiddenElement.href = 'data:attachment/csv,' + encodeURIComponent(response.data);
       hiddenElement.target = '_self';
-      let fileName = 'logs-' + this.api.name + '-' + this.api.version + '-' + _.now();
+      let fileName = 'logs-' + this.api.name + '-' + this.api.version + '-' + now();
       fileName = fileName.replace(/[\s]/gi, '-');
       fileName = fileName.replace(/[^\w]/gi, '-');
       hiddenElement.download = fileName + '.csv';

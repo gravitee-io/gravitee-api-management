@@ -15,7 +15,7 @@
  */
 
 import { Component, Inject } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { EMPTY, Subject } from 'rxjs';
@@ -34,15 +34,15 @@ export interface ApiPathMappingsEditDialogData {
 
 @Component({
   selector: 'api-path-mappings-edit-dialog',
-  template: require('./api-path-mappings-edit-dialog.component.html'),
-  styles: [require('./api-path-mappings-edit-dialog.component.scss')],
+  templateUrl: './api-path-mappings-edit-dialog.component.html',
+  styleUrls: ['./api-path-mappings-edit-dialog.component.scss'],
 })
 export class ApiPathMappingsEditDialogComponent {
   private api: ApiV1 | ApiV2;
   private readonly pathToUpdate: string;
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
-  public pathFormGroup: FormGroup;
+  public pathFormGroup: UntypedFormGroup;
   constructor(
     @Inject(MAT_DIALOG_DATA) dialogData: ApiPathMappingsEditDialogData,
     private readonly dialogRef: MatDialogRef<ApiPathMappingsEditDialogData>,
@@ -51,8 +51,8 @@ export class ApiPathMappingsEditDialogComponent {
   ) {
     this.api = dialogData.api;
     this.pathToUpdate = dialogData.path;
-    this.pathFormGroup = new FormGroup({
-      path: new FormControl(this.pathToUpdate, [Validators.required, isUnique(this.api.pathMappings)]),
+    this.pathFormGroup = new UntypedFormGroup({
+      path: new UntypedFormControl(this.pathToUpdate, [Validators.required, isUnique(this.api.pathMappings)]),
     });
   }
 

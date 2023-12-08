@@ -15,7 +15,7 @@
  */
 
 import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { isEqual } from 'lodash';
 import { Subject } from 'rxjs';
@@ -36,8 +36,8 @@ import { Plan } from '../../../../../../entities/management-api-v2';
 
 @Component({
   selector: 'api-runtime-logs-quick-filters',
-  template: require('./api-runtime-logs-quick-filters.component.html'),
-  styles: [require('./api-runtime-logs-quick-filters.component.scss')],
+  templateUrl: './api-runtime-logs-quick-filters.component.html',
+  styleUrls: ['./api-runtime-logs-quick-filters.component.scss'],
 })
 export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
@@ -52,7 +52,7 @@ export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
   readonly defaultFilters = DEFAULT_FILTERS;
   readonly httpMethods = ['CONNECT', 'DELETE', 'GET', 'HEAD', 'OPTIONS', 'PATCH', 'POST', 'PUT', 'TRACE'];
   isFiltering = false;
-  quickFiltersForm: FormGroup;
+  quickFiltersForm: UntypedFormGroup;
   currentFilters: LogFilters;
   showMoreFilters = false;
   moreFiltersValues: MoreFiltersForm;
@@ -67,11 +67,14 @@ export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
       statuses: this.initialValues.statuses,
       applications: this.initialValues.applications,
     };
-    this.quickFiltersForm = new FormGroup({
-      period: new FormControl({ value: DEFAULT_PERIOD, disabled: true }),
+    this.quickFiltersForm = new UntypedFormGroup({
+      period: new UntypedFormControl({ value: DEFAULT_PERIOD, disabled: true }),
 
-      plans: new FormControl({ value: this.initialValues.plans?.map((plan) => plan.value) ?? DEFAULT_FILTERS.plans, disabled: true }),
-      methods: new FormControl({ value: this.initialValues.methods, disabled: true }),
+      plans: new UntypedFormControl({
+        value: this.initialValues.plans?.map((plan) => plan.value) ?? DEFAULT_FILTERS.plans,
+        disabled: true,
+      }),
+      methods: new UntypedFormControl({ value: this.initialValues.methods, disabled: true }),
     });
     this.onValuesChanges();
   }

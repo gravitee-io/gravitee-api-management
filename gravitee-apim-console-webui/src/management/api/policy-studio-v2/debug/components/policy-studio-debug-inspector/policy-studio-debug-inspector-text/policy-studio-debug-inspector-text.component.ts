@@ -20,8 +20,8 @@ import { getDiffState } from '../policy-studio-debug-inspector.component';
 
 @Component({
   selector: 'policy-studio-debug-inspector-text',
-  template: require('./policy-studio-debug-inspector-text.component.html'),
-  styles: [require('./policy-studio-debug-inspector-text.component.scss')],
+  templateUrl: './policy-studio-debug-inspector-text.component.html',
+  styleUrls: ['./policy-studio-debug-inspector-text.component.scss'],
 })
 export class PolicyStudioDebugInspectorTextComponent implements OnChanges {
   @Input()

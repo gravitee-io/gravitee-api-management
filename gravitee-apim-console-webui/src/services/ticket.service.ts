@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
+import { forEach } from 'lodash';
 
 export class TicketsQuery {
   page: number;
@@ -40,7 +40,7 @@ class TicketService {
 
   private buildURLWithQuery(query: TicketsQuery, url) {
     const keys = Object.keys(query);
-    _.forEach(keys, (key) => {
+    forEach(keys, (key) => {
       const val = query[key];
       if (val !== undefined && val !== '') {
         url += key + '=' + val + '&';

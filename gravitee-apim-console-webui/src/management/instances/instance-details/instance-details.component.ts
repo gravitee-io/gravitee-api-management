@@ -23,7 +23,7 @@ import { Instance } from '../../../entities/instance/instance';
 
 @Component({
   selector: 'instance-details',
-  template: require('./instance-details.component.html'),
+  templateUrl: './instance-details.component.html',
 })
 export class InstanceDetailsComponent implements OnInit, OnDestroy {
   public instance: Instance;

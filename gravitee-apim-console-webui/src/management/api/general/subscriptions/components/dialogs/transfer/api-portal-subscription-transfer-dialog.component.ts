@@ -15,7 +15,7 @@
  */
 import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { map, takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 
@@ -40,13 +40,13 @@ interface PlanVM {
 }
 @Component({
   selector: 'api-portal-subscription-transfer',
-  template: require('./api-portal-subscription-transfer-dialog.component.html'),
-  styles: [require('./api-portal-subscription-transfer-dialog.component.scss')],
+  templateUrl: './api-portal-subscription-transfer-dialog.component.html',
+  styleUrls: ['./api-portal-subscription-transfer-dialog.component.scss'],
 })
 export class ApiPortalSubscriptionTransferDialogComponent implements OnInit {
   plans: PlanVM[];
   showGeneralConditionsMsg: boolean;
-  form: FormGroup;
+  form: UntypedFormGroup;
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   private data: ApiPortalSubscriptionTransferDialogData;
 
@@ -59,7 +59,7 @@ export class ApiPortalSubscriptionTransferDialogComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.form = new FormGroup({ selectedPlanId: new FormControl('', { validators: Validators.required }) });
+    this.form = new UntypedFormGroup({ selectedPlanId: new UntypedFormControl('', { validators: Validators.required }) });
 
     this.apiPlanService
       .list(this.data.apiId, [this.data.securityType], ['PUBLISHED'], this.data.mode, 1, 9999)

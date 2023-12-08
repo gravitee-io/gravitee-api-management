@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { Observable, of, Subject } from 'rxjs';
 import { mergeMap, takeUntil, tap } from 'rxjs/operators';
 
@@ -23,8 +23,8 @@ import { InternalPlanFormValue } from '../api-plan-form.component';
 
 @Component({
   selector: 'plan-edit-restriction-step',
-  template: require('./plan-edit-restriction-step.component.html'),
-  styles: [require('./plan-edit-restriction-step.component.scss')],
+  templateUrl: './plan-edit-restriction-step.component.html',
+  styleUrls: ['./plan-edit-restriction-step.component.scss'],
 })
 export class PlanEditRestrictionStepComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
@@ -32,7 +32,7 @@ export class PlanEditRestrictionStepComponent implements OnInit, OnDestroy {
   @Input()
   public initialFormValues: InternalPlanFormValue['restriction'];
 
-  public restrictionForm: FormGroup;
+  public restrictionForm: UntypedFormGroup;
 
   public rateLimitSchema$: Observable<undefined | unknown>;
   public quotaSchema$: Observable<undefined | unknown>;
@@ -41,21 +41,21 @@ export class PlanEditRestrictionStepComponent implements OnInit, OnDestroy {
   constructor(private readonly policyService: PolicyService) {}
 
   ngOnInit(): void {
-    this.restrictionForm = new FormGroup({
-      rateLimitEnabled: new FormControl(false),
-      rateLimitConfig: new FormControl({}),
+    this.restrictionForm = new UntypedFormGroup({
+      rateLimitEnabled: new UntypedFormControl(false),
+      rateLimitConfig: new UntypedFormControl({}),
 
-      quotaEnabled: new FormControl(false),
-      quotaConfig: new FormControl({}),
+      quotaEnabled: new UntypedFormControl(false),
+      quotaConfig: new UntypedFormControl({}),
 
-      resourceFilteringEnabled: new FormControl(false),
-      resourceFilteringConfig: new FormControl({}),
+      resourceFilteringEnabled: new UntypedFormControl(false),
+      resourceFilteringConfig: new UntypedFormControl({}),
     });
 
     this.rateLimitSchema$ = this.restrictionForm.get('rateLimitEnabled').valueChanges.pipe(
       mergeMap((enabled) => (!enabled ? of(undefined) : this.policyService.getSchema('rate-limit'))),
       tap(() =>
-        this.restrictionForm.setControl('rateLimitConfig', new FormControl(this.initialFormValues?.rateLimitConfig ?? {}), {
+        this.restrictionForm.setControl('rateLimitConfig', new UntypedFormControl(this.initialFormValues?.rateLimitConfig ?? {}), {
           emitEvent: false,
         }),
       ),
@@ -66,7 +66,9 @@ export class PlanEditRestrictionStepComponent implements OnInit, OnDestroy {
     this.quotaSchema$ = this.restrictionForm.get('quotaEnabled').valueChanges.pipe(
       mergeMap((enabled) => (!enabled ? of(undefined) : this.policyService.getSchema('quota'))),
       tap(() =>
-        this.restrictionForm.setControl('quotaConfig', new FormControl(this.initialFormValues?.quotaConfig ?? {}), { emitEvent: false }),
+        this.restrictionForm.setControl('quotaConfig', new UntypedFormControl(this.initialFormValues?.quotaConfig ?? {}), {
+          emitEvent: false,
+        }),
       ),
 
       takeUntil(this.unsubscribe$),
@@ -75,9 +77,13 @@ export class PlanEditRestrictionStepComponent implements OnInit, OnDestroy {
     this.resourceFilteringSchema$ = this.restrictionForm.get('resourceFilteringEnabled').valueChanges.pipe(
       mergeMap((enabled) => (!enabled ? of(undefined) : this.policyService.getSchema('resource-filtering'))),
       tap(() =>
-        this.restrictionForm.setControl('resourceFilteringConfig', new FormControl(this.initialFormValues?.resourceFilteringConfig ?? {}), {
-          emitEvent: false,
-        }),
+        this.restrictionForm.setControl(
+          'resourceFilteringConfig',
+          new UntypedFormControl(this.initialFormValues?.resourceFilteringConfig ?? {}),
+          {
+            emitEvent: false,
+          },
+        ),
       ),
 
       takeUntil(this.unsubscribe$),

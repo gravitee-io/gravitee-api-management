@@ -1,0 +1,208 @@
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "newProjectRoot": "projects",
+  "projects": {
+    "apim-console": {
+      "projectType": "application",
+      "schematics": {
+        "@schematics/angular:component": {
+          "style": "scss"
+        },
+        "@schematics/angular:application": {
+          "strict": true
+        }
+      },
+      "root": "",
+      "sourceRoot": "src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:browser",
+          "options": {
+            "outputPath": "dist",
+            "index": "src/index.html",
+            "main": "src/index.ts",
+            "polyfills": "src/polyfills.ts",
+            "tsConfig": "tsconfig.app.json",
+            "inlineStyleLanguage": "scss",
+            "assets": [
+              "src/favicon.ico",
+              "src/assets",
+              {
+                "glob": "build.json",
+                "input": ".",
+                "output": "/"
+              },
+              {
+                "glob": "constants.json",
+                "input": ".",
+                "output": "/"
+              },
+              {
+                "glob": "webcomponents-loader.js",
+                "input": "node_modules/@webcomponents/webcomponentsjs/",
+                "output": "webcomponents/"
+              },
+              {
+                "glob": "**/*",
+                "input": "src/docs",
+                "output": "docs/"
+              },
+              {
+                "glob": "**/*",
+                "input": "node_modules/@gravitee/ui-components/assets/css",
+                "output": "css/"
+              },
+              {
+                "glob": "**/*",
+                "input": "node_modules/@gravitee/ui-components/assets/i18n",
+                "output": "i18n/"
+              },
+              {
+                "glob": "**/*",
+                "input": "node_modules/@gravitee/ui-components/assets/icons",
+                "output": "icons/"
+              },
+              {
+                "glob": "**/*",
+                "input": "node_modules/@gravitee/ui-particles-angular/assets",
+                "output": "assets/"
+              },
+              {
+                "glob": "**/*",
+                "input": "node_modules/monaco-editor",
+                "output": "assets/monaco-editor"
+              },
+              {
+                "glob": "browser/asciidoctor.js",
+                "input": "node_modules/@asciidoctor/core/dist",
+                "output": "assets/asciidoctor/"
+              },
+              {
+                "glob": "css/asciidoctor.css",
+                "input": "node_modules/@asciidoctor/core/dist",
+                "output": "assets/asciidoctor/"
+              },
+              {
+                "glob": "prism.js",
+                "input": "node_modules/prismjs",
+                "output": "assets/prismjs"
+              },
+              {
+                "glob": "prism-json.js",
+                "input": "node_modules/prismjs/components",
+                "output": "assets/prismjs/components"
+              },
+              {
+                "glob": "oauth2-redirect.html",
+                "input": "node_modules/swagger-ui-dist",
+                "output": "/"
+              }
+            ],
+            "styles": [
+              "src/index.scss",
+              {
+                "input": "node_modules/swagger-ui-dist/swagger-ui.css",
+                "inject": true,
+                "bundleName": "swagger-ui"
+              }
+            ],
+            "scripts": [
+              {
+                "input": "node_modules/@asyncapi/web-component/lib/asyncapi-web-component.js",
+                "inject": true,
+                "bundleName": "asyncapi-web-component"
+              },
+              {
+                "input": "node_modules/swagger-ui-dist/swagger-ui-bundle.js",
+                "inject": true,
+                "bundleName": "swagger-ui-bundle"
+              },
+              {
+                "input": "node_modules/swagger-ui-dist/swagger-ui-standalone-preset.js",
+                "inject": true,
+                "bundleName": "swagger-ui-standalone-preset"
+              }
+            ],
+            "stylePreprocessorOptions": {
+              "includePaths": ["node_modules/"]
+            }
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kb",
+                  "maximumError": "14mb"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "5kb",
+                  "maximumError": "6kb"
+                }
+              ],
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.prod.ts"
+                }
+              ],
+              "outputHashing": "all"
+            },
+            "development": {
+              "buildOptimizer": false,
+              "optimization": false,
+              "vendorChunk": true,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "namedChunks": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "proxyConfig": "proxy.conf.mjs",
+            "browserTarget": "apim-console:build"
+          },
+          "configurations": {
+            "production": {
+              "browserTarget": "apim-console:build:production"
+            },
+            "development": {
+              "browserTarget": "apim-console:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        },
+        "extract-i18n": {
+          "builder": "@angular-devkit/build-angular:extract-i18n",
+          "options": {
+            "browserTarget": "apim-console:build"
+          }
+        },
+        "start-storybook": {
+          "builder": "@storybook/angular:start-storybook",
+          "options": {
+            "browserTarget": "apim-console:build",
+            "compodoc": false,
+            "port": 9008
+          }
+        },
+        "build-storybook": {
+          "builder": "@storybook/angular:build-storybook",
+          "options": {
+            "browserTarget": "apim-console:build",
+            "compodoc": false
+          }
+        }
+      }
+    }
+  },
+  "cli": {
+    "analytics": false
+  }
+}

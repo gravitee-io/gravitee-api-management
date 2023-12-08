@@ -18,7 +18,7 @@ const CategoryComponentAjs: ng.IComponentOptions = {
     activatedRoute: '<',
   },
   controller: 'CategoryController',
-  template: require('./category.html'),
+  template: require('html-loader!./category.html'),
 };
 
 export default CategoryComponentAjs;

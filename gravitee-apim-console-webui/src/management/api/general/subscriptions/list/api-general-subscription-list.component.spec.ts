@@ -391,6 +391,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
       await creationDialogHarness.searchApplication('application');
       tick(400);
       expectApplicationsSearch('application', [application]);
+      tick();
       await creationDialogHarness.selectApplication('application');
       tick(400);
       expectSubscriptionsForApplication(application.id, [
@@ -441,6 +442,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
       await creationDialogHarness.searchApplication('application');
       tick(400);
       expectApplicationsSearch('application', [application]);
+      tick();
       await creationDialogHarness.selectApplication('application');
       tick(400);
       expectSubscriptionsForApplication(application.id, [
@@ -489,6 +491,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
       await creationDialogHarness.searchApplication('application');
       tick(400);
       expectApplicationsSearch('application', [application]);
+      tick();
       await creationDialogHarness.selectApplication('application');
       await creationDialogHarness.choosePlan(planV4.name);
       await creationDialogHarness.createSubscription();
@@ -523,6 +526,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
       await creationDialogHarness.searchApplication('application');
       tick(400);
       expectApplicationsSearch('application', [application]);
+      tick();
       await creationDialogHarness.selectApplication(application.name);
       await creationDialogHarness.choosePlan(planV4.name);
 

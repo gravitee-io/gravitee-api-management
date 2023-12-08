@@ -34,8 +34,8 @@ type TableDataSource = {
 };
 @Component({
   selector: 'gio-top-apis-table',
-  template: require('./gio-top-apis-table.component.html'),
-  styles: [require('./gio-top-apis-table.component.scss')],
+  templateUrl: './gio-top-apis-table.component.html',
+  styleUrls: ['./gio-top-apis-table.component.scss'],
 })
 export class GioTopApisTableComponent implements AfterViewInit, OnChanges {
   @Input()

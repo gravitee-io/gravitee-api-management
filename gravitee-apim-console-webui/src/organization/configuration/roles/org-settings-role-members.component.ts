@@ -34,8 +34,8 @@ import { SearchableUser } from '../../../entities/user/searchableUser';
 
 @Component({
   selector: 'org-settings-role-members',
-  template: require('./org-settings-role-members.component.html'),
-  styles: [require('./org-settings-role-members.component.scss')],
+  templateUrl: './org-settings-role-members.component.html',
+  styleUrls: ['./org-settings-role-members.component.scss'],
 })
 export class OrgSettingsRoleMembersComponent implements OnInit, OnDestroy {
   membershipsTableDisplayedColumns = ['displayName', 'actions'];

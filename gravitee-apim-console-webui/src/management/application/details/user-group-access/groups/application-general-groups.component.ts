@@ -17,7 +17,7 @@ import { Component } from '@angular/core';
 
 @Component({
   selector: 'application-general-access-groups',
-  template: require('./application-general-groups.component.html'),
-  styles: [require('./application-general-groups.component.scss')],
+  templateUrl: './application-general-groups.component.html',
+  styleUrls: ['./application-general-groups.component.scss'],
 })
 export class ApplicationGeneralGroupsComponent {}

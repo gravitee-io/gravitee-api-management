@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
 import { IPromise } from 'angular';
+
 import { Router } from '@angular/router';
+import { forEach, sortBy } from 'lodash';
 
 import { ApiOwnershipTransferType, OwnershipTransferResult } from './transferOwnershipDialog.controller';
 import { Member, MembershipState, MemberState, RoleName, RoleScope } from './membershipState';
@@ -45,7 +46,7 @@ const GroupComponentAjs: ng.IComponentOptions = {
   bindings: {
     activatedRoute: '<',
   },
-  template: require('./group.html'),
+  template: require('html-loader!./group.html'),
   controller: [
     'GroupService',
     'RoleService',
@@ -215,7 +216,7 @@ const GroupComponentAjs: ng.IComponentOptions = {
             .show({
               controller: 'DialogConfirmController',
               controllerAs: 'ctrl',
-              template: require('../../../../components/dialog/confirmWarning.dialog.html'),
+              template: require('html-loader!../../../../components/dialog/confirmWarning.dialog.html'),
               clickOutsideToClose: true,
               locals: {
                 msg: '',
@@ -236,7 +237,7 @@ const GroupComponentAjs: ng.IComponentOptions = {
           .show({
             controller: 'DialogAddGroupMemberController',
             controllerAs: '$ctrl',
-            template: require('./addMember.dialog.html'),
+            template: require('html-loader!./addMember.dialog.html'),
             clickOutsideToClose: true,
             locals: {
               defaultApiRole: this.selectedApiRole,
@@ -278,7 +279,7 @@ const GroupComponentAjs: ng.IComponentOptions = {
         return $mdDialog.show({
           controller: 'DialogTransferOwnershipController',
           controllerAs: '$ctrl',
-          template: require('./transferOwnershipDialog.html'),
+          template: require('html-loader!./transferOwnershipDialog.html'),
           clickOutsideToClose: true,
           locals: {
             transferType,
@@ -358,7 +359,7 @@ const GroupComponentAjs: ng.IComponentOptions = {
       this.loadGroupApis = () => {
         if (this.group?.id) {
           GroupService.getMemberships(this.group.id, 'api').then((response) => {
-            $scope.groupApis = _.sortBy(response.data, 'name');
+            $scope.groupApis = sortBy(response.data, 'name');
           });
         }
       };
@@ -366,7 +367,7 @@ const GroupComponentAjs: ng.IComponentOptions = {
       this.loadGroupApplications = () => {
         if (this.group?.id) {
           GroupService.getMemberships(this.group.id, 'application').then((response) => {
-            $scope.groupApplications = _.sortBy(response.data, 'name');
+            $scope.groupApplications = sortBy(response.data, 'name');
           });
         }
       };
@@ -437,7 +438,7 @@ const GroupComponentAjs: ng.IComponentOptions = {
               },
             ],
             controllerAs: '$ctrl',
-            template: require('./inviteMember.dialog.html'),
+            template: require('html-loader!./inviteMember.dialog.html'),
             clickOutsideToClose: true,
             locals: {
               defaultApiRole: this.selectedApiRole,
@@ -470,7 +471,7 @@ const GroupComponentAjs: ng.IComponentOptions = {
           .show({
             controller: 'DialogConfirmController',
             controllerAs: 'ctrl',
-            template: require('../../../../components/dialog/confirmWarning.dialog.html'),
+            template: require('html-loader!../../../../components/dialog/confirmWarning.dialog.html'),
             clickOutsideToClose: true,
             locals: {
               msg: '',
@@ -490,7 +491,7 @@ const GroupComponentAjs: ng.IComponentOptions = {
 
       this.hasGroupAdmin = () => {
         let hasGroupAdmin = false;
-        _.forEach(this.members, (member) => {
+        forEach(this.members, (member) => {
           if (member.roles.GROUP && member.roles.GROUP === 'ADMIN') {
             hasGroupAdmin = true;
           }

@@ -40,8 +40,8 @@ interface MenuItem {
 
 @Component({
   selector: 'gio-side-nav',
-  template: require('./gio-side-nav.component.html'),
-  styles: [require('./gio-side-nav.component.scss')],
+  templateUrl: './gio-side-nav.component.html',
+  styleUrls: ['./gio-side-nav.component.scss'],
 })
 export class GioSideNavComponent implements OnInit, OnDestroy {
   private unsubscribe$ = new Subject<void>();

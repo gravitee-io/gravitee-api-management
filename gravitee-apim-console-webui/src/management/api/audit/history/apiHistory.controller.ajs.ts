@@ -16,9 +16,10 @@
 import '@gravitee/ui-components/wc/gv-policy-studio';
 import '@gravitee/ui-components/wc/gv-switch';
 import '@gravitee/ui-components/wc/gv-popover';
-import * as _ from 'lodash';
 import * as angular from 'angular';
+
 import { ActivatedRoute } from '@angular/router';
+import { cloneDeep, isEmpty } from 'lodash';
 
 import { ApiService } from '../../../../services/api.service';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
@@ -396,7 +397,7 @@ class ApiHistoryControllerAjs {
         return this.ApiService.get(this.api.id);
       })
       .then((response) => {
-        this.api = JSON.parse(angular.toJson(_.cloneDeep(response.data)));
+        this.api = JSON.parse(angular.toJson(cloneDeep(response.data)));
         // reload API events
         return this.ApiService.getApiEvents(this.api.id, this.eventTypes);
       })
@@ -412,7 +413,7 @@ class ApiHistoryControllerAjs {
       .show({
         controller: 'DialogConfirmController',
         controllerAs: 'ctrl',
-        template: require('../../../../components/dialog/confirm.dialog.html'),
+        template: require('html-loader!../../../../components/dialog/confirm.dialog.html'),
         clickOutsideToClose: true,
         locals: {
           title: 'Would you like to rollback your API?',
@@ -427,7 +428,7 @@ class ApiHistoryControllerAjs {
   }
 
   stringifyCurrentApi() {
-    const payload = _.cloneDeep(this.api);
+    const payload = cloneDeep(this.api);
 
     delete payload.deployed_at;
     delete payload.created_at;
@@ -451,17 +452,17 @@ class ApiHistoryControllerAjs {
     delete payload.crossId;
     delete payload.definition_context;
 
-    if (payload.response_templates && _.isEmpty(payload.response_templates)) {
+    if (payload.response_templates && isEmpty(payload.response_templates)) {
       delete payload.response_templates;
     }
 
-    if (payload.flows && _.isEmpty(payload.flows)) {
+    if (payload.flows && isEmpty(payload.flows)) {
       delete payload.flows;
     }
-    if (payload.resources && _.isEmpty(payload.resources)) {
+    if (payload.resources && isEmpty(payload.resources)) {
       delete payload.resources;
     }
-    if (payload.services && _.isEmpty(payload.services)) {
+    if (payload.services && isEmpty(payload.services)) {
       delete payload.services;
     }
 

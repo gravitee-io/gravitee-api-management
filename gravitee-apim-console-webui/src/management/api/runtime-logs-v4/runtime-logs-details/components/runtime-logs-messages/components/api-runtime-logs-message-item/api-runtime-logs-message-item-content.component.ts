@@ -15,7 +15,7 @@
  */
 
 import { Component, Input } from '@angular/core';
-import { FormControl } from '@angular/forms';
+import { UntypedFormControl } from '@angular/forms';
 
 import { Message } from '../../../../../../../../entities/management-api-v2';
 
@@ -28,8 +28,8 @@ type ContentTab = {
 
 @Component({
   selector: 'api-runtime-logs-message-item-content',
-  template: require('./api-runtime-logs-message-item-content.component.html'),
-  styles: [require('./api-runtime-logs-message-item-content.component.scss')],
+  templateUrl: './api-runtime-logs-message-item-content.component.html',
+  styleUrls: ['./api-runtime-logs-message-item-content.component.scss'],
 })
 export class ApiRuntimeLogsMessageItemContentComponent {
   @Input()
@@ -42,7 +42,7 @@ export class ApiRuntimeLogsMessageItemContentComponent {
     { label: 'Headers', content: undefined, disabled: false, isJson: true },
     { label: 'Metadata', content: undefined, disabled: false, isJson: true },
   ];
-  selected = new FormControl(0);
+  selected = new UntypedFormControl(0);
 
   _content: Message;
 

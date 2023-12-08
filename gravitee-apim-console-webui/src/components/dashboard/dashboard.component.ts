@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
+import { each, remove } from 'lodash';
 const DashboardComponent: ng.IComponentOptions = {
-  template: require('./dashboard.html'),
+  template: require('html-loader!./dashboard.html'),
   bindings: {
     model: '<',
     accessLogs: '<',
@@ -104,7 +104,7 @@ const DashboardComponent: ng.IComponentOptions = {
 
       this.$onInit = () => {
         if (this.model) {
-          _.each(this.model.definition, (widget) => {
+          each(this.model.definition, (widget) => {
             widget.$uid = this.guid();
           });
         }
@@ -120,7 +120,7 @@ const DashboardComponent: ng.IComponentOptions = {
       };
 
       $scope.$on('onWidgetDelete', (event, widget) => {
-        _.remove(this.model.definition, widget);
+        remove(this.model.definition, widget);
       });
     },
   ],

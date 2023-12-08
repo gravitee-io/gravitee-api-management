@@ -16,7 +16,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { catchError, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { EMPTY, Subject, Subscription } from 'rxjs';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { isUniq, serviceDiscoveryValidator } from './api-proxy-group-edit.validator';
@@ -34,8 +34,8 @@ import { ApiV1, ApiV2 } from '../../../../../../entities/management-api-v2';
 
 @Component({
   selector: 'api-proxy-group-edit',
-  template: require('./api-proxy-group-edit.component.html'),
-  styles: [require('./api-proxy-group-edit.component.scss')],
+  templateUrl: './api-proxy-group-edit.component.html',
+  styleUrls: ['./api-proxy-group-edit.component.scss'],
 })
 export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
@@ -44,16 +44,16 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
   public apiId: string;
   public api: ApiV1 | ApiV2;
   public isReadOnly: boolean;
-  public generalForm: FormGroup;
-  public groupForm: FormGroup;
-  public serviceDiscoveryForm: FormGroup;
+  public generalForm: UntypedFormGroup;
+  public groupForm: UntypedFormGroup;
+  public serviceDiscoveryForm: UntypedFormGroup;
   public initialGroupFormValue: unknown;
   public serviceDiscoveryItems: ResourceListItem[];
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
     private readonly router: Router,
-    private readonly formBuilder: FormBuilder,
+    private readonly formBuilder: UntypedFormBuilder,
     private readonly apiService: ApiV2Service,
     private readonly snackBarService: SnackBarService,
     private readonly serviceDiscoveryService: ServiceDiscoveryService,
@@ -99,7 +99,9 @@ export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
           const updatedGroup = toProxyGroup(
             api.proxy.groups[groupIndex],
             this.generalForm.getRawValue(),
-            ApiProxyGroupConfigurationComponent.getGroupConfigurationFormValue(this.groupForm.get('groupConfiguration') as FormGroup),
+            ApiProxyGroupConfigurationComponent.getGroupConfigurationFormValue(
+              this.groupForm.get('groupConfiguration') as UntypedFormGroup,
+            ),
             this.getServiceDiscoveryConfiguration(),
           );
 

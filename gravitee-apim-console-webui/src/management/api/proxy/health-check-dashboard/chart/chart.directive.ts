@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 import angular from 'angular';
+
 import * as Highcharts from 'highcharts';
-import * as Highmaps from 'highcharts/highmaps';
-import * as _ from 'lodash';
+import { mapChart } from 'highcharts';
 import 'highcharts/modules/map';
+import { cloneDeep, filter, forEach, map, max, merge, sortBy } from 'lodash';
 
 class ChartDirective {
   constructor() {
@@ -83,10 +84,10 @@ class ChartDirective {
                 } else {
                   event = chart.pointer.normalize(e);
                 }
-                points = _.map(chart.series, (serie: any) => {
+                points = map(chart.series, (serie: any) => {
                   return serie.searchPoint(event, true);
                 });
-                points = _.filter(points, (point) => {
+                points = filter(points, (point) => {
                   return point;
                 });
 
@@ -122,7 +123,7 @@ class ChartDirective {
 
         function displayChart(newOptions, chartElement) {
           if (newOptions) {
-            newOptions = _.merge(newOptions, {
+            newOptions = merge(newOptions, {
               lang: {
                 noData: '<code>No data to display</code>',
               },
@@ -141,12 +142,12 @@ class ChartDirective {
             } else {
               newOptions.title = { text: '' };
             }
-            newOptions.yAxis = _.merge(newOptions.yAxis, { title: { text: '' } });
+            newOptions.yAxis = merge(newOptions.yAxis, { title: { text: '' } });
 
             const containerElement = element.parent().parent()[0];
             const parentElement = element.parent()[0];
 
-            newOptions.chart = _.merge(newOptions.chart, {
+            newOptions.chart = merge(newOptions.chart, {
               type: scope.type,
               height: scope.height || parentElement.height || containerElement.height,
               width: scope.width || parentElement.clientWidth || containerElement.clientWidth,
@@ -159,10 +160,10 @@ class ChartDirective {
               enabled: false,
             };
 
-            newOptions.series = _.sortBy(newOptions.series, 'name');
+            newOptions.series = sortBy(newOptions.series, 'name');
 
-            _.forEach(newOptions.series, (serie) => {
-              serie.data = _.sortBy(serie.data, 'name');
+            forEach(newOptions.series, (serie) => {
+              serie.data = sortBy(serie.data, 'name');
             });
 
             if (scope.type && scope.type.startsWith('area')) {
@@ -175,12 +176,12 @@ class ChartDirective {
                   let s = '<div><b>' + Highcharts.dateFormat(dateFormat, this.x) + '</b></div>';
                   s += '<div class="' + (nbCol >= 2 ? 'gv-tooltip gv-tooltip-' + (nbCol > 5 ? 5 : nbCol) : '') + '">';
                   if (
-                    _.filter(this.points, (point: any) => {
+                    filter(this.points, (point: any) => {
                       return point.y !== 0;
                     }).length
                   ) {
                     let i = 0;
-                    _.forEach(this.points, (point) => {
+                    forEach(this.points, (point) => {
                       if (point.y) {
                         const name =
                           ' ' +
@@ -208,7 +209,7 @@ class ChartDirective {
                 shared: true,
                 useHTML: true,
               };
-              newOptions.plotOptions = _.merge(newOptions.plotOptions, {
+              newOptions.plotOptions = merge(newOptions.plotOptions, {
                 series: {
                   marker: {
                     enabled: false,
@@ -218,10 +219,10 @@ class ChartDirective {
               });
 
               if (scope.type && scope.type.startsWith('area')) {
-                newOptions.xAxis = _.merge(newOptions.xAxis, { crosshair: true });
+                newOptions.xAxis = merge(newOptions.xAxis, { crosshair: true });
               }
             } else if (scope.type && scope.type === 'solidgauge') {
-              newOptions = _.merge(newOptions, {
+              newOptions = merge(newOptions, {
                 pane: {
                   background: {
                     innerRadius: '80%',
@@ -283,8 +284,8 @@ class ChartDirective {
                 };
               }
             } else if (scope.type && scope.type === 'sparkline') {
-              const maxValue = _.max(newOptions.series[0].data);
-              newOptions = _.merge(newOptions, {
+              const maxValue = max(newOptions.series[0].data);
+              newOptions = merge(newOptions, {
                 chart: {
                   backgroundColor: null,
                   borderWidth: 0,
@@ -362,9 +363,9 @@ class ChartDirective {
             }
 
             if (scope.type === 'map') {
-              Highmaps.mapChart(chartElement, _.cloneDeep(newOptions));
+              mapChart(chartElement, cloneDeep(newOptions));
             } else {
-              Highcharts.chart(chartElement, _.cloneDeep(newOptions));
+              Highcharts.chart(chartElement, cloneDeep(newOptions));
             }
           }
         }

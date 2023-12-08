@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
+
+import { filter, find, sortBy } from 'lodash';
 
 import UserService from '../../services/user.service';
 
@@ -48,10 +49,10 @@ class UserAutocompleteController {
   searchUser(query) {
     if (query) {
       return this.UserService.search(query).then((response) => {
-        let result = _.sortBy(response.data, ['displayName']);
+        let result = sortBy(response.data, ['displayName']);
 
         if (this.userFilterFn && typeof this.userFilterFn === 'function') {
-          result = _.filter(result, this.userFilterFn);
+          result = filter(result, this.userFilterFn);
         }
 
         return result;
@@ -66,7 +67,7 @@ class UserAutocompleteController {
       if (this.singleUser) {
         this.usersSelected[0] = user;
       } else {
-        const selected = user.reference ? _.find(this.usersSelected, { reference: user.reference }) : _.find(this.defaultUsersList, user);
+        const selected = user.reference ? find(this.usersSelected, { reference: user.reference }) : find(this.defaultUsersList, user);
         if (!selected) {
           this.usersSelected.push(user);
         }

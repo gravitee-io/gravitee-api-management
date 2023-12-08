@@ -24,8 +24,8 @@ import { Constants } from '../../../../../entities/Constants';
 
 @Component({
   selector: 'step-5-summary',
-  template: require('./step-5-summary.component.html'),
-  styles: [require('./step-5-summary.component.scss'), require('../api-creation-steps-common.component.scss')],
+  templateUrl: './step-5-summary.component.html',
+  styleUrls: ['./step-5-summary.component.scss', '../api-creation-steps-common.component.scss'],
 })
 export class Step5SummaryComponent implements OnInit {
   public currentStepPayload: ApiCreationPayload;

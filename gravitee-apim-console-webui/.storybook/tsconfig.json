@@ -1,4 +1,5 @@
 {
   "extends": "../tsconfig.json",
-  "exclude": ["**/*.spec.ts"]
+  "exclude": ["**/*.spec.ts"],
+  "include": ["../src/**/*.stories.ts", "../src/polyfills.ts", "../src/**/*.d.ts", "./preview.ts"]
 }

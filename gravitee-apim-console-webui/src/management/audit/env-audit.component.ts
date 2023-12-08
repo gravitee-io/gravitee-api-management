@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormGroup, FormControl } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormControl } from '@angular/forms';
 import { isEqual, mapValues } from 'lodash';
 import { BehaviorSubject, EMPTY, Subject } from 'rxjs';
 import { catchError, distinctUntilChanged, switchMap, takeUntil, throttleTime } from 'rxjs/operators';
@@ -39,22 +39,22 @@ interface AuditDataTable {
 
 @Component({
   selector: 'env-audit',
-  template: require('./env-audit.component.html'),
-  styles: [require('./env-audit.component.scss')],
+  templateUrl: './env-audit.component.html',
+  styleUrls: ['./env-audit.component.scss'],
 })
 export class EnvAuditComponent implements OnInit, OnDestroy {
   public displayedColumns = ['date', 'user', 'referenceType', 'reference', 'event', 'targets', 'patch'];
   public filteredTableData: AuditDataTable[] = [];
   public nbTotalAudit = 0;
 
-  public filtersForm = new FormGroup({
-    event: new FormControl(),
-    referenceType: new FormControl(),
-    applicationId: new FormControl(),
-    apiId: new FormControl(),
-    range: new FormGroup({
-      start: new FormControl(),
-      end: new FormControl(),
+  public filtersForm = new UntypedFormGroup({
+    event: new UntypedFormControl(),
+    referenceType: new UntypedFormControl(),
+    applicationId: new UntypedFormControl(),
+    apiId: new UntypedFormControl(),
+    range: new UntypedFormGroup({
+      start: new UntypedFormControl(),
+      end: new UntypedFormControl(),
     }),
   });
 
@@ -67,7 +67,7 @@ export class EnvAuditComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   // Create filters stream
-  private filtersStream = new BehaviorSubject<{
+  public filtersStream = new BehaviorSubject<{
     tableWrapper: GioTableWrapperFilters;
     auditFilters: {
       event?: string;

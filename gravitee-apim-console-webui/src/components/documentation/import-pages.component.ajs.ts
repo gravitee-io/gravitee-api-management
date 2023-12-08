@@ -15,8 +15,9 @@
  */
 
 import angular, { IController, IScope } from 'angular';
-import * as _ from 'lodash';
+
 import { ActivatedRoute, Router } from '@angular/router';
+import { forEach, isNil } from 'lodash';
 
 import { DocumentationService } from '../../services/documentation.service';
 import NotificationService from '../../services/notification.service';
@@ -50,8 +51,8 @@ class ImportPagesComponentController implements IController {
 
     this.fetchers = this.resolvedFetchers;
 
-    if (!(_.isNil(this.page.source) || _.isNil(this.page.source.type))) {
-      _.forEach(this.fetchers, (fetcher) => {
+    if (!(isNil(this.page.source) || isNil(this.page.source.type))) {
+      forEach(this.fetchers, (fetcher) => {
         if (fetcher.id === this.page.source.type) {
           this.$scope.fetcherJsonSchema = angular.fromJson(fetcher.schema);
         }
@@ -104,6 +105,6 @@ export const DocumentationImportPagesComponentAjs: ng.IComponentOptions = {
     resolvedRootPage: '<',
     activatedRoute: '<',
   },
-  template: require('./import-pages.html'),
+  template: require('html-loader!./import-pages.html'),
   controller: ImportPagesComponentController,
 };

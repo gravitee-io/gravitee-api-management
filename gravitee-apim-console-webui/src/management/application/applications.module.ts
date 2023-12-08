@@ -54,14 +54,12 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
     CommonModule,
     FormsModule,
     RouterModule,
-
     GioAvatarModule,
     GioConfirmDialogModule,
     GioIconsModule,
     GioPermissionModule,
     GioRoleModule,
     GioTableWrapperModule,
-
     MatButtonModule,
     MatDialogModule,
     MatIconModule,
@@ -72,7 +70,6 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
     MatSortModule,
     MatTableModule,
     MatTooltipModule,
-
     ApplicationNavigationModule,
     ApplicationNotificationSettingsModule,
     ApplicationMetadataModule,
@@ -92,7 +89,6 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
     ApplicationMembersComponent,
   ],
   exports: [EnvApplicationListComponent],
-  entryComponents: [EnvApplicationListComponent],
   providers: [],
 })
 export class ApplicationsModule {}

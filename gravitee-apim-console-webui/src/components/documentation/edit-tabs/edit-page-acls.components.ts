@@ -69,6 +69,6 @@ export const EditPageAclsComponent: ng.IComponentOptions = {
     roles: '<',
     isApiPage: '<',
   },
-  template: require('./edit-page-acls.html'),
+  template: require('html-loader!./edit-page-acls.html'),
   controller: EditPageAclsComponentController,
 };

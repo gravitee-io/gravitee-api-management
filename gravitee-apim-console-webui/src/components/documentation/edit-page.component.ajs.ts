@@ -15,8 +15,9 @@
  */
 
 import angular, { IController, IScope } from 'angular';
-import * as _ from 'lodash';
+
 import { ActivatedRoute, Router } from '@angular/router';
+import { Dictionary, keyBy } from 'lodash';
 
 import { emptyFetcher } from './edit-tabs/edit-page-fetchers.component';
 
@@ -56,8 +57,8 @@ class EditPageComponentController implements IController {
   selectedTab: number;
   currentTab: string;
   groups: any[];
-  foldersById: _.Dictionary<any>;
-  systemFoldersById: _.Dictionary<any>;
+  foldersById: Dictionary<any>;
+  systemFoldersById: Dictionary<any>;
   pageList: any[];
   canUpdate: boolean;
   newName: any;
@@ -137,8 +138,8 @@ class EditPageComponentController implements IController {
     }
     this.groups = this.resolvedGroups;
 
-    this.foldersById = _.keyBy(this.folders, 'id');
-    this.systemFoldersById = _.keyBy(this.systemFolders, 'id');
+    this.foldersById = keyBy(this.folders, 'id');
+    this.systemFoldersById = keyBy(this.systemFolders, 'id');
     const folderSituation = this.DocumentationService.getFolderSituation(this.systemFoldersById, this.foldersById, this.page.parentId);
     this.pageList = this.DocumentationService.buildPageList(this.pageResources, true, folderSituation);
     this.pagesToLink = this.DocumentationService.buildPageList(this.pagesToLink, false, folderSituation);
@@ -288,6 +289,6 @@ export const DocumentationEditPageComponentAjs: ng.IComponentOptions = {
     categoryResources: '<',
     attachedResources: '<',
   },
-  template: require('./edit-page.html'),
+  template: require('html-loader!./edit-page.html'),
   controller: EditPageComponentController,
 };

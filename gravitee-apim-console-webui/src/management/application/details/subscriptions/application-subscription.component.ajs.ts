@@ -27,7 +27,7 @@ const ApplicationSubscriptionComponentAjs: ng.IComponentOptions = {
     subscription: '<',
     activatedRoute: '<',
   },
-  template: require('./application-subscription.html'),
+  template: require('html-loader!./application-subscription.html'),
   controller: [
     '$mdDialog',
     'NotificationService',
@@ -62,7 +62,7 @@ const ApplicationSubscriptionComponentAjs: ng.IComponentOptions = {
           .show({
             controller: 'DialogConfirmController',
             controllerAs: 'ctrl',
-            template: require('../../../../components/dialog/confirmWarning.dialog.html'),
+            template: require('html-loader!../../../../components/dialog/confirmWarning.dialog.html'),
             clickOutsideToClose: true,
             locals: {
               title: 'Are you sure you want to close this subscription?',

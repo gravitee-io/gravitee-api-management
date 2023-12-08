@@ -42,6 +42,5 @@ import { GioFormUserAutocompleteComponent } from './gio-form-user-autocomplete.c
   ],
   declarations: [GioFormUserAutocompleteComponent],
   exports: [GioFormUserAutocompleteComponent],
-  entryComponents: [GioFormUserAutocompleteComponent],
 })
 export class GioFormUserAutocompleteModule {}

@@ -17,7 +17,7 @@
 import ApiHealthcheckLogControllerAjs from './healthcheck-log.controller.ajs';
 
 export const ApiHealthcheckLogComponentAjs = {
-  template: require('./healthcheck-log.html'),
+  template: require('html-loader!./healthcheck-log.html'),
   controller: ApiHealthcheckLogControllerAjs,
   bindings: {
     activatedRoute: '<',

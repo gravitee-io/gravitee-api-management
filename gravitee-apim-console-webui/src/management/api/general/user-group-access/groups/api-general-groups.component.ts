@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { switchMap, takeUntil } from 'rxjs/operators';
 import { Subject, combineLatest, throwError } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
@@ -27,14 +27,14 @@ import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 
 @Component({
   selector: 'api-general-access-groups',
-  template: require('./api-general-groups.component.html'),
-  styles: [require('./api-general-groups.component.scss')],
+  templateUrl: './api-general-groups.component.html',
+  styleUrls: ['./api-general-groups.component.scss'],
 })
 export class ApiGeneralGroupsComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
 
   public isReadOnly = true;
-  public form: FormGroup;
+  public form: UntypedFormGroup;
   public groups: Group[];
   public initialFormValue: unknown;
   public readOnlyGroupList: string;
@@ -46,7 +46,7 @@ export class ApiGeneralGroupsComponent implements OnInit, OnDestroy {
     private readonly groupService: GroupV2Service,
     private readonly permissionService: GioPermissionService,
     private readonly snackBarService: SnackBarService,
-    private readonly formBuilder: FormBuilder,
+    private readonly formBuilder: UntypedFormBuilder,
   ) {}
 
   ngOnInit() {

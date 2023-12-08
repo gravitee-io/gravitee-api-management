@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { EMPTY, Subject } from 'rxjs';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -31,8 +31,8 @@ export enum UserType {
 
 @Component({
   selector: 'org-settings-new-user',
-  template: require('./org-settings-new-user.component.html'),
-  styles: [require('./org-settings-new-user.component.scss')],
+  templateUrl: './org-settings-new-user.component.html',
+  styleUrls: ['./org-settings-new-user.component.scss'],
 })
 export class OrgSettingsNewUserComponent implements OnInit, OnDestroy {
   isLoading = true;
@@ -40,7 +40,7 @@ export class OrgSettingsNewUserComponent implements OnInit, OnDestroy {
 
   UserType = UserType;
 
-  userForm: FormGroup;
+  userForm: UntypedFormGroup;
 
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
@@ -52,7 +52,7 @@ export class OrgSettingsNewUserComponent implements OnInit, OnDestroy {
   constructor(
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
-    private readonly formBuilder: FormBuilder,
+    private readonly formBuilder: UntypedFormBuilder,
     private readonly usersService: UsersService,
     private readonly identityProviderService: IdentityProviderService,
     private readonly snackBarService: SnackBarService,
@@ -93,12 +93,12 @@ export class OrgSettingsNewUserComponent implements OnInit, OnDestroy {
             this.userForm.removeControl('email');
 
             if (type === UserType.SERVICE_ACCOUNT) {
-              this.userForm.addControl('lastName', new FormControl('', [Validators.required]));
-              this.userForm.addControl('email', new FormControl('', [Validators.email]));
+              this.userForm.addControl('lastName', new UntypedFormControl('', [Validators.required]));
+              this.userForm.addControl('email', new UntypedFormControl('', [Validators.email]));
             } else {
-              this.userForm.addControl('lastName', new FormControl('', [Validators.required]));
-              this.userForm.addControl('email', new FormControl('', [Validators.required, Validators.email]));
-              this.userForm.addControl('firstName', new FormControl('', [Validators.required]));
+              this.userForm.addControl('lastName', new UntypedFormControl('', [Validators.required]));
+              this.userForm.addControl('email', new UntypedFormControl('', [Validators.required, Validators.email]));
+              this.userForm.addControl('firstName', new UntypedFormControl('', [Validators.required]));
             }
           });
 

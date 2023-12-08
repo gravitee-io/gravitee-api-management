@@ -14,36 +14,36 @@
  * limitations under the License.
  */
 import { Component } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 
 import { ProviderConfiguration } from '../org-settings-identity-provider.component';
 
 @Component({
   selector: 'org-settings-identity-provider-graviteeio-am',
-  styles: [require('./org-settings-identity-provider-graviteeio-am.component.scss')],
-  template: require('./org-settings-identity-provider-graviteeio-am.component.html'),
+  styleUrls: ['./org-settings-identity-provider-graviteeio-am.component.scss'],
+  templateUrl: './org-settings-identity-provider-graviteeio-am.component.html',
 })
 export class OrgSettingsIdentityProviderGraviteeioAmComponent implements ProviderConfiguration {
   name = 'OrgSettingsIdentityProviderGraviteeioAmComponent';
 
-  configurationFormGroup: FormGroup = new FormGroup({
-    clientId: new FormControl(null, Validators.required),
-    clientSecret: new FormControl(null, Validators.required),
-    serverURL: new FormControl(null, Validators.required),
-    domain: new FormControl(null, Validators.required),
-    scopes: new FormControl(),
-    color: new FormControl(),
+  configurationFormGroup: UntypedFormGroup = new UntypedFormGroup({
+    clientId: new UntypedFormControl(null, Validators.required),
+    clientSecret: new UntypedFormControl(null, Validators.required),
+    serverURL: new UntypedFormControl(null, Validators.required),
+    domain: new UntypedFormControl(null, Validators.required),
+    scopes: new UntypedFormControl(),
+    color: new UntypedFormControl(),
   });
 
-  userProfileMappingFormGroup: FormGroup = new FormGroup({
-    id: new FormControl('sub', Validators.required),
-    firstname: new FormControl('given_name'),
-    lastname: new FormControl('family_name'),
-    email: new FormControl('email'),
-    picture: new FormControl('picture'),
+  userProfileMappingFormGroup: UntypedFormGroup = new UntypedFormGroup({
+    id: new UntypedFormControl('sub', Validators.required),
+    firstname: new UntypedFormControl('given_name'),
+    lastname: new UntypedFormControl('family_name'),
+    email: new UntypedFormControl('email'),
+    picture: new UntypedFormControl('picture'),
   });
 
-  getFormGroups(): Record<string, FormGroup> {
+  getFormGroups(): Record<string, UntypedFormGroup> {
     return { configuration: this.configurationFormGroup, userProfileMapping: this.userProfileMappingFormGroup };
   }
 }

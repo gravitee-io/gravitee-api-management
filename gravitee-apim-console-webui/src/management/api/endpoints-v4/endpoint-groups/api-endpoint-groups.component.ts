@@ -32,8 +32,8 @@ import { ApimFeature, UTMTags } from '../../../../shared/components/gio-license/
 
 @Component({
   selector: 'api-endpoint-groups',
-  template: require('./api-endpoint-groups.component.html'),
-  styles: [require('./api-endpoint-groups.component.scss')],
+  templateUrl: './api-endpoint-groups.component.html',
+  styleUrls: ['./api-endpoint-groups.component.scss'],
 })
 export class ApiEndpointGroupsComponent implements OnInit, OnDestroy {
   public endpointsDisplayedColumns = ['name', 'options', 'weight', 'actions'];

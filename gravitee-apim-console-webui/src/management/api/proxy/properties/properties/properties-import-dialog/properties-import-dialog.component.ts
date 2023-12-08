@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, Inject } from '@angular/core';
-import { FormControl, FormGroup, ValidatorFn } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, ValidatorFn } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { isEmpty } from 'lodash';
 
@@ -29,12 +29,12 @@ export type PropertiesImportDialogResult = (existingProperties: Property[]) => P
 
 @Component({
   selector: 'properties-import-dialog',
-  template: require('./properties-import-dialog.component.html'),
-  styles: [require('./properties-import-dialog.component.scss')],
+  templateUrl: './properties-import-dialog.component.html',
+  styleUrls: ['./properties-import-dialog.component.scss'],
 })
 export class PropertiesImportDialogComponent {
-  public formGroup = new FormGroup({
-    properties: new FormControl(''),
+  public formGroup = new UntypedFormGroup({
+    properties: new UntypedFormControl(''),
   });
 
   constructor(

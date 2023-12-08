@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 import angular, { IController } from 'angular';
+
 import * as jsyaml from 'js-yaml';
-import * as _ from 'lodash';
-import { SwaggerUIBundle } from 'swagger-ui-dist';
 import { ActivatedRoute } from '@angular/router';
+import { isNaN, merge } from 'lodash';
 
 import UserService from '../../../services/user.service';
 
 const yamlSchema = jsyaml.Schema.create(jsyaml.JSON_SCHEMA, []);
 
+declare const SwaggerUIBundle: any;
 const DisableTryItOutPlugin = function () {
   return {
     statePlugins: {
@@ -119,12 +120,12 @@ class PageSwaggerComponentController implements IController {
     config.showExtensions = this.pageConfiguration?.showExtensions === 'true';
     config.showCommonExtensions = this.pageConfiguration?.showCommonExtensions === 'true';
     config.maxDisplayedTags =
-      _.isNaN(Number(this.pageConfiguration.maxDisplayedTags)) || this.pageConfiguration.maxDisplayedTags === '-1'
+      isNaN(Number(this.pageConfiguration.maxDisplayedTags)) || this.pageConfiguration.maxDisplayedTags === '-1'
         ? undefined
         : Number(this.pageConfiguration.maxDisplayedTags);
 
     const swaggerRenderer = SwaggerUIBundle(
-      _.merge(config, {
+      merge(config, {
         onComplete: () => {
           // May be used in a short future, so keeping this part of the code to not forget about it.
           swaggerRenderer.initOAuth({
@@ -142,7 +143,7 @@ class PageSwaggerComponentController implements IController {
 PageSwaggerComponentController.$inject = ['Constants', 'UserService', '$window'];
 
 export const PageSwaggerComponent: ng.IComponentOptions = {
-  template: require('./page-swagger.html'),
+  template: require('html-loader!./page-swagger.html'),
   bindings: {
     pageConfiguration: '<',
     pageContent: '<',

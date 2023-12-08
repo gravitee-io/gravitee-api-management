@@ -24,7 +24,7 @@ import { NotificationSettingsDetailsServices } from '../../../../../components/n
 
 @Component({
   selector: 'environment-notification-settings-details',
-  template: require('./environment-notification-settings-details.component.html'),
+  templateUrl: './environment-notification-settings-details.component.html',
 })
 export class EnvironmentNotificationSettingsDetailsComponent implements OnInit {
   public notificationSettingsDetailsServices: NotificationSettingsDetailsServices;

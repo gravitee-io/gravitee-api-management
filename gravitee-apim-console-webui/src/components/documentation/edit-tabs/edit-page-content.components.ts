@@ -78,6 +78,6 @@ export const EditPageContentComponent: ng.IComponentOptions = {
     pagesToLink: '<',
     pageType: '<',
   },
-  template: require('./edit-page-content.html'),
+  template: require('html-loader!./edit-page-content.html'),
   controller: EditPageContentComponentController,
 };

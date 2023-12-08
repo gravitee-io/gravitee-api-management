@@ -39,7 +39,7 @@ class ImageDirective {
         checkeredBackground: '<',
         accept: '@',
       },
-      template: require('./image.html'),
+      template: require('html-loader!./image.html'),
       controller: ImageController,
       controllerAs: 'imgCtrl',
     };

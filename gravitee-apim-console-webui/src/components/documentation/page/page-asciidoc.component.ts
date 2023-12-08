@@ -20,7 +20,7 @@ class PageAsciiDocComponentController implements ng.IComponentController {
 }
 
 export const PageAsciiDocComponent: ng.IComponentOptions = {
-  template: require('./page-asciidoc.html'),
+  template: require('html-loader!./page-asciidoc.html'),
   bindings: {
     pageContent: '<',
   },

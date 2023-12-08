@@ -23,8 +23,8 @@ import { Installation } from '../../../entities/installation/installation';
 
 @Component({
   selector: 'org-settings-cockpit',
-  template: require('./org-settings-cockpit.component.html'),
-  styles: [require('./org-settings-cockpit.component.scss')],
+  templateUrl: './org-settings-cockpit.component.html',
+  styleUrls: ['./org-settings-cockpit.component.scss'],
 })
 export class OrgSettingsCockpitComponent implements OnInit, OnDestroy {
   isLoading = true;

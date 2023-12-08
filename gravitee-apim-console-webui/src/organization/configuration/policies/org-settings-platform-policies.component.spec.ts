@@ -154,6 +154,7 @@ describe('OrgSettingsPlatformPoliciesComponent', () => {
         ],
       });
       // no flush to stop test here
+      httpTestingController.match(`${CONSTANTS_TESTING.env.baseURL}/configuration/spel/grammar`);
     });
   });
 

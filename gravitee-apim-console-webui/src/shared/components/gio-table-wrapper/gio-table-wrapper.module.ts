@@ -28,6 +28,5 @@ import { GioTableWrapperComponent } from './gio-table-wrapper.component';
   imports: [CommonModule, ReactiveFormsModule, MatPaginatorModule, MatFormFieldModule, MatInputModule, MatIconModule, MatSortModule],
   declarations: [GioTableWrapperComponent],
   exports: [GioTableWrapperComponent],
-  entryComponents: [GioTableWrapperComponent],
 })
 export class GioTableWrapperModule {}

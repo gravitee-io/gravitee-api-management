@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { AbstractControl, UntypedFormBuilder, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil, tap } from 'rxjs/operators';
 import { cloneDeep, get, merge } from 'lodash';
@@ -27,19 +27,19 @@ import { isIso8601DateValid } from '../../api/runtime-logs-v4/runtime-logs-setti
 
 @Component({
   selector: 'api-logging',
-  template: require('./api-logging.component.html'),
-  styles: [require('./api-logging.component.scss')],
+  templateUrl: './api-logging.component.html',
+  styleUrls: ['./api-logging.component.scss'],
 })
 export class ApiLoggingComponent implements OnInit, OnDestroy {
   isLoading = true;
   providedConfigurationMessage = 'Configuration provided by the system';
-  apiLoggingForm: FormGroup;
+  apiLoggingForm: UntypedFormGroup;
   canUpdateSettings: boolean;
   settings: ConsoleSettings;
   private unsubscribe$ = new Subject();
   public formInitialValues: unknown;
   constructor(
-    private readonly fb: FormBuilder,
+    private readonly fb: UntypedFormBuilder,
     private readonly consoleSettingsService: ConsoleSettingsService,
     private readonly snackBarService: SnackBarService,
   ) {}

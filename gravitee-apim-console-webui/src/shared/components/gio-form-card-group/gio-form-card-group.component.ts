@@ -20,8 +20,8 @@ import { GioFormCardComponent } from './gio-form-card.component';
 
 @Component({
   selector: 'gio-form-card-group',
-  template: require('./gio-form-card-group.component.html'),
-  styles: [require('./gio-form-card-group.component.scss')],
+  templateUrl: './gio-form-card-group.component.html',
+  styleUrls: ['./gio-form-card-group.component.scss'],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,

@@ -17,8 +17,8 @@ import { Component, EventEmitter, Output } from '@angular/core';
 
 @Component({
   selector: 'gio-license-banner',
-  template: require('./gio-license-banner.component.html'),
-  styles: [require('./gio-license-banner.component.scss')],
+  templateUrl: './gio-license-banner.component.html',
+  styleUrls: ['./gio-license-banner.component.scss'],
   host: {},
 })
 export class GioLicenseBannerComponent {

@@ -15,7 +15,7 @@
  */
 import { Component, Inject, OnDestroy } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { FormControl } from '@angular/forms';
+import { UntypedFormControl } from '@angular/forms';
 import { combineLatest, of, Subject } from 'rxjs';
 import { switchMap, takeUntil, tap } from 'rxjs/operators';
 
@@ -40,15 +40,15 @@ type QualityRuleVM = {
 
 @Component({
   selector: 'api-review-dialog',
-  template: require('./api-review-dialog.component.html'),
-  styles: [require('./api-review-dialog.component.scss')],
+  templateUrl: './api-review-dialog.component.html',
+  styleUrls: ['./api-review-dialog.component.scss'],
 })
 export class ApiReviewDialogComponent implements OnDestroy {
   private unsubscribe$ = new Subject<void>();
 
   public isLoading = true;
 
-  public reviewComments = new FormControl();
+  public reviewComments = new UntypedFormControl();
 
   public qualityRules: QualityRuleVM[] = [];
 

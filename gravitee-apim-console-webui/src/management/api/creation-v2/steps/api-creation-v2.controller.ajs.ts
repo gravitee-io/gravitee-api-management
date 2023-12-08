@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 import { IPromise } from 'angular';
-import * as _ from 'lodash';
+
 import { ActivatedRoute, Router } from '@angular/router';
+import { forEach, remove, some } from 'lodash';
 
 import { ApiService } from '../../../../services/api.service';
 import NotificationService from '../../../../services/notification.service';
@@ -234,7 +235,7 @@ class ApiCreationV2ControllerAjs {
    */
   createAPI(deployAndStart, readyForReview?: boolean) {
     // clear API pages json format
-    _.forEach(this.api.pages, (page) => {
+    forEach(this.api.pages, (page) => {
       if (!page.name) {
         page.name = page.fileName;
       }
@@ -244,7 +245,7 @@ class ApiCreationV2ControllerAjs {
     });
 
     // handle plan publish state
-    _.forEach(this.api.plans, (plan) => {
+    forEach(this.api.plans, (plan) => {
       plan.status = deployAndStart ? 'PUBLISHED' : 'STAGING';
     });
 
@@ -350,7 +351,7 @@ class ApiCreationV2ControllerAjs {
     }
 
     // set resource filtering whitelist
-    _.remove(this.resourceFiltering.whitelist, (whitelistItem: any) => {
+    remove(this.resourceFiltering.whitelist, (whitelistItem: any) => {
       return !whitelistItem.pattern;
     });
     if (this.api.gravitee === '1.0.0') {
@@ -498,7 +499,7 @@ class ApiCreationV2ControllerAjs {
   }
 
   pageAlreadyExist(pageFileName) {
-    return _.some(this.api.pages, (page: any) => {
+    return some(this.api.pages, (page: any) => {
       return page.fileName === pageFileName;
     });
   }
@@ -512,7 +513,7 @@ class ApiCreationV2ControllerAjs {
       .show({
         controller: 'DialogConfirmController',
         controllerAs: 'ctrl',
-        template: require('../../../../components/dialog/confirmWarning.dialog.html'),
+        template: require('html-loader!../../../../components/dialog/confirmWarning.dialog.html'),
         clickOutsideToClose: true,
         locals: {
           title: 'Warning',

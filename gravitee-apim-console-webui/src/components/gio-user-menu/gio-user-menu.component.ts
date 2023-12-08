@@ -23,8 +23,8 @@ import { AuthService } from '../../auth/auth.service';
 
 @Component({
   selector: 'gio-user-menu',
-  template: require('./gio-user-menu.component.html'),
-  styles: [require('./gio-user-menu.component.scss')],
+  templateUrl: './gio-user-menu.component.html',
+  styleUrls: ['./gio-user-menu.component.scss'],
 })
 export class GioUserMenuComponent implements OnInit {
   @Input()

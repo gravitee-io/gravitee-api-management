@@ -21,7 +21,7 @@ const ApplicationMembersComponentAjs: ng.IComponentOptions = {
     activatedRoute: '<',
   },
   controller: 'ApplicationMembersController',
-  template: require('./application-members.html'),
+  template: require('html-loader!./application-members.html'),
 };
 
 export default ApplicationMembersComponentAjs;

@@ -25,8 +25,8 @@ import { UiCustomizationService } from '../../services-ngx/ui-customization.serv
 
 @Component({
   selector: 'gio-top-nav',
-  template: require('./gio-top-nav.component.html'),
-  styles: [require('./gio-top-nav.component.scss')],
+  templateUrl: './gio-top-nav.component.html',
+  styleUrls: ['./gio-top-nav.component.scss'],
 })
 export class GioTopNavComponent implements OnInit, OnDestroy {
   private unsubscribe$ = new Subject();

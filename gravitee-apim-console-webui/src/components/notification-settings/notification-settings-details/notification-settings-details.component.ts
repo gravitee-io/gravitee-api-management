@@ -15,7 +15,7 @@
  */
 
 import { Component, Input, OnInit } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { takeUntil, tap } from 'rxjs/operators';
 import { combineLatest, Observable, Subject } from 'rxjs';
 import { groupBy, map } from 'lodash';
@@ -43,12 +43,12 @@ type CategoriesHooksVM = {
 
 @Component({
   selector: 'notification-settings-details',
-  template: require('./notification-settings-details.component.html'),
-  styles: [require('./notification-settings-details.component.scss')],
+  templateUrl: './notification-settings-details.component.html',
+  styleUrls: ['./notification-settings-details.component.scss'],
 })
 export class NotificationSettingsDetailsComponent implements OnInit {
   public isLoadingData = true;
-  public notificationForm: FormGroup;
+  public notificationForm: UntypedFormGroup;
   public formInitialValues: unknown;
   public categoriesHooksVM: CategoriesHooksVM;
   public notifier: Notifier;
@@ -71,9 +71,9 @@ export class NotificationSettingsDetailsComponent implements OnInit {
           this.notificationSettings = notificationSettings;
           this.notifier = notifiers.find((i) => i.id === notificationSettings.notifier);
 
-          this.notificationForm = new FormGroup({
-            notifier: new FormControl(notificationSettings.config),
-            useSystemProxy: new FormControl(notificationSettings.useSystemProxy),
+          this.notificationForm = new UntypedFormGroup({
+            notifier: new UntypedFormControl(notificationSettings.config),
+            useSystemProxy: new UntypedFormControl(notificationSettings.useSystemProxy),
           });
 
           const hooksChecked: (Hooks & { checked: boolean })[] = hooks.map((hook) => ({
@@ -82,7 +82,7 @@ export class NotificationSettingsDetailsComponent implements OnInit {
           }));
 
           hooksChecked.map((item) => {
-            this.notificationForm.addControl(`${item.id}`, new FormControl(item.checked));
+            this.notificationForm.addControl(`${item.id}`, new UntypedFormControl(item.checked));
           });
 
           const categories = groupBy(hooksChecked, 'category');

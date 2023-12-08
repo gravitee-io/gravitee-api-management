@@ -40,8 +40,8 @@ interface MenuItem {
 
 @Component({
   selector: 'gio-policy-studio-layout',
-  template: require('./gio-policy-studio-layout.component.html'),
-  styles: [require('./gio-policy-studio-layout.component.scss')],
+  templateUrl: './gio-policy-studio-layout.component.html',
+  styleUrls: ['./gio-policy-studio-layout.component.scss'],
 })
 export class GioPolicyStudioLayoutComponent implements OnInit, OnDestroy {
   private unsubscribe$ = new Subject<void>();
