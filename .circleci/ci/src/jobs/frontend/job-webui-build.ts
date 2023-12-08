@@ -49,11 +49,6 @@ export class WebuiBuildJob {
       new commands.SetupRemoteDocker(),
       new reusable.ReusedCommand(webUiInstallCommand, { 'apim-ui-project': '<< parameters.apim-ui-project >>' }),
       new commands.Run({
-        name: 'Compile',
-        command: 'npm run compile',
-        working_directory: '<< parameters.apim-ui-project >>',
-      }),
-      new commands.Run({
         name: 'Update Build version',
         command: `sed -i 's/"version": ".*"/"version": "${apimVersion}"/' << parameters.apim-ui-project >>/build.json`,
       }),
