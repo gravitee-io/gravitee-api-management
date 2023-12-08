@@ -4291,7 +4291,7 @@ components:
                 inherit:
                     type: boolean
                     description: Inherit the configuration of the parent endpoint group.
-                    default: true
+                    default: false
                 healthCheck:
                     $ref: "#/components/schemas/EndpointHealthCheckService"
             discriminator:
