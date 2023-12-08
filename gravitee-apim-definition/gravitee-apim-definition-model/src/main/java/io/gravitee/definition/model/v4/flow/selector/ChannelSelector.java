@@ -15,6 +15,7 @@
  */
 package io.gravitee.definition.model.v4.flow.selector;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
@@ -23,6 +24,10 @@ import io.gravitee.definition.model.v4.ConnectorMode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.*;
@@ -56,6 +61,20 @@ public class ChannelSelector extends Selector {
     private Operator channelOperator = Operator.STARTS_WITH;
 
     private Set<String> entrypoints;
+
+    /**
+     * Sort entrypoints when serializing, to ensure that the JSON representation is always the same.
+     * Used when determining the sync state of an API.
+     */
+    @JsonGetter("entrypoints")
+    private List<String> getSortedEntrypoints() {
+        if (entrypoints != null) {
+            List<String> listOfEntrypoints = new ArrayList<>(entrypoints);
+            Collections.sort(listOfEntrypoints);
+            return listOfEntrypoints;
+        }
+        return null;
+    }
 
     public ChannelSelector() {
         super(SelectorType.CHANNEL);
