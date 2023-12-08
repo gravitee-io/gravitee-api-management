@@ -33,7 +33,7 @@ export type EndpointConfigurationData = {
 })
 export class ApiProxyGroupEndpointConfigurationComponent {
   public static getConfigurationFormGroup(endpoint: EndpointV2, isReadonly: boolean, unsubscribe$: Subject<boolean>): FormGroup {
-    const inherit = new FormControl({ value: endpoint.inherit ?? true, disabled: isReadonly });
+    const inherit = new FormControl({ value: endpoint.inherit ?? false, disabled: isReadonly });
     const configuration = EndpointHttpConfigComponent.getHttpConfigFormGroup(endpoint, isReadonly);
 
     inherit.valueChanges.pipe(startWith(inherit.value), takeUntil(unsubscribe$)).subscribe((inheritValue) => {

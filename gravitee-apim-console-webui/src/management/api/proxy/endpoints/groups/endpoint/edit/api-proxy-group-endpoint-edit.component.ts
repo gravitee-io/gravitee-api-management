@@ -162,7 +162,7 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
         ...group.endpoints.find((endpoint) => endpoint.name === this.ajsStateParams.endpointName),
       };
     } else {
-      this.endpoint = { type: 'http', inherit: true };
+      this.endpoint = { type: 'http', inherit: false };
     }
 
     this.generalForm = this.formBuilder.group({
