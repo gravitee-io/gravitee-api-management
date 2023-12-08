@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, Inject, OnInit } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
 export interface ApiPortalSubscriptionRenewDialogData {
@@ -28,12 +28,12 @@ export interface ApiPortalSubscriptionRenewDialogResult {
 }
 @Component({
   selector: 'api-portal-subscription-renew-dialog',
-  template: require('./api-portal-subscription-renew-dialog.component.html'),
-  styles: [require('./api-portal-subscription-renew-dialog.component.scss')],
+  templateUrl: './api-portal-subscription-renew-dialog.component.html',
+  styleUrls: ['./api-portal-subscription-renew-dialog.component.scss'],
 })
 export class ApiPortalSubscriptionRenewDialogComponent implements OnInit {
   data: ApiPortalSubscriptionRenewDialogData;
-  form: FormGroup = new FormGroup({});
+  form: UntypedFormGroup = new UntypedFormGroup({});
 
   constructor(
     private readonly dialogRef: MatDialogRef<ApiPortalSubscriptionRenewDialogComponent, ApiPortalSubscriptionRenewDialogResult>,
@@ -43,8 +43,8 @@ export class ApiPortalSubscriptionRenewDialogComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.form = new FormGroup({
-      apiKey: new FormControl(''),
+    this.form = new UntypedFormGroup({
+      apiKey: new UntypedFormControl(''),
     });
   }
 

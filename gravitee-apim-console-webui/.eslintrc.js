@@ -2,11 +2,17 @@ module.exports = {
   env: {
     browser: true,
     node: true,
+    es2020: true,
   },
   parser: '@typescript-eslint/parser',
   parserOptions: {
     project: './tsconfig.json',
     sourceType: 'module',
+  },
+  settings: {
+    'import/resolver': {
+      typescript: {},
+    },
   },
   ignorePatterns: ['**/*.js', '**/*.json', '**/*.html'],
   plugins: ['eslint-plugin-jsdoc', '@typescript-eslint', 'eslint-plugin-import', 'rxjs'],

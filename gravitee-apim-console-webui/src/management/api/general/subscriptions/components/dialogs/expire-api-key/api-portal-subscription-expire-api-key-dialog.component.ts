@@ -15,7 +15,7 @@
  */
 import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 
 export interface ApiPortalSubscriptionExpireApiKeyDialogData {
   expirationDate: Date;
@@ -26,12 +26,12 @@ export interface ApiPortalSubscriptionExpireApiKeyDialogResult {
 }
 @Component({
   selector: 'api-portal-subscription-expire-api-key-dialog',
-  template: require('./api-portal-subscription-expire-api-key-dialog.component.html'),
-  styles: [require('./api-portal-subscription-expire-api-key-dialog.component.scss')],
+  templateUrl: './api-portal-subscription-expire-api-key-dialog.component.html',
+  styleUrls: ['./api-portal-subscription-expire-api-key-dialog.component.scss'],
 })
 export class ApiPortalSubscriptionExpireApiKeyDialogComponent implements OnInit {
   expirationDate: Date;
-  form: FormGroup;
+  form: UntypedFormGroup;
   minDate: Date;
   constructor(
     private readonly dialogRef: MatDialogRef<
@@ -45,8 +45,8 @@ export class ApiPortalSubscriptionExpireApiKeyDialogComponent implements OnInit 
 
   ngOnInit() {
     this.minDate = new Date();
-    this.form = new FormGroup({
-      expirationDate: new FormControl(this.expirationDate),
+    this.form = new UntypedFormGroup({
+      expirationDate: new UntypedFormControl(this.expirationDate),
     });
   }
 

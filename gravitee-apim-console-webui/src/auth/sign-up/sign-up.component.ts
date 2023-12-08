@@ -15,7 +15,7 @@
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subject } from 'rxjs';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { takeUntil, tap } from 'rxjs/operators';
 import { isEmpty } from 'lodash';
 
@@ -26,16 +26,16 @@ import { CustomUserField } from '../../entities/customUserFields';
 
 @Component({
   selector: 'sign-up',
-  template: require('./sign-up.component.html'),
-  styles: [require('../auth-common.component.scss')],
+  templateUrl: './sign-up.component.html',
+  styleUrls: ['../auth-common.component.scss'],
 })
 export class SignUpComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
 
-  public signUpForm = new FormGroup({
-    firstName: new FormControl('', Validators.required),
-    lastName: new FormControl('', Validators.required),
-    email: new FormControl('', [Validators.required, Validators.email]),
+  public signUpForm = new UntypedFormGroup({
+    firstName: new UntypedFormControl('', Validators.required),
+    lastName: new UntypedFormControl('', Validators.required),
+    email: new UntypedFormControl('', [Validators.required, Validators.email]),
   });
   public customUserFields?: Array<
     CustomUserField & {
@@ -67,9 +67,9 @@ export class SignUpComponent implements OnInit, OnDestroy {
         if (customUserFields.length > 0) {
           this.signUpForm.addControl(
             'customUserFields',
-            new FormGroup({
+            new UntypedFormGroup({
               ...customUserFields.reduce((acc, customUserField) => {
-                acc[customUserField.key] = new FormControl(null, customUserField.required ? Validators.required : undefined);
+                acc[customUserField.key] = new UntypedFormControl(null, customUserField.required ? Validators.required : undefined);
                 return acc;
               }, {}),
             }),

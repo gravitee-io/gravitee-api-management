@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import * as angular from 'angular';
+
 import { CommonModule } from '@angular/common';
 import { HttpClientModule, HttpClientXsrfModule } from '@angular/common/http';
 import { ApplicationRef, DoBootstrap, NgModule } from '@angular/core';
@@ -21,7 +23,6 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { setAngularJSGlobal, UpgradeModule } from '@angular/upgrade/static';
 import { GioPendoModule, GIO_PENDO_SETTINGS_TOKEN } from '@gravitee/ui-analytics';
 import { GioMatConfigModule } from '@gravitee/ui-particles-angular';
-import * as angular from 'angular';
 
 import { currentUserProvider, ajsScopeProvider } from './ajs-upgraded-providers';
 import { Constants } from './entities/Constants';

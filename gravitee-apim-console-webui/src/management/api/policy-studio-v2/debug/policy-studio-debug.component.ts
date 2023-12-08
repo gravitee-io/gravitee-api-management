@@ -27,8 +27,8 @@ import { PolicyListItem } from '../../../../entities/policy';
 
 @Component({
   selector: 'policy-studio-debug',
-  template: require('./policy-studio-debug.component.html'),
-  styles: [require('./policy-studio-debug.component.scss')],
+  templateUrl: './policy-studio-debug.component.html',
+  styleUrls: ['./policy-studio-debug.component.scss'],
 })
 export class PolicyStudioDebugComponent implements OnInit {
   public debugResponse: DebugResponse;

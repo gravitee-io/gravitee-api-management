@@ -19,8 +19,8 @@ import { Subject } from 'rxjs';
 
 @Component({
   selector: 'api-documentation-empty-state',
-  template: require('./api-documentation-v4-empty-state.component.html'),
-  styles: [require('./api-documentation-v4-empty-state.component.scss')],
+  templateUrl: './api-documentation-v4-empty-state.component.html',
+  styleUrls: ['./api-documentation-v4-empty-state.component.scss'],
 })
 export class ApiDocumentationV4EmptyStateComponent implements OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();

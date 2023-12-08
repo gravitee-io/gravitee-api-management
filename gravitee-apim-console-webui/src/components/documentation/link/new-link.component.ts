@@ -72,6 +72,6 @@ export const DocumentationNewLinkComponent: ng.IComponentOptions = {
     onSave: '&',
     systemFoldersById: '<',
   },
-  template: require('./new-link.html'),
+  template: require('html-loader!./new-link.html'),
   controller: DocumentationNewLinkComponentController,
 };

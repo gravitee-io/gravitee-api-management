@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 import { ILogService, IScope, ITimeoutService } from 'angular';
-import * as _ from 'lodash';
+
 import { ActivatedRoute, Router } from '@angular/router';
+import { filter, forEach, isEmpty } from 'lodash';
 
 import { ApiService } from '../../services/api.service';
 import ApplicationService from '../../services/application.service';
@@ -152,7 +153,7 @@ class LogsFiltersController {
     const q = this.activatedRoute.snapshot.queryParams.q;
     if (q) {
       this.decodeQueryFilters(q);
-      _.forEach(this.displayModes, (displayMode) => {
+      forEach(this.displayModes, (displayMode) => {
         if (this.filters[displayMode.field]) {
           this.displayMode = displayMode;
         }
@@ -199,11 +200,11 @@ class LogsFiltersController {
   }
 
   hasFilters() {
-    return !_.isEmpty(this.filters) && !this.isEmpty(this.filters);
+    return !isEmpty(this.filters) && !this.isEmpty(this.filters);
   }
 
   updateDisplayMode() {
-    _.forEach(this.displayModes, (displayMode) => {
+    forEach(this.displayModes, (displayMode) => {
       delete this.filters[displayMode.field];
     });
     delete this.filters[this.displayMode.field];
@@ -299,9 +300,9 @@ class LogsFiltersController {
 
   private buildQuery(filters): string {
     let query = '';
-    const keys = _.filter(Object.keys(filters), (key) => filters[key] !== undefined && filters[key].length > 0);
+    const keys = filter(Object.keys(filters), (key) => filters[key] !== undefined && filters[key].length > 0);
     let index = 0;
-    _.forEach(keys, (key) => {
+    forEach(keys, (key) => {
       let val = filters[key];
 
       // 1. add the first / for uri
@@ -338,7 +339,7 @@ class LogsFiltersController {
     if (strict) {
       val = list[_val];
     } else {
-      val = list[_.filter(Object.keys(list), (elt) => elt.toLowerCase().includes(_val.toLowerCase())).pop()];
+      val = list[filter(Object.keys(list), (elt) => elt.toLowerCase().includes(_val.toLowerCase())).pop()];
     }
     return val ? val : _val;
   }

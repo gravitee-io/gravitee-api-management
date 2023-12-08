@@ -33,7 +33,7 @@ export class GioConnectorListOptionLayoutActionDirective {}
 
 @Component({
   selector: 'gio-connector-list-option-layout',
-  template: require('./gio-connector-list-option-layout.component.html'),
-  styles: [require('./gio-connector-list-option-layout.component.scss')],
+  templateUrl: './gio-connector-list-option-layout.component.html',
+  styleUrls: ['./gio-connector-list-option-layout.component.scss'],
 })
 export class GioConnectorListOptionLayoutComponent {}

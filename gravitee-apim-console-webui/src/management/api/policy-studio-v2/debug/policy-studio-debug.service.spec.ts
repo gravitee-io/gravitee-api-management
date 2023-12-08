@@ -47,7 +47,7 @@ describe('PolicyStudioDebugService', () => {
   });
 
   describe('debug', () => {
-    it('should call the API', fakeAsync((done) => {
+    it('should call the API', fakeAsync(() => {
       const mockDebugEvent = fakeDebugEvent();
       const eventId = 'eventId';
 
@@ -284,6 +284,7 @@ describe('PolicyStudioDebugService', () => {
         },
       ];
 
+      let done = false;
       policyStudioDebugService
         .debug({
           method: 'GET',
@@ -299,7 +300,7 @@ describe('PolicyStudioDebugService', () => {
           expect(response.isLoading).toStrictEqual(false);
           expect(response.requestPolicyDebugSteps).toStrictEqual(expectedRequestDebugSteps);
           expect(response.responsePolicyDebugSteps).toStrictEqual(expectedResponseDebugSteps);
-          done();
+          done = true;
         });
 
       expectSendDebugEvent(eventId);
@@ -308,9 +309,12 @@ describe('PolicyStudioDebugService', () => {
       tick(1000);
       expectGetDebugEvent(eventId, true);
       tick(1000);
+
+      expect(done).toEqual(true);
     }));
 
-    it('should return some empty data when timeout is reached', fakeAsync((done) => {
+    it('should return some empty data when timeout is reached', fakeAsync(() => {
+      let done = false;
       policyStudioDebugService
         .debug({
           method: 'GET',
@@ -332,7 +336,7 @@ describe('PolicyStudioDebugService', () => {
             requestDebugSteps: {},
             responseDebugSteps: {},
           });
-          done();
+          done = true;
         });
 
       httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/${api.id}`).flush(api);
@@ -344,6 +348,7 @@ describe('PolicyStudioDebugService', () => {
       });
 
       tick(10000);
+      expect(done).toEqual(true);
     }));
   });
 

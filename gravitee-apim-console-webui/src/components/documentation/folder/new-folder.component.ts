@@ -29,6 +29,6 @@ export const DocumentationNewFolderComponent: ng.IComponentOptions = {
     page: '=',
     onSave: '&',
   },
-  template: require('./new-folder.html'),
+  template: require('html-loader!./new-folder.html'),
   controller: DocumentationNewFolderComponentController,
 };

@@ -26,6 +26,5 @@ import { GioFormColorInputComponent } from './gio-form-color-input.component';
   imports: [CommonModule, A11yModule, MatInputModule, ReactiveFormsModule, MatRippleModule],
   declarations: [GioFormColorInputComponent],
   exports: [GioFormColorInputComponent],
-  entryComponents: [GioFormColorInputComponent],
 })
 export class GioFormColorInputModule {}

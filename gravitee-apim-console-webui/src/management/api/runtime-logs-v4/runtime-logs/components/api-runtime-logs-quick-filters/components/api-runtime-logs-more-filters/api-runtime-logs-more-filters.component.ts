@@ -19,8 +19,8 @@ import { DEFAULT_FILTERS, MoreFiltersForm } from '../../../../models';
 
 @Component({
   selector: 'api-runtime-logs-more-filters',
-  template: require('./api-runtime-logs-more-filters.component.html'),
-  styles: [require('./api-runtime-logs-more-filters.component.scss')],
+  templateUrl: './api-runtime-logs-more-filters.component.html',
+  styleUrls: ['./api-runtime-logs-more-filters.component.scss'],
 })
 export class ApiRuntimeLogsMoreFiltersComponent {
   @Output() closeMoreFiltersEvent: EventEmitter<void> = new EventEmitter();

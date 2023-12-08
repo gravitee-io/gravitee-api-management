@@ -21,7 +21,7 @@ const AlertNotificationsComponent: ng.IComponentOptions = {
   require: {
     parent: '^alertComponentAjs',
   },
-  template: require('./alert-notifications.html'),
+  template: require('html-loader!./alert-notifications.html'),
   controller: function () {
     this.addNotification = () => {
       if (this.alert.notifications === undefined) {

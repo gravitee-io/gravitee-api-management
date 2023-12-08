@@ -18,8 +18,8 @@ import { toNumber } from 'lodash';
 
 @Component({
   selector: 'gio-circular-percentage',
-  template: require('./gio-circular-percentage.component.html'),
-  styles: [require('./gio-circular-percentage.component.scss')],
+  templateUrl: './gio-circular-percentage.component.html',
+  styleUrls: ['./gio-circular-percentage.component.scss'],
 })
 export class GioCircularPercentageComponent {
   @Input()

@@ -16,7 +16,7 @@
 
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { combineLatest, Subject } from 'rxjs';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { MonacoEditorLanguageConfig } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute } from '@angular/router';
@@ -29,8 +29,8 @@ import { onlyApiV2Filter } from '../../../../../util/apiFilter.operator';
 
 @Component({
   selector: 'api-dynamic-properties',
-  template: require('./api-dynamic-properties.component.html'),
-  styles: [require('./api-dynamic-properties.component.scss')],
+  templateUrl: './api-dynamic-properties.component.html',
+  styleUrls: ['./api-dynamic-properties.component.scss'],
 })
 export class ApiDynamicPropertiesComponent implements OnInit, OnDestroy {
   private unsubscribe$ = new Subject<void>();
@@ -52,7 +52,7 @@ export class ApiDynamicPropertiesComponent implements OnInit, OnDestroy {
   private specificationDefaultValue = '[\n    {\n        "operation":"default",\n        "spec":{}\n    }\n]';
   public specificationLanguageConfig: MonacoEditorLanguageConfig = { language: 'json', schemas: [] };
 
-  public form: FormGroup;
+  public form: UntypedFormGroup;
   public initialFormValue: unknown;
 
   public httpMethods = CorsUtil.httpMethods;
@@ -73,46 +73,46 @@ export class ApiDynamicPropertiesComponent implements OnInit, OnDestroy {
           const isReadonly = api.definitionContext?.origin === 'KUBERNETES';
           const dynamicProperty = api.services?.dynamicProperty;
 
-          this.form = new FormGroup({
-            enabled: new FormControl({
+          this.form = new UntypedFormGroup({
+            enabled: new UntypedFormControl({
               value: dynamicProperty?.enabled ?? false,
               disabled: isReadonly,
             }),
-            schedule: new FormControl(
+            schedule: new UntypedFormControl(
               {
                 value: dynamicProperty?.schedule ?? '0 */5 * * * *',
                 disabled: isReadonly,
               },
               [Validators.required],
             ),
-            provider: new FormControl({
+            provider: new UntypedFormControl({
               value: dynamicProperty?.provider ?? 'HTTP', // Only http is supported for now.
               disabled: isReadonly,
             }),
-            method: new FormControl({
+            method: new UntypedFormControl({
               value: dynamicProperty?.configuration?.method ?? 'GET',
               disabled: isReadonly,
             }),
-            url: new FormControl(
+            url: new UntypedFormControl(
               {
                 value: dynamicProperty?.configuration?.url ?? '',
                 disabled: isReadonly,
               },
               [Validators.required],
             ),
-            headers: new FormControl({
+            headers: new UntypedFormControl({
               value: dynamicProperty?.configuration?.headers ?? undefined,
               disabled: isReadonly,
             }),
-            useSystemProxy: new FormControl({
+            useSystemProxy: new UntypedFormControl({
               value: dynamicProperty?.configuration?.useSystemProxy ?? undefined,
               disabled: isReadonly,
             }),
-            body: new FormControl({
+            body: new UntypedFormControl({
               value: dynamicProperty?.configuration?.body ?? '',
               disabled: isReadonly,
             }),
-            specification: new FormControl({
+            specification: new UntypedFormControl({
               value: dynamicProperty?.configuration?.specification ?? this.specificationDefaultValue,
               disabled: isReadonly,
             }),

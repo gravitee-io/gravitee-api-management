@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as jdenticon from 'jdenticon';
+import { toSvg } from 'jdenticon';
 
 class IdentityPictureDirective {
   constructor() {
@@ -31,7 +31,7 @@ class IdentityPictureDirective {
         imageTheme: '<',
         noDefaultImage: '=',
       },
-      template: require('./identityPicture.html'),
+      template: require('html-loader!./identityPicture.html'),
       controller: IdentityPictureController,
       controllerAs: 'identityPictureCtrl',
     };
@@ -51,7 +51,7 @@ class IdentityPictureController {
         div.innerHTML = 'No image defined';
       } else {
         div.title = $scope.imageName;
-        div.innerHTML = jdenticon.toSvg($scope.imageName, $scope.imageWidth ? $scope.imageWidth : 110, { backColor: '#FFF' });
+        div.innerHTML = toSvg($scope.imageName, $scope.imageWidth ? $scope.imageWidth : 110, { backColor: '#FFF' });
       }
       $scope.$apply();
     };

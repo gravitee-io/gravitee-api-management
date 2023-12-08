@@ -15,7 +15,7 @@
  */
 import { Component, Inject, OnDestroy } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { FormControl } from '@angular/forms';
+import { UntypedFormControl } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { map, switchMap, takeUntil } from 'rxjs/operators';
 
@@ -29,13 +29,13 @@ export interface ApiConfirmDeploymentDialogData {
 export type ApiConfirmDeploymentDialogResult = void;
 @Component({
   selector: 'api-confirm-deployment-dialog',
-  template: require('./api-confirm-deployment-dialog.component.html'),
-  styles: [require('./api-confirm-deployment-dialog.component.scss')],
+  templateUrl: './api-confirm-deployment-dialog.component.html',
+  styleUrls: ['./api-confirm-deployment-dialog.component.scss'],
 })
 export class ApiConfirmDeploymentDialogComponent implements OnDestroy {
   private unsubscribe$ = new Subject<void>();
 
-  public deploymentLabel = new FormControl();
+  public deploymentLabel = new UntypedFormControl();
 
   public hasPlatformPolicies$ = this.flowService.getConfiguration().pipe(map((configuration) => configuration.has_policies));
 

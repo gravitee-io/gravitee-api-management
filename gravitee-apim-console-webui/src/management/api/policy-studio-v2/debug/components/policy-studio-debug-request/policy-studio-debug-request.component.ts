@@ -15,7 +15,7 @@
  */
 
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { Subject } from 'rxjs';
 import '@gravitee/ui-components/wc/gv-schema-form';
 
@@ -24,8 +24,8 @@ import { DebugRequest } from '../../models/DebugRequest';
 
 @Component({
   selector: 'policy-studio-debug-request',
-  template: require('./policy-studio-debug-request.component.html'),
-  styles: [require('./policy-studio-debug-request.component.scss')],
+  templateUrl: './policy-studio-debug-request.component.html',
+  styleUrls: ['./policy-studio-debug-request.component.scss'],
 })
 export class PolicyStudioDebugRequestComponent implements OnInit {
   @Input()
@@ -39,16 +39,16 @@ export class PolicyStudioDebugRequestComponent implements OnInit {
 
   public httpMethods = CorsUtil.httpMethods;
 
-  public requestFormGroup: FormGroup;
+  public requestFormGroup: UntypedFormGroup;
 
   private unsubscribe$ = new Subject<boolean>();
 
   ngOnInit() {
-    this.requestFormGroup = new FormGroup({
-      method: new FormControl(this.httpMethods[0]),
-      path: new FormControl('/'),
-      headers: new FormControl([]),
-      body: new FormControl(''),
+    this.requestFormGroup = new UntypedFormGroup({
+      method: new UntypedFormControl(this.httpMethods[0]),
+      path: new UntypedFormControl('/'),
+      headers: new UntypedFormControl([]),
+      body: new UntypedFormControl(''),
     });
   }
 

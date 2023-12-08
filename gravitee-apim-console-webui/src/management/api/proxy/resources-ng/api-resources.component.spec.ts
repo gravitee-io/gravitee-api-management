@@ -114,6 +114,7 @@ describe('PolicyStudioResourcesComponent', () => {
 
     const expectedResources = [
       {
+        _id: 0,
         name: 'my-update-cache',
         type: 'cache',
         enabled: true,

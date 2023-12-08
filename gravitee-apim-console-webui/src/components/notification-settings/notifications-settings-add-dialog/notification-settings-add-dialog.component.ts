@@ -15,7 +15,7 @@
  */
 import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 
 import { Notifier } from '../../../entities/notification/notifier';
 import { NewNotificationSettings } from '../../../entities/notification/newNotificationSettings';
@@ -35,11 +35,11 @@ export type NotificationSettingsAddDialogResult = NewNotificationSettings;
 
 @Component({
   selector: 'notification-settings-add-dialog',
-  template: require('./notification-settings-add-dialog.component.html'),
-  styles: [require('./notification-settings-add-dialog.component.scss')],
+  templateUrl: './notification-settings-add-dialog.component.html',
+  styleUrls: ['./notification-settings-add-dialog.component.scss'],
 })
 export class NotificationSettingsAddDialogComponent {
-  notificationForm: FormGroup;
+  notificationForm: UntypedFormGroup;
   notifierList: Notifier[];
   notificationTemplate: NotificationSettings[];
   reference: Reference;
@@ -51,9 +51,9 @@ export class NotificationSettingsAddDialogComponent {
   ) {
     this.notifierList = dialogData.notifier;
     this.reference = dialogData.reference;
-    this.notificationForm = new FormGroup({
-      name: new FormControl(null, [Validators.required]),
-      notifier: new FormControl(this.notifierList[0].id, [Validators.required]),
+    this.notificationForm = new UntypedFormGroup({
+      name: new UntypedFormControl(null, [Validators.required]),
+      notifier: new UntypedFormControl(this.notifierList[0].id, [Validators.required]),
     });
     this.display = true;
   }

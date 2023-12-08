@@ -15,7 +15,7 @@
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subject } from 'rxjs';
-import { FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { jwtDecode, JwtPayload } from 'jwt-decode';
 import { ActivatedRoute, Router } from '@angular/router';
 import { switchMap, takeUntil, tap } from 'rxjs/operators';
@@ -26,13 +26,13 @@ import { AuthService } from '../../auth/auth.service';
 
 @Component({
   selector: 'sign-up-confirm',
-  template: require('./sign-up-confirm.component.html'),
-  styles: [require('../auth-common.component.scss')],
+  templateUrl: './sign-up-confirm.component.html',
+  styleUrls: ['../auth-common.component.scss'],
 })
 export class SignUpConfirmComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
 
-  public signUpConfirmForm: FormGroup;
+  public signUpConfirmForm: UntypedFormGroup;
   public signUpConfirmError?: string;
   public signUpConfirmSuccess = false;
   public signUpConfirmInProgress = false;
@@ -76,28 +76,28 @@ export class SignUpConfirmComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.signUpConfirmForm = new FormGroup(
+    this.signUpConfirmForm = new UntypedFormGroup(
       {
-        firstName: new FormControl(
+        firstName: new UntypedFormControl(
           {
             value: userTokenDecoded.firstname,
             disabled: !!userTokenDecoded.firstname,
           },
           Validators.required,
         ),
-        lastName: new FormControl(
+        lastName: new UntypedFormControl(
           {
             value: userTokenDecoded.lastname,
             disabled: !!userTokenDecoded.lastname,
           },
           Validators.required,
         ),
-        email: new FormControl({
+        email: new UntypedFormControl({
           value: userTokenDecoded.email,
           disabled: true,
         }),
-        password: new FormControl(null, Validators.required),
-        confirmPassword: new FormControl(null, Validators.required),
+        password: new UntypedFormControl(null, Validators.required),
+        confirmPassword: new UntypedFormControl(null, Validators.required),
       },
       {
         validators: [passwordValidator],
@@ -146,7 +146,7 @@ export class SignUpConfirmComponent implements OnInit, OnDestroy {
   }
 }
 
-const passwordValidator: ValidatorFn = (control: FormGroup): ValidationErrors | null => {
+const passwordValidator: ValidatorFn = (control: UntypedFormGroup): ValidationErrors | null => {
   const password = control.get('password');
   const confirmPassword = control.get('confirmPassword');
 

@@ -142,17 +142,6 @@ describe('HomeApiHealthCheckComponent', () => {
     ]);
   });
 
-  describe('onViewHealthCheckClicked', () => {
-    beforeEach(async () => {
-      fixture.detectChanges();
-      // For "Health-check of all APIs" check
-      await expectApisListRequest([], 'has_health_check:true', undefined, 1, 100);
-
-      // For table
-      await expectApisListRequest([fakeApi()]);
-    });
-  });
-
   describe('onRefreshClick', () => {
     const api = fakeApi({
       healthcheck_enabled: true,

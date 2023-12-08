@@ -16,7 +16,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { catchError, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { combineLatest, EMPTY, Subject, Subscription } from 'rxjs';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApiProxyGroupEndpointConfigurationComponent } from './configuration/api-proxy-group-endpoint-configuration.component';
@@ -36,8 +36,8 @@ import { onlyApiV1V2Filter, onlyApiV2Filter } from '../../../../../../../util/ap
 
 @Component({
   selector: 'api-proxy-group-endpoint-edit',
-  template: require('./api-proxy-group-endpoint-edit.component.html'),
-  styles: [require('./api-proxy-group-endpoint-edit.component.scss')],
+  templateUrl: './api-proxy-group-endpoint-edit.component.html',
+  styleUrls: ['./api-proxy-group-endpoint-edit.component.scss'],
 })
 export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
@@ -48,9 +48,9 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
   public apiId: string;
   public isReadOnly: boolean;
   public supportedTypes: string[];
-  public endpointForm: FormGroup;
-  public generalForm: FormGroup;
-  public healthCheckForm: FormGroup;
+  public endpointForm: UntypedFormGroup;
+  public generalForm: UntypedFormGroup;
+  public healthCheckForm: UntypedFormGroup;
   public inheritHealthCheck: HealthCheckService;
   public endpoint: EndpointV2;
   public initialEndpointFormValue: unknown;
@@ -59,7 +59,7 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
   constructor(
     private readonly activatedRoute: ActivatedRoute,
     private readonly router: Router,
-    private readonly formBuilder: FormBuilder,
+    private readonly formBuilder: UntypedFormBuilder,
     private readonly apiService: ApiV2Service,
     private readonly connectorService: ConnectorService,
     private readonly tenantService: TenantService,
@@ -120,7 +120,9 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
           const updatedEndpoint = toProxyGroupEndpoint(
             api.proxy.groups[groupIndex]?.endpoints[endpointIndex],
             this.generalForm.getRawValue(),
-            ApiProxyGroupEndpointConfigurationComponent.getConfigurationFormValue(this.endpointForm.get('configuration') as FormGroup),
+            ApiProxyGroupEndpointConfigurationComponent.getConfigurationFormValue(
+              this.endpointForm.get('configuration') as UntypedFormGroup,
+            ),
             healthCheck,
           );
 

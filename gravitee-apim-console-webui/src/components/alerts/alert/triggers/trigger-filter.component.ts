@@ -27,7 +27,7 @@ const AlertTriggerFilterComponent: ng.IComponentOptions = {
     referenceType: '<',
     referenceId: '<',
   },
-  template: require('./trigger-filter.html'),
+  template: require('html-loader!./trigger-filter.html'),
   controller: function () {
     this.$onInit = () => {
       // Metrics are depending on the source of the trigger

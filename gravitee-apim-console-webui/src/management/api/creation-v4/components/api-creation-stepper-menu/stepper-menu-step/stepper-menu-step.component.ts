@@ -19,8 +19,8 @@ import { MenuStepItem, MENU_ITEM_PAYLOAD } from '../api-creation-stepper-menu.co
 
 @Component({
   selector: 'stepper-menu-step',
-  template: require('./stepper-menu-step.component.html'),
-  styles: [require('./stepper-menu-step.component.scss')],
+  templateUrl: './stepper-menu-step.component.html',
+  styleUrls: ['./stepper-menu-step.component.scss'],
 })
 export class StepperMenuStepComponent implements OnChanges {
   @Input()

@@ -26,8 +26,8 @@ interface MenuItemVM {
 
 @Component({
   selector: 'step-1-menu-item',
-  template: require('./step-1-menu-item.component.html'),
-  styles: [require('./step-1-menu-item.component.scss')],
+  templateUrl: './step-1-menu-item.component.html',
+  styleUrls: ['./step-1-menu-item.component.scss'],
 })
 export class Step1MenuItemComponent implements OnInit {
   public menuItem: MenuItemVM;

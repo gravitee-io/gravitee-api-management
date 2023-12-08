@@ -18,7 +18,7 @@ const ApiQualityRuleComponentAjs: ng.IComponentOptions = {
     activatedRoute: '<',
   },
   controller: 'ApiQualityRuleController',
-  template: require('./api-quality-rule.html'),
+  template: require('html-loader!./api-quality-rule.html'),
 };
 
 export default ApiQualityRuleComponentAjs;

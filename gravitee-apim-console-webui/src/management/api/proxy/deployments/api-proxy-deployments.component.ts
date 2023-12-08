@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormGroup, FormControl } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormControl } from '@angular/forms';
 import { combineLatest, EMPTY, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
@@ -28,14 +28,14 @@ import { onlyApiV2Filter } from '../../../../util/apiFilter.operator';
 
 @Component({
   selector: 'api-proxy-deployments',
-  template: require('./api-proxy-deployments.component.html'),
-  styles: [require('./api-proxy-deployments.component.scss')],
+  templateUrl: './api-proxy-deployments.component.html',
+  styleUrls: ['./api-proxy-deployments.component.scss'],
 })
 export class ApiProxyDeploymentsComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   public shardingTags: Tag[];
-  public deploymentsForm: FormGroup;
+  public deploymentsForm: UntypedFormGroup;
   public initialDeploymentsFormValue: unknown;
 
   constructor(
@@ -54,8 +54,8 @@ export class ApiProxyDeploymentsComponent implements OnInit, OnDestroy {
 
           const isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']) || api.definitionContext?.origin === 'KUBERNETES';
 
-          this.deploymentsForm = new FormGroup({
-            tags: new FormControl({
+          this.deploymentsForm = new UntypedFormGroup({
+            tags: new UntypedFormControl({
               value: api.tags ?? [],
               disabled: isReadOnly,
             }),

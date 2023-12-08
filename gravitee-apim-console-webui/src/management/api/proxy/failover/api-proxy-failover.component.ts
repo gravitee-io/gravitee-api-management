@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { EMPTY, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
@@ -27,13 +27,13 @@ import { Failover } from '../../../../entities/management-api-v2';
 
 @Component({
   selector: 'api-proxy-failover',
-  template: require('./api-proxy-failover.component.html'),
-  styles: [require('./api-proxy-failover.component.scss')],
+  templateUrl: './api-proxy-failover.component.html',
+  styleUrls: ['./api-proxy-failover.component.scss'],
 })
 export class ApiProxyFailoverComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
-  private failoverForm: FormGroup;
+  public failoverForm: UntypedFormGroup;
   public initialFailoverFormValue: Failover;
 
   public get enabled() {
@@ -50,7 +50,7 @@ export class ApiProxyFailoverComponent implements OnInit, OnDestroy {
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
-    private readonly formBuilder: FormBuilder,
+    private readonly formBuilder: UntypedFormBuilder,
     private readonly apiService: ApiV2Service,
     private readonly snackBarService: SnackBarService,
     private readonly permissionService: GioPermissionService,

@@ -15,7 +15,7 @@
  */
 import { ChangeDetectorRef, Component, Inject, Input, OnDestroy, OnInit } from '@angular/core';
 import { EMPTY, Subject } from 'rxjs';
-import { FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { catchError, takeUntil } from 'rxjs/operators';
 import '@gravitee/ui-components/wc/gv-schema-form-group';
 
@@ -30,13 +30,13 @@ import { ResourceTypeService } from '../../../../../shared/components/specific-j
 
 @Component({
   selector: 'plan-edit-secure-step',
-  template: require('./plan-edit-secure-step.component.html'),
-  styles: [require('./plan-edit-secure-step.component.scss')],
+  templateUrl: './plan-edit-secure-step.component.html',
+  styleUrls: ['./plan-edit-secure-step.component.scss'],
 })
 export class PlanEditSecureStepComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
-  public secureForm: FormGroup;
+  public secureForm: UntypedFormGroup;
 
   public securityConfigSchema: unknown;
 
@@ -58,9 +58,9 @@ export class PlanEditSecureStepComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.secureForm = new FormGroup({
-      securityConfig: new FormControl({}),
-      selectionRule: new FormControl(),
+    this.secureForm = new UntypedFormGroup({
+      securityConfig: new UntypedFormControl({}),
+      selectionRule: new UntypedFormControl(),
     });
 
     if (['KEY_LESS', 'PUSH'].includes(this.securityType.planFormType)) {

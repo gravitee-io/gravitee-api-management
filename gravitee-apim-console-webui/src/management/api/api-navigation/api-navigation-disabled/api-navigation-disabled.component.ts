@@ -17,8 +17,8 @@ import { Component, Input } from '@angular/core';
 
 @Component({
   selector: 'api-navigation-disabled',
-  template: require('./api-navigation-disabled.component.html'),
-  styles: [require('./api-navigation-disabled.component.scss')],
+  templateUrl: './api-navigation-disabled.component.html',
+  styleUrls: ['./api-navigation-disabled.component.scss'],
 })
 export class ApiNavigationDisabledComponent {
   @Input()

@@ -15,8 +15,9 @@
  */
 
 import { IController, IPromise, IScope } from 'angular';
-import * as _ from 'lodash';
+
 import { ActivatedRoute, Router } from '@angular/router';
+import { Dictionary, keyBy } from 'lodash';
 
 import { DocumentationQuery, DocumentationService, PageType } from '../../services/documentation.service';
 import NotificationService from '../../services/notification.service';
@@ -37,8 +38,8 @@ class NewPageComponentController implements IController {
   apiId: string;
   error: any;
   page: any;
-  foldersById: _.Dictionary<any>;
-  systemFoldersById: _.Dictionary<any>;
+  foldersById: Dictionary<any>;
+  systemFoldersById: Dictionary<any>;
   pageList: any[];
   templates: any[];
   selectedTemplate: any;
@@ -63,8 +64,8 @@ class NewPageComponentController implements IController {
       visibility: 'PUBLIC',
     };
 
-    this.foldersById = _.keyBy(this.folders, 'id');
-    this.systemFoldersById = _.keyBy(this.systemFolders, 'id');
+    this.foldersById = keyBy(this.folders, 'id');
+    this.systemFoldersById = keyBy(this.systemFolders, 'id');
     const folderSituation = this.DocumentationService.getFolderSituation(this.systemFoldersById, this.foldersById, this.page.parentId);
     this.pageList = this.DocumentationService.buildPageList(this.pageResources, true, folderSituation);
     this.pagesToLink = this.DocumentationService.buildPageList(this.pagesToLink, false, folderSituation);
@@ -192,6 +193,6 @@ export const DocumentationNewPageComponentAjs: ng.IComponentOptions = {
     params: '<',
     activatedRoute: '<',
   },
-  template: require('./new-page.html'),
+  template: require('html-loader!./new-page.html'),
   controller: NewPageComponentController,
 };

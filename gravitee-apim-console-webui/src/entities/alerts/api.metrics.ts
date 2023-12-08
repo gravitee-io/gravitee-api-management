@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as _ from 'lodash';
+import { each, keyBy, keys } from 'lodash';
 
 import { ApiService } from '../../services/api.service';
 import ApplicationService from '../../services/application.service';
@@ -155,8 +155,8 @@ export class ApiMetrics extends Metrics {
       } else if (type === 1) {
         // APPLICATION: Search for all subscribed plan
         ($injector.get('ApplicationService') as ApplicationService).listSubscriptions(id).then((result) => {
-          const keyPlans = _.keys(_.keyBy(result.data.data, (sub) => sub.plan));
-          _.each(keyPlans, (plan) => {
+          const keyPlans = keys(keyBy(result.data.data, (sub) => sub.plan));
+          each(keyPlans, (plan) => {
             plans.push(new Tuple(plan, result.data.metadata[plan].name));
           });
         });

@@ -21,8 +21,8 @@ import { TaskService } from '../../../services-ngx/task.service';
 
 @Component({
   selector: 'home-layout',
-  template: require('./home-layout.component.html'),
-  styles: [require('./home-layout.component.scss')],
+  templateUrl: './home-layout.component.html',
+  styleUrls: ['./home-layout.component.scss'],
 })
 export class HomeLayoutComponent {
   public taskLabel = this.taskService.getTasks().pipe(

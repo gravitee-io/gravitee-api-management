@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { combineLatest, EMPTY, Subject } from 'rxjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
@@ -48,11 +48,11 @@ class MemberDataSource {
 
 @Component({
   selector: 'application-general-members',
-  template: require('./application-general-members.component.html'),
-  styles: [require('./application-general-members.component.scss')],
+  templateUrl: './application-general-members.component.html',
+  styleUrls: ['./application-general-members.component.scss'],
 })
 export class ApplicationGeneralMembersComponent {
-  form: FormGroup;
+  form: UntypedFormGroup;
   members: Member[];
   application: Application;
   membersTable: MemberDataSource[];
@@ -70,7 +70,7 @@ export class ApplicationGeneralMembersComponent {
     private readonly activatedRoute: ActivatedRoute,
     private readonly matDialog: MatDialog,
     private readonly applicationMembersService: ApplicationMembersService,
-    private readonly formBuilder: FormBuilder,
+    private readonly formBuilder: UntypedFormBuilder,
     private readonly userService: UsersService,
     private readonly roleService: RoleService,
     private readonly groupService: GroupV2Service,
@@ -115,13 +115,13 @@ export class ApplicationGeneralMembersComponent {
         takeUntil(this.unsubscribe$),
       )
       .subscribe(() => {
-        this.form = new FormGroup({
-          isNotificationsEnabled: new FormControl(!this.application.disable_membership_notifications),
+        this.form = new UntypedFormGroup({
+          isNotificationsEnabled: new UntypedFormControl(!this.application.disable_membership_notifications),
           members: this.formBuilder.group(
             this.members.reduce((formGroup, member) => {
               return {
                 ...formGroup,
-                [member.id]: new FormControl({
+                [member.id]: new UntypedFormControl({
                   value: member.role,
                   disabled: member.role === 'PRIMARY_OWNER',
                 }),
@@ -212,7 +212,7 @@ export class ApplicationGeneralMembersComponent {
       },
     ];
 
-    const roleFormControl = new FormControl(
+    const roleFormControl = new UntypedFormControl(
       {
         value: this.defaultRole?.name,
         disabled: this.isReadOnly,
@@ -222,7 +222,7 @@ export class ApplicationGeneralMembersComponent {
     roleFormControl.markAsDirty();
     roleFormControl.markAsTouched();
 
-    const membersForm = this.form.get('members') as FormGroup;
+    const membersForm = this.form.get('members') as UntypedFormGroup;
     membersForm.addControl(member._viewId, roleFormControl);
     membersForm.markAsDirty();
   }
@@ -258,7 +258,7 @@ export class ApplicationGeneralMembersComponent {
     }
     if (this.form.controls['members'].dirty) {
       queries.push(
-        ...Object.entries((this.form.controls['members'] as FormGroup).controls)
+        ...Object.entries((this.form.controls['members'] as UntypedFormGroup).controls)
           .filter(([_, formControl]) => formControl.dirty)
           .map(([memberFormId, roleFormControl]) => {
             return this.onApplicationMembersChange(memberFormId, roleFormControl.value);

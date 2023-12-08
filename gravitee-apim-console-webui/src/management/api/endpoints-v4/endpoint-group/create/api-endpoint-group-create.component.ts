@@ -17,7 +17,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, ViewChil
 import { STEPPER_GLOBAL_OPTIONS } from '@angular/cdk/stepper';
 import { of, Subject } from 'rxjs';
 import { GioJsonSchema } from '@gravitee/ui-particles-angular';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { distinctUntilChanged, switchMap, takeUntil } from 'rxjs/operators';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -32,8 +32,8 @@ import { isEndpointNameUnique } from '../../api-endpoint-v4-unique-name';
 
 @Component({
   selector: 'api-endpoints-group-create',
-  template: require('./api-endpoint-group-create.component.html'),
-  styles: [require('./api-endpoint-group-create.component.scss')],
+  templateUrl: './api-endpoint-group-create.component.html',
+  styleUrls: ['./api-endpoint-group-create.component.scss'],
   providers: [
     {
       provide: STEPPER_GLOBAL_OPTIONS,
@@ -54,10 +54,10 @@ export class ApiEndpointGroupCreateComponent implements OnInit {
   @ViewChild(ApiEndpointGroupConfigurationComponent)
   private apiEndpointGroupConfigurationComponent: ApiEndpointGroupConfigurationComponent;
 
-  public createForm: FormGroup;
-  public endpointGroupTypeForm: FormGroup;
-  public generalForm: FormGroup;
-  public configuration: FormControl;
+  public createForm: UntypedFormGroup;
+  public endpointGroupTypeForm: UntypedFormGroup;
+  public generalForm: UntypedFormGroup;
+  public configuration: UntypedFormControl;
   public sharedConfigurationSchema: GioJsonSchema;
   public apiType: ApiType;
 
@@ -101,7 +101,7 @@ export class ApiEndpointGroupCreateComponent implements OnInit {
             return of(undefined);
           }
 
-          this.createForm.setControl('configuration', new FormControl({}, Validators.required));
+          this.createForm.setControl('configuration', new UntypedFormControl({}, Validators.required));
           return this.connectorPluginsV2Service.getEndpointPluginSharedConfigurationSchema(type);
         }),
         takeUntil(this.unsubscribe$),
@@ -150,18 +150,18 @@ export class ApiEndpointGroupCreateComponent implements OnInit {
   }
 
   private initCreateForm(): void {
-    this.endpointGroupTypeForm = new FormGroup({
-      endpointGroupType: new FormControl('', Validators.required),
+    this.endpointGroupTypeForm = new UntypedFormGroup({
+      endpointGroupType: new UntypedFormControl('', Validators.required),
     });
 
-    this.generalForm = new FormGroup({
-      name: new FormControl('', [Validators.required, Validators.pattern(/^[^:]*$/)]),
-      loadBalancerType: new FormControl('', [Validators.required]),
+    this.generalForm = new UntypedFormGroup({
+      name: new UntypedFormControl('', [Validators.required, Validators.pattern(/^[^:]*$/)]),
+      loadBalancerType: new UntypedFormControl('', [Validators.required]),
     });
 
-    this.configuration = new FormControl({}, Validators.required);
+    this.configuration = new UntypedFormControl({}, Validators.required);
 
-    this.createForm = new FormGroup({
+    this.createForm = new UntypedFormGroup({
       type: this.endpointGroupTypeForm,
       general: this.generalForm,
       configuration: this.configuration,

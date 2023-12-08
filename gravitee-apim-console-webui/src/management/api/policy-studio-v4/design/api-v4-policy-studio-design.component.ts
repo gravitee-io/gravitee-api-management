@@ -41,8 +41,8 @@ import { ApimFeature, UTMTags } from '../../../../shared/components/gio-license/
 
 @Component({
   selector: 'api-v4-policy-studio-design',
-  template: require('./api-v4-policy-studio-design.component.html'),
-  styles: [require('./api-v4-policy-studio-design.component.scss')],
+  templateUrl: './api-v4-policy-studio-design.component.html',
+  styleUrls: ['./api-v4-policy-studio-design.component.scss'],
 })
 export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
   private unsubscribe$ = new Subject<boolean>();

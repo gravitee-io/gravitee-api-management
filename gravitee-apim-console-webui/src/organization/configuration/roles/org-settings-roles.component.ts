@@ -39,8 +39,8 @@ interface RoleVM {
 
 @Component({
   selector: 'org-settings-roles',
-  template: require('./org-settings-roles.component.html'),
-  styles: [require('./org-settings-roles.component.scss')],
+  templateUrl: './org-settings-roles.component.html',
+  styleUrls: ['./org-settings-roles.component.scss'],
 })
 export class OrgSettingsRolesComponent implements OnInit, OnDestroy {
   rolesByScope: Array<{ scope: string; scopeId: string; roles: RoleVM[] }>;

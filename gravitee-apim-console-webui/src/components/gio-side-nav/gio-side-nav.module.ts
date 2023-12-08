@@ -25,6 +25,5 @@ import { GioSideNavComponent } from './gio-side-nav.component';
   imports: [CommonModule, GioMenuModule, MatSelectModule, GioSubmenuModule, GioLicenseModule, RouterModule],
   declarations: [GioSideNavComponent],
   exports: [GioSideNavComponent],
-  entryComponents: [GioSideNavComponent],
 })
 export class GioSideNavModule {}

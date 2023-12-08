@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-import { merge } from 'lodash';
 import { IOnInit } from 'angular';
+
+import { merge } from 'lodash';
 
 import DashboardService, { AverageableField } from '../../../../services/dashboard.service';
 
@@ -145,7 +146,7 @@ class WidgetDataStatsConfigurationController implements IOnInit {
 WidgetDataStatsConfigurationController.$inject = ['DashboardService'];
 
 const WidgetDataStatsConfigurationComponent: ng.IComponentOptions = {
-  template: require('./widget-data-stats-configuration.html'),
+  template: require('html-loader!./widget-data-stats-configuration.html'),
   bindings: {
     chart: '<',
   },

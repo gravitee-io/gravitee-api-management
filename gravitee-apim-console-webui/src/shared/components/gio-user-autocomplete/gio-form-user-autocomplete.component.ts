@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, Input, OnInit, Optional, Self } from '@angular/core';
-import { AsyncValidatorFn, ControlValueAccessor, FormControl, NgControl, ValidationErrors } from '@angular/forms';
+import { AsyncValidatorFn, ControlValueAccessor, UntypedFormControl, NgControl, ValidationErrors } from '@angular/forms';
 import { catchError, debounceTime, distinctUntilChanged, map, share, switchMap, take, takeUntil, tap } from 'rxjs/operators';
 import { BehaviorSubject, Observable, of, Subject } from 'rxjs';
 import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
@@ -27,8 +27,8 @@ type UserValue = SearchableUser;
 
 @Component({
   selector: 'gio-form-user-autocomplete',
-  template: require('./gio-form-user-autocomplete.component.html'),
-  styles: [require('./gio-form-user-autocomplete.component.scss')],
+  templateUrl: './gio-form-user-autocomplete.component.html',
+  styleUrls: ['./gio-form-user-autocomplete.component.scss'],
 })
 export class GioFormUserAutocompleteComponent implements OnInit, ControlValueAccessor {
   private unsubscribe$: Subject<void> = new Subject<void>();
@@ -37,13 +37,13 @@ export class GioFormUserAutocompleteComponent implements OnInit, ControlValueAcc
   private readonly userFilterPredicate: (user: SearchableUser) => boolean = () => true;
 
   users: Observable<SearchableUser[]>;
-  userSearchTerm: FormControl = new FormControl('', [], [this.validateSelectedUser()]);
+  userSearchTerm: UntypedFormControl = new UntypedFormControl('', [], [this.validateSelectedUser()]);
 
   private _onChange: (value: UserValue) => void = () => ({});
 
   private _onTouched: () => void = () => ({});
 
-  private isDisabled = false;
+  public isDisabled = false;
 
   private errors$ = new BehaviorSubject<ValidationErrors>(null);
 
@@ -133,7 +133,7 @@ export class GioFormUserAutocompleteComponent implements OnInit, ControlValueAcc
   }
 
   validateSelectedUser(): AsyncValidatorFn {
-    return (control: FormControl) => {
+    return (control: UntypedFormControl) => {
       // No error if empty. This is handled by required validator
       if (isEmpty(control.value)) {
         return of(null);

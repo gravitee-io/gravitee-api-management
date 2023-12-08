@@ -20,8 +20,8 @@ import { Breadcrumb } from '../../../../../entities/management-api-v2/documentat
 
 @Component({
   selector: 'api-documentation-list-navigation-header',
-  template: require('./api-documentation-v4-list-navigation-header.component.html'),
-  styles: [require('./api-documentation-v4-list-navigation-header.component.scss')],
+  templateUrl: './api-documentation-v4-list-navigation-header.component.html',
+  styleUrls: ['./api-documentation-v4-list-navigation-header.component.scss'],
 })
 export class ApiDocumentationV4ListNavigationHeaderComponent {
   @Input()

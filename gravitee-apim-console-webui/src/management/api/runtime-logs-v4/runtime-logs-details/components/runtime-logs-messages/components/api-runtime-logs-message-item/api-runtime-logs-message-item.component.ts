@@ -20,8 +20,8 @@ import { AggregatedMessageLog } from '../../../../../../../../entities/managemen
 
 @Component({
   selector: 'api-runtime-logs-message-item',
-  template: require('./api-runtime-logs-message-item.component.html'),
-  styles: [require('./api-runtime-logs-message-item.component.scss')],
+  templateUrl: './api-runtime-logs-message-item.component.html',
+  styleUrls: ['./api-runtime-logs-message-item.component.scss'],
 })
 export class ApiRuntimeLogsMessageItemComponent {
   @Input()

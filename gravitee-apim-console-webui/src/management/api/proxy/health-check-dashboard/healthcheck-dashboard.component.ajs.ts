@@ -17,7 +17,7 @@
 import ApiHealthcheckDashboardControllerAjs from './healthcheck-dashboard.controller.ajs';
 
 export const ApiHealthcheckDashboardComponentAjs = {
-  template: require('./healthcheck-dashboard.html'),
+  template: require('html-loader!./healthcheck-dashboard.html'),
   controller: ApiHealthcheckDashboardControllerAjs,
   bindings: {
     activatedRoute: '<',

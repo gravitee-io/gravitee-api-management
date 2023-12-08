@@ -32,7 +32,7 @@ class SupportTicketDetailController {
 SupportTicketDetailController.$inject = ['TicketService'];
 
 const TicketDetailComponentAjs: ng.IComponentOptions = {
-  template: require('./ticket-detail.html'),
+  template: require('html-loader!./ticket-detail.html'),
   bindings: {
     ticketId: '<',
     navigateToTicketsList: '&',

@@ -15,7 +15,7 @@
  */
 
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { of, Subject } from 'rxjs';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
@@ -36,13 +36,13 @@ import { ApimFeature, UTMTags } from '../../../../../shared/components/gio-licen
 
 @Component({
   selector: 'step-3-endpoints-1-list',
-  template: require('./step-3-endpoints-1-list.component.html'),
-  styles: [require('../api-creation-steps-common.component.scss')],
+  templateUrl: './step-3-endpoints-1-list.component.html',
+  styleUrls: ['../api-creation-steps-common.component.scss'],
 })
 export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
 
-  public formGroup: FormGroup;
+  public formGroup: UntypedFormGroup;
 
   public endpoints: ConnectorVM[];
 
@@ -54,7 +54,7 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
   };
 
   constructor(
-    private readonly formBuilder: FormBuilder,
+    private readonly formBuilder: UntypedFormBuilder,
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
     private readonly matDialog: MatDialog,
     private readonly confirmDialog: MatDialog,

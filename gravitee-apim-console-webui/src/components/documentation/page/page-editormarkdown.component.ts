@@ -118,7 +118,7 @@ class ComponentCtrl implements ng.IComponentController {
         .show({
           controller: 'SelectPageDialogController',
           controllerAs: 'ctrl',
-          template: require('../dialog/selectpage.dialog.html'),
+          template: require('html-loader!../dialog/selectpage.dialog.html'),
           clickOutsideToClose: true,
           locals: {
             pages: this.pagesToLink,
@@ -143,7 +143,7 @@ class ComponentCtrl implements ng.IComponentController {
 ComponentCtrl.$inject = ['$http', 'Constants', '$mdDialog', 'NotificationService'];
 
 export const PageEditorMarkdownComponent: ng.IComponentOptions = {
-  template: require('./page-editormarkdown.html'),
+  template: require('html-loader!./page-editormarkdown.html'),
   bindings: {
     page: '<',
     pagesToLink: '<',

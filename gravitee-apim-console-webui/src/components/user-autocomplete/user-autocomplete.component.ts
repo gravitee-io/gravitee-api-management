@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 const UserAutocompleteComponent: ng.IComponentOptions = {
-  template: require('./user-autocomplete.html'),
+  template: require('html-loader!./user-autocomplete.html'),
   controller: 'UserAutocompleteController',
   bindings: {
     usersSelected: '<',

@@ -20,7 +20,7 @@ const AlertTriggerProjectionsComponent: ng.IComponentOptions = {
     metrics: '<',
     isReadonly: '<',
   },
-  template: require('./trigger-projections.html'),
+  template: require('html-loader!./trigger-projections.html'),
   controller: function () {
     this.addProjection = () => {
       if (this.condition.projections === undefined) {

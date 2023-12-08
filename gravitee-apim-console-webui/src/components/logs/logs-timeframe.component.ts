@@ -15,7 +15,7 @@
  */
 
 const LogsTimeframeComponent: ng.IComponentOptions = {
-  template: require('./logs-timeframe.html'),
+  template: require('html-loader!./logs-timeframe.html'),
   controller: 'LogsTimeframeController',
   bindings: {
     onTimeframeChange: '&',

@@ -17,7 +17,7 @@ const ApplicationCreationStep4Component: ng.IComponentOptions = {
   require: {
     parent: '^createApplication',
   },
-  template: require('./application-creation-step4.html'),
+  template: require('html-loader!./application-creation-step4.html'),
   controller: [
     'Constants',
     function (Constants) {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, Inject, OnInit } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
 import { PlanSecurityType } from '../../../../../../../entities/management-api-v2';
@@ -29,11 +29,11 @@ export interface ApiPortalSubscriptionChangeEndDateDialogResult {
 }
 @Component({
   selector: 'api-portal-subscription-change-end-date-dialog',
-  template: require('./api-portal-subscription-change-end-date-dialog.component.html'),
-  styles: [require('./api-portal-subscription-change-end-date-dialog.component.scss')],
+  templateUrl: './api-portal-subscription-change-end-date-dialog.component.html',
+  styleUrls: ['./api-portal-subscription-change-end-date-dialog.component.scss'],
 })
 export class ApiPortalSubscriptionChangeEndDateDialogComponent implements OnInit {
-  form: FormGroup;
+  form: UntypedFormGroup;
   data: ApiPortalSubscriptionChangeEndDateDialogData;
   minDate: Date = new Date();
 
@@ -48,8 +48,8 @@ export class ApiPortalSubscriptionChangeEndDateDialogComponent implements OnInit
   }
 
   ngOnInit(): void {
-    this.form = new FormGroup({
-      endDate: new FormControl(this.data.currentEndDate),
+    this.form = new UntypedFormGroup({
+      endDate: new UntypedFormControl(this.data.currentEndDate),
     });
   }
 

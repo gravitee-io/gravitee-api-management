@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
+
+import { find, forEach, merge, last } from 'lodash';
 
 import DashboardService from '../../../../services/dashboard.service';
 
 const WidgetChartLineConfigurationComponent: ng.IComponentOptions = {
-  template: require('./widget-chart-line-configuration.html'),
+  template: require('html-loader!./widget-chart-line-configuration.html'),
   bindings: {
     chart: '<',
   },
@@ -34,7 +35,7 @@ const WidgetChartLineConfigurationComponent: ng.IComponentOptions = {
             this.data = this.chart.request.aggs.split('%3B');
           }
         } else {
-          _.merge(this.chart, {
+          merge(this.chart, {
             request: {
               type: 'date_histo',
               aggs: '',
@@ -60,10 +61,10 @@ const WidgetChartLineConfigurationComponent: ng.IComponentOptions = {
       this.onDataChanged = () => {
         this.chart.request.aggs = '';
         this.chart.labels = [];
-        const last = _.last(this.data);
-        _.forEach(this.data, (data) => {
-          this.chart.request.aggs += data + (last === data ? '' : '%3B');
-          this.chart.labels.push(_.find(this.fields, (f) => f.aggValue === data).label);
+        const _last = last(this.data);
+        forEach(this.data, (data) => {
+          this.chart.request.aggs += data + (_last === data ? '' : '%3B');
+          this.chart.labels.push(find(this.fields, (f) => f.aggValue === data).label);
         });
       };
     },

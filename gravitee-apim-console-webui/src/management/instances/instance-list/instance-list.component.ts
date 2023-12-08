@@ -36,8 +36,8 @@ type TableData = {
 
 @Component({
   selector: 'instance-list',
-  template: require('./instance-list.component.html'),
-  styles: [require('./instance-list.component.scss')],
+  templateUrl: './instance-list.component.html',
+  styleUrls: ['./instance-list.component.scss'],
 })
 export class InstanceListComponent implements OnInit, OnDestroy {
   displayedColumns = ['hostname', 'version', 'state', 'lastHeartbeat', 'os', 'ip-port', 'tenant', 'tags'];

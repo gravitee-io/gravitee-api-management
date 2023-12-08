@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
+import { cloneDeep, forEach } from 'lodash';
 
 class AddPoliciesPathController {
   private newPath: { path: string; copyFromRootPath: boolean };
@@ -37,8 +37,8 @@ class AddPoliciesPathController {
 
   add() {
     if (this.newPath.copyFromRootPath) {
-      this.paths[this.newPath.path] = _.cloneDeep(this.paths['/']);
-      _.forEach(this.paths[this.newPath.path], (policy) => {
+      this.paths[this.newPath.path] = cloneDeep(this.paths['/']);
+      forEach(this.paths[this.newPath.path], (policy) => {
         // eslint-disable-next-line angular/no-private-call
         delete policy.$$hashKey;
       });

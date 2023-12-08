@@ -15,7 +15,7 @@
  */
 
 import { Component, Inject, OnDestroy } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { EMPTY, Observable, Subject } from 'rxjs';
 import { catchError, map, takeUntil, tap } from 'rxjs/operators';
@@ -30,8 +30,8 @@ export type ApiPortalDetailsExportDialogData = {
 
 @Component({
   selector: 'api-general-info-export-dialog',
-  template: require('./api-general-info-export-dialog.component.html'),
-  styles: [require('./api-general-info-export-dialog.component.scss')],
+  templateUrl: './api-general-info-export-dialog.component.html',
+  styleUrls: ['./api-general-info-export-dialog.component.scss'],
 })
 export class ApiGeneralInfoExportDialogComponent implements OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
@@ -46,7 +46,7 @@ export class ApiGeneralInfoExportDialogComponent implements OnDestroy {
     { id: 'metadata', label: 'Metadata', checked: true },
   ];
 
-  public exportJsonFrom: FormGroup;
+  public exportJsonFrom: UntypedFormGroup;
 
   public apiId: string;
   public fileName: string;
@@ -63,11 +63,11 @@ export class ApiGeneralInfoExportDialogComponent implements OnDestroy {
 
     this.fileName = buildFileName(dialogData.api);
 
-    this.exportJsonFrom = new FormGroup({
-      exportVersion: new FormControl(this.jsonOptions[0].id),
-      options: new FormGroup(
+    this.exportJsonFrom = new UntypedFormGroup({
+      exportVersion: new UntypedFormControl(this.jsonOptions[0].id),
+      options: new UntypedFormGroup(
         this.jsonOptionsCheckbox.reduce((acc, option) => {
-          acc[option.id] = new FormControl(option.checked);
+          acc[option.id] = new UntypedFormControl(option.checked);
           return acc;
         }, {}),
       ),

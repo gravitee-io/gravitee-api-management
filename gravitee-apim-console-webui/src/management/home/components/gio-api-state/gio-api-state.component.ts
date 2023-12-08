@@ -35,7 +35,7 @@ const STATE_DISPLAYABLE = {
 
 @Component({
   selector: 'gio-api-state',
-  template: require('./gio-api-state.component.html'),
+  templateUrl: './gio-api-state.component.html',
 })
 export class GioApiStateComponent implements OnChanges {
   @Input()

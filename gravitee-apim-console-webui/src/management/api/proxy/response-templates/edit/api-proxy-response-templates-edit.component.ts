@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { AbstractControl, FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { AbstractControl, UntypedFormControl, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { Header } from '@gravitee/ui-particles-angular';
 import { isEmpty, isNil, toString } from 'lodash';
 import { EMPTY, Observable, Subject } from 'rxjs';
@@ -31,8 +31,8 @@ import { onlyApiV1V2Filter, onlyApiV2Filter } from '../../../../../util/apiFilte
 
 @Component({
   selector: 'api-proxy-response-templates-edit',
-  template: require('./api-proxy-response-templates-edit.component.html'),
-  styles: [require('./api-proxy-response-templates-edit.component.scss')],
+  templateUrl: './api-proxy-response-templates-edit.component.html',
+  styleUrls: ['./api-proxy-response-templates-edit.component.scss'],
 })
 export class ApiProxyResponseTemplatesEditComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
@@ -41,7 +41,7 @@ export class ApiProxyResponseTemplatesEditComponent implements OnInit, OnDestroy
 
   public apiId: string;
   public responseTemplateToEdit?: ResponseTemplate;
-  public responseTemplatesForm: FormGroup;
+  public responseTemplatesForm: UntypedFormGroup;
   public initialResponseTemplatesFormValue: unknown;
   public isReadOnly = false;
   public mode: 'new' | 'edit' = 'new';
@@ -73,33 +73,33 @@ export class ApiProxyResponseTemplatesEditComponent implements OnInit, OnDestroy
           this.isReadOnly =
             !this.permissionService.hasAnyMatching(['api-response_templates-u']) || api.definitionContext?.origin === 'KUBERNETES';
 
-          this.responseTemplatesForm = new FormGroup({
-            key: new FormControl(
+          this.responseTemplatesForm = new UntypedFormGroup({
+            key: new UntypedFormControl(
               {
                 value: this.responseTemplateToEdit?.key ?? '',
                 disabled: this.isReadOnly,
               },
               [Validators.required, checkAcceptHeader()],
             ),
-            acceptHeader: new FormControl(
+            acceptHeader: new UntypedFormControl(
               {
                 value: this.responseTemplateToEdit?.contentType ?? '*/*',
                 disabled: this.isReadOnly,
               },
               [Validators.required, uniqAcceptHeaderValidator(responseTemplates, this.responseTemplateToEdit)],
             ),
-            statusCode: new FormControl(
+            statusCode: new UntypedFormControl(
               {
                 value: toString(this.responseTemplateToEdit?.statusCode ?? 400),
                 disabled: this.isReadOnly,
               },
               [Validators.required, HttpUtil.statusCodeValidator()],
             ),
-            headers: new FormControl({
+            headers: new UntypedFormControl({
               value: Object.entries(this.responseTemplateToEdit?.headers ?? {}).map(([key, value]) => ({ key, value })),
               disabled: this.isReadOnly,
             }),
-            body: new FormControl({
+            body: new UntypedFormControl({
               value: this.responseTemplateToEdit?.body ?? '',
               disabled: this.isReadOnly,
             }),

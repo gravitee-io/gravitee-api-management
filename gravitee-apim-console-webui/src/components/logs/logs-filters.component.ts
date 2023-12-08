@@ -15,7 +15,7 @@
  */
 
 const LogsFiltersComponent: ng.IComponentOptions = {
-  template: require('./logs-filters.html'),
+  template: require('html-loader!./logs-filters.html'),
   controller: 'LogsFiltersController',
   bindings: {
     onFiltersChange: '&',

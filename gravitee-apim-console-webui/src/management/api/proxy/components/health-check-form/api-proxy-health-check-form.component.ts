@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
-import { FormGroup, FormControl, Validators, FormArray } from '@angular/forms';
+import { UntypedFormGroup, UntypedFormControl, Validators, UntypedFormArray } from '@angular/forms';
 import { combineLatest, Observable, Subject } from 'rxjs';
 import { map, shareReplay, startWith, takeUntil } from 'rxjs/operators';
 import { omit } from 'lodash';
@@ -23,13 +23,13 @@ import { EndpointHealthCheckService } from '../../../../../entities/management-a
 
 @Component({
   selector: 'api-proxy-health-check-form',
-  template: require('./api-proxy-health-check-form.component.html'),
-  styles: [require('./api-proxy-health-check-form.component.scss')],
+  templateUrl: './api-proxy-health-check-form.component.html',
+  styleUrls: ['./api-proxy-health-check-form.component.scss'],
 })
 export class ApiProxyHealthCheckFormComponent implements OnChanges, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
-  public static NewHealthCheckFormGroup = (healthCheck?: EndpointHealthCheckService, isReadOnly = true): FormGroup => {
+  public static NewHealthCheckFormGroup = (healthCheck?: EndpointHealthCheckService, isReadOnly = true): UntypedFormGroup => {
     // If the health check is disabled and inherit is not false, we need to set inherit to false
     if (healthCheck?.enabled !== undefined && healthCheck?.enabled === false && healthCheck?.inherit !== false) {
       healthCheck.inherit = false;
@@ -37,17 +37,17 @@ export class ApiProxyHealthCheckFormComponent implements OnChanges, OnDestroy {
     }
 
     const healthCheckStep = healthCheck?.steps?.length > 0 ? healthCheck.steps[0] : undefined;
-    return new FormGroup({
-      enabled: new FormControl({
+    return new UntypedFormGroup({
+      enabled: new UntypedFormControl({
         value: healthCheck?.enabled ?? false,
         disabled: isReadOnly,
       }),
-      inherit: new FormControl({
+      inherit: new UntypedFormControl({
         value: healthCheck?.inherit ?? true,
         disabled: isReadOnly,
       }),
       // Trigger
-      schedule: new FormControl(
+      schedule: new UntypedFormControl(
         {
           value: healthCheck?.schedule ?? undefined,
           disabled: isReadOnly,
@@ -55,37 +55,37 @@ export class ApiProxyHealthCheckFormComponent implements OnChanges, OnDestroy {
         [Validators.required],
       ),
       // Request
-      method: new FormControl(
+      method: new UntypedFormControl(
         {
           value: healthCheckStep?.request?.method,
           disabled: isReadOnly,
         },
         [Validators.required],
       ),
-      path: new FormControl(
+      path: new UntypedFormControl(
         {
           value: healthCheckStep?.request?.path,
           disabled: isReadOnly,
         },
         [Validators.required],
       ),
-      body: new FormControl({
+      body: new UntypedFormControl({
         value: healthCheckStep?.request?.body,
         disabled: isReadOnly,
       }),
-      headers: new FormControl({
+      headers: new UntypedFormControl({
         value: [...(healthCheckStep?.request?.headers ?? [])].map((header) => ({ key: header.name, value: header.value })),
         disabled: isReadOnly,
       }),
-      fromRoot: new FormControl({
+      fromRoot: new UntypedFormControl({
         value: healthCheckStep?.request?.fromRoot,
         disabled: isReadOnly,
       }),
       // Assertions
-      assertions: new FormArray(
+      assertions: new UntypedFormArray(
         [...(healthCheckStep?.response?.assertions ?? ['#response.status == 200'])].map(
           (assertion) =>
-            new FormControl(
+            new UntypedFormControl(
               {
                 value: assertion,
                 disabled: isReadOnly,
@@ -98,7 +98,7 @@ export class ApiProxyHealthCheckFormComponent implements OnChanges, OnDestroy {
     });
   };
 
-  public static HealthCheckFromFormGroup(healthCheckForm: FormGroup, hasInheritToggle: boolean): EndpointHealthCheckService {
+  public static HealthCheckFromFormGroup(healthCheckForm: UntypedFormGroup, hasInheritToggle: boolean): EndpointHealthCheckService {
     if (hasInheritToggle && healthCheckForm.get('inherit').value) {
       return {
         inherit: true,
@@ -140,7 +140,7 @@ export class ApiProxyHealthCheckFormComponent implements OnChanges, OnDestroy {
 
   @Input()
   // Should be init by static NewHealthCheckForm method
-  public healthCheckForm: FormGroup;
+  public healthCheckForm: UntypedFormGroup;
 
   @Input()
   // If provided, the inherit option is enabled
@@ -229,9 +229,9 @@ export class ApiProxyHealthCheckFormComponent implements OnChanges, OnDestroy {
   }
 
   addAssertion() {
-    const assertions = this.healthCheckForm.get('assertions') as FormArray;
+    const assertions = this.healthCheckForm.get('assertions') as UntypedFormArray;
 
-    const assertionControl = new FormControl('', [Validators.required]);
+    const assertionControl = new UntypedFormControl('', [Validators.required]);
     assertionControl.markAsTouched();
 
     assertions.push(assertionControl);
@@ -239,7 +239,7 @@ export class ApiProxyHealthCheckFormComponent implements OnChanges, OnDestroy {
   }
 
   removeAssertion(index: number) {
-    const assertions = this.healthCheckForm.get('assertions') as FormArray;
+    const assertions = this.healthCheckForm.get('assertions') as UntypedFormArray;
     assertions.removeAt(index);
     this.healthCheckForm.markAsDirty();
   }

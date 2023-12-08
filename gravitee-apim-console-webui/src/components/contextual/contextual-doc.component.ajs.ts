@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 const ContextualDocComponentAjs: ng.IComponentOptions = {
-  template: require('./contextual-doc.component.html'),
+  template: require('html-loader!./contextual-doc.component.html'),
   controller: 'ContextualDocController',
   bindings: {
     contextualDocumentationPage: '<',

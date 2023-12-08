@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, OnInit } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { EMPTY, merge, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
@@ -35,12 +35,12 @@ type DefaultConfiguration = {
 
 @Component({
   selector: 'api-runtime-logs-proxy-settings',
-  template: require('./api-runtime-logs-proxy-settings.component.html'),
-  styles: [require('./api-runtime-logs-proxy-settings.component.scss')],
+  templateUrl: './api-runtime-logs-proxy-settings.component.html',
+  styleUrls: ['./api-runtime-logs-proxy-settings.component.scss'],
 })
 export class ApiRuntimeLogsProxySettingsComponent implements OnInit {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
-  form: FormGroup;
+  form: UntypedFormGroup;
   defaultConfiguration: DefaultConfiguration;
 
   constructor(
@@ -122,14 +122,14 @@ export class ApiRuntimeLogsProxySettingsComponent implements OnInit {
   private initForm(api: ApiV4) {
     const enabled = api.analytics?.logging?.mode?.entrypoint || api.analytics?.logging?.mode?.endpoint;
     const isReadOnly = api.definitionContext?.origin === 'KUBERNETES';
-    this.form = new FormGroup({
-      entrypoint: new FormControl({ value: api.analytics?.logging?.mode?.entrypoint, disabled: isReadOnly }),
-      endpoint: new FormControl({ value: api.analytics?.logging?.mode?.endpoint, disabled: isReadOnly }),
-      request: new FormControl({ value: api.analytics?.logging?.phase?.request, disabled: !enabled || isReadOnly }),
-      response: new FormControl({ value: api.analytics?.logging?.phase?.response, disabled: !enabled || isReadOnly }),
-      headers: new FormControl({ value: api.analytics?.logging?.content?.headers, disabled: !enabled || isReadOnly }),
-      payload: new FormControl({ value: api.analytics?.logging?.content?.payload, disabled: !enabled || isReadOnly }),
-      condition: new FormControl({ value: api.analytics?.logging?.condition, disabled: !enabled || isReadOnly }),
+    this.form = new UntypedFormGroup({
+      entrypoint: new UntypedFormControl({ value: api.analytics?.logging?.mode?.entrypoint, disabled: isReadOnly }),
+      endpoint: new UntypedFormControl({ value: api.analytics?.logging?.mode?.endpoint, disabled: isReadOnly }),
+      request: new UntypedFormControl({ value: api.analytics?.logging?.phase?.request, disabled: !enabled || isReadOnly }),
+      response: new UntypedFormControl({ value: api.analytics?.logging?.phase?.response, disabled: !enabled || isReadOnly }),
+      headers: new UntypedFormControl({ value: api.analytics?.logging?.content?.headers, disabled: !enabled || isReadOnly }),
+      payload: new UntypedFormControl({ value: api.analytics?.logging?.content?.payload, disabled: !enabled || isReadOnly }),
+      condition: new UntypedFormControl({ value: api.analytics?.logging?.condition, disabled: !enabled || isReadOnly }),
     });
 
     this.defaultConfiguration = this.form.getRawValue();

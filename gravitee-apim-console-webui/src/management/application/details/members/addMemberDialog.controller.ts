@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
+
+import { findIndex } from 'lodash';
 
 import ApplicationService from '../../../../services/application.service';
 import NotificationService from '../../../../services/notification.service';
@@ -37,7 +38,7 @@ function DialogAddMemberController(
   $scope.usersSelected = [];
 
   $scope.userFilterFn = (user: any) => {
-    return _.findIndex($scope.members, { id: user.id }) === -1;
+    return findIndex($scope.members, { id: user.id }) === -1;
   };
 
   $scope.hide = function () {

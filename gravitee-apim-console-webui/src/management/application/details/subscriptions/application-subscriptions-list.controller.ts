@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import * as _ from 'lodash';
 import { BehaviorSubject } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
+import { mapKeys } from 'lodash';
 
 import { SubscriptionFilter } from './application-subscriptions.controller';
 
@@ -122,7 +122,7 @@ class ApplicationSubscriptionsListController {
     if (this.query.securityTypes !== undefined) {
       parameters.security_types = this.query.securityTypes.join(',');
     }
-    _.mapKeys(parameters, (value, key) => {
+    mapKeys(parameters, (value, key) => {
       return (query += key + '=' + value + '&');
     });
 

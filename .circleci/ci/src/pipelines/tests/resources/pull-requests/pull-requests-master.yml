@@ -600,7 +600,7 @@ jobs:
           command: npm run build-storybook
           working_directory: gravitee-apim-console-webui
           environment:
-            NODE_OPTIONS: --max_old_space_size=3072
+            NODE_OPTIONS: --max_old_space_size=8192
       - cmd-notify-on-failure
       - persist_to_workspace:
           root: .

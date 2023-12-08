@@ -24,7 +24,7 @@ const ApiPlanComponent: ng.IComponentOptions = {
     onSubscribe: '&',
     onUnsubscribe: '&',
   },
-  template: require('./api-plan.html'),
+  template: require('html-loader!./api-plan.html'),
   controller: [
     'UserService',
     function (UserService: UserService) {

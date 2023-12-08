@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, Inject } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
 import { Property } from '../../../../../../entities/management-api-v2';
@@ -28,16 +28,16 @@ export type PropertiesAddDialogResult = Property;
 
 @Component({
   selector: 'properties-add-dialog',
-  template: require('./properties-add-dialog.component.html'),
-  styles: [require('./properties-add-dialog.component.scss')],
+  templateUrl: './properties-add-dialog.component.html',
+  styleUrls: ['./properties-add-dialog.component.scss'],
 })
 export class PropertiesAddDialogComponent {
   private existingKeys: string[] = [];
 
-  public formGroup = new FormGroup({
-    key: new FormControl('', [Validators.required]),
-    value: new FormControl(''),
-    toEncrypt: new FormControl(false),
+  public formGroup = new UntypedFormGroup({
+    key: new UntypedFormControl('', [Validators.required]),
+    value: new UntypedFormControl(''),
+    toEncrypt: new UntypedFormControl(false),
   });
 
   constructor(

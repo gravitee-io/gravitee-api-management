@@ -31,8 +31,8 @@ import { Constants } from '../../../../entities/Constants';
 
 @Component({
   selector: 'api-resources',
-  template: require('./api-resources.component.html'),
-  styles: [require('./api-resources.component.scss')],
+  templateUrl: './api-resources.component.html',
+  styleUrls: ['./api-resources.component.scss'],
 })
 export class ApiResourcesComponent implements OnInit, OnDestroy {
   private unsubscribe$ = new Subject<boolean>();

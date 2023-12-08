@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { AbstractControl, FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { AbstractControl, UntypedFormControl, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { catchError, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { EMPTY, merge, Subject } from 'rxjs';
 import { duration } from 'moment/moment';
@@ -30,12 +30,12 @@ import { ConsoleSettingsService } from '../../../../../services-ngx/console-sett
 
 @Component({
   selector: 'api-runtime-logs-message-settings',
-  template: require('./api-runtime-logs-message-settings.component.html'),
-  styles: [require('./api-runtime-logs-message-settings.component.scss')],
+  templateUrl: './api-runtime-logs-message-settings.component.html',
+  styleUrls: ['./api-runtime-logs-message-settings.component.scss'],
 })
 export class ApiRuntimeLogsMessageSettingsComponent implements OnInit, OnDestroy {
   @Input() public api: ApiV4;
-  form: FormGroup;
+  form: UntypedFormGroup;
   samplingType: SamplingTypeEnum;
   loggingModeDisabled = false;
   initialFormValue: unknown;
@@ -117,31 +117,31 @@ export class ApiRuntimeLogsMessageSettingsComponent implements OnInit, OnDestroy
   }
 
   private initForm(): void {
-    this.form = new FormGroup({
-      entrypoint: new FormControl(this.api?.analytics?.logging?.mode?.entrypoint ?? false),
-      endpoint: new FormControl(this.api?.analytics?.logging?.mode?.endpoint ?? false),
-      request: new FormControl(this.api?.analytics?.logging?.phase?.request ?? false),
-      response: new FormControl(this.api?.analytics?.logging?.phase?.response ?? false),
-      messageContent: new FormControl({
+    this.form = new UntypedFormGroup({
+      entrypoint: new UntypedFormControl(this.api?.analytics?.logging?.mode?.entrypoint ?? false),
+      endpoint: new UntypedFormControl(this.api?.analytics?.logging?.mode?.endpoint ?? false),
+      request: new UntypedFormControl(this.api?.analytics?.logging?.phase?.request ?? false),
+      response: new UntypedFormControl(this.api?.analytics?.logging?.phase?.response ?? false),
+      messageContent: new UntypedFormControl({
         value: this.api?.analytics?.logging?.content?.messagePayload ?? false,
         disabled: this.loggingModeDisabled,
       }),
-      messageHeaders: new FormControl({
+      messageHeaders: new UntypedFormControl({
         value: this.api?.analytics?.logging?.content?.messageHeaders ?? false,
         disabled: this.loggingModeDisabled,
       }),
-      messageMetadata: new FormControl({
+      messageMetadata: new UntypedFormControl({
         value: this.api?.analytics?.logging?.content?.messageMetadata ?? false,
         disabled: this.loggingModeDisabled,
       }),
-      headers: new FormControl({
+      headers: new UntypedFormControl({
         value: this.api?.analytics?.logging?.content?.headers ?? false,
         disabled: this.loggingModeDisabled,
       }),
-      requestCondition: new FormControl(this.api?.analytics?.logging?.condition),
-      messageCondition: new FormControl(this.api?.analytics?.logging?.messageCondition),
-      samplingType: new FormControl(this.samplingType, Validators.required),
-      samplingValue: new FormControl(
+      requestCondition: new UntypedFormControl(this.api?.analytics?.logging?.condition),
+      messageCondition: new UntypedFormControl(this.api?.analytics?.logging?.messageCondition),
+      samplingType: new UntypedFormControl(this.samplingType, Validators.required),
+      samplingValue: new UntypedFormControl(
         this.api?.analytics?.sampling?.value ?? this.getSamplingDefaultValue(this.samplingType),
         this.getSamplingValueValidators(this.samplingType),
       ),

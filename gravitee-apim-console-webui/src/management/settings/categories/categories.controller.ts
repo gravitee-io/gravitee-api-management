@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 import { IScope } from 'angular';
-import * as _ from 'lodash';
+
 import { ActivatedRoute, Router } from '@angular/router';
+import { cloneDeep, forEach, merge, remove, size, sortBy } from 'lodash';
 
 import CategoryService from '../../../services/category.service';
 import NotificationService from '../../../services/notification.service';
@@ -42,15 +43,15 @@ class CategoriesController {
     private activatedRoute: ActivatedRoute,
   ) {
     this.$rootScope = $rootScope;
-    this.settings = _.cloneDeep(Constants.env.settings);
+    this.settings = cloneDeep(Constants.env.settings);
     this.Constants = Constants;
     this.categoriesToUpdate = [];
   }
 
   $onInit() {
     this.CategoryService.list(['total-apis']).then((response) => {
-      this.categories = _.sortBy(response.data, 'order');
-      _.forEach(this.categories, (category, idx) => {
+      this.categories = sortBy(response.data, 'order');
+      forEach(this.categories, (category, idx) => {
         category.order = idx;
       });
     });
@@ -76,14 +77,14 @@ class CategoriesController {
   }
 
   downward(index) {
-    if (index < _.size(this.categories) - 1) {
+    if (index < size(this.categories) - 1) {
       this.reorder(index, index + 1);
     }
   }
 
   toggleDisplayMode() {
     this.PortalSettingsService.save(this.settings).then((response) => {
-      _.merge(this.Constants.env.settings, response.data);
+      merge(this.Constants.env.settings, response.data);
       this.NotificationService.show('Display mode saved!');
     });
   }
@@ -92,7 +93,7 @@ class CategoriesController {
     this.$mdDialog
       .show({
         controller: 'DeleteCategoryDialogController',
-        template: require('./delete.category.dialog.html'),
+        template: require('html-loader!./delete.category.dialog.html'),
         locals: {
           category: category,
         },
@@ -101,7 +102,7 @@ class CategoriesController {
         if (deleteCategory) {
           this.CategoryService.delete(category).then(() => {
             this.NotificationService.show("Category '" + category.name + "' deleted with success");
-            _.remove(this.categories, category);
+            remove(this.categories, category);
           });
         }
       });
@@ -114,7 +115,7 @@ class CategoriesController {
   private reorder(from, to) {
     this.categories[from].order = to;
     this.categories[to].order = from;
-    this.categories = _.sortBy(this.categories, 'order');
+    this.categories = sortBy(this.categories, 'order');
 
     this.categoriesToUpdate.push(this.categories[from]);
     this.categoriesToUpdate.push(this.categories[to]);

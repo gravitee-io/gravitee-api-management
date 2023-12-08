@@ -23,7 +23,7 @@ import { NotificationSettingsListServices } from '../../../../components/notific
 
 @Component({
   selector: 'api-notification-settings-list',
-  template: require('./api-notification-settings-list.component.html'),
+  templateUrl: './api-notification-settings-list.component.html',
 })
 export class ApiNotificationSettingsListComponent implements OnInit {
   public notificationsServices: NotificationSettingsListServices;

@@ -19,8 +19,8 @@ import { Breadcrumb } from '../../../../../entities/management-api-v2/documentat
 
 @Component({
   selector: 'api-documentation-breadcrumb',
-  template: require('./api-documentation-v4-breadcrumb.component.html'),
-  styles: [require('./api-documentation-v4-breadcrumb.component.scss')],
+  templateUrl: './api-documentation-v4-breadcrumb.component.html',
+  styleUrls: ['./api-documentation-v4-breadcrumb.component.scss'],
 })
 export class ApiDocumentationV4BreadcrumbComponent {
   @Input()

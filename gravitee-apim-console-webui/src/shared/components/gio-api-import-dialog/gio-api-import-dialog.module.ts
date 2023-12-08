@@ -32,7 +32,6 @@ import { GioApiImportDialogComponent } from './gio-api-import-dialog.component';
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-
     MatButtonModule,
     MatDialogModule,
     MatTabsModule,
@@ -40,11 +39,9 @@ import { GioApiImportDialogComponent } from './gio-api-import-dialog.component';
     MatSnackBarModule,
     MatFormFieldModule,
     MatInputModule,
-
     GioFormFilePickerModule,
   ],
   declarations: [GioApiImportDialogComponent],
   exports: [GioApiImportDialogComponent],
-  entryComponents: [GioApiImportDialogComponent],
 })
 export class GioApiImportDialogModule {}

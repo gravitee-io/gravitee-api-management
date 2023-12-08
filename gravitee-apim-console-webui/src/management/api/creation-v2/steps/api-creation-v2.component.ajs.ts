@@ -21,7 +21,7 @@ const ApiCreationV2ComponentAjs: ng.IComponentOptions = {
     groups: '<',
     activatedRoute: '<',
   },
-  template: require('./api-creation.html'),
+  template: require('html-loader!./api-creation.html'),
   controller: 'ApiCreationV2AjsController',
 };
 

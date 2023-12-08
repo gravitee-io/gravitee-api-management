@@ -196,8 +196,9 @@ describe('PolicyStudioDebugComponent', () => {
     });
 
     it('should display inspector content on selected policy with overview', () => {
-      // [Client app] | [Request Input] | [Policy 1] | [Policy 2] <- select second request policy
-      [...fixture.nativeElement.querySelectorAll('.policy-studio-debug-timeline-overview__step').values()][3].click();
+      [...fixture.nativeElement.querySelectorAll('.policy-studio-debug-timeline-card').values()]
+        .find((card) => card.textContent.includes('Header  Assign Attributes'))
+        .click();
       fixture.detectChanges();
 
       const inspectorContent = fixture.nativeElement.querySelector(

@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 import * as angular from 'angular';
-import * as _ from 'lodash';
-import moment, { Moment } from 'moment';
+
+import moment, { duration, Moment, unix } from 'moment';
 import { ActivatedRoute, Router } from '@angular/router';
+import { find, findLast, forEach, last } from 'lodash';
 
 // eslint:disable-next-line:interface-name
 interface Timeframe {
@@ -173,7 +174,7 @@ class DashboardTimeframeController {
     this.unRegisterTimeframeZoom = this.$rootScope.$on('timeframeZoom', (event, zoom) => {
       const diff = zoom.to - zoom.from;
 
-      let timeframe = _.findLast(this.timeframes, (timeframe: Timeframe) => {
+      let timeframe = findLast(this.timeframes, (timeframe: Timeframe) => {
         return timeframe.range < diff;
       });
 
@@ -227,7 +228,7 @@ class DashboardTimeframeController {
   }
 
   setTimestamp(timestamp) {
-    const momentDate = moment.unix(timestamp);
+    const momentDate = unix(timestamp);
 
     const startDate = Math.floor(momentDate.startOf('day').valueOf() / 1000);
     const endDate = Math.floor(momentDate.endOf('day').valueOf() / 1000);
@@ -240,7 +241,7 @@ class DashboardTimeframeController {
   }
 
   setTimeframe(timeframeId, update) {
-    this.timeframe = _.find(this.timeframes, (timeframe: Timeframe) => {
+    this.timeframe = find(this.timeframes, (timeframe: Timeframe) => {
       return timeframe.id === timeframeId;
     });
 
@@ -290,7 +291,7 @@ class DashboardTimeframeController {
     // Select the best timeframe
     const diff = timeframe.to - timeframe.from;
 
-    const tf = _.findLast(this.timeframes, (tframe: Timeframe) => {
+    const tf = findLast(this.timeframes, (tframe: Timeframe) => {
       return tframe.range <= diff;
     });
 
@@ -309,7 +310,7 @@ class DashboardTimeframeController {
 
     this.current = {
       interval: this.timeframe.interval,
-      intervalLabel: moment.duration(this.timeframe.interval).humanize(),
+      intervalLabel: duration(this.timeframe.interval).humanize(),
       from: timeframe.from,
       to: timeframe.to,
     };
@@ -335,7 +336,7 @@ class DashboardTimeframeController {
 
     const diff = to - from;
 
-    let timeframe = _.findLast(this.timeframes, (timeframe: Timeframe) => {
+    let timeframe = findLast(this.timeframes, (timeframe: Timeframe) => {
       return timeframe.range < diff;
     });
 
@@ -351,12 +352,12 @@ class DashboardTimeframeController {
   }
 
   updateDisplayMode() {
-    _.forEach(this.displayModes, (displayMode) => {
+    forEach(this.displayModes, (displayMode) => {
       this.$scope.$emit('filterItemChange', {
         field: displayMode.field,
         key: displayMode.key,
         mode: 'remove',
-        silent: !(!this.displayMode.field && _.last(this.displayModes) === displayMode),
+        silent: !(!this.displayMode.field && last(this.displayModes) === displayMode),
       });
     });
     if (this.displayMode.field) {

@@ -15,7 +15,7 @@
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subject } from 'rxjs';
-import { FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { switchMap, takeUntil, tap } from 'rxjs/operators';
 import { jwtDecode, JwtPayload } from 'jwt-decode';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -26,13 +26,13 @@ import { AuthService } from '../../auth/auth.service';
 
 @Component({
   selector: 'reset-password',
-  template: require('./reset-password.component.html'),
-  styles: [require('../auth-common.component.scss')],
+  templateUrl: './reset-password.component.html',
+  styleUrls: ['../auth-common.component.scss'],
 })
 export class ResetPasswordComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
 
-  public resetPasswordForm: FormGroup;
+  public resetPasswordForm: UntypedFormGroup;
   public resetPasswordError?: string;
   public resetPasswordSuccess = false;
   public resetPasswordInProgress = false;
@@ -77,22 +77,22 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.resetPasswordForm = new FormGroup(
+    this.resetPasswordForm = new UntypedFormGroup(
       {
-        firstName: new FormControl({
+        firstName: new UntypedFormControl({
           value: this.userTokenDecoded.firstname,
           disabled: true,
         }),
-        lastName: new FormControl({
+        lastName: new UntypedFormControl({
           value: this.userTokenDecoded.lastname,
           disabled: true,
         }),
-        email: new FormControl({
+        email: new UntypedFormControl({
           value: this.userTokenDecoded.email,
           disabled: true,
         }),
-        password: new FormControl(null, Validators.required),
-        confirmPassword: new FormControl(null, Validators.required),
+        password: new UntypedFormControl(null, Validators.required),
+        confirmPassword: new UntypedFormControl(null, Validators.required),
       },
       {
         validators: [passwordValidator],
@@ -141,7 +141,7 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
   }
 }
 
-const passwordValidator: ValidatorFn = (control: FormGroup): ValidationErrors | null => {
+const passwordValidator: ValidatorFn = (control: UntypedFormGroup): ValidationErrors | null => {
   const password = control.get('password');
   const confirmPassword = control.get('confirmPassword');
 

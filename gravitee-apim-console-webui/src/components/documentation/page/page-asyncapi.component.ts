@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-import '@asyncapi/web-component/lib/asyncapi-web-component';
-
 class PageAsyncApiComponentController implements ng.IComponentController {
   pageContent: any;
 }
 
 export const PageAsyncApiComponent: ng.IComponentOptions = {
-  template: require('./page-asyncapi.html'),
+  template: require('html-loader!./page-asyncapi.html'),
   bindings: {
     pageContent: '<',
   },

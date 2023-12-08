@@ -25,8 +25,8 @@ import { QualityRuleService } from '../../../../../services-ngx/quality-rule.ser
 
 @Component({
   selector: 'api-general-info-quality',
-  template: require('./api-general-info-quality.component.html'),
-  styles: [require('./api-general-info-quality.component.scss')],
+  templateUrl: './api-general-info-quality.component.html',
+  styleUrls: ['./api-general-info-quality.component.scss'],
 })
 export class ApiGeneralInfoQualityComponent implements OnChanges, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

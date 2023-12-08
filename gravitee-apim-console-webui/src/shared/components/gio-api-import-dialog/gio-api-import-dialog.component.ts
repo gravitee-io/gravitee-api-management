@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, Inject, OnDestroy } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatTabChangeEvent } from '@angular/material/tabs';
 import { NewFile } from '@gravitee/ui-particles-angular';
@@ -41,8 +41,8 @@ export type GioApiImportDialogData = {
 
 @Component({
   selector: 'gio-api-import-dialog',
-  template: require('./gio-api-import-dialog.component.html'),
-  styles: [require('./gio-api-import-dialog.component.scss')],
+  templateUrl: './gio-api-import-dialog.component.html',
+  styleUrls: ['./gio-api-import-dialog.component.scss'],
 })
 export class GioApiImportDialogComponent implements OnDestroy {
   tabLabels = {
@@ -64,9 +64,9 @@ export class GioApiImportDialogComponent implements OnDestroy {
   importFile: File;
   importFileContent: string;
 
-  descriptorUrlForm = new FormControl();
+  descriptorUrlForm = new UntypedFormControl();
 
-  configsForm: FormGroup;
+  configsForm: UntypedFormGroup;
 
   public get isImportValid(): boolean {
     return !!this.importType && (!!this.importFile || !!this.descriptorUrlForm?.value);
@@ -85,13 +85,13 @@ export class GioApiImportDialogComponent implements OnDestroy {
     this.isUpdateMode = !!dialogData?.apiId ?? false;
     this.updateModeApiId = dialogData?.apiId ?? undefined;
 
-    this.configsForm = new FormGroup({
-      importDocumentation: new FormControl(false),
-      importPathMapping: new FormControl(false),
-      importPolicyPaths: new FormControl(false),
-      importPolicies: new FormGroup(
+    this.configsForm = new UntypedFormGroup({
+      importDocumentation: new UntypedFormControl(false),
+      importPathMapping: new UntypedFormControl(false),
+      importPolicyPaths: new UntypedFormControl(false),
+      importPolicies: new UntypedFormGroup(
         this.policies.reduce((acc, policy) => {
-          acc[policy.id] = new FormControl(false);
+          acc[policy.id] = new UntypedFormControl(false);
           return acc;
         }, {}),
       ),
@@ -173,14 +173,14 @@ export class GioApiImportDialogComponent implements OnDestroy {
     this.importType = undefined;
     const initUrlDescriptor = () => {
       if (!this.descriptorUrlForm) {
-        this.descriptorUrlForm = new FormControl('', [Validators.required]);
+        this.descriptorUrlForm = new UntypedFormControl('', [Validators.required]);
       }
     };
 
     switch (event.tab.textLabel) {
       case this.tabLabels.UploadFile:
         this.resetImportFile();
-        this.descriptorUrlForm = new FormControl();
+        this.descriptorUrlForm = new UntypedFormControl();
         break;
 
       case this.tabLabels.SwaggerOpenAPI:

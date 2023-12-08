@@ -22,7 +22,7 @@ const AlertTriggerDampeningComponent: ng.IComponentOptions = {
   require: {
     parent: '^alertComponentAjs',
   },
-  template: require('./trigger-dampening.html'),
+  template: require('html-loader!./trigger-dampening.html'),
   controller: function () {
     this.$onInit = () => {
       this.modes = DampeningMode.MODES;

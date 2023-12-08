@@ -25,7 +25,7 @@ const ApplicationSubscriptionsListComponent: ng.IComponentOptions = {
     activatedRoute: '<',
   },
   controller: 'ApplicationSubscriptionsListController',
-  template: require('./application-subscriptions-list.component.html'),
+  template: require('html-loader!./application-subscriptions-list.component.html'),
 };
 
 export default ApplicationSubscriptionsListComponent;

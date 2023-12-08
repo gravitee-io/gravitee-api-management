@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 const ErrorComponent: ng.IComponentOptions = {
-  template: require('./error.html'),
+  template: require('html-loader!./error.html'),
   controller: 'ErrorController',
   bindings: {
     error: '<',

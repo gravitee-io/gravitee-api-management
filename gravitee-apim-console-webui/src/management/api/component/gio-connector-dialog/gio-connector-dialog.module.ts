@@ -27,6 +27,5 @@ import { GioSafePipeModule } from '../../../../shared/utils/safe.pipe.module';
   imports: [CommonModule, MatDialogModule, GioIconsModule, MatButtonModule, GioSafePipeModule],
   declarations: [GioConnectorDialogComponent],
   exports: [GioConnectorDialogComponent],
-  entryComponents: [GioConnectorDialogComponent],
 })
 export class GioConnectorDialogModule {}

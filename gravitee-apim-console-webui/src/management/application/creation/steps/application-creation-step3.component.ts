@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
+
+import { filter, find, includes, join, map, uniqBy } from 'lodash';
 
 import { ApiService } from '../../../../services/api.service';
 import { PlanSecurityType } from '../../../../entities/plan/plan';
@@ -22,7 +23,7 @@ const ApplicationCreationStep3Component: ng.IComponentOptions = {
   require: {
     parent: '^createApplication',
   },
-  template: require('./application-creation-step3.html'),
+  template: require('html-loader!./application-creation-step3.html'),
   controller: [
     'ApiService',
     '$scope',
@@ -31,11 +32,11 @@ const ApplicationCreationStep3Component: ng.IComponentOptions = {
         if (api) {
           const authorizedSecurity = this.getAuthorizedSecurity();
           ApiService.getApiPlans(api.id, 'PUBLISHED').then((response) => {
-            const filteredPlans = _.filter(response.data, (plan) => {
-              return _.includes(authorizedSecurity, plan.security);
+            const filteredPlans = filter(response.data, (plan) => {
+              return includes(authorizedSecurity, plan.security);
             });
-            this.plans = _.map(filteredPlans, (plan) => {
-              const selectedPlan = _.find(this.parent.selectedPlans, { id: plan.id });
+            this.plans = map(filteredPlans, (plan) => {
+              const selectedPlan = find(this.parent.selectedPlans, { id: plan.id });
               if (selectedPlan) {
                 return selectedPlan;
               }
@@ -64,12 +65,12 @@ const ApplicationCreationStep3Component: ng.IComponentOptions = {
       };
 
       this.getSelectedAPIs = (): any[] => {
-        const selectedAPIs = _.uniqBy(this.parent.selectedAPIs, 'id');
-        _.map(selectedAPIs, (api: any) => {
-          const selectedPlans = _.filter(this.parent.selectedPlans, (plan) => {
+        const selectedAPIs = uniqBy(this.parent.selectedAPIs, 'id');
+        map(selectedAPIs, (api: any) => {
+          const selectedPlans = filter(this.parent.selectedPlans, (plan) => {
             return plan.apis.indexOf(api.id) !== -1;
           });
-          api.plans = _.join(_.map(selectedPlans, 'name'), ', ');
+          api.plans = join(map(selectedPlans, 'name'), ', ');
         });
         return selectedAPIs;
       };

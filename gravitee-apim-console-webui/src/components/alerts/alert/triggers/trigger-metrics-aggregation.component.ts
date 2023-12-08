@@ -24,7 +24,7 @@ const AlertTriggerMetricsAggregationComponent: ng.IComponentOptions = {
   require: {
     parent: '^alertComponentAjs',
   },
-  template: require('./trigger-metrics-aggregation.html'),
+  template: require('html-loader!./trigger-metrics-aggregation.html'),
   controller: function () {
     this.$onInit = () => {
       this.metrics = Rule.findByScopeAndType(this.alert.reference_type, this.alert.type).metrics;

@@ -29,8 +29,8 @@ import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 
 @Component({
   selector: 'api-proxy-endpoint-list',
-  template: require('./api-proxy-endpoint-list.component.html'),
-  styles: [require('./api-proxy-endpoint-list.component.scss')],
+  templateUrl: './api-proxy-endpoint-list.component.html',
+  styleUrls: ['./api-proxy-endpoint-list.component.scss'],
 })
 export class ApiProxyEndpointListComponent implements OnInit {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

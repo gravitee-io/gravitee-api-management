@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 import { Component, Input } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 
 import { LOAD_BALANCER_TYPES } from '../../../../../../../entities/management-api-v2';
 
 @Component({
   selector: 'api-proxy-group-general',
-  template: require('./api-proxy-group-general.component.html'),
-  styles: [require('./api-proxy-group-general.component.scss')],
+  templateUrl: './api-proxy-group-general.component.html',
+  styleUrls: ['./api-proxy-group-general.component.scss'],
 })
 export class ApiProxyGroupGeneralComponent {
-  @Input() generalForm: FormGroup;
+  @Input() generalForm: UntypedFormGroup;
   public loadBalancingValues = LOAD_BALANCER_TYPES;
 }

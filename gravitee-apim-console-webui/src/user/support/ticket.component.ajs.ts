@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
+import { find } from 'lodash';
 
 import { ApiService } from '../../services/api.service';
 import ApplicationService from '../../services/application.service';
@@ -45,7 +45,7 @@ class SupportTicketController {
         .then((response) => (this.apis = response.data))
         .then((apis) => {
           if (this.apiId) {
-            const api = _.find(apis, { id: this.apiId });
+            const api = find(apis, { id: this.apiId });
             if (api) {
               this.ticket = {
                 api: this.apiId,
@@ -74,7 +74,7 @@ const SupportTicketComponentAjs: ng.IComponentOptions = {
     navigateToTicketsList: '&',
   },
   controller: SupportTicketController,
-  template: require('./ticket.html'),
+  template: require('html-loader!./ticket.html'),
 };
 
 export default SupportTicketComponentAjs;

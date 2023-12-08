@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { sortBy } from 'lodash';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -27,8 +27,8 @@ import { SnackBarService } from '../../services-ngx/snack-bar.service';
 
 @Component({
   selector: 'messages',
-  template: require('./messages.component.html'),
-  styles: [require('./messages.component.scss')],
+  templateUrl: './messages.component.html',
+  styleUrls: ['./messages.component.scss'],
 })
 export class MessagesComponent implements OnInit, OnDestroy {
   channels = [
@@ -37,7 +37,7 @@ export class MessagesComponent implements OnInit, OnDestroy {
     { id: 'HTTP', name: 'POST HTTP message' },
   ];
 
-  form: FormGroup;
+  form: UntypedFormGroup;
   recipients: { name: string; displayName: string }[];
   scope: MessageScope;
   sending = false;
@@ -70,14 +70,14 @@ export class MessagesComponent implements OnInit, OnDestroy {
         if (this.apiId) {
           this.recipients.unshift({ name: 'API_SUBSCRIBERS', displayName: 'API subscribers' });
         }
-        this.form = new FormGroup({
-          channel: new FormControl('PORTAL', [Validators.required]),
-          recipients: new FormControl([], [Validators.required]),
-          title: new FormControl('', [Validators.required]),
-          url: new FormControl('', [Validators.required]),
-          text: new FormControl('', [Validators.required]),
-          useSystemProxy: new FormControl(false),
-          headers: new FormControl([]),
+        this.form = new UntypedFormGroup({
+          channel: new UntypedFormControl('PORTAL', [Validators.required]),
+          recipients: new UntypedFormControl([], [Validators.required]),
+          title: new UntypedFormControl('', [Validators.required]),
+          url: new UntypedFormControl('', [Validators.required]),
+          text: new UntypedFormControl('', [Validators.required]),
+          useSystemProxy: new UntypedFormControl(false),
+          headers: new UntypedFormControl([]),
         });
         // Disable URL field as initial value for channel is PORTAL.
         this.form.controls['url'].disable();

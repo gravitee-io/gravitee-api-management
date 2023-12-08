@@ -22,8 +22,8 @@ import { PlanOAuth2Resource, ResourceTypeService } from './resource-type.service
 
 @Component({
   selector: 'resource-type',
-  template: require('./resource-type.component.html'),
-  styles: [require('./resource-type.component.scss')],
+  templateUrl: './resource-type.component.html',
+  styleUrls: ['./resource-type.component.scss'],
 })
 export class ResourceTypeComponent extends FieldType<FieldTypeConfig> implements OnInit {
   filteredResources: Observable<PlanOAuth2Resource[]>;

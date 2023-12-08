@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { includes } from 'lodash';
 import { combineLatest, of, ReplaySubject, Subject } from 'rxjs';
 import { map, startWith, switchMap, takeUntil } from 'rxjs/operators';
@@ -27,14 +27,14 @@ import { TagService } from '../../../../../services-ngx/tag.service';
 
 @Component({
   selector: 'plan-edit-general-step',
-  template: require('./plan-edit-general-step.component.html'),
-  styles: [require('./plan-edit-general-step.component.scss')],
+  templateUrl: './plan-edit-general-step.component.html',
+  styleUrls: ['./plan-edit-general-step.component.scss'],
 })
 export class PlanEditGeneralStepComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   public api$ = new ReplaySubject<ApiV2 | ApiV4>(1);
 
-  public generalForm: FormGroup;
+  public generalForm: UntypedFormGroup;
 
   @Input()
   public set api(api: ApiV2 | ApiV4) {
@@ -83,16 +83,16 @@ export class PlanEditGeneralStepComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.generalForm = new FormGroup({
-      name: new FormControl('', [Validators.required, Validators.maxLength(50)]),
-      description: new FormControl(''),
-      characteristics: new FormControl([]),
-      generalConditions: new FormControl(''),
-      autoValidation: new FormControl(false),
-      commentRequired: new FormControl(false),
-      commentMessage: new FormControl(''),
-      shardingTags: new FormControl([]),
-      excludedGroups: new FormControl([]),
+    this.generalForm = new UntypedFormGroup({
+      name: new UntypedFormControl('', [Validators.required, Validators.maxLength(50)]),
+      description: new UntypedFormControl(''),
+      characteristics: new UntypedFormControl([]),
+      generalConditions: new UntypedFormControl(''),
+      autoValidation: new UntypedFormControl(false),
+      commentRequired: new UntypedFormControl(false),
+      commentMessage: new UntypedFormControl(''),
+      shardingTags: new UntypedFormControl([]),
+      excludedGroups: new UntypedFormControl([]),
     });
 
     // Enable comment message only if comment required is checked

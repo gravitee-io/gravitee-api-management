@@ -15,7 +15,7 @@
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { EMPTY, Subject } from 'rxjs';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -25,13 +25,13 @@ import { ClientRegistrationProvider } from '../../../../entities/client-registra
 
 @Component({
   selector: 'client-registration-provider',
-  template: require('./client-registration-provider.component.html'),
-  styles: [require('./client-registration-provider.component.scss')],
+  templateUrl: './client-registration-provider.component.html',
+  styleUrls: ['./client-registration-provider.component.scss'],
 })
 export class ClientRegistrationProviderComponent implements OnInit, OnDestroy {
   private unsubscribe$ = new Subject();
   public updateMode: boolean;
-  public providerForm: FormGroup;
+  public providerForm: UntypedFormGroup;
   public initialAccessTokenTypes: { name: string; value: ClientRegistrationProvider['initial_access_token_type'] }[] = [
     {
       name: 'Client Credentials',
@@ -113,19 +113,23 @@ export class ClientRegistrationProviderComponent implements OnInit, OnDestroy {
   }
 
   private initProviderForm(clientRegistrationProvider?: ClientRegistrationProvider) {
-    this.providerForm = new FormGroup({
-      name: new FormControl(clientRegistrationProvider?.name, [Validators.required, Validators.minLength(3), Validators.maxLength(50)]),
-      description: new FormControl(clientRegistrationProvider?.description),
-      discovery_endpoint: new FormControl(clientRegistrationProvider?.discovery_endpoint, [Validators.required]),
-      initial_access_token_type: new FormControl(clientRegistrationProvider?.initial_access_token_type, [Validators.required]),
-      client_id: new FormControl(clientRegistrationProvider?.client_id),
-      client_secret: new FormControl(clientRegistrationProvider?.client_secret),
-      renew_client_secret_method: new FormControl(clientRegistrationProvider?.renew_client_secret_method),
-      scopes: new FormControl(clientRegistrationProvider?.scopes),
-      software_id: new FormControl(clientRegistrationProvider?.software_id),
-      initial_access_token: new FormControl(clientRegistrationProvider?.initial_access_token),
-      renew_client_secret_support: new FormControl(clientRegistrationProvider?.renew_client_secret_support),
-      renew_client_secret_endpoint: new FormControl(clientRegistrationProvider?.renew_client_secret_endpoint),
+    this.providerForm = new UntypedFormGroup({
+      name: new UntypedFormControl(clientRegistrationProvider?.name, [
+        Validators.required,
+        Validators.minLength(3),
+        Validators.maxLength(50),
+      ]),
+      description: new UntypedFormControl(clientRegistrationProvider?.description),
+      discovery_endpoint: new UntypedFormControl(clientRegistrationProvider?.discovery_endpoint, [Validators.required]),
+      initial_access_token_type: new UntypedFormControl(clientRegistrationProvider?.initial_access_token_type, [Validators.required]),
+      client_id: new UntypedFormControl(clientRegistrationProvider?.client_id),
+      client_secret: new UntypedFormControl(clientRegistrationProvider?.client_secret),
+      renew_client_secret_method: new UntypedFormControl(clientRegistrationProvider?.renew_client_secret_method),
+      scopes: new UntypedFormControl(clientRegistrationProvider?.scopes),
+      software_id: new UntypedFormControl(clientRegistrationProvider?.software_id),
+      initial_access_token: new UntypedFormControl(clientRegistrationProvider?.initial_access_token),
+      renew_client_secret_support: new UntypedFormControl(clientRegistrationProvider?.renew_client_secret_support),
+      renew_client_secret_endpoint: new UntypedFormControl(clientRegistrationProvider?.renew_client_secret_endpoint),
     });
 
     this.providerForm

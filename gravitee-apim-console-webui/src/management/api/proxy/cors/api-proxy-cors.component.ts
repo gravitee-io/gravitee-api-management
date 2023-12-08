@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { EMPTY, Subject } from 'rxjs';
@@ -29,15 +29,15 @@ import { onlyApiV1V2Filter, onlyApiV2Filter } from '../../../../util/apiFilter.o
 
 @Component({
   selector: 'api-proxy-cors',
-  template: require('./api-proxy-cors.component.html'),
-  styles: [require('./api-proxy-cors.component.scss')],
+  templateUrl: './api-proxy-cors.component.html',
+  styleUrls: ['./api-proxy-cors.component.scss'],
 })
 export class ApiProxyCorsComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   public httpMethods = CorsUtil.httpMethods;
   public defaultHttpHeaders = CorsUtil.defaultHttpHeaders;
-  public corsForm: FormGroup;
+  public corsForm: UntypedFormGroup;
   public initialCorsFormValue: unknown;
 
   private allowAllOriginsConfirmDialog?: MatDialogRef<GioConfirmDialogComponent, boolean>;
@@ -63,39 +63,39 @@ export class ApiProxyCorsComponent implements OnInit, OnDestroy {
           const isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']) || api.definitionContext?.origin === 'KUBERNETES';
           const isCorsDisabled = isReadOnly || !cors.enabled;
 
-          this.corsForm = new FormGroup({
-            enabled: new FormControl({
+          this.corsForm = new UntypedFormGroup({
+            enabled: new UntypedFormControl({
               value: cors.enabled,
               disabled: isReadOnly,
             }),
-            allowOrigin: new FormControl(
+            allowOrigin: new UntypedFormControl(
               {
                 value: cors.allowOrigin ?? [],
                 disabled: isCorsDisabled,
               },
               [CorsUtil.allowOriginValidator()],
             ),
-            allowMethods: new FormControl({
+            allowMethods: new UntypedFormControl({
               value: cors.allowMethods ?? [],
               disabled: isCorsDisabled,
             }),
-            allowHeaders: new FormControl({
+            allowHeaders: new UntypedFormControl({
               value: cors.allowHeaders ?? [],
               disabled: isCorsDisabled,
             }),
-            allowCredentials: new FormControl({
+            allowCredentials: new UntypedFormControl({
               value: cors.allowCredentials ?? false,
               disabled: isCorsDisabled,
             }),
-            maxAge: new FormControl({
+            maxAge: new UntypedFormControl({
               value: cors.maxAge ?? -1,
               disabled: isCorsDisabled,
             }),
-            exposeHeaders: new FormControl({
+            exposeHeaders: new UntypedFormControl({
               value: cors.exposeHeaders ?? [],
               disabled: isCorsDisabled,
             }),
-            runPolicies: new FormControl({
+            runPolicies: new UntypedFormControl({
               value: cors.runPolicies ?? false,
               disabled: isCorsDisabled,
             }),

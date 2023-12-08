@@ -22,7 +22,7 @@ import { NotificationSettings } from '../../../../entities/notification/notifica
 
 @Component({
   selector: 'api-notification-settings-details',
-  template: require('./api-notification-settings-details.component.html'),
+  templateUrl: './api-notification-settings-details.component.html',
 })
 export class ApiNotificationSettingsDetailsComponent implements OnInit, OnDestroy {
   public notificationsDetailsServices: any;

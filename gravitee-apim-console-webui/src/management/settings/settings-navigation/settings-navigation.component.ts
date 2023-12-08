@@ -34,8 +34,8 @@ interface GroupItem {
 
 @Component({
   selector: 'settings-navigation',
-  template: require('./settings-navigation.component.html'),
-  styles: [require('./settings-navigation.component.scss')],
+  templateUrl: './settings-navigation.component.html',
+  styleUrls: ['./settings-navigation.component.scss'],
 })
 export class SettingsNavigationComponent implements OnInit {
   public groupItems: GroupItem[] = [];

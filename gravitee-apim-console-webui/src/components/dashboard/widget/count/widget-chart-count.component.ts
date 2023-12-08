@@ -16,7 +16,7 @@
 // eslint:disable-next-line:no-var-requires
 require('@gravitee/ui-components/wc/gv-card-full');
 const WidgetChartCountComponent: ng.IComponentOptions = {
-  template: require('./widget-chart-count.html'),
+  template: require('html-loader!./widget-chart-count.html'),
   bindings: {
     data: '<',
   },

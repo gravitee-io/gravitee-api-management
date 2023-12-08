@@ -42,6 +42,5 @@ import { GioUsersSelectorComponent } from './gio-users-selector.component';
   ],
   declarations: [GioUsersSelectorComponent],
   exports: [GioUsersSelectorComponent],
-  entryComponents: [GioUsersSelectorComponent],
 })
 export class GioUsersSelectorModule {}

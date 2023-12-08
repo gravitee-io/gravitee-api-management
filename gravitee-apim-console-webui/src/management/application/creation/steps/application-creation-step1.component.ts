@@ -19,7 +19,7 @@ const ApplicationCreationStep1Component: ng.IComponentOptions = {
   require: {
     parent: '^createApplication',
   },
-  template: require('./application-creation-step1.html'),
+  template: require('html-loader!./application-creation-step1.html'),
   controller: class {
     public shouldDisplayHint = shouldDisplayHint;
   },

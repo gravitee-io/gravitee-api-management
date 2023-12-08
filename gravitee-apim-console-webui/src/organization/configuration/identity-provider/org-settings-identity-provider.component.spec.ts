@@ -323,15 +323,13 @@ describe('OrgSettingsIdentityProviderComponent', () => {
     });
 
     describe('oidc', () => {
-      it('should not load form without license', async (done) => {
+      it('should not load form without license', async () => {
         const formCardGroup = await loader.getHarness(GioFormCardGroupHarness.with({ selector: '[formControlName=type]' }));
 
         await formCardGroup.select('OIDC');
 
-        await loader.getChildLoader('org-settings-identity-provider-oidc').catch(() => {
-          expect(true);
-          done();
-        });
+        const element = await loader.getAllChildLoaders('org-settings-identity-provider-oidc');
+        expect(element.length).toEqual(0);
       });
     });
   });

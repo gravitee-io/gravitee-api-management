@@ -97,7 +97,7 @@ const PlatformLogComponentAjs: ng.IComponentOptions = {
       };
     },
   ],
-  template: require('./platform-log.html'),
+  template: require('html-loader!./platform-log.html'),
 };
 
 export default PlatformLogComponentAjs;

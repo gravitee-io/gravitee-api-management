@@ -36,8 +36,8 @@ import { ApimFeature, UTMTags } from '../../../../shared/components/gio-license/
 
 @Component({
   selector: 'org-settings-platform-policies-studio',
-  template: require('./org-settings-platform-policies-studio.component.html'),
-  styles: [require('./org-settings-platform-policies-studio.component.scss')],
+  templateUrl: './org-settings-platform-policies-studio.component.html',
+  styleUrls: ['./org-settings-platform-policies-studio.component.scss'],
 })
 export class OrgSettingsPlatformPoliciesStudioComponent implements OnInit, OnDestroy {
   get isLoading() {

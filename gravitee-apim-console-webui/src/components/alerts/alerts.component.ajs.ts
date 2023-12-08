@@ -26,7 +26,7 @@ const AlertsComponentAjs: ng.IComponentOptions = {
     alerts: '<',
     reload: '&',
   },
-  template: require('./alerts.html'),
+  template: require('html-loader!./alerts.html'),
   controller: [
     'ngRouter',
     'AlertService',
@@ -45,7 +45,7 @@ const AlertsComponentAjs: ng.IComponentOptions = {
           .show({
             controller: 'DialogConfirmController',
             controllerAs: 'ctrl',
-            template: require('../../components/dialog/confirmWarning.dialog.html'),
+            template: require('html-loader!../../components/dialog/confirmWarning.dialog.html'),
             clickOutsideToClose: true,
             locals: {
               title: `Are you sure you want to delete the alert '${alert.name}'?`,

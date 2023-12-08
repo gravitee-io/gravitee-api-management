@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
+import { filter, includes, map } from 'lodash';
 function AddTopApiDialogController($mdDialog: angular.material.IDialogService, ApiService, TopApiService, NotificationService, topApis) {
   ApiService.list().then((response) => {
-    this.apis = _.filter(response.data, (api: any) => {
-      return !_.includes(_.map(topApis, 'api'), api.id);
+    this.apis = filter(response.data, (api: any) => {
+      return !includes(map(topApis, 'api'), api.id);
     });
   });
 

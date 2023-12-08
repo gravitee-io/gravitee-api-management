@@ -46,8 +46,8 @@ type SystemPropertyItemDS = {
 
 @Component({
   selector: 'instance-details-environment',
-  template: require('./instance-details-environment.component.html'),
-  styles: [require('./instance-details-environment.component.scss')],
+  templateUrl: './instance-details-environment.component.html',
+  styleUrls: ['./instance-details-environment.component.scss'],
 })
 export class InstanceDetailsEnvironmentComponent implements OnInit, OnDestroy {
   public instance: Instance;

@@ -21,8 +21,8 @@ import { ApiService } from '../../../../../services-ngx/api.service';
 
 @Component({
   selector: 'api-portal-documentation-metadata',
-  template: require('./api-portal-documentation-metadata.component.html'),
-  styles: [require('./api-portal-documentation-metadata.component.scss')],
+  templateUrl: './api-portal-documentation-metadata.component.html',
+  styleUrls: ['./api-portal-documentation-metadata.component.scss'],
 })
 export class ApiPortalDocumentationMetadataComponent implements OnInit {
   metadataSaveServices: MetadataSaveServices;

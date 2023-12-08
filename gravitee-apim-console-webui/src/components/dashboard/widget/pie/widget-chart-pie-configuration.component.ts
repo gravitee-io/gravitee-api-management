@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
+
+import { forEach, merge, last, remove } from 'lodash';
 
 import DashboardService from '../../../../services/dashboard.service';
 
 const WidgetChartPieConfigurationComponent: ng.IComponentOptions = {
-  template: require('./widget-chart-pie-configuration.html'),
+  template: require('html-loader!./widget-chart-pie-configuration.html'),
   bindings: {
     chart: '<',
   },
@@ -33,7 +34,7 @@ const WidgetChartPieConfigurationComponent: ng.IComponentOptions = {
           if (this.chart.request.ranges) {
             const ranges = this.chart.request.ranges.split('%3B');
             let i = 0;
-            _.forEach(ranges, (range) => {
+            forEach(ranges, (range) => {
               if (range) {
                 this.data.push({
                   min: parseInt(range.split(':')[0], 10),
@@ -45,7 +46,7 @@ const WidgetChartPieConfigurationComponent: ng.IComponentOptions = {
             });
           }
         } else {
-          _.merge(this.chart, {
+          merge(this.chart, {
             request: {
               type: 'group_by',
               field: this.fields[0].value,
@@ -73,9 +74,9 @@ const WidgetChartPieConfigurationComponent: ng.IComponentOptions = {
         this.chart.request.ranges = '';
         this.chart.labels = [];
         this.chart.colors = [];
-        const last = _.last(this.data);
-        _.forEach(this.data, (data) => {
-          this.chart.request.ranges += data.min + ':' + data.max + (last === data ? '' : '%3B');
+        const _last = last(this.data);
+        forEach(this.data, (data) => {
+          this.chart.request.ranges += data.min + ':' + data.max + (_last === data ? '' : '%3B');
           this.chart.labels.push(data.label);
           this.chart.colors.push(data.color);
         });
@@ -87,7 +88,7 @@ const WidgetChartPieConfigurationComponent: ng.IComponentOptions = {
       };
 
       this.removeData = (data) => {
-        _.remove(this.data, data);
+        remove(this.data, data);
         this.onDataChanged();
       };
     },

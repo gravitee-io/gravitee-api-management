@@ -38,6 +38,5 @@ import { GioUserMenuComponent } from './gio-user-menu.component';
   ],
   declarations: [GioUserMenuComponent],
   exports: [GioUserMenuComponent],
-  entryComponents: [GioUserMenuComponent],
 })
 export class GioUserMenuModule {}

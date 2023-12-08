@@ -33,7 +33,7 @@ import { ChangeDetectorRef, Component, Input } from '@angular/core';
     '[class.selected]': 'selected',
     '(click)': 'onSelectCard()',
   },
-  styles: [require('./gio-form-card.component.scss')],
+  styleUrls: ['./gio-form-card.component.scss'],
 })
 export class GioFormCardComponent {
   @Input()

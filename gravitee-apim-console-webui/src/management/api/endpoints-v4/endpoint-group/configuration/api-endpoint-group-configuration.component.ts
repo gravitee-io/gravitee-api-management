@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { GioJsonSchema } from '@gravitee/ui-particles-angular';
@@ -23,12 +23,12 @@ import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector
 
 @Component({
   selector: 'api-endpoint-group-configuration',
-  template: require('./api-endpoint-group-configuration.component.html'),
+  templateUrl: './api-endpoint-group-configuration.component.html',
 })
 export class ApiEndpointGroupConfigurationComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
-  @Input() configurationForm: FormGroup;
+  @Input() configurationForm: UntypedFormGroup;
 
   @Input() endpointGroupType: string;
 

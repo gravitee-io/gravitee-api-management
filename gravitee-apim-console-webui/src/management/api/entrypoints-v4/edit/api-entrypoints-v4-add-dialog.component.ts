@@ -15,7 +15,7 @@
  */
 import { Component, Inject, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 
 import { ConnectorVM } from '../../../../entities/management-api-v2';
 
@@ -25,20 +25,20 @@ export type ApiEntrypointsV4AddDialogComponentData = {
 };
 @Component({
   selector: 'api-entrypoints-v4-add-dialog',
-  template: require('./api-entrypoints-v4-add-dialog.component.html'),
-  styles: [require('./api-entrypoints-v4-add-dialog.component.scss')],
+  templateUrl: './api-entrypoints-v4-add-dialog.component.html',
+  styleUrls: ['./api-entrypoints-v4-add-dialog.component.scss'],
 })
 export class ApiEntrypointsV4AddDialogComponent implements OnInit {
   public apiHasHttpListener: boolean;
   public entrypoints: ConnectorVM[];
-  public formGroup: FormGroup;
+  public formGroup: UntypedFormGroup;
   public showContextPathForm = false;
-  public contextPathFormGroup: FormGroup;
+  public contextPathFormGroup: UntypedFormGroup;
 
   constructor(
     public dialogRef: MatDialogRef<ApiEntrypointsV4AddDialogComponent>,
     @Inject(MAT_DIALOG_DATA) data: ApiEntrypointsV4AddDialogComponentData,
-    private formBuilder: FormBuilder,
+    private formBuilder: UntypedFormBuilder,
   ) {
     this.entrypoints = data.entrypoints;
     this.apiHasHttpListener = data.hasHttpListener;

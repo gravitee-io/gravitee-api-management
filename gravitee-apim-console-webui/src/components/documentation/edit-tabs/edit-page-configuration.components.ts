@@ -73,6 +73,6 @@ export const EditPageConfigurationComponent: ng.IComponentOptions = {
   bindings: {
     page: '=',
   },
-  template: require('./edit-page-configuration.html'),
+  template: require('html-loader!./edit-page-configuration.html'),
   controller: EditPageConfigurationComponentController,
 };

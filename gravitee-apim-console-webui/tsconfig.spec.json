@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./out-tsc/spec",
+    "module": "CommonJs",
+    "types": ["jest", "angular"]
+  },
+  "include": ["src/**/*.spec.ts", "src/**/*.d.ts"]
+}

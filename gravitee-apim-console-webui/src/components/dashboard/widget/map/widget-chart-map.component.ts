@@ -16,7 +16,7 @@
 // eslint:disable-next-line:no-var-requires
 require('@gravitee/ui-components/wc/gv-chart-map');
 const WidgetChartMapComponent: ng.IComponentOptions = {
-  template: require('./widget-chart-map.html'),
+  template: require('html-loader!./widget-chart-map.html'),
   bindings: {
     data: '<',
   },

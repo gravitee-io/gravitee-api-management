@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
-import moment, { Moment } from 'moment';
+import moment, { duration, Moment, unix } from 'moment';
 import { ActivatedRoute, Router } from '@angular/router';
+import { find, findLast } from 'lodash';
 
 // eslint:disable-next-line:interface-name
 interface Timeframe {
@@ -115,7 +115,7 @@ class LogsTimeframeController {
     this.unRegisterTimeframeZoom = this.$rootScope.$on('timeframeZoom', (event, zoom) => {
       const diff = zoom.to - zoom.from;
 
-      let timeframe = _.findLast(this.timeframes, (timeframe: Timeframe) => {
+      let timeframe = findLast(this.timeframes, (timeframe: Timeframe) => {
         return timeframe.range < diff;
       });
 
@@ -163,7 +163,7 @@ class LogsTimeframeController {
   }
 
   setTimestamp(timestamp) {
-    const momentDate = moment.unix(timestamp);
+    const momentDate = unix(timestamp);
 
     const startDate = Math.floor(momentDate.startOf('day').valueOf() / 1000);
     const endDate = Math.floor(momentDate.endOf('day').valueOf() / 1000);
@@ -176,7 +176,7 @@ class LogsTimeframeController {
   }
 
   setTimeframe(timeframeId, update) {
-    this.timeframe = _.find(this.timeframes, (timeframe: Timeframe) => {
+    this.timeframe = find(this.timeframes, (timeframe: Timeframe) => {
       return timeframe.id === timeframeId;
     });
 
@@ -201,7 +201,7 @@ class LogsTimeframeController {
     // Select the best timeframe
     const diff = timeframe.to - timeframe.from;
 
-    const tf = _.findLast(this.timeframes, (tframe: Timeframe) => {
+    const tf = findLast(this.timeframes, (tframe: Timeframe) => {
       return tframe.range <= diff;
     });
 
@@ -220,7 +220,7 @@ class LogsTimeframeController {
 
     this.current = {
       interval: this.timeframe.interval,
-      intervalLabel: moment.duration(this.timeframe.interval).humanize(),
+      intervalLabel: duration(this.timeframe.interval).humanize(),
       from: timeframe.from,
       to: timeframe.to,
     };
@@ -246,7 +246,7 @@ class LogsTimeframeController {
 
     const diff = to - from;
 
-    let timeframe = _.findLast(this.timeframes, (timeframe: Timeframe) => {
+    let timeframe = findLast(this.timeframes, (timeframe: Timeframe) => {
       return timeframe.range < diff;
     });
 

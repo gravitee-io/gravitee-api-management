@@ -20,8 +20,8 @@ import { TimelineStep } from '../policy-studio-debug-timeline-card/policy-studio
 
 @Component({
   selector: 'policy-studio-debug-timeline-overview',
-  template: require('./policy-studio-debug-timeline-overview.component.html'),
-  styles: [require('./policy-studio-debug-timeline-overview.component.scss')],
+  templateUrl: './policy-studio-debug-timeline-overview.component.html',
+  styleUrls: ['./policy-studio-debug-timeline-overview.component.scss'],
 })
 export class PolicyStudioDebugTimelineOverviewComponent {
   @Input()

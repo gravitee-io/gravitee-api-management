@@ -20,7 +20,7 @@ const ApplicationAnalyticsComponentAjs: ng.IComponentOptions = {
     activatedRoute: '<',
   },
   controller: 'ApplicationAnalyticsController',
-  template: require('./application-analytics.html'),
+  template: require('html-loader!./application-analytics.html'),
 };
 
 export default ApplicationAnalyticsComponentAjs;

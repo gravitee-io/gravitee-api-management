@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { IHttpPromise, IHttpResponse, IHttpService, IPromise, IRootScopeService } from 'angular';
+
 import { clone } from 'lodash';
 
 import { ApplicationExcludeFilter } from './application.service';

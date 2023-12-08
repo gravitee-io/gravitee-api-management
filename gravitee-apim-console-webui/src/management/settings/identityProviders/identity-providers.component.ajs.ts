@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
 import { Router } from '@angular/router';
+import { filter } from 'lodash';
 
 import { IdentityProviderActivation } from '../../../entities/identity-provider';
 import EnvironmentService from '../../../services/environment.service';
@@ -31,7 +31,7 @@ const IdentityProvidersComponentAjs: ng.IComponentOptions = {
     activatedRoute: '<',
     ngRouter: '<',
   },
-  template: require('./identity-providers.html'),
+  template: require('html-loader!./identity-providers.html'),
   controller: [
     'IdentityProviderService',
     'EnvironmentService',
@@ -107,7 +107,7 @@ const IdentityProvidersComponentAjs: ng.IComponentOptions = {
       };
 
       this.toggleActivatedIdp = (identityProviderId: string) => {
-        const updatedIPA: Partial<IdentityProviderActivation>[] = _.filter(
+        const updatedIPA: Partial<IdentityProviderActivation>[] = filter(
           Object.keys(this.activatedIdps),
           (idpId) => this.activatedIdps[idpId] === true,
         ).map((idpId) => ({ identityProvider: idpId }));

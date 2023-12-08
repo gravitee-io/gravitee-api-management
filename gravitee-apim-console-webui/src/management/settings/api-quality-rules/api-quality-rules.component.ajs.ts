@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 import { IScope } from 'angular';
-import * as _ from 'lodash';
+
 import { Router } from '@angular/router';
+import { cloneDeep, merge, remove } from 'lodash';
 
 import NotificationService from '../../../services/notification.service';
 import PortalSettingsService from '../../../services/portalSettings.service';
@@ -26,7 +27,7 @@ const ApiQualityRulesComponentAjs: ng.IComponentOptions = {
   bindings: {
     activatedRoute: '<',
   },
-  template: require('./api-quality-rules.html'),
+  template: require('html-loader!./api-quality-rules.html'),
   controller: [
     'Constants',
     '$rootScope',
@@ -48,7 +49,7 @@ const ApiQualityRulesComponentAjs: ng.IComponentOptions = {
     ) {
       this.$rootScope = $rootScope;
       this.ngRouter = ngRouter;
-      this.settings = _.cloneDeep(Constants.env.settings);
+      this.settings = cloneDeep(Constants.env.settings);
       this.providedConfigurationMessage = 'Configuration provided by the system';
       this.canUpdateSettings = UserService.isUserHasPermissions([
         'environment-settings-c',
@@ -62,14 +63,14 @@ const ApiQualityRulesComponentAjs: ng.IComponentOptions = {
 
       this.save = () => {
         PortalSettingsService.save(this.settings).then((response) => {
-          _.merge(Constants.env.settings, response.data);
+          merge(Constants.env.settings, response.data);
           NotificationService.show('API Quality settings saved!');
           this.formQuality.$setPristine();
         });
       };
 
       this.reset = () => {
-        this.settings = _.cloneDeep(Constants.env.settings);
+        this.settings = cloneDeep(Constants.env.settings);
         this.formQuality.$setPristine();
       };
 
@@ -78,7 +79,7 @@ const ApiQualityRulesComponentAjs: ng.IComponentOptions = {
           .show({
             controller: 'DeleteApiQualityRuleDialogController',
             controllerAs: '$ctrl',
-            template: require('./api-quality-rule/delete-api-quality-rule.dialog.html'),
+            template: require('html-loader!./api-quality-rule/delete-api-quality-rule.dialog.html'),
             locals: {
               qualityRule: qualityRule,
             },
@@ -86,7 +87,7 @@ const ApiQualityRulesComponentAjs: ng.IComponentOptions = {
           .then((deletedQualityRule) => {
             if (deletedQualityRule) {
               NotificationService.show("Quality rule '" + qualityRule.name + "' deleted with success");
-              _.remove(this.qualityRules, qualityRule);
+              remove(this.qualityRules, qualityRule);
             }
           });
       };

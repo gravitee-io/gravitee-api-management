@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 import { IScope } from 'angular';
-import * as _ from 'lodash';
+
+import { size, sortBy } from 'lodash';
 
 import NotificationService from '../../../services/notification.service';
 import TopApiService from '../../../services/top-api.service';
@@ -45,7 +46,7 @@ class TopApisController {
       .show({
         controller: 'AddTopApiDialogController',
         controllerAs: '$ctrl',
-        template: require('./dialog/add.top-api.dialog.html'),
+        template: require('html-loader!./dialog/add.top-api.dialog.html'),
         locals: {
           topApis: this.topApis,
         },
@@ -61,7 +62,7 @@ class TopApisController {
     this.$mdDialog
       .show({
         controller: 'DeleteTopApiDialogController',
-        template: require('./dialog/delete.top-api.dialog.html'),
+        template: require('html-loader!./dialog/delete.top-api.dialog.html'),
         locals: {
           topApi: topApi,
         },
@@ -80,7 +81,7 @@ class TopApisController {
   }
 
   downward(order) {
-    if (order < _.size(this.topApis) - 1) {
+    if (order < size(this.topApis) - 1) {
       this.reorder(order, order + 1);
     }
   }
@@ -88,7 +89,7 @@ class TopApisController {
   private reorder(from, to) {
     this.topApis[from].order = to;
     this.topApis[to].order = from;
-    this.topApis = _.sortBy(this.topApis, 'order');
+    this.topApis = sortBy(this.topApis, 'order');
     this.TopApiService.update(this.topApis)
       .then((response) => {
         this.topApis = response.data;

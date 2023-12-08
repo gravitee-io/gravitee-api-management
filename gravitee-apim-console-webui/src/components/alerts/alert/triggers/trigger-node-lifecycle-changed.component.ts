@@ -18,7 +18,7 @@ const AlertTriggerNodeLifecycleChangedComponent: ng.IComponentOptions = {
   bindings: {
     alert: '<',
   },
-  template: require('./trigger-node-lifecycle-changed.html'),
+  template: require('html-loader!./trigger-node-lifecycle-changed.html'),
   controller: function () {
     this.$onInit = () => {
       // New alert, initialize it with the condition model

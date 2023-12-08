@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { EMPTY, of, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -29,15 +29,15 @@ import { ApiPlanV2Service } from '../../../../../services-ngx/api-plan-v2.servic
 
 @Component({
   selector: 'api-general-plan-edit',
-  template: require('./api-general-plan-edit.component.html'),
-  styles: [require('./api-general-plan-edit.component.scss')],
+  templateUrl: './api-general-plan-edit.component.html',
+  styleUrls: ['./api-general-plan-edit.component.scss'],
 })
 export class ApiGeneralPlanEditComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   public mode: 'create' | 'edit' = 'create';
 
-  public planForm: FormGroup;
+  public planForm: UntypedFormGroup;
   public initialPlanFormValue: unknown;
   public api: Api;
   public isReadOnly = false;
@@ -77,8 +77,8 @@ export class ApiGeneralPlanEditComponent implements OnInit, OnDestroy {
         ),
         tap((plan: Plan) => {
           this.currentPlanStatus = plan?.status;
-          this.planForm = new FormGroup({
-            plan: new FormControl({
+          this.planForm = new UntypedFormGroup({
+            plan: new UntypedFormControl({
               value: plan,
               disabled: this.isReadOnly,
             }),

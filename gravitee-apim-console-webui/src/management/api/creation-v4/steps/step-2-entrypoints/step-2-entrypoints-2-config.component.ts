@@ -15,7 +15,7 @@
  */
 
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { forkJoin, Observable, Subject } from 'rxjs';
 import { GioFormJsonSchemaComponent, GioJsonSchema, GioLicenseService } from '@gravitee/ui-particles-angular';
 import { takeUntil, tap } from 'rxjs/operators';
@@ -33,14 +33,14 @@ import { TcpHost } from '../../../../../entities/management-api-v2/api/v4/tcpHos
 
 @Component({
   selector: 'step-2-entrypoints-2-config',
-  template: require('./step-2-entrypoints-2-config.component.html'),
-  styles: [require('./step-2-entrypoints-2-config.component.scss'), require('../api-creation-steps-common.component.scss')],
+  templateUrl: './step-2-entrypoints-2-config.component.html',
+  styleUrls: ['./step-2-entrypoints-2-config.component.scss', '../api-creation-steps-common.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
 
-  public formGroup: FormGroup;
+  public formGroup: UntypedFormGroup;
   public selectedEntrypoints: { id: string; name: string; supportedListenerType: string; supportedQos?: Qos[] }[];
   public entrypointSchemas: Record<string, GioJsonSchema>;
   public hasHttpListeners: boolean;
@@ -52,7 +52,7 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
   private apiType: ApiCreationPayload['type'];
 
   constructor(
-    private readonly formBuilder: FormBuilder,
+    private readonly formBuilder: UntypedFormBuilder,
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
     private readonly stepService: ApiCreationStepService,
     private readonly restrictedDomainService: RestrictedDomainService,

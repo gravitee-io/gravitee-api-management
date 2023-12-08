@@ -45,8 +45,8 @@ type TableData = {
 
 @Component({
   selector: 'env-application-list',
-  template: require('./env-application-list.component.html'),
-  styles: [require('./env-application-list.component.scss')],
+  templateUrl: './env-application-list.component.html',
+  styleUrls: ['./env-application-list.component.scss'],
 })
 export class EnvApplicationListComponent implements OnInit, OnDestroy {
   nbTotalApplications = 0;

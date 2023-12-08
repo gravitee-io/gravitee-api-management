@@ -53,8 +53,8 @@ export interface NotificationSettingsTable {
 
 @Component({
   selector: 'notification-settings-list',
-  template: require('./notification-settings-list.component.html'),
-  styles: [require('./notification-settings-list.component.scss')],
+  templateUrl: './notification-settings-list.component.html',
+  styleUrls: ['./notification-settings-list.component.scss'],
 })
 export class NotificationSettingsListComponent implements OnInit {
   public displayedColumns = ['name', 'notifier', 'actions'];

@@ -60,8 +60,8 @@ export type ApisTableDS = {
 
 @Component({
   selector: 'api-list',
-  template: require('./api-list.component.html'),
-  styles: [require('./api-list.component.scss')],
+  templateUrl: './api-list.component.html',
+  styleUrls: ['./api-list.component.scss'],
 })
 export class ApiListComponent implements OnInit, OnDestroy {
   displayedColumns = ['picture', 'name', 'states', 'contextPath', 'tags', 'owner', 'definitionVersion', 'visibility', 'actions'];

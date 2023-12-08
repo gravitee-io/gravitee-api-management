@@ -43,8 +43,8 @@ export interface PathMappingDS {
 
 @Component({
   selector: 'api-path-mappings',
-  template: require('./api-path-mappings.component.html'),
-  styles: [require('./api-path-mappings.component.scss')],
+  templateUrl: './api-path-mappings.component.html',
+  styleUrls: ['./api-path-mappings.component.scss'],
 })
 export class ApiPathMappingsComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

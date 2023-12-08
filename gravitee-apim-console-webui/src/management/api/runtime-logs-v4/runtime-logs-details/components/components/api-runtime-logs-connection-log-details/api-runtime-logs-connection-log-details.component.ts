@@ -21,8 +21,8 @@ import { ConnectionLogDetail } from '../../../../../../../entities/management-ap
 
 @Component({
   selector: 'api-runtime-logs-connection-log-details',
-  template: require('./api-runtime-logs-connection-log-details.component.html'),
-  styles: [require('./api-runtime-logs-connection-log-details.component.scss')],
+  templateUrl: './api-runtime-logs-connection-log-details.component.html',
+  styleUrls: ['./api-runtime-logs-connection-log-details.component.scss'],
 })
 export class ApiRuntimeLogsConnectionLogDetailsComponent {
   @Input()

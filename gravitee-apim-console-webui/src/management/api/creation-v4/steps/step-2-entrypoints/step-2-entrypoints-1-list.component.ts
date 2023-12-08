@@ -15,7 +15,7 @@
  */
 
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { Subject } from 'rxjs';
 import { takeUntil, tap } from 'rxjs/operators';
@@ -32,13 +32,13 @@ import { ApimFeature, UTMTags } from '../../../../../shared/components/gio-licen
 
 @Component({
   selector: 'step-2-entrypoints-1-list',
-  template: require('./step-2-entrypoints-1-list.component.html'),
-  styles: [require('./step-2-entrypoints-1-list.component.scss'), require('../api-creation-steps-common.component.scss')],
+  templateUrl: './step-2-entrypoints-1-list.component.html',
+  styleUrls: ['./step-2-entrypoints-1-list.component.scss', '../api-creation-steps-common.component.scss'],
 })
 export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
 
-  public formGroup: FormGroup;
+  public formGroup: UntypedFormGroup;
 
   public entrypoints: ConnectorVM[];
 
@@ -46,7 +46,7 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
   public apiType: ApiType;
 
   constructor(
-    private readonly formBuilder: FormBuilder,
+    private readonly formBuilder: UntypedFormBuilder,
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
     private readonly confirmDialog: MatDialog,
     private readonly stepService: ApiCreationStepService,

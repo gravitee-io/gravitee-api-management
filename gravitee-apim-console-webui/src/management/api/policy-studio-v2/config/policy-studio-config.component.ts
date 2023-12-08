@@ -17,7 +17,7 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { combineLatest, Subject } from 'rxjs';
 import { takeUntil, tap } from 'rxjs/operators';
-import { FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 
 import { PolicyStudioConfigService } from './policy-studio-config.service';
 
@@ -28,8 +28,8 @@ import { FlowConfigurationSchema } from '../../../../entities/flow/configuration
 
 @Component({
   selector: 'policy-studio-config',
-  template: require('./policy-studio-config.component.html'),
-  styles: [require('./policy-studio-config.component.scss')],
+  templateUrl: './policy-studio-config.component.html',
+  styleUrls: ['./policy-studio-config.component.scss'],
 })
 export class PolicyStudioConfigComponent implements OnInit, OnDestroy {
   private unsubscribe$ = new Subject<boolean>();
@@ -42,7 +42,7 @@ export class PolicyStudioConfigComponent implements OnInit, OnDestroy {
   public flowConfigurationSchema: FlowConfigurationSchema;
 
   public apiDefinition: ApiDefinition;
-  public configForm: FormGroup;
+  public configForm: UntypedFormGroup;
 
   public isReadonly = false;
 
@@ -64,12 +64,12 @@ export class PolicyStudioConfigComponent implements OnInit, OnDestroy {
 
           this.isReadonly = definition.origin === 'kubernetes';
 
-          this.configForm = new FormGroup({
-            emulateV4Engine: new FormControl({
+          this.configForm = new UntypedFormGroup({
+            emulateV4Engine: new UntypedFormControl({
               value: definition.execution_mode === 'v4-emulation-engine',
               disabled: this.isReadonly,
             }),
-            flowConfiguration: new FormControl({
+            flowConfiguration: new UntypedFormControl({
               value: {
                 flow_mode: definition.flow_mode,
               },

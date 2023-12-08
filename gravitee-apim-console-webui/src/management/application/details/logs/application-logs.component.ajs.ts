@@ -20,7 +20,7 @@ const ApplicationLogsComponentAjs: ng.IComponentOptions = {
     activatedRoute: '<',
   },
   controller: 'ApplicationLogsController',
-  template: require('./application-logs.html'),
+  template: require('html-loader!./application-logs.html'),
 };
 
 export default ApplicationLogsComponentAjs;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 const ProgressBarComponent: ng.IComponentOptions = {
-  template: require('./progress-bar.html'),
+  template: require('html-loader!./progress-bar.html'),
   bindings: {
     value: '<',
   },

@@ -17,7 +17,7 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { EMPTY, Observable, of, Subject } from 'rxjs';
-import { FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, filter, map, share, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { GioJsonSchema } from '@gravitee/ui-particles-angular';
 import { has } from 'lodash';
@@ -46,8 +46,8 @@ export type ApiPortalSubscriptionCreationDialogResult = {
 
 @Component({
   selector: 'api-portal-subscription-creation-dialog',
-  template: require('./api-portal-subscription-creation-dialog.component.html'),
-  styles: [require('./api-portal-subscription-creation-dialog.component.scss')],
+  templateUrl: './api-portal-subscription-creation-dialog.component.html',
+  styleUrls: ['./api-portal-subscription-creation-dialog.component.scss'],
 })
 export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnDestroy {
   public plans: Plan[];
@@ -58,9 +58,9 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
   public canUseCustomApiKey: boolean;
   public canUseSharedApiKeys: boolean;
 
-  public form: FormGroup = new FormGroup({
-    selectedPlan: new FormControl(undefined, [Validators.required]),
-    selectedApplication: new FormControl(undefined, [applicationSelectionRequiredValidator]),
+  public form: UntypedFormGroup = new UntypedFormGroup({
+    selectedPlan: new UntypedFormControl(undefined, [Validators.required]),
+    selectedApplication: new UntypedFormControl(undefined, [applicationSelectionRequiredValidator]),
   });
 
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
@@ -207,14 +207,14 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
         tap(() => {
           this.form.removeControl('apiKeyMode');
           this.form.removeControl('customApiKey');
-          this.form.addControl('selectedEntrypoint', new FormControl({}, Validators.required));
-          this.form.addControl('channel', new FormControl(undefined, []));
+          this.form.addControl('selectedEntrypoint', new UntypedFormControl({}, Validators.required));
+          this.form.addControl('channel', new UntypedFormControl(undefined, []));
         }),
         switchMap(() => this.form.get('selectedEntrypoint').valueChanges),
         switchMap((entrypointId) => this.connectorPluginsV2Service.getEntrypointPluginSubscriptionSchema(entrypointId)),
         tap((subscriptionSchema) => {
           this.selectedSchema = subscriptionSchema;
-          this.form.addControl('entrypointConfiguration', new FormControl({}, Validators.required));
+          this.form.addControl('entrypointConfiguration', new UntypedFormControl({}, Validators.required));
         }),
         takeUntil(this.unsubscribe$),
       )
@@ -239,10 +239,10 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
         }),
         tap((shouldDisplayKeyModeChoice) => {
           if (shouldDisplayKeyModeChoice) {
-            this.form.addControl('apiKeyMode', new FormControl('', [Validators.required]));
+            this.form.addControl('apiKeyMode', new UntypedFormControl('', [Validators.required]));
           }
           if (this.canUseCustomApiKey && !shouldDisplayKeyModeChoice) {
-            this.form.addControl('customApiKey', new FormControl('', []));
+            this.form.addControl('customApiKey', new UntypedFormControl('', []));
           }
           this.form.removeControl('selectedEntrypoint');
           this.form.removeControl('channel');
@@ -265,7 +265,7 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
         distinctUntilChanged(),
         tap((value) => {
           if (this.canUseCustomApiKey && value === ApiKeyMode.EXCLUSIVE) {
-            this.form.addControl('customApiKey', new FormControl('', []));
+            this.form.addControl('customApiKey', new UntypedFormControl('', []));
           } else {
             this.form.removeControl('customApiKey');
           }

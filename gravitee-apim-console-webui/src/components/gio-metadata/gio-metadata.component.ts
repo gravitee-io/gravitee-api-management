@@ -45,8 +45,8 @@ export interface MetadataSaveServices {
 
 @Component({
   selector: 'gio-metadata',
-  template: require('./gio-metadata.component.html'),
-  styles: [require('./gio-metadata.component.scss')],
+  templateUrl: './gio-metadata.component.html',
+  styleUrls: ['./gio-metadata.component.scss'],
 })
 export class GioMetadataComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();

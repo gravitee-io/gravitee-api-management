@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as _ from 'lodash';
 import { ActivatedRoute, Router } from '@angular/router';
+import { find, findIndex, groupBy, join, keys, map, remove, uniqBy } from 'lodash';
 
 import { ApplicationType } from '../../../../entities/application';
 import { ApiService } from '../../../../services/api.service';
@@ -129,22 +129,22 @@ class ApplicationCreationController {
 
   onUnsubscribe(api, plan) {
     plan.alreadySubscribed = false;
-    _.remove(this.selectedPlans, { id: plan.id });
-    const index = _.findIndex(this.selectedAPIs, { id: api.id });
+    remove(this.selectedPlans, { id: plan.id });
+    const index = findIndex(this.selectedAPIs, { id: api.id });
     this.selectedAPIs.splice(index, 1);
   }
 
   getReadableApiSubscriptions(): string {
-    const plansByApi = _.groupBy(this.selectedPlans, 'api');
-    const multipleApis = _.keys(plansByApi).length > 1;
+    const plansByApi = groupBy(this.selectedPlans, 'api');
+    const multipleApis = keys(plansByApi).length > 1;
     return (
       `Subscribed to API${multipleApis ? 's:' : ''} ` +
-      _.map(plansByApi, (plans, api) => {
+      map(plansByApi, (plans, api) => {
         return (
           `${multipleApis ? '</br>- <code>' : '<code>'} ` +
-          _.find(this.selectedAPIs, (a) => a.id === api).name +
+          find(this.selectedAPIs, (a) => a.id === api).name +
           '</code> with plan <code>' +
-          _.join(_.map(plans, 'name'), '</code>, ') +
+          join(map(plans, 'name'), '</code>, ') +
           '</code>'
         );
       }) +
@@ -154,7 +154,7 @@ class ApplicationCreationController {
 
   shouldPromptForKeyMode(): boolean {
     const apiKeyPlans = this.selectedPlans.filter((plan) => plan.security === PlanSecurityType.API_KEY);
-    const uniqueApiKeyPlans = _.uniqBy(apiKeyPlans, 'api');
+    const uniqueApiKeyPlans = uniqBy(apiKeyPlans, 'api');
     return this.allowsSharedApiKeys && uniqueApiKeyPlans.length === apiKeyPlans.length && apiKeyPlans.length > 1;
   }
 
@@ -162,7 +162,7 @@ class ApplicationCreationController {
     const dialog = {
       controller: 'ApiKeyModeChoiceDialogController',
       controllerAs: '$ctrl',
-      template: require('/src/components/dialog/apiKeyMode/api-key-mode-choice.dialog.html'),
+      template: require('html-loader!/src/components/dialog/apiKeyMode/api-key-mode-choice.dialog.html'),
       clickOutsideToClose: true,
     };
     return this.$mdDialog.show(dialog);

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import * as _ from 'lodash';
 import { ActivatedRoute, Params } from '@angular/router';
+import { clone, forEach, startsWith } from 'lodash';
 
 export class LogsQuery {
   from: number;
@@ -40,7 +40,7 @@ class AnalyticsService {
   analytics(request) {
     let url = `${this.Constants.env.baseURL}/platform/analytics` + '?';
     const keys = Object.keys(request);
-    _.forEach(keys, (key) => {
+    forEach(keys, (key) => {
       const val = request[key];
       if (val !== undefined) {
         url += key + '=' + val + '&';
@@ -127,7 +127,7 @@ class AnalyticsService {
    */
   private buildURLWithQuery(query: LogsQuery, url) {
     const keys = Object.keys(query);
-    _.forEach(keys, (key) => {
+    forEach(keys, (key) => {
       const val = query[key];
       if (val !== undefined && val !== '') {
         url += key + '=' + val + '&';
@@ -137,8 +137,8 @@ class AnalyticsService {
   }
 
   private cloneQuery(query: LogsQuery) {
-    const clonedQuery = _.clone(query);
-    if (_.startsWith(clonedQuery.field, '-')) {
+    const clonedQuery = clone(query);
+    if (startsWith(clonedQuery.field, '-')) {
       clonedQuery.order = false;
       clonedQuery.field = clonedQuery.field.substring(1);
     } else {

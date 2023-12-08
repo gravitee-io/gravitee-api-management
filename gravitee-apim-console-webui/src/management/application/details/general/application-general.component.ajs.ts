@@ -21,7 +21,7 @@ const ApplicationGeneralComponentAjs: ng.IComponentOptions = {
     activatedRoute: '<',
   },
   controller: 'ApplicationGeneralController',
-  template: require('./application-general.html'),
+  template: require('html-loader!./application-general.html'),
 };
 
 export default ApplicationGeneralComponentAjs;

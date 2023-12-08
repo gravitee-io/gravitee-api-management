@@ -17,8 +17,8 @@ import { Component, Input } from '@angular/core';
 
 @Component({
   selector: 'body-accordion',
-  template: require('./body-accordion.component.html'),
-  styles: [require('./body-accordion.component.scss')],
+  templateUrl: './body-accordion.component.html',
+  styleUrls: ['./body-accordion.component.scss'],
 })
 export class BodyAccordionComponent {
   @Input() body: string;

@@ -18,7 +18,7 @@ const PlatformLogsComponentAjs: ng.IComponentOptions = {
     activatedRoute: '<',
   },
   controller: 'PlatformLogsController',
-  template: require('./platform-logs.html'),
+  template: require('html-loader!./platform-logs.html'),
 };
 
 export default PlatformLogsComponentAjs;

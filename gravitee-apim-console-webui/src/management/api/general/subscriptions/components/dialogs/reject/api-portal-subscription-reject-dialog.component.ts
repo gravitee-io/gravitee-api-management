@@ -15,25 +15,25 @@
  */
 import { Component, OnInit } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
-import { FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 
 export interface ApiPortalSubscriptionRejectDialogResult {
   reason?: string;
 }
 @Component({
   selector: 'api-portal-subscription-reject-dialog',
-  template: require('./api-portal-subscription-reject-dialog.component.html'),
-  styles: [require('./api-portal-subscription-reject-dialog.component.scss')],
+  templateUrl: './api-portal-subscription-reject-dialog.component.html',
+  styleUrls: ['./api-portal-subscription-reject-dialog.component.scss'],
 })
 export class ApiPortalSubscriptionRejectDialogComponent implements OnInit {
-  form: FormGroup;
+  form: UntypedFormGroup;
   constructor(
     private readonly dialogRef: MatDialogRef<ApiPortalSubscriptionRejectDialogComponent, ApiPortalSubscriptionRejectDialogResult>,
   ) {}
 
   ngOnInit() {
-    this.form = new FormGroup({
-      reason: new FormControl(''),
+    this.form = new UntypedFormGroup({
+      reason: new UntypedFormControl(''),
     });
   }
 

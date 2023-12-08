@@ -13,23 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import 'zone.js';
-import 'reflect-metadata';
-import '@angular/compiler';
-
 import * as angular from 'angular';
-import * as _ from 'lodash';
-import './index.scss';
+
 import './app.module.ajs';
 import { enableProdMode } from '@angular/core';
 import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
 import { loadDefaultTranslations } from '@gravitee/ui-components/src/lib/i18n';
 import { computeStyles, LicenseConfiguration } from '@gravitee/ui-particles-angular';
+import { toLower, toUpper } from 'lodash';
 
 import { AppModule } from './app.module';
 import { Constants } from './entities/Constants';
 import { getFeatureInfoData } from './shared/components/gio-license/gio-license-data';
 import { ConsoleCustomization } from './entities/management-api-v2/consoleCustomization';
+import { environment } from './environments/environment';
 
 const requestConfig: RequestInit = {
   headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
@@ -37,7 +34,7 @@ const requestConfig: RequestInit = {
 };
 
 // fix angular-schema-form angular<1.7
-Object.assign(angular, { lowercase: _.toLower, uppercase: _.toUpper });
+Object.assign(angular, { lowercase: toLower, uppercase: toUpper });
 
 fetchData().then(({ constants, build }) => {
   initComponents();
@@ -60,8 +57,11 @@ function fetchData(): Promise<{ constants: Constants; build: any }> {
     fetch('constants.json', requestConfig).then((r) => r.json()),
   ])
     .then(([buildResponse, constantsResponse]) => {
-      const baseURL = sanitizeBaseURLs(constantsResponse);
-      const enforcedOrganizationId = getEnforcedOrganizationId(constantsResponse);
+      const baseURL = sanitizeBaseURLs(constantsResponse.baseURL);
+      const enforcedOrganizationId = getEnforcedOrganizationId({
+        baseURL,
+        organizationId: constantsResponse.organizationId,
+      });
       return fetch(
         enforcedOrganizationId ? `${baseURL}/v2/ui/bootstrap?organizationId=${enforcedOrganizationId}` : `${baseURL}/v2/ui/bootstrap`,
         requestConfig,
@@ -70,7 +70,7 @@ function fetchData(): Promise<{ constants: Constants; build: any }> {
         .then((bootstrapResponse: { baseURL: string; organizationId: string }) => ({
           bootstrapResponse,
           build: buildResponse,
-          production: constantsResponse.production,
+          production: environment.production,
         }));
     })
     .then(({ bootstrapResponse, build, production }) => {
@@ -103,10 +103,10 @@ function fetchData(): Promise<{ constants: Constants; build: any }> {
     });
 }
 
-function sanitizeBaseURLs(constants): string {
-  let baseURL = constants.baseURL;
-  if (constants.baseURL.endsWith('/')) {
-    baseURL = constants.baseURL.slice(0, -1);
+function sanitizeBaseURLs(baseURLToSanitize: string): string {
+  let baseURL = baseURLToSanitize;
+  if (baseURLToSanitize.endsWith('/')) {
+    baseURL = baseURLToSanitize.slice(0, -1);
   }
   const orgIndex = baseURL.indexOf('/organizations');
   if (orgIndex >= 0) {

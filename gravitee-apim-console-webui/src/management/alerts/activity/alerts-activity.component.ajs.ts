@@ -41,7 +41,7 @@ const AlertsActivityComponentAjs: ng.IComponentOptions = {
     activatedRoute: '<',
   },
   controller: AlertsActivityController,
-  template: require('./alerts-activity.html'),
+  template: require('html-loader!./alerts-activity.html'),
 };
 
 export default AlertsActivityComponentAjs;

@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 import * as angular from 'angular';
-import * as _ from 'lodash';
+
 import { ActivatedRoute, Router } from '@angular/router';
+import { filter, find, findIndex, forEach, keyBy, pick } from 'lodash';
 
 import ApplicationService from '../../../../services/application.service';
 import GroupService from '../../../../services/group.service';
@@ -51,27 +52,27 @@ class ApplicationMembersController {
   ) {
     RoleService.list('APPLICATION').then((roles) => {
       this.roles = roles;
-      this.newPORoles = _.filter(roles, (role: any) => {
+      this.newPORoles = filter(roles, (role: any) => {
         return role.name !== 'PRIMARY_OWNER';
       });
-      this.newPORole = _.find(roles, (role: any) => {
+      this.newPORole = find(roles, (role: any) => {
         return role.default;
       });
     });
   }
 
   $onInit() {
-    this.groupById = _.keyBy(this.resolvedGroups, 'id');
+    this.groupById = keyBy(this.resolvedGroups, 'id');
     this.displayGroups = {};
-    _.forEach(this.resolvedGroups, (grp) => {
+    forEach(this.resolvedGroups, (grp) => {
       this.displayGroups[grp.id] = false;
     });
     this.groupMembers = {};
     this.groupIdsWithMembers = [];
     if (this.application.groups) {
-      _.forEach(this.application.groups, (grp) => {
+      forEach(this.application.groups, (grp) => {
         this.GroupService.getMembers(grp).then((members) => {
-          const filteredMembers = _.filter(members.data, (m: any) => {
+          const filteredMembers = filter(members.data, (m: any) => {
             return m.roles.APPLICATION;
           });
           if (filteredMembers.length > 0) {
@@ -85,20 +86,20 @@ class ApplicationMembersController {
     this.userFilterFn = (user: any) => {
       return (
         user.id === undefined ||
-        _.findIndex(this.members, (member: any) => {
+        findIndex(this.members, (member: any) => {
           return member.id === user.id && member.role === 'PRIMARY_OWNER';
         }) === -1
       );
     };
 
-    this.defaultUsersList = _.filter(this.members, (member: any) => {
+    this.defaultUsersList = filter(this.members, (member: any) => {
       return member.role !== 'PRIMARY_OWNER';
     });
   }
 
   updateMember(member) {
     if (member.role) {
-      this.ApplicationService.addOrUpdateMember(this.application.id, _.pick(member, ['id', 'reference', 'role']) as any).then(() => {
+      this.ApplicationService.addOrUpdateMember(this.application.id, pick(member, ['id', 'reference', 'role']) as any).then(() => {
         this.NotificationService.show(`Member ${member.displayName} has been updated with role ${member.role}`);
       });
     }
@@ -118,7 +119,7 @@ class ApplicationMembersController {
       .show({
         controller: 'DialogConfirmController',
         controllerAs: 'ctrl',
-        template: require('../../../../components/dialog/confirm.dialog.html'),
+        template: require('html-loader!../../../../components/dialog/confirm.dialog.html'),
         clickOutsideToClose: true,
         locals: {
           title: 'Would you like to remove the member?',
@@ -137,7 +138,7 @@ class ApplicationMembersController {
     this.$mdDialog
       .show({
         controller: 'DialogAddMemberController',
-        template: require('./addMember.dialog.html'),
+        template: require('html-loader!./addMember.dialog.html'),
         parent: angular.element(document.body),
         targetEvent: ev,
         clickOutsideToClose: true,
@@ -175,7 +176,7 @@ class ApplicationMembersController {
       .show({
         controller: 'DialogTransferApplicationController',
         controllerAs: '$ctrl',
-        template: require('./transferApplication.dialog.html'),
+        template: require('html-loader!./transferApplication.dialog.html'),
         parent: angular.element(document.body),
         targetEvent: ev,
         clickOutsideToClose: true,

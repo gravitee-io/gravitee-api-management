@@ -1,7 +1,5 @@
 // Import all styles of the app
-import '../src/index.scss';
 import { withDesign } from 'storybook-addon-designs';
-import '@angular/compiler';
 import { moduleMetadata } from '@storybook/angular';
 import { GioMatConfigModule } from '@gravitee/ui-particles-angular';
 

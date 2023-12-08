@@ -17,7 +17,7 @@
 import ApiHistoryControllerAjs from './apiHistory.controller.ajs';
 
 export const ApiHistoryComponentAjs = {
-  template: require('./apiHistory.html'),
+  template: require('html-loader!./apiHistory.html'),
   controller: ApiHistoryControllerAjs,
   bindings: {
     activatedRoute: '<',

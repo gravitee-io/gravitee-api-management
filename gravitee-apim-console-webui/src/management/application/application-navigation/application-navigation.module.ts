@@ -27,6 +27,5 @@ import { ApplicationNavigationTabsComponent } from './application-navigation-tab
   imports: [CommonModule, GioSubmenuModule, GioBreadcrumbModule, RouterModule, MatTabsModule, MatTooltipModule, GioIconsModule],
   declarations: [ApplicationNavigationComponent, ApplicationNavigationTabsComponent],
   exports: [ApplicationNavigationComponent],
-  entryComponents: [ApplicationNavigationComponent],
 })
 export class ApplicationNavigationModule {}

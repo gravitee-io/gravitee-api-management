@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 import { EMPTY, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
@@ -28,13 +28,13 @@ import { Proxy } from '../../../../entities/management-api-v2';
 
 @Component({
   selector: 'api-proxy-health-check',
-  template: require('./api-proxy-health-check.component.html'),
-  styles: [require('./api-proxy-health-check.component.scss')],
+  templateUrl: './api-proxy-health-check.component.html',
+  styleUrls: ['./api-proxy-health-check.component.scss'],
 })
 export class ApiProxyHealthCheckComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
-  public healthCheckForm: FormGroup;
+  public healthCheckForm: UntypedFormGroup;
 
   public isReadOnly = false;
 

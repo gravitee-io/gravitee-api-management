@@ -15,7 +15,7 @@
  */
 
 const DashboardTimeframeComponent: ng.IComponentOptions = {
-  template: require('./dashboard-timeframe.html'),
+  template: require('html-loader!./dashboard-timeframe.html'),
   controller: 'DashboardTimeframeController',
   bindings: {
     onTimeframeChange: '&',

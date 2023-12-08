@@ -15,7 +15,8 @@
  */
 
 import { IHttpResponse } from 'angular';
-import * as _ from 'lodash';
+
+import { clone, forEach, startsWith } from 'lodash';
 
 import { PagedResult } from '../entities/pagedResult';
 import { ApiKeyMode } from '../entities/application/application';
@@ -222,7 +223,7 @@ class ApplicationService {
     let url = `${this.Constants.env.baseURL}/applications/` + application + '/analytics?';
 
     const keys = Object.keys(request);
-    _.forEach(keys, (key) => {
+    forEach(keys, (key) => {
       const val = request[key];
       if (val !== undefined && val !== '') {
         url += key + '=' + val + '&';
@@ -317,7 +318,7 @@ class ApplicationService {
    */
   private buildURLWithQuery(query: LogsQuery, url) {
     const keys = Object.keys(query);
-    _.forEach(keys, (key) => {
+    forEach(keys, (key) => {
       const val = query[key];
       if (val !== undefined && val !== '') {
         url += key + '=' + val + '&';
@@ -327,8 +328,8 @@ class ApplicationService {
   }
 
   private cloneQuery(query: LogsQuery) {
-    const clonedQuery = _.clone(query);
-    if (_.startsWith(clonedQuery.field, '-')) {
+    const clonedQuery = clone(query);
+    if (startsWith(clonedQuery.field, '-')) {
       clonedQuery.order = false;
       clonedQuery.field = clonedQuery.field.substring(1);
     } else {

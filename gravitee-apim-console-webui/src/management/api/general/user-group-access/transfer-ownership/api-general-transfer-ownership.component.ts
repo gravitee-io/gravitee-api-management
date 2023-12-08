@@ -16,7 +16,7 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { combineLatest, EMPTY, Subject } from 'rxjs';
 import { filter, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { AbstractControl, FormControl, FormGroup, ValidationErrors } from '@angular/forms';
+import { AbstractControl, UntypedFormControl, UntypedFormGroup, ValidationErrors } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { isEmpty } from 'lodash';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
@@ -35,8 +35,8 @@ import { ApiTransferOwnership } from '../../../../../entities/management-api-v2/
 
 @Component({
   selector: 'api-general-transfer-ownership',
-  template: require('./api-general-transfer-ownership.component.html'),
-  styles: [require('./api-general-transfer-ownership.component.scss')],
+  templateUrl: './api-general-transfer-ownership.component.html',
+  styleUrls: ['./api-general-transfer-ownership.component.scss'],
 })
 export class ApiGeneralTransferOwnershipComponent implements OnInit {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
@@ -44,7 +44,7 @@ export class ApiGeneralTransferOwnershipComponent implements OnInit {
   mode: 'USER' | 'GROUP' | 'HYBRID';
   warnUseGroupAsPrimaryOwner = false;
 
-  form: FormGroup;
+  form: UntypedFormGroup;
 
   poGroups: Group[];
 
@@ -157,12 +157,12 @@ export class ApiGeneralTransferOwnershipComponent implements OnInit {
   }
 
   private initForm(defaultRolePO: Role) {
-    this.form = new FormGroup(
+    this.form = new UntypedFormGroup(
       {
-        userOrGroup: new FormControl(this.mode === 'GROUP' ? 'group' : 'apiMember'),
-        user: new FormControl(),
-        groupId: new FormControl(),
-        roleId: new FormControl(defaultRolePO.name),
+        userOrGroup: new UntypedFormControl(this.mode === 'GROUP' ? 'group' : 'apiMember'),
+        user: new UntypedFormControl(),
+        groupId: new UntypedFormControl(),
+        roleId: new UntypedFormControl(defaultRolePO.name),
       },
       [
         (control: AbstractControl): ValidationErrors | null => {

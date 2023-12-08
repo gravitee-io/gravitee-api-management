@@ -20,8 +20,8 @@ import { Api } from '../../../../../entities/management-api-v2';
 
 @Component({
   selector: 'api-documentation-page-title',
-  template: require('./api-documentation-v4-page-title.component.html'),
-  styles: [require('./api-documentation-v4-page-title.component.scss')],
+  templateUrl: './api-documentation-v4-page-title.component.html',
+  styleUrls: ['./api-documentation-v4-page-title.component.scss'],
 })
 export class ApiDocumentationV4PageTitleComponent implements OnInit, OnChanges {
   @Input()

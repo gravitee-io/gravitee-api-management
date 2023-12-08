@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as _ from 'lodash';
+import { indexOf } from 'lodash';
 
 export class ApplicationType {
   public name: string;
@@ -44,7 +44,7 @@ export class ApplicationType {
   }
 
   public isGrantTypeMandatory(grantType: { type }): boolean {
-    return this.mandatory_grant_types && _.indexOf(this.mandatory_grant_types, grantType.type) !== -1;
+    return this.mandatory_grant_types && indexOf(this.mandatory_grant_types, grantType.type) !== -1;
   }
 
   private getIcon() {

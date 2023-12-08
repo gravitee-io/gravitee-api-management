@@ -16,7 +16,7 @@
 
 import { ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { asyncScheduler, merge, Subject } from 'rxjs';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { filter, startWith, takeUntil, map, observeOn } from 'rxjs/operators';
 
 import {
@@ -39,114 +39,114 @@ export interface EndpointHttpConfigValue {
 
 @Component({
   selector: 'endpoint-http-config',
-  template: require('./endpoint-http-config.component.html'),
-  styles: [require('./endpoint-http-config.component.scss')],
+  templateUrl: './endpoint-http-config.component.html',
+  styleUrls: ['./endpoint-http-config.component.scss'],
 })
 export class EndpointHttpConfigComponent implements OnInit, OnDestroy {
-  public static getHttpConfigFormGroup(endpointGroup: EndpointGroupV2 | EndpointV2, isReadonly: boolean): FormGroup {
-    const httpClientOptions = new FormGroup({
-      version: new FormControl({
+  public static getHttpConfigFormGroup(endpointGroup: EndpointGroupV2 | EndpointV2, isReadonly: boolean): UntypedFormGroup {
+    const httpClientOptions = new UntypedFormGroup({
+      version: new UntypedFormControl({
         value: endpointGroup.httpClientOptions?.version ?? 'HTTP_1_1',
         disabled: isReadonly,
       }),
-      connectTimeout: new FormControl({
+      connectTimeout: new UntypedFormControl({
         value: endpointGroup.httpClientOptions?.connectTimeout ?? 5000,
         disabled: isReadonly,
       }),
-      readTimeout: new FormControl({
+      readTimeout: new UntypedFormControl({
         value: endpointGroup.httpClientOptions?.readTimeout ?? 10000,
         disabled: isReadonly,
       }),
-      idleTimeout: new FormControl({
+      idleTimeout: new UntypedFormControl({
         value: endpointGroup.httpClientOptions?.idleTimeout ?? 60000,
         disabled: isReadonly,
       }),
-      maxConcurrentConnections: new FormControl({
+      maxConcurrentConnections: new UntypedFormControl({
         value: endpointGroup.httpClientOptions?.maxConcurrentConnections ?? 100,
         disabled: isReadonly,
       }),
-      keepAlive: new FormControl({
+      keepAlive: new UntypedFormControl({
         value: endpointGroup.httpClientOptions?.keepAlive ?? true,
         disabled: isReadonly,
       }),
-      pipelining: new FormControl({
+      pipelining: new UntypedFormControl({
         value: endpointGroup.httpClientOptions?.pipelining,
         disabled: isReadonly,
       }),
-      useCompression: new FormControl({
+      useCompression: new UntypedFormControl({
         value: endpointGroup.httpClientOptions?.useCompression ?? true,
         disabled: isReadonly,
       }),
-      followRedirects: new FormControl({
+      followRedirects: new UntypedFormControl({
         value: endpointGroup.httpClientOptions?.followRedirects,
         disabled: isReadonly,
       }),
-      propagateClientAcceptEncoding: new FormControl({
+      propagateClientAcceptEncoding: new UntypedFormControl({
         value: endpointGroup.httpClientOptions?.propagateClientAcceptEncoding,
         disabled: isReadonly,
       }),
-      clearTextUpgrade: new FormControl({
+      clearTextUpgrade: new UntypedFormControl({
         value: endpointGroup.httpClientOptions?.clearTextUpgrade,
         disabled: isReadonly,
       }),
     });
 
-    const httpProxy = new FormGroup({
-      enabled: new FormControl({
+    const httpProxy = new UntypedFormGroup({
+      enabled: new UntypedFormControl({
         value: endpointGroup.httpProxy?.enabled ?? false,
         disabled: isReadonly,
       }),
-      useSystemProxy: new FormControl({
+      useSystemProxy: new UntypedFormControl({
         value: endpointGroup.httpProxy?.useSystemProxy,
         disabled: isReadonly,
       }),
-      host: new FormControl(
+      host: new UntypedFormControl(
         {
           value: endpointGroup.httpProxy?.host,
           disabled: isReadonly,
         },
         Validators.required,
       ),
-      port: new FormControl(
+      port: new UntypedFormControl(
         {
           value: endpointGroup.httpProxy?.port,
           disabled: isReadonly,
         },
         Validators.required,
       ),
-      type: new FormControl({ value: endpointGroup.httpProxy?.type ?? 'HTTP', disabled: isReadonly }, Validators.required),
-      username: new FormControl({
+      type: new UntypedFormControl({ value: endpointGroup.httpProxy?.type ?? 'HTTP', disabled: isReadonly }, Validators.required),
+      username: new UntypedFormControl({
         value: endpointGroup.httpProxy?.username,
         disabled: isReadonly,
       }),
-      password: new FormControl({
+      password: new UntypedFormControl({
         value: endpointGroup.httpProxy?.password,
         disabled: isReadonly,
       }),
     });
 
-    const httpClientSslOptions = new FormGroup({
-      hostnameVerifier: new FormControl({
+    const httpClientSslOptions = new UntypedFormGroup({
+      hostnameVerifier: new UntypedFormControl({
         value: endpointGroup.httpClientSslOptions?.hostnameVerifier,
         disabled: isReadonly,
       }),
-      trustAll: new FormControl({
+      trustAll: new UntypedFormControl({
         value: endpointGroup.httpClientSslOptions?.trustAll,
         disabled: isReadonly,
       }),
-      trustStore: new FormControl({
+      trustStore: new UntypedFormControl({
         value: endpointGroup.httpClientSslOptions?.trustStore,
         disabled: isReadonly,
       }),
-      keyStore: new FormControl({
+      keyStore: new UntypedFormControl({
         value: endpointGroup.httpClientSslOptions?.keyStore,
         disabled: isReadonly,
       }),
     });
 
-    return new FormGroup({
+    return new UntypedFormGroup({
       httpClientOptions,
-      headers: new FormControl({
+      headers: new UntypedFormControl({
         value: endpointGroup.headers ?? [],
         disabled: isReadonly,
       }),
@@ -155,12 +155,12 @@ export class EndpointHttpConfigComponent implements OnInit, OnDestroy {
     });
   }
 
-  public static getHttpConfigValue(httpConfigFormGroup: FormGroup): EndpointHttpConfigValue {
+  public static getHttpConfigValue(httpConfigFormGroup: UntypedFormGroup): EndpointHttpConfigValue {
     return httpConfigFormGroup.getRawValue();
   }
 
   @Input()
-  public httpConfigFormGroup: FormGroup;
+  public httpConfigFormGroup: UntypedFormGroup;
 
   public httpVersions: { label: string; value: ProtocolVersion }[] = [
     {
@@ -239,7 +239,7 @@ export class EndpointHttpConfigComponent implements OnInit, OnDestroy {
         }
       });
 
-    const httpProxy = this.httpConfigFormGroup.get('httpProxy') as FormGroup;
+    const httpProxy = this.httpConfigFormGroup.get('httpProxy') as UntypedFormGroup;
 
     merge(httpProxy.get('enabled').valueChanges, httpProxy.get('useSystemProxy').valueChanges)
       .pipe(

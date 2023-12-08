@@ -34,8 +34,8 @@ type ResponseDisplayableVM = {
 
 @Component({
   selector: 'policy-studio-debug-response',
-  template: require('./policy-studio-debug-response.component.html'),
-  styles: [require('./policy-studio-debug-response.component.scss')],
+  templateUrl: './policy-studio-debug-response.component.html',
+  styleUrls: ['./policy-studio-debug-response.component.scss'],
 })
 export class PolicyStudioDebugResponseComponent implements OnChanges {
   @Input()
@@ -74,7 +74,7 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
 
   onSelectTimelineStepOverview(timelineStep: TimelineStep) {
     const elementList = document.getElementById('card_' + timelineStep.id);
-    elementList.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+    elementList?.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
 
     this.onSelectTimelineStep(timelineStep);
   }

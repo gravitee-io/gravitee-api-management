@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { combineLatest, EMPTY, Observable, Subject } from 'rxjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService, LicenseOptions } from '@gravitee/ui-particles-angular';
@@ -38,11 +38,11 @@ export type ProvidersTableDS = {
 
 @Component({
   selector: 'client-registration-providers',
-  template: require('./client-registration-providers.component.html'),
-  styles: [require('./client-registration-providers.component.scss')],
+  templateUrl: './client-registration-providers.component.html',
+  styleUrls: ['./client-registration-providers.component.scss'],
 })
 export class ClientRegistrationProvidersComponent implements OnInit, OnDestroy {
-  applicationForm: FormGroup;
+  applicationForm: UntypedFormGroup;
   providersTableDS: ProvidersTableDS[] = [];
   displayedColumns = ['name', 'description', 'updatedAt', 'actions'];
   isLoadingData = true;
@@ -129,40 +129,40 @@ export class ClientRegistrationProvidersComponent implements OnInit, OnDestroy {
   }
 
   initApplicationForm(application: PortalSettingsApplication) {
-    this.applicationForm = new FormGroup({
-      registration: new FormGroup({
-        enabled: new FormControl({
+    this.applicationForm = new UntypedFormGroup({
+      registration: new UntypedFormGroup({
+        enabled: new UntypedFormControl({
           value: application.registration.enabled,
           disabled: this.isReadonly(`application.registration.enabled`) || !this.canUpdateSettings,
         }),
       }),
-      types: new FormGroup({
-        simple: new FormGroup({
-          enabled: new FormControl({
+      types: new UntypedFormGroup({
+        simple: new UntypedFormGroup({
+          enabled: new UntypedFormControl({
             value: application.types.simple.enabled,
             disabled: this.isReadonly(`application.types.simple.enabled`) || !this.canUpdateSettings,
           }),
         }),
-        browser: new FormGroup({
-          enabled: new FormControl({
+        browser: new UntypedFormGroup({
+          enabled: new UntypedFormControl({
             value: application.types.browser.enabled,
             disabled: this.isReadonly(`application.types.browser.enabled`) || !this.canUpdateSettings,
           }),
         }),
-        web: new FormGroup({
-          enabled: new FormControl({
+        web: new UntypedFormGroup({
+          enabled: new UntypedFormControl({
             value: application.types.web.enabled,
             disabled: this.isReadonly(`application.types.web.enabled`) || !this.canUpdateSettings,
           }),
         }),
-        native: new FormGroup({
-          enabled: new FormControl({
+        native: new UntypedFormGroup({
+          enabled: new UntypedFormControl({
             value: application.types.native.enabled,
             disabled: this.isReadonly(`application.types.native.enabled`) || !this.canUpdateSettings,
           }),
         }),
-        backend_to_backend: new FormGroup({
-          enabled: new FormControl({
+        backend_to_backend: new UntypedFormGroup({
+          enabled: new UntypedFormControl({
             value: application.types.backend_to_backend.enabled,
             disabled: this.isReadonly(`application.types.backend_to_backend.enabled`) || !this.canUpdateSettings,
           }),

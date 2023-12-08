@@ -69,7 +69,7 @@ describe('ApiNavigationComponent', () => {
     });
 
     describe('Banners', () => {
-      it('should display "Out of sync" banner', async (done) => {
+      it('should display "Out of sync" banner', (done) => {
         apiNgNavigationComponent.banners$.subscribe((banners) => {
           expect(banners).toEqual([
             {
@@ -92,7 +92,7 @@ describe('ApiNavigationComponent', () => {
             }),
           );
       });
-      it('should display "API version out-of-date" banner', async (done) => {
+      it('should display "API version out-of-date" banner', (done) => {
         apiNgNavigationComponent.banners$.subscribe((banners) => {
           expect(banners.length).toEqual(1);
           expect(banners[0]).toMatchObject({

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { FormArray, FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormArray, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { cloneDeep, isEmpty } from 'lodash';
 import { combineLatest, EMPTY, Observable, Subject } from 'rxjs';
 import { catchError, distinctUntilChanged, shareReplay, takeUntil, tap } from 'rxjs/operators';
@@ -32,17 +32,17 @@ import { ApimFeature } from '../../../shared/components/gio-license/gio-license-
 
 export interface ProviderConfiguration {
   name: string;
-  getFormGroups(): Record<string, FormGroup>;
+  getFormGroups(): Record<string, UntypedFormGroup>;
 }
 @Component({
   selector: 'org-settings-identity-provider',
-  styles: [require('./org-settings-identity-provider.component.scss')],
-  template: require('./org-settings-identity-provider.component.html'),
+  styleUrls: ['./org-settings-identity-provider.component.scss'],
+  templateUrl: './org-settings-identity-provider.component.html',
 })
 export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
   isLoading = true;
 
-  identityProviderFormGroup: FormGroup;
+  identityProviderFormGroup: UntypedFormGroup;
 
   mode: 'new' | 'edit' = 'new';
 
@@ -93,13 +93,13 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.hasOpenidConnectSsoLock$ = this.licenseService.isMissingFeature$(this.openidConnectSsoLicenseOptions);
-    this.identityProviderFormGroup = new FormGroup({
-      type: new FormControl(),
-      enabled: new FormControl(true),
-      name: new FormControl(null, [Validators.required, Validators.maxLength(50), Validators.minLength(2)]),
-      description: new FormControl(),
-      emailRequired: new FormControl(true),
-      syncMappings: new FormControl(false),
+    this.identityProviderFormGroup = new UntypedFormGroup({
+      type: new UntypedFormControl(),
+      enabled: new UntypedFormControl(true),
+      name: new UntypedFormControl(null, [Validators.required, Validators.maxLength(50), Validators.minLength(2)]),
+      description: new UntypedFormControl(),
+      emailRequired: new UntypedFormControl(true),
+      syncMappings: new UntypedFormControl(false),
     });
 
     this.identityProviderFormGroup
@@ -119,11 +119,11 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
             this.identityProviderType = identityProvider.type;
             this.initialIdentityProviderValue = cloneDeep(identityProvider);
 
-            this.identityProviderFormGroup.addControl('groupMappings', new FormArray([]), { emitEvent: false });
+            this.identityProviderFormGroup.addControl('groupMappings', new UntypedFormArray([]), { emitEvent: false });
             identityProvider.groupMappings.forEach((groupMapping) => this.addGroupMappingToIdentityProviderFormGroup(groupMapping, false));
 
             this.allEnvironments = environments;
-            this.identityProviderFormGroup.addControl('roleMappings', new FormArray([]), { emitEvent: false });
+            this.identityProviderFormGroup.addControl('roleMappings', new UntypedFormArray([]), { emitEvent: false });
             identityProvider.roleMappings.forEach((roleMapping) => this.addRoleMappingToIdentityProviderFormGroup(roleMapping, false));
 
             this.isLoading = false;
@@ -143,7 +143,7 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
     this.unsubscribe$.unsubscribe();
   }
 
-  addProviderFormGroups(formGroups: Record<string, FormGroup>) {
+  addProviderFormGroups(formGroups: Record<string, UntypedFormGroup>) {
     if (this.isLoading) {
       return;
     }
@@ -208,11 +208,11 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
   }
 
   addGroupMappingToIdentityProviderFormGroup(groupMapping?: GroupMapping, emitEvent = true) {
-    const groupMappings = this.identityProviderFormGroup.get('groupMappings') as FormArray;
+    const groupMappings = this.identityProviderFormGroup.get('groupMappings') as UntypedFormArray;
     groupMappings.push(
-      new FormGroup({
-        condition: new FormControl(groupMapping?.condition ?? null, [Validators.required]),
-        groups: new FormControl(groupMapping?.groups ?? [], [Validators.required]),
+      new UntypedFormGroup({
+        condition: new UntypedFormControl(groupMapping?.condition ?? null, [Validators.required]),
+        groups: new UntypedFormControl(groupMapping?.groups ?? [], [Validators.required]),
       }),
       { emitEvent },
     );
@@ -222,23 +222,23 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
   }
 
   removeGroupMappingFromIdentityProviderFormGroup(index: number) {
-    const groupMappings = this.identityProviderFormGroup.get('groupMappings') as FormArray;
+    const groupMappings = this.identityProviderFormGroup.get('groupMappings') as UntypedFormArray;
     groupMappings.removeAt(index);
     this.identityProviderFormGroup.markAsDirty();
   }
 
   addRoleMappingToIdentityProviderFormGroup(roleMapping?: RoleMapping, emitEvent = true) {
-    const roleMappings = this.identityProviderFormGroup.get('roleMappings') as FormArray;
+    const roleMappings = this.identityProviderFormGroup.get('roleMappings') as UntypedFormArray;
     roleMappings.push(
-      new FormGroup({
-        condition: new FormControl(roleMapping?.condition ?? null, [Validators.required]),
-        organizations: new FormControl(roleMapping?.organizations ?? [], [Validators.required]),
+      new UntypedFormGroup({
+        condition: new UntypedFormControl(roleMapping?.condition ?? null, [Validators.required]),
+        organizations: new UntypedFormControl(roleMapping?.organizations ?? [], [Validators.required]),
         // new form group with environment.id as key and Environment[] as FormControl
-        environments: new FormGroup({
+        environments: new UntypedFormGroup({
           ...this.allEnvironments.reduce(
             (prev, environment) => ({
               ...prev,
-              [environment.id]: new FormControl(roleMapping?.environments[environment.id] ?? [], [Validators.required]),
+              [environment.id]: new UntypedFormControl(roleMapping?.environments[environment.id] ?? [], [Validators.required]),
             }),
             {},
           ),
@@ -252,13 +252,13 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
   }
 
   removeRoleMappingFromIdentityProviderFormGroup(index: number) {
-    const groupMappings = this.identityProviderFormGroup.get('roleMappings') as FormArray;
+    const groupMappings = this.identityProviderFormGroup.get('roleMappings') as UntypedFormArray;
     groupMappings.removeAt(index);
     this.identityProviderFormGroup.markAsDirty();
   }
 
   onFormReset() {
-    const groupMappings = this.identityProviderFormGroup.get('groupMappings') as FormArray;
+    const groupMappings = this.identityProviderFormGroup.get('groupMappings') as UntypedFormArray;
     groupMappings.clear();
     this.initialIdentityProviderValue.groupMappings.forEach((groupMapping) =>
       this.addGroupMappingToIdentityProviderFormGroup(groupMapping, false),

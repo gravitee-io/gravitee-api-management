@@ -30,8 +30,8 @@ type EventsTableDS = {
 
 @Component({
   selector: 'api-events',
-  template: require('./api-events.component.html'),
-  styles: [require('./api-events.component.scss')],
+  templateUrl: './api-events.component.html',
+  styleUrls: ['./api-events.component.scss'],
 })
 export class ApiEventsComponent implements OnInit, OnDestroy {
   public displayedColumns = ['icon', 'type', 'createdAt', 'user'];

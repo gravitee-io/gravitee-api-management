@@ -49,7 +49,7 @@ const ApplicationLogComponentAjs: ng.IComponentOptions = {
       }
     },
   ],
-  template: require('./application-log.html'),
+  template: require('html-loader!./application-log.html'),
 };
 
 export default ApplicationLogComponentAjs;

@@ -16,7 +16,7 @@
 import { Component, OnInit } from '@angular/core';
 import { EMPTY, forkJoin, of, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { GioJsonSchema } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -29,8 +29,8 @@ import { IconService } from '../../../../services-ngx/icon.service';
 type DlqElement = { name: string; type: string; icon: string };
 @Component({
   selector: 'api-entrypoints-v4-edit',
-  template: require('./api-entrypoints-v4-edit.component.html'),
-  styles: [require('./api-entrypoints-v4-edit.component.scss')],
+  templateUrl: './api-entrypoints-v4-edit.component.html',
+  styleUrls: ['./api-entrypoints-v4-edit.component.scss'],
 })
 export class ApiEntrypointsV4EditComponent implements OnInit {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
@@ -40,7 +40,7 @@ export class ApiEntrypointsV4EditComponent implements OnInit {
   private api: ApiV4;
   private availableEntrypoints: ConnectorPlugin[];
   private listener: Listener;
-  public form: FormGroup;
+  public form: UntypedFormGroup;
   public entrypoint: Entrypoint;
   public entrypointName: string;
   public entrypointSchema: GioJsonSchema;
@@ -98,17 +98,17 @@ export class ApiEntrypointsV4EditComponent implements OnInit {
         }),
         switchMap((_) => (this.supportDlq ? this.connectorPluginsV2Service.listEndpointPlugins() : of(null))),
         tap((plugins: ConnectorPlugin[] | null) => {
-          this.form = new FormGroup({});
-          this.form.addControl(`${this.entrypoint.type}-config`, new FormControl(this.entrypoint.configuration));
-          this.form.addControl(`${this.entrypoint.type}-qos`, new FormControl(this.entrypoint.qos));
+          this.form = new UntypedFormGroup({});
+          this.form.addControl(`${this.entrypoint.type}-config`, new UntypedFormControl(this.entrypoint.configuration));
+          this.form.addControl(`${this.entrypoint.type}-qos`, new UntypedFormControl(this.entrypoint.qos));
 
           if (this.supportDlq && plugins) {
             this.dlqElements = this.getEligibleApiEndpointsAndEndpointGroupsForDlq(plugins);
 
-            this.form.addControl('enabledDlq', new FormControl(this.enabledDlq));
+            this.form.addControl('enabledDlq', new UntypedFormControl(this.enabledDlq));
             if (this.enabledDlq) {
               const selectedDlqElement = this.findSelectedElement(this.dlqElements, this.entrypoint.dlq?.endpoint);
-              this.form.addControl('dlqElement', new FormControl(selectedDlqElement, Validators.required));
+              this.form.addControl('dlqElement', new UntypedFormControl(selectedDlqElement, Validators.required));
             }
 
             this.handleEnabledChanges();
@@ -170,7 +170,7 @@ export class ApiEntrypointsV4EditComponent implements OnInit {
       .subscribe((value) => {
         this.enabledDlq = value;
         if (this.enabledDlq) {
-          this.form.addControl('dlqElement', new FormControl(null, Validators.required));
+          this.form.addControl('dlqElement', new UntypedFormControl(null, Validators.required));
         } else {
           this.form.removeControl('dlqElement');
         }

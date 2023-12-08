@@ -19,7 +19,7 @@ const ApiCreationStep3Component: ng.IComponentOptions = {
   require: {
     parent: '^apiCreationV2ComponentAjs',
   },
-  template: require('./api-creation-step3.html'),
+  template: require('html-loader!./api-creation-step3.html'),
   controller: class {
     public shouldDisplayHint = shouldDisplayHint;
   },

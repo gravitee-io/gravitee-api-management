@@ -15,7 +15,7 @@
  */
 
 import { Component, Inject, OnDestroy } from '@angular/core';
-import { FormControl, Validators } from '@angular/forms';
+import { UntypedFormControl, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { combineLatest, EMPTY, Subject } from 'rxjs';
 import { catchError, map, takeUntil, tap } from 'rxjs/operators';
@@ -32,8 +32,8 @@ export type ApiPortalDetailsPromoteDialogData = {
 
 @Component({
   selector: 'api-general-info-promote-dialog',
-  template: require('./api-general-info-promote-dialog.component.html'),
-  styles: [require('./api-general-info-promote-dialog.component.scss')],
+  templateUrl: './api-general-info-promote-dialog.component.html',
+  styleUrls: ['./api-general-info-promote-dialog.component.scss'],
 })
 export class ApiGeneralInfoPromoteDialogComponent implements OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
@@ -49,7 +49,7 @@ export class ApiGeneralInfoPromoteDialogComponent implements OnDestroy {
   public hasPromotionInProgress = false;
   public cockpitURL: string;
 
-  public promoteControl = new FormControl('', [Validators.required]);
+  public promoteControl = new UntypedFormControl('', [Validators.required]);
 
   constructor(
     private readonly dialogRef: MatDialogRef<ApiPortalDetailsPromoteDialogData>,

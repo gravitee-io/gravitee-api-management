@@ -22,7 +22,7 @@ const ApiCreationStep1Component: ng.IComponentOptions = {
   require: {
     parent: '^apiCreationV2ComponentAjs',
   },
-  template: require('./api-creation-step1.html'),
+  template: require('html-loader!./api-creation-step1.html'),
   controller: [
     'ApiPrimaryOwnerModeService',
     class {

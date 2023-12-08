@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 import angular from 'angular';
-import * as _ from 'lodash';
+
 import { Router } from '@angular/router';
+import { cloneDeep, every, forEach, isEqual, merge } from 'lodash';
 
 import DashboardService from '../../../../services/dashboard.service';
 import NotificationService from '../../../../services/notification.service';
 const SettingsAnalyticsDashboardComponentAjs: ng.IComponentOptions = {
-  template: require('./settings-analytics-dashboard.html'),
+  template: require('html-loader!./settings-analytics-dashboard.html'),
   controller: [
     'DashboardService',
     'NotificationService',
@@ -50,14 +51,14 @@ const SettingsAnalyticsDashboardComponentAjs: ng.IComponentOptions = {
             this.dashboard = response.data;
             if (this.dashboard.definition) {
               this.dashboard.definition = JSON.parse(this.dashboard.definition);
-              _.forEach(this.dashboard.definition, (widget) => {
-                _.merge(widget, DashboardService.getChartService());
+              forEach(this.dashboard.definition, (widget) => {
+                merge(widget, DashboardService.getChartService());
               });
             }
             $scope.$watch(
               '$ctrl.dashboard.definition',
               (newDefinition, oldDefinition) => {
-                if (!_.isEqual(newDefinition, oldDefinition)) {
+                if (!isEqual(newDefinition, oldDefinition)) {
                   this.formDashboard.$setDirty();
                 }
               },
@@ -76,9 +77,9 @@ const SettingsAnalyticsDashboardComponentAjs: ng.IComponentOptions = {
 
       this.save = () => {
         let savePromise;
-        const clonedDashboard = _.cloneDeep(this.dashboard);
+        const clonedDashboard = cloneDeep(this.dashboard);
         if (clonedDashboard.definition) {
-          _.forEach(clonedDashboard.definition, (widget) => {
+          forEach(clonedDashboard.definition, (widget) => {
             if (widget.chart) {
               if (widget.chart.service) {
                 delete widget.chart.service;
@@ -110,7 +111,7 @@ const SettingsAnalyticsDashboardComponentAjs: ng.IComponentOptions = {
 
       this.displayPreview = () => {
         if (this.dashboard && this.dashboard.definition && this.dashboard.definition.length) {
-          return _.every(this.dashboard.definition, (definition) => {
+          return every(this.dashboard.definition, (definition) => {
             return definition.chart.type;
           });
         }
@@ -125,7 +126,7 @@ const SettingsAnalyticsDashboardComponentAjs: ng.IComponentOptions = {
         $mdDialog.show({
           controller: 'DialogQueryFilterInformationController',
           controllerAs: 'ctrl',
-          template: require('./query-filter-information.dialog.html'),
+          template: require('html-loader!./query-filter-information.dialog.html'),
           parent: angular.element(document.body),
           clickOutsideToClose: true,
         });

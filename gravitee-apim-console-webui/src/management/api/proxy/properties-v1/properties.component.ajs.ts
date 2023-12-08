@@ -17,7 +17,7 @@
 import ApiV1PropertiesControllerAjs from './properties.controller.ajs';
 
 export const ApiV1PropertiesComponentAjs = {
-  template: require('./properties.html'),
+  template: require('html-loader!./properties.html'),
   controller: ApiV1PropertiesControllerAjs,
   bindings: {
     resolvedApi: '<',

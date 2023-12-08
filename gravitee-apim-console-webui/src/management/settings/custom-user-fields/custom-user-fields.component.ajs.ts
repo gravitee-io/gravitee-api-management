@@ -18,7 +18,7 @@ const CustomUserFieldsComponentAjs: ng.IComponentOptions = {
     activatedRoute: '<',
   },
   controller: 'CustomUserFieldsController',
-  template: require('./custom-user-fields.html'),
+  template: require('html-loader!./custom-user-fields.html'),
 };
 
 export default CustomUserFieldsComponentAjs;

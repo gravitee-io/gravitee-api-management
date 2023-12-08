@@ -21,7 +21,7 @@ const AlertTriggerFiltersComponent: ng.IComponentOptions = {
     referenceType: '<',
     referenceId: '<',
   },
-  template: require('./trigger-filters.html'),
+  template: require('html-loader!./trigger-filters.html'),
   controller: function () {
     this.addFilter = () => {
       if (this.alert.filters === undefined) {

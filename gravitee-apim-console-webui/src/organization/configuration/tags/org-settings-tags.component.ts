@@ -15,7 +15,7 @@
  */
 
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormControl, FormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { combineLatest, EMPTY, Observable, of, Subject } from 'rxjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
@@ -51,8 +51,8 @@ type EntrypointTableDS = {
 }[];
 @Component({
   selector: 'org-settings-tags',
-  template: require('./org-settings-tags.component.html'),
-  styles: [require('./org-settings-tags.component.scss')],
+  templateUrl: './org-settings-tags.component.html',
+  styleUrls: ['./org-settings-tags.component.scss'],
 })
 export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
   isLoading = true;
@@ -66,7 +66,7 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
   tagsTableDisplayedColumns: string[] = ['id', 'name', 'description', 'restrictedGroupsName', 'actions'];
 
   portalSettings: PortalSettings;
-  defaultConfigForm: FormGroup;
+  defaultConfigForm: UntypedFormGroup;
   initialDefaultConfigFormValues: unknown;
 
   entrypoints: Entrypoint[];
@@ -112,8 +112,8 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
         this.tagsTableUnpaginatedLength = this.tagsTableDS.length;
 
         this.portalSettings = portalSettings;
-        this.defaultConfigForm = new FormGroup({
-          entrypoint: new FormControl({
+        this.defaultConfigForm = new UntypedFormGroup({
+          entrypoint: new UntypedFormControl({
             value: this.portalSettings.portal.entrypoint,
             disabled: this.isReadonlySetting('portal.entrypoint'),
           }),

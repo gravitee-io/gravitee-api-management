@@ -34,8 +34,8 @@ import {
 
 @Component({
   selector: 'api-creation-get-started',
-  template: require('./api-creation-get-started.component.html'),
-  styles: [require('./api-creation-get-started.component.scss')],
+  templateUrl: './api-creation-get-started.component.html',
+  styleUrls: ['./api-creation-get-started.component.scss'],
 })
 export class ApiCreationGetStartedComponent implements OnInit, OnDestroy {
   cockpitLink: string;

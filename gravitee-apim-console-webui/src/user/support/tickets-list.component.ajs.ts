@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { IScope } from 'angular';
+
 import { ActivatedRoute } from '@angular/router';
 
 import TicketService, { TicketsQuery } from '../../services/ticket.service';
@@ -64,7 +65,7 @@ const SupportTicketsListComponentAjs: ng.IComponentOptions = {
     activatedRoute: '<',
   },
   controller: TicketsListComponentAjs,
-  template: require('./tickets-list.html'),
+  template: require('html-loader!./tickets-list.html'),
 };
 
 export default SupportTicketsListComponentAjs;

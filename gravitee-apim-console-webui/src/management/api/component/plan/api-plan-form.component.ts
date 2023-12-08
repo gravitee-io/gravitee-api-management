@@ -27,7 +27,15 @@ import {
   Optional,
   ViewChild,
 } from '@angular/core';
-import { AbstractControl, ControlValueAccessor, FormControl, FormGroup, NgControl, ValidationErrors, Validator } from '@angular/forms';
+import {
+  AbstractControl,
+  ControlValueAccessor,
+  UntypedFormControl,
+  UntypedFormGroup,
+  NgControl,
+  ValidationErrors,
+  Validator,
+} from '@angular/forms';
 import { asyncScheduler, interval, Subject } from 'rxjs';
 import { distinctUntilChanged, filter, map, observeOn, take, takeUntil, tap } from 'rxjs/operators';
 import { MatStepper } from '@angular/material/stepper';
@@ -100,7 +108,7 @@ export type PlanFormValue = Pick<
 
 @Component({
   selector: 'api-plan-form',
-  template: require('./api-plan-form.component.html'),
+  templateUrl: './api-plan-form.component.html',
   providers: [
     {
       provide: STEPPER_GLOBAL_OPTIONS,
@@ -132,7 +140,7 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
 
   public isInit = false;
 
-  public planForm = new FormGroup({});
+  public planForm = new UntypedFormGroup({});
   public initialPlanFormValue: unknown;
   public displaySubscriptionsSection = true;
 
@@ -287,13 +295,13 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
   }
 
   private initPlanForm() {
-    this.planForm = new FormGroup({
+    this.planForm = new UntypedFormGroup({
       general: this.planEditGeneralStepComponent.generalForm,
       secure:
         this.planEditSecureStepComponent?.secureForm ??
-        new FormGroup({
-          securityConfig: new FormControl({}),
-          selectionRule: new FormControl(),
+        new UntypedFormGroup({
+          securityConfig: new UntypedFormControl({}),
+          selectionRule: new UntypedFormControl(),
         }),
       ...(this.mode === 'create' ? { restriction: this.planEditRestrictionStepComponent.restrictionForm } : {}),
     });

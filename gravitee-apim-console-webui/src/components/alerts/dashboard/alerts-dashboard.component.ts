@@ -15,6 +15,7 @@
  */
 
 import { IPromise, IScope } from 'angular';
+
 import { ActivatedRoute, Router } from '@angular/router';
 import '@gravitee/ui-components/wc/gv-chart-bar';
 
@@ -183,7 +184,7 @@ class AlertsDashboardComponent implements ng.IComponentController {
 }
 
 const AlertDashBoardComponent: ng.IComponentOptions = {
-  template: require('./alerts-dashboard.html'),
+  template: require('html-loader!./alerts-dashboard.html'),
   bindings: {
     referenceType: '<',
     referenceId: '<',

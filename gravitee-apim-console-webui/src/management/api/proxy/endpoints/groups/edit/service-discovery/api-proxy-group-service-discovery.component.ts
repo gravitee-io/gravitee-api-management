@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 import { takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 
@@ -23,13 +23,13 @@ import { ServiceDiscoveryService } from '../../../../../../../services-ngx/servi
 
 @Component({
   selector: 'api-proxy-group-service-discovery',
-  template: require('./api-proxy-group-service-discovery.component.html'),
-  styles: [require('./api-proxy-group-service-discovery.component.scss')],
+  templateUrl: './api-proxy-group-service-discovery.component.html',
+  styleUrls: ['./api-proxy-group-service-discovery.component.scss'],
 })
 export class ApiProxyGroupServiceDiscoveryComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
-  @Input() serviceDiscoveryForm: FormGroup;
+  @Input() serviceDiscoveryForm: UntypedFormGroup;
   @Input() serviceDiscoveryItems: ResourceListItem[];
 
   public schema: unknown;

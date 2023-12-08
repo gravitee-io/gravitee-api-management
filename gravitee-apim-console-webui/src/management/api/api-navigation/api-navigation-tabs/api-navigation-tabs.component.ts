@@ -19,8 +19,8 @@ import { MenuItem, MenuItemHeader } from '../MenuGroupItem';
 
 @Component({
   selector: 'api-navigation-tabs',
-  template: require('./api-navigation-tabs.component.html'),
-  styles: [require('./api-navigation-tabs.component.scss')],
+  templateUrl: './api-navigation-tabs.component.html',
+  styleUrls: ['./api-navigation-tabs.component.scss'],
 })
 export class ApiNavigationTabsComponent {
   @Input()

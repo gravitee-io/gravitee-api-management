@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { EMPTY, forkJoin, Observable, of, Subject } from 'rxjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService } from '@gravitee/ui-particles-angular';
@@ -54,16 +54,16 @@ type EntrypointVM = {
 };
 @Component({
   selector: 'api-entrypoints-v4-general',
-  template: require('./api-entrypoints-v4-general.component.html'),
-  styles: [require('./api-entrypoints-v4-general.component.scss')],
+  templateUrl: './api-entrypoints-v4-general.component.html',
+  styleUrls: ['./api-entrypoints-v4-general.component.scss'],
 })
 export class ApiEntrypointsV4GeneralComponent implements OnInit {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   public apiId: string;
   public api: ApiV4;
-  public formGroup: FormGroup;
-  public pathsFormControl: FormControl;
-  public hostsFormControl: FormControl;
+  public formGroup: UntypedFormGroup;
+  public pathsFormControl: UntypedFormControl;
+  public hostsFormControl: UntypedFormControl;
   public displayedColumns = ['type', 'qos', 'actions'];
   public dataSource: EntrypointVM[] = [];
   private allEntrypoints: ConnectorPlugin[];
@@ -79,7 +79,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
     private readonly apiService: ApiV2Service,
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
     private readonly restrictedDomainService: RestrictedDomainService,
-    private readonly formBuilder: FormBuilder,
+    private readonly formBuilder: UntypedFormBuilder,
     private readonly iconService: IconService,
     private readonly snackBarService: SnackBarService,
     private readonly matDialog: MatDialog,
@@ -114,7 +114,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
 
   private initForm(api: ApiV4) {
     this.api = api as ApiV4;
-    this.formGroup = new FormGroup({});
+    this.formGroup = new UntypedFormGroup({});
 
     const httpListeners = this.api.listeners.filter((listener) => listener.type === 'HTTP') ?? [];
     if (httpListeners.length > 0) {

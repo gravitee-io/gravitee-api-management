@@ -15,7 +15,7 @@
  */
 
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 import { ConstantsService, PlanMenuItemVM } from '../../../../../services-ngx/constants.service';
@@ -24,8 +24,8 @@ import { Step5SummaryComponent } from '../step-5-summary/step-5-summary.componen
 
 @Component({
   selector: 'step-4-security-1-plans-list',
-  template: require('./step-4-security-1-plans-list.component.html'),
-  styles: [require('./step-4-security-1-plans-list.component.scss'), require('../api-creation-steps-common.component.scss')],
+  templateUrl: './step-4-security-1-plans-list.component.html',
+  styleUrls: ['./step-4-security-1-plans-list.component.scss', '../api-creation-steps-common.component.scss'],
 })
 export class Step4Security1PlansListComponent implements OnInit {
   @Input()
@@ -42,7 +42,7 @@ export class Step4Security1PlansListComponent implements OnInit {
 
   planMenuItems: PlanMenuItemVM[];
 
-  public form = new FormGroup({});
+  public form = new UntypedFormGroup({});
   displayedColumns: string[] = ['name', 'mode', 'security', 'actions'];
 
   constructor(private readonly stepService: ApiCreationStepService, private readonly constantsService: ConstantsService) {}

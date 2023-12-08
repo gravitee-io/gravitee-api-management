@@ -26,7 +26,7 @@ class EmptyStateDirective {
         fill: '@fill',
       },
       transclude: true,
-      template: require('./emptystate.html'),
+      template: require('html-loader!./emptystate.html'),
     };
 
     return directive;

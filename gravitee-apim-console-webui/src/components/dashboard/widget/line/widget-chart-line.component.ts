@@ -19,7 +19,7 @@ import { EventService } from '../../../../services/event.service';
 require('@gravitee/ui-components/wc/gv-chart-line');
 
 const WidgetChartLineComponent: ng.IComponentOptions = {
-  template: require('./widget-chart-line.html'),
+  template: require('html-loader!./widget-chart-line.html'),
   bindings: {
     data: '<',
     activatedRoute: '<',

@@ -28,8 +28,8 @@ import { ConnectorPluginsV2Service } from '../../../../../../services-ngx/connec
 
 @Component({
   selector: 'api-runtime-logs-messages',
-  template: require('./api-runtime-logs-messages.component.html'),
-  styles: [require('./api-runtime-logs-messages.component.scss')],
+  templateUrl: './api-runtime-logs-messages.component.html',
+  styleUrls: ['./api-runtime-logs-messages.component.scss'],
 })
 export class ApiRuntimeLogsMessagesComponent implements OnInit, OnDestroy {
   private readonly pageSize: number = 5;

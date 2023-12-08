@@ -43,7 +43,7 @@ const LIFECYCLE_STATE_DISPLAYABLE = {
 
 @Component({
   selector: 'gio-api-lifecycle-state',
-  template: require('./gio-api-lifecycle-state.component.html'),
+  templateUrl: './gio-api-lifecycle-state.component.html',
 })
 export class GioApiLifecycleStateComponent implements OnChanges {
   @Input()

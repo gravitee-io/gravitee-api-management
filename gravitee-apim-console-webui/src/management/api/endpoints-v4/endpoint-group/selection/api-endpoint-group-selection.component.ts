@@ -16,7 +16,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { catchError, switchMap, takeUntil } from 'rxjs/operators';
 import { of, Subject } from 'rxjs';
-import { FormGroup } from '@angular/forms';
+import { UntypedFormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 
 import { ApiType, ConnectorVM, fromConnector } from '../../../../../entities/management-api-v2';
@@ -29,14 +29,14 @@ import {
 
 @Component({
   selector: 'api-endpoints-group-selection',
-  template: require('./api-endpoint-group-selection.component.html'),
-  styles: [require('./api-endpoint-group-selection.component.scss')],
+  templateUrl: './api-endpoint-group-selection.component.html',
+  styleUrls: ['./api-endpoint-group-selection.component.scss'],
 })
 export class ApiEndpointGroupSelectionComponent implements OnInit {
   private unsubscribe$: Subject<void> = new Subject<void>();
 
   @Input()
-  public endpointGroupTypeForm: FormGroup;
+  public endpointGroupTypeForm: UntypedFormGroup;
   @Input()
   public apiType: ApiType;
 

@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 import { IScope } from 'angular';
-import * as _ from 'lodash';
+
 import { ActivatedRoute, Router } from '@angular/router';
+import { now } from 'lodash';
 
 import { ApiService } from '../../../services/api.service';
 import ApplicationService from '../../../services/application.service';
@@ -111,7 +112,7 @@ class PlatformLogsController {
       const hiddenElement = document.createElement('a');
       hiddenElement.href = 'data:attachment/csv,' + response.data;
       hiddenElement.target = '_self';
-      let fileName = 'logs-platform-' + _.now();
+      let fileName = 'logs-platform-' + now();
       fileName = fileName.replace(/[\s]/gi, '-');
       fileName = fileName.replace(/[^\w]/gi, '-');
       hiddenElement.download = fileName + '.csv';

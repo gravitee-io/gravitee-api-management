@@ -20,8 +20,8 @@ import { DebugEventMetrics } from '../../models/DebugEvent';
 
 @Component({
   selector: 'policy-studio-debug-timeline',
-  template: require('./policy-studio-debug-timeline.component.html'),
-  styles: [require('./policy-studio-debug-timeline.component.scss')],
+  templateUrl: './policy-studio-debug-timeline.component.html',
+  styleUrls: ['./policy-studio-debug-timeline.component.scss'],
 })
 export class PolicyStudioDebugTimelineComponent implements AfterViewInit, OnDestroy {
   @Input()

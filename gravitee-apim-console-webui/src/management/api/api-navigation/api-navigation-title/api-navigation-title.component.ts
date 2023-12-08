@@ -19,8 +19,8 @@ import { Api } from '../../../../entities/management-api-v2';
 
 @Component({
   selector: 'api-navigation-title',
-  template: require('./api-navigation-title.component.html'),
-  styles: [require('./api-navigation-title.component.scss')],
+  templateUrl: './api-navigation-title.component.html',
+  styleUrls: ['./api-navigation-title.component.scss'],
 })
 export class ApiNavigationTitleComponent {
   @Input()

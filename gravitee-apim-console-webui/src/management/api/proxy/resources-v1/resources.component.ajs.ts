@@ -17,7 +17,7 @@
 import ApiV1ResourcesControllerAjs from './resources.controller.ajs';
 
 export const ApiV1ResourcesComponentAjs = {
-  template: require('./resources.html'),
+  template: require('html-loader!./resources.html'),
   controller: ApiV1ResourcesControllerAjs,
   bindings: {
     resolvedApi: '<',

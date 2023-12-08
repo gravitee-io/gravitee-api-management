@@ -16,7 +16,7 @@
 import { Component, OnInit } from '@angular/core';
 import { takeUntil, tap } from 'rxjs/operators';
 import { combineLatest, Subject } from 'rxjs';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
@@ -25,13 +25,13 @@ import { Application, ApplicationType } from '../../../../../entities/applicatio
 
 @Component({
   selector: 'application-general-ng',
-  template: require('./application-general-ng.component.html'),
-  styles: [require('./application-general-ng.component.scss')],
+  templateUrl: './application-general-ng.component.html',
+  styleUrls: ['./application-general-ng.component.scss'],
 })
 export class ApplicationGeneralNgComponent implements OnInit {
   public initialApplication: Application;
   public applicationType: ApplicationType;
-  public applicationForm: FormGroup;
+  public applicationForm: UntypedFormGroup;
   public isLoadingData = true;
   public isReadOnly = false;
   public initialApplicationGeneralFormsValue: unknown;
@@ -60,19 +60,19 @@ export class ApplicationGeneralNgComponent implements OnInit {
         this.isLoadingData = false;
         this.isReadOnly = this.initialApplication.status === 'ARCHIVED';
 
-        this.applicationForm = new FormGroup({
-          details: new FormGroup({
-            name: new FormControl({ value: this.initialApplication.name, disabled: this.isReadOnly }),
-            description: new FormControl({ value: this.initialApplication.description, disabled: this.isReadOnly }),
-            domain: new FormControl({ value: this.initialApplication.domain, disabled: this.isReadOnly }),
-            type: new FormControl({ value: this.initialApplication.type, disabled: this.isReadOnly }),
+        this.applicationForm = new UntypedFormGroup({
+          details: new UntypedFormGroup({
+            name: new UntypedFormControl({ value: this.initialApplication.name, disabled: this.isReadOnly }),
+            description: new UntypedFormControl({ value: this.initialApplication.description, disabled: this.isReadOnly }),
+            domain: new UntypedFormControl({ value: this.initialApplication.domain, disabled: this.isReadOnly }),
+            type: new UntypedFormControl({ value: this.initialApplication.type, disabled: this.isReadOnly }),
           }),
-          images: new FormGroup({
-            picture: new FormControl({
+          images: new UntypedFormGroup({
+            picture: new UntypedFormControl({
               value: this.initialApplication.picture ? [this.initialApplication.picture] : undefined,
               disabled: this.isReadOnly,
             }),
-            background: new FormControl({
+            background: new UntypedFormControl({
               value: this.initialApplication.background ? [this.initialApplication.background] : undefined,
               disabled: this.isReadOnly,
             }),
@@ -82,8 +82,8 @@ export class ApplicationGeneralNgComponent implements OnInit {
         if (this.initialApplication.type === 'SIMPLE') {
           this.applicationForm.addControl(
             'OAuth2Form',
-            new FormGroup({
-              client_id: new FormControl({
+            new UntypedFormGroup({
+              client_id: new UntypedFormControl({
                 value: this.initialApplication.settings?.app?.client_id ? this.initialApplication.settings.app.client_id : undefined,
                 disabled: this.isReadOnly,
               }),
@@ -94,18 +94,18 @@ export class ApplicationGeneralNgComponent implements OnInit {
         if (this.initialApplication.type !== 'SIMPLE') {
           this.applicationForm.addControl(
             'OpenIDForm',
-            new FormGroup({
-              client_id: new FormControl({
+            new UntypedFormGroup({
+              client_id: new UntypedFormControl({
                 value: this.initialApplication.settings?.oauth?.client_id ? this.initialApplication.settings.oauth.client_id : undefined,
                 disabled: this.isReadOnly,
               }),
-              client_secret: new FormControl({
+              client_secret: new UntypedFormControl({
                 value: this.initialApplication.settings?.oauth?.client_secret
                   ? this.initialApplication.settings.oauth.client_secret
                   : undefined,
                 disabled: this.isReadOnly,
               }),
-              grant_types: new FormControl(
+              grant_types: new UntypedFormControl(
                 {
                   value: this.initialApplication.settings?.oauth?.grant_types
                     ? this.initialApplication.settings.oauth.grant_types
@@ -114,7 +114,7 @@ export class ApplicationGeneralNgComponent implements OnInit {
                 },
                 [Validators.required],
               ),
-              redirect_uris: new FormControl({
+              redirect_uris: new UntypedFormControl({
                 value: this.initialApplication.settings?.oauth?.redirect_uris
                   ? this.initialApplication.settings.oauth.redirect_uris
                   : undefined,
