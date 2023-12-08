@@ -17,5 +17,10 @@ package io.gravitee.apim.core.membership.model;
 
 import lombok.Builder;
 
-@Builder
-public record PrimaryOwnerEntity(String id, String email, String displayName, String type) {}
+@Builder(toBuilder = true)
+public record PrimaryOwnerEntity(String id, String email, String displayName, Type type) {
+    public enum Type {
+        USER,
+        GROUP,
+    }
+}

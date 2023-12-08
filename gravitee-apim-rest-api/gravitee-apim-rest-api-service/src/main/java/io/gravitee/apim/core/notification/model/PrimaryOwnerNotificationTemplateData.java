@@ -36,7 +36,7 @@ public class PrimaryOwnerNotificationTemplateData {
             .id(primaryOwner.id())
             .displayName(primaryOwner.displayName())
             .email(primaryOwner.email())
-            .type(primaryOwner.type())
+            .type(primaryOwner.type().name())
             .build();
     }
 }

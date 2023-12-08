@@ -26,6 +26,7 @@ import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.membership.exception.ApiPrimaryOwnerNotFoundException;
 import io.gravitee.apim.core.membership.exception.ApplicationPrimaryOwnerNotFoundException;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
+import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity.Type;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.domain_service.membership.PrimaryOwnerDomainServiceImpl;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -133,7 +134,7 @@ public class PrimaryOwnerDomainServiceImplTest {
             Assertions
                 .assertThat(result)
                 .isEqualTo(
-                    PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type("USER").build()
+                    PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type(Type.USER).build()
                 );
         }
 
@@ -175,7 +176,7 @@ public class PrimaryOwnerDomainServiceImplTest {
                         .id("group-id")
                         .displayName("Group name")
                         .email("jane.doe@gravitee.io")
-                        .type("GROUP")
+                        .type(Type.GROUP)
                         .build()
                 );
         }
@@ -201,7 +202,7 @@ public class PrimaryOwnerDomainServiceImplTest {
 
             Assertions
                 .assertThat(result)
-                .isEqualTo(PrimaryOwnerEntity.builder().id("group-id").displayName("Group name").type("GROUP").build());
+                .isEqualTo(PrimaryOwnerEntity.builder().id("group-id").displayName("Group name").type(Type.GROUP).build());
         }
 
         @Test
@@ -316,7 +317,7 @@ public class PrimaryOwnerDomainServiceImplTest {
             Assertions
                 .assertThat(result)
                 .isEqualTo(
-                    PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type("USER").build()
+                    PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type(Type.USER).build()
                 );
         }
 
@@ -358,7 +359,7 @@ public class PrimaryOwnerDomainServiceImplTest {
                         .id("group-id")
                         .displayName("Group name")
                         .email("jane.doe@gravitee.io")
-                        .type("GROUP")
+                        .type(Type.GROUP)
                         .build()
                 );
         }
