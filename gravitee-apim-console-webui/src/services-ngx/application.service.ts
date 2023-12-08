@@ -24,6 +24,7 @@ import { Application, ApplicationType } from '../entities/application/applicatio
 import { SubscribedApi } from '../entities/application/SubscribedApi';
 import { ApplicationSubscription } from '../entities/subscription/subscription';
 import { ApplicationLog } from '../entities/application/ApplicationLog';
+import { MembershipListItem } from '../entities/role/membershipListItem';
 
 @Injectable({
   providedIn: 'root',
@@ -32,6 +33,10 @@ export class ApplicationService {
   private lastApplicationFetch$: BehaviorSubject<Application | null> = new BehaviorSubject<Application | null>(null);
 
   constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
+
+  getMembers(applicationId: string): Observable<MembershipListItem[]> {
+    return this.http.get<MembershipListItem[]>(`${this.constants.env.baseURL}/applications/${applicationId}/members`);
+  }
 
   getAll(
     params: {
