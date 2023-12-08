@@ -235,7 +235,7 @@ public class TemplateDataFetcher {
                                 primaryOwner.id(),
                                 primaryOwner.displayName(),
                                 primaryOwner.email(),
-                                primaryOwner.type()
+                                primaryOwner.type().name()
                             )
                         )
                         .build()

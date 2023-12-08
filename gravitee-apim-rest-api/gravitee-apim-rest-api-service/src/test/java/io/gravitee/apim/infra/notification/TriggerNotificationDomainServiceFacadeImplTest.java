@@ -27,6 +27,7 @@ import inmemory.ApiMetadataQueryServiceInMemory;
 import inmemory.PrimaryOwnerDomainServiceInMemory;
 import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
+import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity.Type;
 import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
 import io.gravitee.apim.core.notification.model.ApiNotificationTemplateData;
 import io.gravitee.apim.core.notification.model.ApplicationNotificationTemplateData;
@@ -135,7 +136,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             // Given
             givenExistingApi(
                 anApi().withId("api-id"),
-                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type("USER").build()
+                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type(Type.USER).build()
             );
 
             // When
@@ -183,7 +184,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             // Given
             givenExistingApi(
                 anApi().withId("api-id"),
-                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type("USER").build(),
+                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type(Type.USER).build(),
                 List.of(
                     ApiMetadata.builder().key("key1").value("value1").format(MetadataFormat.STRING).build(),
                     ApiMetadata.builder().key("null_key").value(null).format(MetadataFormat.STRING).build(),
@@ -236,7 +237,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             // Given
             givenExistingApi(
                 anApi().withId("api-id"),
-                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type("USER").build()
+                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type(Type.USER).build()
             );
             givenExistingApplication(
                 Application
@@ -250,7 +251,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                     .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
                     .apiKeyMode(ApiKeyMode.SHARED)
                     .build(),
-                PrimaryOwnerEntity.builder().id("user-2").displayName("Jen Doe").email("jen.doe@gravitee.io").type("USER").build()
+                PrimaryOwnerEntity.builder().id("user-2").displayName("Jen Doe").email("jen.doe@gravitee.io").type(Type.USER).build()
             );
 
             // When
@@ -299,7 +300,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             // Given
             givenExistingApi(
                 anApi().withId("api-id"),
-                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type("USER").build()
+                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type(Type.USER).build()
             );
 
             givenExistingPlan(
@@ -361,7 +362,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             // Given
             givenExistingApi(
                 anApi().withId("api-id"),
-                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type("USER").build()
+                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type(Type.USER).build()
             );
 
             givenExistingPlan(
@@ -421,7 +422,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             // Given
             givenExistingApi(
                 anApi().withId("api-id"),
-                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type("USER").build()
+                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type(Type.USER).build()
             );
 
             givenExistingSubscription(Subscription.builder().id("subscription-id").request("my-request").reason("my-reason").build());
@@ -486,7 +487,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                     .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
                     .apiKeyMode(ApiKeyMode.SHARED)
                     .build(),
-                PrimaryOwnerEntity.builder().id("user-2").displayName("Jen Doe").email("jen.doe@gravitee.io").type("USER").build()
+                PrimaryOwnerEntity.builder().id("user-2").displayName("Jen Doe").email("jen.doe@gravitee.io").type(Type.USER).build()
             );
 
             // When
@@ -543,11 +544,11 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                     .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
                     .apiKeyMode(ApiKeyMode.SHARED)
                     .build(),
-                PrimaryOwnerEntity.builder().id("user-2").displayName("Jen Doe").email("jen.doe@gravitee.io").type("USER").build()
+                PrimaryOwnerEntity.builder().id("user-2").displayName("Jen Doe").email("jen.doe@gravitee.io").type(Type.USER).build()
             );
             givenExistingApi(
                 anApi().withId("api-id"),
-                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type("USER").build()
+                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type(Type.USER).build()
             );
 
             // When
@@ -599,7 +600,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             // Given
             givenExistingApi(
                 anApi().withId("api-id"),
-                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type("USER").build(),
+                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type(Type.USER).build(),
                 List.of(
                     ApiMetadata.builder().key("key1").value("value1").format(MetadataFormat.STRING).build(),
                     ApiMetadata.builder().key("null_key").value(null).format(MetadataFormat.STRING).build(),
@@ -656,7 +657,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             // Given
             givenExistingApi(
                 anApi().withId("api-id"),
-                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type("USER").build()
+                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type(Type.USER).build()
             );
 
             givenExistingPlan(
@@ -719,7 +720,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             // Given
             givenExistingApi(
                 anApi().withId("api-id"),
-                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type("USER").build()
+                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type(Type.USER).build()
             );
 
             givenExistingPlan(
@@ -780,7 +781,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             // Given
             givenExistingApi(
                 anApi().withId("api-id"),
-                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type("USER").build()
+                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type(Type.USER).build()
             );
 
             givenExistingSubscription(Subscription.builder().id("subscription-id").request("my-request").reason("my-reason").build());
@@ -823,7 +824,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                     .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
                     .apiKeyMode(ApiKeyMode.SHARED)
                     .build(),
-                PrimaryOwnerEntity.builder().id("user-2").displayName("Jen Doe").email("jen.doe@gravitee.io").type("USER").build()
+                PrimaryOwnerEntity.builder().id("user-2").displayName("Jen Doe").email("jen.doe@gravitee.io").type(Type.USER).build()
             );
 
             // When

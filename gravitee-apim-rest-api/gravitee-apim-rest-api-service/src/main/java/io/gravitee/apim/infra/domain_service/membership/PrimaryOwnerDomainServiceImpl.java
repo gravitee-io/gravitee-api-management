@@ -129,7 +129,13 @@ public class PrimaryOwnerDomainServiceImpl implements ApiPrimaryOwnerDomainServi
         return userCrudService
             .findBaseUserById(membership.getMemberId())
             .map(user ->
-                PrimaryOwnerEntity.builder().id(user.getId()).displayName(user.displayName()).email(user.getEmail()).type("USER").build()
+                PrimaryOwnerEntity
+                    .builder()
+                    .id(user.getId())
+                    .displayName(user.displayName())
+                    .email(user.getEmail())
+                    .type(PrimaryOwnerEntity.Type.USER)
+                    .build()
             );
     }
 
@@ -144,7 +150,7 @@ public class PrimaryOwnerDomainServiceImpl implements ApiPrimaryOwnerDomainServi
                     .builder()
                     .id(value.getId())
                     .displayName(value.getName())
-                    .type("GROUP")
+                    .type(PrimaryOwnerEntity.Type.GROUP)
                     .email(user.map(BaseUserEntity::getEmail).orElse(null))
                     .build()
             );
