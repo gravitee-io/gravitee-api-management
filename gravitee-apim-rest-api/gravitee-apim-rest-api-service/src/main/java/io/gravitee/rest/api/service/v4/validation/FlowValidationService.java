@@ -22,7 +22,9 @@ import java.util.List;
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
+ * @deprecated Use {@link io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService} instead
  */
+@Deprecated
 public interface FlowValidationService {
     List<Flow> validateAndSanitize(final ApiType apiType, List<Flow> flows);
 }

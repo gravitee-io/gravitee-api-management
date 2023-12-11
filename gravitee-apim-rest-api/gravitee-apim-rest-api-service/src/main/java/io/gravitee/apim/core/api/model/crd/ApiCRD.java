@@ -13,27 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.api.model;
+package io.gravitee.apim.core.api.model.crd;
 
+import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.definition.model.DefinitionContext;
-import io.gravitee.definition.model.Property;
 import io.gravitee.definition.model.ResponseTemplate;
+import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.listener.Listener;
+import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
-import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
+@AllArgsConstructor
+@NoArgsConstructor
 @Data
+@Builder(toBuilder = true)
 public class ApiCRD {
+
+    private String id;
 
     private String crossId;
 
@@ -53,25 +62,27 @@ public class ApiCRD {
 
     private DefinitionContext definitionContext;
 
-    private Map<String, Map<String, ResponseTemplate>> responseTemplates = Map.of();
+    private Map<String, Map<String, ResponseTemplate>> responseTemplates;
 
-    private Set<String> tags = Set.of();
+    private Set<String> tags;
 
-    private Set<String> labels = Set.of();
+    private Set<String> labels;
 
-    private List<Resource> resources = List.of();
+    private List<Resource> resources;
 
-    private List<PlanEntity> plans = List.of();
+    private Map<String, PlanCRD> plans;
 
-    private List<Flow> flows = List.of();
+    private List<Flow> flows;
 
-    private List<Property> properties = List.of();
+    private List<Property> properties;
 
-    private List<ApiMetadata> metadata = List.of();
+    private List<ApiMetadata> metadata;
 
     private List<Listener> listeners;
 
     private List<EndpointGroup> endpointGroups;
+
+    private Analytics analytics;
 
     public String getDefinitionVersion() {
         return "V4";

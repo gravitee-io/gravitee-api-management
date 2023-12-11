@@ -17,12 +17,11 @@ package io.gravitee.repository.management.model.flow.selector;
 
 import io.gravitee.common.http.HttpMethod;
 import java.util.Set;
-import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -32,6 +31,7 @@ import lombok.ToString;
 @Setter
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
+@SuperBuilder(toBuilder = true)
 public class FlowHttpSelector extends FlowSelector {
 
     /**
@@ -51,5 +51,15 @@ public class FlowHttpSelector extends FlowSelector {
 
     public FlowHttpSelector() {
         super(FlowSelectorType.HTTP);
+    }
+
+    public abstract static class FlowHttpSelectorBuilder<
+        C extends FlowHttpSelector, B extends FlowHttpSelector.FlowHttpSelectorBuilder<C, B>
+    >
+        extends FlowSelector.FlowSelectorBuilder<C, B> {
+
+        FlowHttpSelectorBuilder() {
+            type(FlowSelectorType.HTTP);
+        }
     }
 }

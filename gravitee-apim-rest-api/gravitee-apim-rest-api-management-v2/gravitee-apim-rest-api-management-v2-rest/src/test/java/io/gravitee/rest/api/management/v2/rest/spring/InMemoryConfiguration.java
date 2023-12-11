@@ -23,8 +23,10 @@ import inmemory.ApiQueryServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.ConnectionLogsCrudServiceInMemory;
+import inmemory.EntrypointPluginQueryServiceInMemory;
 import inmemory.EnvironmentCrudServiceInMemory;
 import inmemory.EventCrudInMemory;
+import inmemory.FlowCrudServiceInMemory;
 import inmemory.InstallationAccessQueryServiceInMemory;
 import inmemory.InstanceQueryServiceInMemory;
 import inmemory.MessageLogCrudServiceInMemory;
@@ -32,6 +34,7 @@ import inmemory.PageCrudServiceInMemory;
 import inmemory.PageQueryServiceInMemory;
 import inmemory.PageRevisionCrudServiceInMemory;
 import inmemory.ParametersDomainServiceInMemory;
+import inmemory.ParametersQueryServiceInMemory;
 import inmemory.PlanCrudServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
 import inmemory.SubscriptionCrudServiceInMemory;
@@ -162,5 +165,20 @@ public class InMemoryConfiguration {
     @Bean
     public EventCrudService eventCrudService() {
         return new EventCrudInMemory();
+    }
+
+    @Bean
+    public ParametersQueryServiceInMemory parametersQueryServiceInMemory() {
+        return new ParametersQueryServiceInMemory();
+    }
+
+    @Bean
+    public EntrypointPluginQueryServiceInMemory entrypointPluginQueryServiceInMemory() {
+        return new EntrypointPluginQueryServiceInMemory();
+    }
+
+    @Bean
+    public FlowCrudServiceInMemory flowCrudServiceInMemory() {
+        return new FlowCrudServiceInMemory();
     }
 }

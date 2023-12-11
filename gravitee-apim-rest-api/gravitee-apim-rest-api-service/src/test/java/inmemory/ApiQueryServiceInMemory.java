@@ -15,6 +15,7 @@
  */
 package inmemory;
 
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiFieldFilter;
 import io.gravitee.apim.core.api.model.ApiSearchCriteria;
@@ -28,7 +29,15 @@ import java.util.stream.Stream;
 
 public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlternative<Api> {
 
-    private final List<Api> storage = new ArrayList<>();
+    private final List<Api> storage;
+
+    public ApiQueryServiceInMemory() {
+        storage = new ArrayList<>();
+    }
+
+    public ApiQueryServiceInMemory(ApiCrudServiceInMemory apiCrudServiceInMemory) {
+        storage = apiCrudServiceInMemory.storage;
+    }
 
     /**
      * WARNING: this implementation doesn't actually filter the API present in the storage. Instead, it will return all applications from storage.

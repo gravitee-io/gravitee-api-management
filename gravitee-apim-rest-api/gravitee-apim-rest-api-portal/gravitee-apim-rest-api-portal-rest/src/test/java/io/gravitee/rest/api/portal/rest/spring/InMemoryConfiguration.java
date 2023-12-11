@@ -124,4 +124,19 @@ public class InMemoryConfiguration {
     public EventCrudService eventCrudService() {
         return new EventCrudInMemory();
     }
+
+    @Bean
+    public ParametersQueryServiceInMemory parametersQueryServiceInMemory() {
+        return new ParametersQueryServiceInMemory();
+    }
+
+    @Bean
+    public EntrypointPluginQueryServiceInMemory entrypointPluginQueryServiceInMemory() {
+        return new EntrypointPluginQueryServiceInMemory();
+    }
+
+    @Bean
+    public FlowCrudServiceInMemory flowCrudServiceInMemory() {
+        return new FlowCrudServiceInMemory();
+    }
 }

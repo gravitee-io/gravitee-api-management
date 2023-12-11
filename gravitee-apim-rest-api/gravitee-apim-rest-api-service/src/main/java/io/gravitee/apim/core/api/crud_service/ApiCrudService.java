@@ -20,4 +20,5 @@ import io.gravitee.apim.core.api.model.Api;
 public interface ApiCrudService {
     Api get(String id);
     boolean existsById(String id);
+    Api update(Api api);
 }

@@ -46,6 +46,19 @@ public class SubscriptionQueryServiceInMemory implements SubscriptionQueryServic
     }
 
     @Override
+    public List<SubscriptionEntity> findActiveSubscriptionsByPlan(String planId) {
+        return storage
+            .stream()
+            .filter(subscription ->
+                List
+                    .of(SubscriptionEntity.Status.ACCEPTED, SubscriptionEntity.Status.PENDING, SubscriptionEntity.Status.PAUSED)
+                    .contains(subscription.getStatus()) &&
+                subscription.getPlanId().equals(planId)
+            )
+            .toList();
+    }
+
+    @Override
     public void initWith(List<SubscriptionEntity> items) {
         storage.clear();
         storage.addAll(items);

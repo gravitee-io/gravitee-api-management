@@ -22,7 +22,9 @@ import java.util.stream.Stream;
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
+ * @deprecated Use {@link io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService} instead
  */
+@Deprecated
 public interface PathParametersValidationService {
     void validate(ApiType apiType, Stream<Flow> apiFlows, Stream<Flow> planFlows);
 }

@@ -19,6 +19,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -28,6 +29,7 @@ import lombok.ToString;
 @Setter
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
+@SuperBuilder(toBuilder = true)
 public class FlowConditionSelector extends FlowSelector {
 
     /**
@@ -37,5 +39,15 @@ public class FlowConditionSelector extends FlowSelector {
 
     public FlowConditionSelector() {
         super(FlowSelectorType.CONDITION);
+    }
+
+    public abstract static class FlowConditionSelectorBuilder<
+        C extends FlowConditionSelector, B extends FlowConditionSelector.FlowConditionSelectorBuilder<C, B>
+    >
+        extends FlowSelector.FlowSelectorBuilder<C, B> {
+
+        FlowConditionSelectorBuilder() {
+            type(FlowSelectorType.CONDITION);
+        }
     }
 }

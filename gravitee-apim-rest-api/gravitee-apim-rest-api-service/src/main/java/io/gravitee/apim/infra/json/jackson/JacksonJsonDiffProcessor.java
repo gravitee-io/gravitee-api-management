@@ -15,32 +15,44 @@
  */
 package io.gravitee.apim.infra.json.jackson;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jsonpatch.diff.JsonDiff;
+import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.json.JsonDiffProcessor;
 import java.util.Arrays;
 
 public class JacksonJsonDiffProcessor implements JsonDiffProcessor {
 
-    private final JsonMapper mapper;
+    private final ObjectMapper mapper;
 
     public JacksonJsonDiffProcessor() {
         this.mapper = JsonMapperFactory.build();
     }
 
-    public JacksonJsonDiffProcessor(JsonMapper mapper) {
+    public JacksonJsonDiffProcessor(ObjectMapper mapper) {
         this.mapper = mapper;
     }
 
     @Override
     public String diff(Object object1, Object object2) {
-        ObjectNode oldNode = object1 == null
-            ? mapper.createObjectNode()
-            : mapper.convertValue(object1, ObjectNode.class).remove(Arrays.asList("updatedAt", "createdAt"));
-        ObjectNode newNode = object2 == null
-            ? mapper.createObjectNode()
-            : mapper.convertValue(object2, ObjectNode.class).remove(Arrays.asList("updatedAt", "createdAt"));
-        return JsonDiff.asJson(oldNode, newNode).toString();
+        // Hack to be able to compute diff for objects using @JsonRawValue annotation like PlanSecurity.
+        // The json-patch library is not able to compute diff for such objects because it does not handle the token type
+        // VALUE_EMBEDDED_OBJECT
+
+        String oldJson = object1 == null
+            ? "{}"
+            : mapper.convertValue(object1, ObjectNode.class).remove(Arrays.asList("updatedAt", "createdAt")).toString();
+        String newJson = object2 == null
+            ? "{}"
+            : mapper.convertValue(object2, ObjectNode.class).remove(Arrays.asList("updatedAt", "createdAt")).toString();
+
+        try {
+            return JsonDiff.asJson(mapper.readTree(oldJson), mapper.readTree(newJson)).toString();
+        } catch (JsonProcessingException e) {
+            throw new TechnicalDomainException("Error while computing JSON diff", e);
+        }
     }
 }

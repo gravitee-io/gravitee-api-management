@@ -27,6 +27,7 @@ import inmemory.PageQueryServiceInMemory;
 import inmemory.PageRevisionCrudServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
+import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -35,7 +36,6 @@ import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentation
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;

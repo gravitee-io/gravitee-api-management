@@ -77,6 +77,7 @@ public class Api implements Serializable {
 
     @JsonProperty(required = true)
     @NotNull
+    @Builder.Default
     private DefinitionVersion definitionVersion = DefinitionVersion.V4;
 
     private Set<@NotBlank String> tags;

@@ -23,6 +23,7 @@ import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiPolicyValidatorDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.DeployApiDomainService;
+import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.installation.domain_service.InstallationTypeDomainService;
@@ -30,6 +31,8 @@ import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryS
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
 import io.gravitee.apim.core.parameters.domain_service.ParametersDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
+import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
+import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.use_case.CloseSubscriptionUseCase;
 import io.gravitee.apim.infra.domain_service.api.ApiHostValidatorDomainServiceImpl;
@@ -541,5 +544,20 @@ public class ResourceContextConfiguration {
     @Bean
     public ApiPolicyValidatorDomainService apiPolicyValidatorDomainService() {
         return mock(ApiPolicyValidatorDomainService.class);
+    }
+
+    @Bean
+    public PolicyValidationDomainService policyValidationDomainService() {
+        return mock(PolicyValidationDomainService.class);
+    }
+
+    @Bean
+    public PlanSynchronizationService planSynchronizationService() {
+        return mock(PlanSynchronizationService.class);
+    }
+
+    @Bean
+    public UpdateApiDomainService updateApiDomainService() {
+        return mock(UpdateApiDomainService.class);
     }
 }

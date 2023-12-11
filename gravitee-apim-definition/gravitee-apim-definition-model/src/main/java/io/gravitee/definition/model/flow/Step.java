@@ -16,11 +16,11 @@
 package io.gravitee.definition.model.flow;
 
 import com.fasterxml.jackson.annotation.*;
-import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 /**
@@ -31,6 +31,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
+@EqualsAndHashCode
 public class Step implements Serializable {
 
     @JsonProperty("name")

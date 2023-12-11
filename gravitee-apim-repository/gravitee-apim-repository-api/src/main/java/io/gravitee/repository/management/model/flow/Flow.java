@@ -20,6 +20,8 @@ import io.gravitee.repository.management.model.flow.selector.FlowOperator;
 import io.gravitee.repository.management.model.flow.selector.FlowSelector;
 import java.util.*;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -27,10 +29,12 @@ import lombok.Setter;
 import lombok.ToString;
 
 @NoArgsConstructor
+@AllArgsConstructor
 @Getter
 @Setter
 @EqualsAndHashCode
 @ToString
+@Builder
 public class Flow {
 
     /**

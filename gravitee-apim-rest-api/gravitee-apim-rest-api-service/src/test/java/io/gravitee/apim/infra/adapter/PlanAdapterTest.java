@@ -18,14 +18,10 @@ package io.gravitee.apim.infra.adapter;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import fixtures.core.model.PlanFixtures;
-import io.gravitee.common.http.HttpMethod;
-import io.gravitee.definition.model.Policy;
-import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.management.model.Plan;
-import io.gravitee.rest.api.model.BasePlanEntity;
-import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
+import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanMode;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import java.time.Instant;
@@ -129,6 +125,12 @@ class PlanAdapterTest {
                 .closedAt(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneOffset.UTC))
                 .needRedeployAt(Date.from(Instant.parse("2020-02-05T20:22:02.00Z")))
                 .publishedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC))
+                .characteristics(List.of("characteristic1", "characteristic2"))
+                .commentMessage("Comment message")
+                .generalConditions("General conditions")
+                .tags(Set.of("tag1", "tag2"))
+                .excludedGroups(List.of("excludedGroup1", "excludedGroup2"))
+                .selectionRule("{#request.attribute['selectionRule'] != null}")
                 .build();
 
             var plan = PlanAdapter.INSTANCE.toRepository(model);
@@ -170,6 +172,12 @@ class PlanAdapterTest {
                 .closedAt(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneOffset.UTC))
                 .needRedeployAt(Date.from(Instant.parse("2020-02-05T20:22:02.00Z")))
                 .publishedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC))
+                .characteristics(List.of("characteristic1", "characteristic2"))
+                .commentMessage("Comment message")
+                .generalConditions("General conditions")
+                .tags(Set.of("tag1", "tag2"))
+                .excludedGroups(List.of("excludedGroup1", "excludedGroup2"))
+                .selectionRule("{#request.attribute['selectionRule'] != null}")
                 .build();
 
             var plan = PlanAdapter.INSTANCE.toRepository(model);
@@ -268,52 +276,42 @@ class PlanAdapterTest {
 
         @Test
         public void should_convert_plan_to_plan_entity() {
-            Plan plan = new Plan();
-            plan.setId("123123-1531-4563456166");
-            plan.setName("Plan name");
-            plan.setDescription("Description for the new plan");
-            plan.setValidation(Plan.PlanValidationType.AUTO);
-            plan.setType(Plan.PlanType.API);
-            plan.setMode(Plan.PlanMode.STANDARD);
-            plan.setStatus(Plan.Status.STAGING);
-            plan.setApi("api1");
-            plan.setGeneralConditions("general_conditions");
-            plan.setSecurity(Plan.PlanSecurityType.KEY_LESS);
+            var plan = PlanFixtures
+                .anApiKeyV4()
+                .toBuilder()
+                .security(PlanSecurity.builder().type(PlanSecurityType.API_KEY.getLabel()).configuration("{}").build())
+                .build();
 
-            GenericPlanEntity planEntity = PlanAdapter.INSTANCE.toEntityV4(plan);
+            PlanEntity planEntity = PlanAdapter.INSTANCE.toEntityV4(plan);
 
             assertThat(planEntity.getId()).isEqualTo(plan.getId());
             assertThat(planEntity.getName()).isEqualTo(plan.getName());
             assertThat(planEntity.getDescription()).isEqualTo(plan.getDescription());
             assertThat(planEntity.getPlanValidation().name()).isEqualTo(plan.getValidation().name());
             assertThat(planEntity.getPlanStatus().name()).isEqualTo(plan.getStatus().name());
-            assertThat(planEntity.getApiId()).isEqualTo(plan.getApi());
+            assertThat(planEntity.getApiId()).isEqualTo(plan.getApiId());
             assertThat(planEntity.getGeneralConditions()).isEqualTo(plan.getGeneralConditions());
-            assertThat(planEntity.getPlanSecurity().getType()).isEqualTo(PlanSecurityType.KEY_LESS.getLabel());
+            assertThat(planEntity.getTags()).isEqualTo(plan.getTags());
+            assertThat(planEntity.getSelectionRule()).isEqualTo(plan.getSelectionRule());
+            assertThat(planEntity.getPlanSecurity().getType()).isEqualTo(PlanSecurityType.API_KEY.getLabel());
+            assertThat(planEntity.getPlanSecurity().getConfiguration()).isEqualTo(plan.getSecurity().getConfiguration());
         }
 
         @Test
         public void should_convert_push_plan_to_plan_entity() {
-            Plan plan = new Plan();
-            plan.setId("123123-1531-4563456166");
-            plan.setName("Push plan name");
-            plan.setDescription("Description for the new plan");
-            plan.setValidation(Plan.PlanValidationType.AUTO);
-            plan.setType(Plan.PlanType.API);
-            plan.setMode(Plan.PlanMode.PUSH);
-            plan.setStatus(Plan.Status.STAGING);
-            plan.setApi("api1");
-            plan.setGeneralConditions("general_conditions");
+            var plan = PlanFixtures.aPushPlan();
 
-            GenericPlanEntity planEntity = PlanAdapter.INSTANCE.toEntityV4(plan);
+            PlanEntity planEntity = PlanAdapter.INSTANCE.toEntityV4(plan);
 
             assertThat(planEntity.getId()).isEqualTo(plan.getId());
             assertThat(planEntity.getName()).isEqualTo(plan.getName());
             assertThat(planEntity.getDescription()).isEqualTo(plan.getDescription());
             assertThat(planEntity.getPlanValidation().name()).isEqualTo(plan.getValidation().name());
             assertThat(planEntity.getPlanStatus().name()).isEqualTo(plan.getStatus().name());
-            assertThat(planEntity.getApiId()).isEqualTo(plan.getApi());
+            assertThat(planEntity.getApiId()).isEqualTo(plan.getApiId());
             assertThat(planEntity.getGeneralConditions()).isEqualTo(plan.getGeneralConditions());
+            assertThat(planEntity.getTags()).isEqualTo(plan.getTags());
+            assertThat(planEntity.getSelectionRule()).isEqualTo(plan.getSelectionRule());
             assertThat(planEntity.getPlanMode()).isEqualTo(PlanMode.PUSH);
             assertThat(planEntity.getPlanSecurity()).isNull();
         }
@@ -324,89 +322,23 @@ class PlanAdapterTest {
 
         @Test
         public void should_convert_plan_to_plan_entity() {
-            Plan plan = new Plan();
-            plan.setId("123123-1531-4563456166");
-            plan.setName("Plan name");
-            plan.setDescription("Description for the new plan");
-            plan.setValidation(Plan.PlanValidationType.AUTO);
-            plan.setType(Plan.PlanType.API);
-            plan.setMode(Plan.PlanMode.STANDARD);
-            plan.setStatus(Plan.Status.STAGING);
-            plan.setApi("api1");
-            plan.setGeneralConditions("general_conditions");
-            plan.setSecurity(Plan.PlanSecurityType.KEY_LESS);
+            var plan = PlanFixtures.aPlanV2();
 
-            GenericPlanEntity planEntity = PlanAdapter.INSTANCE.toEntityV2(plan);
+            io.gravitee.rest.api.model.PlanEntity planEntity = PlanAdapter.INSTANCE.toEntityV2(plan);
 
             assertThat(planEntity.getId()).isEqualTo(plan.getId());
+            assertThat(planEntity.getCrossId()).isEqualTo(plan.getCrossId());
             assertThat(planEntity.getName()).isEqualTo(plan.getName());
             assertThat(planEntity.getDescription()).isEqualTo(plan.getDescription());
             assertThat(planEntity.getPlanValidation().name()).isEqualTo(plan.getValidation().name());
+            assertThat(planEntity.getType().name()).isEqualTo(plan.getType().name());
             assertThat(planEntity.getPlanStatus().name()).isEqualTo(plan.getStatus().name());
-            assertThat(planEntity.getApiId()).isEqualTo(plan.getApi());
+            assertThat(planEntity.getApiId()).isEqualTo(plan.getApiId());
+            assertThat(planEntity.getTags()).isEqualTo(plan.getTags());
+            assertThat(planEntity.getSelectionRule()).isEqualTo(plan.getSelectionRule());
             assertThat(planEntity.getGeneralConditions()).isEqualTo(plan.getGeneralConditions());
             assertThat(planEntity.getPlanSecurity().getType()).isEqualTo(io.gravitee.rest.api.model.PlanSecurityType.KEY_LESS.name());
-        }
-
-        @Test
-        public void should_convert_paths_oriented_plan_to_plan_entity() {
-            Plan plan = new Plan();
-            plan.setId("123123-1531-4563456166");
-            plan.setName("Plan name");
-            plan.setDescription("Description for the new plan");
-            plan.setValidation(Plan.PlanValidationType.AUTO);
-            plan.setType(Plan.PlanType.API);
-            plan.setMode(Plan.PlanMode.STANDARD);
-            plan.setStatus(Plan.Status.STAGING);
-            plan.setApi("api1");
-            plan.setGeneralConditions("general_conditions");
-            plan.setSecurity(Plan.PlanSecurityType.KEY_LESS);
-            plan.setDefinition(
-                """
-                   {
-                     "/": [
-                       {
-                         "methods": ["GET","POST","PUT"],
-                         "enabled": true,
-                         "resource-filtering": {
-                           "whitelist": [
-                             {
-                               "pattern": "/**",
-                               "methods": ["GET"]
-                             }
-                           ]
-                         }
-                       }
-                     ]
-                   }
-                   """
-            );
-
-            BasePlanEntity planEntity = PlanAdapter.INSTANCE.toEntityV2(plan);
-
-            assertThat(planEntity.getId()).isEqualTo(plan.getId());
-            assertThat(planEntity.getName()).isEqualTo(plan.getName());
-            assertThat(planEntity.getDescription()).isEqualTo(plan.getDescription());
-            assertThat(planEntity.getPlanValidation().name()).isEqualTo(plan.getValidation().name());
-            assertThat(planEntity.getPlanStatus().name()).isEqualTo(plan.getStatus().name());
-            assertThat(planEntity.getApiId()).isEqualTo(plan.getApi());
-            assertThat(planEntity.getGeneralConditions()).isEqualTo(plan.getGeneralConditions());
-            assertThat(planEntity.getPlanSecurity().getType()).isEqualTo(io.gravitee.rest.api.model.PlanSecurityType.KEY_LESS.name());
-            assertThat(planEntity.getPaths().get("/"))
-                .hasSize(1)
-                .containsExactly(
-                    Rule
-                        .builder()
-                        .methods(Set.of(HttpMethod.GET, HttpMethod.POST, HttpMethod.PUT))
-                        .policy(
-                            Policy
-                                .builder()
-                                .name("resource-filtering")
-                                .configuration("{\"whitelist\":[{\"pattern\":\"/**\",\"methods\":[\"GET\"]}]},    \"enabled\" : true  }")
-                                .build()
-                        )
-                        .build()
-                );
+            assertThat(planEntity.getSecurityDefinition()).isEqualTo(plan.getSecurity().getConfiguration());
         }
     }
 }

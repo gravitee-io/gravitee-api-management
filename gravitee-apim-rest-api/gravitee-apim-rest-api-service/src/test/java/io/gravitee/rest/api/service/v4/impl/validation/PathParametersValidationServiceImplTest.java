@@ -39,6 +39,7 @@ import org.junit.jupiter.params.provider.MethodSource;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Deprecated
 class PathParametersValidationServiceImplTest {
 
     private PathParametersValidationService cut;

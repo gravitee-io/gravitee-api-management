@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.infra.query_service.subscription;
 
+import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapter;
@@ -51,6 +52,21 @@ public class SubscriptionQueryServiceImpl implements SubscriptionQueryService {
             return subscriptionRepository.search(criteria).stream().map(subscriptionAdapter::toEntity).toList();
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error occurs while trying to find expired subscription", e);
+        }
+    }
+
+    @Override
+    public List<SubscriptionEntity> findActiveSubscriptionsByPlan(String planId) {
+        SubscriptionCriteria criteria = SubscriptionCriteria
+            .builder()
+            .plans(List.of(planId))
+            .statuses(List.of(SubscriptionStatus.ACCEPTED.name(), SubscriptionStatus.PENDING.name(), SubscriptionStatus.PAUSED.name()))
+            .build();
+
+        try {
+            return subscriptionRepository.search(criteria).stream().map(subscriptionAdapter::toEntity).toList();
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("An error occurs while trying to find active plan's subscription", e);
         }
     }
 }

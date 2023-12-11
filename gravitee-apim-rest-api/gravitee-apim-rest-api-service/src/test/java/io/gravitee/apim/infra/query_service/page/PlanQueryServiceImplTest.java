@@ -20,7 +20,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.apim.infra.query_service.plan.PlanQueryServiceImpl;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
@@ -35,7 +34,7 @@ import org.junit.jupiter.api.Test;
 class PlanQueryServiceImplTest {
 
     PlanRepository planRepository;
-    PlanQueryService service;
+    PlanQueryServiceImpl service;
 
     @BeforeEach
     void setUp() {
@@ -85,6 +84,40 @@ class PlanQueryServiceImplTest {
             when(planRepository.findByApi(eq(API_ID))).thenReturn(Set.of());
 
             var res = service.findAllByApiIdAndGeneralConditionsAndIsActive(API_ID, DefinitionVersion.V4, PAGE_ID);
+            assertThat(res).isEmpty();
+        }
+    }
+
+    @Nested
+    class FindAllByApiId {
+
+        String API_ID = "api-id";
+
+        @Test
+        @SneakyThrows
+        void should_return_all_plans_of_an_api() {
+            Plan plan1 = Plan
+                .builder()
+                .id("plan1")
+                .api(API_ID)
+                .status(Plan.Status.PUBLISHED)
+                .security(Plan.PlanSecurityType.API_KEY)
+                .build();
+            Plan plan2 = Plan.builder().id("plan2").api(API_ID).security(Plan.PlanSecurityType.API_KEY).status(Plan.Status.CLOSED).build();
+            Plan plan3 = Plan.builder().id("plan3").api(API_ID).security(Plan.PlanSecurityType.API_KEY).status(Plan.Status.STAGING).build();
+
+            when(planRepository.findByApi(eq(API_ID))).thenReturn(Set.of(plan1, plan2, plan3));
+
+            var res = service.findAllByApiId(API_ID);
+            assertThat(res).hasSize(3).extracting(io.gravitee.apim.core.plan.model.Plan::getId).containsOnly("plan1", "plan2", "plan3");
+        }
+
+        @Test
+        @SneakyThrows
+        void should_return_empty_list_if_no_results() {
+            when(planRepository.findByApi(eq(API_ID))).thenReturn(Set.of());
+
+            var res = service.findAllByApiId(API_ID);
             assertThat(res).isEmpty();
         }
     }
