@@ -26,11 +26,7 @@ import io.gravitee.repository.management.api.search.TicketCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.Ticket;
-import io.gravitee.rest.api.model.ApplicationEntity;
-import io.gravitee.rest.api.model.MetadataEntity;
-import io.gravitee.rest.api.model.NewTicketEntity;
-import io.gravitee.rest.api.model.TicketEntity;
-import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.TicketQuery;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.Sortable;
@@ -38,20 +34,11 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiModel;
-import io.gravitee.rest.api.service.ApplicationService;
-import io.gravitee.rest.api.service.EmailService;
-import io.gravitee.rest.api.service.MetadataService;
-import io.gravitee.rest.api.service.NotifierService;
-import io.gravitee.rest.api.service.ParameterService;
-import io.gravitee.rest.api.service.TicketService;
-import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
-import io.gravitee.rest.api.service.exceptions.EmailRequiredException;
-import io.gravitee.rest.api.service.exceptions.SupportUnavailableException;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.gravitee.rest.api.service.exceptions.TicketNotFoundException;
+import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.upgrade.initializer.DefaultMetadataInitializer;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
@@ -79,6 +66,8 @@ import org.springframework.stereotype.Component;
 public class TicketServiceImpl extends TransactionalService implements TicketService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TicketServiceImpl.class);
+
+    private static final String UNKNOWN_REFERENCE = "Unknown";
 
     @Inject
     private UserService userService;
@@ -306,16 +295,24 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
     }
 
     private Ticket getApiNameAndApplicationName(final ExecutionContext executionContext, Ticket ticket) {
-        //Retrieve application name
+        // Retrieve application name
         if (StringUtils.isNotEmpty(ticket.getApplication())) {
-            ApplicationEntity application = applicationService.findById(executionContext, ticket.getApplication());
-            ticket.setApplication(application.getName());
+            try {
+                ApplicationEntity application = applicationService.findById(executionContext, ticket.getApplication());
+                ticket.setApplication(application.getName());
+            } catch (ApplicationNotFoundException e) {
+                ticket.setApplication(UNKNOWN_REFERENCE);
+            }
         }
 
-        //Retrieve api name
+        // Retrieve API name
         if (StringUtils.isNotEmpty(ticket.getApi())) {
-            GenericApiEntity api = apiSearchService.findGenericById(executionContext, ticket.getApi());
-            ticket.setApi(api.getName());
+            try {
+                GenericApiEntity api = apiSearchService.findGenericById(executionContext, ticket.getApi());
+                ticket.setApi(api.getName());
+            } catch (ApiNotFoundException e) {
+                ticket.setApi(UNKNOWN_REFERENCE);
+            }
         }
 
         return ticket;
