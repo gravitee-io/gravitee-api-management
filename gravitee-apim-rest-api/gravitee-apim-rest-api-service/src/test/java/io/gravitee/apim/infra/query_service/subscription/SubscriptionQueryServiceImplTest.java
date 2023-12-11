@@ -22,6 +22,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapter;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapterImpl;
@@ -144,6 +145,98 @@ public class SubscriptionQueryServiceImplTest {
             assertThat(throwable)
                 .isInstanceOf(TechnicalManagementException.class)
                 .hasMessage("An error occurs while trying to find expired subscription");
+        }
+    }
+
+    @Nested
+    class FindActiveSubscriptionsByPlan {
+
+        @Test
+        void should_query_for_active_subscriptions_for_a_given_plan() throws TechnicalException {
+            // Given
+            when(subscriptionRepository.search(any())).thenAnswer(invocation -> List.of());
+
+            // When
+            service.findActiveSubscriptionsByPlan("plan-id");
+
+            // Then
+            var captor = ArgumentCaptor.forClass(SubscriptionCriteria.class);
+            verify(subscriptionRepository).search(captor.capture());
+            assertThat(captor.getValue())
+                .satisfies(criteria -> {
+                    assertThat(criteria.getStatuses())
+                        .containsExactly(
+                            Subscription.Status.ACCEPTED.name(),
+                            Subscription.Status.PENDING.name(),
+                            Subscription.Status.PAUSED.name()
+                        );
+                    assertThat(criteria.getEndingAtBefore()).isEqualTo(-1);
+                    assertThat(criteria.getFrom()).isEqualTo(-1);
+                    assertThat(criteria.getTo()).isEqualTo(-1);
+                    assertThat(criteria.getEndingAtAfter()).isEqualTo(-1);
+                    assertThat(criteria.getClientId()).isNull();
+                    assertThat(criteria.getApis()).isNull();
+                    assertThat(criteria.getApplications()).isNull();
+                    assertThat(criteria.getExcludedApis()).isNull();
+                    assertThat(criteria.getIds()).isNull();
+                    assertThat(criteria.getPlans()).containsExactly("plan-id");
+                    assertThat(criteria.getPlanSecurityTypes()).isNull();
+                    assertThat(criteria.isIncludeWithoutEnd()).isFalse();
+                });
+        }
+
+        @Test
+        void should_return_subscriptions_and_adapt_them() throws TechnicalException {
+            // Given
+            when(subscriptionRepository.search(any()))
+                .thenAnswer(invocation -> List.of(aSubscription("s1").status(Subscription.Status.ACCEPTED).build()));
+
+            // When
+            var result = service.findActiveSubscriptionsByPlan("plan-id");
+
+            // Then
+            assertThat(result)
+                .containsExactly(
+                    SubscriptionEntity
+                        .builder()
+                        .id("s1")
+                        .apiId("api-id")
+                        .planId("plan-id")
+                        .applicationId("application-id")
+                        .status(SubscriptionEntity.Status.ACCEPTED)
+                        .consumerStatus(SubscriptionEntity.ConsumerStatus.STARTED)
+                        .type(SubscriptionEntity.Type.STANDARD)
+                        .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                        .endingAt(Instant.parse("2021-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                        .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                        .build()
+                );
+        }
+
+        @Test
+        void should_return_empty_stream_when_no_subscriptions_found() throws TechnicalException {
+            // Given
+            when(subscriptionRepository.search(any())).thenReturn(List.of());
+
+            // When
+            var result = service.findActiveSubscriptionsByPlan("plan-id");
+
+            // Then
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() throws TechnicalException {
+            // Given
+            when(subscriptionRepository.search(any())).thenThrow(TechnicalException.class);
+
+            // When
+            Throwable throwable = catchThrowable(() -> service.findActiveSubscriptionsByPlan("plan-id"));
+
+            // Then
+            assertThat(throwable)
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurs while trying to find active plan's subscription");
         }
     }
 

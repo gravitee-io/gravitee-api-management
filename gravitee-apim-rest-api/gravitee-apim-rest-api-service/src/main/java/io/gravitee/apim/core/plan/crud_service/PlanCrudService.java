@@ -19,4 +19,10 @@ import io.gravitee.apim.core.plan.model.Plan;
 
 public interface PlanCrudService {
     Plan findById(String planId);
+
+    Plan create(Plan plan);
+
+    Plan update(Plan plan);
+
+    void delete(String planId);
 }

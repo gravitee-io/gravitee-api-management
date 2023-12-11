@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import static java.util.stream.Collectors.toMap;
+
+import io.gravitee.apim.core.api.model.crd.ApiCRD;
 import io.gravitee.rest.api.management.v2.rest.model.Api;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLinks;
 import io.gravitee.rest.api.management.v2.rest.model.ApiReview;
@@ -33,7 +36,6 @@ import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
-import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import jakarta.ws.rs.core.UriInfo;
 import java.util.ArrayList;
 import java.util.List;
@@ -136,7 +138,7 @@ public interface ApiMapper {
 
     @Mapping(target = "listeners", qualifiedByName = "toListeners")
     @Mapping(target = "plans", qualifiedByName = "mapPlanCRD")
-    io.gravitee.apim.core.api.model.ApiCRD map(io.gravitee.rest.api.management.v2.rest.model.ApiCRD crd);
+    ApiCRD map(io.gravitee.rest.api.management.v2.rest.model.ApiCRD crd);
 
     // UpdateApi
     @Mapping(target = "listeners", qualifiedByName = "toListeners")
@@ -166,16 +168,16 @@ public interface ApiMapper {
     }
 
     @Named("mapPlanCRD")
-    default List<PlanEntity> mapPlanCRD(Map<String, PlanCRD> plans) {
+    default Map<String, io.gravitee.apim.core.api.model.crd.PlanCRD> mapPlanCRD(Map<String, PlanCRD> plans) {
         return plans
             .entrySet()
             .stream()
             .map(entry -> {
-                var planName = entry.getKey();
+                var key = entry.getKey();
                 var plan = entry.getValue();
-                return PlanMapper.INSTANCE.fromPlanCRD(plan, planName);
+                return Map.entry(key, PlanMapper.INSTANCE.fromPlanCRD(plan));
             })
-            .toList();
+            .collect(toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     BaseApi map(GenericApiEntity apiEntity);

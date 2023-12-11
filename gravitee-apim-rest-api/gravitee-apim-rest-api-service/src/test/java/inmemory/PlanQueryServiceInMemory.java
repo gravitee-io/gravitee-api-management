@@ -26,7 +26,15 @@ import java.util.Objects;
 
 public class PlanQueryServiceInMemory implements PlanQueryService, InMemoryAlternative<Plan> {
 
-    private final List<Plan> storage = new ArrayList<>();
+    private final List<Plan> storage;
+
+    public PlanQueryServiceInMemory() {
+        storage = new ArrayList<>();
+    }
+
+    public PlanQueryServiceInMemory(PlanCrudServiceInMemory planCrudServiceInMemory) {
+        storage = planCrudServiceInMemory.storage;
+    }
 
     @Override
     public List<Plan> findAllByApiIdAndGeneralConditionsAndIsActive(String apiId, DefinitionVersion definitionVersion, String pageId) {
@@ -38,6 +46,11 @@ public class PlanQueryServiceInMemory implements PlanQueryService, InMemoryAlter
                 !(PlanStatus.STAGING.equals(plan.getPlanStatus()) || PlanStatus.CLOSED.equals(plan.getPlanStatus()))
             )
             .toList();
+    }
+
+    @Override
+    public List<Plan> findAllByApiId(String apiId) {
+        return storage.stream().filter(plan -> Objects.equals(apiId, plan.getApiId())).map(p -> (Plan) p).toList();
     }
 
     @Override

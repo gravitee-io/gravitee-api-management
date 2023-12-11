@@ -51,7 +51,6 @@ import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
@@ -731,7 +730,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .hasStatus(NOT_FOUND_404)
                 .asError()
                 .hasHttpStatus(NOT_FOUND_404)
-                .hasMessage("Api [" + API_ID + "] cannot be found.");
+                .hasMessage("Api not found.");
         }
 
         @Test
@@ -1034,7 +1033,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .hasStatus(NOT_FOUND_404)
                 .asError()
                 .hasHttpStatus(NOT_FOUND_404)
-                .hasMessage("Api [" + API_ID + "] cannot be found.");
+                .hasMessage("Api not found.");
         }
 
         @Test
@@ -1111,7 +1110,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .hasStatus(NOT_FOUND_404)
                 .asError()
                 .hasHttpStatus(NOT_FOUND_404)
-                .hasMessage("Api [" + API_ID + "] cannot be found.");
+                .hasMessage("Api not found.");
         }
 
         @Test
@@ -1188,7 +1187,7 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 .hasStatus(NOT_FOUND_404)
                 .asError()
                 .hasHttpStatus(NOT_FOUND_404)
-                .hasMessage("Api [" + API_ID + "] cannot be found.");
+                .hasMessage("Api not found.");
         }
 
         @Test

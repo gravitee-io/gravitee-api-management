@@ -35,6 +35,11 @@ import lombok.Data;
 @Data
 public class ApiCRD {
 
+    @NotNull
+    @NotEmpty
+    private String id;
+
+    @NotNull
     @NotEmpty
     private String crossId;
 
@@ -67,7 +72,7 @@ public class ApiCRD {
 
     private List<@Valid Resource> resources = new ArrayList<>();
 
-    private Map<String, PlanCRD> plans = new HashMap<>();
+    private Map<String, @Valid PlanCRD> plans = new HashMap<>();
 
     private FlowExecution flowExecution;
 

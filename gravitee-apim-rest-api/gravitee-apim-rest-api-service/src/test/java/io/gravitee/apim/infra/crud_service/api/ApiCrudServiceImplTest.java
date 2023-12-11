@@ -15,21 +15,36 @@
  */
 package io.gravitee.apim.infra.crud_service.api;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import fixtures.core.model.ApiFixtures;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
+import io.gravitee.repository.management.model.Visibility;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.util.Date;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import lombok.SneakyThrows;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 public class ApiCrudServiceImplTest {
 
@@ -82,6 +97,128 @@ public class ApiCrudServiceImplTest {
             when(apiRepository.findById(API_ID)).thenReturn(Optional.empty());
 
             Assertions.assertThatThrownBy(() -> service.get(API_ID)).isInstanceOf(ApiNotFoundException.class);
+        }
+    }
+
+    @Nested
+    class Update {
+
+        @Test
+        @SneakyThrows
+        void should_update_an_existing_v4_api() {
+            var plan = ApiFixtures
+                .aProxyApiV4()
+                .toBuilder()
+                .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC))
+                .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC))
+                .build();
+            service.update(plan);
+
+            var captor = ArgumentCaptor.forClass(io.gravitee.repository.management.model.Api.class);
+            verify(apiRepository).update(captor.capture());
+
+            assertThat(captor.getValue())
+                .usingRecursiveComparison()
+                .isEqualTo(
+                    io.gravitee.repository.management.model.Api
+                        .builder()
+                        .id("my-api")
+                        .crossId("my-api-crossId")
+                        .name("My Api")
+                        .description("api-description")
+                        .version("1.0.0")
+                        .type(ApiType.PROXY)
+                        .apiLifecycleState(ApiLifecycleState.PUBLISHED)
+                        .lifecycleState(LifecycleState.STARTED)
+                        .visibility(Visibility.PUBLIC)
+                        .mode("fully_managed")
+                        .origin("management")
+                        .background("api-background")
+                        .picture("api-picture")
+                        .environmentId("environment-id")
+                        .categories(Set.of("category-1"))
+                        .groups(Set.of("group-1"))
+                        .labels(List.of("label-1"))
+                        .disableMembershipNotifications(true)
+                        .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                        .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                        .deployedAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
+                        .definitionVersion(DefinitionVersion.V4)
+                        .definition(
+                            """
+                                {"id":"my-api","name":"My Api","type":"proxy","apiVersion":"1.0.0","definitionVersion":"4.0.0","tags":["tag1"],"listeners":[{"type":"http","entrypoints":[{"type":"http-proxy","qos":"auto","configuration":{}}],"paths":[{"path":"/http_proxy"}]}],"endpointGroups":[{"name":"default-group","type":"http-proxy","loadBalancer":{"type":"round-robin"},"sharedConfiguration":{},"endpoints":[{"name":"default-endpoint","type":"http-proxy","secondary":false,"weight":1,"inheritConfiguration":true,"configuration":{"target":"https://api.gravitee.io/echo"},"services":{}}],"services":{}}],"analytics":{"enabled":false},"flowExecution":{"mode":"default","matchRequired":false},"flows":[]}"""
+                        )
+                        .build()
+                );
+        }
+
+        @Test
+        @SneakyThrows
+        void should_update_an_existing_v2_api() {
+            var plan = ApiFixtures.aProxyApiV2();
+            service.update(plan);
+
+            var captor = ArgumentCaptor.forClass(io.gravitee.repository.management.model.Api.class);
+            verify(apiRepository).update(captor.capture());
+
+            assertThat(captor.getValue())
+                .usingRecursiveComparison()
+                .isEqualTo(
+                    io.gravitee.repository.management.model.Api
+                        .builder()
+                        .id("my-api")
+                        .crossId("my-api-crossId")
+                        .name("My Api")
+                        .description("api-description")
+                        .version("1.0.0")
+                        .type(ApiType.PROXY)
+                        .apiLifecycleState(ApiLifecycleState.PUBLISHED)
+                        .lifecycleState(LifecycleState.STARTED)
+                        .visibility(Visibility.PUBLIC)
+                        .mode("fully_managed")
+                        .origin("management")
+                        .background("api-background")
+                        .picture("api-picture")
+                        .environmentId("environment-id")
+                        .categories(Set.of("category-1"))
+                        .groups(Set.of("group-1"))
+                        .labels(List.of("label-1"))
+                        .disableMembershipNotifications(true)
+                        .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                        .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                        .deployedAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
+                        .definitionVersion(DefinitionVersion.V2)
+                        .definition(
+                            """
+                              {"id":"my-api","name":"api-name","version":"1.0.0","gravitee":"2.0.0","execution_mode":"v3","flow_mode":"DEFAULT","proxy":{"strip_context_path":false,"preserve_host":false,"groups":[{"name":"default-group","endpoints":[{"name":"default","target":"https://api.gravitee.io/echo","weight":1,"backup":false,"type":"http1"}],"load_balancing":{"type":"ROUND_ROBIN"},"http":{"connectTimeout":5000,"idleTimeout":60000,"keepAlive":true,"readTimeout":10000,"pipelining":false,"maxConcurrentConnections":100,"useCompression":true,"followRedirects":false}}]},"properties":[],"tags":["tag1"]}"""
+                        )
+                        .build()
+                );
+        }
+
+        @Test
+        @SneakyThrows
+        void should_return_the_updated_api() {
+            when(apiRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+            var toUpdate = ApiFixtures.aProxyApiV4();
+            var result = service.update(toUpdate);
+
+            assertThat(result).isEqualTo(toUpdate);
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() throws TechnicalException {
+            // Given
+            when(apiRepository.update(any())).thenThrow(TechnicalException.class);
+
+            // When
+            Throwable throwable = catchThrowable(() -> service.update(ApiFixtures.aProxyApiV4()));
+
+            // Then
+            assertThat(throwable)
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurs while trying to update the api: my-api");
         }
     }
 }

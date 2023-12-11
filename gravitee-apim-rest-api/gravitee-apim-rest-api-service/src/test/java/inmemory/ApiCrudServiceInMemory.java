@@ -16,41 +16,53 @@
 package inmemory;
 
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
+import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.OptionalInt;
 import java.util.function.Predicate;
 
 public class ApiCrudServiceInMemory implements ApiCrudService, InMemoryAlternative<Api> {
 
-    final ArrayList<Api> apis = new ArrayList<>();
+    final ArrayList<Api> storage = new ArrayList<>();
 
     @Override
     public Api get(String id) {
-        var foundApi = apis.stream().filter(api -> id.equals(api.getId())).findFirst();
+        var foundApi = storage.stream().filter(api -> id.equals(api.getId())).findFirst();
         return foundApi.orElseThrow(() -> new ApiNotFoundException(id));
     }
 
     @Override
     public boolean existsById(String id) {
-        return apis.stream().anyMatch(api -> id.equals(api.getId()));
+        return storage.stream().anyMatch(api -> id.equals(api.getId()));
+    }
+
+    @Override
+    public Api update(Api api) {
+        OptionalInt index = this.findIndex(this.storage, plan -> plan.getId().equals(api.getId()));
+        if (index.isPresent()) {
+            storage.set(index.getAsInt(), api);
+            return api;
+        }
+
+        throw new IllegalStateException("API not found");
     }
 
     @Override
     public void initWith(List<Api> items) {
-        apis.clear();
-        apis.addAll(items);
+        storage.clear();
+        storage.addAll(items);
     }
 
     @Override
     public void reset() {
-        apis.clear();
+        storage.clear();
     }
 
     @Override
     public List<Api> storage() {
-        return Collections.unmodifiableList(apis);
+        return Collections.unmodifiableList(storage);
     }
 }

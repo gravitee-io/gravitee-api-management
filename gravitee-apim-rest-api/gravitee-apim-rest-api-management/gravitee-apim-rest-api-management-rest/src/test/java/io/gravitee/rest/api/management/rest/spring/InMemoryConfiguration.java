@@ -125,4 +125,19 @@ public class InMemoryConfiguration {
     public EventCrudInMemory debugEventDomainServiceInMemory() {
         return new EventCrudInMemory();
     }
+
+    @Bean
+    public ParametersQueryServiceInMemory parametersQueryServiceInMemory() {
+        return new ParametersQueryServiceInMemory();
+    }
+
+    @Bean
+    public EntrypointPluginQueryServiceInMemory entrypointPluginQueryServiceInMemory() {
+        return new EntrypointPluginQueryServiceInMemory();
+    }
+
+    @Bean
+    public FlowCrudServiceInMemory flowCrudServiceInMemory() {
+        return new FlowCrudServiceInMemory();
+    }
 }

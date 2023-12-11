@@ -24,7 +24,9 @@ import java.util.Map;
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
+ * @deprecated use {@link io.gravitee.apim.core.plan.exception.UnauthorizedPlanSecurityTypeException}
  */
+@Deprecated
 public class UnauthorizedPlanSecurityTypeException extends AbstractManagementException {
 
     private final String security;

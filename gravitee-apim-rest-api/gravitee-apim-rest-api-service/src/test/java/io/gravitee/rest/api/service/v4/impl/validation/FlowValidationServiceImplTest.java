@@ -49,6 +49,7 @@ import org.mockito.junit.MockitoJUnitRunner;
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
+@Deprecated
 public class FlowValidationServiceImplTest {
 
     @Mock
