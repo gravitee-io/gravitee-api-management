@@ -22,6 +22,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.node.certificates.KeyStoreLoaderManager;
+import io.gravitee.node.vertx.cert.VertxTLSOptionsRegistry;
 import io.gravitee.node.vertx.server.http.VertxHttpServer;
 import io.gravitee.node.vertx.server.http.VertxHttpServerFactory;
 import io.gravitee.node.vertx.server.http.VertxHttpServerOptions;
@@ -43,14 +44,12 @@ import org.springframework.mock.env.MockEnvironment;
 class VertxDebugConfigurationTest {
 
     @Mock
-    private KeyStoreLoaderManager keyStoreLoaderManager;
-
-    @Mock
     private VertxHttpServerFactory debugHttpServerFactory;
 
     @Captor
     private ArgumentCaptor<VertxHttpServerOptions> optionsCaptor;
 
+    private VertxTLSOptionsRegistry tlsOptionsRegistry;
     private MockEnvironment environment;
 
     private final VertxDebugConfiguration cut = new VertxDebugConfiguration();
@@ -58,6 +57,7 @@ class VertxDebugConfigurationTest {
     @BeforeEach
     void init() {
         environment = new MockEnvironment();
+        tlsOptionsRegistry = new VertxTLSOptionsRegistry();
     }
 
     @Test
@@ -69,9 +69,8 @@ class VertxDebugConfigurationTest {
         environment.setProperty("servers[0].type", "http");
         environment.setProperty("servers[1].type", "http");
 
-        final VertxHttpServer debugServer = cut.debugServer(debugHttpServerFactory, environment, keyStoreLoaderManager);
+        final VertxHttpServer debugServer = cut.debugServer(debugHttpServerFactory, environment, tlsOptionsRegistry);
 
-        assertThat(debugServer).isNotNull();
         assertThat(debugServer).isEqualTo(vertxServer1);
     }
 
@@ -83,7 +82,7 @@ class VertxDebugConfigurationTest {
 
         environment.setProperty("servers[0].type", "http");
 
-        cut.debugServer(debugHttpServerFactory, environment, keyStoreLoaderManager);
+        cut.debugServer(debugHttpServerFactory, environment, tlsOptionsRegistry);
 
         verify(debugHttpServerFactory).create(optionsCaptor.capture());
 
@@ -100,7 +99,7 @@ class VertxDebugConfigurationTest {
         environment.setProperty("servers[0].type", "http");
         environment.setProperty("debug.port", "1234");
 
-        cut.debugServer(debugHttpServerFactory, environment, keyStoreLoaderManager);
+        cut.debugServer(debugHttpServerFactory, environment, tlsOptionsRegistry);
 
         verify(debugHttpServerFactory).create(optionsCaptor.capture());
 
@@ -114,9 +113,8 @@ class VertxDebugConfigurationTest {
 
         when(debugHttpServerFactory.create(any(VertxHttpServerOptions.class))).thenReturn(vertxServer);
 
-        final VertxHttpServer debugServer = cut.debugServer(debugHttpServerFactory, environment, keyStoreLoaderManager);
+        final VertxHttpServer debugServer = cut.debugServer(debugHttpServerFactory, environment, tlsOptionsRegistry);
 
-        assertThat(debugServer).isNotNull();
         assertThat(debugServer).isEqualTo(vertxServer);
     }
 
@@ -126,7 +124,7 @@ class VertxDebugConfigurationTest {
 
         when(debugHttpServerFactory.create(any(VertxHttpServerOptions.class))).thenReturn(vertxServer);
 
-        cut.debugServer(debugHttpServerFactory, environment, keyStoreLoaderManager);
+        cut.debugServer(debugHttpServerFactory, environment, tlsOptionsRegistry);
 
         verify(debugHttpServerFactory).create(optionsCaptor.capture());
 
@@ -142,7 +140,7 @@ class VertxDebugConfigurationTest {
 
         when(debugHttpServerFactory.create(any(VertxHttpServerOptions.class))).thenReturn(vertxServer);
 
-        cut.debugServer(debugHttpServerFactory, environment, keyStoreLoaderManager);
+        cut.debugServer(debugHttpServerFactory, environment, tlsOptionsRegistry);
 
         verify(debugHttpServerFactory).create(optionsCaptor.capture());
 
