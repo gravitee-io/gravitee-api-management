@@ -28,7 +28,7 @@ import { PortalSettingsService } from '../../../../../services-ngx/portal-settin
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 
 export default {
-  title: 'Shared / Form listeners context path',
+  title: 'API / Listeners / HTTP / Form listeners context path',
   component: GioFormListenersContextPathComponent,
   decorators: [
     moduleMetadata({
