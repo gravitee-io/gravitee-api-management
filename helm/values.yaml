@@ -17,9 +17,23 @@ extraObjects: []
   #    license.key: myLicenceInBase64==
 
 installation:
-  type:
+  type: standalone
   api:
     url:
+  standalone:
+# If you want to use multiple environments with different consoles/portals, you can configure the URL below.
+    console:
+      urls:
+#        - orgId: DEFAULT
+#          url: https://4-2-x-multi-console.console1.team-apim.gravitee.dev
+#        - orgId: 6eb27b47-2560-481f-b27b-472560581fff
+#          url: https://4-2-x-multi-console.console2.team-apim.gravitee.dev
+    portal:
+      urls:
+#        - envId: DEFAULT
+#          url: https://4-2-x-multi-console.portal1.team-apim.gravitee.dev
+#        - envId: 808a51a9-48f5-4517-8a51-a948f5e517b3
+#          url: https://4-2-x-multi-console.portal2.team-apim.gravitee.dev
 
 apim:
   name: apim
