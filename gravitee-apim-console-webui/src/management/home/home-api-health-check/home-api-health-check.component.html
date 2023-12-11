@@ -22,9 +22,37 @@
 </gio-banner-info>
 
 <mat-card>
-  <gio-quick-time-range [formControl]="timeFrameControl" (onRefreshClicked)="onRefreshClicked()"></gio-quick-time-range>
-  <!-- button to set filter-->
-  <button mat-stroked-button class="only-configured-button" (click)="onOnlyHCConfigured()">Filter by Heath-Check enabled only</button>
+  <div>
+    <gio-quick-time-range [formControl]="timeFrameControl" (onRefreshClicked)="onRefreshClicked()"></gio-quick-time-range>
+    <!-- button to set filter-->
+    <button mat-stroked-button class="only-configured-button" (click)="onOnlyHCConfigured()">Filter by Heath-Check enabled only</button>
+  </div>
+  <gio-banner
+    *ngIf="allApisHCStatus"
+    [type]="
+      !allApisHCStatus.isLoading && (allApisHCStatus.inError > 0 || allApisHCStatus.inWarning > 0)
+        ? allApisHCStatus.inError > 0
+          ? 'error'
+          : 'warning'
+        : 'info'
+    "
+  >
+    API health-check Report
+    <span gioBannerBody>
+      <ng-container *ngIf="allApisHCStatus.isLoading">Loading...</ng-container>
+      <ng-container *ngIf="!allApisHCStatus.isLoading">
+        <ng-container *ngIf="allApisHCStatus.inError === 0 && allApisHCStatus.inWarning === 0">All APIs operational</ng-container>
+        <ng-container *ngIf="allApisHCStatus.inError > 0"
+          >{{ allApisHCStatus.inError == 1 ? '1 API is in error' : allApisHCStatus.inError + ' APIs are in error' }} (HealthCheck
+          availability <= 80%)<br
+        /></ng-container>
+        <ng-container *ngIf="allApisHCStatus.inWarning > 0"
+          >{{ allApisHCStatus.inWarning == 1 ? '1 API is in warning' : allApisHCStatus.inWarning + ' APIs are in warning' }} (HealthCheck
+          availability <= 95%)</ng-container
+        >
+      </ng-container>
+    </span>
+  </gio-banner>
 
   <gio-table-wrapper
     [searchLabel]="'Search APIs | name:&quot;My api *&quot; ownerName:admin'"

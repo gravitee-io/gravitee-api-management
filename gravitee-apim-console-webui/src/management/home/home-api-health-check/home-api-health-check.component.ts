@@ -15,14 +15,26 @@
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, Validators } from '@angular/forms';
-import { get, has, isEqual, isNumber } from 'lodash';
-import { BehaviorSubject, combineLatest, Observable, of, Subject } from 'rxjs';
-import { catchError, debounceTime, distinctUntilChanged, map, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { get, has, isEmpty, isEqual, isNumber } from 'lodash';
+import { BehaviorSubject, combineLatest, merge, Observable, of, Subject } from 'rxjs';
+import {
+  delay,
+  catchError,
+  debounceTime,
+  distinctUntilChanged,
+  map,
+  mergeMap,
+  scan,
+  startWith,
+  switchMap,
+  takeUntil,
+  tap,
+} from 'rxjs/operators';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { HealthAvailabilityTimeFrameOption } from './health-availability-time-frame/health-availability-time-frame.component';
 
-import { Api, ApiOrigin, ApiState } from '../../../entities/api';
+import { Api, ApiMetrics, ApiOrigin, ApiState } from '../../../entities/api';
 import { PagedResult } from '../../../entities/pagedResult';
 import { ApiService } from '../../../services-ngx/api.service';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
@@ -71,6 +83,8 @@ export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
   isLoadingData = true;
   timeFrameControl = new FormControl('1m', Validators.required);
 
+  allApisHCStatus: { inError: number; inWarning: number; isLoading: boolean };
+
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   private filters$ = new BehaviorSubject<GioTableWrapperFilters>(this.filters);
   private refreshAvailability$ = new BehaviorSubject<void>(undefined);
@@ -109,6 +123,11 @@ export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
       .subscribe();
 
     this.initFilters();
+
+    // On timeFrame change restart all HC check
+    this.timeFrameControl.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe(() => this.checkAllApisHCStatus());
+
+    this.checkAllApisHCStatus();
   }
 
   ngOnDestroy() {
@@ -129,11 +148,69 @@ export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
 
   onRefreshClicked() {
     this.refreshAvailability$.next();
+    this.checkAllApisHCStatus();
   }
 
   onOnlyHCConfigured() {
     this.filters = { ...this.filters, searchTerm: 'has_health_check:true' };
     this.filters$.next(this.filters);
+  }
+
+  checkAllApisHCStatus() {
+    const loadPage$ = new BehaviorSubject(1);
+    this.allApisHCStatus = { inError: 0, inWarning: 0, isLoading: true };
+
+    loadPage$
+      .pipe(
+        mergeMap((page) => this.apiService.list('has_health_check:true', undefined, page, 100)),
+        delay(100),
+        map((apisResult) => {
+          const hasNextPage = apisResult.page.total_pages > apisResult.page.current;
+          if (hasNextPage) {
+            loadPage$.next(apisResult.page.current + 1);
+          }
+
+          return {
+            apis: apisResult.data,
+            hasNextPage,
+          };
+        }),
+        mergeMap(({ apis, hasNextPage }) => {
+          const getApisHealth: Observable<{ apiMetrics?: ApiMetrics; isLastApiHealth: boolean }>[] = apis
+            .filter((a) => a.healthcheck_enabled)
+            .map((api, index, array) =>
+              this.apiService.apiHealth(api.id, 'availability').pipe(
+                map((apiMetrics) => ({ apiMetrics, isLastApiHealth: !hasNextPage && array.length - 1 <= index })),
+                delay(100),
+              ),
+            );
+          const emptyDefaultReturn = { apiMetrics: undefined, isLastApiHealth: !hasNextPage };
+
+          return isEmpty(getApisHealth) ? of(emptyDefaultReturn) : merge(...getApisHealth);
+        }),
+        scan(
+          (acc, curr: { apiMetrics?: ApiMetrics; isLastApiHealth: boolean }) => {
+            const availability = get(curr.apiMetrics, `global.${this.timeFrameControl.value}`);
+
+            if (availability && availability >= 0) {
+              if (availability <= 80) {
+                acc.inError++;
+              } else if (availability <= 95) {
+                acc.inWarning++;
+              }
+            }
+            acc.isLoading = !curr.isLastApiHealth;
+            return acc;
+          },
+          { inError: 0, inWarning: 0, isLoading: true },
+        ),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe({
+        next: (allApisHCStatus) => {
+          this.allApisHCStatus = allApisHCStatus;
+        },
+      });
   }
 
   private initFilters() {

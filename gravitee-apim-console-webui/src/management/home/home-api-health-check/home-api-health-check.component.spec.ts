@@ -58,6 +58,9 @@ describe('HomeApiHealthCheckComponent', () => {
   it('should display an empty table', async () => {
     fixture.detectChanges();
 
+    // For "Health-check of all APIs" check
+    await expectApisListRequest([], 'has_health_check:true', undefined, 1, 100);
+    // For table
     await expectApisListRequest([]);
 
     const { headerCells, rowCells } = await computeApisTableCells();
@@ -78,7 +81,9 @@ describe('HomeApiHealthCheckComponent', () => {
     const api = fakeApi({
       healthcheck_enabled: false,
     });
-
+    // For "Health-check of all APIs" check
+    await expectApisListRequest([], 'has_health_check:true', undefined, 1, 100);
+    // For table
     await expectApisListRequest([api]);
 
     const { headerCells, rowCells } = await computeApisTableCells();
@@ -99,7 +104,10 @@ describe('HomeApiHealthCheckComponent', () => {
     const api = fakeApi({
       healthcheck_enabled: true,
     });
+    // For "Health-check of all APIs" check
+    await expectApisListRequest([], 'has_health_check:true', undefined, 1, 100);
 
+    // For table
     await expectApisListRequest([api]);
     fixture.detectChanges();
     expectGetApiHealth(api.id);
@@ -125,6 +133,9 @@ describe('HomeApiHealthCheckComponent', () => {
     await healthCheckTimeFrameSelect.selectTimeRangeByText('last week');
     expectGetApiHealthAverage(api.id);
 
+    // For "Health-check of all APIs" check
+    await expectApisListRequest([], 'has_health_check:true', undefined, 1, 100);
+
     const { rowCells: rowCells_2 } = await computeApisTableCells();
     expect(rowCells_2).toEqual([
       ['', '🪐 Planets (1.0)', '', '20%Created with Highcharts 9.2.213:21:3013:21:4013:21:5013:22:0013:22:1013:22:20', ''],
@@ -134,7 +145,10 @@ describe('HomeApiHealthCheckComponent', () => {
   describe('onViewHealthCheckClicked', () => {
     beforeEach(async () => {
       fixture.detectChanges();
+      // For "Health-check of all APIs" check
+      await expectApisListRequest([], 'has_health_check:true', undefined, 1, 100);
 
+      // For table
       await expectApisListRequest([fakeApi()]);
     });
   });
@@ -145,7 +159,10 @@ describe('HomeApiHealthCheckComponent', () => {
     });
     beforeEach(async () => {
       fixture.detectChanges();
+      // For "Health-check of all APIs" check
+      await expectApisListRequest([], 'has_health_check:true', undefined, 1, 100);
 
+      // For table
       await expectApisListRequest([api]);
       fixture.detectChanges();
       expectGetApiHealth(api.id);
@@ -158,6 +175,8 @@ describe('HomeApiHealthCheckComponent', () => {
 
       expectGetApiHealth(api.id);
       expectGetApiHealthAverage(api.id);
+      // For "Health-check of all APIs" check
+      await expectApisListRequest([], 'has_health_check:true', undefined, 1, 100);
     });
   });
 
@@ -167,7 +186,10 @@ describe('HomeApiHealthCheckComponent', () => {
     });
     beforeEach(async () => {
       fixture.detectChanges();
+      // For "Health-check of all APIs" check
+      await expectApisListRequest([], 'has_health_check:true', undefined, 1, 100);
 
+      // For table
       await expectApisListRequest([api]);
       fixture.detectChanges();
       expectGetApiHealth(api.id);
@@ -192,11 +214,11 @@ describe('HomeApiHealthCheckComponent', () => {
     return { headerCells, rowCells };
   }
 
-  async function expectApisListRequest(apis: Api[] = [], q?: string, order?: string, page = 1) {
+  async function expectApisListRequest(apis: Api[] = [], q?: string, order?: string, page = 1, size = 10) {
     await fixture.whenStable();
 
     const req = httpTestingController.expectOne(
-      `${CONSTANTS_TESTING.env.baseURL}/apis/_search/_paged?page=${page}&size=10&q=${q ? q : '*'}${order ? `&order=${order}` : ''}`,
+      `${CONSTANTS_TESTING.env.baseURL}/apis/_search/_paged?page=${page}&size=${size}&q=${q ? q : '*'}${order ? `&order=${order}` : ''}`,
     );
     expect(req.request.method).toEqual('POST');
     req.flush(fakePagedResult(apis));
