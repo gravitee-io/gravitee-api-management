@@ -7,6 +7,7 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 
 - Update regex for portal and console base_href
 - 'fix AE system mail notification without keystore'
+- Add support for Secret Manager's configuration 
 
 ### 4.1.4
 
