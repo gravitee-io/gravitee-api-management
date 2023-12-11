@@ -51,10 +51,7 @@ import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
-import io.gravitee.rest.api.service.exceptions.EmailRequiredException;
-import io.gravitee.rest.api.service.exceptions.SupportUnavailableException;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.gravitee.rest.api.service.exceptions.TicketNotFoundException;
+import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.upgrade.DefaultMetadataUpgrader;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
@@ -82,6 +79,8 @@ import org.springframework.stereotype.Component;
 public class TicketServiceImpl extends TransactionalService implements TicketService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TicketServiceImpl.class);
+
+    private static final String UNKNOWN_REFERENCE = "Unknown";
 
     @Inject
     private UserService userService;
@@ -307,16 +306,24 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
     }
 
     private Ticket getApiNameAndApplicationName(final ExecutionContext executionContext, Ticket ticket) {
-        //Retrieve application name
+        // Retrieve application name
         if (StringUtils.isNotEmpty(ticket.getApplication())) {
-            ApplicationEntity application = applicationService.findById(executionContext, ticket.getApplication());
-            ticket.setApplication(application.getName());
+            try {
+                ApplicationEntity application = applicationService.findById(executionContext, ticket.getApplication());
+                ticket.setApplication(application.getName());
+            } catch (ApplicationNotFoundException e) {
+                ticket.setApplication(UNKNOWN_REFERENCE);
+            }
         }
 
-        //Retrieve api name
+        // Retrieve API name
         if (StringUtils.isNotEmpty(ticket.getApi())) {
-            GenericApiEntity api = apiSearchService.findGenericById(executionContext, ticket.getApi());
-            ticket.setApi(api.getName());
+            try {
+                GenericApiEntity api = apiSearchService.findGenericById(executionContext, ticket.getApi());
+                ticket.setApi(api.getName());
+            } catch (ApiNotFoundException e) {
+                ticket.setApi(UNKNOWN_REFERENCE);
+            }
         }
 
         return ticket;

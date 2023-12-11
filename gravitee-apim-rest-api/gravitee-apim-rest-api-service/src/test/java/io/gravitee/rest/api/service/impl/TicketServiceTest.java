@@ -39,10 +39,7 @@ import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.EmailRequiredException;
-import io.gravitee.rest.api.service.exceptions.SupportUnavailableException;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.gravitee.rest.api.service.exceptions.TicketNotFoundException;
+import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.impl.upgrade.DefaultMetadataUpgrader;
 import io.gravitee.rest.api.service.notification.PortalHook;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
@@ -462,5 +459,52 @@ public class TicketServiceTest {
         when(ticketRepository.findById("ticket1")).thenReturn(Optional.empty());
 
         ticketService.findById(GraviteeContext.getExecutionContext(), "ticket1");
+    }
+
+    @Test
+    public void shouldSetAPIToUnknownWhenAPINotFound() throws TechnicalException {
+        Ticket ticket = new Ticket();
+        ticket.setId("ticket1");
+        ticket.setApi(API_ID);
+        ticket.setSubject(EMAIL_SUBJECT);
+        ticket.setContent(EMAIL_CONTENT);
+        ticket.setCreatedAt(new Date());
+        ticket.setFromUser(USERNAME);
+
+        ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setName("apiName");
+        ApplicationEntity appEntity = new ApplicationEntity();
+        appEntity.setName("appName");
+
+        when(ticketRepository.findById("ticket1")).thenReturn(Optional.of(ticket));
+        when(apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), API_ID)).thenThrow(new ApiNotFoundException(API_ID));
+
+        TicketEntity ticketEntity = ticketService.findById(GraviteeContext.getExecutionContext(), "ticket1");
+
+        assertEquals("Unknown", ticketEntity.getApi());
+    }
+
+    @Test
+    public void shouldSetApplicationToUnknownWhenApplicationNotFound() throws TechnicalException {
+        Ticket ticket = new Ticket();
+        ticket.setId("ticket1");
+        ticket.setApplication(APPLICATION_ID);
+        ticket.setSubject(EMAIL_SUBJECT);
+        ticket.setContent(EMAIL_CONTENT);
+        ticket.setCreatedAt(new Date());
+        ticket.setFromUser(USERNAME);
+
+        ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setName("apiName");
+        ApplicationEntity appEntity = new ApplicationEntity();
+        appEntity.setName("appName");
+
+        when(ticketRepository.findById("ticket1")).thenReturn(Optional.of(ticket));
+        when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID))
+            .thenThrow(new ApplicationNotFoundException(APPLICATION_ID));
+
+        TicketEntity ticketEntity = ticketService.findById(GraviteeContext.getExecutionContext(), "ticket1");
+
+        assertEquals("Unknown", ticketEntity.getApplication());
     }
 }
