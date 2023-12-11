@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.management.v2.rest.model;
 
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import java.time.OffsetDateTime;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -28,7 +30,11 @@ import lombok.Setter;
 @Setter
 public class PlanCRD {
 
+    @NotNull
+    @NotEmpty
     private String id;
+
+    private String name;
 
     private String description;
 
@@ -38,31 +44,30 @@ public class PlanCRD {
 
     private String commentMessage;
 
-    private Boolean commentRequired;
-
-    private String crossId;
-
-    private DefinitionVersion definitionVersion;
+    private boolean commentRequired;
 
     private List<String> excludedGroups;
 
     private String generalConditions;
 
-    private Integer order;
+    private int order;
 
     private OffsetDateTime publishedAt;
 
     private String selectionRule;
 
+    @NotNull
     private PlanStatus status;
 
     private List<String> tags;
 
+    @NotNull
     private PlanType type;
 
     private PlanValidation validation;
 
     private List<FlowV4> flows;
 
+    @NotNull
     private PlanMode mode;
 }

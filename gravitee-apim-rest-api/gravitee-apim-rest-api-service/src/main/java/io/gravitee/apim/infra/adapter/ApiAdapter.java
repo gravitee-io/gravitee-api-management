@@ -16,10 +16,11 @@
 package io.gravitee.apim.infra.adapter;
 
 import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.apim.core.api.model.ApiCRD;
+import io.gravitee.apim.core.api.model.crd.ApiCRD;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import java.io.IOException;
 import java.util.stream.Stream;
 import org.mapstruct.Mapper;
@@ -30,11 +31,13 @@ import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Mapper
+@Mapper(uses = { PlanAdapter.class })
 public interface ApiAdapter {
     Logger LOGGER = LoggerFactory.getLogger(ApiAdapter.class);
     ApiAdapter INSTANCE = Mappers.getMapper(ApiAdapter.class);
 
+    @Mapping(target = "definitionContext.mode", source = "mode")
+    @Mapping(target = "definitionContext.origin", source = "origin")
     @Mapping(target = "apiDefinitionV4", expression = "java(deserializeApiDefinitionV4(source))")
     @Mapping(target = "apiDefinition", expression = "java(deserializeApiDefinitionV2(source))")
     Api toCoreModel(io.gravitee.repository.management.model.Api source);
@@ -48,15 +51,17 @@ public interface ApiAdapter {
 
     Stream<io.gravitee.repository.management.model.Api> toRepositoryStream(Stream<Api> source);
 
+    @Mapping(target = "apiVersion", source = "version")
+    io.gravitee.definition.model.v4.Api toApiDefinition(ApiCRD source);
+
+    @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
+    @Mapping(source = "version", target = "apiVersion")
+    UpdateApiEntity toUpdateApiEntity(ApiCRD api);
+
     @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
     @Mapping(source = "version", target = "apiVersion")
     @Mapping(target = "metadata", ignore = true)
     ApiEntity toApiEntity(ApiCRD api);
-
-    @Mapping(source = "state", target = "lifecycleState")
-    @Mapping(source = "lifecycleState", target = "apiLifecycleState")
-    @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
-    Api fromApiEntity(ApiEntity apiEntity);
 
     @Mapping(source = "state", target = "lifecycleState")
     @Mapping(source = "lifecycleState", target = "apiLifecycleState")

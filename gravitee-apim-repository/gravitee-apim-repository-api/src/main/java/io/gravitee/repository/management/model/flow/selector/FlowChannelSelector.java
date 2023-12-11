@@ -15,14 +15,12 @@
  */
 package io.gravitee.repository.management.model.flow.selector;
 
-import io.gravitee.common.http.HttpMethod;
 import java.util.Set;
-import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -32,6 +30,7 @@ import lombok.ToString;
 @Setter
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
+@SuperBuilder(toBuilder = true)
 public class FlowChannelSelector extends FlowSelector {
 
     /**
@@ -61,5 +60,15 @@ public class FlowChannelSelector extends FlowSelector {
     public enum Operation {
         SUBSCRIBE,
         PUBLISH,
+    }
+
+    public abstract static class FlowChannelSelectorBuilder<
+        C extends FlowChannelSelector, B extends FlowChannelSelector.FlowChannelSelectorBuilder<C, B>
+    >
+        extends FlowSelector.FlowSelectorBuilder<C, B> {
+
+        FlowChannelSelectorBuilder() {
+            type(FlowSelectorType.CHANNEL);
+        }
     }
 }

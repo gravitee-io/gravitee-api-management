@@ -143,6 +143,18 @@ public class Api {
         ARCHIVED,
     }
 
+    public boolean isDeprecated() {
+        return apiLifecycleState == ApiLifecycleState.DEPRECATED;
+    }
+
+    public Set<String> getTags() {
+        if (definitionVersion == DefinitionVersion.V4) {
+            return apiDefinitionV4.getTags();
+        } else {
+            return apiDefinition.getTags();
+        }
+    }
+
     public Api setApiDefinitionV4(io.gravitee.definition.model.v4.Api apiDefinitionV4) {
         this.apiDefinitionV4 = apiDefinitionV4;
         this.definitionVersion = apiDefinitionV4.getDefinitionVersion();

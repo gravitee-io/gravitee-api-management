@@ -19,6 +19,7 @@ import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.DeployApiDomainService;
+import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.api.use_case.ImportCRDUseCase;
@@ -56,6 +57,10 @@ import io.gravitee.apim.core.log.use_case.SearchMessageLogsUseCase;
 import io.gravitee.apim.core.parameters.domain_service.ParametersDomainService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
+import io.gravitee.apim.core.plan.domain_service.DeletePlanDomainService;
+import io.gravitee.apim.core.plan.domain_service.ReorderPlanDomainService;
+import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
+import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
@@ -276,18 +281,34 @@ public class UsecaseSpringConfiguration {
 
     @Bean
     public ImportCRDUseCase importCRDUseCase(
+        ApiCrudService apiCrudService,
         ApiQueryService apiQueryService,
         CreateApiDomainService createApiDomainService,
         CreatePlanDomainService createPlanDomainService,
         ApiMetadataDomainService apiMetadataDomainService,
-        DeployApiDomainService deployApiDomainService
+        DeployApiDomainService deployApiDomainService,
+        UpdateApiDomainService updateApiDomainService,
+        PlanQueryService planQueryService,
+        UpdatePlanDomainService updatePlanDomainService,
+        DeletePlanDomainService deletePlanDomainService,
+        SubscriptionQueryService subscriptionQueryService,
+        CloseSubscriptionDomainService closeSubscriptionDomainService,
+        ReorderPlanDomainService reorderPlanDomainService
     ) {
         return new ImportCRDUseCase(
+            apiCrudService,
             apiQueryService,
             createApiDomainService,
             createPlanDomainService,
             apiMetadataDomainService,
-            deployApiDomainService
+            deployApiDomainService,
+            updateApiDomainService,
+            planQueryService,
+            updatePlanDomainService,
+            deletePlanDomainService,
+            subscriptionQueryService,
+            closeSubscriptionDomainService,
+            reorderPlanDomainService
         );
     }
 }

@@ -323,7 +323,14 @@
             <version>3.4.10</version>
             <scope>test</scope>
         </dependency>
-    </dependencies>
+		<dependency>
+			<groupId>io.gravitee.apim.definition</groupId>
+			<artifactId>gravitee-apim-definition-model</artifactId>
+			<version>${project.version}</version>
+			<type>test-jar</type>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
 
 	<build>
 		<plugins>

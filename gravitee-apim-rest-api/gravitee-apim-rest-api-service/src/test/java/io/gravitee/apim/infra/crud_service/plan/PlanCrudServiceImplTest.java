@@ -18,9 +18,13 @@ package io.gravitee.apim.infra.crud_service.plan;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import fixtures.core.model.PlanFixtures;
+import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -33,18 +37,20 @@ import io.gravitee.rest.api.model.v4.plan.PlanMode;
 import io.gravitee.rest.api.model.v4.plan.PlanType;
 import io.gravitee.rest.api.model.v4.plan.PlanValidationType;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import lombok.SneakyThrows;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 public class PlanCrudServiceImplTest {
 
@@ -179,8 +185,217 @@ public class PlanCrudServiceImplTest {
 
             // Then
             assertThat(throwable)
-                .isInstanceOf(TechnicalManagementException.class)
+                .isInstanceOf(TechnicalDomainException.class)
                 .hasMessage("An error occurs while trying to find a plan by id: " + planId);
+        }
+    }
+
+    @Nested
+    class Create {
+
+        @Test
+        @SneakyThrows
+        void should_create_a_v4_plan() {
+            var plan = PlanFixtures
+                .aPlanV4()
+                .toBuilder()
+                .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                .publishedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                .closedAt(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                .needRedeployAt(Date.from(Instant.parse("2020-02-05T20:22:02.00Z")))
+                .commentRequired(true)
+                .build();
+            when(planRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+            var result = service.create(plan);
+
+            assertThat(result).isEqualTo(plan);
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() throws TechnicalException {
+            // Given
+            when(planRepository.create(any())).thenThrow(TechnicalException.class);
+
+            // When
+            Throwable throwable = catchThrowable(() -> service.create(PlanFixtures.aPlanV4()));
+
+            // Then
+            assertThat(throwable)
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurs while trying to create the plan: my-plan");
+        }
+    }
+
+    @Nested
+    class Update {
+
+        @Test
+        @SneakyThrows
+        void should_update_an_existing_v4_plan() {
+            var plan = PlanFixtures
+                .aPlanV4()
+                .toBuilder()
+                .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC))
+                .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC))
+                .publishedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC))
+                .closedAt(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneOffset.UTC))
+                .needRedeployAt(Date.from(Instant.parse("2020-02-05T20:22:02.00Z")))
+                .commentRequired(true)
+                .characteristics(List.of("characteristic1", "characteristic2"))
+                .commentMessage("Comment message")
+                .excludedGroups(List.of("excludedGroup1", "excludedGroup2"))
+                .generalConditions("General conditions")
+                .selectionRule("{#request.attribute['selectionRule'] != null}")
+                .tags(Set.of("tag1", "tag2"))
+                .build();
+            service.update(plan);
+
+            var captor = ArgumentCaptor.forClass(Plan.class);
+            verify(planRepository).update(captor.capture());
+
+            assertThat(captor.getValue())
+                .usingRecursiveComparison()
+                .isEqualTo(
+                    Plan
+                        .builder()
+                        .id("my-plan")
+                        .api("my-api")
+                        .crossId("my-plan-crossId")
+                        .name("My plan")
+                        .description("Description")
+                        .security(Plan.PlanSecurityType.KEY_LESS)
+                        .securityDefinition("{\"nice\": \"config\"}")
+                        .selectionRule("{#request.attribute['selectionRule'] != null}")
+                        .validation(Plan.PlanValidationType.AUTO)
+                        .mode(Plan.PlanMode.STANDARD)
+                        .order(1)
+                        .type(Plan.PlanType.API)
+                        .status(Plan.Status.PUBLISHED)
+                        .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                        .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                        .publishedAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
+                        .closedAt(Date.from(Instant.parse("2020-02-04T20:22:02.00Z")))
+                        .needRedeployAt(Date.from(Instant.parse("2020-02-05T20:22:02.00Z")))
+                        .characteristics(List.of("characteristic1", "characteristic2"))
+                        .excludedGroups(List.of("excludedGroup1", "excludedGroup2"))
+                        .commentRequired(true)
+                        .commentMessage("Comment message")
+                        .generalConditions("General conditions")
+                        .tags(Set.of("tag1", "tag2"))
+                        .build()
+                );
+        }
+
+        @Test
+        @SneakyThrows
+        void should_update_an_existing_v2_plan() {
+            var plan = PlanFixtures
+                .aPlanV2()
+                .toBuilder()
+                .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC))
+                .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC))
+                .publishedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC))
+                .closedAt(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneOffset.UTC))
+                .needRedeployAt(Date.from(Instant.parse("2020-02-05T20:22:02.00Z")))
+                .commentRequired(true)
+                .characteristics(List.of("characteristic1", "characteristic2"))
+                .commentMessage("Comment message")
+                .excludedGroups(List.of("excludedGroup1", "excludedGroup2"))
+                .generalConditions("General conditions")
+                .selectionRule("{#request.attribute['selectionRule'] != null}")
+                .tags(Set.of("tag1", "tag2"))
+                .build();
+            service.update(plan);
+
+            var captor = ArgumentCaptor.forClass(Plan.class);
+            verify(planRepository).update(captor.capture());
+
+            assertThat(captor.getValue())
+                .usingRecursiveComparison()
+                .isEqualTo(
+                    Plan
+                        .builder()
+                        .id("my-plan")
+                        .api("my-api")
+                        .crossId("my-plan-crossId")
+                        .name("My plan")
+                        .description("Description")
+                        .security(Plan.PlanSecurityType.KEY_LESS)
+                        .securityDefinition("{\"nice\": \"config\"}")
+                        .definition("{\"/\":[]}")
+                        .selectionRule("{#request.attribute['selectionRule'] != null}")
+                        .validation(Plan.PlanValidationType.AUTO)
+                        .mode(Plan.PlanMode.STANDARD)
+                        .order(1)
+                        .type(Plan.PlanType.API)
+                        .status(Plan.Status.PUBLISHED)
+                        .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                        .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                        .publishedAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
+                        .closedAt(Date.from(Instant.parse("2020-02-04T20:22:02.00Z")))
+                        .needRedeployAt(Date.from(Instant.parse("2020-02-05T20:22:02.00Z")))
+                        .characteristics(List.of("characteristic1", "characteristic2"))
+                        .excludedGroups(List.of("excludedGroup1", "excludedGroup2"))
+                        .commentRequired(true)
+                        .commentMessage("Comment message")
+                        .generalConditions("General conditions")
+                        .tags(Set.of("tag1", "tag2"))
+                        .build()
+                );
+        }
+
+        @Test
+        @SneakyThrows
+        void should_return_the_updated_plan() {
+            when(planRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+            var toUpdate = PlanFixtures.aPlanV4();
+            var result = service.update(toUpdate);
+
+            assertThat(result).isEqualTo(toUpdate);
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() throws TechnicalException {
+            // Given
+            when(planRepository.update(any())).thenThrow(TechnicalException.class);
+
+            // When
+            Throwable throwable = catchThrowable(() -> service.update(PlanFixtures.aPlanV4()));
+
+            // Then
+            assertThat(throwable)
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurs while trying to update the plan: my-plan");
+        }
+    }
+
+    @Nested
+    class Delete {
+
+        @Test
+        @SneakyThrows
+        void should_call_delete() {
+            var planId = "to-delete";
+            service.delete(planId);
+
+            verify(planRepository).delete(planId);
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() throws TechnicalException {
+            // Given
+            doThrow(TechnicalException.class).when(planRepository).delete(any());
+
+            // When
+            Throwable throwable = catchThrowable(() -> service.delete("to-delete"));
+
+            // Then
+            assertThat(throwable)
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurs while trying to delete the plan: to-delete");
         }
     }
 

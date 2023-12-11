@@ -15,23 +15,24 @@
  */
 package io.gravitee.rest.api.management.v2.rest;
 
-import io.gravitee.rest.api.management.v2.rest.exceptionMapper.*;
+import io.gravitee.rest.api.management.v2.rest.exceptionMapper.BadRequestExceptionMapper;
+import io.gravitee.rest.api.management.v2.rest.exceptionMapper.ConstraintValidationExceptionMapper;
+import io.gravitee.rest.api.management.v2.rest.exceptionMapper.ManagementExceptionMapper;
+import io.gravitee.rest.api.management.v2.rest.exceptionMapper.NotFoundExceptionMapper;
+import io.gravitee.rest.api.management.v2.rest.exceptionMapper.PreconditionFailedExceptionMapper;
+import io.gravitee.rest.api.management.v2.rest.exceptionMapper.ThrowableMapper;
+import io.gravitee.rest.api.management.v2.rest.exceptionMapper.UnrecognizedPropertyExceptionMapper;
+import io.gravitee.rest.api.management.v2.rest.exceptionMapper.ValidationExceptionMapper;
 import io.gravitee.rest.api.management.v2.rest.exceptionMapper.domain.NotAllowedDomainExceptionMapper;
+import io.gravitee.rest.api.management.v2.rest.exceptionMapper.domain.NotFoundDomainExceptionMapper;
 import io.gravitee.rest.api.management.v2.rest.exceptionMapper.domain.TechnicalDomainExceptionMapper;
 import io.gravitee.rest.api.management.v2.rest.exceptionMapper.domain.ValidationDomainExceptionMapper;
 import io.gravitee.rest.api.management.v2.rest.provider.ByteArrayOutputStreamWriter;
 import io.gravitee.rest.api.management.v2.rest.provider.CommaSeparatedQueryParamConverterProvider;
 import io.gravitee.rest.api.management.v2.rest.provider.ObjectMapperResolver;
 import io.gravitee.rest.api.management.v2.rest.resource.OpenAPIResource;
-import io.gravitee.rest.api.management.v2.rest.resource.api.ApiMembersResource;
-import io.gravitee.rest.api.management.v2.rest.resource.api.ApiPlansResource;
-import io.gravitee.rest.api.management.v2.rest.resource.api.ApiResource;
-import io.gravitee.rest.api.management.v2.rest.resource.api.ApiSubscriptionsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.ApisResource;
-import io.gravitee.rest.api.management.v2.rest.resource.api.log.ApiLogsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.bootstrap.ManagementUIResource;
-import io.gravitee.rest.api.management.v2.rest.resource.documentation.ApiPagesResource;
-import io.gravitee.rest.api.management.v2.rest.resource.group.GroupsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.installation.EnvironmentsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.installation.GraviteeLicenseResource;
 import io.gravitee.rest.api.management.v2.rest.resource.installation.OrganizationResource;
@@ -84,6 +85,7 @@ public class GraviteeManagementV2Application extends ResourceConfig {
         register(ValidationDomainExceptionMapper.class);
         register(TechnicalDomainExceptionMapper.class);
         register(NotAllowedDomainExceptionMapper.class);
+        register(NotFoundDomainExceptionMapper.class);
 
         register(CommaSeparatedQueryParamConverterProvider.class);
 

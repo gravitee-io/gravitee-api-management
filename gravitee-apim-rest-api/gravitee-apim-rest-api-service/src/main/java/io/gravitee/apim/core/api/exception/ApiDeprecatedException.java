@@ -13,39 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.api.model;
+package io.gravitee.apim.core.api.exception;
 
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import java.util.Map;
-import lombok.Builder;
-import lombok.Data;
-import lombok.Singular;
 
-/**
- * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
- * @author GraviteeSource Team
- */
-@Data
-@Builder
-public class ApiCRDStatus {
+public class ApiDeprecatedException extends ValidationDomainException {
 
-    private String organizationId;
-
-    private String environmentId;
-    /**
-     * The API cross ID
-     */
-    private String crossId;
-
-    /**
-     * The API ID
-     */
-    private String id;
-
-    /**
-     * maps the name of the plan to its ID (not cross ID)
-     */
-    @Singular
-    private Map<String, String> plans;
-
-    private String state;
+    public ApiDeprecatedException(String apiId) {
+        super("The API is deprecated and cannot be modified.", Map.of("apiId", apiId));
+    }
 }

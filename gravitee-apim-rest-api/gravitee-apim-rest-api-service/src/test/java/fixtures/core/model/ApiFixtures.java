@@ -156,4 +156,53 @@ public class ApiFixtures {
             )
             .build();
     }
+
+    public static Api aMessageApiV4() {
+        return BASE
+            .get()
+            .type(ApiType.MESSAGE)
+            .definitionVersion(DefinitionVersion.V4)
+            .apiDefinitionV4(
+                io.gravitee.definition.model.v4.Api
+                    .builder()
+                    .id("my-api")
+                    .name("My message Api")
+                    .analytics(Analytics.builder().enabled(false).build())
+                    .type(ApiType.MESSAGE)
+                    .tags(Set.of("tag1"))
+                    .listeners(
+                        List.of(
+                            HttpListener
+                                .builder()
+                                .paths(List.of(Path.builder().path("/message").build()))
+                                .entrypoints(List.of(Entrypoint.builder().type("sse").configuration("{}").build()))
+                                .build()
+                        )
+                    )
+                    .endpointGroups(
+                        List.of(
+                            EndpointGroup
+                                .builder()
+                                .name("default-group")
+                                .type("mock")
+                                .sharedConfiguration("{}")
+                                .endpoints(
+                                    List.of(
+                                        Endpoint
+                                            .builder()
+                                            .name("default-endpoint")
+                                            .type("mock")
+                                            .inheritConfiguration(true)
+                                            .configuration("{}")
+                                            .build()
+                                    )
+                                )
+                                .build()
+                        )
+                    )
+                    .flows(List.of())
+                    .build()
+            )
+            .build();
+    }
 }

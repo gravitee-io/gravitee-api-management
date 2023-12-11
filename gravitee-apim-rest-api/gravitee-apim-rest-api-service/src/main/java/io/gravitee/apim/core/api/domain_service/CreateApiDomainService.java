@@ -16,7 +16,7 @@
 package io.gravitee.apim.core.api.domain_service;
 
 import io.gravitee.apim.core.api.model.Api;
-import io.gravitee.apim.core.api.model.ApiCRD;
+import io.gravitee.apim.core.api.model.crd.ApiCRD;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 
 /**

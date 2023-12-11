@@ -40,8 +40,10 @@ import org.springframework.stereotype.Component;
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
+ * @deprecated Use {@link io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService} instead
  */
 @Component
+@Deprecated
 public class PathParametersValidationServiceImpl implements PathParametersValidationService {
 
     private static final String PATH_PARAM_PREFIX = ":";

@@ -20,4 +20,6 @@ import java.util.List;
 
 public interface SubscriptionQueryService {
     List<SubscriptionEntity> findExpiredSubscriptions();
+
+    List<SubscriptionEntity> findActiveSubscriptionsByPlan(String planId);
 }

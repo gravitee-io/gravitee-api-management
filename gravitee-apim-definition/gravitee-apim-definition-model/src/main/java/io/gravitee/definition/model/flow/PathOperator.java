@@ -19,11 +19,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
+@EqualsAndHashCode
 public class PathOperator implements Serializable {
 
     @JsonProperty("path")

@@ -45,6 +45,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
+@Deprecated
 public class FlowValidationServiceImpl extends TransactionalService implements FlowValidationService {
 
     private final PolicyService policyService;
