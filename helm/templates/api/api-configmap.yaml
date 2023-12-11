@@ -104,9 +104,17 @@ data:
       {{- if ne (include "installation.type" .) "multi-tenant" }}
       standalone:
         console:
+          {{- if .Values.installation.standalone.console.urls }}
+            {{- toYaml .Values.installation.standalone.console | nindent 10 }}
+          {{ else }}
           url: https://{{ index .Values.ui.ingress.hosts 0 }}{{ regexFind "/[a-zA-Z0-9-\\/_.~]+" .Values.ui.ingress.path }}
+          {{- end }}
         portal:
+          {{- if .Values.installation.standalone.portal.urls }}
+            {{- toYaml .Values.installation.standalone.portal | nindent 10 }}
+          {{ else }}
           url: https://{{ index .Values.portal.ingress.hosts 0 }}{{ regexFind "/[a-zA-Z0-9-\\/_.~]+" .Values.portal.ingress.path }}
+          {{- end }}
       {{ else }}
       multi-tenant:
         {{- toYaml (index .Values "installation" "multi-tenant") | nindent 8 }}
