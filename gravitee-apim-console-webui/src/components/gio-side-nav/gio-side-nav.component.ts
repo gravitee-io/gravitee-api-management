@@ -116,6 +116,13 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
         permissions: ['environment-application-r'],
       },
       {
+        icon: 'gio:multi-window',
+        targetRoute: 'management.integrations',
+        baseRoute: 'management.integrations',
+        displayName: 'Integrations',
+        permissions: ['environment-application-r'],
+      },
+      {
         icon: 'gio:cloud-server',
         displayName: 'Gateways',
         routerLink: './gateways',
