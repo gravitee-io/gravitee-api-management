@@ -17,6 +17,7 @@ package io.gravitee.apim.infra.spring;
 
 import io.gravitee.apim.core.api.domain_service.ApiHostValidatorDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiPolicyValidatorDomainService;
+import io.gravitee.apim.core.api.domain_service.VerifyApiHostsDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.api_key.crud_service.ApiKeyCrudService;
@@ -267,5 +268,10 @@ public class CoreServiceSpringConfiguration {
         AuditDomainService auditDomainService
     ) {
         return new DeletePlanDomainService(planCrudService, subscriptionQueryService, auditDomainService);
+    }
+
+    @Bean
+    public VerifyApiHostsDomainService verifyApiHostsDomainService(ApiQueryService apiSearchService) {
+        return new VerifyApiHostsDomainService(apiSearchService);
     }
 }

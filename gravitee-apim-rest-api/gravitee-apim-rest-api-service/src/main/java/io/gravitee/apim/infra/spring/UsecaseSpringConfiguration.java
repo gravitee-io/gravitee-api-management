@@ -21,9 +21,11 @@ import io.gravitee.apim.core.api.domain_service.ApiPolicyValidatorDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.DeployApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
+import io.gravitee.apim.core.api.domain_service.VerifyApiHostsDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.api.use_case.ImportCRDUseCase;
+import io.gravitee.apim.core.api.use_case.VerifyApiHostsUseCase;
 import io.gravitee.apim.core.api.use_case.VerifyApiPathsUseCase;
 import io.gravitee.apim.core.api_key.domain_service.RevokeApiKeyDomainService;
 import io.gravitee.apim.core.api_key.query_service.ApiKeyQueryService;
@@ -324,5 +326,10 @@ public class UsecaseSpringConfiguration {
         EventCrudService eventCrudService
     ) {
         return new DebugApiUseCase(apiPolicyValidatorDomainService, apiCrudService, instanceQueryService, eventCrudService);
+    }
+
+    @Bean
+    public VerifyApiHostsUseCase verifyApiHostsUseCase(VerifyApiHostsDomainService verifyApiHostsDomainService) {
+        return new VerifyApiHostsUseCase(verifyApiHostsDomainService);
     }
 }
