@@ -174,9 +174,9 @@ paths:
                 - $ref: "#/components/parameters/envIdParam"
             tags:
                 - APIs
-            summary: Verify API paths
+            summary: Verify HTTP API paths
             description: |-
-                Verify paths before creating or updating an API.<br>
+                Verify paths before creating or updating a HTTP API.<br>
                 This will check paths and hosts (depending on environment domain restrictions), and will check that path is not already used by other APIs in the environment.<br>
                 The result will indicate if the paths are OK, and give the reason of the failure if they are not (path contains invalid chars, path is already covered by another API,...)
             operationId: verifyPaths
@@ -189,6 +189,32 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/VerifyApiPathsResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+
+    /environments/{envId}/apis/_verify/hosts:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+        post:
+            parameters:
+                - $ref: "#/components/parameters/envIdParam"
+            tags:
+                - APIs
+            summary: Verify TCP API hosts
+            description: |-
+                Verify hosts before creating or updating a TCP API.<br>
+                This will check it is not already used by other APIs in the environment.<br>
+                The result will indicate if the hists are OK, and give the reason of the failure if they are not.
+            operationId: verifyHosts
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/VerifyApiHosts"
+                required: true
+            responses:
+                "200":
+                    $ref: "#/components/responses/VerifyApiHostsResponse"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -4187,6 +4213,19 @@ components:
                         $ref: "#/components/schemas/Path"
             required: [paths]
 
+        VerifyApiHosts:
+            title: "VerifyApiHosts"
+            properties:
+                apiId:
+                    type: string
+                hosts:
+                    type: array
+                    example:
+                        - foo.example.com
+                    items:
+                        type: string
+            required: [hosts]
+
         ## API V2 specific schemas
         ApiEntrypoint:
             type: object
@@ -5913,6 +5952,21 @@ components:
                             reason:
                                 type: string
                                 description: An optional reason giving details about the result.
+
+        VerifyApiHostsResponse:
+            description: Result of the API hosts verification
+            content:
+                application/json:
+                    schema:
+                        title: "VerifyApiHostsResponse"
+                        properties:
+                            ok:
+                                type: boolean
+                                description: Indicates whether the hosts are valid.
+                            reason:
+                                type: string
+                                description: An optional reason giving details about the result.
+
         # Analytics - Logs
         ApiLogsResponse:
             description: Page of API Logs

@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.api.domain_service;
 
+import io.gravitee.apim.core.api.exception.InvalidHostException;
 import io.gravitee.apim.core.api.exception.InvalidPathsException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiFieldFilter;
@@ -247,13 +248,6 @@ public class VerifyApiPathDomainService {
             return split[1];
         }
         return null;
-    }
-}
-
-class InvalidHostException extends RuntimeException {
-
-    public InvalidHostException(String message) {
-        super(message);
     }
 }
 

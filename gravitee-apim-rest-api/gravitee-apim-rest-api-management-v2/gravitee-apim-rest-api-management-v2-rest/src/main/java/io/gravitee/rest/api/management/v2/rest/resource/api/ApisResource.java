@@ -21,6 +21,7 @@ import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDoc
 import com.google.common.base.Strings;
 import io.gravitee.apim.core.api.exception.InvalidPathsException;
 import io.gravitee.apim.core.api.use_case.ImportCRDUseCase;
+import io.gravitee.apim.core.api.use_case.VerifyApiHostsUseCase;
 import io.gravitee.apim.core.api.use_case.VerifyApiPathsUseCase;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -34,6 +35,8 @@ import io.gravitee.rest.api.management.v2.rest.model.ApiSearchQuery;
 import io.gravitee.rest.api.management.v2.rest.model.ApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.CreateApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.ExportApiV4;
+import io.gravitee.rest.api.management.v2.rest.model.VerifyApiHosts;
+import io.gravitee.rest.api.management.v2.rest.model.VerifyApiHostsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.VerifyApiPaths;
 import io.gravitee.rest.api.management.v2.rest.model.VerifyApiPathsResponse;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
@@ -98,6 +101,9 @@ public class ApisResource extends AbstractResource {
 
     @Inject
     private VerifyApiPathsUseCase verifyApiPathsUsecase;
+
+    @Inject
+    private VerifyApiHostsUseCase verifyApiHostsUseCase;
 
     @Path("{apiId}")
     public ApiResource getApiResource() {
@@ -310,6 +316,23 @@ public class ApisResource extends AbstractResource {
             return Response.accepted(VerifyApiPathsResponse.builder().ok(true).build()).build();
         } catch (InvalidPathsException e) {
             return Response.accepted(VerifyApiPathsResponse.builder().ok(false).reason(e.getMessage()).build()).build();
+        }
+    }
+
+    @POST
+    @Path("_verify/hosts")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.READ }) })
+    public Response verifyHosts(VerifyApiHosts verifyPayload) {
+        var executionContext = GraviteeContext.getExecutionContext();
+        try {
+            verifyApiHostsUseCase.execute(
+                new VerifyApiHostsUseCase.Input(executionContext.getEnvironmentId(), verifyPayload.getApiId(), verifyPayload.getHosts())
+            );
+            return Response.accepted(VerifyApiHostsResponse.builder().ok(true).build()).build();
+        } catch (Exception e) {
+            return Response.accepted(VerifyApiHostsResponse.builder().ok(false).reason(e.getMessage()).build()).build();
         }
     }
 }
