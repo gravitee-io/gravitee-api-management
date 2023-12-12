@@ -33,6 +33,7 @@ import { UserComponent } from '../user/my-accout/user.component';
 import { ApimFeature } from '../shared/components/gio-license/gio-license-data';
 import { HasLicenseGuard } from '../shared/components/gio-license/has-license.guard';
 
+
 const managementRoutes: Routes = [
   {
     path: '',
@@ -44,6 +45,10 @@ const managementRoutes: Routes = [
       {
         path: 'home',
         loadChildren: () => import('./home/home.module').then((m) => m.HomeModule),
+      },
+      {
+        path: 'integrations',
+        loadChildren: () => import('./integrations/integrations.module').then((m) => m.IntegrationsModule),
       },
       {
         path: 'apis',
