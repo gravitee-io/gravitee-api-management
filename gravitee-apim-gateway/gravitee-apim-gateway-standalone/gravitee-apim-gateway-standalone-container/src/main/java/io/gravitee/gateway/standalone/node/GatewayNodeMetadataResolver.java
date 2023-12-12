@@ -22,6 +22,7 @@ import io.gravitee.node.api.NodeMetadataResolver;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.InstallationRepository;
+import io.gravitee.repository.management.api.LicenseRepository;
 import io.gravitee.repository.management.api.OrganizationRepository;
 import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.Installation;
@@ -48,6 +49,10 @@ public class GatewayNodeMetadataResolver implements NodeMetadataResolver {
     @Lazy
     @Autowired
     private OrganizationRepository organizationRepository;
+
+    @Lazy
+    @Autowired
+    private LicenseRepository licenseRepository;
 
     @Lazy
     @Autowired

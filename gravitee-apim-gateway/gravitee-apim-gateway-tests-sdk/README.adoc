@@ -357,6 +357,7 @@ IMPORTANT: The difference between the previously mentioned method is that `loadP
 ** SubscriptionRepository
 ** EventRepository
 ** ApiKeyRepository
+** LicenseRepository
 
 ==== Fake policy & resource
 

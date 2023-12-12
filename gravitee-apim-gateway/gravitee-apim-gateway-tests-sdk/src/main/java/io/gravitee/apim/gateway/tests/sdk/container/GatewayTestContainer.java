@@ -92,6 +92,11 @@ public class GatewayTestContainer extends GatewayContainer {
         }
 
         @Bean
+        public LicenseRepository licenseRepository() {
+            return Mockito.mock(LicenseRepository.class);
+        }
+
+        @Bean
         public EnvironmentRepository environmentRepository() {
             return Mockito.mock(EnvironmentRepository.class);
         }

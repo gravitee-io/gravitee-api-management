@@ -26,10 +26,7 @@ import io.gravitee.node.container.NodeFactory;
 import io.gravitee.node.plugin.cache.standalone.StandaloneCacheManager;
 import io.gravitee.node.plugin.cluster.standalone.StandaloneClusterManager;
 import io.gravitee.reporter.api.Reporter;
-import io.gravitee.repository.management.api.EnvironmentRepository;
-import io.gravitee.repository.management.api.InstallationRepository;
-import io.gravitee.repository.management.api.OrganizationRepository;
-import io.gravitee.repository.management.api.SubscriptionRepository;
+import io.gravitee.repository.management.api.*;
 import io.gravitee.tracing.api.Tracer;
 import io.vertx.core.Vertx;
 import java.util.List;
@@ -94,6 +91,11 @@ public class GatewayTestContainer extends GatewayContainer {
         @Bean
         public OrganizationRepository organizationRepository() {
             return Mockito.mock(OrganizationRepository.class);
+        }
+
+        @Bean
+        public LicenseRepository licenseRepository() {
+            return Mockito.mock(LicenseRepository.class);
         }
 
         @Bean
