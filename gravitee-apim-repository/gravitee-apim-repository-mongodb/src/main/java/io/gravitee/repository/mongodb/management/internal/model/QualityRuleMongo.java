@@ -36,6 +36,8 @@ public class QualityRuleMongo extends Auditable {
     @Id
     private String id;
 
+    private String referenceType;
+    private String referenceId;
     private String name;
     private String description;
     private int weight;

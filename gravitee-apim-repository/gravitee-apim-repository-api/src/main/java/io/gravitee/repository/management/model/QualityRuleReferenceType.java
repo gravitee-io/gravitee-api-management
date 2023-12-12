@@ -15,34 +15,6 @@
  */
 package io.gravitee.repository.management.model;
 
-import java.util.Date;
-import lombok.*;
-
-/**
- * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
- * @author GraviteeSource Team
- */
-@Setter
-@Getter
-@ToString
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
-@EqualsAndHashCode(of = "id")
-public class QualityRule {
-
-    public enum AuditEvent implements Audit.AuditEvent {
-        QUALITY_RULE_CREATED,
-        QUALITY_RULE_UPDATED,
-        QUALITY_RULE_DELETED,
-    }
-
-    private String id;
-    private QualityRuleReferenceType referenceType;
-    private String referenceId;
-    private String name;
-    private String description;
-    private int weight;
-    private Date createdAt;
-    private Date updatedAt;
+public enum QualityRuleReferenceType {
+    ENVIRONMENT,
 }

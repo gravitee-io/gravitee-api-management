@@ -39,6 +39,8 @@ public class JdbcQualityRuleRepository extends JdbcAbstractCrudRepository<Qualit
         return JdbcObjectMapper
             .builder(QualityRule.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
+            .addColumn("reference_type", Types.NVARCHAR, String.class)
+            .addColumn("reference_id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("description", Types.NVARCHAR, String.class)
             .addColumn("weight", Types.INTEGER, int.class)
