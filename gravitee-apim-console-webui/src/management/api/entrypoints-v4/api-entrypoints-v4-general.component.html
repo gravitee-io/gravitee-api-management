@@ -59,6 +59,25 @@
         <button mat-stroked-button type="button" (click)="onReset()" [disabled]="!formGroup.dirty">Reset</button>
       </div>
     </mat-card>
+    <mat-card *ngIf="apiExistingHosts?.length > 0">
+      <div class="entrypoints__host">
+        <div class="entrypoints__host__title">
+          <span class="mat-body-strong">Entrypoint hosts</span>
+        </div>
+        <gio-form-listeners-tcp-hosts [formControl]="hostsFormControl"></gio-form-listeners-tcp-hosts>
+      </div>
+      <div class="entrypoints__footer" *ngIf="canUpdate">
+        <button
+          mat-flat-button
+          color="primary"
+          type="submit"
+          [disabled]="formGroup.pristine || formGroup.invalid || dataSource.length === 0"
+        >
+          Save changes
+        </button>
+        <button mat-stroked-button type="button" (click)="onReset()" [disabled]="!formGroup.dirty">Reset</button>
+      </div>
+    </mat-card>
   </form>
   <mat-card *ngIf="api?.type === 'MESSAGE'">
     <div class="entrypoints__type">

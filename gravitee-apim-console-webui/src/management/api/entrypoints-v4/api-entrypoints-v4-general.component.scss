@@ -13,7 +13,8 @@
   flex-direction: column;
   gap: 24px;
 
-  &__context-path {
+  &__context-path,
+  &__host {
     &__title {
       display: flex;
       justify-content: space-between;

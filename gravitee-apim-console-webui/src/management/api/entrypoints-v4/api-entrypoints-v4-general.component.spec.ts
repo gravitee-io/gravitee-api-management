@@ -39,6 +39,7 @@ import { GioFormListenersVirtualHostHarness } from '../component/gio-form-listen
 import { RestrictedDomain } from '../../../entities/restricted-domain/restrictedDomain';
 import { fakeRestrictedDomain, fakeRestrictedDomains } from '../../../entities/restricted-domain/restrictedDomain.fixture';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
+import { GioFormListenersTcpHostsHarness } from '../component/gio-form-listeners/gio-form-listeners-tcp-hosts/gio-form-listeners-tcp-hosts.harness';
 
 describe('ApiProxyV4EntrypointsComponent', () => {
   const API_ID = 'apiId';
@@ -90,7 +91,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     httpTestingController.verify({ ignoreCancelled: true });
   });
 
-  describe('When API has PROXY architecture type', () => {
+  describe('When API has HTTP PROXY architecture type', () => {
     const RESTRICTED_DOMAINS = [];
     const API = fakeApiV4({
       type: 'PROXY',
@@ -110,6 +111,31 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       expect(contextPath.length).toEqual(1);
       const virtualHost = await loader.getAllHarnesses(GioFormListenersVirtualHostHarness);
       expect(virtualHost.length).toEqual(0);
+      const addEntrypointButton = await loader.getAllHarnesses(MatButtonHarness.with({ text: 'Add an entrypoint' }));
+      expect(addEntrypointButton.length).toEqual(0);
+      const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiEntrypointsV4GeneralHarness);
+      expect(await harness.hasEntrypointsTable()).toEqual(false);
+    });
+  });
+
+  describe('When API has TCP PROXY architecture type', () => {
+    const RESTRICTED_DOMAINS = [];
+    const API = fakeApiV4({
+      type: 'PROXY',
+      listeners: [{ type: 'TCP', entrypoints: [{ type: 'tcp-proxy' }], hosts: ['host'] }],
+    });
+
+    beforeEach(async () => {
+      await createComponent(RESTRICTED_DOMAINS, API, false);
+    });
+
+    afterEach(() => {
+      expectApiVerify();
+    });
+
+    it('should show context paths only', async () => {
+      const hosts = await loader.getAllHarnesses(GioFormListenersTcpHostsHarness);
+      expect(hosts.length).toEqual(1);
       const addEntrypointButton = await loader.getAllHarnesses(MatButtonHarness.with({ text: 'Add an entrypoint' }));
       expect(addEntrypointButton.length).toEqual(0);
       const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiEntrypointsV4GeneralHarness);
@@ -213,6 +239,77 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       expect(harness).toBeDefined();
       expect(await harness.getLastListenerRow().then((row) => row.pathInput.getValue())).toEqual('/context-path');
       expectGetPortalSettings();
+    });
+  });
+
+  describe('API with hosts', () => {
+    const RESTRICTED_DOMAINS = [];
+    const API = fakeApiV4({
+      type: 'PROXY',
+      listeners: [{ type: 'TCP', hosts: ['host', 'host2'], entrypoints: [{ type: 'tcp-proxy' }] }],
+    });
+
+    beforeEach(async () => {
+      await createComponent(RESTRICTED_DOMAINS, API, false);
+    });
+
+    afterEach(() => {
+      expectApiVerify();
+    });
+
+    it('should show hosts', async () => {
+      const hostsHarness = await loader.getHarness(GioFormListenersTcpHostsHarness);
+      const hosts = await hostsHarness.getListenerRows();
+      expect(hosts.length).toEqual(2);
+      expect(await hosts[0].hostInput.getValue()).toEqual('host');
+      expect(await hosts[1].hostInput.getValue()).toEqual('host2');
+    });
+
+    it('should save changes to hosts', async () => {
+      const harness = await loader.getHarness(GioFormListenersTcpHostsHarness);
+
+      await harness.addListener({ host: 'host3' });
+      expectApiVerify();
+      fixture.detectChanges();
+
+      const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save changes' }));
+
+      expect(await saveButton.isDisabled()).toBeFalsy();
+      await saveButton.click();
+
+      // GET
+      httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`, method: 'GET' }).flush(API);
+      // UPDATE
+      const saveReq = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`, method: 'PUT' });
+      const expectedUpdateApi: UpdateApiV4 = {
+        ...API,
+        listeners: [
+          {
+            type: 'TCP',
+            hosts: ['host', 'host2', 'host3'],
+            entrypoints: API.listeners[0].entrypoints,
+          },
+        ],
+      };
+      expect(saveReq.request.body).toEqual(expectedUpdateApi);
+      saveReq.flush(API);
+    });
+
+    it('should reset hosts', async () => {
+      const harness = await loader.getHarness(GioFormListenersTcpHostsHarness);
+
+      await harness.addListener({ host: 'host3' });
+      expectApiVerify();
+      fixture.detectChanges();
+
+      expect(await harness.getLastListenerRow().then((row) => row.hostInput.getValue())).toEqual('host3');
+
+      const resetButton = await loader.getHarness(MatButtonHarness.with({ text: 'Reset' }));
+
+      expect(await resetButton.isDisabled()).toBeFalsy();
+      await resetButton.click();
+
+      expect(await harness.getLastListenerRow().then((row) => row.hostInput.getValue())).toEqual('host2');
     });
   });
 

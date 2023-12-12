@@ -36,6 +36,7 @@ import {
   UpdateApiV4,
   ConnectorVM,
   fromConnector,
+  TcpListener,
 } from '../../../entities/management-api-v2';
 import { ConnectorPluginsV2Service } from '../../../services-ngx/connector-plugins-v2.service';
 import { IconService } from '../../../services-ngx/icon.service';
@@ -43,6 +44,7 @@ import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { ApimFeature, UTMTags } from '../../../shared/components/gio-license/gio-license-data';
 import { RestrictedDomainService } from '../../../services-ngx/restricted-domain.service';
+import { TcpHost } from '../../../entities/management-api-v2/api/v4/tcpHost';
 
 type EntrypointVM = {
   id: string;
@@ -61,11 +63,13 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
   public api: ApiV4;
   public formGroup: FormGroup;
   public pathsFormControl: FormControl;
+  public hostsFormControl: FormControl;
   public displayedColumns = ['type', 'qos', 'actions'];
   public dataSource: EntrypointVM[] = [];
   private allEntrypoints: ConnectorPlugin[];
   public enableVirtualHost = false;
   public apiExistingPaths: PathV4[] = [];
+  public apiExistingHosts: TcpHost[] = [];
   public domainRestrictions: string[] = [];
   public entrypointAvailableForAdd: ConnectorVM[] = [];
   public shouldUpgrade = false;
@@ -124,6 +128,20 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
       this.apiExistingPaths = [];
       this.formGroup.removeControl('paths');
       this.enableVirtualHost = false;
+    }
+
+    const tcpListeners = this.api.listeners.filter((listener) => listener.type === 'TCP') ?? [];
+    if (tcpListeners.length > 0) {
+      this.apiExistingHosts = tcpListeners.flatMap((listener) => {
+        return (listener as TcpListener).hosts.map((host) => {
+          return <TcpHost>{ host };
+        });
+      });
+      this.hostsFormControl = this.formBuilder.control({ value: this.apiExistingHosts, disabled: !this.canUpdate }, Validators.required);
+      this.formGroup.addControl('hosts', this.hostsFormControl);
+    } else {
+      this.apiExistingHosts = [];
+      this.formGroup.removeControl('hosts');
     }
 
     const existingEntrypoints = flatten(this.api.listeners.map((l) => l.entrypoints)).map((e) => e.type);
@@ -230,21 +248,33 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
           const updatedHttpListener: HttpListener = {
             ...currentHttpListener,
             paths: this.enableVirtualHost
-              ? formValue.paths.map(({ path, host, overrideAccess }) => ({ path, host, overrideAccess }))
-              : formValue.paths.map(({ path }) => ({ path })),
-            entrypoints: currentHttpListener.entrypoints,
+              ? formValue.paths?.map(({ path, host, overrideAccess }) => ({ path, host, overrideAccess }))
+              : formValue.paths?.map(({ path }) => ({ path })),
+            entrypoints: currentHttpListener?.entrypoints,
+          };
+          const currentTcpListener = this.api.listeners.find((listener) => listener.type === 'TCP');
+          const updatedTcpListener: TcpListener = {
+            ...currentTcpListener,
+            hosts: formValue.hosts?.map((host) => host.host),
+            entrypoints: currentTcpListener?.entrypoints,
           };
           const updateApi: UpdateApiV4 = {
             ...(api as ApiV4),
-            listeners: [updatedHttpListener, ...this.api.listeners.filter((listener) => listener.type !== 'HTTP')].filter(
-              (listener) => listener.entrypoints.length > 0,
-            ),
+            listeners: [
+              updatedHttpListener,
+              updatedTcpListener,
+              ...this.api.listeners.filter((listener) => listener.type !== 'HTTP' && listener.type !== 'TCP'),
+            ].filter((listener) => listener?.entrypoints?.length > 0),
           };
 
           return this.apiService.update(this.apiId, updateApi);
         }),
         tap(() => {
-          this.snackBarService.success('Context-path configuration successfully saved!');
+          if (this.apiExistingHosts?.length > 0) {
+            this.snackBarService.success('Host configuration successfully saved!');
+          } else {
+            this.snackBarService.success('Context-path configuration successfully saved!');
+          }
         }),
         catchError((err) => {
           this.snackBarService.error(err.error?.message ?? err.message);
