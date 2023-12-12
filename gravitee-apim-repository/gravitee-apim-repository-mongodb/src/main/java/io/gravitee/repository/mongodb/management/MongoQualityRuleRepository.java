@@ -20,6 +20,7 @@ import static java.util.stream.Collectors.toSet;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.QualityRuleRepository;
 import io.gravitee.repository.management.model.QualityRule;
+import io.gravitee.repository.management.model.QualityRuleReferenceType;
 import io.gravitee.repository.mongodb.management.internal.model.QualityRuleMongo;
 import io.gravitee.repository.mongodb.management.internal.quality.QualityRuleMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
@@ -113,5 +114,21 @@ public class MongoQualityRuleRepository implements QualityRuleRepository {
     public Set<QualityRule> findAll() {
         final List<QualityRuleMongo> qualityRules = internalQualityRuleRepo.findAll();
         return qualityRules.stream().map(qualityRuleMongo -> mapper.map(qualityRuleMongo)).collect(toSet());
+    }
+
+    @Override
+    public List<QualityRule> findByReference(QualityRuleReferenceType referenceType, String referenceId) throws TechnicalException {
+        try {
+            return internalQualityRuleRepo
+                .findByReference(referenceType.name(), referenceId)
+                .stream()
+                .map(qualityRuleMongo -> mapper.map(qualityRuleMongo))
+                .toList();
+        } catch (Exception e) {
+            final String error =
+                "An error occurred when finding all quality rules with findByReference " + referenceType + " [" + referenceId + "]";
+            LOGGER.error(error, e);
+            throw new TechnicalException(error);
+        }
     }
 }

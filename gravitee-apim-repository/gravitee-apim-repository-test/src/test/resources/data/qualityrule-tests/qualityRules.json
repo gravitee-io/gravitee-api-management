@@ -28,5 +28,15 @@
     "weight": 3,
     "createdAt": 1439022010883,
     "updatedAt": 1439022010883
+  },
+  {
+    "id": "quality-rule-other-env",
+    "referenceType": "ENVIRONMENT",
+    "referenceId": "b8976b9d-ef3c-4713-b6ea-845dba02c036",
+    "name": "Yet another Rule",
+    "description": "Another Rule",
+    "weight": 2,
+    "createdAt": 1439022010883,
+    "updatedAt": 1439022010883
   }
 ]

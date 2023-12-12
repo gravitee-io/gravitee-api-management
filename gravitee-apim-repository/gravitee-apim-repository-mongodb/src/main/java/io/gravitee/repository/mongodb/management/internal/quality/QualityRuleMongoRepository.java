@@ -16,7 +16,9 @@
 package io.gravitee.repository.mongodb.management.internal.quality;
 
 import io.gravitee.repository.mongodb.management.internal.model.QualityRuleMongo;
+import java.util.List;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -24,4 +26,7 @@ import org.springframework.stereotype.Repository;
  * @author GraviteeSource Team
  */
 @Repository
-public interface QualityRuleMongoRepository extends MongoRepository<QualityRuleMongo, String> {}
+public interface QualityRuleMongoRepository extends MongoRepository<QualityRuleMongo, String> {
+    @Query("{ 'referenceType': ?0, 'referenceId': ?1 }")
+    List<QualityRuleMongo> findByReference(String referenceType, String referenceId);
+}

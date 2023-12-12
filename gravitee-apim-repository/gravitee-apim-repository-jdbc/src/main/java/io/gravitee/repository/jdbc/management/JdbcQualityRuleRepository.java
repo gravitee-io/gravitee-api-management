@@ -15,11 +15,16 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.QualityRuleRepository;
 import io.gravitee.repository.management.model.QualityRule;
+import io.gravitee.repository.management.model.QualityRuleReferenceType;
 import java.sql.Types;
 import java.util.Date;
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
@@ -30,6 +35,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class JdbcQualityRuleRepository extends JdbcAbstractCrudRepository<QualityRule, String> implements QualityRuleRepository {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(JdbcQualityRuleRepository.class);
+
     JdbcQualityRuleRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "quality_rules");
     }
@@ -39,7 +46,7 @@ public class JdbcQualityRuleRepository extends JdbcAbstractCrudRepository<Qualit
         return JdbcObjectMapper
             .builder(QualityRule.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("reference_type", Types.NVARCHAR, String.class)
+            .addColumn("reference_type", Types.NVARCHAR, QualityRuleReferenceType.class)
             .addColumn("reference_id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("description", Types.NVARCHAR, String.class)
@@ -52,5 +59,23 @@ public class JdbcQualityRuleRepository extends JdbcAbstractCrudRepository<Qualit
     @Override
     protected String getId(QualityRule item) {
         return item.getId();
+    }
+
+    @Override
+    public List<QualityRule> findByReference(QualityRuleReferenceType referenceType, String referenceId) throws TechnicalException {
+        LOGGER.debug("JdbcQualityRuleRepository.findByReference({}, {})", referenceType, referenceId);
+        try {
+            return jdbcTemplate.query(
+                getOrm().getSelectAllSql() + " where reference_type = ? and reference_id = ?",
+                getOrm().getRowMapper(),
+                referenceType.name(),
+                referenceId
+            );
+        } catch (final Exception ex) {
+            final String error =
+                "An error occurred when finding all quality rules with findByReference " + referenceType + " [" + referenceId + "]";
+            LOGGER.error(error, ex);
+            throw new TechnicalException(error, ex);
+        }
     }
 }
