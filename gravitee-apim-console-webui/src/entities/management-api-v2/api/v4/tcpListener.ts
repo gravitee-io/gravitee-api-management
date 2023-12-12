@@ -15,4 +15,6 @@
  */
 import { BaseListener } from './baseListener';
 
-export type TcpListener = BaseListener;
+export interface TcpListener extends BaseListener {
+  hosts?: string[];
+}
