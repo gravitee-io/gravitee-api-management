@@ -16,13 +16,13 @@
 package io.gravitee.repository.management;
 
 import static io.gravitee.repository.utils.DateUtils.compareDate;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 import io.gravitee.repository.management.model.QualityRule;
 import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
-import org.junit.Assert;
 import org.junit.Test;
 
 public class QualityRuleRepositoryTest extends AbstractManagementRepositoryTest {
@@ -38,53 +38,58 @@ public class QualityRuleRepositoryTest extends AbstractManagementRepositoryTest 
     public void shouldFindAll() throws Exception {
         final Set<QualityRule> qualityRules = qualityRuleRepository.findAll();
 
-        assertNotNull(qualityRules);
-        assertEquals(3, qualityRules.size());
+        assertThat(qualityRules).isNotNull().hasSize(3);
+
+        assertThat(qualityRules)
+            .extracting(QualityRule::getId)
+            .containsExactlyInAnyOrder("quality-rule1", "quality-rule2", "quality-rule3");
+
         final QualityRule qualityRuleProduct = qualityRules
             .stream()
             .filter(qualityRule -> "quality-rule3".equals(qualityRule.getId()))
             .findAny()
             .get();
-        assertEquals("Api-key plan", qualityRuleProduct.getName());
-        assertEquals("A plan api-key is published", qualityRuleProduct.getDescription());
-        assertEquals(3, qualityRuleProduct.getWeight());
-        assertTrue(compareDate(DATE, qualityRuleProduct.getCreatedAt()));
-        assertTrue(compareDate(DATE, qualityRuleProduct.getUpdatedAt()));
+        assertThat(qualityRuleProduct.getName()).isEqualTo("Api-key plan");
+        assertThat(qualityRuleProduct.getDescription()).isEqualTo("A plan api-key is published");
+        assertThat(qualityRuleProduct.getWeight()).isEqualTo(3);
+        assertThat(compareDate(DATE, qualityRuleProduct.getCreatedAt())).isTrue();
+        assertThat(compareDate(DATE, qualityRuleProduct.getUpdatedAt())).isTrue();
     }
 
     @Test
     public void shouldCreate() throws Exception {
-        final QualityRule qualityRule = new QualityRule();
-        qualityRule.setId("new-qualityRule");
-        qualityRule.setName("QualityRule name");
-        qualityRule.setDescription("QualityRule description");
-        qualityRule.setWeight(10);
-        qualityRule.setCreatedAt(DATE);
-        qualityRule.setUpdatedAt(DATE);
+        final QualityRule qualityRule = QualityRule
+            .builder()
+            .id("new-qualityRule")
+            .name("QualityRule name")
+            .description("QualityRule description")
+            .weight(10)
+            .createdAt(DATE)
+            .updatedAt(DATE)
+            .build();
 
         int nbQualityRulesBeforeCreation = qualityRuleRepository.findAll().size();
         qualityRuleRepository.create(qualityRule);
         int nbQualityRulesAfterCreation = qualityRuleRepository.findAll().size();
-
-        Assert.assertEquals(nbQualityRulesBeforeCreation + 1, nbQualityRulesAfterCreation);
+        assertThat(nbQualityRulesAfterCreation).isEqualTo(nbQualityRulesBeforeCreation + 1);
 
         Optional<QualityRule> optional = qualityRuleRepository.findById("new-qualityRule");
-        Assert.assertTrue("QualityRule saved not found", optional.isPresent());
-
-        final QualityRule qualityRuleSaved = optional.get();
-        Assert.assertEquals("Invalid saved qualityRule name.", qualityRule.getName(), qualityRuleSaved.getName());
-        Assert.assertEquals("Invalid saved qualityRule description.", qualityRule.getDescription(), qualityRuleSaved.getDescription());
-        Assert.assertEquals("Invalid weight.", qualityRule.getWeight(), qualityRuleSaved.getWeight());
-        Assert.assertTrue("Invalid createdAt.", compareDate(qualityRule.getCreatedAt(), qualityRuleSaved.getCreatedAt()));
-        Assert.assertTrue("Invalid updatedAt.", compareDate(qualityRule.getUpdatedAt(), qualityRuleSaved.getUpdatedAt()));
+        assertThat(optional)
+            .hasValueSatisfying(savedQualityRule -> {
+                assertThat(savedQualityRule.getName()).isEqualTo(qualityRule.getName());
+                assertThat(savedQualityRule.getDescription()).isEqualTo(qualityRule.getDescription());
+                assertThat(savedQualityRule.getWeight()).isEqualTo(qualityRule.getWeight());
+                assertThat(compareDate(qualityRule.getCreatedAt(), savedQualityRule.getCreatedAt())).isTrue();
+                assertThat(compareDate(qualityRule.getCreatedAt(), savedQualityRule.getUpdatedAt())).isTrue();
+            });
     }
 
     @Test
     public void shouldUpdate() throws Exception {
         Optional<QualityRule> optional = qualityRuleRepository.findById("quality-rule1");
-        Assert.assertTrue("QualityRule to update not found", optional.isPresent());
-        Assert.assertEquals("Invalid saved qualityRule name.", "Description in english", optional.get().getName());
-        Assert.assertEquals("Invalid saved qualityRule name.", "Description must be in english", optional.get().getDescription());
+        assertThat(optional).isPresent();
+        assertThat(optional.get().getName()).isEqualTo("Description in english");
+        assertThat(optional.get().getDescription()).isEqualTo("Description must be in english");
 
         final QualityRule qualityRule = optional.get();
         qualityRule.setName("New name");
@@ -96,33 +101,35 @@ public class QualityRuleRepositoryTest extends AbstractManagementRepositoryTest 
         int nbQualityRulesBeforeUpdate = qualityRuleRepository.findAll().size();
         qualityRuleRepository.update(qualityRule);
         int nbQualityRulesAfterUpdate = qualityRuleRepository.findAll().size();
-
-        Assert.assertEquals(nbQualityRulesBeforeUpdate, nbQualityRulesAfterUpdate);
+        assertThat(nbQualityRulesAfterUpdate).isEqualTo(nbQualityRulesBeforeUpdate);
 
         Optional<QualityRule> optionalUpdated = qualityRuleRepository.findById("quality-rule1");
-        Assert.assertTrue("QualityRule to update not found", optionalUpdated.isPresent());
-
-        final QualityRule qualityRuleUpdated = optionalUpdated.get();
-        Assert.assertEquals("Invalid saved qualityRule name.", "New name", qualityRuleUpdated.getName());
-        Assert.assertEquals("Invalid saved qualityRule description.", "New description", qualityRuleUpdated.getDescription());
-        Assert.assertEquals("Invalid weight.", 5, qualityRuleUpdated.getWeight());
-        Assert.assertTrue("Invalid createdAt.", compareDate(DATE, qualityRuleUpdated.getCreatedAt()));
-        Assert.assertTrue("Invalid updatedAt.", compareDate(DATE, qualityRuleUpdated.getUpdatedAt()));
+        assertThat(optionalUpdated)
+            .hasValueSatisfying(updatedQualityRule -> {
+                assertThat(updatedQualityRule.getName()).isEqualTo("New name");
+                assertThat(updatedQualityRule.getDescription()).isEqualTo("New description");
+                assertThat(updatedQualityRule.getWeight()).isEqualTo(5);
+                assertThat(compareDate(DATE, updatedQualityRule.getCreatedAt())).isTrue();
+                assertThat(compareDate(DATE, updatedQualityRule.getUpdatedAt())).isTrue();
+            });
     }
 
     @Test
     public void shouldDelete() throws Exception {
         int nbQualityRulesBeforeDeletion = qualityRuleRepository.findAll().size();
+        assertThat(nbQualityRulesBeforeDeletion).isEqualTo(3);
         qualityRuleRepository.delete("quality-rule2");
         int nbQualityRulesAfterDeletion = qualityRuleRepository.findAll().size();
 
-        Assert.assertEquals(nbQualityRulesBeforeDeletion - 1, nbQualityRulesAfterDeletion);
+        assertThat(nbQualityRulesAfterDeletion).isEqualTo(nbQualityRulesBeforeDeletion - 1);
     }
 
     @Test(expected = IllegalStateException.class)
     public void shouldNotUpdateUnknownQualityRule() throws Exception {
         QualityRule unknownQualityRule = new QualityRule();
         unknownQualityRule.setId("unknown");
+        qualityRuleRepository.update(unknownQualityRule);
+
         qualityRuleRepository.update(unknownQualityRule);
         fail("An unknown qualityRule should not be updated");
     }
