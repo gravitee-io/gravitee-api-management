@@ -50,7 +50,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class QualityRuleServiceImpl extends AbstractService implements QualityRuleService {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(QualityRuleServiceImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(QualityRuleServiceImpl.class);
 
     @Lazy
     @Autowired
@@ -67,11 +67,7 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
     public QualityRuleEntity findById(String id) {
         try {
             LOGGER.debug("Find quality rule by id : {}", id);
-            Optional<QualityRule> qualityRule = qualityRuleRepository.findById(id);
-            if (qualityRule.isPresent()) {
-                return convert(qualityRule.get());
-            }
-            throw new QualityRuleNotFoundException(id);
+            return qualityRuleRepository.findById(id).map(this::convert).orElseThrow(() -> new QualityRuleNotFoundException(id));
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to find a quality rule using its ID: " + id;
             LOGGER.error(error, ex);
@@ -113,20 +109,19 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
     @Override
     public QualityRuleEntity update(ExecutionContext executionContext, UpdateQualityRuleEntity updateEntity) {
         try {
-            final Optional<QualityRule> optionalQualityRule = qualityRuleRepository.findById(updateEntity.getId());
-            if (!optionalQualityRule.isPresent()) {
-                throw new QualityRuleNotFoundException(updateEntity.getId());
-            }
-            final QualityRule qualityRule = qualityRuleRepository.update(convert(updateEntity, optionalQualityRule.get()));
+            final QualityRule qualityRule = qualityRuleRepository
+                .findById(updateEntity.getId())
+                .orElseThrow(() -> new QualityRuleNotFoundException(updateEntity.getId()));
+            final QualityRule updatedQualityRule = qualityRuleRepository.update(convert(updateEntity, qualityRule));
             auditService.createAuditLog(
                 executionContext,
-                singletonMap(QUALITY_RULE, qualityRule.getId()),
+                singletonMap(QUALITY_RULE, updatedQualityRule.getId()),
                 QUALITY_RULE_UPDATED,
-                qualityRule.getUpdatedAt(),
-                optionalQualityRule.get(),
-                qualityRule
+                updatedQualityRule.getUpdatedAt(),
+                qualityRule,
+                updatedQualityRule
             );
-            return convert(qualityRule);
+            return convert(updatedQualityRule);
         } catch (TechnicalException e) {
             LOGGER.error("An error occurs while trying to update quality rule {}", updateEntity, e);
             throw new TechnicalManagementException("An error occurs while trying to update quality rule " + updateEntity, e);
@@ -157,36 +152,39 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
     }
 
     private QualityRuleEntity convert(QualityRule qualityRule) {
-        QualityRuleEntity entity = new QualityRuleEntity();
-        entity.setId(qualityRule.getId());
-        entity.setName(qualityRule.getName());
-        entity.setDescription(qualityRule.getDescription());
-        entity.setWeight(qualityRule.getWeight());
-        entity.setCreatedAt(qualityRule.getCreatedAt());
-        entity.setUpdatedAt(qualityRule.getUpdatedAt());
-        return entity;
+        return QualityRuleEntity
+            .builder()
+            .id(qualityRule.getId())
+            .name(qualityRule.getName())
+            .description(qualityRule.getDescription())
+            .weight(qualityRule.getWeight())
+            .createdAt(qualityRule.getCreatedAt())
+            .updatedAt(qualityRule.getUpdatedAt())
+            .build();
     }
 
     private QualityRule convert(final NewQualityRuleEntity qualityRuleEntity) {
-        final QualityRule qualityRule = new QualityRule();
-        qualityRule.setId(UuidString.generateRandom());
-        qualityRule.setName(qualityRuleEntity.getName());
-        qualityRule.setDescription(qualityRuleEntity.getDescription());
-        qualityRule.setWeight(qualityRuleEntity.getWeight());
         final Date now = new Date();
-        qualityRule.setCreatedAt(now);
-        qualityRule.setUpdatedAt(now);
-        return qualityRule;
+        return QualityRule
+            .builder()
+            .id(UuidString.generateRandom())
+            .name(qualityRuleEntity.getName())
+            .description(qualityRuleEntity.getDescription())
+            .weight(qualityRuleEntity.getWeight())
+            .createdAt(now)
+            .updatedAt(now)
+            .build();
     }
 
     private QualityRule convert(final UpdateQualityRuleEntity qualityRuleEntity, final QualityRule qr) {
-        final QualityRule qualityRule = new QualityRule();
-        qualityRule.setId(qualityRuleEntity.getId());
-        qualityRule.setName(qualityRuleEntity.getName());
-        qualityRule.setDescription(qualityRuleEntity.getDescription());
-        qualityRule.setWeight(qualityRuleEntity.getWeight());
-        qualityRule.setCreatedAt(qr.getCreatedAt());
-        qualityRule.setUpdatedAt(new Date());
-        return qualityRule;
+        return QualityRule
+            .builder()
+            .id(qualityRuleEntity.getId())
+            .name(qualityRuleEntity.getName())
+            .description(qualityRuleEntity.getDescription())
+            .weight(qualityRuleEntity.getWeight())
+            .createdAt(qr.getCreatedAt())
+            .updatedAt(new Date())
+            .build();
     }
 }

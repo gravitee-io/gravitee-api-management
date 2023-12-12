@@ -19,12 +19,13 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import java.util.Objects;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
-/**
- * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
- * @author GraviteeSource Team
- */
+@Setter
+@Getter
+@EqualsAndHashCode(of = "name")
 public class NewQualityRuleEntity {
 
     @NotNull
@@ -38,41 +39,4 @@ public class NewQualityRuleEntity {
     @Min(0)
     @Max(99999)
     private int weight;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public int getWeight() {
-        return weight;
-    }
-
-    public void setWeight(int weight) {
-        this.weight = weight;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        NewQualityRuleEntity that = (NewQualityRuleEntity) o;
-        return Objects.equals(name, that.name);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(name);
-    }
 }
