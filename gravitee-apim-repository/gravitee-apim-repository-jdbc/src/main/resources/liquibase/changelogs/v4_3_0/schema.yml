@@ -1,0 +1,21 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.3.0
+      author: GraviteeSource Team
+      changes:
+        # ################
+        # License changes
+        # ################
+        - createTable:
+            tableName: ${gravitee_prefix}licenses
+            columns:
+              - column: {name: reference_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: reference_type, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: license, type: nvarchar(256), constraints: { nullable: false } }
+              - column: {name: created_at, type: timestamp(6), constraints: { nullable: false } }
+              - column: {name: updated_at, type: timestamp(6), constraints: { nullable: false } }
+
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}licenses
+            columnNames: reference_id, reference_type
+            tableName: ${gravitee_prefix}licenses
