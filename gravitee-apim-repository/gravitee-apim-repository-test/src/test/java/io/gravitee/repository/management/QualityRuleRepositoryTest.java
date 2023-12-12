@@ -19,11 +19,10 @@ import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.QualityRule;
 import io.gravitee.repository.management.model.QualityRuleReferenceType;
-import java.util.Date;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import org.junit.Test;
 
 public class QualityRuleRepositoryTest extends AbstractManagementRepositoryTest {
@@ -39,11 +38,11 @@ public class QualityRuleRepositoryTest extends AbstractManagementRepositoryTest 
     public void shouldFindAll() throws Exception {
         final Set<QualityRule> qualityRules = qualityRuleRepository.findAll();
 
-        assertThat(qualityRules).isNotNull().hasSize(3);
+        assertThat(qualityRules).isNotNull().hasSize(4);
 
         assertThat(qualityRules)
             .extracting(QualityRule::getId)
-            .containsExactlyInAnyOrder("quality-rule1", "quality-rule2", "quality-rule3");
+            .containsExactlyInAnyOrder("quality-rule1", "quality-rule2", "quality-rule3", "quality-rule-other-env");
 
         final QualityRule qualityRuleProduct = qualityRules
             .stream()
@@ -126,7 +125,6 @@ public class QualityRuleRepositoryTest extends AbstractManagementRepositoryTest 
     @Test
     public void shouldDelete() throws Exception {
         int nbQualityRulesBeforeDeletion = qualityRuleRepository.findAll().size();
-        assertThat(nbQualityRulesBeforeDeletion).isEqualTo(3);
         qualityRuleRepository.delete("quality-rule2");
         int nbQualityRulesAfterDeletion = qualityRuleRepository.findAll().size();
 
@@ -147,5 +145,18 @@ public class QualityRuleRepositoryTest extends AbstractManagementRepositoryTest 
     public void shouldNotUpdateNull() throws Exception {
         qualityRuleRepository.update(null);
         fail("A null qualityRule should not be updated");
+    }
+
+    @Test
+    public void shouldFindByReference() throws TechnicalException {
+        final List<QualityRule> qualityRules = qualityRuleRepository.findByReference(
+            QualityRuleReferenceType.ENVIRONMENT,
+            "b78f2219-890d-4344-8f22-19890d834442"
+        );
+
+        assertThat(qualityRules)
+            .hasSize(3)
+            .extracting(QualityRule::getId)
+            .containsExactlyInAnyOrder("quality-rule1", "quality-rule2", "quality-rule3");
     }
 }
