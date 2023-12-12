@@ -1,0 +1,30 @@
+[
+   {
+      "referenceId": "cockpitId-org-update",
+      "referenceType": "ORGANIZATION",
+      "license": "a-great-license-update",
+      "createdAt": 1439022010883,
+      "updatedAt": 1439022010883
+   },
+   {
+      "referenceId": "cockpitId-org-delete",
+      "referenceType": "ORGANIZATION",
+      "license": "a-great-license-delete",
+      "createdAt": 1439022010883,
+      "updatedAt": 1439022010883
+   },
+   {
+      "referenceId": "cockpitId-org-find-by-id",
+      "referenceType": "ORGANIZATION",
+      "license": "a-great-license-find-by-id",
+      "createdAt": 1439022010883,
+      "updatedAt": 1439022010883
+   },
+   {
+      "referenceId": "cockpitId-platform-id",
+      "referenceType": "PLATFORM",
+      "license": "a-great-platform-license",
+      "createdAt": 1439022010883,
+      "updatedAt": 1439022010883
+   }
+]

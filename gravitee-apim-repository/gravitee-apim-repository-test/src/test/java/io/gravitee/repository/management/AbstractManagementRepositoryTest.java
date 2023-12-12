@@ -155,6 +155,9 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
     protected OrganizationRepository organizationRepository;
 
     @Inject
+    protected LicenseRepository licenseRepository;
+
+    @Inject
     protected ThemeRepository themeRepository;
 
     @Inject
@@ -266,6 +269,8 @@ public abstract class AbstractManagementRepositoryTest extends AbstractRepositor
             environmentRepository.create((Environment) object);
         } else if (object instanceof Organization) {
             organizationRepository.create((Organization) object);
+        } else if (object instanceof License) {
+            licenseRepository.create((License) object);
         } else if (object instanceof Theme) {
             themeRepository.create((Theme) object);
         } else if (object instanceof IdentityProviderActivation) {

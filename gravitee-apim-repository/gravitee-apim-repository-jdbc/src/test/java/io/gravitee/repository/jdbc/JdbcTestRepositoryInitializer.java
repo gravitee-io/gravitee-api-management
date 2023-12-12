@@ -83,6 +83,7 @@ public class JdbcTestRepositoryInitializer implements TestRepositoryInitializer 
         "identity_provider_activations",
         "installation",
         "installation_informations",
+        "licenses",
         "memberships",
         "metadata",
         "media",
