@@ -1,4 +1,6 @@
 @use 'src/scss/gio-layout' as gio-layout;
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
 
 :host {
   @include gio-layout.gio-responsive-content-container;
@@ -23,6 +25,28 @@
 .mat-column-states {
   width: 120px;
   padding-right: 16px;
+
+  .states {
+    &__api-started {
+      color: mat.get-color-from-palette(gio.$mat-success-palette, 'default');
+    }
+
+    &__api-not-started {
+      color: mat.get-color-from-palette(gio.$mat-error-palette, 'default');
+    }
+
+    &__api-workflow-badge {
+      vertical-align: top;
+    }
+
+    &__api-origin {
+      color: #326de6;
+    }
+
+    &__api-is-not-synced {
+      color: mat.get-color-from-palette(gio.$mat-warning-palette, 'default');
+    }
+  }
 }
 .mat-column-availability {
   width: 372px;
