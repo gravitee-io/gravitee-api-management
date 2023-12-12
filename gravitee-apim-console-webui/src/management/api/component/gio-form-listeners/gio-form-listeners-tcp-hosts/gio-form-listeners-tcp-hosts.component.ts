@@ -66,7 +66,7 @@ export class GioFormListenersTcpHostsComponent implements OnInit, OnDestroy, Con
     this._onTouched();
   }
 
-  protected _onChange: (_listeners: string[] | null) => void = () => ({});
+  protected _onChange: (_listeners: TcpHost[] | null) => void = () => ({});
 
   protected _onTouched: () => void = () => ({});
 
@@ -108,7 +108,7 @@ export class GioFormListenersTcpHostsComponent implements OnInit, OnDestroy, Con
   }
 
   // From ControlValueAccessor interface
-  public registerOnChange(fn: (listeners: string[] | null) => void): void {
+  public registerOnChange(fn: (listeners: TcpHost[] | null) => void): void {
     this._onChange = fn;
   }
 
@@ -166,7 +166,7 @@ export class GioFormListenersTcpHostsComponent implements OnInit, OnDestroy, Con
         .reduce((acc, listenerControl, index) => {
           const validationError = this.validateListenerControl(
             listenerControl,
-            listenerValues.map((listener) => listener.host),
+            listenerValues.map((listener) => listener),
             index,
           );
           if (validationError) {
@@ -180,13 +180,16 @@ export class GioFormListenersTcpHostsComponent implements OnInit, OnDestroy, Con
     };
   }
 
-  public validateListenerControl(listenerControl: AbstractControl, tcpListeners: string[], currentIndex: number): ValidationErrors | null {
+  public validateListenerControl(listenerControl: AbstractControl, tcpListeners: TcpHost[], currentIndex: number): ValidationErrors | null {
     const listenerHostControl = listenerControl.get('host');
     let error = this.validateGenericHostListenerControl(listenerControl);
     if (!error) {
-      const hostAlreadyExist = tcpListeners.filter((l, index) => index !== currentIndex).includes(listenerHostControl.value);
+      const hostAlreadyExist = tcpListeners
+        .filter((l, index) => index !== currentIndex)
+        .map((l) => l.host)
+        .includes(listenerHostControl.value);
       if (hostAlreadyExist) {
-        error = { host: 'Host is already use.' };
+        error = { host: 'Host is already used.' };
       }
     }
     setTimeout(() => listenerHostControl.setErrors(error), 0);
@@ -207,9 +210,9 @@ export class GioFormListenersTcpHostsComponent implements OnInit, OnDestroy, Con
     return errors;
   }
 
-  protected getValue(): string[] {
+  protected getValue(): TcpHost[] {
     return this.listenerFormArray?.controls.map((control) => {
-      return control.get('host').value;
+      return { host: control.get('host').value };
     });
   }
 }
