@@ -38,7 +38,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class MongoQualityRuleRepository implements QualityRuleRepository {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(MongoQualityRuleRepository.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MongoQualityRuleRepository.class);
 
     @Autowired
     private QualityRuleMongoRepository internalQualityRuleRepo;

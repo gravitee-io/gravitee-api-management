@@ -15,9 +15,10 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -25,7 +26,11 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Setter
+@Getter
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}qualityrules")
+@ToString
+@EqualsAndHashCode(of = "id", callSuper = false)
 public class QualityRuleMongo extends Auditable {
 
     @Id
@@ -35,78 +40,4 @@ public class QualityRuleMongo extends Auditable {
     private String description;
     private int weight;
     private boolean enabled;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public int getWeight() {
-        return weight;
-    }
-
-    public void setWeight(int weight) {
-        this.weight = weight;
-    }
-
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof QualityRuleMongo)) return false;
-        QualityRuleMongo tagMongo = (QualityRuleMongo) o;
-        return Objects.equals(id, tagMongo.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
-    @Override
-    public String toString() {
-        return (
-            "QualityRuleMongo{" +
-            "id='" +
-            id +
-            '\'' +
-            ", name='" +
-            name +
-            '\'' +
-            ", description='" +
-            description +
-            '\'' +
-            ", weight=" +
-            weight +
-            ", enabled=" +
-            enabled +
-            '}'
-        );
-    }
 }
