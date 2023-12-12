@@ -53,7 +53,7 @@ public class FlowV4RepositoryTest extends AbstractManagementRepositoryTest {
     public void shouldFindByReference() throws TechnicalException {
         List<Flow> flows = flowRepository.findByReference(FlowReferenceType.ORGANIZATION, "orga-1");
 
-        assertEquals(flows.size(), 1);
+        assertEquals(1, flows.size());
         Flow flow = flows.get(0);
         assertEquals("flow-tag1", flow.getId());
         assertEquals("tag-1", flow.getName());
