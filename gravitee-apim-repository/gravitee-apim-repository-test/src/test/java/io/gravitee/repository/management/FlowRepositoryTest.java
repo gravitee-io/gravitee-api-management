@@ -209,10 +209,10 @@ public class FlowRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldDeleteByReference() throws TechnicalException {
-        assertEquals(flowRepository.findByReference(FlowReferenceType.ORGANIZATION, "orga-deleted").size(), 2);
+        assertEquals(2, flowRepository.findByReference(FlowReferenceType.ORGANIZATION, "orga-deleted").size());
 
         flowRepository.deleteByReference(FlowReferenceType.ORGANIZATION, "orga-deleted");
 
-        assertEquals(flowRepository.findByReference(FlowReferenceType.ORGANIZATION, "orga-deleted").size(), 0);
+        assertEquals(0, flowRepository.findByReference(FlowReferenceType.ORGANIZATION, "orga-deleted").size());
     }
 }
