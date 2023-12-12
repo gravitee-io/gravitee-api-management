@@ -173,6 +173,14 @@ public interface GraviteeMapper {
 
     InvitationMongo map(Invitation toMap);
 
+    // License mapping
+    @Mapping(target = "referenceId", source = "id.referenceId")
+    @Mapping(target = "referenceType", source = "id.referenceType")
+    License map(LicenseMongo toMap);
+
+    @InheritInverseConfiguration
+    LicenseMongo map(License toMap);
+
     // NodeMonitoring mapping
     Monitoring map(MonitoringMongo toMap);
 
