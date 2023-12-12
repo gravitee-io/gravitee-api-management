@@ -36,6 +36,7 @@ import io.gravitee.definition.model.v4.ssl.SslOptions;
 import io.gravitee.definition.model.v4.ssl.TrustStore;
 import io.gravitee.definition.model.v4.ssl.jks.JKSTrustStore;
 import io.gravitee.gateway.reactor.ReactableApi;
+import io.gravitee.node.api.certificate.KeyStoreLoader;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.endpoint.tcp.proxy.TcpProxyEndpointConnectorFactory;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
@@ -211,6 +212,7 @@ public class TcpSecuredBackendIntegrationTest {
             super.configureGateway(gatewayConfigurationBuilder);
             // enables the TCP proxy
             gatewayConfigurationBuilder.configureTcpGateway(tcpPort());
+            gatewayConfigurationBuilder.set("tcp.ssl.keystore.type", KeyStoreLoader.CERTIFICATE_FORMAT_SELF_SIGNED);
         }
 
         @Override

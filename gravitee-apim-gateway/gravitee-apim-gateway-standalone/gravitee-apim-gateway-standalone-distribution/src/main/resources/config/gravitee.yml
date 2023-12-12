@@ -101,9 +101,10 @@ secrets:
 #      This method is now the preferred way for kubernetes: /namespace/secrets/my-tls-secret
 #      secret: secret://kubernetes/my-tls-secret
 #    truststore:
-#      type: jks # Supports jks, pem, pkcs12
+#      type: jks # Supports jks, pem, pkcs12, pem-folder (for the latter watch supports added/updated/removed files)
 #      path: ${gravitee.home}/security/truststore.jks
 #      password: secret
+#      watch: true # Watch for any updates on the keystore and reload it. Default is true.
 #    sni: false
 #    openssl: false # Used to rely on OpenSSL Engine instead of default JDK SSL Engine
 #  websocket:
@@ -145,9 +146,10 @@ secrets:
 #      password: secret
 #      watch: true # Watch for any updates on the keystore and reload it. Default is true.
 #    truststore:
-#      type: jks # Supports jks, pem, pkcs12
+#      type: jks # Supports jks, pem, pkcs12, pem-folder (for the latter watch supports added/updated/removed files)
 #      path: ${gravitee.home}/security/truststore.jks
 #      password: secret
+#      watch: true # Watch for any updates on the keystore/pem and reload it. Default is true.
 #    openssl: false # Used to rely on OpenSSL Engine instead of default JDK SSL Engine
 #  haproxy: # Support for https://www.haproxy.org/download/1.8/doc/proxy-protocol.txt
 #    proxyProtocol: false

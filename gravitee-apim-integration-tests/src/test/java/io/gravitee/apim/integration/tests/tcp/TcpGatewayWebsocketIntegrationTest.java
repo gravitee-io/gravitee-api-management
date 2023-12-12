@@ -60,7 +60,7 @@ class TcpGatewayWebsocketIntegrationTest extends AbstractWebsocketGatewayTest {
     protected void configureGateway(GatewayConfigurationBuilder gatewayConfigurationBuilder) {
         super.configureGateway(gatewayConfigurationBuilder);
         // enables the TCP proxy
-        gatewayConfigurationBuilder.configureTcpGateway(tcpPort());
+        gatewayConfigurationBuilder.configureTcpGateway(tcpPort()).set("tcp.ssl.keystore.type", "self-signed");
     }
 
     @Override
