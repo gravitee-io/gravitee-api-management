@@ -17,7 +17,9 @@ package io.gravitee.gateway.debug.vertx;
 
 import io.gravitee.gateway.reactive.debug.vertx.DebugHttpProtocolVerticle;
 import io.gravitee.gateway.reactive.reactor.HttpRequestDispatcher;
-import io.gravitee.node.certificates.KeyStoreLoaderManager;
+import io.gravitee.node.api.certificate.KeyStoreLoaderFactoryRegistry;
+import io.gravitee.node.api.certificate.KeyStoreLoaderOptions;
+import io.gravitee.node.api.certificate.TrustStoreLoaderOptions;
 import io.gravitee.node.vertx.server.http.VertxHttpServer;
 import io.gravitee.node.vertx.server.http.VertxHttpServerFactory;
 import io.gravitee.node.vertx.server.http.VertxHttpServerOptions;
@@ -53,30 +55,24 @@ public class VertxDebugConfiguration {
     }
 
     @Bean("debugServerFactory")
-    public VertxHttpServerFactory debugHttpServerFactory(Vertx vertx) {
-        return new VertxHttpServerFactory(vertx);
+    public VertxHttpServerFactory debugHttpServerFactory(
+        Vertx vertx,
+        KeyStoreLoaderFactoryRegistry<KeyStoreLoaderOptions> keyStoreLoaderFactoryRegistry,
+        KeyStoreLoaderFactoryRegistry<TrustStoreLoaderOptions> truststoreLoaderFactoryRegistry
+    ) {
+        return new VertxHttpServerFactory(vertx, keyStoreLoaderFactoryRegistry, truststoreLoaderFactoryRegistry);
     }
 
     @Bean("debugServer")
-    public VertxHttpServer debugServer(
-        VertxHttpServerFactory debugHttpServerFactory,
-        Environment environment,
-        KeyStoreLoaderManager keyStoreLoaderManager
-    ) {
+    public VertxHttpServer debugServer(VertxHttpServerFactory debugHttpServerFactory, Environment environment) {
         final VertxHttpServerOptions.VertxHttpServerOptionsBuilder<?, ?> optionsBuilder;
 
         if (environment.getProperty("servers[0].type") != null) {
             // Use the first server from the server list.
-            optionsBuilder =
-                VertxDebugHttpServerOptions
-                    .builder()
-                    .prefix("servers[0]")
-                    .environment(environment)
-                    .keyStoreLoaderManager(keyStoreLoaderManager);
+            optionsBuilder = VertxDebugHttpServerOptions.builder().prefix("servers[0]").environment(environment);
         } else {
             // No server list configured, fallback to single http server configuration.
-            optionsBuilder =
-                VertxDebugHttpServerOptions.builder().prefix("http").environment(environment).keyStoreLoaderManager(keyStoreLoaderManager);
+            optionsBuilder = VertxDebugHttpServerOptions.builder().prefix("http").environment(environment);
         }
 
         return debugHttpServerFactory.create(optionsBuilder.build());

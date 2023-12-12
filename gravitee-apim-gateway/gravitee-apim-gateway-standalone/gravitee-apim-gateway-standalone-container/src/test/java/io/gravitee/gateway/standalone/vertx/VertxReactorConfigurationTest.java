@@ -71,7 +71,7 @@ class VertxReactorConfigurationTest {
         environment.setProperty("servers[0].type", "http");
         environment.setProperty("servers[1].type", "http");
 
-        final ServerManager serverManager = cut.serverManager(serverFactory, environment, keyStoreLoaderManager);
+        final ServerManager serverManager = cut.serverManager(serverFactory, environment);
 
         assertThat(serverManager.servers()).isNotNull();
         assertThat(serverManager.servers()).containsExactly(vertxServer1, vertxServer2);
@@ -85,7 +85,7 @@ class VertxReactorConfigurationTest {
 
         environment.setProperty("servers[0].type", "http");
 
-        cut.serverManager(serverFactory, environment, keyStoreLoaderManager);
+        cut.serverManager(serverFactory, environment);
 
         verify(serverFactory).create(optionsCaptor.capture());
 
@@ -101,7 +101,7 @@ class VertxReactorConfigurationTest {
         environment.setProperty("servers[0].type", "http");
         environment.setProperty("servers[0].port", "1234");
 
-        cut.serverManager(serverFactory, environment, keyStoreLoaderManager);
+        cut.serverManager(serverFactory, environment);
 
         verify(serverFactory).create(optionsCaptor.capture());
 
@@ -114,7 +114,7 @@ class VertxReactorConfigurationTest {
 
         when(serverFactory.create(any(VertxServerOptions.class))).thenReturn(vertxServer);
 
-        final ServerManager serverManager = cut.serverManager(serverFactory, environment, keyStoreLoaderManager);
+        final ServerManager serverManager = cut.serverManager(serverFactory, environment);
 
         assertThat(serverManager.servers()).isNotNull();
         assertThat(serverManager.servers()).containsExactly(vertxServer);
@@ -126,7 +126,7 @@ class VertxReactorConfigurationTest {
 
         when(serverFactory.create(any(VertxServerOptions.class))).thenReturn(vertxServer);
 
-        cut.serverManager(serverFactory, environment, keyStoreLoaderManager);
+        cut.serverManager(serverFactory, environment);
 
         verify(serverFactory).create(optionsCaptor.capture());
 
@@ -141,7 +141,7 @@ class VertxReactorConfigurationTest {
 
         when(serverFactory.create(any(VertxServerOptions.class))).thenReturn(vertxServer);
 
-        cut.serverManager(serverFactory, environment, keyStoreLoaderManager);
+        cut.serverManager(serverFactory, environment);
 
         verify(serverFactory).create(optionsCaptor.capture());
 
@@ -158,7 +158,7 @@ class VertxReactorConfigurationTest {
         when(serverFactory.create(any(VertxHttpServerOptions.class))).thenReturn(httpVertxServer);
         when(serverFactory.create(any(VertxTcpServerOptions.class))).thenReturn(tcpVertxServer);
 
-        final ServerManager serverManager = cut.serverManager(serverFactory, environment, keyStoreLoaderManager);
+        final ServerManager serverManager = cut.serverManager(serverFactory, environment);
 
         assertThat(serverManager.servers()).isNotNull();
         assertThat(serverManager.servers()).containsExactlyInAnyOrder(httpVertxServer, tcpVertxServer);
