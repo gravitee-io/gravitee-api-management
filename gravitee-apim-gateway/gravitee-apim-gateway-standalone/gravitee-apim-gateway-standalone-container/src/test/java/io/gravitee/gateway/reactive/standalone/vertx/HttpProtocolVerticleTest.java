@@ -22,8 +22,11 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.reactive.reactor.HttpRequestDispatcher;
+import io.gravitee.node.api.certificate.KeyStoreLoaderOptions;
+import io.gravitee.node.api.certificate.TrustStoreLoaderOptions;
 import io.gravitee.node.api.server.DefaultServerManager;
 import io.gravitee.node.api.server.ServerManager;
+import io.gravitee.node.certificates.DefaultKeyStoreLoaderFactoryRegistry;
 import io.gravitee.node.vertx.server.http.VertxHttpServerFactory;
 import io.gravitee.node.vertx.server.http.VertxHttpServerOptions;
 import io.reactivex.rxjava3.core.Completable;
@@ -36,13 +39,11 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(VertxExtension.class)
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class HttpProtocolVerticleTest {
 
     private VertxHttpServerOptions httpOptions;
@@ -56,8 +57,19 @@ class HttpProtocolVerticleTest {
         socket.close();
 
         final ServerManager serverManager = new DefaultServerManager();
-        final VertxHttpServerFactory vertxHttpServerFactory = new VertxHttpServerFactory(io.vertx.rxjava3.core.Vertx.newInstance(vertx));
-        httpOptions = VertxHttpServerOptions.builder().id("UnitTest").port(randomPort).build();
+        final VertxHttpServerFactory vertxHttpServerFactory = new VertxHttpServerFactory(
+            io.vertx.rxjava3.core.Vertx.newInstance(vertx),
+            new DefaultKeyStoreLoaderFactoryRegistry<>(),
+            new DefaultKeyStoreLoaderFactoryRegistry<>()
+        );
+        httpOptions =
+            VertxHttpServerOptions
+                .builder()
+                .id("UnitTest")
+                .port(randomPort)
+                .keyStoreLoaderOptions(KeyStoreLoaderOptions.builder().build())
+                .trustStoreLoaderOptions(TrustStoreLoaderOptions.builder().build())
+                .build();
         serverManager.register(vertxHttpServerFactory.create(httpOptions));
 
         mockRequestDispatcher = spy(new DummyHttpRequestDispatcher());
@@ -71,12 +83,7 @@ class HttpProtocolVerticleTest {
     }
 
     @Test
-    void verticleShouldBeDeployed(Vertx vertx, VertxTestContext testContext) {
-        testContext.completeNow();
-    }
-
-    @Test
-    void httpServerShouldListen(Vertx vertx, VertxTestContext testContext) {
+    void http_server_should_listen(Vertx vertx, VertxTestContext testContext) {
         HttpClient client = vertx.createHttpClient();
         client
             .request(HttpMethod.GET, httpOptions.getPort(), "127.0.0.1", "/")
@@ -92,7 +99,7 @@ class HttpProtocolVerticleTest {
     }
 
     @Test
-    void httpServerShouldCloseAndResumeOnError(Vertx vertx, VertxTestContext testContext) {
+    void http_server_should_close_and_resume_on_error(Vertx vertx, VertxTestContext testContext) {
         doReturn(Completable.error(new RuntimeException("error")))
             .doCallRealMethod()
             .when(mockRequestDispatcher)
@@ -119,7 +126,7 @@ class HttpProtocolVerticleTest {
     }
 
     @Test
-    void httpServerShouldDisposeWhenConnectionClosed(Vertx vertx, VertxTestContext testContext) {
+    void http_server_should_dispose_when_connection_closed(Vertx vertx, VertxTestContext testContext) {
         doReturn(Completable.timer(2, TimeUnit.SECONDS).doOnDispose(testContext::completeNow))
             .when(mockRequestDispatcher)
             .dispatch(any(), anyString());
@@ -133,7 +140,7 @@ class HttpProtocolVerticleTest {
     }
 
     @Test
-    void httpServerShouldIgnoreAlreadyEndedResponseOnError(Vertx vertx, VertxTestContext testContext) {
+    void http_server_should_ignore_already_ended_response_on_error(Vertx vertx, VertxTestContext testContext) {
         doAnswer(invocation -> {
                 HttpServerRequest httpServerRequest = invocation.getArgument(0);
                 return httpServerRequest

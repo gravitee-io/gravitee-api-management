@@ -26,6 +26,8 @@ import io.gravitee.node.vertx.server.http.VertxHttpServer;
 import io.gravitee.node.vertx.server.http.VertxHttpServerFactory;
 import io.gravitee.node.vertx.server.http.VertxHttpServerOptions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -40,10 +42,8 @@ import org.springframework.mock.env.MockEnvironment;
  */
 @SuppressWarnings({ "rawtypes", "unchecked" })
 @ExtendWith(MockitoExtension.class)
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class VertxDebugConfigurationTest {
-
-    @Mock
-    private KeyStoreLoaderManager keyStoreLoaderManager;
 
     @Mock
     private VertxHttpServerFactory debugHttpServerFactory;
@@ -69,9 +69,8 @@ class VertxDebugConfigurationTest {
         environment.setProperty("servers[0].type", "http");
         environment.setProperty("servers[1].type", "http");
 
-        final VertxHttpServer debugServer = cut.debugServer(debugHttpServerFactory, environment, keyStoreLoaderManager);
+        final VertxHttpServer debugServer = cut.debugServer(debugHttpServerFactory, environment);
 
-        assertThat(debugServer).isNotNull();
         assertThat(debugServer).isEqualTo(vertxServer1);
     }
 
@@ -83,7 +82,7 @@ class VertxDebugConfigurationTest {
 
         environment.setProperty("servers[0].type", "http");
 
-        cut.debugServer(debugHttpServerFactory, environment, keyStoreLoaderManager);
+        cut.debugServer(debugHttpServerFactory, environment);
 
         verify(debugHttpServerFactory).create(optionsCaptor.capture());
 
@@ -100,7 +99,7 @@ class VertxDebugConfigurationTest {
         environment.setProperty("servers[0].type", "http");
         environment.setProperty("debug.port", "1234");
 
-        cut.debugServer(debugHttpServerFactory, environment, keyStoreLoaderManager);
+        cut.debugServer(debugHttpServerFactory, environment);
 
         verify(debugHttpServerFactory).create(optionsCaptor.capture());
 
@@ -114,9 +113,8 @@ class VertxDebugConfigurationTest {
 
         when(debugHttpServerFactory.create(any(VertxHttpServerOptions.class))).thenReturn(vertxServer);
 
-        final VertxHttpServer debugServer = cut.debugServer(debugHttpServerFactory, environment, keyStoreLoaderManager);
+        final VertxHttpServer debugServer = cut.debugServer(debugHttpServerFactory, environment);
 
-        assertThat(debugServer).isNotNull();
         assertThat(debugServer).isEqualTo(vertxServer);
     }
 
@@ -126,7 +124,7 @@ class VertxDebugConfigurationTest {
 
         when(debugHttpServerFactory.create(any(VertxHttpServerOptions.class))).thenReturn(vertxServer);
 
-        cut.debugServer(debugHttpServerFactory, environment, keyStoreLoaderManager);
+        cut.debugServer(debugHttpServerFactory, environment);
 
         verify(debugHttpServerFactory).create(optionsCaptor.capture());
 
@@ -142,7 +140,7 @@ class VertxDebugConfigurationTest {
 
         when(debugHttpServerFactory.create(any(VertxHttpServerOptions.class))).thenReturn(vertxServer);
 
-        cut.debugServer(debugHttpServerFactory, environment, keyStoreLoaderManager);
+        cut.debugServer(debugHttpServerFactory, environment);
 
         verify(debugHttpServerFactory).create(optionsCaptor.capture());
 
