@@ -44,9 +44,6 @@ import org.springframework.mock.env.MockEnvironment;
 class VertxReactorConfigurationTest {
 
     @Mock
-    private KeyStoreLoaderManager keyStoreLoaderManager;
-
-    @Mock
     private VertxServerFactory<VertxServer<?, VertxServerOptions>, VertxServerOptions> serverFactory;
 
     @Captor
@@ -64,7 +61,9 @@ class VertxReactorConfigurationTest {
     @Test
     void should_create_server_manager_from_server_list() {
         final VertxServer vertxServer1 = mock(VertxServer.class);
+        when(vertxServer1.id()).thenReturn("1");
         final VertxServer vertxServer2 = mock(VertxServer.class);
+        when(vertxServer2.id()).thenReturn("2");
 
         when(serverFactory.create(any(VertxServerOptions.class))).thenReturn(vertxServer1).thenReturn(vertxServer2);
 
@@ -74,7 +73,7 @@ class VertxReactorConfigurationTest {
         final ServerManager serverManager = cut.serverManager(serverFactory, environment);
 
         assertThat(serverManager.servers()).isNotNull();
-        assertThat(serverManager.servers()).containsExactly(vertxServer1, vertxServer2);
+        assertThat(serverManager.servers()).containsExactlyInAnyOrder(vertxServer1, vertxServer2);
     }
 
     @Test
@@ -151,7 +150,10 @@ class VertxReactorConfigurationTest {
     @Test
     void should_create_http_and_tcp_server() {
         final VertxServer httpVertxServer = mock(VertxServer.class);
+        when(httpVertxServer.id()).thenReturn("http");
+
         final VertxServer tcpVertxServer = mock(VertxServer.class);
+        when(tcpVertxServer.id()).thenReturn("tcp");
 
         environment.setProperty("tcp.enabled", "true");
 

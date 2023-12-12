@@ -18,6 +18,7 @@ package io.gravitee.apim.gateway.tests.sdk;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static io.gravitee.apim.gateway.tests.sdk.utils.URLUtils.exchangePort;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -48,7 +49,6 @@ import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -314,40 +314,48 @@ public abstract class AbstractGatewayTest
      * Override api endpoints to replace port by the configured wiremock port.
      * @param reactableApi is the api to override
      */
+
     private void updateEndpoints(ReactableApi<?> reactableApi) {
         if (reactableApi.getDefinition() instanceof Api) {
             Api api = (Api) reactableApi.getDefinition();
+
             // Define dynamically endpoint port
-            for (Endpoint endpoint : api.getProxy().getGroups().iterator().next().getEndpoints()) {
-                if (endpoint.getTarget().contains("8080")) {
-                    final int port = endpoint.getTarget().contains("https") ? wiremockHttpsPort : wiremockPort;
+            api
+                .getProxy()
+                .getGroups()
+                .iterator()
+                .next()
+                .getEndpoints()
+                .stream()
+                .filter(endpoint -> endpoint.getTarget().contains("8080"))
+                .forEach(endpoint -> {
+                    final int port = endpoint.getTarget().contains("https://") ? wiremockHttpsPort : wiremockPort;
                     endpoint.setTarget(exchangePort(endpoint.getTarget(), port));
-                }
-            }
+                });
         }
 
         if (reactableApi.getDefinition() instanceof io.gravitee.definition.model.v4.Api) {
             var api = (io.gravitee.definition.model.v4.Api) reactableApi.getDefinition();
-            var httpProxyEndpoints = api
+            var proxyEndpoints = api
                 .getEndpointGroups()
                 .stream()
                 .flatMap(eg -> eg.getEndpoints().stream())
-                .filter(endpoint -> endpoint.getType().equals("http-proxy"))
+                .filter(endpoint -> endpoint.getType().equals("http-proxy") || endpoint.getType().equals("tcp-proxy"))
                 .toList();
 
-            httpProxyEndpoints.forEach(endpoint -> {
-                var port = endpoint.getConfiguration().contains("https") ? wiremockHttpsPort : wiremockPort;
+            proxyEndpoints.forEach(endpoint -> {
+                var port = endpoint.getConfiguration().contains("https://") ? wiremockHttpsPort : wiremockPort;
                 endpoint.setConfiguration(endpoint.getConfiguration().replace("8080", Integer.toString(port)));
             });
 
-            if (!httpProxyEndpoints.isEmpty()) {
+            if (!proxyEndpoints.isEmpty()) {
                 // Workaround to re-deploy the api to update endpoint config:
                 // For the V4 apis, endpoints are connectors, they are instantiated at deployment time, meaning the
                 // configuration cannot be changed after deployment.
                 var manager = applicationContext.getBean(ApiManager.class);
                 manager.unregister(reactableApi.getId());
                 manager.register(reactableApi);
-                log.info("Redeploy api '{}' after overriding http-proxy endpoint port", api.getId());
+                log.info("Redeploy api '{}' after overriding http/tcp proxy endpoint port", api.getId());
             }
         }
     }

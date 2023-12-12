@@ -92,7 +92,6 @@ public class GatewayConfigurationBuilder {
             .set("tcp.secured", true)
             .set("tcp.port", port)
             .set("tcp.instances", 1)
-            .set("tcp.ssl.sni", true)
-            .set("tcp.ssl.keystore.type", "self-signed");
+            .set("tcp.ssl.sni", true);
     }
 }
