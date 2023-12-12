@@ -1,0 +1,21 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.2.0-quality-rules
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}quality_rules
+            columns:
+              - column: { name: reference_type, type: nvarchar(32), constraints: { nullable: false }, defaultValue: '' }
+              - column: { name: reference_id, type: nvarchar(64), constraints: { nullable: false }, defaultValue: '' }
+
+        - createIndex:
+            indexName: idx_${gravitee_prefix}quality_rules_reference_type_reference_id
+            columns:
+              - column:
+                  name: reference_type
+                  type: nvarchar(32)
+              - column:
+                  name: reference_id
+                  type: nvarchar(64)
+            tableName: ${gravitee_prefix}quality_rules
