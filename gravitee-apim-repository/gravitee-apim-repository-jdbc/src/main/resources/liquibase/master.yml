@@ -159,3 +159,5 @@ databaseChangeLog:
       - file: liquibase/changelogs/v4_0_3/schema.yml
   - include:
       - file: liquibase/changelogs/v4_2_0/schema.yml
+  - include:
+      - file: liquibase/changelogs/v4_2_0/schema-quality-rules.yml

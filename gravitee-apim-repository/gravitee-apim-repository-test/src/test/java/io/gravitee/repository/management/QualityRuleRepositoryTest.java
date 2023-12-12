@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
 import io.gravitee.repository.management.model.QualityRule;
+import io.gravitee.repository.management.model.QualityRuleReferenceType;
 import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
@@ -50,6 +51,8 @@ public class QualityRuleRepositoryTest extends AbstractManagementRepositoryTest 
             .findAny()
             .get();
         assertThat(qualityRuleProduct.getName()).isEqualTo("Api-key plan");
+        assertThat(qualityRuleProduct.getReferenceType()).isEqualTo(QualityRuleReferenceType.ENVIRONMENT);
+        assertThat(qualityRuleProduct.getReferenceId()).isEqualTo("b78f2219-890d-4344-8f22-19890d834442");
         assertThat(qualityRuleProduct.getDescription()).isEqualTo("A plan api-key is published");
         assertThat(qualityRuleProduct.getWeight()).isEqualTo(3);
         assertThat(compareDate(DATE, qualityRuleProduct.getCreatedAt())).isTrue();
@@ -61,6 +64,8 @@ public class QualityRuleRepositoryTest extends AbstractManagementRepositoryTest 
         final QualityRule qualityRule = QualityRule
             .builder()
             .id("new-qualityRule")
+            .referenceType(QualityRuleReferenceType.ENVIRONMENT)
+            .referenceId("4b78f2219-890d-4344-8f22-19890d83444")
             .name("QualityRule name")
             .description("QualityRule description")
             .weight(10)
@@ -79,6 +84,8 @@ public class QualityRuleRepositoryTest extends AbstractManagementRepositoryTest 
                 assertThat(savedQualityRule.getName()).isEqualTo(qualityRule.getName());
                 assertThat(savedQualityRule.getDescription()).isEqualTo(qualityRule.getDescription());
                 assertThat(savedQualityRule.getWeight()).isEqualTo(qualityRule.getWeight());
+                assertThat(savedQualityRule.getReferenceType()).isEqualTo(qualityRule.getReferenceType());
+                assertThat(savedQualityRule.getReferenceId()).isEqualTo(qualityRule.getReferenceId());
                 assertThat(compareDate(qualityRule.getCreatedAt(), savedQualityRule.getCreatedAt())).isTrue();
                 assertThat(compareDate(qualityRule.getCreatedAt(), savedQualityRule.getUpdatedAt())).isTrue();
             });
@@ -109,6 +116,8 @@ public class QualityRuleRepositoryTest extends AbstractManagementRepositoryTest 
                 assertThat(updatedQualityRule.getName()).isEqualTo("New name");
                 assertThat(updatedQualityRule.getDescription()).isEqualTo("New description");
                 assertThat(updatedQualityRule.getWeight()).isEqualTo(5);
+                assertThat(updatedQualityRule.getReferenceType()).isEqualTo(QualityRuleReferenceType.ENVIRONMENT);
+                assertThat(updatedQualityRule.getReferenceId()).isEqualTo("b78f2219-890d-4344-8f22-19890d834442");
                 assertThat(compareDate(DATE, updatedQualityRule.getCreatedAt())).isTrue();
                 assertThat(compareDate(DATE, updatedQualityRule.getUpdatedAt())).isTrue();
             });
