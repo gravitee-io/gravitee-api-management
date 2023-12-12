@@ -3124,6 +3124,9 @@ components:
                 id:
                     type: string
                     description: Id of the integration
+                remoteId:
+                    type: string
+                    description: remote Id of the integration if any
                 name:
                     type: string
                     description: Name of the integration

@@ -23,7 +23,9 @@ import io.gravitee.integration.api.model.Integration;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.IntegrationRepository;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +50,7 @@ public class IntegrationCrudServiceImpl implements IntegrationCrudService {
     @Override
     public Integration createIntegration(Integration integration) {
         try {
+            integration.setId(UUID.randomUUID().toString());
             var createdIntegration = integrationRepository.create(IntegrationAdapter.INSTANCE.toRepository(integration));
             return IntegrationAdapter.INSTANCE.toEntity(createdIntegration);
         } catch (TechnicalException e) {

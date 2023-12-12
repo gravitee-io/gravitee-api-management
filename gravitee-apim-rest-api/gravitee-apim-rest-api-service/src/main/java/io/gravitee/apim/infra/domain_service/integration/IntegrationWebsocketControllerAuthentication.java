@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.infra.domain_service.integration;
 
-import io.gravitee.exchange.controller.websocket.auth.WebsocketControllerAuthentication;
+import io.gravitee.exchange.controller.websocket.auth.WebSocketControllerAuthentication;
 import io.gravitee.integration.controller.command.IntegrationCommandContext;
 import io.gravitee.repository.management.model.Token;
 import io.gravitee.rest.api.model.EnvironmentEntity;
@@ -28,6 +28,7 @@ import io.gravitee.rest.api.service.TokenService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.netty.handler.codec.http.HttpHeaderNames;
+import io.vertx.rxjava3.core.http.HttpServerRequest;
 import io.vertx.rxjava3.core.http.ServerWebSocket;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -42,7 +43,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class IntegrationWebsocketControllerAuthentication implements WebsocketControllerAuthentication<IntegrationCommandContext> {
+public class IntegrationWebsocketControllerAuthentication implements WebSocketControllerAuthentication<IntegrationCommandContext> {
 
     public static final String AUTHORIZATION_HEADER = HttpHeaderNames.AUTHORIZATION.toString();
     public static final String AUTHORIZATION_HEADER_BEARER = "bearer";
@@ -52,8 +53,8 @@ public class IntegrationWebsocketControllerAuthentication implements WebsocketCo
     private final PermissionService permissionService;
 
     @Override
-    public IntegrationCommandContext authenticate(final ServerWebSocket webSocket) {
-        String header = webSocket.headers().get(AUTHORIZATION_HEADER);
+    public IntegrationCommandContext authenticate(final HttpServerRequest httpServerRequest) {
+        String header = httpServerRequest.headers().get(AUTHORIZATION_HEADER);
         if (header != null) {
             final String tokenValue = header.substring(AUTHORIZATION_HEADER_BEARER.length()).trim();
             try {

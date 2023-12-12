@@ -28,8 +28,7 @@ import io.gravitee.exchange.api.command.Command;
 import io.gravitee.exchange.api.command.CommandHandler;
 import io.gravitee.exchange.api.command.CommandStatus;
 import io.gravitee.exchange.api.command.Reply;
-import io.gravitee.exchange.api.connector.ConnectorCommandContext;
-import io.gravitee.exchange.api.connector.ConnectorCommandHandlersFactory;
+import io.gravitee.exchange.api.command.ReplyHandler;
 import io.gravitee.exchange.api.connector.ExchangeConnectorManager;
 import io.gravitee.exchange.api.controller.ExchangeController;
 import io.gravitee.exchange.connector.embedded.EmbeddedExchangeConnector;
@@ -44,7 +43,7 @@ import io.gravitee.integration.api.command.list.ListCommand;
 import io.gravitee.integration.api.command.list.ListReply;
 import io.gravitee.integration.api.model.Integration;
 import io.gravitee.integration.connector.command.IntegrationConnectorCommandContext;
-import io.gravitee.integration.connector.command.IntegrationProviderCommandHandlerFactory;
+import io.gravitee.integration.connector.command.IntegrationConnectorCommandHandlerFactory;
 import io.gravitee.plugin.integrationprovider.IntegrationProviderPluginManager;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
@@ -66,7 +65,7 @@ public class IntegrationDomainServiceImpl extends AbstractService<IntegrationDom
     private final GraviteeLicenseDomainService graviteeLicenseDomainService;
     private final ExchangeConnectorManager exchangeConnectorManager;
     private final ExchangeController exchangeController;
-    private final IntegrationProviderCommandHandlerFactory connectorCommandHandlersFactory;
+    private final IntegrationConnectorCommandHandlerFactory connectorCommandHandlersFactory;
     private final IntegrationProviderPluginManager integrationProviderPluginManager;
     private final IntegrationCrudService integrationCrudService;
 
@@ -112,14 +111,20 @@ public class IntegrationDomainServiceImpl extends AbstractService<IntegrationDom
                 integrationProvider.start();
 
                 IntegrationConnectorCommandContext integrationConnectorCommandContext = new IntegrationConnectorCommandContext(
+                    integration.getProvider(),
+                    integration.getId(),
+                    integration.getEnvironmentId(),
                     integrationProvider
                 );
                 Map<String, CommandHandler<? extends Command<?>, ? extends Reply<?>>> connectorCommandHandlers =
-                    connectorCommandHandlersFactory.buildHandlers(integrationConnectorCommandContext);
+                    connectorCommandHandlersFactory.buildCommandHandlers(integrationConnectorCommandContext);
+                Map<String, ReplyHandler<? extends Command<?>, ? extends Command<?>, ? extends Reply<?>>> connectorReplyHandlers =
+                    connectorCommandHandlersFactory.buildReplyHandlers(integrationConnectorCommandContext);
                 EmbeddedChannel embeddedChannel = EmbeddedChannel
                     .builder()
                     .targetId(integration.getId())
                     .commandHandlers(connectorCommandHandlers)
+                    .replyHandlers(connectorReplyHandlers)
                     .build();
                 exchangeController
                     .register(embeddedChannel)
@@ -136,12 +141,19 @@ public class IntegrationDomainServiceImpl extends AbstractService<IntegrationDom
     @Override
     public Flowable<IntegrationEntity> getIntegrationEntities(Integration integration) {
         ListCommand listCommand = new ListCommand();
-
-        return sendListCommand(listCommand, integration.getId())
-            .toFlowable()
-            .flatMap(listReply -> {
+        String targetId = integration.getDeploymentType() == Integration.DeploymentType.EMBEDDED
+            ? integration.getId()
+            : integration.getRemoteId();
+        return sendListCommand(listCommand, targetId)
+            .flatMapPublisher(listReply -> {
                 if (listReply.getCommandStatus() == CommandStatus.SUCCEEDED) {
-                    return listReply.getPayload().entities().map(IntegrationAdapter.INSTANCE::toEntity);
+                    List<IntegrationEntity> integrationEntities = listReply
+                        .getPayload()
+                        .entities()
+                        .stream()
+                        .map(IntegrationAdapter.INSTANCE::toEntity)
+                        .toList();
+                    return Flowable.fromIterable(integrationEntities);
                 }
                 return Flowable.empty();
             });
@@ -153,12 +165,20 @@ public class IntegrationDomainServiceImpl extends AbstractService<IntegrationDom
 
         FetchCommandPayload fetchCommandPayload = new FetchCommandPayload(entities);
         FetchCommand fetchCommand = new FetchCommand(fetchCommandPayload);
-
-        return sendFetchCommand(fetchCommand, integration.getId())
+        String targetId = integration.getDeploymentType() == Integration.DeploymentType.EMBEDDED
+            ? integration.getId()
+            : integration.getRemoteId();
+        return sendFetchCommand(fetchCommand, targetId)
             .toFlowable()
             .flatMap(fetchReply -> {
                 if (fetchReply.getCommandStatus() == CommandStatus.SUCCEEDED) {
-                    return fetchReply.getPayload().entities().map(IntegrationAdapter.INSTANCE::toEntity);
+                    List<IntegrationEntity> fetchEntities = fetchReply
+                        .getPayload()
+                        .entities()
+                        .stream()
+                        .map(IntegrationAdapter.INSTANCE::toEntity)
+                        .toList();
+                    return Flowable.fromIterable(fetchEntities);
                 }
                 return Flowable.empty();
             });
@@ -168,51 +188,15 @@ public class IntegrationDomainServiceImpl extends AbstractService<IntegrationDom
         return exchangeController
             .sendCommand(listCommand, integrationId)
             .cast(ListReply.class)
-            .switchIfEmpty(
-                Single.defer(() ->
-                    Single.just(
-                        ListReply
-                            .builder()
-                            .commandId(listCommand.getId())
-                            .commandStatus(CommandStatus.ERROR)
-                            .errorDetails("Command received no reply")
-                            .build()
-                    )
-                )
-            )
-            .onErrorReturn(throwable ->
-                ListReply
-                    .builder()
-                    .commandId(listCommand.getId())
-                    .commandStatus(CommandStatus.ERROR)
-                    .errorDetails(throwable.getMessage())
-                    .build()
-            );
+            .defaultIfEmpty(new ListReply(listCommand.getId(), "Command received no reply"))
+            .onErrorReturn(throwable -> new ListReply(listCommand.getId(), throwable.getMessage()));
     }
 
     private Single<FetchReply> sendFetchCommand(FetchCommand fetchCommand, String integrationId) {
         return exchangeController
             .sendCommand(fetchCommand, integrationId)
             .cast(FetchReply.class)
-            .switchIfEmpty(
-                Single.defer(() ->
-                    Single.just(
-                        FetchReply
-                            .builder()
-                            .commandId(fetchCommand.getId())
-                            .commandStatus(CommandStatus.ERROR)
-                            .errorDetails("Command received no reply")
-                            .build()
-                    )
-                )
-            )
-            .onErrorReturn(throwable ->
-                FetchReply
-                    .builder()
-                    .commandId(fetchCommand.getId())
-                    .commandStatus(CommandStatus.ERROR)
-                    .errorDetails(throwable.getMessage())
-                    .build()
-            );
+            .defaultIfEmpty(new FetchReply(fetchCommand.getId(), "Command received no reply"))
+            .onErrorReturn(throwable -> new FetchReply(fetchCommand.getId(), throwable.getMessage()));
     }
 }

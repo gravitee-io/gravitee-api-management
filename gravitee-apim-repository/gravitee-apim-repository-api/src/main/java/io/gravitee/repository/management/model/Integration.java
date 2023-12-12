@@ -32,6 +32,8 @@ public class Integration {
 
     private String id;
 
+    private String remoteId;
+
     private String name;
 
     private IntegrationDeploymentType deploymentType;

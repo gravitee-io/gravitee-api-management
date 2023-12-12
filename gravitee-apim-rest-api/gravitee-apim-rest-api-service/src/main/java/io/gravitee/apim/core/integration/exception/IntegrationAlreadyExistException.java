@@ -16,15 +16,22 @@
 
 package io.gravitee.apim.core.integration.exception;
 
-import io.gravitee.apim.core.exception.NotFoundDomainException;
+import io.gravitee.apim.core.exception.TechnicalDomainException;
+import lombok.Getter;
 
 /**
  * @author Remi Baptiste (remi.baptiste at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class IntegrationNotFoundException extends NotFoundDomainException {
+@Getter
+public class IntegrationAlreadyExistException extends TechnicalDomainException {
 
-    public IntegrationNotFoundException(String integrationId) {
-        super("Integration not found", integrationId);
+    private final String remoteId;
+    private final String provider;
+
+    public IntegrationAlreadyExistException(final String remoteId, final String provider) {
+        super("Integration id already exists with another provide");
+        this.remoteId = remoteId;
+        this.provider = provider;
     }
 }

@@ -15,6 +15,9 @@
  */
 package io.gravitee.repository.mongodb.management.internal.model;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -23,10 +26,15 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author GraviteeSource Team
  */
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}integration")
+@Getter
+@Setter
+@NoArgsConstructor
 public class IntegrationMongo extends Auditable {
 
     @Id
     private String id;
+
+    private String remoteId;
 
     private String name;
 
@@ -37,54 +45,4 @@ public class IntegrationMongo extends Auditable {
     private String configuration;
 
     private String environmentId;
-
-    public IntegrationMongo() {}
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDeploymentType() {
-        return deploymentType;
-    }
-
-    public void setDeploymentType(String deploymentType) {
-        this.deploymentType = deploymentType;
-    }
-
-    public String getProvider() {
-        return provider;
-    }
-
-    public void setProvider(String provider) {
-        this.provider = provider;
-    }
-
-    public String getConfiguration() {
-        return configuration;
-    }
-
-    public void setConfiguration(String configuration) {
-        this.configuration = configuration;
-    }
-
-    public String getEnvironmentId() {
-        return environmentId;
-    }
-
-    public void setEnvironmentId(String environmentId) {
-        this.environmentId = environmentId;
-    }
 }

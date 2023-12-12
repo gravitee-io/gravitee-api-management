@@ -32,7 +32,7 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class ApiQueryServiceImplTest {
+class IntegrationQueryServiceImplTest {
 
     ApiRepository apiRepository;
     ApiQueryService service;

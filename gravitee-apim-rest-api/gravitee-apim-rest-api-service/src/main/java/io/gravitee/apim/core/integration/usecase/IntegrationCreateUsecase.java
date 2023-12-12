@@ -18,6 +18,7 @@ package io.gravitee.apim.core.integration.usecase;
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
 import io.gravitee.apim.core.integration.domain_service.IntegrationDomainService;
 import io.gravitee.integration.api.model.Integration;
+import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -25,15 +26,12 @@ import lombok.RequiredArgsConstructor;
  * @author GraviteeSource Team
  */
 @RequiredArgsConstructor
-public class IntegrationCreateUsecase implements io.gravitee.integration.controller.service.IntegrationCreateUsecase {
+public class IntegrationCreateUsecase {
 
     private final IntegrationCrudService integrationCrudService;
     private final IntegrationDomainService integrationDomainService;
 
-    @Override
-    public io.gravitee.integration.controller.service.IntegrationCreateUsecase.Output execute(
-        final io.gravitee.integration.controller.service.IntegrationCreateUsecase.Input input
-    ) {
+    public IntegrationCreateUsecase.Output execute(final IntegrationCreateUsecase.Input input) {
         var integrationToCreate = input.integration();
         Integration integrationCreated = integrationCrudService.createIntegration(integrationToCreate);
 
@@ -41,4 +39,9 @@ public class IntegrationCreateUsecase implements io.gravitee.integration.control
 
         return new Output(integrationCreated);
     }
+
+    @Builder
+    public record Input(Integration integration) {}
+
+    public record Output(Integration integration) {}
 }

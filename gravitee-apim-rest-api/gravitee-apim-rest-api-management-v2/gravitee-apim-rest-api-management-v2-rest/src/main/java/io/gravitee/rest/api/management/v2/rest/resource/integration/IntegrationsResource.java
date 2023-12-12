@@ -66,7 +66,7 @@ public class IntegrationsResource extends AbstractResource {
 
         var createdIntegration = integrationCreateUsecase
             .execute(IntegrationCreateUsecase.Input.builder().integration(newIntegrationEntity).build())
-            .createdIntegration();
+            .integration();
 
         return Response
             .created(this.getLocationHeader(createdIntegration.getId()))

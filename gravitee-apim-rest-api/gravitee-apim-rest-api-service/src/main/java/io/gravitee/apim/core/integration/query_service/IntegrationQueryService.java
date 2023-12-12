@@ -13,18 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.gravitee.apim.core.integration.query_service;
 
-package io.gravitee.apim.core.integration.exception;
+import io.gravitee.integration.api.model.Integration;
+import java.util.Optional;
 
-import io.gravitee.apim.core.exception.NotFoundDomainException;
-
-/**
- * @author Remi Baptiste (remi.baptiste at graviteesource.com)
- * @author GraviteeSource Team
- */
-public class IntegrationNotFoundException extends NotFoundDomainException {
-
-    public IntegrationNotFoundException(String integrationId) {
-        super("Integration not found", integrationId);
-    }
+public interface IntegrationQueryService {
+    Optional<Integration> findByEnvironmentIdAndRemoteId(String environmentId, String remoteId);
 }

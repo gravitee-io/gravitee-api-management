@@ -34,9 +34,9 @@ public class IntegrationGetUsecase {
     public IntegrationGetUsecase.Output execute(IntegrationGetUsecase.Input input) {
         var integrationId = input.integrationId();
 
-        Integration integrationCreated = integrationCrudService.get(integrationId);
+        Integration integrationFound = integrationCrudService.get(integrationId);
 
-        return new IntegrationGetUsecase.Output(integrationCreated);
+        return new IntegrationGetUsecase.Output(integrationFound);
     }
 
     @Builder
