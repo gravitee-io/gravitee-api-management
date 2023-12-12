@@ -58,6 +58,7 @@ import org.junit.runners.Suite;
         NodeMonitoringRepositoryTest.class,
         NotificationTemplateRepositoryTest.class,
         OrganizationRepositoryTest.class,
+        LicenseRepositoryTest.class,
         PageRepository_searchTest.class,
         PageRepositoryTest.class,
         PageRevisionRepositoryTest.class,
