@@ -59,7 +59,7 @@ public class FlowRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals("my-condition", flows.get(0).getCondition());
         assertEquals(new Date(1470157767000L), flows.get(0).getCreatedAt());
         assertEquals("flow-tag1", flows.get(0).getId());
-        assertEquals(2, flows.get(0).getMethods().size(), 2);
+        assertEquals(0, flows.get(0).getMethods().size());
         assertEquals("tag-1", flows.get(0).getName());
         assertEquals(1, flows.get(0).getOrder());
         assertEquals(new Date(1470157767000L), flows.get(0).getUpdatedAt());
@@ -209,10 +209,10 @@ public class FlowRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldDeleteByReference() throws TechnicalException {
-        assertEquals(flowRepository.findByReference(FlowReferenceType.ORGANIZATION, "orga-deleted").size(), 2);
+        assertEquals(2, flowRepository.findByReference(FlowReferenceType.ORGANIZATION, "orga-deleted").size());
 
         flowRepository.deleteByReference(FlowReferenceType.ORGANIZATION, "orga-deleted");
 
-        assertEquals(flowRepository.findByReference(FlowReferenceType.ORGANIZATION, "orga-deleted").size(), 0);
+        assertEquals(0, flowRepository.findByReference(FlowReferenceType.ORGANIZATION, "orga-deleted").size());
     }
 }
