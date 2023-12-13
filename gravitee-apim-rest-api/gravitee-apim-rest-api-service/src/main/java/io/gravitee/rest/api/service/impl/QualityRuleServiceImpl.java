@@ -26,6 +26,7 @@ import io.gravitee.repository.management.api.QualityRuleRepository;
 import io.gravitee.repository.management.model.QualityRule;
 import io.gravitee.rest.api.model.quality.NewQualityRuleEntity;
 import io.gravitee.rest.api.model.quality.QualityRuleEntity;
+import io.gravitee.rest.api.model.quality.QualityRuleReferenceType;
 import io.gravitee.rest.api.model.quality.UpdateQualityRuleEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.QualityRuleService;
@@ -87,9 +88,32 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
     }
 
     @Override
-    public QualityRuleEntity create(ExecutionContext executionContext, NewQualityRuleEntity newEntity) {
+    public List<QualityRuleEntity> findByReference(QualityRuleReferenceType referenceType, String referenceId) {
         try {
-            final QualityRule qualityRule = convert(newEntity);
+            LOGGER.debug("Find quality rules for {} [{}]", referenceType, referenceId);
+            return qualityRuleRepository
+                .findByReference(repoQualityRuleReferenceType(referenceType), referenceId)
+                .stream()
+                .map(this::convert)
+                .toList();
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to find quality rules for {} [{}]", referenceType, referenceId, ex);
+            throw new TechnicalManagementException(
+                "An error occurs while trying to find quality rules for reference" + referenceType + " " + referenceId,
+                ex
+            );
+        }
+    }
+
+    @Override
+    public QualityRuleEntity create(
+        ExecutionContext executionContext,
+        NewQualityRuleEntity newEntity,
+        QualityRuleReferenceType referenceType,
+        String referenceId
+    ) {
+        try {
+            final QualityRule qualityRule = convert(newEntity, referenceType, referenceId);
             final QualityRule createdQualityRule = qualityRuleRepository.create(qualityRule);
             auditService.createAuditLog(
                 executionContext,
@@ -155,6 +179,8 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
         return QualityRuleEntity
             .builder()
             .id(qualityRule.getId())
+            .referenceType(QualityRuleReferenceType.valueOf(qualityRule.getReferenceType().name()))
+            .referenceId(qualityRule.getReferenceId())
             .name(qualityRule.getName())
             .description(qualityRule.getDescription())
             .weight(qualityRule.getWeight())
@@ -163,11 +189,13 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
             .build();
     }
 
-    private QualityRule convert(final NewQualityRuleEntity qualityRuleEntity) {
+    private QualityRule convert(final NewQualityRuleEntity qualityRuleEntity, QualityRuleReferenceType referenceType, String referenceId) {
         final Date now = new Date();
         return QualityRule
             .builder()
             .id(UuidString.generateRandom())
+            .referenceType(repoQualityRuleReferenceType(referenceType))
+            .referenceId(referenceId)
             .name(qualityRuleEntity.getName())
             .description(qualityRuleEntity.getDescription())
             .weight(qualityRuleEntity.getWeight())
@@ -180,11 +208,19 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
         return QualityRule
             .builder()
             .id(qualityRuleEntity.getId())
+            .referenceType(qr.getReferenceType())
+            .referenceId(qr.getReferenceId())
             .name(qualityRuleEntity.getName())
             .description(qualityRuleEntity.getDescription())
             .weight(qualityRuleEntity.getWeight())
             .createdAt(qr.getCreatedAt())
             .updatedAt(new Date())
             .build();
+    }
+
+    private io.gravitee.repository.management.model.QualityRuleReferenceType repoQualityRuleReferenceType(
+        QualityRuleReferenceType referenceType
+    ) {
+        return io.gravitee.repository.management.model.QualityRuleReferenceType.valueOf(referenceType.name());
     }
 }

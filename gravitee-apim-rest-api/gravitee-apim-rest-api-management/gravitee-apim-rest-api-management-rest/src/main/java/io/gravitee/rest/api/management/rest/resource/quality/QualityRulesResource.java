@@ -23,9 +23,11 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.quality.NewQualityRuleEntity;
 import io.gravitee.rest.api.model.quality.QualityRuleEntity;
+import io.gravitee.rest.api.model.quality.QualityRuleReferenceType;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.QualityRuleService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.swagger.v3.oas.annotations.Operation;
@@ -65,13 +67,14 @@ public class QualityRulesResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public List<QualityRuleEntity> getQualityRules() {
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (
-            !hasPermission(GraviteeContext.getExecutionContext(), RolePermission.ENVIRONMENT_QUALITY_RULE, RolePermissionAction.READ) &&
+            !hasPermission(executionContext, RolePermission.ENVIRONMENT_QUALITY_RULE, RolePermissionAction.READ) &&
             !canReadAPIConfiguration()
         ) {
             throw new ForbiddenAccessException();
         }
-        return qualityRuleService.findAll();
+        return qualityRuleService.findByReference(QualityRuleReferenceType.ENVIRONMENT, executionContext.getEnvironmentId());
     }
 
     @POST
@@ -89,7 +92,13 @@ public class QualityRulesResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_QUALITY_RULE, acls = RolePermissionAction.CREATE) })
     public QualityRuleEntity createQualityRule(@Valid @NotNull final NewQualityRuleEntity newQualityRuleEntity) {
-        return qualityRuleService.create(GraviteeContext.getExecutionContext(), newQualityRuleEntity);
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        return qualityRuleService.create(
+            executionContext,
+            newQualityRuleEntity,
+            QualityRuleReferenceType.ENVIRONMENT,
+            executionContext.getEnvironmentId()
+        );
     }
 
     @Path("{id}")
