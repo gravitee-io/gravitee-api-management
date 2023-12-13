@@ -21,6 +21,7 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.access_point.crud_service.AccessPointCrudService;
+import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.cockpit.api.command.Command;
 import io.gravitee.cockpit.api.command.CommandStatus;
 import io.gravitee.cockpit.api.command.accesspoint.AccessPoint;
@@ -52,11 +53,15 @@ public class OrganizationCommandHandlerTest {
     @Mock
     private AccessPointCrudService accessPointService;
 
+    @Mock
+    private LicenseDomainService licenseService;
+
+    @Mock
     public OrganizationCommandHandler cut;
 
     @Before
     public void before() {
-        cut = new OrganizationCommandHandler(organizationService, accessPointService);
+        cut = new OrganizationCommandHandler(organizationService, accessPointService, licenseService);
     }
 
     @Test

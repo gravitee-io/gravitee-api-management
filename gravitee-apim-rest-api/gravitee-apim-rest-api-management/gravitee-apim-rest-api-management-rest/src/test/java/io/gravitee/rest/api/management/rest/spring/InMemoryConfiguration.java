@@ -140,4 +140,9 @@ public class InMemoryConfiguration {
     public FlowCrudServiceInMemory flowCrudServiceInMemory() {
         return new FlowCrudServiceInMemory();
     }
+
+    @Bean
+    public LicenseCrudServiceInMemory licenseCrudServiceInMemory() {
+        return new LicenseCrudServiceInMemory();
+    }
 }
