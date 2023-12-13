@@ -22,16 +22,12 @@ import static io.gravitee.gateway.reactive.handlers.api.v4.DefaultApiReactor.*;
 import static io.reactivex.rxjava3.core.Completable.defer;
 import static io.reactivex.rxjava3.core.Observable.interval;
 
-import io.gravitee.common.component.AbstractLifecycleComponent;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
 import io.gravitee.gateway.env.RequestTimeoutConfiguration;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
-import io.gravitee.gateway.reactive.api.connector.entrypoint.EntrypointConnector;
-import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
-import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.api.hook.InvokerHook;
 import io.gravitee.gateway.reactive.api.invoker.Invoker;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
@@ -42,7 +38,6 @@ import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.reactive.core.v4.entrypoint.DefaultEntrypointConnectorResolver;
 import io.gravitee.gateway.reactive.core.v4.invoker.EndpointInvoker;
 import io.gravitee.gateway.reactive.handlers.api.v4.analytics.logging.LoggingHook;
-import io.gravitee.gateway.reactive.reactor.ApiReactor;
 import io.gravitee.gateway.reactor.handler.Acceptor;
 import io.gravitee.gateway.reactor.handler.DefaultTcpAcceptor;
 import io.gravitee.gateway.reactor.handler.ReactorHandler;
@@ -53,8 +48,6 @@ import io.reactivex.rxjava3.core.Completable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
@@ -64,23 +57,15 @@ import lombok.extern.slf4j.Slf4j;
  */
 
 @Slf4j
-public class TcpApiReactor extends AbstractLifecycleComponent<ReactorHandler> implements ApiReactor<Api> {
+public class TcpApiReactor extends AbstractApiReactor {
 
-    private final Api api;
     private final Node node;
-    private final DefaultEntrypointConnectorResolver entrypointConnectorResolver;
     private final EndpointManager endpointManager;
-    private final EndpointInvoker defaultInvoker;
-
-    private final RequestTimeoutConfiguration requestTimeoutConfiguration;
     private final String loggingExcludedResponseType;
     private final String loggingMaxSize;
     private Lifecycle.State lifecycleState;
-    private final AtomicLong pendingRequests = new AtomicLong(0);
-
     private final List<InvokerHook> invokerHooks = new ArrayList<>();
     private boolean tracingEnabled;
-    private long pendingRequestsTimeout;
 
     public TcpApiReactor(
         Api api,
@@ -91,15 +76,16 @@ public class TcpApiReactor extends AbstractLifecycleComponent<ReactorHandler> im
         EndpointManager endpointManager,
         RequestTimeoutConfiguration requestTimeoutConfiguration
     ) {
-        this.api = api;
+        super(
+            configuration,
+            api,
+            new DefaultEntrypointConnectorResolver(api.getDefinition(), deploymentContext, entrypointConnectorPluginManager),
+            requestTimeoutConfiguration
+        );
         this.node = node;
-        this.requestTimeoutConfiguration = requestTimeoutConfiguration;
-        this.entrypointConnectorResolver =
-            new DefaultEntrypointConnectorResolver(api.getDefinition(), deploymentContext, entrypointConnectorPluginManager);
         this.endpointManager = endpointManager;
         this.defaultInvoker = new EndpointInvoker(endpointManager);
         this.tracingEnabled = configuration.getProperty(SERVICES_TRACING_ENABLED_PROPERTY, Boolean.class, false);
-        this.pendingRequestsTimeout = configuration.getProperty(PENDING_REQUESTS_TIMEOUT_PROPERTY, Long.class, 10_000L);
         this.lifecycleState = Lifecycle.State.INITIALIZED;
         this.loggingExcludedResponseType =
             configuration.getProperty(REPORTERS_LOGGING_EXCLUDED_RESPONSE_TYPES_PROPERTY, String.class, null);
@@ -112,13 +98,13 @@ public class TcpApiReactor extends AbstractLifecycleComponent<ReactorHandler> im
     }
 
     @Override
+    ExecutionFailure noEntrypointFailure() {
+        return new ExecutionFailure().message(NO_ENTRYPOINT_FAILURE_MESSAGE);
+    }
+
+    @Override
     public Completable handle(MutableExecutionContext ctx) {
-        // TODO: might need a bit of refactoring (duplication)
-        ctx.setAttribute(ContextAttributes.ATTR_API, api.getId());
-        ctx.setAttribute(ContextAttributes.ATTR_API_DEPLOYED_AT, api.getDeployedAt().getTime());
-        ctx.setAttribute(ContextAttributes.ATTR_ORGANIZATION, api.getOrganizationId());
-        ctx.setAttribute(ContextAttributes.ATTR_ENVIRONMENT, api.getEnvironmentId());
-        ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_INVOKER, defaultInvoker);
+        prepareCommonAttributes(ctx);
 
         // TODO specific Tcp API Request processor chain factory that contains SubscriptionProcessor in beforeApi chain
         return new CompletableReactorChain(handleEntrypointRequest(ctx))
@@ -134,18 +120,9 @@ public class TcpApiReactor extends AbstractLifecycleComponent<ReactorHandler> im
             .doFinally(pendingRequests::decrementAndGet);
     }
 
-    protected Completable handleEntrypointRequest(final MutableExecutionContext ctx) {
-        // TODO: code is duplicated with ApiReactor
-        return Completable.defer(() -> {
-            final EntrypointConnector entrypointConnector = entrypointConnectorResolver.resolve(ctx);
-            if (entrypointConnector == null) {
-                return ctx.interruptWith(new ExecutionFailure().message("No entrypoint matches the incoming request"));
-            }
-            // Add the resolved entrypoint connector into the internal attributes, so it can be used later (ex: for endpoint connector resolution).
-            ctx.setInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR, entrypointConnector);
-
-            return entrypointConnector.handleRequest(ctx);
-        });
+    @Override
+    Completable onTimeout(MutableExecutionContext ctx) {
+        return ctx.interruptWith(new ExecutionFailure().key(REQUEST_TIMEOUT_KEY).message("Request timeout"));
     }
 
     protected Completable invokeBackend(final MutableExecutionContext ctx) {
@@ -161,40 +138,6 @@ public class TcpApiReactor extends AbstractLifecycleComponent<ReactorHandler> im
             return Optional.of(invoker);
         }
         return Optional.empty();
-    }
-
-    protected Completable handleEntrypointResponse(final MutableExecutionContext ctx) {
-        // TODO: code is duplicated with ApiReactor
-        return Completable
-            .defer(() -> {
-                if (ctx.getInternalAttribute(ATTR_INTERNAL_EXECUTION_FAILURE) == null) {
-                    final EntrypointConnector entrypointConnector = ctx.getInternalAttribute(ATTR_INTERNAL_ENTRYPOINT_CONNECTOR);
-                    if (entrypointConnector != null) {
-                        return entrypointConnector.handleResponse(ctx);
-                    }
-                }
-                return Completable.complete();
-            })
-            .compose(upstream -> timeout(upstream, ctx));
-    }
-
-    protected Completable timeout(final Completable upstream, MutableExecutionContext ctx) {
-        // TODO: code is duplicated with ApiReactor
-        // When timeout is configured with 0 or less, consider it as infinity: no timeout operator to use in the chain.
-        if (requestTimeoutConfiguration.getRequestTimeout() <= 0) {
-            return upstream;
-        }
-
-        return Completable.defer(() ->
-            upstream.timeout(
-                Math.max(
-                    requestTimeoutConfiguration.getRequestTimeoutGraceDelay(),
-                    requestTimeoutConfiguration.getRequestTimeout() - (System.currentTimeMillis() - ctx.request().timestamp())
-                ),
-                TimeUnit.MILLISECONDS,
-                ctx.interruptWith(new ExecutionFailure().key(REQUEST_TIMEOUT_KEY).message("Request timeout"))
-            )
-        );
     }
 
     @Override
@@ -240,17 +183,8 @@ public class TcpApiReactor extends AbstractLifecycleComponent<ReactorHandler> im
         }
     }
 
-    private Completable stopUntil() {
-        // TODO: code is duplicated with ApiReactor
-        return interval(STOP_UNTIL_INTERVAL_PERIOD_MS, TimeUnit.MILLISECONDS)
-            .timestamp()
-            .takeWhile(t -> pendingRequests.get() > 0 && (t.value() + 1) * STOP_UNTIL_INTERVAL_PERIOD_MS < pendingRequestsTimeout)
-            .ignoreElements()
-            .onErrorComplete()
-            .doFinally(this::stopNow);
-    }
-
-    private void stopNow() throws Exception {
+    @Override
+    void stopNow() throws Exception {
         log.debug("TCP API reactor is now stopping, closing context for {} ...", this);
 
         entrypointConnectorResolver.stop();
@@ -281,13 +215,6 @@ public class TcpApiReactor extends AbstractLifecycleComponent<ReactorHandler> im
 
     protected AnalyticsContext analyticsContext() {
         return new AnalyticsContext(api.getDefinition().getAnalytics(), loggingMaxSize, loggingExcludedResponseType);
-    }
-
-    protected void dumpAcceptors() {
-        // TODO: code is duplicated with ApiReactor
-        List<Acceptor<?>> acceptors = acceptors();
-        log.debug("{} ready to accept buffers on:", this);
-        acceptors.forEach(acceptor -> log.debug("\t{}", acceptor));
     }
 
     @Override
