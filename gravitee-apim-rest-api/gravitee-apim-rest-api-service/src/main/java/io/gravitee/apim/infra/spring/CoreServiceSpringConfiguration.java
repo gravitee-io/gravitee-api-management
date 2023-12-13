@@ -35,10 +35,14 @@ import io.gravitee.apim.core.documentation.domain_service.DocumentationValidatio
 import io.gravitee.apim.core.documentation.domain_service.HomepageDomainService;
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
+import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
+import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
+import io.gravitee.apim.core.license.crud_service.LicenseCrudService;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
+import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
 import io.gravitee.apim.core.parameters.query_service.ParametersQueryService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
@@ -273,5 +277,10 @@ public class CoreServiceSpringConfiguration {
     @Bean
     public VerifyApiHostsDomainService verifyApiHostsDomainService(ApiQueryService apiSearchService) {
         return new VerifyApiHostsDomainService(apiSearchService);
+    }
+
+    @Bean
+    public LicenseDomainService licenseDomainService(LicenseCrudService licenseCrudService) {
+        return new LicenseDomainService(licenseCrudService);
     }
 }

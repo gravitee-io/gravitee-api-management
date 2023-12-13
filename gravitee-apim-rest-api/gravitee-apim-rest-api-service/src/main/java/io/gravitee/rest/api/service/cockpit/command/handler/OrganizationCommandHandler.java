@@ -16,6 +16,8 @@
 package io.gravitee.rest.api.service.cockpit.command.handler;
 
 import io.gravitee.apim.core.access_point.crud_service.AccessPointCrudService;
+import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
+import io.gravitee.apim.core.license.model.License;
 import io.gravitee.cockpit.api.command.Command;
 import io.gravitee.cockpit.api.command.CommandHandler;
 import io.gravitee.cockpit.api.command.CommandStatus;
@@ -28,6 +30,7 @@ import io.gravitee.rest.api.service.OrganizationService;
 import io.reactivex.rxjava3.core.Single;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -43,6 +46,7 @@ public class OrganizationCommandHandler implements CommandHandler<OrganizationCo
 
     private final OrganizationService organizationService;
     private final AccessPointCrudService accessPointService;
+    private final LicenseDomainService organizationLicenseService;
 
     @Override
     public Command.Type handleType() {
@@ -54,43 +58,11 @@ public class OrganizationCommandHandler implements CommandHandler<OrganizationCo
         OrganizationPayload organizationPayload = command.getPayload();
 
         try {
-            UpdateOrganizationEntity newOrganization = new UpdateOrganizationEntity();
-            newOrganization.setCockpitId(organizationPayload.getCockpitId());
-            newOrganization.setHrids(organizationPayload.getHrids());
-            newOrganization.setName(organizationPayload.getName());
-            newOrganization.setDescription(organizationPayload.getDescription());
-            final OrganizationEntity organization = organizationService.createOrUpdate(organizationPayload.getId(), newOrganization);
+            final OrganizationEntity organization = createOrUpdateOrganization(organizationPayload);
 
-            List<io.gravitee.apim.core.access_point.model.AccessPoint> accessPointsToCreate;
-            if (organizationPayload.getAccessPoints() != null) {
-                accessPointsToCreate =
-                    organizationPayload
-                        .getAccessPoints()
-                        .stream()
-                        .map(cockpitAccessPoint ->
-                            io.gravitee.apim.core.access_point.model.AccessPoint
-                                .builder()
-                                .referenceType(io.gravitee.apim.core.access_point.model.AccessPoint.ReferenceType.ORGANIZATION)
-                                .referenceId(organization.getId())
-                                .target(
-                                    io.gravitee.apim.core.access_point.model.AccessPoint.Target.valueOf(
-                                        cockpitAccessPoint.getTarget().name()
-                                    )
-                                )
-                                .host(cockpitAccessPoint.getHost())
-                                .secured(cockpitAccessPoint.isSecured())
-                                .overriding(cockpitAccessPoint.isOverriding())
-                                .build()
-                        )
-                        .toList();
-            } else {
-                accessPointsToCreate = new ArrayList<>();
-            }
-            accessPointService.updateAccessPoints(
-                io.gravitee.apim.core.access_point.model.AccessPoint.ReferenceType.ORGANIZATION,
-                organization.getId(),
-                accessPointsToCreate
-            );
+            handleLicense(organization, command.getPayload().getLicense());
+
+            handleAccessPoints(organizationPayload, organization);
             log.info("Organization [{}] handled with id [{}].", organization.getName(), organization.getId());
             return Single.just(new OrganizationReply(command.getId(), CommandStatus.SUCCEEDED));
         } catch (Exception e) {
@@ -102,5 +74,54 @@ public class OrganizationCommandHandler implements CommandHandler<OrganizationCo
             );
             return Single.just(new OrganizationReply(command.getId(), CommandStatus.ERROR));
         }
+    }
+
+    private void handleAccessPoints(OrganizationPayload organizationPayload, OrganizationEntity organization) {
+        List<io.gravitee.apim.core.access_point.model.AccessPoint> accessPointsToCreate;
+        if (organizationPayload.getAccessPoints() != null) {
+            accessPointsToCreate =
+                organizationPayload
+                    .getAccessPoints()
+                    .stream()
+                    .map(cockpitAccessPoint ->
+                        io.gravitee.apim.core.access_point.model.AccessPoint
+                            .builder()
+                            .referenceType(io.gravitee.apim.core.access_point.model.AccessPoint.ReferenceType.ORGANIZATION)
+                            .referenceId(organization.getId())
+                            .target(
+                                io.gravitee.apim.core.access_point.model.AccessPoint.Target.valueOf(cockpitAccessPoint.getTarget().name())
+                            )
+                            .host(cockpitAccessPoint.getHost())
+                            .secured(cockpitAccessPoint.isSecured())
+                            .overriding(cockpitAccessPoint.isOverriding())
+                            .build()
+                    )
+                    .toList();
+        } else {
+            accessPointsToCreate = new ArrayList<>();
+        }
+        accessPointService.updateAccessPoints(
+            io.gravitee.apim.core.access_point.model.AccessPoint.ReferenceType.ORGANIZATION,
+            organization.getId(),
+            accessPointsToCreate
+        );
+    }
+
+    private void handleLicense(OrganizationEntity organization, String license) {
+        final Optional<License> currentLicense = organizationLicenseService.getLicenseByOrganizationId(organization.getId());
+        if (currentLicense.isPresent()) {
+            if (!currentLicense.get().getLicense().equals(license)) {
+                organizationLicenseService.createOrUpdateOrganizationLicense(organization.getId(), license);
+            }
+        }
+    }
+
+    private OrganizationEntity createOrUpdateOrganization(OrganizationPayload organizationPayload) {
+        UpdateOrganizationEntity newOrganization = new UpdateOrganizationEntity();
+        newOrganization.setCockpitId(organizationPayload.getCockpitId());
+        newOrganization.setHrids(organizationPayload.getHrids());
+        newOrganization.setName(organizationPayload.getName());
+        newOrganization.setDescription(organizationPayload.getDescription());
+        return organizationService.createOrUpdate(organizationPayload.getId(), newOrganization);
     }
 }

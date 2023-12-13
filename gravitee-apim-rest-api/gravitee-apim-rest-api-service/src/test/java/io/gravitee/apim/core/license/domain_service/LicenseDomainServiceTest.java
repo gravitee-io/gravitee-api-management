@@ -39,7 +39,7 @@ class LicenseDomainServiceTest {
 
         var result = service.getLicenseByOrganizationId("org-id");
         assertThat(result).isPresent();
-        assertThat(result.get().license()).isEqualTo("licenseAsBase64");
+        assertThat(result.get().getLicense()).isEqualTo("licenseAsBase64");
     }
 
     @Test
@@ -50,7 +50,7 @@ class LicenseDomainServiceTest {
 
         var result = service.getLicenseByOrganizationId("new");
         assertThat(result).isPresent();
-        assertThat(result.get().license()).isEqualTo("newLicense");
+        assertThat(result.get().getLicense()).isEqualTo("newLicense");
     }
 
     @Test
@@ -60,7 +60,7 @@ class LicenseDomainServiceTest {
 
         var result = service.getLicenseByOrganizationId("org-to-update");
         assertThat(result).isPresent();
-        assertThat(result.get().license()).isEqualTo("updatedLicense");
+        assertThat(result.get().getLicense()).isEqualTo("updatedLicense");
     }
 
     @SneakyThrows
