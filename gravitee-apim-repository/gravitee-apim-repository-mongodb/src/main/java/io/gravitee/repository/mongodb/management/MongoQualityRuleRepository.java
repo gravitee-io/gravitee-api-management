@@ -85,6 +85,8 @@ public class MongoQualityRuleRepository implements QualityRuleRepository {
 
         try {
             qualityRuleMongo.setName(qualityRule.getName());
+            qualityRuleMongo.setReferenceType(qualityRule.getReferenceType().name());
+            qualityRuleMongo.setReferenceId(qualityRule.getReferenceId());
             qualityRuleMongo.setDescription(qualityRule.getDescription());
             qualityRuleMongo.setWeight(qualityRule.getWeight());
             qualityRuleMongo.setCreatedAt(qualityRule.getCreatedAt());
