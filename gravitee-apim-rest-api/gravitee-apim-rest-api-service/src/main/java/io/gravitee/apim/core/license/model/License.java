@@ -13,41 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.model;
+package io.gravitee.apim.core.license.model;
 
-import java.util.Date;
-import java.util.Objects;
-import lombok.*;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
-@Getter
-@Setter
-@ToString
 @Builder(toBuilder = true)
-@NoArgsConstructor
-@AllArgsConstructor
+@Getter
+@EqualsAndHashCode
 public class License {
 
     private String referenceId;
     private ReferenceType referenceType;
     private String license;
-    private Date createdAt;
-    private Date updatedAt;
 
     public enum ReferenceType {
         ORGANIZATION,
         PLATFORM,
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        License page = (License) o;
-        return Objects.equals(referenceId, page.referenceId) && Objects.equals(referenceType, page.referenceType);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(referenceId, referenceType);
     }
 }

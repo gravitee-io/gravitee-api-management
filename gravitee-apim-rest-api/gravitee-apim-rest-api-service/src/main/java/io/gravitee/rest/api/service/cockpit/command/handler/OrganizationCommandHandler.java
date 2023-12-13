@@ -19,7 +19,6 @@ import io.gravitee.apim.core.access_point.crud_service.AccessPointCrudService;
 import io.gravitee.cockpit.api.command.Command;
 import io.gravitee.cockpit.api.command.CommandHandler;
 import io.gravitee.cockpit.api.command.CommandStatus;
-import io.gravitee.cockpit.api.command.accesspoint.AccessPoint;
 import io.gravitee.cockpit.api.command.organization.OrganizationCommand;
 import io.gravitee.cockpit.api.command.organization.OrganizationPayload;
 import io.gravitee.cockpit.api.command.organization.OrganizationReply;
