@@ -15,7 +15,7 @@
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { StateParams, StateService } from '@uirouter/angularjs';
-import { catchError, defaultIfEmpty, map, switchMap, takeUntil, tap, withLatestFrom } from 'rxjs/operators';
+import { catchError, defaultIfEmpty, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { combineLatest, EMPTY, forkJoin, Observable, of, Subject } from 'rxjs';
 import { GioLicenseService } from '@gravitee/ui-particles-angular';
 import { isEqual } from 'lodash';
@@ -79,11 +79,11 @@ export class GioPolicyStudioLayoutComponent implements OnInit, OnDestroy {
       notAllowed$,
     });
 
-    this.apiService
-      .get(this.ajsStateParams.apiId)
+    combineLatest([
+      this.apiService.get(this.ajsStateParams.apiId).pipe(onlyApiV2Filter(this.snackBarService)),
+      this.apiPlanService.list(this.ajsStateParams.apiId, undefined, undefined, undefined, 1, 9999),
+    ])
       .pipe(
-        onlyApiV2Filter(this.snackBarService),
-        withLatestFrom(this.apiPlanService.list(this.ajsStateParams.apiId, undefined, undefined, undefined, 1, 9999)),
         tap(([api, plansResponse]) => {
           this.policyStudioService.setApiDefinition(this.toApiDefinition(api, plansResponse.data as PlanV2[]));
         }),
