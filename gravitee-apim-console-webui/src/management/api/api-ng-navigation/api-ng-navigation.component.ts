@@ -17,7 +17,7 @@ import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { StateService } from '@uirouter/core';
 import { IScope } from 'angular';
 import { castArray, flatMap } from 'lodash';
-import { map, takeUntil } from 'rxjs/operators';
+import { map, shareReplay, takeUntil } from 'rxjs/operators';
 import { GIO_DIALOG_WIDTH, GioBannerTypes, GioMenuService } from '@gravitee/ui-particles-angular';
 import { Observable, Subject } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
@@ -252,7 +252,9 @@ export class ApiNgNavigationComponent implements OnInit, OnDestroy {
 
       return banners;
     }),
+    shareReplay(1),
   );
+  public hasBanner$ = this.banners$.pipe(map((banners) => banners.length > 0));
 
   private unsubscribe$ = new Subject();
   constructor(
