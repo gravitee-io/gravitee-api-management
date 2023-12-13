@@ -19,7 +19,6 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.QualityRuleRepository;
 import io.gravitee.repository.management.model.QualityRule;
-import io.gravitee.repository.management.model.QualityRuleReferenceType;
 import java.sql.Types;
 import java.util.Date;
 import java.util.List;
@@ -46,7 +45,7 @@ public class JdbcQualityRuleRepository extends JdbcAbstractCrudRepository<Qualit
         return JdbcObjectMapper
             .builder(QualityRule.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
-            .addColumn("reference_type", Types.NVARCHAR, QualityRuleReferenceType.class)
+            .addColumn("reference_type", Types.NVARCHAR, QualityRule.ReferenceType.class)
             .addColumn("reference_id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("description", Types.NVARCHAR, String.class)
@@ -62,7 +61,7 @@ public class JdbcQualityRuleRepository extends JdbcAbstractCrudRepository<Qualit
     }
 
     @Override
-    public List<QualityRule> findByReference(QualityRuleReferenceType referenceType, String referenceId) throws TechnicalException {
+    public List<QualityRule> findByReference(QualityRule.ReferenceType referenceType, String referenceId) throws TechnicalException {
         LOGGER.debug("JdbcQualityRuleRepository.findByReference({}, {})", referenceType, referenceId);
         try {
             return jdbcTemplate.query(

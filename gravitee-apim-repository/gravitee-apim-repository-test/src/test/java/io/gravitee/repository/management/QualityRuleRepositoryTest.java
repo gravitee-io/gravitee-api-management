@@ -21,7 +21,6 @@ import static org.junit.Assert.fail;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.QualityRule;
-import io.gravitee.repository.management.model.QualityRuleReferenceType;
 import java.util.*;
 import org.junit.Test;
 
@@ -50,7 +49,7 @@ public class QualityRuleRepositoryTest extends AbstractManagementRepositoryTest 
             .findAny()
             .get();
         assertThat(qualityRuleProduct.getName()).isEqualTo("Api-key plan");
-        assertThat(qualityRuleProduct.getReferenceType()).isEqualTo(QualityRuleReferenceType.ENVIRONMENT);
+        assertThat(qualityRuleProduct.getReferenceType()).isEqualTo(QualityRule.ReferenceType.ENVIRONMENT);
         assertThat(qualityRuleProduct.getReferenceId()).isEqualTo("b78f2219-890d-4344-8f22-19890d834442");
         assertThat(qualityRuleProduct.getDescription()).isEqualTo("A plan api-key is published");
         assertThat(qualityRuleProduct.getWeight()).isEqualTo(3);
@@ -63,7 +62,7 @@ public class QualityRuleRepositoryTest extends AbstractManagementRepositoryTest 
         final QualityRule qualityRule = QualityRule
             .builder()
             .id("new-qualityRule")
-            .referenceType(QualityRuleReferenceType.ENVIRONMENT)
+            .referenceType(QualityRule.ReferenceType.ENVIRONMENT)
             .referenceId("4b78f2219-890d-4344-8f22-19890d83444")
             .name("QualityRule name")
             .description("QualityRule description")
@@ -115,7 +114,7 @@ public class QualityRuleRepositoryTest extends AbstractManagementRepositoryTest 
                 assertThat(updatedQualityRule.getName()).isEqualTo("New name");
                 assertThat(updatedQualityRule.getDescription()).isEqualTo("New description");
                 assertThat(updatedQualityRule.getWeight()).isEqualTo(5);
-                assertThat(updatedQualityRule.getReferenceType()).isEqualTo(QualityRuleReferenceType.ENVIRONMENT);
+                assertThat(updatedQualityRule.getReferenceType()).isEqualTo(QualityRule.ReferenceType.ENVIRONMENT);
                 assertThat(updatedQualityRule.getReferenceId()).isEqualTo("b78f2219-890d-4344-8f22-19890d834442");
                 assertThat(compareDate(DATE, updatedQualityRule.getCreatedAt())).isTrue();
                 assertThat(compareDate(DATE, updatedQualityRule.getUpdatedAt())).isTrue();
@@ -150,7 +149,7 @@ public class QualityRuleRepositoryTest extends AbstractManagementRepositoryTest 
     @Test
     public void shouldFindByReference() throws TechnicalException {
         final List<QualityRule> qualityRules = qualityRuleRepository.findByReference(
-            QualityRuleReferenceType.ENVIRONMENT,
+            QualityRule.ReferenceType.ENVIRONMENT,
             "b78f2219-890d-4344-8f22-19890d834442"
         );
 

@@ -17,7 +17,6 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.QualityRule;
-import io.gravitee.repository.management.model.QualityRuleReferenceType;
 import java.util.List;
 
 /**
@@ -25,5 +24,5 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface QualityRuleRepository extends CrudRepository<QualityRule, String> {
-    List<QualityRule> findByReference(QualityRuleReferenceType referenceType, String referenceId) throws TechnicalException;
+    List<QualityRule> findByReference(QualityRule.ReferenceType referenceType, String referenceId) throws TechnicalException;
 }
