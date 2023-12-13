@@ -218,9 +218,9 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
             .build();
     }
 
-    private io.gravitee.repository.management.model.QualityRuleReferenceType repoQualityRuleReferenceType(
+    private io.gravitee.repository.management.model.QualityRule.ReferenceType repoQualityRuleReferenceType(
         QualityRuleReferenceType referenceType
     ) {
-        return io.gravitee.repository.management.model.QualityRuleReferenceType.valueOf(referenceType.name());
+        return io.gravitee.repository.management.model.QualityRule.ReferenceType.valueOf(referenceType.name());
     }
 }

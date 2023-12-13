@@ -20,7 +20,6 @@ import static java.util.stream.Collectors.toSet;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.QualityRuleRepository;
 import io.gravitee.repository.management.model.QualityRule;
-import io.gravitee.repository.management.model.QualityRuleReferenceType;
 import io.gravitee.repository.mongodb.management.internal.model.QualityRuleMongo;
 import io.gravitee.repository.mongodb.management.internal.quality.QualityRuleMongoRepository;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
@@ -119,7 +118,7 @@ public class MongoQualityRuleRepository implements QualityRuleRepository {
     }
 
     @Override
-    public List<QualityRule> findByReference(QualityRuleReferenceType referenceType, String referenceId) throws TechnicalException {
+    public List<QualityRule> findByReference(QualityRule.ReferenceType referenceType, String referenceId) throws TechnicalException {
         try {
             return internalQualityRuleRepo
                 .findByReference(referenceType.name(), referenceId)

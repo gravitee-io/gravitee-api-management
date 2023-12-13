@@ -31,6 +31,10 @@ import lombok.*;
 @EqualsAndHashCode(of = "id")
 public class QualityRule {
 
+    public enum ReferenceType {
+        ENVIRONMENT,
+    }
+
     public enum AuditEvent implements Audit.AuditEvent {
         QUALITY_RULE_CREATED,
         QUALITY_RULE_UPDATED,
@@ -38,7 +42,7 @@ public class QualityRule {
     }
 
     private String id;
-    private QualityRuleReferenceType referenceType;
+    private ReferenceType referenceType;
     private String referenceId;
     private String name;
     private String description;
