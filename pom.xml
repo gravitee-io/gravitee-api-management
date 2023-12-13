@@ -272,7 +272,7 @@
         <gravitee-endpoint-solace.version>1.1.0</gravitee-endpoint-solace.version>
         <gravitee-resource-schema-registry-confluent.version>2.0.0</gravitee-resource-schema-registry-confluent.version>
         <gravitee-reactor-message.version>2.0.0</gravitee-reactor-message.version>
-        <gravitee-repository-bridge.version>4.0.1</gravitee-repository-bridge.version>
+        <gravitee-repository-bridge.version>4.2.0</gravitee-repository-bridge.version>
         <gravitee-secretprovider-hc-vault.version>1.0.0-alpha.3</gravitee-secretprovider-hc-vault.version>
 
         <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
