@@ -27,6 +27,7 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.quality.ApiQualityRuleEntity;
 import io.gravitee.rest.api.model.quality.QualityRuleEntity;
+import io.gravitee.rest.api.model.quality.QualityRuleReferenceType;
 import io.gravitee.rest.api.service.ApiQualityRuleService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.QualityMetricsService;
@@ -256,7 +257,8 @@ public class QualityMetricsServiceTest {
         final QualityRuleEntity qualityRule = mock(QualityRuleEntity.class);
         when(qualityRule.getId()).thenReturn("1");
         when(qualityRule.getWeight()).thenReturn(1);
-        when(qualityRuleService.findAll()).thenReturn(singletonList(qualityRule));
+        when(qualityRuleService.findByReference(QualityRuleReferenceType.ENVIRONMENT, GraviteeContext.getCurrentEnvironment()))
+            .thenReturn(singletonList(qualityRule));
 
         final ApiQualityRuleEntity apiQualityRule = mock(ApiQualityRuleEntity.class);
         when(apiQualityRule.getApi()).thenReturn("apiID");
@@ -303,7 +305,8 @@ public class QualityMetricsServiceTest {
         final QualityRuleEntity qualityRule = mock(QualityRuleEntity.class);
         when(qualityRule.getId()).thenReturn("1");
         when(qualityRule.getWeight()).thenReturn(2);
-        when(qualityRuleService.findAll()).thenReturn(singletonList(qualityRule));
+        when(qualityRuleService.findByReference(QualityRuleReferenceType.ENVIRONMENT, GraviteeContext.getCurrentEnvironment()))
+            .thenReturn(singletonList(qualityRule));
 
         final ApiQualityRuleEntity apiQualityRule = mock(ApiQualityRuleEntity.class);
         when(apiQualityRule.getApi()).thenReturn("apiID");

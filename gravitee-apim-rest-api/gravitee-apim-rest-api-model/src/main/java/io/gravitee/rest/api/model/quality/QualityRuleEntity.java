@@ -32,6 +32,13 @@ import lombok.*;
 public class QualityRuleEntity {
 
     private String id;
+
+    @JsonProperty("reference_type")
+    private QualityRuleReferenceType referenceType;
+
+    @JsonProperty("reference_id")
+    private String referenceId;
+
     private String name;
     private String description;
     private int weight;

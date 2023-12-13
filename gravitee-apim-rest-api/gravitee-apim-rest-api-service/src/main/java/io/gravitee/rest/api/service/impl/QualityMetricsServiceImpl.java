@@ -21,6 +21,7 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.quality.ApiQualityRuleEntity;
 import io.gravitee.rest.api.model.quality.QualityRuleEntity;
+import io.gravitee.rest.api.model.quality.QualityRuleReferenceType;
 import io.gravitee.rest.api.service.ApiQualityRuleService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.QualityMetricsService;
@@ -117,7 +118,10 @@ public class QualityMetricsServiceImpl extends AbstractService implements Qualit
         }
 
         // manual quality rules
-        final List<QualityRuleEntity> qualityRules = qualityRuleService.findAll();
+        final List<QualityRuleEntity> qualityRules = qualityRuleService.findByReference(
+            QualityRuleReferenceType.ENVIRONMENT,
+            executionContext.getEnvironmentId()
+        );
         if (qualityRules != null && !qualityRules.isEmpty()) {
             final List<ApiQualityRuleEntity> apiQualityRules = apiQualityRuleService.findByApi(apiEntity.getId());
             for (final QualityRuleEntity qualityRule : qualityRules) {
