@@ -269,7 +269,7 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
       .pipe(
         tap((api) => (this.currentApi = api)),
         tap((api) => {
-          const menu = api.definitionVersion !== 'V4' ? this.apiNgV1V2MenuService.getMenu(api) : this.apiNgV4MenuService.getMenu();
+          const menu = api.definitionVersion !== 'V4' ? this.apiNgV1V2MenuService.getMenu(api) : this.apiNgV4MenuService.getMenu(api);
           this.groupItems = menu.groupItems;
           this.subMenuItems = menu.subMenuItems;
 
