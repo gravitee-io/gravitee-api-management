@@ -22,6 +22,7 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.QualityRuleRepository;
 import io.gravitee.repository.management.model.*;
+import io.gravitee.rest.api.model.quality.QualityRuleReferenceType;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.util.List;
@@ -170,7 +171,7 @@ public class QualityRulesScopingUpgrader implements Upgrader {
         throws TechnicalException {
         log.info("Scoping quality rule [{}] to environments", qualityRule.getId());
         // First, scope the quality rule to the default environment
-        qualityRule.setReferenceType(QualityRuleReferenceType.ENVIRONMENT);
+        qualityRule.setReferenceType(QualityRule.ReferenceType.ENVIRONMENT);
         qualityRule.setReferenceId(defaultEnv.getId());
         qualityRuleRepository.update(qualityRule);
 
@@ -225,7 +226,7 @@ public class QualityRulesScopingUpgrader implements Upgrader {
     private QualityRule duplicateForEnv(QualityRule source, Environment environment) {
         return new QualityRule(
             UuidString.generateRandom(),
-            QualityRuleReferenceType.ENVIRONMENT,
+            QualityRule.ReferenceType.ENVIRONMENT,
             environment.getId(),
             source.getName(),
             source.getDescription(),
