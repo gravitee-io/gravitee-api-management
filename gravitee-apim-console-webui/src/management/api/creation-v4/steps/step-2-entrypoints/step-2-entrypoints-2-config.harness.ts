@@ -107,11 +107,6 @@ export class Step2Entrypoints2ConfigHarness extends ComponentHarness {
     }
   }
 
-  async fillHostsAndValidate(...hosts: string[]) {
-    await this.fillHosts(...hosts);
-    await this.clickValidate();
-  }
-
   async fillVirtualHostsAndValidate(...virtualHosts: { path: string; host: string }[]) {
     const formVirtualHosts = await this.locatorFor(GioFormListenersVirtualHostHarness.with())();
 

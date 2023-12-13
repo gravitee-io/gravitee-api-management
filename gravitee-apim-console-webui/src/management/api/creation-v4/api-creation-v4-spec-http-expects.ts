@@ -16,6 +16,7 @@
 
 import { HttpTestingController } from '@angular/common/http/testing';
 import { LICENSE_CONFIGURATION_TESTING } from '@gravitee/ui-particles-angular';
+import { tick } from '@angular/core/testing';
 
 import {
   ConnectorPlugin,
@@ -28,7 +29,6 @@ import { CONSTANTS_TESTING } from '../../../shared/testing';
 import { License } from '../../../entities/license/License';
 import { PortalSettings } from '../../../entities/portal/portalSettings';
 import { RestrictedDomain } from '../../../entities/restricted-domain/restrictedDomain';
-import { tick } from "@angular/core/testing";
 
 export class ApiCreationV4SpecHttpExpects {
   constructor(private httpTestingController: HttpTestingController) {}
@@ -42,7 +42,8 @@ export class ApiCreationV4SpecHttpExpects {
     this.httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/settings`, method: 'GET' }).flush(settings);
   }
 
-  expectVerifyContextPathGetRequest(invalidPath = false) {
+  expectVerifyContextPath(invalidPath = false) {
+    tick(250);
     this.httpTestingController
       .match({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_verify/paths`, method: 'POST' })
       .filter((request) => !request.cancelled)
@@ -52,6 +53,7 @@ export class ApiCreationV4SpecHttpExpects {
           reason: invalidPath ? `Path [${invalidPath}] already exists` : '',
         }),
       );
+    tick(500);
   }
 
   expectRestrictedDomainsGetRequest(restrictedDomains: RestrictedDomain[]) {

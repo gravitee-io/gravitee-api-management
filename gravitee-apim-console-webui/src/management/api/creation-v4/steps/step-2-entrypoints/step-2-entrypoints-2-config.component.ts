@@ -117,13 +117,13 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
     }
     this.hasTcpListeners = currentStepPayload.selectedEntrypoints.find((entrypoint) => entrypoint.supportedListenerType === 'TCP') != null;
     if (this.hasTcpListeners) {
-      const control = this.formBuilder.control(hosts, Validators.required);
-      this.formGroup.addControl('hosts', control);
-      control.valueChanges.pipe(debounceTime(500), takeUntil(this.unsubscribe$)).subscribe(() => {
-        // force change detection because the gio-form-listeners-tcp-hosts component contains a delayed async validators on the host form control
-        this.changeDetectorRef.detectChanges();
-      });
+      this.formGroup.addControl('hosts', this.formBuilder.control(hosts, Validators.required));
     }
+
+    this.formGroup.valueChanges.pipe(debounceTime(500), takeUntil(this.unsubscribe$)).subscribe(() => {
+      // force change detection because the gio-form-listeners components contain a delayed async validators on the form control
+      this.changeDetectorRef.detectChanges();
+    });
   }
 
   ngOnDestroy() {

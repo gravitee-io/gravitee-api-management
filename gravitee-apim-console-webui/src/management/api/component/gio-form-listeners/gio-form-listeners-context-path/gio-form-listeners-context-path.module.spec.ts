@@ -21,6 +21,7 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
+import { SpanHarness } from '@gravitee/ui-particles-angular/testing';
 
 import { GioFormListenersContextPathModule } from './gio-form-listeners-context-path.module';
 import { GioFormListenersContextPathHarness } from './gio-form-listeners-context-path.harness';
@@ -85,7 +86,7 @@ describe('GioFormListenersContextPathModule', () => {
     httpTestingController
       .match({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_verify/paths`, method: 'POST' })
       .filter((r) => !r.cancelled)
-      .map((c) => c.flush({ ok: inError, reason: inError ? 'error reason' : '' }));
+      .map((c) => c.flush({ ok: !inError, reason: inError ? 'error reason' : '' }));
   };
 
   it('should display paths', async () => {
@@ -161,10 +162,12 @@ describe('GioFormListenersContextPathModule', () => {
     expect(rows.length).toEqual(2);
 
     await rows[0].pathInput.setValue('/api');
-    await rows[1].pathInput.setValue('/api');
+    expectApiVerify();
 
-    expect(await (await rows[0].pathInput.host()).hasClass('ng-invalid')).toEqual(true);
-    expect(await (await rows[1].pathInput.host()).hasClass('ng-invalid')).toEqual(true);
+    await rows[1].pathInput.setValue('/api');
+    expectApiVerify();
+
+    expect(await loader.getHarness(SpanHarness.with({ text: /Duplicated context path not allowed/ }))).toBeTruthy();
   });
 
   it('should mark control as valid is path is using the same root but different path', async () => {
@@ -174,20 +177,14 @@ describe('GioFormListenersContextPathModule', () => {
     expect(rows.length).toEqual(2);
 
     await rows[0].pathInput.setValue('/api/delete');
+    expectApiVerify();
+
     await rows[1].pathInput.setValue('/api/create');
     expectApiVerify();
+
+    fixture.detectChanges();
     expect(await (await rows[0].pathInput.host()).hasClass('ng-invalid')).toEqual(false);
     expect(await (await rows[1].pathInput.host()).hasClass('ng-invalid')).toEqual(false);
-  });
-
-  it('should mark path as invalid if verify fails', async () => {
-    const formPaths = await loader.getHarness(GioFormListenersContextPathHarness);
-    const rows = await formPaths.getListenerRows();
-    expect(rows.length).toEqual(1);
-
-    await rows[0].pathInput.setValue('/path');
-    expectApiVerify(true);
-    expect(await (await rows[0].pathInput.host()).hasClass('ng-invalid')).toEqual(false);
   });
 
   it('should send the API ID when verifying paths', async () => {

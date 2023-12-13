@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, fakeAsync, TestBed } from '@angular/core/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { LICENSE_CONFIGURATION_TESTING } from '@gravitee/ui-particles-angular';
@@ -35,7 +35,9 @@ import { ConnectorPlugin } from '../../../entities/management-api-v2';
 import { fakeRestrictedDomains } from '../../../entities/restricted-domain/restrictedDomain.fixture';
 
 describe('ApiCreationV4Component - HTTP Proxy', () => {
-  const httpProxyEntrypoint: Partial<ConnectorPlugin>[] = [{ id: 'http-proxy', supportedApiType: 'PROXY', name: 'HTTP Proxy' }];
+  const httpProxyEntrypoint: Partial<ConnectorPlugin>[] = [
+    { id: 'http-proxy', supportedApiType: 'PROXY', name: 'HTTP Proxy', supportedListenerType: 'HTTP' },
+  ];
 
   let fixture: ComponentFixture<ApiCreationV4Component>;
   let harnessLoader: HarnessLoader;
@@ -116,7 +118,7 @@ describe('ApiCreationV4Component - HTTP Proxy', () => {
   });
 
   describe('Entrypoint validation', () => {
-    it('should not continue when form contains the same context-path multiple times', async () => {
+    it('should not continue when form contains the same context-path multiple times', fakeAsync(async () => {
       await stepperHelper.fillAndValidateStep1_ApiDetails('API', '1.0', 'Description');
       await stepperHelper.fillAndValidateStep2_0_EntrypointsArchitecture('PROXY');
       await stepperHelper.fillAndValidateStep2_1_EntrypointsList('PROXY', [
@@ -128,55 +130,55 @@ describe('ApiCreationV4Component - HTTP Proxy', () => {
       httpExpects.expectSchemaGetRequest(httpProxyEntrypoint);
       httpExpects.expectApiGetPortalSettings();
       await entrypointsConfig.fillPaths('/path1', '/path1');
-      httpExpects.expectVerifyContextPathGetRequest();
+      httpExpects.expectVerifyContextPath();
 
       expect(await entrypointsConfig.hasValidationDisabled()).toBeTruthy();
-    });
+    }));
 
-    it('should not validate with empty host', async () => {
+    it.each(['', 'path', '//path'])(
+      "should not validate when path equals:  ' %s '",
+      fakeAsync(async (contextPath: string) => {
+        await stepperHelper.fillAndValidateStep1_ApiDetails('API', '1.0', 'Description');
+        await stepperHelper.fillAndValidateStep2_0_EntrypointsArchitecture('PROXY');
+        await stepperHelper.fillAndValidateStep2_1_EntrypointsList('PROXY', [
+          { id: 'http-proxy', supportedApiType: 'PROXY', name: 'HTTP Proxy', supportedListenerType: 'HTTP' },
+        ]);
+
+        const entrypointsConfig = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
+
+        httpExpects.expectRestrictedDomainsGetRequest([]);
+        httpExpects.expectSchemaGetRequest(httpProxyEntrypoint);
+        httpExpects.expectApiGetPortalSettings();
+        await entrypointsConfig.fillPaths(contextPath);
+        httpExpects.expectVerifyContextPath();
+        expect(await entrypointsConfig.hasValidationDisabled()).toBeTruthy();
+      }),
+    );
+
+    it('should not allow to disable virtual host when domain restrictions are set', fakeAsync(async () => {
       await stepperHelper.fillAndValidateStep1_ApiDetails('API', '1.0', 'Description');
       await stepperHelper.fillAndValidateStep2_0_EntrypointsArchitecture('PROXY');
       await stepperHelper.fillAndValidateStep2_1_EntrypointsList('PROXY', [
-        { id: 'http-proxy', supportedApiType: 'PROXY', name: 'HTTP Proxy' },
-      ]);
-
-      const entrypointsConfig = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
-      httpExpects.expectRestrictedDomainsGetRequest([]);
-      httpExpects.expectSchemaGetRequest(httpProxyEntrypoint);
-      httpExpects.expectApiGetPortalSettings();
-      await entrypointsConfig.clickListenerType();
-      httpExpects.expectApiGetPortalSettings();
-      await entrypointsConfig.fillVirtualHostsAndValidate({ host: '', path: '/api/my-api-3' });
-      expect(await entrypointsConfig.hasValidationDisabled()).toBeTruthy();
-      httpExpects.expectVerifyContextPathGetRequest();
-    });
-
-    it('should not allow to disable virtual host when domain restrictions are set', async () => {
-      await stepperHelper.fillAndValidateStep1_ApiDetails('API', '1.0', 'Description');
-      await stepperHelper.fillAndValidateStep2_0_EntrypointsArchitecture('PROXY');
-      await stepperHelper.fillAndValidateStep2_1_EntrypointsList('PROXY', [
-        { id: 'http-proxy', supportedApiType: 'PROXY', name: 'HTTP Proxy' },
+        { id: 'http-proxy', supportedApiType: 'PROXY', name: 'HTTP Proxy', supportedListenerType: 'HTTP' },
       ]);
 
       const entrypointsConfig = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
       httpExpects.expectRestrictedDomainsGetRequest(fakeRestrictedDomains(['domain.com', 'domain.net']));
       httpExpects.expectSchemaGetRequest(httpProxyEntrypoint);
       httpExpects.expectApiGetPortalSettings();
-      httpExpects.expectVerifyContextPathGetRequest();
+      httpExpects.expectVerifyContextPath();
       expect(await entrypointsConfig.canSwitchListenerMode()).toEqual(false);
       httpExpects.expectApiGetPortalSettings();
-    });
+    }));
   });
   describe('API Creation', () => {
-    it('should create the API', async () => {
+    it('should create the API', fakeAsync(async () => {
       await stepperHelper.fillAndValidateStep1_ApiDetails('API', '1.0', 'Description');
       await stepperHelper.fillAndValidateStep2_0_EntrypointsArchitecture('PROXY');
-      await stepperHelper.fillAndValidateStep2_1_EntrypointsList('PROXY', [
-        { id: 'http-proxy', supportedApiType: 'PROXY', name: 'HTTP Proxy' },
-      ]);
+      await stepperHelper.fillAndValidateStep2_1_EntrypointsList('PROXY', httpProxyEntrypoint);
       await stepperHelper.fillAndValidateStep2_2_EntrypointsConfig(httpProxyEntrypoint);
       await stepperHelper.fillAndValidateStep3_2_EndpointsConfig(httpProxyEntrypoint);
-      await stepperHelper.fillAndValidateStep4_1_SecurityPlansList();
+      await stepperHelper.validateStep4_1_SecurityPlansList();
 
       const step5Harness = await harnessLoader.getHarness(Step5SummaryHarness);
       const step1Summary = await step5Harness.getStepSummaryTextContent(1);
@@ -193,7 +195,7 @@ describe('ApiCreationV4Component - HTTP Proxy', () => {
       expect(step3Summary).toContain('Endpoints' + 'Endpoints: ' + 'HTTP Proxy ');
 
       const step4Summary = await step5Harness.getStepSummaryTextContent(4);
-      expect(step4Summary).toContain('Update name' + 'KEY_LESS');
-    });
+      expect(step4Summary).toContain('Default Keyless (UNSECURED)' + 'KEY_LESS');
+    }));
   });
 });

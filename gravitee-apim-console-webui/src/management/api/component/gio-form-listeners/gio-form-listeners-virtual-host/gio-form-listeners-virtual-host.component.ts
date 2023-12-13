@@ -78,7 +78,7 @@ export class GioFormListenersVirtualHostComponent extends GioFormListenersContex
   }
 
   validateListenerControl(listenerControl: AbstractControl, httpListeners: PathV4[], currentIndex: number): ValidationErrors | null {
-    const inheritErrors = super.validateGenericPathListenerControl(listenerControl);
+    const inheritErrors = super.validateGenericPathListenerControl();
     const subDomainControl = listenerControl.get('_hostSubDomain');
     const domainControl = listenerControl.get('_hostDomain');
     const contextPathControl = listenerControl.get('path');
