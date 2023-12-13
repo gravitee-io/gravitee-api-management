@@ -14,23 +14,12 @@
  * limitations under the License.
  */
 
-import { Component } from '@angular/core';
-import { Observable, of } from "rxjs";
+import { Component } from "@angular/core";
 
 @Component({
-  selector: 'app-integrations',
-  template: require('./integrations.component.html'),
-  styles: [require('./integrations.component.scss')]
+  selector: "app-my-integrations",
+  template: require("./my-integrations.component.html"),
+  styles: [require("./my-integrations.component.scss")]
 })
-export class IntegrationsComponent {
-  public tabs: { label: Observable<string>; routerLink: string }[] = [
-    {
-      label: of('Catalog'),
-      routerLink: './catalog',
-    },
-    {
-      label: of('My integrations'),
-      routerLink: './my-integrations',
-    },
-  ];
+export class MyIntegrationsComponent {
 }

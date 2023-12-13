@@ -15,22 +15,11 @@
  */
 
 import { Component } from '@angular/core';
-import { Observable, of } from "rxjs";
 
 @Component({
-  selector: 'app-integrations',
-  template: require('./integrations.component.html'),
-  styles: [require('./integrations.component.scss')]
+  selector: 'app-catalog',
+  template: require('./catalog.component.html'),
+  styles: [require('./catalog.component.scss')]
 })
-export class IntegrationsComponent {
-  public tabs: { label: Observable<string>; routerLink: string }[] = [
-    {
-      label: of('Catalog'),
-      routerLink: './catalog',
-    },
-    {
-      label: of('My integrations'),
-      routerLink: './my-integrations',
-    },
-  ];
+export class CatalogComponent {
 }
