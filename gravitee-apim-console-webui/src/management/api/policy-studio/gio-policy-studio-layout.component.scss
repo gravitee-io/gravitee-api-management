@@ -15,7 +15,23 @@
 
     .gio-policy-studio-layout {
       &__tab-content {
-        --gv-policy-studio--h: calc(100vh - 105px - 76px - 16px);
+        --gv-policy-studio--h: calc(100vh - 134px - 62px);
+      }
+    }
+  }
+
+  :host-context(.hasApiBanner) {
+    .gio-policy-studio-layout {
+      &__tab-content {
+        --gv-policy-studio--h: calc(100vh - 134px - 82px);
+      }
+    }
+  }
+
+  :host-context(.hasApiBanner.breadcrumb) {
+    .gio-policy-studio-layout {
+      &__tab-content {
+        --gv-policy-studio--h: calc(100vh - 134px - 62px - 82px);
       }
     }
   }
@@ -40,7 +56,7 @@
     &__tab-content {
       background-color: white;
       flex: 1 1 auto;
-      --gv-policy-studio--h: calc(100vh - 105px);
+      --gv-policy-studio--h: calc(100vh - 134px);
 
       &.save-bar-opened {
         --gv-policy-studio--pb: 84px;

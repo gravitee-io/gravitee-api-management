@@ -16,3 +16,9 @@
 .gv-sub-content-design {
   height: calc(100vh - 68px);
 }
+
+.api-navigation__content__view.breadcrumb {
+  .gv-sub-content-design {
+    height: calc(100vh - 68px - 62px);
+  }
+}
