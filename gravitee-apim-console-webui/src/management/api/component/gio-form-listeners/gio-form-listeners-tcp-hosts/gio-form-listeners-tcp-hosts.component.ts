@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, ElementRef, forwardRef, OnDestroy, OnInit } from '@angular/core';
+import { Component, ElementRef, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
 import {
-  AbstractControl,
   AsyncValidator,
+  AsyncValidatorFn,
   ControlValueAccessor,
   FormArray,
   FormControl,
@@ -27,11 +27,12 @@ import {
   ValidatorFn,
 } from '@angular/forms';
 import { isEmpty } from 'lodash';
-import { filter, map, observeOn, startWith, take, takeUntil, tap } from 'rxjs/operators';
+import { filter, map, observeOn, startWith, switchMap, take, takeUntil, tap } from 'rxjs/operators';
 import { FocusMonitor } from '@angular/cdk/a11y';
-import { asyncScheduler, Observable, Subject } from 'rxjs';
+import { asyncScheduler, Observable, of, Subject, timer } from 'rxjs';
 
 import { TcpHost } from '../../../../../entities/management-api-v2/api/v4/tcpHost';
+import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 
 @Component({
   selector: 'gio-form-listeners-tcp-hosts',
@@ -51,26 +52,21 @@ import { TcpHost } from '../../../../../entities/management-api-v2/api/v4/tcpHos
   ],
 })
 export class GioFormListenersTcpHostsComponent implements OnInit, OnDestroy, ControlValueAccessor, AsyncValidator {
+  @Input()
+  public apiId?: string;
+
   public listeners: TcpHost[] = [];
   public mainForm: FormGroup;
-  public listenerFormArray = new FormArray([this.newListenerFormGroup({})], [this.listenersValidator()]);
+  public listenerFormArray: FormArray;
   public isDisabled = false;
   private unsubscribe$: Subject<void> = new Subject<void>();
-
-  public onDelete(hostIndex: number): void {
-    this.listenerFormArray.controls.forEach((control) => {
-      control.get('host').setErrors(null);
-    });
-    this.listenerFormArray.removeAt(hostIndex);
-    this.listenerFormArray.updateValueAndValidity();
-    this._onTouched();
-  }
 
   protected _onChange: (_listeners: TcpHost[] | null) => void = () => ({});
 
   protected _onTouched: () => void = () => ({});
 
-  constructor(private readonly fm: FocusMonitor, private readonly elRef: ElementRef) {
+  constructor(private readonly fm: FocusMonitor, private readonly elRef: ElementRef, private readonly apiV2Service: ApiV2Service) {
+    this.listenerFormArray = new FormArray([this.newListenerFormGroup({})], { validators: [this.listenersValidator()] });
     this.mainForm = new FormGroup({
       listeners: this.listenerFormArray,
     });
@@ -124,6 +120,11 @@ export class GioFormListenersTcpHostsComponent implements OnInit, OnDestroy, Con
     isDisabled ? this.mainForm?.disable() : this.mainForm?.enable();
   }
 
+  public onDelete(hostIndex: number): void {
+    this.listenerFormArray.removeAt(hostIndex);
+    this._onTouched();
+  }
+
   private initForm(): void {
     // Clear all previous hosts
     this.listenerFormArray.clear();
@@ -143,7 +144,10 @@ export class GioFormListenersTcpHostsComponent implements OnInit, OnDestroy, Con
 
   public newListenerFormGroup(listener: TcpHost) {
     return new FormGroup({
-      host: new FormControl(listener.host || ''),
+      host: new FormControl(listener.host || '', {
+        validators: [this.validateGenericHostListenerControl()],
+        asyncValidators: [this.listenersAsyncValidator()],
+      }),
     });
   }
 
@@ -157,62 +161,40 @@ export class GioFormListenersTcpHostsComponent implements OnInit, OnDestroy, Con
     );
   }
 
-  private listenersValidator(): ValidatorFn {
-    return (listenerFormArrayControl: FormArray): ValidationErrors | null => {
-      const listenerFormArrayControls = listenerFormArrayControl.controls;
-      const listenerValues = listenerFormArrayControls.map((listener) => listener.value);
-
-      const errors = listenerFormArrayControls
-        .reduce((acc, listenerControl, index) => {
-          const validationError = this.validateListenerControl(
-            listenerControl,
-            listenerValues.map((listener) => listener),
-            index,
-          );
-          if (validationError) {
-            acc[`${index}`] = validationError;
-          }
-          return acc;
-        }, [])
-        .filter((err) => err !== null && !isEmpty(err));
-
-      return isEmpty(errors) ? null : errors;
-    };
-  }
-
-  public validateListenerControl(listenerControl: AbstractControl, tcpListeners: TcpHost[], currentIndex: number): ValidationErrors | null {
-    const listenerHostControl = listenerControl.get('host');
-    let error = this.validateGenericHostListenerControl(listenerControl);
-    if (!error) {
-      const hostAlreadyExist = tcpListeners
-        .filter((l, index) => index !== currentIndex)
-        .map((l) => l.host)
-        .includes(listenerHostControl.value);
-      if (hostAlreadyExist) {
-        error = { host: 'Host is already used.' };
-      }
-    }
-    setTimeout(() => listenerHostControl.setErrors(error), 0);
-    return error;
-  }
-
-  public validateGenericHostListenerControl(listenerControl: AbstractControl): ValidationErrors | null {
-    const listenerHostControl = listenerControl.get('host');
-    const host: string = listenerHostControl.value;
-
-    let errors = null;
-    if (isEmpty(host)) {
-      errors = {
-        host: 'Host is required.',
-      };
-    }
-    setTimeout(() => listenerHostControl.setErrors(errors), 0);
-    return errors;
-  }
-
   protected getValue(): TcpHost[] {
     return this.listenerFormArray?.controls.map((control) => {
       return { host: control.get('host').value };
     });
+  }
+
+  private listenersValidator(): ValidatorFn {
+    return (formArray: FormArray): ValidationErrors | null => {
+      const listenerFormArrayControls = formArray.controls;
+      const listenerValues: string[] = listenerFormArrayControls.map((listener) => listener.value?.host);
+
+      if (new Set(listenerValues).size !== listenerValues.length) {
+        return { host: 'Duplicated hosts not allowed' };
+      }
+      return null;
+    };
+  }
+
+  private validateGenericHostListenerControl(): ValidatorFn {
+    return (formControl: FormControl): ValidationErrors | null => {
+      const host = formControl.value || '';
+      return host.trim().length ? null : { required: 'Host is required.' };
+    };
+  }
+
+  private listenersAsyncValidator(): AsyncValidatorFn {
+    return (formControl: FormControl): Observable<ValidationErrors | null> => {
+      if (formControl && formControl.dirty) {
+        return timer(250).pipe(
+          switchMap(() => this.apiV2Service.verifyHosts(this.apiId, [formControl.value])),
+          map((res) => (res.ok ? null : { listeners: res.reason })),
+        );
+      }
+      return of(null);
+    };
   }
 }

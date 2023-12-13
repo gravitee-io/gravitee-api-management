@@ -28,7 +28,6 @@
             svgIcon="gio:info"
           ></mat-icon>
         </div>
-        <div class="gio-form-listeners__table__subtitle">Can contain an uppercase letter, number, dash or underscore.</div>
       </th>
       <th class="gio-form-listeners__table__row__th"></th>
     </tr>
@@ -42,7 +41,8 @@
       <td class="gio-form-listeners__table__row__td">
         <mat-form-field appearance="standard" class="gio-form-listeners__table__field">
           <input type="text" matInput formControlName="host" placeholder="Host *" />
-          <mat-error *ngIf="control.get('host').hasError('host')"> {{ control.get('host').getError('host') }}</mat-error>
+          <mat-error *ngIf="control.get('host').hasError('required')"> Host is required </mat-error>
+          <mat-error *ngIf="control.get('host').hasError('listeners')"> {{ control.get('host').getError('listeners') }}</mat-error>
         </mat-form-field>
       </td>
       <td class="gio-form-listeners__table__row__td">
@@ -60,9 +60,7 @@
     </tr>
   </tbody>
 </table>
-<mat-error *ngIf="mainForm.hasError('listeners')">
-  Invalid hosts{{ mainForm.getError('listeners') ? ': ' : '' }}{{ mainForm.getError('listeners') }}</mat-error
->
+<span class="mat-error" *ngIf="listenerFormArray.hasError('host')">{{ listenerFormArray.getError('host') }}</span>
 
 <button *ngIf="!isDisabled" class="gio-form-listeners__add-button" type="button" mat-stroked-button (click)="addEmptyListener()">
   Add host
