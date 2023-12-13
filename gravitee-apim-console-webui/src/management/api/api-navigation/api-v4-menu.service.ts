@@ -21,6 +21,7 @@ import { ApiMenuService } from './ApiMenuService';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { Constants } from '../../../entities/Constants';
 import { GioRoleService } from '../../../shared/components/gio-role/gio-role.service';
+import { ApiV4 } from '../../../entities/management-api-v2';
 
 @Injectable()
 export class ApiV4MenuService implements ApiMenuService {
@@ -29,14 +30,15 @@ export class ApiV4MenuService implements ApiMenuService {
     private readonly roleService: GioRoleService,
     @Inject('Constants') private readonly constants: Constants,
   ) {}
-  public getMenu(): {
+  public getMenu(api: ApiV4): {
     subMenuItems: MenuItem[];
     groupItems: MenuGroupItem[];
   } {
+    const hasTcpListeners = api.listeners.find((listener) => listener.type === 'TCP') != null;
     const subMenuItems: MenuItem[] = [
       {
         displayName: 'Policy Studio',
-        routerLink: 'v4/policy-studio',
+        routerLink: hasTcpListeners ? 'DISABLED' : 'v4/policy-studio',
         tabs: undefined,
       },
     ];
@@ -57,6 +59,7 @@ export class ApiV4MenuService implements ApiMenuService {
     if (logsTabs.length > 0) {
       subMenuItems.push({
         displayName: 'Analytics and logs',
+        routerLink: hasTcpListeners ? 'DISABLED' : '',
         header: {
           title: 'Runtime Logs',
           subtitle: 'Debug and Optimize your API by displaying logs from your API runtime activities',
