@@ -16,21 +16,21 @@
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { IntegrationsComponent } from './integrations.component';
+import { MyIntegrationsComponent } from './my-integrations.component';
 
-describe('IntegrationsComponent', () => {
-  let component: IntegrationsComponent;
-  let fixture: ComponentFixture<IntegrationsComponent>;
+describe('MyIntegrationsComponent', () => {
+  let component: MyIntegrationsComponent;
+  let fixture: ComponentFixture<MyIntegrationsComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ IntegrationsComponent ]
+      declarations: [ MyIntegrationsComponent ]
     })
     .compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(IntegrationsComponent);
+    fixture = TestBed.createComponent(MyIntegrationsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

@@ -16,24 +16,4 @@
 
 -->
 
-<div class="integrations-page">
-  <h1 class="title">Integrations</h1>
-
-  <p class="overview">
-    Unlock and productionize data from sources across API gateways, event brokers, databases and applications.
-  </p>
-
-  <nav mat-tab-nav-bar class="navigation">
-    <a
-      *ngFor="let tab of tabs"
-      mat-tab-link
-      routerLinkActive
-      #rla="routerLinkActive"
-      [active]="rla.isActive"
-      [routerLink]="tab.routerLink"
-      [innerHTML]="tab.label | async"
-    >
-    </a>
-  </nav>
-  <router-outlet></router-outlet>
-</div>
+<p>catalog works!</p>

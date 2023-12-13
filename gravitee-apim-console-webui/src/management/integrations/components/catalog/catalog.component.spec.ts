@@ -16,21 +16,21 @@
 
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { IntegrationsComponent } from './integrations.component';
+import { CatalogComponent } from './catalog.component';
 
-describe('IntegrationsComponent', () => {
-  let component: IntegrationsComponent;
-  let fixture: ComponentFixture<IntegrationsComponent>;
+describe('CatalogComponent', () => {
+  let component: CatalogComponent;
+  let fixture: ComponentFixture<CatalogComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ IntegrationsComponent ]
+      declarations: [ CatalogComponent ]
     })
     .compileComponents();
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(IntegrationsComponent);
+    fixture = TestBed.createComponent(CatalogComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

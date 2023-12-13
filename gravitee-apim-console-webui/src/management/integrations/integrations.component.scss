@@ -1,0 +1,33 @@
+.integrations-page {
+  margin: 40px;
+  padding: 40px;
+
+  border-radius: 6px;
+  background-color: var(--neutrals-basic-white, #FFF);
+  box-shadow: 0 1px 3px 0 rgba(17, 24, 39, 0.10), 0 1px 10px 0 rgba(17, 24, 39, 0.06);
+}
+
+.title {
+  color: var(--neutrals-space-space, #100C27);
+  font-feature-settings: 'clig' off, 'liga' off;
+  font-size: 34px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 44px;
+  margin-bottom: 8px;
+}
+
+.overview {
+  color: var(--neutrals-space-space-light-40, #606274);
+  font-feature-settings: 'clig' off, 'liga' off;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: 0.4px;
+  margin-bottom: 8px;
+}
+
+.navigation {
+  margin: 24px 0;
+}
