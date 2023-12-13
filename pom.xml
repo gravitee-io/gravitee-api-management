@@ -53,7 +53,7 @@
         <!-- Vert.X version is mandatory for vertx-grpc-protoc-plugin in gravitee-apim-gateway-standalone-container -->
         <vertx.version>4.2.7</vertx.version>
         <!-- Gravitee dependencies version -->
-        <gravitee-bom.version>3.0.0</gravitee-bom.version>
+        <gravitee-bom.version>3.0.19</gravitee-bom.version>
         <gravitee-alert-api.version>1.9.1</gravitee-alert-api.version>
         <gravitee-cockpit-api.version>2.0.0</gravitee-cockpit-api.version>
         <gravitee-common.version>2.3.0</gravitee-common.version>
@@ -135,7 +135,7 @@
         <testcontainers.version>1.17.3</testcontainers.version>
         <xmlbeans.version>3.1.0</xmlbeans.version>
         <wiremock.version>2.27.2</wiremock.version>
-        <wiremock-jre8.version>2.32.0</wiremock-jre8.version>
+        <wiremock-jre8.version>2.35.1</wiremock-jre8.version>
         <wsdl4j.version>1.6.3</wsdl4j.version>
         <!-- Plugins version -->
         <gatling-maven-plugin.version>4.0.1</gatling-maven-plugin.version>

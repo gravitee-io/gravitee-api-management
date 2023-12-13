@@ -35,7 +35,7 @@
         <gravitee-connector-http.version>2.1.3</gravitee-connector-http.version>
         <junit-jupiter.version>5.8.2</junit-jupiter.version>
         <reactiverse-junit5-rx-java2-web-client.version>0.3.0</reactiverse-junit5-rx-java2-web-client.version>
-        <jetty94.wiremock.version>9.4.44.v20210927</jetty94.wiremock.version>
+        <jetty94.wiremock.version>9.4.53.v20231009</jetty94.wiremock.version>
     </properties>
 
     <dependencyManagement>
