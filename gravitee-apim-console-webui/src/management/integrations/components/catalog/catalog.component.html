@@ -16,4 +16,38 @@
 
 -->
 
-<p>catalog works!</p>
+<div class="catalog">
+  <ng-container *ngFor="let item of catalogData">
+    <div class="item">
+      <div class="item-head">
+        <div class="logo-box">
+          <img class="logo" [src]="item.iconPath"  [alt]="item.title + ' logo'" />
+        </div>
+        <h3 class="title">{{item.title}}</h3>
+        <div class="badges">
+          <ng-container *ngFor="let pill of item.categories">
+            <span class="badge gio-badge-primary">{{pill}}</span>
+          </ng-container>
+        </div>
+      </div>
+
+      <div class="item-description">
+        <p>{{item.description}}</p>
+      </div>
+
+      <div class="status">
+        <span class="badge gio-badge-neutral">{{item.status}}</span>
+      </div>
+
+      <ng-container *ngIf="item.isAdd else comingSoon">
+        <button mat-button class="item-button">
+          Add
+        </button>
+      </ng-container>
+      <ng-template #comingSoon>
+        <span class="badge gio-badge-primary">Coming soon</span>
+      </ng-template>
+    </div>
+  </ng-container>
+
+</div>

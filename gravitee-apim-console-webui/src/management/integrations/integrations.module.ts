@@ -17,6 +17,7 @@
 import { NgModule } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { MatTabsModule } from "@angular/material/tabs";
+import { MatButtonModule } from "@angular/material/button";
 
 import { IntegrationsRoutingModule } from "./integrations-routing.module";
 import { IntegrationsComponent } from "./integrations.component";
@@ -25,11 +26,12 @@ import { MyIntegrationsComponent } from "./components/my-integrations/my-integra
 
 
 @NgModule({
-  imports: [
-    CommonModule,
-    IntegrationsRoutingModule,
-    MatTabsModule
-  ],
+    imports: [
+        CommonModule,
+        IntegrationsRoutingModule,
+        MatTabsModule,
+        MatButtonModule
+    ],
   declarations: [
     IntegrationsComponent,
     CatalogComponent,

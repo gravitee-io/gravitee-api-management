@@ -16,10 +16,13 @@
 
 import { Component } from '@angular/core';
 
+import { catalogData } from "../../data/catalog.data";
+
 @Component({
   selector: 'app-catalog',
   template: require('./catalog.component.html'),
   styles: [require('./catalog.component.scss')]
 })
 export class CatalogComponent {
+  protected readonly catalogData = catalogData;
 }
