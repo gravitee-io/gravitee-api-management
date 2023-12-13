@@ -85,7 +85,7 @@ export class ApiCreationV4SpecStepperHelper {
     } else if (entrypoints.some((entrypoint) => entrypoint.supportedListenerType !== 'SUBSCRIPTION')) {
       this.httpExpects.expectApiGetPortalSettings();
       await entrypointsConfig.fillPaths(...paths);
-      this.httpExpects.expectVerifyContextPathGetRequest();
+      this.httpExpects.expectVerifyContextPath();
     }
 
     expect(await entrypointsConfig.hasValidationDisabled()).toBeFalsy();

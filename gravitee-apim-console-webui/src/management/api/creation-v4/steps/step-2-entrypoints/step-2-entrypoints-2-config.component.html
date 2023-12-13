@@ -86,7 +86,7 @@
         mat-flat-button
         color="primary"
         type="submit"
-        [disabled]="hasTcpListeners ? formGroup.invalid || formGroup.pending : formGroup.invalid"
+        [disabled]="formGroup.invalid || formGroup.pending"
         data-testid="validate_entrypoints_button"
       >
         Validate my entrypoints
