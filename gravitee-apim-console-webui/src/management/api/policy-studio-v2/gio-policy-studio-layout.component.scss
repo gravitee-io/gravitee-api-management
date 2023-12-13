@@ -19,7 +19,23 @@
 
     .gio-policy-studio-layout {
       &__tab-content {
-        --gv-policy-studio--h: calc(100vh - 185px - 76px - 16px);
+        --gv-policy-studio--h: calc(100vh - 185px - 62px);
+      }
+    }
+  }
+
+  :host-context(.hasApiBanner) {
+    .gio-policy-studio-layout {
+      &__tab-content {
+        --gv-policy-studio--h: calc(100vh - 185px - 82px);
+      }
+    }
+  }
+
+  :host-context(.hasApiBanner.breadcrumb) {
+    .gio-policy-studio-layout {
+      &__tab-content {
+        --gv-policy-studio--h: calc(100vh - 185px - 62px - 82px);
       }
     }
   }

@@ -15,7 +15,7 @@
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { flatMap } from 'lodash';
-import { filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { filter, map, switchMap, takeUntil, tap, shareReplay } from 'rxjs/operators';
 import { GIO_DIALOG_WIDTH, GioBannerTypes, GioMenuService } from '@gravitee/ui-particles-angular';
 import { Observable, Subject } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
@@ -240,7 +240,9 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
 
       return banners;
     }),
+    shareReplay(1),
   );
+  public hasBanner$ = this.banners$.pipe(map((banners) => banners.length > 0));
 
   private unsubscribe$ = new Subject();
   constructor(
