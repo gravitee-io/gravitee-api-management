@@ -43,7 +43,7 @@ import io.gravitee.integration.api.command.list.ListCommand;
 import io.gravitee.integration.api.command.list.ListReply;
 import io.gravitee.integration.api.model.Integration;
 import io.gravitee.integration.connector.command.IntegrationConnectorCommandContext;
-import io.gravitee.integration.connector.command.IntegrationConnectorCommandHandlerFactory;
+import io.gravitee.integration.connector.command.IntegrationConnectorCommandHandlersFactory;
 import io.gravitee.plugin.integrationprovider.IntegrationProviderPluginManager;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
@@ -51,6 +51,7 @@ import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 /**
@@ -59,15 +60,31 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class IntegrationDomainServiceImpl extends AbstractService<IntegrationDomainService> implements IntegrationDomainService {
 
     private final GraviteeLicenseDomainService graviteeLicenseDomainService;
     private final ExchangeConnectorManager exchangeConnectorManager;
+
     private final ExchangeController exchangeController;
-    private final IntegrationConnectorCommandHandlerFactory connectorCommandHandlersFactory;
+    private final IntegrationConnectorCommandHandlersFactory connectorCommandHandlersFactory;
     private final IntegrationProviderPluginManager integrationProviderPluginManager;
     private final IntegrationCrudService integrationCrudService;
+
+    public IntegrationDomainServiceImpl(
+        final GraviteeLicenseDomainService graviteeLicenseDomainService,
+        final ExchangeConnectorManager exchangeConnectorManager,
+        @Qualifier("integrationExchangeController") final ExchangeController exchangeController,
+        final IntegrationConnectorCommandHandlersFactory connectorCommandHandlersFactory,
+        final IntegrationProviderPluginManager integrationProviderPluginManager,
+        final IntegrationCrudService integrationCrudService
+    ) {
+        this.graviteeLicenseDomainService = graviteeLicenseDomainService;
+        this.exchangeConnectorManager = exchangeConnectorManager;
+        this.exchangeController = exchangeController;
+        this.connectorCommandHandlersFactory = connectorCommandHandlersFactory;
+        this.integrationProviderPluginManager = integrationProviderPluginManager;
+        this.integrationCrudService = integrationCrudService;
+    }
 
     // TODO To be removed when the license is up to date
     private final boolean FORCE_INTEGRATION = true;

@@ -41,7 +41,7 @@ import org.springframework.stereotype.Service;
  * @author GraviteeSource Team
  */
 @Slf4j
-@Service
+@Service("integrationWebsocketControllerAuthentication")
 @RequiredArgsConstructor
 public class IntegrationWebsocketControllerAuthentication implements WebSocketControllerAuthentication<IntegrationCommandContext> {
 
