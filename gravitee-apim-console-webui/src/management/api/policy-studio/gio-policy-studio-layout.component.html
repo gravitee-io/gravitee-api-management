@@ -22,7 +22,6 @@
       uiSrefStatus
       #uis="uiSrefStatus"
       *ngFor="let link of policyStudioMenu"
-      [uiParams]="link.params"
       [uiSref]="link.uiSref | async"
       [active]="uis.status.active"
       [gioLicense]="link.license"
