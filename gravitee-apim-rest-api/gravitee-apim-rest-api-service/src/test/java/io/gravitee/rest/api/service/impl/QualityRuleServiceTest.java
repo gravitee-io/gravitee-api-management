@@ -68,7 +68,7 @@ public class QualityRuleServiceTest {
         QualityRule qualityRule = QualityRule
             .builder()
             .id(QUALITY_RULE_ID)
-            .referenceType(io.gravitee.repository.management.model.QualityRuleReferenceType.ENVIRONMENT)
+            .referenceType(io.gravitee.repository.management.model.QualityRule.ReferenceType.ENVIRONMENT)
             .referenceId(ENVIRONMENT_ID)
             .name("NAME")
             .description("DESC")
@@ -103,7 +103,7 @@ public class QualityRuleServiceTest {
         QualityRule qualityRule = QualityRule
             .builder()
             .id(QUALITY_RULE_ID)
-            .referenceType(io.gravitee.repository.management.model.QualityRuleReferenceType.ENVIRONMENT)
+            .referenceType(io.gravitee.repository.management.model.QualityRule.ReferenceType.ENVIRONMENT)
             .referenceId(ENVIRONMENT_ID)
             .name("NAME")
             .description("DESC")
@@ -129,7 +129,7 @@ public class QualityRuleServiceTest {
         QualityRule qualityRule = QualityRule
             .builder()
             .id(QUALITY_RULE_ID)
-            .referenceType(io.gravitee.repository.management.model.QualityRuleReferenceType.ENVIRONMENT)
+            .referenceType(io.gravitee.repository.management.model.QualityRule.ReferenceType.ENVIRONMENT)
             .referenceId(ENVIRONMENT_ID)
             .name("NAME")
             .description("DESC")
@@ -140,7 +140,7 @@ public class QualityRuleServiceTest {
 
         when(
             qualityRuleRepository.findByReference(
-                io.gravitee.repository.management.model.QualityRuleReferenceType.ENVIRONMENT,
+                io.gravitee.repository.management.model.QualityRule.ReferenceType.ENVIRONMENT,
                 ENVIRONMENT_ID
             )
         )
@@ -168,7 +168,7 @@ public class QualityRuleServiceTest {
 
         final QualityRule createdQualityRule = new QualityRule();
         createdQualityRule.setId(QUALITY_RULE_ID);
-        createdQualityRule.setReferenceType(io.gravitee.repository.management.model.QualityRuleReferenceType.ENVIRONMENT);
+        createdQualityRule.setReferenceType(io.gravitee.repository.management.model.QualityRule.ReferenceType.ENVIRONMENT);
         createdQualityRule.setReferenceId(ENVIRONMENT_ID);
         createdQualityRule.setName("NAME");
         createdQualityRule.setDescription("DESC");
@@ -201,7 +201,7 @@ public class QualityRuleServiceTest {
                 argThat(argument ->
                     "NAME".equals(argument.getName()) &&
                     "DESC".equals(argument.getDescription()) &&
-                    io.gravitee.repository.management.model.QualityRuleReferenceType.ENVIRONMENT.equals(argument.getReferenceType()) &&
+                    io.gravitee.repository.management.model.QualityRule.ReferenceType.ENVIRONMENT.equals(argument.getReferenceType()) &&
                     ENVIRONMENT_ID.equals(argument.getReferenceId()) &&
                     Integer.valueOf(1).equals(argument.getWeight()) &&
                     !argument.getId().isEmpty() &&
@@ -230,7 +230,7 @@ public class QualityRuleServiceTest {
 
         final QualityRule updatedQualityRule = new QualityRule();
         updatedQualityRule.setId(QUALITY_RULE_ID);
-        updatedQualityRule.setReferenceType(io.gravitee.repository.management.model.QualityRuleReferenceType.ENVIRONMENT);
+        updatedQualityRule.setReferenceType(io.gravitee.repository.management.model.QualityRule.ReferenceType.ENVIRONMENT);
         updatedQualityRule.setReferenceId(ENVIRONMENT_ID);
         updatedQualityRule.setName("NAME");
         updatedQualityRule.setDescription("DESC");
@@ -262,7 +262,7 @@ public class QualityRuleServiceTest {
                 argThat(argument ->
                     "NAME".equals(argument.getName()) &&
                     "DESC".equals(argument.getDescription()) &&
-                    io.gravitee.repository.management.model.QualityRuleReferenceType.ENVIRONMENT.equals(argument.getReferenceType()) &&
+                    io.gravitee.repository.management.model.QualityRule.ReferenceType.ENVIRONMENT.equals(argument.getReferenceType()) &&
                     ENVIRONMENT_ID.equals(argument.getReferenceId()) &&
                     Integer.valueOf(1).equals(argument.getWeight()) &&
                     QUALITY_RULE_ID.equals(argument.getId()) &&
