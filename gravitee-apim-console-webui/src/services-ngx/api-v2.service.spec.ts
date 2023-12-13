@@ -389,4 +389,23 @@ describe('ApiV2Service', () => {
       req.flush(null);
     });
   });
+
+  describe('verify API hosts', () => {
+    it('should call the API', (done) => {
+      const apiId = 'apiId';
+      const hosts = ['host1', 'host2'];
+
+      apiV2Service.verifyHosts(apiId, hosts).subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_verify/hosts`,
+        method: 'POST',
+      });
+
+      expect(req.request.body).toEqual({ apiId, hosts });
+      req.flush(null);
+    });
+  });
 });

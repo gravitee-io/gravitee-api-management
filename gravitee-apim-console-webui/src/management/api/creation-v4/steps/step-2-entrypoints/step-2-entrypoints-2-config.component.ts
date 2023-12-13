@@ -18,7 +18,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnIni
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { forkJoin, Observable, Subject } from 'rxjs';
 import { GioFormJsonSchemaComponent, GioJsonSchema, GioLicenseService } from '@gravitee/ui-particles-angular';
-import { takeUntil, tap } from 'rxjs/operators';
+import { debounceTime, takeUntil, tap } from 'rxjs/operators';
 import { isEmpty, omitBy } from 'lodash';
 
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
@@ -117,7 +117,12 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
     }
     this.hasTcpListeners = currentStepPayload.selectedEntrypoints.find((entrypoint) => entrypoint.supportedListenerType === 'TCP') != null;
     if (this.hasTcpListeners) {
-      this.formGroup.addControl('hosts', this.formBuilder.control(hosts, Validators.required));
+      const control = this.formBuilder.control(hosts, Validators.required);
+      this.formGroup.addControl('hosts', control);
+      control.valueChanges.pipe(debounceTime(500), takeUntil(this.unsubscribe$)).subscribe(() => {
+        // force change detection because the gio-form-listeners-tcp-hosts component contains a delayed async validators on the host form control
+        this.changeDetectorRef.detectChanges();
+      });
     }
   }
 

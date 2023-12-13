@@ -81,14 +81,15 @@ export class ApiCreationV4SpecStepperHelper {
 
     if (entrypoints.some((entrypoint) => entrypoint.supportedListenerType === 'TCP')) {
       await entrypointsConfig.fillHosts(...hosts);
+      this.httpExpects.expectVerifyHosts(hosts);
     } else if (entrypoints.some((entrypoint) => entrypoint.supportedListenerType !== 'SUBSCRIPTION')) {
       this.httpExpects.expectApiGetPortalSettings();
       await entrypointsConfig.fillPaths(...paths);
-      expect(await entrypointsConfig.hasValidationDisabled()).toBeFalsy();
+      this.httpExpects.expectVerifyContextPathGetRequest();
     }
 
+    expect(await entrypointsConfig.hasValidationDisabled()).toBeFalsy();
     await entrypointsConfig.clickValidate();
-    this.httpExpects.expectVerifyContextPathGetRequest();
   }
 
   async fillAndValidateStep3_1_EndpointsList(
@@ -120,6 +121,11 @@ export class ApiCreationV4SpecStepperHelper {
     const plansList = await this.harnessLoader.getHarness(Step4Security1PlansHarness);
 
     await plansList.editDefaultKeylessPlanNameAndAddRateLimit('Update name', this.httpTestingController);
+    await plansList.clickValidate();
+  }
+
+  async validateStep4_1_SecurityPlansList() {
+    const plansList = await this.harnessLoader.getHarness(Step4Security1PlansHarness);
     await plansList.clickValidate();
   }
 }

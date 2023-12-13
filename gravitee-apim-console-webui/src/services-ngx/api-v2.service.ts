@@ -32,6 +32,7 @@ import {
 } from '../entities/management-api-v2';
 import { ApiTransferOwnership } from '../entities/management-api-v2/api/apiTransferOwnership';
 import { PathToVerify, VerifyApiPathResponse } from '../entities/management-api-v2/api/verifyApiPath';
+import { VerifyApiHostsResponse } from '../entities/management-api-v2/api/verifyApiHosts';
 
 @Injectable({
   providedIn: 'root',
@@ -148,5 +149,9 @@ export class ApiV2Service {
 
   verifyPath(apiId: string, paths: PathToVerify[]): Observable<VerifyApiPathResponse> {
     return this.http.post<VerifyApiPathResponse>(`${this.constants.env.v2BaseURL}/apis/_verify/paths`, { apiId, paths });
+  }
+
+  verifyHosts(apiId: string, hosts: string[]): Observable<VerifyApiHostsResponse> {
+    return this.http.post<VerifyApiHostsResponse>(`${this.constants.env.v2BaseURL}/apis/_verify/hosts`, { apiId, hosts });
   }
 }

@@ -21,6 +21,7 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
+import { SpanHarness } from '@gravitee/ui-particles-angular/testing';
 
 import { GioFormListenersTcpHostsModule } from './gio-form-listeners-tcp-hosts.module';
 import { GioFormListenersTcpHostsHarness } from './gio-form-listeners-tcp-hosts.harness';
@@ -96,15 +97,17 @@ describe('GioFormListenersTcpHostsModule', () => {
     // Set first row
     const hostRowAdded = await formHosts.getLastListenerRow();
     await hostRowAdded.hostInput.setValue('new-host');
+    expectVerifyHosts(['new-host']);
 
     // Expect new row was added
     await formHosts.addListener({ host: 'new-host-2' });
     expect((await formHosts.getListenerRows()).length).toEqual(2);
+    expectVerifyHosts(['new-host-2']);
 
     expect(testComponent.formControl.value).toEqual([{ host: 'new-host' }, { host: 'new-host-2' }]);
   });
 
-  it('should mark control as invalid if host is already defined', async () => {
+  it('should mark controls as invalid if host is already defined', async () => {
     const formHosts = await loader.getHarness(GioFormListenersTcpHostsHarness);
     await formHosts.addListenerRow();
 
@@ -112,10 +115,12 @@ describe('GioFormListenersTcpHostsModule', () => {
     expect(rows.length).toEqual(2);
 
     await rows[0].hostInput.setValue('my-host');
-    await rows[1].hostInput.setValue('my-host');
+    expectVerifyHosts(['my-host']);
 
-    expect(await (await rows[0].hostInput.host()).hasClass('ng-invalid')).toEqual(true);
-    expect(await (await rows[1].hostInput.host()).hasClass('ng-invalid')).toEqual(true);
+    await rows[1].hostInput.setValue('my-host');
+    expectVerifyHosts(['my-host']);
+
+    expect(await loader.getHarness(SpanHarness.with({ text: /Duplicated hosts not allowed/ }))).toBeTruthy();
   });
 
   it('should edit host', async () => {
@@ -123,8 +128,8 @@ describe('GioFormListenersTcpHostsModule', () => {
     const formHosts = await loader.getHarness(GioFormListenersTcpHostsHarness);
 
     const hostRowToEdit = (await formHosts.getListenerRows())[1];
-
     await hostRowToEdit.hostInput.setValue('host-modified');
+    expectVerifyHosts(['host-modified']);
 
     const editedHostRow = (await formHosts.getListenerRows())[1];
     expect({ host: await editedHostRow.hostInput.getValue() }).toEqual({
@@ -171,6 +176,7 @@ describe('GioFormListenersTcpHostsModule', () => {
     expect(testComponent.formControl.dirty).toEqual(false);
 
     await (await formHosts.getListenerRows())[0].hostInput.setValue('another-host');
+    expectVerifyHosts(['another-host']);
 
     expect(testComponent.formControl.touched).toEqual(true);
     expect(testComponent.formControl.dirty).toEqual(true);
@@ -178,7 +184,6 @@ describe('GioFormListenersTcpHostsModule', () => {
 
   it('should not show add button or delete button and be unmodifiable when disabled', async () => {
     testComponent.formControl = new FormControl({ value: LISTENERS, disabled: true });
-
     const formHosts = await loader.getHarness(GioFormListenersTcpHostsHarness);
 
     const hostRow = (await formHosts.getListenerRows())[1];
@@ -191,4 +196,13 @@ describe('GioFormListenersTcpHostsModule', () => {
       .then((_) => fail('The add button should not appear'))
       .catch((err) => expect(err).toBeTruthy());
   });
+
+  function expectVerifyHosts(hosts: string[]) {
+    const requests = httpTestingController.match({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_verify/hosts`, method: 'POST' });
+    hosts.forEach((host, index) => {
+      const request = requests[index];
+      expect(request.request.body).toEqual({ hosts: [host] });
+      if (!request.cancelled) request.flush({ ok: true });
+    });
+  }
 });

@@ -13,22 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*
- * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+
+import { ComponentFixture, fakeAsync, TestBed } from '@angular/core/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { LICENSE_CONFIGURATION_TESTING } from '@gravitee/ui-particles-angular';
@@ -132,7 +118,7 @@ describe('ApiCreationV4Component - TCP Proxy', () => {
   });
 
   describe('Entrypoint validation', () => {
-    it('should not continue when form contains the same host multiple times', async () => {
+    it('should not continue when form contains the same host multiple times', fakeAsync(async () => {
       await stepperHelper.fillAndValidateStep1_ApiDetails('API', '1.0', 'Description');
       await stepperHelper.fillAndValidateStep2_0_EntrypointsArchitecture('PROXY');
       await stepperHelper.fillAndValidateStep2_1_EntrypointsList('PROXY', [
@@ -142,13 +128,16 @@ describe('ApiCreationV4Component - TCP Proxy', () => {
       const entrypointsConfig = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
       httpExpects.expectRestrictedDomainsGetRequest([]);
       httpExpects.expectSchemaGetRequest(tcpProxyEntrypoint);
-      await entrypointsConfig.fillHosts('host1', 'host1');
+      const hosts = ['host1', 'host1'];
+      await entrypointsConfig.fillHosts(...hosts);
+      httpExpects.expectVerifyHosts(hosts, 2);
 
       expect(await entrypointsConfig.hasValidationDisabled()).toBeTruthy();
-    });
+    }));
   });
+
   describe('API Creation', () => {
-    it('should create the API', async () => {
+    it('should create the API', fakeAsync(async () => {
       await stepperHelper.fillAndValidateStep1_ApiDetails('API', '1.0', 'Description');
       await stepperHelper.fillAndValidateStep2_0_EntrypointsArchitecture('PROXY');
       await stepperHelper.fillAndValidateStep2_1_EntrypointsList('PROXY', [
@@ -156,7 +145,7 @@ describe('ApiCreationV4Component - TCP Proxy', () => {
       ]);
       await stepperHelper.fillAndValidateStep2_2_EntrypointsConfig(tcpProxyEntrypoint);
       await stepperHelper.fillAndValidateStep3_2_EndpointsConfig(tcpProxyEntrypoint);
-      await stepperHelper.fillAndValidateStep4_1_SecurityPlansList();
+      await stepperHelper.validateStep4_1_SecurityPlansList();
 
       const step5Harness = await harnessLoader.getHarness(Step5SummaryHarness);
       const step1Summary = await step5Harness.getStepSummaryTextContent(1);
@@ -173,7 +162,7 @@ describe('ApiCreationV4Component - TCP Proxy', () => {
       expect(step3Summary).toContain('Endpoints' + 'Endpoints: ' + 'TCP Proxy ');
 
       const step4Summary = await step5Harness.getStepSummaryTextContent(4);
-      expect(step4Summary).toContain('Update name' + 'KEY_LESS');
-    });
+      expect(step4Summary).toContain('Default Keyless (UNSECURED)' + 'KEY_LESS');
+    }));
   });
 });

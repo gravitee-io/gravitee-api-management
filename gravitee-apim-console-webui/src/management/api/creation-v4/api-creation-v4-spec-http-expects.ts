@@ -28,6 +28,7 @@ import { CONSTANTS_TESTING } from '../../../shared/testing';
 import { License } from '../../../entities/license/License';
 import { PortalSettings } from '../../../entities/portal/portalSettings';
 import { RestrictedDomain } from '../../../entities/restricted-domain/restrictedDomain';
+import { tick } from "@angular/core/testing";
 
 export class ApiCreationV4SpecHttpExpects {
   constructor(private httpTestingController: HttpTestingController) {}
@@ -41,7 +42,7 @@ export class ApiCreationV4SpecHttpExpects {
     this.httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/settings`, method: 'GET' }).flush(settings);
   }
 
-  expectVerifyContextPathGetRequest(invalidPath = undefined) {
+  expectVerifyContextPathGetRequest(invalidPath = false) {
     this.httpTestingController
       .match({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_verify/paths`, method: 'POST' })
       .filter((request) => !request.cancelled)
@@ -139,5 +140,21 @@ export class ApiCreationV4SpecHttpExpects {
       method: 'POST',
     });
     startApiRequest.flush(fakeApiV4({ id: apiId }));
+  }
+
+  expectVerifyHosts(hosts: string[], times = 1) {
+    tick(250);
+    const requests = this.httpTestingController.match({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_verify/hosts`, method: 'POST' });
+    expect(requests.length).toStrictEqual(times);
+    hosts.forEach((host, index) => {
+      const request = requests[index];
+      expect(request.request.body).toEqual(
+        expect.objectContaining({
+          hosts: [host],
+        }),
+      );
+      request.flush({ ok: true });
+      tick(500);
+    });
   }
 }
