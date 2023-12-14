@@ -3,11 +3,13 @@
 
 This file documents all notable changes to [Gravitee.io API Management 3.x](https://github.com/gravitee-io/helm-charts/tree/master/apim/3.x) Helm Chart. The release numbering uses [semantic versioning](http://semver.org).
 
-### 4.2.0
+
+### 4.3.0
 
 - Update regex for portal and console base_href
 - 'fix AE system mail notification without keystore'
-- Add support for Secret Manager's configuration 
+- Add support for Secret Manager's configuration
+- Add networkPolicy
 
 ### 4.1.4
 

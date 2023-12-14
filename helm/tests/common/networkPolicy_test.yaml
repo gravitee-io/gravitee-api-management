@@ -1,0 +1,62 @@
+suite: apim - Common - NetworkPolicy configuration test
+templates:
+  - "common/networkpolicy.yaml"
+tests:
+  - it: should generate nothing by default
+    template: common/networkpolicy.yaml
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should generate a networkPolicy
+    template: common/networkpolicy.yaml
+    set:
+      networkPolicy:
+        podSelector:
+          matchExpressions:
+            - key: app.kubernetes.io/component
+              operator: In
+              values: [ "gateway", "api", "ui", "portal" ]
+        policyTypes:
+          - Egress
+          - Ingress
+        egress:
+          - to:
+              - ipBlock:
+                  cidr: 0.0.0.0/0
+                  except:
+                    - 169.254.169.254/32
+        ingress:
+          - from:
+              - ipBlock:
+                  cidr: 172.17.0.0/16
+                  except:
+                    - 172.17.1.0/24
+    asserts:
+    - isSubset:
+        path: spec
+        content:
+          egress:
+          - to:
+              - ipBlock:
+                  cidr: 0.0.0.0/0
+                  except:
+                    - 169.254.169.254/32
+          ingress:
+            - from:
+                - ipBlock:
+                    cidr: 172.17.0.0/16
+                    except:
+                      - 172.17.1.0/24
+          podSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/component
+                operator: In
+                values:
+                  - gateway
+                  - api
+                  - ui
+                  - portal
+          policyTypes:
+            - Egress
+            - Ingress
