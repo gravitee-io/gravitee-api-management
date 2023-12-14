@@ -24,7 +24,7 @@ import {
   GioFormSlideToggleModule,
 } from '@gravitee/ui-particles-angular';
 import { MatSelectModule } from '@angular/material/select';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -76,6 +76,7 @@ import { ApiGeneralUserGroupModule } from '../../../api/general/user-group-acces
     GioUsersSelectorModule,
     GioTableWrapperModule,
     ApiGeneralUserGroupModule,
+    FormsModule,
   ],
 })
 export class ApplicationGeneralUserGroupModule {}

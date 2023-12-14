@@ -82,4 +82,24 @@ describe('ApplicationMembersService', () => {
       req.flush(member);
     });
   });
+
+  describe('transfer ownership Application member', () => {
+    it('should call the API', (done) => {
+      const fakeNewOwnership = {
+        id: 'test-id',
+        reference: 'test-reference',
+        role: 'test-role',
+      };
+
+      applicationMembersService.transferOwnership('123', fakeNewOwnership).subscribe(() => done());
+
+      const req = httpTestingController.expectOne(
+        `${CONSTANTS_TESTING.org.baseURL}/environments/DEFAULT/applications/123/members/transfer_ownership`,
+      );
+      expect(req.request.method).toEqual('POST');
+      expect(req.request.body).toEqual(fakeNewOwnership);
+
+      req.flush(fakeNewOwnership);
+    });
+  });
 });
