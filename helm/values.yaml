@@ -1520,6 +1520,34 @@ ui:
   #    secret:
   #      secretName: gravitee-config-secret-name
 
+#secrets:
+#  loadFirst: kubernetes
+#  kubernetes:
+#    enabled: true
+#    namespace: default
+#    kubeConfigFile: /opt/gravitee/config/kube-config.json
+#    timeoutMs: 3000
+#  vault:
+#    enabled: false
+#    host: 127.0.0.1
+#    port: 8200
+#    namespace:
+#      kvEngine: V2
+#      readTimeoutSec: 2
+#      connectTimeoutSec: 3
+#    ssl:
+#      enabled: false
+#    auth:
+#      method: token
+#      config:
+#        token: aToken
+#    retry:
+#      attempts: 2
+#      intervalMs: 1000
+#    watch:
+#      enabled: true
+#      pollIntervalSec: 30
+
 # Enabling openshift support will update ingresses annotations for not containing "kubernetes.io/ingress.class" which
 # has to be removed to ensure OpenShift is creating a Route from the Ingress
 openshift:
