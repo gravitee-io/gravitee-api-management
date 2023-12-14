@@ -3,6 +3,10 @@
 
 This file documents all notable changes to [Gravitee.io API Management 3.x](https://github.com/gravitee-io/helm-charts/tree/master/apim/3.x) Helm Chart. The release numbering uses [semantic versioning](http://semver.org).
 
+### 4.0.15
+
+- Add networkPolicy
+
 ### 4.0.14
 
 - Update regex for portal and console base_href
@@ -59,7 +63,6 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 - Define gateway http max sizes
 
 ### 3.19.20
-
 
 - Define gateway http max sizes
 
