@@ -66,16 +66,15 @@
           <span matSuffix class="gio-form-listeners__table__field__host"
             ><em>{{ control.get('_hostDomain').value }}</em></span
           >
-          <mat-error *ngIf="control.get('_hostSubDomain').hasError('host')">
-            {{ control.get('_hostSubDomain').getError('host') }}</mat-error
-          >
+          <span class="mat-error" *ngIf="control.hasError('host')"> {{ control.getError('host') }}</span>
         </mat-form-field>
       </td>
       <td class="gio-form-listeners__table__row__td">
         <mat-form-field appearance="standard" class="gio-form-listeners__table__field">
           <input type="text" matInput formControlName="path" placeholder="Context-path *" />
-          <mat-error *ngIf="control.get('path').hasError('contextPath')"> {{ control.get('path').getError('contextPath') }}</mat-error>
         </mat-form-field>
+        <mat-error *ngIf="control.get('path').hasError('contextPath')"> {{ control.get('path').getError('contextPath') }}</mat-error>
+        <mat-error *ngIf="control.hasError('listeners')"> {{ control.getError('listeners') }}</mat-error>
       </td>
       <td class="gio-form-listeners__table__row__td">
         <gio-form-slide-toggle class="gio-form-listeners__table__field">
@@ -98,9 +97,7 @@
     </tr>
   </tbody>
 </table>
-<mat-error *ngIf="mainForm.hasError('listeners')">
-  Invalid paths{{ mainForm.getError('listeners') ? ': ' : '' }}{{ mainForm.getError('listeners') }}</mat-error
->
+<mat-error *ngIf="listenerFormArray.hasError('contextPath')">{{ listenerFormArray.getError('contextPath') }}</mat-error>
 
 <button *ngIf="!isDisabled" class="gio-form-listeners__add-button" type="button" mat-stroked-button (click)="addEmptyListener()">
   Add context-path

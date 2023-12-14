@@ -103,7 +103,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     });
 
     afterEach(() => {
-      expectApiVerify();
+      expectApiPathVerify();
     });
 
     it('should show context paths only', async () => {
@@ -130,7 +130,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     });
 
     afterEach(() => {
-      expectApiVerify();
+      expectApiPathVerify();
     });
 
     it('should show context paths only', async () => {
@@ -174,7 +174,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     });
 
     afterEach(() => {
-      expectApiVerify();
+      expectApiPathVerify();
     });
 
     it('should show context paths', async () => {
@@ -188,7 +188,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       const harness = await loader.getHarness(GioFormListenersContextPathHarness);
 
       await harness.addListener({ path: '/new-context-path' });
-      expectApiVerify();
+      expectApiPathVerify();
       fixture.detectChanges();
 
       const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save changes' }));
@@ -218,7 +218,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       const harness = await loader.getHarness(GioFormListenersContextPathHarness);
 
       await harness.addListener({ path: '/new-context-path' });
-      expectApiVerify();
+      expectApiPathVerify();
       fixture.detectChanges();
 
       expect(await harness.getLastListenerRow().then((row) => row.pathInput.getValue())).toEqual('/new-context-path');
@@ -254,7 +254,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     });
 
     afterEach(() => {
-      expectApiVerify();
+      expectApiPathVerify();
     });
 
     it('should show hosts', async () => {
@@ -269,8 +269,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       const harness = await loader.getHarness(GioFormListenersTcpHostsHarness);
 
       await harness.addListener({ host: 'host3' });
-      expectApiVerify();
-      fixture.detectChanges();
+      expectApiHostVerify();
 
       const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save changes' }));
 
@@ -299,8 +298,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       const harness = await loader.getHarness(GioFormListenersTcpHostsHarness);
 
       await harness.addListener({ host: 'host3' });
-      expectApiVerify();
-      fixture.detectChanges();
+      expectApiHostVerify();
 
       expect(await harness.getLastListenerRow().then((row) => row.hostInput.getValue())).toEqual('host3');
 
@@ -324,7 +322,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     });
 
     afterEach(() => {
-      expectApiVerify();
+      expectApiPathVerify();
     });
 
     it('should show virtual host and no disable button', async () => {
@@ -341,7 +339,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       const harness = await loader.getHarness(GioFormListenersVirtualHostHarness);
 
       await harness.addListener({ host: 'host2', path: '/new-context-path' });
-      expectApiVerify();
+      expectApiPathVerify();
       fixture.detectChanges();
 
       const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save changes' }));
@@ -381,7 +379,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     });
 
     afterEach(() => {
-      expectApiVerify();
+      expectApiPathVerify();
     });
 
     it('should allow to switch to context path mode', async () => {
@@ -414,7 +412,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     });
 
     afterEach(() => {
-      expectApiVerify();
+      expectApiPathVerify();
     });
 
     it('should show entrypoints list with action buttons', async () => {
@@ -570,7 +568,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     });
 
     afterEach(() => {
-      expectApiVerify();
+      expectApiPathVerify();
     });
 
     it('should remove empty HTTP listener and attached context-path on save', async () => {
@@ -617,7 +615,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     });
 
     afterEach(() => {
-      expectApiVerify();
+      expectApiPathVerify();
     });
 
     it('should add the corresponding listener', async () => {
@@ -659,7 +657,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
 
     beforeEach(async () => {
       await createComponent(RESTRICTED_DOMAINS, API);
-      expectApiVerify();
+      expectApiPathVerify();
     });
 
     it('should disable add button if no listener type available', async () => {
@@ -695,7 +693,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       // dialog should show context path component
       const contextPathForm = await dialog.getContextPathForm();
       await contextPathForm.getLastListenerRow().then((row) => row.pathInput.setValue('/new-context-path'));
-      expectApiVerify();
+      expectApiPathVerify();
       fixture.detectChanges();
 
       const saveBtn = await dialog.getSaveWithContextPathButton();
@@ -729,7 +727,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
 
     beforeEach(async () => {
       await createComponent(RESTRICTED_DOMAINS, API, undefined, ['api-definition-r']);
-      expectApiVerify();
+      expectApiPathVerify();
     });
     it('should not show buttons that require permissions', async () => {
       // switch to virtual host mode/context path mode
@@ -776,8 +774,12 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/settings`, method: 'GET' }).flush(settings);
   }
 
-  function expectApiVerify(): void {
+  function expectApiPathVerify(): void {
     httpTestingController.match({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_verify/paths`, method: 'POST' });
+  }
+
+  function expectApiHostVerify(): void {
+    httpTestingController.match({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_verify/hosts`, method: 'POST' });
   }
 
   function expectGetEntrypoints(): void {
