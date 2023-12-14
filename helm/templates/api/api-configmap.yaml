@@ -90,6 +90,12 @@ data:
         {{- end }}
       {{- end }}
 
+    # Secret Manager configuration
+    {{- if .Values.secrets }}
+    secrets:
+      {{- toYaml .Values.secrets | nindent 6 }}
+    {{- end }}
+
     installation:
       type: {{ include "installation.type" . }}
       api:
