@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { LICENSE_CONFIGURATION_TESTING } from '@gravitee/ui-particles-angular';
@@ -135,7 +135,7 @@ describe('ApiCreationV4Component - Message', () => {
       expect(await step21Harness.hasListenersForm()).toEqual(false);
     });
 
-    it('should not validate without path', async () => {
+    it('should not validate without path', fakeAsync(async () => {
       await stepperHelper.fillAndValidateStep1_ApiDetails('API', '1.0', 'Description');
       await stepperHelper.fillAndValidateStep2_0_EntrypointsArchitecture('MESSAGE');
       const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
@@ -155,10 +155,10 @@ describe('ApiCreationV4Component - Message', () => {
       const step21Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
       expect(await step21Harness.hasListenersForm()).toEqual(true);
       expect(await step21Harness.hasValidationDisabled()).toEqual(true);
-      httpExpects.expectVerifyContextPathGetRequest();
-    });
+      httpExpects.expectVerifyContextPath();
+    }));
 
-    it('should not validate with bad path', async () => {
+    it('should not validate with bad path', fakeAsync(async () => {
       await stepperHelper.fillAndValidateStep1_ApiDetails('API', '1.0', 'Description');
       await stepperHelper.fillAndValidateStep2_0_EntrypointsArchitecture('MESSAGE');
       const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
@@ -178,9 +178,10 @@ describe('ApiCreationV4Component - Message', () => {
       const step22Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
       await step22Harness.fillPaths('bad-path');
       expect(await step22Harness.hasValidationDisabled()).toEqual(true);
-      httpExpects.expectVerifyContextPathGetRequest();
-    });
-    it('should configure paths', async () => {
+      httpExpects.expectVerifyContextPath();
+    }));
+
+    it('should configure paths', fakeAsync(async () => {
       await stepperHelper.fillAndValidateStep1_ApiDetails('API', '1.0', 'Description');
       await stepperHelper.fillAndValidateStep2_0_EntrypointsArchitecture('MESSAGE');
       const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
@@ -204,9 +205,13 @@ describe('ApiCreationV4Component - Message', () => {
         { id: 'webhook', name: 'Webhook' },
       ]);
       httpExpects.expectApiGetPortalSettings();
+      tick(500);
+
       const step21Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
-      await step21Harness.fillPathsAndValidate('/api/my-api-3');
-      httpExpects.expectVerifyContextPathGetRequest();
+      await step21Harness.fillPaths('/api/my-api-3');
+      httpExpects.expectVerifyContextPath();
+      expect(await step21Harness.hasValidationDisabled()).toBeFalsy();
+      await step21Harness.clickValidate();
 
       expect(component.currentStep.payload.paths).toEqual([
         {
@@ -251,8 +256,9 @@ describe('ApiCreationV4Component - Message', () => {
       ]);
 
       httpExpects.expectEndpointsGetRequest([]);
-    });
-    it('should not validate with empty host', async () => {
+    }));
+
+    it('should not validate with empty host', fakeAsync(async () => {
       await stepperHelper.fillAndValidateStep1_ApiDetails('API', '1.0', 'Description');
       await stepperHelper.fillAndValidateStep2_0_EntrypointsArchitecture('MESSAGE');
       const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
@@ -273,17 +279,18 @@ describe('ApiCreationV4Component - Message', () => {
       await step21Harness.clickListenerType();
       httpExpects.expectApiGetPortalSettings();
 
-      await step21Harness.fillVirtualHostsAndValidate({ host: '', path: '/api/my-api-3' });
+      await step21Harness.fillVirtualHosts({ host: '', path: '/api/my-api-3' });
+      httpExpects.expectVerifyContextPath();
       expect(await step21Harness.hasValidationDisabled()).toEqual(true);
-      httpExpects.expectVerifyContextPathGetRequest();
-    });
+      await step21Harness.clickValidate();
+    }));
 
-    it('should configure virtual host', async () => {
+    it('should configure virtual host', fakeAsync(async () => {
       await stepperHelper.fillAndValidateStep1_ApiDetails('API', '1.0', 'Description');
       await stepperHelper.fillAndValidateStep2_0_EntrypointsArchitecture('MESSAGE');
       const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
 
-      httpExpects.expectEntrypointsGetRequest([{ id: 'sse', supportedApiType: 'MESSAGE', name: 'SSE' }]);
+      httpExpects.expectEntrypointsGetRequest([{ id: 'sse', supportedApiType: 'MESSAGE', name: 'SSE', supportedListenerType: 'HTTP' }]);
       httpExpects.expectLicenseGetRequest({ tier: '', features: [], packs: [] });
 
       await step2Harness.getAsyncEntrypoints().then((form) => form.selectOptionsByIds(['sse']));
@@ -299,8 +306,9 @@ describe('ApiCreationV4Component - Message', () => {
       await step21Harness.clickListenerType();
       httpExpects.expectApiGetPortalSettings();
 
-      await step21Harness.fillVirtualHostsAndValidate({ host: 'hostname', path: '/api/my-api-3' });
-      httpExpects.expectVerifyContextPathGetRequest();
+      await step21Harness.fillVirtualHosts({ host: 'hostname', path: '/api/my-api-3' });
+      httpExpects.expectVerifyContextPath();
+      await step21Harness.clickValidate();
 
       expect(component.currentStep.payload.paths).toEqual([
         {
@@ -327,9 +335,9 @@ describe('ApiCreationV4Component - Message', () => {
       ]);
 
       httpExpects.expectEndpointsGetRequest([]);
-    });
+    }));
 
-    it('should not allow to disable virtual host when domain restrictions are set', async () => {
+    it('should not allow to disable virtual host when domain restrictions are set', fakeAsync(async () => {
       await stepperHelper.fillAndValidateStep1_ApiDetails('API', '1.0', 'Description');
       await stepperHelper.fillAndValidateStep2_0_EntrypointsArchitecture('MESSAGE');
       const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
@@ -345,17 +353,17 @@ describe('ApiCreationV4Component - Message', () => {
       ]);
       httpExpects.expectRestrictedDomainsGetRequest(fakeRestrictedDomains(['domain.com', 'domain.net']));
       httpExpects.expectSchemaGetRequest([{ id: 'sse', name: 'SSE' }]);
-      httpExpects.expectVerifyContextPathGetRequest();
       httpExpects.expectApiGetPortalSettings();
+      httpExpects.expectVerifyContextPath();
 
       const step21Harness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
       expect(await step21Harness.canSwitchListenerMode()).toEqual(false);
       httpExpects.expectApiGetPortalSettings();
-    });
+    }));
   });
 
   describe('API Creation', () => {
-    it('should create the API', async () => {
+    it('should create the API', fakeAsync(async () => {
       await stepperHelper.fillAndValidateStep1_ApiDetails();
       await stepperHelper.fillAndValidateStep2_0_EntrypointsArchitecture();
       await stepperHelper.fillAndValidateStep2_1_EntrypointsList('MESSAGE');
@@ -380,6 +388,6 @@ describe('ApiCreationV4Component - Message', () => {
 
       const step4Summary = await step5Harness.getStepSummaryTextContent(4);
       expect(step4Summary).toContain('Update name' + 'KEY_LESS');
-    });
+    }));
   });
 });

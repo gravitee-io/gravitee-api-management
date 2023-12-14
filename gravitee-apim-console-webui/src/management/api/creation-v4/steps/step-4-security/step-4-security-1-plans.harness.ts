@@ -18,6 +18,7 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { MatMenuHarness } from '@angular/material/menu/testing';
+import { tick } from '@angular/core/testing';
 
 import { ApiPlanFormHarness } from '../../../component/plan/api-plan-form.harness';
 import { fakeGroup } from '../../../../../entities/group/group.fixture';
@@ -113,6 +114,7 @@ export class Step4Security1PlansHarness extends ComponentHarness {
     expect(req.length).toEqual(1);
     req[0].flush({});
 
+    tick(1000);
     await (await this.getButtonByText('Save changes')).click();
   }
 
