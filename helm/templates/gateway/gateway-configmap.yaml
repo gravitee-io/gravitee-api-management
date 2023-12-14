@@ -449,9 +449,9 @@ data:
       unit: {{ .Values.gateway.gracefulShutdown.unit }}
 
     # Secret Manager configuration
-    {{- if .Values.gateway.secrets }}
+    {{- if .Values.secrets }}
     secrets:
-      {{- toYaml .Values.gateway.secrets | nindent 6 }}
+      {{- toYaml .Values.secrets | nindent 6 }}
     {{- end }}
 
     # Old class loader behavior, false by default
