@@ -15,14 +15,18 @@
  */
 import { Component, forwardRef, Input } from '@angular/core';
 import {
-  AbstractControl,
-  UntypedFormControl,
-  UntypedFormGroup,
+  AsyncValidatorFn,
   NG_ASYNC_VALIDATORS,
   NG_VALUE_ACCESSOR,
+  UntypedFormArray,
+  UntypedFormControl,
+  UntypedFormGroup,
   ValidationErrors,
+  ValidatorFn,
 } from '@angular/forms';
 import { escapeRegExp, isEmpty } from 'lodash';
+import { Observable, of, timer } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 
 import { GioFormListenersContextPathComponent } from '../gio-form-listeners-context-path/gio-form-listeners-context-path.component';
 import { PathV4 } from '../../../../../entities/management-api-v2';
@@ -56,14 +60,17 @@ export class GioFormListenersVirtualHostComponent extends GioFormListenersContex
   public newListenerFormGroup(listener: PathV4): UntypedFormGroup {
     const { host, hostDomain } = extractDomainToHost(listener?.host, this.domainRestrictions);
 
-    return new UntypedFormGroup({
-      host: new UntypedFormControl(listener?.host || ''),
-      // Private controls for internal process
-      _hostSubDomain: new UntypedFormControl(host || ''),
-      _hostDomain: new UntypedFormControl(hostDomain || ''),
-      path: new UntypedFormControl(listener.path),
-      overrideAccess: new UntypedFormControl(listener.overrideAccess || false),
-    });
+    return new UntypedFormGroup(
+      {
+        host: new UntypedFormControl(listener?.host || ''),
+        // Private controls for internal process
+        _hostSubDomain: new UntypedFormControl(host || ''),
+        _hostDomain: new UntypedFormControl(hostDomain || ''),
+        path: new UntypedFormControl(listener.path, { validators: [super.validateGenericPathListenerControl()] }),
+        overrideAccess: new UntypedFormControl(listener.overrideAccess || false),
+      },
+      { validators: [this.validateListenerControl()], asyncValidators: [this.listenersAsyncValidator()] },
+    );
   }
 
   // From ControlValueAccessor interface
@@ -77,40 +84,36 @@ export class GioFormListenersVirtualHostComponent extends GioFormListenersContex
       );
   }
 
-  validateListenerControl(listenerControl: AbstractControl, httpListeners: PathV4[], currentIndex: number): ValidationErrors | null {
-    const inheritErrors = super.validateGenericPathListenerControl();
-    const subDomainControl = listenerControl.get('_hostSubDomain');
-    const domainControl = listenerControl.get('_hostDomain');
-    const contextPathControl = listenerControl.get('path');
-    const contextPath = contextPathControl.value;
-    const fullHost = combineSubDomainWithDomain(subDomainControl.value, domainControl.value);
+  validateListenerControl(): ValidatorFn {
+    return (formGroup: UntypedFormGroup): ValidationErrors | null => {
+      if (formGroup.pristine) {
+        return null;
+      }
 
-    // When no domain restrictions, host is required
-    if (isEmpty(this.domainRestrictions) && isEmpty(subDomainControl.value)) {
-      const errors = { host: 'Host is required.' };
-      setTimeout(() => subDomainControl.setErrors(errors), 0);
-      return { ...inheritErrors, ...errors };
-    }
+      const subDomainControl = formGroup.get('_hostSubDomain');
+      const domainControl = formGroup.get('_hostDomain');
+      const fullHost = combineSubDomainWithDomain(subDomainControl.value, domainControl.value);
 
-    if (!isEmpty(this.domainRestrictions) && !this.domainRestrictions.some((domainRestriction) => fullHost.endsWith(domainRestriction))) {
-      const errors = { host: 'Host is not valid (must end with one of restriction domain).' };
-      setTimeout(() => subDomainControl.setErrors(errors), 0);
-      return { ...inheritErrors, ...errors };
-    }
+      // When no domain restrictions, host is required
+      if (isEmpty(this.domainRestrictions) && isEmpty(subDomainControl.value)) {
+        return { host: 'Host is required.' };
+      }
 
-    // Check host is not already defined
-    if (
-      httpListeners.find(
-        (httpListener, index) => index !== currentIndex && httpListener.path === contextPath && httpListener.host === fullHost,
-      ) != null
-    ) {
-      const error = { contextPath: 'Context path is already use.' };
-      setTimeout(() => contextPathControl.setErrors(error), 0);
-      return { ...inheritErrors, ...error };
-    }
+      if (!isEmpty(this.domainRestrictions) && !this.domainRestrictions.some((domainRestriction) => fullHost.endsWith(domainRestriction))) {
+        return { host: 'Host is not valid (must end with one of restriction domain).' };
+      }
+    };
+  }
 
-    setTimeout(() => subDomainControl.setErrors(null), 0);
-    return inheritErrors;
+  public listenersValidator(): ValidatorFn {
+    return (formArray: UntypedFormArray): ValidationErrors | null => {
+      const listenerFormArrayControls = formArray.controls;
+      const listenerValues = listenerFormArrayControls.map((listener) => ({ path: listener.value?.path, host: listener.value?.host }));
+      if (new Set(listenerValues.map((value) => JSON.stringify(value))).size !== listenerValues.length) {
+        return { contextPath: 'Duplicated virtual host not allowed' };
+      }
+      return null;
+    };
   }
 
   protected getValue(): PathV4[] {
@@ -120,6 +123,25 @@ export class GioFormListenersVirtualHostComponent extends GioFormListenersContex
         host: combineSubDomainWithDomain(control.get('_hostSubDomain').value, control.get('_hostDomain').value),
       };
     });
+  }
+
+  public listenersAsyncValidator(): AsyncValidatorFn {
+    return (formGroup: UntypedFormGroup): Observable<ValidationErrors | null> => {
+      if (formGroup && formGroup.dirty) {
+        return timer(250).pipe(
+          switchMap(() =>
+            this.apiV2Service.verifyPath(this.apiId, [
+              {
+                path: formGroup.getRawValue().path,
+                host: combineSubDomainWithDomain(formGroup.get('_hostSubDomain').value, formGroup.get('_hostDomain').value),
+              },
+            ]),
+          ),
+          map((res) => (res.ok ? null : { listeners: res.reason })),
+        );
+      }
+      return of(null);
+    };
   }
 }
 

@@ -90,7 +90,7 @@ describe('ApiProxyEntrypointsComponent', () => {
       expect(await contextPathInput.getValue()).toEqual('/path');
 
       await contextPathInput.setValue('/new-path');
-      expectVerifyContextPathGetRequest();
+      expectVerifyContextPath();
 
       expect(await saveButton.isDisabled()).toEqual(false);
       await saveButton.click();
@@ -105,7 +105,6 @@ describe('ApiProxyEntrypointsComponent', () => {
       const api = fakeApiV2({ id: API_ID, proxy: { virtualHosts: [{ path: '/path' }] }, definitionContext: { origin: 'KUBERNETES' } });
       expectApiGetRequest(api);
       expectApiGetPortalSettings();
-      expectVerifyContextPathGetRequest();
 
       const saveButton = await loader.getAllHarnesses(MatButtonHarness.with({ text: 'Save changes' }));
       expect(saveButton.length).toEqual(0);
@@ -113,13 +112,13 @@ describe('ApiProxyEntrypointsComponent', () => {
       const formListenersContextPathHarness = await loader.getHarness(GioFormListenersContextPathHarness);
       const contextPathInput = await formListenersContextPathHarness.getLastListenerRow().then((row) => row.pathInput);
       expect(await contextPathInput.isDisabled()).toEqual(true);
+      expectVerifyContextPath();
     });
 
     it('should disable field when API definition version is V1', async () => {
       const api = fakeApiV1({ id: API_ID, proxy: { virtualHosts: [{ path: '/path' }] } });
       expectApiGetRequest(api);
       expectApiGetPortalSettings();
-      expectVerifyContextPathGetRequest();
 
       const saveButton = await loader.getAllHarnesses(MatButtonHarness.with({ text: 'Save changes' }));
       expect(await saveButton.length).toEqual(0);
@@ -127,17 +126,18 @@ describe('ApiProxyEntrypointsComponent', () => {
       const formListenersContextPathHarness = await loader.getHarness(GioFormListenersContextPathHarness);
       const contextPathInput = await formListenersContextPathHarness.getLastListenerRow().then((row) => row.pathInput);
       expect(await contextPathInput.isDisabled()).toEqual(true);
+      expectVerifyContextPath();
     });
 
     it('should switch to virtual-host mode', async () => {
       const api = fakeApiV2({ id: API_ID });
       expectApiGetRequest(api);
-      expectVerifyContextPathGetRequest();
       const switchButton = await loader.getHarness(MatButtonHarness.with({ text: 'Enable virtual hosts' }));
       expect(await switchButton.isDisabled()).toEqual(false);
       await switchButton.click();
 
       expectApiGetPortalSettings();
+      expectVerifyContextPath();
       expect(await switchButton.getText()).toEqual('Disable virtual hosts');
     });
   });
@@ -182,7 +182,7 @@ describe('ApiProxyEntrypointsComponent', () => {
 
       // Expect fetch api get and update proxy
       expectApiGetRequest(api);
-      expectVerifyContextPathGetRequest();
+      expectVerifyContextPath();
 
       const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
       expect(req.request.body.proxy.virtualHosts).toEqual([
@@ -212,7 +212,7 @@ describe('ApiProxyEntrypointsComponent', () => {
       });
       expectApiGetRequest(api);
       expectApiGetPortalSettings();
-      expectVerifyContextPathGetRequest();
+      expectVerifyContextPath();
 
       const saveButton = await loader.getAllHarnesses(MatButtonHarness.with({ text: 'Save changes' }));
       expect(saveButton.length).toBe(0);
@@ -243,7 +243,7 @@ describe('ApiProxyEntrypointsComponent', () => {
       });
       expectApiGetRequest(api);
       expectApiGetPortalSettings();
-      expectVerifyContextPathGetRequest();
+      expectVerifyContextPath();
 
       const saveButton = await loader.getAllHarnesses(MatButtonHarness.with({ text: 'Save changes' }));
       expect(saveButton.length).toBe(0);
@@ -274,7 +274,7 @@ describe('ApiProxyEntrypointsComponent', () => {
       });
       expectApiGetRequest(api);
       expectApiGetPortalSettings();
-      expectVerifyContextPathGetRequest();
+      expectVerifyContextPath();
 
       const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save changes' }));
       expect(await saveButton.isDisabled()).toBe(true);
@@ -285,7 +285,7 @@ describe('ApiProxyEntrypointsComponent', () => {
       const { hostSubDomainInput, pathInput } = await formListenersContextPathHarness.getLastListenerRow();
       await hostSubDomainInput.setValue('host-bar');
       await pathInput.setValue('/path-bar');
-      expectVerifyContextPathGetRequest();
+      expectVerifyContextPath();
 
       expect(await saveButton.isDisabled()).toEqual(false);
       await saveButton.click();
@@ -319,7 +319,7 @@ describe('ApiProxyEntrypointsComponent', () => {
       });
       expectApiGetRequest(api);
       expectApiGetPortalSettings();
-      expectVerifyContextPathGetRequest();
+      expectVerifyContextPath();
 
       const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save changes' }));
       expect(await saveButton.isDisabled()).toBe(true);
@@ -327,7 +327,7 @@ describe('ApiProxyEntrypointsComponent', () => {
       const formListenersContextPathHarness = await loader.getHarness(GioFormListenersVirtualHostHarness);
       const { removeButton } = (await formListenersContextPathHarness.getListenerRows())[0];
       await removeButton.click();
-      expectVerifyContextPathGetRequest();
+      expectVerifyContextPath();
 
       expect(await saveButton.isDisabled()).toEqual(false);
       await saveButton.click();
@@ -348,7 +348,7 @@ describe('ApiProxyEntrypointsComponent', () => {
       const api = fakeApiV2({ id: API_ID, proxy: { virtualHosts: [{ path: '/path-foo', host: 'host.io' }, { path: '/path-bar' }] } });
       expectApiGetRequest(api);
       expectApiGetPortalSettings();
-      expectVerifyContextPathGetRequest();
+      expectVerifyContextPath();
 
       const switchButton = await loader.getHarness(MatButtonHarness.with({ text: 'Disable virtual hosts' }));
       await switchButton.click();
@@ -357,7 +357,7 @@ describe('ApiProxyEntrypointsComponent', () => {
       const confirmDialogSwitchButton = await confirmDialog.getHarness(MatButtonHarness.with({ text: 'Switch' }));
       await confirmDialogSwitchButton.click();
       expectApiGetPortalSettings();
-      expectVerifyContextPathGetRequest();
+      expectVerifyContextPath();
 
       expect(await switchButton.getText()).toEqual('Enable virtual hosts');
 
@@ -391,7 +391,7 @@ describe('ApiProxyEntrypointsComponent', () => {
       });
       expectApiGetRequest(api);
       expectApiGetPortalSettings();
-      expectVerifyContextPathGetRequest();
+      expectVerifyContextPath();
 
       const saveButton = await loader.getHarness(MatButtonHarness.with({ text: 'Save changes' }));
       expect(await saveButton.isDisabled()).toBe(true);
@@ -411,7 +411,7 @@ describe('ApiProxyEntrypointsComponent', () => {
       // Update /path-joe host
       const secondRow = (await formListenersContextPathHarness.getListenerRows())[2];
       await secondRow.hostSubDomainInput.setValue('a.fox.io');
-      expectVerifyContextPathGetRequest();
+      expectVerifyContextPath();
 
       expect(await saveButton.isDisabled()).toEqual(false);
       await saveButton.click();
@@ -442,7 +442,7 @@ describe('ApiProxyEntrypointsComponent', () => {
       const api = fakeApiV2({ id: API_ID, proxy: { virtualHosts: [{ path: '/path-foo', host: 'host.io' }, { path: '/path-bar' }] } });
       expectApiGetRequest(api);
       expectApiGetPortalSettings();
-      expectVerifyContextPathGetRequest();
+      expectVerifyContextPath();
 
       const switchButton = await loader.getAllHarnesses(MatButtonHarness.with({ text: 'Disable virtual hosts' }));
       expect(switchButton.length).toEqual(0);
@@ -472,7 +472,7 @@ describe('ApiProxyEntrypointsComponent', () => {
     fixture.detectChanges();
   }
 
-  function expectVerifyContextPathGetRequest() {
+  function expectVerifyContextPath() {
     httpTestingController.match({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_verify/paths`, method: 'POST' });
   }
 });

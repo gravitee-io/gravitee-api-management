@@ -20,6 +20,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { HttpTestingController } from '@angular/common/http/testing';
 
 import { GioFormListenersVirtualHostModule } from './gio-form-listeners-virtual-host.module';
 import { GioFormListenersVirtualHostHarness } from './gio-form-listeners-virtual-host.harness';
@@ -43,6 +44,7 @@ describe('GioFormListenersVirtualHostModule', () => {
   let fixture: ComponentFixture<TestComponent>;
   let loader: HarnessLoader;
   let testComponent: TestComponent;
+  let httpTestingController: HttpTestingController;
 
   const LISTENERS = [
     {
@@ -71,6 +73,7 @@ describe('GioFormListenersVirtualHostModule', () => {
     fixture = TestBed.createComponent(TestComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
     testComponent = fixture.componentInstance;
+    httpTestingController = TestBed.inject(HttpTestingController);
   });
 
   it('should display virtual hosts', async () => {
@@ -154,15 +157,21 @@ describe('GioFormListenersVirtualHostModule', () => {
     const formVirtualHosts = await loader.getHarness(GioFormListenersVirtualHostHarness);
 
     expect((await formVirtualHosts.getListenerRows()).length).toEqual(1);
+    expectApiVerify();
 
     // Add path on last path row
     const emptyLastContextPathRow = await formVirtualHosts.getLastListenerRow();
     await emptyLastContextPathRow.pathInput.setValue('/api/my-api-3');
+    expectApiVerify();
 
-    const hostTestElement = await emptyLastContextPathRow.hostSubDomainInput.host();
-    expect(await hostTestElement.hasClass('ng-invalid')).toEqual(true);
+    const formGroup = await formVirtualHosts.host();
+    expect(await formGroup.hasClass('ng-invalid')).toEqual(true);
+
     await emptyLastContextPathRow.hostSubDomainInput.setValue('aa.com');
-    expect(await hostTestElement.hasClass('ng-invalid')).toEqual(false);
+    expect(await formGroup.hasClass('ng-invalid')).toEqual(false);
+
+    await emptyLastContextPathRow.hostSubDomainInput.setValue(null);
+    expect(await formGroup.hasClass('ng-invalid')).toEqual(true);
   });
 
   it('should accept empty context path with virtual host', async () => {
@@ -173,12 +182,13 @@ describe('GioFormListenersVirtualHostModule', () => {
     // Add path on last path row
     const emptyLastContextPathRow = await formVirtualHosts.getLastListenerRow();
     await emptyLastContextPathRow.pathInput.setValue('/');
+    expectApiVerify();
 
-    const hostSubDomainTestElement = await emptyLastContextPathRow.hostSubDomainInput.host();
+    const formGroup = await formVirtualHosts.host();
     const pathTestElement = await emptyLastContextPathRow.pathInput.host();
-    expect(await hostSubDomainTestElement.hasClass('ng-invalid')).toEqual(true);
+    expect(await formGroup.hasClass('ng-invalid')).toEqual(true);
     await emptyLastContextPathRow.hostSubDomainInput.setValue('dd.aa.com');
-    expect(await hostSubDomainTestElement.hasClass('ng-invalid')).toEqual(false);
+    expect(await formGroup.hasClass('ng-invalid')).toEqual(false);
     // should accept empty path as valid for virtual host
     expect(await pathTestElement.hasClass('ng-invalid')).toEqual(false);
   });
@@ -307,4 +317,11 @@ describe('GioFormListenersVirtualHostModule', () => {
       .then((_) => fail('The add button should not appear'))
       .catch((err) => expect(err).toBeTruthy());
   });
+
+  const expectApiVerify = (inError = false) => {
+    httpTestingController
+      .match({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_verify/paths`, method: 'POST' })
+      .filter((r) => !r.cancelled)
+      .map((c) => c.flush({ ok: !inError, reason: inError ? 'error reason' : '' }));
+  };
 });
