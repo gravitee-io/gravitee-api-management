@@ -1,0 +1,14 @@
+{{- if .Values.networkPolicy }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Release.Name }}-networkpolicy
+  labels:
+    app.kubernetes.io/name: {{ template "gravitee.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    app.kubernetes.io/component: "{{ .Values.apim.name }}"
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  {{ toYaml .Values.networkPolicy | nindent 2 }}
+{{- end -}}

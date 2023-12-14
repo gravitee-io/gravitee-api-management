@@ -35,6 +35,23 @@ installation:
 #        - envId: 808a51a9-48f5-4517-8a51-a948f5e517b3
 #          url: https://4-2-x-multi-console.portal2.team-apim.gravitee.dev
 
+# Create NetworkPolicy objects
+# https://kubernetes.io/docs/concepts/services-networking/network-policies/
+networkPolicy:
+#  podSelector:
+#    matchExpressions:
+#      - key: app.kubernetes.io/component
+#        operator: In
+#        values: [ "gateway", "api", "ui", "portal" ]
+#  policyTypes:
+#    - Egress
+#  egress:
+#    - to:
+#        - ipBlock:
+#            cidr: 0.0.0.0/0
+#            except:
+#              - 169.254.169.254/32
+
 apim:
   name: apim
   # Whether this chart should self-manage its service account, role, and associated role binding.

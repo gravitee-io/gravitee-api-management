@@ -22,4 +22,5 @@ annotations:
     - Update regex for portal and console base_href
     - 'fix: license deleted after helm upgrade https://github.com/gravitee-io/issues/issues/9411'
     - 'fix AE system mail notification without keystore'
-
+    - Add networkPolicy
+    - Add support for Secret Manager's configuration
