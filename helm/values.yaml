@@ -16,6 +16,23 @@ extraObjects: []
   #  data:
   #    license.key: myLicenceInBase64==
 
+# Create NetworkPolicy objects
+# https://kubernetes.io/docs/concepts/services-networking/network-policies/
+networkPolicy:
+#  podSelector:
+#    matchExpressions:
+#      - key: app.kubernetes.io/component
+#        operator: In
+#        values: [ "gateway", "api", "ui", "portal" ]
+#  policyTypes:
+#    - Egress
+#  egress:
+#    - to:
+#        - ipBlock:
+#            cidr: 0.0.0.0/0
+#            except:
+#              - 169.254.169.254/32
+
 apim:
   name: apim
   # Whether this chart should self-manage its service account, role, and associated role binding.
