@@ -258,7 +258,7 @@
         <gravitee-resource-oauth2-provider-keycloak.version>1.9.2</gravitee-resource-oauth2-provider-keycloak.version>
         <gravitee-service-geoip.version>3.0.0</gravitee-service-geoip.version>
         <!-- For 4.2 release the repo of this plugin should be made public -->
-        <gravitee-secretprovider-kubernetes.version>1.0.0-alpha.4</gravitee-secretprovider-kubernetes.version>
+        <gravitee-secretprovider-kubernetes.version>1.0.1</gravitee-secretprovider-kubernetes.version>
 
         <!-- Enterprise plugins -->
         <gravitee-entrypoint-http-get.version>1.1.0</gravitee-entrypoint-http-get.version>
@@ -273,7 +273,7 @@
         <gravitee-resource-schema-registry-confluent.version>2.0.0</gravitee-resource-schema-registry-confluent.version>
         <gravitee-reactor-message.version>2.0.0</gravitee-reactor-message.version>
         <gravitee-repository-bridge.version>4.2.0</gravitee-repository-bridge.version>
-        <gravitee-secretprovider-hc-vault.version>1.0.0-alpha.3</gravitee-secretprovider-hc-vault.version>
+        <gravitee-secretprovider-hc-vault.version>1.0.0</gravitee-secretprovider-hc-vault.version>
 
         <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
         <archunit-junit5.version>1.1.0</archunit-junit5.version>
