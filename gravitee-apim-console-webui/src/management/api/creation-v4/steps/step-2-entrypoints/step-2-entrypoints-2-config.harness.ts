@@ -86,11 +86,6 @@ export class Step2Entrypoints2ConfigHarness extends ComponentHarness {
     }
   }
 
-  async fillPathsAndValidate(...paths: string[]) {
-    await this.fillPaths(...paths);
-    await this.clickValidate();
-  }
-
   async fillHosts(...hosts: string[]) {
     const formHosts = await this.locatorFor(GioFormListenersTcpHostsHarness.with())();
 
@@ -107,7 +102,7 @@ export class Step2Entrypoints2ConfigHarness extends ComponentHarness {
     }
   }
 
-  async fillVirtualHostsAndValidate(...virtualHosts: { path: string; host: string }[]) {
+  async fillVirtualHosts(...virtualHosts: { path: string; host: string }[]) {
     const formVirtualHosts = await this.locatorFor(GioFormListenersVirtualHostHarness.with())();
 
     const fistVirtualHost = virtualHosts.shift();
@@ -118,8 +113,6 @@ export class Step2Entrypoints2ConfigHarness extends ComponentHarness {
     for (const virtualHost of virtualHosts) {
       await formVirtualHosts.addListener(virtualHost);
     }
-
-    await this.clickValidate();
   }
 
   async selectQos(entrypointId: string, qos: Qos) {
