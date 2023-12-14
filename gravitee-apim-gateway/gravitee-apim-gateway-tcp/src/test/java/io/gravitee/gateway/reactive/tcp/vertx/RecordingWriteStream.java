@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.tcp.reactive.vertx;
+package io.gravitee.gateway.reactive.tcp.vertx;
 
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Stream;
 
 /**
  * @author Thomas Segismont

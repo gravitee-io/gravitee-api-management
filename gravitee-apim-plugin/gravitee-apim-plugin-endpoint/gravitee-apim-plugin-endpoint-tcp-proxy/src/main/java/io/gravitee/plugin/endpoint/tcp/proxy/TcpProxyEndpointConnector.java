@@ -22,7 +22,7 @@ import io.gravitee.gateway.reactive.api.ConnectorMode;
 import io.gravitee.gateway.reactive.api.connector.Connector;
 import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnector;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
-import io.gravitee.gateway.tcp.reactive.VertxReadStreamUtil;
+import io.gravitee.gateway.reactive.tcp.VertxReadStreamUtil;
 import io.gravitee.plugin.endpoint.tcp.proxy.configuration.TcpProxyEndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.tcp.proxy.configuration.TcpProxyEndpointConnectorSharedConfiguration;
 import io.reactivex.rxjava3.core.Completable;
@@ -30,7 +30,6 @@ import io.vertx.core.net.NetClientOptions;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.net.NetClient;
 import java.util.Set;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Benoit BORDIGONI (benoit.bordigoni at graviteesource.com)

@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.tcp.reactive;
+package io.gravitee.gateway.reactive.tcp;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.IdGenerator;
 import io.gravitee.common.utils.UUID;
+import io.gravitee.gateway.reactive.tcp.VertxTcpRequest;
 import io.reactivex.rxjava3.core.Flowable;
 import io.vertx.rxjava3.core.net.NetSocket;
 import io.vertx.rxjava3.core.net.SocketAddress;
