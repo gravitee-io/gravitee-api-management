@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.v4.impl.validation;
 
+import io.gravitee.apim.core.api.domain_service.VerifyApiHostsDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.infra.adapter.PathAdapter;
 import io.gravitee.definition.model.v4.ApiType;
@@ -58,17 +59,20 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
     private final EntrypointConnectorPluginService entrypointService;
     private final EndpointConnectorPluginService endpointService;
     private final CorsValidationService corsValidationService;
+    private final VerifyApiHostsDomainService verifyApiHostsDomainService;
 
     public ListenerValidationServiceImpl(
         final VerifyApiPathDomainService verifyApiPathDomainService,
         final EntrypointConnectorPluginService entrypointService,
         EndpointConnectorPluginService endpointService,
-        final CorsValidationService corsValidationService
+        final CorsValidationService corsValidationService,
+        final VerifyApiHostsDomainService verifyApiHostsDomainService
     ) {
         this.verifyApiPathDomainService = verifyApiPathDomainService;
         this.entrypointService = entrypointService;
         this.endpointService = endpointService;
         this.corsValidationService = corsValidationService;
+        this.verifyApiHostsDomainService = verifyApiHostsDomainService;
     }
 
     @Override
@@ -89,7 +93,7 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
                         validateAndSanitizeSubscriptionListener((SubscriptionListener) listener, endpointGroups);
                         break;
                     case TCP:
-                        validateAndSanitizeTcpListener((TcpListener) listener, endpointGroups);
+                        validateAndSanitizeTcpListener(executionContext, apiId, (TcpListener) listener, endpointGroups);
                         break;
                     default:
                         break;
@@ -131,19 +135,14 @@ public class ListenerValidationServiceImpl extends TransactionalService implemen
         httpListener.setCors(corsValidationService.validateAndSanitize(httpListener.getCors()));
     }
 
-    private void validateAndSanitizeTcpListener(final TcpListener listener, final List<EndpointGroup> endpointGroups) {
-        if (listener.getHosts() == null) {
-            throw new TcpListenerInvalidHostsConfigurationException("hosts property is mandatory on a TCP listener");
-        }
-        if (listener.getHosts().isEmpty()) {
-            throw new TcpListenerInvalidHostsConfigurationException("hosts property should not be empty");
-        }
-        if (listener.getHosts().stream().anyMatch(host -> host == null || host.isBlank())) {
-            throw new TcpListenerInvalidHostsConfigurationException("hosts property should contain domain names");
-        }
-        if (listener.getHosts().size() > listener.getHosts().stream().distinct().count()) {
-            throw new TcpListenerInvalidHostsConfigurationException("hosts property should not contain duplicated host names");
-        }
+    private void validateAndSanitizeTcpListener(
+        final ExecutionContext executionContext,
+        final String apiId,
+        final TcpListener listener,
+        final List<EndpointGroup> endpointGroups
+    ) {
+        verifyApiHostsDomainService.checkApiHosts(executionContext.getEnvironmentId(), apiId, listener.getHosts());
+
         validateEntrypoints(listener.getType(), listener.getEntrypoints(), endpointGroups);
     }
 

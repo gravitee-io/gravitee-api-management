@@ -19,14 +19,15 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
-import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.api.domain_service.ApiHostValidatorDomainService;
+import io.gravitee.apim.core.api.domain_service.VerifyApiHostsDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
+import io.gravitee.apim.core.api.exception.InvalidHostException;
 import io.gravitee.apim.core.api.exception.InvalidPathsException;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
@@ -56,20 +57,15 @@ import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointUnsupportedDl
 import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointUnsupportedListenerTypeException;
 import io.gravitee.rest.api.service.v4.exception.ListenerEntrypointUnsupportedQosException;
 import io.gravitee.rest.api.service.v4.exception.ListenersDuplicatedException;
-import io.gravitee.rest.api.service.v4.exception.TcpListenerInvalidHostsConfigurationException;
 import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -101,6 +97,9 @@ class ListenerValidationServiceImplTest {
     @Mock
     ApiHostValidatorDomainService apiHostValidatorDomainService;
 
+    @Mock
+    VerifyApiHostsDomainService verifyApiHostsDomainService;
+
     @BeforeEach
     void setUp() throws Exception {
         lenient().when(installationAccessQueryService.getGatewayRestrictedDomains(any())).thenReturn(List.of());
@@ -112,7 +111,8 @@ class ListenerValidationServiceImplTest {
                 new VerifyApiPathDomainService(apiQueryService, installationAccessQueryService, apiHostValidatorDomainService),
                 entrypointService,
                 endpointService,
-                corsValidationService
+                corsValidationService,
+                verifyApiHostsDomainService
             );
     }
 
@@ -588,32 +588,18 @@ class ListenerValidationServiceImplTest {
             );
     }
 
-    static Stream<Arguments> failingTcpListeners() {
-        var listOfNull = new ArrayList<String>();
-        listOfNull.add(null);
-        var listContainingNull = new ArrayList<String>();
-        listContainingNull.add("localhost");
-        listContainingNull.add(null);
-        return Stream.of(
-            arguments("no hosts", new TcpListener()),
-            arguments("empty hosts", new TcpListener().setHosts(List.of())),
-            arguments("null string hosts", new TcpListener().setHosts(listOfNull)),
-            arguments("empty string hosts", new TcpListener().setHosts(List.of(""))),
-            arguments("blank string hosts", new TcpListener().setHosts(List.of(" \t"))),
-            arguments("null amongst valid", new TcpListener().setHosts(listContainingNull)),
-            arguments("empty amongst valid", new TcpListener().setHosts(List.of("localhost", ""))),
-            arguments("blank amongst valid", new TcpListener().setHosts(List.of("localhost", "   "))),
-            arguments("duplicated hosts", new TcpListener().setHosts(List.of("localhost", "localhost"))),
-            arguments("duplicated hosts amongst valid host", new TcpListener().setHosts(List.of("www.acme.com", "localhost", "localhost")))
-        );
-    }
+    @Test
+    void should_throw_error_when_tcp_listener_hosts_are_not_valid() {
+        when(verifyApiHostsDomainService.checkApiHosts(any(), any(), any())).thenThrow(new InvalidHostException("invalid hosts"));
 
-    @MethodSource("failingTcpListeners")
-    @ParameterizedTest(name = "{0}")
-    void should_throw_error_when_host_is_empty_on_tcp_listener(String _name, TcpListener listener) {
-        assertThatExceptionOfType(TcpListenerInvalidHostsConfigurationException.class)
+        assertThatExceptionOfType(InvalidHostException.class)
             .isThrownBy(() ->
-                listenerValidationService.validateAndSanitize(GraviteeContext.getExecutionContext(), null, List.of(listener), emptyList())
+                listenerValidationService.validateAndSanitize(
+                    GraviteeContext.getExecutionContext(),
+                    null,
+                    List.of(TcpListener.builder().hosts(List.of("")).build()),
+                    emptyList()
+                )
             );
     }
 
