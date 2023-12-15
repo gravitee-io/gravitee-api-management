@@ -303,7 +303,7 @@ describe('OrgSettingsUserDetailComponent', () => {
     const saveBar = await loader.getHarness(GioSaveBarHarness);
     await saveBar.clickSubmit();
 
-    expectUpdateUserRolesRequest(user.id, ['roleOrgUserId', 'roleOrgAdminId']);
+    expectUpdateUserRolesRequest(user.id, 'organization-id', 'ORGANIZATION', ['roleOrgUserId', 'roleOrgAdminId']);
   });
 
   it('should save environments roles', async () => {
@@ -338,7 +338,7 @@ describe('OrgSettingsUserDetailComponent', () => {
     const saveBar = await loader.getHarness(GioSaveBarHarness);
     await saveBar.clickSubmit();
 
-    expectUpdateUserRolesRequest(user.id, ['roleEnvApiId', 'roleEnvUserId']);
+    expectUpdateUserRolesRequest(user.id, 'environmentAlphaId', 'ENVIRONMENT', ['roleEnvApiId', 'roleEnvUserId']);
   });
 
   it('should save group roles', async () => {
@@ -682,9 +682,11 @@ describe('OrgSettingsUserDetailComponent', () => {
     fixture.detectChanges();
   }
 
-  function expectUpdateUserRolesRequest(userId: string, roles: string[]) {
+  function expectUpdateUserRolesRequest(userId: string, referenceId: string, referenceType: string, roles: string[]) {
     const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/users/${userId}/roles`);
     expect(req.request.method).toEqual('PUT');
+    expect(req.request.body.referenceType).toEqual(referenceType);
+    expect(req.request.body.referenceId).toEqual(referenceId);
     expect(req.request.body.roles).toEqual(roles);
     req.flush(null);
   }

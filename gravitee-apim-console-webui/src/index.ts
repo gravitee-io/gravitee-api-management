@@ -135,6 +135,7 @@ function prepareConstants(bootstrap: any): any {
   // Setup organization
   constants.org = {};
   const organizationId = bootstrap.organizationId;
+  constants.org.id = organizationId;
   constants.org.baseURL = `${constants.baseURL}/organizations/${organizationId}`;
   constants.org.v2BaseURL = `${constants.v2BaseURL}/organizations/${organizationId}`;
 

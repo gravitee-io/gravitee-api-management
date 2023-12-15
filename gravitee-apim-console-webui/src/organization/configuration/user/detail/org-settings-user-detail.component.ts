@@ -45,6 +45,7 @@ import { gioTableFilterCollection } from '../../../../shared/components/gio-tabl
 import { UserHelper } from '../../../../entities/user/userHelper';
 import { Token } from '../../../../entities/user/userTokens';
 import { UsersTokenService } from '../../../../services-ngx/users-token.service';
+import { Constants } from '../../../../entities/Constants';
 
 interface UserVM extends User {
   organizationRoles: string;
@@ -138,6 +139,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
     private readonly environmentService: EnvironmentService,
     private readonly matDialog: MatDialog,
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
+    @Inject('Constants') private readonly constants: Constants,
   ) {}
 
   ngOnInit(): void {
@@ -230,7 +232,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
     if (this.organizationRolesControl.dirty) {
       observableToZip.push(
         this.usersService
-          .updateUserRoles(this.user.id, 'ORGANIZATION', 'DEFAULT', this.organizationRolesControl.value)
+          .updateUserRoles(this.user.id, 'ORGANIZATION', this.constants.org.id, this.organizationRolesControl.value)
           .pipe(takeUntil(this.unsubscribe$)),
       );
     }
