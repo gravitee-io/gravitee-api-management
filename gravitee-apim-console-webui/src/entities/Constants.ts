@@ -26,6 +26,7 @@ export interface Constants {
     settings?: EnvSettings;
   };
   org?: {
+    id: string;
     environments: Environment[];
     currentEnv: Environment;
     settings?: ConsoleSettings;
