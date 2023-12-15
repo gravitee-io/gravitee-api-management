@@ -1,3 +1,5 @@
+package io.gravitee.definition.model.v4.tcp;
+
 /*
  * Copyright © 2015 The Gravitee team (http://gravitee.io)
  *
@@ -13,18 +15,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.plugin.endpoint.tcp.proxy.configuration;
-
-import lombok.Data;
+import java.io.Serializable;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
- * @author Benoit BORDIGONI (benoit.bordigoni at graviteesource.com)
+ * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Data
-public class TcpClientOptions {
+@Getter
+@Setter
+public class TcpProxyOptions implements Serializable {
 
-    int connectTimeout = 3000;
-    private int reconnectAttempts = 5;
-    private int reconnectInterval = 1000;
+    private static final long serialVersionUID = 6710746676968205250L;
+
+    private boolean enabled;
+
+    private boolean useSystemProxy;
+
+    private String host;
+
+    private int port;
+
+    private String username;
+
+    private String password;
+
+    private TcpProxyType type = TcpProxyType.SOCKS5;
 }

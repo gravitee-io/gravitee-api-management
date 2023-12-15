@@ -16,6 +16,7 @@
 package io.gravitee.plugin.endpoint.tcp.proxy;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,6 +27,7 @@ import io.gravitee.gateway.reactive.api.helper.PluginConfigurationHelper;
 import io.gravitee.gateway.reactive.core.context.DefaultExecutionContext;
 import io.gravitee.gateway.reactive.tcp.VertxTcpRequest;
 import io.gravitee.gateway.reactive.tcp.VertxTcpResponse;
+import io.gravitee.node.api.configuration.Configuration;
 import io.reactivex.rxjava3.core.Flowable;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.net.NetServer;
@@ -114,6 +116,7 @@ class TcpProxyEndpointConnectorTest {
         DefaultExecutionContext context = new DefaultExecutionContext(request, response);
         CustomComponentProvider componentProvider = new CustomComponentProvider();
         componentProvider.add(Vertx.class, vertx);
+        componentProvider.add(Configuration.class, mock(Configuration.class));
         context.componentProvider(componentProvider);
         return context;
     }

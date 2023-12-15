@@ -22,8 +22,6 @@ import io.gravitee.gateway.reactive.api.ApiType;
 import io.gravitee.gateway.reactive.api.ConnectorMode;
 import io.gravitee.gateway.reactive.api.context.DeploymentContext;
 import io.gravitee.gateway.reactive.api.helper.PluginConfigurationHelper;
-import io.vertx.junit5.VertxExtension;
-import io.vertx.rxjava3.core.net.NetSocket;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -79,15 +77,15 @@ class TcpProxyEndpointConnectorFactoryTest {
         assertThat(connector.supportedApi()).isEqualTo(ApiType.PROXY);
         assertThat(connector.supportedModes()).containsExactly(ConnectorMode.SOCKET);
 
-        assertThat(connector.getConfig()).isNotNull();
-        assertThat(connector.getConfig().getTcpTarget()).isNotNull();
-        assertThat(connector.getConfig().getTcpTarget().getHost()).isEqualTo("www.acme.com");
-        assertThat(connector.getConfig().getTcpTarget().getPort()).isEqualTo(8080);
-        assertThat(connector.getSharedConfig()).isNotNull();
-        assertThat(connector.getSharedConfig().getTcpClientOptions()).isNotNull();
-        assertThat(connector.getSharedConfig().getTcpClientOptions().getReconnectAttempts()).isEqualTo(10);
-        assertThat(connector.getSharedConfig().getTcpClientOptions().getConnectTimeout()).isEqualTo(200);
-        assertThat(connector.getSharedConfig().getTcpClientOptions().getReconnectInterval()).isEqualTo(500);
+        assertThat(connector.getConfiguration()).isNotNull();
+        assertThat(connector.getConfiguration().getTcpTarget()).isNotNull();
+        assertThat(connector.getConfiguration().getTcpTarget().getHost()).isEqualTo("www.acme.com");
+        assertThat(connector.getConfiguration().getTcpTarget().getPort()).isEqualTo(8080);
+        assertThat(connector.getSharedConfiguration()).isNotNull();
+        assertThat(connector.getSharedConfiguration().getTcpClientOptions()).isNotNull();
+        assertThat(connector.getSharedConfiguration().getTcpClientOptions().getReconnectAttempts()).isEqualTo(10);
+        assertThat(connector.getSharedConfiguration().getTcpClientOptions().getConnectTimeout()).isEqualTo(200);
+        assertThat(connector.getSharedConfiguration().getTcpClientOptions().getReconnectInterval()).isEqualTo(500);
     }
 
     @Test

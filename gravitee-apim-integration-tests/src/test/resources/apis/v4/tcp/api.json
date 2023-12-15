@@ -27,14 +27,13 @@
         {
           "name": "default",
           "type": "tcp-proxy",
+          "inheritConfiguration": false,
           "configuration": {
             "target": {
               "host": "localhost",
-              "port": 10000
+              "port": 10000,
+              "secured": false
             }
-          },
-          "sharedConfiguration": {
-
           }
         }
       ]
