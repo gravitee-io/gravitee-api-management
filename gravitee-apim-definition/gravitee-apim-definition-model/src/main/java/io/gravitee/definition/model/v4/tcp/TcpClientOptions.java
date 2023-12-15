@@ -13,17 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.plugin.endpoint.tcp.proxy.configuration;
+package io.gravitee.definition.model.v4.tcp;
 
 import lombok.Data;
 
 /**
- * @author Benoit BORDIGONI (benoit.bordigoni at graviteesource.com)
+ * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Data
-public class TcpTarget {
+public class TcpClientOptions {
 
-    private String host;
-    private int port;
+    public static final int DEFAULT_IDLE_TIMEOUT = 0;
+    public static final int DEFAULT_READ_IDLE_TIMEOUT = 0;
+    public static final int DEFAULT_WRITE_IDLE_TIMEOUT = 0;
+
+    int connectTimeout = 3000;
+    private int reconnectAttempts = 5;
+    private int reconnectInterval = 1000;
+    private int idleTimeout = DEFAULT_IDLE_TIMEOUT;
+    private int readIdleTimeout = DEFAULT_READ_IDLE_TIMEOUT;
+    private int writeIdleTimeout = DEFAULT_WRITE_IDLE_TIMEOUT;
 }

@@ -20,20 +20,11 @@ import io.gravitee.definition.model.v4.http.HttpClientOptions;
 import io.gravitee.definition.model.v4.http.HttpProxyOptions;
 import io.gravitee.definition.model.v4.http.ProtocolVersion;
 import io.gravitee.definition.model.v4.ssl.SslOptions;
-import io.gravitee.definition.model.v4.ssl.jks.JKSKeyStore;
-import io.gravitee.definition.model.v4.ssl.jks.JKSTrustStore;
-import io.gravitee.definition.model.v4.ssl.pem.PEMKeyStore;
-import io.gravitee.definition.model.v4.ssl.pem.PEMTrustStore;
-import io.gravitee.definition.model.v4.ssl.pkcs12.PKCS12KeyStore;
-import io.gravitee.definition.model.v4.ssl.pkcs12.PKCS12TrustStore;
+import io.gravitee.gateway.reactive.tcp.AbstractBaseClient;
 import io.gravitee.node.api.configuration.Configuration;
 import io.vertx.core.http.HttpVersion;
 import io.vertx.core.http.RequestOptions;
-import io.vertx.core.net.JksOptions;
 import io.vertx.core.net.OpenSSLEngineOptions;
-import io.vertx.core.net.PemKeyCertOptions;
-import io.vertx.core.net.PemTrustOptions;
-import io.vertx.core.net.PfxOptions;
 import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.ProxyType;
 import io.vertx.rxjava3.core.Vertx;
@@ -42,14 +33,13 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
-import java.util.Base64;
 import lombok.Builder;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Builder
-public class VertxHttpClient {
+public class VertxHttpClient extends AbstractBaseClient {
 
     public static final int UNSECURE_PORT = 80;
     public static final int SECURE_PORT = 443;
@@ -178,130 +168,14 @@ public class VertxHttpClient {
                 options.setVerifyHost(sslOptions.isHostnameVerifier()).setTrustAll(sslOptions.isTrustAll());
 
                 // Client truststore configuration (trust server certificate).
-                configureTrustStore(options);
+                super.configureTrustStore(options, sslOptions, defaultTarget);
 
                 // Client keystore configuration (client certificate for mtls).
-                configureKeyStore(options);
+                super.configureKeyStore(options, sslOptions, defaultTarget);
             }
         }
 
         options.setUseAlpn(true);
-    }
-
-    private void configureTrustStore(final io.vertx.core.http.HttpClientOptions options) {
-        if (!sslOptions.isTrustAll() && sslOptions.getTrustStore() != null) {
-            switch (sslOptions.getTrustStore().getType()) {
-                case PEM:
-                    final PEMTrustStore pemTrustStore = (PEMTrustStore) sslOptions.getTrustStore();
-                    final PemTrustOptions pemTrustOptions = new PemTrustOptions();
-
-                    if (pemTrustStore.getPath() != null && !pemTrustStore.getPath().isEmpty()) {
-                        pemTrustOptions.addCertPath(pemTrustStore.getPath());
-                    } else if (pemTrustStore.getContent() != null && !pemTrustStore.getContent().isEmpty()) {
-                        pemTrustOptions.addCertValue(io.vertx.core.buffer.Buffer.buffer(pemTrustStore.getContent()));
-                    } else {
-                        throw new IllegalArgumentException("Missing PEM certificate value for " + defaultTarget);
-                    }
-
-                    options.setPemTrustOptions(pemTrustOptions);
-                    break;
-                case PKCS12:
-                    final PKCS12TrustStore pkcs12TrustStore = (PKCS12TrustStore) sslOptions.getTrustStore();
-                    final PfxOptions pfxOptions = new PfxOptions();
-
-                    if (pkcs12TrustStore.getPath() != null && !pkcs12TrustStore.getPath().isEmpty()) {
-                        pfxOptions.setPath(pkcs12TrustStore.getPath());
-                    } else if (pkcs12TrustStore.getContent() != null && !pkcs12TrustStore.getContent().isEmpty()) {
-                        pfxOptions.setValue(io.vertx.core.buffer.Buffer.buffer(Base64.getDecoder().decode(pkcs12TrustStore.getContent())));
-                    } else {
-                        throw new IllegalArgumentException("Missing PKCS12 truststore value for " + defaultTarget);
-                    }
-
-                    pfxOptions.setAlias(pkcs12TrustStore.getAlias());
-                    pfxOptions.setPassword(pkcs12TrustStore.getPassword());
-                    options.setPfxTrustOptions(pfxOptions);
-                    break;
-                case JKS:
-                    final JKSTrustStore jksTrustStore = (JKSTrustStore) sslOptions.getTrustStore();
-                    final JksOptions jksOptions = new JksOptions();
-
-                    if (jksTrustStore.getPath() != null && !jksTrustStore.getPath().isEmpty()) {
-                        jksOptions.setPath(jksTrustStore.getPath());
-                    } else if (jksTrustStore.getContent() != null && !jksTrustStore.getContent().isEmpty()) {
-                        jksOptions.setValue(io.vertx.core.buffer.Buffer.buffer(Base64.getDecoder().decode(jksTrustStore.getContent())));
-                    } else {
-                        throw new IllegalArgumentException("Missing JKS truststore value for " + defaultTarget);
-                    }
-
-                    jksOptions.setAlias(jksTrustStore.getAlias());
-                    jksOptions.setPassword(jksTrustStore.getPassword());
-                    options.setTrustStoreOptions(jksOptions);
-                    break;
-            }
-        }
-    }
-
-    private void configureKeyStore(io.vertx.core.http.HttpClientOptions options) {
-        if (sslOptions.getKeyStore() != null) {
-            switch (sslOptions.getKeyStore().getType()) {
-                case PEM:
-                    final PEMKeyStore pemKeyStore = (PEMKeyStore) sslOptions.getKeyStore();
-                    final PemKeyCertOptions pemKeyCertOptions = new PemKeyCertOptions();
-
-                    if (pemKeyStore.getCertPath() != null && !pemKeyStore.getCertPath().isEmpty()) {
-                        pemKeyCertOptions.setCertPath(pemKeyStore.getCertPath());
-                    } else if (pemKeyStore.getCertContent() != null && !pemKeyStore.getCertContent().isEmpty()) {
-                        pemKeyCertOptions.setCertValue(io.vertx.core.buffer.Buffer.buffer(pemKeyStore.getCertContent()));
-                    } else {
-                        throw new IllegalArgumentException("Missing PEM certificate value for " + defaultTarget);
-                    }
-
-                    if (pemKeyStore.getKeyPath() != null && !pemKeyStore.getKeyPath().isEmpty()) {
-                        pemKeyCertOptions.setKeyPath(pemKeyStore.getKeyPath());
-                    } else if (pemKeyStore.getKeyContent() != null && !pemKeyStore.getKeyContent().isEmpty()) {
-                        pemKeyCertOptions.setKeyValue(io.vertx.core.buffer.Buffer.buffer(pemKeyStore.getKeyContent()));
-                    } else {
-                        throw new IllegalArgumentException("Missing PEM key value for " + defaultTarget);
-                    }
-
-                    options.setPemKeyCertOptions(pemKeyCertOptions);
-                    break;
-                case PKCS12:
-                    final PKCS12KeyStore pkcs12KeyStore = (PKCS12KeyStore) sslOptions.getKeyStore();
-                    final PfxOptions pfxOptions = new PfxOptions();
-
-                    if (pkcs12KeyStore.getPath() != null && !pkcs12KeyStore.getPath().isEmpty()) {
-                        pfxOptions.setPath(pkcs12KeyStore.getPath());
-                    } else if (pkcs12KeyStore.getContent() != null && !pkcs12KeyStore.getContent().isEmpty()) {
-                        pfxOptions.setValue(io.vertx.core.buffer.Buffer.buffer(Base64.getDecoder().decode(pkcs12KeyStore.getContent())));
-                    } else {
-                        throw new IllegalArgumentException("Missing PKCS12 keystore value for " + defaultTarget);
-                    }
-
-                    pfxOptions.setAlias(pkcs12KeyStore.getAlias());
-                    pfxOptions.setAliasPassword(pkcs12KeyStore.getKeyPassword());
-                    pfxOptions.setPassword(pkcs12KeyStore.getPassword());
-                    options.setPfxKeyCertOptions(pfxOptions);
-                    break;
-                case JKS:
-                    final JKSKeyStore jksKeyStore = (JKSKeyStore) sslOptions.getKeyStore();
-                    final JksOptions jksOptions = new JksOptions();
-
-                    if (jksKeyStore.getPath() != null && !jksKeyStore.getPath().isEmpty()) {
-                        jksOptions.setPath(jksKeyStore.getPath());
-                    } else if (jksKeyStore.getContent() != null && !jksKeyStore.getContent().isEmpty()) {
-                        jksOptions.setValue(io.vertx.core.buffer.Buffer.buffer(Base64.getDecoder().decode(jksKeyStore.getContent())));
-                    } else {
-                        throw new IllegalArgumentException("Missing JKS keystore value for " + defaultTarget);
-                    }
-
-                    jksOptions.setAlias(jksKeyStore.getAlias());
-                    jksOptions.setAliasPassword(jksKeyStore.getKeyPassword());
-                    jksOptions.setPassword(jksKeyStore.getPassword());
-                    options.setKeyStoreOptions(jksOptions);
-                    break;
-            }
-        }
     }
 
     private void setSystemProxy(final io.vertx.core.http.HttpClientOptions options) {

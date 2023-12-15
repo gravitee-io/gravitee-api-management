@@ -13,13 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.plugin.endpoint.tcp.proxy.configuration;
+package io.gravitee.definition.model.v4.tcp;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import io.gravitee.definition.model.v4.ssl.SslOptions;
-import io.gravitee.definition.model.v4.tcp.TcpClientOptions;
-import io.gravitee.definition.model.v4.tcp.TcpProxyOptions;
-import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnectorSharedConfiguration;
 import lombok.Data;
 
 /**
@@ -27,14 +22,14 @@ import lombok.Data;
  * @author GraviteeSource Team
  */
 @Data
-public class TcpProxyEndpointConnectorSharedConfiguration implements EndpointConnectorSharedConfiguration {
+public class TcpTarget {
 
-    @JsonProperty("tcp")
-    private TcpClientOptions tcpClientOptions = new TcpClientOptions();
+    private String host;
+    private int port;
+    private boolean secured = false;
 
-    @JsonProperty("ssl")
-    private SslOptions sslOptions;
-
-    @JsonProperty("proxy")
-    private TcpProxyOptions proxyOptions;
+    @Override
+    public String toString() {
+        return host + ":" + port;
+    }
 }

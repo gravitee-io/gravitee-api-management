@@ -13,20 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.plugin.endpoint.tcp.proxy.configuration;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import io.gravitee.definition.model.v4.tcp.TcpTarget;
-import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnectorConfiguration;
-import lombok.Data;
+package io.gravitee.definition.model.v4.tcp;
 
 /**
- * @author Benoit BORDIGONI (benoit.bordigoni at graviteesource.com)
+ * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Data
-public class TcpProxyEndpointConnectorConfiguration implements EndpointConnectorConfiguration {
-
-    @JsonProperty("target")
-    private TcpTarget tcpTarget;
+public enum TcpProxyType {
+    SOCKS4,
+    SOCKS5,
 }

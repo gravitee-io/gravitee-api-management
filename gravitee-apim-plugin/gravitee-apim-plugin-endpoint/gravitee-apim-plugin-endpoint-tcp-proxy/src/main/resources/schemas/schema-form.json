@@ -19,11 +19,18 @@
                     "minimum": 1,
                     "maximum": 65535
                 },
+                "secured" : {
+                    "type": "boolean",
+                    "title": "Is target secured",
+                    "description": "Enable SSL to connect to target",
+                    "default": false
+                },
                 "additionalProperties": false
             },
             "required": [
                 "host",
-                "port"
+                "port",
+                "secured"
             ]
         }
     },

@@ -26,6 +26,32 @@
           "minimum": 0,
           "title": "Reconnect interval",
           "description": "Interval in ms between retries connecting to the target"
+        },
+        "idleTimeout": {
+          "type": "integer",
+          "default": 0,
+          "minimum": 0,
+          "title": "Idle timeout (ms)",
+          "gioConfig": {
+            "banner": {
+              "title": "Idle timeout",
+              "text": "Maximum time a TCP connection will stay active if no data is received or sent in milliseconds. Once the timeout has elapsed, the unused connection will be closed, allowing to free the associated resources. Zero means no timeout."
+            }
+          }
+        },
+        "readIdleTimeout": {
+          "type": "integer",
+          "default": 0,
+          "minimum": 0,
+          "title": "Read idle timeout (ms)",
+          "description": "This determines if a connection will timeout and be closed if no data is received within the timeout."
+        },
+        "writeIdleTimeout": {
+          "type": "integer",
+          "default": 0,
+          "minimum": 0,
+          "title": "Write idle timeout (ms)",
+          "description": "This determines if a connection will timeout and be closed if no data is sent within the timeout."
         }
       },
       "additionalProperties": false
@@ -406,6 +432,83 @@
           ]
         }
       }
+    },
+    "proxy":{
+      "type":"object",
+      "title":"Proxy Options",
+      "oneOf":[
+        {
+          "title":"No proxy",
+          "properties":{
+            "enabled":{
+              "const":false
+            },
+            "useSystemProxy":{
+              "const":false
+            }
+          },
+          "additionalProperties":false
+        },
+        {
+          "title":"Use proxy configured at system level",
+          "properties":{
+            "enabled":{
+              "const":true
+            },
+            "useSystemProxy":{
+              "const":true
+            }
+          },
+          "additionalProperties":false
+        },
+        {
+          "title":"Use proxy for client connections",
+          "properties":{
+            "enabled":{
+              "const":true
+            },
+            "useSystemProxy":{
+              "const":false
+            },
+            "type":{
+              "type":"string",
+              "title":"Proxy Type",
+              "description":"The type of the proxy",
+              "default":"SOCKS5",
+              "enum":[
+                "SOCKS4",
+                "SOCKS5"
+              ]
+            },
+            "host":{
+              "type":"string",
+              "title":"Proxy host",
+              "description":"Proxy host to connect to"
+            },
+            "port":{
+              "type":"integer",
+              "title":"Proxy port",
+              "description":"Proxy port to connect to"
+            },
+            "username":{
+              "type":"string",
+              "title":"Proxy username",
+              "description":"Optional proxy username"
+            },
+            "password":{
+              "type":"string",
+              "title":"Proxy password",
+              "description":"Optional proxy password",
+              "format":"password"
+            }
+          },
+          "required":[
+            "host",
+            "port"
+          ],
+          "additionalProperties":false
+        }
+      ]
     }
   },
   "properties": {
@@ -414,6 +517,9 @@
     },
     "tcp": {
       "$ref": "#/definitions/tcp"
+    },
+    "proxy": {
+      "$ref": "#/definitions/proxy"
     }
   }
 }

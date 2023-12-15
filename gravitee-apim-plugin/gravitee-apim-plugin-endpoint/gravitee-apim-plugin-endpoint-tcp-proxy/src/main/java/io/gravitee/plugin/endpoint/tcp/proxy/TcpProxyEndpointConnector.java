@@ -23,12 +23,10 @@ import io.gravitee.gateway.reactive.api.connector.Connector;
 import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnector;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.tcp.VertxReadStreamUtil;
+import io.gravitee.plugin.endpoint.tcp.proxy.client.TcpClientFactory;
 import io.gravitee.plugin.endpoint.tcp.proxy.configuration.TcpProxyEndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.tcp.proxy.configuration.TcpProxyEndpointConnectorSharedConfiguration;
 import io.reactivex.rxjava3.core.Completable;
-import io.vertx.core.net.NetClientOptions;
-import io.vertx.rxjava3.core.Vertx;
-import io.vertx.rxjava3.core.net.NetClient;
 import java.util.Set;
 
 /**
@@ -39,12 +37,17 @@ public class TcpProxyEndpointConnector extends AbstractService<Connector> implem
 
     private static final String ENDPOINT_ID = "tcp-proxy";
     static final Set<ConnectorMode> SUPPORTED_MODES = Set.of(ConnectorMode.SOCKET);
-    private final TcpProxyEndpointConnectorConfiguration config;
-    private final TcpProxyEndpointConnectorSharedConfiguration sharedConfig;
+    private final TcpProxyEndpointConnectorConfiguration configuration;
+    private final TcpProxyEndpointConnectorSharedConfiguration sharedConfiguration;
+    private final TcpClientFactory tcpClientFactory;
 
-    TcpProxyEndpointConnector(TcpProxyEndpointConnectorConfiguration config, TcpProxyEndpointConnectorSharedConfiguration sharedConfig) {
-        this.config = config;
-        this.sharedConfig = sharedConfig;
+    TcpProxyEndpointConnector(
+        TcpProxyEndpointConnectorConfiguration configuration,
+        TcpProxyEndpointConnectorSharedConfiguration sharedConfiguration
+    ) {
+        this.configuration = configuration;
+        this.sharedConfiguration = sharedConfiguration;
+        this.tcpClientFactory = new TcpClientFactory();
     }
 
     @Override
@@ -64,11 +67,9 @@ public class TcpProxyEndpointConnector extends AbstractService<Connector> implem
 
     @Override
     public Completable connect(ExecutionContext ctx) {
-        Vertx vertx = ctx.getComponent(Vertx.class);
-        NetClient client = vertx.createNetClient(buildNetClientOptions());
-
-        return client
-            .rxConnect(this.config.getTcpTarget().getPort(), this.config.getTcpTarget().getHost())
+        return tcpClientFactory
+            .getOrBuildTcpClient(ctx, configuration, sharedConfiguration)
+            .rxConnect(this.configuration.getTcpTarget().getPort(), this.configuration.getTcpTarget().getHost())
             .doOnSuccess(backendSocket -> {
                 // pause as soon as possible
                 backendSocket.pause();
@@ -80,29 +81,11 @@ public class TcpProxyEndpointConnector extends AbstractService<Connector> implem
             .ignoreElement();
     }
 
-    private NetClientOptions buildNetClientOptions() {
-        var options = new NetClientOptions().setMetricsName("tcp-client");
-        if (this.sharedConfig.getTcpClientOptions() != null) {
-            options
-                .setConnectTimeout(this.sharedConfig.getTcpClientOptions().getConnectTimeout())
-                .setReconnectAttempts(this.sharedConfig.getTcpClientOptions().getReconnectAttempts())
-                .setReconnectInterval(this.sharedConfig.getTcpClientOptions().getReconnectInterval());
-        }
-        if (this.sharedConfig.getSslOptions() != null) {
-            options.setTrustAll(this.sharedConfig.getSslOptions().isTrustAll());
-            if (!this.sharedConfig.getSslOptions().isTrustAll()) {
-                // FIXME do abstract client for both VertxHttpClient and a new VertTcpClient
-            }
-        }
-
-        return options;
+    TcpProxyEndpointConnectorConfiguration getConfiguration() {
+        return configuration;
     }
 
-    TcpProxyEndpointConnectorConfiguration getConfig() {
-        return config;
-    }
-
-    TcpProxyEndpointConnectorSharedConfiguration getSharedConfig() {
-        return sharedConfig;
+    TcpProxyEndpointConnectorSharedConfiguration getSharedConfiguration() {
+        return sharedConfiguration;
     }
 }

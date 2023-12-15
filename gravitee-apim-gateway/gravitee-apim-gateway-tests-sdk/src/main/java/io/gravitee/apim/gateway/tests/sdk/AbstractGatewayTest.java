@@ -185,10 +185,10 @@ public abstract class AbstractGatewayTest
         final WireMockConfiguration wireMockConfiguration = wireMockConfig().dynamicPort().dynamicHttpsPort();
         configureWireMock(wireMockConfiguration);
         // If a port has already been configured in a previous test, reuse the same for the class
-        if (wiremockPort != -1) {
+        if (wiremockPort > 0) {
             wireMockConfiguration.port(wiremockPort);
         }
-        if (wiremockHttpsPort != -1) {
+        if (wiremockHttpsPort > 0) {
             wireMockConfiguration.httpsPort(wiremockHttpsPort);
         }
         wiremock = new WireMockServer(wireMockConfiguration);
