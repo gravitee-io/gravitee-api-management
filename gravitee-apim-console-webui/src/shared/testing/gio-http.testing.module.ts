@@ -21,6 +21,7 @@ import { Constants } from '../../entities/Constants';
 
 export const CONSTANTS_TESTING: Constants = {
   org: {
+    id: 'organization-id',
     baseURL: 'https://url.test:3000/management/organizations/DEFAULT',
     settings: {
       reCaptcha: { enabled: false },

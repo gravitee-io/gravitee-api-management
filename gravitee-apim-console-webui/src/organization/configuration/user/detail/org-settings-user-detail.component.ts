@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { AbstractControl, FormControl, FormGroup, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { combineLatest, EMPTY, from, Observable, Subject, zip } from 'rxjs';
@@ -45,6 +45,7 @@ import { gioTableFilterCollection } from '../../../../shared/components/gio-tabl
 import { UserHelper } from '../../../../entities/user/userHelper';
 import { Token } from '../../../../entities/user/userTokens';
 import { UsersTokenService } from '../../../../services-ngx/users-token.service';
+import { Constants } from '../../../../entities/Constants';
 
 interface UserVM extends User {
   organizationRoles: string;
@@ -138,6 +139,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
     private readonly snackBarService: SnackBarService,
     private readonly environmentService: EnvironmentService,
     private readonly matDialog: MatDialog,
+    @Inject('Constants') private readonly constants: Constants,
   ) {}
 
   ngOnInit(): void {
@@ -230,7 +232,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
     if (this.organizationRolesControl.dirty) {
       observableToZip.push(
         this.usersService
-          .updateUserRoles(this.user.id, 'ORGANIZATION', 'DEFAULT', this.organizationRolesControl.value)
+          .updateUserRoles(this.user.id, 'ORGANIZATION', this.constants.org.id, this.organizationRolesControl.value)
           .pipe(takeUntil(this.unsubscribe$)),
       );
     }

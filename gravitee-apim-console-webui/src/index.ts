@@ -124,6 +124,7 @@ function prepareConstants(bootstrap: { baseURL: string; organizationId: string }
     baseURL: bootstrap.baseURL,
     v2BaseURL: `${bootstrap.baseURL}/v2`,
     org: {
+      id: bootstrap.organizationId,
       baseURL: `${bootstrap.baseURL}/organizations/${bootstrap.organizationId}`,
       v2BaseURL: `${bootstrap.baseURL}/v2/organizations/${bootstrap.organizationId}`,
       currentEnv: null,
