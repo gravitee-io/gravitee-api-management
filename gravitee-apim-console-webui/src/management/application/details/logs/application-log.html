@@ -29,15 +29,15 @@
     <md-table-container class="gv-log-request-header">
       <table md-table class="gv-table-dense">
         <tbody md-body>
-          <tr md-row style="height: 30px">
+          <tr md-row>
             <td md-cell><span style="font-weight: bold">Date</span></td>
             <td md-cell>{{$ctrl.log.timestamp | date:'MMM d, y h:mm:ss.sss a'}}</td>
           </tr>
-          <tr md-row style="height: 30px">
+          <tr md-row>
             <td md-cell><span style="font-weight: bold">Request ID</span></td>
             <td md-cell>{{$ctrl.log.id}}</td>
           </tr>
-          <tr md-row style="height: 30px">
+          <tr md-row>
             <td md-cell><span style="font-weight: bold">Transaction ID</span></td>
             <td md-cell>{{$ctrl.log.transactionId}}</td>
           </tr>
@@ -51,19 +51,19 @@
     <md-table-container ng-class="{'gv-log-response-header-{{$ctrl.log.status / 100 | number:0}}': true}">
       <table md-table class="gv-table-dense">
         <tbody md-body>
-          <tr md-row style="height: 30px" ng-if="$ctrl.log.apiKey">
+          <tr md-row ng-if="$ctrl.log.apiKey">
             <td md-cell><span style="font-weight: bold">API Key</span></td>
             <td md-cell>{{$ctrl.log.apiKey}}</td>
           </tr>
-          <tr md-row style="height: 30px" ng-if="$ctrl.log.api">
+          <tr md-row ng-if="$ctrl.log.api">
             <td md-cell><span style="font-weight: bold">API</span></td>
             <td md-cell>{{$ctrl.log.metadata[$ctrl.log.api].name}}</td>
           </tr>
-          <tr md-row style="height: 30px" ng-if="$ctrl.log.plan">
+          <tr md-row ng-if="$ctrl.log.plan">
             <td md-cell><span style="font-weight: bold">Plan</span></td>
             <td md-cell>{{$ctrl.log.metadata[$ctrl.log.plan].name}}</td>
           </tr>
-          <tr md-row style="height: 30px" ng-if="$ctrl.log.user && $ctrl.Constants.org.settings.logging.user.displayed">
+          <tr md-row ng-if="$ctrl.log.user && $ctrl.Constants.org.settings.logging.user.displayed">
             <td md-cell><span style="font-weight: bold">User</span></td>
             <td md-cell>{{$ctrl.log.user}}</td>
           </tr>
@@ -84,21 +84,19 @@
     <md-table-container>
       <table md-table class="gv-table-dense">
         <tbody md-body>
-          <tr md-row style="height: 30px">
+          <tr md-row>
             <td md-cell><span style="font-weight: bold">Method</span></td>
             <td md-cell>
-              <span
-                class="badge gravitee-policy-method-badge-info ng-binding ng-scope gravitee-policy-method-badge-{{$ctrl.log.method | uppercase}}-selected"
-              >
+              <span class="badge gravitee-policy-method-badge-info gravitee-policy-method-badge-{{$ctrl.log.method | uppercase}}-selected">
                 {{$ctrl.log.method | uppercase}}
               </span>
             </td>
           </tr>
-          <tr md-row style="height: 30px">
+          <tr md-row>
             <td md-cell><span style="font-weight: bold">URI</span></td>
             <td md-cell>{{$ctrl.log.uri}}</td>
           </tr>
-          <tr md-row style="height: 30px">
+          <tr md-row>
             <td md-cell><span style="font-weight: bold">Content-length</span></td>
             <td md-cell>{{$ctrl.log.requestContentLength | number}}</td>
           </tr>
@@ -109,7 +107,7 @@
     <md-table-container>
       <table md-table class="gv-table-dense">
         <tbody md-body>
-          <tr md-row ng-repeat="(key, value) in $ctrl.log.request.headers" style="height: 30px">
+          <tr md-row ng-repeat="(key, value) in $ctrl.log.request.headers" style="word-break: break-all">
             <td md-cell><span style="font-weight: bold">{{key}}</span></td>
             <td md-cell>{{value[0]}}</td>
           </tr>
@@ -138,15 +136,9 @@
     </div>
   </div>
 
-  <div flex="5" layout="column" layout-align="center center"></div>
+  <div style="width: 16px"></div>
 
-  <div
-    layout="column"
-    layout-padding
-    ng-class="{'gv-log-response-panel-{{$ctrl.log.status / 100 | number:0}}': true}"
-    style="margin-top: 3px"
-    flex="50"
-  >
+  <div layout="column" layout-padding ng-class="{'gv-log-response-panel-{{$ctrl.log.status / 100 | number:0}}': true}" flex="50">
     <div flex="5" layout="row" layout-align="center center">
       <span class="log-header" style="text-align: center">RESPONSE</span>
     </div>
@@ -154,15 +146,15 @@
     <md-table-container>
       <table md-table class="gv-table-dense">
         <tbody md-body>
-          <tr md-row style="height: 30px">
+          <tr md-row>
             <td md-cell><span style="font-weight: bold">Status</span></td>
             <td md-cell><span class="gv-statuscode-{{$ctrl.log.status / 100 | number:0}}xx">{{$ctrl.log.status | number}}</span></td>
           </tr>
-          <tr md-row style="height: 30px">
+          <tr md-row>
             <td md-cell><span style="font-weight: bold">Content-length</span></td>
             <td md-cell>{{$ctrl.log.responseContentLength | number}}</td>
           </tr>
-          <tr md-row style="height: 30px">
+          <tr md-row>
             <td md-cell><span style="font-weight: bold">Response time</span></td>
             <td md-cell>{{$ctrl.log.responseTime | number}} ms</td>
           </tr>
@@ -173,7 +165,7 @@
     <md-table-container>
       <table md-table class="gv-table-dense">
         <tbody md-body>
-          <tr md-row ng-repeat="(key, value) in $ctrl.log.response.headers" style="height: 30px">
+          <tr md-row ng-repeat="(key, value) in $ctrl.log.response.headers" style="word-break: break-all">
             <td md-cell><span style="font-weight: bold">{{key}}</span></td>
             <td md-cell>{{value[0]}}</td>
           </tr>
