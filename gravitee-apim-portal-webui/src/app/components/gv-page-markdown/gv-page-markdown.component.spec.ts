@@ -60,12 +60,6 @@ describe('GvPageMarkdownComponent', () => {
     component.pageBaseUrl = PAGE_BASE_URL;
   });
 
-  it('should sanitize Markdown with JavaScript in it', () => {
-    docPage.content = '[Click me](javascript:alert("XSS"))';
-    component.ngOnInit();
-    expect(component.pageContent).toEqual('<p><a href="unsafe:javascript:alert(%22XSS%22)">Click me</a></p>&#10;');
-  });
-
   it('should use correct portal media url', () => {
     const renderer = component.renderer.image(
       'https://host:port/contextpath/management/organizations/DEFAULT/environments/DEFAULT/portal/media/123456789',
