@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AfterViewInit, Component, ElementRef, HostListener, Input, OnInit, SecurityContext, ViewChild } from '@angular/core';
-import { marked } from 'marked';
+import { AfterViewInit, Component, ElementRef, HostListener, Input, OnInit, ViewChild } from '@angular/core';
+import { Renderer } from 'marked';
+import { gfmHeadingId } from 'marked-gfm-heading-id';
+import { markedHighlight } from 'marked-highlight';
 import hljs from 'highlight.js';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer } from '@angular/platform-browser';
+import { marked } from 'marked';
 
 import { Page } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { PageService } from '../../services/page.service';
@@ -46,6 +49,7 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
     private configurationService: ConfigurationService,
     private pageService: PageService,
     private router: Router,
+    private activatedRoute: ActivatedRoute,
     private scrollService: ScrollService,
     private elementRef: ElementRef,
     private readonly sanitizer: DomSanitizer,
@@ -57,20 +61,23 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
     this.page = this.pageService.getCurrentPage();
     if (this.page && this.page.content) {
       marked.use({ renderer: this.renderer });
+      marked.use(gfmHeadingId());
+      marked.use(
+        markedHighlight({
+          langPrefix: 'hljs language-',
+          highlight(code, language) {
+            const validLanguage = hljs.getLanguage(language) ? language : 'plaintext';
+            return hljs.highlight(validLanguage, code).value;
+          },
+        }),
+      );
 
-      marked.setOptions({
-        highlight: (code, language) => {
-          const validLanguage = hljs.getLanguage(language) ? language : 'plaintext';
-          return hljs.highlight(validLanguage, code).value;
-        },
-      });
-
-      this.pageContent = this.sanitizer.sanitize(SecurityContext.HTML, marked(this.page.content));
+      this.pageContent = marked(this.page.content) as string;
     }
   }
 
   get renderer() {
-    const defaultRenderer = new marked.Renderer();
+    const defaultRenderer = new Renderer();
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const that = this;
     return {
@@ -114,12 +121,14 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit() {
     this.processOffsets();
-    if (this.pageElementsPosition) {
-      this.router.navigate([], {
-        fragment: this.pageElementsPosition[0] && this.pageElementsPosition[0].id,
-        queryParamsHandling: 'preserve',
-      });
-    }
+
+    // Best effort to scroll to the anchor after markdown is rendered
+    setTimeout(() => {
+      const fragment = this.activatedRoute.snapshot.fragment;
+      if (fragment && this.pageElementsPosition && this.pageElementsPosition.map(e => e.id).includes(fragment)) {
+        this.scrollService.scrollToAnchor(fragment);
+      }
+    }, 1000);
   }
 
   processOffsets() {
@@ -128,7 +137,7 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
       this.pageElementsPosition = [];
       const markdownElements = Object.values(mdContent.children);
       markdownElements.forEach((element: HTMLElement) => {
-        if (element && element.id && ['H2', 'H3', 'H4', 'H5', 'H6'].includes(element.tagName)) {
+        if (element && element.id && ['h2', 'h3', 'h4', 'h5', 'h6'].includes(element.tagName.toLowerCase())) {
           this.pageElementsPosition.push({
             id: element.id,
             offsetTop: document.getElementById(element.id).offsetTop - ScrollService.getHeaderHeight(),
@@ -166,7 +175,7 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
 
   @HostListener('click', ['$event'])
   onClick($event) {
-    if ($event.target.tagName.toLowerCase() !== 'a') {
+    if ($event.target.tagName.toLowerCase() !== 'a' || !$event.target.href) {
       return true;
     }
     const url = new URL($event.target.href);
