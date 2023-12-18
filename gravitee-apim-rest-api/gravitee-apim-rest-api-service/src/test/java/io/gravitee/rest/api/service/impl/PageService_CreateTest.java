@@ -34,6 +34,7 @@ import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.AuditService;
+import io.gravitee.rest.api.service.MetadataService;
 import io.gravitee.rest.api.service.PageRevisionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -88,6 +89,9 @@ public class PageService_CreateTest {
 
     @Mock
     private PageRevisionService pageRevisionService;
+
+    @Mock
+    private MetadataService metadataService;
 
     @Mock
     private ImportConfiguration importConfiguration;
@@ -461,6 +465,41 @@ public class PageService_CreateTest {
         verify(pageRepository).create(argThat(p -> p.isPublished() == true));
         // create revision for translate if the parent page is a Markdown or Swagger
         verify(pageRevisionService, times(1)).create(any());
+    }
+
+    @Test(expected = PageContentUnsafeException.class)
+    public void shouldNotCreateTranslationBecausePageContentUnsafeException() throws TechnicalException {
+        setField(pageService, "markdownSanitize", true);
+        Page page = new Page();
+        page.setId(PAGE_ID);
+        page.setType("MARKDOWN");
+        page.setReferenceId(API_ID);
+        page.setPublished(true);
+        doReturn(Optional.of(page)).when(pageRepository).findById(PAGE_ID);
+
+        NewPageEntity newTranslation = new NewPageEntity();
+        newTranslation.setType(PageType.TRANSLATION);
+        newTranslation.setParentId(PAGE_ID);
+        Map<String, String> conf = new HashMap<>();
+        conf.put(PageConfigurationKeys.TRANSLATION_LANG, "fr");
+        newTranslation.setConfiguration(conf);
+        newTranslation.setPublished(false);
+        newTranslation.setVisibility(Visibility.PUBLIC);
+        newTranslation.setContent("[Click me](javascript:alert(\"XSS\"))");
+
+        when(
+            this.notificationTemplateService.resolveInlineTemplateWithParam(
+                    anyString(),
+                    anyString(),
+                    eq(newTranslation.getContent()),
+                    any(),
+                    anyBoolean()
+                )
+        )
+            .thenReturn(newTranslation.getContent());
+
+        pageService.createPage(new ExecutionContext("DEFAULT", "DEFAULT"), newTranslation);
+        verify(pageRepository, never()).create(any());
     }
 
     @Test(expected = UrlForbiddenException.class)
