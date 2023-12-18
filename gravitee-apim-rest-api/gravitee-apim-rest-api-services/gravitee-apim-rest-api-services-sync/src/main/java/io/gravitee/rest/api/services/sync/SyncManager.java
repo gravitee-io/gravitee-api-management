@@ -19,11 +19,20 @@ import static java.util.stream.Collectors.toMap;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.node.api.license.InvalidLicenseException;
+import io.gravitee.node.api.license.LicenseFactory;
+import io.gravitee.node.api.license.LicenseManager;
+import io.gravitee.node.api.license.MalformedLicenseException;
+import io.gravitee.node.license.DefaultLicenseManager;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventLatestRepository;
+import io.gravitee.repository.management.api.LicenseRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
+import io.gravitee.repository.management.api.search.LicenseCriteria;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
+import io.gravitee.repository.management.model.License;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -35,6 +44,7 @@ import io.gravitee.rest.api.service.exceptions.PrimaryOwnerNotFoundException;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -64,6 +74,10 @@ public class SyncManager {
     @Autowired
     private EventLatestRepository eventLatestRepository;
 
+    @Lazy
+    @Autowired
+    private LicenseRepository licenseRepository;
+
     @Autowired
     private ApiManager apiManager;
 
@@ -82,6 +96,12 @@ public class SyncManager {
     @Autowired
     private ApiMapper apiMapper;
 
+    @Autowired
+    private LicenseManager licenseManager;
+
+    @Autowired
+    private LicenseFactory licenseFactory;
+
     private long lastRefreshAt = -1;
 
     public void refresh() {
@@ -89,6 +109,12 @@ public class SyncManager {
         log.debug("Refreshing state...");
 
         long nextLastRefreshAt = System.currentTimeMillis();
+
+        try {
+            synchronizeLicenses(nextLastRefreshAt);
+        } catch (Exception ex) {
+            log.error("An error occurs while synchronizing licenses", ex);
+        }
 
         try {
             synchronizeApis(nextLastRefreshAt);
@@ -137,6 +163,27 @@ public class SyncManager {
             .collect(toMap(event -> event.getProperties().get(Event.EventProperties.DICTIONARY_ID.getValue()), event -> event));
 
         computeDictionaryEvents(dictionaryEvents);
+    }
+
+    private void synchronizeLicenses(long nextLastRefreshAt) throws TechnicalException {
+        final LicenseCriteria licenseCriteria = LicenseCriteria
+            .builder()
+            .referenceType(License.ReferenceType.ORGANIZATION)
+            .from(lastRefreshAt - TIMEFRAME_BEFORE_DELAY)
+            .to(nextLastRefreshAt + TIMEFRAME_AFTER_DELAY)
+            .build();
+
+        // Then, compute events
+        List<License> licenses = licenseRepository.findByCriteria(licenseCriteria);
+        licenses.forEach(license -> {
+            try {
+                var orgLicense = licenseFactory.create("ORGANIZATION", license.getReferenceId(), license.getLicense());
+                licenseManager.registerOrganizationLicense(license.getReferenceId(), orgLicense);
+            } catch (InvalidLicenseException | MalformedLicenseException e) {
+                log.warn("License for organization {} is invalid. Fallback to OSS license", license.getReferenceId());
+                licenseManager.registerOrganizationLicense(license.getReferenceId(), DefaultLicenseManager.OSS_LICENSE);
+            }
+        });
     }
 
     private void computeDictionaryEvents(Map<String, Event> dictionaryEvents) {
