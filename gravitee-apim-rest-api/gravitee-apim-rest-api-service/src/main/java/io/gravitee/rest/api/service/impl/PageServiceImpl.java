@@ -2513,7 +2513,21 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     @Override
     public List<String> validateSafeContent(ExecutionContext executionContext, PageEntity pageEntity, String apiId) {
         if (pageEntity != null) {
-            if (markdownSanitize && PageType.MARKDOWN.name().equals(pageEntity.getType())) {
+            var pageType = pageEntity.getType();
+
+            if (pageEntity.getParentId() != null && PageType.TRANSLATION.name().equals(pageType)) {
+                final Optional<Page> optParent;
+                try {
+                    optParent = pageRepository.findById(pageEntity.getParentId());
+                    if (optParent.isPresent()) {
+                        pageType = optParent.get().getType();
+                    }
+                } catch (TechnicalException e) {
+                    logger.error("An error occurs while trying to fetch parent page");
+                }
+            }
+
+            if (markdownSanitize && PageType.MARKDOWN.name().equals(pageType)) {
                 this.transformWithTemplate(executionContext, pageEntity, apiId);
                 if (!CollectionUtils.isEmpty(pageEntity.getMessages())) {
                     return Arrays.asList(pageEntity.getMessages().toString());
