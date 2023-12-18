@@ -320,7 +320,7 @@
         <dependency>
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-mongodb</artifactId>
-            <version>3.4.10</version>
+            <version>3.4.18</version>
             <scope>test</scope>
         </dependency>
 		<dependency>
