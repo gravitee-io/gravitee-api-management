@@ -49,4 +49,7 @@ import lombok.experimental.SuperBuilder;
 public abstract class FlowSelector {
 
     private FlowSelectorType type;
+
+    // Keep me for Javadoc generation purpose
+    public abstract static class FlowSelectorBuilder<C extends FlowSelector, B extends FlowSelectorBuilder<C, B>> {}
 }
