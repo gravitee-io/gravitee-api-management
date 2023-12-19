@@ -6,10 +6,7 @@
     "referenceId": "orga-1",
     "condition": "my-condition",
     "enabled": true,
-    "methods": [
-      "GET",
-      "POST"
-    ],
+    "methods": [],
     "path": "/",
     "operator": "STARTS_WITH",
     "consumers": [
