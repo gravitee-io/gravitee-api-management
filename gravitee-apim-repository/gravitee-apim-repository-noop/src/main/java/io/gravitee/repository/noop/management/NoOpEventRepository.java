@@ -43,4 +43,9 @@ public class NoOpEventRepository extends AbstractNoOpManagementRepository<Event,
     public Event createOrPatch(Event event) throws TechnicalException {
         return null;
     }
+
+    @Override
+    public long deleteApiEvents(String apiId) throws TechnicalException {
+        return 0;
+    }
 }
