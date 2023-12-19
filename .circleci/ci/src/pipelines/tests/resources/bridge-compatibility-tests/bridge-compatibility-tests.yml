@@ -314,9 +314,7 @@ workflows:
               database:
                 - bridge
               apim_client_tag:
-                - 4.0.x-latest
                 - 3.20.x-latest
-                - graviteeio@3.19
 orbs:
   keeper: gravitee-io/keeper@0.6.3
   slack: circleci/slack@4.12.5
