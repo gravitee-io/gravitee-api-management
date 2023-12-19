@@ -289,6 +289,38 @@ public class EventRepositoryTest extends AbstractManagementRepositoryTest {
         assertFalse(eventRepository.findById("event05").isPresent());
     }
 
+    @Test
+    public void shouldDeleteByApi() throws Exception {
+        assertFalse(
+            eventRepository.search(EventCriteria.builder().property(Event.EventProperties.API_ID.getValue(), "api-2").build()).isEmpty()
+        );
+
+        long deleteApiEvents = eventRepository.deleteApiEvents("api-2");
+        assertEquals(3, deleteApiEvents);
+
+        assertTrue(
+            eventRepository.search(EventCriteria.builder().property(Event.EventProperties.API_ID.getValue(), "api-2").build()).isEmpty()
+        );
+    }
+
+    @Test
+    public void shouldNotDeleteByApiWhenNoEvent() throws Exception {
+        assertTrue(
+            eventRepository
+                .search(EventCriteria.builder().property(Event.EventProperties.API_ID.getValue(), "api-with-no-event").build())
+                .isEmpty()
+        );
+
+        long deleteApiEvents = eventRepository.deleteApiEvents("api-with-no-event");
+        assertEquals(0, deleteApiEvents);
+
+        assertTrue(
+            eventRepository
+                .search(EventCriteria.builder().property(Event.EventProperties.API_ID.getValue(), "api-with-no-event").build())
+                .isEmpty()
+        );
+    }
+
     @Test(expected = IllegalStateException.class)
     public void shouldNotUpdateUnknownEvent() throws Exception {
         Event unknownEvent = new Event();
