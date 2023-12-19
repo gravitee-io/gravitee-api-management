@@ -63,7 +63,7 @@
     "jdenticon": "2.2.0",
     "jquery": "3.6.0",
     "js-yaml": "3.14.1",
-    "jwt-decode": "^4.0.0",
+    "jwt-decode": "4.0.0",
     "lodash": "4.17.21",
     "marked": "4.3.0",
     "md-color-picker": "0.2.6",
@@ -75,7 +75,7 @@
     "ngclipboard": "2.0.0",
     "ngx-file-helpers": "7.0.0",
     "ngx-markdown": "13.1.0",
-    "oidc-client-ts": "^2.4.0",
+    "oidc-client-ts": "2.4.0",
     "prismjs": "1.29.0",
     "reflect-metadata": "0.1.13",
     "rxjs": "6.6.7",
@@ -142,7 +142,7 @@
     "ts-jest": "28.0.8",
     "ts-loader": "8.3.0",
     "typescript": "4.6.4",
-    "webpack": "^5.70.0"
+    "webpack": "5.89.0"
   },
   "engines": {
     "node": "^16.10",
