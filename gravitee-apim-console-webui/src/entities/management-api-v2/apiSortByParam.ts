@@ -20,7 +20,7 @@ export function apiSortByParamFromString(sort: string): ApiSortByParam {
     return undefined;
   }
   const desc = sort.startsWith('-');
-  if (sort.endsWith('contextPath')) {
+  if (sort.endsWith('access')) {
     return desc ? '-paths' : 'paths';
   }
   return desc ? '-name' : 'name';
