@@ -48,7 +48,7 @@ describe('API List feature', { defaultCommandTimeout: 10000 }, () => {
       cy.getByDataTestId('api_list_table_header')
         .should('contain.text', 'Name')
         .and('contain.text', 'Status')
-        .and('contain.text', 'Context Path')
+        .and('contain.text', 'Access')
         .and('contain.text', 'Tags')
         .and('contain.text', 'Owner')
         .and('contain.text', 'Definition')
