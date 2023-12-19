@@ -204,7 +204,7 @@ export class FilteredCatalogComponent implements OnInit {
             .toPromise()
             .then(metrics => (this.promotedMetrics = metrics));
           this.promotedApiPath = `/catalog/api/${promoted.id}`;
-          this.empty = false;
+          this.updateEmptyState();
         }
         return promoted;
       });
@@ -262,7 +262,7 @@ export class FilteredCatalogComponent implements OnInit {
         this.allApis = [];
       })
       .finally(() => {
-        this.updateEmptyState(this.allApis);
+        this.updateEmptyState();
       });
   }
 
@@ -375,8 +375,8 @@ export class FilteredCatalogComponent implements OnInit {
     this.router.navigate(['catalog/search'], { queryParams: { q: `labels:"${tag}"` } });
   }
 
-  async updateEmptyState(data = []) {
-    const isEmpty = data.filter(Boolean).length === 0;
+  async updateEmptyState() {
+    const isEmpty = this.allApis.filter(Boolean).length === 0 && !this.promotedApiPath;
     if (isEmpty) {
       const key = this.inCategory() ? 'catalog.categories.emptyMessage' : `catalog.${this.filterApiQuery}.emptyMessage`;
       this.emptyMessage = await this.translateService.get(key).toPromise();
