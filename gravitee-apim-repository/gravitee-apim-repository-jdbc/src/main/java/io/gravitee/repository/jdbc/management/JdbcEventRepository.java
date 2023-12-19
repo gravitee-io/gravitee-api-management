@@ -297,6 +297,48 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
         }
     }
 
+    @Override
+    public long deleteApiEvents(String apiId) throws TechnicalException {
+        try {
+            List<String> eventToDelete = jdbcTemplate.queryForList(
+                "select event_id from " + EVENT_PROPERTIES + " where property_key = ? and property_value = ?",
+                String.class,
+                Event.EventProperties.API_ID.getValue(),
+                apiId
+            );
+
+            String propertiesDeleteQuery =
+                "delete from " + EVENT_PROPERTIES + " where event_id in (" + getOrm().buildInClause(eventToDelete) + ")";
+            jdbcTemplate.update(
+                propertiesDeleteQuery,
+                (PreparedStatement ps) -> {
+                    getOrm().setArguments(ps, eventToDelete, 1);
+                }
+            );
+
+            String environmentsDeleteQuery =
+                "delete from " + EVENT_ENVIRONMENTS + " where event_id in (" + getOrm().buildInClause(eventToDelete) + ")";
+            jdbcTemplate.update(
+                environmentsDeleteQuery,
+                (PreparedStatement ps) -> {
+                    getOrm().setArguments(ps, eventToDelete, 1);
+                }
+            );
+
+            String eventsDeleteQuery = "delete from " + this.tableName + " where id in (" + getOrm().buildInClause(eventToDelete) + ")";
+            return jdbcTemplate.update(
+                eventsDeleteQuery,
+                (PreparedStatement ps) -> {
+                    getOrm().setArguments(ps, eventToDelete, 1);
+                }
+            );
+        } catch (final Exception ex) {
+            String error = String.format("An error occurred when deleting all events of API %s", apiId);
+            LOGGER.error(error, apiId, ex);
+            throw new TechnicalException(error);
+        }
+    }
+
     private int patchEvent(Event event) {
         List<Object> args = new ArrayList<>();
         StringBuilder queryBuilder = new StringBuilder();
