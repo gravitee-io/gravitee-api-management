@@ -190,7 +190,7 @@ public class EventServiceTest {
 
     @Test
     public void shouldDeleteApiEvents() throws TechnicalException {
-        eventService.deleteApiEvents(GraviteeContext.getExecutionContext(), API_ID);
+        eventService.deleteApiEvents(API_ID);
 
         verify(eventLatestRepository).delete(API_ID);
     }
