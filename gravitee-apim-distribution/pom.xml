@@ -1355,7 +1355,6 @@
                     <type>zip</type>
                     <scope>runtime</scope>
                 </dependency>
-                <!-- Should be moved outside of this profile before 4.2 GA -->
                 <dependency>
                     <groupId>io.gravitee.secretprovider</groupId>
                     <artifactId>gravitee-secret-provider-kubernetes</artifactId>
