@@ -26,6 +26,10 @@ import io.gravitee.gateway.reactive.reactor.v4.subscription.SubscriptionDispatch
 import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
 import io.gravitee.gateway.services.sync.process.repository.service.PlanService;
 import io.gravitee.node.api.Node;
+import io.gravitee.node.api.license.LicenseFactory;
+import io.gravitee.node.api.license.LicenseManager;
+import io.gravitee.node.api.license.LicenseModelService;
+import io.gravitee.node.license.DefaultLicenseFactory;
 import io.gravitee.repository.management.api.CommandRepository;
 import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
@@ -53,6 +57,8 @@ public class DeployerFactory {
     private final OrganizationManager organizationManager;
 
     private final EventManager eventManager;
+    private final LicenseManager licenseManager;
+    private final LicenseFactory licenseFactory;
 
     private final DistributedSyncService distributedSyncService;
 
@@ -85,5 +91,9 @@ public class DeployerFactory {
 
     public DebugDeployer createDebugDeployer() {
         return new DebugDeployer(eventManager);
+    }
+
+    public LicenseDeployer createLicenseDeployer() {
+        return new LicenseDeployer(licenseManager, licenseFactory);
     }
 }

@@ -39,12 +39,9 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.Api
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.PlanAppender;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.SubscriptionAppender;
 import io.gravitee.node.api.Node;
-import io.gravitee.repository.management.api.ApiKeyRepository;
-import io.gravitee.repository.management.api.CommandRepository;
-import io.gravitee.repository.management.api.EnvironmentRepository;
-import io.gravitee.repository.management.api.OrganizationRepository;
-import io.gravitee.repository.management.api.PlanRepository;
-import io.gravitee.repository.management.api.SubscriptionRepository;
+import io.gravitee.node.api.license.LicenseFactory;
+import io.gravitee.node.api.license.LicenseManager;
+import io.gravitee.repository.management.api.*;
 import io.reactivex.rxjava3.annotations.NonNull;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -179,6 +176,8 @@ public class SyncConfiguration {
         DictionaryManager dictionaryManager,
         OrganizationManager organizationManager,
         EventManager eventManager,
+        LicenseManager licenseManager,
+        LicenseFactory licenseFactory,
         DistributedSyncService distributedSyncService
     ) {
         Supplier<SubscriptionDispatcher> subscriptionDispatcherSupplier = provideSubscriptionDispatcher(subscriptionDispatcher);
@@ -194,6 +193,8 @@ public class SyncConfiguration {
             dictionaryManager,
             organizationManager,
             eventManager,
+            licenseManager,
+            licenseFactory,
             distributedSyncService
         );
     }
