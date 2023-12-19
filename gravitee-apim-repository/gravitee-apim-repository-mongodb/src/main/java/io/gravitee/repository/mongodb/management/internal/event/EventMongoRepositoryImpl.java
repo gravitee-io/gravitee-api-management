@@ -168,6 +168,13 @@ public class EventMongoRepositoryImpl implements EventMongoRepositoryCustom {
         return updateResult.getModifiedCount() == 1 ? event : null;
     }
 
+    @Override
+    public long deleteAllByApi(String apiId) {
+        Query query = new Query();
+        query.addCriteria(Criteria.where("properties." + Event.EventProperties.API_ID.getValue()).is(apiId));
+        return mongoTemplate.remove(query, EventMongo.class).getDeletedCount();
+    }
+
     private List<Criteria> buildDBCriteria(EventCriteria criteria) {
         List<Criteria> criteriaList = new ArrayList<>();
 

@@ -485,9 +485,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             flowService.save(FlowReferenceType.API, apiId, null);
 
             // Delete events
-            final EventQuery query = new EventQuery();
-            query.setApi(apiId);
-            eventService.search(executionContext, query).forEach(event -> eventService.delete(event.getId()));
+            eventService.deleteApiEvents(apiId);
 
             // https://github.com/gravitee-io/issues/issues/4130
             // Ensure we are sending a last UNPUBLISH_API event because the gateway couldn't be aware that the API (and

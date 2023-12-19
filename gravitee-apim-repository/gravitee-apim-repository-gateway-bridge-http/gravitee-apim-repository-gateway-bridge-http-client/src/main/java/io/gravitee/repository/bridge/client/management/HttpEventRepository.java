@@ -68,6 +68,12 @@ public class HttpEventRepository extends AbstractRepository implements EventRepo
     }
 
     @Override
+    @ExcludeMethodFromGeneratedCoverage
+    public long deleteApiEvents(String apiId) throws TechnicalException {
+        throw new IllegalStateException();
+    }
+
+    @Override
     public List<Event> searchLatest(EventCriteria criteria, Event.EventProperties group, Long page, Long size) {
         try {
             return blockingGet(
