@@ -311,6 +311,18 @@ public class EventServiceImpl extends TransactionalService implements EventServi
     }
 
     @Override
+    public void deleteApiEvents(String apiId) {
+        try {
+            LOGGER.debug("Delete Events for API {}", apiId);
+            long deleteApiEvents = eventRepository.deleteApiEvents(apiId);
+            LOGGER.debug("{} events deleted for API {}", deleteApiEvents, apiId);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to delete Events for API {}", apiId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to delete Events for API " + apiId, ex);
+        }
+    }
+
+    @Override
     public Page<EventEntity> search(
         ExecutionContext executionContext,
         List<EventType> eventTypes,
