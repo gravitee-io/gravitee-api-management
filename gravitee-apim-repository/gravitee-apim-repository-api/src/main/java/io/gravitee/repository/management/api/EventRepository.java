@@ -69,4 +69,13 @@ public interface EventRepository extends CrudRepository<Event, String> {
      * @throws TechnicalException
      */
     Event createOrPatch(Event event) throws TechnicalException;
+
+    /**
+     * Delete events of a specific API.
+     *
+     * @param apiId the API id.
+     * @return the number of deleted events.
+     * @throws TechnicalException
+     */
+    long deleteApiEvents(String apiId) throws TechnicalException;
 }

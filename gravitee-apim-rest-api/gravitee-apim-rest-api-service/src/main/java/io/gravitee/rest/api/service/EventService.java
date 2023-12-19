@@ -81,6 +81,8 @@ public interface EventService {
 
     void deleteApiEvents(final ExecutionContext executionContext, String apiId);
 
+    void deleteApiEvents(String apiId);
+
     Page<EventEntity> search(
         ExecutionContext executionContext,
         List<EventType> eventTypes,

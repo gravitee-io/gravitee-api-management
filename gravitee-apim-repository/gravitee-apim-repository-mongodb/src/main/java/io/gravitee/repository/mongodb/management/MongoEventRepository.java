@@ -123,6 +123,26 @@ public class MongoEventRepository implements EventRepository {
     }
 
     @Override
+<<<<<<< HEAD
+=======
+    public long deleteApiEvents(String apiId) throws TechnicalException {
+        try {
+            return internalEventRepo.deleteAllByApi(apiId);
+        } catch (Exception e) {
+            String error = String.format("An error occurred when deleting all events of API %s", apiId);
+            logger.error(error, apiId, e);
+            throw new TechnicalException(error);
+        }
+    }
+
+    @Override
+    public List<Event> searchLatest(EventCriteria criteria, Event.EventProperties group, Long page, Long size) {
+        List<EventMongo> eventsMongo = internalEventRepo.searchLatest(criteria, group, page, size);
+        return mapper.collection2list(eventsMongo, EventMongo.class, Event.class);
+    }
+
+    @Override
+>>>>>>> 265a66a2e3 (feat: allow to delete all events of a given API)
     public Page<Event> search(EventCriteria filter, Pageable pageable) {
         Page<EventMongo> eventsMongo = internalEventRepo.search(filter, pageable);
 
