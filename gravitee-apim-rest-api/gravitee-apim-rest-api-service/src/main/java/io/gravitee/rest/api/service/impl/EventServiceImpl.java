@@ -289,21 +289,19 @@ public class EventServiceImpl extends TransactionalService implements EventServi
     }
 
     @Override
-    public void deleteApiEvents(final ExecutionContext executionContext, final String apiId) {
-        final EventQuery query = new EventQuery();
-        query.setApi(apiId);
-        search(executionContext, query)
-            .forEach(event -> {
-                String eventId = event.getId();
-                try {
-                    LOGGER.debug("Delete Event {}", eventId);
-                    eventRepository.delete(eventId);
-                } catch (TechnicalException ex) {
-                    throw new TechnicalManagementException("An error occurs while trying to delete Event " + eventId, ex);
-                }
-            });
+    public void deleteApiEvents(String apiId) {
+        try {
+            LOGGER.debug("Delete Events for API {}", apiId);
+            long deleteApiEvents = eventRepository.deleteApiEvents(apiId);
+            LOGGER.debug("{} events deleted for API {}", deleteApiEvents, apiId);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to delete Events for API {}", apiId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to delete Events for API " + apiId, ex);
+        }
+
         try {
             LOGGER.debug("Delete Event Latest {}", apiId);
+            // Works because the eventLatest id is the API id
             eventLatestRepository.delete(apiId);
         } catch (TechnicalException ex) {
             throw new TechnicalManagementException("An error occurs while trying to delete Event Latest " + apiId, ex);
