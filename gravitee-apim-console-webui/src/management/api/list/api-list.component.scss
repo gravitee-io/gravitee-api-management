@@ -21,7 +21,7 @@
   }
 }
 
-.mat-column-contextPath,
+.mat-column-access,
 .mat-column-tags,
 .mat-column-owner {
   padding: 0 8px;
@@ -39,8 +39,8 @@
   padding: 0 8px;
 }
 
-.mat-column-contextPath {
-  .contextPath {
+.mat-column-access {
+  .access {
     &__message {
       color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
       cursor: default;
@@ -48,6 +48,7 @@
 
     &__badge {
       margin-left: 8px;
+      cursor: default;
     }
   }
 }

@@ -35,13 +35,16 @@ import {
   HttpListener,
   PagedResult,
   apiSortByParamFromString,
+  TcpListener,
+  Listener,
+  ListenerType,
 } from '../../../entities/management-api-v2';
 
 export type ApisTableDS = {
   id: string;
   name: string;
   version: string;
-  contextPath: string[];
+  access: string[];
   tags: string;
   owner: string;
   ownerEmail: string;
@@ -56,6 +59,7 @@ export type ApisTableDS = {
   readonly: boolean;
   definitionVersion: { label: string; icon?: string };
   targetRoute: string;
+  listenerTypes?: ListenerType[];
 }[];
 
 @Component({
@@ -64,7 +68,7 @@ export type ApisTableDS = {
   styleUrls: ['./api-list.component.scss'],
 })
 export class ApiListComponent implements OnInit, OnDestroy {
-  displayedColumns = ['picture', 'name', 'states', 'contextPath', 'tags', 'owner', 'definitionVersion', 'visibility', 'actions'];
+  displayedColumns = ['picture', 'name', 'states', 'access', 'tags', 'owner', 'definitionVersion', 'visibility', 'actions'];
   apisTableDSUnpaginatedLength = 0;
   apisTableDS: ApisTableDS = [];
   filters: GioTableWrapperFilters = {
@@ -172,12 +176,12 @@ export class ApiListComponent implements OnInit, OnDestroy {
             owner: api.primaryOwner?.displayName,
             ownerEmail: api.primaryOwner?.email,
             picture: api._links.pictureUrl,
+            access: this.getApiAccess(api),
           };
           if (api.definitionVersion === 'V4') {
-            const apiv4 = api as ApiV4;
             return {
               ...tableDS,
-              contextPath: this.getContextPathForApiV4(apiv4),
+              listenerTypes: api.listeners.map((listener: Listener) => listener.type),
               isNotSynced$: undefined,
               qualityScore$: null,
               targetRoute: 'management.apis.general',
@@ -186,7 +190,6 @@ export class ApiListComponent implements OnInit, OnDestroy {
             const apiv2 = api as ApiV2;
             return {
               ...tableDS,
-              contextPath: this.getContextPathForApiV2(apiv2),
               isNotSynced$: this.apiService.isAPISynchronized(apiv2.id).pipe(map((a) => !a.is_synchronized)),
               qualityScore$: this.isQualityDisplayed
                 ? this.apiService.getQualityMetrics(apiv2.id).pipe(map((a) => this.getQualityScore(Math.floor(a.score * 100))))
@@ -196,23 +199,6 @@ export class ApiListComponent implements OnInit, OnDestroy {
           }
         })
       : [];
-  }
-
-  private getContextPathForApiV4(api: ApiV4): string[] {
-    if (api.listeners?.length > 0) {
-      const httpListener = api.listeners.find((listener) => listener.type === 'HTTP');
-      if (httpListener) {
-        return (httpListener as HttpListener).paths.map((path) => `${path.host ?? ''}${path.path}`);
-      }
-    }
-    return null;
-  }
-
-  private getContextPathForApiV2(api: ApiV2): string[] {
-    if (api.proxy.virtualHosts?.length > 0) {
-      return api.proxy.virtualHosts.map((vh) => `${vh.host ?? ''}${vh.path}`);
-    }
-    return [api.contextPath];
   }
 
   private getDefinitionVersion(api: Api) {
@@ -249,5 +235,22 @@ export class ApiListComponent implements OnInit, OnDestroy {
       }
     }
     return { score, class: qualityClass };
+  }
+
+  private getApiAccess(api: Api): string[] | null {
+    if (api.definitionVersion === 'V4') {
+      const tcpListenerHosts = api.listeners
+        .filter((listener) => listener.type === 'TCP')
+        .flatMap((listener: TcpListener) => listener.hosts);
+
+      const httpListenerPaths = api.listeners
+        .filter((listener) => listener.type === 'HTTP')
+        .map((listener: HttpListener) => listener.paths.map((path) => `${path.host ?? ''}${path.path}`))
+        .flat();
+
+      return tcpListenerHosts.length > 0 ? tcpListenerHosts : httpListenerPaths.length > 0 ? httpListenerPaths : null;
+    }
+
+    return api.proxy.virtualHosts?.length > 0 ? api.proxy.virtualHosts.map((vh) => `${vh.host ?? ''}${vh.path}`) : [api.contextPath];
   }
 }
