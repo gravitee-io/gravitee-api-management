@@ -70,10 +70,7 @@ describe('Notifications page', () => {
   describe('Edit notification', () => {
     beforeEach(() => {
       cy.getByDataTestId('notifications_list_table').first().click();
-      cy.getByDataTestId('notification_detail_checkbox_API_DEPLOYED').within(() => {
-        cy.get('[type="checkbox"]').click({ force: true });
-        cy.get('[type="checkbox"]').should('be.checked');
-      });
+      cy.getByDataTestId('notification_detail_checkbox_API_DEPLOYED').click();
       cy.contains('have unsaved changes').should('be.visible');
     });
 
@@ -90,9 +87,7 @@ describe('Notifications page', () => {
 
     it('Edit notification and discard changes', () => {
       cy.getByDataTestId('api_notification_savebar').contains('Discard').click();
-      cy.getByDataTestId('notification_detail_checkbox_API_DEPLOYED').within(() => {
-        cy.get('[type="checkbox"]').should('not.be.checked');
-      });
+      cy.getByDataTestId('notification_detail_checkbox_API_DEPLOYED').should('not.be.checked');
       cy.contains('You have unsaved changes').should('not.be.visible');
     });
   });
