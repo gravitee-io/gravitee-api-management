@@ -249,7 +249,7 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
                 .append(" fshm on f.id = fshm.flow_id  and fse.type = 'HTTP'");
             selectQueryBuilder.append(" left join ").append(FLOW_TAGS).append(" ft on f.id = ft.flow_id");
             selectQueryBuilder.append(" left join ").append(FLOW_METHODS).append(" fm on f.id = fm.flow_id");
-            selectQueryBuilder.append(" left join ").append(FLOW_CONSUMERS).append(" fc on f.id = fm.flow_id");
+            selectQueryBuilder.append(" left join ").append(FLOW_CONSUMERS).append(" fc on f.id = fc.flow_id");
             selectQueryBuilder.append(" where f.reference_id = ? and f.reference_type = ?");
             selectQueryBuilder
                 .append(" order by f.id, fs.phase, fs.")
