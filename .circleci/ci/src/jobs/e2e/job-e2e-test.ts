@@ -52,7 +52,7 @@ if [ "<< parameters.execution_mode >>" = "jupiter" ]; then
   export JUPITER_MODE_ENABLED=true
 fi
 if [ -z "<< parameters.apim_client_tag >>" ]; then
-  APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=${dockerImageTag} APIM_CLIENT_TAG=${dockerImageTag} npm run test:api:<< parameters.database >>
+  APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=${dockerImageTag} APIM_CLIENT_REGISTRY=graviteeio.azurecr.io APIM_CLIENT_TAG=${dockerImageTag} npm run test:api:<< parameters.database >>
 else 
   if [[ "<< parameters.apim_client_tag >>" == *"@"* ]]; then
     echo "Using custom registry for client"
