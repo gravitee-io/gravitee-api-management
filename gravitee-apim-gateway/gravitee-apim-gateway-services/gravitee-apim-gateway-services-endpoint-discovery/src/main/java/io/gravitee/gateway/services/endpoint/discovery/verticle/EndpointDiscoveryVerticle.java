@@ -23,6 +23,7 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.definition.model.Endpoint;
 import io.gravitee.definition.model.EndpointGroup;
 import io.gravitee.definition.model.HttpClientSslOptions;
+import io.gravitee.definition.model.endpoint.HttpEndpoint;
 import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
 import io.gravitee.discovery.api.ServiceDiscovery;
 import io.gravitee.discovery.api.service.Service;
@@ -175,7 +176,7 @@ public class EndpointDiscoveryVerticle extends AbstractVerticle implements Event
         final String serviceName = "sd#" + service.id().replaceAll(":", "#");
         String target = scheme + "://" + service.host() + (service.port() > 0 ? ":" + service.port() : "") + basePath;
 
-        io.gravitee.definition.model.Endpoint endpoint = new Endpoint(serviceName, target);
+        HttpEndpoint endpoint = new HttpEndpoint(serviceName, target);
 
         endpoint.setConfiguration(getEndpointConfiguration(group, endpoint, scheme));
 
