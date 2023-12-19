@@ -31,4 +31,6 @@ public interface EventMongoRepositoryCustom {
     Page<EventMongo> search(EventCriteria criteria, Pageable pageable);
 
     Event patch(Event event);
+
+    long deleteAllByApi(String apiId);
 }

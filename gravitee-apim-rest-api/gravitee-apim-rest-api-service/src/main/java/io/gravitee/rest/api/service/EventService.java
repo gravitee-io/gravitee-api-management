@@ -79,7 +79,7 @@ public interface EventService {
         Map<String, String> properties
     );
 
-    void deleteApiEvents(final ExecutionContext executionContext, String apiId);
+    void deleteApiEvents(String apiId);
 
     Page<EventEntity> search(
         ExecutionContext executionContext,
