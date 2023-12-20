@@ -149,7 +149,7 @@
         "trustAll": {
           "$ref": "#/definitions/sslTrustStoreTrustAll"
         },
-        "truststore": {
+        "trustStore": {
           "type": "object",
           "title": "Truststore",
           "oneOf": [
@@ -278,7 +278,7 @@
             }
           ]
         },
-        "keystore": {
+        "keyStore": {
           "type": "object",
           "title": "Key store",
           "oneOf": [
