@@ -33,6 +33,7 @@ import { GioPermissionModule } from '../shared/components/gio-permission/gio-per
 import { GioSideNavModule } from '../components/gio-side-nav/gio-side-nav.module';
 import { GioTopNavModule } from '../components/gio-top-nav/gio-top-nav.module';
 import { ContextualDocComponentComponent } from '../components/contextual/contextual-doc.component';
+import { TicketsModule } from '../user/support/tickets.module';
 
 @NgModule({
   imports: [
@@ -53,6 +54,7 @@ import { ContextualDocComponentComponent } from '../components/contextual/contex
 
     // For User menu
     TasksModule,
+    TicketsModule,
   ],
   declarations: [ManagementComponent, ContextualDocComponentComponent, TicketComponent, TicketDetailComponent, TicketsListComponent],
   exports: [RouterModule],
