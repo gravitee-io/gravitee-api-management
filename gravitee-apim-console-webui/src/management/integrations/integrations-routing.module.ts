@@ -44,7 +44,7 @@ const routes: Routes = [
   },
 
   {
-    path: "add-integration",
+    path: "add-integration/:provider",
     component: AddIntegrationComponent
   },
 

@@ -14,28 +14,29 @@
  * limitations under the License.
  */
 
-import { ActivatedRoute, Router } from '@angular/router';
-import { Component, OnInit } from "@angular/core";
+import { Injectable } from '@angular/core';
+import { BehaviorSubject, Observable } from "rxjs";
+import { HttpClient } from "@angular/common/http";
 
-import { catalogData } from "../../data/catalog.data";
-
-@Component({
-  selector: 'app-catalog',
-  templateUrl: './catalog.component.html',
-  styleUrls: ['./catalog.component.scss']
+@Injectable({
+  providedIn: 'root'
 })
-export class CatalogComponent {
-  protected readonly catalogData = catalogData;
-
-
+export class AddIntegrationService {
+  private isLoading$$ = new BehaviorSubject<boolean>(false);
   constructor(
-    private router: Router,
-    private route: ActivatedRoute,
-  ) {
+    private httpClient: HttpClient,
+  ) { }
+
+  public isLoading$(): Observable<boolean> {
+    return this.isLoading$$.asObservable();
   }
 
-
-  handleAdd(provider: string): void {
-    this.router.navigate([`../add-integration/${provider}`], {relativeTo: this.route});
+  public setIsLoading(isVisible: boolean) {
+    this.isLoading$$.next(isVisible);
   }
+
+  public integrate() {
+    this.setIsLoading(true);
+  }
+
 }

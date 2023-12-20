@@ -15,6 +15,7 @@
  */
 
 interface CatalogData {
+  provider: string;
   iconPath: string;
   title: string;
   categories: string[];
@@ -25,6 +26,7 @@ interface CatalogData {
 
 export const catalogData: CatalogData[] = [
   {
+    provider: 'aws',
     iconPath: "assets/logo_aws.svg",
     title: "AWS Gateway",
     categories: ["Mediate", "Federate"],
@@ -33,6 +35,7 @@ export const catalogData: CatalogData[] = [
     isAdd: true
   },
   {
+    provider: 'solace',
     iconPath: "assets/logo_solace.svg",
     title: "Solace",
     categories: ["Mediate", "Federate"],
@@ -41,6 +44,7 @@ export const catalogData: CatalogData[] = [
     isAdd: true
   },
   {
+    provider: 'confluent',
     iconPath: "assets/logo_confluent.svg",
     title: "Confluent",
     categories: ["Mediate", "Federate"],
@@ -49,6 +53,7 @@ export const catalogData: CatalogData[] = [
     isAdd: false
   },
   {
+    provider: 'snowflake',
     iconPath: "assets/logo_snowflake.svg",
     title: "Snowflake",
     categories: ["Mediate"],
@@ -57,6 +62,7 @@ export const catalogData: CatalogData[] = [
     isAdd: false
   },
   {
+    provider: 'salesforce',
     iconPath: "assets/logo_salesforce.svg",
     title: "Salesforce",
     categories: ["Mediate"],
@@ -65,6 +71,7 @@ export const catalogData: CatalogData[] = [
     isAdd: false
   },
   {
+    provider: 'apigee',
     iconPath: "assets/logo_apigee.svg",
     title: "Apigee",
     categories: ["Mediate", "Federate"],

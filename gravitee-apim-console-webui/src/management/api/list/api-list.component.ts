@@ -219,8 +219,8 @@ export class ApiListComponent implements OnInit, OnDestroy {
   private mapOriginLogos(origin: OriginEnum): string {
     const options = {
       'MANAGEMENT': 'assets/logo_gravitee.svg',
-      'AWS': 'assets/logo_aws.svg',
-      'SOLACE': 'assets/logo_aws.svg'
+      'AWS': 'assets/logo_aws_16.svg',
+      'SOLACE': 'assets/logo_solace.svg'
     }
     return options[origin] || 'assets/logo_spinner.svg';
   }

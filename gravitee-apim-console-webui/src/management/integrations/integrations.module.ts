@@ -14,29 +14,33 @@
  * limitations under the License.
  */
 
-import { AddIntegrationComponent } from "./pages/add-integration/add-integration.component";
-import { CatalogComponent } from "./components/catalog/catalog.component";
+
 import { CommonModule } from "@angular/common";
-import { FormsModule } from '@angular/forms';
-import { IntegrationsComponent } from "./integrations.component";
-import { IntegrationsRoutingModule } from "./integrations-routing.module";
+import { FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { MatButtonModule } from "@angular/material/button";
-import { MatInputModule } from '@angular/material/input';
-import {MatRadioModule} from '@angular/material/radio';
+import { MatInputModule } from "@angular/material/input";
+import { MatRadioModule } from "@angular/material/radio";
 import { MatTabsModule } from "@angular/material/tabs";
-import { MyIntegrationsComponent } from "./components/my-integrations/my-integrations.component";
 import { NgModule } from "@angular/core";
 
+import { IntegrationsRoutingModule } from "./integrations-routing.module";
+import { AddIntegrationComponent } from "./pages/add-integration/add-integration.component";
+import { CatalogComponent } from "./components/catalog/catalog.component";
+import { IntegrationsComponent } from "./integrations.component";
+import { MyIntegrationsComponent } from "./components/my-integrations/my-integrations.component";
+
+
 @NgModule({
-    imports: [
-        CommonModule,
-        IntegrationsRoutingModule,
-        FormsModule,
-        MatTabsModule,
-        MatButtonModule,
-        MatInputModule,
-        MatRadioModule
-    ],
+  imports: [
+    CommonModule,
+    IntegrationsRoutingModule,
+    FormsModule,
+    ReactiveFormsModule,
+    MatTabsModule,
+    MatButtonModule,
+    MatInputModule,
+    MatRadioModule
+  ],
   declarations: [
     IntegrationsComponent,
     CatalogComponent,
