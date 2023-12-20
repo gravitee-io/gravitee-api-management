@@ -15,10 +15,12 @@
  */
 package io.gravitee.repository.mongodb.management.internal.license;
 
+import io.gravitee.repository.management.api.search.LicenseCriteria;
 import io.gravitee.repository.mongodb.management.internal.model.LicenseMongo;
-import io.gravitee.repository.mongodb.management.internal.model.LicensePkMongo;
-import org.springframework.data.mongodb.repository.MongoRepository;
+import java.util.List;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface LicenseMongoRepository extends MongoRepository<LicenseMongo, LicensePkMongo>, LicenseMongoRepositoryCustom {}
+public interface LicenseMongoRepositoryCustom {
+    List<LicenseMongo> search(LicenseCriteria filter);
+}

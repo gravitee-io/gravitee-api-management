@@ -20,10 +20,15 @@ import static io.gravitee.repository.jdbc.management.JdbcHelper.WHERE_CLAUSE;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.LicenseRepository;
-import io.gravitee.repository.management.model.IdentityProvider;
+import io.gravitee.repository.management.api.search.LicenseCriteria;
 import io.gravitee.repository.management.model.License;
 import java.sql.Types;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -125,6 +130,68 @@ public class JdbcLicenseRepository extends JdbcAbstractFindAllRepository<License
         } catch (final Exception ex) {
             LOGGER.error("Failed to delete {} license:", getOrm().getTableName(), ex);
             throw new TechnicalException("Failed to delete license", ex);
+        }
+    }
+
+    @Override
+    public List<License> findByCriteria(final LicenseCriteria filter) throws TechnicalException {
+        LOGGER.debug("JdbcLicenseRepository.findByCriteria({})", filter);
+        try {
+            List<Object> args = new ArrayList<>();
+
+            StringBuilder query = new StringBuilder(getOrm().getSelectAllSql());
+
+            boolean first = true;
+
+            if (filter.getReferenceType() != null) {
+                first = addClause(first, query);
+                query.append("reference_type = ?");
+                args.add(filter.getReferenceType().name());
+            }
+
+            if (filter.getReferenceId() != null && !filter.getReferenceId().isEmpty()) {
+                first = addClause(first, query);
+                query.append("reference_id = ?");
+                args.add(filter.getReferenceId());
+            }
+
+            if (filter.getFrom() > 0) {
+                first = addClause(first, query);
+                query.append("updated_at >= ?");
+                args.add(new Date(filter.getFrom()));
+            }
+
+            if (filter.getTo() > 0) {
+                first = addClause(first, query);
+                query.append("updated_at <= ?");
+                args.add(new Date(filter.getTo()));
+            }
+            return jdbcTemplate.query(query.toString(), getRowMapper(), args.toArray());
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to find Licenses by criteria:", ex);
+            throw new TechnicalException("Failed to find Licenses by criteria", ex);
+        }
+    }
+
+    private boolean addClause(boolean first, StringBuilder query) {
+        if (first) {
+            query.append(" where ");
+        } else {
+            query.append(" and ");
+        }
+        return false;
+    }
+
+    @Override
+    public Set<License> findAll() throws TechnicalException {
+        LOGGER.debug("JdbcLicenseRepository.findAll()");
+        try {
+            List<License> result = jdbcTemplate.query("select ol.* from " + this.tableName + " ol", getOrm().getRowMapper());
+            LOGGER.debug("JdbcLicenseRepository.findById() = {}", result);
+            return new HashSet<>(result);
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to find licenses: ", ex);
+            throw new TechnicalException("Failed to find licenses", ex);
         }
     }
 }
