@@ -53,21 +53,19 @@ public class EnvoyResources {
      * @param clusterName name of the new cluster
      */
     public static Cluster createCluster(String clusterName) {
-        ConfigSource edsSource =
-                ConfigSource.newBuilder()
-                        .setAds(AggregatedConfigSource.getDefaultInstance())
-                        .setResourceApiVersion(ApiVersion.V3)
-                        .build();
+        ConfigSource edsSource = ConfigSource
+            .newBuilder()
+            .setAds(AggregatedConfigSource.getDefaultInstance())
+            .setResourceApiVersion(ApiVersion.V3)
+            .build();
 
-        return Cluster.newBuilder()
-                .setName(clusterName)
-                .setConnectTimeout(Durations.fromSeconds(5))
-                .setEdsClusterConfig(
-                        Cluster.EdsClusterConfig.newBuilder()
-                                .setEdsConfig(edsSource)
-                                .setServiceName(clusterName))
-                .setType(Cluster.DiscoveryType.EDS)
-                .build();
+        return Cluster
+            .newBuilder()
+            .setName(clusterName)
+            .setConnectTimeout(Durations.fromSeconds(5))
+            .setEdsClusterConfig(Cluster.EdsClusterConfig.newBuilder().setEdsConfig(edsSource).setServiceName(clusterName))
+            .setType(Cluster.DiscoveryType.EDS)
+            .build();
     }
 
     /**
@@ -78,29 +76,41 @@ public class EnvoyResources {
      * @param port port to use for the cluster endpoint
      * @param discoveryType service discovery type
      */
-    public static Cluster createCluster(
-            String clusterName, String address, int port, Cluster.DiscoveryType discoveryType) {
-        return Cluster.newBuilder()
-                .setName(clusterName)
-                .setConnectTimeout(Durations.fromSeconds(5))
-                .setType(discoveryType)
-                .setLoadAssignment(
-                        ClusterLoadAssignment.newBuilder()
-                                .setClusterName(clusterName)
-                                .addEndpoints(
-                                        LocalityLbEndpoints.newBuilder()
-                                                .addLbEndpoints(
-                                                        LbEndpoint.newBuilder()
-                                                                .setEndpoint(
-                                                                        Endpoint.newBuilder()
-                                                                                .setAddress(
-                                                                                        Address.newBuilder()
-                                                                                                .setSocketAddress(
-                                                                                                        SocketAddress.newBuilder()
-                                                                                                                .setAddress(address)
-                                                                                                                .setPortValue(port)
-                                                                                                                .setProtocolValue(Protocol.TCP_VALUE)))))))
-                .build();
+    public static Cluster createCluster(String clusterName, String address, int port, Cluster.DiscoveryType discoveryType) {
+        return Cluster
+            .newBuilder()
+            .setName(clusterName)
+            .setConnectTimeout(Durations.fromSeconds(5))
+            .setType(discoveryType)
+            .setLoadAssignment(
+                ClusterLoadAssignment
+                    .newBuilder()
+                    .setClusterName(clusterName)
+                    .addEndpoints(
+                        LocalityLbEndpoints
+                            .newBuilder()
+                            .addLbEndpoints(
+                                LbEndpoint
+                                    .newBuilder()
+                                    .setEndpoint(
+                                        Endpoint
+                                            .newBuilder()
+                                            .setAddress(
+                                                Address
+                                                    .newBuilder()
+                                                    .setSocketAddress(
+                                                        SocketAddress
+                                                            .newBuilder()
+                                                            .setAddress(address)
+                                                            .setPortValue(port)
+                                                            .setProtocolValue(Protocol.TCP_VALUE)
+                                                    )
+                                            )
+                                    )
+                            )
+                    )
+            )
+            .build();
     }
 
     /**
@@ -121,23 +131,29 @@ public class EnvoyResources {
      * @param port port to use for the endpoint
      */
     public static ClusterLoadAssignment createEndpoint(String clusterName, String address, int port) {
-        return ClusterLoadAssignment.newBuilder()
-                .setClusterName(clusterName)
-                .addEndpoints(
-                        LocalityLbEndpoints.newBuilder()
-                                .addLbEndpoints(
-                                        LbEndpoint.newBuilder()
-                                                .setEndpoint(
-                                                        Endpoint.newBuilder()
-                                                                .setAddress(
-                                                                        Address.newBuilder()
-                                                                                .setSocketAddress(
-                                                                                        SocketAddress
-                                                                                                .newBuilder()
-                                                                                                .setAddress(address)
-                                                                                                .setPortValue(port)
-                                                                                                .setProtocol(Protocol.TCP))))))
-                .build();
+        return ClusterLoadAssignment
+            .newBuilder()
+            .setClusterName(clusterName)
+            .addEndpoints(
+                LocalityLbEndpoints
+                    .newBuilder()
+                    .addLbEndpoints(
+                        LbEndpoint
+                            .newBuilder()
+                            .setEndpoint(
+                                Endpoint
+                                    .newBuilder()
+                                    .setAddress(
+                                        Address
+                                            .newBuilder()
+                                            .setSocketAddress(
+                                                SocketAddress.newBuilder().setAddress(address).setPortValue(port).setProtocol(Protocol.TCP)
+                                            )
+                                    )
+                            )
+                    )
+            )
+            .build();
     }
 
     /**
@@ -153,65 +169,61 @@ public class EnvoyResources {
      * @param routeName name of the test route that is associated with this listener
      */
     public static Listener createListener(
-            boolean ads,
-            boolean delta,
-            ApiVersion rdsTransportVersion,
-            ApiVersion rdsResourceVersion,
-            String listenerName,
-            int port,
-            String routeName) {
-        ConfigSource.Builder configSourceBuilder =
-                ConfigSource.newBuilder().setResourceApiVersion(rdsResourceVersion);
-        ConfigSource rdsSource =
-                ads
-                        ? configSourceBuilder
-                        .setAds(AggregatedConfigSource.getDefaultInstance())
-                        .setResourceApiVersion(rdsResourceVersion)
-                        .build()
-                        : configSourceBuilder
-                        .setApiConfigSource(
-                                ApiConfigSource.newBuilder()
-                                        .setTransportApiVersion(rdsTransportVersion)
-                                        .setApiType(delta ? ApiConfigSource.ApiType.DELTA_GRPC : ApiConfigSource.ApiType.GRPC)
-                                        .addGrpcServices(
-                                                GrpcService.newBuilder()
-                                                        .setEnvoyGrpc(
-                                                                GrpcService.EnvoyGrpc.newBuilder()
-                                                                        .setClusterName(XDS_CLUSTER))))
-                        .build();
-
-        HttpConnectionManager manager =
-                HttpConnectionManager.newBuilder()
-                        .setCodecType(CodecType.AUTO)
-                        .setStatPrefix("http")
-                        .setRds(
-                                io.envoyproxy.envoy.extensions.filters.network.http_connection_manager.v3.Rds
-                                        .newBuilder()
-                                        .setConfigSource(rdsSource)
-                                        .setRouteConfigName(routeName))
-                        .addHttpFilters(
-                                io.envoyproxy.envoy.extensions.filters.network.http_connection_manager.v3.HttpFilter
-                                        .newBuilder()
-                                        .setName(FILTER_ENVOY_ROUTER)
-                                        .setTypedConfig(Any.pack(Router.newBuilder().build())))
-                        .build();
-
-        return Listener.newBuilder()
-                .setName(listenerName)
-                .setAddress(
-                        Address.newBuilder()
-                                .setSocketAddress(
-                                        SocketAddress.newBuilder()
-                                                .setAddress(ANY_ADDRESS)
-                                                .setPortValue(port)
-                                                .setProtocol(Protocol.TCP)))
-                .addFilterChains(
-                        FilterChain.newBuilder()
-                                .addFilters(
-                                        Filter.newBuilder()
-                                                .setName(FILTER_HTTP_CONNECTION_MANAGER)
-                                                .setTypedConfig(Any.pack(manager))))
+        boolean ads,
+        boolean delta,
+        ApiVersion rdsTransportVersion,
+        ApiVersion rdsResourceVersion,
+        String listenerName,
+        int port,
+        String routeName
+    ) {
+        ConfigSource.Builder configSourceBuilder = ConfigSource.newBuilder().setResourceApiVersion(rdsResourceVersion);
+        ConfigSource rdsSource = ads
+            ? configSourceBuilder.setAds(AggregatedConfigSource.getDefaultInstance()).setResourceApiVersion(rdsResourceVersion).build()
+            : configSourceBuilder
+                .setApiConfigSource(
+                    ApiConfigSource
+                        .newBuilder()
+                        .setTransportApiVersion(rdsTransportVersion)
+                        .setApiType(delta ? ApiConfigSource.ApiType.DELTA_GRPC : ApiConfigSource.ApiType.GRPC)
+                        .addGrpcServices(
+                            GrpcService.newBuilder().setEnvoyGrpc(GrpcService.EnvoyGrpc.newBuilder().setClusterName(XDS_CLUSTER))
+                        )
+                )
                 .build();
+
+        HttpConnectionManager manager = HttpConnectionManager
+            .newBuilder()
+            .setCodecType(CodecType.AUTO)
+            .setStatPrefix("http")
+            .setRds(
+                io.envoyproxy.envoy.extensions.filters.network.http_connection_manager.v3.Rds
+                    .newBuilder()
+                    .setConfigSource(rdsSource)
+                    .setRouteConfigName(routeName)
+            )
+            .addHttpFilters(
+                io.envoyproxy.envoy.extensions.filters.network.http_connection_manager.v3.HttpFilter
+                    .newBuilder()
+                    .setName(FILTER_ENVOY_ROUTER)
+                    .setTypedConfig(Any.pack(Router.newBuilder().build()))
+            )
+            .build();
+
+        return Listener
+            .newBuilder()
+            .setName(listenerName)
+            .setAddress(
+                Address
+                    .newBuilder()
+                    .setSocketAddress(SocketAddress.newBuilder().setAddress(ANY_ADDRESS).setPortValue(port).setProtocol(Protocol.TCP))
+            )
+            .addFilterChains(
+                FilterChain
+                    .newBuilder()
+                    .addFilters(Filter.newBuilder().setName(FILTER_HTTP_CONNECTION_MANAGER).setTypedConfig(Any.pack(manager)))
+            )
+            .build();
     }
 
     /**
@@ -221,17 +233,22 @@ public class EnvoyResources {
      * @param clusterName name of the test cluster that is associated with this route
      */
     public static RouteConfiguration createRoute(String routeName, String clusterName) {
-        return RouteConfiguration.newBuilder()
-                .setName(routeName)
-                .addVirtualHosts(
-                        VirtualHost.newBuilder()
-                                .setName("all")
-                                .addDomains("*")
-                                .addRoutes(
-                                        Route.newBuilder()
-                                                .setMatch(RouteMatch.newBuilder().setPrefix("/"))
-                                                .setRoute(RouteAction.newBuilder().setCluster(clusterName))))
-                .build();
+        return RouteConfiguration
+            .newBuilder()
+            .setName(routeName)
+            .addVirtualHosts(
+                VirtualHost
+                    .newBuilder()
+                    .setName("all")
+                    .addDomains("*")
+                    .addRoutes(
+                        Route
+                            .newBuilder()
+                            .setMatch(RouteMatch.newBuilder().setPrefix("/"))
+                            .setRoute(RouteAction.newBuilder().setCluster(clusterName))
+                    )
+            )
+            .build();
     }
 
     /**
@@ -240,12 +257,11 @@ public class EnvoyResources {
      * @param secretName name of the new secret
      */
     public static Secret createSecret(String secretName) {
-        return Secret.newBuilder()
-                .setName(secretName)
-                .setTlsCertificate(
-                        TlsCertificate.newBuilder()
-                                .setPrivateKey(DataSource.newBuilder().setInlineString("secret!")))
-                .build();
+        return Secret
+            .newBuilder()
+            .setName(secretName)
+            .setTlsCertificate(TlsCertificate.newBuilder().setPrivateKey(DataSource.newBuilder().setInlineString("secret!")))
+            .build();
     }
 
     /**
@@ -254,20 +270,19 @@ public class EnvoyResources {
      * @param clusterName name of the new cluster
      */
     public static Cluster createClusterV3(String clusterName) {
-        ConfigSource edsSource =
-                ConfigSource.newBuilder()
-                        .setAds(AggregatedConfigSource.getDefaultInstance())
-                        .setResourceApiVersion(ApiVersion.V3)
-                        .build();
+        ConfigSource edsSource = ConfigSource
+            .newBuilder()
+            .setAds(AggregatedConfigSource.getDefaultInstance())
+            .setResourceApiVersion(ApiVersion.V3)
+            .build();
 
-        return Cluster.newBuilder()
-                .setName(clusterName)
-                .setConnectTimeout(Durations.fromSeconds(5))
-                .setEdsClusterConfig(Cluster.EdsClusterConfig.newBuilder()
-                        .setEdsConfig(edsSource)
-                        .setServiceName(clusterName))
-                .setType(Cluster.DiscoveryType.EDS)
-                .build();
+        return Cluster
+            .newBuilder()
+            .setName(clusterName)
+            .setConnectTimeout(Durations.fromSeconds(5))
+            .setEdsClusterConfig(Cluster.EdsClusterConfig.newBuilder().setEdsConfig(edsSource).setServiceName(clusterName))
+            .setType(Cluster.DiscoveryType.EDS)
+            .build();
     }
 
     /**
@@ -277,25 +292,43 @@ public class EnvoyResources {
      * @param address address to use for the cluster endpoint
      * @param port port to use for the cluster endpoint
      */
-    public static Cluster createClusterV3(
-            String clusterName, String address, int port) {
-        return Cluster.newBuilder()
-                .setName(clusterName)
-                .setConnectTimeout(Durations.fromSeconds(5))
-                .setType(Cluster.DiscoveryType.STRICT_DNS)
-                .setLoadAssignment(ClusterLoadAssignment.newBuilder()
-                        .setClusterName(clusterName)
-                        .addEndpoints(LocalityLbEndpoints.newBuilder()
-                                .addLbEndpoints(LbEndpoint.newBuilder()
-                                        .setEndpoint(Endpoint.newBuilder()
-                                                .setAddress(Address.newBuilder()
-                                                        .setSocketAddress(SocketAddress.newBuilder()
-                                                                .setAddress(address)
-                                                                .setPortValue(port)
-                                                                .setProtocolValue(io.envoyproxy.envoy.api.v2.core.SocketAddress.Protocol.TCP_VALUE)))))
-                        )
-                )
-                .build();
+    public static Cluster createClusterV3(String clusterName, String address, int port) {
+        return Cluster
+            .newBuilder()
+            .setName(clusterName)
+            .setConnectTimeout(Durations.fromSeconds(5))
+            .setType(Cluster.DiscoveryType.STRICT_DNS)
+            .setLoadAssignment(
+                ClusterLoadAssignment
+                    .newBuilder()
+                    .setClusterName(clusterName)
+                    .addEndpoints(
+                        LocalityLbEndpoints
+                            .newBuilder()
+                            .addLbEndpoints(
+                                LbEndpoint
+                                    .newBuilder()
+                                    .setEndpoint(
+                                        Endpoint
+                                            .newBuilder()
+                                            .setAddress(
+                                                Address
+                                                    .newBuilder()
+                                                    .setSocketAddress(
+                                                        SocketAddress
+                                                            .newBuilder()
+                                                            .setAddress(address)
+                                                            .setPortValue(port)
+                                                            .setProtocolValue(
+                                                                io.envoyproxy.envoy.api.v2.core.SocketAddress.Protocol.TCP_VALUE
+                                                            )
+                                                    )
+                                            )
+                                    )
+                            )
+                    )
+            )
+            .build();
     }
 
     /**
@@ -304,8 +337,7 @@ public class EnvoyResources {
      * @param clusterName name of the test cluster that is associated with this endpoint
      * @param port port to use for the endpoint
      */
-    public static ClusterLoadAssignment createEndpointV3(
-            String clusterName, int port) {
+    public static ClusterLoadAssignment createEndpointV3(String clusterName, int port) {
         return createEndpointV3(clusterName, LOCALHOST, port);
     }
 
@@ -316,19 +348,30 @@ public class EnvoyResources {
      * @param address ip address to use for the endpoint
      * @param port port to use for the endpoint
      */
-    public static ClusterLoadAssignment createEndpointV3(
-            String clusterName, String address, int port) {
-        return ClusterLoadAssignment.newBuilder()
-                .setClusterName(clusterName)
-                .addEndpoints(LocalityLbEndpoints.newBuilder()
-                        .addLbEndpoints(LbEndpoint.newBuilder()
-                                .setEndpoint(Endpoint.newBuilder()
-                                        .setAddress(Address.newBuilder()
-                                                .setSocketAddress(SocketAddress.newBuilder()
-                                                        .setAddress(address)
-                                                        .setPortValue(port)
-                                                        .setProtocol(Protocol.TCP))))))
-                .build();
+    public static ClusterLoadAssignment createEndpointV3(String clusterName, String address, int port) {
+        return ClusterLoadAssignment
+            .newBuilder()
+            .setClusterName(clusterName)
+            .addEndpoints(
+                LocalityLbEndpoints
+                    .newBuilder()
+                    .addLbEndpoints(
+                        LbEndpoint
+                            .newBuilder()
+                            .setEndpoint(
+                                Endpoint
+                                    .newBuilder()
+                                    .setAddress(
+                                        Address
+                                            .newBuilder()
+                                            .setSocketAddress(
+                                                SocketAddress.newBuilder().setAddress(address).setPortValue(port).setProtocol(Protocol.TCP)
+                                            )
+                                    )
+                            )
+                    )
+            )
+            .build();
     }
 
     /**
@@ -342,53 +385,61 @@ public class EnvoyResources {
      * @param port port to use for the listener
      * @param routeName name of the test route that is associated with this listener
      */
-    public static Listener createListenerV3(boolean ads,
-                                                                                   ApiVersion rdsTransportVersion,
-                                                                                   ApiVersion rdsResourceVersion, String listenerName,
-                                                                                   int port, String routeName) {
-        ConfigSource.Builder configSourceBuilder =
-                ConfigSource.newBuilder()
-                        .setResourceApiVersion(rdsResourceVersion);
+    public static Listener createListenerV3(
+        boolean ads,
+        ApiVersion rdsTransportVersion,
+        ApiVersion rdsResourceVersion,
+        String listenerName,
+        int port,
+        String routeName
+    ) {
+        ConfigSource.Builder configSourceBuilder = ConfigSource.newBuilder().setResourceApiVersion(rdsResourceVersion);
         ConfigSource rdsSource = ads
-                ? configSourceBuilder
-                .setAds(AggregatedConfigSource.getDefaultInstance())
-                .setResourceApiVersion(rdsResourceVersion)
-                .build()
-                : configSourceBuilder
-                .setApiConfigSource(ApiConfigSource.newBuilder()
+            ? configSourceBuilder.setAds(AggregatedConfigSource.getDefaultInstance()).setResourceApiVersion(rdsResourceVersion).build()
+            : configSourceBuilder
+                .setApiConfigSource(
+                    ApiConfigSource
+                        .newBuilder()
                         .setTransportApiVersion(rdsTransportVersion)
                         .setApiType(ApiConfigSource.ApiType.GRPC)
-                        .addGrpcServices(GrpcService.newBuilder()
-                                .setEnvoyGrpc(GrpcService.EnvoyGrpc.newBuilder()
-                                        .setClusterName(XDS_CLUSTER))))
+                        .addGrpcServices(
+                            GrpcService.newBuilder().setEnvoyGrpc(GrpcService.EnvoyGrpc.newBuilder().setClusterName(XDS_CLUSTER))
+                        )
+                )
                 .build();
 
-        HttpConnectionManager
-                manager = HttpConnectionManager.newBuilder()
-                .setCodecType(
-                        CodecType.AUTO)
-                .setStatPrefix("http")
-                .setRds(io.envoyproxy.envoy.extensions.filters.network.http_connection_manager.v3.Rds.newBuilder()
-                        .setConfigSource(rdsSource)
-                        .setRouteConfigName(routeName))
-                .addHttpFilters(
-                        io.envoyproxy.envoy.extensions.filters.network.http_connection_manager.v3.HttpFilter.newBuilder()
-                                .setName(FILTER_ENVOY_ROUTER)
-                                .setTypedConfig(Any.pack(Router.newBuilder().build())))
-                .build();
+        HttpConnectionManager manager = HttpConnectionManager
+            .newBuilder()
+            .setCodecType(CodecType.AUTO)
+            .setStatPrefix("http")
+            .setRds(
+                io.envoyproxy.envoy.extensions.filters.network.http_connection_manager.v3.Rds
+                    .newBuilder()
+                    .setConfigSource(rdsSource)
+                    .setRouteConfigName(routeName)
+            )
+            .addHttpFilters(
+                io.envoyproxy.envoy.extensions.filters.network.http_connection_manager.v3.HttpFilter
+                    .newBuilder()
+                    .setName(FILTER_ENVOY_ROUTER)
+                    .setTypedConfig(Any.pack(Router.newBuilder().build()))
+            )
+            .build();
 
-        return Listener.newBuilder()
-                .setName(listenerName)
-                .setAddress(Address.newBuilder()
-                        .setSocketAddress(SocketAddress.newBuilder()
-                                .setAddress(ANY_ADDRESS)
-                                .setPortValue(port)
-                                .setProtocol(Protocol.TCP)))
-                .addFilterChains(FilterChain.newBuilder()
-                        .addFilters(Filter.newBuilder()
-                                .setName(FILTER_HTTP_CONNECTION_MANAGER)
-                                .setTypedConfig(Any.pack(manager))))
-                .build();
+        return Listener
+            .newBuilder()
+            .setName(listenerName)
+            .setAddress(
+                Address
+                    .newBuilder()
+                    .setSocketAddress(SocketAddress.newBuilder().setAddress(ANY_ADDRESS).setPortValue(port).setProtocol(Protocol.TCP))
+            )
+            .addFilterChains(
+                FilterChain
+                    .newBuilder()
+                    .addFilters(Filter.newBuilder().setName(FILTER_HTTP_CONNECTION_MANAGER).setTypedConfig(Any.pack(manager)))
+            )
+            .build();
     }
 
     /**
@@ -397,19 +448,23 @@ public class EnvoyResources {
      * @param routeName name of the new route
      * @param clusterName name of the test cluster that is associated with this route
      */
-    public static RouteConfiguration createRouteV3(
-            String routeName, String clusterName) {
-        return RouteConfiguration.newBuilder()
-                .setName(routeName)
-                .addVirtualHosts(VirtualHost.newBuilder()
-                        .setName("all")
-                        .addDomains("*")
-                        .addRoutes(Route.newBuilder()
-                                .setMatch(RouteMatch.newBuilder()
-                                        .setPrefix("/"))
-                                .setRoute(RouteAction.newBuilder()
-                                        .setCluster(clusterName))))
-                .build();
+    public static RouteConfiguration createRouteV3(String routeName, String clusterName) {
+        return RouteConfiguration
+            .newBuilder()
+            .setName(routeName)
+            .addVirtualHosts(
+                VirtualHost
+                    .newBuilder()
+                    .setName("all")
+                    .addDomains("*")
+                    .addRoutes(
+                        Route
+                            .newBuilder()
+                            .setMatch(RouteMatch.newBuilder().setPrefix("/"))
+                            .setRoute(RouteAction.newBuilder().setCluster(clusterName))
+                    )
+            )
+            .build();
     }
 
     private EnvoyResources() {}

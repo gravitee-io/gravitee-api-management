@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.services.envoy.cp;
 
+import static io.envoyproxy.envoy.config.core.v3.ApiVersion.V3;
+
 import com.google.common.collect.ImmutableList;
 import com.google.protobuf.UInt32Value;
 import com.google.protobuf.util.Durations;
@@ -61,10 +63,6 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.CompletableSource;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.functions.Function;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -77,8 +75,9 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static io.envoyproxy.envoy.config.core.v3.ApiVersion.V3;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -144,12 +143,13 @@ public class EnvoyControlPlaneService extends AbstractService implements EventLi
 
         V3DiscoveryServer v3DiscoveryServer = new V3DiscoveryServer(cache);
 
-        ServerBuilder<NettyServerBuilder> builder = NettyServerBuilder.forPort(12345)
-                .addService(v3DiscoveryServer.getAggregatedDiscoveryServiceImpl())
-                .addService(v3DiscoveryServer.getClusterDiscoveryServiceImpl())
-                .addService(v3DiscoveryServer.getEndpointDiscoveryServiceImpl())
-                .addService(v3DiscoveryServer.getListenerDiscoveryServiceImpl())
-                .addService(v3DiscoveryServer.getRouteDiscoveryServiceImpl());
+        ServerBuilder<NettyServerBuilder> builder = NettyServerBuilder
+            .forPort(12345)
+            .addService(v3DiscoveryServer.getAggregatedDiscoveryServiceImpl())
+            .addService(v3DiscoveryServer.getClusterDiscoveryServiceImpl())
+            .addService(v3DiscoveryServer.getEndpointDiscoveryServiceImpl())
+            .addService(v3DiscoveryServer.getListenerDiscoveryServiceImpl())
+            .addService(v3DiscoveryServer.getRouteDiscoveryServiceImpl());
 
         server = builder.build();
 
@@ -209,16 +209,21 @@ public class EnvoyControlPlaneService extends AbstractService implements EventLi
 
             int listenerPort = readMetadataOrDefault(apiMetadata, ENVOY_META_LISTENER_PORT, ENVOY_DEFAULT_LISTENER_PORT);
 
-            clusterRoutes.put(listenerPort,
-                    clusterRoutes.get(listenerPort)
-                            .stream()
-                            .filter(new Predicate<ClusterRoute>() {
-                                @Override
-                                public boolean test(ClusterRoute clusterRoute) {
-                                    return clusterRoute.clusterName.equals(clusterName);
-                                }
-                            })
-                            .collect(Collectors.toList()));
+            clusterRoutes.put(
+                listenerPort,
+                clusterRoutes
+                    .get(listenerPort)
+                    .stream()
+                    .filter(
+                        new Predicate<ClusterRoute>() {
+                            @Override
+                            public boolean test(ClusterRoute clusterRoute) {
+                                return clusterRoute.clusterName.equals(clusterName);
+                            }
+                        }
+                    )
+                    .collect(Collectors.toList())
+            );
         }
     }
 
@@ -236,7 +241,7 @@ public class EnvoyControlPlaneService extends AbstractService implements EventLi
             createListener(listenerPort);
 
             // Create cluster if endpoint are defined
-            if (! api.getProxy().getGroups().isEmpty()) {
+            if (!api.getProxy().getGroups().isEmpty()) {
                 Cluster cluster = createFromEndpointGroup(api.getId(), api.getProxy().getGroups().iterator().next());
                 clusters.put(cluster.getName(), cluster);
             }
@@ -255,18 +260,22 @@ public class EnvoyControlPlaneService extends AbstractService implements EventLi
 
     private void updateListenerRoutes(int listenerPort, String clusterName, List<VirtualHost> virtualHosts) {
         // Convert null virtual host to wildcard host
-        virtualHosts = virtualHosts.stream().map(virtualHost -> {
-            if (virtualHost.getHost() == null) {
-                virtualHost.setHost("*");
-            }
+        virtualHosts =
+            virtualHosts
+                .stream()
+                .map(virtualHost -> {
+                    if (virtualHost.getHost() == null) {
+                        virtualHost.setHost("*");
+                    }
 
-            // Add a trailing slash
-            if (! virtualHost.getPath().endsWith("/")) {
-                virtualHost.setPath(virtualHost.getPath() + '/');
-            }
+                    // Add a trailing slash
+                    if (!virtualHost.getPath().endsWith("/")) {
+                        virtualHost.setPath(virtualHost.getPath() + '/');
+                    }
 
-            return virtualHost;
-        }).collect(Collectors.toList());
+                    return virtualHost;
+                })
+                .collect(Collectors.toList());
 
         // Define new routes
         ClusterRoute route = new ClusterRoute(clusterName, virtualHosts);
@@ -280,49 +289,57 @@ public class EnvoyControlPlaneService extends AbstractService implements EventLi
         clusterRoutes.put(listenerPort, clusterRoutesLst);
 
         // Create the new RouteConfiguration
-        RouteConfiguration.Builder routeConfigurationBuilder = RouteConfiguration
-                .newBuilder()
-                .setName("route_http_" + listenerPort);
+        RouteConfiguration.Builder routeConfigurationBuilder = RouteConfiguration.newBuilder().setName("route_http_" + listenerPort);
 
         // Group by domain
-        Map<String, List<Target>> targetByDomain = clusterRoutesLst.stream()
-                .flatMap(new java.util.function.Function<ClusterRoute, Stream<Target>>() {
+        Map<String, List<Target>> targetByDomain = clusterRoutesLst
+            .stream()
+            .flatMap(
+                new java.util.function.Function<ClusterRoute, Stream<Target>>() {
                     @Override
                     public Stream<Target> apply(ClusterRoute clusterRoute) {
-                        return clusterRoute.virtualHosts.stream().map(new java.util.function.Function<VirtualHost, Target>() {
-                            @Override
-                            public Target apply(VirtualHost virtualHost) {
-                                return new Target(virtualHost.getHost(), virtualHost.getPath(), clusterRoute.clusterName);
-                            }
-                        });
+                        return clusterRoute.virtualHosts
+                            .stream()
+                            .map(
+                                new java.util.function.Function<VirtualHost, Target>() {
+                                    @Override
+                                    public Target apply(VirtualHost virtualHost) {
+                                        return new Target(virtualHost.getHost(), virtualHost.getPath(), clusterRoute.clusterName);
+                                    }
+                                }
+                            );
                     }
-                })
-                .collect(Collectors.groupingBy(Target::getHost));
+                }
+            )
+            .collect(Collectors.groupingBy(Target::getHost));
 
-        targetByDomain.forEach(new BiConsumer<String, List<Target>>() {
-            @Override
-            public void accept(String domain, List<Target> targets) {
-
-                io.envoyproxy.envoy.config.route.v3.VirtualHost.Builder builder = io.envoyproxy.envoy.config.route.v3.VirtualHost.newBuilder()
+        targetByDomain.forEach(
+            new BiConsumer<String, List<Target>>() {
+                @Override
+                public void accept(String domain, List<Target> targets) {
+                    io.envoyproxy.envoy.config.route.v3.VirtualHost.Builder builder = io.envoyproxy.envoy.config.route.v3.VirtualHost
+                        .newBuilder()
                         .setName("local_route_" + routeCounter.incrementAndGet())
                         .addDomains(domain);
 
-                targets.forEach(new Consumer<Target>() {
-                    @Override
-                    public void accept(Target target) {
-                        builder.addRoutes(Route.newBuilder()
-                                .setMatch(RouteMatch.newBuilder()
-                                        .setPrefix(target.getPath()))
-                                .setRoute(RouteAction.newBuilder()
-                                        .setPrefixRewrite("/")
-                                        .setCluster(target.getClusterName())));
-                    }
-                });
+                    targets.forEach(
+                        new Consumer<Target>() {
+                            @Override
+                            public void accept(Target target) {
+                                builder.addRoutes(
+                                    Route
+                                        .newBuilder()
+                                        .setMatch(RouteMatch.newBuilder().setPrefix(target.getPath()))
+                                        .setRoute(RouteAction.newBuilder().setPrefixRewrite("/").setCluster(target.getClusterName()))
+                                );
+                            }
+                        }
+                    );
 
-
-                routeConfigurationBuilder.addVirtualHosts(builder.build());
+                    routeConfigurationBuilder.addVirtualHosts(builder.build());
+                }
             }
-        });
+        );
 
         routes.put(listenerPort, routeConfigurationBuilder.build());
     }
@@ -331,39 +348,43 @@ public class EnvoyControlPlaneService extends AbstractService implements EventLi
 
     private void publishSnapshot() {
         Snapshot snapshot = Snapshot.create(
-                clusters.values(),
-                ImmutableList.of(),
-                listeners.values(),
-                routes.values(),
-                ImmutableList.of(),
-                "v" + snapshotCounter.incrementAndGet());
+            clusters.values(),
+            ImmutableList.of(),
+            listeners.values(),
+            routes.values(),
+            ImmutableList.of(),
+            "v" + snapshotCounter.incrementAndGet()
+        );
 
-        cache.setSnapshot(
-                GROUP,
-                snapshot);
+        cache.setSnapshot(GROUP, snapshot);
     }
 
     private void createListener(int listenerPort) {
-        listeners.computeIfAbsent(listenerPort, port -> EnvoyResources.createListenerV3(false, V3, V3,
-                "listener_http_" + port, port, "route_http_" + port));
+        listeners.computeIfAbsent(
+            listenerPort,
+            port -> EnvoyResources.createListenerV3(false, V3, V3, "listener_http_" + port, port, "route_http_" + port)
+        );
     }
 
     private Cluster createFromEndpointGroup(String apiId, EndpointGroup group) {
         final String clusterName = "cluster_" + apiId;
         LocalityLbEndpoints.Builder builder = LocalityLbEndpoints.newBuilder();
 
-        group.getEndpoints().forEach(endpoint -> builder.addLbEndpoints(createFromEndpoint(endpoint))
-                .setLoadBalancingWeight(UInt32Value.newBuilder().setValue(endpoint.getWeight()).build()));
+        group
+            .getEndpoints()
+            .forEach(endpoint ->
+                builder
+                    .addLbEndpoints(createFromEndpoint(endpoint))
+                    .setLoadBalancingWeight(UInt32Value.newBuilder().setValue(endpoint.getWeight()).build())
+            );
 
-        return Cluster.newBuilder()
-                .setName(clusterName)
-                .setConnectTimeout(Durations.fromSeconds(5))
-                .setType(Cluster.DiscoveryType.STRICT_DNS)
-                .setLoadAssignment(ClusterLoadAssignment.newBuilder()
-                        .setClusterName(clusterName)
-                        .addEndpoints(builder.build())
-                )
-                .build();
+        return Cluster
+            .newBuilder()
+            .setName(clusterName)
+            .setConnectTimeout(Durations.fromSeconds(5))
+            .setType(Cluster.DiscoveryType.STRICT_DNS)
+            .setLoadAssignment(ClusterLoadAssignment.newBuilder().setClusterName(clusterName).addEndpoints(builder.build()))
+            .build();
     }
 
     private LbEndpoint createFromEndpoint(Endpoint endpoint) {
@@ -374,14 +395,23 @@ public class EnvoyControlPlaneService extends AbstractService implements EventLi
             final int defaultPort = isSecureProtocol(url.getProtocol()) ? SECURE_PORT : UNSECURE_PORT;
             final int port = url.getPort() != -1 ? url.getPort() : defaultPort;
 
-            return builder.setEndpoint(io.envoyproxy.envoy.config.endpoint.v3.Endpoint.newBuilder()
-                    .setAddress(Address.newBuilder()
-                            .setSocketAddress(SocketAddress.newBuilder()
-                                    .setAddress(url.getHost())
-                                    .setPortValue(port)
-                                    .setProtocolValue(io.envoyproxy.envoy.api.v2.core.SocketAddress.Protocol.TCP_VALUE))))
-                    .build();
-
+            return builder
+                .setEndpoint(
+                    io.envoyproxy.envoy.config.endpoint.v3.Endpoint
+                        .newBuilder()
+                        .setAddress(
+                            Address
+                                .newBuilder()
+                                .setSocketAddress(
+                                    SocketAddress
+                                        .newBuilder()
+                                        .setAddress(url.getHost())
+                                        .setPortValue(port)
+                                        .setProtocolValue(io.envoyproxy.envoy.api.v2.core.SocketAddress.Protocol.TCP_VALUE)
+                                )
+                        )
+                )
+                .build();
         } catch (MalformedURLException murle) {
             logger.error("Unexpected error: ", murle);
             return null;
@@ -390,30 +420,33 @@ public class EnvoyControlPlaneService extends AbstractService implements EventLi
 
     private Completable synchronize() {
         return Single
-                .fromCallable(
-                        () ->
-                                metadataService
-                                        .findByKeyAndReferenceType(EnvoyControlPlaneService.ENVOY_META_SYNC_FIELD, MetadataReferenceType.API)
-                                        .stream()
-                                        .map(MetadataEntity::getValue)
-                                        .collect(Collectors.toSet())
-                )
-                .flattenAsFlowable((Function<Set<String>, Iterable<String>>) strings -> strings)
-                .flatMapCompletable(new Function<String, CompletableSource>() {
+            .fromCallable(() ->
+                metadataService
+                    .findByKeyAndReferenceType(EnvoyControlPlaneService.ENVOY_META_SYNC_FIELD, MetadataReferenceType.API)
+                    .stream()
+                    .map(MetadataEntity::getValue)
+                    .collect(Collectors.toSet())
+            )
+            .flattenAsFlowable((Function<Set<String>, Iterable<String>>) strings -> strings)
+            .flatMapCompletable(
+                new Function<String, CompletableSource>() {
                     @Override
                     public CompletableSource apply(String apiId) throws Throwable {
                         return synchronizeApi(apiId);
                     }
-                });
+                }
+            );
     }
 
     private Completable synchronizeApi(String apiId) {
-        return Completable.fromCallable(new Callable<ApiEntity>() {
-            @Override
-            public ApiEntity call() throws Exception {
-                return apiService.findById(GraviteeContext.getExecutionContext(), apiId);
+        return Completable.fromCallable(
+            new Callable<ApiEntity>() {
+                @Override
+                public ApiEntity call() throws Exception {
+                    return apiService.findById(GraviteeContext.getExecutionContext(), apiId);
+                }
             }
-        });
+        );
     }
 
     protected static boolean isSecureProtocol(String protocol) {
@@ -421,25 +454,29 @@ public class EnvoyControlPlaneService extends AbstractService implements EventLi
     }
 
     private Optional<ApiMetadataEntity> readMetadata(List<ApiMetadataEntity> metadata, String key) {
-        return metadata.stream().filter(apiMetadataEntity -> apiMetadataEntity.getKey().equals(key))
-                .findFirst();
+        return metadata.stream().filter(apiMetadataEntity -> apiMetadataEntity.getKey().equals(key)).findFirst();
     }
 
     private String readMetadataOrDefault(List<ApiMetadataEntity> metadata, String key, String defaultValue) {
-        return metadata.stream().filter(apiMetadataEntity -> apiMetadataEntity.getKey().equals(key))
-                .findFirst()
-                .map(ReferenceMetadataEntity::getValue)
-                .orElse(defaultValue);
+        return metadata
+            .stream()
+            .filter(apiMetadataEntity -> apiMetadataEntity.getKey().equals(key))
+            .findFirst()
+            .map(ReferenceMetadataEntity::getValue)
+            .orElse(defaultValue);
     }
 
     private int readMetadataOrDefault(List<ApiMetadataEntity> metadata, String key, int defaultValue) {
-        return metadata.stream().filter(apiMetadataEntity -> apiMetadataEntity.getKey().equals(key))
-                .findFirst()
-                .map(apiMetadataEntity -> Integer.parseInt(apiMetadataEntity.getValue()))
-                .orElse(defaultValue);
+        return metadata
+            .stream()
+            .filter(apiMetadataEntity -> apiMetadataEntity.getKey().equals(key))
+            .findFirst()
+            .map(apiMetadataEntity -> Integer.parseInt(apiMetadataEntity.getValue()))
+            .orElse(defaultValue);
     }
 
     private static class ClusterRoute {
+
         private final String clusterName;
         private final List<VirtualHost> virtualHosts;
 
@@ -450,6 +487,7 @@ public class EnvoyControlPlaneService extends AbstractService implements EventLi
     }
 
     private static class Target {
+
         private final String host;
         private final String path;
         private final String clusterName;

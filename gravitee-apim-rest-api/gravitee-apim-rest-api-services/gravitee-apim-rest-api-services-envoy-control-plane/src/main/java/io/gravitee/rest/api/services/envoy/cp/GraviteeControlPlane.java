@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.services.envoy.cp;
 
+import static io.envoyproxy.envoy.config.core.v3.ApiVersion.V3;
+
 import com.google.common.collect.ImmutableList;
 import io.envoyproxy.controlplane.cache.v3.SimpleCache;
 import io.envoyproxy.controlplane.cache.v3.Snapshot;
@@ -27,10 +29,7 @@ import io.gravitee.rest.api.services.envoy.cp.utils.EnvoyResources;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.netty.NettyServerBuilder;
-
 import java.io.IOException;
-
-import static io.envoyproxy.envoy.config.core.v3.ApiVersion.V3;
 
 public class GraviteeControlPlane {
 
@@ -56,26 +55,23 @@ public class GraviteeControlPlane {
          */
 
         Cluster cluster1 = EnvoyResources.createClusterV3("console", "localhost", 3000);
-        Listener listener1 = EnvoyResources.createListenerV3(false, V3, V3,
-                "listener1", 8080, "route1");
+        Listener listener1 = EnvoyResources.createListenerV3(false, V3, V3, "listener1", 8080, "route1");
         RouteConfiguration route1 = EnvoyResources.createRouteV3("route1", "console");
 
         Cluster cluster2 = EnvoyResources.createClusterV3("echo", "api.gravitee.io", 443);
-        Listener listener2 = EnvoyResources.createListenerV3(false, V3, V3,
-                "listener2", 8081, "route2");
+        Listener listener2 = EnvoyResources.createListenerV3(false, V3, V3, "listener2", 8081, "route2");
         RouteConfiguration route2 = EnvoyResources.createRouteV3("route2", "echo");
 
         Snapshot snapshot = Snapshot.create(
-                ImmutableList.of(cluster1),
-                ImmutableList.of(),
-                ImmutableList.of(listener1),
-                ImmutableList.of(route1),
-                ImmutableList.of(),
-                "2");
+            ImmutableList.of(cluster1),
+            ImmutableList.of(),
+            ImmutableList.of(listener1),
+            ImmutableList.of(route1),
+            ImmutableList.of(),
+            "2"
+        );
 
-        cache.setSnapshot(
-                GROUP,
-                snapshot);
+        cache.setSnapshot(GROUP, snapshot);
         /*
                 Snapshot.create(
                         ImmutableList.of(EnvoyResources.createCluster("local_cluster")),
@@ -88,12 +84,13 @@ public class GraviteeControlPlane {
 
         V3DiscoveryServer v3DiscoveryServer = new V3DiscoveryServer(cache);
 
-        ServerBuilder<NettyServerBuilder> builder = NettyServerBuilder.forPort(12345)
-                .addService(v3DiscoveryServer.getAggregatedDiscoveryServiceImpl())
-                .addService(v3DiscoveryServer.getClusterDiscoveryServiceImpl())
-                .addService(v3DiscoveryServer.getEndpointDiscoveryServiceImpl())
-                .addService(v3DiscoveryServer.getListenerDiscoveryServiceImpl())
-                .addService(v3DiscoveryServer.getRouteDiscoveryServiceImpl());
+        ServerBuilder<NettyServerBuilder> builder = NettyServerBuilder
+            .forPort(12345)
+            .addService(v3DiscoveryServer.getAggregatedDiscoveryServiceImpl())
+            .addService(v3DiscoveryServer.getClusterDiscoveryServiceImpl())
+            .addService(v3DiscoveryServer.getEndpointDiscoveryServiceImpl())
+            .addService(v3DiscoveryServer.getListenerDiscoveryServiceImpl())
+            .addService(v3DiscoveryServer.getRouteDiscoveryServiceImpl());
 
         Server server = builder.build();
 
@@ -106,30 +103,36 @@ public class GraviteeControlPlane {
         server.awaitTermination();
     }
 
-
     private static Snapshot createSnapshotNoEds(
-            boolean ads,
-            ApiVersion rdsTransportVersion,
-            ApiVersion rdsResourceVersion,
-            String clusterName,
-            String endpointAddress,
-            int endpointPort,
-            String listenerName,
-            int listenerPort,
-            String routeName,
-            String version) {
-
+        boolean ads,
+        ApiVersion rdsTransportVersion,
+        ApiVersion rdsResourceVersion,
+        String clusterName,
+        String endpointAddress,
+        int endpointPort,
+        String listenerName,
+        int listenerPort,
+        String routeName,
+        String version
+    ) {
         Cluster cluster = EnvoyResources.createClusterV3(clusterName, endpointAddress, endpointPort);
-        Listener listener = EnvoyResources.createListenerV3(ads, rdsTransportVersion, rdsResourceVersion,
-                listenerName, listenerPort, routeName);
+        Listener listener = EnvoyResources.createListenerV3(
+            ads,
+            rdsTransportVersion,
+            rdsResourceVersion,
+            listenerName,
+            listenerPort,
+            routeName
+        );
         RouteConfiguration route = EnvoyResources.createRouteV3(routeName, clusterName);
 
         return Snapshot.create(
-                ImmutableList.of(cluster),
-                ImmutableList.of(),
-                ImmutableList.of(listener),
-                ImmutableList.of(route),
-                ImmutableList.of(),
-                version);
+            ImmutableList.of(cluster),
+            ImmutableList.of(),
+            ImmutableList.of(listener),
+            ImmutableList.of(route),
+            ImmutableList.of(),
+            version
+        );
     }
 }
