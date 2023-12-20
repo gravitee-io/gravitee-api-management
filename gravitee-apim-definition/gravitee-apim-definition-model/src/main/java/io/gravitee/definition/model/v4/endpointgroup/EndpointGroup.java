@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.JsonNode;
+import io.gravitee.definition.model.Plugin;
 import io.gravitee.definition.model.v4.endpointgroup.loadbalancer.LoadBalancer;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServices;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -26,6 +27,8 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import java.io.Serializable;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.*;
 
 /**
@@ -70,5 +73,12 @@ public class EndpointGroup implements Serializable {
 
     public void setSharedConfiguration(final String sharedConfiguration) {
         this.sharedConfiguration = sharedConfiguration;
+    }
+
+    public List<Plugin> getPlugins() {
+        return Optional
+            .ofNullable(this.endpoints)
+            .map(e -> e.stream().map(Endpoint::getPlugins).flatMap(List::stream).collect(Collectors.toList()))
+            .orElse(List.of());
     }
 }

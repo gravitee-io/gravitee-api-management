@@ -17,8 +17,10 @@ package io.gravitee.definition.model.plugins.resources;
 
 import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.databind.JsonNode;
+import io.gravitee.definition.model.Plugin;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -103,5 +105,9 @@ public class Resource implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(name);
+    }
+
+    public List<Plugin> getPlugins() {
+        return List.of(new Plugin("resource", type));
     }
 }

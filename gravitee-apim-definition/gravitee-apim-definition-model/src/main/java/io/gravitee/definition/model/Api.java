@@ -20,15 +20,10 @@ import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
@@ -215,7 +210,10 @@ public class Api implements Serializable {
     }
 
     public List<Plan> getPlans() {
-        return new ArrayList<>(plans.values());
+        if (plans != null) {
+            return new ArrayList<>(plans.values());
+        }
+        return new ArrayList<>();
     }
 
     public void setPlans(List<Plan> plans) {
@@ -239,6 +237,27 @@ public class Api implements Serializable {
 
     public void setDefinitionContext(DefinitionContext definitionContext) {
         this.definitionContext = definitionContext;
+    }
+
+    public List<Plugin> getPlugins() {
+        return Stream
+            .of(
+                Optional
+                    .ofNullable(this.getResources())
+                    .map(r -> r.stream().map(Resource::getPlugins).flatMap(List::stream).collect(Collectors.toList()))
+                    .orElse(List.of()),
+                Optional
+                    .ofNullable(this.getFlows())
+                    .map(f -> f.stream().map(Flow::getPlugins).flatMap(List::stream).toList())
+                    .orElse(List.of()),
+                Optional
+                    .ofNullable(this.getPlans())
+                    .map(p -> p.stream().map(Plan::getPlugins).flatMap(List::stream).toList())
+                    .orElse(List.of()),
+                Optional.ofNullable(this.getServices()).map(Services::getPlugins).orElse(List.of())
+            )
+            .flatMap(List::stream)
+            .collect(Collectors.toList());
     }
 
     @Override

@@ -19,9 +19,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.JsonNode;
+import io.gravitee.definition.model.Plugin;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import java.io.Serializable;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -68,5 +70,9 @@ public class Resource implements Serializable {
 
     public void setConfiguration(final String configuration) {
         this.configuration = configuration;
+    }
+
+    public List<Plugin> getPlugins() {
+        return List.of(new Plugin("resource", type));
     }
 }

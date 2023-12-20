@@ -16,8 +16,10 @@
 package io.gravitee.definition.model.flow;
 
 import com.fasterxml.jackson.annotation.*;
+import io.gravitee.definition.model.Plugin;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -101,5 +103,9 @@ public class Step implements Serializable {
 
     public void setCondition(String condition) {
         this.condition = condition;
+    }
+
+    public List<Plugin> getPlugins() {
+        return List.of(new Plugin("policy", policy));
     }
 }

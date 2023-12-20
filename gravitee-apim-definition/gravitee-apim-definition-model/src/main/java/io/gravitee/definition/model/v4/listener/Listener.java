@@ -22,6 +22,7 @@ import static io.gravitee.definition.model.v4.listener.Listener.TCP_LABEL;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import io.gravitee.definition.model.Plugin;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
@@ -32,6 +33,8 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -96,5 +99,12 @@ public abstract class Listener implements Serializable {
         this.type = b.type;
         this.entrypoints = b.entrypoints;
         this.servers = b.servers;
+    }
+
+    public List<Plugin> getPlugins() {
+        return Optional
+            .ofNullable(this.entrypoints)
+            .map(e -> e.stream().map(Entrypoint::getPlugins).flatMap(List::stream).collect(Collectors.toList()))
+            .orElse(List.of());
     }
 }

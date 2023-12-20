@@ -19,9 +19,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.JsonNode;
+import io.gravitee.definition.model.Plugin;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotEmpty;
 import java.io.Serializable;
+import java.util.List;
 import lombok.*;
 
 /**
@@ -70,5 +72,9 @@ public class Step implements Serializable {
 
     public String getConfiguration() {
         return (String) this.configuration;
+    }
+
+    public List<Plugin> getPlugins() {
+        return List.of(new Plugin("policy", policy));
     }
 }

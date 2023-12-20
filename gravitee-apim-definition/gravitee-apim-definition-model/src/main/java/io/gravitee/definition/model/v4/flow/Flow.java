@@ -16,6 +16,7 @@
 package io.gravitee.definition.model.v4.flow;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.gravitee.definition.model.Plugin;
 import io.gravitee.definition.model.v4.flow.selector.Selector;
 import io.gravitee.definition.model.v4.flow.selector.SelectorType;
 import io.gravitee.definition.model.v4.flow.step.Step;
@@ -26,6 +27,8 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.*;
 
 /**
@@ -72,5 +75,29 @@ public class Flow implements Serializable {
         }
 
         return Optional.empty();
+    }
+
+    public List<Plugin> getPlugins() {
+        return Stream
+            .of(
+                Optional
+                    .ofNullable(this.request)
+                    .map(r -> r.stream().map(Step::getPlugins).flatMap(List::stream).collect(Collectors.toList()))
+                    .orElse(List.of()),
+                Optional
+                    .ofNullable(this.response)
+                    .map(r -> r.stream().map(Step::getPlugins).flatMap(List::stream).collect(Collectors.toList()))
+                    .orElse(List.of()),
+                Optional
+                    .ofNullable(this.publish)
+                    .map(p -> p.stream().map(Step::getPlugins).flatMap(List::stream).collect(Collectors.toList()))
+                    .orElse(List.of()),
+                Optional
+                    .ofNullable(this.subscribe)
+                    .map(s -> s.stream().map(Step::getPlugins).flatMap(List::stream).collect(Collectors.toList()))
+                    .orElse(List.of())
+            )
+            .flatMap(List::stream)
+            .collect(Collectors.toList());
     }
 }
