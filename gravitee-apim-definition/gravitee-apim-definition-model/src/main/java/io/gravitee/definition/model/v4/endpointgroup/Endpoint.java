@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.JsonNode;
+import io.gravitee.definition.model.Plugin;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointServices;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -95,5 +96,9 @@ public class Endpoint implements Serializable {
 
     public void setSharedConfigurationOverride(final String overriddenSharedConfiguration) {
         this.sharedConfigurationOverride = overriddenSharedConfiguration;
+    }
+
+    public List<Plugin> getPlugins() {
+        return List.of(new Plugin("endpoint-connector", type));
     }
 }

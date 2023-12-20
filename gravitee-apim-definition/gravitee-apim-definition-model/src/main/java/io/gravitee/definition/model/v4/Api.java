@@ -17,6 +17,7 @@ package io.gravitee.definition.model.v4;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.Plugin;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
@@ -31,13 +32,10 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -125,6 +123,35 @@ public class Api implements Serializable {
         } else {
             this.plans = new HashMap<>();
         }
+    }
+
+    public List<Plugin> getPlugins() {
+        return Stream
+            .of(
+                Optional
+                    .ofNullable(this.getResources())
+                    .map(r -> r.stream().map(Resource::getPlugins).flatMap(List::stream).toList())
+                    .orElse(List.of()),
+                Optional
+                    .ofNullable(this.getFlows())
+                    .map(f -> f.stream().map(Flow::getPlugins).flatMap(List::stream).toList())
+                    .orElse(List.of()),
+                Optional
+                    .ofNullable(this.getPlans())
+                    .map(p -> p.stream().map(Plan::getPlugins).flatMap(List::stream).toList())
+                    .orElse(List.of()),
+                Optional
+                    .ofNullable(this.getListeners())
+                    .map(l -> l.stream().map(Listener::getPlugins).flatMap(List::stream).toList())
+                    .orElse(List.of()),
+                Optional
+                    .ofNullable(this.getEndpointGroups())
+                    .map(r -> r.stream().map(EndpointGroup::getPlugins).flatMap(List::stream).toList())
+                    .orElse(List.of()),
+                Optional.ofNullable(this.getServices()).map(ApiServices::getPlugins).orElse(List.of())
+            )
+            .flatMap(List::stream)
+            .collect(Collectors.toList());
     }
 
     public static class ApiBuilder {

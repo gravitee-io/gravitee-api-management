@@ -16,6 +16,7 @@
 package io.gravitee.definition.model.v4.service;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.definition.model.Plugin;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
 import java.util.List;
@@ -38,4 +39,8 @@ public class ApiServices implements Serializable {
 
     @JsonProperty("dynamicProperty")
     private Service dynamicProperty;
+
+    public List<Plugin> getPlugins() {
+        return dynamicProperty.getPlugins();
+    }
 }

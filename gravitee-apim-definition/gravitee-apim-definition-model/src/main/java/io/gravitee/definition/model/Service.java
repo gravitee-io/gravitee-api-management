@@ -17,6 +17,7 @@ package io.gravitee.definition.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Objects;
 import lombok.experimental.SuperBuilder;
 
@@ -59,5 +60,9 @@ public abstract class Service implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(name);
+    }
+
+    public List<Plugin> getPlugins() {
+        return List.of(new Plugin("service", name));
     }
 }

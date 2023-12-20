@@ -23,7 +23,9 @@ import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 
 public class ApiDefinitionFixtures {
@@ -47,7 +49,7 @@ public class ApiDefinitionFixtures {
     }
 
     public static io.gravitee.definition.model.Api anApiV2() {
-        return BASE_V2.get().definitionVersion(DefinitionVersion.V2).build();
+        return BASE_V2.get().definitionVersion(DefinitionVersion.V2).plans(new HashMap<>()).build();
     }
 
     public static io.gravitee.definition.model.Api anApiV1() {

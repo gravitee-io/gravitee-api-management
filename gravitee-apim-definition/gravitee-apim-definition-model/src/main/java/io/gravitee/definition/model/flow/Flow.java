@@ -19,8 +19,14 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.ConditionSupplier;
+import io.gravitee.definition.model.Plugin;
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
@@ -164,5 +170,15 @@ public class Flow implements Serializable, ConditionSupplier {
 
     public void setConsumers(List<Consumer> consumers) {
         this.consumers = consumers;
+    }
+
+    public List<Plugin> getPlugins() {
+        return Stream
+            .of(
+                this.post.stream().map(Step::getPlugins).flatMap(List::stream).collect(Collectors.toList()),
+                this.pre.stream().map(Step::getPlugins).flatMap(List::stream).collect(Collectors.toList())
+            )
+            .flatMap(List::stream)
+            .collect(Collectors.toList());
     }
 }

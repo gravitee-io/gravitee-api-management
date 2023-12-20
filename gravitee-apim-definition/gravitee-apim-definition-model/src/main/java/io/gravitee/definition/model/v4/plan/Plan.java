@@ -16,6 +16,7 @@
 package io.gravitee.definition.model.v4.plan;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.definition.model.Plugin;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -23,6 +24,7 @@ import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.*;
 
 /**
@@ -89,5 +91,9 @@ public class Plan implements Serializable {
             this.getSecurity() != null &&
             ("API_KEY".equalsIgnoreCase(this.getSecurity().getType()) || "api-key".equalsIgnoreCase(this.getSecurity().getType()))
         );
+    }
+
+    public List<Plugin> getPlugins() {
+        return this.flows.stream().map(Flow::getPlugins).flatMap(List::stream).collect(Collectors.toList());
     }
 }

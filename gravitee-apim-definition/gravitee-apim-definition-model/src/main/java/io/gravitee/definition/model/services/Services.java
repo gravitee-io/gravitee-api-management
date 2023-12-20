@@ -17,6 +17,7 @@ package io.gravitee.definition.model.services;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.definition.model.Plugin;
 import io.gravitee.definition.model.Service;
 import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService;
@@ -24,8 +25,10 @@ import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -98,5 +101,9 @@ public final class Services implements Serializable {
         if (dynamicPropertyService != null) {
             put(DynamicPropertyService.class, dynamicPropertyService);
         }
+    }
+
+    public List<Plugin> getPlugins() {
+        return this.services.values().stream().map(Service::getPlugins).flatMap(List::stream).collect(Collectors.toList());
     }
 }
