@@ -26,6 +26,7 @@ import { CsrfInterceptor } from '../shared/interceptors/csrf.interceptor';
 import { HeaderXRequestedWithInterceptor } from '../shared/interceptors/header-x-requested-with.interceptor';
 import { CurrentUserService } from '../services-ngx/current-user.service';
 import { CustomUserFields } from '../entities/customUserFields';
+import { environment } from '../environments/environment';
 
 const USER_PROVIDER_ID_SELECTED = 'user-provider-id-selected';
 
@@ -54,9 +55,10 @@ export class AuthService {
     private readonly currentUserService: CurrentUserService,
     private readonly locationStrategy: LocationStrategy,
   ) {
-    // TODO comment when not needed
-    Log.setLogger(console);
-    Log.setLevel(Log.DEBUG);
+    if (!environment.production) {
+      Log.setLogger(console);
+      Log.setLevel(Log.DEBUG);
+    }
 
     // Initialize manager for each identity provider
     constants.org.identityProviders?.forEach((idp) => {
