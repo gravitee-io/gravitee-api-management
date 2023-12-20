@@ -17,6 +17,7 @@ package io.gravitee.repository.management;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.gravitee.repository.management.api.search.LicenseCriteria;
 import io.gravitee.repository.management.model.License;
 import java.util.Collection;
 import java.util.Date;
@@ -104,5 +105,29 @@ public class LicenseRepositoryTest extends AbstractManagementRepositoryTest {
     public void shouldFindAll() throws Exception {
         final Collection<License> organizations = licenseRepository.findAll();
         assertThat(organizations.size()).as("License count should be 4").isEqualTo(4L);
+    }
+
+    @Test
+    public void shouldFindByReferenceType() throws Exception {
+        final Collection<License> licenses = licenseRepository.findByCriteria(
+            LicenseCriteria.builder().referenceType(License.ReferenceType.ORGANIZATION).build()
+        );
+        assertThat(licenses.size()).as("License count should be 3").isEqualTo(3L);
+    }
+
+    @Test
+    public void shouldFindByReferenceTypeAndId() throws Exception {
+        final Collection<License> licenses = licenseRepository.findByCriteria(
+            LicenseCriteria.builder().referenceType(License.ReferenceType.ORGANIZATION).referenceId("cockpitId-org-find-by-id").build()
+        );
+        assertThat(licenses.size()).as("License count should be 1").isEqualTo(1L);
+    }
+
+    @Test
+    public void shouldFindByTimeInterval() throws Exception {
+        final Collection<License> licenses = licenseRepository.findByCriteria(
+            LicenseCriteria.builder().from(1539022010000L).to(1639022020000L).build()
+        );
+        assertThat(licenses.size()).as("License count should be 2").isEqualTo(2L);
     }
 }

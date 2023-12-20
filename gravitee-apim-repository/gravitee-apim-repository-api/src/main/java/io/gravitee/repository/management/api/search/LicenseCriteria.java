@@ -13,12 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.mongodb.management.internal.license;
+package io.gravitee.repository.management.api.search;
 
-import io.gravitee.repository.mongodb.management.internal.model.LicenseMongo;
-import io.gravitee.repository.mongodb.management.internal.model.LicensePkMongo;
-import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.stereotype.Repository;
+import io.gravitee.repository.management.model.License;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-@Repository
-public interface LicenseMongoRepository extends MongoRepository<LicenseMongo, LicensePkMongo>, LicenseMongoRepositoryCustom {}
+@Builder
+@Getter
+@RequiredArgsConstructor
+@EqualsAndHashCode
+public class LicenseCriteria {
+
+    @Builder.Default
+    private final long from = -1;
+
+    @Builder.Default
+    private final long to = -1;
+
+    private final License.ReferenceType referenceType;
+
+    private final String referenceId;
+}

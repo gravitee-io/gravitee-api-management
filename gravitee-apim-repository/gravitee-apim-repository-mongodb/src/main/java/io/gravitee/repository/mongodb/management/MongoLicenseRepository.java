@@ -17,11 +17,13 @@ package io.gravitee.repository.mongodb.management;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.LicenseRepository;
+import io.gravitee.repository.management.api.search.LicenseCriteria;
 import io.gravitee.repository.management.model.License;
 import io.gravitee.repository.mongodb.management.internal.license.LicenseMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.LicenseMongo;
 import io.gravitee.repository.mongodb.management.internal.model.LicensePkMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -98,6 +100,11 @@ public class MongoLicenseRepository implements LicenseRepository {
             LOGGER.error("An error occurred when deleting license [{} {}]", referenceId, referenceType, e);
             throw new TechnicalException("An error occurred when deleting license");
         }
+    }
+
+    @Override
+    public List<License> findByCriteria(LicenseCriteria criteria) throws TechnicalException {
+        return internalLicenseRepo.search(criteria).stream().map(organization -> mapper.map(organization)).collect(Collectors.toList());
     }
 
     @Override
