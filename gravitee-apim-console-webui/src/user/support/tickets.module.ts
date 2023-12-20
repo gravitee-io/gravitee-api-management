@@ -16,13 +16,15 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { MatCardModule } from '@angular/material/card';
+import { GioClipboardModule } from '@gravitee/ui-particles-angular';
 
 import { TicketComponent } from './ticket/ticket.component';
 
 import { GioGoBackButtonModule } from '../../shared/components/gio-go-back-button/gio-go-back-button.module';
 
 @NgModule({
-  imports: [CommonModule, RouterModule, GioGoBackButtonModule],
+  imports: [CommonModule, RouterModule, MatCardModule, GioGoBackButtonModule, GioClipboardModule],
   declarations: [TicketComponent],
 })
 export class TicketsModule {}
