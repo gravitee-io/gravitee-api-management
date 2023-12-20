@@ -28,6 +28,7 @@ import { MessagesComponent } from './messages/messages.component';
 import { TicketsListComponent } from '../user/support/tickets-list.component';
 import { TicketDetailComponent } from '../user/support/ticket-detail.component';
 import { TicketComponent } from '../user/support/ticket.component';
+import { TicketComponent as ngTicketComponent } from '../user/support/ticket/ticket.component';
 import { TasksComponent } from '../user/tasks/tasks.component';
 import { UserComponent } from '../user/my-accout/user.component';
 import { ApimFeature } from '../shared/components/gio-license/gio-license-data';
@@ -65,6 +66,10 @@ const managementRoutes: Routes = [
             page: 'management-tasks',
           },
         },
+      },
+      {
+        path: 'ng-support/tickets/:ticketId',
+        component: ngTicketComponent,
       },
       {
         path: 'support/new',
