@@ -16,22 +16,26 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.rest.model.configuration.integration.IntegrationListItem;
 import io.gravitee.rest.api.model.integrations.IntegrationEntity;
 import io.gravitee.rest.api.model.integrations.NewIntegrationEntity;
 import io.gravitee.rest.api.service.IntegrationService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.container.ResourceContext;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -41,10 +45,45 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author GraviteeSource Team
  */
 @Tag(name = "Integrations")
+@Consumes(MediaType.APPLICATION_JSON)
+@Produces(MediaType.APPLICATION_JSON)
 public class IntegrationsResource extends AbstractResource {
 
     @Autowired
     private IntegrationService integrationService;
+
+    @Context
+    private ResourceContext resourceContext;
+
+    @GET
+    //    @Permissions(@Permission(value = RolePermission.ORGANIZATION_IDENTITY_PROVIDER, acls = RolePermissionAction.READ))
+    @Operation(
+        summary = "Get the list of integrations",
+        description = "User must have the ENVIRONMENT_INTEGRATION[READ] permission to use this service"
+    )
+    @ApiResponse(
+        responseCode = "200",
+        description = "List integrations",
+        content = @Content(
+            mediaType = MediaType.APPLICATION_JSON,
+            array = @ArraySchema(schema = @Schema(implementation = IntegrationListItem.class))
+        )
+    )
+    @ApiResponse(responseCode = "500", description = "Internal server error")
+    public List<IntegrationListItem> getIntegrations() {
+        return integrationService
+            .findAll(GraviteeContext.getExecutionContext())
+            .stream()
+            .map(integration -> {
+                IntegrationListItem item = new IntegrationListItem();
+                item.setId(integration.getId());
+                item.setName(integration.getName());
+                item.setDescription(integration.getDescription());
+                item.setType(integration.getType());
+                return item;
+            })
+            .collect(Collectors.toList());
+    }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -69,5 +108,10 @@ public class IntegrationsResource extends AbstractResource {
         }
 
         return Response.serverError().build();
+    }
+
+    @Path("{integration}")
+    public IntegrationResource getIntegrationResource() {
+        return resourceContext.getResource(IntegrationResource.class);
     }
 }

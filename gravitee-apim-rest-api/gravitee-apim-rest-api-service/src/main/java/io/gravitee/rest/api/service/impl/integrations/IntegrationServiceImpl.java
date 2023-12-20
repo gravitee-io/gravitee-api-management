@@ -17,15 +17,25 @@ package io.gravitee.rest.api.service.impl.integrations;
 
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.utils.IdGenerator;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.api.IntegrationRepository;
+import io.gravitee.repository.management.model.Integration;
+import io.gravitee.repository.management.model.IntegrationType;
 import io.gravitee.rest.api.model.integrations.IntegrationEntity;
 import io.gravitee.rest.api.model.integrations.NewIntegrationEntity;
 import io.gravitee.rest.api.service.IntegrationService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.event.IntegrationEvent;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
+import java.util.Date;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
@@ -40,54 +50,32 @@ public class IntegrationServiceImpl extends AbstractService implements Integrati
     @Autowired
     private EventManager eventManager;
 
+    @Lazy
+    @Autowired
+    private IntegrationRepository integrationRepository;
+
     @Override
     public IntegrationEntity create(ExecutionContext executionContext, NewIntegrationEntity newIntegrationEntity) {
-        //    try {
-        LOGGER.debug("Create integration {}", newIntegrationEntity);
+        try {
+            LOGGER.debug("Create integration {}", newIntegrationEntity);
 
-        String id = IdGenerator.generate(newIntegrationEntity.getName());
-
-        IntegrationEntity integrationEntity = new IntegrationEntity();
-        integrationEntity.setId(id);
-        integrationEntity.setName(newIntegrationEntity.getName());
-        integrationEntity.setDescription(newIntegrationEntity.getDescription());
-        integrationEntity.setType(newIntegrationEntity.getType());
-        integrationEntity.setConfiguration(newIntegrationEntity.getConfiguration());
-
-        eventManager.publishEvent(IntegrationEvent.CREATED, integrationEntity);
-
-        return integrationEntity;
-        /*
-            Optional<IdentityProvider> optIdentityProvider = identityProviderRepository.findById(
-                    IdGenerator.generate(newIdentityProviderEntity.getName())
-            );
-            if (optIdentityProvider.isPresent()) {
-                throw new IdentityProviderAlreadyExistsException(newIdentityProviderEntity.getName());
+            Optional<Integration> optIntegration = integrationRepository.findById(IdGenerator.generate(newIntegrationEntity.getName()));
+            if (optIntegration.isPresent()) {
+                throw new IntegrationAlreadyExistsException(newIntegrationEntity.getName());
             }
 
-            IdentityProvider identityProvider = convert(newIdentityProviderEntity);
-            identityProvider.setOrganizationId(executionContext.getOrganizationId());
-
-            // If provider is a social type, we must ensure required parameters
-            if (identityProvider.getType() == IdentityProviderType.GOOGLE || identityProvider.getType() == IdentityProviderType.GITHUB) {
-                checkSocialProvider(identityProvider);
-            }
+            Integration integration = convert(newIntegrationEntity);
+            integration.setEnvironmentId(executionContext.getEnvironmentId());
 
             // Set date fields
-            identityProvider.setCreatedAt(new Date());
-            identityProvider.setUpdatedAt(identityProvider.getCreatedAt());
+            integration.setCreatedAt(new Date());
+            integration.setUpdatedAt(integration.getCreatedAt());
 
-            IdentityProvider createdIdentityProvider = identityProviderRepository.create(identityProvider);
+            Integration createdIntegration = integrationRepository.create(integration);
 
-            identityProviderActivationService.activateIdpOnTargets(
-                    executionContext,
-                    createdIdentityProvider.getId(),
-                    new IdentityProviderActivationService.ActivationTarget(
-                            executionContext.getOrganizationId(),
-                            IdentityProviderActivationReferenceType.ORGANIZATION
-                    )
-            );
+            IntegrationEntity integrationEntity = convert(createdIntegration);
 
+            /*
             auditService.createOrganizationAuditLog(
                     executionContext,
                     executionContext.getOrganizationId(),
@@ -97,14 +85,72 @@ public class IntegrationServiceImpl extends AbstractService implements Integrati
                     null,
                     createdIdentityProvider
             );
-
-            return convert(createdIdentityProvider);
              */
-        /*
+
+            eventManager.publishEvent(IntegrationEvent.CREATED, integrationEntity);
+
+            return integrationEntity;
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to create integration {}", newIntegrationEntity, ex);
             throw new TechnicalManagementException("An error occurs while trying to create " + newIntegrationEntity, ex);
         }
-         */
+    }
+
+    @Override
+    public Set<IntegrationEntity> findAll(ExecutionContext executionContext) {
+        try {
+            return integrationRepository
+                .findAllByEnvironmentId(executionContext.getEnvironmentId())
+                .stream()
+                .map(this::convert)
+                .collect(Collectors.toSet());
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to retrieve integrations", ex);
+            throw new TechnicalManagementException("An error occurs while trying to retrieve integrations", ex);
+        }
+    }
+
+    @Override
+    public IntegrationEntity findById(String id) {
+        try {
+            LOGGER.debug("Find integration by ID: {}", id);
+
+            Optional<Integration> integration = integrationRepository.findById(id);
+
+            if (integration.isPresent()) {
+                return convert(integration.get());
+            }
+
+            throw new IntegrationNotFoundException(id);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to find an integration using its ID {}", id, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find an integration using its ID " + id, ex);
+        }
+    }
+
+    private IntegrationEntity convert(Integration integration) {
+        IntegrationEntity integrationEntity = new IntegrationEntity();
+
+        integrationEntity.setId(integration.getId());
+        integrationEntity.setName(integration.getName());
+        integrationEntity.setDescription(integration.getDescription());
+        integrationEntity.setType(
+            io.gravitee.rest.api.model.integrations.IntegrationType.valueOf(integration.getType().name().toUpperCase())
+        );
+        integrationEntity.setConfiguration(integration.getConfiguration());
+
+        return integrationEntity;
+    }
+
+    private Integration convert(NewIntegrationEntity newIntegrationEntity) {
+        Integration integration = new Integration();
+
+        integration.setId(IdGenerator.generate(newIntegrationEntity.getName()));
+        integration.setName(newIntegrationEntity.getName());
+        integration.setDescription(newIntegrationEntity.getDescription());
+        integration.setConfiguration(newIntegrationEntity.getConfiguration());
+        integration.setType(IntegrationType.valueOf(newIntegrationEntity.getType().name().toUpperCase()));
+
+        return integration;
     }
 }

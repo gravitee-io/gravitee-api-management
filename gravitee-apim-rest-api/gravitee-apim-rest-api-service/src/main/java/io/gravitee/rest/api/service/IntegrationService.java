@@ -15,9 +15,11 @@
  */
 package io.gravitee.rest.api.service;
 
+import io.gravitee.rest.api.model.configuration.identity.IdentityProviderEntity;
 import io.gravitee.rest.api.model.integrations.IntegrationEntity;
 import io.gravitee.rest.api.model.integrations.NewIntegrationEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.util.Set;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -25,4 +27,8 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
  */
 public interface IntegrationService {
     IntegrationEntity create(ExecutionContext executionContext, NewIntegrationEntity newIntegrationEntity);
+
+    Set<IntegrationEntity> findAll(ExecutionContext executionContext);
+
+    IntegrationEntity findById(String id);
 }

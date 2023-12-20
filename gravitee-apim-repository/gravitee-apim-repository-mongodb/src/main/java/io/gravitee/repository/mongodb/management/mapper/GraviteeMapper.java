@@ -295,4 +295,8 @@ public interface GraviteeMapper {
     Workflow map(WorkflowMongo toMap);
 
     WorkflowMongo map(Workflow toMap);
+
+    Integration map(IntegrationMongo toMap);
+
+    IntegrationMongo map(Integration toMap);
 }
