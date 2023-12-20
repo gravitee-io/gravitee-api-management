@@ -20,7 +20,6 @@ import io.gravitee.definition.model.FlowMode;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.OrganizationRepository;
-import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.Organization;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.model.EnvironmentEntity;
@@ -258,6 +257,20 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
         } catch (final Exception ex) {
             LOGGER.error("Error while getting installation : {}", ex.getMessage());
             throw new TechnicalManagementException("Error while getting installation", ex);
+        }
+    }
+
+    @Override
+    public OrganizationEntity findByCockpitId(String cockpitId) {
+        try {
+            LOGGER.debug("Find organization by cockpit id");
+            return organizationRepository
+                .findByCockpitId(cockpitId)
+                .map(this::convert)
+                .orElseThrow(() -> new OrganizationNotFoundException(cockpitId));
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to find organization by cockpit id {}", cockpitId, ex);
+            throw new TechnicalManagementException("An error occurs while trying to find organization by cockpit id " + cockpitId, ex);
         }
     }
 }

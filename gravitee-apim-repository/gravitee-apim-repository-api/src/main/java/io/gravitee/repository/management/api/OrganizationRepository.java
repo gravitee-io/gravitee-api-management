@@ -17,6 +17,7 @@ package io.gravitee.repository.management.api;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Organization;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -26,4 +27,5 @@ import java.util.Set;
 public interface OrganizationRepository extends CrudRepository<Organization, String> {
     Long count() throws TechnicalException;
     Set<Organization> findByHrids(Set<String> hrids) throws TechnicalException;
+    Optional<Organization> findByCockpitId(String cockpitId) throws TechnicalException;
 }

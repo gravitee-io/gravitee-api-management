@@ -17,7 +17,9 @@ package io.gravitee.repository.noop.management;
 
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.OrganizationRepository;
+import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.Organization;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -34,5 +36,10 @@ public class NoOpOrganizationRepository extends AbstractNoOpManagementRepository
     @Override
     public Set<Organization> findByHrids(Set<String> hrids) throws TechnicalException {
         return Set.of();
+    }
+
+    @Override
+    public Optional<Organization> findByCockpitId(String cockpitId) throws TechnicalException {
+        return Optional.empty();
     }
 }

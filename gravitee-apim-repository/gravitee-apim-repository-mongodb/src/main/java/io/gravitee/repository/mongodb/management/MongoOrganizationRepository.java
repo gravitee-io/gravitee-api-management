@@ -131,4 +131,14 @@ public class MongoOrganizationRepository implements OrganizationRepository {
         final Set<OrganizationMongo> organizations = internalOrganizationRepo.findByHrids(hrids);
         return organizations.stream().map(organizationMongo -> mapper.map(organizationMongo)).collect(Collectors.toSet());
     }
+
+    @Override
+    public Optional<Organization> findByCockpitId(String cockpitId) throws TechnicalException {
+        LOGGER.debug("Find organization by cockpit ID [{}]", cockpitId);
+
+        final OrganizationMongo organization = internalOrganizationRepo.findByCockpitId(cockpitId).orElse(null);
+
+        LOGGER.debug("Find organization by cockpit ID [{}] - Done", organization);
+        return Optional.ofNullable(mapper.map(organization));
+    }
 }
