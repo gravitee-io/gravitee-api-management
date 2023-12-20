@@ -51,3 +51,5 @@ npm link @gravitee/ui-components
 ----
 
 ⚠️ The npm link will be removed if you run `npm install`, and so you will need to rerun the previous snippet to link the library.
+
+== Integrations branch init

@@ -15,4 +15,16 @@
     limitations under the License.
 
 -->
-test groups
+<form *ngIf="form" [formGroup]="form" class="application-general-access-groups">
+  <mat-card>
+    <div class="application-general-access-groups__body">
+      <mat-form-field>
+        <mat-label>Groups</mat-label>
+        <mat-select formControlName="selectedGroups" multiple>
+          <mat-option *ngFor="let availableGroup of groups" [value]="availableGroup.id">{{ availableGroup.name }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </mat-card>
+  <gio-save-bar [form]="form" [formInitialValues]="initialFormValue" (submitted)="save()"></gio-save-bar>
+</form>
