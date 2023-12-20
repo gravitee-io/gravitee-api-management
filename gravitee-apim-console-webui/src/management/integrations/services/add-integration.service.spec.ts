@@ -14,28 +14,19 @@
  * limitations under the License.
  */
 
-import { ActivatedRoute, Router } from '@angular/router';
-import { Component, OnInit } from "@angular/core";
+import { TestBed } from '@angular/core/testing';
 
-import { catalogData } from "../../data/catalog.data";
+import { AddIntegrationService } from './add-integration.service';
 
-@Component({
-  selector: 'app-catalog',
-  templateUrl: './catalog.component.html',
-  styleUrls: ['./catalog.component.scss']
-})
-export class CatalogComponent {
-  protected readonly catalogData = catalogData;
+describe('AddIntegrationService', () => {
+  let service: AddIntegrationService;
 
+  beforeEach(() => {
+    TestBed.configureTestingModule({});
+    service = TestBed.inject(AddIntegrationService);
+  });
 
-  constructor(
-    private router: Router,
-    private route: ActivatedRoute,
-  ) {
-  }
-
-
-  handleAdd(provider: string): void {
-    this.router.navigate([`../add-integration/${provider}`], {relativeTo: this.route});
-  }
-}
+  it('should be created', () => {
+    expect(service).toBeTruthy();
+  });
+});
