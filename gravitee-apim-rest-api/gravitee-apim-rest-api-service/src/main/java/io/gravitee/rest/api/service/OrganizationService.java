@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service;
 
+import io.gravitee.definition.model.Organization;
 import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.model.UpdateOrganizationEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -47,4 +48,6 @@ public interface OrganizationService {
     Collection<OrganizationEntity> findAll();
 
     OrganizationEntity getDefaultOrInitialize();
+
+    OrganizationEntity findByCockpitId(String cockpitId);
 }
