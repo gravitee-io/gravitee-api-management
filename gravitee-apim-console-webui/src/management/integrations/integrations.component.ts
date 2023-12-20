@@ -19,18 +19,20 @@ import { Observable, of } from "rxjs";
 
 @Component({
   selector: 'app-integrations',
-  template: require('./integrations.component.html'),
-  styles: [require('./integrations.component.scss')]
+  templateUrl: './integrations.component.html',
+  styleUrls: ['./integrations.component.scss']
 })
 export class IntegrationsComponent {
-  public tabs: { label: Observable<string>; routerLink: string }[] = [
+  public tabs: { label: Observable<string>; routerLink: string, isDisabled: boolean }[] = [
     {
       label: of('Catalog'),
       routerLink: './catalog',
+      isDisabled: false,
     },
     {
       label: of('My integrations'),
       routerLink: './my-integrations',
+      isDisabled: true,
     },
   ];
 }

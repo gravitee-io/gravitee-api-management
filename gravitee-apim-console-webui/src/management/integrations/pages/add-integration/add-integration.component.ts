@@ -14,24 +14,20 @@
  * limitations under the License.
  */
 
-import { ActivatedRoute, Router } from '@angular/router';
 import { Component } from '@angular/core';
-
-import { catalogData } from "../../data/catalog.data";
+import { ActivatedRoute, Router } from "@angular/router";
 
 @Component({
-  selector: 'app-catalog',
-  templateUrl: './catalog.component.html',
-  styleUrls: ['./catalog.component.scss']
+  selector: 'app-add-integration',
+  templateUrl: "./add-integration.component.html",
+  styleUrls: ["./add-integration.component.scss"]
 })
-export class CatalogComponent {
-  protected readonly catalogData = catalogData;
+export class AddIntegrationComponent {
 
-  constructor(private router: Router, private route: ActivatedRoute) {
+  constructor(private router: Router, private route: ActivatedRoute) { }
+
+  handleExit() {
+    this.router.navigate(["../"], {relativeTo: this.route});
   }
 
-
-  handleAdd() {
-    this.router.navigate(["../add-integration"], {relativeTo: this.route});
-  }
 }

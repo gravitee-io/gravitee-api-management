@@ -124,3 +124,12 @@
   display: flex;
   justify-content: center;
 }
+
+.logo-box {
+  display: inline;
+  border-radius: 6px;
+  border: 1px solid var(--Neutrals-Dove-DoveDark20, #D3D5DC);
+  width: 24px;
+  height: 24px;
+  padding: 4px;
+}

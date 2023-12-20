@@ -25,10 +25,10 @@ interface CatalogData {
 
 export const catalogData: CatalogData[] = [
   {
-    iconPath: "assets/logo_confluent.svg",
-    title: "Confluent",
+    iconPath: "assets/logo_aws.svg",
+    title: "AWS Gateway",
     categories: ["Mediate", "Federate"],
-    description: "Discover AsyncAPIs in Kafka and expose them with Gravitee. Use protocol translation or use Gravitee`s Consumer Portal for direct client connection.",
+    description: "Connect to Amazon API Gateway for API management and data integration. Customize API proxies with Gravitee Gateway or expose data sources directly.",
     status: "No integration configured",
     isAdd: true
   },
@@ -39,6 +39,14 @@ export const catalogData: CatalogData[] = [
     description: "Integrate Solace for streamlined API management. Choose Gravitee Gateway or direct data source exposure to suit your use case.",
     status: "No integration configured",
     isAdd: true
+  },
+  {
+    iconPath: "assets/logo_confluent.svg",
+    title: "Confluent",
+    categories: ["Mediate", "Federate"],
+    description: "Discover AsyncAPIs in Kafka and expose them with Gravitee. Use protocol translation or use Gravitee`s Consumer Portal for direct client connection.",
+    status: "No integration configured",
+    isAdd: false
   },
   {
     iconPath: "assets/logo_snowflake.svg",
@@ -57,19 +65,11 @@ export const catalogData: CatalogData[] = [
     isAdd: false
   },
   {
-    iconPath: "assets/logo_aws.svg",
-    title: "AWS Gateway",
-    categories: ["Mediate", "Federate"],
-    description: "Connect to Amazon API Gateway for API management and data integration. Customize API proxies with Gravitee Gateway or expose data sources directly.",
-    status: "No integration configured",
-    isAdd: true
-  },
-  {
     iconPath: "assets/logo_apigee.svg",
     title: "Apigee",
     categories: ["Mediate", "Federate"],
     description: "Import Apigee Proxy or Product APIs to Gravitee. Manage via Gravitee Gateway or the Consumer Portal for discovery and subscriptions.",
     status: "No integration configured",
-    isAdd: true
+    isAdd: false
   },
 ];

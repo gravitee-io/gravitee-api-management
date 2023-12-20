@@ -47,8 +47,11 @@
   text-transform: none;
 }
 
-.item-button {
+.add-button, .comming-soon {
   margin-top: auto;
-  border: 2px solid var(--Neutrals-Dove-DoveDark20, #D3D5DC);
-  padding: 0 18px;
+}
+
+.comming-soon {
+  height: 36px;
+  padding: 0 8px;
 }

@@ -14,28 +14,34 @@
  * limitations under the License.
  */
 
-import { NgModule } from "@angular/core";
-import { CommonModule } from "@angular/common";
-import { MatTabsModule } from "@angular/material/tabs";
-import { MatButtonModule } from "@angular/material/button";
-
-import { IntegrationsRoutingModule } from "./integrations-routing.module";
-import { IntegrationsComponent } from "./integrations.component";
+import { AddIntegrationComponent } from "./pages/add-integration/add-integration.component";
 import { CatalogComponent } from "./components/catalog/catalog.component";
+import { CommonModule } from "@angular/common";
+import { FormsModule } from '@angular/forms';
+import { IntegrationsComponent } from "./integrations.component";
+import { IntegrationsRoutingModule } from "./integrations-routing.module";
+import { MatButtonModule } from "@angular/material/button";
+import { MatInputModule } from '@angular/material/input';
+import {MatRadioModule} from '@angular/material/radio';
+import { MatTabsModule } from "@angular/material/tabs";
 import { MyIntegrationsComponent } from "./components/my-integrations/my-integrations.component";
-
+import { NgModule } from "@angular/core";
 
 @NgModule({
     imports: [
         CommonModule,
         IntegrationsRoutingModule,
+        FormsModule,
         MatTabsModule,
-        MatButtonModule
+        MatButtonModule,
+        MatInputModule,
+        MatRadioModule
     ],
   declarations: [
     IntegrationsComponent,
     CatalogComponent,
-    MyIntegrationsComponent
+    MyIntegrationsComponent,
+    AddIntegrationComponent
   ]
 })
 export class IntegrationsModule {

@@ -18,8 +18,8 @@ import { Component } from "@angular/core";
 
 @Component({
   selector: "app-my-integrations",
-  template: require("./my-integrations.component.html"),
-  styles: [require("./my-integrations.component.scss")]
+  templateUrl: "./my-integrations.component.html",
+  styleUrls: ["./my-integrations.component.scss"]
 })
 export class MyIntegrationsComponent {
 }

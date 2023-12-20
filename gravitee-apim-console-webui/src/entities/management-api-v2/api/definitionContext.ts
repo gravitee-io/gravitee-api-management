@@ -27,5 +27,5 @@ export interface DefinitionContext {
    */
   mode?: ModeEnum;
 }
-export type OriginEnum = 'MANAGEMENT' | 'KUBERNETES';
+export type OriginEnum = 'MANAGEMENT' | 'KUBERNETES' | 'AWS' | 'SOLACE';
 export type ModeEnum = 'FULLY_MANAGED' | 'API_DEFINITION_ONLY';

@@ -39,14 +39,21 @@
         <span class="badge gio-badge-neutral">{{item.status}}</span>
       </div>
 
-      <ng-container *ngIf="item.isAdd else comingSoon">
-        <button mat-button class="item-button">
-          Add
-        </button>
-      </ng-container>
-      <ng-template #comingSoon>
-        <span class="badge gio-badge-primary">Coming soon</span>
-      </ng-template>
+      
+        <ng-container *ngIf="item.isAdd else comingSoon">
+          <button
+            mat-stroked-button 
+            class="add-button"
+            (click)="handleAdd()"
+          >
+            Add
+          </button>
+        </ng-container>
+        <ng-template #comingSoon>
+          <span class="comming-soon badge gio-badge-primary">Coming soon</span>
+        </ng-template>
+      
+      
     </div>
   </ng-container>
 

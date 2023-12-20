@@ -55,7 +55,10 @@ export type ApisTableDS = {
   isNotSynced$?: Observable<boolean>;
   qualityScore$?: Observable<{ score: number; class: string }>;
   visibility: { label: string; icon: string };
-  origin: OriginEnum;
+  origin: {
+    name: string,
+    iconPath: string,
+  };
   readonly: boolean;
   definitionVersion: { label: string; icon?: string };
   targetRoute: string;
@@ -68,7 +71,7 @@ export type ApisTableDS = {
   styleUrls: ['./api-list.component.scss'],
 })
 export class ApiListComponent implements OnInit, OnDestroy {
-  displayedColumns = ['picture', 'name', 'states', 'access', 'tags', 'owner', 'definitionVersion', 'visibility', 'actions'];
+  displayedColumns = ['picture', 'name', 'states', 'access', 'tags', 'owner', 'definitionVersion','runtime', 'visibility', 'actions'];
   apisTableDSUnpaginatedLength = 0;
   apisTableDS: ApisTableDS = [];
   filters: GioTableWrapperFilters = {
@@ -170,7 +173,10 @@ export class ApiListComponent implements OnInit, OnDestroy {
             lifecycleState: api.lifecycleState,
             workflowBadge: this.getWorkflowBadge(api),
             visibility: { label: api.visibility, icon: this.visibilitiesIcons[api.visibility] },
-            origin: api.definitionContext?.origin,
+            origin: {
+              name: this.mapOriginNames(api.definitionContext?.origin),
+              iconPath: this.mapOriginLogos(api.definitionContext?.origin),
+            },
             readonly: api.definitionContext?.origin === 'KUBERNETES',
             definitionVersion: this.getDefinitionVersion(api),
             owner: api.primaryOwner?.displayName,
@@ -199,6 +205,41 @@ export class ApiListComponent implements OnInit, OnDestroy {
           }
         })
       : [];
+  }
+
+  private mapOriginNames(origin: OriginEnum): string {
+    const options = {
+      'MANAGEMENT': 'Gravitee',
+      'AWS': 'AWS',
+      'SOLACE': 'Solace'
+    }
+    return options[origin] || 'not found';
+  }
+
+  private mapOriginLogos(origin: OriginEnum): string {
+    const options = {
+      'MANAGEMENT': 'assets/logo_gravitee.svg',
+      'AWS': 'assets/logo_aws.svg',
+      'SOLACE': 'assets/logo_aws.svg'
+    }
+    return options[origin] || 'assets/logo_spinner.svg';
+  }
+
+  private getContextPathForApiV4(api: ApiV4): string[] {
+    if (api.listeners?.length > 0) {
+      const httpListener = api.listeners.find((listener) => listener.type === 'HTTP');
+      if (httpListener) {
+        return (httpListener as HttpListener).paths.map((path) => `${path.host ?? ''}${path.path}`);
+      }
+    }
+    return null;
+  }
+
+  private getContextPathForApiV2(api: ApiV2): string[] {
+    if (api.proxy.virtualHosts?.length > 0) {
+      return api.proxy.virtualHosts.map((vh) => `${vh.host ?? ''}${vh.path}`);
+    }
+    return [api.contextPath];
   }
 
   private getDefinitionVersion(api: Api) {
