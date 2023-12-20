@@ -43,7 +43,7 @@ export class RegistrationComponent implements OnInit {
   }
 
   ngOnInit() {
-    const formDescriptor = new FormGroup({
+    const formDescriptor: FormGroup = new FormGroup({
       firstname: new FormControl('', Validators.required),
       lastname: new FormControl('', Validators.required),
       email: new FormControl('', [Validators.required, Validators.email]),
@@ -57,7 +57,7 @@ export class RegistrationComponent implements OnInit {
 
         if (this.customUserFields) {
           this.customUserFields.forEach(field => {
-            formDescriptor[field.key] = new FormControl('', field.required ? Validators.required : null);
+            formDescriptor.addControl(field.key, new FormControl('', field.required ? Validators.required : null));
           });
         }
 
