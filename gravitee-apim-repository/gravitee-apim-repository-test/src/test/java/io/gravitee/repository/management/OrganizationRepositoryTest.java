@@ -119,4 +119,10 @@ public class OrganizationRepositoryTest extends AbstractManagementRepositoryTest
         Assert.assertTrue("No organization found", !organizations.isEmpty());
         Assert.assertEquals(2, organizations.size());
     }
+
+    @Test
+    public void shouldFindByCockpitId() throws Exception {
+        final Optional<Organization> optional = organizationRepository.findByCockpitId("cockpitId-org-findById");
+        Assert.assertTrue("No organization found for cockpitId: cockpitId-org-findById", optional.isPresent());
+    }
 }

@@ -18,6 +18,7 @@ package io.gravitee.repository.jdbc.management;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.OrganizationRepository;
+import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.Organization;
 import java.sql.PreparedStatement;
 import java.sql.Types;
@@ -123,6 +124,29 @@ public class JdbcOrganizationRepository extends JdbcAbstractCrudRepository<Organ
         } catch (final Exception ex) {
             LOGGER.error("Failed to find organization by hrids:", ex);
             throw new TechnicalException("Failed to find environments by hrids", ex);
+        }
+    }
+
+    @Override
+    public Optional<Organization> findByCockpitId(String cockpitId) throws TechnicalException {
+        LOGGER.debug("JdbcOrganizationRepository.findByCockpitId({})", cockpitId);
+        try {
+            List<Organization> organizations = jdbcTemplate.query(
+                getOrm().getSelectAllSql() + " where cockpit_id = ?",
+                getOrm().getRowMapper(),
+                cockpitId
+            );
+
+            final Optional<Organization> organization = organizations.stream().findFirst();
+
+            organization.ifPresent(org -> {
+                this.addHrids(org);
+            });
+
+            return organization;
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to find organizations by cockpit:", ex);
+            throw new TechnicalException("Failed to find organizations by cockpit", ex);
         }
     }
 

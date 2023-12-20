@@ -74,6 +74,17 @@ class AccessPointCrudServiceImplTest {
         @EnumSource(AccessPoint.ReferenceType.class)
         @SneakyThrows
         void should_delete_existing_access_points_of_the_reference(AccessPoint.ReferenceType referenceType) {
+            // When
+            service.deleteAccessPoints(referenceType, "ref-id");
+
+            // Then
+            verify(accessPointRepository).deleteByReference(AccessPointAdapter.INSTANCE.fromEntity(referenceType), "ref-id");
+        }
+
+        @ParameterizedTest
+        @EnumSource(AccessPoint.ReferenceType.class)
+        @SneakyThrows
+        void should_update_existing_access_points_of_the_reference(AccessPoint.ReferenceType referenceType) {
             // Given
             var accessPoints = List.<AccessPoint>of();
 
