@@ -2644,6 +2644,8 @@ components:
                     enum:
                         - MANAGEMENT
                         - KUBERNETES
+                        - AWS
+                        - SOLACE
                 mode:
                     deprecated: true
                     type: string
@@ -2668,6 +2670,8 @@ components:
                     enum:
                         - MANAGEMENT
                         - KUBERNETES
+                        - AWS
+                        - SOLACE
             readOnly: true
         DefinitionVersion:
             type: string

@@ -63,7 +63,7 @@ export class ApiResourcesComponent implements OnInit, OnDestroy {
           if (api.definitionVersion !== 'V1') {
             this.api = api;
             this.initialApiDefinition = this.api;
-            this.isReadonly = this.api.definitionContext.origin === 'KUBERNETES' ? true : null;
+            this.isReadonly = (this.api.definitionContext?.origin === 'KUBERNETES' || this.api.definitionContext?.origin === 'AWS' || this.api.definitionContext?.origin === 'SOLACE') ? true : null;
             this.resourceTypes = resourceTypes;
           } else {
             return EMPTY;

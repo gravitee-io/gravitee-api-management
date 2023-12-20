@@ -160,6 +160,9 @@ public class UpdateApiEntity {
     @Schema(hidden = true, description = "The API's lifecycle state has been added for the kubernetes operator only.")
     private Lifecycle.State state;
 
+    @JsonProperty("definition_context")
+    private DefinitionContext definitionContext;
+
     public void setName(String name) {
         this.name = HtmlSanitizer.sanitize(name);
     }

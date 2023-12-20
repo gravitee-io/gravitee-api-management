@@ -36,7 +36,6 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -46,7 +45,10 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -297,5 +299,10 @@ public class EnvironmentResource extends AbstractResource {
     @Path("restrictedDomains")
     public RestrictedDomainsResource getRestrictedDomainsResource() {
         return resourceContext.getResource(RestrictedDomainsResource.class);
+    }
+
+    @Path("integrations")
+    public IntegrationsResource getIntegrationsResource() {
+        return resourceContext.getResource(IntegrationsResource.class);
     }
 }

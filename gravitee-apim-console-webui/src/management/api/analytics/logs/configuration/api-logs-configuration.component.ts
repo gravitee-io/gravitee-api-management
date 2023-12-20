@@ -151,7 +151,7 @@ export class ApiLogsConfigurationComponent implements OnInit, OnDestroy {
 
   private initForm(api: ApiV2 | ApiV1) {
     const { mode, content, scope } = { ...this.defaultLogging, ...this.api.proxy.logging };
-    const isReadOnly = !this.permissionService.hasAnyMatching(['api-log-u']) || api.definitionContext?.origin === 'KUBERNETES';
+    const isReadOnly = !this.permissionService.hasAnyMatching(['api-log-u']) || api.definitionContext?.origin === 'KUBERNETES' || api.definitionContext?.origin === 'AWS' || api.definitionContext?.origin === 'SOLACE';
     const enabled = !!api.proxy.logging && api.proxy.logging.mode !== 'NONE';
     this.mode = new UntypedFormControl({
       value: mode !== 'NONE' ? mode : 'CLIENT_PROXY',

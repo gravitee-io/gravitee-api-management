@@ -121,7 +121,7 @@ export class ApiRuntimeLogsProxySettingsComponent implements OnInit {
 
   private initForm(api: ApiV4) {
     const enabled = api.analytics?.logging?.mode?.entrypoint || api.analytics?.logging?.mode?.endpoint;
-    const isReadOnly = api.definitionContext?.origin === 'KUBERNETES';
+    const isReadOnly = api.definitionContext?.origin === 'KUBERNETES' || api.definitionContext?.origin === 'AWS' || api.definitionContext?.origin === 'SOLACE';
     this.form = new UntypedFormGroup({
       entrypoint: new UntypedFormControl({ value: api.analytics?.logging?.mode?.entrypoint, disabled: isReadOnly }),
       endpoint: new UntypedFormControl({ value: api.analytics?.logging?.mode?.endpoint, disabled: isReadOnly }),

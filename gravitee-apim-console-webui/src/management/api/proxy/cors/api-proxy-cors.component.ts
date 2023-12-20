@@ -60,7 +60,7 @@ export class ApiProxyCorsComponent implements OnInit, OnDestroy {
             enabled: false,
           };
 
-          const isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']) || api.definitionContext?.origin === 'KUBERNETES';
+          const isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u'])  || api.definitionContext?.origin === 'KUBERNETES' || api.definitionContext?.origin === 'AWS' || api.definitionContext?.origin === 'SOLACE';
           const isCorsDisabled = isReadOnly || !cors.enabled;
 
           this.corsForm = new UntypedFormGroup({

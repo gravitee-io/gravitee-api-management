@@ -62,7 +62,7 @@ export class ApiProxyFailoverComponent implements OnInit, OnDestroy {
       .pipe(
         onlyApiV1V2Filter(this.snackBarService),
         tap((api) => {
-          const isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']) || api.definitionContext?.origin === 'KUBERNETES';
+          const isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u'])  || api.definitionContext?.origin === 'KUBERNETES' || api.definitionContext?.origin === 'AWS' || api.definitionContext?.origin === 'SOLACE';
           this.createForm(isReadOnly, api.proxy?.failover);
           this.setupDisablingFields();
         }),

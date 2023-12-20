@@ -52,7 +52,7 @@ export class ApiProxyHealthCheckComponent implements OnInit, OnDestroy {
         onlyApiV1V2Filter(this.snackBarService),
         tap((api) => {
           const isReadOnly =
-            !this.permissionService.hasAnyMatching(['api-health-c', 'api-health-u']) || api.definitionContext?.origin === 'KUBERNETES';
+            !this.permissionService.hasAnyMatching(['api-health-c', 'api-health-u'])  || api.definitionContext?.origin === 'KUBERNETES' || api.definitionContext?.origin === 'AWS' || api.definitionContext?.origin === 'SOLACE';
 
           this.healthCheckForm = ApiProxyHealthCheckFormComponent.NewHealthCheckFormGroup(api.services.healthCheck, isReadOnly);
         }),

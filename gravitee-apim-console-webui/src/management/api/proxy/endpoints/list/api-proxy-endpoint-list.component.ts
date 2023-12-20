@@ -122,6 +122,6 @@ export class ApiProxyEndpointListComponent implements OnInit {
 
   private initData(api: ApiV2): void {
     this.endpointGroupsTableData = toEndpoints(api);
-    this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-r']) || api.definitionContext?.origin === 'KUBERNETES';
+    this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-r'])  || api.definitionContext?.origin === 'KUBERNETES' || api.definitionContext?.origin === 'AWS' || api.definitionContext?.origin === 'SOLACE';
   }
 }

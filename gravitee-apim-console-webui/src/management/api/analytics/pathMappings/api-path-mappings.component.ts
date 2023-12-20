@@ -72,7 +72,7 @@ export class ApiPathMappingsComponent implements OnInit, OnDestroy {
           this.api = api;
           this.pathMappingsDS = this.toPathMappingDS(api);
           this.isLoadingData = false;
-          this.isReadOnly = api.definitionContext.origin === 'KUBERNETES';
+          this.isReadOnly = api.definitionContext.origin === 'KUBERNETES' || api.definitionContext.origin === 'AWS' || api.definitionContext.origin === 'SOLACE' ;
         }),
       )
       .subscribe();

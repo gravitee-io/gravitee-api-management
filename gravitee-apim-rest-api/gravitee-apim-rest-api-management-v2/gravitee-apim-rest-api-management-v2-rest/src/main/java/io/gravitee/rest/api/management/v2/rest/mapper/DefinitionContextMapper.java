@@ -33,7 +33,7 @@ public interface DefinitionContextMapper {
         context.setOrigin(
             definitionContext.getOrigin().equals(ORIGIN_MANAGEMENT)
                 ? DefinitionContext.OriginEnum.MANAGEMENT
-                : DefinitionContext.OriginEnum.KUBERNETES
+                : DefinitionContext.OriginEnum.fromValue(definitionContext.getOrigin().toUpperCase())
         );
         context.setMode(
             definitionContext.getMode().equals(MODE_FULLY_MANAGED)
@@ -43,7 +43,7 @@ public interface DefinitionContextMapper {
         context.setSyncFrom(
             definitionContext.getSyncFrom().equals(ORIGIN_MANAGEMENT)
                 ? DefinitionContext.SyncFromEnum.MANAGEMENT
-                : DefinitionContext.SyncFromEnum.KUBERNETES
+                : DefinitionContext.SyncFromEnum.fromValue(definitionContext.getOrigin().toUpperCase())
         );
         return context;
     }

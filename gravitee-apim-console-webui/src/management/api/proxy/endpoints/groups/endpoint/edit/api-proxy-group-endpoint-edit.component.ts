@@ -81,7 +81,7 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
           this.api = api;
           this.connectors = connectors;
           this.tenants = tenants;
-          this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']) || api.definitionContext?.origin === 'KUBERNETES';
+          this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u'])  || api.definitionContext?.origin === 'KUBERNETES' || api.definitionContext?.origin === 'AWS' || api.definitionContext?.origin === 'SOLACE';
           this.supportedTypes = this.connectors.map((connector) => connector.supportedTypes).reduce((acc, val) => acc.concat(val), []);
           this.initForms();
         }),

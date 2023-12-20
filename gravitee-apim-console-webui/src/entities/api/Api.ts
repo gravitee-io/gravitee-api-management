@@ -67,7 +67,7 @@ export interface Api {
 
 export type ApiVisibility = 'PUBLIC' | 'PRIVATE';
 export type ApiState = 'INITIALIZED' | 'STOPPED' | 'STARTED' | 'CLOSED';
-export type ApiOrigin = 'management' | 'kubernetes';
+export type ApiOrigin = 'management' | 'kubernetes' | 'aws' | 'solace';
 interface ApiDefinitionContext {
   origin: ApiOrigin;
 }

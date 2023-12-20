@@ -71,7 +71,7 @@ export class ApiProxyResponseTemplatesEditComponent implements OnInit, OnDestroy
           this.mode = !isNil(this.responseTemplateToEdit) ? 'edit' : 'new';
 
           this.isReadOnly =
-            !this.permissionService.hasAnyMatching(['api-response_templates-u']) || api.definitionContext?.origin === 'KUBERNETES';
+            !this.permissionService.hasAnyMatching(['api-response_templates-u'])  || api.definitionContext?.origin === 'KUBERNETES' || api.definitionContext?.origin === 'AWS' || api.definitionContext?.origin === 'SOLACE';
 
           this.responseTemplatesForm = new UntypedFormGroup({
             key: new UntypedFormControl(

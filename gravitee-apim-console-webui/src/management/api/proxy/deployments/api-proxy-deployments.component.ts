@@ -52,7 +52,7 @@ export class ApiProxyDeploymentsComponent implements OnInit, OnDestroy {
         tap(([api, shardingTags]) => {
           this.shardingTags = shardingTags;
 
-          const isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']) || api.definitionContext?.origin === 'KUBERNETES';
+          const isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u'])  || api.definitionContext?.origin === 'KUBERNETES' || api.definitionContext?.origin === 'AWS' || api.definitionContext?.origin === 'SOLACE';
 
           this.deploymentsForm = new UntypedFormGroup({
             tags: new UntypedFormControl({

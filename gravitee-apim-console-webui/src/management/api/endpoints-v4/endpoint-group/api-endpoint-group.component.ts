@@ -100,7 +100,7 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-r']) || api.definitionContext?.origin === 'KUBERNETES';
+    this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-r']) || api.definitionContext?.origin === 'KUBERNETES' || api.definitionContext?.origin === 'AWS' || api.definitionContext?.origin === 'SOLACE';
 
     this.generalForm = new UntypedFormGroup({
       name: new UntypedFormControl(

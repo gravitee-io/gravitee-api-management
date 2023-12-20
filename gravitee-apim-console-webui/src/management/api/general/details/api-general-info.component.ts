@@ -129,7 +129,7 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
           ),
         ),
         tap(([api, categories]) => {
-          this.isKubernetesOrigin = api.definitionContext?.origin === 'KUBERNETES';
+          this.isKubernetesOrigin = api.definitionContext?.origin === 'KUBERNETES'  || api.definitionContext?.origin === 'AWS' || api.definitionContext?.origin === 'SOLACE';
           this.isReadOnly =
             !this.permissionService.hasAnyMatching(['api-definition-u']) || this.isKubernetesOrigin || api.definitionVersion === 'V1';
 

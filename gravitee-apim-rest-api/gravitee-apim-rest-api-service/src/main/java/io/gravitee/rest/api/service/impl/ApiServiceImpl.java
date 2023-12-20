@@ -1117,8 +1117,14 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             api.setEnvironmentId(apiToUpdate.getEnvironmentId());
             api.setDeployedAt(apiToUpdate.getDeployedAt());
             api.setCreatedAt(apiToUpdate.getCreatedAt());
-            api.setOrigin(apiToUpdate.getOrigin());
-            api.setMode(apiToUpdate.getMode());
+
+            if (updateApiEntity.getDefinitionContext() != null) {
+                api.setOrigin(updateApiEntity.getDefinitionContext().getOrigin());
+                api.setMode(updateApiEntity.getDefinitionContext().getMode());
+            } else {
+                api.setOrigin(apiToUpdate.getOrigin());
+                api.setMode(apiToUpdate.getMode());
+            }
 
             if (DefinitionContext.isKubernetes(api.getOrigin())) {
                 // Be sure that api is started when managed by k8s.
@@ -2440,6 +2446,11 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         api.setBackground(updateApiEntity.getBackground());
 
         api.setDefinition(buildApiDefinition(apiId, apiDefinition, updateApiEntity));
+
+        if (updateApiEntity.getDefinitionContext() != null) {
+            api.setOrigin(updateApiEntity.getDefinitionContext().getOrigin());
+            api.setMode(updateApiEntity.getDefinitionContext().getMode());
+        }
 
         final Set<String> apiCategories = updateApiEntity.getCategories();
         if (apiCategories != null) {

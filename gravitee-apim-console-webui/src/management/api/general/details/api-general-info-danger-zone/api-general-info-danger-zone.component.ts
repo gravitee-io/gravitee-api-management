@@ -99,7 +99,7 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.api) {
-      this.isReadOnly = this.api.definitionVersion === 'V1' || this.api.definitionContext?.origin === 'KUBERNETES';
+      this.isReadOnly = this.api.definitionVersion === 'V1'  || this.api.definitionContext?.origin === 'KUBERNETES' || this.api.definitionContext?.origin === 'AWS' || this.api.definitionContext?.origin === 'SOLACE';
 
       this.dangerActions = {
         canAskForReview:
