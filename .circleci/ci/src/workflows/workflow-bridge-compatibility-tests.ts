@@ -61,7 +61,7 @@ export class BridgeCompatibilityTestsWorkflow {
         matrix: {
           execution_mode: ['v3', 'v4-emulation-engine'],
           database: ['bridge'],
-          apim_client_tag: ['4.0.x-latest', '3.20.x-latest', '3.19.x-latest'],
+          apim_client_tag: ['4.0.x-latest', '3.20.x-latest'],
         },
       }),
     ];
