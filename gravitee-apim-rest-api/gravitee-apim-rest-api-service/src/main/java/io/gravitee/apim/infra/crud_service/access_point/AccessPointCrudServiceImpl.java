@@ -48,16 +48,8 @@ public class AccessPointCrudServiceImpl extends TransactionalService implements 
         final List<AccessPoint> accessPoints
     ) {
         try {
-            List<io.gravitee.repository.management.model.AccessPoint> deleteAccessPoints = accessPointRepository.deleteByReference(
-                AccessPointReferenceType.valueOf(referenceType.name()),
-                referenceId
-            );
-            if (deleteAccessPoints != null) {
-                deleteAccessPoints
-                    .stream()
-                    .map(AccessPointAdapter.INSTANCE::toEntity)
-                    .forEach(accessPoint -> eventManager.publishEvent(AccessPointEvent.DELETED, accessPoint));
-            }
+            this.deleteAccessPoints(referenceType, referenceId);
+
             for (AccessPoint accessPoint : accessPoints) {
                 var ap = AccessPointAdapter.INSTANCE.fromEntity(accessPoint);
                 if (ap.getId() == null) {
@@ -68,6 +60,24 @@ public class AccessPointCrudServiceImpl extends TransactionalService implements 
             }
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error occurs while creating access points", e);
+        }
+    }
+
+    @Override
+    public void deleteAccessPoints(final AccessPoint.ReferenceType referenceType, final String referenceId) {
+        try {
+            List<io.gravitee.repository.management.model.AccessPoint> deleteAccessPoints = accessPointRepository.deleteByReference(
+                AccessPointReferenceType.valueOf(referenceType.name()),
+                referenceId
+            );
+            if (deleteAccessPoints != null) {
+                deleteAccessPoints
+                    .stream()
+                    .map(AccessPointAdapter.INSTANCE::toEntity)
+                    .forEach(accessPoint -> eventManager.publishEvent(AccessPointEvent.DELETED, accessPoint));
+            }
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException("An error occurs while deleting access points", e);
         }
     }
 }

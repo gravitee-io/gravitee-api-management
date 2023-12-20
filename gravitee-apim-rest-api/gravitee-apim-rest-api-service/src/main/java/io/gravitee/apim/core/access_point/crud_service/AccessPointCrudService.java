@@ -20,4 +20,6 @@ import java.util.List;
 
 public interface AccessPointCrudService {
     void updateAccessPoints(final AccessPoint.ReferenceType referenceType, String referenceId, final List<AccessPoint> accessPoints);
+
+    void deleteAccessPoints(final AccessPoint.ReferenceType referenceType, String referenceId);
 }
