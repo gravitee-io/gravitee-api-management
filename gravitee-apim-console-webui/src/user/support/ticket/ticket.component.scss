@@ -7,3 +7,11 @@
   justify-content: space-between;
   align-items: flex-start;
 }
+
+.user-support-ticket {
+  flex: 1 1 auto;
+
+  &__content {
+    white-space: pre-wrap;
+  }
+}
