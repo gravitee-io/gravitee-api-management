@@ -354,9 +354,6 @@ jobs:
             sed -i 's/"version": ".*"/"version": "4.2.0-alpha.1"/' gravitee-apim-console-webui/build.json
             sed -i 's/"version": ".*"/"version": "4.2.0-alpha.1"/' gravitee-apim-portal-webui/build.json
 
-            # Helm chart
-            sed "0,/version.*/s/version.*/version: 4.2.0-alpha.1/" -i helm/Chart.yaml
-
             git add --update
             git commit -m "4.2.0-alpha.1"
             git tag 4.2.0-alpha.1
@@ -369,6 +366,10 @@ jobs:
             sed -i 's#version: ".*"#version: "4.2.0-alpha.2-SNAPSHOT"#' gravitee-apim-rest-api/gravitee-apim-rest-api-portal/gravitee-apim-rest-api-portal-rest/src/main/resources/portal-openapi.yaml
             sed -i 's#"version": ".*"#"version": "4.2.0-alpha.2-SNAPSHOT"#' gravitee-apim-console-webui/build.json
             sed -i 's#"version": ".*"#"version": "4.2.0-alpha.2-SNAPSHOT"#' gravitee-apim-portal-webui/build.json
+
+            # Helm chart increase version and clean the artifacthub.io/changes annotation
+            sed "0,/version.*/s/version.*/version: 4.2.0-alpha.2/" -i helm/Chart.yaml
+            sed -e '/artifacthub.io\/changes/q' Chart.yaml > Chart2.yaml && mv Chart2.yaml Chart.yaml
 
             git add --update
             git commit -m 'chore: prepare next version [skip ci]'

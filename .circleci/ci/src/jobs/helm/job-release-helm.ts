@@ -30,8 +30,9 @@ export class ReleaseHelmJob {
     dynamicConfig.importOrb(orbs.helm);
     dynamicConfig.importOrb(orbs.github);
 
+
     const steps: Command[] = [
-      new commands.Checkout(),
+
       new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
         'secret-url': config.secrets.gitUserName,
         'var-name': 'GIT_USER_NAME',
@@ -54,13 +55,20 @@ git config --global user.email "\${GIT_USER_EMAIL}"`,
       new reusable.ReusedCommand(orbs.helm.commands['install-helm-client']),
     ];
 
+    steps.push(
+      new commands.Checkout(),
+    )
+
     if (!environment.isDryRun) {
       steps.push(
-        new commands.Run({
-          name: 'Update Chart and App versions',
-          command: `sed "0,/version.*/s/version.*/version: ${apimVersion}/" -i helm/Chart.yaml
-sed "0,/appVersion.*/s/appVersion.*/appVersion: ${apimVersion}/" -i helm/Chart.yaml`,
-        }),
+          new commands.Run({
+            name: `Checkout tag ${apimVersion}`,
+            command: `git checkout ${apimVersion}`,
+          }),
+          new commands.Run({
+            name: 'Update Chart and App versions',
+            command: `sed "0,/appVersion.*/s/appVersion.*/appVersion: ${apimVersion}/" -i helm/Chart.yaml`,
+          }),
       );
     }
 
