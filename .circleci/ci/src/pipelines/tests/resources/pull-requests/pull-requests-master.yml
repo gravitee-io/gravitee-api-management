@@ -901,6 +901,57 @@ jobs:
       - cmd-notify-on-failure
       - cmd-save-maven-job-cache:
           jobName: job-publish-on-nexus
+  job-release-helm:
+    docker:
+      - image: cimg/node:16.10
+    resource_class: medium
+    steps:
+      - keeper/env-export:
+          secret-url: keeper://IZd-yvsMopfQEa_0j1SDvg/field/login
+          var-name: GIT_USER_NAME
+      - keeper/env-export:
+          secret-url: keeper://IZd-yvsMopfQEa_0j1SDvg/custom_field/email
+          var-name: GIT_USER_EMAIL
+      - keeper/env-export:
+          secret-url: keeper://TIlcGPFq4rN5GvgnZb9hng/field/password
+          var-name: GITHUB_TOKEN
+      - add_ssh_keys:
+          fingerprints:
+            - ac:88:23:8f:c6:0f:7d:f0:fc:df:73:20:34:56:02:6c
+      - run:
+          name: Git config
+          command: |-
+            git config --global user.name "${GIT_USER_NAME}"
+            git config --global user.email "${GIT_USER_EMAIL}"
+      - gh/setup
+      - helm/install_helm_client
+      - checkout
+      - run:
+          name: build the Charts
+          working_directory: ./helm
+          command: |-
+            helm dependency update
+            helm package -d charts .
+
+            sed "s/name.*/name: apim3/" -i Chart.yaml
+            helm package -d charts .
+      - run:
+          name: Install dependencies
+          command: npm install
+          working_directory: ./release
+      - keeper/env-export:
+          secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/login
+          var-name: ACR_USER_NAME
+      - keeper/env-export:
+          secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/password
+          var-name: ACR_PASSWORD
+      - run:
+          name: Publish helm chart release in azure repository DRY-RUN mode
+          working_directory: ./helm
+          command: |-
+            helm registry login graviteeio.azurecr.io --username $ACR_USER_NAME --password $ACR_PASSWORD
+            helm push charts/apim-*.tgz oci://graviteeio.azurecr.io/helm/
+            helm push charts/apim3-*.tgz oci://graviteeio.azurecr.io/helm/
   job-deploy-on-azure-cluster:
     docker:
       - image: mcr.microsoft.com/azure-cli:2.34.1
@@ -1136,6 +1187,12 @@ workflows:
             - cicd-orchestrator
       - job-snyk-apim-charts:
           name: Scan snyk Helm chart
+          context:
+            - cicd-orchestrator
+          requires:
+            - Setup
+      - job-release-helm:
+          name: Publish Helm chart (internal repo)
           context:
             - cicd-orchestrator
           requires:

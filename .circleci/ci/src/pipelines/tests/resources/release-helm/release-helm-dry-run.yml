@@ -50,7 +50,6 @@ jobs:
       - image: cimg/node:16.10
     resource_class: medium
     steps:
-      - checkout
       - keeper/env-export:
           secret-url: keeper://IZd-yvsMopfQEa_0j1SDvg/field/login
           var-name: GIT_USER_NAME
@@ -70,6 +69,7 @@ jobs:
             git config --global user.email "${GIT_USER_EMAIL}"
       - gh/setup
       - helm/install_helm_client
+      - checkout
       - run:
           name: build the Charts
           working_directory: ./helm
@@ -94,8 +94,8 @@ jobs:
           working_directory: ./helm
           command: |-
             helm registry login graviteeio.azurecr.io --username $ACR_USER_NAME --password $ACR_PASSWORD
-            helm push charts/apim-4.2.0.tgz oci://graviteeio.azurecr.io/helm/
-            helm push charts/apim3-4.2.0.tgz oci://graviteeio.azurecr.io/helm/
+            helm push charts/apim-*.tgz oci://graviteeio.azurecr.io/helm/
+            helm push charts/apim3-*.tgz oci://graviteeio.azurecr.io/helm/
 workflows:
   release_helm:
     jobs:
