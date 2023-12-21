@@ -39,6 +39,7 @@ class InstallationAccessQueryServiceImplTest {
 
     public static final String ORGANIZATION_ID = "orga#id";
     public static final String DEFAULT_ORGANIZATION_ID = "DEFAULT";
+    public static final String DEFAULT_ENVIRONMENT_ID = "DEFAULT";
 
     @Mock
     private InstallationTypeDomainService installationTypeDomainService;
@@ -132,10 +133,26 @@ class InstallationAccessQueryServiceImplTest {
 
     @Test
     void should_do_nothing_when_installation_is_multi_tenant() {
-        when(installationTypeDomainService.isMultiTenant()).thenReturn(false);
+        when(installationTypeDomainService.isMultiTenant()).thenReturn(true);
         cut.afterPropertiesSet();
         String consoleAPIUrl = cut.getConsoleAPIUrl(ORGANIZATION_ID);
         assertThat(consoleAPIUrl).isNull(); // Because no urls added to the local map
+    }
+
+    @Test
+    void should_use_legacy_api_urls_when_installation_is_not_multi_tenant_and_no_installation_configuration() {
+        when(installationTypeDomainService.isMultiTenant()).thenReturn(false);
+        environment.withProperty("console.api.url", "http://api.url/path/management");
+        environment.withProperty("console.ui.url", "http://console.url");
+        environment.withProperty("console.portal.url", "http://portal.url");
+
+        cut.afterPropertiesSet();
+        assertThat(cut.getConsoleApiPath()).isEqualTo("/path/management");
+        assertThat(cut.getPortalApiPath()).isEqualTo("/portal");
+        assertThat(cut.getConsoleAPIUrl(DEFAULT_ORGANIZATION_ID)).isEqualTo("http://api.url/path/management");
+        assertThat(cut.getPortalAPIUrl(DEFAULT_ENVIRONMENT_ID)).isEqualTo("http://api.url/portal");
+        assertThat(cut.getConsoleUrl(DEFAULT_ORGANIZATION_ID)).isEqualTo("http://console.url");
+        assertThat(cut.getPortalUrl(DEFAULT_ENVIRONMENT_ID)).isEqualTo("http://portal.url");
     }
 
     private void setValue(final String field, final Object value) {

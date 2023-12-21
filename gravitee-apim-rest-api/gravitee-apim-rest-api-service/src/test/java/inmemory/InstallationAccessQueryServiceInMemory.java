@@ -26,6 +26,16 @@ import java.util.List;
 public class InstallationAccessQueryServiceInMemory implements InstallationAccessQueryService {
 
     @Override
+    public String getConsoleApiPath() {
+        return "/management";
+    }
+
+    @Override
+    public String getPortalApiPath() {
+        return "/portal";
+    }
+
+    @Override
     public List<String> getConsoleUrls() {
         return List.of();
     }
