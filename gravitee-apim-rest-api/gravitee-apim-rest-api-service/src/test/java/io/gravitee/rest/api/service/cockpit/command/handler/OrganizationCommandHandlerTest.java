@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.cockpit.command.handler;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.access_point.crud_service.AccessPointCrudService;
@@ -31,6 +32,8 @@ import io.gravitee.cockpit.api.command.organization.OrganizationReply;
 import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.model.UpdateOrganizationEntity;
 import io.gravitee.rest.api.service.OrganizationService;
+import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
+import io.gravitee.rest.api.service.exceptions.OrganizationNotFoundException;
 import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.Collections;
 import java.util.List;
@@ -85,7 +88,7 @@ public class OrganizationCommandHandlerTest {
                 AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction2.io").build()
             )
         );
-
+        when(organizationService.findByCockpitId(any())).thenThrow(new OrganizationNotFoundException("Org not found"));
         when(
             organizationService.createOrUpdate(
                 argThat(orgaId -> orgaId.equals("orga#1")),
@@ -120,6 +123,7 @@ public class OrganizationCommandHandlerTest {
             )
         );
 
+        when(organizationService.findByCockpitId(any())).thenThrow(new OrganizationNotFoundException("Org not found"));
         when(organizationService.createOrUpdate(argThat(orgaId -> orgaId.equals("orga#1")), any(UpdateOrganizationEntity.class)))
             .thenThrow(new RuntimeException("fake error"));
 
@@ -128,5 +132,43 @@ public class OrganizationCommandHandlerTest {
         obs.await();
         obs.assertNoErrors();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.ERROR));
+    }
+
+    @Test
+    public void handleWithExistingCockpitId() throws InterruptedException {
+        OrganizationPayload organizationPayload = new OrganizationPayload();
+        OrganizationCommand command = new OrganizationCommand(organizationPayload);
+
+        organizationPayload.setId("orga#1");
+        organizationPayload.setCockpitId("org#cockpit-1");
+        organizationPayload.setHrids(Collections.singletonList("orga-1"));
+        organizationPayload.setDescription("Organization description");
+        organizationPayload.setName("Organization name");
+        organizationPayload.setAccessPoints(
+            List.of(
+                AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction1.io").build(),
+                AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction2.io").build()
+            )
+        );
+        OrganizationEntity existingOrganization = mock(OrganizationEntity.class);
+        when(existingOrganization.getId()).thenReturn("DEFAULT");
+        when(organizationService.findByCockpitId(any())).thenReturn(existingOrganization);
+        when(
+            organizationService.createOrUpdate(
+                argThat(orgaId -> orgaId.equals("DEFAULT")),
+                argThat(newOrganization ->
+                    newOrganization.getCockpitId().equals(organizationPayload.getCockpitId()) &&
+                    newOrganization.getHrids().equals(organizationPayload.getHrids()) &&
+                    newOrganization.getDescription().equals(organizationPayload.getDescription()) &&
+                    newOrganization.getName().equals(organizationPayload.getName())
+                )
+            )
+        )
+            .thenReturn(new OrganizationEntity());
+
+        TestObserver<OrganizationReply> obs = cut.handle(command).test();
+
+        obs.await();
+        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
     }
 }
