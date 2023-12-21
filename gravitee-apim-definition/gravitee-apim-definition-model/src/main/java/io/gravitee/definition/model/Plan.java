@@ -15,6 +15,7 @@
  */
 package io.gravitee.definition.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.flow.Flow;
 import java.io.Serializable;
@@ -159,6 +160,7 @@ public class Plan implements Serializable {
         this.status = status;
     }
 
+    @JsonIgnore
     public List<Plugin> getPlugins() {
         return this.getFlows().stream().map(Flow::getPlugins).flatMap(List::stream).toList();
     }

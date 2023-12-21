@@ -15,6 +15,7 @@
  */
 package io.gravitee.definition.model.v4.flow.step;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.fasterxml.jackson.annotation.JsonSetter;
@@ -74,6 +75,7 @@ public class Step implements Serializable {
         return (String) this.configuration;
     }
 
+    @JsonIgnore
     public List<Plugin> getPlugins() {
         return List.of(new Plugin("policy", policy));
     }

@@ -23,12 +23,10 @@ import io.gravitee.definition.model.services.discovery.EndpointDiscoveryService;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -103,7 +101,22 @@ public final class Services implements Serializable {
         }
     }
 
+    @JsonIgnore
     public List<Plugin> getPlugins() {
-        return this.services.values().stream().map(Service::getPlugins).flatMap(List::stream).collect(Collectors.toList());
+        return Stream
+            .of(
+                Optional
+                    .ofNullable(this.getDiscoveryService())
+                    .filter(Service::isEnabled)
+                    .map(s -> new Plugin("service_discovery", s.getProvider())),
+                Optional.ofNullable(this.getHealthCheckService()).filter(Service::isEnabled).map(s -> new Plugin("service", "healthcheck")),
+                Optional
+                    .ofNullable(this.getDynamicPropertyService())
+                    .filter(Service::isEnabled)
+                    .map(s -> new Plugin("service", "mgmt-service-dynamicproperties"))
+            )
+            .filter(Optional::isPresent)
+            .flatMap(Optional::stream)
+            .collect(Collectors.toList());
     }
 }

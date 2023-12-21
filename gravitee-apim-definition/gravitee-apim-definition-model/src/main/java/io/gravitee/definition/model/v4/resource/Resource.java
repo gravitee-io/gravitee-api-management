@@ -15,6 +15,7 @@
  */
 package io.gravitee.definition.model.v4.resource;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.fasterxml.jackson.annotation.JsonSetter;
@@ -72,6 +73,7 @@ public class Resource implements Serializable {
         this.configuration = configuration;
     }
 
+    @JsonIgnore
     public List<Plugin> getPlugins() {
         return List.of(new Plugin("resource", type));
     }

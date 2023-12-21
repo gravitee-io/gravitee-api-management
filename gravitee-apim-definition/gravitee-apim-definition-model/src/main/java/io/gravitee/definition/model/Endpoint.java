@@ -206,6 +206,11 @@ public class Endpoint implements Serializable {
         return name.hashCode();
     }
 
+    @JsonIgnore
+    public List<Plugin> getPlugins() {
+        return List.of(new Plugin("connector", String.format("connector-%s", type)));
+    }
+
     public enum Status {
         UP(3),
         DOWN(0),

@@ -15,11 +15,13 @@
  */
 package io.gravitee.definition.model.v4.service;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.Plugin;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
 import java.util.List;
+import java.util.Optional;
 import lombok.*;
 
 /**
@@ -40,7 +42,8 @@ public class ApiServices implements Serializable {
     @JsonProperty("dynamicProperty")
     private Service dynamicProperty;
 
+    @JsonIgnore
     public List<Plugin> getPlugins() {
-        return dynamicProperty.getPlugins();
+        return Optional.ofNullable(dynamicProperty).filter(Service::isEnabled).map(Service::getPlugins).orElse(List.of());
     }
 }

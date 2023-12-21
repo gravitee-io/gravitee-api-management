@@ -15,6 +15,7 @@
  */
 package io.gravitee.definition.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.flow.Flow;
 import io.gravitee.definition.model.plugins.resources.Resource;
@@ -239,22 +240,26 @@ public class Api implements Serializable {
         this.definitionContext = definitionContext;
     }
 
+    @JsonIgnore
     public List<Plugin> getPlugins() {
         return Stream
             .of(
                 Optional
                     .ofNullable(this.getResources())
-                    .map(r -> r.stream().map(Resource::getPlugins).flatMap(List::stream).collect(Collectors.toList()))
+                    .map(r ->
+                        r.stream().filter(Resource::isEnabled).map(Resource::getPlugins).flatMap(List::stream).collect(Collectors.toList())
+                    )
                     .orElse(List.of()),
                 Optional
                     .ofNullable(this.getFlows())
-                    .map(f -> f.stream().map(Flow::getPlugins).flatMap(List::stream).toList())
+                    .map(f -> f.stream().filter(Flow::isEnabled).map(Flow::getPlugins).flatMap(List::stream).toList())
                     .orElse(List.of()),
                 Optional
                     .ofNullable(this.getPlans())
                     .map(p -> p.stream().map(Plan::getPlugins).flatMap(List::stream).toList())
                     .orElse(List.of()),
-                Optional.ofNullable(this.getServices()).map(Services::getPlugins).orElse(List.of())
+                Optional.ofNullable(this.getServices()).map(Services::getPlugins).orElse(List.of()),
+                Optional.ofNullable(this.proxy).map(Proxy::getPlugins).orElse(List.of())
             )
             .flatMap(List::stream)
             .collect(Collectors.toList());

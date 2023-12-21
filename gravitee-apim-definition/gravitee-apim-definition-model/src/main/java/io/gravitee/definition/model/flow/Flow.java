@@ -21,10 +21,7 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.ConditionSupplier;
 import io.gravitee.definition.model.Plugin;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
@@ -172,13 +169,16 @@ public class Flow implements Serializable, ConditionSupplier {
         this.consumers = consumers;
     }
 
+    @JsonIgnore
     public List<Plugin> getPlugins() {
-        return Stream
-            .of(
-                this.post.stream().map(Step::getPlugins).flatMap(List::stream).collect(Collectors.toList()),
-                this.pre.stream().map(Step::getPlugins).flatMap(List::stream).collect(Collectors.toList())
-            )
-            .flatMap(List::stream)
-            .collect(Collectors.toList());
+        return Stream.of(computePlugins(this.post), computePlugins(this.pre)).flatMap(List::stream).collect(Collectors.toList());
+    }
+
+    @JsonIgnore
+    private List<Plugin> computePlugins(List<Step> steps) {
+        return Optional
+            .ofNullable(steps)
+            .map(s -> s.stream().filter(Step::isEnabled).map(Step::getPlugins).flatMap(List::stream).collect(Collectors.toList()))
+            .orElse(List.of());
     }
 }

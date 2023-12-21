@@ -19,6 +19,7 @@ import static io.gravitee.definition.model.v4.listener.Listener.HTTP_LABEL;
 import static io.gravitee.definition.model.v4.listener.Listener.SUBSCRIPTION_LABEL;
 import static io.gravitee.definition.model.v4.listener.Listener.TCP_LABEL;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -101,6 +102,7 @@ public abstract class Listener implements Serializable {
         this.servers = b.servers;
     }
 
+    @JsonIgnore
     public List<Plugin> getPlugins() {
         return Optional
             .ofNullable(this.entrypoints)

@@ -15,12 +15,16 @@
  */
 package io.gravitee.definition.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.common.http.HttpHeader;
 import io.gravitee.definition.model.services.Services;
 import java.io.Serializable;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
@@ -138,5 +142,19 @@ public class EndpointGroup implements Serializable {
     @Override
     public int hashCode() {
         return name.hashCode();
+    }
+
+    @JsonIgnore
+    public List<Plugin> getPlugins() {
+        return Stream
+            .of(
+                Optional
+                    .ofNullable(this.endpoints)
+                    .map(e -> e.stream().map(Endpoint::getPlugins).flatMap(List::stream).collect(Collectors.toList()))
+                    .orElse(List.of()),
+                Optional.ofNullable(this.services).map(Services::getPlugins).orElse(List.of())
+            )
+            .flatMap(List::stream)
+            .collect(Collectors.toList());
     }
 }
