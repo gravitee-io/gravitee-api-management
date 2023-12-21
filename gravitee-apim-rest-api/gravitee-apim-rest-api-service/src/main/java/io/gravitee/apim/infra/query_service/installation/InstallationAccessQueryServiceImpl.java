@@ -23,6 +23,7 @@ import io.gravitee.apim.core.installation.domain_service.InstallationTypeDomainS
 import io.gravitee.apim.core.installation.model.InstallationType;
 import io.gravitee.apim.core.installation.model.RestrictedDomain;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.annotation.PostConstruct;
 import java.net.URI;
 import java.net.URL;
@@ -46,6 +47,7 @@ import org.springframework.stereotype.Service;
 public class InstallationAccessQueryServiceImpl implements InstallationAccessQueryService {
 
     private static final String INSTALLATION_STANDALONE_PROPERTY = "installation." + InstallationType.Labels.STANDALONE + ".";
+    private static final String DEFAULT_ID = GraviteeContext.getDefaultOrganization();
     private final ConfigurableEnvironment environment;
     private final InstallationTypeDomainService installationTypeDomainService;
     private final AccessPointQueryService accessPointQueryService;
@@ -68,8 +70,21 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
     @PostConstruct
     public void afterPropertiesSet() {
         if (!installationTypeDomainService.isMultiTenant()) {
-            consoleUrls.putAll(loadUrls("console", "orgId", "http://localhost:3000"));
-            portalUrls.putAll(loadUrls("portal", "envId", "http://localhost:4100"));
+            consoleUrls.putAll(loadUrls("console", "orgId"));
+            portalUrls.putAll(loadUrls("portal", "envId"));
+
+            // Handle legacy urls
+            handleLegacyUrls();
+
+            // Setup default value if required
+            if (cockpitEnabled) {
+                if (consoleUrls.isEmpty()) {
+                    consoleUrls.put(DEFAULT_ID, "http://localhost:3000");
+                }
+                if (portalUrls.isEmpty()) {
+                    portalUrls.put(DEFAULT_ID, "http://localhost:4100");
+                }
+            }
 
             // Validate api url
             if (apiURL != null) {
@@ -85,7 +100,36 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
         }
     }
 
-    private Map<String, String> loadUrls(final String keyUI, final String keyId, final String defaultValue) {
+    private void handleLegacyUrls() {
+        if (consoleUrls.isEmpty()) {
+            String legacyUIUrl = environment.getProperty("console.ui.url");
+            if (legacyUIUrl != null) {
+                consoleUrls.put(DEFAULT_ID, legacyUIUrl);
+            }
+        }
+
+        if (portalUrls.isEmpty()) {
+            String legacyPortalUrl = environment.getProperty("console.portal.url");
+            if (legacyPortalUrl != null) {
+                portalUrls.put(DEFAULT_ID, legacyPortalUrl);
+            }
+        }
+
+        if (apiURL == null) {
+            try {
+                String legacyApiUrl = environment.getProperty("console.api.url");
+                if (legacyApiUrl != null) {
+                    URI legacyApiURI = URI.create(legacyApiUrl);
+                    this.managementProxyPath = legacyApiURI.getPath();
+                    this.apiURL = legacyApiURI.resolve("/").toString();
+                }
+            } catch (Exception e) {
+                log.warn("Unable to parse legacy url configuration [console.api.url]", e);
+            }
+        }
+    }
+
+    private Map<String, String> loadUrls(final String keyUI, final String keyId) {
         Map<String, String> urls = new HashMap<>();
         int idx = 0;
         boolean hasMany = environment.containsProperty(INSTALLATION_STANDALONE_PROPERTY + keyUI + ".urls[" + idx + "]." + keyId);
@@ -105,11 +149,8 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
             String uiUrl = environment.getProperty(INSTALLATION_STANDALONE_PROPERTY + keyUI + ".url");
             if (uiUrl != null) {
                 validateUrl(keyUI, uiUrl);
-                urls.put("DEFAULT", uiUrl);
+                urls.put(DEFAULT_ID, uiUrl);
             }
-        }
-        if (urls.isEmpty()) {
-            urls.put("DEFAULT", defaultValue);
         }
         return urls;
     }
@@ -138,6 +179,16 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
             return false;
         }
         return InternetDomainName.isValid(domain);
+    }
+
+    @Override
+    public String getConsoleApiPath() {
+        return managementProxyPath;
+    }
+
+    @Override
+    public String getPortalApiPath() {
+        return portalProxyPath;
     }
 
     @Override
