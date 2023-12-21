@@ -261,7 +261,7 @@
         <gravitee-endpoint-solace.version>1.0.4</gravitee-endpoint-solace.version>
         <gravitee-resource-schema-registry-confluent.version>2.0.0</gravitee-resource-schema-registry-confluent.version>
         <gravitee-reactor-message.version>1.0.2</gravitee-reactor-message.version>
-        <gravitee-repository-bridge.version>4.0.1</gravitee-repository-bridge.version>
+        <gravitee-repository-bridge.version>4.0.2</gravitee-repository-bridge.version>
         <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
     </properties>
 
