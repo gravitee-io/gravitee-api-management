@@ -1,0 +1,181 @@
+{
+  "api" : {
+    "definitionVersion" : "V4",
+    "type" : "PROXY",
+    "listeners" : [ {
+      "type" : "TCP",
+      "hosts" : [ "localhost", "my-tcp-api" ],
+      "entrypoints" : [ {
+        "type" : "tcp-proxy",
+        "qos" : "AUTO",
+        "configuration" : { }
+      } ]
+    } ],
+    "endpointGroups" : [ {
+      "name" : "Default TCP proxy group",
+      "type" : "tcp-proxy",
+      "loadBalancer" : {
+        "type" : "ROUND_ROBIN"
+      },
+      "sharedConfiguration" : {
+        "tcp" : {
+          "reconnectAttempts" : 3,
+          "readIdleTimeout" : 0,
+          "idleTimeout" : 0,
+          "connectTimeout" : 3000,
+          "reconnectInterval" : 1000,
+          "writeIdleTimeout" : 0
+        },
+        "proxy" : {
+          "useSystemProxy" : false,
+          "enabled" : false
+        },
+        "ssl" : {
+          "hostnameVerifier" : true,
+          "trustAll" : false,
+          "truststore" : {
+            "path" : "/opt/graviteeio-gateway/resources/ca.pem",
+            "password" : "client-secret",
+            "type" : "PEM"
+          },
+          "keystore" : {
+            "path" : "/opt/graviteeio-gateway/resources/client.p12",
+            "password" : "client-secret",
+            "type" : "PKCS12"
+          }
+        }
+      },
+      "endpoints" : [ {
+        "name" : "Default TCP proxy",
+        "type" : "tcp-proxy",
+        "weight" : 1,
+        "inheritConfiguration" : false,
+        "configuration" : {
+          "target" : {
+            "port" : 8082,
+            "host" : "gateway_secured",
+            "secured" : true
+          }
+        },
+        "sharedConfigurationOverride" : {
+          "tcp" : {
+            "reconnectAttempts" : 3,
+            "readIdleTimeout" : 0,
+            "idleTimeout" : 0,
+            "connectTimeout" : 3000,
+            "reconnectInterval" : 1000,
+            "writeIdleTimeout" : 0
+          },
+          "proxy" : {
+            "useSystemProxy" : false,
+            "enabled" : false
+          },
+          "ssl" : {
+            "keyStore" : {
+              "path" : "/opt/graviteeio-gateway/resources/client.p12",
+              "password" : "client-secret",
+              "type" : "PKCS12"
+            },
+            "hostnameVerifier" : true,
+            "trustStore" : {
+              "path" : "/opt/graviteeio-gateway/resources/ca.pem",
+              "password" : "ca-secret",
+              "type" : "PEM"
+            },
+            "trustAll" : false
+          }
+        },
+        "services" : { },
+        "secondary" : false
+      } ],
+      "services" : { }
+    } ],
+    "analytics" : {
+      "enabled" : true
+    },
+    "flowExecution" : {
+      "mode" : "DEFAULT",
+      "matchRequired" : false
+    },
+    "flows" : [ ],
+    "id" : "3105f539-6e04-481a-85f5-396e04e81a98",
+    "name" : "TCP",
+    "description" : "",
+    "apiVersion" : "1",
+    "deployedAt" : "2023-12-21T07:30:47.268Z",
+    "createdAt" : "2023-12-21T06:46:00.451Z",
+    "updatedAt" : "2023-12-21T07:30:47.268Z",
+    "disableMembershipNotifications" : false,
+    "groups" : [ ],
+    "state" : "STARTED",
+    "visibility" : "PRIVATE",
+    "lifecycleState" : "CREATED",
+    "tags" : [ ],
+    "primaryOwner" : {
+      "id" : "8aeebde5-4157-43ac-aebd-e5415773ac79",
+      "displayName" : "admin",
+      "type" : "USER"
+    },
+    "definitionContext" : {
+      "origin" : "MANAGEMENT",
+      "mode" : "FULLY_MANAGED",
+      "syncFrom" : "MANAGEMENT"
+    },
+    "responseTemplates" : { },
+    "properties" : [ ]
+  },
+  "members" : [ {
+    "id" : "8aeebde5-4157-43ac-aebd-e5415773ac79",
+    "displayName" : "admin",
+    "roles" : [ {
+      "name" : "PRIMARY_OWNER",
+      "scope" : "API"
+    } ]
+  } ],
+  "metadata" : [ {
+    "key" : "email-support",
+    "name" : "email-support",
+    "format" : "MAIL",
+    "value" : "${(api.primaryOwner.email)!''}",
+    "defaultValue" : "support@change.me"
+  } ],
+  "pages" : [ {
+    "id" : "2fb76700-c0bb-47f5-b767-00c0bbe7f5a8",
+    "name" : "Aside",
+    "type" : "SYSTEM_FOLDER",
+    "order" : 0,
+    "published" : true,
+    "visibility" : "PUBLIC",
+    "updatedAt" : "2023-12-21T06:46:00.487Z",
+    "contentType" : "application/json",
+    "configuration" : { },
+    "homepage" : false,
+    "parentPath" : "",
+    "excludedAccessControls" : false,
+    "accessControls" : [ ],
+    "attachedMedia" : [ ]
+  } ],
+  "plans" : [ {
+    "definitionVersion" : "V4",
+    "flows" : [ ],
+    "mode" : "STANDARD",
+    "id" : "7a0da298-3255-43c6-8da2-98325523c63c",
+    "name" : "Default Keyless (UNSECURED)",
+    "description" : "Default unsecured plan",
+    "apiId" : "3105f539-6e04-481a-85f5-396e04e81a98",
+    "security" : {
+      "type" : "KEY_LESS",
+      "configuration" : { }
+    },
+    "commentRequired" : false,
+    "createdAt" : "2023-12-21T06:46:00.491Z",
+    "order" : 1,
+    "publishedAt" : "2023-12-21T06:46:00.491Z",
+    "status" : "PUBLISHED",
+    "tags" : [ ],
+    "type" : "API",
+    "updatedAt" : "2023-12-21T06:46:00.491Z",
+    "validation" : "AUTO"
+  } ],
+  "apiMedia" : [ ]
+}
