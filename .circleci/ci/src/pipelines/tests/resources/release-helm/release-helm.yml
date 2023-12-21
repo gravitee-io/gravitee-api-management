@@ -50,7 +50,6 @@ jobs:
       - image: cimg/node:16.10
     resource_class: medium
     steps:
-      - checkout
       - keeper/env-export:
           secret-url: keeper://IZd-yvsMopfQEa_0j1SDvg/field/login
           var-name: GIT_USER_NAME
@@ -70,11 +69,10 @@ jobs:
             git config --global user.email "${GIT_USER_EMAIL}"
       - gh/setup
       - helm/install_helm_client
+      - checkout
       - run:
-          name: Update Chart and App versions
-          command: |-
-            sed "0,/version.*/s/version.*/version: 4.2.0/" -i helm/Chart.yaml
-            sed "0,/appVersion.*/s/appVersion.*/appVersion: 4.2.0/" -i helm/Chart.yaml
+          name: Checkout tag 4.2.0
+          command: git checkout 4.2.0
       - run:
           name: build the Charts
           working_directory: ./helm
