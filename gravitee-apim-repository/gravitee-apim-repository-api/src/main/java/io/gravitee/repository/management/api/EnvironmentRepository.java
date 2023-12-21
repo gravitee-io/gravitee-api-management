@@ -29,5 +29,5 @@ public interface EnvironmentRepository extends CrudRepository<Environment, Strin
 
     Set<Environment> findByOrganizationsAndHrids(Set<String> organizationsHrids, Set<String> hrids) throws TechnicalException;
 
-    Optional<Environment> findByCockpit(String cockpitId) throws TechnicalException;
+    Optional<Environment> findByCockpitId(String cockpitId) throws TechnicalException;
 }

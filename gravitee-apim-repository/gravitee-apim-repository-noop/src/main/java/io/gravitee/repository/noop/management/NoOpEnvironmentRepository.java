@@ -38,7 +38,7 @@ public class NoOpEnvironmentRepository extends AbstractNoOpManagementRepository<
     }
 
     @Override
-    public Optional<Environment> findByCockpit(String cockpitId) throws TechnicalException {
+    public Optional<Environment> findByCockpitId(String cockpitId) throws TechnicalException {
         return Optional.empty();
     }
 }

@@ -180,8 +180,8 @@ public class JdbcEnvironmentRepository extends JdbcAbstractCrudRepository<Enviro
     }
 
     @Override
-    public Optional<Environment> findByCockpit(String cockpitId) throws TechnicalException {
-        LOGGER.debug("JdbcEnvironmentRepository.findByCockpit({})", cockpitId);
+    public Optional<Environment> findByCockpitId(String cockpitId) throws TechnicalException {
+        LOGGER.debug("JdbcEnvironmentRepository.findByCockpitId({})", cockpitId);
         try {
             List<Environment> environments = jdbcTemplate.query(
                 getOrm().getSelectAllSql() + " where cockpit_id = ?",
