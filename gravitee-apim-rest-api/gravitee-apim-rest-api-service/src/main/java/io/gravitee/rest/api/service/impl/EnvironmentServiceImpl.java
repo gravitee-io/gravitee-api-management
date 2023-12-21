@@ -36,8 +36,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -197,7 +195,7 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
         try {
             LOGGER.debug("Find environment by cockpit id");
             return environmentRepository
-                .findByCockpit(cockpitId)
+                .findByCockpitId(cockpitId)
                 .map(this::convert)
                 .orElseThrow(() -> new EnvironmentNotFoundException(cockpitId));
         } catch (TechnicalException ex) {

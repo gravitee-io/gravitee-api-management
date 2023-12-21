@@ -20,7 +20,6 @@ import static org.junit.Assert.*;
 import io.gravitee.repository.management.model.Environment;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.Assert;
@@ -151,8 +150,8 @@ public class EnvironmentRepositoryTest extends AbstractManagementRepositoryTest 
     }
 
     @Test
-    public void shouldFindByCockpit() throws Exception {
-        Optional<Environment> orgEnvironments = environmentRepository.findByCockpit("cockpitId-findById");
-        Assert.assertTrue("No environment found", orgEnvironments.isPresent());
+    public void shouldFindByCockpitId() throws Exception {
+        Optional<Environment> orgEnvironments = environmentRepository.findByCockpitId("cockpitId-findById");
+        Assert.assertTrue("No environment found for cockpitId: cockpitId-findById", orgEnvironments.isPresent());
     }
 }

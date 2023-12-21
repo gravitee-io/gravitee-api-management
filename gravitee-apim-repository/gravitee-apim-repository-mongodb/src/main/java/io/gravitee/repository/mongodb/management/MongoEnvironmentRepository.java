@@ -136,7 +136,7 @@ public class MongoEnvironmentRepository implements EnvironmentRepository {
     }
 
     @Override
-    public Optional<Environment> findByCockpit(String cockpitId) throws TechnicalException {
+    public Optional<Environment> findByCockpitId(String cockpitId) throws TechnicalException {
         LOGGER.debug("Find environment by cockpit ID [{}]", cockpitId);
 
         return internalEnvironmentRepo
