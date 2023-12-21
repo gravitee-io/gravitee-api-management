@@ -112,6 +112,11 @@
 
             <dt>Last connection</dt>
             <dd>{{ apiLastDeploymentAt | date : 'medium' }}</dd>
+
+            <dt>Runtime</dt>
+            <dd><div class="logo-box">
+              <img class="logo" [src]="apiOriginIconPath"  [alt]="apiOrigin + ' logo'" />
+            </div></dd>
           </dl>
         </div>
       </div>

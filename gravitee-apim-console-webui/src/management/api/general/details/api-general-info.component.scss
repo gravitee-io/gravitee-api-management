@@ -147,3 +147,16 @@ $typography: map.get(gio.$mat-theme, typography);
     transform: rotate(1turn);
   }
 }
+
+.logo-box {
+  display: inline;
+  border-radius: 6px;
+  border: 1px solid var(--Neutrals-Dove-DoveDark20, #D3D5DC);
+  width: 32px;
+  height: 32px;
+  padding: 4px;
+  .logo {
+    max-width: 24px;
+    max-height: 24px;
+  }
+}

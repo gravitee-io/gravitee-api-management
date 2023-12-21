@@ -46,7 +46,15 @@ import {
 } from '../../../../shared/components/gio-api-import-dialog/gio-api-import-dialog.component';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
-import { Api, ApiV2, ApiV4, UpdateApi, UpdateApiV2, UpdateApiV4 } from '../../../../entities/management-api-v2';
+import {
+  Api,
+  ApiV2,
+  ApiV4,
+  OriginEnum,
+  UpdateApi,
+  UpdateApiV2,
+  UpdateApiV4
+} from '../../../../entities/management-api-v2';
 
 @Component({
   selector: 'api-general-info',
@@ -66,6 +74,8 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
   public labelsAutocompleteOptions: string[] = [];
   public apiCategories: Category[] = [];
   public apiOwner: string;
+  public apiOrigin: string;
+  public apiOriginIconPath: string;
   public apiCreatedAt: Date;
   public apiLastDeploymentAt: Date;
   public dangerActions = {
@@ -139,7 +149,8 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
           this.apiOwner = api.primaryOwner.displayName;
           this.apiCreatedAt = api.createdAt;
           this.apiLastDeploymentAt = api.updatedAt;
-
+          this.apiOrigin = api.definitionContext.origin;
+          this.apiOriginIconPath = this.mapOriginLogos(api.definitionContext?.origin);
           this.dangerActions = {
             canAskForReview:
               this.constants.env?.settings?.apiReview?.enabled &&
@@ -220,6 +231,15 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
       )
       .subscribe();
+  }
+
+  private mapOriginLogos(origin: OriginEnum): string {
+    const options = {
+      'MANAGEMENT': 'assets/logo_gravitee.svg',
+      'AWS': 'assets/logo_aws_16.svg',
+      'SOLACE': 'assets/logo_solace.svg'
+    }
+    return options[origin] || 'assets/logo_spinner.svg';
   }
 
   ngOnDestroy() {
