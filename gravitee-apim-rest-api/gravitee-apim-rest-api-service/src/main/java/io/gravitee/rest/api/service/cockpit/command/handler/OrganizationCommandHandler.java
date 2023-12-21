@@ -27,6 +27,7 @@ import io.gravitee.cockpit.api.command.organization.OrganizationReply;
 import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.model.UpdateOrganizationEntity;
 import io.gravitee.rest.api.service.OrganizationService;
+import io.gravitee.rest.api.service.exceptions.OrganizationNotFoundException;
 import io.reactivex.rxjava3.core.Single;
 import java.util.ArrayList;
 import java.util.List;
@@ -117,11 +118,22 @@ public class OrganizationCommandHandler implements CommandHandler<OrganizationCo
     }
 
     private OrganizationEntity createOrUpdateOrganization(OrganizationPayload organizationPayload) {
+        String organizationId = this.getOrganizationId(organizationPayload);
+
         UpdateOrganizationEntity newOrganization = new UpdateOrganizationEntity();
         newOrganization.setCockpitId(organizationPayload.getCockpitId());
         newOrganization.setHrids(organizationPayload.getHrids());
         newOrganization.setName(organizationPayload.getName());
         newOrganization.setDescription(organizationPayload.getDescription());
-        return organizationService.createOrUpdate(organizationPayload.getId(), newOrganization);
+        return organizationService.createOrUpdate(organizationId, newOrganization);
+    }
+
+    private String getOrganizationId(OrganizationPayload organizationPayload) {
+        try {
+            OrganizationEntity byCockpitId = this.organizationService.findByCockpitId(organizationPayload.getCockpitId());
+            return byCockpitId.getId();
+        } catch (OrganizationNotFoundException ex) {
+            return organizationPayload.getId();
+        }
     }
 }
