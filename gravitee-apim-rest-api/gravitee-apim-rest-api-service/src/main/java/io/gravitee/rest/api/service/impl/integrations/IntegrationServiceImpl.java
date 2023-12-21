@@ -28,6 +28,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.event.IntegrationEvent;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
+import jakarta.annotation.PostConstruct;
 import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
@@ -53,6 +54,11 @@ public class IntegrationServiceImpl extends AbstractService implements Integrati
     @Lazy
     @Autowired
     private IntegrationRepository integrationRepository;
+
+    @PostConstruct
+    public void afterPropertiesSet() {
+        LOGGER.error("je suis ici");
+    }
 
     @Override
     public IntegrationEntity create(ExecutionContext executionContext, NewIntegrationEntity newIntegrationEntity) {

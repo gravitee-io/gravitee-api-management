@@ -53,24 +53,6 @@ export const catalogData: CatalogData[] = [
     isAdd: false
   },
   {
-    provider: 'snowflake',
-    iconPath: "assets/logo_snowflake.svg",
-    title: "Snowflake",
-    categories: ["Mediate"],
-    description: "Discover database schemas, expose as API products with access control, traffic shaping, and analytics for seamless data access.",
-    status: "No integration configured",
-    isAdd: false
-  },
-  {
-    provider: 'salesforce',
-    iconPath: "assets/logo_salesforce.svg",
-    title: "Salesforce",
-    categories: ["Mediate"],
-    description: "Expose Salesforce objects as API products, enhancing functionality and extending reach. Enable consumption synchronously or asynchronously with REST or CDC",
-    status: "No integration configured",
-    isAdd: false
-  },
-  {
     provider: 'apigee',
     iconPath: "assets/logo_apigee.svg",
     title: "Apigee",
