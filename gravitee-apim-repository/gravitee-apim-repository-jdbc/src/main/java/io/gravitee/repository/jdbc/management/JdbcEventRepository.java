@@ -307,6 +307,10 @@ public class JdbcEventRepository extends JdbcAbstractPageableRepository<Event> i
                 apiId
             );
 
+            if (eventToDelete.isEmpty()) {
+                return 0;
+            }
+
             String propertiesDeleteQuery =
                 "delete from " + EVENT_PROPERTIES + " where event_id in (" + getOrm().buildInClause(eventToDelete) + ")";
             jdbcTemplate.update(
