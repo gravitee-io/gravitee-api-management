@@ -22,9 +22,10 @@ import { GioClipboardModule } from '@gravitee/ui-particles-angular';
 import { TicketComponent } from './ticket/ticket.component';
 
 import { GioGoBackButtonModule } from '../../shared/components/gio-go-back-button/gio-go-back-button.module';
+import { NewTicketComponent } from './new-ticket/new-ticket.component';
 
 @NgModule({
   imports: [CommonModule, RouterModule, MatCardModule, GioGoBackButtonModule, GioClipboardModule],
-  declarations: [TicketComponent],
+  declarations: [TicketComponent, NewTicketComponent],
 })
 export class TicketsModule {}
