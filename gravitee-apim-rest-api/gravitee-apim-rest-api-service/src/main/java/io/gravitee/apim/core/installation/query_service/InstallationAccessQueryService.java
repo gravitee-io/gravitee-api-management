@@ -23,6 +23,10 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface InstallationAccessQueryService {
+    String getConsoleApiPath();
+
+    String getPortalApiPath();
+
     List<String> getConsoleUrls();
 
     List<String> getConsoleUrls(final String organizationId);

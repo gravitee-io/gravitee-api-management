@@ -95,7 +95,7 @@ public class ManagementUIResource {
         ServerHttpRequest request = new ServletServerHttpRequest(httpServletRequest);
         UriComponents uriComponents = UriComponentsBuilder
             .fromHttpRequest(request)
-            .replacePath(getManagementProxyPath())
+            .replacePath(installationAccessQueryService.getConsoleApiPath())
             .replaceQuery(null)
             .build();
 
@@ -109,10 +109,5 @@ public class ManagementUIResource {
     @Produces(MediaType.APPLICATION_JSON)
     public ConsoleCustomization getConsoleCustomization() {
         return ConsoleCustomizationMapper.INSTANCE.map(getConsoleCustomizationUseCase.execute().consoleCustomization());
-    }
-
-    private String getManagementProxyPath() {
-        String entrypoint = environment.getProperty(PROPERTY_HTTP_API_MANAGEMENT_ENTRYPOINT, "/management");
-        return environment.getProperty(PROPERTY_HTTP_API_MANAGEMENT_PROXY_PATH, entrypoint);
     }
 }
