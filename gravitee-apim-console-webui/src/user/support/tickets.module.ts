@@ -17,15 +17,40 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
-import { GioClipboardModule } from '@gravitee/ui-particles-angular';
+import { GioClipboardModule, GioFormFocusInvalidModule, GioFormSlideToggleModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { ReactiveFormsModule } from '@angular/forms';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatOptionModule } from '@angular/material/core';
+import { MatSelectModule } from '@angular/material/select';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { TicketComponent } from './ticket/ticket.component';
-
-import { GioGoBackButtonModule } from '../../shared/components/gio-go-back-button/gio-go-back-button.module';
 import { NewTicketComponent } from './new-ticket/new-ticket.component';
 
+import { GioGoBackButtonModule } from '../../shared/components/gio-go-back-button/gio-go-back-button.module';
+
 @NgModule({
-  imports: [CommonModule, RouterModule, MatCardModule, GioGoBackButtonModule, GioClipboardModule],
+  imports: [
+    CommonModule,
+    RouterModule,
+    ReactiveFormsModule,
+
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSlideToggleModule,
+    MatOptionModule,
+    MatSelectModule,
+    MatSnackBarModule,
+
+    GioGoBackButtonModule,
+    GioClipboardModule,
+    GioSaveBarModule,
+    GioFormFocusInvalidModule,
+    GioFormSlideToggleModule,
+  ],
   declarations: [TicketComponent, NewTicketComponent],
 })
 export class TicketsModule {}
