@@ -86,6 +86,7 @@ services:
     volumes:
       - ./.logs/apim-gateway:/opt/graviteeio-gateway/logs
       - ./.license:/opt/graviteeio-gateway/license
+      - ./.resources:/opt/graviteeio-gateway/resources
     environment:
       - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
       - gravitee_ratelimit_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
@@ -97,6 +98,38 @@ services:
       - gravitee_tcp_secured=true
       - gravitee_tcp_ssl_keystore_type=self-signed
       - gravitee_tcp_ssl_sni=true
+    networks:
+      - storage
+      - frontend
+
+  gateway_secured:
+    image: ${APIM_REGISTRY:-graviteeio}/apim-gateway:${APIM_VERSION:-latest}
+    container_name: gio_apim_gateway_secured
+    restart: always
+    ports:
+      - "8081:8082"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+    volumes:
+      - ./.logs/apim-gateway-secured:/opt/graviteeio-gateway/logs
+      - ./.license:/opt/graviteeio-gateway/license
+      - ./.certificates:/opt/graviteeio-gateway/certificates
+    environment:
+      - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
+      - gravitee_ratelimit_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
+      - gravitee_reporters_elasticsearch_endpoints_0=http://elasticsearch:9200
+      - tags=secured
+      - gravitee_http_secured=true
+      - gravitee_http_ssl_clientAuth=request
+      - gravitee_http_ssl_keystore_type=pkcs12
+      - gravitee_http_ssl_keystore_path=/opt/graviteeio-gateway/certificates/server.p12
+      - gravitee_http_ssl_keystore_password=server-secret
+      - gravitee_http_ssl_truststore_type=pkcs12
+      - gravitee_http_ssl_truststore_path=/opt/graviteeio-gateway/certificates/ca.p12
+      - gravitee_http_ssl_truststore_password=ca-secret
     networks:
       - storage
       - frontend
