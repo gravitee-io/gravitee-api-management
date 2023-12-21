@@ -507,6 +507,24 @@ public class EventRepositoryTest extends AbstractManagementRepositoryTest {
         );
     }
 
+    @Test
+    public void shouldNotDeleteByApiWhenNoEvent() throws Exception {
+        assertTrue(
+            eventRepository
+                .search(new EventCriteria.Builder().property(Event.EventProperties.API_ID.getValue(), "api-with-no-event").build())
+                .isEmpty()
+        );
+
+        long deleteApiEvents = eventRepository.deleteApiEvents("api-with-no-event");
+        assertEquals(0, deleteApiEvents);
+
+        assertTrue(
+            eventRepository
+                .search(new EventCriteria.Builder().property(Event.EventProperties.API_ID.getValue(), "api-with-no-event").build())
+                .isEmpty()
+        );
+    }
+
     @Test(expected = IllegalStateException.class)
     public void shouldNotUpdateUnknownEvent() throws Exception {
         Event unknownEvent = new Event();
