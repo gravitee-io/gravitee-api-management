@@ -26,6 +26,7 @@ import io.gravitee.cockpit.api.command.organization.OrganizationReply;
 import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.model.UpdateOrganizationEntity;
 import io.gravitee.rest.api.service.OrganizationService;
+import io.gravitee.rest.api.service.exceptions.OrganizationNotFoundException;
 import io.reactivex.rxjava3.core.Single;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,12 +56,14 @@ public class OrganizationCommandHandler implements CommandHandler<OrganizationCo
         OrganizationPayload organizationPayload = command.getPayload();
 
         try {
+            String organizationId = this.getOrganizationId(organizationPayload);
+
             UpdateOrganizationEntity newOrganization = new UpdateOrganizationEntity();
             newOrganization.setCockpitId(organizationPayload.getCockpitId());
             newOrganization.setHrids(organizationPayload.getHrids());
             newOrganization.setName(organizationPayload.getName());
             newOrganization.setDescription(organizationPayload.getDescription());
-            final OrganizationEntity organization = organizationService.createOrUpdate(organizationPayload.getId(), newOrganization);
+            final OrganizationEntity organization = organizationService.createOrUpdate(organizationId, newOrganization);
 
             List<io.gravitee.apim.core.access_point.model.AccessPoint> accessPointsToCreate;
             if (organizationPayload.getAccessPoints() != null) {
@@ -102,6 +105,15 @@ public class OrganizationCommandHandler implements CommandHandler<OrganizationCo
                 e
             );
             return Single.just(new OrganizationReply(command.getId(), CommandStatus.ERROR));
+        }
+    }
+
+    private String getOrganizationId(OrganizationPayload organizationPayload) {
+        try {
+            OrganizationEntity byCockpitId = this.organizationService.findByCockpitId(organizationPayload.getCockpitId());
+            return byCockpitId.getId();
+        } catch (OrganizationNotFoundException ex) {
+            return organizationPayload.getId();
         }
     }
 }

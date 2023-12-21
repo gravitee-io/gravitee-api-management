@@ -19,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.access_point.crud_service.AccessPointCrudService;
@@ -31,6 +32,7 @@ import io.gravitee.cockpit.api.command.environment.EnvironmentReply;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.UpdateEnvironmentEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
 import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.Collections;
 import java.util.List;
@@ -82,7 +84,7 @@ public class EnvironmentCommandHandlerTest {
                 AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction2.io").build()
             )
         );
-
+        when(environmentService.findByCockpitId(any())).thenThrow(new EnvironmentNotFoundException("Env not found"));
         when(
             environmentService.createOrUpdate(
                 eq("orga#1"),
@@ -120,6 +122,7 @@ public class EnvironmentCommandHandlerTest {
             )
         );
 
+        when(environmentService.findByCockpitId(any())).thenThrow(new EnvironmentNotFoundException("Env not found"));
         when(environmentService.createOrUpdate(eq("orga#1"), eq("env#1"), any(UpdateEnvironmentEntity.class)))
             .thenThrow(new RuntimeException("fake error"));
 
@@ -128,5 +131,46 @@ public class EnvironmentCommandHandlerTest {
         obs.await();
         obs.assertNoErrors();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.ERROR));
+    }
+
+    @Test
+    public void handleWithExistingCockpitId() throws InterruptedException {
+        EnvironmentPayload environmentPayload = new EnvironmentPayload();
+        EnvironmentCommand command = new EnvironmentCommand(environmentPayload);
+
+        environmentPayload.setId("env#1");
+        environmentPayload.setCockpitId("env#cockpit-1");
+        environmentPayload.setHrids(Collections.singletonList("env-1"));
+        environmentPayload.setOrganizationId("orga#1");
+        environmentPayload.setDescription("Environment description");
+        environmentPayload.setName("Environment name");
+        environmentPayload.setAccessPoints(
+            List.of(
+                AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction1.io").build(),
+                AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction2.io").build()
+            )
+        );
+        EnvironmentEntity existingEnvironment = mock(EnvironmentEntity.class);
+        when(existingEnvironment.getId()).thenReturn("DEFAULT");
+        when(existingEnvironment.getOrganizationId()).thenReturn("DEFAULT");
+        when(environmentService.findByCockpitId(any())).thenReturn(existingEnvironment);
+        when(
+            environmentService.createOrUpdate(
+                eq("DEFAULT"),
+                eq("DEFAULT"),
+                argThat(newEnvironment ->
+                    newEnvironment.getCockpitId().equals(environmentPayload.getCockpitId()) &&
+                    newEnvironment.getHrids().equals(environmentPayload.getHrids()) &&
+                    newEnvironment.getDescription().equals(environmentPayload.getDescription()) &&
+                    newEnvironment.getName().equals(environmentPayload.getName())
+                )
+            )
+        )
+            .thenReturn(new EnvironmentEntity());
+
+        TestObserver<EnvironmentReply> obs = cut.handle(command).test();
+
+        obs.await();
+        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
     }
 }

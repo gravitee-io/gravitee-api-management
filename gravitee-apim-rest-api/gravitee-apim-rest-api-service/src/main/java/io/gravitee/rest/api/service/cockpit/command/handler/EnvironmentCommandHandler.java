@@ -19,13 +19,14 @@ import io.gravitee.apim.core.access_point.crud_service.AccessPointCrudService;
 import io.gravitee.cockpit.api.command.Command;
 import io.gravitee.cockpit.api.command.CommandHandler;
 import io.gravitee.cockpit.api.command.CommandStatus;
-import io.gravitee.cockpit.api.command.accesspoint.AccessPoint;
 import io.gravitee.cockpit.api.command.environment.EnvironmentCommand;
 import io.gravitee.cockpit.api.command.environment.EnvironmentPayload;
 import io.gravitee.cockpit.api.command.environment.EnvironmentReply;
+import io.gravitee.repository.management.model.Environment;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.UpdateEnvironmentEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
 import io.reactivex.rxjava3.core.Single;
 import java.util.ArrayList;
 import java.util.List;
@@ -55,6 +56,8 @@ public class EnvironmentCommandHandler implements CommandHandler<EnvironmentComm
         EnvironmentPayload environmentPayload = command.getPayload();
 
         try {
+            EnvironmentEntity existingEnvironment = this.getEnvironment(environmentPayload);
+
             UpdateEnvironmentEntity newEnvironment = new UpdateEnvironmentEntity();
             newEnvironment.setCockpitId(environmentPayload.getCockpitId());
             newEnvironment.setHrids(environmentPayload.getHrids());
@@ -62,8 +65,8 @@ public class EnvironmentCommandHandler implements CommandHandler<EnvironmentComm
             newEnvironment.setDescription(environmentPayload.getDescription());
 
             final EnvironmentEntity environment = environmentService.createOrUpdate(
-                environmentPayload.getOrganizationId(),
-                environmentPayload.getId(),
+                existingEnvironment != null ? existingEnvironment.getOrganizationId() : environmentPayload.getOrganizationId(),
+                existingEnvironment != null ? existingEnvironment.getId() : environmentPayload.getId(),
                 newEnvironment
             );
             List<io.gravitee.apim.core.access_point.model.AccessPoint> accessPointsToCreate;
@@ -106,6 +109,14 @@ public class EnvironmentCommandHandler implements CommandHandler<EnvironmentComm
                 e
             );
             return Single.just(new EnvironmentReply(command.getId(), CommandStatus.ERROR));
+        }
+    }
+
+    private EnvironmentEntity getEnvironment(EnvironmentPayload environmentPayload) {
+        try {
+            return this.environmentService.findByCockpitId(environmentPayload.getCockpitId());
+        } catch (EnvironmentNotFoundException ex) {
+            return null;
         }
     }
 }
