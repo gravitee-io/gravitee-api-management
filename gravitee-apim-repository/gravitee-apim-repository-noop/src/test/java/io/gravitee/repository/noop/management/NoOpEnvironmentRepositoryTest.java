@@ -52,8 +52,8 @@ public class NoOpEnvironmentRepositoryTest extends AbstractNoOpRepositoryTest {
     }
 
     @Test
-    public void findByCockpit() throws TechnicalException {
-        Optional<Environment> environment = cut.findByCockpit("test_id");
+    public void findByCockpitId() throws TechnicalException {
+        Optional<Environment> environment = cut.findByCockpitId("test_id");
 
         assertNotNull(environment);
         assertTrue(environment.isEmpty());
