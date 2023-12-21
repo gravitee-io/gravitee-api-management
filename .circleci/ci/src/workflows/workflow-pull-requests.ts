@@ -32,6 +32,7 @@ import {
   E2ETestJob,
   PerfLintBuildJob,
   PublishJob,
+  ReleaseHelmJob,
   SetupJob,
   SnykApimChartsJob,
   SonarCloudAnalysisJob,
@@ -51,6 +52,8 @@ import {
 export class PullRequestsWorkflow {
   static create(dynamicConfig: Config, environment: CircleCIEnvironment): Workflow {
     let jobs: workflow.WorkflowJob[] = [];
+    // Needed to publish helm chart in internal repository
+    environment.isDryRun = true;
     if (isSupportBranchOrMaster(environment.branch)) {
       jobs.push(
         ...this.getCommonJobs(dynamicConfig, environment, false, false),
@@ -374,12 +377,20 @@ export class PullRequestsWorkflow {
     const publishOnNexusJob = PublishJob.create(dynamicConfig, 'nexus');
     dynamicConfig.addJob(publishOnNexusJob);
 
+    const releaseHelmDryRunJob = ReleaseHelmJob.create(dynamicConfig, environment);
+    dynamicConfig.addJob(releaseHelmDryRunJob);
+
     const deployOnAzureJob = DeployOnAzureJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(deployOnAzureJob);
 
     return [
       new workflow.WorkflowJob(communityBuildJob, { name: 'Check build as Community user', context: config.jobContext }),
       new workflow.WorkflowJob(snykApimChartsJob, { name: 'Scan snyk Helm chart', context: config.jobContext, requires: ['Setup'] }),
+      new workflow.WorkflowJob(releaseHelmDryRunJob, {
+        name: 'Publish Helm chart (internal repo)',
+        context: config.jobContext,
+        requires: ['Setup'],
+      }),
       new workflow.WorkflowJob(publishOnArtifactoryJob, {
         name: 'Publish on artifactory',
         context: config.jobContext,
