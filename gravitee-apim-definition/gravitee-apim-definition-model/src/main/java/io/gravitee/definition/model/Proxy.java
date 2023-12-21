@@ -18,6 +18,7 @@ package io.gravitee.definition.model;
 import com.fasterxml.jackson.annotation.*;
 import java.io.Serializable;
 import java.util.*;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
@@ -123,5 +124,13 @@ public class Proxy implements Serializable {
 
     public void setServers(List<String> servers) {
         this.servers = servers;
+    }
+
+    @JsonIgnore
+    public List<Plugin> getPlugins() {
+        return Optional
+            .ofNullable(this.groups)
+            .map(g -> g.stream().map(EndpointGroup::getPlugins).flatMap(List::stream).collect(Collectors.toList()))
+            .orElse(List.of());
     }
 }

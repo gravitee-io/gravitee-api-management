@@ -15,6 +15,7 @@
  */
 package io.gravitee.definition.model.v4.endpointgroup;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.fasterxml.jackson.annotation.JsonSetter;
@@ -98,6 +99,7 @@ public class Endpoint implements Serializable {
         this.sharedConfigurationOverride = overriddenSharedConfiguration;
     }
 
+    @JsonIgnore
     public List<Plugin> getPlugins() {
         return List.of(new Plugin("endpoint-connector", type));
     }

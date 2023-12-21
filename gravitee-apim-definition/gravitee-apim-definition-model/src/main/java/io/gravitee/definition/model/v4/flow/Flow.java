@@ -77,27 +77,19 @@ public class Flow implements Serializable {
         return Optional.empty();
     }
 
+    @JsonIgnore
     public List<Plugin> getPlugins() {
         return Stream
-            .of(
-                Optional
-                    .ofNullable(this.request)
-                    .map(r -> r.stream().map(Step::getPlugins).flatMap(List::stream).collect(Collectors.toList()))
-                    .orElse(List.of()),
-                Optional
-                    .ofNullable(this.response)
-                    .map(r -> r.stream().map(Step::getPlugins).flatMap(List::stream).collect(Collectors.toList()))
-                    .orElse(List.of()),
-                Optional
-                    .ofNullable(this.publish)
-                    .map(p -> p.stream().map(Step::getPlugins).flatMap(List::stream).collect(Collectors.toList()))
-                    .orElse(List.of()),
-                Optional
-                    .ofNullable(this.subscribe)
-                    .map(s -> s.stream().map(Step::getPlugins).flatMap(List::stream).collect(Collectors.toList()))
-                    .orElse(List.of())
-            )
+            .of(computePlugins(this.request), computePlugins(this.response), computePlugins(this.publish), computePlugins(this.subscribe))
             .flatMap(List::stream)
             .collect(Collectors.toList());
+    }
+
+    @JsonIgnore
+    private List<Plugin> computePlugins(List<Step> step) {
+        return Optional
+            .ofNullable(step)
+            .map(r -> r.stream().filter(Step::isEnabled).map(Step::getPlugins).flatMap(List::stream).collect(Collectors.toList()))
+            .orElse(List.of());
     }
 }

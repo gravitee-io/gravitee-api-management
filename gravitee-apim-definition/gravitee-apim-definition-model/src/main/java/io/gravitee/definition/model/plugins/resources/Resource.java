@@ -107,6 +107,7 @@ public class Resource implements Serializable {
         return Objects.hash(name);
     }
 
+    @JsonIgnore
     public List<Plugin> getPlugins() {
         return List.of(new Plugin("resource", type));
     }

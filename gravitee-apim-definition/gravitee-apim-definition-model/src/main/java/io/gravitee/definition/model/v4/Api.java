@@ -15,6 +15,7 @@
  */
 package io.gravitee.definition.model.v4;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Plugin;
@@ -125,16 +126,17 @@ public class Api implements Serializable {
         }
     }
 
+    @JsonIgnore
     public List<Plugin> getPlugins() {
         return Stream
             .of(
                 Optional
                     .ofNullable(this.getResources())
-                    .map(r -> r.stream().map(Resource::getPlugins).flatMap(List::stream).toList())
+                    .map(r -> r.stream().filter(Resource::isEnabled).map(Resource::getPlugins).flatMap(List::stream).toList())
                     .orElse(List.of()),
                 Optional
                     .ofNullable(this.getFlows())
-                    .map(f -> f.stream().map(Flow::getPlugins).flatMap(List::stream).toList())
+                    .map(f -> f.stream().filter(Flow::isEnabled).map(Flow::getPlugins).flatMap(List::stream).toList())
                     .orElse(List.of()),
                 Optional
                     .ofNullable(this.getPlans())

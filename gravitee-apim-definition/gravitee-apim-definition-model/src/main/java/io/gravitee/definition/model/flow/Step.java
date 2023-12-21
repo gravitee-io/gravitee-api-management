@@ -105,6 +105,7 @@ public class Step implements Serializable {
         this.condition = condition;
     }
 
+    @JsonIgnore
     public List<Plugin> getPlugins() {
         return List.of(new Plugin("policy", policy));
     }
