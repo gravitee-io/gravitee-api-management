@@ -316,7 +316,7 @@
             "type":"string",
             "title":"Password",
             "description":"Password to use to open the key store",
-            "format":"text"
+            "format":"password"
         },
         "sslKeyStoreAlias":{
             "type":"string",
@@ -327,7 +327,7 @@
             "type":"string",
             "title":"Key Password",
             "description":"Password to use to access the key when protected by password",
-            "format":"text"
+            "format":"password"
         },
         "sslKeyStorePath":{
             "type":"string",
