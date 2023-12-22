@@ -16,7 +16,7 @@
 import { TestBed } from '@angular/core/testing';
 import { set } from 'lodash';
 
-import { ConstantsService, AVAILABLE_PLANS_FOR_MENU, PlanMenuItemVM } from './constants.service';
+import { AVAILABLE_PLANS_FOR_MENU, ConstantsService, PlanMenuItemVM } from './constants.service';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
 
@@ -99,6 +99,180 @@ describe('ConstantsService', () => {
       const expectedPlanSecurityTypes: PlanMenuItemVM[] = [];
 
       expect(constantsService.getEnabledPlanMenuItems()).toMatchObject(expectedPlanSecurityTypes);
+    });
+  });
+
+  describe('get plan menu items by listeners types', () => {
+    describe('with all plans enabled', () => {
+      const everythingEnabled = {
+        apikey: {
+          enabled: true,
+        },
+        jwt: {
+          enabled: true,
+        },
+        keyless: {
+          enabled: true,
+        },
+        oauth2: {
+          enabled: true,
+        },
+        customApiKey: {
+          enabled: true,
+        },
+        sharedApiKey: {
+          enabled: true,
+        },
+        push: {
+          enabled: true,
+        },
+      };
+
+      beforeEach(async () => {
+        await init(everythingEnabled);
+      });
+
+      it('should filter PUSH plan menu items when user has only HTTP listeners types selected', () => {
+        const result = constantsService.getPlanMenuItems('V4', ['HTTP']);
+
+        expect(result).toMatchObject([
+          {
+            planFormType: 'OAUTH2',
+            name: 'OAuth2',
+            policy: 'oauth2',
+          },
+          {
+            planFormType: 'JWT',
+            name: 'JWT',
+            policy: 'jwt',
+          },
+          {
+            planFormType: 'API_KEY',
+            name: 'API Key',
+            policy: 'api-key',
+          },
+          {
+            planFormType: 'KEY_LESS',
+            name: 'Keyless (public)',
+          },
+        ]);
+      });
+
+      it('should filter PUSH plan menu items when API definition version is V2', () => {
+        const result = constantsService.getPlanMenuItems('V2', null);
+
+        expect(result).toMatchObject([
+          {
+            planFormType: 'OAUTH2',
+            name: 'OAuth2',
+            policy: 'oauth2',
+          },
+          {
+            planFormType: 'JWT',
+            name: 'JWT',
+            policy: 'jwt',
+          },
+          {
+            planFormType: 'API_KEY',
+            name: 'API Key',
+            policy: 'api-key',
+          },
+          {
+            planFormType: 'KEY_LESS',
+            name: 'Keyless (public)',
+          },
+        ]);
+      });
+
+      it('should return all plan menu items when user has HTTP and SUBSCRIPTION listeners types selected', () => {
+        const result = constantsService.getPlanMenuItems('V4', ['HTTP', 'SUBSCRIPTION']);
+
+        expect(result).toMatchObject(AVAILABLE_PLANS_FOR_MENU);
+      });
+
+      it('should return only PUSH plan menu items when user has only SUBSCRIPTION listeners types selected', () => {
+        const result = constantsService.getPlanMenuItems('V4', ['SUBSCRIPTION']);
+
+        expect(result).toMatchObject([
+          {
+            planFormType: 'PUSH',
+            name: 'Push plan',
+          },
+        ]);
+      });
+
+      it('should return only KEYLESS plan menu items when user has only TCP listeners types selected', () => {
+        const result = constantsService.getPlanMenuItems('V4', ['TCP']);
+
+        expect(result).toMatchObject([
+          {
+            planFormType: 'KEY_LESS',
+            name: 'Keyless (public)',
+          },
+        ]);
+      });
+    });
+
+    describe('with plans disabled', () => {
+      it('should return empty list when all disabled', async () => {
+        await init({
+          apikey: {
+            enabled: false,
+          },
+          jwt: {
+            enabled: false,
+          },
+          keyless: {
+            enabled: false,
+          },
+          oauth2: {
+            enabled: false,
+          },
+          customApiKey: {
+            enabled: false,
+          },
+          sharedApiKey: {
+            enabled: false,
+          },
+          push: {
+            enabled: false,
+          },
+        });
+
+        const result = constantsService.getPlanMenuItems('V4', ['HTTP']);
+
+        expect(result).toMatchObject([]);
+      });
+    });
+
+    it('should return empty list if keyless disabled and user has only TCP listeners types selected', async () => {
+      await init({
+        apikey: {
+          enabled: true,
+        },
+        jwt: {
+          enabled: true,
+        },
+        keyless: {
+          enabled: false,
+        },
+        oauth2: {
+          enabled: true,
+        },
+        customApiKey: {
+          enabled: true,
+        },
+        sharedApiKey: {
+          enabled: true,
+        },
+        push: {
+          enabled: true,
+        },
+      });
+
+      const result = constantsService.getPlanMenuItems('V4', ['TCP']);
+
+      expect(result).toMatchObject([]);
     });
   });
 });

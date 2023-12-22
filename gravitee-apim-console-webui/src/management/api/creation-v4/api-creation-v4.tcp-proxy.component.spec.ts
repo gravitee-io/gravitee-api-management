@@ -30,6 +30,7 @@ import { Step2Entrypoints2ConfigHarness } from './steps/step-2-entrypoints/step-
 import { Step5SummaryHarness } from './steps/step-5-summary/step-5-summary.harness';
 import { ApiCreationV4SpecStepperHelper } from './api-creation-v4-spec-stepper-helper';
 import { ApiCreationV4SpecHttpExpects } from './api-creation-v4-spec-http-expects';
+import { Step4Security1PlansHarness } from './steps/step-4-security/step-4-security-1-plans.harness';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { ConnectorPlugin } from '../../../entities/management-api-v2';
@@ -145,6 +146,9 @@ describe('ApiCreationV4Component - TCP Proxy', () => {
       ]);
       await stepperHelper.fillAndValidateStep2_2_EntrypointsConfig(tcpProxyEntrypoint);
       await stepperHelper.fillAndValidateStep3_2_EndpointsConfig(tcpProxyEntrypoint);
+
+      const plansListHarness = await harnessLoader.getHarness(Step4Security1PlansHarness);
+      expect(await plansListHarness.getPlanNames()).toStrictEqual(['Keyless (public)']);
       await stepperHelper.validateStep4_1_SecurityPlansList();
 
       const step5Harness = await harnessLoader.getHarness(Step5SummaryHarness);

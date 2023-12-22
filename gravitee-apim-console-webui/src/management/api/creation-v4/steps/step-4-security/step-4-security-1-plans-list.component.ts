@@ -48,14 +48,9 @@ export class Step4Security1PlansListComponent implements OnInit {
   constructor(private readonly stepService: ApiCreationStepService, private readonly constantsService: ConstantsService) {}
 
   ngOnInit(): void {
-    this.planMenuItems = this.constantsService.getEnabledPlanMenuItems();
-    if (this.stepService?.payload?.selectedEntrypoints.every((entrypoint) => entrypoint.supportedListenerType === 'SUBSCRIPTION')) {
-      this.planMenuItems = this.planMenuItems.filter((planMenuItem) => planMenuItem.planFormType === 'PUSH');
-    }
-
-    if (this.stepService?.payload?.selectedEntrypoints.every((entrypoint) => ['HTTP', 'TCP'].includes(entrypoint.supportedListenerType))) {
-      this.planMenuItems = this.planMenuItems.filter((planMenuItem) => planMenuItem.planFormType !== 'PUSH');
-    }
+    const entrypoints = this.stepService.payload?.selectedEntrypoints;
+    const listenerTypes = entrypoints.map((e) => e.supportedListenerType);
+    this.planMenuItems = this.constantsService.getPlanMenuItems('V4', listenerTypes);
   }
 
   save(): void {
