@@ -164,7 +164,6 @@ import { ApiHealthcheckLogComponentAjs } from './management/api/proxy/health-che
 
 // Ticket
 import TicketService from './services/ticket.service';
-import SupportTicketComponentAjs from './user/support/ticket.component.ajs';
 // Audit
 import AuditService from './services/audit.service';
 import { ApiAuditComponentAjs } from './management/api/audit/general/audit.component.ajs';
@@ -271,7 +270,6 @@ import NewFieldDialogController from './management/settings/custom-user-fields/d
 import DeleteFieldDialogController from './management/settings/custom-user-fields/dialog/delete.custom-user-field.dialog.controller';
 import UpdateFieldDialogController from './management/settings/custom-user-fields/dialog/update.custom-user-field.dialog.controller';
 import FlowService from './services/flow.service';
-import TicketDetailComponentAjs from './user/support/ticket-detail.component.ajs';
 import AlertsDashboardComponent from './components/alerts/dashboard/alerts-dashboard.component';
 import WidgetChartCountComponent from './components/dashboard/widget/count/widget-chart-count.component';
 
@@ -357,7 +355,6 @@ import { ApiV2Service } from './services-ngx/api-v2.service';
 import { GioPermissionService } from './shared/components/gio-permission/gio-permission.service';
 import { ApiAnalyticsOverviewComponentAjs } from './management/api/analytics/overview/analytics-overview.component.ajs';
 import { Router } from '@angular/router';
-import SupportTicketsListComponentAjs from './user/support/tickets-list.component.ajs';
 import SettingsAnalyticsComponentAjs from './management/settings/analytics/settings-analytics.component.ajs';
 import ApplicationGeneralComponentAjs from './management/application/details/general/application-general.component.ajs';
 import AnalyticsDashboardComponentAjs from './management/analytics/analytics-dashboard/analytics-dashboard.component.ajs';
@@ -500,8 +497,6 @@ graviteeManagementModule.controller('FileChooserDialogController', FileChooserDi
 graviteeManagementModule.controller('DialogConfirmController', DialogConfirmController);
 graviteeManagementModule.controller('DialogConfirmAndValidateController', DialogConfirmAndValidateController);
 graviteeManagementModule.controller('DialogDynamicProviderHttpController', DialogDynamicProviderHttpController);
-graviteeManagementModule.component('supportTicketComponentAjs', SupportTicketComponentAjs);
-graviteeManagementModule.component('supportTicketsListComponentAjs', SupportTicketsListComponentAjs);
 graviteeManagementModule.component('apiAuditComponentAjs', ApiAuditComponentAjs);
 graviteeManagementModule.controller('PortalThemeController', PortalThemeController);
 graviteeManagementModule.controller('CustomUserFieldsController', CustomUserFieldsController);
@@ -575,7 +570,6 @@ graviteeManagementModule.component('settingsTopApis', TopApisComponentAjs);
 graviteeManagementModule.component('settingsPortalAjs', PortalSettingsComponentAjs);
 graviteeManagementModule.component('settingsAnalyticsAjs', SettingsAnalyticsComponentAjs);
 graviteeManagementModule.component('customUserFieldsAjs', CustomUserFieldsComponentAjs);
-graviteeManagementModule.component('ticketDetail', TicketDetailComponentAjs);
 
 graviteeManagementModule.component('apiCreationV2ComponentAjs', ApiCreationV2ComponentAjs);
 graviteeManagementModule.controller('ApiCreationV2AjsController', ApiCreationV2ControllerAjs);

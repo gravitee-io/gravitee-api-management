@@ -26,9 +26,6 @@ import { InstancesModule } from './instances/instances.module';
 import { ManagementRoutingModule } from './management-routing.module';
 
 import { TasksModule } from '../user/tasks/tasks.module';
-import { TicketComponent } from '../user/support/ticket.component';
-import { TicketDetailComponent } from '../user/support/ticket-detail.component';
-import { TicketsListComponent } from '../user/support/tickets-list.component';
 import { GioPermissionModule } from '../shared/components/gio-permission/gio-permission.module';
 import { GioSideNavModule } from '../components/gio-side-nav/gio-side-nav.module';
 import { GioTopNavModule } from '../components/gio-top-nav/gio-top-nav.module';
@@ -56,7 +53,7 @@ import { TicketsModule } from '../user/support/tickets.module';
     TasksModule,
     TicketsModule,
   ],
-  declarations: [ManagementComponent, ContextualDocComponentComponent, TicketComponent, TicketDetailComponent, TicketsListComponent],
+  declarations: [ManagementComponent, ContextualDocComponentComponent],
   exports: [RouterModule],
 })
 export class ManagementModule {}
