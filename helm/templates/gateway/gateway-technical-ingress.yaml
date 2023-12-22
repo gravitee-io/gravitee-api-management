@@ -20,7 +20,7 @@ metadata:
     {{- if .Values.gateway.services.core.ingress.annotations }}
     {{- include "common.ingress.annotations.render" (dict "annotations" .Values.gateway.services.core.ingress.annotations "ingressClassName" .Values.gateway.services.core.ingress.ingressClassName "openshift" .Values.openshift "context" $) | nindent 4 }}
     {{- end }}
-    {{- if .Values.common.annotations }}
+    {{- if and .Values.common .Values.common.annotations }}
     {{- range $key, $value := .Values.common.annotations }}
     {{ $key }}: {{ $value | quote }}
     {{- end }}
