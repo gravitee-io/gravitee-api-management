@@ -23,3 +23,4 @@ annotations:
     - 'fix: license deleted after helm upgrade https://github.com/gravitee-io/issues/issues/9411'
     - 'fix AE system mail notification without keystore'
     - Add networkPolicy
+    - 'fix helm backward compatibility during helm upgrade without `common` field'
