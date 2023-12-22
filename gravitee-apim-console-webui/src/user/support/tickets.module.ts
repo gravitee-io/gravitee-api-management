@@ -34,6 +34,7 @@ import { MatSortModule } from '@angular/material/sort';
 import { TicketComponent } from './ticket/ticket.component';
 import { NewTicketComponent } from './new-ticket/new-ticket.component';
 import { TicketsComponent } from './tickets/tickets.component';
+import { TicketsRoutingModule } from './tickets-routing.module';
 
 import { GioGoBackButtonModule } from '../../shared/components/gio-go-back-button/gio-go-back-button.module';
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
@@ -63,6 +64,8 @@ import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper
     GioFormFocusInvalidModule,
     GioFormSlideToggleModule,
     GioTableWrapperModule,
+
+    TicketsRoutingModule,
   ],
   declarations: [TicketComponent, NewTicketComponent, TicketsComponent],
 })

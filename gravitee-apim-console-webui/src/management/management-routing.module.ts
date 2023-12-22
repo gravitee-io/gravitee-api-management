@@ -25,16 +25,10 @@ import { InstanceDetailsMonitoringComponent } from './instances/instance-details
 import { EnvAuditComponent } from './audit/env-audit.component';
 import { MessagesComponent } from './messages/messages.component';
 
-import { TicketsListComponent } from '../user/support/tickets-list.component';
-import { TicketDetailComponent } from '../user/support/ticket-detail.component';
-import { TicketComponent } from '../user/support/ticket.component';
-import { TicketComponent as ngTicketComponent } from '../user/support/ticket/ticket.component';
 import { TasksComponent } from '../user/tasks/tasks.component';
 import { UserComponent } from '../user/my-accout/user.component';
 import { ApimFeature } from '../shared/components/gio-license/gio-license-data';
 import { HasLicenseGuard } from '../shared/components/gio-license/has-license.guard';
-import { NewTicketComponent } from '../user/support/new-ticket/new-ticket.component';
-import { TicketsComponent } from '../user/support/tickets/tickets.component';
 
 const managementRoutes: Routes = [
   {
@@ -57,6 +51,10 @@ const managementRoutes: Routes = [
         loadChildren: () => import('./settings/settings.module').then((m) => m.SettingsModule),
       },
       {
+        path: 'support/tickets',
+        loadChildren: () => import('../user/support/tickets.module').then((m) => m.TicketsModule),
+      },
+      {
         path: 'my-account',
         component: UserComponent,
       },
@@ -68,30 +66,6 @@ const managementRoutes: Routes = [
             page: 'management-tasks',
           },
         },
-      },
-      {
-        path: 'ng-support/tickets',
-        component: TicketsComponent,
-      },
-      {
-        path: 'ng-support/tickets/new',
-        component: NewTicketComponent,
-      },
-      {
-        path: 'ng-support/tickets/:ticketId',
-        component: ngTicketComponent,
-      },
-      {
-        path: 'support/new',
-        component: TicketComponent,
-      },
-      {
-        path: 'support/list',
-        component: TicketsListComponent,
-      },
-      {
-        path: 'support/:ticketId',
-        component: TicketDetailComponent,
       },
       {
         path: 'applications',

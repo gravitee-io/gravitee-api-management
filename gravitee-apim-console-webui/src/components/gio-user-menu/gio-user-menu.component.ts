@@ -64,7 +64,7 @@ export class GioUserMenuComponent implements OnInit {
   }
 
   goToSupport(): void {
-    this.router.navigate(['support', 'new'], { relativeTo: this.activatedRoute });
+    this.router.navigate(['support', 'tickets'], { relativeTo: this.activatedRoute });
   }
 
   goToTask(): void {
