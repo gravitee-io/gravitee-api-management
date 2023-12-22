@@ -3,6 +3,10 @@
 
 This file documents all notable changes to [Gravitee.io API Management 3.x](https://github.com/gravitee-io/helm-charts/tree/master/apim/3.x) Helm Chart. The release numbering uses [semantic versioning](http://semver.org).
 
+### 4.2.1
+
+- fix helm backward compatibility during helm upgrade without `common` field
+
 ### 4.2.0
 
 - Add networkPolicy
