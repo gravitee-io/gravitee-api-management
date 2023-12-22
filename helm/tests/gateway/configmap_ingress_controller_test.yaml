@@ -1,0 +1,33 @@
+suite: Test Gateway default configmap - API properties
+templates:
+  - "gateway/gateway-pem-registry-configmap.yaml"
+tests:
+  - it: Doesn't enable pem registry by default
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: Set the Gateway Ingress Controller enabled
+    chart:
+      appVersion: 4.2.0
+    set:
+      gateway:
+        enabled: true
+        ingressController:
+          enabled: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: ConfigMap
+      - equal:
+          path: metadata.labels
+          value:
+            app.kubernetes.io/component: gateway
+            app.kubernetes.io/instance: RELEASE-NAME
+            app.kubernetes.io/managed-by: Helm
+            app.kubernetes.io/name: apim
+            app.kubernetes.io/version: 4.2.0
+            gravitee.io/component: kubernetes-pem-registry
+            helm.sh/chart: apim-4.2.0
+            kubernetes.io/ingress.class: graviteeio
