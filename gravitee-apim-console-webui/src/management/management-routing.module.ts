@@ -34,6 +34,7 @@ import { UserComponent } from '../user/my-accout/user.component';
 import { ApimFeature } from '../shared/components/gio-license/gio-license-data';
 import { HasLicenseGuard } from '../shared/components/gio-license/has-license.guard';
 import { NewTicketComponent } from '../user/support/new-ticket/new-ticket.component';
+import { TicketsComponent } from '../user/support/tickets/tickets.component';
 
 const managementRoutes: Routes = [
   {
@@ -67,6 +68,10 @@ const managementRoutes: Routes = [
             page: 'management-tasks',
           },
         },
+      },
+      {
+        path: 'ng-support/tickets',
+        component: TicketsComponent,
       },
       {
         path: 'ng-support/tickets/new',

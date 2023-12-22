@@ -30,6 +30,7 @@ import { TicketComponent } from './ticket/ticket.component';
 import { NewTicketComponent } from './new-ticket/new-ticket.component';
 
 import { GioGoBackButtonModule } from '../../shared/components/gio-go-back-button/gio-go-back-button.module';
+import { TicketsComponent } from './tickets/tickets.component';
 
 @NgModule({
   imports: [
@@ -51,6 +52,6 @@ import { GioGoBackButtonModule } from '../../shared/components/gio-go-back-butto
     GioFormFocusInvalidModule,
     GioFormSlideToggleModule,
   ],
-  declarations: [TicketComponent, NewTicketComponent],
+  declarations: [TicketComponent, NewTicketComponent, TicketsComponent],
 })
 export class TicketsModule {}
