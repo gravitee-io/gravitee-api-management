@@ -10,7 +10,7 @@ metadata:
     app.kubernetes.io/component: "{{ .Values.ui.name }}"
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
-    {{- if .Values.common.labels }}
+    {{- if and .Values.common .Values.common.labels }}
     {{- range $key, $value := .Values.common.labels }}
     {{ $key }}: {{ $value | quote }}
     {{- end }}
@@ -19,7 +19,7 @@ metadata:
     {{- range $key, $value := .Values.ui.service.annotations }}
     {{ $key }}: {{ $value | quote }}
     {{- end }}
-    {{- if .Values.common.annotations }}
+    {{- if and .Values.common .Values.common.annotations }}
     {{- range $key, $value := .Values.common.annotations }}
     {{ $key }}: {{ $value | quote }}
     {{- end }}

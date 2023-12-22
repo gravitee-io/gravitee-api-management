@@ -11,14 +11,14 @@ metadata:
     app.kubernetes.io/component: "{{ .Values.gateway.name }}"
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
-    {{- if .Values.common.labels }}
+    {{- if and .Values.common .Values.common.labels }}
     {{- range $key, $value := .Values.common.labels }}
     {{ $key }}: {{ $value | quote }}
     {{- end }}
     {{- end }}
   annotations:
     {{- $annotations := dict }}
-    {{- if .Values.common.annotations }}
+    {{- if and .Values.common .Values.common.annotations }}
     {{- $annotations = merge $annotations .Values.common.annotations }}
     {{- end }}
     {{- range $key, $value := $annotations }}
