@@ -18,6 +18,7 @@ package io.gravitee.rest.api.services.sync;
 import static java.util.stream.Collectors.toMap;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.node.api.license.InvalidLicenseException;
 import io.gravitee.node.api.license.LicenseFactory;
@@ -174,16 +175,18 @@ public class SyncManager {
             .build();
 
         // Then, compute events
-        List<License> licenses = licenseRepository.findByCriteria(licenseCriteria);
-        licenses.forEach(license -> {
-            try {
-                var orgLicense = licenseFactory.create("ORGANIZATION", license.getReferenceId(), license.getLicense());
-                licenseManager.registerOrganizationLicense(license.getReferenceId(), orgLicense);
-            } catch (InvalidLicenseException | MalformedLicenseException e) {
-                log.warn("License for organization {} is invalid. Fallback to OSS license", license.getReferenceId());
-                licenseManager.registerOrganizationLicense(license.getReferenceId(), DefaultLicenseManager.OSS_LICENSE);
-            }
-        });
+        Page<License> licenses = licenseRepository.findByCriteria(licenseCriteria, null);
+        licenses
+            .getContent()
+            .forEach(license -> {
+                try {
+                    var orgLicense = licenseFactory.create("ORGANIZATION", license.getReferenceId(), license.getLicense());
+                    licenseManager.registerOrganizationLicense(license.getReferenceId(), orgLicense);
+                } catch (InvalidLicenseException | MalformedLicenseException e) {
+                    log.warn("License for organization {} is invalid. Fallback to OSS license", license.getReferenceId());
+                    licenseManager.registerOrganizationLicense(license.getReferenceId(), DefaultLicenseManager.OSS_LICENSE);
+                }
+            });
     }
 
     private void computeDictionaryEvents(Map<String, Event> dictionaryEvents) {

@@ -102,8 +102,11 @@ public class RepositorySyncConfiguration {
     }
 
     @Bean
-    public LicenseFetcher licenseFetcher(LicenseRepository licenseRepository) {
-        return new LicenseFetcher(licenseRepository);
+    public LicenseFetcher licenseFetcher(
+        LicenseRepository licenseRepository,
+        @Value("${services.sync.bulk_items:" + DEFAULT_BULK_ITEMS + "}") int bulkItems
+    ) {
+        return new LicenseFetcher(licenseRepository, bulkItems);
     }
 
     @Bean

@@ -15,40 +15,72 @@
  */
 package io.gravitee.gateway.services.sync.process.repository.fetcher;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.gateway.services.sync.process.repository.DefaultSyncManager;
 import io.gravitee.repository.management.api.LicenseRepository;
-import io.gravitee.repository.management.api.search.ApiKeyCriteria;
-import io.gravitee.repository.management.api.search.LicenseCriteria;
-import io.gravitee.repository.management.api.search.Order;
+import io.gravitee.repository.management.api.search.*;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.management.model.License;
 import io.reactivex.rxjava3.core.Flowable;
 import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 
 @RequiredArgsConstructor
 public class LicenseFetcher {
 
     private final LicenseRepository licenseRepository;
 
+    @Getter
+    @Accessors(fluent = true)
+    private final int bulkItems;
+
     public Flowable<List<License>> fetchLatest(Long from, Long to) {
         return Flowable.generate(emitter -> {
-            LicenseCriteria criteria = LicenseCriteria
+            LicensePageable licensePageable = LicensePageable
                 .builder()
-                .referenceType(License.ReferenceType.ORGANIZATION)
-                .from(from == null ? -1 : from - DefaultSyncManager.TIMEFRAME_DELAY)
-                .to(to == null ? -1 : to + DefaultSyncManager.TIMEFRAME_DELAY)
+                .index(0)
+                .size(bulkItems)
+                .criteria(
+                    LicenseCriteria
+                        .builder()
+                        .referenceType(License.ReferenceType.ORGANIZATION)
+                        .from(from == null ? -1 : from - DefaultSyncManager.TIMEFRAME_DELAY)
+                        .to(to == null ? -1 : to + DefaultSyncManager.TIMEFRAME_DELAY)
+                        .build()
+                )
                 .build();
+
             try {
-                List<License> licenses = licenseRepository.findByCriteria(criteria);
-                if (licenses != null && !licenses.isEmpty()) {
-                    emitter.onNext(licenses);
+                Page<License> licenses = licenseRepository.findByCriteria(
+                    licensePageable.criteria,
+                    new PageableBuilder().pageNumber(licensePageable.index).pageSize(licensePageable.size).build()
+                );
+                if (licenses != null && !licenses.getContent().isEmpty()) {
+                    emitter.onNext(licenses.getContent());
+                    licensePageable.index++;
                 }
-                emitter.onComplete();
+                if (licenses == null || licenses.getContent().size() < licensePageable.size) {
+                    emitter.onComplete();
+                }
             } catch (Exception e) {
                 emitter.onError(e);
             }
         });
+    }
+
+    @Builder
+    @AllArgsConstructor
+    @Getter
+    private static class LicensePageable {
+
+        private int index;
+        private int size;
+        private LicenseCriteria criteria;
     }
 }

@@ -17,7 +17,9 @@ package io.gravitee.repository.mongodb.management.internal.license;
 
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.LicenseCriteria;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.mongodb.management.internal.model.LicenseMongo;
 import java.util.Date;
 import java.util.List;
@@ -31,7 +33,7 @@ public class LicenseMongoRepositoryImpl implements LicenseMongoRepositoryCustom 
     private MongoTemplate mongoTemplate;
 
     @Override
-    public List<LicenseMongo> search(LicenseCriteria filter) {
+    public Page<LicenseMongo> search(LicenseCriteria filter, Pageable pageable) {
         final Query query = new Query();
 
         if (filter.getReferenceType() != null) {
@@ -52,6 +54,10 @@ public class LicenseMongoRepositoryImpl implements LicenseMongoRepositoryCustom 
                 query.addCriteria(where("updatedAt").lte(new Date(filter.getTo())));
             }
         }
-        return mongoTemplate.find(query, LicenseMongo.class);
+
+        long total = mongoTemplate.count(query, LicenseMongo.class);
+        List<LicenseMongo> license = mongoTemplate.find(query, LicenseMongo.class);
+
+        return new Page<>(license, pageable != null ? pageable.pageNumber() : 0, pageable != null ? pageable.pageSize() : 0, total);
     }
 }

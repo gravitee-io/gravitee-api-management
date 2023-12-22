@@ -15,10 +15,11 @@
  */
 package io.gravitee.repository.management.api;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.LicenseCriteria;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.License;
-import java.util.List;
 import java.util.Optional;
 
 public interface LicenseRepository extends FindAllRepository<License> {
@@ -26,5 +27,5 @@ public interface LicenseRepository extends FindAllRepository<License> {
     License create(License license) throws TechnicalException;
     License update(License license) throws TechnicalException;
     void delete(String referenceId, License.ReferenceType referenceType) throws TechnicalException;
-    List<License> findByCriteria(LicenseCriteria criteria) throws TechnicalException;
+    Page<License> findByCriteria(LicenseCriteria criteria, Pageable pageable) throws TechnicalException;
 }
