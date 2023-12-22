@@ -10,9 +10,6 @@ metadata:
     app.kubernetes.io/component: "{{ .Values.gateway.name }}"
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
-    {{- if .Values.gateway.ingressController }}
-    gravitee.io/component: ingress
-    {{- end }}
     {{- if .Values.common.labels }}
     {{- range $key, $value := .Values.common.labels }}
     {{ $key }}: {{ $value | quote }}
