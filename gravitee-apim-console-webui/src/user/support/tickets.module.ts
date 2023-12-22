@@ -25,12 +25,18 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTableModule } from '@angular/material/table';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatButtonModule } from '@angular/material/button';
+import { MatSortModule } from '@angular/material/sort';
 
 import { TicketComponent } from './ticket/ticket.component';
 import { NewTicketComponent } from './new-ticket/new-ticket.component';
+import { TicketsComponent } from './tickets/tickets.component';
 
 import { GioGoBackButtonModule } from '../../shared/components/gio-go-back-button/gio-go-back-button.module';
-import { TicketsComponent } from './tickets/tickets.component';
+import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 
 @NgModule({
   imports: [
@@ -45,12 +51,18 @@ import { TicketsComponent } from './tickets/tickets.component';
     MatOptionModule,
     MatSelectModule,
     MatSnackBarModule,
+    MatButtonModule,
+    MatIconModule,
+    MatTableModule,
+    MatTooltipModule,
+    MatSortModule,
 
     GioGoBackButtonModule,
     GioClipboardModule,
     GioSaveBarModule,
     GioFormFocusInvalidModule,
     GioFormSlideToggleModule,
+    GioTableWrapperModule,
   ],
   declarations: [TicketComponent, NewTicketComponent, TicketsComponent],
 })

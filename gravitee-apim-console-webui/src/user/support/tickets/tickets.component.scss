@@ -1,0 +1,25 @@
+@use '../../../scss/gio-layout' as gio-layout;
+
+:host {
+  @include gio-layout.gio-responsive-margin-container;
+  display: flex;
+  flex-direction: column;
+}
+
+.user-support-tickets {
+  &__title {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+
+    h1 {
+      margin-bottom: 0;
+    }
+  }
+
+  &__row {
+    cursor: pointer;
+  }
+}
