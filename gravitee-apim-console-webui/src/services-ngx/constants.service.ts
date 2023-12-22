@@ -17,7 +17,7 @@ import { Inject, Injectable } from '@angular/core';
 import { camelCase } from 'lodash';
 
 import { Constants } from '../entities/Constants';
-import { PlanSecurityType } from '../entities/management-api-v2';
+import { DefinitionVersion, ListenerType, PlanSecurityType } from '../entities/management-api-v2';
 
 export type PlanFormType = PlanSecurityType | 'PUSH';
 
@@ -71,5 +71,23 @@ export class ConstantsService {
 
       return matchedSecurityType.length > 0 && matchedSecurityType[0].enabled;
     });
+  }
+
+  getPlanMenuItems(definitionVersion: DefinitionVersion, listenerTypes: ListenerType[]): PlanMenuItemVM[] {
+    const availablePlanMenuItems = this.getEnabledPlanMenuItems();
+
+    if (definitionVersion === 'V4' && listenerTypes?.every((listenerType) => listenerType === 'TCP')) {
+      return availablePlanMenuItems.filter((p) => p.planFormType === 'KEY_LESS');
+    }
+
+    if (definitionVersion === 'V4' && listenerTypes?.every((listenerType) => listenerType === 'SUBSCRIPTION')) {
+      return availablePlanMenuItems.filter((planMenuItem) => planMenuItem.planFormType === 'PUSH');
+    }
+
+    if (definitionVersion !== 'V4' || listenerTypes?.every((listenerType) => ['HTTP', 'TCP'].includes(listenerType))) {
+      return availablePlanMenuItems.filter((planMenuItem) => planMenuItem.planFormType !== 'PUSH');
+    }
+
+    return availablePlanMenuItems;
   }
 }

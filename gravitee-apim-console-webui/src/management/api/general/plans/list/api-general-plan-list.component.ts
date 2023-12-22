@@ -32,7 +32,7 @@ import { GioPermissionService } from '../../../../../shared/components/gio-permi
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { ConstantsService, PlanMenuItemVM } from '../../../../../services-ngx/constants.service';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
-import { Api, PLAN_STATUS, Plan, PlanStatus, ApiV4 } from '../../../../../entities/management-api-v2';
+import { Api, Plan, PLAN_STATUS, PlanStatus } from '../../../../../entities/management-api-v2';
 import { ApiPlanV2Service } from '../../../../../services-ngx/api-plan-v2.service';
 
 @Component({
@@ -290,18 +290,9 @@ export class ApiGeneralPlanListComponent implements OnInit, OnDestroy {
   }
 
   private computePlanOptions(): void {
-    this.planMenuItems = this.constantsService.getEnabledPlanMenuItems();
-
-    if (this.api && this.api.definitionVersion !== 'V4') {
-      this.planMenuItems = this.planMenuItems.filter((planMenuItem) => planMenuItem.planFormType !== 'PUSH');
-    } else {
-      if ((this.api as ApiV4)?.listeners?.every((entrypoint) => entrypoint.type === 'SUBSCRIPTION')) {
-        this.planMenuItems = this.planMenuItems.filter((planMenuItem) => planMenuItem.planFormType === 'PUSH');
-      }
-
-      if ((this.api as ApiV4)?.listeners?.every((entrypoint) => ['HTTP', 'TCP'].includes(entrypoint.type))) {
-        this.planMenuItems = this.planMenuItems.filter((planMenuItem) => planMenuItem.planFormType !== 'PUSH');
-      }
-    }
+    this.planMenuItems = this.constantsService.getPlanMenuItems(
+      this.api.definitionVersion,
+      this.api.definitionVersion === 'V4' ? this.api.listeners.map((l) => l.type) : null,
+    );
   }
 }
