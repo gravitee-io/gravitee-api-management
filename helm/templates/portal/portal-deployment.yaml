@@ -20,7 +20,7 @@ metadata:
     {{ $key }}: {{ $value | quote }}
     {{- end }}
     {{- end }}
-    {{- if .Values.common.labels }}
+    {{- if and .Values.common .Values.common.labels }}
     {{- range $key, $value := .Values.common.labels }}
     {{ $key }}: {{ $value | quote }}
     {{- end }}
@@ -31,7 +31,7 @@ metadata:
     {{ $key }}: {{ $value | quote }}
     {{- end }}
     {{- end }}
-    {{- if .Values.common.annotations }}
+    {{- if and .Values.common .Values.common.annotations }}
     {{- range $key, $value := .Values.common.annotations }}
     {{ $key }}: {{ $value | quote }}
     {{- end }}
@@ -59,7 +59,7 @@ spec:
         {{- range $key, $value := .Values.portal.podAnnotations }}
         {{ $key }}: {{ $value | quote }}
         {{- end }}
-        {{- if .Values.common.annotations }}
+        {{- if and .Values.common .Values.common.annotations }}
         {{- range $key, $value := .Values.common.annotations }}
         {{ $key }}: {{ $value | quote }}
         {{- end }}
@@ -78,7 +78,7 @@ spec:
         {{ $key }}: {{ $value | quote }}
         {{- end }}
         {{- end }}
-        {{- if .Values.common.labels }}
+        {{- if and .Values.common .Values.common.labels }}
         {{- range $key, $value := .Values.common.labels }}
         {{ $key }}: {{ $value | quote }}
         {{- end }}
