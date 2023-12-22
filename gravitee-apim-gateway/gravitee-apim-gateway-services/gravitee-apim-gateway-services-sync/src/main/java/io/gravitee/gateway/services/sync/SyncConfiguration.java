@@ -41,7 +41,12 @@ import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.Sub
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.license.LicenseFactory;
 import io.gravitee.node.api.license.LicenseManager;
-import io.gravitee.repository.management.api.*;
+import io.gravitee.repository.management.api.ApiKeyRepository;
+import io.gravitee.repository.management.api.CommandRepository;
+import io.gravitee.repository.management.api.EnvironmentRepository;
+import io.gravitee.repository.management.api.OrganizationRepository;
+import io.gravitee.repository.management.api.PlanRepository;
+import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.reactivex.rxjava3.annotations.NonNull;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;

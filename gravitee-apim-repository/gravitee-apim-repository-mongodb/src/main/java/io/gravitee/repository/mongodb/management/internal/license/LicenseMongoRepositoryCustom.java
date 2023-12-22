@@ -15,12 +15,13 @@
  */
 package io.gravitee.repository.mongodb.management.internal.license;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.search.LicenseCriteria;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.mongodb.management.internal.model.LicenseMongo;
-import java.util.List;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public interface LicenseMongoRepositoryCustom {
-    List<LicenseMongo> search(LicenseCriteria filter);
+    Page<LicenseMongo> search(LicenseCriteria filter, Pageable pageable);
 }

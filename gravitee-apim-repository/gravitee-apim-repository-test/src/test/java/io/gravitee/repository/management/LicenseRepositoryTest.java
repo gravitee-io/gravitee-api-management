@@ -18,6 +18,7 @@ package io.gravitee.repository.management;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.repository.management.api.search.LicenseCriteria;
+import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.License;
 import java.util.Collection;
 import java.util.Date;
@@ -109,25 +110,34 @@ public class LicenseRepositoryTest extends AbstractManagementRepositoryTest {
 
     @Test
     public void shouldFindByReferenceType() throws Exception {
-        final Collection<License> licenses = licenseRepository.findByCriteria(
-            LicenseCriteria.builder().referenceType(License.ReferenceType.ORGANIZATION).build()
-        );
+        final Collection<License> licenses = licenseRepository
+            .findByCriteria(
+                LicenseCriteria.builder().referenceType(License.ReferenceType.ORGANIZATION).build(),
+                new PageableBuilder().pageSize(50).pageNumber(0).build()
+            )
+            .getContent();
         assertThat(licenses.size()).as("License count should be 3").isEqualTo(3L);
     }
 
     @Test
     public void shouldFindByReferenceTypeAndId() throws Exception {
-        final Collection<License> licenses = licenseRepository.findByCriteria(
-            LicenseCriteria.builder().referenceType(License.ReferenceType.ORGANIZATION).referenceId("cockpitId-org-find-by-id").build()
-        );
+        final Collection<License> licenses = licenseRepository
+            .findByCriteria(
+                LicenseCriteria.builder().referenceType(License.ReferenceType.ORGANIZATION).referenceId("cockpitId-org-find-by-id").build(),
+                new PageableBuilder().pageSize(50).pageNumber(0).build()
+            )
+            .getContent();
         assertThat(licenses.size()).as("License count should be 1").isEqualTo(1L);
     }
 
     @Test
     public void shouldFindByTimeInterval() throws Exception {
-        final Collection<License> licenses = licenseRepository.findByCriteria(
-            LicenseCriteria.builder().from(1539022010000L).to(1639022020000L).build()
-        );
+        final Collection<License> licenses = licenseRepository
+            .findByCriteria(
+                LicenseCriteria.builder().from(1539022010000L).to(1639022020000L).build(),
+                new PageableBuilder().pageSize(50).pageNumber(0).build()
+            )
+            .getContent();
         assertThat(licenses.size()).as("License count should be 2").isEqualTo(2L);
     }
 }

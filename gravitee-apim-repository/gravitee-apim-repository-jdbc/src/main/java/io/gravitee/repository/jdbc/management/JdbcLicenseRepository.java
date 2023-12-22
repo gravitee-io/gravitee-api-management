@@ -17,18 +17,14 @@ package io.gravitee.repository.jdbc.management;
 
 import static io.gravitee.repository.jdbc.management.JdbcHelper.WHERE_CLAUSE;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.LicenseRepository;
-import io.gravitee.repository.management.api.search.LicenseCriteria;
+import io.gravitee.repository.management.api.search.*;
 import io.gravitee.repository.management.model.License;
 import java.sql.Types;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.Optional;
+import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +33,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public class JdbcLicenseRepository extends JdbcAbstractFindAllRepository<License> implements LicenseRepository {
+public class JdbcLicenseRepository extends JdbcAbstractPageableRepository<License> implements LicenseRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcLicenseRepository.class);
 
@@ -134,7 +130,7 @@ public class JdbcLicenseRepository extends JdbcAbstractFindAllRepository<License
     }
 
     @Override
-    public List<License> findByCriteria(final LicenseCriteria filter) throws TechnicalException {
+    public Page<License> findByCriteria(final LicenseCriteria filter, Pageable pageable) throws TechnicalException {
         LOGGER.debug("JdbcLicenseRepository.findByCriteria({})", filter);
         try {
             List<Object> args = new ArrayList<>();
@@ -166,7 +162,8 @@ public class JdbcLicenseRepository extends JdbcAbstractFindAllRepository<License
                 query.append("updated_at <= ?");
                 args.add(new Date(filter.getTo()));
             }
-            return jdbcTemplate.query(query.toString(), getRowMapper(), args.toArray());
+            List<License> licenses = jdbcTemplate.query(query.toString(), getRowMapper(), args.toArray());
+            return getResultAsPage(pageable, licenses);
         } catch (final Exception ex) {
             LOGGER.error("Failed to find Licenses by criteria:", ex);
             throw new TechnicalException("Failed to find Licenses by criteria", ex);

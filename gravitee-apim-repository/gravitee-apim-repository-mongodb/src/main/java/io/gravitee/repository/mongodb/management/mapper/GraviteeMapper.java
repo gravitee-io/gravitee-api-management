@@ -181,6 +181,8 @@ public interface GraviteeMapper {
     @InheritInverseConfiguration
     LicenseMongo map(License toMap);
 
+    List<License> mapLicenses(Collection<LicenseMongo> toMap);
+
     // NodeMonitoring mapping
     Monitoring map(MonitoringMongo toMap);
 

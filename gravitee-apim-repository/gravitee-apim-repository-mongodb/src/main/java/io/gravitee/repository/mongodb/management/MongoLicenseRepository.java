@@ -15,9 +15,11 @@
  */
 package io.gravitee.repository.mongodb.management;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.LicenseRepository;
 import io.gravitee.repository.management.api.search.LicenseCriteria;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.License;
 import io.gravitee.repository.mongodb.management.internal.license.LicenseMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.LicenseMongo;
@@ -103,8 +105,16 @@ public class MongoLicenseRepository implements LicenseRepository {
     }
 
     @Override
-    public List<License> findByCriteria(LicenseCriteria criteria) throws TechnicalException {
-        return internalLicenseRepo.search(criteria).stream().map(organization -> mapper.map(organization)).collect(Collectors.toList());
+    public Page<License> findByCriteria(LicenseCriteria criteria, Pageable pageable) throws TechnicalException {
+        final Page<LicenseMongo> licenseMongoPage = internalLicenseRepo.search(criteria, pageable);
+        final List<License> content = mapper.mapLicenses(licenseMongoPage.getContent());
+
+        return new Page(
+            content,
+            licenseMongoPage.getPageNumber(),
+            (int) licenseMongoPage.getPageElements(),
+            licenseMongoPage.getTotalElements()
+        );
     }
 
     @Override
