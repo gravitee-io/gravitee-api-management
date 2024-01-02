@@ -28,6 +28,10 @@
             svgIcon="gio:info"
           ></mat-icon>
         </div>
+        <div class="gio-form-listeners__table__subtitle">
+          Can contain an uppercase letter, number, dot, dash or underscore. Total maximum length is 255 chars and each hostname label has a
+          max length of 63 chars.
+        </div>
       </th>
       <th class="gio-form-listeners__table__row__th"></th>
     </tr>
@@ -43,6 +47,8 @@
           <input type="text" matInput formControlName="host" placeholder="Host *" />
           <mat-error *ngIf="control.get('host').hasError('required')"> Host is required </mat-error>
           <mat-error *ngIf="control.get('host').hasError('listeners')"> {{ control.get('host').getError('listeners') }}</mat-error>
+          <mat-error *ngIf="control.get('host').hasError('max')"> {{ control.get('host').getError('max') }}</mat-error>
+          <mat-error *ngIf="control.get('host').hasError('format')"> {{ control.get('host').getError('format') }}</mat-error>
         </mat-form-field>
       </td>
       <td class="gio-form-listeners__table__row__td">

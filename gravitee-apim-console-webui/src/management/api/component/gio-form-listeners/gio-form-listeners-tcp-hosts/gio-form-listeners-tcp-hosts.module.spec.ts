@@ -107,20 +107,57 @@ describe('GioFormListenersTcpHostsModule', () => {
     expect(testComponent.formControl.value).toEqual([{ host: 'new-host' }, { host: 'new-host-2' }]);
   });
 
-  it('should mark controls as invalid if host is already defined', async () => {
-    const formHosts = await loader.getHarness(GioFormListenersTcpHostsHarness);
-    await formHosts.addListenerRow();
+  describe('Validation', () => {
+    it('should mark controls as invalid if host is already defined', async () => {
+      const formHosts = await loader.getHarness(GioFormListenersTcpHostsHarness);
+      await formHosts.addListenerRow();
 
-    const rows = await formHosts.getListenerRows();
-    expect(rows.length).toEqual(2);
+      const rows = await formHosts.getListenerRows();
+      expect(rows.length).toEqual(2);
 
-    await rows[0].hostInput.setValue('my-host');
-    expectVerifyHosts(['my-host']);
+      await rows[0].hostInput.setValue('my-host');
+      expectVerifyHosts(['my-host']);
 
-    await rows[1].hostInput.setValue('my-host');
-    expectVerifyHosts(['my-host']);
+      await rows[1].hostInput.setValue('my-host');
+      expectVerifyHosts(['my-host']);
 
-    expect(await loader.getHarness(SpanHarness.with({ text: /Duplicated hosts not allowed/ }))).toBeTruthy();
+      expect(await loader.getHarness(SpanHarness.with({ text: /Duplicated hosts not allowed/ }))).toBeTruthy();
+    });
+
+    it.each`
+      reason                                                               | isValid  | host
+      ${'Host cannot be empty'}                                            | ${false} | ${''}
+      ${'Host with only whitespace are considered empty'}                  | ${false} | ${'    '}
+      ${'Total length should not be greater than 255 chars'}               | ${false} | ${'a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host'}
+      ${'Simple host label should be lower than 63 chars'}                 | ${false} | ${'ThisIsALongHostNameWithMoreThan63CharactersWhichIsNotValidInOurCase'}
+      ${'A label within a hostname should not be more than 63 chars long'} | ${false} | ${'host.ThisIsALongHostNameWithMoreThan63CharactersWhichIsNotValidInOurCase.gravitee'}
+      ${'Can not start with dash'}                                         | ${false} | ${'-simple-host'}
+      ${'Can not end with dash'}                                           | ${false} | ${'simple-host-'}
+      ${'Host label can not end with dash'}                                | ${false} | ${'simple-host-.host'}
+      ${'Can not start with underscore'}                                   | ${false} | ${'_simple-host'}
+      ${'Can not end with underscore'}                                     | ${false} | ${'simple-host_'}
+      ${'Host label can not end with underscore'}                          | ${false} | ${'simple-host_.host'}
+      ${'IPv4 should be a valid host'}                                     | ${true}  | ${'127.0.0.1'}
+      ${'Can contain multiple host label'}                                 | ${true}  | ${'dev.simple-host.gravitee.io'}
+      ${'Can contain dash'}                                                | ${true}  | ${'simple-host'}
+      ${'Can contain underscore'}                                          | ${true}  | ${'simple_host'}
+      ${'Can contain dash and underscore'}                                 | ${true}  | ${'simple-host_underscored'}
+      ${'Can contain uppercase, numbers, dash and underscore'}             | ${true}  | ${'simple1-Host_underscored33'}
+    `('should validate `$reason`: is valid=$isValid', async ({ isValid, host }) => {
+      const formHosts = await loader.getHarness(GioFormListenersTcpHostsHarness);
+
+      expect((await formHosts.getListenerRows()).length).toEqual(1);
+
+      // Add host on last host row
+      const emptyLastHostRow = await formHosts.getLastListenerRow();
+      const hostInputHost = await emptyLastHostRow.hostInput.host();
+
+      await emptyLastHostRow.hostInput.setValue(host);
+      expect(await hostInputHost.hasClass('ng-invalid')).toEqual(!isValid);
+      if (isValid) {
+        expectVerifyHosts([host]);
+      }
+    });
   });
 
   it('should edit host', async () => {
