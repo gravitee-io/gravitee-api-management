@@ -369,7 +369,7 @@ jobs:
 
             # Helm chart increase version and clean the artifacthub.io/changes annotation
             sed "0,/version.*/s/version.*/version: 4.2.1/" -i helm/Chart.yaml
-            sed -e '/artifacthub.io\/changes/q' Chart.yaml > Chart2.yaml && mv Chart2.yaml Chart.yaml
+            sed '/artifacthub.io\/changes/q' -i helm/Chart.yaml
 
             git add --update
             git commit -m 'chore: prepare next version [skip ci]'
@@ -460,8 +460,8 @@ jobs:
           working_directory: ./helm
           command: |-
             helm registry login graviteeio.azurecr.io --username $ACR_USER_NAME --password $ACR_PASSWORD
-            helm push charts/apim-4.2.0.tgz oci://graviteeio.azurecr.io/helm/
-            helm push charts/apim3-4.2.0.tgz oci://graviteeio.azurecr.io/helm/
+            helm push charts/apim-*.tgz oci://graviteeio.azurecr.io/helm/
+            helm push charts/apim3-*.tgz oci://graviteeio.azurecr.io/helm/
   job-publish-prod-docker-images:
     docker:
       - image: cimg/base:stable

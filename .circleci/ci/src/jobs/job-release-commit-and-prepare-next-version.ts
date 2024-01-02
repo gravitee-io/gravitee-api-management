@@ -81,7 +81,7 @@ sed -i 's#"version": ".*"#"version": "${nextVersion}${nextQualifier}-SNAPSHOT"#'
 
 # Helm chart increase version and clean the artifacthub.io/changes annotation
 sed "0,/version.*/s/version.*/version: ${nextVersion}${nextQualifier}/" -i helm/Chart.yaml
-sed -e '/artifacthub.io\\/changes/q' Chart.yaml > Chart2.yaml && mv Chart2.yaml Chart.yaml
+sed '/artifacthub.io\\/changes/q' -i helm/Chart.yaml
 
 git add --update
 git commit -m 'chore: prepare next version [skip ci]'

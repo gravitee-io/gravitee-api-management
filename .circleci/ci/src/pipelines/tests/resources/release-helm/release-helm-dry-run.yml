@@ -94,8 +94,8 @@ jobs:
           working_directory: ./helm
           command: |-
             helm registry login graviteeio.azurecr.io --username $ACR_USER_NAME --password $ACR_PASSWORD
-            helm push charts/apim-4.2.0.tgz oci://graviteeio.azurecr.io/helm/
-            helm push charts/apim3-4.2.0.tgz oci://graviteeio.azurecr.io/helm/
+            helm push charts/apim-*.tgz oci://graviteeio.azurecr.io/helm/
+            helm push charts/apim3-*.tgz oci://graviteeio.azurecr.io/helm/
 workflows:
   release_helm:
     jobs:
