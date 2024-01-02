@@ -66,6 +66,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
   const APPLICATION_ID = 'application_1';
   const anAPI = fakeApiV4({ id: API_ID });
   const aPlan = fakePlanV4({ id: PLAN_ID, apiId: API_ID });
+  const aKeylessPlan = fakePlanV4({ id: 'keyless-plan', apiId: API_ID, name: 'Keyless plan', security: { type: 'KEY_LESS' } });
   const anApplication = fakeApplication({ id: APPLICATION_ID, owner: { displayName: 'Gravitee.io' } });
 
   let fixture: ComponentFixture<TestComponent>;
@@ -157,6 +158,22 @@ describe('ApiGeneralSubscriptionListComponent', () => {
       const apiKeyInput = await harness.getApiKeyInput();
       expect(await apiKeyInput.isDisabled()).toEqual(false);
       expect(await apiKeyInput.getValue()).toEqual('apiKey_1');
+    }));
+
+    it('should not include keyless plan in plan filters', fakeAsync(async () => {
+      await initComponent([], anAPI, [aPlan, aKeylessPlan], [anApplication], {
+        plan: PLAN_ID,
+        application: APPLICATION_ID,
+        status: 'CLOSED,REJECTED',
+        apiKey: 'apiKey_1',
+      });
+      const harness = await loader.getHarness(ApiGeneralSubscriptionListHarness);
+
+      const planSelectInput = await harness.getPlanSelectInput();
+      await planSelectInput.open();
+      const planSelectOptions = await planSelectInput.getOptions();
+      expect(planSelectOptions.length).toEqual(1);
+      expect(await planSelectOptions[0].getText()).toEqual('Default plan');
     }));
 
     it('should reset filters from params', fakeAsync(async () => {
