@@ -30,9 +30,7 @@ export class ReleaseHelmJob {
     dynamicConfig.importOrb(orbs.helm);
     dynamicConfig.importOrb(orbs.github);
 
-
     const steps: Command[] = [
-
       new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
         'secret-url': config.secrets.gitUserName,
         'var-name': 'GIT_USER_NAME',
@@ -55,20 +53,18 @@ git config --global user.email "\${GIT_USER_EMAIL}"`,
       new reusable.ReusedCommand(orbs.helm.commands['install-helm-client']),
     ];
 
-    steps.push(
-      new commands.Checkout(),
-    )
+    steps.push(new commands.Checkout());
 
     if (!environment.isDryRun) {
       steps.push(
-          new commands.Run({
-            name: `Checkout tag ${apimVersion}`,
-            command: `git checkout ${apimVersion}`,
-          }),
-          new commands.Run({
-            name: 'Update Chart and App versions',
-            command: `sed "0,/appVersion.*/s/appVersion.*/appVersion: ${apimVersion}/" -i helm/Chart.yaml`,
-          }),
+        new commands.Run({
+          name: `Checkout tag ${apimVersion}`,
+          command: `git checkout ${apimVersion}`,
+        }),
+        new commands.Run({
+          name: 'Update Chart and App versions',
+          command: `sed "0,/appVersion.*/s/appVersion.*/appVersion: ${apimVersion}/" -i helm/Chart.yaml`,
+        }),
       );
     }
 
@@ -111,8 +107,8 @@ helm package -d charts .`,
           name: 'Publish helm chart release in azure repository DRY-RUN mode',
           working_directory: './helm',
           command: `helm registry login graviteeio.azurecr.io --username $ACR_USER_NAME --password $ACR_PASSWORD
-helm push charts/apim-${apimVersion}.tgz oci://graviteeio.azurecr.io/helm/
-helm push charts/apim3-${apimVersion}.tgz oci://graviteeio.azurecr.io/helm/`,
+helm push charts/apim-*.tgz oci://graviteeio.azurecr.io/helm/
+helm push charts/apim3-*.tgz oci://graviteeio.azurecr.io/helm/`,
         }),
       );
     }
