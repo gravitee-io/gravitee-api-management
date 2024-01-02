@@ -18,8 +18,8 @@ package io.gravitee.apim.core.api.domain_service;
 import static fixtures.core.model.ApiFixtures.aMessageApiV4;
 import static fixtures.core.model.ApiFixtures.aProxyApiV4;
 import static fixtures.core.model.ApiFixtures.aTcpApiV4;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import inmemory.ApiQueryServiceInMemory;
 import io.gravitee.apim.core.api.exception.DuplicatedHostException;
@@ -34,6 +34,7 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class VerifyApiHostsDomainServiceTest {
@@ -66,53 +67,73 @@ class VerifyApiHostsDomainServiceTest {
     @ParameterizedTest
     @NullAndEmptySource
     void should_throw_invalid_hosts_exception_when_no_host(List<String> hosts) {
-        // when
-        var throwable = catchThrowable(() -> verifyApiHostsDomainService.checkApiHosts(ENVIRONMENT_ID, API_ID, hosts));
-
-        // then
-        assertThat(throwable).isInstanceOf(InvalidHostException.class);
+        assertThatThrownBy(() -> verifyApiHostsDomainService.checkApiHosts(ENVIRONMENT_ID, API_ID, hosts))
+            .isInstanceOf(InvalidHostException.class)
+            .hasMessage("At least one host is required for the TCP listener.");
     }
 
     @Test
     void should_throw_hosts_already_exist_exception_when_hosts_are_duplicated() {
-        // given
         var hosts = List.of("foo.example.com", "bar.example.com", "foo.example.com");
-
-        // when
-        var throwable = catchThrowable(() -> verifyApiHostsDomainService.checkApiHosts(ENVIRONMENT_ID, API_ID, hosts));
-
-        // then
-        assertThat(throwable).isInstanceOf(DuplicatedHostException.class);
+        assertThatThrownBy(() -> verifyApiHostsDomainService.checkApiHosts(ENVIRONMENT_ID, API_ID, hosts))
+            .isInstanceOf(DuplicatedHostException.class)
+            .hasMessage("Duplicated hosts detected: 'foo.example.com'. Please ensure each host is unique.");
     }
 
     @Test
     void should_throw_hosts_already_exist_exception_when_host_is_used_by_another_api() {
-        // given
         var hosts = List.of("foo.example.com", "tcp.example.com");
-
-        // when
-        var throwable = catchThrowable(() -> verifyApiHostsDomainService.checkApiHosts(ENVIRONMENT_ID, API_ID, hosts));
-
-        // then
-        assertThat(throwable).isInstanceOf(HostAlreadyExistsException.class);
+        assertThatThrownBy(() -> verifyApiHostsDomainService.checkApiHosts(ENVIRONMENT_ID, API_ID, hosts))
+            .isInstanceOf(HostAlreadyExistsException.class)
+            .hasMessage("Hosts [foo.example.com] already exists");
     }
 
     @Test
     void should_throw_invalid_hosts_exception_when_host_is_blank() {
-        // given
         var hosts = List.of("foo.example.com", "");
+        assertThatThrownBy(() -> verifyApiHostsDomainService.checkApiHosts(ENVIRONMENT_ID, API_ID, hosts))
+            .isInstanceOf(InvalidHostException.class)
+            .hasMessage("The hosts should not be null or blank.");
+    }
 
-        // when
-        var throwable = catchThrowable(() -> verifyApiHostsDomainService.checkApiHosts(ENVIRONMENT_ID, API_ID, hosts));
+    @ParameterizedTest
+    @ValueSource(
+        strings = {
+            "ThisIsALongHostNameWithMoreThan63CharactersWhichIsNotValidInOurCase",
+            "host.ThisIsALongHostNameWithMoreThan63CharactersWhichIsNotValidInOurCase.gravitee",
+            "-simple-host",
+            "simple-host-",
+            "simple-host-.host",
+            "_simple-host",
+            "simple-host_",
+        }
+    )
+    void should_throw_invalid_exception_when_not_matching_rfc_pattern(String host) {
+        assertThatThrownBy(() -> verifyApiHostsDomainService.checkApiHosts(ENVIRONMENT_ID, API_ID, List.of(host)))
+            .isInstanceOf(InvalidHostException.class)
+            .hasMessage("The hosts should be valid.");
+    }
 
-        // then
-        assertThat(throwable).isInstanceOf(InvalidHostException.class);
+    @Test
+    void should_throw_invalid_hosts_exception_when_host_is_too_long() {
+        var hosts = List.of(
+            "a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host.a-valid-sub-host"
+        );
+        assertThatThrownBy(() -> verifyApiHostsDomainService.checkApiHosts(ENVIRONMENT_ID, API_ID, hosts))
+            .isInstanceOf(InvalidHostException.class)
+            .hasMessage("The hosts should not be greater than 255 characters.");
     }
 
     @Test
     void should_validate_hosts() {
         // given
-        var hosts = List.of("tcp.1.example.com", "tcp.2.example.com");
+        var hosts = List.of(
+            "tcp.1.example.com",
+            "tcp.2.example.com",
+            "tcp-hyphen.example.com",
+            "tcp_underscore.example.com",
+            "MiXed-C4s3.example.c0m"
+        );
 
         // when
         var result = verifyApiHostsDomainService.checkApiHosts(ENVIRONMENT_ID, API_ID, hosts);
