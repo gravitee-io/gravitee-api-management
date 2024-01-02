@@ -120,7 +120,9 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
             )
         );
         // Validate and clean endpoints
-        newApiEntity.setEndpointGroups(endpointGroupsValidationService.validateAndSanitize(newApiEntity.getEndpointGroups()));
+        newApiEntity.setEndpointGroups(
+            endpointGroupsValidationService.validateAndSanitize(newApiEntity.getType(), newApiEntity.getEndpointGroups())
+        );
         // Validate and clean logging
         newApiEntity.setAnalytics(
             analyticsValidationService.validateAndSanitize(executionContext, newApiEntity.getType(), newApiEntity.getAnalytics())
@@ -171,7 +173,9 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
             )
         );
         // Validate and clean endpoints
-        updateApiEntity.setEndpointGroups(endpointGroupsValidationService.validateAndSanitize(updateApiEntity.getEndpointGroups()));
+        updateApiEntity.setEndpointGroups(
+            endpointGroupsValidationService.validateAndSanitize(updateApiEntity.getType(), updateApiEntity.getEndpointGroups())
+        );
         // Validate and clean logging
         updateApiEntity.setAnalytics(
             analyticsValidationService.validateAndSanitize(executionContext, updateApiEntity.getType(), updateApiEntity.getAnalytics())
@@ -214,7 +218,9 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
             listenerValidationService.validateAndSanitize(executionContext, null, apiEntity.getListeners(), apiEntity.getEndpointGroups())
         );
         // Validate and clean endpoints
-        apiEntity.setEndpointGroups(endpointGroupsValidationService.validateAndSanitize(apiEntity.getEndpointGroups()));
+        apiEntity.setEndpointGroups(
+            endpointGroupsValidationService.validateAndSanitize(apiEntity.getType(), apiEntity.getEndpointGroups())
+        );
         // Validate and clean logging
         apiEntity.setAnalytics(
             analyticsValidationService.validateAndSanitize(executionContext, apiEntity.getType(), apiEntity.getAnalytics())

@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.v4.impl.validation;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServices;
@@ -39,6 +40,7 @@ import io.gravitee.rest.api.service.v4.exception.EndpointTypeInvalidException;
 import io.gravitee.rest.api.service.v4.validation.EndpointGroupsValidationService;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,7 +66,7 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
     }
 
     @Override
-    public List<EndpointGroup> validateAndSanitize(List<EndpointGroup> endpointGroups) {
+    public List<EndpointGroup> validateAndSanitize(ApiType apiType, List<EndpointGroup> endpointGroups) {
         if (endpointGroups == null || endpointGroups.isEmpty()) {
             throw new EndpointMissingException();
         }
@@ -73,10 +75,12 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
 
         endpointGroups.forEach(endpointGroup -> {
             validateUniqueEndpointGroupName(endpointGroup.getName(), names);
-            validateEndpointGroupType(endpointGroup.getType());
+
+            final ConnectorPluginEntity endpointConnector = endpointService.findById(endpointGroup.getType());
+            validateEndpointGroupType(apiType, endpointGroup.getType(), endpointConnector);
+
             validateServices(endpointGroup.getServices());
             validateEndpointsExistence(endpointGroup);
-            final ConnectorPluginEntity endpointConnector = endpointService.findById(endpointGroup.getType());
             if (endpointGroup.getSharedConfiguration() != null) {
                 endpointGroup.setSharedConfiguration(
                     endpointService.validateSharedConfiguration(endpointConnector, endpointGroup.getSharedConfiguration())
@@ -148,8 +152,8 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
         }
     }
 
-    private void validateEndpointGroupType(final String type) {
-        if (isBlank(type)) {
+    private void validateEndpointGroupType(final ApiType apiType, final String type, final ConnectorPluginEntity connectorPluginEntity) {
+        if (isBlank(type) || !connectorPluginEntity.getSupportedApiType().equals(apiType)) {
             throw new EndpointGroupTypeInvalidException(type);
         }
     }
