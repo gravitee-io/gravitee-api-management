@@ -34,6 +34,16 @@ import { asyncScheduler, Observable, of, Subject, timer } from 'rxjs';
 import { TcpHost } from '../../../../../entities/management-api-v2/api/v4/tcpHost';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 
+/**
+ * According to {@link https://www.rfc-editor.org/rfc/rfc1123} and {@link https://www.rfc-editor.org/rfc/rfc952}
+ * - hostname label can contain lowercase, uppercase and digits characters.
+ * - hostname label can contain dash or underscores, but not starts or ends with these characters
+ * - each hostname label must have a max length of 63 characters
+ */
+const HOST_PATTERN_REGEX = new RegExp(
+  /^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-_]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-_]{0,61}[a-zA-Z0-9]))*$/,
+);
+
 @Component({
   selector: 'gio-form-listeners-tcp-hosts',
   templateUrl: './gio-form-listeners-tcp-hosts.component.html',
@@ -182,7 +192,16 @@ export class GioFormListenersTcpHostsComponent implements OnInit, OnDestroy, Con
   private validateGenericHostListenerControl(): ValidatorFn {
     return (formControl: FormControl): ValidationErrors | null => {
       const host = formControl.value || '';
-      return host.trim().length ? null : { required: 'Host is required.' };
+      if (isEmpty(host.trim())) {
+        return { required: 'Host is required.' };
+      }
+      if (host.length > 255) {
+        return { max: 'Max length is 255 characters' };
+      }
+      if (!HOST_PATTERN_REGEX.test(host)) {
+        return { format: 'Host is not valid' };
+      }
+      return null;
     };
   }
 
