@@ -27,6 +27,7 @@ import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,22 +36,57 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class VerifyApiHostsDomainService {
 
+    /**
+     * According to <a href="https://www.rfc-editor.org/rfc/rfc1123">RFC-1123</a> and <a href="https://www.rfc-editor.org/rfc/rfc952">RFC-952</a>
+     * - hostname label can contain lowercase, uppercase and digits characters.
+     * - hostname label can contain dash or underscores, but not starts or ends with these characters
+     * - each hostname label must have a max length of 63 characters
+     */
+    @SuppressWarnings("squid:S5998") // A max host size validation is done before the regexp to avoid applying it
+    private static final Pattern HOST_PATTERN = Pattern.compile(
+        "^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-_]{0,61}[a-zA-Z0-9])(\\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-_]{0,61}[a-zA-Z0-9]))*$"
+    );
+
     private final ApiQueryService apiQueryService;
 
     public boolean checkApiHosts(String environmentId, String apiId, List<String> hosts) {
-        if (hosts == null || hosts.isEmpty()) {
-            throw new InvalidHostException("At least one host is required for the TCP listener.");
-        }
+        checkHostsListIsNotEmpty(hosts);
 
-        if (hosts.stream().anyMatch(host -> host == null || host.isBlank())) {
-            throw new InvalidHostException("The hosts should not be null or blank.");
-        }
+        checkHostsAreNotBlank(hosts);
+
+        checkHostsAreNotLongerThan255(hosts);
+
+        checkHostsAreRfc1123Compliant(hosts);
 
         checkNoDuplicate(hosts);
 
         checkHostsAreAvailable(environmentId, apiId, hosts);
 
         return true;
+    }
+
+    private static void checkHostsListIsNotEmpty(List<String> hosts) {
+        if (hosts == null || hosts.isEmpty()) {
+            throw new InvalidHostException("At least one host is required for the TCP listener.");
+        }
+    }
+
+    private static void checkHostsAreNotBlank(List<String> hosts) {
+        if (hosts.stream().anyMatch(host -> host == null || host.isBlank())) {
+            throw new InvalidHostException("The hosts should not be null or blank.");
+        }
+    }
+
+    private static void checkHostsAreNotLongerThan255(List<String> hosts) {
+        if (hosts.stream().anyMatch(host -> host.length() > 255)) {
+            throw new InvalidHostException("The hosts should not be greater than 255 characters.");
+        }
+    }
+
+    private static void checkHostsAreRfc1123Compliant(List<String> hosts) {
+        if (hosts.stream().anyMatch(host -> !HOST_PATTERN.matcher(host).lookingAt())) {
+            throw new InvalidHostException("The hosts should be valid.");
+        }
     }
 
     private void checkNoDuplicate(List<String> hosts) throws DuplicatedHostException {
