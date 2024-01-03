@@ -140,12 +140,27 @@ public class ApiDeserializerTest extends AbstractTest {
         assertEquals(1, api.getPathMappings().size());
         Pattern pattern = api.getPathMappings().get("/echo/:*test/.*");
         assertNotNull(pattern);
-        assertEquals("/echo/[^/]*/.*", pattern.pattern());
+        assertEquals("/echo/[^/]*/.*/*", pattern.pattern());
         assertFalse(pattern.matcher("/echo").matches());
         assertFalse(pattern.matcher("/echo/").matches());
         assertFalse(pattern.matcher("/echo/anything").matches());
         assertTrue(pattern.matcher("/echo/anything/").matches());
         assertTrue(pattern.matcher("/echo/anything/anything-else").matches());
+    }
+
+    @Test
+    public void definition_withoutWildcardInPathMapping() throws IOException {
+        Api api = load("/io/gravitee/definition/jackson/api-without-wildcard-in-path-mapping.json", Api.class);
+        assertNotNull(api.getPathMappings());
+        assertEquals(1, api.getPathMappings().size());
+        Pattern pattern = api.getPathMappings().get("/echo/:test");
+        assertNotNull(pattern);
+        assertEquals("/echo/[^/]*/*", pattern.pattern());
+        assertFalse(pattern.matcher("/echo").matches());
+        assertTrue(pattern.matcher("/echo/").matches());
+        assertTrue(pattern.matcher("/echo/anything").matches());
+        assertTrue(pattern.matcher("/echo/anything/").matches());
+        assertFalse(pattern.matcher("/echo/anything/anything-else").matches());
     }
 
     @Test
