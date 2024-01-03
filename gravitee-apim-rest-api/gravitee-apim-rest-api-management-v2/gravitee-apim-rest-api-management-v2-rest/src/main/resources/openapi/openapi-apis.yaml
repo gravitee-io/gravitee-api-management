@@ -1073,6 +1073,33 @@ paths:
                                 $ref: "#/components/schemas/Organization"
                 default:
                     $ref: "#/components/responses/Error"
+    /organizations/{orgId}/license:
+        servers:
+            - url: /management/v2
+              description: Gravitee.io APIM - Management API -v2
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+        get:
+            tags:
+                - Installation
+            summary: Get the license used by an organization.
+            description: |-
+                Returns the organization license information.
+                If no license is scoped to the organization, then the platform license is returned.
+
+                User must be authenticated.
+            operationId: getOrganizationLicense
+            responses:
+                "200":
+                    description: |-
+                        The license and its features. If there is no license, then the features will be empty.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/GraviteeLicense"
+                default:
+                    $ref: "#/components/responses/Error"
+
 
     # API Subscriptions
     /environments/{envId}/apis/{apiId}/subscribers:

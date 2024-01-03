@@ -19,26 +19,36 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.FlowMode;
+import io.gravitee.node.api.license.License;
+import io.gravitee.node.api.license.LicenseManager;
+import io.gravitee.rest.api.management.v2.rest.model.GraviteeLicense;
 import io.gravitee.rest.api.management.v2.rest.model.Organization;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.OrganizationNotFoundException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
+import java.util.Set;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 public class OrganizationResourceTest extends AbstractResourceTest {
 
     @Inject
     private OrganizationService organizationService;
+
+    @Inject
+    private LicenseManager licenseManager;
 
     @Override
     protected String contextPath() {
@@ -51,27 +61,67 @@ public class OrganizationResourceTest extends AbstractResourceTest {
         GraviteeContext.setCurrentEnvironment(null);
     }
 
-    @Test
-    public void shouldGetOrganizationById() {
+    @Nested
+    class GetOrganizationById {
+
+        @Test
+        public void shouldGetOrganizationById() {
+            mockExistingOrganization(ORGANIZATION);
+
+            final Response response = rootTarget(ORGANIZATION).request().get();
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+
+            var body = response.readEntity(Organization.class);
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(body).isNotNull();
+                soft.assertThat(body.getId()).isEqualTo(ORGANIZATION);
+                soft.assertThat(body.getName()).isEqualTo("org-name");
+                soft.assertThat(body.getDescription()).isEqualTo("A nice description");
+            });
+        }
+    }
+
+    @Nested
+    class GetOrganizationLicense {
+
+        @Test
+        public void shouldReturnOrganizationLicenseWithFeatures() {
+            mockExistingOrganization(ORGANIZATION);
+
+            final License license = mock(License.class);
+            when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION)).thenReturn(license);
+            when(license.getTier()).thenReturn("universe");
+            when(license.getPacks()).thenReturn(Set.of("observability"));
+            when(license.getFeatures()).thenReturn(Set.of("apim-reporter-datadog"));
+
+            var response = rootTarget(ORGANIZATION).path("license").request().get();
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+
+            var graviteeLicense = response.readEntity(GraviteeLicense.class);
+            assertThat(graviteeLicense).isNotNull();
+            assertThat(graviteeLicense.getTier()).isEqualTo("universe");
+            assertThat(graviteeLicense.getPacks()).containsExactly("observability");
+            assertThat(graviteeLicense.getFeatures()).containsExactly("apim-reporter-datadog");
+        }
+
+        @Test
+        public void shouldReturn404IfOrganizationDoesNotExist() {
+            doThrow(new OrganizationNotFoundException(ORGANIZATION)).when(organizationService).findById(ORGANIZATION);
+
+            var response = rootTarget(ORGANIZATION).path("license").request().get();
+            assertThat(response.getStatus()).isEqualTo(HttpStatusCode.NOT_FOUND_404);
+        }
+    }
+
+    private void mockExistingOrganization(String orgId) {
         OrganizationEntity organizationEntity = new OrganizationEntity();
-        organizationEntity.setId(ORGANIZATION);
+        organizationEntity.setId(orgId);
         organizationEntity.setName("org-name");
         organizationEntity.setDescription("A nice description");
         organizationEntity.setCockpitId("cockpit-id");
         organizationEntity.setFlowMode(FlowMode.BEST_MATCH);
         organizationEntity.setHrids(List.of("one-hrid"));
 
-        doReturn(organizationEntity).when(organizationService).findById(eq(ORGANIZATION));
-
-        final Response response = rootTarget(ORGANIZATION).request().get();
-        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
-
-        var body = response.readEntity(Organization.class);
-        SoftAssertions.assertSoftly(soft -> {
-            soft.assertThat(body).isNotNull();
-            soft.assertThat(body.getId()).isEqualTo(ORGANIZATION);
-            soft.assertThat(body.getName()).isEqualTo("org-name");
-            soft.assertThat(body.getDescription()).isEqualTo("A nice description");
-        });
+        doReturn(organizationEntity).when(organizationService).findById(eq(orgId));
     }
 }
