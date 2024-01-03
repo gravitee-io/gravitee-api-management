@@ -16,9 +16,18 @@
 package io.gravitee.rest.api.management.v2.rest.resource.installation;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.node.api.license.License;
+import io.gravitee.node.api.license.LicenseManager;
+import io.gravitee.rest.api.management.v2.rest.mapper.GraviteeLicenseMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.OrganizationMapper;
+import io.gravitee.rest.api.management.v2.rest.model.GraviteeLicense;
 import io.gravitee.rest.api.management.v2.rest.model.Organization;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.v4.license.GraviteeLicenseEntity;
+import io.gravitee.rest.api.rest.annotation.Permission;
+import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.OrganizationService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
@@ -38,11 +47,30 @@ public class OrganizationResource extends AbstractResource {
     @Inject
     private OrganizationService organizationService;
 
+    @Inject
+    private LicenseManager licenseManager;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Organization get(@PathParam("orgId") String orgId) {
+    public Organization getOrganizationById(@PathParam("orgId") String orgId) {
         return OrganizationMapper.INSTANCE.map(organizationService.findById(orgId));
+    }
+
+    @GET
+    @Path("/license")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_INSTALLATION, acls = { RolePermissionAction.READ }) })
+    public GraviteeLicense getOrganizationLicense(@PathParam("orgId") String orgId) {
+        // Throw error if organization does not exist
+        organizationService.findById(orgId);
+
+        final License license = licenseManager.getOrganizationLicenseOrPlatform(orgId);
+
+        return GraviteeLicenseMapper.INSTANCE.map(
+            GraviteeLicenseEntity.builder().tier(license.getTier()).packs(license.getPacks()).features(license.getFeatures()).build()
+        );
     }
 
     @Path("/environments")
