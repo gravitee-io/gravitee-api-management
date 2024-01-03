@@ -176,7 +176,8 @@ export class ApiGeneralPlanListComponent implements OnInit, OnDestroy {
         width: '500px',
         data: {
           title: `Deprecate plan`,
-          content: `Would you like to deprecate the plan ${plan.name}?`,
+          content: `A deprecated plan is no longer available on the Developer Portal and new subscriptions to the plan cannot be created. Existing subscriptions are maintained.
+          <br /><br />Are you sure you want to deprecate the plan: ${plan.name}?`,
           confirmButton: `Deprecate`,
         },
         role: 'alertdialog',
