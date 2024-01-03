@@ -10,6 +10,7 @@ tests:
   - it: Set the Gateway Ingress Controller enabled
     chart:
       appVersion: 4.2.0
+      version: 4.2.0
     set:
       gateway:
         enabled: true
