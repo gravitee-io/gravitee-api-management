@@ -75,13 +75,13 @@
                 "output": "assets/monaco-editor"
               },
               {
-                "glob": "browser/asciidoctor.js",
-                "input": "node_modules/@asciidoctor/core/dist",
+                "glob": "asciidoctor.js",
+                "input": "node_modules/@asciidoctor/core/dist/browser",
                 "output": "assets/asciidoctor/"
               },
               {
-                "glob": "css/asciidoctor.css",
-                "input": "node_modules/@asciidoctor/core/dist",
+                "glob": "asciidoctor.css",
+                "input": "node_modules/@asciidoctor/core/dist/css",
                 "output": "assets/asciidoctor/"
               },
               {
