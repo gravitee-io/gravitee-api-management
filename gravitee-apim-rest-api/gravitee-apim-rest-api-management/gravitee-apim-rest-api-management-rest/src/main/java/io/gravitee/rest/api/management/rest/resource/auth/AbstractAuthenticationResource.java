@@ -43,7 +43,11 @@ import jakarta.ws.rs.core.Response;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -55,7 +59,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-abstract class AbstractAuthenticationResource {
+public abstract class AbstractAuthenticationResource {
 
     public static final String CLIENT_ID_KEY = "client_id", REDIRECT_URI_KEY = "redirect_uri", CLIENT_SECRET = "client_secret", CODE_KEY =
         "code", GRANT_TYPE_KEY = "grant_type", AUTH_CODE = "authorization_code", TOKEN = "token", STATE = "state";
@@ -107,6 +111,28 @@ abstract class AbstractAuthenticationResource {
         final String accessToken,
         final String idToken
     ) {
+        TokenEntity tokenEntity = generateToken(user, state, accessToken, idToken, null);
+
+        final Cookie bearerCookie = cookieGenerator.generate(
+            TokenAuthenticationFilter.AUTH_COOKIE_NAME,
+            "Bearer%20" + tokenEntity.getToken()
+        );
+        servletResponse.addCookie(bearerCookie);
+
+        return Response.ok(tokenEntity).build();
+    }
+
+    protected TokenEntity generateToken(final UserEntity user, final Integer expireAfter) {
+        return generateToken(user, null, null, null, expireAfter);
+    }
+
+    protected TokenEntity generateToken(
+        final UserEntity user,
+        final String state,
+        final String accessToken,
+        final String idToken,
+        final Integer expireAfter
+    ) {
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         final UserDetails userDetails = (UserDetails) authentication.getPrincipal();
@@ -130,14 +156,17 @@ abstract class AbstractAuthenticationResource {
                 authorities.add(Maps.<String, String>builder().put("authority", role.getScope().toString() + ':' + role.getName()).build())
             );
         }
-
         // JWT signer
         Algorithm algorithm = Algorithm.HMAC256(environment.getProperty("jwt.secret"));
 
         Date issueAt = new Date();
         Instant expireAt = issueAt
             .toInstant()
-            .plus(Duration.ofSeconds(environment.getProperty("jwt.expire-after", Integer.class, DEFAULT_JWT_EXPIRE_AFTER)));
+            .plus(
+                Duration.ofSeconds(
+                    expireAfter != null ? expireAfter : environment.getProperty("jwt.expire-after", Integer.class, DEFAULT_JWT_EXPIRE_AFTER)
+                )
+            );
 
         final String token = JWT
             .create()
@@ -164,11 +193,7 @@ abstract class AbstractAuthenticationResource {
         if (state != null && !state.isEmpty()) {
             tokenEntity.setState(state);
         }
-
-        final Cookie bearerCookie = cookieGenerator.generate(TokenAuthenticationFilter.AUTH_COOKIE_NAME, "Bearer%20" + token);
-        servletResponse.addCookie(bearerCookie);
-
-        return Response.ok(tokenEntity).build();
+        return tokenEntity;
     }
 
     public static class Payload {
