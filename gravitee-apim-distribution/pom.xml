@@ -1484,6 +1484,19 @@
                     </exclusions>
                 </dependency>
                 <dependency>
+                    <groupId>com.graviteesource.policy</groupId>
+                    <artifactId>gravitee-policy-graphql-rate-limit</artifactId>
+                    <version>${gravitee-policy-graphql-rate-limit.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
                     <groupId>io.gravitee.policy</groupId>
                     <artifactId>gravitee-policy-javascript</artifactId>
                     <version>${gravitee-policy-javascript.version}</version>
