@@ -71,4 +71,9 @@ public class NoOpManagementRepositoryConfiguration {
     public CommandRepository commandRepository() {
         return new NoOpCommandRepository();
     }
+
+    @Bean
+    public LicenseRepository licenseRepository() {
+        return new NoOpLicenseRepository();
+    }
 }
