@@ -110,6 +110,13 @@
         }
       };
     </script>
+
+    <script type="module">
+      // Load Asciidoctor by default to avoid some es6 error
+      // Try to remove it when ui-particle use angular 14+ and asciidoctor 3.x
+      import Asciidoctor from './assets/asciidoctor/asciidoctor.js';
+      window.Asciidoctor = Asciidoctor;
+    </script>
   </head>
 
   <body layout="column" class="mat mat-typography mat-app-background">
