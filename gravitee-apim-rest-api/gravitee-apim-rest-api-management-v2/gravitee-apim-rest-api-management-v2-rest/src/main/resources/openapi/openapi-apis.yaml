@@ -536,7 +536,7 @@ paths:
             summary: Duplicate an API
             description: |-
                 Create a new API from an existing one.
-
+                Context-path is required for HTTP APIs and host is required for TCP APIs. If one of these fields is missing, then it returns a 400 Bad Request.
                 User must have at least the API_DEFINITION[READ] and ENVIRONMENT_API[CREATE] permissions.
             operationId: duplicateApi
             requestBody:
@@ -2301,7 +2301,10 @@ components:
             properties:
                 contextPath:
                     type: string
-                    description: The context path of the duplicated API.
+                    description: The context path of the duplicated API (required for HTTP APIs).
+                host:
+                    type: string
+                    description: The host of the duplicated API (required for TCP APIs).
                 version:
                     type: string
                     description: The version of the duplicated API. If it is not defined, the value of the source API is used.
@@ -2317,7 +2320,6 @@ components:
                             - PAGES
                     uniqueItems: true
             required:
-                - contextPath
                 - filteredFields
 
         ExportApiV4:

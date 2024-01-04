@@ -30,6 +30,7 @@ import lombok.With;
 public class DuplicateOptions {
 
     private String contextPath;
+    private String host;
     private String version;
 
     private List<FilteredFieldsEnum> filteredFields;

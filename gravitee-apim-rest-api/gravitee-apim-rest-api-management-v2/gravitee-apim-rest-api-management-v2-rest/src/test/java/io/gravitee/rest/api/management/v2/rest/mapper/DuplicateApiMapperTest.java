@@ -80,4 +80,34 @@ public class DuplicateApiMapperTest {
                 DuplicateOptions.FilteredFieldsEnum.PAGES
             );
     }
+
+    @Test
+    void should_map_to_DuplicateOptions_with_host() {
+        var duplicateApi = DuplicateApiOptions
+            .builder()
+            .host("host.gravitee.io")
+            .version("1.0")
+            .filteredFields(
+                Set.of(
+                    DuplicateApiOptions.FilteredFieldsEnum.GROUPS,
+                    DuplicateApiOptions.FilteredFieldsEnum.PAGES,
+                    DuplicateApiOptions.FilteredFieldsEnum.PLANS,
+                    DuplicateApiOptions.FilteredFieldsEnum.MEMBERS
+                )
+            )
+            .build();
+
+        DuplicateOptions result = mapper.map(duplicateApi);
+
+        assertThat(result.getHost()).isEqualTo("host.gravitee.io");
+        assertThat(result.getVersion()).isEqualTo("1.0");
+        assertThat(result.getFilteredFields())
+            .hasSize(4)
+            .contains(
+                DuplicateOptions.FilteredFieldsEnum.MEMBERS,
+                DuplicateOptions.FilteredFieldsEnum.PLANS,
+                DuplicateOptions.FilteredFieldsEnum.GROUPS,
+                DuplicateOptions.FilteredFieldsEnum.PAGES
+            );
+    }
 }

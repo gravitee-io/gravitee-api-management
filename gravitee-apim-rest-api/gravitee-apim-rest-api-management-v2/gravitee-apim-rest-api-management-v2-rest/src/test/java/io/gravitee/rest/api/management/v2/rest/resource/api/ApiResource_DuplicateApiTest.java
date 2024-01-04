@@ -34,6 +34,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.ApiDuplicateException;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
@@ -42,7 +43,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
-public class ApiResource_DuplicateApiTest extends ApiResourceTest {
+class ApiResource_DuplicateApiTest extends ApiResourceTest {
 
     @Override
     protected String contextPath() {
@@ -50,7 +51,7 @@ public class ApiResource_DuplicateApiTest extends ApiResourceTest {
     }
 
     @Test
-    public void should_return_404_if_not_found() {
+    void should_return_404_if_not_found() {
         when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenThrow(new ApiNotFoundException(API));
 
         final Response response = rootTarget().request().post(Entity.json(aDuplicateApiOptions()));
@@ -72,7 +73,7 @@ public class ApiResource_DuplicateApiTest extends ApiResourceTest {
         false                  |  true
      """
     )
-    public void should_return_403_if_incorrect_permissions(boolean apiDefinitionRead, boolean currentEnvironmentApiCreate) {
+    void should_return_403_if_incorrect_permissions(boolean apiDefinitionRead, boolean currentEnvironmentApiCreate) {
         when(
             permissionService.hasPermission(
                 eq(GraviteeContext.getExecutionContext()),
@@ -100,7 +101,7 @@ public class ApiResource_DuplicateApiTest extends ApiResourceTest {
     }
 
     @Test
-    public void should_return_400_when_duplicate_v1_api() {
+    void should_return_400_when_duplicate_v1_api() {
         var apiEntity = ApiFixtures.aModelApiV1().toBuilder().id(API).build();
         when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(apiEntity);
 
@@ -113,7 +114,30 @@ public class ApiResource_DuplicateApiTest extends ApiResourceTest {
     }
 
     @Test
-    public void should_duplicate_v4_api() {
+    void should_return_400_when_duplicate_exception_is_thrown() {
+        var apiEntity = ApiFixtures.aModelApiV4().toBuilder().id(API).build();
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(apiEntity);
+
+        var duplicateOptions = aDuplicateApiOptions();
+        when(
+            apiDuplicateService.duplicate(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(apiEntity),
+                eq(DuplicateApiMapper.INSTANCE.map(duplicateOptions))
+            )
+        )
+            .thenThrow(new ApiDuplicateException("duplication exception message"));
+
+        final Response response = rootTarget().request().post(Entity.json(aDuplicateApiOptions()));
+        assertThat(response.getStatus()).isEqualTo(BAD_REQUEST_400);
+
+        var error = response.readEntity(Error.class);
+        assertThat(error.getHttpStatus()).isEqualTo(BAD_REQUEST_400);
+        assertThat(error.getMessage()).isEqualTo("duplication exception message");
+    }
+
+    @Test
+    void should_duplicate_v4_api() {
         ApiEntity apiEntity = ApiFixtures.aModelApiV4().toBuilder().id(API).build();
         when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(apiEntity);
 
@@ -137,7 +161,7 @@ public class ApiResource_DuplicateApiTest extends ApiResourceTest {
     }
 
     @Test
-    public void should_duplicate_v2_api() {
+    void should_duplicate_v2_api() {
         io.gravitee.rest.api.model.api.ApiEntity apiEntity = ApiFixtures.aModelApiV2().toBuilder().id(API).build();
         when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(apiEntity);
 

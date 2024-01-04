@@ -25,6 +25,7 @@ import static io.gravitee.rest.api.model.v4.api.DuplicateOptions.FilteredFieldsE
 import static io.gravitee.rest.api.model.v4.api.DuplicateOptions.FilteredFieldsEnum.PLANS;
 import static java.util.Map.entry;
 import static java.util.stream.Collectors.toSet;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
@@ -33,9 +34,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import fixtures.ListenerModelFixtures;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
+import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
@@ -45,6 +48,7 @@ import io.gravitee.rest.api.service.MembershipDuplicateService;
 import io.gravitee.rest.api.service.PageDuplicateService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
+import io.gravitee.rest.api.service.exceptions.ApiDuplicateException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.ApiService;
 import io.gravitee.rest.api.service.v4.PlanService;
@@ -56,6 +60,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -147,6 +152,99 @@ public class ApiDuplicateServiceImplTest {
         GraviteeContext.cleanContext();
     }
 
+    @Nested
+    class HttpListenerApi {
+
+        @Test
+        void should_throw_if_no_context_path() {
+            assertThatThrownBy(() ->
+                    service.duplicate(GraviteeContext.getExecutionContext(), sourceApi, duplicateOptions.withContextPath(null))
+                )
+                .isInstanceOf(ApiDuplicateException.class)
+                .hasMessage("Cannot find a context-path for HTTP Listener");
+        }
+
+        @Test
+        void should_override_http_listener_path() {
+            ApiEntity duplicated = service.duplicate(
+                GraviteeContext.getExecutionContext(),
+                sourceApi,
+                duplicateOptions.withContextPath("/new-path")
+            );
+
+            var sourceHttpListener = sourceApi
+                .getListeners()
+                .stream()
+                .filter(l -> l instanceof HttpListener)
+                .findFirst()
+                .map(l -> (HttpListener) l);
+            var duplicatedHttpListener = duplicated
+                .getListeners()
+                .stream()
+                .filter(l -> l instanceof HttpListener)
+                .findFirst()
+                .map(l -> (HttpListener) l);
+
+            assertThat(duplicatedHttpListener)
+                .isNotEmpty()
+                .get()
+                .extracting(HttpListener::getPaths, Listener::getEntrypoints, Listener::getServers)
+                .contains(
+                    List.of(Path.builder().path("/new-path").build()),
+                    sourceHttpListener.map(Listener::getEntrypoints).orElse(null),
+                    sourceHttpListener.map(Listener::getServers).orElse(null)
+                );
+        }
+    }
+
+    @Nested
+    class TcpListenerApi {
+
+        @BeforeEach
+        void setTcpListener() {
+            sourceApi = sourceApi.withListeners(List.of(ListenerModelFixtures.aModelTcpListener()));
+        }
+
+        @Test
+        void should_throw_if_no_host() {
+            assertThatThrownBy(() -> service.duplicate(GraviteeContext.getExecutionContext(), sourceApi, duplicateOptions.withHost(null)))
+                .isInstanceOf(ApiDuplicateException.class)
+                .hasMessage("Cannot find a host for TCP Listener");
+        }
+
+        @Test
+        void should_override_http_listener_path() {
+            ApiEntity duplicated = service.duplicate(
+                GraviteeContext.getExecutionContext(),
+                sourceApi,
+                duplicateOptions.withHost("new-host")
+            );
+
+            var sourceTcpListener = sourceApi
+                .getListeners()
+                .stream()
+                .filter(l -> l instanceof TcpListener)
+                .findFirst()
+                .map(l -> (TcpListener) l);
+            var duplicatedTcpListener = duplicated
+                .getListeners()
+                .stream()
+                .filter(l -> l instanceof TcpListener)
+                .findFirst()
+                .map(l -> (TcpListener) l);
+
+            assertThat(duplicatedTcpListener)
+                .isNotEmpty()
+                .get()
+                .extracting(TcpListener::getHosts, Listener::getEntrypoints, Listener::getServers)
+                .contains(
+                    List.of("new-host"),
+                    sourceTcpListener.map(Listener::getEntrypoints).orElse(null),
+                    sourceTcpListener.map(Listener::getServers).orElse(null)
+                );
+        }
+    }
+
     @Test
     void should_create_a_new_api_and_keep_the_config() {
         ApiEntity duplicated = service.duplicate(
@@ -185,38 +283,6 @@ public class ApiDuplicateServiceImplTest {
             .hasBackgroundUrl(sourceApi.getBackgroundUrl())
             .hasLifecycleState(sourceApi.getLifecycleState())
             .hasWorkflowState(sourceApi.getWorkflowState());
-    }
-
-    @Test
-    void should_override_http_listener_path() {
-        ApiEntity duplicated = service.duplicate(
-            GraviteeContext.getExecutionContext(),
-            sourceApi,
-            duplicateOptions.withContextPath("/new-path")
-        );
-
-        var sourceHttpListener = sourceApi
-            .getListeners()
-            .stream()
-            .filter(l -> l instanceof HttpListener)
-            .findFirst()
-            .map(l -> (HttpListener) l);
-        var duplicatedHttpListener = duplicated
-            .getListeners()
-            .stream()
-            .filter(l -> l instanceof HttpListener)
-            .findFirst()
-            .map(l -> (HttpListener) l);
-
-        assertThat(duplicatedHttpListener)
-            .isNotEmpty()
-            .get()
-            .extracting(HttpListener::getPaths, Listener::getEntrypoints, Listener::getServers)
-            .contains(
-                List.of(Path.builder().path("/new-path").build()),
-                sourceHttpListener.map(Listener::getEntrypoints).orElse(null),
-                sourceHttpListener.map(Listener::getServers).orElse(null)
-            );
     }
 
     @Test

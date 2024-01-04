@@ -19,6 +19,7 @@ import static java.util.Objects.requireNonNull;
 
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
+import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.DuplicateOptions;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
@@ -26,6 +27,7 @@ import io.gravitee.rest.api.service.MembershipDuplicateService;
 import io.gravitee.rest.api.service.PageDuplicateService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
+import io.gravitee.rest.api.service.exceptions.ApiDuplicateException;
 import io.gravitee.rest.api.service.impl.AbstractService;
 import io.gravitee.rest.api.service.v4.ApiDuplicateService;
 import io.gravitee.rest.api.service.v4.ApiService;
@@ -70,10 +72,17 @@ public class ApiDuplicateServiceImpl extends AbstractService implements ApiDupli
             .getListeners()
             .stream()
             .map(l -> {
-                if (l instanceof HttpListener) {
-                    return ((HttpListener) l).toBuilder()
-                        .paths(List.of(Path.builder().path(duplicateOptions.getContextPath()).build()))
-                        .build();
+                if (l instanceof HttpListener httpListener) {
+                    if (duplicateOptions.getContextPath() == null) {
+                        throw new ApiDuplicateException("Cannot find a context-path for HTTP Listener");
+                    }
+                    return httpListener.toBuilder().paths(List.of(Path.builder().path(duplicateOptions.getContextPath()).build())).build();
+                }
+                if (l instanceof TcpListener tcpListener) {
+                    if (duplicateOptions.getHost() == null) {
+                        throw new ApiDuplicateException("Cannot find a host for TCP Listener");
+                    }
+                    return tcpListener.toBuilder().hosts(List.of(duplicateOptions.getHost())).build();
                 }
                 return l;
             })
