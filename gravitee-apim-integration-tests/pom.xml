@@ -273,6 +273,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>com.graviteesource.policy</groupId>
+            <artifactId>gravitee-policy-graphql-rate-limit</artifactId>
+            <version>${gravitee-policy-graphql-rate-limit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>io.gravitee.policy</groupId>
             <artifactId>gravitee-policy-groovy</artifactId>
             <version>${gravitee-policy-groovy.version}</version>
