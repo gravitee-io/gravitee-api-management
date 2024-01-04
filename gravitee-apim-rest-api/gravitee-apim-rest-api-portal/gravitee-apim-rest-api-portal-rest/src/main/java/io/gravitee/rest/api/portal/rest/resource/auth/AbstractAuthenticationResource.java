@@ -43,6 +43,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
+import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.security.core.Authentication;
@@ -90,6 +91,10 @@ abstract class AbstractAuthenticationResource {
         return MAPPER.readValue(response, new TypeReference<Map<String, Object>>() {});
     }
 
+    protected void connectUser(String userId, final HttpServletResponse servletResponse) {
+        this.connectUser(userId, null, servletResponse, null, null);
+    }
+
     protected Response connectUser(
         String userId,
         final String state,
@@ -97,6 +102,16 @@ abstract class AbstractAuthenticationResource {
         final String accessToken,
         final String idToken
     ) {
+        Token token = generateToken(userId, state, accessToken, idToken);
+
+        final Cookie bearerCookie = cookieGenerator.generate("Bearer%20" + token.getToken());
+        servletResponse.addCookie(bearerCookie);
+
+        return Response.ok(token).build();
+    }
+
+    @NonNull
+    private Token generateToken(final String userId, final String state, final String accessToken, final String idToken) {
         UserEntity user = userService.connect(GraviteeContext.getExecutionContext(), userId);
 
         final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -156,10 +171,6 @@ abstract class AbstractAuthenticationResource {
         if (state != null && !state.isEmpty()) {
             tokenEntity.setState(state);
         }
-
-        final Cookie bearerCookie = cookieGenerator.generate("Bearer%20" + sign);
-        servletResponse.addCookie(bearerCookie);
-
-        return Response.ok(tokenEntity).build();
+        return tokenEntity;
     }
 }
