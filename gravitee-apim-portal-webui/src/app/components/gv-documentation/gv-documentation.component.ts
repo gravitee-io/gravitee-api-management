@@ -38,7 +38,9 @@ export class GvDocumentationComponent implements OnInit, AfterViewInit {
   @Input()
   pageBaseUrl: string;
   @Input() set pages(pages: Page[]) {
-    clearTimeout(this.loadingTimer);
+    if (pages === undefined) {
+      return;
+    }
     if (pages && pages.length) {
       if (this._pages !== pages) {
         this._pages = pages;
@@ -62,9 +64,7 @@ export class GvDocumentationComponent implements OnInit, AfterViewInit {
         }
       }
     }
-    this.loadingTimer = setTimeout(() => {
-      this.isLoaded = true;
-    }, 700);
+    this.isLoaded = true;
   }
 
   constructor(private notificationService: NotificationService, private route: ActivatedRoute, private router: Router) {}
@@ -196,7 +196,7 @@ export class GvDocumentationComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit(): void {
     setTimeout(() => {
-      GvDocumentationComponent.reset(this.treeMenu.nativeElement);
+      GvDocumentationComponent.reset(this.treeMenu?.nativeElement);
     }, 0);
   }
 
