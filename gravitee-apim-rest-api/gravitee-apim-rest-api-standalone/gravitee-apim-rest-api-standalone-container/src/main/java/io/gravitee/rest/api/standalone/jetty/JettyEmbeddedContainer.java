@@ -27,15 +27,15 @@ import jakarta.servlet.DispatcherType;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Objects;
+import org.eclipse.jetty.ee10.servlet.FilterHolder;
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee10.servlet.ServletHolder;
+import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
-import org.eclipse.jetty.servlet.FilterHolder;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -52,8 +52,7 @@ import org.springframework.web.filter.DelegatingFilterProxy;
  */
 public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<JettyEmbeddedContainer> implements ApplicationContextAware {
 
-    @Autowired
-    private JettyServerFactory jettyServerFactory;
+    private final JettyServerFactory jettyServerFactory;
 
     private Server server;
     private ApplicationContext applicationContext;
@@ -70,14 +69,18 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
     @Value("${http.api.portal.entrypoint:${http.api.entrypoint:/}portal}")
     private String portalEntrypoint;
 
+    public JettyEmbeddedContainer(JettyServerFactory jettyServerFactory) {
+        this.jettyServerFactory = jettyServerFactory;
+    }
+
     @Override
     protected void doStart() throws Exception {
-        server = jettyServerFactory.getObject();
+        server = Objects.requireNonNull(jettyServerFactory.getObject());
 
-        AbstractHandler noContentHandler = new NoContentOutputErrorHandler();
+        Request.Handler noContentHandler = new NoContentOutputErrorHandler();
         // This part is needed to avoid WARN while starting container.
-        noContentHandler.setServer(server);
-        server.addBean(noContentHandler);
+
+        server.setErrorHandler(noContentHandler);
 
         // Spring configuration
         System.setProperty(AbstractEnvironment.ACTIVE_PROFILES_PROPERTY_NAME, "basic");
@@ -116,18 +119,18 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
             throw new IllegalStateException("At least one API should be enabled");
         }
 
-        server.setHandler(new ContextHandlerCollection(contexts.toArray(new ServletContextHandler[contexts.size()])));
+        server.setHandler(new ContextHandlerCollection(contexts.toArray(new ServletContextHandler[0])));
 
         // start the server
         server.start();
     }
 
-    protected ServletContextHandler configureAPI(
+    private ServletContextHandler configureAPI(
         String apiContextPath,
         String applicationName,
         Class<? extends GlobalAuthenticationConfigurerAdapter> securityConfigurationClass
     ) {
-        final ServletContextHandler childContext = new ServletContextHandler(server, apiContextPath, ServletContextHandler.SESSIONS);
+        final ServletContextHandler childContext = new ServletContextHandler(apiContextPath, ServletContextHandler.SESSIONS);
 
         final ServletHolder servletHolder = new ServletHolder(ServletContainer.class);
         servletHolder.setInitParameter("jakarta.ws.rs.Application", applicationName);

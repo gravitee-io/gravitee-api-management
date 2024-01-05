@@ -27,6 +27,7 @@ import io.gravitee.node.api.cache.CacheManager;
 import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.node.container.NodeFactory;
+import io.gravitee.node.monitoring.spring.NodeMonitoringConfiguration;
 import io.gravitee.node.plugin.cache.standalone.StandaloneCacheManager;
 import io.gravitee.node.plugin.cluster.standalone.StandaloneClusterManager;
 import io.gravitee.reporter.api.Reporter;
@@ -66,6 +67,7 @@ public class GatewayTestContainer extends GatewayContainer {
     protected List<Class<?>> annotatedClasses() {
         List<Class<?>> classes = super.annotatedClasses();
         classes.add(GatewayTestConfiguration.class);
+        classes.remove(NodeMonitoringConfiguration.class);
         return classes;
     }
 

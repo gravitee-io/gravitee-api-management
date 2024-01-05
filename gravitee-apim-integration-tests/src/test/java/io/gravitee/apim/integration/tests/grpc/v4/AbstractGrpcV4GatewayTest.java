@@ -29,7 +29,9 @@ import java.util.Map;
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class AbstractGrpcV4GatewayTest extends AbstractGrpcGatewayTest {
+public abstract class AbstractGrpcV4GatewayTest extends AbstractGrpcGatewayTest {
+
+    protected static final long STREAM_SLEEP_MILLIS = 10;
 
     @Override
     protected void configureGateway(GatewayConfigurationBuilder gatewayConfigurationBuilder) {

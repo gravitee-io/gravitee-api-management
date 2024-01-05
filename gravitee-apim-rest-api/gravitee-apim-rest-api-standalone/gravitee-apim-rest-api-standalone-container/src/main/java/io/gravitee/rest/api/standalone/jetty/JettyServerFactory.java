@@ -24,7 +24,6 @@ import org.eclipse.jetty.server.handler.StatisticsHandler;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.springframework.beans.factory.FactoryBean;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -35,8 +34,11 @@ public class JettyServerFactory implements FactoryBean<Server> {
     private static final String KEYSTORE_TYPE_PKCS12 = "pkcs12";
     private static final String KEYSTORE_TYPE_JKS = "jks";
 
-    @Autowired
-    private JettyConfiguration jettyConfiguration;
+    private final JettyConfiguration jettyConfiguration;
+
+    public JettyServerFactory(JettyConfiguration jettyConfiguration) {
+        this.jettyConfiguration = jettyConfiguration;
+    }
 
     @Override
     public Server getObject() throws Exception {
@@ -45,7 +47,7 @@ public class JettyServerFactory implements FactoryBean<Server> {
             jettyConfiguration.getPoolMaxThreads(),
             jettyConfiguration.getPoolMinThreads(),
             jettyConfiguration.getPoolIdleTimeout(),
-            new ArrayBlockingQueue<Runnable>(jettyConfiguration.getPoolQueueSize())
+            new ArrayBlockingQueue<>(jettyConfiguration.getPoolQueueSize())
         );
         threadPool.setName("gravitee-listener");
 

@@ -38,8 +38,7 @@
             But "You can use newer server versions unless your application uses functionality that is affected by changes in the MongoDB server"
             Meaning that we can use mongo server 6.0.x if we use basic functionalities.
         -->
-        <mongo.version>4.6.1</mongo.version>
-        <spring.data.mongodb.version>3.4.18</spring.data.mongodb.version>
+        <mongo.version>4.11.1</mongo.version>
         <jna.version>5.11.0</jna.version>
     </properties>
 
@@ -123,13 +122,6 @@
         <dependency>
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-mongodb</artifactId>
-            <version>${spring.data.mongodb.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>io.projectreactor</groupId>

@@ -56,13 +56,13 @@ public class StandaloneConfiguration {
     }
 
     @Bean
-    public JettyServerFactory server() {
-        return new JettyServerFactory();
+    public JettyServerFactory server(JettyConfiguration jettyConfiguration) {
+        return new JettyServerFactory(jettyConfiguration);
     }
 
     @Bean
-    public JettyEmbeddedContainer container() {
-        return new JettyEmbeddedContainer();
+    public JettyEmbeddedContainer container(JettyServerFactory jettyServerFactory) {
+        return new JettyEmbeddedContainer(jettyServerFactory);
     }
 
     @Bean

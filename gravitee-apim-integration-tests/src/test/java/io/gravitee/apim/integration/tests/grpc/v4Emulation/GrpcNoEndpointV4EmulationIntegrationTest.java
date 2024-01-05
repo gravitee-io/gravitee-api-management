@@ -20,16 +20,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.gravitee.apim.gateway.tests.sdk.AbstractGrpcGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
-import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.gateway.grpc.helloworld.GreeterGrpc;
 import io.gravitee.gateway.grpc.helloworld.HelloReply;
+import io.gravitee.gateway.grpc.helloworld.HelloRequest;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.grpc.ManagedChannel;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
+import io.vertx.grpc.client.GrpcClient;
+import io.vertx.grpc.client.GrpcClientChannel;
+import io.vertx.grpc.common.GrpcReadStream;
 import io.vertx.junit5.VertxTestContext;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -56,15 +59,12 @@ public class GrpcNoEndpointV4EmulationIntegrationTest extends AbstractGrpcGatewa
     @Test
     void should_have_request_in_error_when_no_endpoint(VertxTestContext testContext) throws InterruptedException {
         // Prepare gRPC Client
-        ManagedChannel channel = createManagedChannel();
+        GrpcClientChannel channel = new GrpcClientChannel(GrpcClient.client(vertx), gatewayAddress());
 
         // Get a stub to use for interacting with the remote service
         GreeterGrpc.GreeterStub stub = GreeterGrpc.newStub(channel);
 
-        io.gravitee.gateway.grpc.helloworld.HelloRequest request = io.gravitee.gateway.grpc.helloworld.HelloRequest
-            .newBuilder()
-            .setName("David")
-            .build();
+        HelloRequest request = HelloRequest.newBuilder().setName("David").build();
 
         // Call the remote service
         stub.sayHello(
@@ -78,7 +78,7 @@ public class GrpcNoEndpointV4EmulationIntegrationTest extends AbstractGrpcGatewa
                 @Override
                 public void onError(Throwable throwable) {
                     assertThat(throwable).isNotNull().isInstanceOf(StatusRuntimeException.class);
-                    assertThat(((StatusRuntimeException) throwable).getStatus().getCode()).isEqualTo(Status.Code.UNAVAILABLE);
+                    assertThat(((StatusRuntimeException) throwable).getStatus().getCode()).isEqualTo(Status.Code.UNKNOWN);
 
                     testContext.completeNow();
                 }

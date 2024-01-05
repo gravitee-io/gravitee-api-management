@@ -19,6 +19,7 @@ import io.gravitee.common.component.LifecycleComponent;
 import io.gravitee.gateway.report.impl.NodeMonitoringReporterService;
 import io.gravitee.gateway.standalone.node.GatewayNode;
 import io.gravitee.node.management.http.ManagementService;
+import io.gravitee.node.monitoring.handler.NodeMonitoringEventHandler;
 import io.gravitee.node.monitoring.healthcheck.NodeHealthCheckService;
 import io.gravitee.node.monitoring.infos.NodeInfosService;
 import io.gravitee.node.monitoring.monitor.NodeMonitorService;
@@ -46,6 +47,7 @@ public class GatewayTestNode extends GatewayNode {
         components.remove(NodeHealthCheckService.class);
         components.remove(NodeInfosService.class);
         components.remove(NodeMonitorService.class);
+        components.remove(NodeMonitoringEventHandler.class);
 
         return components;
     }

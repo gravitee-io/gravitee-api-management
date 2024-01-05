@@ -49,6 +49,7 @@ import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.impl.future.PromiseImpl;
 import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -99,7 +100,7 @@ class DebugEventCompletionProcessorTest {
                 return null;
             })
             .when(vertx)
-            .executeBlocking(any(), any());
+            .executeBlocking(any(Handler.class), any());
 
         io.gravitee.definition.model.debug.DebugApi definition = new io.gravitee.definition.model.debug.DebugApi();
         definition.setPlans(
@@ -283,7 +284,7 @@ class DebugEventCompletionProcessorTest {
             .filter(plan -> PlanStatus.CLOSED.getLabel().equalsIgnoreCase(plan.getStatus()))
             .collect(Collectors.toList());
 
-        assertEquals(unexpectedPlans.size(), 0);
+        assertEquals(0, unexpectedPlans.size());
     }
 
     private VertxHttpServerResponseDebugDecorator getDebugResponse() {

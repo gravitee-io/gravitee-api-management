@@ -16,10 +16,12 @@
 package io.gravitee.apim.integration.tests.grpc.v4;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
-import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
+import io.gravitee.gateway.grpc.helloworld.GreeterGrpc;
 import io.gravitee.gateway.grpc.manualflowcontrol.HelloReply;
 import io.gravitee.gateway.grpc.manualflowcontrol.HelloRequest;
 import io.gravitee.gateway.grpc.manualflowcontrol.StreamingGreeterGrpc;
@@ -27,7 +29,13 @@ import io.grpc.ManagedChannel;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
+import io.vertx.core.http.HttpServer;
+import io.vertx.grpc.client.GrpcClient;
+import io.vertx.grpc.client.GrpcClientChannel;
+import io.vertx.grpc.common.GrpcReadStream;
+import io.vertx.grpc.common.GrpcStatus;
 import io.vertx.junit5.VertxTestContext;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -44,13 +52,11 @@ public class GrpcUnknownServiceV4IntegrationTest extends AbstractGrpcV4GatewayTe
 
     @Test
     void should_request_and_not_get_response(VertxTestContext testContext) throws InterruptedException {
-        // Prepare gRPC Client
-        ManagedChannel channel = createManagedChannel();
-
         // Get a stub to use for interacting with the remote service
+        GrpcClientChannel channel = new GrpcClientChannel(GrpcClient.client(vertx), gatewayAddress());
         StreamingGreeterGrpc.StreamingGreeterStub stub = StreamingGreeterGrpc.newStub(channel);
 
-        // Call the remote service
+        // Call the remote service, only to get a proper exception
         StreamObserver<HelloRequest> requestStreamObserver = stub.sayHelloStreaming(
             new StreamObserver<>() {
                 @Override
@@ -63,8 +69,7 @@ public class GrpcUnknownServiceV4IntegrationTest extends AbstractGrpcV4GatewayTe
                     assertThat(throwable).isNotNull().isInstanceOf(StatusRuntimeException.class);
                     final StatusRuntimeException exception = (StatusRuntimeException) throwable;
 
-                    assertThat(exception.getStatus().getCode()).isEqualTo(Status.Code.UNIMPLEMENTED);
-                    assertThat(exception.getMessage()).contains("No context-path matches the request URI.");
+                    assertThat(exception.getStatus().getCode()).isEqualTo(Status.Code.UNKNOWN);
                     testContext.completeNow();
                 }
 

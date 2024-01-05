@@ -66,44 +66,51 @@ public class JsonPatchServiceImpl extends AbstractService implements JsonPatchSe
         }
     }
 
-    private Object transform(Collection<JsonPatch> jsonPatches, Object apiDefinitionToUpdate) {
+    private Object transform(Collection<JsonPatch> jsonPatches, final Object apiDefinitionToUpdate) {
+        Object currentUpdate = apiDefinitionToUpdate;
         for (JsonPatch jsonPatch : jsonPatches) {
-            apiDefinitionToUpdate = this.execute(apiDefinitionToUpdate, jsonPatch);
+            currentUpdate = this.execute(currentUpdate, jsonPatch);
         }
-        return apiDefinitionToUpdate;
+        return currentUpdate;
     }
 
-    private Object execute(Object jsonObject, JsonPatch jsonPatch) {
-        String jsonPath = jsonPatch.getJsonPath();
-        checkSafe(jsonPath);
-        Object value = jsonPatch.getValue();
-        checkSafe(value);
+    private Object execute(final Object jsonObject, final JsonPatch jsonPatch) {
+        try {
+            String jsonPath = jsonPatch.getJsonPath();
+            checkSafe(jsonPath);
+            Object value = jsonPatch.getValue();
+            checkSafe(value);
 
-        DocumentContext parse = JsonPath.parse(jsonObject);
-        Object json = parse.json();
+            DocumentContext parse = JsonPath.parse(jsonObject);
+            Object json = parse.json();
 
-        JsonPath compile = JsonPath.compile(jsonPath);
-        if (JsonPatch.Operation.REPLACE.equals(jsonPatch.getOperation())) {
-            return compile.set(json, value, CONFIGURATION);
-        } else if (JsonPatch.Operation.ADD.equals(jsonPatch.getOperation())) {
-            return compile.add(json, value, CONFIGURATION);
-        } else if (JsonPatch.Operation.REMOVE.equals(jsonPatch.getOperation())) {
-            return compile.delete(json, CONFIGURATION);
-        } else if (JsonPatch.Operation.TEST.equals(jsonPatch.getOperation())) {
-            Object read = compile.read(json, TEST_CONFIGURATION);
-            if (!(read == null && "null".equals(value) || read != null && read.equals(value))) {
-                throw new JsonPatchTestFailedException(jsonPatch);
+            JsonPath compile = JsonPath.compile(jsonPath);
+            if (JsonPatch.Operation.REPLACE.equals(jsonPatch.getOperation())) {
+                return compile.set(json, value, CONFIGURATION);
+            } else if (JsonPatch.Operation.ADD.equals(jsonPatch.getOperation())) {
+                return compile.add(json, value, CONFIGURATION);
+            } else if (JsonPatch.Operation.REMOVE.equals(jsonPatch.getOperation())) {
+                return compile.delete(json, CONFIGURATION);
+            } else if (JsonPatch.Operation.TEST.equals(jsonPatch.getOperation())) {
+                Object read = compile.read(json, TEST_CONFIGURATION);
+                if (!(read == null && "null".equals(value) || read != null && read.equals(value))) {
+                    throw new JsonPatchTestFailedException(jsonPatch);
+                }
             }
+            return json;
+        } catch (PathNotFoundException e) {
+            // if the path is not found then we ignore this patch
+            // (default behaviour prior to migrate from json-patch 2.6->2.9)
+            return jsonObject;
         }
-        return json;
     }
 
     private void checkSafe(Object value) {
-        if (value instanceof Map) {
-            ((Map) value).keySet().forEach(this::checkSafe);
-            ((Map) value).values().forEach(this::checkSafe);
-        } else if (value instanceof List) {
-            ((List) value).forEach(this::checkSafe);
+        if (value instanceof Map<?, ?> map) {
+            map.keySet().forEach(this::checkSafe);
+            map.values().forEach(this::checkSafe);
+        } else if (value instanceof List<?> list) {
+            list.forEach(this::checkSafe);
         } else if (value != null) {
             HtmlSanitizer.SanitizeInfos sanitizeInfos = HtmlSanitizer.isSafe(value.toString());
             if (!sanitizeInfos.isSafe()) {

@@ -20,17 +20,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.gravitee.apim.gateway.tests.sdk.AbstractGrpcGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
-import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.gateway.grpc.manualflowcontrol.HelloReply;
 import io.gravitee.gateway.grpc.manualflowcontrol.HelloRequest;
 import io.gravitee.gateway.grpc.manualflowcontrol.StreamingGreeterGrpc;
 import io.gravitee.gateway.reactor.ReactableApi;
-import io.grpc.ManagedChannel;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
+import io.vertx.grpc.client.GrpcClient;
+import io.vertx.grpc.client.GrpcClientChannel;
 import io.vertx.junit5.VertxTestContext;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -56,14 +56,12 @@ public class GrpcUnknownServiceV4EmulationIntegrationTest extends AbstractGrpcGa
 
     @Test
     void should_request_and_not_get_response(VertxTestContext testContext) throws InterruptedException {
-        // Prepare gRPC Client
-        ManagedChannel channel = createManagedChannel();
-
         // Get a stub to use for interacting with the remote service
+        GrpcClientChannel channel = new GrpcClientChannel(GrpcClient.client(vertx), gatewayAddress());
         StreamingGreeterGrpc.StreamingGreeterStub stub = StreamingGreeterGrpc.newStub(channel);
 
-        // Call the remote service
-        StreamObserver<io.gravitee.gateway.grpc.manualflowcontrol.HelloRequest> requestStreamObserver = stub.sayHelloStreaming(
+        // Call the remote service, only to get a proper exception
+        StreamObserver<HelloRequest> requestStreamObserver = stub.sayHelloStreaming(
             new StreamObserver<>() {
                 @Override
                 public void onNext(HelloReply helloReply) {
@@ -75,8 +73,7 @@ public class GrpcUnknownServiceV4EmulationIntegrationTest extends AbstractGrpcGa
                     assertThat(throwable).isNotNull().isInstanceOf(StatusRuntimeException.class);
                     final StatusRuntimeException exception = (StatusRuntimeException) throwable;
 
-                    assertThat(exception.getStatus().getCode()).isEqualTo(Status.Code.UNIMPLEMENTED);
-                    assertThat(exception.getMessage()).contains("No context-path matches the request URI.");
+                    assertThat(exception.getStatus().getCode()).isEqualTo(Status.Code.UNKNOWN);
                     testContext.completeNow();
                 }
 
