@@ -387,7 +387,7 @@ public class ApiResource extends AbstractResource {
 
         GenericApiEntity genericApiEntity = getGenericApiEntityById(apiId, false);
 
-        apiLicenseService.checkLicense(executionContext, genericApiEntity);
+        apiLicenseService.checkLicense(executionContext, apiId);
 
         evaluateIfMatch(headers, Long.toString(genericApiEntity.getUpdatedAt().getTime()));
 

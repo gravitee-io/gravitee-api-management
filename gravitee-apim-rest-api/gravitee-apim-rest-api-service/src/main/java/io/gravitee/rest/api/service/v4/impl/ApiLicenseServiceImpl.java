@@ -15,21 +15,18 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
-import io.gravitee.definition.model.v4.listener.Listener;
-import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
-import io.gravitee.node.api.license.License;
+import io.gravitee.definition.model.Plugin;
 import io.gravitee.node.api.license.LicenseManager;
-import io.gravitee.rest.api.model.v4.api.ApiEntity;
-import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
+import io.gravitee.rest.api.service.exceptions.InvalidLicenseException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.ApiLicenseService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import org.springframework.stereotype.Component;
 
 /**
@@ -41,90 +38,37 @@ public class ApiLicenseServiceImpl implements ApiLicenseService {
 
     private final LicenseManager licenseManager;
     private final ApiSearchService apiSearchService;
+    private final ObjectMapper objectMapper;
 
-    private static final Map<String, String> ENDPOINT_FEATURES = Map.of(
-        "kafka",
-        "apim-en-endpoint-kafka",
-        "mqtt5",
-        "apim-en-endpoint-mqtt5",
-        "rabbitmq",
-        "apim-en-endpoint-rabbitmq"
-    );
-
-    private static final Map<String, String> ENTRYPOINT_FEATURES = Map.of(
-        "http-post",
-        "apim-en-entrypoint-http-post",
-        "http-get",
-        "apim-en-entrypoint-http-get",
-        "webhook",
-        "apim-en-entrypoint-webhook",
-        "websocket",
-        "apim-en-entrypoint-websocket",
-        "sse",
-        "apim-en-entrypoint-sse"
-    );
-
-    public ApiLicenseServiceImpl(LicenseManager licenseManager, ApiSearchService apiSearchService) {
+    public ApiLicenseServiceImpl(LicenseManager licenseManager, ApiSearchService apiSearchService, ObjectMapper objectMapper) {
         this.licenseManager = licenseManager;
         this.apiSearchService = apiSearchService;
+        this.objectMapper = objectMapper;
     }
 
     @Override
-    public void checkLicense(ExecutionContext executionContext, String apiId) throws ForbiddenFeatureException {
-        checkLicense(executionContext, apiSearchService.findGenericById(executionContext, apiId));
-    }
-
-    @Override
-    public void checkLicense(ExecutionContext executionContext, GenericApiEntity genericApiEntity) {
-        if (!DefinitionVersion.V4.equals(genericApiEntity.getDefinitionVersion())) {
-            return;
+    public void checkLicense(ExecutionContext executionContext, String apiId) {
+        var repositoryApi = apiSearchService.findRepositoryApiById(executionContext, apiId);
+        List<Plugin> plugins;
+        try {
+            if (DefinitionVersion.V4.equals(repositoryApi.getDefinitionVersion())) {
+                var apiDefinition = objectMapper.readValue(repositoryApi.getDefinition(), io.gravitee.definition.model.v4.Api.class);
+                plugins = apiDefinition.getPlugins();
+            } else {
+                var apiDefinition = objectMapper.readValue(repositoryApi.getDefinition(), io.gravitee.definition.model.Api.class);
+                plugins = apiDefinition.getPlugins();
+            }
+        } catch (Exception e) {
+            throw new TechnicalManagementException(e.getMessage());
         }
 
-        var license = licenseManager.getPlatformLicense();
-        var apiEntity = (ApiEntity) genericApiEntity;
-        checkEndpointGroups(license, apiEntity.getEndpointGroups());
-        checkListeners(license, apiEntity.getListeners());
-    }
-
-    private void checkEndpointGroups(License license, List<EndpointGroup> endpointGroups) {
-        if (endpointGroups == null) {
-            return;
+        try {
+            var licensePlugins = plugins.stream().map(p -> new LicenseManager.Plugin(p.type(), p.id())).toList();
+            licenseManager.validatePluginFeatures(executionContext.getOrganizationId(), licensePlugins);
+        } catch (io.gravitee.node.api.license.ForbiddenFeatureException ffe) {
+            throw new ForbiddenFeatureException(ffe.getFeatures().stream().map(LicenseManager.ForbiddenFeature::plugin).toList());
+        } catch (io.gravitee.node.api.license.InvalidLicenseException e) {
+            throw new InvalidLicenseException(e.getMessage());
         }
-
-        endpointGroups.forEach(endpointGroup -> checkEndpointGroup(license, endpointGroup));
-    }
-
-    private void checkEndpointGroup(License license, EndpointGroup endpointGroup) {
-        Optional
-            .ofNullable(ENDPOINT_FEATURES.get(endpointGroup.getType()))
-            .filter(feature -> !license.isFeatureEnabled(feature))
-            .ifPresent(feature -> {
-                throw new ForbiddenFeatureException(feature);
-            });
-    }
-
-    private void checkListeners(License license, List<Listener> listeners) {
-        if (listeners == null) {
-            return;
-        }
-
-        listeners.forEach(listener -> checkListener(license, listener));
-    }
-
-    private void checkListener(License license, Listener listener) {
-        if (listener.getEntrypoints() == null) {
-            return;
-        }
-
-        listener.getEntrypoints().forEach(entrypoint -> checkEntrypoint(license, entrypoint));
-    }
-
-    private void checkEntrypoint(License license, Entrypoint entrypoint) {
-        Optional
-            .ofNullable(ENTRYPOINT_FEATURES.get(entrypoint.getType()))
-            .filter(feature -> !license.isFeatureEnabled(feature))
-            .ifPresent(feature -> {
-                throw new ForbiddenFeatureException(feature);
-            });
     }
 }
