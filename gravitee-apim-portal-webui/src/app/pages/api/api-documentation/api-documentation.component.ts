@@ -34,7 +34,9 @@ export class ApiDocumentationComponent implements OnInit {
       if (params.apiId) {
         const apiId = params.apiId;
         this.pageBaseUrl = `/catalog/api/${apiId}/doc`;
-        this.apiService.getPagesByApiId({ apiId, homepage: false, size: -1 }).subscribe(pagesResponse => (this.pages = pagesResponse.data));
+        this.apiService
+          .getPagesByApiId({ apiId, homepage: false, size: -1 })
+          .subscribe(pagesResponse => (this.pages = pagesResponse.data ?? []));
       }
     });
   }
