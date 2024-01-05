@@ -16,7 +16,7 @@
 package io.gravitee.rest.api.service.exceptions;
 
 import io.gravitee.common.http.HttpStatusCode;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
@@ -24,10 +24,14 @@ import java.util.Map;
  */
 public class ForbiddenFeatureException extends AbstractManagementException {
 
-    private final String featureName;
+    private final List<String> featureNames = new ArrayList<>();
 
     public ForbiddenFeatureException(String featureName) {
-        this.featureName = featureName;
+        this.featureNames.add(featureName);
+    }
+
+    public ForbiddenFeatureException(Collection<String> featureNames) {
+        this.featureNames.addAll(featureNames);
     }
 
     @Override
@@ -42,11 +46,19 @@ public class ForbiddenFeatureException extends AbstractManagementException {
 
     @Override
     public Map<String, String> getParameters() {
-        return Map.of("feature", featureName);
+        return Map.of("feature", this.getFeatureNames());
     }
 
     @Override
     public String getMessage() {
-        return "Feature '" + featureName + "' is not available with your license tier";
+        var featuresAsString = this.getFeatureNames();
+        if (featureNames.size() == 1) {
+            return "Feature '" + featuresAsString + "' is not available with your license tier";
+        }
+        return "Features [" + featuresAsString + "] are not available with your license tier";
+    }
+
+    private String getFeatureNames() {
+        return String.join(", ", featureNames);
     }
 }
