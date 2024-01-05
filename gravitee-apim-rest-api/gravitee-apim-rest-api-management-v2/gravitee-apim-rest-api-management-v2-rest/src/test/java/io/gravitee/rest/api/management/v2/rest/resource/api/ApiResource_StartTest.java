@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.api;
 import static io.gravitee.rest.api.model.WorkflowType.REVIEW;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -127,9 +128,7 @@ public class ApiResource_StartTest extends ApiResourceTest {
     public void should_not_start_api_with_failing_license_check() {
         var apiEntity = ApiFixtures.aModelApiV4().toBuilder().id(API).state(Lifecycle.State.STOPPED).build();
         when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API))).thenReturn(apiEntity);
-        doThrow(new ForbiddenFeatureException("apim-en-endpoint-kafka"))
-            .when(apiLicenseService)
-            .checkLicense(any(), any(GenericApiEntity.class));
+        doThrow(new ForbiddenFeatureException("apim-en-endpoint-kafka")).when(apiLicenseService).checkLicense(any(), anyString());
         final Response response = rootTarget().request().post(Entity.json(""));
         assertEquals(HttpStatusCode.FORBIDDEN_403, response.getStatus());
 

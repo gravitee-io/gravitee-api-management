@@ -31,6 +31,4 @@ public interface ApiLicenseService {
      *
      */
     void checkLicense(ExecutionContext executionContext, String apiId);
-
-    void checkLicense(ExecutionContext executionContext, GenericApiEntity genericApiEntity);
 }
