@@ -13,8 +13,13 @@
     "prettier": "prettier --check \"**/*.{js,ts,html,css,scss,json}\"",
     "prettier:fix": "prettier --write \"**/*.{js,ts,html,css,scss,json}\"",
     "prettier:list": "prettier --list-different \"**/*.{js,ts,html,css,scss,json}\"",
+<<<<<<< HEAD
     "serve": "NODE_OPTIONS=--max_old_space_size=8192 ng serve --port=4100 --disable-host-check",
     "serve:apim-master": "NODE_OPTIONS=--max_old_space_size=8192 ng run gravitee-portal-webui:serve:apim-master --port=4100",
+=======
+    "serve": "NODE_OPTIONS=--max_old_space_size=8192 ng serve --port=4100",
+    "serve:apim-master": "NODE_OPTIONS=--max_old_space_size=8192 BACKEND_ENV=apim-master-api.team-apim.gravitee.dev ng serve --port=4100",
+>>>>>>> b336864e97 (chore(portal): improve angular proxy configuration)
     "serve:prod": "node scripts/serve.js",
     "test": "NODE_OPTIONS=--max-old-space-size=6144 ng test",
     "test:coverage": "JEST_JUNIT_ADD_FILE_ATTRIBUTE=true JEST_JUNIT_OUTPUT_DIR=\"coverage\" NODE_OPTIONS=--max-old-space-size=6144 ng test --collect-coverage --run-in-band --reporters=\"default\" --reporters=\"jest-junit\"",
