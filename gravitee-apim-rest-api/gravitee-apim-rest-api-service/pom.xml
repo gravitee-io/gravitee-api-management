@@ -306,23 +306,19 @@
             <artifactId>commons-text</artifactId>
             <scope>test</scope>
         </dependency>
-		<dependency>
-			<groupId>org.wiremock</groupId>
-			<artifactId>wiremock</artifactId>
-			<scope>test</scope>
-		</dependency>
+
+		<!--  -->
 		<dependency>
 			<groupId>io.gravitee.apim.rest.api</groupId>
 			<artifactId>gravitee-apim-rest-api-test-fixtures</artifactId>
 			<version>${project.version}</version>
 			<scope>test</scope>
 		</dependency>
-        <dependency>
-            <groupId>org.springframework.data</groupId>
-            <artifactId>spring-data-mongodb</artifactId>
-            <version>3.4.18</version>
-            <scope>test</scope>
-        </dependency>
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-mongodb</artifactId>
+			<scope>test</scope>
+		</dependency>
 		<dependency>
 			<groupId>io.gravitee.apim.definition</groupId>
 			<artifactId>gravitee-apim-definition-model</artifactId>
@@ -330,7 +326,15 @@
 			<type>test-jar</type>
 			<scope>test</scope>
 		</dependency>
-	</dependencies>
+
+		<!-- wiremock is late on jetty have to use its internal version to avoid classloading issues-->
+		<dependency>
+			<groupId>org.wiremock</groupId>
+			<artifactId>wiremock-standalone</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+    </dependencies>
 
 	<build>
 		<plugins>

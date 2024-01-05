@@ -16,15 +16,11 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.PAGE;
-import static io.gravitee.repository.management.model.Page.AuditEvent.PAGE_CREATED;
-import static io.gravitee.repository.management.model.Page.AuditEvent.PAGE_DELETED;
-import static io.gravitee.repository.management.model.Page.AuditEvent.PAGE_UPDATED;
+import static io.gravitee.repository.management.model.Page.AuditEvent.*;
 import static io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity.Type.INLINE;
 import static io.gravitee.rest.api.model.PageType.*;
 import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.emptySet;
-import static java.util.Collections.singletonMap;
+import static java.util.Collections.*;
 import static java.util.stream.Collectors.toList;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -38,42 +34,15 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
-import io.gravitee.fetcher.api.Fetcher;
-import io.gravitee.fetcher.api.FetcherConfiguration;
-import io.gravitee.fetcher.api.FetcherException;
-import io.gravitee.fetcher.api.FilepathAwareFetcherConfiguration;
-import io.gravitee.fetcher.api.FilesFetcher;
-import io.gravitee.fetcher.api.Resource;
-import io.gravitee.fetcher.api.Sensitive;
+import io.gravitee.fetcher.api.*;
 import io.gravitee.plugin.core.api.PluginManager;
 import io.gravitee.plugin.fetcher.FetcherPlugin;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PageRepository;
 import io.gravitee.repository.management.api.search.PageCriteria;
-import io.gravitee.repository.management.model.AccessControl;
-import io.gravitee.repository.management.model.Audit;
-import io.gravitee.repository.management.model.Page;
-import io.gravitee.repository.management.model.PageMedia;
-import io.gravitee.repository.management.model.PageReferenceType;
-import io.gravitee.repository.management.model.PageSource;
+import io.gravitee.repository.management.model.*;
 import io.gravitee.rest.api.fetcher.FetcherConfigurationFactory;
-import io.gravitee.rest.api.model.AccessControlEntity;
-import io.gravitee.rest.api.model.AccessControlReferenceType;
-import io.gravitee.rest.api.model.ApiPageEntity;
-import io.gravitee.rest.api.model.CategoryEntity;
-import io.gravitee.rest.api.model.FetchablePageEntity;
-import io.gravitee.rest.api.model.ImportPageEntity;
-import io.gravitee.rest.api.model.ImportSwaggerDescriptorEntity;
-import io.gravitee.rest.api.model.MetadataEntity;
-import io.gravitee.rest.api.model.NewPageEntity;
-import io.gravitee.rest.api.model.PageConfigurationKeys;
-import io.gravitee.rest.api.model.PageEntity;
-import io.gravitee.rest.api.model.PageMediaEntity;
-import io.gravitee.rest.api.model.PageRevisionEntity;
-import io.gravitee.rest.api.model.PageSourceEntity;
-import io.gravitee.rest.api.model.PageType;
-import io.gravitee.rest.api.model.SystemFolderType;
-import io.gravitee.rest.api.model.UpdatePageEntity;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
@@ -84,13 +53,7 @@ import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiModel;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
-import io.gravitee.rest.api.service.AuditService;
-import io.gravitee.rest.api.service.CategoryService;
-import io.gravitee.rest.api.service.GraviteeDescriptorService;
-import io.gravitee.rest.api.service.MetadataService;
-import io.gravitee.rest.api.service.PageRevisionService;
-import io.gravitee.rest.api.service.PageService;
-import io.gravitee.rest.api.service.SwaggerService;
+import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.PageConverter;
@@ -114,21 +77,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.io.FilenameUtils;
@@ -141,7 +92,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.scheduling.support.CronSequenceGenerator;
+import org.springframework.scheduling.support.CronExpression;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -731,7 +682,7 @@ public class PageServiceImpl extends AbstractService implements PageService, App
                 });
             }
 
-            if (query != null && query.getPublished() != null && query.getPublished() || !isAuthenticated()) {
+            if (Boolean.TRUE.equals(query != null && query.getPublished() != null && query.getPublished()) || !isAuthenticated()) {
                 // remove child of unpublished folders
                 return pages
                     .stream()
@@ -1661,10 +1612,13 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             if (configuration.isAutoFetch()) {
                 String cron = configuration.getFetchCron();
                 if (cron != null && !cron.isEmpty()) {
-                    CronSequenceGenerator cronSequenceGenerator = new CronSequenceGenerator(cron);
+                    CronExpression cronExpression = CronExpression.parse(cron);
                     if (pageItem.getUpdatedAt() != null) {
-                        Date nextRun = cronSequenceGenerator.next(pageItem.getUpdatedAt());
-                        fetchRequired = nextRun.before(new Date());
+                        LocalDateTime nextRun;
+                        LocalDateTime updatedAt = LocalDateTime.ofInstant(pageItem.getUpdatedAt().toInstant(), ZoneId.systemDefault());
+                        if ((nextRun = cronExpression.next(updatedAt)) != null) {
+                            fetchRequired = nextRun.isBefore(LocalDateTime.now());
+                        }
                     }
                 }
             }

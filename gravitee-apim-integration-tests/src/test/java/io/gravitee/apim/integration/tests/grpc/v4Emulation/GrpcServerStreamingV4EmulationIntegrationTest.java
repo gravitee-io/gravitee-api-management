@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.gravitee.apim.gateway.tests.sdk.AbstractGrpcGatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
-import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.gateway.grpc.manualflowcontrol.HelloReply;
@@ -30,7 +29,13 @@ import io.gravitee.gateway.reactor.ReactableApi;
 import io.grpc.ManagedChannel;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
+import io.vertx.core.http.HttpServer;
 import io.vertx.grpc.VertxServer;
+import io.vertx.grpc.client.GrpcClient;
+import io.vertx.grpc.common.GrpcStatus;
+import io.vertx.grpc.server.GrpcServer;
+import io.vertx.grpc.server.GrpcServerResponse;
+import io.vertx.junit5.Checkpoint;
 import io.vertx.junit5.VertxTestContext;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -59,76 +64,63 @@ public class GrpcServerStreamingV4EmulationIntegrationTest extends AbstractGrpcG
 
     @Test
     void should_request_grpc_server(VertxTestContext testContext) throws InterruptedException {
-        StreamingGreeterGrpc.StreamingGreeterImplBase service = buildRPCService();
-
-        VertxServer rpcServer = createRpcServer(service);
-
-        // Prepare gRPC Client
-        ManagedChannel channel = createManagedChannel();
-
-        // Start is asynchronous
-        rpcServer.start(event -> {
-            // Get a stub to use for interacting with the remote service
-            StreamingGreeterGrpc.StreamingGreeterStub stub = StreamingGreeterGrpc.newStub(channel);
-
-            // Call the remote service
-            StreamObserver<HelloRequest> requestStreamObserver = stub.sayHelloStreaming(
-                new StreamObserver<>() {
-                    @Override
-                    public void onNext(HelloReply helloReply) {
-                        assertThat(helloReply.getMessage()).startsWith("Hello You part");
+        // start the backend
+        GrpcServer grpcServer = GrpcServer.server(vertx);
+        grpcServer.callHandler(
+            StreamingGreeterGrpc.getSayHelloStreamingMethod(),
+            request -> {
+                GrpcServerResponse<HelloRequest, HelloReply> response = request.response();
+                // end back three replies...
+                request.handler(hello -> {
+                    for (int i = 0; i < STREAM_MESSAGE_NUMBER; i++) {
+                        response.write(HelloReply.newBuilder().setMessage("Hello " + hello.getName() + " part " + i).build());
+                        try {
+                            Thread.sleep(STREAM_SLEEP_MILLIS);
+                        } catch (InterruptedException e) {
+                            response.status(GrpcStatus.ABORTED);
+                        }
                     }
+                    //.. and end the stream
+                    response.end();
+                });
+            }
+        );
 
-                    @Override
-                    public void onError(Throwable throwable) {
-                        testContext.failNow(throwable.getMessage());
-                    }
+        // Message count checkpoint
+        Checkpoint messageCounter = testContext.checkpoint(STREAM_MESSAGE_NUMBER);
 
-                    @Override
-                    public void onCompleted() {
-                        testContext.completeNow();
-                    }
-                }
-            );
+        // create http server handled by gRPC
+        HttpServer httpServer = createHttpServer(grpcServer);
+        httpServer.listen();
 
-            requestStreamObserver.onNext(HelloRequest.newBuilder().setName("You").build());
-        });
+        // dynamic client, and call the Gateway
+        createGrpcClient()
+            .request(gatewayAddress(), StreamingGreeterGrpc.getSayHelloStreamingMethod())
+            .compose(request -> {
+                // send one request
+                request.end(HelloRequest.newBuilder().setName("You").build());
+                return request.response();
+            })
+            .onSuccess(response -> {
+                response.handler(helloReply -> {
+                    // assert and count
+                    assertThat(helloReply.getMessage()).startsWith("Hello You part");
+                    messageCounter.flag();
+                });
+                response.exceptionHandler(err -> {
+                    testContext.failNow(err.getMessage());
+                });
+                response.endHandler(v -> {
+                    assertThat(testContext.completed()).isTrue();
+                });
+            })
+            .onComplete(response -> response.result().end())
+            .onFailure(testContext::failNow);
 
         assertThat(testContext.awaitCompletion(10, TimeUnit.SECONDS)).isTrue();
     }
 
-    private static StreamingGreeterGrpc.StreamingGreeterImplBase buildRPCService() {
-        return new StreamingGreeterGrpc.StreamingGreeterImplBase() {
-            @Override
-            public StreamObserver<io.gravitee.gateway.grpc.manualflowcontrol.HelloRequest> sayHelloStreaming(
-                StreamObserver<io.gravitee.gateway.grpc.manualflowcontrol.HelloReply> responseObserver
-            ) {
-                return new StreamObserver<>() {
-                    @Override
-                    public void onNext(io.gravitee.gateway.grpc.manualflowcontrol.HelloRequest helloRequest) {
-                        for (int i = 0; i < STREAM_MESSAGE_NUMBER; i++) {
-                            HelloReply helloReply = HelloReply
-                                .newBuilder()
-                                .setMessage("Hello " + helloRequest.getName() + " part " + i)
-                                .build();
-                            responseObserver.onNext(helloReply);
-
-                            try {
-                                Thread.sleep(STREAM_SLEEP_MILLIS);
-                            } catch (InterruptedException e) {
-                                responseObserver.onError(Status.ABORTED.asException());
-                            }
-                        }
-                        responseObserver.onCompleted();
-                    }
-
-                    @Override
-                    public void onError(Throwable throwable) {}
-
-                    @Override
-                    public void onCompleted() {}
-                };
-            }
-        };
+    protected GrpcClient createGrpcClient() {
+        return GrpcClient.client(vertx);
     }
 }

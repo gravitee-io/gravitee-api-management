@@ -79,10 +79,10 @@
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
+        <!-- HTTP mock -->
         <dependency>
-            <groupId>io.gravitee.apim.gateway</groupId>
-            <artifactId>gravitee-apim-gateway-tests-sdk</artifactId>
-            <version>${project.version}</version>
+            <groupId>org.wiremock</groupId>
+            <artifactId>wiremock-standalone</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

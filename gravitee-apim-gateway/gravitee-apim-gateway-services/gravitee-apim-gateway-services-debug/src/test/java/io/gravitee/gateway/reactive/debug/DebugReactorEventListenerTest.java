@@ -48,6 +48,7 @@ import io.gravitee.repository.management.model.ApiDebugStatus;
 import io.gravitee.repository.management.model.Event;
 import io.reactivex.rxjava3.core.Single;
 import io.vertx.core.MultiMap;
+import io.vertx.core.http.HttpClientOptions;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.buffer.Buffer;
 import io.vertx.rxjava3.core.http.HttpClient;
@@ -57,6 +58,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -69,6 +72,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author GraviteeSource Team
  */
 @ExtendWith(MockitoExtension.class)
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class DebugReactorEventListenerTest {
 
     private static final String EVENT_ID = "evt-id";
@@ -116,7 +120,7 @@ class DebugReactorEventListenerTest {
     }
 
     @Test
-    public void shouldRegisterReactorEventListener() throws Exception {
+    void should_register_reactor_event_listener() throws Exception {
         debugReactorEventListener.start();
 
         eventManager.publishEvent(new SimpleEvent<>(ReactorEvent.DEPLOY, ""));
@@ -124,7 +128,7 @@ class DebugReactorEventListenerTest {
     }
 
     @Test
-    public void shouldDebugApiSuccessfully() throws TechnicalException, JsonProcessingException {
+    void should_debug_api_successfully() throws TechnicalException, JsonProcessingException {
         io.gravitee.definition.model.debug.DebugApi debugApiModel = getADebugApiDefinition();
         final HttpRequest httpRequest = new HttpRequest();
         httpRequest.setMethod("GET");
@@ -139,7 +143,7 @@ class DebugReactorEventListenerTest {
         when(reactorHandlerRegistry.contains(any(DebugApi.class))).thenReturn(false);
 
         final HttpClient mockHttpClient = mock(HttpClient.class);
-        when(vertx.createHttpClient(any())).thenReturn(mockHttpClient);
+        when(vertx.createHttpClient(any(HttpClientOptions.class))).thenReturn(mockHttpClient);
 
         // Mock successful Buffer body in HttpClientResponse
         final HttpClientResponse httpClientResponse = mock(HttpClientResponse.class);
@@ -161,13 +165,12 @@ class DebugReactorEventListenerTest {
         verify(eventRepository, times(1)).update(eventCaptor.capture());
 
         final List<io.gravitee.repository.management.model.Event> events = eventCaptor.getAllValues();
-        assertThat(events.get(0).getProperties()).containsKey(API_DEBUG_STATUS.getValue());
-        assertThat(events.get(0).getProperties().get(API_DEBUG_STATUS.getValue())).isEqualTo(ApiDebugStatus.DEBUGGING.name());
+        assertThat(events.get(0).getProperties()).containsEntry(API_DEBUG_STATUS.getValue(), ApiDebugStatus.DEBUGGING.name());
         assertThat(events.get(0).getPayload()).isEqualTo(PAYLOAD);
     }
 
     @Test
-    public void shouldDebugApiSuccessfullyNullBody() throws TechnicalException, JsonProcessingException {
+    void should_debug_api_successfully_null_body() throws TechnicalException, JsonProcessingException {
         io.gravitee.definition.model.debug.DebugApi debugApiModel = getADebugApiDefinition();
         final HttpRequest httpRequest = new HttpRequest();
         httpRequest.setMethod("GET");
@@ -181,7 +184,7 @@ class DebugReactorEventListenerTest {
 
         when(reactorHandlerRegistry.contains(any(DebugApi.class))).thenReturn(false);
         final HttpClient mockHttpClient = mock(HttpClient.class);
-        when(vertx.createHttpClient(any())).thenReturn(mockHttpClient);
+        when(vertx.createHttpClient(any(HttpClientOptions.class))).thenReturn(mockHttpClient);
 
         // Mock successful Buffer body in HttpClientResponse
         final HttpClientResponse httpClientResponse = mock(HttpClientResponse.class);
@@ -203,13 +206,12 @@ class DebugReactorEventListenerTest {
         verify(eventRepository, times(1)).update(eventCaptor.capture());
 
         final List<io.gravitee.repository.management.model.Event> events = eventCaptor.getAllValues();
-        assertThat(events.get(0).getProperties()).containsKey(API_DEBUG_STATUS.getValue());
-        assertThat(events.get(0).getProperties().get(API_DEBUG_STATUS.getValue())).isEqualTo(ApiDebugStatus.DEBUGGING.name());
+        assertThat(events.get(0).getProperties()).containsEntry(API_DEBUG_STATUS.getValue(), ApiDebugStatus.DEBUGGING.name());
         assertThat(events.get(0).getPayload()).isEqualTo(PAYLOAD);
     }
 
     @Test
-    public void shouldRemoveReactorHandlerIfBodyDoNotCompleteSuccessfully() throws TechnicalException, JsonProcessingException {
+    void should_remove_reactor_handler_if_body_do_not_complete_successfully() throws TechnicalException, JsonProcessingException {
         io.gravitee.definition.model.debug.DebugApi debugApiModel = getADebugApiDefinition();
         final HttpRequest httpRequest = new HttpRequest();
         httpRequest.setMethod("GET");
@@ -223,7 +225,7 @@ class DebugReactorEventListenerTest {
 
         when(reactorHandlerRegistry.contains(any(DebugApi.class))).thenReturn(false);
         final HttpClient mockHttpClient = mock(HttpClient.class);
-        when(vertx.createHttpClient(any())).thenReturn(mockHttpClient);
+        when(vertx.createHttpClient(any(HttpClientOptions.class))).thenReturn(mockHttpClient);
 
         // Mock failing Buffer body in HttpClientResponse future
         final HttpClientResponse httpClientResponse = mock(HttpClientResponse.class);
@@ -245,12 +247,11 @@ class DebugReactorEventListenerTest {
         verify(eventRepository, times(2)).update(eventCaptor.capture());
 
         final List<io.gravitee.repository.management.model.Event> events = eventCaptor.getAllValues();
-        assertThat(events.get(1).getProperties()).containsKey(API_DEBUG_STATUS.getValue());
-        assertThat(events.get(1).getProperties().get(API_DEBUG_STATUS.getValue())).isEqualTo(ApiDebugStatus.ERROR.name());
+        assertThat(events.get(1).getProperties()).containsEntry(API_DEBUG_STATUS.getValue(), ApiDebugStatus.ERROR.name());
     }
 
     @Test
-    public void shouldRemoveReactorHandlerIfResponseDoNotCompleteSuccessfully() throws TechnicalException, JsonProcessingException {
+    void should_remove_reactor_handler_if_response_do_not_complete_successfully() throws TechnicalException, JsonProcessingException {
         io.gravitee.definition.model.debug.DebugApi debugApiModel = getADebugApiDefinition();
         final HttpRequest httpRequest = new HttpRequest();
         httpRequest.setMethod("GET");
@@ -264,7 +265,7 @@ class DebugReactorEventListenerTest {
 
         when(reactorHandlerRegistry.contains(any(DebugApi.class))).thenReturn(false);
         final HttpClient mockHttpClient = mock(HttpClient.class);
-        when(vertx.createHttpClient(any())).thenReturn(mockHttpClient);
+        when(vertx.createHttpClient(any(HttpClientOptions.class))).thenReturn(mockHttpClient);
 
         // Mock failed HttpClientRequest
         final HttpClientRequest httpClientRequest = mock(HttpClientRequest.class);
@@ -281,12 +282,11 @@ class DebugReactorEventListenerTest {
         verify(eventRepository, times(2)).update(eventCaptor.capture());
 
         final List<io.gravitee.repository.management.model.Event> events = eventCaptor.getAllValues();
-        assertThat(events.get(1).getProperties()).containsKey(API_DEBUG_STATUS.getValue());
-        assertThat(events.get(1).getProperties().get(API_DEBUG_STATUS.getValue())).isEqualTo(ApiDebugStatus.ERROR.name());
+        assertThat(events.get(1).getProperties()).containsEntry(API_DEBUG_STATUS.getValue(), ApiDebugStatus.ERROR.name());
     }
 
     @Test
-    public void shouldRemoveReactorHandlerIfRequestDoNotCompleteSuccessfully() throws TechnicalException, JsonProcessingException {
+    void should_remove_reactor_handler_if_request_do_not_complete_successfully() throws TechnicalException, JsonProcessingException {
         io.gravitee.definition.model.debug.DebugApi debugApiModel = getADebugApiDefinition();
         final HttpRequest httpRequest = new HttpRequest();
         httpRequest.setMethod("GET");
@@ -301,7 +301,7 @@ class DebugReactorEventListenerTest {
         when(reactorHandlerRegistry.contains(any(DebugApi.class))).thenReturn(false);
 
         final HttpClient mockHttpClient = mock(HttpClient.class);
-        when(vertx.createHttpClient(any())).thenReturn(mockHttpClient);
+        when(vertx.createHttpClient(any(HttpClientOptions.class))).thenReturn(mockHttpClient);
 
         // Mock failed HttpClientRequest
         final HttpClientRequest httpClientRequest = mock(HttpClientRequest.class);
@@ -317,11 +317,11 @@ class DebugReactorEventListenerTest {
 
         final List<io.gravitee.repository.management.model.Event> events = eventCaptor.getAllValues();
         assertThat(events.get(1).getProperties()).containsKey(API_DEBUG_STATUS.getValue());
-        assertThat(events.get(1).getProperties().get(API_DEBUG_STATUS.getValue())).isEqualTo(ApiDebugStatus.ERROR.name());
+        assertThat(events.get(1).getProperties()).containsEntry(API_DEBUG_STATUS.getValue(), ApiDebugStatus.ERROR.name());
     }
 
     @Test
-    public void shouldRemoveReactorHandlerIfTechnicalExceptionDuringEventUpdating() throws TechnicalException, JsonProcessingException {
+    void should_remove_reactor_handler_if_technical_exception_during_event_updating() throws TechnicalException, JsonProcessingException {
         io.gravitee.definition.model.debug.DebugApi debugApiModel = getADebugApiDefinition();
         final HttpRequest httpRequest = new HttpRequest();
         httpRequest.setMethod("GET");
@@ -346,11 +346,11 @@ class DebugReactorEventListenerTest {
 
         final List<io.gravitee.repository.management.model.Event> events = eventCaptor.getAllValues();
         assertThat(events.get(1).getProperties()).containsKey(API_DEBUG_STATUS.getValue());
-        assertThat(events.get(1).getProperties().get(API_DEBUG_STATUS.getValue())).isEqualTo(ApiDebugStatus.ERROR.name());
+        assertThat(events.get(1).getProperties()).containsEntry(API_DEBUG_STATUS.getValue(), ApiDebugStatus.ERROR.name());
     }
 
     @Test
-    public void shouldDoNothingWhenReactableAlreadyDebugging() throws JsonProcessingException, TechnicalException {
+    void should_do_nothing_when_reactable_already_debugging() throws JsonProcessingException, TechnicalException {
         io.gravitee.definition.model.debug.DebugApi debugApiModel = getADebugApiDefinition();
         final HttpRequest httpRequest = new HttpRequest();
         httpRequest.setMethod("GET");
@@ -372,7 +372,7 @@ class DebugReactorEventListenerTest {
     }
 
     @Test
-    public void shouldDoNothing() {
+    void should_do_nothing() {
         debugReactorEventListener.onEvent(getAReactorEvent(ReactorEvent.DEPLOY, null));
 
         verify(reactorHandlerRegistry, times(0)).create(any());
@@ -381,7 +381,7 @@ class DebugReactorEventListenerTest {
     }
 
     @Test
-    public void shouldConvertSimpleMapHeadersToMultiMapHeaders() {
+    void should_convert_simple_map_headers_to_multi_map_headers() {
         Map<String, List<String>> headers = new HashMap<>();
         headers.put("transfer-encoding", singletonList("chunked"));
         headers.put("X-Gravitee-Transaction-Id", singletonList("transaction-id"));
@@ -401,7 +401,7 @@ class DebugReactorEventListenerTest {
     }
 
     @Test
-    public void shouldDebugApiAndFilterClosedPlan() throws TechnicalException, JsonProcessingException {
+    void should_debug_api_and_filter_closed_plan() throws TechnicalException, JsonProcessingException {
         io.gravitee.definition.model.debug.DebugApi debugApiModel = getADebugApiDefinition();
         Plan keylessPlan = new Plan();
         keylessPlan.setId("keyless-plan");
@@ -421,7 +421,7 @@ class DebugReactorEventListenerTest {
         when(reactorHandlerRegistry.contains(any(DebugApi.class))).thenReturn(false);
 
         final HttpClient mockHttpClient = mock(HttpClient.class);
-        when(vertx.createHttpClient(any())).thenReturn(mockHttpClient);
+        when(vertx.createHttpClient(any(HttpClientOptions.class))).thenReturn(mockHttpClient);
 
         // Mock successful Buffer body in HttpClientResponse
         final HttpClientResponse httpClientResponse = mock(HttpClientResponse.class);

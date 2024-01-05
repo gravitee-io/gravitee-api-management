@@ -17,14 +17,12 @@ package io.gravitee.apim.gateway.tests.sdk;
 
 import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.reactor.ReactableApi;
-import io.grpc.BindableService;
 import io.grpc.ManagedChannel;
-import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
-import io.vertx.core.net.ClientOptionsBase;
-import io.vertx.grpc.VertxChannelBuilder;
-import io.vertx.grpc.VertxServer;
-import io.vertx.grpc.VertxServerBuilder;
+import io.vertx.core.http.HttpServer;
+import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.net.SocketAddress;
+import io.vertx.grpc.server.GrpcServer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
@@ -35,11 +33,11 @@ public abstract class AbstractGrpcGatewayTest extends AbstractGatewayTest {
     protected Vertx vertx;
     protected int grpcServerPort;
 
-    protected VertxServer vertxServer;
+    protected HttpServer vertxServer;
     protected ManagedChannel managedChannel;
 
     @BeforeEach
-    public void setup(io.vertx.rxjava3.core.Vertx v) {
+    public void setupVertx(io.vertx.rxjava3.core.Vertx v) {
         // vertx-grpc needs io.vertx.core.Vertx and do not support the rxjava3 implementation,
         // so we need a manual instantiation instead of relying on the VertxExtension
         vertx = v.getDelegate();
@@ -48,7 +46,7 @@ public abstract class AbstractGrpcGatewayTest extends AbstractGatewayTest {
     @AfterEach
     public void tearDown() {
         if (vertxServer != null) {
-            vertxServer.shutdown(event -> {
+            vertxServer.close(event -> {
                 if (managedChannel != null) {
                     managedChannel.shutdownNow();
                 }
@@ -72,18 +70,13 @@ public abstract class AbstractGrpcGatewayTest extends AbstractGatewayTest {
         }
     }
 
-    protected VertxServer createRpcServer(BindableService service) {
-        vertxServer = VertxServerBuilder.forAddress(vertx, LOCALHOST, grpcServerPort).addService(service).build();
+    protected HttpServer createHttpServer(GrpcServer grpcServer) {
+        vertxServer = vertx.createHttpServer(new HttpServerOptions().setPort(grpcServerPort).setHost(LOCALHOST));
+        vertxServer.requestHandler(grpcServer);
         return vertxServer;
     }
 
-    protected ManagedChannel createSecuredManagedChannel(Handler<ClientOptionsBase> clientOptionBase) {
-        managedChannel = VertxChannelBuilder.forAddress(vertx, LOCALHOST, gatewayPort()).useSsl(clientOptionBase).build();
-        return managedChannel;
-    }
-
-    protected ManagedChannel createManagedChannel() {
-        managedChannel = VertxChannelBuilder.forAddress(vertx, LOCALHOST, gatewayPort()).usePlaintext().build();
-        return managedChannel;
+    protected SocketAddress gatewayAddress() {
+        return SocketAddress.inetSocketAddress(gatewayPort(), LOCALHOST);
     }
 }

@@ -16,17 +16,24 @@
 package io.gravitee.apim.integration.tests.grpc.v4;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
-import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuilder;
 import io.gravitee.gateway.grpc.helloworld.GreeterGrpc;
 import io.gravitee.gateway.grpc.helloworld.HelloReply;
 import io.gravitee.gateway.grpc.helloworld.HelloRequest;
-import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
-import io.vertx.grpc.VertxServer;
+import io.vertx.core.http.HttpServer;
+import io.vertx.grpc.client.GrpcClient;
+import io.vertx.grpc.client.GrpcClientChannel;
+import io.vertx.grpc.common.GrpcReadStream;
+import io.vertx.grpc.server.GrpcServer;
+import io.vertx.grpc.server.GrpcServerResponse;
 import io.vertx.junit5.VertxTestContext;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
@@ -41,56 +48,50 @@ import org.junit.jupiter.api.Test;
 public class GrpcUnaryRPCV4IntegrationTest extends AbstractGrpcV4GatewayTest {
 
     @Test
-    void should_request_and_get_response(VertxTestContext testContext) throws InterruptedException {
-        GreeterGrpc.GreeterImplBase service = buildRPCService();
-
-        VertxServer rpcServer = createRpcServer(service);
-
-        // Prepare gRPC Client
-        ManagedChannel channel = createManagedChannel();
-
-        // Start is asynchronous
-        rpcServer.start(event -> {
-            // Get a stub to use for interacting with the remote service
-            GreeterGrpc.GreeterStub stub = GreeterGrpc.newStub(channel);
-
-            HelloRequest request = HelloRequest.newBuilder().setName("You").build();
-
-            // Call the remote service
-            stub.sayHello(
-                request,
-                new StreamObserver<>() {
-                    private HelloReply helloReply;
-
-                    @Override
-                    public void onNext(HelloReply helloReply) {
-                        this.helloReply = helloReply;
-                    }
-
-                    @Override
-                    public void onError(Throwable throwable) {
-                        testContext.failNow(throwable.getMessage());
-                    }
-
-                    @Override
-                    public void onCompleted() {
-                        assertThat(helloReply).isNotNull();
-                        assertThat(helloReply.getMessage()).isEqualTo("Hello You");
-
-                        testContext.completeNow();
-                    }
-                }
-            );
-        });
-    }
-
-    private static GreeterGrpc.GreeterImplBase buildRPCService() {
-        return new GreeterGrpc.GreeterImplBase() {
-            @Override
-            public void sayHello(HelloRequest request, StreamObserver<HelloReply> responseObserver) {
-                responseObserver.onNext(HelloReply.newBuilder().setMessage("Hello " + request.getName()).build());
-                responseObserver.onCompleted();
+    void should_request_and_get_response() throws InterruptedException {
+        // create the backend
+        GrpcServer grpcServer = GrpcServer.server(vertx);
+        grpcServer.callHandler(
+            GreeterGrpc.getSayHelloMethod(),
+            request -> {
+                request.handler(hello -> {
+                    // just a simple response
+                    GrpcServerResponse<HelloRequest, HelloReply> response = request.response();
+                    HelloReply reply = HelloReply.newBuilder().setMessage("Hello " + hello.getName()).build();
+                    response.end(reply);
+                });
             }
-        };
+        );
+
+        // prep for test
+        CountDownLatch latch = new CountDownLatch(1);
+
+        // Create the backend HTTP Server handling gRPC
+        HttpServer httpServer = createHttpServer(grpcServer);
+        httpServer.listen();
+
+        // call the service through the gateway
+        GrpcClient client = GrpcClient.client(vertx);
+        client
+            .request(gatewayAddress(), GreeterGrpc.getSayHelloMethod())
+            .compose(request -> {
+                request.end(HelloRequest.newBuilder().setName("You").build());
+                return request.response().compose(GrpcReadStream::last);
+            })
+            .onSuccess(helloReply -> {
+                assertThat(helloReply).isNotNull();
+                assertThat(helloReply.getMessage()).isEqualTo("Hello You");
+                latch.countDown();
+            })
+            .onFailure(failure -> {
+                failure.printStackTrace();
+                fail(failure.getMessage());
+            });
+
+        await()
+            .atMost(10, TimeUnit.SECONDS)
+            .untilAsserted(() -> {
+                assertThat(latch.getCount()).isZero();
+            });
     }
 }

@@ -15,9 +15,10 @@
  */
 package io.gravitee.rest.api.standalone.jetty.handler;
 
-import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.Writer;
+import java.nio.charset.Charset;
+import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.ErrorHandler;
 
 /**
@@ -31,35 +32,15 @@ public class NoContentOutputErrorHandler extends ErrorHandler {
     }
 
     @Override
-    protected void handleErrorPage(HttpServletRequest request, Writer writer, int code, String message) throws IOException {
-        writeErrorPage(request, writer, code, message, false);
-    }
-
-    @Override
-    protected void writeErrorPageStacks(HttpServletRequest request, Writer writer) throws IOException {
-        // We do not want to put stacks in response
-    }
-
-    @Override
-    protected void writeErrorPageMessage(HttpServletRequest request, Writer writer, int code, String message, String uri)
-        throws IOException {
-        // We do not want to put message in response
-    }
-
-    @Override
-    protected void writeErrorPageBody(HttpServletRequest request, Writer writer, int code, String message, boolean showStacks)
-        throws IOException {
-        // We do not want to put body in response
-    }
-
-    @Override
-    protected void writeErrorPageHead(HttpServletRequest request, Writer writer, int code, String message) throws IOException {
-        // We do not want to put head in response
-    }
-
-    @Override
-    protected void writeErrorPage(HttpServletRequest request, Writer writer, int code, String message, boolean showStacks)
-        throws IOException {
-        // No error page
+    protected void writeErrorHtml(
+        Request request,
+        Writer writer,
+        Charset charset,
+        int code,
+        String message,
+        Throwable cause,
+        boolean showStacks
+    ) throws IOException {
+        // No error page rendered
     }
 }
