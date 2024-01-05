@@ -771,6 +771,7 @@ function configurationRouterConfig($stateProvider: StateProvider) {
       resolve: {
         dictionary: [
           'DictionaryService',
+          '$stateParams',
           (DictionaryService: DictionaryService, $stateParams) =>
             DictionaryService.get($stateParams.dictionaryId).then((response) => response.data),
         ],
