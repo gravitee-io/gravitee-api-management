@@ -363,6 +363,28 @@ paths:
                     description: API deployment request received
                 default:
                     $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/deployments/_verify:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        post:
+            tags:
+                - API Subscriptions
+            summary: Check if a deployment is possible
+            description: |-
+                Check if an API deployment is possible given the API's definition and license used by the organization.
+
+                User must have the API_DEFINITION[READ] permission.
+            operationId: verifyApiDeployment
+            responses:
+                "200":
+                    description: Verification successfully performed.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/VerifyApiDeploymentResponse"
+                default:
+                    $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/picture:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -2517,6 +2539,17 @@ components:
                     description: Label for an Api deployment. Duplicate names can exists.
                     example: My deployment
                     maxLength: 32
+
+        VerifyApiDeploymentResponse:
+            type: object
+            properties:
+                ok:
+                    type: boolean
+                    description: Indicates whether the deployment can be done or not.
+                reason:
+                    type: string
+                    description: An optional reason giving details about the result.
+
         ApiLifecycleState:
             type: string
             description: The status of the API regarding the console.

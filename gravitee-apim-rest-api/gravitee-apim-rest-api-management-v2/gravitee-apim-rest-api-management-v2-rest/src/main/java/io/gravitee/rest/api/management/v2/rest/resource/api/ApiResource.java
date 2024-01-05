@@ -33,15 +33,8 @@ import io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApplicationMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.DuplicateApiMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.ImportExportApiMapper;
-import io.gravitee.rest.api.management.v2.rest.model.ApiReview;
-import io.gravitee.rest.api.management.v2.rest.model.ApiTransferOwnership;
-import io.gravitee.rest.api.management.v2.rest.model.DuplicateApiOptions;
+import io.gravitee.rest.api.management.v2.rest.model.*;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
-import io.gravitee.rest.api.management.v2.rest.model.Pagination;
-import io.gravitee.rest.api.management.v2.rest.model.SubscribersResponse;
-import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV2;
-import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV4;
-import io.gravitee.rest.api.management.v2.rest.model.UpdateGenericApi;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.log.ApiLogsResource;
@@ -79,9 +72,7 @@ import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
-import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
-import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
+import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.v4.ApiDuplicateService;
 import io.gravitee.rest.api.service.v4.ApiImagesService;
 import io.gravitee.rest.api.service.v4.ApiImportExportService;
@@ -307,6 +298,21 @@ public class ApiResource extends AbstractResource {
         apiLicenseService.checkLicense(executionContext, apiId);
         GenericApiEntity apiEntity = apiStateService.deploy(executionContext, apiId, getAuthenticatedUser(), apiDeploymentEntity);
         return Response.accepted().tag(Long.toString(apiEntity.getUpdatedAt().getTime())).lastModified(apiEntity.getUpdatedAt()).build();
+    }
+
+    @GET
+    @Path("/deployments/_verify")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ) })
+    public Response verifyApiDeployment(@PathParam("apiId") String apiId) {
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        try {
+            apiLicenseService.checkLicense(executionContext, apiId);
+            return Response.ok(VerifyApiDeploymentResponse.builder().ok(true).build()).build();
+        } catch (ForbiddenFeatureException | InvalidLicenseException | TechnicalManagementException e) {
+            return Response.ok(VerifyApiDeploymentResponse.builder().ok(false).reason(e.getMessage()).build()).build();
+        }
     }
 
     @GET
