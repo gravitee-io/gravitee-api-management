@@ -35,6 +35,11 @@ import { PathToVerify, VerifyApiPathResponse } from '../entities/management-api-
 import { VerifyApiHostsResponse } from '../entities/management-api-v2/api/verifyApiHosts';
 import { VerifyApiDeployResponse } from '../entities/management-api-v2/api/verifyApiDeploy';
 
+export interface HostValidatorParams {
+  currentHost?: string;
+  apiId?: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })

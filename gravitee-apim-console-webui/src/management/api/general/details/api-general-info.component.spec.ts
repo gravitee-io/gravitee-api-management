@@ -39,7 +39,7 @@ import { ApiGeneralInfoComponent } from './api-general-info.component';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { Category } from '../../../../entities/category/Category';
-import { Api, fakeApiV1, fakeApiV2, fakeApiV4 } from '../../../../entities/management-api-v2';
+import { Api, DefinitionVersion, fakeApiV1, fakeApiV2, fakeApiV4, fakeProxyTcpApiV4 } from '../../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { Tag } from '../../../../entities/tag/tag';
 
@@ -666,13 +666,10 @@ describe('ApiGeneralInfoComponent', () => {
       await expectExportV4GetRequest(API_ID);
     });
 
-    it('should duplicate api', async () => {
+    it('should duplicate HTTP api', async () => {
       const api = fakeApiV4({
         id: API_ID,
       });
-
-      const router = TestBed.inject(Router);
-      routerNavigateSpy = jest.spyOn(router, 'navigate');
 
       expectApiGetRequest(api);
       expectCategoriesGetRequest();
@@ -690,7 +687,39 @@ describe('ApiGeneralInfoComponent', () => {
 
       const contextPathInput = await confirmDialog.getHarness(MatInputHarness.with({ selector: '[formControlName="contextPath"]' }));
       await contextPathInput.setValue('/duplicate');
-      expectVerifyContextPathGetRequest();
+      expectVerifyContextPathGetRequest('V4');
+
+      const versionInput = await confirmDialog.getHarness(MatInputHarness.with({ selector: '[formControlName="version"]' }));
+      await versionInput.setValue('1.0.0');
+
+      const confirmButton = await confirmDialog.getHarness(MatButtonHarness.with({ text: 'Duplicate' }));
+      await confirmButton.click();
+
+      await expectDuplicatePostRequest(API_ID);
+
+      expect(routerNavigateSpy).toHaveBeenCalledWith(['../', 'newApiId'], expect.anything());
+    });
+
+    it('should duplicate TCP api', async () => {
+      const api = fakeProxyTcpApiV4({
+        id: API_ID,
+      });
+
+      expectApiGetRequest(api);
+      expectCategoriesGetRequest();
+
+      // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
+      await waitImageCheck();
+
+      const button = await loader.getHarness(MatButtonHarness.with({ text: /Duplicate/ }));
+      expect(await button.isDisabled()).toBeFalsy();
+      await button.click();
+
+      const confirmDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#duplicateApiDialog' }));
+
+      const hostInput = await confirmDialog.getHarness(MatInputHarness.with({ selector: '[formControlName="host"]' }));
+      await hostInput.setValue('duplicate');
+      expectVerifyHostGetRequest();
 
       const versionInput = await confirmDialog.getHarness(MatInputHarness.with({ selector: '[formControlName="version"]' }));
       await versionInput.setValue('1.0.0');
@@ -726,8 +755,16 @@ describe('ApiGeneralInfoComponent', () => {
     fixture.detectChanges();
   }
 
-  function expectVerifyContextPathGetRequest() {
-    httpTestingController.match({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/verify`, method: 'POST' });
+  function expectVerifyContextPathGetRequest(definitionVersion: DefinitionVersion = 'V2') {
+    if (definitionVersion === 'V4') {
+      httpTestingController.match({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_verify/paths`, method: 'POST' });
+    } else {
+      httpTestingController.match({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/verify`, method: 'POST' });
+    }
+  }
+
+  function expectVerifyHostGetRequest() {
+    httpTestingController.match({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_verify/hosts`, method: 'POST' });
   }
 
   function expectExportGetRequest(apiId: string) {

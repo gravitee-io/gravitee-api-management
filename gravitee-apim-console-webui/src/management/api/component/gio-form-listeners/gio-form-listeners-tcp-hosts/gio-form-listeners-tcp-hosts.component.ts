@@ -16,7 +16,6 @@
 import { Component, ElementRef, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
 import {
   AsyncValidator,
-  AsyncValidatorFn,
   ControlValueAccessor,
   FormArray,
   FormControl,
@@ -27,22 +26,14 @@ import {
   ValidatorFn,
 } from '@angular/forms';
 import { isEmpty } from 'lodash';
-import { filter, map, observeOn, startWith, switchMap, take, takeUntil, tap } from 'rxjs/operators';
+import { filter, map, observeOn, startWith, take, takeUntil, tap } from 'rxjs/operators';
 import { FocusMonitor } from '@angular/cdk/a11y';
-import { asyncScheduler, Observable, of, Subject, timer } from 'rxjs';
+import { asyncScheduler, Observable, Subject } from 'rxjs';
 
 import { TcpHost } from '../../../../../entities/management-api-v2/api/v4/tcpHost';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
-
-/**
- * According to {@link https://www.rfc-editor.org/rfc/rfc1123} and {@link https://www.rfc-editor.org/rfc/rfc952}
- * - hostname label can contain lowercase, uppercase and digits characters.
- * - hostname label can contain dash or underscores, but not starts or ends with these characters
- * - each hostname label must have a max length of 63 characters
- */
-const HOST_PATTERN_REGEX = new RegExp(
-  /^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-_]{0,61}[a-zA-Z0-9])(\.([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-_]{0,61}[a-zA-Z0-9]))*$/,
-);
+import { tcpHostSyncValidator } from '../../../../../shared/validators/tcp-hosts/tcp-host-sync-validator.directive';
+import { tcpHostAsyncValidator } from '../../../../../shared/validators/tcp-hosts/tcp-host-async-validator.directive';
 
 @Component({
   selector: 'gio-form-listeners-tcp-hosts',
@@ -75,14 +66,13 @@ export class GioFormListenersTcpHostsComponent implements OnInit, OnDestroy, Con
 
   protected _onTouched: () => void = () => ({});
 
-  constructor(private readonly fm: FocusMonitor, private readonly elRef: ElementRef, private readonly apiV2Service: ApiV2Service) {
+  constructor(private readonly fm: FocusMonitor, private readonly elRef: ElementRef, private readonly apiV2Service: ApiV2Service) {}
+
+  ngOnInit(): void {
     this.listenerFormArray = new FormArray([this.newListenerFormGroup({})], { validators: [this.listenersValidator()] });
     this.mainForm = new FormGroup({
       listeners: this.listenerFormArray,
     });
-  }
-
-  ngOnInit(): void {
     this.listenerFormArray?.valueChanges
       .pipe(
         tap((listeners) => listeners.length > 0 && this._onChange(listeners)),
@@ -155,8 +145,8 @@ export class GioFormListenersTcpHostsComponent implements OnInit, OnDestroy, Con
   public newListenerFormGroup(listener: TcpHost) {
     return new FormGroup({
       host: new FormControl(listener.host || '', {
-        validators: [this.validateGenericHostListenerControl()],
-        asyncValidators: [this.listenersAsyncValidator()],
+        validators: [tcpHostSyncValidator],
+        asyncValidators: [tcpHostAsyncValidator(this.apiV2Service, this.apiId)],
       }),
     });
   }
@@ -186,34 +176,6 @@ export class GioFormListenersTcpHostsComponent implements OnInit, OnDestroy, Con
         return { host: 'Duplicated hosts not allowed' };
       }
       return null;
-    };
-  }
-
-  private validateGenericHostListenerControl(): ValidatorFn {
-    return (formControl: FormControl): ValidationErrors | null => {
-      const host = formControl.value || '';
-      if (isEmpty(host.trim())) {
-        return { required: 'Host is required.' };
-      }
-      if (host.length > 255) {
-        return { max: 'Max length is 255 characters' };
-      }
-      if (!HOST_PATTERN_REGEX.test(host)) {
-        return { format: 'Host is not valid' };
-      }
-      return null;
-    };
-  }
-
-  private listenersAsyncValidator(): AsyncValidatorFn {
-    return (formControl: FormControl): Observable<ValidationErrors | null> => {
-      if (formControl && formControl.dirty) {
-        return timer(250).pipe(
-          switchMap(() => this.apiV2Service.verifyHosts(this.apiId, [formControl.value])),
-          map((res) => (res.ok ? null : { listeners: res.reason })),
-        );
-      }
-      return of(null);
     };
   }
 }

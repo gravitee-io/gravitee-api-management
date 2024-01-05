@@ -158,7 +158,7 @@ describe('API Info Page functionality', () => {
   it('Duplicate API and verify duplicate', () => {
     cy.visit(`/#!/DEFAULT/apis/${v4infoApi.id}`);
     cy.getByDataTestId('api_info_duplicate_menu', { timeout: 60000 }).click();
-    cy.getByDataTestId('api_info_duplicate_path').type(`${apiFileName}-duplicate`);
+    cy.getByDataTestId('api_info_duplicate_path').type(`/${apiFileName}-duplicate`);
     cy.getByDataTestId('api_info_duplicate_version').type(`${apiVersion}`);
     cy.intercept('POST', '**/_duplicate').as('duplicateApi');
     cy.getByDataTestId('api_info_duplicate_api').click();

@@ -64,7 +64,7 @@
         <div class="entrypoints__host__title">
           <span class="mat-body-strong">Entrypoint hosts</span>
         </div>
-        <gio-form-listeners-tcp-hosts [formControl]="hostsFormControl"></gio-form-listeners-tcp-hosts>
+        <gio-form-listeners-tcp-hosts [formControl]="hostsFormControl" [apiId]="apiId"></gio-form-listeners-tcp-hosts>
       </div>
       <div class="entrypoints__footer" *ngIf="canUpdate">
         <button

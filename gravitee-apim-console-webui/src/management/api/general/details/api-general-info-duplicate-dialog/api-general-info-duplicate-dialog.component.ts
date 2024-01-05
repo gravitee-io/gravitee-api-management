@@ -15,19 +15,34 @@
  */
 
 import { Component, Inject, OnDestroy } from '@angular/core';
-import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { FormControl, FormGroup, UntypedFormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { EMPTY, Subject } from 'rxjs';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
 
-import { Api, ApiV2, ApiV4, DuplicateFilteredField, HttpListener } from '../../../../../entities/management-api-v2';
+import { Api, ApiV2, ApiV4, DuplicateFilteredField, HttpListener, TcpListener } from '../../../../../entities/management-api-v2';
 import { ApiService } from '../../../../../services-ngx/api.service';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
+import { tcpHostSyncValidator } from '../../../../../shared/validators/tcp-hosts/tcp-host-sync-validator.directive';
+import { tcpHostAsyncValidator } from '../../../../../shared/validators/tcp-hosts/tcp-host-async-validator.directive';
+import { contextPathSyncValidator } from '../../../../../shared/validators/context-path/context-path-sync-validator.directive';
+import { contextPathAsyncValidator } from '../../../../../shared/validators/context-path/context-path-async-validator.directive';
 
 export type ApiPortalDetailsDuplicateDialogData = {
   api: Api;
 };
+
+interface DuplicateOptionsForm {
+  [key: string]: FormControl<boolean>;
+}
+
+interface DuplicateForm {
+  version: FormControl<string>;
+  options: FormGroup<DuplicateOptionsForm>;
+  host?: FormGroup<string>;
+  contextPath?: FormGroup<string>;
+}
 
 @Component({
   selector: 'api-general-info-duplicate-dialog',
@@ -48,6 +63,7 @@ export class ApiGeneralInfoDuplicateDialogComponent implements OnDestroy {
 
   public apiId: string;
   public contextPathPlaceholder: string;
+  public hostPlaceholder: string;
   public versionPlaceholder: string;
 
   constructor(
@@ -59,18 +75,34 @@ export class ApiGeneralInfoDuplicateDialogComponent implements OnDestroy {
   ) {
     this.apiId = dialogData.api.id;
     this.contextPathPlaceholder = extractContextPath(dialogData.api);
+    this.hostPlaceholder = extractHost(dialogData.api);
     this.versionPlaceholder = dialogData.api.apiVersion;
 
-    this.duplicateApiForm = new UntypedFormGroup({
-      contextPath: new UntypedFormControl('', [Validators.required], [this.apiService.contextPathValidator({})]),
-      version: new UntypedFormControl('', [Validators.required]),
-      options: new UntypedFormGroup(
+    this.duplicateApiForm = new FormGroup<DuplicateForm>({
+      version: new FormControl('', [Validators.required]),
+      options: new FormGroup(
         this.optionsCheckbox.reduce((acc, option) => {
-          acc[option.id] = new UntypedFormControl(option.checked);
+          acc[option.id] = new FormControl(option.checked);
           return acc;
         }, {}),
       ),
     });
+
+    if (dialogData.api.definitionVersion === 'V4') {
+      if (dialogData.api.listeners?.find((listener) => listener.type === 'TCP')) {
+        this.duplicateApiForm.addControl('host', new FormControl('', [tcpHostSyncValidator], [tcpHostAsyncValidator(this.apiV2Service)]));
+      } else {
+        this.duplicateApiForm.addControl(
+          'contextPath',
+          new FormControl('', [contextPathSyncValidator], [contextPathAsyncValidator(this.apiV2Service)]),
+        );
+      }
+    } else {
+      this.duplicateApiForm.addControl(
+        'contextPath',
+        new FormControl('', [Validators.required], [this.apiService.contextPathValidator({})]), // Keep the old validator for V1 and V2 APIs
+      );
+    }
   }
 
   ngOnDestroy() {
@@ -109,6 +141,17 @@ const extractContextPath = (api: Api) => {
     if (httpListener && (httpListener as HttpListener).paths && (httpListener as HttpListener).paths.length > 0) {
       const firstPath = (httpListener as HttpListener).paths[0];
       return `${firstPath.host ?? ''}${firstPath.path}`;
+    }
+  }
+  return '';
+};
+
+const extractHost = (api: Api) => {
+  if (api.definitionVersion === 'V4') {
+    const apiV4 = api as ApiV4;
+    const tcpListener: TcpListener = apiV4.listeners?.find((listener) => listener.type === 'TCP');
+    if (tcpListener && tcpListener.hosts && tcpListener.hosts.length > 0) {
+      return (tcpListener as TcpListener).hosts[0];
     }
   }
   return '';

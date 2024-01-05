@@ -16,7 +16,6 @@
 import { Component, ElementRef, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
 import {
   AsyncValidator,
-  AsyncValidatorFn,
   ControlValueAccessor,
   NG_ASYNC_VALIDATORS,
   NG_VALUE_ACCESSOR,
@@ -27,15 +26,15 @@ import {
   ValidatorFn,
 } from '@angular/forms';
 import { isEmpty } from 'lodash';
-import { filter, map, observeOn, startWith, switchMap, take, takeUntil, tap } from 'rxjs/operators';
+import { filter, map, observeOn, startWith, take, takeUntil, tap } from 'rxjs/operators';
 import { FocusMonitor } from '@angular/cdk/a11y';
-import { asyncScheduler, Observable, of, Subject, timer } from 'rxjs';
+import { asyncScheduler, Observable, Subject } from 'rxjs';
 
 import { PortalSettingsService } from '../../../../../services-ngx/portal-settings.service';
 import { PathV4 } from '../../../../../entities/management-api-v2';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
-
-const PATH_PATTERN_REGEX = new RegExp(/^\/[/.a-zA-Z0-9-_]*$/);
+import { contextPathSyncValidator } from '../../../../../shared/validators/context-path/context-path-sync-validator.directive';
+import { contextPathAsyncValidator } from '../../../../../shared/validators/context-path/context-path-async-validator.directive';
 
 const DEFAULT_LISTENER: PathV4 = {
   path: '/',
@@ -64,7 +63,7 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
 
   public listeners: PathV4[] = [DEFAULT_LISTENER];
   public mainForm: UntypedFormGroup;
-  public listenerFormArray = new UntypedFormArray([this.newListenerFormGroup(DEFAULT_LISTENER)], [this.listenersValidator()]);
+  public listenerFormArray: UntypedFormArray;
   public contextPathPrefix: string;
   public isDisabled = false;
   private unsubscribe$: Subject<void> = new Subject<void>();
@@ -78,13 +77,15 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
     private readonly elRef: ElementRef,
     protected readonly apiV2Service: ApiV2Service,
     private readonly portalSettingsService: PortalSettingsService,
-  ) {
+  ) {}
+
+  ngOnInit(): void {
+    this.listenerFormArray = new UntypedFormArray([this.newListenerFormGroup(DEFAULT_LISTENER)], [this.listenersValidator()]);
+
     this.mainForm = new UntypedFormGroup({
       listeners: this.listenerFormArray,
     });
-  }
 
-  ngOnInit(): void {
     this.portalSettingsService
       .get()
       .pipe(takeUntil(this.unsubscribe$))
@@ -161,8 +162,8 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
   public newListenerFormGroup(listener: PathV4) {
     return new UntypedFormGroup({
       path: new UntypedFormControl(listener.path || '/', {
-        validators: [this.validateGenericPathListenerControl()],
-        asyncValidators: [this.listenersAsyncValidator()],
+        validators: [contextPathSyncValidator],
+        asyncValidators: [contextPathAsyncValidator(this.apiV2Service, this.apiId)],
       }),
     });
   }
@@ -191,34 +192,6 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
         return { contextPath: 'Duplicated context path not allowed' };
       }
       return null;
-    };
-  }
-
-  public validateGenericPathListenerControl(): ValidatorFn {
-    return (formControl: UntypedFormControl): ValidationErrors | null => {
-      const contextPath: string = formControl.value;
-      if (isEmpty(contextPath)) {
-        return {
-          contextPath: 'Context path is required.',
-        };
-      } else if (contextPath.includes('//')) {
-        return { contextPath: 'Context path is not valid.' };
-      } else if (!PATH_PATTERN_REGEX.test(contextPath)) {
-        return { contextPath: 'Context path is not valid.' };
-      }
-      return null;
-    };
-  }
-
-  public listenersAsyncValidator(): AsyncValidatorFn {
-    return (formControl: UntypedFormControl): Observable<ValidationErrors | null> => {
-      if (formControl && formControl.dirty) {
-        return timer(250).pipe(
-          switchMap(() => this.apiV2Service.verifyPath(this.apiId, [{ path: formControl.value }])),
-          map((res) => (res.ok ? null : { listeners: res.reason })),
-        );
-      }
-      return of(null);
     };
   }
 

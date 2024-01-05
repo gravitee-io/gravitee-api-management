@@ -19,7 +19,7 @@
 
 <mat-dialog-content *ngIf="duplicateApiForm" class="content" [formGroup]="duplicateApiForm">
   <div class="content__row">
-    <mat-form-field class="content__row__contextPath-field">
+    <mat-form-field *ngIf="duplicateApiForm.contains('contextPath')" class="content__row__entrypoint-field">
       <mat-label>Context path</mat-label>
       <input
         #apiName
@@ -32,6 +32,19 @@
       <mat-error *ngIf="duplicateApiForm.controls.contextPath.hasError('required')">Context path is required.</mat-error>
       <mat-error *ngIf="duplicateApiForm.controls.contextPath.hasError('contextPath')">{{
         duplicateApiForm.controls.contextPath.getError('contextPath')
+      }}</mat-error>
+    </mat-form-field>
+
+    <mat-form-field *ngIf="duplicateApiForm.contains('host')" class="content__row__entrypoint-field">
+      <mat-label>Host</mat-label>
+      <input #apiName matInput formControlName="host" data-testid="api_info_duplicate_host" [placeholder]="hostPlaceholder" required />
+      <mat-error *ngIf="duplicateApiForm.controls.host.hasError('required')">Host is required.</mat-error>
+      <mat-error *ngIf="duplicateApiForm.controls.host.hasError('max')">{{ duplicateApiForm.controls.host.getError('max') }}</mat-error>
+      <mat-error *ngIf="duplicateApiForm.controls.host.hasError('format')">{{
+        duplicateApiForm.controls.host.getError('format')
+      }}</mat-error>
+      <mat-error *ngIf="duplicateApiForm.controls.host.hasError('listeners')">{{
+        duplicateApiForm.controls.host.getError('listeners')
       }}</mat-error>
     </mat-form-field>
 
