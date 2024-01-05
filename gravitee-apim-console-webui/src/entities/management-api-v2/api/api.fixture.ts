@@ -408,3 +408,89 @@ export function fakeProxyApiV4(modifier?: Partial<ApiV4> | ((baseApi: ApiV4) => 
     ...modifier,
   };
 }
+
+export function fakeProxyTcpApiV4(modifier?: Partial<ApiV4> | ((baseApi: ApiV4) => ApiV4)): ApiV4 {
+  const base: ApiV4 = {
+    ...fakeBaseApi({ ...modifier }),
+    definitionVersion: 'V4',
+    type: 'PROXY',
+    listeners: [
+      {
+        type: 'TCP',
+        entrypoints: [
+          {
+            type: 'tcp-proxy',
+          },
+        ],
+        hosts: ['a-tcp-api'],
+      },
+    ],
+    endpointGroups: [
+      {
+        name: 'Default Endpoint TCP proxy group',
+        type: 'tcp-proxy',
+        loadBalancer: {
+          type: 'ROUND_ROBIN',
+        },
+        sharedConfiguration: {
+          tcp: {
+            reconnectAttempts: 3,
+            readIdleTimeout: 0,
+            idleTimeout: 0,
+            connectTimeout: 3000,
+            reconnectInterval: 1000,
+            writeIdleTimeout: 0,
+          },
+          ssl: {
+            hostnameVerifier: true,
+            trustAll: false,
+            truststore: {
+              type: '',
+            },
+            keystore: {
+              type: '',
+            },
+          },
+        },
+        endpoints: [
+          {
+            name: 'Default TCP proxy',
+            type: 'tcp-proxy',
+            secondary: false,
+            weight: 1,
+            inheritConfiguration: true,
+            configuration: {
+              target: {
+                port: 80,
+                host: 'backend.host',
+                secured: false,
+              },
+            },
+            services: {},
+          },
+        ],
+        services: {},
+      },
+    ],
+    flows: [
+      {
+        name: '',
+        selectors: [],
+        request: [],
+        response: [],
+        subscribe: [],
+        publish: [],
+        enabled: true,
+      },
+    ],
+  };
+
+  if (isFunction(modifier)) {
+    return modifier(base);
+  }
+
+  return {
+    ...base,
+    ...modifier,
+  };
+}

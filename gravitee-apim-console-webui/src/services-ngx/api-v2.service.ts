@@ -34,6 +34,11 @@ import { ApiTransferOwnership } from '../entities/management-api-v2/api/apiTrans
 import { PathToVerify, VerifyApiPathResponse } from '../entities/management-api-v2/api/verifyApiPath';
 import { VerifyApiHostsResponse } from '../entities/management-api-v2/api/verifyApiHosts';
 
+export interface HostValidatorParams {
+  currentHost?: string;
+  apiId?: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
