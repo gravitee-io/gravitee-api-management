@@ -43,7 +43,7 @@ brew install k6
 ---
 **WARNING**
 
-If you want execute simulation for MESSAGE APIs, you will have to build your how k6 binary to be able to use the kafka extension
+If you want to execute simulation for MESSAGE APIs, you will have to build your how k6 binary to be able to use the kafka extension
 To do so, please install the k6x utility then request a k6 build using the [xk6-kafka extension](https://github.com/mostafa/xk6-kafka) (be careful to the extension release note to use the right version of k6):
 
 ---
