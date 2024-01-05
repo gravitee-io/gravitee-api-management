@@ -120,15 +120,12 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "proxyConfig": "src/proxy.conf.json",
+            "proxyConfig": "src/proxy.conf.mjs",
             "buildTarget": "gravitee-portal-webui:build"
           },
           "configurations": {
             "production": {
               "buildTarget": "gravitee-portal-webui:build:production"
-            },
-            "apim-master": {
-              "proxyConfig": "src/proxy-apim-master.conf.js"
             }
           }
         },
