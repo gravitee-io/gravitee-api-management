@@ -41,7 +41,7 @@ export class DocumentationComponent implements OnInit {
         .getPages({ homepage: false, size: -1, parent: this.rootDir })
         .toPromise()
         .then(pagesResponse => {
-          this.pages = pagesResponse.data;
+          this.pages = pagesResponse.data ?? [];
         });
     });
   }
