@@ -15,10 +15,14 @@
     limitations under the License.
 
 -->
-<div *ngIf="!isEmpty()" class="gv-documentation">
+
+<div *ngIf="!isLoaded" class="gv-documentation">
   <div class="gv-documentation__loading" *ngIf="!isLoaded">
     <gv-icon shape="navigation:waiting"></gv-icon>
   </div>
+</div>
+
+<div *ngIf="isLoaded && !isEmpty()" class="gv-documentation">
   <div #treeMenu class="gv-documentation__menu" [ngClass]="{ show: isLoaded }">
     <gv-tree [items]="menu" [selectedItem]="currentMenuItem"></gv-tree>
   </div>
@@ -33,7 +37,7 @@
   ></app-gv-page>
 </div>
 
-<div class="page__content" *ngIf="isEmpty()">
+<div class="page__content" *ngIf="isLoaded && isEmpty()">
   <section>
     <gv-message class="message-empty">
       <gv-icon shape="home:library"></gv-icon>
