@@ -7,6 +7,17 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 
 - Added "gateway.services.core.http.ssl.keystore.password"
 - fix helm backward compatibility during helm upgrade without `common` field
+<<<<<<< HEAD
+=======
+- Added default preStop command on ui and portal
+
+### 3.20.26
+
+- Add networkPolicy
+
+### 3.20.25
+
+>>>>>>> 74cfa51dc3 (feat(helm): add preStop command on ui and portal)
 - Update regex for portal and console base_href
 - 'fix AE system mail notification without keystore'
 - Add support for Secret Manager's configuration
