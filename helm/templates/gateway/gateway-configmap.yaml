@@ -311,6 +311,7 @@ data:
             keystore:
               type: {{ .Values.gateway.services.core.http.ssl.keystore.type }}
               path: {{ .Values.gateway.services.core.http.ssl.keystore.path }}
+              password: {{ .Values.gateway.services.core.http.ssl.keystore.password }}
           {{- end }}
 
       sync: {{ toYaml .Values.gateway.services.sync | nindent 8 }}

@@ -933,6 +933,7 @@ gateway:
           keystore:
             type: "PKCS12"
             path: "/p12/keystore"
+            #password:
       ingress:
         enabled: false
         ingressClassName: ""
