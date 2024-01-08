@@ -25,6 +25,7 @@ interface APIManagementConfiguration {
   managementBaseUrl: string;
   portalBaseUrl: string;
   gatewayBaseUrl: string;
+  gatewayTcpPort: number;
   skipTlsVerify: string;
   adminUserName: string;
   adminPassword: string;
@@ -34,7 +35,11 @@ interface APIManagementConfiguration {
   appPassword: string;
   simpleUserName: string;
   simplePassword: string;
+  tcpApiEntrypointHost: string;
   apiEndpointUrl: string;
+  // Host and port of the default target endpoint, used for TCP APIs
+  apiEndpointTcpTargetHost: string;
+  apiEndpointTcpTargetPort: number;
   kafkaBoostrapServer: string;
   apiExecutionMode: string;
   organization: string;
