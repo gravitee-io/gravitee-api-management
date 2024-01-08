@@ -118,6 +118,34 @@
       "visibility": "PUBLIC",
       "lastContributor": "admin",
       "published": false
+    },
+    {
+      "name": "page with group name in access control",
+      "type": "MARKDOWN",
+      "order": 3,
+      "visibility": "PUBLIC",
+      "lastContributor": "admin",
+      "published": false,
+      "accessControls": [
+        {
+          "referenceId": "known group name",
+          "referenceType": "GROUP"
+        }
+      ]
+    },
+    {
+      "name": "page with group id in access control",
+      "type": "MARKDOWN",
+      "order": 4,
+      "visibility": "PUBLIC",
+      "lastContributor": "admin",
+      "published": false,
+      "accessControls": [
+        {
+          "referenceId": "group_id",
+          "referenceType": "GROUP"
+        }
+      ]
     }
   ]
 }
