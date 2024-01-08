@@ -5,6 +5,7 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 
 ### 4.0.16
 
+- Added "gateway.services.core.http.ssl.keystore.password"
 - fix helm backward compatibility during helm upgrade without `common` field
 
 ### 4.0.15
