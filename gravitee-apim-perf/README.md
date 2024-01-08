@@ -108,6 +108,8 @@ Once the grafana stack is up and running, you can start visualize the Apim gatew
 
 Go to: http://localhost:8686/api/v5/report/evKJrjgVk?orgId=1&from=1660884060000&to=1660890060000, which will output the grafana-reporter PDF of the dashboard `evKJrjgVk` on the time interval specified with the parameters `from` and `to`.
 
+⚠️ Use the ID of your dashboard (in this example, ID is `evKJrjgVk`)
+
 #### Local environment
 
 It is possible to run the scenario without a grafana to report metrics.
