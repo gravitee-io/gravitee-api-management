@@ -30,6 +30,7 @@ import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.rest.api.model.AccessControlReferenceType;
 import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
@@ -63,6 +64,7 @@ import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.PlanConverter;
@@ -654,7 +656,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                     planEntity.getExcludedGroups().add(group.getId());
                 } else {
                     LOGGER.warn(
-                        "Group {} does not exist and can't be added to plan {} [{}]",
+                        "Group with name {} does not exist and can't be added to plan \"{}\" [{}]",
                         name,
                         planEntity.getName(),
                         planEntity.getId()
@@ -675,8 +677,51 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 apiJsonNode.getPages().toString(),
                 objectMapper.getTypeFactory().constructCollectionType(List.class, PageEntity.class)
             );
+
+            replacePagesGroupNameById(executionContext, pagesList);
+
             pageService.createOrUpdatePages(executionContext, pagesList, apiEntity.getId());
         }
+    }
+
+    private void replacePagesGroupNameById(ExecutionContext executionContext, List<PageEntity> pagesList) {
+        final Map<String, String> pageGroupEntities = new HashMap<>();
+
+        pagesList.forEach(pageEntity -> {
+            if (pageEntity.getAccessControls() != null) {
+                pageEntity.setAccessControls(
+                    pageEntity
+                        .getAccessControls()
+                        .stream()
+                        .filter(accessControlEntity ->
+                            accessControlEntity.getReferenceType().equals(AccessControlReferenceType.GROUP.name())
+                        )
+                        .peek(accessControlEntity -> {
+                            String groupId = pageGroupEntities.computeIfAbsent(
+                                accessControlEntity.getReferenceId(),
+                                key -> {
+                                    List<GroupEntity> groupEntities = groupService.findByName(executionContext.getEnvironmentId(), key);
+                                    if (!groupEntities.isEmpty()) {
+                                        return groupEntities.get(0).getId();
+                                    } else {
+                                        LOGGER.warn(
+                                            "Group with name {} does not exist and can't be added to access control list of page \"{}\" [{}]",
+                                            accessControlEntity.getReferenceId(),
+                                            pageEntity.getName(),
+                                            pageEntity.getId()
+                                        );
+                                        return null;
+                                    }
+                                }
+                            );
+                            if (groupId != null) {
+                                accessControlEntity.setReferenceId(groupId);
+                            }
+                        })
+                        .collect(toSet())
+                );
+            }
+        });
     }
 
     protected static class MemberToImport {
