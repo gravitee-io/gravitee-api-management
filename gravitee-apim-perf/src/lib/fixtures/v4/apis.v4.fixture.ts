@@ -20,7 +20,7 @@ import {
   NewApiEntityV4FlowModeEnum,
   NewApiEntityV4TypeEnum,
 } from '@models/v4/NewApiEntityV4';
-import { HttpListenerV4, ListenerV4 } from '@models/v4/ListenerV4';
+import { HttpListenerV4, ListenerV4, TcpListenerV4 } from '@models/v4/ListenerV4';
 
 export class ApisV4Fixture {
   static newApi(attributes?: Partial<NewApiEntityV4>): NewApiEntityV4 {
@@ -49,6 +49,17 @@ export class ApisV4Fixture {
       // @ts-ignore
       type: 'HTTP',
       paths: [],
+      pathMappings: [],
+      entrypoints: [],
+      ...attributes,
+    };
+  }
+
+  static newTcpListener(attributes?: Partial<TcpListenerV4>): ListenerV4 {
+    return {
+      // @ts-ignore
+      type: 'TCP',
+      hosts: [],
       pathMappings: [],
       entrypoints: [],
       ...attributes,

@@ -16,6 +16,7 @@
 import http, { RefinedResponse } from 'k6/http';
 import { sleep } from 'k6';
 import { k6Options } from '@env/environment';
+import { HttpHelper } from '@helpers/http.helper';
 
 export class GatewayClient {
   /**
@@ -27,6 +28,27 @@ export class GatewayClient {
    * maxRetries: 5,
    */
   static waitForApiAvailability(attributes: Partial<GatewayRequest>) {
+    return this.waitForAvailability(attributes, (request) => _fetchGateway(request), `${k6Options.apim.gatewayBaseUrl}`);
+  }
+
+  /**
+   * Retries calls to gateway until expected status is returned.
+   * Relies on the GatewayRequest.gatewayTcpUrl to call the API. This URL has this form: 'https://<tcp_api_host>:<gateway_tcp_port>'
+   * Default to:
+   * expectedStatusCode: 200,
+   * method: 'GET',
+   * timeBetweenRetries: 1500,
+   * maxRetries: 5,
+   */
+  static waitForTcpApiAvailability(attributes: Partial<GatewayRequest>) {
+    return this.waitForAvailability(attributes, (request) => _fetchGateway(request, request.gatewayTcpUrl), `${attributes.gatewayTcpUrl}`);
+  }
+
+  private static waitForAvailability(
+    attributes: Partial<GatewayRequest>,
+    fetchGatewayFunction: (request) => RefinedResponse<any>,
+    apiUrl: string,
+  ) {
     const request = <GatewayRequest>{
       expectedStatusCode: 200,
       method: 'GET',
@@ -36,18 +58,17 @@ export class GatewayClient {
       ...attributes,
     };
 
-    //
     sleep(request.timeBetweenRetries / 1000);
 
     if (request.maxRetries <= 0) {
-      return _fetchGateway(request);
+      return fetchGatewayFunction(request);
     }
 
     let lastError: Error | undefined;
 
     for (let retries = request.maxRetries; retries > 0; --retries) {
       try {
-        return _fetchGateway(request);
+        return fetchGatewayFunction(request);
       } catch (error: any) {
         console.debug(error.toString());
         lastError = error;
@@ -58,29 +79,29 @@ export class GatewayClient {
       }
     }
 
-    console.error(
-      `[${request.method}] [${k6Options.apim.gatewayBaseUrl}${request.contextPath}] failed after ${request.maxRetries} retries with error`,
-      lastError,
-    );
+    console.error(`[${request.method}] [${apiUrl}${request.contextPath}] failed after ${request.maxRetries} retries with error`, lastError);
 
     throw lastError;
   }
 }
 
-function _fetchGateway(request: Partial<GatewayRequest>): RefinedResponse<any> {
-  const response = http.request(request.method, `${k6Options.apim.gatewayBaseUrl}${request.contextPath}`, request.body, {
+function _fetchGateway(request: Partial<GatewayRequest>, url: string = `${k6Options.apim.gatewayBaseUrl}`): RefinedResponse<any> {
+  if (request.secured) {
+    url = HttpHelper.changeToHttps(url);
+  }
+  const response = http.request(request.method, `${url}${request.contextPath}`, request.body, {
     tags: { name: OUT_OF_SCENARIO },
     headers: request.headers,
   });
 
   if (response.status != request.expectedStatusCode) {
-    throw new Error(`[${request.method}] [${k6Options.apim.gatewayBaseUrl}${request.contextPath}] returned HTTP ${response.status}`);
+    throw new Error(`[${request.method}] [${url}${request.contextPath}] returned HTTP ${response.status}`);
   }
 
   const isValidResponse = request.expectedResponseValidator(response);
 
   if (!isValidResponse) {
-    throw new Error(`Unexpected response for [${request.method}] [${k6Options.apim.gatewayBaseUrl}${request.contextPath}]`);
+    throw new Error(`Unexpected response for [${request.method}] [${url}${request.contextPath}]`);
   }
 
   return response;
@@ -95,6 +116,7 @@ export enum HttpMethod {
 }
 
 interface GatewayRequest {
+  gatewayTcpUrl?: string;
   contextPath: string;
   expectedStatusCode: number;
   expectedResponseValidator: (response: RefinedResponse<any>) => boolean | Promise<boolean>; // Allows to validate if the expected request is the right one. Useful in case of api redeployment.
@@ -103,6 +125,7 @@ interface GatewayRequest {
   headers?: { [name: string]: string };
   timeBetweenRetries: number;
   maxRetries: number;
+  secured?: boolean;
 }
 
 export const OUT_OF_SCENARIO = 'out-of-scenario';
