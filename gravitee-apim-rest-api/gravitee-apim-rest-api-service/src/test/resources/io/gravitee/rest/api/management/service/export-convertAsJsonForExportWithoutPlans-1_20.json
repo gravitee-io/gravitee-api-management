@@ -5,10 +5,10 @@
   "resources" : [ ],
   "properties" : [ ],
   "flow_mode": "DEFAULT",
+  "path_mappings":[],
   "groups" : [ "My Group" ],
   "members" : [ {
-    "source":"johndoe-source",
-    "sourceId":"johndoe-sourceId",
+    "username":"johndoe-sourceId",
     "role" : "PRIMARY_OWNER"
   } ],
   "pages" : [
@@ -48,34 +48,6 @@
       "excludedAccessControls": false
     }
   ],
-  "plans" : [ {
-    "id" : "plan-id",
-    "description" : "free plan",
-    "validation" : "AUTO",
-    "security" : "API_KEY",
-    "type" : "API",
-    "status" : "PUBLISHED",
-    "apis" : [ "id-api" ],
-    "order" : 0,
-    "paths" : {
-      "/" : [ {
-        "methods" : [ "GET" ],
-        "rate-limit" : {
-          "rate": {
-            "limit": 1,
-            "periodTime": 1,
-            "periodTimeUnit": "SECONDS"
-          }
-        },
-        "enabled" : true
-      } ]
-    },
-    "comment_required" : false,
-    "excluded_groups": [
-      "My Group"
-    ]
-  } ],
-  "path_mappings":[],
   "metadata":[
     {
       "key":"metadata-key",
@@ -90,8 +62,8 @@
     "context_path": "/test",
     "strip_context_path": false,
     "logging": {
-      "mode":"CLIENT_PROXY",
-      "condition":"condition",
+      "mode": "CLIENT_PROXY",
+      "condition": "condition",
       "content":"NONE",
       "scope":"NONE"
     },
@@ -109,26 +81,8 @@
         ],
         "load_balancing": {
           "type": "ROUND_ROBIN"
-        },
-        "http": {
-          "connectTimeout": 5000,
-          "idleTimeout": 60000,
-          "keepAlive": true,
-          "readTimeout": 10000,
-          "pipelining": false,
-          "maxConcurrentConnections": 100,
-          "useCompression": true,
-          "followRedirects": false
         }
       }
     ]
-  },
-  "response_templates": {
-    "API_KEY_MISSING": {
-      "*/*": {
-        "status": 400,
-        "body": "{\"bad\":\"news\"}"
-      }
-    }
   }
 }
