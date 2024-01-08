@@ -1,16 +1,28 @@
 {
   "crossId": "test-api-cross-id",
-  "description" : "Gravitee.io",
+  "description": "Gravitee.io",
   "gravitee": "1.0.0",
-  "resources" : [ ],
+  "execution_mode": "v3",
+  "resources": [],
   "properties" : [ ],
   "flow_mode": "DEFAULT",
-  "groups" : [ "My Group" ],
-  "members" : [ {
-    "source":"johndoe-source",
-    "sourceId":"johndoe-sourceId",
-    "role" : "PRIMARY_OWNER"
-  } ],
+  "primaryOwner": {
+    "id": "johndoe",
+    "displayName": "johndoe-sourceId",
+    "type": "USER"
+  },
+  "groups": [
+    "My Group"
+  ],
+  "members": [
+    {
+      "source": "johndoe-source",
+      "sourceId": "johndoe-sourceId",
+      "roles": [
+        "API_PRIMARY_OWNER"
+      ]
+    }
+  ],
   "pages" : [
     {
       "name" : "My Folder",
@@ -46,52 +58,70 @@
       "published" : false,
       "homepage" : false,
       "excludedAccessControls": false
-    }
-  ],
-  "plans" : [ {
-    "id" : "plan-id",
-    "description" : "free plan",
-    "validation" : "AUTO",
-    "security" : "API_KEY",
-    "type" : "API",
-    "status" : "PUBLISHED",
-    "apis" : [ "id-api" ],
-    "order" : 0,
-    "paths" : {
-      "/" : [ {
-        "methods" : [ "GET" ],
-        "rate-limit" : {
-          "rate": {
-            "limit": 1,
-            "periodTime": 1,
-            "periodTimeUnit": "SECONDS"
-          }
-        },
-        "enabled" : true
-      } ]
     },
-    "comment_required" : false,
-    "excluded_groups": [
-      "My Group"
-    ]
-  } ],
-  "path_mappings":[],
-  "metadata":[
     {
-      "key":"metadata-key",
-      "name":"metadata-name",
-      "format":"STRING",
-      "value":"metadata-value",
-      "defaultValue":"metadata-default-value",
-      "apiId":"id-api"
+      "name": "Aside",
+      "type": "SYSTEM_FOLDER",
+      "order": 1,
+      "visibility": "PUBLIC",
+      "published": true,
+      "homepage": false,
+      "excludedAccessControls": false
+    },
+    {
+      "name": "My Link",
+      "type": "LINK",
+      "content" : "Read the doc",
+      "order": 1,
+      "visibility": "PUBLIC",
+      "published": false,
+      "homepage": false,
+      "excludedAccessControls": false
+    },
+    {
+      "name": "My Translation",
+      "type": "TRANSLATION",
+      "content" : "Lire la documentation",
+      "order": 1,
+      "visibility": "PUBLIC",
+      "published": false,
+      "homepage": false,
+      "excludedAccessControls": false
+    },
+    {
+      "name": "My Template",
+      "type": "MARKDOWN_TEMPLATE",
+      "content" : "Read the doc",
+      "order": 1,
+      "visibility": "PUBLIC",
+      "published": false,
+      "homepage": false,
+      "excludedAccessControls": false
     }
   ],
+  "metadata": [
+    {
+      "key": "metadata-key",
+      "name": "metadata-name",
+      "format": "STRING",
+      "value": "metadata-value",
+      "defaultValue": "metadata-default-value",
+      "apiId": "id-api"
+    }
+  ],
+  "id": "id-api",
+  "path_mappings": [],
   "proxy": {
-    "context_path": "/test",
+    "virtual_hosts": [
+      {
+        "path": "/test"
+      }
+    ],
     "strip_context_path": false,
+    "preserve_host": false,
     "logging": {
-      "mode":"CLIENT_PROXY",
-      "condition":"condition",
+      "mode": "CLIENT_PROXY",
+      "condition": "condition",
       "content":"NONE",
       "scope":"NONE"
     },

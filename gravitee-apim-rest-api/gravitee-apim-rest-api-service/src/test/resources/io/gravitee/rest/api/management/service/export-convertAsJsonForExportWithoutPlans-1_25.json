@@ -5,6 +5,7 @@
   "resources" : [ ],
   "properties" : [ ],
   "flow_mode": "DEFAULT",
+  "path_mappings":[],
   "groups" : [ "My Group" ],
   "members" : [ {
     "source":"johndoe-source",
@@ -48,34 +49,6 @@
       "excludedAccessControls": false
     }
   ],
-  "plans" : [ {
-    "id" : "plan-id",
-    "description" : "free plan",
-    "validation" : "AUTO",
-    "security" : "API_KEY",
-    "type" : "API",
-    "status" : "PUBLISHED",
-    "apis" : [ "id-api" ],
-    "order" : 0,
-    "paths" : {
-      "/" : [ {
-        "methods" : [ "GET" ],
-        "rate-limit" : {
-          "rate": {
-            "limit": 1,
-            "periodTime": 1,
-            "periodTimeUnit": "SECONDS"
-          }
-        },
-        "enabled" : true
-      } ]
-    },
-    "comment_required" : false,
-    "excluded_groups": [
-      "My Group"
-    ]
-  } ],
-  "path_mappings":[],
   "metadata":[
     {
       "key":"metadata-key",
@@ -90,8 +63,8 @@
     "context_path": "/test",
     "strip_context_path": false,
     "logging": {
-      "mode":"CLIENT_PROXY",
-      "condition":"condition",
+      "mode": "CLIENT_PROXY",
+      "condition": "condition",
       "content":"NONE",
       "scope":"NONE"
     },

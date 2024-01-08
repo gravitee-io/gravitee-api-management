@@ -7,7 +7,7 @@
   "flow_mode": "DEFAULT",
   "groups" : [ "My Group" ],
   "members" : [ {
-    "username":"johndoe-sourceId",
+    "username" : "johndoe-sourceId",
     "role" : "PRIMARY_OWNER"
   } ],
   "pages" : [
@@ -47,59 +47,31 @@
       "excludedAccessControls": false
     }
   ],
-  "plans" : [ {
-    "id" : "plan-id",
-    "description" : "free plan",
-    "validation" : "AUTO",
-    "security" : "API_KEY",
-    "type" : "API",
-    "status" : "PUBLISHED",
-    "apis" : [ "id-api" ],
-    "order" : 0,
-    "paths" : {
-      "/" : [ {
-        "methods" : [ "GET" ],
-        "rate-limit" : {
-          "rate": {
-            "limit": 1,
-            "periodTime": 1,
-            "periodTimeUnit": "SECONDS"
-          }
-        },
-        "enabled" : true
-      } ]
-    },
-    "comment_required" : false,
-    "excluded_groups": [
-      "My Group"
-    ]
-  } ],
-  "path_mappings":[],
+  "metadata":[
+    {
+      "key":"metadata-key",
+      "name":"metadata-name",
+      "format":"STRING",
+      "value":"metadata-value",
+      "defaultValue":"metadata-default-value",
+      "apiId":"id-api"
+    }
+  ],
   "proxy": {
     "context_path": "/test",
     "strip_context_path": false,
-    "logging": {
-      "mode":"CLIENT_PROXY",
-      "condition":"condition",
-      "content":"NONE",
-      "scope":"NONE"
-    },
-    "groups": [
+    "loggingMode": "CLIENT_PROXY",
+    "endpoints": [
       {
-        "name": "default-group",
-        "endpoints": [
-          {
-            "name": "default",
-            "target": "http://test",
-            "weight": 1,
-            "backup": false,
-            "type": "http"
-          }
-        ],
-        "load_balancing": {
-          "type": "ROUND_ROBIN"
-        }
+        "name": "default",
+        "target": "http://test",
+        "weight": 1,
+        "backup": false,
+        "type": "http"
       }
-    ]
+    ],
+    "load_balancing": {
+      "type": "ROUND_ROBIN"
+    }
   }
 }
