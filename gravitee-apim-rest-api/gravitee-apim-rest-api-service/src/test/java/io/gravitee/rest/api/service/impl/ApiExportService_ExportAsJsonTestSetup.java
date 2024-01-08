@@ -174,6 +174,7 @@ public class ApiExportService_ExportAsJsonTestSetup {
         markdownPage.setType(PageType.MARKDOWN.toString());
         markdownPage.setContent("Read the doc");
         markdownPage.setVisibility(Visibility.PUBLIC);
+        markdownPage.setAccessControls(Set.of(new AccessControlEntity("my-group", "GROUP")));
         PageEntity asideFolder = new PageEntity();
         asideFolder.setName("Aside");
         asideFolder.setOrder(1);
@@ -248,6 +249,7 @@ public class ApiExportService_ExportAsJsonTestSetup {
         groupEntity.setId("my-group");
         groupEntity.setName("My Group");
         when(groupService.findByIds(apiEntity.getGroups())).thenReturn(Collections.singleton(groupEntity));
+        when(groupService.findById(GraviteeContext.getExecutionContext(), "my-group")).thenReturn(groupEntity);
 
         PlanEntity publishedPlan = new PlanEntity();
         publishedPlan.setId("plan-id");
