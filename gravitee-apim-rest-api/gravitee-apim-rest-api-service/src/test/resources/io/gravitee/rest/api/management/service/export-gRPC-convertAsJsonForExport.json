@@ -36,7 +36,13 @@
       "published": false,
       "visibility": "PUBLIC",
       "homepage": false,
-      "excludedAccessControls": false
+      "excludedAccessControls": false,
+      "accessControls": [
+        {
+          "referenceId":"My Group",
+          "referenceType":"GROUP"
+        }
+      ]
     },
     {
       "name": "My Swagger",

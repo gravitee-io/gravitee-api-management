@@ -227,6 +227,35 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
                             .filter(pageEntity -> !pageEntity.getType().equals(PageType.ASCIIDOC.name()))
                             .collect(Collectors.toList());
                 }
+
+                // Replace group id by group name in access control list
+                final Map<String, String> pageGroupEntities = new HashMap<>();
+                pages.forEach(pageEntity -> {
+                    if (pageEntity.getAccessControls() != null) {
+                        pageEntity.setAccessControls(
+                            pageEntity
+                                .getAccessControls()
+                                .stream()
+                                .filter(accessControlEntity ->
+                                    accessControlEntity.getReferenceType().equals(AccessControlReferenceType.GROUP.name())
+                                )
+                                .peek(accessControlEntity ->
+                                    accessControlEntity.setReferenceId(
+                                        pageGroupEntities.computeIfAbsent(
+                                            accessControlEntity.getReferenceId(),
+                                            key ->
+                                                applicationContext
+                                                    .getBean(GroupService.class)
+                                                    .findById(GraviteeContext.getExecutionContext(), key)
+                                                    .getName()
+                                        )
+                                    )
+                                )
+                                .collect(Collectors.toSet())
+                        );
+                    }
+                });
+
                 jsonGenerator.writeObjectField("pages", pages == null ? Collections.emptyList() : pages);
                 List<MediaEntity> apiMedia = applicationContext.getBean(MediaService.class).findAllByApiId(apiEntity.getId());
                 if (apiMedia != null && !apiMedia.isEmpty()) {
