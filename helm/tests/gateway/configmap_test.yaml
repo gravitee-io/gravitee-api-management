@@ -1,0 +1,23 @@
+suite: Test Gateway configmap with general purpose
+templates:
+  - "gateway/gateway-configmap.yaml"
+tests:
+  - it: add service core ssl password
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        services:
+          core:
+            http:
+              secured: true
+              ssl:
+                keystore:
+                  password: password
+    asserts:
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: " * ssl:\n
+                     *  keystore:\n
+                     *   type: PKCS12\n
+                     *   path: /p12/keystore\n
+                     *   password: password\n"
