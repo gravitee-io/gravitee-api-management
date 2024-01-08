@@ -24,6 +24,7 @@ const k6DefaultOptions: Configuration = {
     managementBaseUrl: 'http://localhost:8083/management',
     portalBaseUrl: 'http://localhost:8083/portal/environments',
     gatewayBaseUrl: 'http://localhost:8082',
+    gatewayTcpPort: 4082,
     skipTlsVerify: 'false',
     adminUserName: 'admin',
     adminPassword: 'admin',
@@ -33,7 +34,10 @@ const k6DefaultOptions: Configuration = {
     appPassword: 'application1',
     simpleUserName: 'user',
     simplePassword: 'password',
+    tcpApiEntrypointHost: 'localhost',
     apiEndpointUrl: 'http://localhost:8080/echo',
+    apiEndpointTcpTargetHost: 'sample_api',
+    apiEndpointTcpTargetPort: 8080,
     apiExecutionMode: 'v3',
     organization: 'DEFAULT',
     environment: 'DEFAULT',
@@ -85,6 +89,8 @@ const k6DefaultOptions: Configuration = {
   },
   setupTimeout: '3600s',
   discardResponseBodies: false,
+  // Allow to define custom hosts (as in /etc/hosts): https://k6.io/docs/using-k6/k6-options/reference/#hosts
+  hosts: { localhost: '0.0.0.0' },
   insecureSkipTLSVerify: false,
   scenarios: {
     default: {

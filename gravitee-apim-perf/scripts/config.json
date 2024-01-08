@@ -3,6 +3,7 @@
     "managementBaseUrl": "http://localhost:8083/management",
     "portalBaseUrl": "http://localhost:8083/portal/environments",
     "gatewayBaseUrl": "http://localhost:8082",
+    "gatewayTcpPort": 4082,
     "skipTlsVerify": "false",
     "adminUserName": "admin",
     "adminPassword": "admin",
@@ -12,7 +13,10 @@
     "appPassword": "application1",
     "simpleUserName": "user",
     "simplePassword": "password",
-    "apiEndpointUrl": "http://localhost:8080/echo",
+    "apiEndpointUrl": "http://sample_api:8080/echo",
+    "tcpApiEntrypointHost": "localhost",
+    "apiEndpointTcpTargetHost": "sample_api",
+    "apiEndpointTcpTargetPort": 8080,
     "kafkaBoostrapServer": "localhost:9092",
     "apiExecutionMode": "v3",
     "organization": "DEFAULT",
@@ -60,7 +64,8 @@
     "outputMode": "experimental-prometheus-rw"
   },
   "discardResponseBodies": false,
-  "insecureSkipTLSVerify": false,
+  "insecureSkipTLSVerify": true,
+  "hosts": { "localhost": "0.0.0.0" },
   "scenarios": {
     "default": {
       "executor": "ramping-arrival-rate",
