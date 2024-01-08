@@ -459,13 +459,42 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
         po.setRoles(Collections.singletonList(poRole));
 
         mockApiIdRecalculation();
+
+        GroupEntity knownGroup = new GroupEntity();
+        knownGroup.setId("known_group_id");
+        knownGroup.setName("known group name");
+        when(groupService.findByName(GraviteeContext.getExecutionContext().getEnvironmentId(), "known group name"))
+            .thenReturn(List.of(knownGroup));
+        when(groupService.findByName(GraviteeContext.getExecutionContext().getEnvironmentId(), "group_id")).thenReturn(List.of());
+
         apiDuplicatorService.updateWithImportedDefinition(GraviteeContext.getExecutionContext(), apiEntity.getId(), toBeImport);
 
         verify(pageService, times(1))
-            .createOrUpdatePages(eq(GraviteeContext.getExecutionContext()), argThat(pagesList -> pagesList.size() == 2), eq(API_ID));
+            .createOrUpdatePages(
+                eq(GraviteeContext.getExecutionContext()),
+                argThat(pagesList -> {
+                    boolean pageSizeOk = pagesList.size() == 4;
+                    boolean accessControlOk = true;
+                    for (PageEntity pageEntity : pagesList) {
+                        if (pageEntity.getOrder() == 3) {
+                            accessControlOk =
+                                accessControlOk &&
+                                pageEntity.getAccessControls().contains(new AccessControlEntity("known_group_id", "GROUP"));
+                        } else if (pageEntity.getOrder() == 4) {
+                            accessControlOk =
+                                accessControlOk && pageEntity.getAccessControls().contains(new AccessControlEntity("group_id", "GROUP"));
+                        }
+                    }
+
+                    return pageSizeOk && accessControlOk;
+                }),
+                eq(API_ID)
+            );
         verify(membershipService, never()).addRoleToMemberOnReference(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
         verify(apiService, times(1)).update(eq(GraviteeContext.getExecutionContext()), eq(API_ID), any());
         verify(apiService, never()).create(eq(GraviteeContext.getExecutionContext()), any(), any());
+        verify(groupService, times(1)).findByName(GraviteeContext.getExecutionContext().getEnvironmentId(), "known group name");
+        verify(groupService, times(1)).findByName(GraviteeContext.getExecutionContext().getEnvironmentId(), "group_id");
     }
 
     private void mockApiIdRecalculation() {
