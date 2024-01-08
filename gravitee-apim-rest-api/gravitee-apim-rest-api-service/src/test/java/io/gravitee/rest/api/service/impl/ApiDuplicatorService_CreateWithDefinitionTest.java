@@ -34,9 +34,12 @@ import com.google.common.io.Resources;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
+import io.gravitee.rest.api.model.AccessControlEntity;
+import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
+import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UpdateApiMetadataEntity;
@@ -306,11 +309,39 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         user.setSource(SOURCE);
         user.setSourceId("ref-user");
 
+        GroupEntity knownGroup = new GroupEntity();
+        knownGroup.setId("known_group_id");
+        knownGroup.setName("known group name");
+        when(groupService.findByName(GraviteeContext.getExecutionContext().getEnvironmentId(), "known group name"))
+            .thenReturn(List.of(knownGroup));
+        when(groupService.findByName(GraviteeContext.getExecutionContext().getEnvironmentId(), "group_id")).thenReturn(List.of());
+
         apiDuplicatorService.createWithImportedDefinition(GraviteeContext.getExecutionContext(), toBeImport);
 
         verify(apiService, times(1)).createWithApiDefinition(eq(GraviteeContext.getExecutionContext()), any(), eq("admin"), any());
+        verify(groupService, times(1)).findByName(GraviteeContext.getExecutionContext().getEnvironmentId(), "known group name");
+        verify(groupService, times(1)).findByName(GraviteeContext.getExecutionContext().getEnvironmentId(), "group_id");
         verify(pageService, times(1))
-            .createOrUpdatePages(eq(GraviteeContext.getExecutionContext()), argThat(pagesList -> pagesList.size() == 2), eq(API_ID));
+            .createOrUpdatePages(
+                eq(GraviteeContext.getExecutionContext()),
+                argThat(pagesList -> {
+                    boolean pageSizeOk = pagesList.size() == 4;
+                    boolean accessControlOk = true;
+                    for (PageEntity pageEntity : pagesList) {
+                        if (pageEntity.getOrder() == 3) {
+                            accessControlOk =
+                                accessControlOk &&
+                                pageEntity.getAccessControls().contains(new AccessControlEntity("known_group_id", "GROUP"));
+                        } else if (pageEntity.getOrder() == 4) {
+                            accessControlOk =
+                                accessControlOk && pageEntity.getAccessControls().contains(new AccessControlEntity("group_id", "GROUP"));
+                        }
+                    }
+
+                    return pageSizeOk && accessControlOk;
+                }),
+                eq(API_ID)
+            );
     }
 
     @Test
