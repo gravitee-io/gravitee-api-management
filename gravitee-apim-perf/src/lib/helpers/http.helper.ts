@@ -39,4 +39,8 @@ export class HttpHelper {
   static parseBody<T>(response: RefinedResponse<any>): T {
     return JSON.parse(response.body as string) as T;
   }
+
+  static changeToHttps(url: string): string {
+    return url.replace('http://', 'https://');
+  }
 }

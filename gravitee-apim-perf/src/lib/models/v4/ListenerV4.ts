@@ -109,4 +109,10 @@ export interface TcpListenerV4 {
    * @memberof TcpListenerV4
    */
   entrypoints: Array<EntrypointV4>;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof TcpListenerV4
+   */
+  hosts: Array<string>;
 }

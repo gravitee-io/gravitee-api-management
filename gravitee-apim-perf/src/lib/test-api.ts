@@ -26,7 +26,7 @@ import { ApiKeyEntity } from '@models/v3/ApiKeyEntity';
 export interface GatewayTestData {
   api?: ApiEntity | ApiEntityV4;
   plan?: PlanEntity | PlanEntityV4;
-  waitGateway?: { contextPath: string };
+  waitGateway?: { gatewayTcpUrl?: string; contextPath: string };
   msg?: any;
   applications?: Array<ApplicationEntityV4>;
   subscriptions?: Array<SubscriptionEntityV4>;
