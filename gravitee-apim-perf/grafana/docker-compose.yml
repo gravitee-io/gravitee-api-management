@@ -62,6 +62,7 @@ services:
       - ${PWD}/config/provisioning-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml:ro
       - ${PWD}/config/provisioning-dashboards.yaml:/etc/grafana/provisioning/dashboards/provisioning-dashboards.yaml:ro
       - ${PWD}/config/apim-performances.json:/var/lib/grafana/dashboards/apim-performances.json:ro
+      - ${PWD}/config/apim-performances-tcp.json:/var/lib/grafana/dashboards/apim-performances-tcp.json:ro
 
   renderer:
     image: grafana/grafana-image-renderer:latest
