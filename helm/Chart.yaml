@@ -21,3 +21,5 @@ annotations:
   artifacthub.io/changes: |
     - 'Added gateway.services.core.http.ssl.keystore.password'
     - 'fix helm backward compatibility during helm upgrade without `common` field'
+    - 'Added default preStop command on ui and portal'
+
