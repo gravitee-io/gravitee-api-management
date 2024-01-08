@@ -175,7 +175,7 @@ function customizeUI(uiCustomization: ConsoleCustomization) {
 }
 
 function bootstrapApplication(constants: Constants) {
-  const resourceURL = `${constants.v2BaseURL}/license`;
+  const resourceURL = `${constants.org.v2BaseURL}/license`;
   const featureInfoData = getFeatureInfoData(constants.customization?.ctaConfiguration);
   const trialURLConfiguration = {
     trialResourceURL: constants.customization?.ctaConfiguration?.trialURL || 'https://gravitee.io/self-hosted-trial',
