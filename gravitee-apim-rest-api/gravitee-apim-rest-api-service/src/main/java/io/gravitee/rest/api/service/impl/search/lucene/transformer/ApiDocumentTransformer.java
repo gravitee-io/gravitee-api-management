@@ -72,7 +72,7 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
     public static final String FIELD_METADATA = "metadata";
     public static final String FIELD_METADATA_SPLIT = "metadata_split";
     public static final String FIELD_DEFINITION_VERSION = "definition_version";
-    private static final Pattern SPECIAL_CHARS = Pattern.compile("[|\\-+!(){}^\"~*?:&\\/]");
+    public static final Pattern SPECIAL_CHARS = Pattern.compile("[|\\-+!(){}^\"~*?:&\\/]");
     public static final String FIELD_ORIGIN = "origin";
     public static final String FIELD_HAS_HEALTH_CHECK = "has_health_check";
 

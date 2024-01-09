@@ -20,7 +20,13 @@ package io.gravitee.apim.core.audit.model.event;
  * @author GraviteeSource Team
  */
 public enum ApiAuditEvent implements AuditEvent {
+    API_CREATED,
     API_UPDATED,
+    API_DELETED,
+    API_ROLLBACKED,
+    API_LOGGING_ENABLED,
+    API_LOGGING_DISABLED,
+    API_LOGGING_UPDATED,
     METADATA_DELETED,
     METADATA_CREATED,
     METADATA_UPDATED,

@@ -20,12 +20,14 @@ import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
+import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
+import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Supplier;
 
 public class ApiDefinitionFixtures {
@@ -46,6 +48,48 @@ public class ApiDefinitionFixtures {
         var httpListener = HttpListener.builder().paths(List.of(new Path())).build();
 
         return BASE_V4.get().listeners(List.of(httpListener)).endpointGroups(List.of(EndpointGroup.builder().build())).build();
+    }
+
+    public static Api aHttpProxyApiV4(String apiId) {
+        return BASE_V4
+            .get()
+            .id(apiId)
+            .analytics(Analytics.builder().enabled(false).build())
+            .definitionVersion(DefinitionVersion.V4)
+            .type(ApiType.PROXY)
+            .listeners(
+                List.of(
+                    HttpListener
+                        .builder()
+                        .paths(List.of(Path.builder().path("/http_proxy").build()))
+                        .entrypoints(List.of(Entrypoint.builder().type("http-proxy").configuration("{}").build()))
+                        .build()
+                )
+            )
+            .endpointGroups(
+                List.of(
+                    EndpointGroup
+                        .builder()
+                        .name("default-group")
+                        .type("http-proxy")
+                        .sharedConfiguration("{}")
+                        .endpoints(
+                            List.of(
+                                Endpoint
+                                    .builder()
+                                    .name("default-endpoint")
+                                    .type("http-proxy")
+                                    .inheritConfiguration(true)
+                                    .configuration("{\"target\":\"https://api.gravitee.io/echo\"}")
+                                    .build()
+                            )
+                        )
+                        .build()
+                )
+            )
+            .flows(List.of())
+            .flowExecution(new FlowExecution())
+            .build();
     }
 
     public static io.gravitee.definition.model.Api anApiV2() {

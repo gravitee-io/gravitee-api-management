@@ -18,6 +18,7 @@ package io.gravitee.apim.infra.domain_service.api;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api.model.ApiWithFlows;
 import io.gravitee.apim.core.api.model.crd.ApiCRD;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.infra.adapter.ApiAdapter;
@@ -38,6 +39,11 @@ public class CreateApiDomainServiceLegacyWrapper implements CreateApiDomainServi
     public CreateApiDomainServiceLegacyWrapper(ApiService delegate, ApiCrudService apiCrudService) {
         this.delegate = delegate;
         this.apiCrudService = apiCrudService;
+    }
+
+    @Override
+    public ApiWithFlows create(Api api, AuditInfo auditInfo) {
+        throw new RuntimeException("This method is not implemented");
     }
 
     @Override

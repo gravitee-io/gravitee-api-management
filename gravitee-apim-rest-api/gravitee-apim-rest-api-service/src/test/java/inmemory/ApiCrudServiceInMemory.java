@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.OptionalInt;
-import java.util.function.Predicate;
 
 public class ApiCrudServiceInMemory implements ApiCrudService, InMemoryAlternative<Api> {
 
@@ -37,6 +36,12 @@ public class ApiCrudServiceInMemory implements ApiCrudService, InMemoryAlternati
     @Override
     public boolean existsById(String id) {
         return storage.stream().anyMatch(api -> id.equals(api.getId()));
+    }
+
+    @Override
+    public Api create(Api api) {
+        storage.add(api);
+        return api;
     }
 
     @Override

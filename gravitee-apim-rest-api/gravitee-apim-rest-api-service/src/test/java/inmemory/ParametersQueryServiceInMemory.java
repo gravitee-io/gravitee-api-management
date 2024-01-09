@@ -53,6 +53,10 @@ public class ParametersQueryServiceInMemory implements ParametersQueryService, I
         parameters.addAll(items);
     }
 
+    public void define(Parameter entity) {
+        parameters.add(entity);
+    }
+
     @Override
     public void reset() {
         parameters.clear();

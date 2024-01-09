@@ -20,6 +20,7 @@ import io.gravitee.apim.core.api.model.crd.ApiCRD;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import java.io.IOException;
 import java.util.stream.Stream;
@@ -50,6 +51,9 @@ public interface ApiAdapter {
     io.gravitee.repository.management.model.Api toRepository(Api source);
 
     Stream<io.gravitee.repository.management.model.Api> toRepositoryStream(Stream<Api> source);
+
+    @Mapping(target = "apiVersion", source = "version")
+    NewApiEntity toNewApiEntity(Api source);
 
     @Mapping(target = "apiVersion", source = "version")
     io.gravitee.definition.model.v4.Api toApiDefinition(ApiCRD source);
