@@ -61,6 +61,15 @@ public class ApiCrudServiceImpl implements ApiCrudService {
     }
 
     @Override
+    public Api create(Api api) {
+        try {
+            return ApiAdapter.INSTANCE.toCoreModel(apiRepository.create(ApiAdapter.INSTANCE.toRepository(api)));
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("An error occurs while trying to create the api: " + api.getId(), e);
+        }
+    }
+
+    @Override
     public Api update(Api api) {
         try {
             return ApiAdapter.INSTANCE.toCoreModel(apiRepository.update(ApiAdapter.INSTANCE.toRepository(api)));

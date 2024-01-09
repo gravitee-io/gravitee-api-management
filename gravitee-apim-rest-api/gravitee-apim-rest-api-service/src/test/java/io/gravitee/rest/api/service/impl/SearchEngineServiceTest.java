@@ -21,9 +21,11 @@ import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDoc
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
+import inmemory.ApiCrudServiceInMemory;
 import inmemory.PageCrudServiceInMemory;
+import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
-import io.gravitee.apim.infra.spring.InfraServiceSpringConfiguration;
+import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
@@ -52,13 +54,20 @@ import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Spy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -727,6 +736,21 @@ public class SearchEngineServiceTest {
         @Bean
         public PageCrudService pageCrudService() {
             return new PageCrudServiceInMemory();
+        }
+
+        @Bean
+        public ApiCrudServiceInMemory apiCrudService() {
+            return new ApiCrudServiceInMemory();
+        }
+
+        @Bean
+        public ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService() {
+            return mock(ApiPrimaryOwnerDomainService.class);
+        }
+
+        @Bean
+        public ApiMetadataDecoderDomainService apiMetadataDecoderDomainService() {
+            return mock(ApiMetadataDecoderDomainService.class);
         }
     }
 

@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.api.domain_service;
 
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api.model.ApiWithFlows;
 import io.gravitee.apim.core.api.model.crd.ApiCRD;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 
@@ -24,5 +25,6 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
  * @author GraviteeSource Team
  */
 public interface CreateApiDomainService {
+    ApiWithFlows create(Api api, AuditInfo auditInfo);
     Api create(ApiCRD api, AuditInfo auditInfo);
 }

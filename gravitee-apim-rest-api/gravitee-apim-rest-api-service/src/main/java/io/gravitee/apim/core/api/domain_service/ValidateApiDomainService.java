@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.api.crud_service;
+package io.gravitee.apim.core.api.domain_service;
 
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 
-public interface ApiCrudService {
-    Api get(String id);
-    boolean existsById(String id);
-    Api create(Api api);
-    Api update(Api api);
+public interface ValidateApiDomainService {
+    Api validateAndSanitizeForCreation(final Api api, final PrimaryOwnerEntity primaryOwner, String environmentId, String organizationId);
 }

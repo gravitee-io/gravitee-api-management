@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.core.workflow.model;
 
+import io.gravitee.apim.core.datetime.TimeProvider;
+import io.gravitee.rest.api.service.common.UuidString;
 import java.time.ZonedDateTime;
 import lombok.Builder;
 import lombok.Data;
@@ -46,5 +48,19 @@ public class Workflow {
         IN_REVIEW,
         REQUEST_FOR_CHANGES,
         REVIEW_OK,
+    }
+
+    public static Workflow newApiReviewWorkflow(String apiId, String userId) {
+        return Workflow
+            .builder()
+            .id(UuidString.generateRandom())
+            .referenceType(Workflow.ReferenceType.API)
+            .referenceId(apiId)
+            .type(Workflow.Type.REVIEW)
+            .state(Workflow.State.DRAFT)
+            .comment("")
+            .user(userId)
+            .createdAt(TimeProvider.now())
+            .build();
     }
 }

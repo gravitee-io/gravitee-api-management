@@ -23,11 +23,16 @@ import io.gravitee.definition.model.v4.property.Property;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Set;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Data
-@Builder(toBuilder = true)
+@NoArgsConstructor
+@AllArgsConstructor
+@SuperBuilder(toBuilder = true)
 public class Api {
 
     /**
@@ -86,10 +91,12 @@ public class Api {
      * The Api last updated date
      */
     private ZonedDateTime updatedAt;
+
     /**
      * The api visibility
      */
-    private Visibility visibility;
+    @Builder.Default
+    private Visibility visibility = Visibility.PRIVATE;
 
     /**
      * The current runtime life cycle state.
@@ -110,6 +117,7 @@ public class Api {
      */
     private Set<String> categories;
     /**
+     *
      */
     private List<String> labels;
 
@@ -171,6 +179,7 @@ public class Api {
 
     /**
      * Updates the list of properties to include dynamic properties
+     *
      * @param dynamicProperties the list of dynamic properties to update the list of property
      * @return true if an update has been done, meaning the Api need to be persisted
      */
@@ -188,22 +197,22 @@ public class Api {
         return properties.needToUpdate();
     }
 
-    public static class ApiBuilder {
+    public abstract static class ApiBuilder<C extends Api, B extends ApiBuilder<C, B>> {
 
-        public ApiBuilder apiDefinition(io.gravitee.definition.model.Api apiDefinition) {
+        public B apiDefinition(io.gravitee.definition.model.Api apiDefinition) {
             this.apiDefinition = apiDefinition;
             if (apiDefinition != null) {
                 this.definitionVersion = apiDefinition.getDefinitionVersion();
             }
-            return this;
+            return self();
         }
 
-        public ApiBuilder apiDefinitionV4(io.gravitee.definition.model.v4.Api apiDefinitionV4) {
+        public B apiDefinitionV4(io.gravitee.definition.model.v4.Api apiDefinitionV4) {
             this.apiDefinitionV4 = apiDefinitionV4;
             if (apiDefinitionV4 != null) {
                 this.definitionVersion = apiDefinitionV4.getDefinitionVersion();
             }
-            return this;
+            return self();
         }
     }
 }
