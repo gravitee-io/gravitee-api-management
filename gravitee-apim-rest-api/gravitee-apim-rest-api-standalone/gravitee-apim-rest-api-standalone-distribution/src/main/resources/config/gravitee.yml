@@ -37,6 +37,12 @@
 #  host: 0.0.0.0
 #  port: 8083
 #  idleTimeout: 30000
+#  http:
+#    maxOutputBufferSize: 32768
+#    maxRequestHeaderSize: 8192
+#    maxResponseHeaderSize: 8192
+#    sendServerVersion: false
+#    sendDateHeader: false
 #  acceptors: -1
 #  selectors: -1
 #  pool:

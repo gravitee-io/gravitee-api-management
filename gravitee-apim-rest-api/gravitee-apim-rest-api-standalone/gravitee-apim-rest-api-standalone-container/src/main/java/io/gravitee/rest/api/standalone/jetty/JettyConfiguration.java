@@ -15,12 +15,18 @@
  */
 package io.gravitee.rest.api.standalone.jetty;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Getter
+@Setter
+@NoArgsConstructor
 public class JettyConfiguration {
 
     @Value("${jetty.host:0.0.0.0}")
@@ -83,163 +89,18 @@ public class JettyConfiguration {
     @Value("${jetty.ssl.truststore.password:#{null}}")
     private String trustStorePassword;
 
-    public String getHttpHost() {
-        return httpHost;
-    }
+    @Value("${jetty.http.maxOutputBufferSize:32768}")
+    private int maxOutputBufferSize;
 
-    public void setHttpHost(String httpHost) {
-        this.httpHost = httpHost;
-    }
+    @Value("${jetty.http.maxRequestHeaderSize:8192}")
+    private int maxRequestHeaderSize;
 
-    public int getHttpPort() {
-        return httpPort;
-    }
+    @Value("${jetty.http.maxResponseHeaderSize:8192}")
+    private int maxResponseHeaderSize;
 
-    public void setHttpPort(int httpPort) {
-        this.httpPort = httpPort;
-    }
+    @Value("${jetty.http.sendServerVersion:false}")
+    private boolean sendServerVersion;
 
-    public int getAcceptors() {
-        return acceptors;
-    }
-
-    public void setAcceptors(int acceptors) {
-        this.acceptors = acceptors;
-    }
-
-    public int getSelectors() {
-        return selectors;
-    }
-
-    public void setSelectors(int selectors) {
-        this.selectors = selectors;
-    }
-
-    public int getPoolMinThreads() {
-        return poolMinThreads;
-    }
-
-    public void setPoolMinThreads(int poolMinThreads) {
-        this.poolMinThreads = poolMinThreads;
-    }
-
-    public int getPoolMaxThreads() {
-        return poolMaxThreads;
-    }
-
-    public void setPoolMaxThreads(int poolMaxThreads) {
-        this.poolMaxThreads = poolMaxThreads;
-    }
-
-    public boolean isJmxEnabled() {
-        return jmxEnabled;
-    }
-
-    public void setJmxEnabled(boolean jmxEnabled) {
-        this.jmxEnabled = jmxEnabled;
-    }
-
-    public int getIdleTimeout() {
-        return idleTimeout;
-    }
-
-    public void setIdleTimeout(int idleTimeout) {
-        this.idleTimeout = idleTimeout;
-    }
-
-    public boolean isStatisticsEnabled() {
-        return statisticsEnabled;
-    }
-
-    public void setStatisticsEnabled(boolean statisticsEnabled) {
-        this.statisticsEnabled = statisticsEnabled;
-    }
-
-    public int getPoolIdleTimeout() {
-        return poolIdleTimeout;
-    }
-
-    public void setPoolIdleTimeout(int poolIdleTimeout) {
-        this.poolIdleTimeout = poolIdleTimeout;
-    }
-
-    public int getPoolQueueSize() {
-        return poolQueueSize;
-    }
-
-    public void setPoolQueueSize(int poolQueueSize) {
-        this.poolQueueSize = poolQueueSize;
-    }
-
-    public boolean isAccessLogEnabled() {
-        return accessLogEnabled;
-    }
-
-    public void setAccessLogEnabled(boolean accessLogEnabled) {
-        this.accessLogEnabled = accessLogEnabled;
-    }
-
-    public String getAccessLogPath() {
-        return accessLogPath;
-    }
-
-    public void setAccessLogPath(String accessLogPath) {
-        this.accessLogPath = accessLogPath;
-    }
-
-    public boolean isSecured() {
-        return secured;
-    }
-
-    public void setSecured(boolean secured) {
-        this.secured = secured;
-    }
-
-    public String getKeyStorePath() {
-        return keyStorePath;
-    }
-
-    public void setKeyStorePath(String keyStorePath) {
-        this.keyStorePath = keyStorePath;
-    }
-
-    public String getKeyStorePassword() {
-        return keyStorePassword;
-    }
-
-    public void setKeyStorePassword(String keyStorePassword) {
-        this.keyStorePassword = keyStorePassword;
-    }
-
-    public String getTrustStorePath() {
-        return trustStorePath;
-    }
-
-    public void setTrustStorePath(String trustStorePath) {
-        this.trustStorePath = trustStorePath;
-    }
-
-    public String getTrustStorePassword() {
-        return trustStorePassword;
-    }
-
-    public void setTrustStorePassword(String trustStorePassword) {
-        this.trustStorePassword = trustStorePassword;
-    }
-
-    public String getKeyStoreType() {
-        return keyStoreType;
-    }
-
-    public void setKeyStoreType(String keyStoreType) {
-        this.keyStoreType = keyStoreType;
-    }
-
-    public String getTrustStoreType() {
-        return trustStoreType;
-    }
-
-    public void setTrustStoreType(String trustStoreType) {
-        this.trustStoreType = trustStoreType;
-    }
+    @Value("${jetty.http.sendDateHeader:false}")
+    private boolean sendDateHeader;
 }

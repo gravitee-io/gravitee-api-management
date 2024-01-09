@@ -64,11 +64,11 @@ public class JettyServerFactory implements FactoryBean<Server> {
 
         // HTTP Configuration
         HttpConfiguration httpConfig = new HttpConfiguration();
-        httpConfig.setOutputBufferSize(32768);
-        httpConfig.setRequestHeaderSize(8192);
-        httpConfig.setResponseHeaderSize(8192);
-        httpConfig.setSendServerVersion(false);
-        httpConfig.setSendDateHeader(false);
+        httpConfig.setOutputBufferSize(jettyConfiguration.getMaxOutputBufferSize());
+        httpConfig.setRequestHeaderSize(jettyConfiguration.getMaxRequestHeaderSize());
+        httpConfig.setResponseHeaderSize(jettyConfiguration.getMaxResponseHeaderSize());
+        httpConfig.setSendServerVersion(jettyConfiguration.isSendServerVersion());
+        httpConfig.setSendDateHeader(jettyConfiguration.isSendDateHeader());
 
         // Setup Jetty HTTP or HTTPS Connector
         if (jettyConfiguration.isSecured()) {
