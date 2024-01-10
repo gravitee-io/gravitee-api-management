@@ -15,28 +15,23 @@
  */
 package io.gravitee.rest.api.standalone.jetty;
 
-import io.gravitee.common.component.AbstractLifecycleComponent;
+import io.gravitee.node.jetty.JettyHttpServer;
 import io.gravitee.rest.api.management.rest.resource.GraviteeManagementApplication;
 import io.gravitee.rest.api.management.security.SecurityManagementConfiguration;
 import io.gravitee.rest.api.portal.rest.resource.GraviteePortalApplication;
 import io.gravitee.rest.api.portal.security.SecurityPortalConfiguration;
-import io.gravitee.rest.api.standalone.jetty.handler.NoContentOutputErrorHandler;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import javax.servlet.DispatcherType;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.glassfish.jersey.servlet.ServletContainer;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.security.config.annotation.authentication.configuration.GlobalAuthenticationConfigurerAdapter;
@@ -48,11 +43,9 @@ import org.springframework.web.filter.DelegatingFilterProxy;
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<JettyEmbeddedContainer> implements ApplicationContextAware {
+public final class GraviteeApisServer extends JettyHttpServer {
 
     @Autowired
-    private Server server;
-
     private ApplicationContext applicationContext;
 
     @Value("${http.api.management.enabled:true}")
@@ -68,12 +61,7 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
     private String portalEntrypoint;
 
     @Override
-    protected void doStart() throws Exception {
-        AbstractHandler noContentHandler = new NoContentOutputErrorHandler();
-        // This part is needed to avoid WARN while starting container.
-        noContentHandler.setServer(server);
-        server.addBean(noContentHandler);
-
+    protected void attachHandlers() {
         // Spring configuration
         System.setProperty(AbstractEnvironment.ACTIVE_PROFILES_PROPERTY_NAME, "basic");
 
@@ -104,12 +92,9 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
         }
 
         server.setHandler(new ContextHandlerCollection(contexts.toArray(new ServletContextHandler[contexts.size()])));
-
-        // start the server
-        server.start();
     }
 
-    protected ServletContextHandler configureAPI(
+    private ServletContextHandler configureAPI(
         String apiContextPath,
         String applicationName,
         Class<? extends GlobalAuthenticationConfigurerAdapter> securityConfigurationClass
@@ -136,15 +121,5 @@ public final class JettyEmbeddedContainer extends AbstractLifecycleComponent<Jet
             EnumSet.allOf(DispatcherType.class)
         );
         return childContext;
-    }
-
-    @Override
-    protected void doStop() throws Exception {
-        server.stop();
-    }
-
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
     }
 }
