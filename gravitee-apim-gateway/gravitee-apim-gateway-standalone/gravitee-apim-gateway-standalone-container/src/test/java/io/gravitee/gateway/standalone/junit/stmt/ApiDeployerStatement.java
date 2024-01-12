@@ -82,6 +82,7 @@ public class ApiDeployerStatement extends Statement {
         System.setProperty("gravitee.conf", graviteeHome + File.separator + "config" + File.separator + "gravitee.yml");
 
         GatewayTestContainer container = new GatewayTestContainer();
+        container.initialize();
         applicationContext = container.applicationContext();
         final Environment environment = applicationContext.getBean(Environment.class);
 

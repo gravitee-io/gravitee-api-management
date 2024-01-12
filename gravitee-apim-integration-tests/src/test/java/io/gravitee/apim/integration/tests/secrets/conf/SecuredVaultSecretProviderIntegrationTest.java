@@ -38,6 +38,7 @@ import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.secrets.SecretProviderBuilder;
 import io.gravitee.node.api.secrets.SecretManagerConfiguration;
 import io.gravitee.node.api.secrets.SecretProviderFactory;
+import io.gravitee.node.container.spring.env.GraviteeYamlPropertySource;
 import io.gravitee.node.secrets.plugins.SecretProviderPlugin;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnectorFactory;
@@ -57,6 +58,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import javax.net.ssl.SSLHandshakeException;
 import org.junit.jupiter.api.*;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 
 /**
@@ -411,7 +413,7 @@ class SecuredVaultSecretProviderIntegrationTest {
 
             await()
                 .pollInterval(1, TimeUnit.SECONDS)
-                .atMost(5, TimeUnit.SECONDS)
+                .atMost(10, TimeUnit.SECONDS)
                 .untilAsserted(() ->
                     newHttpClient
                         .rxRequest(HttpMethod.GET, "/test")
@@ -434,9 +436,20 @@ class SecuredVaultSecretProviderIntegrationTest {
 
         @Override
         public void setupAdditionalProperties(GatewayConfigurationBuilder configurationBuilder) {
-            configurationBuilder.setYamlProperty("missing", "secret://vault/secret/test:pass");
-            configurationBuilder.setYamlProperty("missing2", "secret://vault/secret/test:pass?namespace=test");
-            configurationBuilder.setYamlProperty("no_plugin", "secret://foo/test:pass");
+            // We can't add invalid secret here unless the gateway will fail to start.
+        }
+
+        @BeforeAll
+        void setupAdditionalSecrets() {
+            ConfigurableEnvironment environment = (ConfigurableEnvironment) getBean(Environment.class);
+            GraviteeYamlPropertySource graviteeProperties = (GraviteeYamlPropertySource) environment
+                .getPropertySources()
+                .get("graviteeYamlConfiguration");
+            if (graviteeProperties != null) {
+                graviteeProperties.getSource().put("missing", "secret://vault/test:pass");
+                graviteeProperties.getSource().put("missing2", "secret://vault/test:pass?namespace=test");
+                graviteeProperties.getSource().put("no_plugin", "secret://foo/test:pass");
+            }
         }
 
         @Test

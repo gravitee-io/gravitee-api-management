@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -33,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class GatewayNode extends AbstractNode {
 
+    @Lazy
     @Autowired
     private NodeMetadataResolver nodeMetadataResolver;
 

@@ -17,16 +17,18 @@ package io.gravitee.plugin.endpoint.internal;
 
 import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnectorConfiguration;
 import io.gravitee.plugin.core.api.AbstractSimplePluginHandler;
-import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.Plugin;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
+import io.gravitee.plugin.endpoint.spring.EndpointConnectorPluginConfiguration;
 import java.io.IOException;
 import java.net.URLClassLoader;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Import;
 
 /**
  * @author GraviteeSource Team
  */
+@Import(EndpointConnectorPluginConfiguration.class)
 public class EndpointConnectorPluginHandler extends AbstractSimplePluginHandler<EndpointConnectorPlugin<?, ?>> {
 
     @Autowired

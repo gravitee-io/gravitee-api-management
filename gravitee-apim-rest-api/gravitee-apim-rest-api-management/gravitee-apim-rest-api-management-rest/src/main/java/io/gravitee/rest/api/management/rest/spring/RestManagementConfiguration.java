@@ -29,9 +29,7 @@ import org.springframework.context.annotation.Import;
  * @author GraviteeSource Team
  */
 @Configuration
-@Import(
-    { PluginConfiguration.class, ServiceConfiguration.class, IdentityProviderPluginConfiguration.class, UsecaseSpringConfiguration.class }
-)
+@Import({ ServiceConfiguration.class, UsecaseSpringConfiguration.class })
 public class RestManagementConfiguration {
 
     @Bean

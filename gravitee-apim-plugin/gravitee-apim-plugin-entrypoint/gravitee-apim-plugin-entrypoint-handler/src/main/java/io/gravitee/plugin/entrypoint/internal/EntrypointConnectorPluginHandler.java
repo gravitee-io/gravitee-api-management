@@ -20,14 +20,17 @@ import io.gravitee.plugin.core.api.AbstractSimplePluginHandler;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.core.api.Plugin;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPlugin;
+import io.gravitee.plugin.entrypoint.spring.EntrypointConnectorPluginConfiguration;
 import java.io.IOException;
 import java.net.URLClassLoader;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Import;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Import(EntrypointConnectorPluginConfiguration.class)
 public class EntrypointConnectorPluginHandler extends AbstractSimplePluginHandler<EntrypointConnectorPlugin<?, ?>> {
 
     @Autowired

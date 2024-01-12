@@ -49,7 +49,6 @@ public class VertxReactorConfiguration {
 
     protected static final String SERVERS_PREFIX = "servers";
 
-    @Lazy
     @Bean
     public ServerManager serverManager(
         VertxServerFactory<VertxServer<?, VertxServerOptions>, VertxServerOptions> serverFactory,

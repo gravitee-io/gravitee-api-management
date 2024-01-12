@@ -18,7 +18,6 @@ package io.gravitee.apim.gateway.tests.sdk;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static io.gravitee.apim.gateway.tests.sdk.utils.URLUtils.exchangePort;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -38,6 +37,7 @@ import io.gravitee.gateway.handlers.api.manager.ApiManager;
 import io.gravitee.gateway.platform.organization.ReactableOrganization;
 import io.gravitee.gateway.platform.organization.manager.OrganizationManager;
 import io.gravitee.gateway.reactor.ReactableApi;
+import io.gravitee.node.container.spring.env.GraviteeYamlPropertySource;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 import io.netty.util.internal.logging.Slf4JLoggerFactory;
 import io.reactivex.rxjava3.observers.TestObserver;
@@ -64,6 +64,8 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.Environment;
 import org.springframework.test.util.TestSocketUtils;
 import org.springframework.util.StringUtils;
 
@@ -140,6 +142,15 @@ public abstract class AbstractGatewayTest
      */
     protected <T> T getBean(Class<T> requiredType) {
         return applicationContext.getBean(requiredType);
+    }
+
+    /**
+     * Get the Spring {@link io.gravitee.node.container.spring.env.GraviteeYamlPropertySource} bean.
+     * @return the Spring {@link io.gravitee.node.container.spring.env.GraviteeYamlPropertySource} bean.
+     */
+    protected GraviteeYamlPropertySource getGraviteeYamlProperties() {
+        final ConfigurableEnvironment environment = (ConfigurableEnvironment) getBean(Environment.class);
+        return (GraviteeYamlPropertySource) environment.getPropertySources().get("graviteeYamlConfiguration");
     }
 
     protected AbstractGatewayTest() {}

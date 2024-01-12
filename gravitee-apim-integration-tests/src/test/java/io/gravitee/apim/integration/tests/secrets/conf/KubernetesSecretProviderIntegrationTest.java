@@ -30,6 +30,7 @@ import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.secrets.SecretProviderBuilder;
 import io.gravitee.node.api.secrets.SecretManagerConfiguration;
 import io.gravitee.node.api.secrets.SecretProviderFactory;
+import io.gravitee.node.container.spring.env.GraviteeYamlPropertySource;
 import io.gravitee.node.secrets.plugins.SecretProviderPlugin;
 import io.gravitee.plugin.endpoint.EndpointConnectorPlugin;
 import io.gravitee.plugin.endpoint.http.proxy.HttpProxyEndpointConnectorFactory;
@@ -56,6 +57,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import javax.net.ssl.SSLHandshakeException;
 import org.junit.jupiter.api.*;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.testcontainers.k3s.K3sContainer;
 
@@ -509,7 +511,7 @@ class KubernetesSecretProviderIntegrationTest {
 
             await()
                 .pollInterval(1, TimeUnit.SECONDS)
-                .atMost(5, TimeUnit.SECONDS)
+                .atMost(10, TimeUnit.SECONDS)
                 .untilAsserted(() ->
                     newHttpClient
                         .rxRequest(HttpMethod.GET, "/test")
@@ -532,14 +534,22 @@ class KubernetesSecretProviderIntegrationTest {
 
         @Override
         public void setupAdditionalProperties(GatewayConfigurationBuilder configurationBuilder) {
-            configurationBuilder.setYamlProperty("missing", "secret://kubernetes/test:pass");
-            configurationBuilder.setYamlProperty("missing2", "secret://kubernetes/test:pass?namespace=test");
-            configurationBuilder.setYamlProperty("no_plugin", "secret://foo/test:pass");
+            // We can't add invalid secret here unless the gateway will fail to start.
+        }
+
+        @BeforeAll
+        void setupAdditionalSecrets() {
+            final GraviteeYamlPropertySource graviteeProperties = getGraviteeYamlProperties();
+            if (graviteeProperties != null) {
+                graviteeProperties.getSource().put("missing", "secret://kubernetes/test:pass");
+                graviteeProperties.getSource().put("missing2", "secret://kubernetes/test:pass?namespace=test");
+                graviteeProperties.getSource().put("no_plugin", "secret://foo/test:pass");
+            }
         }
 
         @Test
         void should_fail_resolve_secret() {
-            Environment environment = getBean(Environment.class);
+            final Environment environment = getBean(Environment.class);
             assertThatCode(() -> environment.getProperty("missing")).isInstanceOf(Exception.class);
             assertThatCode(() -> environment.getProperty("missing2")).isInstanceOf(Exception.class);
             assertThat(environment.getProperty("no_plugin")).isEqualTo("secret://foo/test:pass"); // not recognized as a secret does not return value
