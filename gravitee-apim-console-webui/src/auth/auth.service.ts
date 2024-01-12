@@ -18,7 +18,7 @@ import { HttpClient } from '@angular/common/http';
 import { UserManager, WebStorageStateStore, Log } from 'oidc-client-ts';
 import { Router } from '@angular/router';
 import { from, Observable, of } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { catchError, map, switchMap } from 'rxjs/operators';
 import { LocationStrategy } from '@angular/common';
 
 import { Constants } from '../entities/Constants';
@@ -82,7 +82,7 @@ export class AuthService {
         metadata: {
           introspection_endpoint: idp.tokenIntrospectionEndpoint,
           authorization_endpoint: idp.authorizationEndpoint,
-          end_session_endpoint: idp.userLogoutEndpoint ?? '',
+          end_session_endpoint: idp.userLogoutEndpoint ?? `${window.location.origin + this.locationStrategy.prepareExternalUrl('/_login')}`,
           token_endpoint: `${constants.org.baseURL}/auth/oauth2/${idp.id}`,
         },
       });
@@ -114,8 +114,8 @@ export class AuthService {
           }
           // If user not logged in, try call signinRedirectCallback
           return oidcManager.signinRedirectCallback().then((user) => {
-            const redirectUrl = user.state ?? '/';
-            return this.router.navigate([redirectUrl]).then(() => user);
+            const redirectUrl = (user.state as string) ?? '/';
+            return this.router.navigateByUrl(redirectUrl).then(() => user);
           });
         })
         .then((_user) => {
@@ -167,22 +167,29 @@ export class AuthService {
       );
   }
 
-  logout() {
+  logout(options?: { disableRedirect?: boolean }) {
     return this.http.post(`${this.constants.org.baseURL}/user/logout`, {}).pipe(
+      catchError(() => {
+        // If logout failed, we can continue
+        return of({});
+      }),
       switchMap(() => {
         this.currentUserService.clearCurrent();
 
-        const providerIdSelected = this.providerIdSelectedStore;
-        if (!providerIdSelected) {
+        const oidcManager = this.oidcManagers[this.providerIdSelectedStore];
+        if (!oidcManager) {
           return of({});
         }
         this.providerIdSelectedStore = null;
-        return from(this.oidcManagers[providerIdSelected].signoutRedirect().catch(() => null));
+
+        return from([oidcManager.removeUser(), oidcManager.signoutRedirect().catch(() => null), oidcManager.clearStaleState()]);
       }),
       switchMap(() => {
-        // If not logged with provider or if signoutRedirect() not configured for selected provider
-        // redirect to login page
-        return this.router.navigateByUrl('/_login');
+        if (!options.disableRedirect) {
+          // If not logged with provider or if signoutRedirect() not configured for selected provider
+          // redirect to login page
+          return this.router.navigateByUrl('/_login');
+        }
       }),
     );
   }

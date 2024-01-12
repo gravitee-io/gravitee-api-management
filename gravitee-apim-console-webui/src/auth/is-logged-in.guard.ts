@@ -76,8 +76,18 @@ export class IsLoggedInGuard implements CanActivate {
         return true;
       }),
       catchError(() => {
-        this.router.navigate(['/_login'], { queryParams: { redirect: state.url } });
-        return of(false);
+        // If the user is not logged in, we logout (to clean auth stuff) and redirect to login page
+        return this.authService
+          .logout({
+            disableRedirect: true,
+          })
+          .pipe(
+            catchError(() => of({})),
+            switchMap(() => {
+              this.router.navigate(['/_login'], { queryParams: { redirect: state.url } });
+              return of(false);
+            }),
+          );
       }),
     );
   }
