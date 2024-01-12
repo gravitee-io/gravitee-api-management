@@ -59,7 +59,7 @@ public class HelloCommandProducer implements CommandProducer<HelloCommand, Hello
     @Value("${installation.api.url:http://localhost:8083}")
     private String apiURL;
 
-    @Value("${installation.api.management.proxyPath:${http.api.management.entrypoint:${http.api.entrypoint:/}management}}")
+    @Value("${installation.api.proxyPath.management:${http.api.management.entrypoint:${http.api.entrypoint:/}management}}")
     private String managementProxyPath;
 
     @Value("${cockpit.auth.path:/auth/cockpit?token={token}}")
