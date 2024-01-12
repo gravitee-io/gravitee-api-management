@@ -27,11 +27,14 @@ import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.definition.model.v4.flow.Flow;
+import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.sql.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 public class CreatePlanDomainService {
 
@@ -55,9 +58,16 @@ public class CreatePlanDomainService {
         this.auditService = auditDomainService;
     }
 
-    public Plan create(Plan plan, List<Flow> flows, Api api, AuditInfo auditInfo) {
+    public PlanWithFlows create(Plan plan, List<Flow> flows, Api api, AuditInfo auditInfo) {
         if (api.isDeprecated()) {
             throw new ApiDeprecatedException(plan.getApiId());
+        }
+
+        if (api.getApiDefinitionV4().getListeners() != null) {
+            planValidatorDomainService.validatePlanSecurityAgainstEntrypoints(
+                plan.getSecurity(),
+                api.getApiDefinitionV4().getListeners().stream().map(Listener::getType).toList()
+            );
         }
 
         planValidatorDomainService.validatePlanSecurity(plan, auditInfo.organizationId(), auditInfo.environmentId());
@@ -67,11 +77,11 @@ public class CreatePlanDomainService {
         var sanitizedFlows = flowValidationDomainService.validateAndSanitize(api.getType(), flows);
         flowValidationDomainService.validatePathParameters(
             api.getType(),
-            api.getApiDefinitionV4().getFlows().stream(),
+            api.getApiDefinitionV4().getFlows() != null ? api.getApiDefinitionV4().getFlows().stream() : Stream.empty(),
             sanitizedFlows.stream()
         );
 
-        var created = planCrudService.create(
+        var createdPlan = planCrudService.create(
             plan
                 .toBuilder()
                 .id(plan.getId() != null ? plan.getId() : UuidString.generateRandom())
@@ -83,11 +93,11 @@ public class CreatePlanDomainService {
                 .build()
         );
 
-        flowCrudService.savePlanFlows(created.getId(), sanitizedFlows);
+        var createdFlows = flowCrudService.savePlanFlows(createdPlan.getId(), sanitizedFlows);
 
-        createAuditLog(created, auditInfo);
+        createAuditLog(createdPlan, auditInfo);
 
-        return created;
+        return toPlanWithFlows(createdPlan, createdFlows);
     }
 
     private void createAuditLog(Plan createdPlan, AuditInfo auditInfo) {
@@ -104,5 +114,36 @@ public class CreatePlanDomainService {
                 .properties(Map.of(AuditProperties.PLAN, createdPlan.getId()))
                 .build()
         );
+    }
+
+    private PlanWithFlows toPlanWithFlows(Plan plan, List<Flow> flows) {
+        return PlanWithFlows
+            .builder()
+            .flows(flows)
+            .id(plan.getId())
+            .crossId(plan.getCrossId())
+            .name(plan.getName())
+            .description(plan.getDescription())
+            .createdAt(plan.getCreatedAt())
+            .updatedAt(plan.getUpdatedAt())
+            .publishedAt(plan.getPublishedAt())
+            .closedAt(plan.getClosedAt())
+            .needRedeployAt(plan.getNeedRedeployAt())
+            .validation(plan.getValidation())
+            .type(plan.getType())
+            .mode(plan.getMode())
+            .security(plan.getSecurity())
+            .selectionRule(plan.getSelectionRule())
+            .tags(plan.getTags())
+            .status(plan.getStatus())
+            .apiId(plan.getApiId())
+            .order(plan.getOrder())
+            .characteristics(plan.getCharacteristics())
+            .excludedGroups(plan.getExcludedGroups())
+            .commentRequired(plan.isCommentRequired())
+            .commentMessage(plan.getCommentMessage())
+            .generalConditions(plan.getGeneralConditions())
+            .paths(plan.getPaths())
+            .build();
     }
 }

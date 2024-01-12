@@ -26,11 +26,13 @@ import io.gravitee.apim.core.plan.exception.PlanInvalidException;
 import io.gravitee.apim.core.plan.exception.UnauthorizedPlanSecurityTypeException;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
+import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.plan.PlanMode;
+import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
-import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
@@ -103,6 +105,12 @@ public class PlanValidatorDomainService {
             )
         ) {
             throw new UnauthorizedPlanSecurityTypeException(planSecurityType.name());
+        }
+    }
+
+    public void validatePlanSecurityAgainstEntrypoints(PlanSecurity planSecurity, List<ListenerType> listenerTypes) {
+        if (listenerTypes.contains(ListenerType.TCP) && !PlanSecurityType.KEY_LESS.getLabel().equals(planSecurity.getType())) {
+            throw new UnauthorizedPlanSecurityTypeException(planSecurity.getType());
         }
     }
 }

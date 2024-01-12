@@ -167,11 +167,6 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
         return planSearchService.findByApi(executionContext, api).stream().map(PlanEntity.class::cast).collect(Collectors.toSet());
     }
 
-    @Override
-    public PlanEntity create(final ExecutionContext executionContext, final NewPlanEntity newPlan) {
-        return create(executionContext, newPlan, true);
-    }
-
     private PlanEntity create(ExecutionContext executionContext, NewPlanEntity newPlan, boolean validatePathParams) {
         try {
             logger.debug("Create a new plan {} for API {}", newPlan.getName(), newPlan.getApiId());

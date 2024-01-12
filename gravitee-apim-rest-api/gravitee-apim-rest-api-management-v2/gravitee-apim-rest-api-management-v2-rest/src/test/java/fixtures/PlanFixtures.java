@@ -15,7 +15,11 @@
  */
 package fixtures;
 
+import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.apim.core.plan.model.PlanWithFlows;
+import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePlanV2;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePlanV4;
 import io.gravitee.rest.api.management.v2.rest.model.PlanValidation;
@@ -152,5 +156,30 @@ public class PlanFixtures {
 
     public static io.gravitee.rest.api.model.PlanEntity aPlanEntityV2() {
         return PlanModelFixtures.aPlanEntityV2();
+    }
+
+    public static PlanWithFlows aPlanWithFlows() {
+        return PlanWithFlows
+            .builder()
+            .id("id")
+            .crossId("my-plan-crossId")
+            .name("My plan")
+            .description("Description")
+            .validation(Plan.PlanValidationType.AUTO)
+            .type(Plan.PlanType.API)
+            .mode(PlanMode.STANDARD)
+            .security(PlanSecurity.builder().type("API_KEY").configuration("{\"nice\": \"config\"}").build())
+            .selectionRule("{#request.attribute['selectionRule'] != null}")
+            .tags(Set.of("tag1", "tag2"))
+            .status(PlanStatus.CLOSED)
+            .apiId("api-id")
+            .order(1)
+            .characteristics(List.of("characteristic1", "characteristic2"))
+            .excludedGroups(List.of("excludedGroup1", "excludedGroup2"))
+            .commentMessage("Comment message")
+            .commentRequired(true)
+            .generalConditions("General conditions")
+            .flows(List.of(FlowFixtures.aModelFlowV4()))
+            .build();
     }
 }

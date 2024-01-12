@@ -39,7 +39,7 @@ public class FlowMapperTest {
     private final FlowMapper flowMapper = Mappers.getMapper(FlowMapper.class);
 
     @Test
-    void shouldMapFromFlowEntityV4() throws JsonProcessingException {
+    void should_map_from_FlowEntityV4() throws JsonProcessingException {
         var flowEntityV4 = FlowFixtures.aModelFlowV4();
         var flowV4 = flowMapper.map(flowEntityV4);
         assertThat(flowV4).isNotNull();
@@ -47,11 +47,22 @@ public class FlowMapperTest {
     }
 
     @Test
-    void shouldMapToFlowEntityV4() throws JsonProcessingException {
+    void should_map_to_FlowEntityV4() throws JsonProcessingException {
         var flowV4 = FlowFixtures.aFlowV4();
         var flowEntityV4 = flowMapper.map(flowV4);
         assertThat(flowV4).isNotNull();
         assertFlowV4Equals(flowEntityV4, flowV4);
+    }
+
+    @Test
+    void should_map_FlowV4_to_list_of_Flow() throws JsonProcessingException {
+        var flow1 = FlowFixtures.aFlowV4();
+        var flow2 = FlowFixtures.aFlowV4();
+        var flows = flowMapper.map(List.of(flow1, flow2));
+        assertThat(flows).isNotNull();
+        assertThat(flows.size()).isEqualTo(2);
+        assertFlowV4Equals(flows.get(0), flow1);
+        assertFlowV4Equals(flows.get(1), flow2);
     }
 
     private void assertFlowV4Equals(Flow flowEntityV4, FlowV4 flowV4) throws JsonProcessingException {

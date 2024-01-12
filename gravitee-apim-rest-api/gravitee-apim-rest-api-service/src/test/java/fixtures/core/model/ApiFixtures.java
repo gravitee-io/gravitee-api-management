@@ -25,6 +25,7 @@ import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
+import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
@@ -232,7 +233,8 @@ public class ApiFixtures {
                             TcpListener
                                 .builder()
                                 .hosts(null != hosts ? hosts : List.of("foo.example.com", "bar.example.com"))
-                                .entrypoints(List.of(Entrypoint.builder().type("http-proxy").configuration("{}").build()))
+                                .entrypoints(List.of(Entrypoint.builder().type("tcp-proxy").configuration("{}").build()))
+                                .type(ListenerType.TCP)
                                 .build()
                         )
                     )
@@ -241,16 +243,16 @@ public class ApiFixtures {
                             EndpointGroup
                                 .builder()
                                 .name("default-group")
-                                .type("http-proxy")
+                                .type("tcp-proxy")
                                 .sharedConfiguration("{}")
                                 .endpoints(
                                     List.of(
                                         Endpoint
                                             .builder()
                                             .name("default-endpoint")
-                                            .type("http-proxy")
+                                            .type("tcp-proxy")
                                             .inheritConfiguration(true)
-                                            .configuration("{\"target\":\"https://api.gravitee.io/echo\"}")
+                                            .configuration("{\"target\":\"https://api.gravitee.io/echo\", \"port\":\"443\"}")
                                             .build()
                                     )
                                 )
