@@ -28,11 +28,11 @@ import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { onlyApiV1V2Filter, onlyApiV2Filter } from '../../../util/apiFilter.operator';
 
 @Component({
-  selector: 'api-proxy-cors',
-  templateUrl: './api-proxy-cors.component.html',
-  styleUrls: ['./api-proxy-cors.component.scss'],
+  selector: 'api-cors',
+  templateUrl: './api-cors.component.html',
+  styleUrls: ['./api-cors.component.scss'],
 })
-export class ApiProxyCorsComponent implements OnInit, OnDestroy {
+export class ApiCorsComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   public httpMethods = CorsUtil.httpMethods;

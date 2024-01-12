@@ -32,11 +32,11 @@ import {
   GioFormFocusInvalidModule,
 } from '@gravitee/ui-particles-angular';
 
-import { ApiProxyCorsComponent } from './api-proxy-cors.component';
+import { ApiCorsComponent } from './api-cors.component';
 
 @NgModule({
-  declarations: [ApiProxyCorsComponent],
-  exports: [ApiProxyCorsComponent],
+  declarations: [ApiCorsComponent],
+  exports: [ApiCorsComponent],
   imports: [
     CommonModule,
 
