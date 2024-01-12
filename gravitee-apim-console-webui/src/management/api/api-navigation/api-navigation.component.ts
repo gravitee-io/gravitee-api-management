@@ -17,7 +17,7 @@ import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { flatMap } from 'lodash';
 import { filter, map, switchMap, takeUntil, tap, shareReplay } from 'rxjs/operators';
 import { GIO_DIALOG_WIDTH, GioBannerTypes, GioMenuService } from '@gravitee/ui-particles-angular';
-import { Observable, Subject } from 'rxjs';
+import { combineLatest, Observable, Subject } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 
@@ -62,8 +62,11 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
   public bannerState: string;
   public hasBreadcrumb = false;
   public breadcrumbItems: string[] = [];
-  public banners$: Observable<TopBanner[]> = this.apiV2Service.getLastApiFetch(this.activatedRoute.snapshot.params.apiId).pipe(
-    map((api) => {
+  public banners$: Observable<TopBanner[]> = combineLatest([
+    this.apiV2Service.getLastApiFetch(this.activatedRoute.snapshot.params.apiId),
+    this.apiV2Service.verifyDeploy(this.activatedRoute.snapshot.params.apiId),
+  ]).pipe(
+    map(([api, verifyDeploymentResponse]) => {
       const banners: TopBanner[] = [];
 
       if (api.definitionVersion == null || api.definitionVersion === 'V1') {
@@ -197,7 +200,7 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
         (this.constants.env.settings?.apiReview?.enabled && api.workflowState === 'REVIEW_OK') ||
         !this.constants.env.settings?.apiReview?.enabled;
       const canUpdateApiDefinition = this.permissionService.hasAnyMatching(['api-definition-u']);
-      if (api.deploymentState === 'NEED_REDEPLOY' && apiReviewIsOKOrNotNeeded) {
+      if (api.deploymentState === 'NEED_REDEPLOY' && apiReviewIsOKOrNotNeeded && verifyDeploymentResponse.ok) {
         banners.push(
           canUpdateApiDefinition
             ? {
@@ -234,6 +237,14 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
       if (api.lifecycleState === 'DEPRECATED') {
         banners.push({
           title: 'This API is deprecated.',
+          type: 'error',
+        });
+      }
+
+      if (!verifyDeploymentResponse.ok) {
+        banners.push({
+          title: 'This API cannot be deployed.',
+          body: 'The current configuration uses features not in your license.',
           type: 'error',
         });
       }

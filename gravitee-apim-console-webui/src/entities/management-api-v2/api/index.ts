@@ -36,3 +36,4 @@ export * from './primaryOwner';
 export * from './property';
 export * from './resource';
 export * from './responseTemplate';
+export * from './verifyApiDeploy';

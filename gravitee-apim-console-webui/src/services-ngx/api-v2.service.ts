@@ -33,6 +33,7 @@ import {
 import { ApiTransferOwnership } from '../entities/management-api-v2/api/apiTransferOwnership';
 import { PathToVerify, VerifyApiPathResponse } from '../entities/management-api-v2/api/verifyApiPath';
 import { VerifyApiHostsResponse } from '../entities/management-api-v2/api/verifyApiHosts';
+import { VerifyApiDeployResponse } from '../entities/management-api-v2/api/verifyApiDeploy';
 
 @Injectable({
   providedIn: 'root',
@@ -78,6 +79,10 @@ export class ApiV2Service {
     return this.http.post<void>(`${this.constants.env.v2BaseURL}/apis/${apiId}/deployments`, {
       deploymentLabel,
     });
+  }
+
+  verifyDeploy(apiId: string): Observable<VerifyApiDeployResponse> {
+    return this.http.get(`${this.constants.env.v2BaseURL}/apis/${apiId}/deployments/_verify`);
   }
 
   duplicate(apiId: string, options: DuplicateApiOptions): Observable<Api> {
