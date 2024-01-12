@@ -21,11 +21,11 @@ import { EMPTY, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
 
-import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
-import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
-import { CorsUtil } from '../../../../shared/utils';
-import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
-import { onlyApiV1V2Filter, onlyApiV2Filter } from '../../../../util/apiFilter.operator';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
+import { CorsUtil } from '../../../shared/utils';
+import { ApiV2Service } from '../../../services-ngx/api-v2.service';
+import { onlyApiV1V2Filter, onlyApiV2Filter } from '../../../util/apiFilter.operator';
 
 @Component({
   selector: 'api-proxy-cors',

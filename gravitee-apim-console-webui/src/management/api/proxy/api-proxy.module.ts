@@ -16,7 +16,7 @@
 
 import { NgModule } from '@angular/core';
 
-import { ApiProxyCorsModule } from './cors/api-proxy-cors.module';
+import { ApiProxyCorsModule } from '../cors/api-proxy-cors.module';
 import { ApiProxyDeploymentsModule } from './deployments/api-proxy-deployments.module';
 import { ApiProxyEntrypointsModule } from './entrypoints/api-proxy-entrypoints.module';
 import { ApiProxyResponseTemplatesModule } from './response-templates/api-proxy-response-templates.module';
