@@ -41,6 +41,7 @@ import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/test
 import { Category } from '../../../../entities/category/Category';
 import { Api, fakeApiV1, fakeApiV2, fakeApiV4 } from '../../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { Tag } from '../../../../entities/tag/tag';
 
 describe('ApiGeneralInfoComponent', () => {
   const API_ID = 'apiId';
@@ -126,11 +127,16 @@ describe('ApiGeneralInfoComponent', () => {
         apiVersion: '1.0.0',
         labels: ['label1', 'label2'],
         categories: ['category1'],
+        tags: ['tag1'],
       });
       expectApiGetRequest(api);
       expectCategoriesGetRequest([
         { id: 'category1', name: 'Category 1', key: 'category1' },
         { id: 'category2', name: 'Category 2', key: 'category2' },
+      ]);
+      expectShardingTagsGetRequest([
+        { id: 'tag2', name: 'Tag 2', description: 'the first tag' },
+        { id: 'tag2', name: 'Tag 2', description: 'the second tag' },
       ]);
 
       // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
@@ -159,6 +165,10 @@ describe('ApiGeneralInfoComponent', () => {
 
       const categoriesInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="categories"]' }));
       expect(await categoriesInput.isDisabled()).toEqual(true);
+
+      const shardingTagsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="tags"]' }));
+      expect(await shardingTagsInput.isDisabled()).toEqual(true);
+
       expectLicenseGetRequest();
 
       await Promise.all(
@@ -188,11 +198,16 @@ describe('ApiGeneralInfoComponent', () => {
           apiVersion: '1.0.0',
           labels: ['label1', 'label2'],
           categories: ['category1'],
+          tags: ['tag1'],
         });
         expectApiGetRequest(api);
         expectCategoriesGetRequest([
           { id: 'category1', name: 'Category 1', key: 'category1' },
           { id: 'category2', name: 'Category 2', key: 'category2' },
+        ]);
+        expectShardingTagsGetRequest([
+          { id: 'tag1', name: 'Tag 1', description: 'the first tag' },
+          { id: 'tag2', name: 'Tag 2', description: 'the second tag' },
         ]);
 
         // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
@@ -231,6 +246,10 @@ describe('ApiGeneralInfoComponent', () => {
         expect(await categoriesInput.getValueText()).toEqual('Category 1');
         await categoriesInput.clickOptions({ text: 'Category 2' });
 
+        const shardingTagsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="tags"]' }));
+        expect(await shardingTagsInput.getValueText()).toEqual('Tag 1  - the first tag');
+        await shardingTagsInput.clickOptions({ text: 'Tag 2  - the second tag' });
+
         const emulateV4EngineInput = await loader.getHarness(
           MatSlideToggleHarness.with({ selector: '[formControlName="emulateV4Engine"]' }),
         );
@@ -252,6 +271,7 @@ describe('ApiGeneralInfoComponent', () => {
         expect(req.request.body.description).toEqual('🦊 API description');
         expect(req.request.body.labels).toEqual(['label1', 'label2', 'label3']);
         expect(req.request.body.categories).toEqual(['category1', 'category2']);
+        expect(req.request.body.tags).toEqual(['tag1', 'tag2']);
         expect(req.request.body.executionMode).toEqual('V4_EMULATION_ENGINE');
         req.flush(api);
 
@@ -275,6 +295,10 @@ describe('ApiGeneralInfoComponent', () => {
           { id: 'category1', name: 'Category 1', key: 'category1' },
           { id: 'category2', name: 'Category 2', key: 'category2' },
         ]);
+        expectShardingTagsGetRequest([
+          { id: 'tag1', name: 'Tag 1', description: 'the first tag' },
+          { id: 'tag2', name: 'Tag 2', description: 'the second tag' },
+        ]);
       });
 
       it('should disable field when origin is kubernetes', async () => {
@@ -284,6 +308,7 @@ describe('ApiGeneralInfoComponent', () => {
           apiVersion: '1.0.0',
           labels: ['label1', 'label2'],
           categories: ['category1'],
+          tags: ['tag1'],
           definitionContext: {
             origin: 'KUBERNETES',
           },
@@ -292,6 +317,10 @@ describe('ApiGeneralInfoComponent', () => {
         expectCategoriesGetRequest([
           { id: 'category1', name: 'Category 1', key: 'category1' },
           { id: 'category2', name: 'Category 2', key: 'category2' },
+        ]);
+        expectShardingTagsGetRequest([
+          { id: 'tag1', name: 'Tag 1', description: 'the first tag' },
+          { id: 'tag2', name: 'Tag 2', description: 'the second tag' },
         ]);
 
         // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
@@ -323,6 +352,9 @@ describe('ApiGeneralInfoComponent', () => {
         const categoriesInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="categories"]' }));
         expect(await categoriesInput.isDisabled()).toEqual(true);
 
+        const shardingTagsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="tags"]' }));
+        expect(await shardingTagsInput.isDisabled()).toEqual(true);
+
         const emulateV4EngineInput = await loader.getHarness(
           MatSlideToggleHarness.with({ selector: '[formControlName="emulateV4Engine"]' }),
         );
@@ -349,6 +381,7 @@ describe('ApiGeneralInfoComponent', () => {
         });
         expectApiGetRequest(api);
         expectCategoriesGetRequest();
+        expectShardingTagsGetRequest();
 
         // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
         await waitImageCheck();
@@ -374,6 +407,7 @@ describe('ApiGeneralInfoComponent', () => {
         });
         expectApiGetRequest(api);
         expectCategoriesGetRequest();
+        expectShardingTagsGetRequest();
 
         // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
         await waitImageCheck();
@@ -409,6 +443,7 @@ describe('ApiGeneralInfoComponent', () => {
           apiVersion: '1.0.0',
           labels: ['label1', 'label2'],
           categories: ['category1'],
+          tags: ['tag1'],
           definitionContext: {
             origin: 'KUBERNETES',
           },
@@ -417,6 +452,10 @@ describe('ApiGeneralInfoComponent', () => {
         expectCategoriesGetRequest([
           { id: 'category1', name: 'Category 1', key: 'category1' },
           { id: 'category2', name: 'Category 2', key: 'category2' },
+        ]);
+        expectShardingTagsGetRequest([
+          { id: 'tag1', name: 'Tag 1', description: 'the first tag' },
+          { id: 'tag2', name: 'Tag 2', description: 'the second tag' },
         ]);
 
         // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
@@ -438,11 +477,16 @@ describe('ApiGeneralInfoComponent', () => {
         apiVersion: '1.0.0',
         labels: ['label1', 'label2'],
         categories: ['category1'],
+        tags: ['tag1'],
       });
       expectApiGetRequest(api);
       expectCategoriesGetRequest([
         { id: 'category1', name: 'Category 1', key: 'category1' },
         { id: 'category2', name: 'Category 2', key: 'category2' },
+      ]);
+      expectShardingTagsGetRequest([
+        { id: 'tag1', name: 'Tag 1', description: 'the first tag' },
+        { id: 'tag2', name: 'Tag 2', description: 'the second tag' },
       ]);
 
       // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
@@ -479,6 +523,10 @@ describe('ApiGeneralInfoComponent', () => {
       expect(await categoriesInput.getValueText()).toEqual('Category 1');
       await categoriesInput.clickOptions({ text: 'Category 2' });
 
+      const shardingTagsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="tags"]' }));
+      expect(await shardingTagsInput.getValueText()).toEqual('Tag 1  - the first tag');
+      await shardingTagsInput.clickOptions({ text: 'Tag 2  - the second tag' });
+
       // Should not display emulateV4Engine toggle for v4 APIs
       const emulateV4EngineInput = await loader.getAllHarnesses(
         MatSlideToggleHarness.with({ selector: '[formControlName="emulateV4Engine"]' }),
@@ -501,6 +549,7 @@ describe('ApiGeneralInfoComponent', () => {
       expect(req.request.body.description).toEqual('🦊 API description');
       expect(req.request.body.labels).toEqual(['label1', 'label2', 'label3']);
       expect(req.request.body.categories).toEqual(['category1', 'category2']);
+      expect(req.request.body.tags).toEqual(['tag1', 'tag2']);
       req.flush(api);
 
       const pictureReq = httpTestingController.expectOne({
@@ -523,6 +572,10 @@ describe('ApiGeneralInfoComponent', () => {
         { id: 'category1', name: 'Category 1', key: 'category1' },
         { id: 'category2', name: 'Category 2', key: 'category2' },
       ]);
+      expectShardingTagsGetRequest([
+        { id: 'tag1', name: 'Tag 1', description: 'the first tag' },
+        { id: 'tag2', name: 'Tag 2', description: 'the second tag' },
+      ]);
     });
 
     it('should disable field when origin is kubernetes', async () => {
@@ -532,6 +585,7 @@ describe('ApiGeneralInfoComponent', () => {
         apiVersion: '1.0.0',
         labels: ['label1', 'label2'],
         categories: ['category1'],
+        tags: ['tag1'],
         definitionContext: {
           origin: 'KUBERNETES',
         },
@@ -540,6 +594,10 @@ describe('ApiGeneralInfoComponent', () => {
       expectCategoriesGetRequest([
         { id: 'category1', name: 'Category 1', key: 'category1' },
         { id: 'category2', name: 'Category 2', key: 'category2' },
+      ]);
+      expectShardingTagsGetRequest([
+        { id: 'tag1', name: 'Tag 1', description: 'the first tag' },
+        { id: 'tag2', name: 'Tag 2', description: 'the second tag' },
       ]);
 
       // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
@@ -568,6 +626,9 @@ describe('ApiGeneralInfoComponent', () => {
 
       const categoriesInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="categories"]' }));
       expect(await categoriesInput.isDisabled()).toEqual(true);
+
+      const shardingTagsInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="tags"]' }));
+      expect(await shardingTagsInput.isDisabled()).toEqual(true);
       expectLicenseGetRequest();
 
       await Promise.all(
@@ -591,6 +652,7 @@ describe('ApiGeneralInfoComponent', () => {
       });
       expectApiGetRequest(api);
       expectCategoriesGetRequest();
+      expectShardingTagsGetRequest();
 
       // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
       await waitImageCheck();
@@ -614,6 +676,7 @@ describe('ApiGeneralInfoComponent', () => {
 
       expectApiGetRequest(api);
       expectCategoriesGetRequest();
+      expectShardingTagsGetRequest();
 
       // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
       await waitImageCheck();
@@ -648,6 +711,11 @@ describe('ApiGeneralInfoComponent', () => {
 
   function expectCategoriesGetRequest(categories: Category[] = []) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/configuration/categories`, method: 'GET' }).flush(categories);
+    fixture.detectChanges();
+  }
+
+  function expectShardingTagsGetRequest(tags: Tag[] = []) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.org.baseURL}/configuration/tags`, method: 'GET' }).flush(tags);
     fixture.detectChanges();
   }
 
