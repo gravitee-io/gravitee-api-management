@@ -168,16 +168,10 @@ export class ApiV1V2MenuService implements ApiMenuService {
       });
     }
     if (this.permissionService.hasAnyMatching(['api-definition-r'])) {
-      proxyGroup.items.push(
-        {
-          displayName: 'CORS',
-          routerLink: 'cors',
-        },
-        {
-          displayName: 'Deployments',
-          routerLink: 'deployments',
-        },
-      );
+      proxyGroup.items.push({
+        displayName: 'CORS',
+        routerLink: 'cors',
+      });
     }
     if (this.permissionService.hasAnyMatching(['api-response_templates-r'])) {
       proxyGroup.items.push({
