@@ -22,12 +22,10 @@ import io.gravitee.cockpit.api.command.Command;
 import io.gravitee.cockpit.api.command.CommandHandler;
 import io.gravitee.cockpit.api.command.CommandStatus;
 import io.gravitee.cockpit.api.command.v4api.V4ApiCommand;
-import io.gravitee.cockpit.api.command.v4api.V4ApiPayload;
 import io.gravitee.cockpit.api.command.v4api.V4ApiReply;
-import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.cockpit.services.V4ApiServiceCockpit;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.reactivex.rxjava3.core.Single;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,10 +42,12 @@ public class V4ApiCommandHandler implements CommandHandler<V4ApiCommand, V4ApiRe
 
     private final V4ApiServiceCockpit v4ApiServiceCockpit;
     private final UserService userService;
+    private final OrganizationService organizationService;
 
-    public V4ApiCommandHandler(V4ApiServiceCockpit v4ApiServiceCockpit, UserService userService) {
+    public V4ApiCommandHandler(V4ApiServiceCockpit v4ApiServiceCockpit, UserService userService, OrganizationService organizationService) {
         this.v4ApiServiceCockpit = v4ApiServiceCockpit;
         this.userService = userService;
+        this.organizationService = organizationService;
     }
 
     @Override
@@ -57,8 +57,9 @@ public class V4ApiCommandHandler implements CommandHandler<V4ApiCommand, V4ApiRe
 
     @Override
     public Single<V4ApiReply> handle(V4ApiCommand command) {
-        final V4ApiPayload payload = command.getPayload();
-        final UserEntity user = userService.findBySource(payload.getOrganizationId(), "cockpit", payload.getUserId(), true);
+        var payload = command.getPayload();
+        var org = organizationService.findByCockpitId(payload.getOrganizationId());
+        var user = userService.findBySource(org.getId(), "cockpit", payload.getUserId(), true);
 
         authenticateAs(user);
 

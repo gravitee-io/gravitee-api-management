@@ -25,13 +25,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import io.gravitee.cockpit.api.command.CommandStatus;
 import io.gravitee.cockpit.api.command.v4api.V4ApiCommand;
 import io.gravitee.cockpit.api.command.v4api.V4ApiPayload;
-import io.gravitee.cockpit.api.command.v4api.V4ApiReply;
+import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
+import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.cockpit.services.V4ApiServiceCockpit;
 import io.reactivex.rxjava3.core.Single;
-import io.reactivex.rxjava3.observers.TestObserver;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -49,6 +49,9 @@ public class V4ApiCommandHandlerTest {
     private UserService userService;
 
     @Mock
+    private OrganizationService organizationService;
+
+    @Mock
     private V4ApiServiceCockpit v4ApiServiceCockpit;
 
     @Mock
@@ -62,7 +65,7 @@ public class V4ApiCommandHandlerTest {
     public void setUp() throws Exception {
         command = new V4ApiCommand();
         command.setId("test-id");
-        final V4ApiPayload payload = new V4ApiPayload();
+        var payload = new V4ApiPayload();
         payload.setUserId("123");
         payload.setApiDefinition("any-definition");
         payload.setEnvironmentId("environment-id");
@@ -74,17 +77,22 @@ public class V4ApiCommandHandlerTest {
         apiEntity.setName("test-name");
         apiEntity.setApiVersion("V4");
 
-        when(userService.findBySource(eq("organization-id"), eq("cockpit"), eq(payload.getUserId()), eq(true))).thenReturn(userEntity);
+        var organization = new OrganizationEntity();
+        organization.setId("apim-organization-id");
+        organization.setCockpitId("organization-id");
+        when(organizationService.findByCockpitId("organization-id")).thenReturn(organization);
+
+        when(userService.findBySource(eq("apim-organization-id"), eq("cockpit"), eq(payload.getUserId()), eq(true))).thenReturn(userEntity);
         when(userEntity.getId()).thenReturn("user-id");
 
-        commandHandler = new V4ApiCommandHandler(v4ApiServiceCockpit, userService);
+        commandHandler = new V4ApiCommandHandler(v4ApiServiceCockpit, userService, organizationService);
     }
 
     @Test
     public void handleSuccessfulCommand() throws InterruptedException, JsonProcessingException {
         when(v4ApiServiceCockpit.createPublishApi(anyString(), anyString(), anyString(), anyString())).thenReturn(Single.just(apiEntity));
 
-        TestObserver<V4ApiReply> observer = commandHandler.handle(command).test();
+        var observer = commandHandler.handle(command).test();
         observer.await();
 
         observer.assertValue(reply ->
@@ -102,7 +110,7 @@ public class V4ApiCommandHandlerTest {
         when(v4ApiServiceCockpit.createPublishApi(anyString(), anyString(), anyString(), anyString()))
             .thenThrow(new JsonProcessingException("exception") {});
 
-        TestObserver<V4ApiReply> observer = commandHandler.handle(command).test();
+        var observer = commandHandler.handle(command).test();
 
         observer.await();
         observer.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.FAILED)
