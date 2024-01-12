@@ -34,7 +34,6 @@ import { ApiGeneralTransferOwnershipComponent } from './general/user-group-acces
 import { ApiPortalDocumentationMetadataComponent } from './general/documentation/metadata/api-portal-documentation-metadata.component';
 import { ApiProxyEntrypointsComponent } from './proxy/entrypoints/api-proxy-entrypoints.component';
 import { ApiCorsComponent } from './cors/api-cors.component';
-import { ApiProxyDeploymentsComponent } from './proxy/deployments/api-proxy-deployments.component';
 import { ApiProxyResponseTemplatesListComponent } from './proxy/response-templates/list/api-proxy-response-templates-list.component';
 import { ApiProxyResponseTemplatesEditComponent } from './proxy/response-templates/edit/api-proxy-response-templates-edit.component';
 import { ApiProxyEndpointListComponent } from './proxy/endpoints/list/api-proxy-endpoint-list.component';
@@ -317,18 +316,6 @@ const apisRoutes: Routes = [
       {
         path: 'cors',
         component: ApiCorsComponent,
-        data: {
-          apiPermissions: {
-            only: ['api-definition-r'],
-          },
-          docs: {
-            page: 'management-api-proxy',
-          },
-        },
-      },
-      {
-        path: 'deployments',
-        component: ApiProxyDeploymentsComponent,
         data: {
           apiPermissions: {
             only: ['api-definition-r'],
