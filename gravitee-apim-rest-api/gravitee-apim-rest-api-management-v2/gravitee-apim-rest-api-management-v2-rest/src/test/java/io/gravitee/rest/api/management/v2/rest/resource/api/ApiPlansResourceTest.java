@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
 import static assertions.MAPIAssertions.assertThat;
+import static fixtures.core.model.ApiFixtures.aProxyApiV4;
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
@@ -32,6 +33,9 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import fixtures.PlanFixtures;
+import inmemory.ApiCrudServiceInMemory;
+import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
+import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -57,18 +61,17 @@ import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.PlanType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
-import io.gravitee.rest.api.model.v4.plan.NewPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanQuery;
 import io.gravitee.rest.api.model.v4.plan.UpdatePlanEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
-import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -79,6 +82,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class ApiPlansResourceTest extends AbstractResourceTest {
 
@@ -86,8 +90,14 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
     protected static final String PLAN = "my-plan";
     protected static final String ENVIRONMENT = "my-env";
 
-    @Inject
+    @Autowired
     private PlanSearchService planSearchService;
+
+    @Autowired
+    private ApiCrudServiceInMemory apiCrudServiceInMemory;
+
+    @Autowired
+    private CreatePlanDomainService createPlanDomainService;
 
     WebTarget target;
 
@@ -272,6 +282,16 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
     @Nested
     class Create {
 
+        @BeforeEach
+        void setUp() {
+            apiCrudServiceInMemory.initWith(List.of(aProxyApiV4().toBuilder().id(API).build()));
+        }
+
+        @AfterEach
+        void tearDown() {
+            apiCrudServiceInMemory.reset();
+        }
+
         @Test
         public void should_return_403_if_incorrect_permissions() {
             when(
@@ -290,17 +310,21 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
 
         @Test
         public void should_create_v4_plan() {
-            when(planServiceV4.create(eq(GraviteeContext.getExecutionContext()), any(NewPlanEntity.class)))
+            var planId = "new-id";
+            when(createPlanDomainService.create(any(), any(), any(), any()))
                 .thenAnswer(invocation -> {
-                    NewPlanEntity newPlan = invocation.getArgument(1);
-                    return PlanEntity
+                    io.gravitee.apim.core.plan.model.Plan plan = invocation.getArgument(0);
+                    plan.setId(planId);
+                    return PlanWithFlows
                         .builder()
-                        .id("new-id")
-                        .apiId(newPlan.getApiId())
-                        .name(newPlan.getName())
-                        .mode(newPlan.getMode())
-                        .security(newPlan.getSecurity())
-                        .flows(newPlan.getFlows())
+                        .id(planId)
+                        .apiId(plan.getApiId())
+                        .name(plan.getName())
+                        .order(plan.getOrder())
+                        .commentRequired(plan.isCommentRequired())
+                        .mode(plan.getMode())
+                        .security(plan.getSecurity())
+                        .flows(invocation.getArgument(1))
                         .build();
                 });
 
@@ -314,13 +338,17 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                     PlanV4
                         .builder()
                         .definitionVersion(io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.V4)
-                        .id("new-id")
+                        .id(planId)
                         .apiId(API)
                         .name(createPlanV4.getName())
-                        .order(0)
+                        .order(1)
                         .commentRequired(false)
                         .mode(PlanMode.STANDARD)
                         .security(PlanSecurity.builder().type(PlanSecurityType.API_KEY).configuration(Map.of("nice", "config")).build())
+                        .characteristics(Collections.emptyList())
+                        .excludedGroups(Collections.emptyList())
+                        .tags(Collections.emptyList())
+                        .type(io.gravitee.rest.api.management.v2.rest.model.PlanType.API)
                         .flows(createPlanV4.getFlows())
                         .build()
                 );

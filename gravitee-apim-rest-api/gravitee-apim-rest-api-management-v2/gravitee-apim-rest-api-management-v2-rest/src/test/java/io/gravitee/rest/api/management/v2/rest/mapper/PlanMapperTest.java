@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -93,37 +92,37 @@ public class PlanMapperTest {
     }
 
     @Test
-    void should_map_CreatePlanV4_to_NewPlanEntity() {
+    void should_map_CreatePlanV4_to_core_Plan() {
         final var createPlanV4 = PlanFixtures.aCreatePlanV4();
-        final var newPlanEntity = planMapper.map(createPlanV4);
+        final var plan = planMapper.map(createPlanV4);
 
-        Assertions.assertNull(newPlanEntity.getId());
-        assertEquals(createPlanV4.getName(), newPlanEntity.getName());
-        assertEquals(createPlanV4.getDescription(), newPlanEntity.getDescription());
-        assertEquals(createPlanV4.getOrder(), newPlanEntity.getOrder());
-        assertEquals(createPlanV4.getCharacteristics(), newPlanEntity.getCharacteristics());
-        assertEquals(createPlanV4.getCommentMessage(), newPlanEntity.getCommentMessage());
-        assertEquals(createPlanV4.getCrossId(), newPlanEntity.getCrossId());
-        assertEquals(createPlanV4.getGeneralConditions(), newPlanEntity.getGeneralConditions());
-        assertEquals(new HashSet<>(createPlanV4.getTags()), newPlanEntity.getTags());
-        assertEquals(createPlanV4.getExcludedGroups(), newPlanEntity.getExcludedGroups());
-        assertEquals(createPlanV4.getValidation().name(), newPlanEntity.getValidation().name());
-        assertEquals(createPlanV4.getSelectionRule(), newPlanEntity.getSelectionRule());
+        Assertions.assertNull(plan.getId());
+        assertEquals(createPlanV4.getName(), plan.getName());
+        assertEquals(createPlanV4.getDescription(), plan.getDescription());
+        assertEquals(createPlanV4.getOrder(), plan.getOrder());
+        assertEquals(createPlanV4.getCharacteristics(), plan.getCharacteristics());
+        assertEquals(createPlanV4.getCommentMessage(), plan.getCommentMessage());
+        assertEquals(createPlanV4.getCrossId(), plan.getCrossId());
+        assertEquals(createPlanV4.getGeneralConditions(), plan.getGeneralConditions());
+        assertEquals(new HashSet<>(createPlanV4.getTags()), plan.getTags());
+        assertEquals(createPlanV4.getExcludedGroups(), plan.getExcludedGroups());
+        assertEquals(createPlanV4.getValidation().name(), plan.getValidation().name());
+        assertEquals(createPlanV4.getSelectionRule(), plan.getSelectionRule());
 
-        assertSecurityV4Equals(newPlanEntity.getSecurity(), createPlanV4.getSecurity());
-        assertEquals(newPlanEntity.getFlows().size(), createPlanV4.getFlows().size()); // Flow mapping is tested in FlowMapperTest
+        assertSecurityV4Equals(plan.getSecurity(), createPlanV4.getSecurity());
     }
 
     @Test
-    void should_map_CreatePlanV4_to_NewPlanEntity_with_default_values() {
+    void should_map_CreatePlanV4_to_core_Plan_with_default_values() {
         final var createPlanV4 = PlanFixtures.aCreatePlanV4().toBuilder().validation(null).mode(null).flows(null).build();
-        final var newPlanEntity = planMapper.map(createPlanV4);
+        final var plan = planMapper.map(createPlanV4);
 
-        Assertions.assertNull(newPlanEntity.getId());
-        assertEquals(PlanValidationType.MANUAL, newPlanEntity.getValidation());
-        assertEquals(PlanMode.STANDARD, newPlanEntity.getMode());
-        assertNotNull(newPlanEntity.getFlows());
-        assertEquals(0, newPlanEntity.getFlows().size());
+        Assertions.assertNull(plan.getId());
+        assertNotNull(plan.getValidation());
+        assertEquals(PlanValidationType.MANUAL.name(), plan.getValidation().name());
+
+        assertNotNull(plan.getMode());
+        assertEquals(PlanMode.STANDARD.name(), plan.getMode().name());
     }
 
     @Test
@@ -192,6 +191,37 @@ public class PlanMapperTest {
         assertDefinitionEquals(updatePlanV2.getSecurity().getConfiguration(), updatePlanEntity.getSecurityDefinition());
 
         assertEquals(updatePlanEntity.getFlows().size(), updatePlanV2.getFlows().size()); // Flow mapping is tested in FlowMapperTest
+    }
+
+    @Test
+    void should_map_PlanWithFlows_to_PlanV4() {
+        final var planWithFlows = PlanFixtures.aPlanWithFlows();
+        final var plan = planMapper.map(planWithFlows);
+
+        assertNotNull(plan.getId());
+        assertEquals(planWithFlows.getId(), plan.getId());
+        assertEquals(planWithFlows.getCrossId(), plan.getCrossId());
+        assertEquals(planWithFlows.getName(), plan.getName());
+        assertEquals(planWithFlows.getDescription(), plan.getDescription());
+        assertEquals(planWithFlows.getValidation().name(), plan.getValidation().name());
+        assertEquals(planWithFlows.getType().name(), plan.getType().name());
+        assertEquals(planWithFlows.getMode().name(), plan.getMode().name());
+
+        assertNotNull(plan.getSecurity());
+        assertSecurityV4Equals(planWithFlows.getSecurity(), plan.getSecurity());
+
+        assertEquals(planWithFlows.getSelectionRule(), plan.getSelectionRule());
+        assertEquals(planWithFlows.getTags(), new HashSet<>(plan.getTags()));
+        assertEquals(planWithFlows.getStatus().name(), plan.getStatus().name());
+        assertEquals(planWithFlows.getApiId(), plan.getApiId());
+        assertEquals(planWithFlows.getOrder(), plan.getOrder());
+        assertEquals(planWithFlows.getCharacteristics(), plan.getCharacteristics());
+        assertEquals(planWithFlows.getExcludedGroups(), plan.getExcludedGroups());
+        assertEquals(planWithFlows.getCommentMessage(), plan.getCommentMessage());
+        assertEquals(planWithFlows.isCommentRequired(), plan.getCommentRequired());
+        assertEquals(planWithFlows.getGeneralConditions(), plan.getGeneralConditions());
+
+        assertEquals(planWithFlows.getFlows().size(), plan.getFlows().size());
     }
 
     private void assertSecurityV4Equals(

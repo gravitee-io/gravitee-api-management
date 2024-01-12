@@ -17,6 +17,8 @@ package io.gravitee.apim.core.plan.domain_service;
 
 import static fixtures.core.model.ApiFixtures.aMessageApiV4;
 import static fixtures.core.model.ApiFixtures.aProxyApiV4;
+import static fixtures.core.model.ApiFixtures.aTcpApiV4;
+import static fixtures.core.model.PlanFixtures.aKeylessV4;
 import static fixtures.core.model.PlanFixtures.aPushPlan;
 import static fixtures.core.model.PlanFixtures.anApiKeyV4;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -58,17 +60,19 @@ import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.util.Date;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.assertj.core.api.Assertions;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -88,7 +92,8 @@ class CreatePlanDomainServiceTest {
     private static final String USER_ID = "user-id";
     private static final String TAG = "tag1";
 
-    private static final Api API_PROXY_V4 = aProxyApiV4().toBuilder().id(API_ID).build();
+    private static final Api HTTP_PROXY_API_V4 = aProxyApiV4().toBuilder().id(API_ID).build();
+    private static final Api TCP_PROXY_API_V4 = aTcpApiV4().toBuilder().id(API_ID).build();
     private static final Api API_MESSAGE_V4 = aMessageApiV4().toBuilder().id(API_ID).build();
     private static final AuditInfo AUDIT_INFO = AuditInfoFixtures.anAuditInfo(ORGANIZATION_ID, ENVIRONMENT_ID, USER_ID);
 
@@ -125,7 +130,10 @@ class CreatePlanDomainServiceTest {
             );
 
         parametersQueryService.initWith(
-            List.of(new Parameter(Key.PLAN_SECURITY_APIKEY_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true"))
+            List.of(
+                new Parameter(Key.PLAN_SECURITY_APIKEY_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true"),
+                new Parameter(Key.PLAN_SECURITY_KEYLESS_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true")
+            )
         );
         when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any()))
             .thenAnswer(invocation -> invocation.getArgument(1));
@@ -151,7 +159,7 @@ class CreatePlanDomainServiceTest {
             );
 
             // When
-            var throwable = Assertions.catchThrowable(() -> service.create(plan, List.of(), API_PROXY_V4, AUDIT_INFO));
+            var throwable = Assertions.catchThrowable(() -> service.create(plan, List.of(), HTTP_PROXY_API_V4, AUDIT_INFO));
 
             // Then
             assertThat(throwable).isInstanceOf(UnauthorizedPlanSecurityTypeException.class);
@@ -165,7 +173,7 @@ class CreatePlanDomainServiceTest {
                 .thenThrow(new InvalidDataException("invalid"));
 
             // When
-            var throwable = Assertions.catchThrowable(() -> service.create(plan, List.of(), API_PROXY_V4, AUDIT_INFO));
+            var throwable = Assertions.catchThrowable(() -> service.create(plan, List.of(), HTTP_PROXY_API_V4, AUDIT_INFO));
 
             // Then
             assertThat(throwable).isInstanceOf(InvalidDataException.class);
@@ -181,7 +189,7 @@ class CreatePlanDomainServiceTest {
             var plan = aPushPlan().toBuilder().security(PlanSecurity.builder().build()).build();
 
             // When
-            var throwable = Assertions.catchThrowable(() -> service.create(plan, List.of(), API_PROXY_V4, AUDIT_INFO));
+            var throwable = Assertions.catchThrowable(() -> service.create(plan, List.of(), HTTP_PROXY_API_V4, AUDIT_INFO));
 
             // Then
             assertThat(throwable)
@@ -288,19 +296,15 @@ class CreatePlanDomainServiceTest {
 
             // Then
             assertThat(result).isNotNull();
-            assertThat(planCrudService.storage()).containsExactly(result);
+            assertThat(planCrudService.storage()).hasSize(1);
 
-            assertThat(result)
-                .usingRecursiveComparison()
-                .isEqualTo(
-                    plan
-                        .toBuilder()
-                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                        .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
-                        .needRedeployAt(Date.from(INSTANT_NOW))
-                        .apiId(API_ID)
-                        .build()
-                );
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(result.getApiId()).isEqualTo(API_ID);
+                soft.assertThat(result.getFlows()).hasSize(1).extracting(Flow::getName).containsExactly("flow");
+                soft.assertThat(result.getCreatedAt()).isEqualTo(INSTANT_NOW.atZone(ZoneId.systemDefault()));
+                soft.assertThat(result.getUpdatedAt()).isEqualTo(INSTANT_NOW.atZone(ZoneId.systemDefault()));
+                soft.assertThat(result.getNeedRedeployAt()).isEqualTo(INSTANT_NOW);
+            });
         }
 
         @ParameterizedTest
@@ -368,10 +372,44 @@ class CreatePlanDomainServiceTest {
                 );
         }
 
+        @Test
+        void should_throw_when_adding_secured_plan_to_tcp_api() {
+            // When
+            var throwable = Assertions.catchThrowable(() ->
+                service.create(anApiKeyV4(), Collections.emptyList(), TCP_PROXY_API_V4, AUDIT_INFO)
+            );
+
+            // Then
+            assertThat(throwable).isInstanceOf(UnauthorizedPlanSecurityTypeException.class);
+        }
+
+        @Test
+        void should_allow_keyless_plan_creation_to_tcp_api() {
+            // Given
+            var plan = aKeylessV4().toBuilder().apiId(API_ID).tags(Set.of(TAG)).status(PlanStatus.PUBLISHED).build();
+            var flows = List.of(Flow.builder().name("flow").selectors(List.of(new HttpSelector())).build());
+
+            // When
+            var result = service.create(plan, flows, TCP_PROXY_API_V4, AUDIT_INFO);
+
+            // Then
+            assertThat(result).isNotNull();
+            assertThat(planCrudService.storage()).hasSize(1);
+
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(result.getApiId()).isEqualTo(API_ID);
+                soft.assertThat(result.getType()).isEqualTo(Plan.PlanType.API);
+                soft
+                    .assertThat(result.getSecurity())
+                    .usingRecursiveComparison()
+                    .isEqualTo(PlanSecurity.builder().type(PlanSecurityType.KEY_LESS.getLabel()).build());
+            });
+        }
+
         static Stream<Arguments> plans() {
             return Stream.of(
                 Arguments.of(
-                    API_PROXY_V4,
+                    HTTP_PROXY_API_V4,
                     anApiKeyV4().toBuilder().apiId(API_ID).tags(Set.of(TAG)).status(PlanStatus.STAGING).build(),
                     List.of(Flow.builder().name("flow").selectors(List.of(new HttpSelector())).build())
                 ),

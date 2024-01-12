@@ -32,8 +32,6 @@ public interface PlanService {
 
     Set<PlanEntity> findByApi(ExecutionContext executionContext, String api);
 
-    PlanEntity create(final ExecutionContext executionContext, final NewPlanEntity plan);
-
     PlanEntity update(final ExecutionContext executionContext, final UpdatePlanEntity plan);
 
     GenericPlanEntity close(final ExecutionContext executionContext, final String plan);

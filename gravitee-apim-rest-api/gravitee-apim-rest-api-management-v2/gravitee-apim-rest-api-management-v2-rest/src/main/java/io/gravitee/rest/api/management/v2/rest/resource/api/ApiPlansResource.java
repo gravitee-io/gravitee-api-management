@@ -17,7 +17,12 @@ package io.gravitee.rest.api.management.v2.rest.resource.api;
 
 import static java.util.Comparator.comparingInt;
 
+import io.gravitee.apim.core.audit.model.AuditActor;
+import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.apim.core.plan.use_case.CreatePlanUseCase;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.v2.rest.mapper.FlowMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.PlanMapper;
 import io.gravitee.rest.api.management.v2.rest.model.CreateGenericPlan;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePlanV2;
@@ -36,15 +41,12 @@ import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
-import io.gravitee.rest.api.model.v4.plan.NewPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanMode;
 import io.gravitee.rest.api.model.v4.plan.PlanQuery;
-import io.gravitee.rest.api.model.v4.plan.PlanType;
 import io.gravitee.rest.api.model.v4.plan.UpdatePlanEntity;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
-import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
@@ -64,8 +66,6 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
-import jakarta.ws.rs.container.ResourceContext;
-import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
 import java.util.Set;
@@ -78,21 +78,19 @@ import java.util.stream.Collectors;
 public class ApiPlansResource extends AbstractResource {
 
     private final PlanMapper planMapper = PlanMapper.INSTANCE;
+    private final FlowMapper flowMapper = FlowMapper.INSTANCE;
 
     @Inject
     private PlanService planServiceV4;
+
+    @Inject
+    private CreatePlanUseCase createPlanUseCase;
 
     @Inject
     private io.gravitee.rest.api.service.PlanService planServiceV2;
 
     @Inject
     private PlanSearchService planSearchService;
-
-    @Inject
-    private GroupService groupService;
-
-    @Context
-    private ResourceContext resourceContext;
 
     @PathParam("apiId")
     private String apiId;
@@ -144,14 +142,31 @@ public class ApiPlansResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_PLAN, acls = { RolePermissionAction.CREATE }) })
     public Response createApiPlan(@Valid @NotNull CreateGenericPlan createPlan) {
         if (createPlan.getDefinitionVersion() == DefinitionVersion.V4) {
-            final NewPlanEntity newPlanEntity = planMapper.map((CreatePlanV4) createPlan);
-            newPlanEntity.setApiId(apiId);
-            newPlanEntity.setType(PlanType.API);
-            if (newPlanEntity.getMode() == null) {
-                newPlanEntity.setMode(PlanMode.STANDARD);
-            }
-            final PlanEntity planEntity = planServiceV4.create(GraviteeContext.getExecutionContext(), newPlanEntity);
-            return Response.created(this.getLocationHeader(planEntity.getId())).entity(planMapper.map(planEntity)).build();
+            var planV4 = (CreatePlanV4) createPlan;
+            var executionContext = GraviteeContext.getExecutionContext();
+            var userDetails = getAuthenticatedUserDetails();
+            var output = createPlanUseCase.execute(
+                new CreatePlanUseCase.Input(
+                    apiId,
+                    planMapper.map(planV4),
+                    flowMapper.map(planV4.getFlows()),
+                    AuditInfo
+                        .builder()
+                        .organizationId(executionContext.getOrganizationId())
+                        .environmentId(executionContext.getEnvironmentId())
+                        .actor(
+                            AuditActor
+                                .builder()
+                                .userId(userDetails.getUsername())
+                                .userSource(userDetails.getSource())
+                                .userSourceId(userDetails.getSourceId())
+                                .build()
+                        )
+                        .build()
+                )
+            );
+
+            return Response.created(this.getLocationHeader(output.id())).entity(planMapper.map(output.plan())).build();
         } else if (createPlan.getDefinitionVersion() == DefinitionVersion.V2) {
             final io.gravitee.rest.api.model.NewPlanEntity newPlanEntity = planMapper.map((CreatePlanV2) createPlan);
             newPlanEntity.setApi(apiId);

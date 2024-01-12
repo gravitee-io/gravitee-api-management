@@ -67,6 +67,7 @@ import io.gravitee.apim.core.plan.domain_service.DeletePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.ReorderPlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
+import io.gravitee.apim.core.plan.use_case.CreatePlanUseCase;
 import io.gravitee.apim.core.plugin.domain_service.PluginFilterByLicenseDomainService;
 import io.gravitee.apim.core.plugin.query_service.EndpointPluginQueryService;
 import io.gravitee.apim.core.plugin.query_service.EntrypointPluginQueryService;
@@ -352,5 +353,10 @@ public class UsecaseSpringConfiguration {
         PluginFilterByLicenseDomainService pluginFilterByLicenseDomainService
     ) {
         return new GetEndpointPluginsUseCase(endpointPluginQueryService, pluginFilterByLicenseDomainService);
+    }
+
+    @Bean
+    public CreatePlanUseCase createPlanUseCase(CreatePlanDomainService createPlanDomainService, ApiCrudService apiCrudService) {
+        return new CreatePlanUseCase(createPlanDomainService, apiCrudService);
     }
 }
