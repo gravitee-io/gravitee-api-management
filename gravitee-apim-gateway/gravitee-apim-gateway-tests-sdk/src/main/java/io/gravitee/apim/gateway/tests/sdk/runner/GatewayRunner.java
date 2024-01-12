@@ -90,6 +90,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import lombok.SneakyThrows;
 import org.junit.platform.commons.PreconditionViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -175,10 +176,17 @@ public class GatewayRunner {
             configure(gatewayPort, technicalApiPort, gatewayConfiguration);
 
             // create Gateway
-            gatewayContainer = new GatewayTestContainer();
+            gatewayContainer =
+                new GatewayTestContainer(context -> {
+                    // add extra configuration to gravitee.yaml
+                    applyOnGraviteeYaml(context, gatewayConfiguration.yamlProperties());
 
-            // add extra configuration to gravitee.yaml
-            applyOnGraviteeYaml(gatewayContainer, gatewayConfiguration.yamlProperties());
+                    // secret provider plugins need to be set up during boot to ensure a proper resolution of secrets during startup.
+                    registerSecretProvider(context);
+                });
+
+            // initialize the container (e.g.: prepare the spring context)
+            gatewayContainer.initialize();
 
             // inject requirements to tests
             testInstance.setApplicationContext(gatewayContainer.applicationContext());
@@ -186,8 +194,6 @@ public class GatewayRunner {
             testInstance.setUndeployCallback(this::undeployFromTest);
 
             // register plugins
-            registerSecretProvider(gatewayContainer);
-
             registerReactors(gatewayContainer);
 
             registerReporters(gatewayContainer);
@@ -248,10 +254,8 @@ public class GatewayRunner {
         System.setProperty("services.core.http.enabled", String.valueOf(false));
     }
 
-    private static void applyOnGraviteeYaml(GatewayTestContainer gatewayContainer, Properties extraProperties) {
-        ConfigurableEnvironment configurableEnvironment = (ConfigurableEnvironment) gatewayContainer
-            .applicationContext()
-            .getBean(Environment.class);
+    private void applyOnGraviteeYaml(ApplicationContext context, Properties extraProperties) {
+        ConfigurableEnvironment configurableEnvironment = (ConfigurableEnvironment) context.getBean(Environment.class);
         GraviteeYamlPropertySource graviteeProperties = (GraviteeYamlPropertySource) configurableEnvironment
             .getPropertySources()
             .get("graviteeYamlConfiguration");
@@ -574,8 +578,9 @@ public class GatewayRunner {
         }
     }
 
-    private void registerSecretProvider(GatewayTestContainer container) throws SecretProviderException {
-        SecretProviderPluginManager pluginManager = container.applicationContext().getBean(SecretProviderPluginManager.class);
+    @SneakyThrows
+    private void registerSecretProvider(ApplicationContext applicationContext) {
+        SecretProviderPluginManager pluginManager = applicationContext.getBean(SecretProviderPluginManager.class);
         Set<SecretProviderPlugin<? extends SecretProviderFactory<?>, ? extends SecretManagerConfiguration>> secretProviderFactories =
             new HashSet<>();
         try {

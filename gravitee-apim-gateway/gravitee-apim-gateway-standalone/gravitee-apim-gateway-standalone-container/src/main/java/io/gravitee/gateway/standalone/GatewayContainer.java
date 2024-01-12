@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.standalone;
 
+import io.gravitee.gateway.standalone.node.GatewayNode;
 import io.gravitee.gateway.standalone.spring.StandaloneConfiguration;
 import io.gravitee.node.container.spring.SpringBasedContainer;
 import java.util.List;
@@ -24,6 +25,10 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public class GatewayContainer extends SpringBasedContainer {
+
+    public GatewayContainer() {
+        super(GatewayNode.class);
+    }
 
     @Override
     protected List<Class<?>> annotatedClasses() {

@@ -33,12 +33,15 @@ import io.gravitee.repository.management.api.*;
 import io.gravitee.tracing.api.Tracer;
 import io.vertx.core.Vertx;
 import java.util.List;
+import java.util.function.Consumer;
 import org.mockito.Mockito;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * This class allows to extends the {@link GatewayContainer} in order to be able to override the {@link NodeFactory}
+ * This class allows to extend the {@link GatewayContainer} in order to override the {@link NodeFactory}
  * and provide a {@link GatewayTestNode}
  *
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -46,11 +49,30 @@ import org.springframework.context.annotation.Configuration;
  */
 public class GatewayTestContainer extends GatewayContainer {
 
+    private final Consumer<ApplicationContext> onBootApplicationContextCreated;
+
+    /**
+     * Constructor with action to execute once the boot application context has been created.
+     * This allows for setting up specific requirements for testing (e.g. customizing gravitee yaml configuration, registering boot plugins, ...)
+     *
+     * @param onBootApplicationContextCreated actions to execute once Spring context is created and before starting components.
+     */
+    public GatewayTestContainer(Consumer<ApplicationContext> onBootApplicationContextCreated) {
+        this.onBootApplicationContextCreated = onBootApplicationContextCreated;
+    }
+
     @Override
     protected List<Class<?>> annotatedClasses() {
         List<Class<?>> classes = super.annotatedClasses();
         classes.add(GatewayTestConfiguration.class);
         return classes;
+    }
+
+    @Override
+    protected void startBootstrapComponents(AnnotationConfigApplicationContext ctx) {
+        // Execute operations before starting bootstrap components (e.g.: the boot application context has been created).
+        onBootApplicationContextCreated.accept(ctx);
+        super.startBootstrapComponents(ctx);
     }
 
     @Configuration

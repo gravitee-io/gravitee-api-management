@@ -17,7 +17,6 @@ package io.gravitee.gateway.standalone.spring;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.apim.plugin.reactor.spring.ReactorPluginConfiguration;
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.event.impl.EventManagerImpl;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
@@ -37,19 +36,9 @@ import io.gravitee.gateway.standalone.node.GatewayNode;
 import io.gravitee.gateway.standalone.node.GatewayNodeMetadataResolver;
 import io.gravitee.gateway.standalone.vertx.VertxReactorConfiguration;
 import io.gravitee.node.api.NodeMetadataResolver;
-import io.gravitee.node.certificates.spring.NodeCertificatesConfiguration;
 import io.gravitee.node.container.NodeFactory;
-import io.gravitee.node.kubernetes.spring.NodeKubernetesConfiguration;
-import io.gravitee.node.vertx.spring.VertxConfiguration;
 import io.gravitee.platform.repository.api.RepositoryScopeProvider;
-import io.gravitee.plugin.alert.spring.AlertPluginConfiguration;
-import io.gravitee.plugin.apiservice.spring.ApiServicePluginConfiguration;
-import io.gravitee.plugin.core.spring.PluginConfiguration;
-import io.gravitee.plugin.discovery.spring.ServiceDiscoveryPluginConfiguration;
-import io.gravitee.plugin.endpoint.spring.EndpointConnectorPluginConfiguration;
-import io.gravitee.plugin.entrypoint.spring.EntrypointConnectorPluginConfiguration;
 import io.gravitee.plugin.policy.spring.PolicyPluginConfiguration;
-import io.gravitee.plugin.resource.spring.ResourcePluginConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -61,26 +50,14 @@ import org.springframework.context.annotation.Import;
 @Configuration
 @Import(
     {
-        VertxConfiguration.class,
         ReactorConfiguration.class,
-        NodeCertificatesConfiguration.class,
-        NodeKubernetesConfiguration.class,
         VertxReactorConfiguration.class,
-        PluginConfiguration.class,
-        PolicyPluginConfiguration.class,
-        ResourcePluginConfiguration.class,
         ReporterConfiguration.class,
         ApiHandlerConfiguration.class,
         DictionaryConfiguration.class,
-        AlertPluginConfiguration.class,
-        ServiceDiscoveryPluginConfiguration.class,
         PolicyConfiguration.class,
         PlatformConfiguration.class,
         ConnectorConfiguration.class,
-        EntrypointConnectorPluginConfiguration.class,
-        ApiServicePluginConfiguration.class,
-        EndpointConnectorPluginConfiguration.class,
-        ReactorPluginConfiguration.class,
         TimeoutConfiguration.class,
     }
 )

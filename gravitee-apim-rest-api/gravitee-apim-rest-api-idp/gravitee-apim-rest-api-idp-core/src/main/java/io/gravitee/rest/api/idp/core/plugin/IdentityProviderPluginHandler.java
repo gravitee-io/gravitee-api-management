@@ -19,15 +19,18 @@ import io.gravitee.plugin.core.api.Plugin;
 import io.gravitee.plugin.core.api.PluginClassLoaderFactory;
 import io.gravitee.plugin.core.api.PluginHandler;
 import io.gravitee.rest.api.idp.api.IdentityProvider;
+import io.gravitee.rest.api.idp.core.spring.IdentityProviderPluginConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Import;
 import org.springframework.util.Assert;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Import(IdentityProviderPluginConfiguration.class)
 public class IdentityProviderPluginHandler implements PluginHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IdentityProviderPluginHandler.class);

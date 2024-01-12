@@ -28,7 +28,6 @@ import org.springframework.context.annotation.Import;
  * @author GraviteeSource Team
  */
 @Configuration
-@Import(ConnectorPluginConfiguration.class)
 public class ConnectorConfiguration {
 
     @Bean

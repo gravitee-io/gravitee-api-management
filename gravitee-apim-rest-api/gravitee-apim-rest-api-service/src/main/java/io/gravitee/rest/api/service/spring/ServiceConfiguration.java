@@ -30,16 +30,6 @@ import io.gravitee.json.validation.JsonSchemaValidator;
 import io.gravitee.json.validation.JsonSchemaValidatorImpl;
 import io.gravitee.node.services.initializer.spring.InitializerConfiguration;
 import io.gravitee.node.services.upgrader.spring.UpgraderConfiguration;
-import io.gravitee.plugin.alert.spring.AlertPluginConfiguration;
-import io.gravitee.plugin.apiservice.spring.ApiServicePluginConfiguration;
-import io.gravitee.plugin.connector.spring.ConnectorPluginConfiguration;
-import io.gravitee.plugin.discovery.spring.ServiceDiscoveryPluginConfiguration;
-import io.gravitee.plugin.endpoint.spring.EndpointConnectorPluginConfiguration;
-import io.gravitee.plugin.entrypoint.spring.EntrypointConnectorPluginConfiguration;
-import io.gravitee.plugin.fetcher.spring.FetcherPluginConfiguration;
-import io.gravitee.plugin.notifier.spring.NotifierPluginConfiguration;
-import io.gravitee.plugin.policy.spring.PolicyPluginConfiguration;
-import io.gravitee.plugin.resource.spring.ResourcePluginConfiguration;
 import io.gravitee.repository.management.model.flow.FlowStep;
 import io.gravitee.rest.api.fetcher.spring.FetcherConfigurationConfiguration;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -56,11 +46,7 @@ import io.gravitee.rest.api.service.validator.RegexPasswordValidator;
 import java.util.Collections;
 import java.util.concurrent.Executor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.*;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -75,20 +61,10 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableTransactionManagement
 @Import(
     {
-        PolicyPluginConfiguration.class,
-        ResourcePluginConfiguration.class,
-        FetcherPluginConfiguration.class,
         FetcherConfigurationConfiguration.class,
         SearchEngineConfiguration.class,
-        NotifierPluginConfiguration.class,
-        AlertPluginConfiguration.class,
-        ServiceDiscoveryPluginConfiguration.class,
-        ConnectorPluginConfiguration.class,
-        EndpointConnectorPluginConfiguration.class,
-        EntrypointConnectorPluginConfiguration.class,
         UpgraderConfiguration.class,
         InitializerConfiguration.class,
-        ApiServicePluginConfiguration.class,
         InfraServiceSpringConfiguration.class,
     }
 )

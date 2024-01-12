@@ -18,6 +18,7 @@ package io.gravitee.plugin.apiservice.internal;
 import io.gravitee.gateway.reactive.api.apiservice.ApiServiceConfiguration;
 import io.gravitee.plugin.apiservice.ApiServicePlugin;
 import io.gravitee.plugin.apiservice.ApiServicePluginManager;
+import io.gravitee.plugin.apiservice.spring.ApiServicePluginConfiguration;
 import io.gravitee.plugin.core.api.AbstractSimplePluginHandler;
 import io.gravitee.plugin.core.api.Plugin;
 import java.io.IOException;
@@ -25,6 +26,7 @@ import java.net.URLClassLoader;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Import;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -32,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 @AllArgsConstructor
 @NoArgsConstructor
+@Import(ApiServicePluginConfiguration.class)
 public class ApiServicePluginHandler extends AbstractSimplePluginHandler<ApiServicePlugin<?, ?>> {
 
     @Autowired

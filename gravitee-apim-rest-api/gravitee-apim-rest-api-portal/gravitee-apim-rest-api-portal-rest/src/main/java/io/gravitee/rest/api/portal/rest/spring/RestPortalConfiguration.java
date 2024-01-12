@@ -29,7 +29,5 @@ import org.springframework.context.annotation.Import;
  */
 @Configuration
 @ComponentScan({ "io.gravitee.rest.api.portal.rest.mapper" })
-@Import(
-    { PluginConfiguration.class, ServiceConfiguration.class, SecurityPortalConfiguration.class, IdentityProviderPluginConfiguration.class }
-)
+@Import({ ServiceConfiguration.class, SecurityPortalConfiguration.class })
 public class RestPortalConfiguration {}
