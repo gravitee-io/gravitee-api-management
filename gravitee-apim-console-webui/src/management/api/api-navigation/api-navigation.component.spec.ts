@@ -91,6 +91,13 @@ describe('ApiNavigationComponent', () => {
               deploymentState: 'NEED_REDEPLOY',
             }),
           );
+
+        httpTestingController
+          .expectOne({
+            url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/deployments/_verify`,
+            method: 'GET',
+          })
+          .flush({ ok: true });
       });
       it('should display "API version out-of-date" banner', (done) => {
         apiNgNavigationComponent.banners$.subscribe((banners) => {
@@ -112,6 +119,44 @@ describe('ApiNavigationComponent', () => {
               id: API_ID,
             }),
           );
+
+        httpTestingController
+          .expectOne({
+            url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/deployments/_verify`,
+            method: 'GET',
+          })
+          .flush({ ok: true });
+      });
+      it('should display "API cannot be deployed" banner', (done) => {
+        apiNgNavigationComponent.banners$.subscribe((banners) => {
+          expect(banners).toEqual([
+            {
+              title: 'This API cannot be deployed.',
+              body: 'The current configuration uses features not in your license.',
+              type: 'error',
+            },
+          ]);
+          done();
+        });
+
+        httpTestingController
+          .expectOne({
+            url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`,
+            method: 'GET',
+          })
+          .flush(
+            fakeApiV4({
+              id: API_ID,
+              deploymentState: 'NEED_REDEPLOY',
+            }),
+          );
+
+        httpTestingController
+          .expectOne({
+            url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/deployments/_verify`,
+            method: 'GET',
+          })
+          .flush({ ok: false });
       });
     });
   });
