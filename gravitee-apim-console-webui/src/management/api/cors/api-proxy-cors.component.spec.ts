@@ -30,9 +30,9 @@ import { ActivatedRoute } from '@angular/router';
 import { ApiProxyCorsComponent } from './api-proxy-cors.component';
 import { ApiProxyCorsModule } from './api-proxy-cors.module';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
-import { ApiV2, fakeApiV2 } from '../../../../entities/management-api-v2';
-import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { ApiV2, fakeApiV2 } from '../../../entities/management-api-v2';
+import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiProxyEntrypointsComponent', () => {
   const API_ID = 'apiId';
