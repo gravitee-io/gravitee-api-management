@@ -27,17 +27,17 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { ActivatedRoute } from '@angular/router';
 
-import { ApiProxyCorsComponent } from './api-proxy-cors.component';
+import { ApiCorsComponent } from './api-cors.component';
 import { ApiProxyCorsModule } from './api-proxy-cors.module';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { ApiV2, fakeApiV2 } from '../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 
-describe('ApiProxyEntrypointsComponent', () => {
+describe('ApiCorsComponent', () => {
   const API_ID = 'apiId';
 
-  let fixture: ComponentFixture<ApiProxyCorsComponent>;
+  let fixture: ComponentFixture<ApiCorsComponent>;
   let loader: HarnessLoader;
   let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
@@ -57,7 +57,7 @@ describe('ApiProxyEntrypointsComponent', () => {
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ApiProxyCorsComponent);
+    fixture = TestBed.createComponent(ApiCorsComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
 
