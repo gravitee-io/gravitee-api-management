@@ -205,7 +205,6 @@ describe('ApiCreationV4Component - Navigation', () => {
       await stepperHelper.fillAndValidateStep1_ApiDetails('test API', '1', 'description');
 
       fixture.detectChanges();
-      httpExpects.expectLicenseGetRequest({ tier: '', features: [], packs: [] });
 
       component.stepper.compileStepPayload(component.currentStep);
       expect(component.currentStep.payload).toEqual({ name: 'test API', version: '1', description: 'description' });
@@ -216,7 +215,6 @@ describe('ApiCreationV4Component - Navigation', () => {
       await stepperHelper.fillAndValidateStep1_ApiDetails('API', '1.0', null);
 
       fixture.detectChanges();
-      httpExpects.expectLicenseGetRequest({ tier: '', features: [], packs: [] });
 
       component.stepper.compileStepPayload(component.currentStep);
       expect(component.currentStep.payload).toEqual({ name: 'API', version: '1.0', description: '' });
@@ -227,12 +225,15 @@ describe('ApiCreationV4Component - Navigation', () => {
       const apiDetailsHarness = await harnessLoader.getHarness(Step1ApiDetailsHarness);
       expect(apiDetailsHarness).toBeDefined();
       await apiDetailsHarness.clickExit();
+      httpExpects.expectLicenseGetRequest({ tier: '', features: [], packs: [] });
 
       expect(routerNavigateSpy).toHaveBeenCalled();
     });
 
     it('should cancel exit in confirmation', async () => {
       const apiDetailsHarness = await harnessLoader.getHarness(Step1ApiDetailsHarness);
+      httpExpects.expectLicenseGetRequest({ tier: '', features: [], packs: [] });
+
       await apiDetailsHarness.setName('Draft API');
       await apiDetailsHarness.clickExit();
 
@@ -248,6 +249,8 @@ describe('ApiCreationV4Component - Navigation', () => {
 
     it('should not save data after exiting', async () => {
       const apiDetailsHarness = await harnessLoader.getHarness(Step1ApiDetailsHarness);
+      httpExpects.expectLicenseGetRequest({ tier: '', features: [], packs: [] });
+
       await apiDetailsHarness.setName('Draft API');
 
       await apiDetailsHarness.clickExit();
@@ -270,8 +273,6 @@ describe('ApiCreationV4Component - Navigation', () => {
       await architectureHarness.clickPrevious();
       expect(component.currentStep.group.label).toEqual('API details');
 
-      httpExpects.expectLicenseGetRequest({ tier: '', features: [], packs: [] });
-
       const apiDetailsHarness = await harnessLoader.getHarness(Step1ApiDetailsHarness);
       expect(apiDetailsHarness).toBeDefined();
       expect(await apiDetailsHarness.getName()).toEqual('API');
@@ -286,8 +287,6 @@ describe('ApiCreationV4Component - Navigation', () => {
       const step2Entrypoints1ListHarness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
 
       httpExpects.expectEntrypointsGetRequest([httpProxyEntrypoint, tcpProxyEntrypoint, sseEntrypoint]);
-
-      httpExpects.expectLicenseGetRequest({ tier: '', features: [], packs: [] });
 
       const entrypointsRadio = await step2Entrypoints1ListHarness.getSyncEntrypoints();
       expect(await entrypointsRadio.getValues()).toEqual(['http-proxy', 'tcp-proxy']);
@@ -316,7 +315,6 @@ describe('ApiCreationV4Component - Navigation', () => {
       await stepperHelper.fillAndValidateStep2_0_EntrypointsArchitecture('MESSAGE');
 
       const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
-      httpExpects.expectLicenseGetRequest({ tier: '', features: [], packs: [] });
       httpExpects.expectEntrypointsGetRequest([sseEntrypoint, webhookEntrypoint, httpProxyEntrypoint]);
 
       const list = await step2Harness.getAsyncEntrypoints();
@@ -464,7 +462,6 @@ describe('ApiCreationV4Component - Navigation', () => {
         await stepperHelper.fillAndValidateStep2_0_EntrypointsArchitecture('PROXY');
         let entrypointsListHarness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
         httpExpects.expectEntrypointsGetRequest([httpProxyEntrypoint, tcpProxyEntrypoint]);
-        httpExpects.expectLicenseGetRequest({ tier: '', features: [], packs: [] });
         await entrypointsListHarness.fillSyncAndValidate('http-proxy');
         httpExpects.expectEndpointGetRequest({ id: 'http-proxy', supportedApiType: 'PROXY', name: 'HTTP Proxy' });
         await stepperHelper.fillAndValidateStep2_2_EntrypointsConfig(httpProxyEntrypoints);
@@ -545,7 +542,6 @@ describe('ApiCreationV4Component - Navigation', () => {
         await stepperHelper.fillAndValidateStep2_0_EntrypointsArchitecture('PROXY');
         let entrypointsListHarness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
         httpExpects.expectEntrypointsGetRequest([httpProxyEntrypoint, tcpProxyEntrypoint]);
-        httpExpects.expectLicenseGetRequest({ tier: '', features: [], packs: [] });
         await entrypointsListHarness.fillSyncAndValidate('http-proxy');
         httpExpects.expectEndpointGetRequest({ id: 'http-proxy', supportedApiType: 'PROXY', name: 'HTTP Proxy' });
         await stepperHelper.fillAndValidateStep2_2_EntrypointsConfig(httpProxyEntrypoints);
@@ -629,7 +625,6 @@ describe('ApiCreationV4Component - Navigation', () => {
         await stepperHelper.fillAndValidateStep2_0_EntrypointsArchitecture('MESSAGE');
         let entrypointsListHarness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
         httpExpects.expectEntrypointsGetRequest(messageEntrypoints);
-        httpExpects.expectLicenseGetRequest({ tier: '', features: [], packs: [] });
         await entrypointsListHarness.fillAsyncAndValidate(['http-post', 'http-get']);
         await stepperHelper.fillAndValidateStep2_2_EntrypointsConfig([httpPostEntrypoint, httpGetEntrypoint]);
 
@@ -723,7 +718,6 @@ describe('ApiCreationV4Component - Navigation', () => {
         await stepperHelper.fillAndValidateStep2_0_EntrypointsArchitecture('MESSAGE');
         let entrypointsListHarness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
         httpExpects.expectEntrypointsGetRequest(messageEntrypoints);
-        httpExpects.expectLicenseGetRequest({ tier: '', features: [], packs: [] });
         await entrypointsListHarness.fillAsyncAndValidate(['http-post', 'http-get']);
         await stepperHelper.fillAndValidateStep2_2_EntrypointsConfig([httpPostEntrypoint, httpGetEntrypoint]);
 

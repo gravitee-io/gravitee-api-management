@@ -16,6 +16,7 @@
 
 import { HarnessLoader } from '@angular/cdk/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
+import { License } from '@gravitee/ui-particles-angular';
 
 import { Step1ApiDetailsHarness } from './steps/step-1-api-details/step-1-api-details.harness';
 import { Step2Entrypoints0ArchitectureHarness } from './steps/step-2-entrypoints/step-2-entrypoints-0-architecture.harness';
@@ -29,14 +30,23 @@ import { Step3EndpointListHarness } from './steps/step-3-endpoints/step-3-endpoi
 import { ApiType, ConnectorPlugin } from '../../../entities/management-api-v2';
 
 export class ApiCreationV4SpecStepperHelper {
+  private ossLicense: License = { tier: 'oss', features: [], packs: [] };
+
   constructor(
     private harnessLoader: HarnessLoader,
     private httpExpects: ApiCreationV4SpecHttpExpects,
     private httpTestingController: HttpTestingController,
   ) {}
 
-  async fillAndValidateStep1_ApiDetails(name = 'API name', version = '1.0', description = 'description') {
+  async fillAndValidateStep1_ApiDetails(
+    name = 'API name',
+    version = '1.0',
+    description = 'description',
+    license: License = this.ossLicense,
+  ) {
     const apiDetails = await this.harnessLoader.getHarness(Step1ApiDetailsHarness);
+    this.httpExpects.expectLicenseGetRequest(license);
+
     await apiDetails.fillAndValidate(name, version, description);
   }
 
@@ -54,7 +64,6 @@ export class ApiCreationV4SpecStepperHelper {
   ) {
     const entrypointsList = await this.harnessLoader.getHarness(Step2Entrypoints1ListHarness);
     this.httpExpects.expectEntrypointsGetRequest(entrypoints);
-    this.httpExpects.expectLicenseGetRequest({ tier: '', features: [], packs: [] });
 
     if (architecture === 'MESSAGE') {
       await entrypointsList.fillAsyncAndValidate(entrypoints.map((entrypoint) => entrypoint.id));
