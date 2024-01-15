@@ -16,12 +16,15 @@
 
 import { Component, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
+import { takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 import { Step2Entrypoints0ArchitectureComponent } from '../step-2-entrypoints/step-2-entrypoints-0-architecture.component';
+import { Step2Entrypoints1ListComponent } from '../step-2-entrypoints/step-2-entrypoints-1-list.component';
 
 @Component({
   selector: 'step-1-api-details',
@@ -29,6 +32,9 @@ import { Step2Entrypoints0ArchitectureComponent } from '../step-2-entrypoints/st
   styleUrls: ['./step-1-api-details.component.scss', '../api-creation-steps-common.component.scss'],
 })
 export class Step1ApiDetailsComponent implements OnInit {
+  private unsubscribe$: Subject<void> = new Subject<void>();
+  private isOEM: boolean;
+
   public form: UntypedFormGroup;
 
   constructor(
@@ -37,6 +43,7 @@ export class Step1ApiDetailsComponent implements OnInit {
     private readonly formBuilder: UntypedFormBuilder,
     private readonly confirmDialog: MatDialog,
     private readonly stepService: ApiCreationStepService,
+    private readonly licenseService: GioLicenseService,
   ) {}
 
   ngOnInit(): void {
@@ -50,6 +57,11 @@ export class Step1ApiDetailsComponent implements OnInit {
     if (currentStepPayload && Object.keys(currentStepPayload).length > 0) {
       this.form.markAsDirty();
     }
+
+    this.licenseService
+      .isOEM$()
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe((isOEM) => (this.isOEM = isOEM));
   }
 
   onExit() {
@@ -76,16 +88,29 @@ export class Step1ApiDetailsComponent implements OnInit {
 
   save() {
     const formValue = this.form.getRawValue();
-    this.stepService.validStep((previousPayload) => ({
-      ...previousPayload,
-      name: formValue.name,
-      description: formValue.description ?? '',
-      version: formValue.version,
-    }));
+    const apiDetailsValue = { name: formValue.name, description: formValue.description ?? '', version: formValue.version };
 
-    this.stepService.goToNextStep({
-      groupNumber: 2,
-      component: Step2Entrypoints0ArchitectureComponent,
-    });
+    if (this.isOEM) {
+      this.stepService.validStep((previousPayload) => ({
+        ...previousPayload,
+        ...apiDetailsValue,
+        type: 'PROXY',
+      }));
+
+      this.stepService.goToNextStep({
+        groupNumber: 2,
+        component: Step2Entrypoints1ListComponent,
+      });
+    } else {
+      this.stepService.validStep((previousPayload) => ({
+        ...previousPayload,
+        ...apiDetailsValue,
+      }));
+
+      this.stepService.goToNextStep({
+        groupNumber: 2,
+        component: Step2Entrypoints0ArchitectureComponent,
+      });
+    }
   }
 }

@@ -124,7 +124,6 @@ describe('ApiCreationV4Component - Message', () => {
       httpExpects.expectEntrypointsGetRequest([
         { id: 'sse', supportedApiType: 'MESSAGE', name: 'SSE', supportedListenerType: 'SUBSCRIPTION' },
       ]);
-      httpExpects.expectLicenseGetRequest({ tier: '', features: [], packs: [] });
 
       await step2Harness.getAsyncEntrypoints().then((form) => form.selectOptionsByIds(['sse']));
 
@@ -141,7 +140,6 @@ describe('ApiCreationV4Component - Message', () => {
       const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
 
       httpExpects.expectEntrypointsGetRequest([{ id: 'sse', supportedApiType: 'MESSAGE', name: 'SSE' }]);
-      httpExpects.expectLicenseGetRequest({ tier: '', features: [], packs: [] });
 
       await step2Harness.getAsyncEntrypoints().then((form) => form.selectOptionsByIds(['sse']));
 
@@ -164,7 +162,6 @@ describe('ApiCreationV4Component - Message', () => {
       const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
 
       httpExpects.expectEntrypointsGetRequest([{ id: 'sse', supportedApiType: 'MESSAGE', name: 'SSE' }]);
-      httpExpects.expectLicenseGetRequest({ tier: '', features: [], packs: [] });
 
       await step2Harness.getAsyncEntrypoints().then((form) => form.selectOptionsByIds(['sse']));
 
@@ -190,7 +187,6 @@ describe('ApiCreationV4Component - Message', () => {
         { id: 'sse', supportedApiType: 'MESSAGE', name: 'SSE', supportedListenerType: 'HTTP' },
         { id: 'webhook', supportedApiType: 'MESSAGE', name: 'Webhook', supportedListenerType: 'SUBSCRIPTION' },
       ]);
-      httpExpects.expectLicenseGetRequest({ tier: '', features: [], packs: [] });
 
       await step2Harness.getAsyncEntrypoints().then((form) => form.selectOptionsByIds(['sse', 'webhook']));
 
@@ -264,7 +260,6 @@ describe('ApiCreationV4Component - Message', () => {
       const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
 
       httpExpects.expectEntrypointsGetRequest([{ id: 'sse', supportedApiType: 'MESSAGE', name: 'SSE' }]);
-      httpExpects.expectLicenseGetRequest({ tier: '', features: [], packs: [] });
 
       await step2Harness.getAsyncEntrypoints().then((form) => form.selectOptionsByIds(['sse']));
 
@@ -291,7 +286,6 @@ describe('ApiCreationV4Component - Message', () => {
       const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
 
       httpExpects.expectEntrypointsGetRequest([{ id: 'sse', supportedApiType: 'MESSAGE', name: 'SSE', supportedListenerType: 'HTTP' }]);
-      httpExpects.expectLicenseGetRequest({ tier: '', features: [], packs: [] });
 
       await step2Harness.getAsyncEntrypoints().then((form) => form.selectOptionsByIds(['sse']));
 
@@ -343,7 +337,6 @@ describe('ApiCreationV4Component - Message', () => {
       const step2Harness = await harnessLoader.getHarness(Step2Entrypoints1ListHarness);
 
       httpExpects.expectEntrypointsGetRequest([{ id: 'sse', supportedApiType: 'MESSAGE', name: 'SSE' }]);
-      httpExpects.expectLicenseGetRequest({ tier: '', features: [], packs: [] });
 
       await step2Harness.getAsyncEntrypoints().then((form) => form.selectOptionsByIds(['sse']));
 
