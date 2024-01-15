@@ -434,7 +434,15 @@ jobs:
             git config --global user.name "${GIT_USER_NAME}"
             git config --global user.email "${GIT_USER_EMAIL}"
       - gh/setup
+<<<<<<< HEAD
       - helm/install-helm-client
+=======
+      - helm/install_helm_client
+      - checkout
+      - run:
+          name: Checkout tag 4.2.0
+          command: git checkout 4.2.0
+>>>>>>> 505d762536 (feat(CI): update helm version)
       - run:
           name: Update Chart and App versions
           command: |-
@@ -715,5 +723,5 @@ orbs:
   slack: circleci/slack@4.12.5
   artifactory-orb: jfrog/artifactory-orb@1.0.1
   aws-s3: circleci/aws-s3@3.0.0
-  helm: circleci/helm@2.0.1
+  helm: circleci/helm@3.0.0
   gh: circleci/github-cli@1.0.5

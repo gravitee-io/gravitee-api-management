@@ -32,8 +32,8 @@ jobs:
     resource_class: small
     steps:
       - checkout
-      - helm/install-helm-client:
-          version: v3.7.1
+      - helm/install_helm_client:
+          version: v3.12.3
       - run:
           name: Install helm-unittest plugin
           command: helm plugin install https://github.com/quintush/helm-unittest --version 0.2.11
@@ -69,7 +69,12 @@ jobs:
             git config --global user.name "${GIT_USER_NAME}"
             git config --global user.email "${GIT_USER_EMAIL}"
       - gh/setup
+<<<<<<< HEAD
       - helm/install-helm-client
+=======
+      - helm/install_helm_client
+      - checkout
+>>>>>>> 505d762536 (feat(CI): update helm version)
       - run:
           name: build the Charts
           working_directory: ./helm
@@ -107,6 +112,6 @@ workflows:
           context:
             - cicd-orchestrator
 orbs:
-  helm: circleci/helm@2.0.1
+  helm: circleci/helm@3.0.0
   keeper: gravitee-io/keeper@0.6.3
   gh: circleci/github-cli@1.0.5
