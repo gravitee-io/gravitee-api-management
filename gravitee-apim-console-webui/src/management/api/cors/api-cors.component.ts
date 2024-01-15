@@ -17,7 +17,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
-import { EMPTY, Subject } from 'rxjs';
+import { combineLatest, EMPTY, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
 
@@ -25,7 +25,8 @@ import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { CorsUtil } from '../../../shared/utils';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
-import { onlyApiV1V2Filter, onlyApiV2Filter } from '../../../util/apiFilter.operator';
+import { ApiV4, Cors, HttpListener } from '../../../entities/management-api-v2';
+import { ConnectorPluginsV2Service } from '../../../services-ngx/connector-plugins-v2.service';
 
 @Component({
   selector: 'api-cors',
@@ -39,6 +40,8 @@ export class ApiCorsComponent implements OnInit, OnDestroy {
   public defaultHttpHeaders = CorsUtil.defaultHttpHeaders;
   public corsForm: UntypedFormGroup;
   public initialCorsFormValue: unknown;
+  public hasEntrypointsSupportingCors = false;
+  public entrypointsNameSupportingCors: string;
 
   private allowAllOriginsConfirmDialog?: MatDialogRef<GioConfirmDialogComponent, boolean>;
 
@@ -48,17 +51,36 @@ export class ApiCorsComponent implements OnInit, OnDestroy {
     private readonly apiService: ApiV2Service,
     private readonly snackBarService: SnackBarService,
     private readonly permissionService: GioPermissionService,
+    private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
   ) {}
 
   ngOnInit(): void {
-    this.apiService
-      .get(this.activatedRoute.snapshot.params.apiId)
+    combineLatest([this.apiService.get(this.activatedRoute.snapshot.params.apiId), this.connectorPluginsV2Service.listEntrypointPlugins()])
       .pipe(
-        onlyApiV1V2Filter(this.snackBarService),
-        tap((api) => {
-          const cors = api.proxy?.cors ?? {
-            enabled: false,
-          };
+        tap(([api, entrypoints]) => {
+          let cors: Cors;
+          if (api.definitionVersion !== 'V4') {
+            this.hasEntrypointsSupportingCors = true;
+            cors = api.proxy?.cors ?? {
+              enabled: false,
+            };
+          } else {
+            cors = api.listeners
+              .filter((listener) => listener.type === 'HTTP')
+              .map((listener) => listener as HttpListener)
+              .map((httpListener) => httpListener.cors)[0] ?? { enabled: false };
+
+            const entrypointsSupportingCors = entrypoints.filter(
+              (entrypoint) => entrypoint.availableFeatures.find((feature) => feature === 'CORS') != null,
+            );
+
+            this.entrypointsNameSupportingCors = entrypointsSupportingCors.map((entrypoint) => entrypoint.name).join(', ');
+
+            this.hasEntrypointsSupportingCors = this.hasEntrypointSupportingCors(
+              api,
+              entrypointsSupportingCors.map((entrypoint) => entrypoint.id),
+            );
+          }
 
           const isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']) || api.definitionContext?.origin === 'KUBERNETES';
           const isCorsDisabled = isReadOnly || !cors.enabled;
@@ -157,27 +179,50 @@ export class ApiCorsComponent implements OnInit, OnDestroy {
     return this.apiService
       .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
-        onlyApiV2Filter(this.snackBarService),
-        switchMap((api) =>
-          this.apiService.update(api.id, {
-            ...api,
-            proxy: {
-              ...api.proxy,
-              cors: {
-                ...api.proxy.cors,
+        switchMap((api) => {
+          let apiToUpdate;
+          if (api.definitionVersion === 'V1') {
+            this.snackBarService.error('API V1 are deprecated. Please upgrade your API to V2.');
+          } else if (api.definitionVersion === 'V2') {
+            apiToUpdate = {
+              ...api,
+              definitionVersion: 'V2',
+              proxy: {
+                ...api.proxy,
+                cors: {
+                  ...api.proxy.cors,
 
-                enabled: corsFormValue.enabled,
-                allowOrigin: corsFormValue.allowOrigin,
-                allowMethods: corsFormValue.allowMethods,
-                allowHeaders: corsFormValue.allowHeaders,
-                allowCredentials: corsFormValue.allowCredentials,
-                maxAge: corsFormValue.maxAge,
-                exposeHeaders: corsFormValue.exposeHeaders,
-                runPolicies: corsFormValue.runPolicies,
+                  enabled: corsFormValue.enabled,
+                  allowOrigin: corsFormValue.allowOrigin,
+                  allowMethods: corsFormValue.allowMethods,
+                  allowHeaders: corsFormValue.allowHeaders,
+                  allowCredentials: corsFormValue.allowCredentials,
+                  maxAge: corsFormValue.maxAge,
+                  exposeHeaders: corsFormValue.exposeHeaders,
+                  runPolicies: corsFormValue.runPolicies,
+                },
               },
-            },
-          }),
-        ),
+            };
+          } else {
+            apiToUpdate = api;
+            apiToUpdate.listeners
+              .filter((listener) => listener.type === 'HTTP')
+              .forEach((listener) => {
+                listener.cors = {
+                  ...(listener as HttpListener).cors,
+                  enabled: corsFormValue.enabled,
+                  allowOrigin: corsFormValue.allowOrigin,
+                  allowMethods: corsFormValue.allowMethods,
+                  allowHeaders: corsFormValue.allowHeaders,
+                  allowCredentials: corsFormValue.allowCredentials,
+                  maxAge: corsFormValue.maxAge,
+                  exposeHeaders: corsFormValue.exposeHeaders,
+                  runPolicies: corsFormValue.runPolicies,
+                };
+              });
+          }
+          return this.apiService.update(api.id, apiToUpdate);
+        }),
         tap(() => this.snackBarService.success('Configuration successfully saved!')),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
@@ -187,5 +232,12 @@ export class ApiCorsComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
       )
       .subscribe();
+  }
+
+  private hasEntrypointSupportingCors(api: ApiV4, entrypointsIdSupportingCors: string[]) {
+    return api.listeners
+      .filter((listener) => listener.type === 'HTTP')
+      .flatMap((listener) => listener.entrypoints)
+      .some((e) => entrypointsIdSupportingCors.includes(e.type));
   }
 }

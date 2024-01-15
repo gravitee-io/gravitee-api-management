@@ -17,10 +17,14 @@
 -->
 <form *ngIf="corsForm" [formGroup]="corsForm" autocomplete="off" gioFormFocusInvalid>
   <mat-card>
+    <gio-banner-warning *ngIf="!hasEntrypointsSupportingCors">
+      CORS settings may not be applied properly as the configured entrypoints are not supporting them.
+      <div gioBannerBody>Entrypoints supporting CORS are: {{ entrypointsNameSupportingCors }}.</div>
+    </gio-banner-warning>
     <mat-card-content>
       <!-- Enable Cors -->
       <gio-form-slide-toggle class="cors-card__enable-toggle">
-        <gio-form-label>Enable Cors</gio-form-label>
+        <gio-form-label>Enable CORS</gio-form-label>
         CORS is a mechanism that allows restricted resources (e.g. fonts) on a web page to be requested from another domain outside the
         domain from which the first resource was served. If you enable the try-it feature of a Swagger page you probably have to enable and
         configure the CORS.

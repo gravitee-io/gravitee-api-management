@@ -30,6 +30,7 @@ import {
   GioSaveBarModule,
   GioFormSlideToggleModule,
   GioFormFocusInvalidModule,
+  GioBannerModule,
 } from '@gravitee/ui-particles-angular';
 
 import { ApiCorsComponent } from './api-cors.component';
@@ -54,6 +55,7 @@ import { ApiCorsComponent } from './api-cors.component';
     GioFormTagsInputModule,
     GioSaveBarModule,
     GioFormFocusInvalidModule,
+    GioBannerModule,
   ],
 })
 export class ApiProxyCorsModule {}

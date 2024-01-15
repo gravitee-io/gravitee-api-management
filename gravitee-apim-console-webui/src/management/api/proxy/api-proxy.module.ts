@@ -16,7 +16,6 @@
 
 import { NgModule } from '@angular/core';
 
-import { ApiProxyCorsModule } from '../cors/api-proxy-cors.module';
 import { ApiProxyDeploymentsModule } from './deployments/api-proxy-deployments.module';
 import { ApiProxyEntrypointsModule } from './entrypoints/api-proxy-entrypoints.module';
 import { ApiProxyResponseTemplatesModule } from './response-templates/api-proxy-response-templates.module';
@@ -29,6 +28,8 @@ import { ApiV1PropertiesComponent } from './properties-v1/properties.component';
 import { ApiV1ResourcesComponent } from './resources-v1/resources.component';
 import { ApiPropertiesModule } from './properties/properties/api-properties.module';
 import { ApiDynamicPropertiesModule } from './properties/dynamic-properties/api-dynamic-properties.module';
+
+import { ApiProxyCorsModule } from '../cors/api-proxy-cors.module';
 
 @NgModule({
   declarations: [ApiV1PropertiesComponent, ApiV1ResourcesComponent],

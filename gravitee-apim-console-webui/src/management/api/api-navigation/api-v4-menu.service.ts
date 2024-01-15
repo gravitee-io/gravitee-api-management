@@ -69,7 +69,7 @@ export class ApiV4MenuService implements ApiMenuService {
     }
     const groupItems: MenuGroupItem[] = [
       this.getGeneralGroup(),
-      this.getEntrypointsGroup(),
+      this.getEntrypointsGroup(hasTcpListeners),
       this.getEndpointsGroup(),
       this.getAnalyticsGroup(),
       this.getAuditGroup(),
@@ -170,7 +170,7 @@ export class ApiV4MenuService implements ApiMenuService {
     return generalGroup;
   }
 
-  private getEntrypointsGroup(): MenuGroupItem {
+  private getEntrypointsGroup(hasTcpListeners: boolean): MenuGroupItem {
     if (this.permissionService.hasAnyMatching(['api-definition-r', 'api-health-r'])) {
       const entrypointsGroup: MenuGroupItem = {
         title: 'Entrypoints',
@@ -181,6 +181,12 @@ export class ApiV4MenuService implements ApiMenuService {
           },
         ],
       };
+      if (!hasTcpListeners) {
+        entrypointsGroup.items.push({
+          displayName: 'Cors',
+          routerLink: 'v4/cors',
+        });
+      }
       return entrypointsGroup;
     }
     return undefined;

@@ -888,6 +888,16 @@ const apisRoutes: Routes = [
         },
       },
       {
+        path: 'v4/cors',
+        component: ApiCorsComponent,
+        data: {
+          docs: null,
+          apiPermissions: {
+            only: ['api-definition-r'],
+          },
+        },
+      },
+      {
         path: 'v4/entrypoints/:entrypointId',
         component: ApiEntrypointsV4EditComponent,
         data: {
