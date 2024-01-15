@@ -7,7 +7,7 @@ orbs:
     aws-cli: circleci/aws-cli@2.0.6
     artifactory-orb: jfrog/artifactory-orb@1.0.1
     aws-s3: circleci/aws-s3@3.0
-    helm: circleci/helm@2.0.1
+    helm: circleci/helm@3.0.0
     snyk: snyk/snyk@1.7.0
 
 executors:
@@ -1711,7 +1711,7 @@ jobs:
                       git config --global user.name "${GIT_USER_NAME}"
                       git config --global user.email "${GIT_USER_EMAIL}"
             - gh/setup
-            - helm/install-helm-client
+            - helm/install_helm_client
             - when:
                   condition:
                       not: << pipeline.parameters.dry_run>>
@@ -1765,8 +1765,8 @@ jobs:
         resource_class: small
         steps:
             - checkout
-            - helm/install-helm-client:
-                  version: v3.7.1
+            - helm/install_helm_client:
+                  version: v3.12.3
             - run:
                   name: install helm-unittest plugin
                   command: helm plugin install https://github.com/quintush/helm-unittest --version 0.2.11
@@ -1835,7 +1835,7 @@ jobs:
             - keeper/env-export:
                   secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_org_api_token
                   var-name: SNYK_TOKEN
-            - helm/install-helm-client
+            - helm/install_helm_client
             - snyk/install
             - run:
                   name: "build the Charts output and scan"

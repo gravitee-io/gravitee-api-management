@@ -50,7 +50,7 @@ export class ReleaseHelmJob {
 git config --global user.email "\${GIT_USER_EMAIL}"`,
       }),
       new reusable.ReusedCommand(orbs.github.commands['setup']),
-      new reusable.ReusedCommand(orbs.helm.commands['install-helm-client']),
+      new reusable.ReusedCommand(orbs.helm.commands['install_helm_client']),
     ];
 
     steps.push(new commands.Checkout());

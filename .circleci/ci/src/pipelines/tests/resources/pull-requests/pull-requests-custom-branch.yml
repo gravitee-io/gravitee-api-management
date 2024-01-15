@@ -139,8 +139,8 @@ jobs:
     resource_class: small
     steps:
       - checkout
-      - helm/install-helm-client:
-          version: v3.7.1
+      - helm/install_helm_client:
+          version: v3.12.3
       - run:
           name: Install helm-unittest plugin
           command: helm plugin install https://github.com/quintush/helm-unittest --version 0.2.11
@@ -722,7 +722,7 @@ workflows:
             - Lint & test APIM Portal
             - Build APIM Portal and publish image
 orbs:
-  helm: circleci/helm@2.0.1
+  helm: circleci/helm@3.0.0
   keeper: gravitee-io/keeper@0.6.3
   slack: circleci/slack@4.12.5
   gh: circleci/github-cli@1.0.5
