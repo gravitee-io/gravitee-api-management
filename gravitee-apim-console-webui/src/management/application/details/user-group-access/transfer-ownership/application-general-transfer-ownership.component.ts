@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
-import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { Component, Inject, OnInit } from '@angular/core';
+import { AbstractControl, UntypedFormControl, UntypedFormGroup, ValidationErrors } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { combineLatest, EMPTY, Subject } from 'rxjs';
 import { filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { isEmpty } from 'lodash';
 
 import { RoleService } from '../../../../../services-ngx/role.service';
 import { ApplicationMembersService } from '../../../../../services-ngx/application-members.service';
@@ -28,6 +29,8 @@ import { GroupService } from '../../../../../services-ngx/group.service';
 import { Group } from '../../../../../entities/group/group';
 import { Role } from '../../../../../entities/role/role';
 import { Member } from '../../../../../entities/members/members';
+import { Constants } from '../../../../../entities/Constants';
+import { ApplicationTransferOwnership } from '../../../../../entities/application/application';
 
 @Component({
   selector: 'application-general-transfer-ownership',
@@ -42,6 +45,7 @@ export class ApplicationGeneralTransferOwnershipComponent implements OnInit {
   applicationMembers: Member[];
   roles: Role[];
   groups: Group[];
+  warnUseGroupAsPrimaryOwner = false;
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
@@ -50,6 +54,7 @@ export class ApplicationGeneralTransferOwnershipComponent implements OnInit {
     private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,
     private readonly groupService: GroupService,
+    @Inject('Constants') private readonly constants: Constants,
   ) {}
 
   ngOnInit(): void {
@@ -61,6 +66,11 @@ export class ApplicationGeneralTransferOwnershipComponent implements OnInit {
       .pipe(
         tap(([members, roles, groupList]) => {
           this.groups = groupList;
+
+          this.groups = groupList.filter((group) => group.apiPrimaryOwner != null);
+
+          this.warnUseGroupAsPrimaryOwner = isEmpty(this.groups);
+
           this.applicationMembers = members.filter((member) => member.role !== 'PRIMARY_OWNER');
           this.roles = roles.filter((role) => role.name !== 'PRIMARY_OWNER');
         }),
@@ -94,7 +104,7 @@ export class ApplicationGeneralTransferOwnershipComponent implements OnInit {
     const user = this.form.get('user').value;
     const isUserMode = userMode === 'user' || userMode === 'applicationMember';
 
-    const transferOwnershipToUser: any = {
+    const transferOwnershipToUser: ApplicationTransferOwnership = {
       id: user?.id,
       reference: user?.reference,
       role: newRole,
@@ -119,15 +129,50 @@ export class ApplicationGeneralTransferOwnershipComponent implements OnInit {
         ),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe(() => this.ngOnInit);
+      .subscribe();
   }
 
   private initForm(defaultRole: Role) {
-    this.form = new UntypedFormGroup({
-      userOrGroup: new UntypedFormControl(this.mode === 'GROUP' ? 'group' : 'applicationMember'),
-      user: new UntypedFormControl(),
-      groupId: new UntypedFormControl(),
-      roleId: new UntypedFormControl(defaultRole),
-    });
+    this.form = new UntypedFormGroup(
+      {
+        userOrGroup: new UntypedFormControl(this.mode === 'GROUP' ? 'group' : 'applicationMember'),
+        user: new UntypedFormControl(),
+        groupId: new UntypedFormControl(),
+        roleId: new UntypedFormControl(defaultRole.name),
+      },
+      [
+        (control: AbstractControl): ValidationErrors | null => {
+          const errors: ValidationErrors = {};
+          if (!control.get('userOrGroup').value) {
+            errors.userOrGroupRequired = true;
+          }
+
+          const userMode = control.get('userOrGroup').value;
+
+          const isUserMode = userMode === 'user' || userMode === 'applicationMember';
+          const isGroupMode = userMode === 'group';
+
+          if (isUserMode && isEmpty(control.get('user').value)) {
+            errors.userRequired = true;
+          }
+          if (isGroupMode && isEmpty(control.get('groupId').value)) {
+            errors.groupRequired = true;
+          }
+          if (!control.get('roleId').value) {
+            errors.roleRequired = true;
+          }
+
+          return errors ? errors : null;
+        },
+      ],
+    );
+
+    this.form
+      .get('userOrGroup')
+      .valueChanges.pipe(takeUntil(this.unsubscribe$))
+      .subscribe(() => {
+        this.form.get('user').reset();
+        this.form.get('groupId').reset();
+      });
   }
 }

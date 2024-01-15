@@ -43,7 +43,7 @@
     </div>
 
     <div *ngIf="form.get('userOrGroup').value === 'group'" class="card__userOrGroup">
-      <gio-banner-warning>
+      <gio-banner-warning *ngIf="warnUseGroupAsPrimaryOwner">
         You can't set a group as primary owner. To set a group as a primary owner, the group must contain a member with a primary owner
         Application role.
       </gio-banner-warning>
@@ -51,7 +51,7 @@
       <mat-form-field class="card__userOrGroup__field">
         <mat-label>Select a primary owner group</mat-label>
         <mat-select formControlName="groupId">
-          <mat-option *ngFor="let group of roles" [value]="group.id">{{ group.name }}</mat-option>
+          <mat-option *ngFor="let group of groups" [value]="group.id">{{ group.name }}</mat-option>
         </mat-select>
       </mat-form-field>
     </div>

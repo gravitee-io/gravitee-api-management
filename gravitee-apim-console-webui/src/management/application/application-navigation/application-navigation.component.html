@@ -20,9 +20,16 @@
     <gio-submenu class="application-navigation__submenu">
       <div gioSubmenuTitle class="application-navigation__submenu__title">{{ application.name }}</div>
       <ng-container *ngFor="let item of this.subMenuItems">
-        <a *ngIf="item.routerLink" [routerLink]="item.routerLink">
-          <gio-submenu-item tabIndex="1" [active]="isActive(item)">{{ item.displayName }}</gio-submenu-item>
-        </a>
+        <ng-container *ngIf="!item.tabs?.length">
+          <a *ngIf="item.routerLink" [routerLink]="item.routerLink">
+            <gio-submenu-item tabIndex="1" [active]="isActive(item)">{{ item.displayName }}</gio-submenu-item>
+          </a>
+        </ng-container>
+        <ng-container *ngIf="item.tabs?.length">
+          <a [routerLink]="item.tabs[0].routerLink">
+            <gio-submenu-item tabIndex="1" [active]="isTabActive(item.tabs)">{{ item.displayName }}</gio-submenu-item>
+          </a>
+        </ng-container>
       </ng-container>
     </gio-submenu>
   </div>

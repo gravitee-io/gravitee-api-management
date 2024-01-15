@@ -70,3 +70,9 @@ export interface GrantTypes {
   name: string;
   response_types: string[];
 }
+
+export interface ApplicationTransferOwnership {
+  id?: string;
+  reference?: string;
+  role?: string;
+}

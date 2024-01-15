@@ -44,6 +44,7 @@ class MemberDataSource {
   role: string;
   displayName: string;
   picture: string;
+  notSaved?: boolean;
 }
 
 @Component({
@@ -104,6 +105,7 @@ export class ApplicationGeneralMembersComponent {
               role: member.role,
               displayName: member.displayName,
               picture: this.userService.getUserAvatar(member.id),
+              notSaved: false,
             };
           });
           this.groupData = application.groups?.map((id) => ({
@@ -161,32 +163,38 @@ export class ApplicationGeneralMembersComponent {
       .subscribe();
   }
 
-  public removeMember(member: any) {
-    this.matDialog
-      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
-        width: '500px',
-        data: {
-          title: `Remove Application member`,
-          content: `Are you sure you want to remove "<b>${member.displayName}</b>" from this Application members? <br>This action cannot be undone!`,
-          confirmButton: 'Remove',
-        },
-        role: 'alertdialog',
-        id: 'confirmMemberDeleteDialog',
-      })
-      .afterClosed()
-      .pipe(
-        filter((confirm) => confirm === true),
-        switchMap(() => this.applicationMembersService.delete(this.activatedRoute.snapshot.params.applicationId, member.id)),
-        tap(() => {
-          this.snackBarService.success(`"${member.displayName}" has been deleted`);
-        }),
-        catchError(({ error }) => {
-          this.snackBarService.error(error.message);
-          return EMPTY;
-        }),
-        takeUntil(this.unsubscribe$),
-      )
-      .subscribe(() => this.ngOnInit());
+  public removeMember(member: MemberDataSource) {
+    if (member.notSaved) {
+      this.membersTable = this.membersTable.filter((member) => !member.notSaved);
+      (this.form.get('members') as UntypedFormGroup).get(member.id).reset();
+      (this.form.get('members') as UntypedFormGroup).removeControl(member.id);
+    } else {
+      this.matDialog
+        .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+          width: '500px',
+          data: {
+            title: `Remove Application member`,
+            content: `Are you sure you want to remove "<b>${member.displayName}</b>" from this Application members? <br>This action cannot be undone!`,
+            confirmButton: 'Remove',
+          },
+          role: 'alertdialog',
+          id: 'confirmMemberDeleteDialog',
+        })
+        .afterClosed()
+        .pipe(
+          filter((confirm) => confirm === true),
+          switchMap(() => this.applicationMembersService.delete(this.activatedRoute.snapshot.params.applicationId, member.id)),
+          tap(() => {
+            this.snackBarService.success(`"${member.displayName}" has been deleted`);
+          }),
+          catchError(({ error }) => {
+            this.snackBarService.error(error.message);
+            return EMPTY;
+          }),
+          takeUntil(this.unsubscribe$),
+        )
+        .subscribe(() => this.ngOnInit());
+    }
   }
 
   private addMemberToForm(searchableUser: SearchableUser) {
@@ -209,6 +217,7 @@ export class ApplicationGeneralMembersComponent {
         displayName: member.displayName,
         picture: this.userService.getUserAvatar(member.id),
         role: this.defaultRole.name,
+        notSaved: true,
       },
     ];
 
