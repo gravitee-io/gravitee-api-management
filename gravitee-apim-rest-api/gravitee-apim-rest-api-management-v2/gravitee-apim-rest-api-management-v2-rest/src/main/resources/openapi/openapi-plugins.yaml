@@ -487,6 +487,7 @@ components:
                 - LIMIT
                 - RESUME
                 - DLQ
+                - CORS
         ConnectorMode:
             type: string
             description: A mode used by a connector
