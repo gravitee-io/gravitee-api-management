@@ -31,9 +31,19 @@ import lombok.RequiredArgsConstructor;
 public enum ConnectorFeature {
     LIMIT("limit"),
     RESUME("resume"),
-    DLQ("dlq");
+    DLQ("dlq"),
+    CORS("cors");
 
-    private static final Map<String, ConnectorFeature> LABELS_MAP = Map.of(LIMIT.label, LIMIT, RESUME.label, RESUME, DLQ.label, DLQ);
+    private static final Map<String, ConnectorFeature> LABELS_MAP = Map.of(
+        LIMIT.label,
+        LIMIT,
+        RESUME.label,
+        RESUME,
+        DLQ.label,
+        DLQ,
+        CORS.label,
+        CORS
+    );
 
     @JsonValue
     private final String label;
