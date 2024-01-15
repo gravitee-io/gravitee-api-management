@@ -25,12 +25,6 @@
             <input formControlName="name" matInput type="text" maxlength="50" required />
             <mat-error *ngIf="applicationForm.get('details.name').hasError('required')">Application name is required. </mat-error>
           </mat-form-field>
-
-          <mat-form-field class="details-card__header__info-inputs__first-row__type-field">
-            <mat-label>Type</mat-label>
-            <input formControlName="type" matInput type="text" />
-            <mat-hint align="start">Type of the application (mobile, web, ...).</mat-hint>
-          </mat-form-field>
         </div>
         <div class="details-card__header__info-inputs__second-row">
           <mat-form-field class="details-card__header__info-inputs__second-row__description-field">

@@ -16,7 +16,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { GioMenuService } from '@gravitee/ui-particles-angular';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { startWith, takeUntil } from 'rxjs/operators';
 import { castArray, flatMap } from 'lodash';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -76,6 +76,25 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
         permissions: ['application-definition-r'],
       },
       {
+        displayName: 'User and group access',
+        permissions: ['application-member-r'],
+        routerLink: 'members',
+        tabs: [
+          {
+            displayName: 'Members',
+            routerLink: 'members',
+          },
+          {
+            displayName: 'Groups',
+            routerLink: 'groups',
+          },
+          {
+            displayName: 'Transfer ownership',
+            routerLink: 'transfer-ownership',
+          },
+        ],
+      },
+      {
         displayName: 'Metadata',
         routerLink: 'metadata',
         permissions: ['application-metadata-r'],
@@ -84,11 +103,6 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
         displayName: 'Subscriptions',
         routerLink: 'subscriptions',
         permissions: ['application-subscription-r'],
-      },
-      {
-        displayName: 'Members',
-        routerLink: 'members',
-        permissions: ['application-member-r'],
       },
       {
         displayName: 'Analytics',
@@ -107,7 +121,9 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
       },
     ]);
 
-    this.selectedItemWithTabs = this.subMenuItems.find((item) => item.tabs && this.isTabActive(item.tabs));
+    this.router.events.pipe(startWith({}), takeUntil(this.unsubscribe$)).subscribe(() => {
+      this.selectedItemWithTabs = this.subMenuItems.find((item) => item.tabs && this.isTabActive(item.tabs));
+    });
   }
 
   ngOnDestroy(): void {
@@ -150,7 +166,7 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
     return breadcrumbItems;
   }
 
-  private isTabActive(tabs: MenuItem[]): boolean {
+  isTabActive(tabs: MenuItem[]): boolean {
     return flatMap(tabs, (tab) => tab).some((tab) => this.isActive(tab));
   }
 }

@@ -65,7 +65,6 @@ export class ApplicationGeneralNgComponent implements OnInit {
             name: new UntypedFormControl({ value: this.initialApplication.name, disabled: this.isReadOnly }),
             description: new UntypedFormControl({ value: this.initialApplication.description, disabled: this.isReadOnly }),
             domain: new UntypedFormControl({ value: this.initialApplication.domain, disabled: this.isReadOnly }),
-            type: new UntypedFormControl({ value: this.initialApplication.type, disabled: this.isReadOnly }),
           }),
           images: new UntypedFormGroup({
             picture: new UntypedFormControl({

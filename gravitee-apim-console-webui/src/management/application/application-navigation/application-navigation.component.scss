@@ -63,9 +63,5 @@ $textColor: map.get(gio.$mat-dove-palette, default);
     flex: 1 1 auto;
     height: 100%;
     overflow: auto;
-
-    &__tabs {
-      padding: 24px 32px;
-    }
   }
 }
