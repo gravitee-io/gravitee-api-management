@@ -133,6 +133,7 @@ spec:
                 {{- if and .Values.portal.lifecycle .Values.portal.lifecycle.preStop }}
                 command: {{ .Values.portal.lifecycle.preStop }}
                 {{- else }}
+                # wait 5 seconds to let kubernetes Endpoint balance the connexion elsewhere and then ask nginx to stop
                 command: "['sh','-c', 'sleep 5 && /usr/sbin/nginx -s quit']"
                 {{- end }}
           {{- if .Values.portal.deployment.livenessProbe.enabled }}
