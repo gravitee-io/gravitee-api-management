@@ -47,7 +47,7 @@ export class ConnectorPluginsV2Service {
   }
 
   listEntrypointPlugins(): Observable<ConnectorPlugin[]> {
-    return this.http.get<ConnectorPlugin[]>(`${this.constants.v2BaseURL}/plugins/entrypoints`);
+    return this.http.get<ConnectorPlugin[]>(`${this.constants.org.v2BaseURL}/plugins/entrypoints`);
   }
 
   listSyncEntrypointPlugins(): Observable<ConnectorPlugin[]> {

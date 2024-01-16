@@ -58,7 +58,11 @@ public class UseCaseRulesTest extends AbstractApimArchitectureTest {
             .areNotAnnotatedWith(Configuration.class)
             .should()
             .dependOnClassesThat()
-            .resideInAnyPackage(anyPackageThatContains(CRUD_SERVICE_PACKAGE), anyPackageThatContains(DOMAIN_SERVICE_PACKAGE))
+            .resideInAnyPackage(
+                anyPackageThatContains(CRUD_SERVICE_PACKAGE),
+                anyPackageThatContains(QUERY_SERVICE_PACKAGE),
+                anyPackageThatContains(DOMAIN_SERVICE_PACKAGE)
+            )
             .check(apimClassesWithoutTests());
     }
 

@@ -28,4 +28,6 @@ public interface ConnectorPluginMapper {
     ConnectorPlugin map(ConnectorPluginEntity connectorPluginEntity);
 
     Set<ConnectorPlugin> map(Set<ConnectorPluginEntity> connectorPluginEntitySet);
+
+    Set<ConnectorPlugin> mapCorePlugin(Set<io.gravitee.apim.core.plugin.model.ConnectorPlugin> connectorPluginEntitySet);
 }

@@ -20,7 +20,7 @@ import { GioJsonSchema } from '@gravitee/ui-particles-angular';
 import { ConnectorPluginsV2Service } from './connector-plugins-v2.service';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
-import { fakeConnectorPlugin } from '../entities/management-api-v2/plugin/connectorPlugin.fixture';
+import { fakeConnectorPlugin } from '../entities/management-api-v2';
 
 describe('Installation Plugins Service', () => {
   let httpTestingController: HttpTestingController;
@@ -108,7 +108,7 @@ describe('Installation Plugins Service', () => {
 
         httpTestingController
           .expectOne({
-            url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/entrypoints`,
+            url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/entrypoints`,
             method: 'GET',
           })
           .flush(fakeConnectors);
@@ -126,7 +126,7 @@ describe('Installation Plugins Service', () => {
 
         httpTestingController
           .expectOne({
-            url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/entrypoints`,
+            url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/entrypoints`,
             method: 'GET',
           })
           .flush(fakeConnectors);

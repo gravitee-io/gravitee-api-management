@@ -21,4 +21,6 @@ import java.util.Set;
 
 public interface EntrypointPluginQueryService {
     Set<ConnectorPlugin> findBySupportedApi(final ApiType apiType);
+
+    Set<ConnectorPlugin> findByOrganization(final String organizationId);
 }

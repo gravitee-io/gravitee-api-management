@@ -24,6 +24,7 @@ import io.gravitee.definition.model.v4.ConnectorMode;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.entrypoint.Qos;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -69,6 +70,11 @@ public class EntrypointPluginQueryServiceInMemory implements EntrypointPluginQue
     @Override
     public Set<ConnectorPlugin> findBySupportedApi(ApiType apiType) {
         return storage.stream().filter(connectorPlugin -> connectorPlugin.getSupportedApiType().equals(apiType)).collect(toSet());
+    }
+
+    @Override
+    public Set<ConnectorPlugin> findByOrganization(String organizationId) {
+        return new HashSet<>(storage);
     }
 
     @Override

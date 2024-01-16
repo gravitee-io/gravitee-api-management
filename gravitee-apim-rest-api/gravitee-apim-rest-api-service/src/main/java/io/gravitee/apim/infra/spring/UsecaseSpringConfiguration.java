@@ -67,6 +67,8 @@ import io.gravitee.apim.core.plan.domain_service.DeletePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.ReorderPlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainService;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
+import io.gravitee.apim.core.plugin.query_service.EntrypointPluginQueryService;
+import io.gravitee.apim.core.plugin.use_case.GetEntrypointPluginUseCase;
 import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
@@ -331,5 +333,10 @@ public class UsecaseSpringConfiguration {
     @Bean
     public VerifyApiHostsUseCase verifyApiHostsUseCase(VerifyApiHostsDomainService verifyApiHostsDomainService) {
         return new VerifyApiHostsUseCase(verifyApiHostsDomainService);
+    }
+
+    @Bean
+    public GetEntrypointPluginUseCase getEntrypointPluginUseCase(EntrypointPluginQueryService entrypointPluginQueryService) {
+        return new GetEntrypointPluginUseCase(entrypointPluginQueryService);
     }
 }

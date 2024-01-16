@@ -74,7 +74,7 @@ export class ApiCreationV4SpecHttpExpects {
 
   expectEntrypointsGetRequest(connectors: Partial<ConnectorPlugin>[]) {
     const fullConnectors = connectors.map((partial) => fakeConnectorPlugin(partial));
-    this.httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/entrypoints` }).flush(fullConnectors);
+    this.httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/entrypoints` }).flush(fullConnectors);
   }
 
   expectLicenseGetRequest(license: License) {

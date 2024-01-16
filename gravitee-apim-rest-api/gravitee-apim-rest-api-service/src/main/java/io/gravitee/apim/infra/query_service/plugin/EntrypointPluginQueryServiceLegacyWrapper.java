@@ -19,6 +19,7 @@ import io.gravitee.apim.core.plugin.model.ConnectorPlugin;
 import io.gravitee.apim.core.plugin.query_service.EntrypointPluginQueryService;
 import io.gravitee.apim.infra.adapter.ConnectorPluginAdapter;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -29,8 +30,14 @@ public class EntrypointPluginQueryServiceLegacyWrapper implements EntrypointPlug
 
     private final EntrypointConnectorPluginService entrypointConnectorPluginService;
 
-    public EntrypointPluginQueryServiceLegacyWrapper(EntrypointConnectorPluginService entrypointConnectorPluginService) {
+    private final LicenseManager licenseManager;
+
+    public EntrypointPluginQueryServiceLegacyWrapper(
+        EntrypointConnectorPluginService entrypointConnectorPluginService,
+        LicenseManager licenseManager
+    ) {
         this.entrypointConnectorPluginService = entrypointConnectorPluginService;
+        this.licenseManager = licenseManager;
     }
 
     @Override
@@ -39,6 +46,22 @@ public class EntrypointPluginQueryServiceLegacyWrapper implements EntrypointPlug
             .findBySupportedApi(apiType)
             .stream()
             .map(ConnectorPluginAdapter.INSTANCE::map)
+            .collect(Collectors.toSet());
+    }
+
+    @Override
+    public Set<ConnectorPlugin> findByOrganization(String organizationId) {
+        var license = licenseManager.getOrganizationLicense(organizationId);
+        return entrypointConnectorPluginService
+            .findAll()
+            .stream()
+            .map(plugin -> {
+                var resultPlugin = ConnectorPluginAdapter.INSTANCE.map(plugin);
+                if (license != null) {
+                    resultPlugin.setDeployed(plugin.isDeployed() && license.isFeatureEnabled(plugin.getFeature()));
+                }
+                return resultPlugin;
+            })
             .collect(Collectors.toSet());
     }
 }
