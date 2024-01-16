@@ -33,7 +33,7 @@ export class SnykApimChartsJob {
         'secret-url': config.secrets.snykApiToken,
         'var-name': 'SNYK_TOKEN',
       }),
-      new reusable.ReusedCommand(orbs.helm.commands['install-helm-client']),
+      new reusable.ReusedCommand(orbs.helm.commands['install_helm_client']),
       new reusable.ReusedCommand(orbs.snyk.commands['install']),
       new commands.Run({
         name: 'Build the Charts ouput and scan',
