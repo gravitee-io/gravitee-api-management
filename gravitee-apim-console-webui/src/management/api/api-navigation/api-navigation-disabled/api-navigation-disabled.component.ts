@@ -23,4 +23,6 @@ import { Component, Input } from '@angular/core';
 export class ApiNavigationDisabledComponent {
   @Input()
   public displayName: string;
+  @Input()
+  public icon: string;
 }

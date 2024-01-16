@@ -27,7 +27,6 @@
         [apiLifecycleState]="currentApi.lifecycleState"
         [apiDeploymentState]="currentApi.deploymentState"
         [apiOrigin]="currentApi.definitionContext.origin"
-        separator="pipe"
       ></api-navigation-title>
       <ng-container *ngFor="let menuItem of this.subMenuItems">
         <ng-container *ngIf="!menuItem?.routerLink && menuItem?.tabs?.length > 0">
@@ -56,6 +55,7 @@
           *ngIf="menuItem?.routerLink === 'DISABLED'"
           class="api-navigation__menu__disabled"
           [displayName]="menuItem.displayName"
+          [icon]="menuItem.icon"
         ></api-navigation-disabled>
       </ng-container>
       <ng-container *ngFor="let group of this.groupItems">

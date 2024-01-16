@@ -16,49 +16,29 @@
 
 -->
 <div class="api-navigation-title">
-  <span class="api-navigation-title__icons" [class.api-navigation-title__icons-pipe]="separator === 'pipe'">
-    <mat-icon
-      *ngIf="apiState === 'STARTED'"
-      matTooltip="Started"
-      class="api-navigation-title__icons__icon api-navigation-title__icons__icon__play"
-      svgIcon="gio:play-circle"
-    ></mat-icon>
-    <mat-icon
-      *ngIf="apiState !== 'STARTED'"
-      matTooltip="Stopped"
-      class="api-navigation-title__icons__icon api-navigation-title__icons__icon__stop"
-      svgIcon="gio:stop-circle"
-    ></mat-icon>
-    <mat-icon
-      *ngIf="apiDeploymentState === 'NEED_REDEPLOY'"
-      matTooltip="API out of sync"
-      class="api-navigation-title__icons__icon api-navigation-title__icons__icon__refresh"
-      svgIcon="gio:refresh-cw"
-    ></mat-icon>
-    <mat-icon
-      *ngIf="apiLifecycleState === 'PUBLISHED'"
-      matTooltip="Published"
-      class="api-navigation-title__icons__icon"
-      svgIcon="gio:cloud-published"
-    ></mat-icon>
-    <mat-icon
-      *ngIf="apiLifecycleState !== 'PUBLISHED'"
-      matTooltip="Unpublished"
-      class="api-navigation-title__icons__icon"
-      svgIcon="gio:cloud-unpublished"
-    ></mat-icon>
-    <mat-icon
-      *ngIf="apiOrigin === 'kubernetes'"
-      matTooltip="Kubernetes Origin"
-      class="api-navigation-title__icons__icon"
-      svgIcon="gio:kubernetes"
-    ></mat-icon>
-  </span>
-  <div
-    class="api-navigation-title__name"
-    [class.api-navigation-title__name-pipe]="separator === 'pipe'"
-    [matTooltip]="apiName + ' ( ' + apiVersion + ' )'"
-  >
-    {{ apiName }} ({{ apiVersion }})
+  <div class="api-navigation-title__name" [matTooltip]="apiName + ' ( ' + apiVersion + ' )'">{{ apiName }} ({{ apiVersion }})</div>
+  <div class="api-navigation-title__states">
+    <span class="gio-badge-primary" *ngIf="apiState === 'STARTED'">
+      <mat-icon matTooltip="Started" class="api-navigation-title__states__icon" svgIcon="gio:play-circle"></mat-icon>
+      {{ apiState | titlecase }}
+    </span>
+    <span class="gio-badge-primary" *ngIf="apiState !== 'STARTED'">
+      <mat-icon matTooltip="Stopped" class="api-navigation-title__states__icon" svgIcon="gio:stop-circle"></mat-icon>
+      {{ apiState | titlecase }}
+    </span>
+    <span class="gio-badge-primary" *ngIf="apiDeploymentState === 'NEED_REDEPLOY'">
+      <mat-icon matTooltip="API out of sync" class="api-navigation-title__states__icon" svgIcon="gio:refresh-cw"></mat-icon> Out of sync
+    </span>
+    <span class="gio-badge-primary" *ngIf="apiLifecycleState === 'PUBLISHED'">
+      <mat-icon matTooltip="Published" class="api-navigation-title__states__icon" svgIcon="gio:cloud-published"></mat-icon> Published
+    </span>
+    <span class="gio-badge-primary" *ngIf="apiLifecycleState !== 'PUBLISHED'">
+      <mat-icon matTooltip="Not published" class="api-navigation-title__states__icon" svgIcon="gio:cloud-unpublished"></mat-icon> Not
+      Published
+    </span>
+    <span class="gio-badge-primary" *ngIf="apiOrigin === 'KUBERNETES'">
+      <mat-icon matTooltip="Kubernetes Origin" class="api-navigation-title__states__icon" svgIcon="gio:kubernetes"></mat-icon> Kubernetes
+      Origin
+    </span>
   </div>
 </div>

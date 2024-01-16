@@ -16,6 +16,9 @@
 
 -->
 <div class="api-navigation-disabled" matTooltipPosition="after" matTooltip="Coming soon for V4 APIs">
-  <div>{{ displayName }}</div>
+  <div class="api-navigation-disabled__item">
+    <mat-icon *ngIf="icon" class="api-navigation-disabled__item__icon" [matTooltip]="displayName" [svgIcon]="'gio:' + icon"> </mat-icon>
+    {{ displayName }}
+  </div>
   <mat-icon class="api-navigation-disabled__icon" svgIcon="gio:info"></mat-icon>
 </div>
