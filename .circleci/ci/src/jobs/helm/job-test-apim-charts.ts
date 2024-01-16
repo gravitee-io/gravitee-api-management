@@ -26,7 +26,7 @@ export class TestApimChartsJob {
 
     const steps: Command[] = [
       new commands.Checkout(),
-      new reusable.ReusedCommand(orbs.helm.commands['install-helm-client'], { version: 'v3.7.1' }),
+      new reusable.ReusedCommand(orbs.helm.commands['install_helm_client'], { version: 'v3.12.3' }),
       new commands.Run({
         name: 'Install helm-unittest plugin',
         command: `helm plugin install https://github.com/quintush/helm-unittest --version 0.2.11`,
