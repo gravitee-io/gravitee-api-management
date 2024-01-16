@@ -16,11 +16,8 @@
 package io.gravitee.apim.core.plugin.query_service;
 
 import io.gravitee.apim.core.plugin.model.ConnectorPlugin;
-import io.gravitee.definition.model.v4.ApiType;
 import java.util.Set;
 
-public interface EntrypointPluginQueryService {
-    Set<ConnectorPlugin> findBySupportedApi(final ApiType apiType);
-
+public interface EndpointPluginQueryService {
     Set<ConnectorPlugin> findAll();
 }

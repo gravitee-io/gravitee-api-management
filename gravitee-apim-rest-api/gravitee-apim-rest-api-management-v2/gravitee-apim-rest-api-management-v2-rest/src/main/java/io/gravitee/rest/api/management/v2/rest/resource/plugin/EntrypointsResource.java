@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.plugin;
 
+import io.gravitee.apim.core.plugin.use_case.GetEntrypointPluginsUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.ConnectorPluginMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.MoreInformationMapper;
@@ -22,11 +23,10 @@ import io.gravitee.rest.api.management.v2.rest.model.ConnectorPlugin;
 import io.gravitee.rest.api.management.v2.rest.model.MoreInformation;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.platform.plugin.SchemaDisplayFormat;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
-import jakarta.ws.rs.container.ResourceContext;
-import jakarta.ws.rs.core.Context;
 import java.util.Set;
 
 /**
@@ -38,16 +38,21 @@ import java.util.Set;
 @Path("/plugins/entrypoints")
 public class EntrypointsResource extends AbstractResource {
 
-    @Context
-    private ResourceContext resourceContext;
-
     @Inject
     private EntrypointConnectorPluginService entrypointService;
+
+    @Inject
+    private GetEntrypointPluginsUseCase getEntrypointPluginsUseCase;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Set<ConnectorPlugin> getEntrypoints() {
-        return ConnectorPluginMapper.INSTANCE.map(entrypointService.findAll());
+        String organizationId = GraviteeContext.getCurrentOrganization() != null
+            ? GraviteeContext.getCurrentOrganization()
+            : GraviteeContext.getDefaultOrganization();
+        return ConnectorPluginMapper.INSTANCE.mapCorePlugin(
+            getEntrypointPluginsUseCase.getEntrypointPluginsByOrganization(new GetEntrypointPluginsUseCase.Input(organizationId)).plugins()
+        );
     }
 
     @Path("/{entrypointId}")

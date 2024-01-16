@@ -41,4 +41,9 @@ public class EntrypointPluginQueryServiceLegacyWrapper implements EntrypointPlug
             .map(ConnectorPluginAdapter.INSTANCE::map)
             .collect(Collectors.toSet());
     }
+
+    @Override
+    public Set<ConnectorPlugin> findAll() {
+        return entrypointConnectorPluginService.findAll().stream().map(ConnectorPluginAdapter.INSTANCE::map).collect(Collectors.toSet());
+    }
 }

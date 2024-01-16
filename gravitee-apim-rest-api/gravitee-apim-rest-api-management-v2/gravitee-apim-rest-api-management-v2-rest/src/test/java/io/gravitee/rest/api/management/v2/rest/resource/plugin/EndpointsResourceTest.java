@@ -17,13 +17,16 @@ package io.gravitee.rest.api.management.v2.rest.resource.plugin;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
+import inmemory.EndpointPluginQueryServiceInMemory;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.ConnectorMode;
 import io.gravitee.definition.model.v4.listener.entrypoint.Qos;
+import io.gravitee.node.api.license.License;
+import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.management.v2.rest.model.ConnectorPlugin;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
@@ -32,18 +35,26 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PluginNotFoundException;
 import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.Response;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.assertj.core.api.Assertions;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class EndpointsResourceTest extends AbstractResourceTest {
+
+    @Autowired
+    private EndpointPluginQueryServiceInMemory endpointPluginQueryServiceInMemory;
+
+    @Autowired
+    private LicenseManager licenseManager;
 
     @Override
     protected String contextPath() {
@@ -60,8 +71,11 @@ public class EndpointsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldReturnEndpoints() {
-        ConnectorPluginEntity connectorPlugin = getConnectorPluginEntity();
-        when(endpointConnectorPluginService.findAll()).thenReturn(Set.of(connectorPlugin));
+        endpointPluginQueryServiceInMemory.initWith(List.of(getConnectorPlugin("id-1"), getConnectorPlugin("id-2")));
+        var license = mock(License.class);
+        when(licenseManager.getOrganizationLicenseOrPlatform(any())).thenReturn(license);
+        when(license.isFeatureEnabled("feature-id-1")).thenReturn(true);
+        when(license.isFeatureEnabled("feature-id-2")).thenReturn(false);
 
         final Response response = rootTarget().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -71,7 +85,7 @@ public class EndpointsResourceTest extends AbstractResourceTest {
 
         // Check data
         ConnectorPlugin pluginEntity1 = new ConnectorPlugin()
-            .id("id")
+            .id("id-1")
             .name("name")
             .version("1.0")
             .icon("my-icon")
@@ -79,8 +93,17 @@ public class EndpointsResourceTest extends AbstractResourceTest {
             .supportedModes(Set.of(io.gravitee.rest.api.management.v2.rest.model.ConnectorMode.SUBSCRIBE))
             .supportedQos(Set.of(io.gravitee.rest.api.management.v2.rest.model.Qos.AUTO))
             .deployed(true);
+        ConnectorPlugin pluginEntity2 = new ConnectorPlugin()
+            .id("id-2")
+            .name("name")
+            .version("1.0")
+            .icon("my-icon")
+            .supportedApiType(io.gravitee.rest.api.management.v2.rest.model.ApiType.MESSAGE)
+            .supportedModes(Set.of(io.gravitee.rest.api.management.v2.rest.model.ConnectorMode.SUBSCRIBE))
+            .supportedQos(Set.of(io.gravitee.rest.api.management.v2.rest.model.Qos.AUTO))
+            .deployed(false);
 
-        assertEquals(Set.of(pluginEntity1), connectorPlugins);
+        assertEquals(Set.of(pluginEntity1, pluginEntity2), connectorPlugins);
     }
 
     @Test
@@ -235,6 +258,21 @@ public class EndpointsResourceTest extends AbstractResourceTest {
         connectorPlugin.setSupportedApiType(ApiType.MESSAGE);
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
         connectorPlugin.setSupportedQos(Set.of(Qos.AUTO));
+        connectorPlugin.setDeployed(true);
+        return connectorPlugin;
+    }
+
+    @NotNull
+    private io.gravitee.apim.core.plugin.model.ConnectorPlugin getConnectorPlugin(String id) {
+        io.gravitee.apim.core.plugin.model.ConnectorPlugin connectorPlugin = new io.gravitee.apim.core.plugin.model.ConnectorPlugin();
+        connectorPlugin.setId(id);
+        connectorPlugin.setName("name");
+        connectorPlugin.setVersion("1.0");
+        connectorPlugin.setIcon("my-icon");
+        connectorPlugin.setSupportedApiType(ApiType.MESSAGE);
+        connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
+        connectorPlugin.setSupportedQos(Set.of(Qos.AUTO));
+        connectorPlugin.setFeature("feature-" + id);
         connectorPlugin.setDeployed(true);
         return connectorPlugin;
     }

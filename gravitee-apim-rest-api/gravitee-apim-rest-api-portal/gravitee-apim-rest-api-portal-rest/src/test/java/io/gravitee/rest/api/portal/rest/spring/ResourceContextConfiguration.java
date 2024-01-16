@@ -453,8 +453,13 @@ public class ResourceContextConfiguration {
     }
 
     @Bean
-    public GraviteeLicenseDomainService graviteeLicenseDomainService() {
-        return new GraviteeLicenseDomainService(mock(LicenseManager.class));
+    public LicenseManager licenseManager() {
+        return mock(LicenseManager.class);
+    }
+
+    @Bean
+    public GraviteeLicenseDomainService graviteeLicenseDomainService(LicenseManager licenseManager) {
+        return new GraviteeLicenseDomainService(licenseManager);
     }
 
     @Bean

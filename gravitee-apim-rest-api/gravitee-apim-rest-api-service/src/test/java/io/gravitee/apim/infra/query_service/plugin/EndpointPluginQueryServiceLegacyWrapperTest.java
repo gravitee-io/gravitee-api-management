@@ -16,7 +16,6 @@
 package io.gravitee.apim.infra.query_service.plugin;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -26,64 +25,23 @@ import io.gravitee.definition.model.v4.ConnectorFeature;
 import io.gravitee.definition.model.v4.ConnectorMode;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.entrypoint.Qos;
-import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.model.v4.connector.ConnectorPluginEntity;
+import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-class EntrypointPluginQueryServiceLegacyWrapperTest {
+class EndpointPluginQueryServiceLegacyWrapperTest {
 
-    EntrypointConnectorPluginService entrypointConnectorPluginService;
-    EntrypointPluginQueryServiceLegacyWrapper service;
+    EndpointConnectorPluginService endpointConnectorPluginService;
+    EndpointPluginQueryServiceLegacyWrapper service;
 
     @BeforeEach
     void setUp() {
-        entrypointConnectorPluginService = mock(EntrypointConnectorPluginService.class);
-        service = new EntrypointPluginQueryServiceLegacyWrapper(entrypointConnectorPluginService);
-    }
-
-    @Nested
-    class FindBySupportedApi {
-
-        @Test
-        void should_return_plugins_list_supported_by_the_given_api_type() {
-            when(entrypointConnectorPluginService.findBySupportedApi(any()))
-                .thenAnswer(invocation -> {
-                    var entity = new ConnectorPluginEntity();
-                    entity.setId("id1");
-                    entity.setName("Plugin 1");
-                    entity.setVersion("1.0.0");
-                    entity.setDescription("description1");
-                    entity.setSupportedApiType(invocation.getArgument(0));
-                    entity.setSupportedListenerType(ListenerType.HTTP);
-                    entity.setSupportedModes(Set.of(ConnectorMode.REQUEST_RESPONSE));
-                    entity.setSupportedQos(Set.of(Qos.AUTO));
-                    entity.setAvailableFeatures(Set.of(ConnectorFeature.LIMIT));
-                    return Set.of(entity);
-                });
-
-            var result = service.findBySupportedApi(ApiType.PROXY);
-
-            assertThat(result)
-                .hasSize(1)
-                .containsExactly(
-                    ConnectorPlugin
-                        .builder()
-                        .id("id1")
-                        .name("Plugin 1")
-                        .version("1.0.0")
-                        .description("description1")
-                        .supportedApiType(ApiType.PROXY)
-                        .supportedListenerType(ListenerType.HTTP)
-                        .supportedModes(Set.of(ConnectorMode.REQUEST_RESPONSE))
-                        .supportedQos(Set.of(Qos.AUTO))
-                        .availableFeatures(Set.of(ConnectorFeature.LIMIT))
-                        .build()
-                );
-        }
+        endpointConnectorPluginService = mock(EndpointConnectorPluginService.class);
+        service = new EndpointPluginQueryServiceLegacyWrapper(endpointConnectorPluginService);
     }
 
     @Nested
@@ -91,7 +49,7 @@ class EntrypointPluginQueryServiceLegacyWrapperTest {
 
         @Test
         void should_return_plugins_list_with_deployed_status_depending_on_license() {
-            when(entrypointConnectorPluginService.findAll())
+            when(endpointConnectorPluginService.findAll())
                 .thenAnswer(invocation -> {
                     var plugin1 = new ConnectorPluginEntity();
                     plugin1.setId("id1");
