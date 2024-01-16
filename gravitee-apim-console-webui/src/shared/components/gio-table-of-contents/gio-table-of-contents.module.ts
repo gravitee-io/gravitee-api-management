@@ -15,12 +15,13 @@
  */
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
+import { RouterModule } from '@angular/router';
 
 import { GioTableOfContentsComponent } from './gio-table-of-contents.component';
 import { GioTableOfContentsDirective } from './gio-table-of-contents.directive';
 
 @NgModule({
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   declarations: [GioTableOfContentsComponent, GioTableOfContentsDirective],
   exports: [GioTableOfContentsComponent, GioTableOfContentsDirective],
 })

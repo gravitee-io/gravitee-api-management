@@ -20,9 +20,9 @@
   <nav [attr.aria-label]="section?.name + ' Table of Contents'">
     <a
       *ngFor="let link of sortByTopOffset(section?.links); let i = index"
-      [href]="rootUrl + '#' + link.id"
       [class.active]="link.active"
-      (click)="onClick($event, link.id)"
+      [routerLink]="['.']"
+      [fragment]="link.id"
       class="toc__link--level-{{ link.type }} toc__link"
       >{{ link.name }}</a
     >

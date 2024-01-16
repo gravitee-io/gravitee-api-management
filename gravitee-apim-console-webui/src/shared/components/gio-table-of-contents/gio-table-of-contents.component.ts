@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DOCUMENT, Location } from '@angular/common';
+import { DOCUMENT } from '@angular/common';
 import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, Inject, Input, OnDestroy, OnInit } from '@angular/core';
 import { flatten, sortBy } from 'lodash';
-import { fromEvent, Observable, Subscription } from 'rxjs';
-import { debounceTime, map, shareReplay, tap } from 'rxjs/operators';
+import { fromEvent, Observable, Subject } from 'rxjs';
+import { debounceTime, filter, map, shareReplay, takeUntil, tap } from 'rxjs/operators';
+import { ActivatedRoute } from '@angular/router';
 
 import { TocSection, TocSectionLink } from './TocSection';
 import { GioTableOfContentsService } from './gio-table-of-contents.service';
@@ -44,17 +45,15 @@ export class GioTableOfContentsComponent implements OnInit, AfterViewInit, OnDes
 
   private allLinks: TocSectionLink[] = [];
 
-  private subscriptions = new Subscription();
-
   private container: HTMLElement | Window;
 
-  private fragment?: string;
+  private unsubscribe$ = new Subject<void>();
 
   constructor(
     private readonly tableOfContentsService: GioTableOfContentsService,
     @Inject(DOCUMENT) private readonly document: Document,
     private readonly elementRef: ElementRef,
-    private readonly location: Location,
+    private readonly activatedRoute: ActivatedRoute,
     private changeDetectorRef: ChangeDetectorRef,
   ) {}
 
@@ -64,43 +63,9 @@ export class GioTableOfContentsComponent implements OnInit, AfterViewInit, OnDes
         ? this.scrollingContainer
         : (this.document.querySelector(this.scrollingContainer) as HTMLElement) || window;
 
-    /**
-     * TODO: remove me after angularJs migration
-     * 🤷‍♂️ Without knowing the exact reason :
-     * Added to fix a problem related to the navigation between AngularJs and Angular.
-     * Because `this.location.path` was always returning the url of the previous route
-     * and not the current one. With a setTimeout it seems to fix the problem. I suspect an
-     * import or execution order problem but i didn't find better
-     */
-    setTimeout(() => {
-      // Set initial route url/location and fragment if defined
-      const { rootUrl, fragment } = splitUrlFragment(this.location.path(true));
-      this.rootUrl = rootUrl;
-      this.fragment = fragment;
-    }, 1);
-
-    this.subscriptions.add(
-      // Update rootUrl, fragment and scroll position if url/location change
-      this.location.subscribe((event) => {
-        const { rootUrl, fragment } = splitUrlFragment(event.url);
-
-        if (rootUrl !== this.rootUrl) {
-          this.rootUrl = rootUrl;
-        }
-
-        if (fragment !== this.fragment) {
-          this.fragment = fragment;
-
-          this.updateScrollPosition();
-        }
-      }),
-    );
-
-    this.subscriptions.add(
-      fromEvent(this.container, 'scroll')
-        .pipe(debounceTime(10))
-        .subscribe(() => this.onScroll()),
-    );
+    fromEvent(this.container, 'scroll')
+      .pipe(debounceTime(10), takeUntil(this.unsubscribe$))
+      .subscribe(() => this.onScroll());
 
     this.sections$ = this.tableOfContentsService.getSections$().pipe(
       map((s) => Object.values(s)),
@@ -112,34 +77,31 @@ export class GioTableOfContentsComponent implements OnInit, AfterViewInit, OnDes
         },
       ),
       shareReplay(1),
+      takeUntil(this.unsubscribe$),
     );
   }
 
   ngAfterViewInit() {
-    // FIXME : try better way than setTimeout
-    // Wait 300ms before trying to update the scroll position when the user arrives on the page
-    // I guess as the links are in the parent component of TableOfContentsComponent the AfterViewInit comes too early 🤷
-    setTimeout(() => {
-      this.updateScrollPosition();
-    }, 300);
+    this.activatedRoute.fragment
+      .pipe(
+        debounceTime(300),
+        filter((f) => !!f),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe((f) => {
+        const element = document.querySelector('#toc-' + f);
+        if (element) {
+          element.scrollIntoView();
+        }
+      });
   }
 
   ngOnDestroy() {
-    this.subscriptions.unsubscribe();
-  }
-
-  onClick(event: PointerEvent, linkId: string) {
-    // Use location go emit for location.subscribe to update scroll position
-    event.stopPropagation();
-    this.location.go(`${this.rootUrl}#${linkId}`);
+    this.unsubscribe$.unsubscribe();
   }
 
   sortByTopOffset(links: TocSectionLink[] = []) {
     return sortBy(links, 'top');
-  }
-
-  private updateScrollPosition(): void {
-    this.document.getElementById(`toc-${this.fragment}`)?.scrollIntoView();
   }
 
   private getTableOfContentsTop(): number {
@@ -174,9 +136,3 @@ export class GioTableOfContentsComponent implements OnInit, AfterViewInit, OnDes
     }
   }
 }
-
-// Split url to remove last # followed by kebabCase string
-const splitUrlFragment = (url: string): { rootUrl: string; fragment?: string } => {
-  const [rootUrl, fragment] = url.split(/#(([a-z0-9]*)(-[a-z0-9]+)*)$/);
-  return { rootUrl, fragment };
-};
