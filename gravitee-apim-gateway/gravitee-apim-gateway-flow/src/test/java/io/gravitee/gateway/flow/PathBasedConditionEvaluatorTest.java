@@ -161,4 +161,13 @@ public class PathBasedConditionEvaluatorTest {
 
         assertFalse(evaluator.evaluate(context, flow));
     }
+
+    @Test
+    public void shouldNEvaluate_pathParamEquals_withPipe() {
+        when(request.pathInfo()).thenReturn("/my/a|b'(*+)/subpath");
+        when(flow.getOperator()).thenReturn(Operator.EQUALS);
+        when(flow.getPath()).thenReturn("/my/:param/subpath");
+
+        assertTrue(evaluator.evaluate(context, flow));
+    }
 }
