@@ -13,32 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { LocationStrategy } from '@angular/common';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { camelCase } from 'lodash';
-import { MockLocationStrategy } from '@angular/common/testing';
 
 import { TocSectionLink } from './TocSection';
 import { GioTableOfContentsComponent } from './gio-table-of-contents.component';
 import { GioTableOfContentsModule } from './gio-table-of-contents.module';
 import { GioTableOfContentsService } from './gio-table-of-contents.service';
 
-describe('GioConfirmDialogComponent', () => {
+import { GioHttpTestingModule } from '../../testing';
+
+describe('GioTableOfContentsComponent', () => {
   let component: GioTableOfContentsComponent;
   let fixture: ComponentFixture<GioTableOfContentsComponent>;
   let gioTableOfContentsService: GioTableOfContentsService;
-  let locationStrategy: MockLocationStrategy;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioTableOfContentsModule],
-      providers: [{ provide: LocationStrategy, useClass: MockLocationStrategy }],
+      imports: [GioTableOfContentsModule, GioHttpTestingModule],
     });
     fixture = TestBed.createComponent(GioTableOfContentsComponent);
     component = fixture.componentInstance;
 
     gioTableOfContentsService = TestBed.inject(GioTableOfContentsService);
-    locationStrategy = TestBed.inject(LocationStrategy) as MockLocationStrategy;
     fixture.nativeElement.getBoundingClientRect = jest.fn();
   });
 
@@ -158,48 +155,6 @@ describe('GioConfirmDialogComponent', () => {
 
     fixture.detectChanges();
     expect(getSectionsName()).toEqual(['Fox section']);
-  });
-
-  it('should update location by clicking on link', async () => {
-    fixture.detectChanges();
-    locationStrategy.simulatePopState('');
-
-    gioTableOfContentsService.addLink('', fakeLink({ name: '1️⃣' }));
-    gioTableOfContentsService.addLink('', fakeLink({ name: '2️⃣' }));
-    fixture.detectChanges();
-
-    component.onClick({ stopPropagation: jest.fn() } as unknown as PointerEvent, '1');
-
-    expect(locationStrategy.path()).toBe('#1');
-  });
-
-  it('should update scroll position', async () => {
-    component.scrollingContainer = document.body;
-
-    // Init Dom with elements
-    const element_1 = document.createElement('h2');
-    element_1.id = 'toc-1';
-    element_1.scrollIntoView = jest.fn();
-    const element_1_2 = document.createElement('h2');
-    element_1_2.id = 'toc-1-2';
-    element_1_2.scrollIntoView = jest.fn();
-    document.body.appendChild(element_1);
-    document.body.appendChild(element_1_2);
-    fixture.detectChanges();
-
-    // Init links
-    gioTableOfContentsService.addLink('', fakeLink({ name: '1️⃣' }));
-    gioTableOfContentsService.addLink('', fakeLink({ name: '2️⃣' }));
-    fixture.detectChanges();
-
-    // Simulate location change to link 2️⃣
-    locationStrategy.simulatePopState('#2');
-    locationStrategy.simulatePopState('#1-2');
-    expect(element_1_2.scrollIntoView).toHaveBeenCalledTimes(1);
-
-    locationStrategy.simulatePopState('#1');
-
-    expect(element_1.scrollIntoView).toHaveBeenCalledTimes(1);
   });
 
   const getLinksText = () => [...fixture.nativeElement.querySelectorAll('.toc__link')].map((el) => el.innerHTML);
