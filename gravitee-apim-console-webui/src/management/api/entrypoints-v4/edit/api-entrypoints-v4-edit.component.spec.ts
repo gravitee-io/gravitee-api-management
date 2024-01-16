@@ -499,7 +499,7 @@ describe('ApiEntrypointsV4EditComponent', () => {
 
   const expectEndpointsGetRequest = () => {
     httpTestingController
-      .expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/endpoints`, method: 'GET' })
+      .expectOne({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/endpoints`, method: 'GET' })
       .flush([
         fakeConnectorPlugin({ id: 'kafka', name: 'kafka' }),
         fakeConnectorPlugin({ id: 'mock', name: 'mock', supportedApiType: 'MESSAGE', supportedModes: ['PUBLISH'] }),

@@ -29,7 +29,7 @@ export class ConnectorPluginsV2Service {
   constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
 
   listEndpointPlugins(): Observable<ConnectorPlugin[]> {
-    return this.http.get<ConnectorPlugin[]>(`${this.constants.v2BaseURL}/plugins/endpoints`);
+    return this.http.get<ConnectorPlugin[]>(`${this.constants.org.v2BaseURL}/plugins/endpoints`);
   }
 
   listEndpointPluginsByApiType(apiType: ApiType): Observable<ConnectorPlugin[]> {

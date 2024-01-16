@@ -583,7 +583,7 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
     const fullConnectors = connectors.map((partial) => fakeConnectorPlugin(partial));
     httpTestingController
       .expectOne({
-        url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/endpoints`,
+        url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/endpoints`,
         method: 'GET',
       })
       .flush(fullConnectors);

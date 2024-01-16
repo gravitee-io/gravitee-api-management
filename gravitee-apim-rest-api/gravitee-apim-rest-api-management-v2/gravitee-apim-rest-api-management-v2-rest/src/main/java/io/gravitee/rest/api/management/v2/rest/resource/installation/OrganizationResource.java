@@ -23,6 +23,7 @@ import io.gravitee.rest.api.management.v2.rest.mapper.OrganizationMapper;
 import io.gravitee.rest.api.management.v2.rest.model.GraviteeLicense;
 import io.gravitee.rest.api.management.v2.rest.model.Organization;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
+import io.gravitee.rest.api.management.v2.rest.resource.plugin.OrganizationEndpointsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.plugin.OrganizationEntrypointsResource;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -82,5 +83,10 @@ public class OrganizationResource extends AbstractResource {
     @Path("/plugins/entrypoints")
     public OrganizationEntrypointsResource getEntrypointsResource() {
         return resourceContext.getResource(OrganizationEntrypointsResource.class);
+    }
+
+    @Path("/plugins/endpoints")
+    public OrganizationEndpointsResource getEndpointsResource() {
+        return resourceContext.getResource(OrganizationEndpointsResource.class);
     }
 }

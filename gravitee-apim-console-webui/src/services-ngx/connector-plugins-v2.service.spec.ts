@@ -47,7 +47,7 @@ describe('Installation Plugins Service', () => {
 
         httpTestingController
           .expectOne({
-            url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/endpoints`,
+            url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/endpoints`,
             method: 'GET',
           })
           .flush(fakeConnectors);
@@ -70,7 +70,7 @@ describe('Installation Plugins Service', () => {
 
         httpTestingController
           .expectOne({
-            url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/endpoints`,
+            url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/endpoints`,
             method: 'GET',
           })
           .flush(response);

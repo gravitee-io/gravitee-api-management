@@ -371,7 +371,7 @@ describe('ApiEndpointGroupCreateComponent', () => {
   }
 
   function expectEndpointListGet(): void {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/endpoints`, method: 'GET' }).flush(ENDPOINT_LIST);
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/endpoints`, method: 'GET' }).flush(ENDPOINT_LIST);
   }
 
   /**

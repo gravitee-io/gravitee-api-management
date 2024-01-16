@@ -91,7 +91,9 @@ export class ApiCreationV4SpecHttpExpects {
 
   expectEndpointsGetRequest(connectors: Partial<ConnectorPlugin>[]) {
     const fullConnectors = connectors.map((partial) => fakeConnectorPlugin(partial));
-    this.httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/endpoints`, method: 'GET' }).flush(fullConnectors);
+    this.httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/endpoints`, method: 'GET' })
+      .flush(fullConnectors);
   }
 
   expectEndpointsSharedConfigurationSchemaGetRequest(connectors: Partial<ConnectorPlugin>[]) {
