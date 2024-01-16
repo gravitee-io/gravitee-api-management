@@ -72,13 +72,10 @@ $textColor: map.get(gio.$mat-dove-palette, default);
       flex-direction: column;
       flex: 1 1 auto;
       height: 100%;
+      margin: 12px 24px 0 24px;
 
       &__ui {
         height: 100%;
-      }
-
-      &__banners {
-        padding: 0 32px;
       }
     }
   }
