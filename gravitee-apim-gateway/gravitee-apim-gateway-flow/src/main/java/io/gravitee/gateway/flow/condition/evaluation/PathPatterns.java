@@ -30,7 +30,7 @@ public class PathPatterns {
     private static final char OPTIONAL_TRAILING_SEPARATOR = '?';
     private static final String PATH_SEPARATOR = "/";
     private static final String PATH_PARAM_PREFIX = ":";
-    private static final String PATH_PARAM_REGEX = "[a-zA-Z0-9\\-._~%!$&'()* +,;=:@]+";
+    private static final String PATH_PARAM_REGEX = "[a-zA-Z0-9\\-._~%!$&'()* +,;=:@|]+";
     private static final Pattern SEPARATOR_SPLITTER = Pattern.compile(PATH_SEPARATOR);
 
     private final Map<String, Pattern> cache = new ConcurrentHashMap<>();
