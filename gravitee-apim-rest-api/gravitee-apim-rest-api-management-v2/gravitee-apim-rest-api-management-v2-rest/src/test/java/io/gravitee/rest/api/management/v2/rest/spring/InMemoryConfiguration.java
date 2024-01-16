@@ -153,6 +153,11 @@ public class InMemoryConfiguration {
     }
 
     @Bean
+    public EndpointPluginQueryServiceInMemory endpointPluginQueryServiceInMemory() {
+        return new EndpointPluginQueryServiceInMemory();
+    }
+
+    @Bean
     public FlowCrudServiceInMemory flowCrudServiceInMemory() {
         return new FlowCrudServiceInMemory();
     }

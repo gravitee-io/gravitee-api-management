@@ -23,7 +23,7 @@ import lombok.experimental.SuperBuilder;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@SuperBuilder
+@SuperBuilder(toBuilder = true)
 public class PlatformPlugin {
 
     /**

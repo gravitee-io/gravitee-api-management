@@ -17,13 +17,16 @@ package io.gravitee.rest.api.management.v2.rest.resource.plugin;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
+import inmemory.EntrypointPluginQueryServiceInMemory;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.ConnectorMode;
 import io.gravitee.definition.model.v4.listener.ListenerType;
+import io.gravitee.node.api.license.License;
+import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.management.v2.rest.model.ConnectorPlugin;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
@@ -33,18 +36,26 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PluginNotFoundException;
 import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.Response;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.assertj.core.api.Assertions;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class EntrypointsResourceTest extends AbstractResourceTest {
+
+    @Autowired
+    private EntrypointPluginQueryServiceInMemory entrypointPluginQueryServiceInMemory;
+
+    @Autowired
+    private LicenseManager licenseManager;
 
     public static final String FAKE_ENTRYPOINT_ID = "fake-entrypoint";
 
@@ -61,8 +72,14 @@ public class EntrypointsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldReturnEntrypoints() {
-        when(entrypointConnectorPluginService.findAll())
-            .thenReturn(Set.of(getConnectorPluginEntity("id-1"), getConnectorPluginEntity("id-2"), getConnectorPluginEntity("id-3")));
+        var license = mock(License.class);
+        when(licenseManager.getOrganizationLicenseOrPlatform(any())).thenReturn(license);
+        when(license.isFeatureEnabled("feature-id-1")).thenReturn(true);
+        when(license.isFeatureEnabled("feature-id-2")).thenReturn(true);
+        when(license.isFeatureEnabled("feature-id-3")).thenReturn(false);
+
+        var plugins = List.of(getConnectorPlugin("id-1"), getConnectorPlugin("id-2"), getConnectorPlugin("id-3"));
+        entrypointPluginQueryServiceInMemory.initWith(plugins);
 
         final Response response = rootTarget().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -97,7 +114,7 @@ public class EntrypointsResourceTest extends AbstractResourceTest {
             .supportedApiType(io.gravitee.rest.api.management.v2.rest.model.ApiType.MESSAGE)
             .supportedListenerType(io.gravitee.rest.api.management.v2.rest.model.ListenerType.HTTP)
             .supportedModes(Set.of(io.gravitee.rest.api.management.v2.rest.model.ConnectorMode.SUBSCRIBE))
-            .deployed(true);
+            .deployed(false);
 
         assertEquals(Set.of(pluginEntity1, pluginEntity2, pluginEntity3), connectorPlugins);
     }
@@ -274,6 +291,21 @@ public class EntrypointsResourceTest extends AbstractResourceTest {
         connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
         connectorPlugin.setSupportedListenerType(ListenerType.HTTP);
         connectorPlugin.setDeployed(true);
+        return connectorPlugin;
+    }
+
+    @NotNull
+    private io.gravitee.apim.core.plugin.model.ConnectorPlugin getConnectorPlugin(String id) {
+        io.gravitee.apim.core.plugin.model.ConnectorPlugin connectorPlugin = new io.gravitee.apim.core.plugin.model.ConnectorPlugin();
+        connectorPlugin.setId(id);
+        connectorPlugin.setName("name");
+        connectorPlugin.setVersion("1.0");
+        connectorPlugin.setIcon("my-icon");
+        connectorPlugin.setSupportedApiType(ApiType.MESSAGE);
+        connectorPlugin.setSupportedModes(Set.of(ConnectorMode.SUBSCRIBE));
+        connectorPlugin.setSupportedListenerType(ListenerType.HTTP);
+        connectorPlugin.setDeployed(true);
+        connectorPlugin.setFeature("feature-" + id);
         return connectorPlugin;
     }
 }

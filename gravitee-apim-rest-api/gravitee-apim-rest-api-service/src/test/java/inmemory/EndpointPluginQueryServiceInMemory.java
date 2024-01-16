@@ -18,6 +18,7 @@ package inmemory;
 import static java.util.stream.Collectors.toSet;
 
 import io.gravitee.apim.core.plugin.model.ConnectorPlugin;
+import io.gravitee.apim.core.plugin.query_service.EndpointPluginQueryService;
 import io.gravitee.apim.core.plugin.query_service.EntrypointPluginQueryService;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.ConnectorMode;
@@ -28,7 +29,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class EntrypointPluginQueryServiceInMemory implements EntrypointPluginQueryService, InMemoryAlternative<ConnectorPlugin> {
+public class EndpointPluginQueryServiceInMemory implements EndpointPluginQueryService, InMemoryAlternative<ConnectorPlugin> {
 
     public static final String HTTP_PROXY_CONNECTOR_ID = "http-proxy";
     public static final String SSE_CONNECTOR_ID = "sse";
@@ -36,47 +37,42 @@ public class EntrypointPluginQueryServiceInMemory implements EntrypointPluginQue
     private static final List<ConnectorPlugin> DEFAULT_LIST = List.of(
         ConnectorPlugin
             .builder()
-            .id(HTTP_PROXY_CONNECTOR_ID)
+            .id("http-proxy")
             .name("HTTP Proxy")
             .version("1.0.0")
             .supportedApiType(ApiType.PROXY)
             .supportedListenerType(ListenerType.HTTP)
             .supportedModes(Set.of(ConnectorMode.REQUEST_RESPONSE))
-            .feature("apim-proxy")
+            .feature("http-proxy")
             .deployed(true)
             .build(),
         ConnectorPlugin
             .builder()
-            .id(SSE_CONNECTOR_ID)
-            .name("SSE Entrypoint")
+            .id("kafka")
+            .name("Kafka Endpoint")
             .version("1.0.0")
             .supportedApiType(ApiType.MESSAGE)
             .supportedListenerType(ListenerType.HTTP)
             .supportedModes(Set.of(ConnectorMode.SUBSCRIBE))
             .supportedQos(Set.of(Qos.AUTO))
-            .feature("apim-en-connector-sse")
+            .feature("apim-en-endpoint-kafka")
             .deployed(true)
             .build(),
         ConnectorPlugin
             .builder()
-            .id(MOCK_CONNECTOR_ID)
+            .id("mock")
             .name("Mock Endpoint")
             .version("1.0.0")
             .supportedApiType(ApiType.MESSAGE)
             .supportedListenerType(ListenerType.HTTP)
             .supportedModes(Set.of(ConnectorMode.PUBLISH, ConnectorMode.SUBSCRIBE))
             .supportedQos(Set.of(Qos.AUTO))
-            .feature("apim-en-connector-mock")
+            .feature("apim-en-endpoint-mock")
             .deployed(false)
             .build()
     );
 
     private List<ConnectorPlugin> storage = DEFAULT_LIST;
-
-    @Override
-    public Set<ConnectorPlugin> findBySupportedApi(ApiType apiType) {
-        return storage.stream().filter(connectorPlugin -> connectorPlugin.getSupportedApiType().equals(apiType)).collect(toSet());
-    }
 
     @Override
     public Set<ConnectorPlugin> findAll() {
