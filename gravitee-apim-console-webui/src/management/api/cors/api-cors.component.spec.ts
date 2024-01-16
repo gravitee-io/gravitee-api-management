@@ -500,6 +500,6 @@ describe('ApiCorsComponent', () => {
 
   function expectEntrypointsGetRequest(connectors: Partial<ConnectorPlugin>[]) {
     const fullConnectors = connectors.map((partial) => fakeConnectorPlugin(partial));
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/entrypoints` }).flush(fullConnectors);
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/entrypoints` }).flush(fullConnectors);
   }
 });

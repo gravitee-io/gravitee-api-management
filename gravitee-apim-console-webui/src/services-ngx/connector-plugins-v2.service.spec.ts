@@ -47,7 +47,7 @@ describe('Installation Plugins Service', () => {
 
         httpTestingController
           .expectOne({
-            url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/endpoints`,
+            url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/endpoints`,
             method: 'GET',
           })
           .flush(fakeConnectors);
@@ -70,7 +70,7 @@ describe('Installation Plugins Service', () => {
 
         httpTestingController
           .expectOne({
-            url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/endpoints`,
+            url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/endpoints`,
             method: 'GET',
           })
           .flush(response);
@@ -88,7 +88,7 @@ describe('Installation Plugins Service', () => {
 
         httpTestingController
           .expectOne({
-            url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/endpoints/endpointId`,
+            url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/endpoints/endpointId`,
             method: 'GET',
           })
           .flush(fakeConnectors);
@@ -108,7 +108,7 @@ describe('Installation Plugins Service', () => {
 
         httpTestingController
           .expectOne({
-            url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/entrypoints`,
+            url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/entrypoints`,
             method: 'GET',
           })
           .flush(fakeConnectors);
@@ -126,7 +126,7 @@ describe('Installation Plugins Service', () => {
 
         httpTestingController
           .expectOne({
-            url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/entrypoints`,
+            url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/entrypoints`,
             method: 'GET',
           })
           .flush(fakeConnectors);
@@ -152,7 +152,7 @@ describe('Installation Plugins Service', () => {
 
         httpTestingController
           .expectOne({
-            url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/entrypoints/entrypoint-id/subscription-schema`,
+            url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/entrypoints/entrypoint-id/subscription-schema`,
             method: 'GET',
           })
           .flush(expectedSchema);
@@ -169,7 +169,7 @@ describe('Installation Plugins Service', () => {
 
         httpTestingController
           .expectOne({
-            url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/entrypoints/entrypoint-id`,
+            url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/entrypoints/entrypoint-id`,
             method: 'GET',
           })
           .flush(entrypoint);

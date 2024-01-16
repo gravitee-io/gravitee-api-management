@@ -29,7 +29,7 @@ export class ConnectorPluginsV2Service {
   constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
 
   listEndpointPlugins(): Observable<ConnectorPlugin[]> {
-    return this.http.get<ConnectorPlugin[]>(`${this.constants.v2BaseURL}/plugins/endpoints`);
+    return this.http.get<ConnectorPlugin[]>(`${this.constants.org.v2BaseURL}/plugins/endpoints`);
   }
 
   listEndpointPluginsByApiType(apiType: ApiType): Observable<ConnectorPlugin[]> {
@@ -47,7 +47,7 @@ export class ConnectorPluginsV2Service {
   }
 
   listEntrypointPlugins(): Observable<ConnectorPlugin[]> {
-    return this.http.get<ConnectorPlugin[]>(`${this.constants.v2BaseURL}/plugins/entrypoints`);
+    return this.http.get<ConnectorPlugin[]>(`${this.constants.org.v2BaseURL}/plugins/entrypoints`);
   }
 
   listSyncEntrypointPlugins(): Observable<ConnectorPlugin[]> {
@@ -63,34 +63,34 @@ export class ConnectorPluginsV2Service {
   }
 
   getEndpointPlugin(id: string): Observable<ConnectorPlugin> {
-    return this.http.get<ConnectorPlugin>(`${this.constants.v2BaseURL}/plugins/endpoints/${id}`);
+    return this.http.get<ConnectorPlugin>(`${this.constants.org.v2BaseURL}/plugins/endpoints/${id}`);
   }
 
   getEndpointPluginSchema(id: string): Observable<GioJsonSchema> {
-    return this.http.get<GioJsonSchema>(`${this.constants.v2BaseURL}/plugins/endpoints/${id}/schema`);
+    return this.http.get<GioJsonSchema>(`${this.constants.org.v2BaseURL}/plugins/endpoints/${id}/schema`);
   }
 
   getEndpointPluginMoreInformation(endpointId: string): Observable<MoreInformation> {
-    return this.http.get<MoreInformation>(`${this.constants.v2BaseURL}/plugins/endpoints/${endpointId}/more-information`);
+    return this.http.get<MoreInformation>(`${this.constants.org.v2BaseURL}/plugins/endpoints/${endpointId}/more-information`);
   }
 
   getEndpointPluginSharedConfigurationSchema(id: string): Observable<GioJsonSchema> {
-    return this.http.get<GioJsonSchema>(`${this.constants.v2BaseURL}/plugins/endpoints/${id}/shared-configuration-schema`);
+    return this.http.get<GioJsonSchema>(`${this.constants.org.v2BaseURL}/plugins/endpoints/${id}/shared-configuration-schema`);
   }
 
   getEntrypointPlugin(entrypointId: string): Observable<ConnectorPlugin> {
-    return this.http.get<ConnectorPlugin>(`${this.constants.v2BaseURL}/plugins/entrypoints/${entrypointId}`);
+    return this.http.get<ConnectorPlugin>(`${this.constants.org.v2BaseURL}/plugins/entrypoints/${entrypointId}`);
   }
 
   getEntrypointPluginSchema(entrypointId: string): Observable<GioJsonSchema> {
-    return this.http.get<GioJsonSchema>(`${this.constants.v2BaseURL}/plugins/entrypoints/${entrypointId}/schema`);
+    return this.http.get<GioJsonSchema>(`${this.constants.org.v2BaseURL}/plugins/entrypoints/${entrypointId}/schema`);
   }
 
   getEntrypointPluginSubscriptionSchema(entrypointId: string): Observable<GioJsonSchema> {
-    return this.http.get<GioJsonSchema>(`${this.constants.v2BaseURL}/plugins/entrypoints/${entrypointId}/subscription-schema`);
+    return this.http.get<GioJsonSchema>(`${this.constants.org.v2BaseURL}/plugins/entrypoints/${entrypointId}/subscription-schema`);
   }
 
   getEntrypointPluginMoreInformation(entrypointId: string): Observable<MoreInformation> {
-    return this.http.get<MoreInformation>(`${this.constants.v2BaseURL}/plugins/entrypoints/${entrypointId}/more-information`);
+    return this.http.get<MoreInformation>(`${this.constants.org.v2BaseURL}/plugins/entrypoints/${entrypointId}/more-information`);
   }
 }

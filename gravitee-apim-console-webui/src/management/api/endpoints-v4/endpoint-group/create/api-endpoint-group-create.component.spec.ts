@@ -360,7 +360,7 @@ describe('ApiEndpointGroupCreateComponent', () => {
 
   function expectSchemaGet(endpointId = 'kafka', schema: any = fakeKafkaSchema): void {
     httpTestingController
-      .expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/endpoints/${endpointId}/shared-configuration-schema`, method: 'GET' })
+      .expectOne({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/endpoints/${endpointId}/shared-configuration-schema`, method: 'GET' })
       .flush(schema);
   }
 
@@ -371,7 +371,7 @@ describe('ApiEndpointGroupCreateComponent', () => {
   }
 
   function expectEndpointListGet(): void {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/endpoints`, method: 'GET' }).flush(ENDPOINT_LIST);
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/endpoints`, method: 'GET' }).flush(ENDPOINT_LIST);
   }
 
   /**

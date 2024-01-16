@@ -323,7 +323,7 @@ describe('ApiEndpointComponent', () => {
 
   function expectEndpointsSharedConfigurationSchemaGetRequest(id: string) {
     httpTestingController
-      .expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/endpoints/${id}/shared-configuration-schema`, method: 'GET' })
+      .expectOne({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/endpoints/${id}/shared-configuration-schema`, method: 'GET' })
       .flush({
         $schema: 'http://json-schema.org/draft-07/schema#',
         type: 'object',
@@ -332,7 +332,7 @@ describe('ApiEndpointComponent', () => {
   }
 
   function expectEndpointSchemaGetRequest(id: string) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/endpoints/${id}/schema`, method: 'GET' }).flush({
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/endpoints/${id}/schema`, method: 'GET' }).flush({
       $schema: 'http://json-schema.org/draft-07/schema#',
       type: 'object',
       properties: {
@@ -355,7 +355,7 @@ describe('ApiEndpointComponent', () => {
 
   function expectEndpointPluginGetRequest(pluginId: string) {
     httpTestingController
-      .expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/endpoints/${pluginId}`, method: 'GET' })
+      .expectOne({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/endpoints/${pluginId}`, method: 'GET' })
       .flush([fakeConnectorPlugin({ id: pluginId, name: pluginId })]);
   }
 });
