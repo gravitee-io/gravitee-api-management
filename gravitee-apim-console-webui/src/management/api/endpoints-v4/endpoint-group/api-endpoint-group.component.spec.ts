@@ -76,7 +76,10 @@ function expectApiGetRequest(api: ApiV4, fixture: ComponentFixture<any>, httpTes
  * @param httpTestingController http testing controller
  */
 function expectApiSchemaGetRequests(api: ApiV4, fixture: ComponentFixture<any>, httpTestingController) {
-  httpTestingController.match({ url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/endpoints/kafka/shared-configuration-schema`, method: 'GET' });
+  httpTestingController.match({
+    url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/endpoints/kafka/shared-configuration-schema`,
+    method: 'GET',
+  });
   fixture.detectChanges();
 }
 

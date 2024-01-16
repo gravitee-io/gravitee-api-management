@@ -65,7 +65,7 @@ export class ApiCreationV4SpecHttpExpects {
   expectSchemaGetRequest(connectors: Partial<ConnectorPlugin>[], connectorType: 'entrypoints' | 'endpoints' = 'entrypoints') {
     connectors.forEach((connector) => {
       this.httpTestingController
-        .match({ url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/${connectorType}/${connector.id}/schema`, method: 'GET' })
+        .match({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/${connectorType}/${connector.id}/schema`, method: 'GET' })
         .map((req) => {
           if (!req.cancelled) req.flush(getEntrypointConnectorSchema(connector.id));
         });
@@ -74,7 +74,7 @@ export class ApiCreationV4SpecHttpExpects {
 
   expectEntrypointsGetRequest(connectors: Partial<ConnectorPlugin>[]) {
     const fullConnectors = connectors.map((partial) => fakeConnectorPlugin(partial));
-    this.httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/entrypoints` }).flush(fullConnectors);
+    this.httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/entrypoints` }).flush(fullConnectors);
   }
 
   expectLicenseGetRequest(license: License) {
@@ -85,19 +85,21 @@ export class ApiCreationV4SpecHttpExpects {
     const fullConnector = fakeConnectorPlugin(connector);
 
     this.httpTestingController
-      .expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/endpoints/${fullConnector.id}`, method: 'GET' })
+      .expectOne({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/endpoints/${fullConnector.id}`, method: 'GET' })
       .flush(fullConnector);
   }
 
   expectEndpointsGetRequest(connectors: Partial<ConnectorPlugin>[]) {
     const fullConnectors = connectors.map((partial) => fakeConnectorPlugin(partial));
-    this.httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/endpoints`, method: 'GET' }).flush(fullConnectors);
+    this.httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/endpoints`, method: 'GET' })
+      .flush(fullConnectors);
   }
 
   expectEndpointsSharedConfigurationSchemaGetRequest(connectors: Partial<ConnectorPlugin>[]) {
     connectors.forEach((connector) => {
       this.httpTestingController
-        .match({ url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/endpoints/${connector.id}/shared-configuration-schema`, method: 'GET' })
+        .match({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/endpoints/${connector.id}/shared-configuration-schema`, method: 'GET' })
         .map((req) => {
           if (!req.cancelled) req.flush(getEntrypointConnectorSchema(connector.id));
         });

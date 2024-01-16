@@ -211,13 +211,13 @@ describe('ApiRuntimeLogsMessagesComponent', () => {
 
   function expectEndpointPlugin(messageLog: AggregatedMessageLog) {
     httpTestingController
-      .expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/endpoints/${messageLog.endpoint.connectorId}`, method: 'GET' })
+      .expectOne({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/endpoints/${messageLog.endpoint.connectorId}`, method: 'GET' })
       .flush([fakeConnectorPlugin({ id: messageLog.endpoint.connectorId, name: messageLog.endpoint.connectorId })]);
   }
 
   function expectEntrypointPlugin(messageLog: AggregatedMessageLog) {
     httpTestingController
-      .expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/entrypoints/${messageLog.entrypoint.connectorId}`, method: 'GET' })
+      .expectOne({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/entrypoints/${messageLog.entrypoint.connectorId}`, method: 'GET' })
       .flush([fakeConnectorPlugin({ id: messageLog.entrypoint.connectorId, name: messageLog.entrypoint.connectorId })]);
   }
 });

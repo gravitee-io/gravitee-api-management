@@ -790,6 +790,6 @@ describe('ApiProxyV4EntrypointsComponent', () => {
       { id: 'webhook', supportedApiType: 'MESSAGE', supportedListenerType: 'SUBSCRIPTION', name: 'Webhook' },
     ];
 
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/entrypoints`, method: 'GET' }).flush(entrypoints);
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/entrypoints`, method: 'GET' }).flush(entrypoints);
   }
 });
