@@ -94,6 +94,18 @@ class HttpSelectorConditionFilterTest {
     }
 
     @Test
+    void shouldNotFilterWhenPathMatchPatternWithPipeCharacter() {
+        when(request.pathInfo()).thenReturn("/my/a|b");
+        HttpSelector httpSelector = new HttpSelector();
+        httpSelector.setPath("/my/:path");
+        httpSelector.setPathOperator(Operator.EQUALS);
+        when(flow.selectorByType(SelectorType.HTTP)).thenReturn(Optional.of(httpSelector));
+
+        final TestObserver<Flow> obs = cut.filter(ctx, flow).test();
+        obs.assertResult(flow);
+    }
+
+    @Test
     void shouldFilterWhenPathDoesntEqualSelector() {
         when(request.pathInfo()).thenReturn("/my/path2");
         HttpSelector httpSelector = new HttpSelector();

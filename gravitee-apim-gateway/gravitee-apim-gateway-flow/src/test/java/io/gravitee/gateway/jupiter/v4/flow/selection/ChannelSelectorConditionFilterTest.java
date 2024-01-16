@@ -107,6 +107,18 @@ class ChannelSelectorConditionFilterTest {
     }
 
     @Test
+    void shouldNotFilterWhenPathMathPatternWithPipeCharacter() {
+        when(request.pathInfo()).thenReturn("/my/a|b");
+        ChannelSelector channelSelector = new ChannelSelector();
+        channelSelector.setChannel("/my/:path");
+        channelSelector.setChannelOperator(Operator.EQUALS);
+        when(flow.selectorByType(SelectorType.CHANNEL)).thenReturn(Optional.of(channelSelector));
+
+        final TestObserver<Flow> obs = cut.filter(ctx, flow).test();
+        obs.assertResult(flow);
+    }
+
+    @Test
     void shouldNotFilterWhenEntrypointEqualsSelectorChannel() {
         when(entrypointConnector.id()).thenReturn("entrypoint");
 
