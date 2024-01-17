@@ -4355,6 +4355,7 @@ components:
                 propertyName: type
                 mapping:
                     http: HttpEndpointV2
+                    grpc: HttpEndpointV2
         BaseEndpointV2:
             type: object
             properties:
@@ -4399,6 +4400,7 @@ components:
                 propertyName: type
                 mapping:
                     http: HttpEndpointV2
+                    grpc: HttpEndpointV2
             required:
                 - type
         HttpEndpointV2:
