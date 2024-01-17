@@ -28,6 +28,7 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { ActivatedRoute } from '@angular/router';
+import { of } from 'rxjs';
 
 import { OrgSettingsUserDetailComponent } from './org-settings-user-detail.component';
 
@@ -60,7 +61,7 @@ describe('OrgSettingsUserDetailComponent', () => {
     await TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule, MatIconTestingModule],
       providers: [
-        { provide: ActivatedRoute, useValue: { snapshot: { params: { userId: 'userId' } } } },
+        { provide: ActivatedRoute, useValue: { snapshot: { params: { userId: 'userId' } }, fragment: of('') } },
         {
           provide: GioTestingPermissionProvider,
           useValue: ['organization-user-u', 'organization-user-d', 'organization-user-c'],

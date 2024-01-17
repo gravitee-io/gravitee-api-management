@@ -21,6 +21,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { formatDate } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
+import { of } from 'rxjs';
 
 import { InstanceDetailsEnvironmentModule } from './instance-details-environment.module';
 import { InstanceDetailsEnvironmentComponent } from './instance-details-environment.component';
@@ -35,11 +36,11 @@ describe('InstanceDetailsEnvironmentComponent', () => {
   let httpTestingController: HttpTestingController;
   const instanceId = '5bc17c57-b350-460d-817c-57b350060db3';
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, InstanceDetailsEnvironmentModule],
-      providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { instanceId } } } }],
-    });
+      providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { instanceId } }, fragment: of('') } }],
+    }).compileComponents();
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(InstanceDetailsEnvironmentComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
