@@ -37,7 +37,12 @@ export class ApiV4MenuService implements ApiMenuService {
     const hasTcpListeners = api.listeners.find((listener) => listener.type === 'TCP') != null;
     const subMenuItems: MenuItem[] = [
       {
-        displayName: 'Policy Studio',
+        displayName: 'Policies',
+        icon: 'shield-star',
+        header: {
+          title: 'Policies',
+          subtitle: 'Policies let you customize and enhance your API behavior and functionality',
+        },
         routerLink: hasTcpListeners ? 'DISABLED' : 'v4/policy-studio',
         tabs: undefined,
       },
