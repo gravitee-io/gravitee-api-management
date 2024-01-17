@@ -79,9 +79,11 @@ sed -i 's#version: ".*"#version: "${nextVersion}${nextQualifier}-SNAPSHOT"#' gra
 sed -i 's#"version": ".*"#"version": "${nextVersion}${nextQualifier}-SNAPSHOT"#' gravitee-apim-console-webui/build.json
 sed -i 's#"version": ".*"#"version": "${nextVersion}${nextQualifier}-SNAPSHOT"#' gravitee-apim-portal-webui/build.json
 
-# Helm chart increase version and clean the artifacthub.io/changes annotation
-sed "0,/version.*/s/version.*/version: ${nextVersion}${nextQualifier}/" -i helm/Chart.yaml
-sed '/artifacthub.io\\/changes/q' -i helm/Chart.yaml
+# Helm chart increase version, appVersion and clean the artifacthub.io/changes annotation
+sed -e "0,/^version:/{s/version:.*/version: ${nextVersion}${nextQualifier}/}" \\
+    -e "0,/^appVersion:/{ s/appVersion.*/appVersion: ${nextVersion}${nextQualifier}/ }" \\
+    -e '/artifacthub.io\\/changes/,\${ s/|//; /^[ ]*\\- /d }' \\
+    -i helm/Chart.yaml
 
 git add --update
 git commit -m 'chore: prepare next version [skip ci]'

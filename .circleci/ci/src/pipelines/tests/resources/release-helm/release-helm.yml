@@ -74,9 +74,6 @@ jobs:
           name: Checkout tag 4.2.0
           command: git checkout 4.2.0
       - run:
-          name: Update Chart and App versions
-          command: 'sed "0,/appVersion.*/s/appVersion.*/appVersion: 4.2.0/" -i helm/Chart.yaml'
-      - run:
           name: build the Charts
           working_directory: ./helm
           command: |-
