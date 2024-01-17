@@ -201,18 +201,42 @@ describe('GioFormListenersVirtualHostModule', () => {
     // Add path on last path row
     const firstVirtualHostRow = await formVirtualHosts.getLastListenerRow();
     await firstVirtualHostRow.hostSubDomainInput.setValue('aa.com');
-    await firstVirtualHostRow.pathInput.setValue('test');
+    await firstVirtualHostRow.pathInput.setValue('/test');
 
     await formVirtualHosts.addListenerRow();
 
     const secondVirtualHostRow = await formVirtualHosts.getLastListenerRow();
     await secondVirtualHostRow.hostSubDomainInput.setValue('aa.com');
-    await secondVirtualHostRow.pathInput.setValue('test');
-
+    await secondVirtualHostRow.pathInput.setValue('/test');
     fixture.detectChanges();
 
-    expect(testComponent.formControl.valid).toBeFalsy();
-    expect(testComponent.formControl.errors).not.toBeNull();
+    expect(testComponent.formControl.invalid).toBeTruthy();
+
+    await secondVirtualHostRow.pathInput.setValue('/test/');
+    fixture.detectChanges();
+
+    expect(testComponent.formControl.invalid).toBeTruthy();
+  });
+
+  it('should accept 2 virtual hosts with different hosts but same paths', async () => {
+    const formVirtualHosts = await loader.getHarness(GioFormListenersVirtualHostHarness);
+    expect((await formVirtualHosts.getListenerRows()).length).toEqual(1);
+
+    // Add path on last path row
+    const firstVirtualHostRow = await formVirtualHosts.getLastListenerRow();
+    await firstVirtualHostRow.hostSubDomainInput.setValue('aa.com');
+    await firstVirtualHostRow.pathInput.setValue('/test');
+
+    fixture.detectChanges();
+    expect(testComponent.formControl.errors).toBeNull();
+
+    await formVirtualHosts.addListenerRow();
+    const secondVirtualHostRow = await formVirtualHosts.getLastListenerRow();
+    await secondVirtualHostRow.hostSubDomainInput.setValue('bb.com');
+    await secondVirtualHostRow.pathInput.setValue('/test');
+
+    fixture.detectChanges();
+    expect(testComponent.formControl.errors).toBeNull();
   });
 
   it('should edit virtual host', async () => {
