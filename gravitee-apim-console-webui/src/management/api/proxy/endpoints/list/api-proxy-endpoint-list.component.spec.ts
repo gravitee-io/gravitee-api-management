@@ -381,7 +381,7 @@ describe('ApiProxyEndpointListComponent', () => {
         }),
       );
 
-      expect(await loader.getChildLoader('[mattooltip="HTTP configuration inherited"]')).toBeTruthy();
+      expect(await loader.getChildLoader('[mattooltip="Configuration inherited"]')).toBeTruthy();
     });
   });
 
