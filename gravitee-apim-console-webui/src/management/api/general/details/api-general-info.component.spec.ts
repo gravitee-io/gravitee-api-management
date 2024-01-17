@@ -707,6 +707,7 @@ describe('ApiGeneralInfoComponent', () => {
 
       expectApiGetRequest(api);
       expectCategoriesGetRequest();
+      expectShardingTagsGetRequest();
 
       // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
       await waitImageCheck();
