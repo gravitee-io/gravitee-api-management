@@ -51,6 +51,19 @@ $textColor: map.get(gio.$mat-dove-palette, default);
     &__disabled {
       padding-left: 20px;
     }
+
+    &__item {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+
+      &__icon {
+        margin-right: 8px;
+        color: $textColor;
+        width: 20px;
+        height: 20px;
+      }
+    }
   }
 
   &__breadcrumb {
