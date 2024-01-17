@@ -367,9 +367,11 @@ jobs:
             sed -i 's#"version": ".*"#"version": "4.2.1-SNAPSHOT"#' gravitee-apim-console-webui/build.json
             sed -i 's#"version": ".*"#"version": "4.2.1-SNAPSHOT"#' gravitee-apim-portal-webui/build.json
 
-            # Helm chart increase version and clean the artifacthub.io/changes annotation
-            sed "0,/version.*/s/version.*/version: 4.2.1/" -i helm/Chart.yaml
-            sed '/artifacthub.io\/changes/q' -i helm/Chart.yaml
+            # Helm chart increase version, appVersion and clean the artifacthub.io/changes annotation
+            sed -e "0,/^version:/{s/version:.*/version: 4.2.1/}" \
+                -e "0,/^appVersion:/{ s/appVersion.*/appVersion: 4.2.1/ }" \
+                -e '/artifacthub.io\/changes/,${ s/|//; /^[ ]*\- /d }' \
+                -i helm/Chart.yaml
 
             git add --update
             git commit -m 'chore: prepare next version [skip ci]'
@@ -439,9 +441,6 @@ jobs:
       - run:
           name: Checkout tag 4.2.0
           command: git checkout 4.2.0
-      - run:
-          name: Update Chart and App versions
-          command: 'sed "0,/appVersion.*/s/appVersion.*/appVersion: 4.2.0/" -i helm/Chart.yaml'
       - run:
           name: build the Charts
           working_directory: ./helm

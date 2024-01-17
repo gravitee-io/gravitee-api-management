@@ -61,10 +61,6 @@ git config --global user.email "\${GIT_USER_EMAIL}"`,
           name: `Checkout tag ${apimVersion}`,
           command: `git checkout ${apimVersion}`,
         }),
-        new commands.Run({
-          name: 'Update Chart and App versions',
-          command: `sed "0,/appVersion.*/s/appVersion.*/appVersion: ${apimVersion}/" -i helm/Chart.yaml`,
-        }),
       );
     }
 
