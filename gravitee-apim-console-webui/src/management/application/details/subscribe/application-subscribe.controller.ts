@@ -45,7 +45,6 @@ class ApplicationSubscribeController {
     private ApplicationService: ApplicationService,
     private NotificationService: NotificationService,
     private $mdDialog,
-    private $transitions,
   ) {}
 
   async $onInit() {
@@ -201,13 +200,6 @@ class ApplicationSubscribeController {
     );
   }
 }
-ApplicationSubscribeController.$inject = [
-  'ApiService',
-  'Constants',
-  'ApplicationService',
-  'NotificationService',
-  '$mdDialog',
-  '$transitions',
-];
+ApplicationSubscribeController.$inject = ['ApiService', 'Constants', 'ApplicationService', 'NotificationService', '$mdDialog'];
 
 export default ApplicationSubscribeController;
