@@ -13,10 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { GioLicenseService } from '@gravitee/ui-particles-angular';
+import { takeUntil, tap } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 
+import { ApimFeature, UTMTags } from '../../../../shared/components/gio-license/gio-license-data';
 import { ConnectorVM } from '../../../../entities/management-api-v2';
 
 export type ApiEntrypointsV4AddDialogComponentData = {
@@ -28,17 +32,20 @@ export type ApiEntrypointsV4AddDialogComponentData = {
   templateUrl: './api-entrypoints-v4-add-dialog.component.html',
   styleUrls: ['./api-entrypoints-v4-add-dialog.component.scss'],
 })
-export class ApiEntrypointsV4AddDialogComponent implements OnInit {
+export class ApiEntrypointsV4AddDialogComponent implements OnInit, OnDestroy {
+  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   public apiHasHttpListener: boolean;
   public entrypoints: ConnectorVM[];
   public formGroup: UntypedFormGroup;
   public showContextPathForm = false;
   public contextPathFormGroup: UntypedFormGroup;
+  public requiresUpgrade = false;
 
   constructor(
     public dialogRef: MatDialogRef<ApiEntrypointsV4AddDialogComponent>,
     @Inject(MAT_DIALOG_DATA) data: ApiEntrypointsV4AddDialogComponentData,
     private formBuilder: UntypedFormBuilder,
+    private licenseService: GioLicenseService,
   ) {
     this.entrypoints = data.entrypoints;
     this.apiHasHttpListener = data.hasHttpListener;
@@ -48,6 +55,18 @@ export class ApiEntrypointsV4AddDialogComponent implements OnInit {
     this.formGroup = this.formBuilder.group({
       selectedEntrypointsIds: this.formBuilder.control([], [Validators.required]),
     });
+
+    this.formGroup
+      .get('selectedEntrypointsIds')
+      .valueChanges.pipe(
+        tap((selectedEntrypointsIds) => {
+          this.requiresUpgrade = selectedEntrypointsIds
+            .map((id) => this.entrypoints.find((entrypoint) => entrypoint.id === id))
+            .some((entrypoint) => !entrypoint.deployed);
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
   }
 
   save() {
@@ -74,5 +93,13 @@ export class ApiEntrypointsV4AddDialogComponent implements OnInit {
   }
   cancel() {
     this.dialogRef.close([]);
+  }
+
+  onRequestUpgrade() {
+    this.licenseService.openDialog({ feature: ApimFeature.APIM_EN_MESSAGE_REACTOR, context: UTMTags.GENERAL_ENTRYPOINT_CONFIG });
+  }
+  ngOnDestroy(): void {
+    this.unsubscribe$.next(true);
+    this.unsubscribe$.unsubscribe();
   }
 }

@@ -40,6 +40,7 @@ import { RestrictedDomain } from '../../../entities/restricted-domain/restricted
 import { fakeRestrictedDomain, fakeRestrictedDomains } from '../../../entities/restricted-domain/restrictedDomain.fixture';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 import { GioFormListenersTcpHostsHarness } from '../component/gio-form-listeners/gio-form-listeners-tcp-hosts/gio-form-listeners-tcp-hosts.harness';
+import { GioLicenseBannerHarness } from '../../../shared/components/gio-license-banner/gio-license-banner.harness';
 
 describe('ApiProxyV4EntrypointsComponent', () => {
   const API_ID = 'apiId';
@@ -762,6 +763,40 @@ describe('ApiProxyV4EntrypointsComponent', () => {
         .catch((err) => expect(err).toBeTruthy());
     });
   });
+
+  describe('When API has entrypoints not available in license feature', () => {
+    const RESTRICTED_DOMAINS = [];
+    const API = fakeApiV4({
+      listeners: [{ type: 'HTTP', paths: [{ path: '/context-path' }], entrypoints: [{ type: 'sse' }] }],
+    });
+
+    beforeEach(async () => {
+      await createComponent(RESTRICTED_DOMAINS, API);
+      expectApiPathVerify();
+    });
+
+    it('should show the license banner', async () => {
+      const licenseBanner = await loader.getAllHarnesses(GioLicenseBannerHarness);
+      expect(licenseBanner.length).toEqual(1);
+    });
+  });
+
+  describe('When API has only entrypoints available in license', () => {
+    const RESTRICTED_DOMAINS = [];
+    const API = fakeApiV4({
+      listeners: [{ type: 'HTTP', paths: [{ path: '/context-path' }], entrypoints: [{ type: 'http-get' }] }],
+    });
+
+    beforeEach(async () => {
+      await createComponent(RESTRICTED_DOMAINS, API);
+      expectApiPathVerify();
+    });
+
+    it('should show the license banner', async () => {
+      const licenseBanner = await loader.getAllHarnesses(GioLicenseBannerHarness);
+      expect(licenseBanner.length).toEqual(0);
+    });
+  });
   function expectGetRestrictedDomain(restrictedDomains: RestrictedDomain[]): void {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/restrictedDomains`, method: 'GET' }).flush(restrictedDomains);
   }
@@ -784,10 +819,10 @@ describe('ApiProxyV4EntrypointsComponent', () => {
 
   function expectGetEntrypoints(): void {
     const entrypoints: Partial<ConnectorPlugin>[] = [
-      { id: 'http-get', supportedApiType: 'MESSAGE', supportedListenerType: 'HTTP', name: 'HTTP GET' },
-      { id: 'http-post', supportedApiType: 'MESSAGE', supportedListenerType: 'HTTP', name: 'HTTP POST' },
-      { id: 'sse', supportedApiType: 'MESSAGE', supportedListenerType: 'HTTP', name: 'Server-Sent Events' },
-      { id: 'webhook', supportedApiType: 'MESSAGE', supportedListenerType: 'SUBSCRIPTION', name: 'Webhook' },
+      { id: 'http-get', supportedApiType: 'MESSAGE', supportedListenerType: 'HTTP', name: 'HTTP GET', deployed: true },
+      { id: 'http-post', supportedApiType: 'MESSAGE', supportedListenerType: 'HTTP', name: 'HTTP POST', deployed: true },
+      { id: 'sse', supportedApiType: 'MESSAGE', supportedListenerType: 'HTTP', name: 'Server-Sent Events', deployed: false },
+      { id: 'webhook', supportedApiType: 'MESSAGE', supportedListenerType: 'SUBSCRIPTION', name: 'Webhook', deployed: false },
     ];
 
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/entrypoints`, method: 'GET' }).flush(entrypoints);
