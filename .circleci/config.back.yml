@@ -1711,7 +1711,8 @@ jobs:
                       git config --global user.name "${GIT_USER_NAME}"
                       git config --global user.email "${GIT_USER_EMAIL}"
             - gh/setup
-            - helm/install_helm_client
+            - helm/install_helm_client:
+                version: v3.12.3
             - when:
                   condition:
                       not: << pipeline.parameters.dry_run>>
@@ -1835,7 +1836,8 @@ jobs:
             - keeper/env-export:
                   secret-url: keeper://s83JmReKpBZWjHdud6ZAlg/custom_field/gravitee_apim_org_api_token
                   var-name: SNYK_TOKEN
-            - helm/install_helm_client
+            - helm/install_helm_client:
+                version: v3.12.3
             - snyk/install
             - run:
                   name: "build the Charts output and scan"
