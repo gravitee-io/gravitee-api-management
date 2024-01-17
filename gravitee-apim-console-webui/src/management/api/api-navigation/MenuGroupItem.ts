@@ -24,6 +24,7 @@ export interface MenuItem {
   iconRight$?: Observable<string>;
   header?: MenuItemHeader;
   tabs?: MenuItem[];
+  icon?: string;
 }
 
 export interface MenuGroupItem {

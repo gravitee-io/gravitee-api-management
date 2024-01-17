@@ -46,7 +46,7 @@ export class ApiV4MenuService implements ApiMenuService {
     const logsTabs = [];
     if (this.permissionService.hasAnyMatching(['api-log-r'])) {
       logsTabs.push({
-        displayName: 'Connections',
+        displayName: 'Runtime Logs',
         routerLink: 'v4/runtime-logs',
       });
     }
@@ -58,11 +58,12 @@ export class ApiV4MenuService implements ApiMenuService {
     }
     if (logsTabs.length > 0) {
       subMenuItems.push({
-        displayName: 'Analytics and logs',
+        displayName: 'API Traffic',
+        icon: 'bar-chart-2',
         routerLink: hasTcpListeners ? 'DISABLED' : '',
         header: {
-          title: 'Runtime Logs',
-          subtitle: 'Debug and Optimize your API by displaying logs from your API runtime activities',
+          title: 'API Traffic',
+          subtitle: 'Gain actionable insights into API performance with real-time metrics, logs, and notifications',
         },
         tabs: logsTabs,
       });

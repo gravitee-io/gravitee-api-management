@@ -36,9 +36,19 @@
               [active]="isTabActive(menuItem?.tabs)"
               [gioLicense]="menuItem?.license"
               [iconRight]="menuItem?.iconRight$ | async"
-              >{{ menuItem?.displayName }}</gio-submenu-item
-            ></a
-          >
+            >
+              <div class="api-navigation__submenu__item">
+                <mat-icon
+                  *ngIf="menuItem.icon"
+                  class="api-navigation__submenu__item__icon"
+                  [matTooltip]="menuItem?.displayName"
+                  [svgIcon]="'gio:' + menuItem.icon"
+                >
+                </mat-icon>
+                {{ menuItem?.displayName }}
+              </div>
+            </gio-submenu-item>
+          </a>
         </ng-container>
         <ng-container *ngIf="menuItem?.routerLink && menuItem.routerLink !== 'DISABLED'">
           <a [routerLink]="menuItem?.routerLink">
@@ -47,10 +57,20 @@
               [active]="isActive(menuItem)"
               [gioLicense]="menuItem?.license"
               [iconRight]="menuItem?.iconRight$ | async"
-              >{{ menuItem?.displayName }}</gio-submenu-item
-            ></a
-          ></ng-container
-        >
+            >
+              <div class="api-navigation__submenu__item">
+                <mat-icon
+                  *ngIf="menuItem.icon"
+                  class="api-navigation__submenu__item__icon"
+                  [matTooltip]="menuItem?.displayName"
+                  [svgIcon]="'gio:' + menuItem.icon"
+                >
+                </mat-icon>
+                {{ menuItem?.displayName }}
+              </div>
+            </gio-submenu-item>
+          </a>
+        </ng-container>
         <api-navigation-disabled
           *ngIf="menuItem?.routerLink === 'DISABLED'"
           class="api-navigation__menu__disabled"
