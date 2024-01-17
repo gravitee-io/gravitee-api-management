@@ -51,9 +51,7 @@ describe('ConsoleSettingsComponent', () => {
         },
       })
       .compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(OrgSettingsGeneralComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);

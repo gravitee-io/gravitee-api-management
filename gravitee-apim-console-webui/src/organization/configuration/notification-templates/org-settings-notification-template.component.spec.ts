@@ -23,6 +23,7 @@ import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ActivatedRoute } from '@angular/router';
+import { of } from 'rxjs';
 
 import { OrgSettingsNotificationTemplateComponent } from './org-settings-notification-template.component';
 
@@ -54,6 +55,7 @@ describe('OrgSettingsNotificationTemplateComponent', () => {
                 scope: 'scope',
               },
             },
+            fragment: of(''),
           },
         },
       ],
