@@ -204,6 +204,33 @@ public class EndpointMapperTest {
     }
 
     @Test
+    void should_map_from_endpoint_entity_V2_with_gRPC_type() throws JsonProcessingException {
+        // Init http endpoint configuration
+        var httpEndpointV2Configuration = EndpointModelFixtures.aModelHttpEndpointV2();
+
+        var httpHeader = new io.gravitee.common.http.HttpHeader();
+        httpHeader.setName("headerName");
+        httpHeader.setValue("headerValue");
+        httpEndpointV2Configuration.setHeaders(List.of(httpHeader));
+
+        // Set http endpoint configuration into endpoint.configuration
+        var endpointEntityV2 = EndpointModelFixtures.aModelEndpointV2();
+        endpointEntityV2.setType("grpc");
+        endpointEntityV2.setName("Should not be mapped");
+        endpointEntityV2.setConfiguration(new ObjectMapper().writeValueAsString(httpEndpointV2Configuration));
+
+        var endpointV2 = endpointMapper.map(endpointEntityV2);
+
+        // assert nested configuration only are mapped if filled
+        assertV2EndpointsAreEquals(httpEndpointV2Configuration, endpointV2);
+        // Check http configuration
+        var httpEndpointV2 = endpointV2.getHttpEndpointV2();
+        assertThat(httpEndpointV2Configuration.getHeaders()).isNotNull();
+        assertThat(httpEndpointV2Configuration.getHeaders().get(0).getName()).isEqualTo(httpEndpointV2.getHeaders().get(0).getName());
+        assertThat(httpEndpointV2Configuration.getHeaders().get(0).getValue()).isEqualTo(httpEndpointV2.getHeaders().get(0).getValue());
+    }
+
+    @Test
     void shouldMapToEndpointGroupEntityV2() throws JsonProcessingException {
         var endpointGroupV2 = EndpointFixtures.anEndpointGroupV2();
 
