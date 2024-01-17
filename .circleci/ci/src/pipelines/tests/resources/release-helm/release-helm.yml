@@ -68,7 +68,8 @@ jobs:
             git config --global user.name "${GIT_USER_NAME}"
             git config --global user.email "${GIT_USER_EMAIL}"
       - gh/setup
-      - helm/install_helm_client
+      - helm/install_helm_client:
+          version: v3.12.3
       - checkout
       - run:
           name: Checkout tag 4.2.0
