@@ -103,13 +103,19 @@ export class GioFormListenersVirtualHostComponent extends GioFormListenersContex
       if (!isEmpty(this.domainRestrictions) && !this.domainRestrictions.some((domainRestriction) => fullHost.endsWith(domainRestriction))) {
         return { host: 'Host is not valid (must end with one of restriction domain).' };
       }
+      return null;
     };
   }
 
   public listenersValidator(): ValidatorFn {
     return (formArray: UntypedFormArray): ValidationErrors | null => {
       const listenerFormArrayControls = formArray.controls;
-      const listenerValues = listenerFormArrayControls.map((listener) => ({ path: listener.value?.path, host: listener.value?.host }));
+      const listenerValues = listenerFormArrayControls.map((listener) => ({
+        path: listener.value?.path && listener.value?.path?.endsWith('/') ? listener.value?.path : listener.value?.path + '/',
+        _hostSubDomain: listener.value?._hostSubDomain,
+        _hostDomain: listener.value?._hostDomain,
+        host: listener.value?.host,
+      }));
       if (new Set(listenerValues.map((value) => JSON.stringify(value))).size !== listenerValues.length) {
         return { contextPath: 'Duplicated virtual host not allowed' };
       }
