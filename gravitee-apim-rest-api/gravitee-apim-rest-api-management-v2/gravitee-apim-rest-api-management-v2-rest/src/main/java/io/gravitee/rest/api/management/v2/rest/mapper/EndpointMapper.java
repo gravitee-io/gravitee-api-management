@@ -95,8 +95,8 @@ public interface EndpointMapper {
             return null;
         }
 
-        // If endpoint is a http endpoint, we need to parse the configuration and use it as the actual instance
-        if (endpoint.getType().equals("http") && endpoint.getConfiguration() != null) {
+        // If endpoint is a http or grpc endpoint, we need to parse the configuration and use it as the actual instance
+        if ((endpoint.getType().equals("http") || endpoint.getType().equals("grpc")) && endpoint.getConfiguration() != null) {
             ObjectMapper mapper = new GraviteeMapper();
             io.gravitee.definition.model.endpoint.HttpEndpoint config;
             try {
