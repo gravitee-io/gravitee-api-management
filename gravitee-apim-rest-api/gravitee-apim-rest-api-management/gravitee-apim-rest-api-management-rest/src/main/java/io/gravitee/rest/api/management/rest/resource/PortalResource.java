@@ -105,4 +105,9 @@ public class PortalResource {
     public SocialIdentityProvidersResource getSocialIdentityProvidersResource() {
         return resourceContext.getResource(SocialIdentityProvidersResource.class);
     }
+
+    @Path("redirect")
+    public PortalRedirectResource getPortalRedirectResource() {
+        return resourceContext.getResource(PortalRedirectResource.class);
+    }
 }

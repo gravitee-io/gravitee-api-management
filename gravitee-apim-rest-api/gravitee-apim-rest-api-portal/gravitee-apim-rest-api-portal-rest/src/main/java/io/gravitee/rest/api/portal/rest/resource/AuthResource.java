@@ -29,6 +29,7 @@ import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.portal.rest.model.Token;
 import io.gravitee.rest.api.portal.rest.model.Token.TokenTypeEnum;
+import io.gravitee.rest.api.portal.rest.resource.auth.ConsoleAuthenticationResource;
 import io.gravitee.rest.api.portal.rest.resource.auth.OAuth2AuthenticationResource;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -143,5 +144,10 @@ public class AuthResource extends AbstractResource {
     @Path("/oauth2/{identity}")
     public OAuth2AuthenticationResource getOAuth2AuthenticationResource() {
         return resourceContext.getResource(OAuth2AuthenticationResource.class);
+    }
+
+    @Path("/console")
+    public ConsoleAuthenticationResource getConsoleAuthenticationResource() {
+        return resourceContext.getResource(ConsoleAuthenticationResource.class);
     }
 }

@@ -265,6 +265,9 @@ public class BasicSecurityConfigurerAdapter {
             //  Auth request
             .requestMatchers(HttpMethod.POST, uriPrefix + "/auth/oauth2/**")
             .permitAll()
+            //  Console auth request
+            .requestMatchers(HttpMethod.GET, uriPrefix + "/auth/console")
+            .permitAll()
             // API requests
             .requestMatchers(HttpMethod.GET, uriPrefix + "/apis/*/subscribers")
             .authenticated()

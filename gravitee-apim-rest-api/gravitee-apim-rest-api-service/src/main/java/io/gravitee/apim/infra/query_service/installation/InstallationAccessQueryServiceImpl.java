@@ -108,7 +108,7 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
                 urls.put("DEFAULT", uiUrl);
             }
         }
-        if (urls.isEmpty() && cockpitEnabled) {
+        if (urls.isEmpty()) {
             urls.put("DEFAULT", defaultValue);
         }
         return urls;
