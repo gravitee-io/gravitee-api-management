@@ -13,23 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.v2.rest.mapper;
+package io.gravitee.apim.infra.adapter;
 
-import io.gravitee.rest.api.management.v2.rest.model.PolicyPlugin;
+import io.gravitee.apim.core.plugin.model.PolicyPlugin;
 import io.gravitee.rest.api.model.v4.policy.PolicyPluginEntity;
-import java.util.Set;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
 @Mapper
-public interface PolicyPluginMapper {
-    PolicyPluginMapper INSTANCE = Mappers.getMapper(PolicyPluginMapper.class);
+public interface PolicyPluginAdapter {
+    PolicyPluginAdapter INSTANCE = Mappers.getMapper(PolicyPluginAdapter.class);
 
-    PolicyPlugin map(PolicyPluginEntity policyEntity);
-
-    Set<PolicyPlugin> map(Set<PolicyPluginEntity> policyEntitySet);
-
-    PolicyPlugin mapToCore(io.gravitee.apim.core.plugin.model.PolicyPlugin policyEntity);
-
-    Set<PolicyPlugin> mapToCore(Set<io.gravitee.apim.core.plugin.model.PolicyPlugin> policyEntitySet);
+    PolicyPlugin map(PolicyPluginEntity source);
 }

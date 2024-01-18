@@ -27,6 +27,21 @@ servers:
           managementAPIHost:
               description: The domain of the server hosting your Management API
               default: localhost:8083
+    - url: "{protocol}://{managementAPIHost}/management/v2/organizations/{orgId}"
+      description: APIM Management API v2 - Base URL to target specific organizations
+      variables:
+          protocol:
+              description: The protocol you want to use to communicate with the mAPI
+              default: https
+              enum:
+                  - https
+                  - http
+          managementAPIHost:
+              description: The domain of the server hosting your Management API
+              default: localhost:8083
+          ordId:
+              description: The unique ID of your organization
+              default: DEFAULT
 
 tags:
     - name: Plugins - Endpoints
@@ -463,7 +478,7 @@ components:
                     minLength: 1
                 deployed:
                     type: boolean
-                    description: The deployment status of the plugin.
+                    description: The deployment status of the plugin. This property is true if the plugin is deployed on the installation and the license allows to use it.
         ApiType:
             type: string
             description: API's type.

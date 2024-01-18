@@ -15,12 +15,15 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.plugin;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
+import inmemory.PolicyPluginQueryServiceInMemory;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.node.api.license.License;
+import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.ExecutionPhase;
 import io.gravitee.rest.api.management.v2.rest.model.PolicyPlugin;
@@ -31,12 +34,14 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PluginNotFoundException;
 import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.Response;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.assertj.core.api.Assertions;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class PoliciesResourceTest extends AbstractResourceTest {
 
@@ -44,6 +49,12 @@ public class PoliciesResourceTest extends AbstractResourceTest {
     protected String contextPath() {
         return "/plugins/policies";
     }
+
+    @Autowired
+    protected PolicyPluginQueryServiceInMemory policyPluginQueryServiceInMemory;
+
+    @Autowired
+    protected LicenseManager licenseManager;
 
     private static final String FAKE_POLICY_ID = "my_policy";
 
@@ -55,12 +66,37 @@ public class PoliciesResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldReturnSortedPolicies() {
-        PolicyPluginEntity policyPlugin = getPolicyPluginEntity();
-        PolicyPluginEntity anotherPolicyPlugin = getPolicyPluginEntity();
-        anotherPolicyPlugin.setId("another-policy");
-        anotherPolicyPlugin.setName("another policy plugin");
+        policyPluginQueryServiceInMemory.initWith(
+            List.of(
+                io.gravitee.apim.core.plugin.model.PolicyPlugin
+                    .builder()
+                    .id("policy-1")
+                    .name("policy-1")
+                    .feature("feature-1")
+                    .deployed(false)
+                    .build(),
+                io.gravitee.apim.core.plugin.model.PolicyPlugin
+                    .builder()
+                    .id("policy-2")
+                    .name("policy-2")
+                    .feature("feature-2")
+                    .deployed(true)
+                    .build(),
+                io.gravitee.apim.core.plugin.model.PolicyPlugin
+                    .builder()
+                    .id("policy-3")
+                    .name("policy-3")
+                    .feature("feature-3")
+                    .deployed(true)
+                    .build()
+            )
+        );
 
-        when(policyPluginService.findAll()).thenReturn(Set.of(policyPlugin, anotherPolicyPlugin));
+        var license = mock(License.class);
+        when(licenseManager.getOrganizationLicenseOrPlatform("fake-org")).thenReturn(license);
+        when(license.isFeatureEnabled("feature-1")).thenReturn(true);
+        when(license.isFeatureEnabled("feature-2")).thenReturn(false);
+        when(license.isFeatureEnabled("feature-3")).thenReturn(true);
 
         final Response response = rootTarget().request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -68,32 +104,12 @@ public class PoliciesResourceTest extends AbstractResourceTest {
         // Check response content
         final Set<PolicyPlugin> policyPlugins = response.readEntity(new GenericType<>() {});
 
-        // Check data
-        PolicyPlugin expectedPlugin1 = new PolicyPlugin()
-            .id("another-policy")
-            .name("another policy plugin")
-            .version("1.0")
-            .icon("my-icon")
-            .category("my-category")
-            .description("my-description")
-            .deployed(true)
-            .addProxyItem(ExecutionPhase.REQUEST)
-            .addProxyItem(ExecutionPhase.RESPONSE)
-            .addMessageItem(ExecutionPhase.MESSAGE_REQUEST);
-
-        PolicyPlugin expectedPlugin2 = new PolicyPlugin()
-            .id("id")
-            .name("name")
-            .version("1.0")
-            .icon("my-icon")
-            .category("my-category")
-            .description("my-description")
-            .deployed(true)
-            .addProxyItem(ExecutionPhase.REQUEST)
-            .addProxyItem(ExecutionPhase.RESPONSE)
-            .addMessageItem(ExecutionPhase.MESSAGE_REQUEST);
-
-        assertEquals(Set.of(expectedPlugin1, expectedPlugin2), policyPlugins);
+        assertThat(policyPlugins)
+            .containsExactly(
+                PolicyPlugin.builder().id("policy-2").name("policy-2").deployed(false).build(),
+                PolicyPlugin.builder().id("policy-3").name("policy-3").deployed(true).build(),
+                PolicyPlugin.builder().id("policy-1").name("policy-1").deployed(false).build()
+            );
     }
 
     @Test
@@ -111,7 +127,7 @@ public class PoliciesResourceTest extends AbstractResourceTest {
         final Response response = rootTarget(FAKE_POLICY_ID).path("schema").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         final String result = response.readEntity(String.class);
-        Assertions.assertThat(result).isEqualTo("schemaResponse");
+        assertThat(result).isEqualTo("schemaResponse");
     }
 
     @Test
@@ -129,7 +145,7 @@ public class PoliciesResourceTest extends AbstractResourceTest {
         final Response response = rootTarget(FAKE_POLICY_ID).path("schema").queryParam("display", "gv-schema-form").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         final String result = response.readEntity(String.class);
-        Assertions.assertThat(result).isEqualTo("schemaResponse");
+        assertThat(result).isEqualTo("schemaResponse");
     }
 
     @Test
@@ -153,7 +169,7 @@ public class PoliciesResourceTest extends AbstractResourceTest {
         expectedError.setTechnicalCode("plugin.notFound");
         expectedError.setParameters(Map.of("plugin", FAKE_POLICY_ID));
 
-        Assertions.assertThat(error).isEqualTo(expectedError);
+        assertThat(error).isEqualTo(expectedError);
     }
 
     @Test
@@ -171,7 +187,7 @@ public class PoliciesResourceTest extends AbstractResourceTest {
         final Response response = rootTarget(FAKE_POLICY_ID).path("documentation").request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         final String result = response.readEntity(String.class);
-        Assertions.assertThat(result).isEqualTo("documentationResponse");
+        assertThat(result).isEqualTo("documentationResponse");
     }
 
     @Test
@@ -196,7 +212,7 @@ public class PoliciesResourceTest extends AbstractResourceTest {
         expectedError.setTechnicalCode("plugin.notFound");
         expectedError.setParameters(Map.of("plugin", FAKE_POLICY_ID));
 
-        Assertions.assertThat(error).isEqualTo(expectedError);
+        assertThat(error).isEqualTo(expectedError);
     }
 
     @Test

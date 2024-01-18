@@ -613,7 +613,7 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
   function expectGetPolicies() {
     httpTestingController
       .expectOne({
-        url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/policies`,
+        url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/policies`,
         method: 'GET',
       })
       .flush([fakePolicyPlugin(), ...fakePoliciesPlugin()]);

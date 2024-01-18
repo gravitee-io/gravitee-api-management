@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.core.plugin.domain_service;
 
-import io.gravitee.apim.core.plugin.model.ConnectorPlugin;
+import io.gravitee.apim.core.plugin.model.PlatformPlugin;
 import io.gravitee.node.api.license.LicenseManager;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -28,11 +28,11 @@ public class PluginFilterByLicenseDomainService {
         this.licenseManager = licenseManager;
     }
 
-    public Set<ConnectorPlugin> setPluginDeployedStatusDependingOnLicense(Set<ConnectorPlugin> pluginSet, String organizationId) {
+    public <T extends PlatformPlugin> Set<T> setPluginDeployedStatusDependingOnLicense(Set<T> pluginSet, String organizationId) {
         var license = licenseManager.getOrganizationLicenseOrPlatform(organizationId);
         return pluginSet
             .stream()
-            .map(plugin -> plugin.toBuilder().deployed(plugin.isDeployed() && license.isFeatureEnabled(plugin.getFeature())).build())
+            .peek(plugin -> plugin.setDeployed(plugin.isDeployed() && license.isFeatureEnabled(plugin.getFeature())))
             .collect(Collectors.toSet());
     }
 }
