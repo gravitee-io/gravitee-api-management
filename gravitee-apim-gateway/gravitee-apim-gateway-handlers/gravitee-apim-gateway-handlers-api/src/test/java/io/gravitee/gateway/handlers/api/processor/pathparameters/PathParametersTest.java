@@ -56,7 +56,7 @@ class PathParametersTest {
             .hasToString(
                 Pattern
                     .compile(
-                        "^/product/(?<group0>[a-zA-Z0-9\\-._~%!$&'()* +,;=:@]+)/item/(?<group1>[a-zA-Z0-9\\-._~%!$&'()* +,;=:@]+)(?:/.*)?$"
+                        "^/product/(?<group0>[a-zA-Z0-9\\-._~%!$&'()* +,;=:@|]+)/item/(?<group1>[a-zA-Z0-9\\-._~%!$&'()* +,;=:@|]+)(?:/.*)?$"
                     )
                     .toString()
             );
@@ -69,7 +69,9 @@ class PathParametersTest {
         assertThat(cut.getPathPattern())
             .hasToString(
                 Pattern
-                    .compile("^/product/(?<group0>[a-zA-Z0-9\\-._~%!$&'()* +,;=:@]+)/item/(?<group1>[a-zA-Z0-9\\-._~%!$&'()* +,;=:@]+)/?$")
+                    .compile(
+                        "^/product/(?<group0>[a-zA-Z0-9\\-._~%!$&'()* +,;=:@|]+)/item/(?<group1>[a-zA-Z0-9\\-._~%!$&'()* +,;=:@|]+)/?$"
+                    )
                     .toString()
             );
     }
@@ -82,7 +84,7 @@ class PathParametersTest {
             .hasToString(
                 Pattern
                     .compile(
-                        "^/product/(?<group0>[a-zA-Z0-9\\-._~%!$&'()* +,;=:@]+)/item/(?<group1>[a-zA-Z0-9\\-._~%!$&'()* +,;=:@]+)(?:/.*)?$"
+                        "^/product/(?<group0>[a-zA-Z0-9\\-._~%!$&'()* +,;=:@|]+)/item/(?<group1>[a-zA-Z0-9\\-._~%!$&'()* +,;=:@|]+)(?:/.*)?$"
                     )
                     .toString()
             );
