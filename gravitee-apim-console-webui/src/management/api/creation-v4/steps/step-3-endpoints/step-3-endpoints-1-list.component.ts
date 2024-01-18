@@ -79,6 +79,7 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe((endpointPlugins) => {
         this.endpoints = endpointPlugins.map((endpoint) => fromConnector(this.iconService, endpoint));
+        this.checkShouldUpgrade(currentStepPayload.selectedEndpoints?.map((e) => e.id) || []);
 
         this.changeDetectorRef.detectChanges();
       });
@@ -87,13 +88,17 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
       .get('selectedEndpointsIds')
       .valueChanges.pipe(
         tap((selectedEndpointsIds) => {
-          this.shouldUpgrade = selectedEndpointsIds
-            .map((id) => this.endpoints.find((endpoint) => endpoint.id === id))
-            .some((endpoint) => !endpoint.deployed);
+          this.checkShouldUpgrade(selectedEndpointsIds);
         }),
         takeUntil(this.unsubscribe$),
       )
       .subscribe();
+  }
+
+  private checkShouldUpgrade(selectedEndpointsIds: string[]) {
+    this.shouldUpgrade = selectedEndpointsIds
+      .map((id) => this.endpoints.find((endpoint) => endpoint.id === id))
+      .some((endpoint) => !endpoint.deployed);
   }
 
   ngOnDestroy() {
