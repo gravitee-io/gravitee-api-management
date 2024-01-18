@@ -71,8 +71,10 @@ import io.gravitee.apim.core.plan.use_case.CreatePlanUseCase;
 import io.gravitee.apim.core.plugin.domain_service.PluginFilterByLicenseDomainService;
 import io.gravitee.apim.core.plugin.query_service.EndpointPluginQueryService;
 import io.gravitee.apim.core.plugin.query_service.EntrypointPluginQueryService;
+import io.gravitee.apim.core.plugin.query_service.PolicyPluginQueryService;
 import io.gravitee.apim.core.plugin.use_case.GetEndpointPluginsUseCase;
 import io.gravitee.apim.core.plugin.use_case.GetEntrypointPluginsUseCase;
+import io.gravitee.apim.core.plugin.use_case.GetPolicyPluginsUseCase;
 import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
@@ -353,6 +355,14 @@ public class UsecaseSpringConfiguration {
         PluginFilterByLicenseDomainService pluginFilterByLicenseDomainService
     ) {
         return new GetEndpointPluginsUseCase(endpointPluginQueryService, pluginFilterByLicenseDomainService);
+    }
+
+    @Bean
+    public GetPolicyPluginsUseCase getPolicyPluginsUseCase(
+        PolicyPluginQueryService policyPluginQueryService,
+        PluginFilterByLicenseDomainService pluginFilterByLicenseDomainService
+    ) {
+        return new GetPolicyPluginsUseCase(policyPluginQueryService, pluginFilterByLicenseDomainService);
     }
 
     @Bean

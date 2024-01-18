@@ -31,9 +31,6 @@ import java.util.Set;
 
 public class EndpointPluginQueryServiceInMemory implements EndpointPluginQueryService, InMemoryAlternative<ConnectorPlugin> {
 
-    public static final String HTTP_PROXY_CONNECTOR_ID = "http-proxy";
-    public static final String SSE_CONNECTOR_ID = "sse";
-    public static final String MOCK_CONNECTOR_ID = "mock";
     private static final List<ConnectorPlugin> DEFAULT_LIST = List.of(
         ConnectorPlugin
             .builder()

@@ -13,21 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model.v4.policy;
+package io.gravitee.apim.core.plugin.model;
 
-import io.gravitee.rest.api.model.platform.plugin.PlatformPluginEntity;
-import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Set;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 @Data
-@ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "PolicyPluginEntityV4")
-@SuperBuilder(toBuilder = true)
 @NoArgsConstructor
-public class PolicyPluginEntity extends PlatformPluginEntity {
+@AllArgsConstructor
+@SuperBuilder(toBuilder = true)
+public class PolicyPlugin extends PlatformPlugin {
+
+    public enum ExecutionPhase {
+        REQUEST,
+        RESPONSE,
+        MESSAGE_REQUEST,
+        MESSAGE_RESPONSE,
+    }
 
     private Set<ExecutionPhase> proxy;
 

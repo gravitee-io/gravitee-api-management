@@ -43,7 +43,7 @@ describe('PolicyV2Service', () => {
         done();
       });
 
-      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.v2BaseURL}/plugins/policies`);
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.v2BaseURL}/plugins/policies`);
       expect(req.request.method).toEqual('GET');
 
       req.flush(policies);
@@ -60,7 +60,7 @@ describe('PolicyV2Service', () => {
         done();
       });
 
-      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.v2BaseURL}/plugins/policies/policy#1/schema`);
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.v2BaseURL}/plugins/policies/policy#1/schema`);
       expect(req.request.method).toEqual('GET');
 
       req.flush(policySchema);
@@ -77,7 +77,7 @@ describe('PolicyV2Service', () => {
         done();
       });
 
-      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.v2BaseURL}/plugins/policies/policy#1/documentation`);
+      const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.v2BaseURL}/plugins/policies/policy#1/documentation`);
       expect(req.request.method).toEqual('GET');
 
       req.flush(policyDocumentation);

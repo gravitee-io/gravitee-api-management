@@ -141,6 +141,11 @@ public class InMemoryConfiguration {
     }
 
     @Bean
+    public PolicyPluginQueryServiceInMemory policyPluginQueryServiceInMemory() {
+        return new PolicyPluginQueryServiceInMemory();
+    }
+
+    @Bean
     public FlowCrudServiceInMemory flowCrudServiceInMemory() {
         return new FlowCrudServiceInMemory();
     }
