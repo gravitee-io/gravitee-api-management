@@ -146,11 +146,12 @@
         </ng-template>
       </gio-breadcrumb>
 
+      <api-navigation-header *ngIf="selectedItemHeader" [menuItemHeader]="selectedItemHeader"></api-navigation-header>
+
       <api-navigation-tabs
         *ngIf="selectedItemWithTabs"
         class="api-navigation__content__tabs"
         [tabMenuItems]="this.selectedItemWithTabs.tabs"
-        [menuItemHeader]="this.selectedItemWithTabs?.header"
       ></api-navigation-tabs>
 
       <router-outlet></router-outlet>

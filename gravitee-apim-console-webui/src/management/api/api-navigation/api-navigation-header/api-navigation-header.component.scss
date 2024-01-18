@@ -13,16 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input } from '@angular/core';
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
 
-import { MenuItem } from '../MenuGroupItem';
+$typography: map.get(gio.$mat-theme, typography);
 
-@Component({
-  selector: 'api-navigation-tabs',
-  templateUrl: './api-navigation-tabs.component.html',
-  styleUrls: ['./api-navigation-tabs.component.scss'],
-})
-export class ApiNavigationTabsComponent {
-  @Input()
-  public tabMenuItems: MenuItem[] = [];
+.header {
+  display: flex;
+  gap: 4px;
+  flex-flow: column;
+  margin-bottom: 24px;
+
+  &__subtitle {
+    color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+    @include mat.typography-level($typography, 'body-1');
+  }
 }

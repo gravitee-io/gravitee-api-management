@@ -15,14 +15,14 @@
  */
 import { Component, Input } from '@angular/core';
 
-import { MenuItem } from '../MenuGroupItem';
+import { MenuItemHeader } from '../MenuGroupItem';
 
 @Component({
-  selector: 'api-navigation-tabs',
-  templateUrl: './api-navigation-tabs.component.html',
-  styleUrls: ['./api-navigation-tabs.component.scss'],
+  selector: 'api-navigation-header',
+  templateUrl: './api-navigation-header.component.html',
+  styleUrls: ['./api-navigation-header.component.scss'],
 })
-export class ApiNavigationTabsComponent {
+export class ApiNavigationHeaderComponent {
   @Input()
-  public tabMenuItems: MenuItem[] = [];
+  public menuItemHeader: MenuItemHeader;
 }
