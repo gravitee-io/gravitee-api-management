@@ -75,27 +75,6 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
         routerLink: 'general',
         permissions: ['application-definition-r'],
       },
-      // {
-      //   displayName: "User and group access",
-      //   targetRoute: "management.applications.application.membersng",
-      //   baseRoute: "management.applications.application.membersng",
-      //   permissions: ["application-definition-r"],
-      //   tabs: [
-      //     {
-      //       displayName: "Members",
-      //       targetRoute: "management.applications.application.membersng",
-      //       baseRoute: "management.applications.application.membersng"
-      //     }, {
-      //       displayName: "Groups",
-      //       targetRoute: "management.applications.application.groupsng",
-      //       baseRoute: "management.applications.application.groupsng"
-      //     }, {
-      //       displayName: "Transfer ownership",
-      //       targetRoute: "management.applications.application.transferownershipng",
-      //       baseRoute: "management.applications.application.transferownershipng"
-      //     }
-      //   ]
-      // },
       {
         displayName: 'Metadata',
         routerLink: 'metadata',

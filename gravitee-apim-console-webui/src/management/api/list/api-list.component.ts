@@ -58,7 +58,6 @@ export type ApisTableDS = {
   origin: OriginEnum;
   readonly: boolean;
   definitionVersion: { label: string; icon?: string };
-  targetRoute: string;
   listenerTypes?: ListenerType[];
 }[];
 
@@ -184,7 +183,6 @@ export class ApiListComponent implements OnInit, OnDestroy {
               listenerTypes: api.listeners.map((listener: Listener) => listener.type),
               isNotSynced$: undefined,
               qualityScore$: null,
-              targetRoute: 'management.apis.general',
             };
           } else {
             const apiv2 = api as ApiV2;
@@ -194,7 +192,6 @@ export class ApiListComponent implements OnInit, OnDestroy {
               qualityScore$: this.isQualityDisplayed
                 ? this.apiService.getQualityMetrics(apiv2.id).pipe(map((a) => this.getQualityScore(Math.floor(a.score * 100))))
                 : null,
-              targetRoute: 'management.apis.general',
             };
           }
         })
