@@ -229,6 +229,24 @@ class ApiProcessorChainFactoryTest {
     }
 
     @Test
+    void shouldReturnPathMappingsPatternBeforeApiExecutionChainWithHttpListenerAndPathMappingsPattern() {
+        io.gravitee.definition.model.v4.Api apiModel = new io.gravitee.definition.model.v4.Api();
+        HttpListener httpListener = new HttpListener();
+        httpListener.setPathMappings(Set.of("/test"));
+        apiModel.setListeners(List.of(httpListener));
+        Api api = new Api(apiModel);
+        ProcessorChain processorChain = apiProcessorChainFactory.beforeApiExecution(api);
+        assertThat(processorChain.getId()).isEqualTo("processor-chain-before-api-execution");
+        Flowable<Processor> processors = extractProcessorChain(processorChain);
+        processors
+            .test()
+            .assertComplete()
+            .assertValueCount(2)
+            .assertValueAt(0, processor -> processor instanceof SubscriptionProcessor)
+            .assertValueAt(1, processor -> processor instanceof PathMappingProcessor);
+    }
+
+    @Test
     void shouldReturnEmptyAfterApiExecutionChainWithNoListener() {
         Api api = new Api(new io.gravitee.definition.model.v4.Api());
         ProcessorChain processorChain = apiProcessorChainFactory.afterApiExecution(api);
@@ -295,25 +313,6 @@ class ApiProcessorChainFactoryTest {
     }
 
     @Test
-    void shouldReturnPathMappingsPatternAfterApiExecutionChainWithHttpListenerAndPathMappingsPattern() {
-        io.gravitee.definition.model.v4.Api apiModel = new io.gravitee.definition.model.v4.Api();
-        HttpListener httpListener = new HttpListener();
-        httpListener.setPathMappings(Set.of("/tot"));
-        apiModel.setListeners(List.of(httpListener));
-        Api api = new Api(apiModel);
-        ProcessorChain processorChain = apiProcessorChainFactory.afterApiExecution(api);
-        assertThat(processorChain.getId()).isEqualTo("processor-chain-after-api-execution");
-        Flowable<Processor> processors = extractProcessorChain(processorChain);
-        processors
-            .test()
-            .assertComplete()
-            .assertValueCount(3)
-            .assertValueAt(0, processor -> processor instanceof ShutdownProcessor)
-            .assertValueAt(1, processor -> processor instanceof TransactionPostProcessor)
-            .assertValueAt(2, processor -> processor instanceof PathMappingProcessor);
-    }
-
-    @Test
     void shouldReturnAllAfterApiExecutionChainProcessorPlusSimpleFailureProcessor() {
         io.gravitee.definition.model.v4.Api apiModel = new io.gravitee.definition.model.v4.Api();
         HttpListener httpListener = new HttpListener();
@@ -326,11 +325,10 @@ class ApiProcessorChainFactoryTest {
         processors
             .test()
             .assertComplete()
-            .assertValueCount(4)
+            .assertValueCount(3)
             .assertValueAt(0, processor -> processor instanceof ShutdownProcessor)
             .assertValueAt(1, processor -> processor instanceof TransactionPostProcessor)
-            .assertValueAt(2, processor -> processor instanceof PathMappingProcessor)
-            .assertValueAt(3, processor -> processor instanceof SimpleFailureProcessor);
+            .assertValueAt(2, processor -> processor instanceof SimpleFailureProcessor);
     }
 
     @Test

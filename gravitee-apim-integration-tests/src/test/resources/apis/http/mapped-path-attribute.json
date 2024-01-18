@@ -1,0 +1,88 @@
+{
+  "name" : "mapped-path-attributes",
+  "crossId" : "836c94bf-8dc0-442a-ac94-bf8dc0242ae1",
+  "version" : "1",
+  "execution_mode" : "v4-emulation-engine",
+  "description" : "testing mapped path attribute",
+  "visibility" : "PRIVATE",
+  "flows" : [ ],
+  "gravitee" : "2.0.0",
+  "flow_mode" : "DEFAULT",
+  "resources" : [ ],
+  "properties" : [ ],
+  "plans" : [ {
+    "id" : "e6964618-4ce2-4254-9646-184ce27254bc",
+    "crossId" : "18270fa7-69cd-423a-a70f-a769cdc23ade",
+    "name" : "free",
+    "description" : "test",
+    "validation" : "AUTO",
+    "security" : "KEY_LESS",
+    "type" : "API",
+    "status" : "PUBLISHED",
+    "api" : "abdc2142-3ac5-49c9-9c21-423ac599c941",
+    "order" : 0,
+    "characteristics" : [ ],
+    "tags" : [ ],
+    "created_at" : 1704382914532,
+    "updated_at" : 1705573645202,
+    "published_at" : 1704382914532,
+    "paths" : { },
+    "comment_required" : false,
+    "flows" : [ {
+      "id" : "ed5567ef-9edf-404c-9567-ef9edf004c35",
+      "path-operator" : {
+        "path" : "/",
+        "operator" : "STARTS_WITH"
+      },
+      "condition" : "",
+      "consumers" : [ ],
+      "methods" : [ ],
+      "pre" : [ {
+        "name" : "Mock",
+        "description" : "",
+        "enabled" : true,
+        "policy" : "mock",
+        "configuration" : {"content":"{#context.attributes['mapped-path']}","status":"200"}
+      } ],
+      "post" : [ ],
+      "enabled" : true
+    } ]
+  } ],
+  "id" : "abdc2142-3ac5-49c9-9c21-423ac599c941",
+  "path_mappings" : [ "/test/:testId" ],
+  "proxy" : {
+    "virtual_hosts" : [ {
+      "path" : "/mapped"
+    } ],
+    "strip_context_path" : false,
+    "preserve_host" : false,
+    "groups" : [ {
+      "name" : "default-group",
+      "endpoints" : [ {
+        "type" : "http",
+        "name" : "default",
+        "target" : "https://api.gravitee.io/echo",
+        "weight" : 1,
+        "backup" : false,
+        "status" : "UP",
+        "inherit" : true,
+        "proxy" : null,
+        "http" : null,
+        "ssl" : null
+      } ],
+      "load_balancing" : {
+        "type" : "ROUND_ROBIN"
+      },
+      "http" : {
+        "connectTimeout" : 5000,
+        "idleTimeout" : 60000,
+        "keepAlive" : true,
+        "readTimeout" : 10000,
+        "pipelining" : false,
+        "maxConcurrentConnections" : 100,
+        "useCompression" : true,
+        "followRedirects" : false
+      }
+    } ]
+  }
+}

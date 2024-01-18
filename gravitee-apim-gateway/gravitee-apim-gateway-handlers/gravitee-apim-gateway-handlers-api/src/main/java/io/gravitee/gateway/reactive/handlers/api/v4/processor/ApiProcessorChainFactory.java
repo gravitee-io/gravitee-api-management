@@ -107,16 +107,15 @@ public class ApiProcessorChainFactory {
      */
     public ProcessorChain beforeSecurityChain(final Api api) {
         final List<Processor> processors = new ArrayList<>();
-        if (api.getDefinition().getListeners() != null) {
-            getHttpListener(api)
-                .ifPresent(httpListener -> {
-                    final Cors cors = httpListener.getCors();
 
-                    if (cors != null && cors.isEnabled()) {
-                        processors.add(CorsPreflightRequestProcessor.instance());
-                    }
-                });
-        }
+        getHttpListener(api)
+            .ifPresent(httpListener -> {
+                final Cors cors = httpListener.getCors();
+
+                if (cors != null && cors.isEnabled()) {
+                    processors.add(CorsPreflightRequestProcessor.instance());
+                }
+            });
 
         return new ProcessorChain("processor-chain-before-security-chain", processors, processorHooks);
     }
@@ -141,6 +140,14 @@ public class ApiProcessorChainFactory {
             }
 
             processors.add(SubscriptionProcessor.instance(clientIdentifierHeader));
+
+            getHttpListener(api)
+                .ifPresent(httpListener -> {
+                    final Map<String, Pattern> pathMappings = httpListener.getPathMappingsPattern();
+                    if (pathMappings != null && !pathMappings.isEmpty()) {
+                        processors.add(PathMappingProcessor.instance());
+                    }
+                });
         }
 
         return new ProcessorChain("processor-chain-before-api-execution", processors, processorHooks);
@@ -170,12 +177,8 @@ public class ApiProcessorChainFactory {
                 if (cors != null && cors.isEnabled()) {
                     processors.add(CorsSimpleRequestProcessor.instance());
                 }
-
-                final Map<String, Pattern> pathMappings = httpListener.getPathMappingsPattern();
-                if (pathMappings != null && !pathMappings.isEmpty()) {
-                    processors.add(PathMappingProcessor.instance());
-                }
             });
+
         return processors;
     }
 

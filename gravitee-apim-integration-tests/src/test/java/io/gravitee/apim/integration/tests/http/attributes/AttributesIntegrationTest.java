@@ -171,4 +171,29 @@ public class AttributesIntegrationTest {
                 .assertNoErrors();
         }
     }
+
+    @Nested
+    @GatewayTest
+    @DeployApi({ "/apis/http/mapped-path-attribute.json" })
+    class CheckingMappedPathAttribute extends AbstractAttributesIntegrationTest {
+
+        @Test
+        void should_set_mapped_path_attribute(HttpClient httpClient) throws InterruptedException {
+            httpClient
+                .rxRequest(HttpMethod.GET, "/mapped/test/mock")
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMapPublisher(response -> {
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    return response.toFlowable();
+                })
+                .test()
+                .await()
+                .assertComplete()
+                .assertNoErrors()
+                .assertValue(body -> {
+                    assertThat(body.toString()).contains("/test/:testId");
+                    return true;
+                });
+        }
+    }
 }
