@@ -16,7 +16,7 @@
 mkdir -p .tmp
 sed s/'uniqueItems: true'/'uniqueItems: false'/g ../gravitee-apim-rest-api/gravitee-apim-rest-api-management-v2/gravitee-apim-rest-api-management-v2-rest/src/main/resources/openapi/management-openapi-v2.yaml > .tmp/management-openapi-v2.yaml
 
-npx @openapitools/openapi-generator-cli@2.6.0 generate \
+npx @openapitools/openapi-generator-cli@2.7.0 generate \
   -i .tmp/management-openapi-v2.yaml \
   -g typescript-fetch \
   -o lib/management-v2-webclient-sdk/src/lib/ \
@@ -31,6 +31,9 @@ npx @openapitools/openapi-generator-cli@2.6.0 generate \
 
   sed -i.bak "s|NAME: '-name'|_NAME: '-name'|" lib/management-v2-webclient-sdk/src/lib/apis/APIsApi.ts
   sed -i.bak "s|PATHS: '-paths'|_PATHS: '-paths'|" lib/management-v2-webclient-sdk/src/lib/apis/APIsApi.ts
+  # Remove duplicate `HttpEndpointV2FromJSONTyped` import
+  sed -i.bak "s|     HttpEndpointV2FromJSONTyped,||" lib/management-v2-webclient-sdk/src/lib/models/BaseEndpointV2.ts
+
 find lib/management-v2-webclient-sdk/src -name "*.ts" -exec sed -i.bak "/* The version of the OpenAPI document/d" {} \;
 # must delete .bak files
 find lib/management-v2-webclient-sdk/src -name "*.ts.bak" -exec rm -f {} \;
