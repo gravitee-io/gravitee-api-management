@@ -27,11 +27,7 @@
       </ng-template>
     </button>
     <gio-top-bar-content type="apim" productName="API Management"></gio-top-bar-content>
-    <gio-top-bar-link
-      *ngIf="constants?.env?.settings?.portal?.url"
-      [url]="constants.env.settings.portal.url"
-      name="Developer Portal"
-    ></gio-top-bar-link>
+    <gio-top-bar-link *ngIf="portalUrl" [url]="portalUrl" name="Developer Portal"></gio-top-bar-link>
     <gio-top-bar-menu>
       <button
         mat-icon-button

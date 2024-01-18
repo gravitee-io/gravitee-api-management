@@ -41,6 +41,7 @@ export class GioTopNavComponent implements OnInit, OnDestroy {
   public newsletterProposed: boolean;
   public customLogo: string;
   public isOEM: boolean;
+  public portalUrl: string;
 
   constructor(
     @Inject(UIRouterState) private readonly ajsState: StateService,
@@ -73,6 +74,10 @@ export class GioTopNavComponent implements OnInit, OnDestroy {
     this.ajsRootScope.$on('$locationChangeStart', () => {
       this.displayDocumentationButton = !!this.ajsState.current.data?.docs;
     });
+
+    if (this.constants?.env?.settings?.portal?.url) {
+      this.portalUrl = this.constants.env.baseURL.replace('{:envId}', this.constants.org.currentEnv.id) + '/portal/redirect';
+    }
   }
 
   navigateToHome(): void {
