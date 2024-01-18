@@ -31,6 +31,7 @@ export class ReleaseHelmJob {
     dynamicConfig.importOrb(orbs.github);
 
     const steps: Command[] = [
+      new commands.Checkout(),
       new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
         'secret-url': config.secrets.gitUserName,
         'var-name': 'GIT_USER_NAME',
@@ -52,8 +53,6 @@ git config --global user.email "\${GIT_USER_EMAIL}"`,
       new reusable.ReusedCommand(orbs.github.commands['setup']),
       new reusable.ReusedCommand(orbs.helm.commands['install_helm_client'], { version: 'v3.12.3' }),
     ];
-
-    steps.push(new commands.Checkout());
 
     if (!environment.isDryRun) {
       steps.push(
