@@ -4224,11 +4224,6 @@ components:
                     default: false
                 healthCheck:
                     $ref: "#/components/schemas/EndpointHealthCheckService"
-            discriminator:
-                propertyName: type
-                mapping:
-                    http: HttpEndpointV2
-                    grpc: HttpEndpointV2
             required:
                 - type
         HttpEndpointV2:
