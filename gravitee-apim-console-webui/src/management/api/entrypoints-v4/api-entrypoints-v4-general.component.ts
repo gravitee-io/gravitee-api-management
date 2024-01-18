@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { EMPTY, forkJoin, Observable, of, Subject } from 'rxjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
@@ -57,7 +57,7 @@ type EntrypointVM = {
   templateUrl: './api-entrypoints-v4-general.component.html',
   styleUrls: ['./api-entrypoints-v4-general.component.scss'],
 })
-export class ApiEntrypointsV4GeneralComponent implements OnInit {
+export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   public apiId: string;
   public api: ApiV4;
@@ -372,5 +372,10 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
 
   onRequestUpgrade() {
     this.licenseService.openDialog({ feature: ApimFeature.APIM_EN_MESSAGE_REACTOR, context: UTMTags.GENERAL_ENTRYPOINT_CONFIG });
+  }
+
+  ngOnDestroy(): void {
+    this.unsubscribe$.next(true);
+    this.unsubscribe$.unsubscribe();
   }
 }
