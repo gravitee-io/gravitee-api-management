@@ -418,6 +418,7 @@ jobs:
       - image: cimg/node:16.10
     resource_class: medium
     steps:
+      - checkout
       - keeper/env-export:
           secret-url: keeper://IZd-yvsMopfQEa_0j1SDvg/field/login
           var-name: GIT_USER_NAME
@@ -438,7 +439,6 @@ jobs:
       - gh/setup
       - helm/install_helm_client:
           version: v3.12.3
-      - checkout
       - run:
           name: build the Charts
           working_directory: ./helm
