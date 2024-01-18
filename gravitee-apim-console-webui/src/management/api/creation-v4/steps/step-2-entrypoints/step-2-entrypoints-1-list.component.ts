@@ -78,6 +78,7 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
               const name2 = entrypoint2.name.toUpperCase();
               return name1 < name2 ? -1 : name1 > name2 ? 1 : 0;
             });
+          this.checkShouldUpgrade(currentStepPayload.selectedEntrypoints?.map((e) => e.id) || []);
           this.changeDetectorRef.detectChanges();
         });
     } else {
@@ -92,6 +93,7 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
               const name2 = entrypoint2.name.toUpperCase();
               return name1 < name2 ? -1 : name1 > name2 ? 1 : 0;
             });
+          this.checkShouldUpgrade(currentStepPayload.selectedEntrypoints?.map((e) => e.id) || []);
           this.changeDetectorRef.detectChanges();
         });
     }
@@ -100,9 +102,7 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
       .get('selectedEntrypointsIds')
       .valueChanges.pipe(
         tap((selectedEntrypointsIds) => {
-          this.shouldUpgrade = selectedEntrypointsIds
-            .map((id) => this.entrypoints.find((entrypoint) => entrypoint.id === id))
-            .some((entrypoint) => !entrypoint.deployed);
+          this.checkShouldUpgrade(selectedEntrypointsIds);
         }),
         takeUntil(this.unsubscribe$),
       )
@@ -217,5 +217,11 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
 
   public onRequestUpgrade() {
     this.licenseService.openDialog({ feature: ApimFeature.APIM_EN_MESSAGE_REACTOR, context: UTMTags.API_CREATION_MESSAGE_ENTRYPOINT });
+  }
+
+  private checkShouldUpgrade(selectedEntrypointIds: string[]) {
+    this.shouldUpgrade = selectedEntrypointIds
+      .map((id) => this.entrypoints.find((entrypoint) => entrypoint.id === id))
+      .some((entrypoint) => !entrypoint.deployed);
   }
 }
