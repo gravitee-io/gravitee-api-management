@@ -133,7 +133,7 @@ function apiPermissionHook($transitions: TransitionService, gioPermissionService
         )
         .toPromise();
     },
-    { priority: 9 },
+    { priority: 7 },
   );
 }
 graviteeManagementModule.run(apiPermissionHook);
