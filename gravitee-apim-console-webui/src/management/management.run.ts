@@ -120,6 +120,10 @@ function runBlock(
       const targetEnv = EnvironmentService.getEnvironmentFromHridOrId(Constants.org.environments ?? [], params.environmentId);
       if (targetEnv) {
         Constants.org.currentEnv = targetEnv;
+
+        const envSettings = await PortalConfigService.get();
+        Constants.env.settings = envSettings.data;
+
         return UserService.refreshEnvironmentPermissions().then(() => {
           return stateService.target(toState, params, { reload: shouldReload });
         });
@@ -135,6 +139,7 @@ function runBlock(
         }
       }
     },
+    { priority: 9 },
   );
 
   $transitions.onBefore(
