@@ -19,7 +19,6 @@ import static java.util.Comparator.comparing;
 
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.core.processor.AbstractProcessor;
-import java.util.Comparator;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -38,18 +37,18 @@ public class PathMappingProcessor extends AbstractProcessor<ExecutionContext> {
     @Override
     public void handle(ExecutionContext result) {
         String path = result.request().pathInfo();
-        if (path.length() == 0 || path.charAt(path.length() - 1) != '/') {
-            path += '/';
-        }
+        String finalPath = path.endsWith("/") ? path : path + '/';
 
-        String finalPath = path;
         mapping
             .entrySet()
             .stream()
             .filter(regexMappedPath -> regexMappedPath.getValue().matcher(finalPath).matches())
             .map(Map.Entry::getKey)
             .min(comparing(o -> countOccurrencesOf(o, ":")))
-            .ifPresent(resolvedMappedPath -> result.request().metrics().setMappedPath(resolvedMappedPath));
+            .ifPresent(resolvedMappedPath -> {
+                result.request().metrics().setMappedPath(resolvedMappedPath);
+                result.setAttribute(ExecutionContext.ATTR_MAPPED_PATH, resolvedMappedPath);
+            });
 
         next.handle(null);
     }

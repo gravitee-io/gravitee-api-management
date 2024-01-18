@@ -33,6 +33,8 @@ import io.gravitee.plugin.policy.PolicyPlugin;
 import io.gravitee.policy.apikey.ApiKeyPolicy;
 import io.gravitee.policy.apikey.ApiKeyPolicyInitializer;
 import io.gravitee.policy.apikey.configuration.ApiKeyPolicyConfiguration;
+import io.gravitee.policy.mock.MockPolicy;
+import io.gravitee.policy.mock.configuration.MockPolicyConfiguration;
 import io.vertx.rxjava3.core.http.HttpClientResponse;
 import java.util.List;
 import java.util.Map;
@@ -59,6 +61,7 @@ public class AbstractAttributesIntegrationTest extends AbstractGatewayTest {
             "api-key",
             PolicyBuilder.build("api-key", ApiKeyPolicy.class, ApiKeyPolicyConfiguration.class, ApiKeyPolicyInitializer.class)
         );
+        policies.put("mock", PolicyBuilder.build("mock", MockPolicy.class, MockPolicyConfiguration.class));
     }
 
     protected void addApiKeyPlan(ReactableApi<?> api) {
