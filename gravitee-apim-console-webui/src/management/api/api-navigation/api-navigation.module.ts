@@ -42,6 +42,7 @@ import { ApiNavigationTabsComponent } from './api-navigation-tabs/api-navigation
 import { ApiNavigationTitleComponent } from './api-navigation-title/api-navigation-title.component';
 import { ApiNavigationComponent } from './api-navigation.component';
 import { ApiNavigationDisabledComponent } from './api-navigation-disabled/api-navigation-disabled.component';
+import { ApiNavigationHeaderComponent } from './api-navigation-header/api-navigation-header.component';
 
 @NgModule({
   imports: [
@@ -70,6 +71,7 @@ import { ApiNavigationDisabledComponent } from './api-navigation-disabled/api-na
     ApiNavigationComponent,
     ApiNavigationTitleComponent,
     ApiNavigationTabsComponent,
+    ApiNavigationHeaderComponent,
     ApiNavigationDisabledComponent,
     ApiConfirmDeploymentDialogComponent,
     ApiReviewDialogComponent,
