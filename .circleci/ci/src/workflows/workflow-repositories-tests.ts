@@ -100,7 +100,7 @@ export class RepositoriesTestsWorkflow {
         context: ['cicd-orchestrator'],
         requires: [buildJobName],
         matrix: {
-          redisVersion: ['6.2.6-v9', '7.0.6-RC9'],
+          redisVersion: ['6.2.6-v9', '7.0.6-RC9', '7.2.0-v7', 'latest'],
         },
       }),
     ]);

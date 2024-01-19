@@ -21,7 +21,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Organization;
-import io.gravitee.gateway.platform.organization.ReactableOrganization;
 import io.gravitee.repository.management.model.Event;
 import java.util.Date;
 import org.junit.jupiter.api.BeforeEach;

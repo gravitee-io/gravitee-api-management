@@ -15,10 +15,7 @@
  */
 package io.gravitee.gateway.services.sync.process.repository.fetcher;
 
-import static io.gravitee.repository.management.model.Subscription.Status.ACCEPTED;
-import static io.gravitee.repository.management.model.Subscription.Status.CLOSED;
-import static io.gravitee.repository.management.model.Subscription.Status.PAUSED;
-import static io.gravitee.repository.management.model.Subscription.Status.PENDING;
+import static io.gravitee.repository.management.model.Subscription.Status.*;
 
 import io.gravitee.gateway.services.sync.process.repository.DefaultSyncManager;
 import io.gravitee.repository.management.api.SubscriptionRepository;

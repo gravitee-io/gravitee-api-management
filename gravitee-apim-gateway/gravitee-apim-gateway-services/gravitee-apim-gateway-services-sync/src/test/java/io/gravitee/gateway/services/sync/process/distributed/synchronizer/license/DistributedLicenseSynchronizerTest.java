@@ -13,20 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.services.sync.process.distributed.synchronizer.organization;
+package io.gravitee.gateway.services.sync.process.distributed.synchronizer.license;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.definition.model.Organization;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
-import io.gravitee.gateway.services.sync.process.common.deployer.OrganizationDeployer;
+import io.gravitee.gateway.services.sync.process.common.deployer.LicenseDeployer;
+import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import io.gravitee.gateway.services.sync.process.distributed.fetcher.DistributedEventFetcher;
-import io.gravitee.gateway.services.sync.process.distributed.mapper.OrganizationMapper;
+import io.gravitee.gateway.services.sync.process.distributed.mapper.LicenseMapper;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.license.LicenseDeployable;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
 import io.gravitee.repository.distributedsync.model.DistributedSyncAction;
@@ -48,14 +46,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
- * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
+ * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class DistributedReactableOrganizationSynchronizerTest {
-
-    private final ObjectMapper objectMapper = new GraviteeMapper();
+public class DistributedLicenseSynchronizerTest {
 
     @Mock
     private DistributedEventFetcher eventsFetcher;
@@ -64,44 +60,43 @@ class DistributedReactableOrganizationSynchronizerTest {
     private DeployerFactory deployerFactory;
 
     @Mock
-    private OrganizationDeployer organizationDeployer;
+    private LicenseDeployer licenseDeployer;
 
-    private DistributedOrganizationSynchronizer cut;
+    private DistributedLicenseSynchronizer cut;
 
     @BeforeEach
     public void beforeEach() {
         cut =
-            new DistributedOrganizationSynchronizer(
+            new DistributedLicenseSynchronizer(
                 eventsFetcher,
                 new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
                 new ThreadPoolExecutor(1, 1, 15L, TimeUnit.SECONDS, new LinkedBlockingQueue<>()),
                 deployerFactory,
-                new OrganizationMapper(objectMapper)
+                new LicenseMapper()
             );
         when(eventsFetcher.bulkItems()).thenReturn(1);
-        lenient().when(deployerFactory.createOrganizationDeployer()).thenReturn(organizationDeployer);
-        lenient().when(organizationDeployer.deploy(any())).thenReturn(Completable.complete());
-        lenient().when(organizationDeployer.doAfterDeployment(any())).thenReturn(Completable.complete());
-        lenient().when(organizationDeployer.undeploy(any())).thenReturn(Completable.complete());
-        lenient().when(organizationDeployer.doAfterUndeployment(any())).thenReturn(Completable.complete());
+        lenient().when(deployerFactory.createLicenseDeployer()).thenReturn(licenseDeployer);
+        lenient().when(licenseDeployer.deploy(any())).thenReturn(Completable.complete());
+        lenient().when(licenseDeployer.doAfterDeployment(any())).thenReturn(Completable.complete());
+        lenient().when(licenseDeployer.undeploy(any())).thenReturn(Completable.complete());
+        lenient().when(licenseDeployer.doAfterUndeployment(any())).thenReturn(Completable.complete());
     }
 
     @Nested
     class NoEventTest {
 
         @Test
-        void should_not_synchronize_organizations_when_no_events() throws InterruptedException {
-            when(eventsFetcher.fetchLatest(any(), any(), eq(DistributedEventType.ORGANIZATION), any())).thenReturn(Flowable.empty());
+        void should_not_synchronize_licenses_when_no_events() throws InterruptedException {
+            when(eventsFetcher.fetchLatest(any(), any(), eq(DistributedEventType.LICENSE), any())).thenReturn(Flowable.empty());
             cut.synchronize(-1L, Instant.now().toEpochMilli()).test().await().assertComplete();
-            verifyNoInteractions(organizationDeployer);
+            verifyNoInteractions(licenseDeployer);
         }
 
         @Test
         void should_fetch_init_events() throws InterruptedException {
             when(eventsFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.empty());
             cut.synchronize(-1L, Instant.now().toEpochMilli()).test().await().assertComplete();
-            verify(eventsFetcher)
-                .fetchLatest(eq(-1L), any(), eq(DistributedEventType.ORGANIZATION), eq(Set.of(DistributedSyncAction.DEPLOY)));
+            verify(eventsFetcher).fetchLatest(eq(-1L), any(), eq(DistributedEventType.LICENSE), eq(Set.of(DistributedSyncAction.DEPLOY)));
         }
 
         @Test
@@ -109,28 +104,25 @@ class DistributedReactableOrganizationSynchronizerTest {
             when(eventsFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.empty());
             cut.synchronize(Instant.now().toEpochMilli(), Instant.now().toEpochMilli()).test().await().assertComplete();
             verify(eventsFetcher)
-                .fetchLatest(any(), any(), eq(DistributedEventType.ORGANIZATION), eq(Set.of(DistributedSyncAction.DEPLOY)));
+                .fetchLatest(
+                    any(),
+                    any(),
+                    eq(DistributedEventType.LICENSE),
+                    eq(Set.of(DistributedSyncAction.DEPLOY, DistributedSyncAction.UNDEPLOY))
+                );
         }
     }
 
     @Nested
-    class DistributedReactableOrganizationSynchronizationTest {
-
-        private Organization organization;
-
-        @BeforeEach
-        public void init() {
-            organization = new Organization();
-            organization.setId("id");
-        }
+    class DistributedLicenseSynchronizationTest {
 
         @Test
-        void should_deploy_organization_when_fetching_deployed_events() throws InterruptedException, JsonProcessingException {
+        void should_deploy_licenses_when_fetching_deployed_events() throws InterruptedException {
             DistributedEvent distributedEvent = DistributedEvent
                 .builder()
-                .id("organization")
-                .payload(objectMapper.writeValueAsString(organization))
-                .type(DistributedEventType.ORGANIZATION)
+                .id("license")
+                .payload("license")
+                .type(DistributedEventType.LICENSE)
                 .syncAction(DistributedSyncAction.DEPLOY)
                 .updatedAt(new Date())
                 .build();
@@ -138,8 +130,9 @@ class DistributedReactableOrganizationSynchronizerTest {
             when(eventsFetcher.fetchLatest(any(), any(), any(), any())).thenReturn(Flowable.just(distributedEvent));
             cut.synchronize(-1L, Instant.now().toEpochMilli()).test().await().assertComplete();
 
-            verify(organizationDeployer).deploy(any());
-            verify(organizationDeployer).doAfterDeployment(any());
+            verify(licenseDeployer)
+                .deploy(LicenseDeployable.builder().license("license").id("license").syncAction(SyncAction.DEPLOY).build());
+            verify(licenseDeployer).doAfterDeployment(any());
         }
     }
 }

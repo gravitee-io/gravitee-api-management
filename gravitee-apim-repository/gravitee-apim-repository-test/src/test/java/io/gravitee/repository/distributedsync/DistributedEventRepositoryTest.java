@@ -54,7 +54,6 @@ public class DistributedEventRepositoryTest extends AbstractRepositoryTest {
     protected void createModel(Object object) {
         DistributedEvent distributedEvent = (DistributedEvent) object;
         distributedEventRepository.createOrUpdate(distributedEvent).blockingAwait();
-
         log.info("Created {}", distributedEvent);
     }
 
@@ -121,6 +120,18 @@ public class DistributedEventRepositoryTest extends AbstractRepositoryTest {
                     assertThat(distributedEvent.getType()).isEqualTo(DistributedEventType.SUBSCRIPTION);
                     assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.DEPLOY);
                     assertThat(distributedEvent.getUpdatedAt()).isEqualTo(Instant.parse("2023-06-24T15:25:34.051Z"));
+                    return true;
+                }
+            )
+            .assertValueAt(
+                5,
+                distributedEvent -> {
+                    assertThat(distributedEvent).isNotNull();
+                    assertThat(distributedEvent.getId()).isEqualTo("DEFAULT");
+                    assertThat(distributedEvent.getPayload()).isEqualTo("payload");
+                    assertThat(distributedEvent.getType()).isEqualTo(DistributedEventType.LICENSE);
+                    assertThat(distributedEvent.getSyncAction()).isEqualTo(DistributedSyncAction.DEPLOY);
+                    assertThat(distributedEvent.getUpdatedAt()).isEqualTo(Instant.parse("2024-01-24T16:35:34.051Z"));
                     return true;
                 }
             );

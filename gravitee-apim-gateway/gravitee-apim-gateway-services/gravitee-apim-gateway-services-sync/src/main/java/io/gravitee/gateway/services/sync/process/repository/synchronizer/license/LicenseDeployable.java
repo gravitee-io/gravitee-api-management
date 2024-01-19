@@ -17,8 +17,12 @@ package io.gravitee.gateway.services.sync.process.repository.synchronizer.licens
 
 import io.gravitee.gateway.services.sync.process.common.model.Deployable;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
-import io.gravitee.node.api.license.License;
-import lombok.*;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 
 @Builder

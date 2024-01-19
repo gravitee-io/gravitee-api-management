@@ -18,11 +18,8 @@ package io.gravitee.gateway.services.sync.process.distributed.mapper;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
-import io.gravitee.gateway.services.sync.process.repository.synchronizer.subscription.SingleSubscriptionDeployable;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.license.LicenseDeployable;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
 import io.gravitee.repository.distributedsync.model.DistributedSyncAction;
@@ -33,37 +30,34 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 
 /**
- * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
+ * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class SubscriptionMapperTest {
+public class LicenseMapperTest {
 
-    private final ObjectMapper objectMapper = new GraviteeMapper();
-    private SubscriptionMapper cut;
-    private Subscription subscription;
+    private LicenseMapper cut;
     private DistributedEvent distributedEvent;
-    private SingleSubscriptionDeployable singleSubscriptionDeployable;
+    private LicenseDeployable licenseDeployable;
 
     @BeforeEach
     public void beforeEach() throws JsonProcessingException {
-        cut = new SubscriptionMapper(objectMapper);
+        cut = new LicenseMapper();
 
-        subscription = new Subscription();
-        subscription.setId("id");
+        var id = "id";
+        var content = "license-content";
 
         distributedEvent =
             DistributedEvent
                 .builder()
-                .id(subscription.getId())
-                .payload(objectMapper.writeValueAsString(subscription))
+                .id(id)
+                .payload(content)
                 .updatedAt(new Date())
-                .type(DistributedEventType.SUBSCRIPTION)
+                .type(DistributedEventType.LICENSE)
                 .syncAction(DistributedSyncAction.DEPLOY)
                 .build();
 
-        singleSubscriptionDeployable =
-            SingleSubscriptionDeployable.builder().subscription(subscription).syncAction(SyncAction.DEPLOY).build();
+        licenseDeployable = LicenseDeployable.builder().id(id).license(content).syncAction(SyncAction.DEPLOY).build();
     }
 
     @Test
@@ -71,21 +65,16 @@ class SubscriptionMapperTest {
         cut
             .to(distributedEvent)
             .test()
-            .assertValue(singleSubscriptionDeployable -> {
-                assertThat(singleSubscriptionDeployable).isEqualTo(this.singleSubscriptionDeployable);
+            .assertValue(deployable -> {
+                assertThat(deployable).isEqualTo(licenseDeployable);
                 return true;
             });
     }
 
     @Test
-    void should_return_empty_with_wrong_payload() {
-        cut.to(DistributedEvent.builder().payload("wrong").build()).test().assertComplete();
-    }
-
-    @Test
-    void should_map_subscription_deployable() {
+    void should_map_license_deployable() {
         cut
-            .to(singleSubscriptionDeployable)
+            .to(licenseDeployable)
             .test()
             .assertValue(distributedEvent -> {
                 assertThat(distributedEvent.getId()).isEqualTo(this.distributedEvent.getId());

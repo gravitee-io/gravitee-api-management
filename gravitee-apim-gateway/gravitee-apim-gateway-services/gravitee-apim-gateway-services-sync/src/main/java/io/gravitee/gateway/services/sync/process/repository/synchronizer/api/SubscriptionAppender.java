@@ -15,10 +15,7 @@
  */
 package io.gravitee.gateway.services.sync.process.repository.synchronizer.api;
 
-import static io.gravitee.repository.management.model.Subscription.Status.ACCEPTED;
-import static io.gravitee.repository.management.model.Subscription.Status.CLOSED;
-import static io.gravitee.repository.management.model.Subscription.Status.PAUSED;
-import static io.gravitee.repository.management.model.Subscription.Status.PENDING;
+import static io.gravitee.repository.management.model.Subscription.Status.*;
 import static java.util.stream.Collectors.groupingBy;
 
 import io.gravitee.gateway.api.service.Subscription;
@@ -26,7 +23,6 @@ import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.gateway.services.sync.process.repository.mapper.SubscriptionMapper;
 import io.gravitee.repository.management.api.SubscriptionRepository;
 import io.gravitee.repository.management.api.search.Order;
-import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.SubscriptionCriteria;
 import io.gravitee.repository.management.api.search.builder.SortableBuilder;
 import java.time.Instant;

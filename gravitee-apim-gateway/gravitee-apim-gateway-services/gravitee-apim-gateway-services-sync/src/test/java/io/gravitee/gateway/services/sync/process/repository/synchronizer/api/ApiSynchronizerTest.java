@@ -19,13 +19,8 @@ import static io.gravitee.repository.management.model.Event.EventProperties.API_
 import static io.gravitee.repository.management.model.EventType.PUBLISH_API;
 import static io.gravitee.repository.management.model.EventType.STOP_API;
 import static io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

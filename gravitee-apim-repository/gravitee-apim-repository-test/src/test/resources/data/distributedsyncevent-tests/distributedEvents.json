@@ -37,5 +37,12 @@
     "updatedAt": "2023-06-24T15:25:34.051Z",
     "refId" : "1",
     "refType" : "API"
+  },
+  {
+    "id": "DEFAULT",
+    "payload": "payload",
+    "type": "LICENSE",
+    "syncAction": "DEPLOY",
+    "updatedAt": "2024-01-24T16:35:34.051Z"
   }
 ]
