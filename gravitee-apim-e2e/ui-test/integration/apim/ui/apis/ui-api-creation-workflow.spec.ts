@@ -18,7 +18,7 @@ import faker from '@faker-js/faker';
 
 describe('API creation workflow', () => {
   const apiVersion = `${faker.datatype.number({ min: 1, max: 9 })}.${faker.datatype.number({ min: 1, max: 9 })}`;
-  const apiPath = `/${faker.commerce.productName().replace(/ /g, '_')}`;
+  const apiPath = faker.commerce.productName().replace(/ /g, '_');
   const apiName = faker.commerce.productName();
   let apiId: string;
 
@@ -92,7 +92,7 @@ describe('API creation workflow', () => {
     });
 
     it('should successfully connect to created API', function () {
-      cy.callGateway(`${apiPath}`).then((response) => {
+      cy.callGateway(`/${apiPath}`).then((response) => {
         expect(response.body.message).to.eq('Hello, World!'); // from wiremock
       });
     });
