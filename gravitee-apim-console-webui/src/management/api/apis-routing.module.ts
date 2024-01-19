@@ -18,7 +18,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { NgModule } from '@angular/core';
 
 import { ApiNavigationComponent } from './api-navigation/api-navigation.component';
-import { ApiGeneralInfoComponent } from './general/details/api-general-info.component';
+import { ApiGeneralInfoComponent } from './general-info/api-general-info.component';
 import { ApiGeneralPlanEditComponent } from './general/plans/edit/api-general-plan-edit.component';
 import { ApiGeneralPlanListComponent } from './general/plans/list/api-general-plan-list.component';
 import { ApiGeneralSubscriptionListComponent } from './general/subscriptions/list/api-general-subscription-list.component';

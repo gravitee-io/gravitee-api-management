@@ -35,6 +35,7 @@ import { ApiCreationGetStartedModule } from './creation-get-started/api-creation
 import { ApiCreationV4Module } from './creation-v4/api-creation-v4.module';
 import { ApiDocumentationV4Module } from './documentation-v4/api-documentation-v4.module';
 import { ApisRoutingModule } from './apis-routing.module';
+import { ApiGeneralInfoModule } from './general-info/api-general-info.module';
 
 import { SpecificJsonSchemaTypeModule } from '../../shared/components/specific-json-schema-type/specific-json-schema-type.module';
 import { DocumentationModule } from '../../components/documentation/documentation.module';
@@ -53,6 +54,7 @@ import { AlertsModule } from '../../components/alerts/alerts.module';
     ApiV4PolicyStudioModule,
     ApiRuntimeLogsV4Module,
     ApisGeneralModule,
+    ApiGeneralInfoModule,
     ApiProxyModule,
     ApiEntrypointsV4Module,
     ApiEndpointsModule,

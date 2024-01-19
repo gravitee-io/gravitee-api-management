@@ -20,11 +20,11 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { combineLatest, EMPTY, Subject } from 'rxjs';
 import { catchError, map, takeUntil, tap } from 'rxjs/operators';
 
-import { ApiService } from '../../../../../services-ngx/api.service';
-import { CockpitService, UtmCampaign } from '../../../../../services-ngx/cockpit.service';
-import { PromotionService } from '../../../../../services-ngx/promotion.service';
-import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
-import { ApiV2 } from '../../../../../entities/management-api-v2';
+import { ApiService } from '../../../../services-ngx/api.service';
+import { CockpitService, UtmCampaign } from '../../../../services-ngx/cockpit.service';
+import { PromotionService } from '../../../../services-ngx/promotion.service';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
+import { ApiV2 } from '../../../../entities/management-api-v2';
 
 export type ApiPortalDetailsPromoteDialogData = {
   api: ApiV2;

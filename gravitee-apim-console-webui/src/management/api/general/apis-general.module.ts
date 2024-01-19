@@ -15,19 +15,12 @@
  */
 import { NgModule } from '@angular/core';
 
-import { ApiGeneralInfoModule } from './details/api-general-info.module';
 import { ApiGeneralDocumentationModule } from './documentation/api-general-documentation.module';
 import { ApiGeneralPlansModule } from './plans/api-general-plans.module';
 import { ApiGeneralSubscriptionsModule } from './subscriptions/api-general-subscriptions.module';
 import { ApiGeneralUserGroupModule } from './user-group-access/api-general-user-group.module';
 
 @NgModule({
-  imports: [
-    ApiGeneralInfoModule,
-    ApiGeneralDocumentationModule,
-    ApiGeneralPlansModule,
-    ApiGeneralSubscriptionsModule,
-    ApiGeneralUserGroupModule,
-  ],
+  imports: [ApiGeneralDocumentationModule, ApiGeneralPlansModule, ApiGeneralSubscriptionsModule, ApiGeneralUserGroupModule],
 })
 export class ApisGeneralModule {}

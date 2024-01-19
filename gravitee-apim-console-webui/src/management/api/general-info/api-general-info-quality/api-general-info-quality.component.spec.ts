@@ -23,9 +23,9 @@ import { SimpleChange } from '@angular/core';
 import { ApiGeneralInfoQualityComponent } from './api-general-info-quality.component';
 
 import { ApiGeneralInfoModule } from '../api-general-info.module';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
-import { ApiQualityMetrics } from '../../../../../entities/api';
-import { QualityRule } from '../../../../../entities/qualityRule';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { ApiQualityMetrics } from '../../../../entities/api';
+import { QualityRule } from '../../../../entities/qualityRule';
 
 describe('ApiGeneralInfoQualityComponent', () => {
   const API_ID = 'apiId';

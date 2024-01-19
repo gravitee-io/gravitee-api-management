@@ -19,9 +19,9 @@ import { forEach } from 'lodash';
 import { combineLatest, Subject } from 'rxjs';
 import { takeUntil, tap } from 'rxjs/operators';
 
-import { ApiQualityMetrics } from '../../../../../entities/api';
-import { ApiService } from '../../../../../services-ngx/api.service';
-import { QualityRuleService } from '../../../../../services-ngx/quality-rule.service';
+import { ApiQualityMetrics } from '../../../../entities/api';
+import { ApiService } from '../../../../services-ngx/api.service';
+import { QualityRuleService } from '../../../../services-ngx/quality-rule.service';
 
 @Component({
   selector: 'api-general-info-quality',

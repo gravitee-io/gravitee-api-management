@@ -30,9 +30,9 @@ import { Router } from '@angular/router';
 import { ApiGeneralInfoDangerZoneComponent } from './api-general-info-danger-zone.component';
 
 import { ApiGeneralInfoModule } from '../api-general-info.module';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
-import { Api, fakeApiV2, fakeApiV4 } from '../../../../../entities/management-api-v2';
-import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { Api, fakeApiV2, fakeApiV4 } from '../../../../entities/management-api-v2';
+import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiGeneralInfoDangerZoneComponent', () => {
   const API_ID = 'apiId';

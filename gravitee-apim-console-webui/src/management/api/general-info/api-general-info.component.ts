@@ -35,20 +35,20 @@ import {
   ApiPortalDetailsPromoteDialogData,
 } from './api-general-info-promote-dialog/api-general-info-promote-dialog.component';
 
-import { Category } from '../../../../entities/category/Category';
-import { Constants } from '../../../../entities/Constants';
-import { CategoryService } from '../../../../services-ngx/category.service';
-import { PolicyService } from '../../../../services-ngx/policy.service';
-import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
+import { Category } from '../../../entities/category/Category';
+import { Constants } from '../../../entities/Constants';
+import { CategoryService } from '../../../services-ngx/category.service';
+import { PolicyService } from '../../../services-ngx/policy.service';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import {
   GioApiImportDialogComponent,
   GioApiImportDialogData,
-} from '../../../../shared/components/gio-api-import-dialog/gio-api-import-dialog.component';
-import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
-import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
-import { Api, ApiV2, ApiV4, UpdateApi, UpdateApiV2, UpdateApiV4 } from '../../../../entities/management-api-v2';
-import { Tag } from '../../../../entities/tag/tag';
-import { TagService } from '../../../../services-ngx/tag.service';
+} from '../../../shared/components/gio-api-import-dialog/gio-api-import-dialog.component';
+import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
+import { ApiV2Service } from '../../../services-ngx/api-v2.service';
+import { Api, ApiV2, ApiV4, UpdateApi, UpdateApiV2, UpdateApiV4 } from '../../../entities/management-api-v2';
+import { Tag } from '../../../entities/tag/tag';
+import { TagService } from '../../../services-ngx/tag.service';
 
 @Component({
   selector: 'api-general-info',
