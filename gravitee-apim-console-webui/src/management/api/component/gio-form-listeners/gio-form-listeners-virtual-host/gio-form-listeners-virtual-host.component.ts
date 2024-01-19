@@ -14,11 +14,22 @@
  * limitations under the License.
  */
 import { Component, forwardRef, Input } from '@angular/core';
-import { AbstractControl, FormControl, FormGroup, NG_ASYNC_VALIDATORS, NG_VALUE_ACCESSOR, ValidationErrors } from '@angular/forms';
+import {
+  AbstractControl,
+  AsyncValidatorFn,
+  FormArray,
+  FormControl,
+  FormGroup,
+  NG_ASYNC_VALIDATORS,
+  NG_VALUE_ACCESSOR,
+  ValidationErrors,
+} from '@angular/forms';
 import { escapeRegExp, isEmpty } from 'lodash';
 
 import { GioFormListenersContextPathComponent } from '../gio-form-listeners-context-path/gio-form-listeners-context-path.component';
 import { PathV4 } from '../../../../../entities/management-api-v2';
+import { Observable, of, zip } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 interface InternalPathV4 extends PathV4 {
   _hostSubDomain?: string;
@@ -104,6 +115,36 @@ export class GioFormListenersVirtualHostComponent extends GioFormListenersContex
 
     setTimeout(() => subDomainControl.setErrors(null), 0);
     return inheritErrors;
+  }
+
+  protected listenersAsyncValidator(): AsyncValidatorFn {
+    return (listenerFormArrayControl: FormArray): Observable<ValidationErrors | null> => {
+      const listenerFormArrayControls = listenerFormArrayControl.controls;
+
+      const contextPathsToIgnore = this.pathsToIgnore?.map((p) => p.path) ?? [];
+      const pathValidations$: Observable<ValidationErrors | null>[] = listenerFormArrayControls.map((listenerControl) => {
+        const host = combineSubDomainWithDomain(listenerControl.get('_hostSubDomain').value, listenerControl.get('_hostDomain').value);
+
+        const listenerPathControl = listenerControl.get('path');
+        const contextPathValue = listenerPathControl.value;
+        if (contextPathsToIgnore.includes(contextPathValue)) {
+          return of(null);
+        }
+        return this.apiService.verify({ host, contextPath: contextPathValue });
+      });
+
+      return zip(...pathValidations$).pipe(
+        map((errors: (ValidationErrors | null)[]) => {
+          errors.forEach((error, index) => {
+            setTimeout(() => listenerFormArrayControls.at(index).get('path').setErrors(error), 0);
+          });
+          if (errors.filter((v) => v !== null).length === 0) {
+            return null;
+          }
+          return { listeners: true };
+        }),
+      );
+    };
   }
 }
 
