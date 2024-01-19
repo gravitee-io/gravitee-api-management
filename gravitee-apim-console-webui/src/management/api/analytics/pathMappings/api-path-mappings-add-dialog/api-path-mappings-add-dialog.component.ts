@@ -16,10 +16,10 @@
 
 import { Component, Inject, OnInit } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA, MatLegacyDialogRef as MatDialogRef } from '@angular/material/legacy-dialog';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { EMPTY, Subject } from 'rxjs';
-import { MatTabChangeEvent } from '@angular/material/tabs';
+import { MatLegacyTabChangeEvent as MatTabChangeEvent } from '@angular/material/legacy-tabs';
 
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { isUnique } from '../../../../../shared/utils';

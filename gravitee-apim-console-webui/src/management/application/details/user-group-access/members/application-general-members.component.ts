@@ -15,6 +15,7 @@
  */
 import { Component } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { MatLegacyDialog } from '@angular/material/legacy-dialog';
 import { MatDialog } from '@angular/material/dialog';
 import { combineLatest, EMPTY, Subject } from 'rxjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
@@ -70,6 +71,7 @@ export class ApplicationGeneralMembersComponent {
   constructor(
     private readonly activatedRoute: ActivatedRoute,
     private readonly matDialog: MatDialog,
+    private readonly matLegacyDialog: MatLegacyDialog,
     private readonly applicationMembersService: ApplicationMembersService,
     private readonly formBuilder: UntypedFormBuilder,
     private readonly userService: UsersService,
@@ -141,7 +143,7 @@ export class ApplicationGeneralMembersComponent {
   }
 
   public addMember() {
-    this.matDialog
+    this.matLegacyDialog
       .open<GioUsersSelectorComponent, GioUsersSelectorData, SearchableUser[]>(GioUsersSelectorComponent, {
         width: '500px',
         data: {

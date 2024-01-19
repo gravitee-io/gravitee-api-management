@@ -48,7 +48,7 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
   constructor(
     private readonly formBuilder: UntypedFormBuilder,
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
-    private readonly confirmDialog: MatDialog,
+    private readonly matDialog: MatDialog,
     private readonly stepService: ApiCreationStepService,
     private readonly changeDetectorRef: ChangeDetectorRef,
     private readonly iconService: IconService,
@@ -120,7 +120,7 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
 
     if (previousSelection && !isEqual(newSelection, previousSelection)) {
       // When changing the entrypoint selection, all previously filled steps will be marked as invalid to force user to review the whole configuration.
-      return this.confirmDialog
+      return this.matDialog
         .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
           data: {
             title: 'Are you sure?',

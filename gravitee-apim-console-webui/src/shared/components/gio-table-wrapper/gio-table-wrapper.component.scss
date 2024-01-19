@@ -3,9 +3,9 @@
 @use '@gravitee/ui-particles-angular' as gio;
 @use '../../../scss/gio-layout' as gio-layout;
 
-$background: map.get(gio.$mat-theme, background);
-$foreground: map.get(gio.$mat-theme, foreground);
-$typography: map.get(gio.$mat-theme, typography);
+$background: map.get(gio.$mat-legacy-theme, background);
+$foreground: map.get(gio.$mat-legacy-theme, foreground);
+$typography: map.get(gio.$mat-legacy-theme, typography);
 
 :host {
   display: block;

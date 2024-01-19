@@ -16,6 +16,7 @@
 
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { MatLegacyDialog } from '@angular/material/legacy-dialog';
 import { MatDialog } from '@angular/material/dialog';
 import { of, Subject } from 'rxjs';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
@@ -56,8 +57,8 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
   constructor(
     private readonly formBuilder: UntypedFormBuilder,
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
+    private readonly matLegacyDialog: MatLegacyDialog,
     private readonly matDialog: MatDialog,
-    private readonly confirmDialog: MatDialog,
     private readonly stepService: ApiCreationStepService,
     private readonly changeDetectorRef: ChangeDetectorRef,
     private readonly iconService: IconService,
@@ -112,7 +113,7 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
 
     if (previousSelection && !isEqual(newSelection, previousSelection)) {
       // When changing the entrypoint selection, all previously filled steps will be marked as invalid to force user to review the whole configuration.
-      return this.confirmDialog
+      return this.matDialog
         .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
           data: {
             title: 'Are you sure?',
@@ -158,7 +159,7 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
       .pipe(
         catchError(() => of({})),
         tap((pluginMoreInformation) => {
-          this.matDialog
+          this.matLegacyDialog
             .open<GioConnectorDialogComponent, GioConnectorDialogData, boolean>(GioConnectorDialogComponent, {
               data: {
                 name: endpoint.name,

@@ -20,10 +20,11 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { MatRadioGroupHarness } from '@angular/material/radio/testing';
+import { MatLegacyRadioGroupHarness as MatRadioGroupHarness } from '@angular/material/legacy-radio/testing';
+import { MatLegacyDialogHarness } from '@angular/material/legacy-dialog/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
-import { MatButtonHarness } from '@angular/material/button/testing';
-import { MatInputHarness } from '@angular/material/input/testing';
+import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
+import { MatLegacyInputHarness as MatInputHarness } from '@angular/material/legacy-input/testing';
 import { set } from 'lodash';
 import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute } from '@angular/router';
@@ -210,7 +211,7 @@ describe('ApiSubscriptionEditComponent', () => {
       await harness.openTransferDialog();
 
       const transferDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
-        MatDialogHarness.with({ selector: '#transferSubscriptionDialog' }),
+        MatLegacyDialogHarness.with({ selector: '#transferSubscriptionDialog' }),
       );
       expectApiPlansList(
         [
@@ -261,7 +262,7 @@ describe('ApiSubscriptionEditComponent', () => {
       await harness.openTransferDialog();
 
       const transferDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
-        MatDialogHarness.with({ selector: '#transferSubscriptionDialog' }),
+        MatLegacyDialogHarness.with({ selector: '#transferSubscriptionDialog' }),
       );
       expectApiPlansList(
         [
@@ -393,7 +394,7 @@ describe('ApiSubscriptionEditComponent', () => {
       await harness.openChangeEndDateDialog();
 
       const changeEndDateDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
-        MatDialogHarness.with({ selector: '#changeEndDateDialog' }),
+        MatLegacyDialogHarness.with({ selector: '#changeEndDateDialog' }),
       );
       expect(await changeEndDateDialog.getTitleText()).toEqual('Change the subscription end date');
 
@@ -443,7 +444,7 @@ describe('ApiSubscriptionEditComponent', () => {
       await harness.openChangeEndDateDialog();
 
       const changeEndDateDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
-        MatDialogHarness.with({ selector: '#changeEndDateDialog' }),
+        MatLegacyDialogHarness.with({ selector: '#changeEndDateDialog' }),
       );
 
       const datepicker = await changeEndDateDialog.getHarness(MatInputHarness.with({ selector: '[formControlName="endDate"]' }));
@@ -485,7 +486,7 @@ describe('ApiSubscriptionEditComponent', () => {
       await harness.openChangeEndDateDialog();
 
       const changeEndDateDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
-        MatDialogHarness.with({ selector: '#changeEndDateDialog' }),
+        MatLegacyDialogHarness.with({ selector: '#changeEndDateDialog' }),
       );
       const cancelBtn = await changeEndDateDialog.getHarness(MatButtonHarness.with({ text: 'Cancel' }));
       await cancelBtn.click();
@@ -553,7 +554,7 @@ describe('ApiSubscriptionEditComponent', () => {
       await harness.openValidateDialog();
 
       const validateDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
-        MatDialogHarness.with({ selector: '#validateSubscriptionDialog' }),
+        MatLegacyDialogHarness.with({ selector: '#validateSubscriptionDialog' }),
       );
       expect(await validateDialog.getTitleText()).toEqual('Validate your subscription');
 
@@ -574,7 +575,7 @@ describe('ApiSubscriptionEditComponent', () => {
       await harness.openValidateDialog();
 
       const validateDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
-        MatDialogHarness.with({ selector: '#validateSubscriptionDialog' }),
+        MatLegacyDialogHarness.with({ selector: '#validateSubscriptionDialog' }),
       );
 
       const datePicker = await validateDialog.getHarness(MatInputHarness.with({ selector: '[formControlName="dateTimeRange"]' }));
@@ -644,7 +645,7 @@ describe('ApiSubscriptionEditComponent', () => {
       await harness.openValidateDialog();
 
       const validateDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
-        MatDialogHarness.with({ selector: '#validateSubscriptionDialog' }),
+        MatLegacyDialogHarness.with({ selector: '#validateSubscriptionDialog' }),
       );
       const cancelBtn = await validateDialog.getHarness(MatButtonHarness.with({ text: 'Cancel' }));
       await cancelBtn.click();
@@ -655,7 +656,7 @@ describe('ApiSubscriptionEditComponent', () => {
       await harness.openValidateDialog();
 
       const validateDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
-        MatDialogHarness.with({ selector: '#validateSubscriptionDialog' }),
+        MatLegacyDialogHarness.with({ selector: '#validateSubscriptionDialog' }),
       );
 
       await validateDialog
@@ -688,7 +689,7 @@ describe('ApiSubscriptionEditComponent', () => {
       await harness.openRejectDialog();
 
       const rejectDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
-        MatDialogHarness.with({ selector: '#rejectSubscriptionDialog' }),
+        MatLegacyDialogHarness.with({ selector: '#rejectSubscriptionDialog' }),
       );
       expect(await rejectDialog.getTitleText()).toEqual('Reject your subscription');
 
@@ -707,7 +708,7 @@ describe('ApiSubscriptionEditComponent', () => {
       await harness.openRejectDialog();
 
       const rejectDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
-        MatDialogHarness.with({ selector: '#rejectSubscriptionDialog' }),
+        MatLegacyDialogHarness.with({ selector: '#rejectSubscriptionDialog' }),
       );
 
       const formField = await rejectDialog.getHarness(MatInputHarness);
@@ -728,7 +729,7 @@ describe('ApiSubscriptionEditComponent', () => {
       await harness.openRejectDialog();
 
       const rejectDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
-        MatDialogHarness.with({ selector: '#rejectSubscriptionDialog' }),
+        MatLegacyDialogHarness.with({ selector: '#rejectSubscriptionDialog' }),
       );
       const cancelBtn = await rejectDialog.getHarness(MatButtonHarness.with({ text: 'Cancel' }));
       await cancelBtn.click();
@@ -771,7 +772,7 @@ describe('ApiSubscriptionEditComponent', () => {
       await harness.openRenewApiKeyDialog();
 
       const renewDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
-        MatDialogHarness.with({ selector: '#renewApiKeysDialog' }),
+        MatLegacyDialogHarness.with({ selector: '#renewApiKeysDialog' }),
       );
       expect(await renewDialog.getTitleText()).toEqual('Renew your API Key');
 
@@ -798,7 +799,7 @@ describe('ApiSubscriptionEditComponent', () => {
       await harness.openRenewApiKeyDialog();
 
       const renewDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
-        MatDialogHarness.with({ selector: '#renewApiKeysDialog' }),
+        MatLegacyDialogHarness.with({ selector: '#renewApiKeysDialog' }),
       );
 
       const apiKeyValidation = await renewDialog.getHarness(ApiKeyValidationHarness);
@@ -822,7 +823,7 @@ describe('ApiSubscriptionEditComponent', () => {
       await harness.openRenewApiKeyDialog();
 
       const renewDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
-        MatDialogHarness.with({ selector: '#renewApiKeysDialog' }),
+        MatLegacyDialogHarness.with({ selector: '#renewApiKeysDialog' }),
       );
 
       const cancelBtn = await renewDialog.getHarness(MatButtonHarness.with({ text: 'Cancel' }));
@@ -912,7 +913,7 @@ describe('ApiSubscriptionEditComponent', () => {
       await expireBtn.click();
 
       const expireApiKeyDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
-        MatDialogHarness.with({ selector: '#expireApiKeyDialog' }),
+        MatLegacyDialogHarness.with({ selector: '#expireApiKeyDialog' }),
       );
       expect(await expireApiKeyDialog.getTitleText()).toEqual(`Change your API Key's expiration date`);
 
@@ -946,7 +947,7 @@ describe('ApiSubscriptionEditComponent', () => {
       await expireBtn.click();
 
       const expireApiKeyDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
-        MatDialogHarness.with({ selector: '#expireApiKeyDialog' }),
+        MatLegacyDialogHarness.with({ selector: '#expireApiKeyDialog' }),
       );
 
       const datepicker = await expireApiKeyDialog.getHarness(MatInputHarness.with({ selector: '[formControlName="expirationDate"]' }));
@@ -977,7 +978,7 @@ describe('ApiSubscriptionEditComponent', () => {
       await harness.getExpireApiKeyBtn(0).then((btn) => btn.click());
 
       const changeEndDateDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
-        MatDialogHarness.with({ selector: '#expireApiKeyDialog' }),
+        MatLegacyDialogHarness.with({ selector: '#expireApiKeyDialog' }),
       );
       const cancelBtn = await changeEndDateDialog.getHarness(MatButtonHarness.with({ text: 'Cancel' }));
       await cancelBtn.click();

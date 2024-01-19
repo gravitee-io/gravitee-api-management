@@ -22,7 +22,7 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { ActivatedRoute } from '@angular/router';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
-import { MatFormFieldHarness } from '@angular/material/form-field/testing';
+import { MatLegacyFormFieldHarness as MatFormFieldHarness } from '@angular/material/legacy-form-field/testing';
 
 import { ApplicationGeneralGroupsComponent } from './application-general-groups.component';
 

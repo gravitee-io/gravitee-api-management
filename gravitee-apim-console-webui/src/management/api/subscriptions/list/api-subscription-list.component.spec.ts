@@ -21,10 +21,10 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { Component, ViewChild } from '@angular/core';
 import { ComponentFixture, fakeAsync, flush, TestBed, tick } from '@angular/core/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
-import { MatTableHarness } from '@angular/material/table/testing';
+import { MatLegacyTableHarness as MatTableHarness } from '@angular/material/legacy-table/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { set } from 'lodash';
-import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApiSubscriptionListComponent } from './api-subscription-list.component';

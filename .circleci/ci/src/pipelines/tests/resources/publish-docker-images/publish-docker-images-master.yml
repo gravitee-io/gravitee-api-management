@@ -265,7 +265,7 @@ jobs:
         description: the name of the image
       node_version:
         type: string
-        default: "16.10"
+        default: "16.13"
         description: Node version to use for executor
     docker:
       - image: cimg/node:<< parameters.node_version >>
@@ -297,7 +297,7 @@ jobs:
             - << parameters.apim-ui-project >>/dist
   job-publish-pr-env-urls:
     docker:
-      - image: cimg/node:16.10
+      - image: cimg/node:16.13
     resource_class: small
     steps:
       - checkout

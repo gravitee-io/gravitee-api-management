@@ -99,7 +99,7 @@ jobs:
           jobName: job-validate
   job-danger-js:
     docker:
-      - image: cimg/node:16.10
+      - image: cimg/node:16.13
     resource_class: small
     steps:
       - checkout

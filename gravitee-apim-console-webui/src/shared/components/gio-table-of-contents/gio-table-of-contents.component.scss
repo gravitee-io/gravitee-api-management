@@ -2,13 +2,13 @@
 @use '@angular/material' as mat;
 @use '@gravitee/ui-particles-angular' as gio;
 
-$primary: map.get(gio.$mat-theme, primary);
-$accent: map.get(gio.$mat-theme, accent);
-$warn: map.get(gio.$mat-theme, warn);
-$background: map.get(gio.$mat-theme, background);
-$foreground: map.get(gio.$mat-theme, foreground);
-$is-dark-theme: map.get(gio.$mat-theme, is-dark);
-$typography: map.get(gio.$mat-theme, typography);
+$primary: map.get(gio.$mat-legacy-theme, primary);
+$accent: map.get(gio.$mat-legacy-theme, accent);
+$warn: map.get(gio.$mat-legacy-theme, warn);
+$background: map.get(gio.$mat-legacy-theme, background);
+$foreground: map.get(gio.$mat-legacy-theme, foreground);
+$is-dark-theme: map.get(gio.$mat-legacy-theme, is-dark);
+$typography: map.get(gio.$mat-legacy-theme, typography);
 
 :host {
   font-size: 13px;

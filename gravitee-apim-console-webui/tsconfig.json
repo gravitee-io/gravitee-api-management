@@ -15,7 +15,7 @@
     "removeComments": false,
     "skipLibCheck": true,
     "sourceMap": true,
-    "target": "es2020",
+    "target": "ES2022",
     "types": ["jest", "angular-mocks", "node"],
     "resolveJsonModule": true,
     "moduleResolution": "Node",
@@ -23,7 +23,8 @@
     "allowJs": true,
     "checkJs": false,
     "module": "es2020",
-    "importHelpers": true
+    "importHelpers": true,
+    "useDefineForClassFields": false
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,

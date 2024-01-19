@@ -18,6 +18,7 @@ import { Component, Input, OnInit } from '@angular/core';
 import { combineLatest, EMPTY, Observable, Subject } from 'rxjs';
 import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { MatLegacyDialog } from '@angular/material/legacy-dialog';
 import { MatDialog } from '@angular/material/dialog';
 
 import {
@@ -75,7 +76,11 @@ export class NotificationSettingsListComponent implements OnInit {
 
   @Input() notificationSettingsListServices: NotificationSettingsListServices;
 
-  constructor(private readonly matDialog: MatDialog, private readonly snackBarService: SnackBarService) {}
+  constructor(
+    private readonly matDialog: MatDialog,
+    private readonly matLegacyDialog: MatLegacyDialog,
+    private readonly snackBarService: SnackBarService,
+  ) {}
 
   public ngOnInit() {
     this.isLoadingData = true;
@@ -138,7 +143,7 @@ export class NotificationSettingsListComponent implements OnInit {
   }
 
   addNotification() {
-    this.matDialog
+    this.matLegacyDialog
       .open<NotificationSettingsAddDialogComponent, NotificationSettingsAddDialogData, NotificationSettingsAddDialogResult>(
         NotificationSettingsAddDialogComponent,
         {

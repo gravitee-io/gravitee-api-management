@@ -4,7 +4,7 @@
 
 @use '../../../../scss/gio-layout' as gio-layout;
 
-$background: map.get(gio.$mat-theme, background);
+$background: map.get(gio.$mat-legacy-theme, background);
 $infoColor: mat.get-color-from-palette(gio.$mat-primary-palette, default);
 
 :host {

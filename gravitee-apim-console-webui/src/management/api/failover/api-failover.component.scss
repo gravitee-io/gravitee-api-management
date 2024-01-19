@@ -8,8 +8,8 @@
   @include gio-layout.gio-responsive-margin-container;
 }
 
-$typography: map.get(gio.$mat-theme, typography);
-$foreground: map.get(gio.$mat-theme, foreground);
+$typography: map.get(gio.$mat-legacy-theme, typography);
+$foreground: map.get(gio.$mat-legacy-theme, foreground);
 
 .failover-card {
   &__enable-toggle {

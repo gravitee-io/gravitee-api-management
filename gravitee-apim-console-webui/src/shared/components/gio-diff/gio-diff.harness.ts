@@ -15,7 +15,7 @@
  */
 
 import { BaseHarnessFilters, HarnessPredicate } from '@angular/cdk/testing';
-import { MatFormFieldControlHarness } from '@angular/material/form-field/testing';
+import { MatLegacyFormFieldControlHarness as MatFormFieldControlHarness } from '@angular/material/legacy-form-field/testing';
 import { MatButtonToggleGroupHarness } from '@angular/material/button-toggle/testing';
 
 export class GioDiffHarness extends MatFormFieldControlHarness {

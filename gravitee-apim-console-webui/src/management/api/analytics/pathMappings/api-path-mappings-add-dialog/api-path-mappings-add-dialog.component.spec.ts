@@ -18,11 +18,11 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { MatButtonHarness } from '@angular/material/button/testing';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { MatInputHarness } from '@angular/material/input/testing';
-import { MatTabHarness } from '@angular/material/tabs/testing';
-import { MatRadioGroupHarness } from '@angular/material/radio/testing';
+import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
+import { MatLegacyDialogRef as MatDialogRef, MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA } from '@angular/material/legacy-dialog';
+import { MatLegacyInputHarness as MatInputHarness } from '@angular/material/legacy-input/testing';
+import { MatLegacyTabHarness as MatTabHarness } from '@angular/material/legacy-tabs/testing';
+import { MatLegacyRadioGroupHarness as MatRadioGroupHarness } from '@angular/material/legacy-radio/testing';
 
 import { ApiPathMappingsAddDialogComponent } from './api-path-mappings-add-dialog.component';
 

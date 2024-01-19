@@ -18,6 +18,7 @@ import { EMPTY, Subject } from 'rxjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { remove, sortBy } from 'lodash';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { MatLegacyDialog } from '@angular/material/legacy-dialog';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute } from '@angular/router';
 
@@ -59,6 +60,7 @@ export class ApiPathMappingsComponent implements OnInit, OnDestroy {
     private readonly activatedRoute: ActivatedRoute,
     private readonly apiService: ApiV2Service,
     private readonly matDialog: MatDialog,
+    private readonly matLegacyDialog: MatLegacyDialog,
     private readonly snackBarService: SnackBarService,
     private documentationService: DocumentationService,
   ) {}
@@ -129,7 +131,7 @@ export class ApiPathMappingsComponent implements OnInit, OnDestroy {
   }
 
   addPathMapping() {
-    this.matDialog
+    this.matLegacyDialog
       .open<ApiPathMappingsAddDialogComponent, ApiPathMappingsAddDialogData>(ApiPathMappingsAddDialogComponent, {
         data: {
           api: this.api,
@@ -147,7 +149,7 @@ export class ApiPathMappingsComponent implements OnInit, OnDestroy {
   }
 
   public editPathMapping(path: string): void {
-    this.matDialog
+    this.matLegacyDialog
       .open<ApiPathMappingsEditDialogComponent, ApiPathMappingsEditDialogData>(ApiPathMappingsEditDialogComponent, {
         data: {
           api: this.api,

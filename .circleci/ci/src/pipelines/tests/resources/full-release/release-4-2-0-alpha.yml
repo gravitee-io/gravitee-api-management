@@ -232,7 +232,7 @@ jobs:
         description: the name of the image
       node_version:
         type: string
-        default: "16.10"
+        default: "16.13"
         description: Node version to use for executor
     docker:
       - image: cimg/node:<< parameters.node_version >>
@@ -269,7 +269,7 @@ jobs:
         default: ""
         description: the name of the UI project to publish
     docker:
-      - image: cimg/node:16.10
+      - image: cimg/node:16.13
     resource_class: small
     steps:
       - attach_workspace:
@@ -415,7 +415,7 @@ jobs:
           to: s3://gravitee-releases-downloads/pre-releases/graviteeio-apim
   job-release-helm:
     docker:
-      - image: cimg/node:16.10
+      - image: cimg/node:16.13
     resource_class: medium
     steps:
       - checkout
@@ -529,7 +529,7 @@ jobs:
             docker run --rm -v "${GIT_GRAVITEE_PACKAGES_REPO}/apim/4.x:/packages" -e PACKAGECLOUD_TOKEN=${GIO_PACKAGECLOUD_TOKEN} digitalocean/packagecloud push --yes --skip-errors --verbose graviteeio/rpms/el/7 /packages/*.rpm
   job-release-notes-apim:
     docker:
-      - image: cimg/node:16.10
+      - image: cimg/node:16.13
     resource_class: medium
     steps:
       - checkout

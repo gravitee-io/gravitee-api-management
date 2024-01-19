@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import { BaseHarnessFilters, ComponentHarness, HarnessPredicate } from '@angular/cdk/testing';
-import { MatButtonHarness } from '@angular/material/button/testing';
-import { MatAutocompleteHarness } from '@angular/material/autocomplete/testing';
+import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
+import { MatLegacyAutocompleteHarness as MatAutocompleteHarness } from '@angular/material/legacy-autocomplete/testing';
 
 /** A set of criteria that can be used to filter a list of `GioUsersSelectorHarness` instances. */
 export type GioUsersSelectorHarnessFilters = BaseHarnessFilters;

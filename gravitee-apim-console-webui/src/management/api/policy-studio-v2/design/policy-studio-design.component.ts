@@ -18,7 +18,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { combineLatest, Subject } from 'rxjs';
 import { takeUntil, tap } from 'rxjs/operators';
 import '@gravitee/ui-components/wc/gv-design';
-import { MatDialog } from '@angular/material/dialog';
+import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
 import { GioLicenseService } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute, Router } from '@angular/router';
 import { castArray } from 'lodash';

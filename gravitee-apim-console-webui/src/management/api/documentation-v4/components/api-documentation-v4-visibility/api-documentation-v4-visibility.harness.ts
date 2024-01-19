@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
-import { MatRadioButtonHarness, MatRadioGroupHarness } from '@angular/material/radio/testing';
+import {
+  MatLegacyRadioButtonHarness as MatRadioButtonHarness,
+  MatLegacyRadioGroupHarness as MatRadioGroupHarness,
+} from '@angular/material/legacy-radio/testing';
 
 export class ApiDocumentationV4VisibilityHarness extends ComponentHarness {
   public static hostSelector = 'api-documentation-visibility';

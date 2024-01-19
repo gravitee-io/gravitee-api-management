@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
-import { MatSelectHarness } from '@angular/material/select/testing';
-import { MatChipHarness, MatChipListHarness } from '@angular/material/chips/testing';
+import { MatLegacySelectHarness as MatSelectHarness } from '@angular/material/legacy-select/testing';
+import {
+  MatLegacyChipHarness as MatChipHarness,
+  MatLegacyChipListHarness as MatChipListHarness,
+} from '@angular/material/legacy-chips/testing';
 import { GioFormTagsInputHarness } from '@gravitee/ui-particles-angular';
-import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
 
 export class ApiRuntimeLogsQuickFiltersHarness extends ComponentHarness {
   static hostSelector = 'api-runtime-logs-quick-filters';

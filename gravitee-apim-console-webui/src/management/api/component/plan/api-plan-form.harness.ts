@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
-import { MatInputHarness } from '@angular/material/input/testing';
+import { MatLegacyInputHarness as MatInputHarness } from '@angular/material/legacy-input/testing';
 import { GioFormTagsInputHarness } from '@gravitee/ui-particles-angular';
-import { MatSelectHarness } from '@angular/material/select/testing';
-import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
+import { MatLegacySelectHarness as MatSelectHarness } from '@angular/material/legacy-select/testing';
+import { MatLegacySlideToggleHarness as MatSlideToggleHarness } from '@angular/material/legacy-slide-toggle/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
-import { MatFormFieldHarness } from '@angular/material/form-field/testing';
+import { MatLegacyFormFieldHarness as MatFormFieldHarness } from '@angular/material/legacy-form-field/testing';
 
 import { Tag } from '../../../../entities/tag/tag';
 import { CONSTANTS_TESTING } from '../../../../shared/testing';

@@ -15,7 +15,7 @@
  */
 
 import { ComponentHarness } from '@angular/cdk/testing';
-import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
 
 export class ApiDocumentationV4EmptyStateHarness extends ComponentHarness {
   static hostSelector = 'api-documentation-empty-state';

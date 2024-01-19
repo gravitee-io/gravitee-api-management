@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
-import { MatInputHarness } from '@angular/material/input/testing';
-import { MatFormFieldHarness } from '@angular/material/form-field/testing';
+import { MatLegacyInputHarness as MatInputHarness } from '@angular/material/legacy-input/testing';
+import { MatLegacyFormFieldHarness as MatFormFieldHarness } from '@angular/material/legacy-form-field/testing';
 
 export class ApiKeyValidationHarness extends ComponentHarness {
   static hostSelector = 'api-key-validation';

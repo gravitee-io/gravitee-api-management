@@ -16,6 +16,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { Subject } from 'rxjs';
+import { MatLegacyDialog } from '@angular/material/legacy-dialog';
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -60,6 +61,7 @@ export class TasksComponent implements OnInit, OnDestroy {
     private readonly taskService: TaskService,
     private readonly promotionService: PromotionService,
     private readonly matDialog: MatDialog,
+    private readonly matLegacyDialog: MatLegacyDialog,
     private readonly snackBarService: SnackBarService,
   ) {}
 
@@ -124,7 +126,7 @@ export class TasksComponent implements OnInit, OnDestroy {
 
   openRejectDialog(task: TaskData) {
     const { promotionId } = task.data as PromotionApprovalTaskData;
-    this.matDialog
+    this.matLegacyDialog
       .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
         width: '500px',
         data: {

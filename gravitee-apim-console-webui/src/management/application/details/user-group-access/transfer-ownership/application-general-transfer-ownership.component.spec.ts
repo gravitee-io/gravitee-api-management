@@ -23,8 +23,8 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { ActivatedRoute } from '@angular/router';
 import { MatButtonToggleGroupHarness } from '@angular/material/button-toggle/testing';
-import { MatSelectHarness } from '@angular/material/select/testing';
-import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatLegacySelectHarness as MatSelectHarness } from '@angular/material/legacy-select/testing';
+import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 
 import { ApplicationGeneralTransferOwnershipComponent } from './application-general-transfer-ownership.component';

@@ -25,7 +25,7 @@ import {
   ValidationErrors,
   ValidatorFn,
 } from '@angular/forms';
-import { MatFormFieldControl } from '@angular/material/form-field';
+import { MatLegacyFormFieldControl as MatFormFieldControl } from '@angular/material/legacy-form-field';
 import { isEmpty } from 'lodash';
 import { Subject } from 'rxjs';
 import { debounceTime, takeUntil } from 'rxjs/operators';
@@ -133,7 +133,7 @@ export class GioFormColorInputComponent implements MatFormFieldControl<Color>, C
   set disabled(dis) {
     this._disabled = coerceBooleanProperty(dis);
 
-    dis ? this.colorFormControl.disable() : this.colorFormControl.enable();
+    dis ? this.colorFormControl.disable({ emitEvent: false }) : this.colorFormControl.enable({ emitEvent: false });
 
     this.stateChanges.next();
   }
@@ -208,6 +208,7 @@ export class GioFormColorInputComponent implements MatFormFieldControl<Color>, C
   // From ControlValueAccessor interface
   writeValue(value: string): void {
     this._value = value;
+    this._onChange(value);
     this.colorFormControl.setValue(value, { emitEvent: false });
   }
 

@@ -3,7 +3,7 @@
 @use '@gravitee/ui-particles-angular' as gio;
 @use '../../../../../scss/gio-layout' as gio-layout;
 
-$typography: map.get(gio.$mat-theme, typography);
+$typography: map.get(gio.$mat-legacy-theme, typography);
 
 .step-4-security-1-plans-list {
   &__header {

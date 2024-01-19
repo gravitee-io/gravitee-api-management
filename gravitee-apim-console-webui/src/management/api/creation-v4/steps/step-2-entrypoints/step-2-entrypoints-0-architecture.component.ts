@@ -44,7 +44,7 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
   constructor(
     private readonly formBuilder: UntypedFormBuilder,
     private readonly stepService: ApiCreationStepService,
-    private readonly confirmDialog: MatDialog,
+    private readonly matDialog: MatDialog,
     private readonly licenseService: GioLicenseService,
   ) {}
 
@@ -73,7 +73,7 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
 
     if (previousType && selectedType !== previousType) {
       // When changing the type, all previously filled steps must be deleted to restart from scratch.
-      this.confirmDialog
+      this.matDialog
         .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
           data: {
             title: 'Are you sure?',

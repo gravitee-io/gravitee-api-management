@@ -17,13 +17,13 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { MatTableHarness } from '@angular/material/table/testing';
+import { MatLegacyTableHarness as MatTableHarness } from '@angular/material/legacy-table/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
-import { MatDialogModule } from '@angular/material/dialog';
-import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
+import { MatLegacyDialogModule as MatDialogModule } from '@angular/material/legacy-dialog';
+import { MatLegacySlideToggleHarness as MatSlideToggleHarness } from '@angular/material/legacy-slide-toggle/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { GioConfirmDialogHarness, GioLicenseTestingModule } from '@gravitee/ui-particles-angular';
-import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 
 import { ClientRegistrationProvidersComponent } from './client-registration-providers.component';

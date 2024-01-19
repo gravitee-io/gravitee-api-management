@@ -15,9 +15,9 @@
  */
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
-import { MatTabsModule } from '@angular/material/tabs';
+import { MatLegacyTabsModule as MatTabsModule } from '@angular/material/legacy-tabs';
 import { ReactiveFormsModule } from '@angular/forms';
-import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatLegacySnackBarModule as MatSnackBarModule } from '@angular/material/legacy-snack-bar';
 import { GioSaveBarModule, GioConfirmDialogModule, GioIconsModule, GioLicenseModule } from '@gravitee/ui-particles-angular';
 import { RouterModule } from '@angular/router';
 

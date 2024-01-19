@@ -105,9 +105,7 @@
       </div>
 
       <div *ngFor="let policy of policies" class="configs__checkbox policies-section" formGroupName="importPolicies">
-        <mat-checkbox [formControlName]="policy.id" [disabled]="!configsForm.get('importPolicyPaths').value"
-          >Apply {{ policy.name }} policy</mat-checkbox
-        >
+        <mat-checkbox [formControlName]="policy.id">Apply {{ policy.name }} policy</mat-checkbox>
         <div class="configs__checkbox__warn">This will overwrite all the existing policy.</div>
       </div>
     </div>

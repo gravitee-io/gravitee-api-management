@@ -45,7 +45,13 @@
     padding: 2px 6px;
   }
 
-  &__list-item:hover {
-    background-color: transparent;
+  &__list-item {
+    &__meta {
+      align-self: center;
+    }
+
+    &:hover {
+      background-color: transparent;
+    }
   }
 }

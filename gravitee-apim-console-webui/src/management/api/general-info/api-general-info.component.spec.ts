@@ -24,14 +24,14 @@ import {
   GioSaveBarHarness,
   LICENSE_CONFIGURATION_TESTING,
 } from '@gravitee/ui-particles-angular';
-import { MatInputHarness } from '@angular/material/input/testing';
+import { MatLegacyInputHarness as MatInputHarness } from '@angular/material/legacy-input/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
-import { MatSelectHarness } from '@angular/material/select/testing';
+import { MatLegacySelectHarness as MatSelectHarness } from '@angular/material/legacy-select/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
-import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
-import { MatButtonHarness } from '@angular/material/button/testing';
-import { MatDialogHarness } from '@angular/material/dialog/testing';
-import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
+import { MatLegacySlideToggleHarness as MatSlideToggleHarness } from '@angular/material/legacy-slide-toggle/testing';
+import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
+import { MatLegacyDialogHarness as MatDialogHarness } from '@angular/material/legacy-dialog/testing';
+import { MatLegacyCheckboxHarness as MatCheckboxHarness } from '@angular/material/legacy-checkbox/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApiGeneralInfoModule } from './api-general-info.module';

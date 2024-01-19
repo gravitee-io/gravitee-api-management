@@ -17,7 +17,7 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { EMPTY, of, Subject } from 'rxjs';
-import { MatDialog } from '@angular/material/dialog';
+import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { CockpitService, UtmCampaign } from '../../../services-ngx/cockpit.service';

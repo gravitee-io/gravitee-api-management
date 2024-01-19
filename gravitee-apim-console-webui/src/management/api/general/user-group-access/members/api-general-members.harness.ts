@@ -14,12 +14,19 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
-import { MatCellHarness, MatRowHarness, MatTableHarness } from '@angular/material/table/testing';
+import {
+  MatLegacyCellHarness as MatCellHarness,
+  MatLegacyRowHarness as MatRowHarness,
+  MatLegacyTableHarness as MatTableHarness,
+} from '@angular/material/legacy-table/testing';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
-import { MatSelectHarness } from '@angular/material/select/testing';
-import { MatOptionHarness, OptionHarnessFilters } from '@angular/material/core/testing';
-import { MatButtonHarness } from '@angular/material/button/testing';
-import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
+import { MatLegacySelectHarness as MatSelectHarness } from '@angular/material/legacy-select/testing';
+import {
+  MatLegacyOptionHarness as MatOptionHarness,
+  LegacyOptionHarnessFilters as OptionHarnessFilters,
+} from '@angular/material/legacy-core/testing';
+import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
+import { MatLegacySlideToggleHarness as MatSlideToggleHarness } from '@angular/material/legacy-slide-toggle/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 
 import { GioUsersSelectorHarness } from '../../../../../shared/components/gio-users-selector/gio-users-selector.harness';

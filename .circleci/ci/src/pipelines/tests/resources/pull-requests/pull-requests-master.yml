@@ -218,7 +218,7 @@ jobs:
           jobName: job-validate
   job-danger-js:
     docker:
-      - image: cimg/node:16.10
+      - image: cimg/node:16.13
     resource_class: small
     steps:
       - checkout
@@ -513,7 +513,7 @@ jobs:
         description: Resource class to use for executor
       node_version:
         type: string
-        default: "16.10"
+        default: "16.13"
         description: Node version to use for executor
     docker:
       - image: cimg/node:<< parameters.node_version >>
@@ -557,7 +557,7 @@ jobs:
         description: the name of the image
       node_version:
         type: string
-        default: "16.10"
+        default: "16.13"
         description: Node version to use for executor
     docker:
       - image: cimg/node:<< parameters.node_version >>
@@ -589,7 +589,7 @@ jobs:
             - << parameters.apim-ui-project >>/dist
   job-console-webui-build-storybook:
     docker:
-      - image: cimg/node:16.10
+      - image: cimg/node:16.13
     resource_class: large
     steps:
       - checkout
@@ -608,7 +608,7 @@ jobs:
             - gravitee-apim-console-webui/storybook-static
   job-console-webui-chromatic-deployment:
     docker:
-      - image: cimg/node:16.10
+      - image: cimg/node:16.13
     resource_class: small
     steps:
       - checkout
@@ -721,7 +721,7 @@ jobs:
             - gravitee-apim-e2e/lib/portal-webclient-sdk
   job-e2e-lint-build:
     docker:
-      - image: cimg/node:16.10
+      - image: cimg/node:16.13
     resource_class: small
     steps:
       - checkout
@@ -819,7 +819,7 @@ jobs:
           path: ./gravitee-apim-e2e/.logs
   job-perf-lint-build:
     docker:
-      - image: cimg/node:16.10
+      - image: cimg/node:16.13
     resource_class: small
     steps:
       - checkout
@@ -907,7 +907,7 @@ jobs:
           jobName: job-publish-on-nexus
   job-release-helm:
     docker:
-      - image: cimg/node:16.10
+      - image: cimg/node:16.13
     resource_class: medium
     steps:
       - checkout
