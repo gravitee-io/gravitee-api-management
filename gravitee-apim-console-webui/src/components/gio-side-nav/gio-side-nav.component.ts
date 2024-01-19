@@ -48,6 +48,8 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
   public environments: SelectorItem[] = [];
 
   public currentEnv: Environment;
+  public licenseExpirationDate$: Observable<Date>;
+  public licenseExpirationNotificationEnabled = true;
 
   constructor(
     private readonly permissionService: GioPermissionService,
@@ -73,6 +75,12 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
           this.footerMenuItems = this.buildFooterMenuItems();
         },
       });
+
+    if (this.constants.org.settings?.licenseExpirationNotification?.enabled !== undefined) {
+      this.licenseExpirationNotificationEnabled = this.constants.org.settings.licenseExpirationNotification.enabled;
+    }
+
+    this.licenseExpirationDate$ = this.gioLicenseService.getExpiresAt$().pipe(distinctUntilChanged(), takeUntil(this.unsubscribe$));
   }
 
   ngOnDestroy(): void {

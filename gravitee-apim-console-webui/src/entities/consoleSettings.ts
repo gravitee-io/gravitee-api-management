@@ -29,6 +29,7 @@ export interface ConsoleSettings {
   theme?: ConsoleSettingsTheme;
   emulateV4Engine?: ConsoleSettingsV4EmulationEngine;
   alertEngine?: ConsoleSettingsAlertEngine;
+  licenseExpirationNotification?: ConsoleSettingsLicenseExpirationNotification;
 }
 
 export interface ConsoleSettingsEmail {
@@ -156,5 +157,9 @@ export interface ConsoleSettingsV4EmulationEngine {
 }
 
 export interface ConsoleSettingsAlertEngine {
+  enabled?: boolean;
+}
+
+export interface ConsoleSettingsLicenseExpirationNotification {
   enabled?: boolean;
 }
