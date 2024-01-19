@@ -24,6 +24,8 @@ import io.gravitee.node.api.license.License;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.management.v2.rest.model.GraviteeLicense;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
+import java.time.Instant;
+import java.util.Date;
 import java.util.Set;
 import javax.inject.Inject;
 import org.junit.jupiter.api.Test;
@@ -50,6 +52,10 @@ public class GraviteeLicenseResourceTest extends AbstractResourceTest {
         when(license.getPacks()).thenReturn(Set.of("observability"));
         when(license.getFeatures()).thenReturn(Set.of("apim-reporter-datadog"));
 
+        var now = Instant.now();
+        var nowDate = Date.from(now);
+        when(license.getExpirationDate()).thenReturn(nowDate);
+
         var response = rootTarget().request().get();
         assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
 
@@ -58,5 +64,6 @@ public class GraviteeLicenseResourceTest extends AbstractResourceTest {
         assertThat(graviteeLicense.getTier()).isEqualTo("universe");
         assertThat(graviteeLicense.getPacks()).containsExactly("observability");
         assertThat(graviteeLicense.getFeatures()).containsExactly("apim-reporter-datadog");
+        assertThat(graviteeLicense.getExpiresAt().toInstant().toEpochMilli()).isEqualTo(now.toEpochMilli());
     }
 }

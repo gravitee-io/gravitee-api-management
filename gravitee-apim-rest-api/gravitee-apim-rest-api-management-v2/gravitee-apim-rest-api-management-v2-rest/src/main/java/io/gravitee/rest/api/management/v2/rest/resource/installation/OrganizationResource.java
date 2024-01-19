@@ -71,7 +71,13 @@ public class OrganizationResource extends AbstractResource {
         final License license = licenseManager.getOrganizationLicenseOrPlatform(orgId);
 
         return GraviteeLicenseMapper.INSTANCE.map(
-            GraviteeLicenseEntity.builder().tier(license.getTier()).packs(license.getPacks()).features(license.getFeatures()).build()
+            GraviteeLicenseEntity
+                .builder()
+                .tier(license.getTier())
+                .packs(license.getPacks())
+                .features(license.getFeatures())
+                .expiresAt(license.getExpirationDate())
+                .build()
         );
     }
 

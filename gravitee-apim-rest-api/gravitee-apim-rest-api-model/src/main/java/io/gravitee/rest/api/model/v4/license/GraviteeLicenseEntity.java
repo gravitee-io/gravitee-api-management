@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.model.v4.license;
 
+import java.util.Date;
 import java.util.Set;
 import lombok.*;
 
@@ -38,4 +39,6 @@ public class GraviteeLicenseEntity {
 
     @Builder.Default
     private Set<String> features = Set.of();
+
+    private Date expiresAt;
 }

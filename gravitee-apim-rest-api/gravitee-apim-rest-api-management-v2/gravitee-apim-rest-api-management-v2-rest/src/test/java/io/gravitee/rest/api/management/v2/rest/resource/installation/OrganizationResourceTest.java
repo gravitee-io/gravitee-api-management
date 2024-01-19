@@ -35,6 +35,8 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.OrganizationNotFoundException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
+import java.time.Instant;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import org.assertj.core.api.SoftAssertions;
@@ -88,11 +90,15 @@ public class OrganizationResourceTest extends AbstractResourceTest {
         public void shouldReturnOrganizationLicenseWithFeatures() {
             mockExistingOrganization(ORGANIZATION);
 
+            var now = Instant.now();
+            var nowDate = Date.from(now);
+
             final License license = mock(License.class);
             when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION)).thenReturn(license);
             when(license.getTier()).thenReturn("universe");
             when(license.getPacks()).thenReturn(Set.of("observability"));
             when(license.getFeatures()).thenReturn(Set.of("apim-reporter-datadog"));
+            when(license.getExpirationDate()).thenReturn(nowDate);
 
             var response = rootTarget(ORGANIZATION).path("license").request().get();
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
@@ -102,6 +108,7 @@ public class OrganizationResourceTest extends AbstractResourceTest {
             assertThat(graviteeLicense.getTier()).isEqualTo("universe");
             assertThat(graviteeLicense.getPacks()).containsExactly("observability");
             assertThat(graviteeLicense.getFeatures()).containsExactly("apim-reporter-datadog");
+            assertThat(graviteeLicense.getExpiresAt().toInstant().toEpochMilli()).isEqualTo(now.toEpochMilli());
         }
 
         @Test
