@@ -34,6 +34,7 @@ public class ConsoleConfigEntity {
     private Newsletter newsletter;
     private V4EmulationEngine v4EmulationEngine;
     private AlertEngine alertEngine;
+    private LicenseExpirationNotification licenseExpirationNotification;
 
     public ConsoleConfigEntity() {
         super();
@@ -48,5 +49,6 @@ public class ConsoleConfigEntity {
         analyticsPendo = new ConsoleAnalyticsPendo();
         v4EmulationEngine = new V4EmulationEngine();
         alertEngine = new AlertEngine();
+        licenseExpirationNotification = new LicenseExpirationNotification();
     }
 }
