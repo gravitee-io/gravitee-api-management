@@ -35,9 +35,11 @@ export class ApiV4MenuService implements ApiMenuService {
     groupItems: MenuGroupItem[];
   } {
     const hasTcpListeners = api.listeners.find((listener) => listener.type === 'TCP') != null;
-    const subMenuItems: MenuItem[] = [];
-    this.addPoliciesMenuEntry(subMenuItems, hasTcpListeners);
-    this.addApiTrafficMenuEntry(subMenuItems, hasTcpListeners);
+    const subMenuItems: MenuItem[] = [
+      this.addConfigurationMenuEntry(),
+      this.addPoliciesMenuEntry(hasTcpListeners),
+      this.addApiTrafficMenuEntry(hasTcpListeners),
+    ];
 
     const groupItems: MenuGroupItem[] = [
       this.getGeneralGroup(),
@@ -51,8 +53,28 @@ export class ApiV4MenuService implements ApiMenuService {
     return { subMenuItems, groupItems };
   }
 
-  private addPoliciesMenuEntry(subMenuItems: MenuItem[], hasTcpListeners: boolean): void {
-    subMenuItems.push({
+  private addConfigurationMenuEntry(): MenuItem {
+    const tabs = [
+      {
+        displayName: 'General',
+        routerLink: '.',
+        routerLinkActiveOptions: { exact: true },
+      },
+    ];
+    return {
+      displayName: 'Configuration',
+      icon: 'settings',
+      routerLink: '',
+      header: {
+        title: 'Configuration',
+        subtitle: 'Manage general settings, user permissions, properties, and resources, and track changes to your API',
+      },
+      tabs: tabs,
+    };
+  }
+
+  private addPoliciesMenuEntry(hasTcpListeners: boolean): MenuItem {
+    return {
       displayName: 'Policies',
       icon: 'shield-star',
       header: {
@@ -61,10 +83,10 @@ export class ApiV4MenuService implements ApiMenuService {
       },
       routerLink: hasTcpListeners ? 'DISABLED' : 'v4/policy-studio',
       tabs: undefined,
-    });
+    };
   }
 
-  private addApiTrafficMenuEntry(subMenuItems: MenuItem[], hasTcpListeners: boolean): void {
+  private addApiTrafficMenuEntry(hasTcpListeners: boolean): MenuItem {
     const logsTabs = [];
     if (this.permissionService.hasAnyMatching(['api-log-r'])) {
       logsTabs.push({
@@ -85,7 +107,7 @@ export class ApiV4MenuService implements ApiMenuService {
       });
     }
     if (logsTabs.length > 0) {
-      subMenuItems.push({
+      return {
         displayName: 'API Traffic',
         icon: 'bar-chart-2',
         routerLink: hasTcpListeners ? 'DISABLED' : '',
@@ -94,20 +116,15 @@ export class ApiV4MenuService implements ApiMenuService {
           subtitle: 'Gain actionable insights into API performance with real-time metrics, logs, and notifications',
         },
         tabs: logsTabs,
-      });
+      };
     }
+    return null;
   }
 
   private getGeneralGroup(): MenuGroupItem {
     const generalGroup: MenuGroupItem = {
       title: 'General',
-      items: [
-        {
-          displayName: 'Info',
-          routerLink: '.',
-          routerLinkActiveOptions: { exact: true },
-        },
-      ],
+      items: [],
     };
     // Plans
     const plansMenuItem: MenuItem = {
