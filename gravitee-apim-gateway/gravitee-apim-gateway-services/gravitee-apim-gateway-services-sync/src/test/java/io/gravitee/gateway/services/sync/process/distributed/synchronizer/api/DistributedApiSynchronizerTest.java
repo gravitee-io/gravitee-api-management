@@ -15,17 +15,10 @@
  */
 package io.gravitee.gateway.services.sync.process.distributed.synchronizer.api;
 
-import static io.gravitee.repository.management.model.Event.EventProperties.API_ID;
-import static io.gravitee.repository.management.model.EventType.PUBLISH_API;
-import static io.gravitee.repository.management.model.EventType.STOP_API;
 import static io.gravitee.repository.management.model.Plan.PlanSecurityType.API_KEY;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -36,7 +29,6 @@ import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.gateway.handlers.api.definition.Api;
-import io.gravitee.gateway.handlers.api.manager.ActionOnApi;
 import io.gravitee.gateway.services.sync.process.common.deployer.ApiDeployer;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.distributed.fetcher.DistributedEventFetcher;
@@ -46,14 +38,11 @@ import io.gravitee.gateway.services.sync.process.distributed.mapper.Subscription
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
 import io.gravitee.repository.distributedsync.model.DistributedSyncAction;
-import io.gravitee.repository.management.model.Event;
-import io.gravitee.repository.management.model.LifecycleState;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
 import java.time.Instant;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;

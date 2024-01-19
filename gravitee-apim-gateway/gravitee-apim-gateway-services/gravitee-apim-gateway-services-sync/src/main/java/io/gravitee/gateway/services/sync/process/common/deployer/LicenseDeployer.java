@@ -16,6 +16,7 @@
 package io.gravitee.gateway.services.sync.process.common.deployer;
 
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
+import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.license.LicenseDeployable;
 import io.gravitee.node.api.license.LicenseFactory;
 import io.gravitee.node.api.license.LicenseManager;
@@ -30,6 +31,7 @@ public class LicenseDeployer implements Deployer<LicenseDeployable> {
 
     private final LicenseManager licenseManager;
     private final LicenseFactory licenseFactory;
+    private final DistributedSyncService distributedSyncService;
 
     @Override
     public Completable deploy(final LicenseDeployable deployable) {
@@ -49,5 +51,10 @@ public class LicenseDeployer implements Deployer<LicenseDeployable> {
                 );
             }
         });
+    }
+
+    @Override
+    public Completable doAfterDeployment(LicenseDeployable deployable) {
+        return distributedSyncService.distributeIfNeeded(deployable);
     }
 }

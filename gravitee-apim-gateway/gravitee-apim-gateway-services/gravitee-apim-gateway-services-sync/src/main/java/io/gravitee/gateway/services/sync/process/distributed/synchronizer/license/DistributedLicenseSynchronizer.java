@@ -13,59 +13,57 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.services.sync.process.distributed.synchronizer.apikey;
+package io.gravitee.gateway.services.sync.process.distributed.synchronizer.license;
 
-import io.gravitee.gateway.services.sync.process.common.deployer.ApiKeyDeployer;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
-import io.gravitee.gateway.services.sync.process.common.model.ApiKeyDeployable;
+import io.gravitee.gateway.services.sync.process.common.deployer.LicenseDeployer;
 import io.gravitee.gateway.services.sync.process.distributed.fetcher.DistributedEventFetcher;
-import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiKeyMapper;
+import io.gravitee.gateway.services.sync.process.distributed.mapper.LicenseMapper;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.AbstractDistributedSynchronizer;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.license.LicenseDeployable;
 import io.gravitee.repository.distributedsync.model.DistributedEvent;
 import io.gravitee.repository.distributedsync.model.DistributedEventType;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.concurrent.ThreadPoolExecutor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
- * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
+ * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Slf4j
-public class DistributedApiKeySynchronizer extends AbstractDistributedSynchronizer<ApiKeyDeployable, ApiKeyDeployer> {
+public class DistributedLicenseSynchronizer extends AbstractDistributedSynchronizer<LicenseDeployable, LicenseDeployer> {
 
     private final DeployerFactory deployerFactory;
-    private final ApiKeyMapper apiKeyMapper;
+    private final LicenseMapper licenseMapper;
 
-    public DistributedApiKeySynchronizer(
-        final DistributedEventFetcher distributedEventFetcher,
-        final ThreadPoolExecutor syncFetcherExecutor,
-        final ThreadPoolExecutor syncDeployerExecutor,
-        final DeployerFactory deployerFactory,
-        final ApiKeyMapper apiKeyMapper
+    public DistributedLicenseSynchronizer(
+        DistributedEventFetcher distributedEventFetcher,
+        ThreadPoolExecutor syncFetcherExecutor,
+        ThreadPoolExecutor syncDeployerExecutor,
+        DeployerFactory deployerFactory,
+        LicenseMapper licenseMapper
     ) {
         super(distributedEventFetcher, syncFetcherExecutor, syncDeployerExecutor);
         this.deployerFactory = deployerFactory;
-        this.apiKeyMapper = apiKeyMapper;
-    }
-
-    @Override
-    protected DistributedEventType distributedEventType() {
-        return DistributedEventType.API_KEY;
-    }
-
-    @Override
-    protected Maybe<ApiKeyDeployable> mapTo(final DistributedEvent distributedEvent) {
-        return apiKeyMapper.to(distributedEvent).cast(ApiKeyDeployable.class);
-    }
-
-    @Override
-    protected ApiKeyDeployer createDeployer() {
-        return deployerFactory.createApiKeyDeployer();
+        this.licenseMapper = licenseMapper;
     }
 
     @Override
     public int order() {
-        return 20;
+        return 0;
+    }
+
+    @Override
+    protected DistributedEventType distributedEventType() {
+        return DistributedEventType.LICENSE;
+    }
+
+    @Override
+    protected Maybe<LicenseDeployable> mapTo(DistributedEvent distributedEvent) {
+        return licenseMapper.to(distributedEvent);
+    }
+
+    @Override
+    protected LicenseDeployer createDeployer() {
+        return deployerFactory.createLicenseDeployer();
     }
 }

@@ -15,13 +15,8 @@
  */
 package io.gravitee.gateway.services.sync.process.repository.fetcher;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.repository.management.model.Event;

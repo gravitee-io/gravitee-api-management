@@ -28,8 +28,6 @@ import io.gravitee.gateway.services.sync.process.repository.service.PlanService;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.license.LicenseFactory;
 import io.gravitee.node.api.license.LicenseManager;
-import io.gravitee.node.api.license.LicenseModelService;
-import io.gravitee.node.license.DefaultLicenseFactory;
 import io.gravitee.repository.management.api.CommandRepository;
 import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
@@ -94,6 +92,6 @@ public class DeployerFactory {
     }
 
     public LicenseDeployer createLicenseDeployer() {
-        return new LicenseDeployer(licenseManager, licenseFactory);
+        return new LicenseDeployer(licenseManager, licenseFactory, distributedSyncService);
     }
 }

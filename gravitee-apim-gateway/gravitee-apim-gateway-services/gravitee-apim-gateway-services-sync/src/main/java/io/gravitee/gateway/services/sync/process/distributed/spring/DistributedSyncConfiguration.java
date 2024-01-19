@@ -23,20 +23,20 @@ import io.gravitee.gateway.services.sync.process.distributed.fetcher.Distributed
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiKeyMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.DictionaryMapper;
+import io.gravitee.gateway.services.sync.process.distributed.mapper.LicenseMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.OrganizationMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.SubscriptionMapper;
 import io.gravitee.gateway.services.sync.process.distributed.service.DefaultDistributedSyncService;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.api.DistributedApiSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.apikey.DistributedApiKeySynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.dictionary.DistributedDictionarySynchronizer;
+import io.gravitee.gateway.services.sync.process.distributed.synchronizer.license.DistributedLicenseSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.organization.DistributedOrganizationSynchronizer;
 import io.gravitee.gateway.services.sync.process.distributed.synchronizer.subscription.DistributedSubscriptionSynchronizer;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.repository.distributedsync.api.DistributedEventRepository;
 import io.gravitee.repository.distributedsync.api.DistributedSyncStateRepository;
-import io.gravitee.repository.distributedsync.model.DistributedSyncAction;
-import java.util.Set;
 import java.util.concurrent.ThreadPoolExecutor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -76,6 +76,11 @@ public class DistributedSyncConfiguration {
     @Bean
     public OrganizationMapper distributedOrganizationMapper(ObjectMapper objectMapper) {
         return new OrganizationMapper(objectMapper);
+    }
+
+    @Bean
+    LicenseMapper distributedLicenseMapper() {
+        return new LicenseMapper();
     }
 
     @Bean
@@ -172,6 +177,23 @@ public class DistributedSyncConfiguration {
     }
 
     @Bean
+    public DistributedLicenseSynchronizer distributedLicenseSynchronizer(
+        DistributedEventFetcher distributedEventFetcher,
+        @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
+        @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor,
+        DeployerFactory deployerFactory,
+        LicenseMapper licenseMapper
+    ) {
+        return new DistributedLicenseSynchronizer(
+            distributedEventFetcher,
+            syncFetcherExecutor,
+            syncDeployerExecutor,
+            deployerFactory,
+            licenseMapper
+        );
+    }
+
+    @Bean
     public DefaultDistributedSyncService distributedSyncService(
         final Node node,
         final ClusterManager clusterManager,
@@ -182,7 +204,8 @@ public class DistributedSyncConfiguration {
         final SubscriptionMapper subscriptionMapper,
         final ApiKeyMapper apiKeyMapper,
         final OrganizationMapper organizationMapper,
-        final DictionaryMapper dictionaryMapper
+        final DictionaryMapper dictionaryMapper,
+        final LicenseMapper licenseMapper
     ) {
         return new DefaultDistributedSyncService(
             node,
@@ -194,7 +217,8 @@ public class DistributedSyncConfiguration {
             subscriptionMapper,
             apiKeyMapper,
             organizationMapper,
-            dictionaryMapper
+            dictionaryMapper,
+            licenseMapper
         );
     }
 }

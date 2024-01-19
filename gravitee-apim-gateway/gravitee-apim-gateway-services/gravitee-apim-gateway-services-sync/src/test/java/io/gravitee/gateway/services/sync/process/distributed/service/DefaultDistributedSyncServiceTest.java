@@ -20,11 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
@@ -36,11 +32,13 @@ import io.gravitee.gateway.services.sync.process.common.model.SyncException;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiKeyMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.DictionaryMapper;
+import io.gravitee.gateway.services.sync.process.distributed.mapper.LicenseMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.OrganizationMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.SubscriptionMapper;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.api.ApiReactorDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.apikey.SingleApiKeyDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.dictionary.DictionaryDeployable;
+import io.gravitee.gateway.services.sync.process.repository.synchronizer.license.LicenseDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.organization.OrganizationDeployable;
 import io.gravitee.gateway.services.sync.process.repository.synchronizer.subscription.SingleSubscriptionDeployable;
 import io.gravitee.node.api.Node;
@@ -107,7 +105,8 @@ class DefaultDistributedSyncServiceTest {
                 subscriptionMapper,
                 apiKeyMapper,
                 new OrganizationMapper(objectMapper),
-                new DictionaryMapper(objectMapper)
+                new DictionaryMapper(objectMapper),
+                new LicenseMapper()
             );
     }
 
@@ -135,6 +134,7 @@ class DefaultDistributedSyncServiceTest {
                     null,
                     distributedEventRepository,
                     distributedSyncStateRepository,
+                    null,
                     null,
                     null,
                     null,
@@ -270,6 +270,12 @@ class DefaultDistributedSyncServiceTest {
                 )
                 .test()
                 .assertComplete();
+            verifyNoInteractions(distributedEventRepository);
+        }
+
+        @Test
+        void should_not_call_repository_when_distributing_license() {
+            cut.distributeIfNeeded(LicenseDeployable.builder().id("id").license("license").build()).test().assertComplete();
             verifyNoInteractions(distributedEventRepository);
         }
     }

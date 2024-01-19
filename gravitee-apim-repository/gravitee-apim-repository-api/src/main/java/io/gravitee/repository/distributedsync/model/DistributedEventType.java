@@ -21,4 +21,5 @@ public enum DistributedEventType {
     ORGANIZATION,
     SUBSCRIPTION,
     API_KEY,
+    LICENSE,
 }

@@ -33,7 +33,6 @@ import io.gravitee.repository.management.api.CommandRepository;
 import io.gravitee.repository.management.model.Command;
 import io.gravitee.repository.management.model.MessageRecipient;
 import io.reactivex.rxjava3.core.Completable;
-import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import io.vertx.core.json.JsonObject;
 import java.time.Instant;

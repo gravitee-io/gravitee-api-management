@@ -15,10 +15,7 @@
  */
 package io.gravitee.gateway.services.sync.process.repository.fetcher;
 
-import static io.gravitee.repository.management.model.Subscription.Status.ACCEPTED;
-import static io.gravitee.repository.management.model.Subscription.Status.CLOSED;
-import static io.gravitee.repository.management.model.Subscription.Status.PAUSED;
-import static io.gravitee.repository.management.model.Subscription.Status.PENDING;
+import static io.gravitee.repository.management.model.Subscription.Status.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.when;
