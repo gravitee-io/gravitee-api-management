@@ -226,7 +226,7 @@ export class ApiService {
         return of(null);
       }
       const { apiId } = params;
-      return this.verify(contextPath, apiId);
+      return this.verify({ contextPath }, apiId);
     };
   }
 
