@@ -15,7 +15,7 @@
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { HttpTestingController } from '@angular/common/http/testing';
+import { HttpTestingController, TestRequest } from '@angular/common/http/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import {
@@ -695,7 +695,10 @@ describe('ApiGeneralInfoComponent', () => {
       const confirmButton = await confirmDialog.getHarness(MatButtonHarness.with({ text: 'Duplicate' }));
       await confirmButton.click();
 
-      await expectDuplicatePostRequest(API_ID);
+      const req = await expectDuplicatePostRequest(API_ID);
+
+      expect(req.request.body.contextPath).toEqual('/duplicate');
+      expect(req.request.body.host).toBeUndefined();
 
       expect(routerNavigateSpy).toHaveBeenCalledWith(['../', 'newApiId'], expect.anything());
     });
@@ -728,7 +731,10 @@ describe('ApiGeneralInfoComponent', () => {
       const confirmButton = await confirmDialog.getHarness(MatButtonHarness.with({ text: 'Duplicate' }));
       await confirmButton.click();
 
-      await expectDuplicatePostRequest(API_ID);
+      const req = await expectDuplicatePostRequest(API_ID);
+
+      expect(req.request.body.contextPath).toBeUndefined();
+      expect(req.request.body.host).toEqual('duplicate');
 
       expect(routerNavigateSpy).toHaveBeenCalledWith(['../', 'newApiId'], expect.anything());
     });
@@ -749,11 +755,13 @@ describe('ApiGeneralInfoComponent', () => {
     fixture.detectChanges();
   }
 
-  function expectDuplicatePostRequest(apiId: string) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/_duplicate`, method: 'POST' }).flush({
+  function expectDuplicatePostRequest(apiId: string): TestRequest {
+    const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/_duplicate`, method: 'POST' });
+    req.flush({
       id: 'newApiId',
     });
     fixture.detectChanges();
+    return req;
   }
 
   function expectVerifyContextPathGetRequest(definitionVersion: DefinitionVersion = 'V2') {

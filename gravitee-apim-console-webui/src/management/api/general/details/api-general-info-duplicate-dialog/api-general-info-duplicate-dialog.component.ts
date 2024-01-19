@@ -116,6 +116,7 @@ export class ApiGeneralInfoDuplicateDialogComponent implements OnDestroy {
     this.apiV2Service
       .duplicate(this.apiId, {
         contextPath: configsFormValue.contextPath,
+        host: configsFormValue.host,
         version: configsFormValue.version,
         filteredFields: this.optionsCheckbox.filter((option) => !configsFormValue.options[option.id]).map((option) => option.id),
       })
