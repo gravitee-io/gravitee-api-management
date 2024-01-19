@@ -70,35 +70,39 @@ public class ContentTemplateVariableProvider implements TemplateVariableProvider
         final HttpResponse response = ctx.response();
 
         if (evaluableRequest != null) {
+            var bodyRequestDefer = defer(request::bodyOrEmpty).cache();
+
             templateContext.setDeferredVariable(
                 TEMPLATE_ATTRIBUTE_REQUEST_CONTENT,
-                defer(request::bodyOrEmpty).map(Buffer::toString).doOnSuccess(evaluableRequest::setContent).ignoreElement()
+                bodyRequestDefer.map(Buffer::toString).doOnSuccess(evaluableRequest::setContent).ignoreElement()
             );
 
             templateContext.setDeferredVariable(
                 TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_JSON,
-                defer(request::bodyOrEmpty).map(this::jsonToMap).doOnSuccess(evaluableRequest::setJsonContent).ignoreElement()
+                bodyRequestDefer.map(this::jsonToMap).doOnSuccess(evaluableRequest::setJsonContent).ignoreElement()
             );
 
             templateContext.setDeferredVariable(
                 TEMPLATE_ATTRIBUTE_REQUEST_CONTENT_XML,
-                defer(request::bodyOrEmpty).map(this::xmlToMap).doOnSuccess(evaluableRequest::setXmlContent).ignoreElement()
+                bodyRequestDefer.map(this::xmlToMap).doOnSuccess(evaluableRequest::setXmlContent).ignoreElement()
             );
         }
 
         if (evaluableResponse != null) {
+            var bodyResponseDefer = defer(response::bodyOrEmpty).cache();
+
             templateContext.setDeferredVariable(
                 TEMPLATE_ATTRIBUTE_RESPONSE_CONTENT,
-                defer(response::bodyOrEmpty).map(Buffer::toString).doOnSuccess(evaluableResponse::setContent).ignoreElement()
+                bodyResponseDefer.map(Buffer::toString).doOnSuccess(evaluableResponse::setContent).ignoreElement()
             );
             templateContext.setDeferredVariable(
                 TEMPLATE_ATTRIBUTE_RESPONSE_CONTENT_JSON,
-                defer(response::bodyOrEmpty).map(this::jsonToMap).doOnSuccess(evaluableResponse::setJsonContent).ignoreElement()
+                bodyResponseDefer.map(this::jsonToMap).doOnSuccess(evaluableResponse::setJsonContent).ignoreElement()
             );
 
             templateContext.setDeferredVariable(
                 TEMPLATE_ATTRIBUTE_RESPONSE_CONTENT_XML,
-                defer(response::bodyOrEmpty).map(this::xmlToMap).doOnSuccess(evaluableResponse::setXmlContent).ignoreElement()
+                bodyResponseDefer.map(this::xmlToMap).doOnSuccess(evaluableResponse::setXmlContent).ignoreElement()
             );
         }
     }
