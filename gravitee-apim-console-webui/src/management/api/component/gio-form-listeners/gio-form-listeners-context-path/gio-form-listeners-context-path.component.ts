@@ -209,7 +209,7 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
 
   public validateListenerControl(listenerControl: AbstractControl, httpListeners: PathV4[], currentIndex: number): ValidationErrors | null {
     const listenerPathControl = listenerControl.get('path');
-    let error = this.validateGenericPathListenerControl(listenerControl);
+    let error = this.validateContextPath(listenerControl);
     if (!error) {
       const contextPathAlreadyExist = httpListeners
         .filter((l, index) => index !== currentIndex)
@@ -223,10 +223,21 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
     return error;
   }
 
-  public validateGenericPathListenerControl(listenerControl: AbstractControl): ValidationErrors | null {
+  private validateContextPath(listenerControl: AbstractControl): ValidationErrors | null {
     const listenerPathControl = listenerControl.get('path');
     const contextPath: string = listenerPathControl.value;
 
+    let errors = this.validateGenericPathListenerControl(contextPath);
+
+    if (contextPath.length < 3) {
+      errors = { contextPath: 'Context path has to be more than 3 characters long.' };
+    }
+
+    setTimeout(() => listenerPathControl.setErrors(errors), 0);
+    return errors;
+  }
+
+  protected validateGenericPathListenerControl(contextPath: string): ValidationErrors | null {
     let errors = null;
     if (isEmpty(contextPath)) {
       errors = {
@@ -237,7 +248,6 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
     } else if (!PATH_PATTERN_REGEX.test(contextPath)) {
       errors = { contextPath: 'Context path is not valid.' };
     }
-    setTimeout(() => listenerPathControl.setErrors(errors), 0);
     return errors;
   }
 

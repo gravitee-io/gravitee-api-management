@@ -53,7 +53,7 @@ describe('API creation workflow', () => {
 
     it(`should successfully complete step 2 (entrypoints)`, () => {
       cy.getByDataTestId('validate_entrypoints_button').should('be.disabled');
-      cy.get('input[formcontrolname=path]').type(apiPath);
+      cy.get('input[formcontrolname=path]').clear().type(apiPath);
       cy.getByDataTestId('validate_entrypoints_button').click();
       cy.contains('Step 3');
     });

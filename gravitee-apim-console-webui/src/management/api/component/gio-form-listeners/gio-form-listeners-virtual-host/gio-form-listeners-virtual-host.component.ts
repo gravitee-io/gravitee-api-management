@@ -25,11 +25,11 @@ import {
   ValidationErrors,
 } from '@angular/forms';
 import { escapeRegExp, isEmpty } from 'lodash';
+import { Observable, of, zip } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 import { GioFormListenersContextPathComponent } from '../gio-form-listeners-context-path/gio-form-listeners-context-path.component';
 import { PathV4 } from '../../../../../entities/management-api-v2';
-import { Observable, of, zip } from 'rxjs';
-import { map } from 'rxjs/operators';
 
 interface InternalPathV4 extends PathV4 {
   _hostSubDomain?: string;
@@ -82,7 +82,7 @@ export class GioFormListenersVirtualHostComponent extends GioFormListenersContex
   }
 
   validateListenerControl(listenerControl: AbstractControl, httpListeners: PathV4[], currentIndex: number): ValidationErrors | null {
-    const inheritErrors = super.validateGenericPathListenerControl(listenerControl);
+    const inheritErrors = this.validateVirtualHostPath(listenerControl);
     const subDomainControl = listenerControl.get('_hostSubDomain');
     const domainControl = listenerControl.get('_hostDomain');
     const contextPathControl = listenerControl.get('path');
@@ -115,6 +115,16 @@ export class GioFormListenersVirtualHostComponent extends GioFormListenersContex
 
     setTimeout(() => subDomainControl.setErrors(null), 0);
     return inheritErrors;
+  }
+
+  private validateVirtualHostPath(listenerControl: AbstractControl): ValidationErrors | null {
+    const listenerPathControl = listenerControl.get('path');
+    const contextPath: string = listenerPathControl.value;
+
+    const errors = this.validateGenericPathListenerControl(contextPath);
+
+    setTimeout(() => listenerPathControl.setErrors(errors), 0);
+    return errors;
   }
 
   protected listenersAsyncValidator(): AsyncValidatorFn {
