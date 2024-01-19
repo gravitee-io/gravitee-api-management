@@ -350,6 +350,7 @@ public enum Key {
         Set.of(SYSTEM)
     ),
     CONSOLE_CUSTOMIZATION_THEME_CTACONFIGURATION_TRIALURL("console.customization.ctaConfiguration.trialURL", (String) null, Set.of(SYSTEM)),
+    CONSOLE_LICENSE_EXPIRATION_NOTIFICATION_ENABLED("console.licenseExpirationNotification.enabled", "true", Set.of(SYSTEM)),
 
     V4_EMULATION_ENGINE_DEFAULT("api.v2.emulateV4Engine.default", "yes", Set.of(SYSTEM)),
 
