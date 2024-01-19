@@ -17,7 +17,7 @@ import { Component, Input, OnInit, Optional, Self } from '@angular/core';
 import { AsyncValidatorFn, ControlValueAccessor, UntypedFormControl, NgControl, ValidationErrors } from '@angular/forms';
 import { catchError, debounceTime, distinctUntilChanged, map, share, switchMap, take, takeUntil, tap } from 'rxjs/operators';
 import { BehaviorSubject, Observable, of, Subject } from 'rxjs';
-import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { MatLegacyAutocompleteSelectedEvent as MatAutocompleteSelectedEvent } from '@angular/material/legacy-autocomplete';
 import { isEmpty } from 'lodash';
 
 import { SearchableUser } from '../../../entities/user/searchableUser';

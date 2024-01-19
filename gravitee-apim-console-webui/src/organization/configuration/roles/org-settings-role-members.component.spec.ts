@@ -18,8 +18,8 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { MatCellHarness } from '@angular/material/table/testing';
-import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatLegacyCellHarness as MatCellHarness } from '@angular/material/legacy-table/testing';
+import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { ActivatedRoute } from '@angular/router';
 

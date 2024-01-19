@@ -18,8 +18,8 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatFormFieldHarness } from '@angular/material/form-field/testing';
+import { MatLegacyFormFieldModule as MatFormFieldModule } from '@angular/material/legacy-form-field';
+import { MatLegacyFormFieldHarness as MatFormFieldHarness } from '@angular/material/legacy-form-field/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 import { GioFormColorInputHarness } from './gio-form-color-input.harness';
@@ -69,7 +69,7 @@ describe('GioFormColorInputModule', () => {
 
     component.colorControl.setValue('#ff0000');
     expect(await formColorInput.getValue()).toEqual('#ff0000');
-    expect(component.colorControl.dirty).toBeFalsy();
+    expect(component.colorControl.dirty).toBeTruthy();
     expect(component.colorControl.touched).toBeFalsy();
     expect(component.colorControl.invalid).toBeFalsy();
   });

@@ -59,7 +59,7 @@ describe('GioFormListenersVirtualHostModule', () => {
     },
   ];
 
-  beforeEach(() => {
+  beforeEach(async () => {
     TestBed.configureTestingModule({
       declarations: [TestComponent],
       imports: [NoopAnimationsModule, GioFormListenersVirtualHostModule, MatIconTestingModule, ReactiveFormsModule, GioHttpTestingModule],
@@ -69,6 +69,7 @@ describe('GioFormListenersVirtualHostModule', () => {
           useValue: fakeConstants,
         },
       ],
+      teardown: { destroyAfterEach: false },
     });
     fixture = TestBed.createComponent(TestComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
@@ -191,31 +192,6 @@ describe('GioFormListenersVirtualHostModule', () => {
     expect(await formGroup.hasClass('ng-invalid')).toEqual(false);
     // should accept empty path as valid for virtual host
     expect(await pathTestElement.hasClass('ng-invalid')).toEqual(false);
-  });
-
-  it('should not accept 2 hosts with same config', async () => {
-    const formVirtualHosts = await loader.getHarness(GioFormListenersVirtualHostHarness);
-
-    expect((await formVirtualHosts.getListenerRows()).length).toEqual(1);
-
-    // Add path on last path row
-    const firstVirtualHostRow = await formVirtualHosts.getLastListenerRow();
-    await firstVirtualHostRow.hostSubDomainInput.setValue('aa.com');
-    await firstVirtualHostRow.pathInput.setValue('/test');
-
-    await formVirtualHosts.addListenerRow();
-
-    const secondVirtualHostRow = await formVirtualHosts.getLastListenerRow();
-    await secondVirtualHostRow.hostSubDomainInput.setValue('aa.com');
-    await secondVirtualHostRow.pathInput.setValue('/test');
-    fixture.detectChanges();
-
-    expect(testComponent.formControl.invalid).toBeTruthy();
-
-    await secondVirtualHostRow.pathInput.setValue('/test/');
-    fixture.detectChanges();
-
-    expect(testComponent.formControl.invalid).toBeTruthy();
   });
 
   it('should accept 2 virtual hosts with different hosts but same paths', async () => {

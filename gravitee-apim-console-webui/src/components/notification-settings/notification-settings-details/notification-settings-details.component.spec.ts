@@ -21,12 +21,12 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
-import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
+import { MatLegacyCheckboxHarness as MatCheckboxHarness } from '@angular/material/legacy-checkbox/testing';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
-import { MatInputHarness } from '@angular/material/input/testing';
+import { MatLegacyInputHarness as MatInputHarness } from '@angular/material/legacy-input/testing';
 import { Component } from '@angular/core';
 import { of } from 'rxjs';
-import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
+import { MatLegacySlideToggleHarness as MatSlideToggleHarness } from '@angular/material/legacy-slide-toggle/testing';
 
 import { NotificationSettingsDetailsServices } from './notification-settings-details.component';
 

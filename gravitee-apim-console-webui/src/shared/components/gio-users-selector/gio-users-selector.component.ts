@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 import { Component, EventEmitter, Inject, OnInit, Output } from '@angular/core';
-import { MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA } from '@angular/material/legacy-dialog';
 import { UntypedFormControl } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, map, share, switchMap } from 'rxjs/operators';
 import { Observable, of } from 'rxjs';
-import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { MatLegacyAutocompleteSelectedEvent as MatAutocompleteSelectedEvent } from '@angular/material/legacy-autocomplete';
 
 import { SearchableUser } from '../../../entities/user/searchableUser';
 import { UsersService } from '../../../services-ngx/users.service';

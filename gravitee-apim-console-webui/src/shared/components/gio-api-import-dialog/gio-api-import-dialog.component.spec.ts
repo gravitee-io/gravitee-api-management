@@ -13,17 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HarnessLoader } from '@angular/cdk/testing';
+import { HarnessLoader, parallel } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { MatButtonHarness } from '@angular/material/button/testing';
-import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { MatFormFieldHarness } from '@angular/material/form-field/testing';
+import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
+import { MatLegacyCheckboxHarness as MatCheckboxHarness } from '@angular/material/legacy-checkbox/testing';
+import { MatLegacyDialogRef as MatDialogRef, MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA } from '@angular/material/legacy-dialog';
+import { MatLegacyFormFieldHarness as MatFormFieldHarness } from '@angular/material/legacy-form-field/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
-import { MatInputHarness } from '@angular/material/input/testing';
-import { MatTabHarness } from '@angular/material/tabs/testing';
+import { MatLegacyInputHarness as MatInputHarness } from '@angular/material/legacy-input/testing';
+import { MatLegacyTabHarness as MatTabHarness } from '@angular/material/legacy-tabs/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { GioFormFilePickerInputHarness } from '@gravitee/ui-particles-angular';
 
@@ -122,11 +122,12 @@ describe('GioApiImportDialogComponent', () => {
       );
       await importPathMappingInput.check();
 
-      // Cannot select policies if "Create flows on path is not selected"
-      for (const policy of policies) {
-        const policyCheckbox = await loader.getHarness(MatCheckboxHarness.with({ selector: `[ng-reflect-name="${policy.id}"]` }));
-        expect(await policyCheckbox.isDisabled()).toBeTruthy();
-      }
+      await parallel(() =>
+        policies.map(async (policy) => {
+          const policyCheckbox = await loader.getHarness(MatCheckboxHarness.with({ selector: `[ng-reflect-name="${policy.id}"]` }));
+          expect(await policyCheckbox.isDisabled()).toBeTruthy();
+        }),
+      );
 
       const importPolicyPathsInput = await loader.getHarness(
         MatCheckboxHarness.with({ selector: '[formControlName="importPolicyPaths"]' }),
@@ -134,10 +135,13 @@ describe('GioApiImportDialogComponent', () => {
       await importPolicyPathsInput.check();
 
       // Can select policies if "Create flows on path is not selected"
-      for (const policy of policies) {
-        const policyCheckbox = await loader.getHarness(MatCheckboxHarness.with({ selector: `[ng-reflect-name="${policy.id}"]` }));
-        expect(await policyCheckbox.isDisabled()).toBeFalsy();
-      }
+      await parallel(() =>
+        policies.map(async (policy) => {
+          const policyCheckbox = await loader.getHarness(MatCheckboxHarness.with({ selector: `[ng-reflect-name="${policy.id}"]` }));
+
+          expect(await policyCheckbox.isDisabled()).toBeFalsy();
+        }),
+      );
 
       const jsonValidationInput = await loader.getHarness(MatCheckboxHarness.with({ selector: '[ng-reflect-name="json-validation"]' }));
       await jsonValidationInput.check();

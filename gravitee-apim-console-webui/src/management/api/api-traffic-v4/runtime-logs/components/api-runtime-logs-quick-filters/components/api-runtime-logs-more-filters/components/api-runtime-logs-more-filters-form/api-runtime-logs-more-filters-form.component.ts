@@ -18,7 +18,7 @@ import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil, tap } from 'rxjs/operators';
 import { Moment } from 'moment';
-import { MatChipInputEvent } from '@angular/material/chips';
+import { MatLegacyChipInputEvent as MatChipInputEvent } from '@angular/material/legacy-chips';
 
 import { DEFAULT_FILTERS, DEFAULT_PERIOD, MoreFiltersForm, MultiFilter, PERIODS } from '../../../../../../models';
 

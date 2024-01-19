@@ -17,8 +17,8 @@ import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { GioAvatarModule, GioIconsModule, GioTopBarLinkModule, GioTopBarMenuModule, GioTopBarModule } from '@gravitee/ui-particles-angular';
 import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
-import { MatMenuModule } from '@angular/material/menu';
+import { MatLegacyButtonModule as MatButtonModule } from '@angular/material/legacy-button';
+import { MatLegacyMenuModule as MatMenuModule } from '@angular/material/legacy-menu';
 import { MatDividerModule } from '@angular/material/divider';
 
 import { GioUserMenuComponent } from './gio-user-menu.component';

@@ -8,7 +8,7 @@
   @include gio-layout.gio-responsive-content-container;
 }
 
-$typography: map.get(gio.$mat-theme, typography);
+$typography: map.get(gio.$mat-legacy-theme, typography);
 
 .card {
   &__template-key,
