@@ -223,11 +223,11 @@ export class ApiService {
     };
   }
 
-  verify(contextPath, apiId?): Observable<ValidationErrors | null> {
+  verify({ contextPath, host }: { contextPath: string; host?: string }, apiId?): Observable<ValidationErrors | null> {
     return this.http
       .post(
         `${this.constants.env.baseURL}/apis/verify`,
-        { context_path: contextPath, apiId },
+        { host, context_path: contextPath, apiId },
         {
           responseType: 'text',
         },

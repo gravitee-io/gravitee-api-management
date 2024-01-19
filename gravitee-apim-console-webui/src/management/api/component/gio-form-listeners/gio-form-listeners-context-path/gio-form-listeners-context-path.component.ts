@@ -241,7 +241,7 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
     return errors;
   }
 
-  private listenersAsyncValidator(): AsyncValidatorFn {
+  protected listenersAsyncValidator(): AsyncValidatorFn {
     return (listenerFormArrayControl: FormArray): Observable<ValidationErrors | null> => {
       const listenerFormArrayControls = listenerFormArrayControl.controls;
 
@@ -252,7 +252,7 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
         if (contextPathsToIgnore.includes(contextPathValue)) {
           return of(null);
         }
-        return this.apiService.verify(contextPathValue);
+        return this.apiService.verify({ contextPath: contextPathValue });
       });
 
       return zip(...pathValidations$).pipe(
