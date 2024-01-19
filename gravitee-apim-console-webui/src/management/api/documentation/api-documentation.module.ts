@@ -15,6 +15,7 @@
  */
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { MatDialogModule } from '@angular/material/dialog';
 
 import { ApiPortalDocumentationMetadataComponent } from './metadata/api-portal-documentation-metadata.component';
 
@@ -23,6 +24,6 @@ import { GioMetadataModule } from '../../../components/gio-metadata/gio-metadata
 @NgModule({
   declarations: [ApiPortalDocumentationMetadataComponent],
   exports: [ApiPortalDocumentationMetadataComponent],
-  imports: [CommonModule, GioMetadataModule],
+  imports: [CommonModule, GioMetadataModule, MatDialogModule],
 })
 export class ApiDocumentationModule {}

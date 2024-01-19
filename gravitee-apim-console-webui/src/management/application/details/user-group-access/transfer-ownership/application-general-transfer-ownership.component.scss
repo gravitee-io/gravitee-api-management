@@ -3,8 +3,6 @@
 @use '@gravitee/ui-particles-angular' as gio;
 @use 'sass:map';
 
-$typography: map.get(gio.$mat-theme, typography);
-
 :host {
   @include gio-layout.gio-responsive-content-container;
 }

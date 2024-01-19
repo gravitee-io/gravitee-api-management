@@ -1,7 +1,7 @@
 @use 'sass:map';
 @use '@angular/material/index' as mat;
 @use '@gravitee/ui-particles-angular/index' as gio;
-$typography: map.get(gio.$mat-theme, typography);
+$typography: map.get(gio.$mat-legacy-theme, typography);
 
 .header {
   border-bottom: 2px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10');

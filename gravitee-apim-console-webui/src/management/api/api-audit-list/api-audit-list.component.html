@@ -19,26 +19,28 @@
   <h1>Audit</h1>
 </div>
 <mat-card class="api-audit__filters" [formGroup]="auditForm">
-  <mat-form-field class="api-audit__filters__field">
-    <mat-label>Event</mat-label>
-    <mat-select formControlName="event">
-      <mat-option></mat-option>
-      <mat-option *ngFor="let name of eventsName$ | async" [value]="name">{{ name }}</mat-option>
-    </mat-select>
-  </mat-form-field>
+  <mat-card-content>
+    <mat-form-field class="api-audit__filters__field">
+      <mat-label>Event</mat-label>
+      <mat-select formControlName="event">
+        <mat-option></mat-option>
+        <mat-option *ngFor="let name of eventsName$ | async" [value]="name">{{ name }}</mat-option>
+      </mat-select>
+    </mat-form-field>
 
-  <mat-form-field class="api-audit__filters__field right">
-    <mat-label>Enter a date range</mat-label>
-    <mat-date-range-input formGroupName="range" [rangePicker]="picker">
-      <input matStartDate formControlName="start" placeholder="Start date" />
-      <input matEndDate formControlName="end" placeholder="End date" />
-    </mat-date-range-input>
-    <mat-hint>MM/DD/YYYY – MM/DD/YYYY</mat-hint>
-    <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-    <mat-date-range-picker #picker></mat-date-range-picker>
-    <mat-error *ngIf="auditForm.controls.range.hasError('matStartDateInvalid')">Invalid start date</mat-error>
-    <mat-error *ngIf="auditForm.controls.range.hasError('matEndDateInvalid')">Invalid end date</mat-error>
-  </mat-form-field>
+    <mat-form-field class="api-audit__filters__field right">
+      <mat-label>Enter a date range</mat-label>
+      <mat-date-range-input formGroupName="range" [rangePicker]="picker">
+        <input matStartDate formControlName="start" placeholder="Start date" />
+        <input matEndDate formControlName="end" placeholder="End date" />
+      </mat-date-range-input>
+      <mat-hint>MM/DD/YYYY – MM/DD/YYYY</mat-hint>
+      <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+      <mat-date-range-picker #picker></mat-date-range-picker>
+      <mat-error *ngIf="auditForm.controls.range.hasError('matStartDateInvalid')">Invalid start date</mat-error>
+      <mat-error *ngIf="auditForm.controls.range.hasError('matEndDateInvalid')">Invalid end date</mat-error>
+    </mat-form-field>
+  </mat-card-content>
 </mat-card>
 
 <gio-table-wrapper

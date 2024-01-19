@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
-import { MatRowHarness, MatTableHarness } from '@angular/material/table/testing';
-import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatLegacyRowHarness as MatRowHarness, MatLegacyTableHarness as MatTableHarness } from '@angular/material/legacy-table/testing';
+import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
 
 export class ApiEntrypointsV4GeneralHarness extends ComponentHarness {
   public static hostSelector = '.entrypoints';

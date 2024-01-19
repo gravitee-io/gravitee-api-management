@@ -19,7 +19,7 @@ import { combineLatest, Subject } from 'rxjs';
 import { takeUntil, tap } from 'rxjs/operators';
 import { ComponentCustomEvent } from '@gravitee/ui-components/src/lib/events';
 import { Location } from '@angular/common';
-import { MatDialog } from '@angular/material/dialog';
+import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
 import { GioLicenseService } from '@gravitee/ui-particles-angular';
 import '@gravitee/ui-components/wc/gv-design';
 

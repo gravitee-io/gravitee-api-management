@@ -41,7 +41,7 @@ export class Step1ApiDetailsComponent implements OnInit {
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
     private readonly formBuilder: UntypedFormBuilder,
-    private readonly confirmDialog: MatDialog,
+    private readonly matDialog: MatDialog,
     private readonly stepService: ApiCreationStepService,
     private readonly licenseService: GioLicenseService,
   ) {}
@@ -66,7 +66,7 @@ export class Step1ApiDetailsComponent implements OnInit {
 
   onExit() {
     if (this.form.dirty) {
-      this.confirmDialog
+      this.matDialog
         .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
           data: {
             title: 'Are you sure?',

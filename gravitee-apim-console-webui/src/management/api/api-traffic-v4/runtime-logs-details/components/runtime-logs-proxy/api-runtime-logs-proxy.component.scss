@@ -3,8 +3,8 @@
 @use '@gravitee/ui-particles-angular' as gio;
 @use 'src/scss/gio-layout' as gio-layout;
 
-$foreground: map.get(gio.$mat-theme, foreground);
-$typography: map.get(gio.$mat-theme, typography);
+$foreground: map.get(gio.$mat-legacy-theme, foreground);
+$typography: map.get(gio.$mat-legacy-theme, typography);
 
 :host {
   @include gio-layout.gio-responsive-margin-container;

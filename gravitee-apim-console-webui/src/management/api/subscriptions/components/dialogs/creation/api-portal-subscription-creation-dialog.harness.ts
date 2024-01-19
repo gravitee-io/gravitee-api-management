@@ -13,13 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { MatButtonHarness } from '@angular/material/button/testing';
-import { MatInputHarness } from '@angular/material/input/testing';
-import { MatAutocompleteHarness } from '@angular/material/autocomplete/testing';
-import { MatRadioGroupHarness, RadioButtonHarnessFilters } from '@angular/material/radio/testing';
-import { MatDialogHarness } from '@angular/material/dialog/testing';
-import { MatSelectHarness } from '@angular/material/select/testing';
-import { MatFormFieldHarness } from '@angular/material/form-field/testing';
+import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
+import { MatLegacyInputHarness as MatInputHarness } from '@angular/material/legacy-input/testing';
+import { MatLegacyAutocompleteHarness as MatAutocompleteHarness } from '@angular/material/legacy-autocomplete/testing';
+import {
+  MatLegacyRadioGroupHarness as MatRadioGroupHarness,
+  LegacyRadioButtonHarnessFilters as RadioButtonHarnessFilters,
+} from '@angular/material/legacy-radio/testing';
+import { MatLegacyDialogHarness as MatDialogHarness } from '@angular/material/legacy-dialog/testing';
+import { MatLegacySelectHarness as MatSelectHarness } from '@angular/material/legacy-select/testing';
+import { MatLegacyFormFieldHarness as MatFormFieldHarness } from '@angular/material/legacy-form-field/testing';
 
 import { ApiKeyValidationHarness } from '../../api-key-validation/api-key-validation.harness';
 

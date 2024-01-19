@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
-import { MatCardHarness } from '@angular/material/card/testing';
+import { MatLegacyCardHarness as MatCardHarness } from '@angular/material/legacy-card/testing';
 
 export class TasksHarness extends ComponentHarness {
   static hostSelector = 'tasks';

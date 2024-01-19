@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 import { Component, Inject, OnDestroy } from '@angular/core';
-import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { MatTabChangeEvent } from '@angular/material/tabs';
+import { FormGroup, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { MatLegacyDialogRef as MatDialogRef, MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA } from '@angular/material/legacy-dialog';
+import { MatLegacyTabChangeEvent as MatTabChangeEvent } from '@angular/material/legacy-tabs';
 import { NewFile } from '@gravitee/ui-particles-angular';
 import { EMPTY, Observable, Subject } from 'rxjs';
-import { catchError, takeUntil, tap } from 'rxjs/operators';
+import { catchError, startWith, takeUntil, tap } from 'rxjs/operators';
 
 import { Api } from '../../../entities/api';
 import { PolicyListItem } from '../../../entities/policy';
@@ -100,8 +100,14 @@ export class GioApiImportDialogComponent implements OnDestroy {
     // Unselect all policies when unselecting "Create flows on path"
     this.configsForm
       .get('importPolicyPaths')
-      .valueChanges.pipe(takeUntil(this.unsubscribe$))
+      .valueChanges.pipe(startWith(this.configsForm.get('importPolicyPaths').value), takeUntil(this.unsubscribe$))
       .subscribe((checked) => {
+        Object.keys((this.configsForm.get('importPolicies') as FormGroup).controls).map((policyId) => {
+          checked
+            ? this.configsForm.get('importPolicies').get(policyId).enable({ emitEvent: false })
+            : this.configsForm.get('importPolicies').get(policyId).disable({ emitEvent: false });
+        });
+
         this.configsForm.get('importPolicies').patchValue(
           this.policies.reduce((acc, policy) => {
             if (!checked) {
@@ -229,7 +235,9 @@ export class GioApiImportDialogComponent implements OnDestroy {
             format: 'WSDL',
             with_documentation: configsFormValue.importDocumentation,
             with_path_mapping: configsFormValue.importPathMapping,
-            with_policies: this.policies.filter((policy) => configsFormValue.importPolicies[policy.id]).map((policy) => policy.id),
+            with_policies: this.policies
+              .filter((policy) => configsFormValue.importPolicies && configsFormValue.importPolicies[policy.id])
+              .map((policy) => policy.id),
             with_policy_paths: configsFormValue.importPolicyPaths,
           },
           this.updateModeApiId,
@@ -244,7 +252,9 @@ export class GioApiImportDialogComponent implements OnDestroy {
             format: 'API',
             with_documentation: configsFormValue.importDocumentation,
             with_path_mapping: configsFormValue.importPathMapping,
-            with_policies: this.policies.filter((policy) => configsFormValue.importPolicies[policy.id]).map((policy) => policy.id),
+            with_policies: this.policies
+              .filter((policy) => configsFormValue.importPolicies && configsFormValue.importPolicies[policy.id])
+              .map((policy) => policy.id),
             with_policy_paths: configsFormValue.importPolicyPaths,
           },
           this.updateModeApiId,

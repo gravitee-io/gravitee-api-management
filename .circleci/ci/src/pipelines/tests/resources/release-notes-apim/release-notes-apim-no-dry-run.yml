@@ -28,7 +28,7 @@ parameters:
 jobs:
   job-release-notes-apim:
     docker:
-      - image: cimg/node:16.10
+      - image: cimg/node:16.13
     resource_class: medium
     steps:
       - checkout

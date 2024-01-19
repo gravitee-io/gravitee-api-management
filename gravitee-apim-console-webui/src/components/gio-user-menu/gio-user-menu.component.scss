@@ -21,6 +21,19 @@
   margin: 0 5px;
 }
 
+::ng-deep {
+  gio-user-menu {
+    .gio-user-menu__button-avatar {
+      gio-avatar {
+        img {
+          width: inherit;
+          height: inherit;
+        }
+      }
+    }
+  }
+}
+
 .gio-user-menu {
   &__alert-badge {
     width: 14px;

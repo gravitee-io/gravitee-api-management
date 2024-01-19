@@ -15,7 +15,7 @@
  */
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { MatTabsModule } from '@angular/material/tabs';
+import { MatLegacyTabsModule as MatTabsModule } from '@angular/material/legacy-tabs';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
 
 import { EnvAlertsLayoutComponent } from './env-alerts-layout.component';

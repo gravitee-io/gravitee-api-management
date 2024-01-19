@@ -185,7 +185,7 @@ jobs:
           jobName: job-validate
   job-danger-js:
     docker:
-      - image: cimg/node:16.10
+      - image: cimg/node:16.13
     resource_class: small
     steps:
       - checkout
@@ -480,7 +480,7 @@ jobs:
         description: Resource class to use for executor
       node_version:
         type: string
-        default: "16.10"
+        default: "16.13"
         description: Node version to use for executor
     docker:
       - image: cimg/node:<< parameters.node_version >>
@@ -524,7 +524,7 @@ jobs:
         description: the name of the image
       node_version:
         type: string
-        default: "16.10"
+        default: "16.13"
         description: Node version to use for executor
     docker:
       - image: cimg/node:<< parameters.node_version >>
@@ -556,7 +556,7 @@ jobs:
             - << parameters.apim-ui-project >>/dist
   job-console-webui-build-storybook:
     docker:
-      - image: cimg/node:16.10
+      - image: cimg/node:16.13
     resource_class: large
     steps:
       - checkout
@@ -575,7 +575,7 @@ jobs:
             - gravitee-apim-console-webui/storybook-static
   job-console-webui-chromatic-deployment:
     docker:
-      - image: cimg/node:16.10
+      - image: cimg/node:16.13
     resource_class: small
     steps:
       - checkout

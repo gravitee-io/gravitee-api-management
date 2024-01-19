@@ -2,7 +2,7 @@
 @use '@angular/material' as mat;
 @use '@gravitee/ui-particles-angular' as gio;
 
-$typography: map.get(gio.$mat-theme, typography);
+$typography: map.get(gio.$mat-legacy-theme, typography);
 
 .policy-studio-debug-response {
   background-color: mat.get-color-from-palette(gio.$mat-basic-palette, white);

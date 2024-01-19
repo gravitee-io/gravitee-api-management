@@ -18,7 +18,7 @@ import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { MatTabsModule } from '@angular/material/tabs';
+import { MatLegacyTabsModule as MatTabsModule } from '@angular/material/legacy-tabs';
 
 import { ApiRuntimeLogsMessageItemComponent } from './api-runtime-logs-message-item.component';
 import { ApiRuntimeLogsMessageItemContentComponent } from './api-runtime-logs-message-item-content.component';

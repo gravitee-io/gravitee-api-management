@@ -4,7 +4,7 @@
 
 @use '../../../scss/gio-layout' as gio-layout;
 
-$foreground: map.get(gio.$mat-theme, foreground);
+$foreground: map.get(gio.$mat-legacy-theme, foreground);
 
 :host {
   @include gio-layout.gio-responsive-margin-container;

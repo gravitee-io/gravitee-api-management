@@ -18,8 +18,8 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { MatTabsModule } from '@angular/material/tabs';
-import { MatTabNavBarHarness } from '@angular/material/tabs/testing';
+import { MatLegacyTabsModule as MatTabsModule } from '@angular/material/legacy-tabs';
+import { MatLegacyTabNavBarHarness as MatTabNavBarHarness } from '@angular/material/legacy-tabs/testing';
 
 import { HomeLayoutComponent } from './home-layout.component';
 

@@ -15,8 +15,8 @@
  */
 
 import { BaseHarnessFilters, ComponentHarness, HarnessPredicate } from '@angular/cdk/testing';
-import { MatInputHarness } from '@angular/material/input/testing';
-import { MatPaginatorHarness } from '@angular/material/paginator/testing';
+import { MatLegacyInputHarness as MatInputHarness } from '@angular/material/legacy-input/testing';
+import { MatLegacyPaginatorHarness as MatPaginatorHarness } from '@angular/material/legacy-paginator/testing';
 
 /** A set of criteria that can be used to filter a list of `GioSaveBarHarness` instances. */
 export type GioTableWrapperHarnessFilters = BaseHarnessFilters;

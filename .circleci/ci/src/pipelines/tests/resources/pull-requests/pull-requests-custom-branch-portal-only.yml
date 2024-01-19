@@ -145,7 +145,7 @@ jobs:
         description: Resource class to use for executor
       node_version:
         type: string
-        default: "16.10"
+        default: "16.13"
         description: Node version to use for executor
     docker:
       - image: cimg/node:<< parameters.node_version >>
@@ -189,7 +189,7 @@ jobs:
         description: the name of the image
       node_version:
         type: string
-        default: "16.10"
+        default: "16.13"
         description: Node version to use for executor
     docker:
       - image: cimg/node:<< parameters.node_version >>

@@ -17,21 +17,23 @@
 -->
 <ng-container *ngIf="currentUser">
   <button mat-icon-button [matMenuTriggerFor]="menu" class="gio-user-menu__button-avatar" data-testid="top-nav-user-menu-button">
-    <gio-avatar [roundedBorder]="true" [src]="userPicture" [name]="currentUser.displayName" size="36"></gio-avatar>
+    <gio-avatar [roundedBorder]="true" [src]="userPicture" [name]="currentUser.displayName" [size]="32"></gio-avatar>
   </button>
   <span *ngIf="hasAlert" class="gio-user-menu__alert-badge gio-badge-accent"></span>
   <mat-menu #menu="matMenu" class="gio-user-menu">
-    <div mat-menu-item class="gio-user-menu__header">
-      <gio-avatar
-        [roundedBorder]="true"
-        [src]="userPicture"
-        [name]="currentUser.displayName"
-        size="32"
-        class="mat-icon gio-user-menu__header__user-avatar"
-      ></gio-avatar>
-      <span class="gio-user-menu__header__user-info">
-        <h5>{{ userShortName }}</h5>
-        <small>{{ currentUser.email }}</small>
+    <div mat-menu-item>
+      <span class="gio-user-menu__header">
+        <gio-avatar
+          [roundedBorder]="true"
+          [src]="userPicture"
+          [name]="currentUser.displayName"
+          size="32"
+          class="mat-icon gio-user-menu__header__user-avatar"
+        ></gio-avatar>
+        <span class="gio-user-menu__header__user-info">
+          <h5>{{ userShortName }}</h5>
+          <small>{{ currentUser.email }}</small>
+        </span>
       </span>
     </div>
     <mat-divider></mat-divider>

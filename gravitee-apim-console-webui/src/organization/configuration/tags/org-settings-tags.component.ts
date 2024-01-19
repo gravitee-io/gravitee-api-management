@@ -16,6 +16,7 @@
 
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { MatLegacyDialog } from '@angular/material/legacy-dialog';
 import { MatDialog } from '@angular/material/dialog';
 import { combineLatest, EMPTY, Observable, of, Subject } from 'rxjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
@@ -85,6 +86,7 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
     private readonly portalSettingsService: PortalSettingsService,
     private readonly entrypointService: EntrypointService,
     private readonly snackBarService: SnackBarService,
+    private readonly matLegacyDialog: MatLegacyDialog,
     private readonly matDialog: MatDialog,
     private readonly gioLicenseService: GioLicenseService,
   ) {}
@@ -175,7 +177,7 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
   }
 
   onAddTagClicked() {
-    this.matDialog
+    this.matLegacyDialog
       .open<OrgSettingAddTagDialogComponent, OrgSettingAddTagDialogData, Tag>(OrgSettingAddTagDialogComponent, {
         width: '450px',
         data: {},
@@ -199,7 +201,7 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
   }
 
   onEditTagClicked(tag: TagTableDS[number]) {
-    this.matDialog
+    this.matLegacyDialog
       .open<OrgSettingAddTagDialogComponent, OrgSettingAddTagDialogData, Tag>(OrgSettingAddTagDialogComponent, {
         width: '450px',
         data: {
@@ -301,7 +303,7 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
   }
 
   onAddEntrypointClicked() {
-    this.matDialog
+    this.matLegacyDialog
       .open<OrgSettingAddMappingDialogComponent, OrgSettingAddMappingDialogData, Entrypoint>(OrgSettingAddMappingDialogComponent, {
         width: '450px',
         data: {},
@@ -325,7 +327,7 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
   }
 
   onEditEntrypointClicked(entrypoint: EntrypointTableDS[number]) {
-    this.matDialog
+    this.matLegacyDialog
       .open<OrgSettingAddMappingDialogComponent, OrgSettingAddMappingDialogData, Entrypoint>(OrgSettingAddMappingDialogComponent, {
         width: '450px',
         data: {
