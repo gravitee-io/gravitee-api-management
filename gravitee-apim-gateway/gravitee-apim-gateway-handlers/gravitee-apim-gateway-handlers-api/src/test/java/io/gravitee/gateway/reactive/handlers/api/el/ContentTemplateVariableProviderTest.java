@@ -18,6 +18,7 @@ package io.gravitee.gateway.reactive.handlers.api.el;
 import static io.gravitee.gateway.reactive.api.context.HttpExecutionContext.TEMPLATE_ATTRIBUTE_REQUEST;
 import static io.gravitee.gateway.reactive.api.context.HttpExecutionContext.TEMPLATE_ATTRIBUTE_RESPONSE;
 import static io.gravitee.gateway.reactive.handlers.api.el.ContentTemplateVariableProvider.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.el.TemplateContext;
@@ -28,12 +29,14 @@ import io.gravitee.gateway.reactive.api.context.HttpRequest;
 import io.gravitee.gateway.reactive.api.context.HttpResponse;
 import io.gravitee.gateway.reactive.api.el.EvaluableRequest;
 import io.gravitee.gateway.reactive.api.el.EvaluableResponse;
-import io.gravitee.gateway.reactive.handlers.api.el.ContentTemplateVariableProvider;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -84,9 +87,9 @@ class ContentTemplateVariableProviderTest {
         lenient().when(ctx.response()).thenReturn(response);
 
         when(ctx.getTemplateEngine()).thenReturn(templateEngine);
-        when(templateEngine.getTemplateContext()).thenReturn(templateContext);
-        when(templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_REQUEST)).thenReturn(evaluableRequest);
-        when(templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_RESPONSE)).thenReturn(evaluableResponse);
+        lenient().when(templateEngine.getTemplateContext()).thenReturn(templateContext);
+        lenient().when(templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_REQUEST)).thenReturn(evaluableRequest);
+        lenient().when(templateContext.lookupVariable(TEMPLATE_ATTRIBUTE_RESPONSE)).thenReturn(evaluableResponse);
     }
 
     @Test
@@ -279,5 +282,81 @@ class ContentTemplateVariableProviderTest {
 
         // An empty map is expected if the content isn't a valid xml.
         verify(evaluableRequest).setXmlContent(Collections.emptyMap());
+    }
+
+    @Test
+    void shouldOnlySubscribeOnceToRequestBodyOrEmpty() {
+        // Use a template engine
+        var engine = TemplateEngine.templateEngine();
+        engine.getTemplateContext().setVariable(TEMPLATE_ATTRIBUTE_REQUEST, evaluableRequest);
+        when(ctx.getTemplateEngine()).thenReturn(engine);
+
+        // Count the number of subscription received
+        var nbOfSubscribeRequest = new AtomicInteger();
+        var requestBodyObs = Single
+            .just(Buffer.buffer(REQUEST_JSON_CONTENT))
+            .doOnSubscribe(disposable -> nbOfSubscribeRequest.incrementAndGet());
+        when(request.bodyOrEmpty()).thenReturn(requestBodyObs);
+
+        cut.provide(ctx);
+
+        TestObserver<Void> obsRequest = Flowable
+            .fromIterable(
+                List.of(
+                    "{#request.content != null}",
+                    "{#request.jsonContent != null}",
+                    "{#request.content != null}",
+                    "{#request.jsonContent != null}"
+                )
+            )
+            .flatMapMaybe(v -> ctx.getTemplateEngine().eval(v, Object.class))
+            .ignoreElements()
+            .test();
+
+        obsRequest.assertComplete();
+
+        verify(request).bodyOrEmpty();
+        verify(evaluableRequest, times(2)).setContent(any());
+
+        // Assert that only one subscription has been done
+        assertThat(nbOfSubscribeRequest).hasValue(1);
+    }
+
+    @Test
+    void shouldOnlySubscribeOnceToResponseBodyOrEmpty() {
+        // Use a template engine
+        var engine = TemplateEngine.templateEngine();
+        engine.getTemplateContext().setVariable(TEMPLATE_ATTRIBUTE_RESPONSE, evaluableResponse);
+        when(ctx.getTemplateEngine()).thenReturn(engine);
+
+        // Count the number of subscription received
+        var nbOfSubscribeResponse = new AtomicInteger();
+        var responseBody = Single
+            .just(Buffer.buffer(RESPONSE_JSON_CONTENT))
+            .doOnSubscribe(disposable -> nbOfSubscribeResponse.incrementAndGet());
+        when(response.bodyOrEmpty()).thenReturn(responseBody);
+
+        cut.provide(ctx);
+
+        TestObserver<Void> obsResponse = Flowable
+            .fromIterable(
+                List.of(
+                    "{#response.content != null}",
+                    "{#response.jsonContent != null}",
+                    "{#response.content != null}",
+                    "{#response.jsonContent != null}"
+                )
+            )
+            .flatMapMaybe(v -> ctx.getTemplateEngine().eval(v, Object.class))
+            .ignoreElements()
+            .test();
+
+        obsResponse.assertComplete();
+
+        verify(response).bodyOrEmpty();
+        verify(evaluableResponse, times(2)).setJsonContent(any());
+
+        // Assert that only one subscription has been done
+        assertThat(nbOfSubscribeResponse).hasValue(1);
     }
 }
