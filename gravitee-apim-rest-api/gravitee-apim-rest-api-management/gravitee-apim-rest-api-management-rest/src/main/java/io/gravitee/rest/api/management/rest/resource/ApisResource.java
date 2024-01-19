@@ -410,7 +410,7 @@ public class ApisResource extends AbstractResource {
         // TODO : create verify service to query repository with criteria
         virtualHostService.sanitizeAndValidate(
             GraviteeContext.getExecutionContext(),
-            Collections.singletonList(new VirtualHost(verifyApiParam.getContextPath())),
+            Collections.singletonList(new VirtualHost(verifyApiParam.getHost(), verifyApiParam.getContextPath())),
             verifyApiParam.getApiId()
         );
         return Response.ok("API context [" + verifyApiParam.getContextPath() + "] is available").build();

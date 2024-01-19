@@ -34,5 +34,7 @@ public class VerifyApiParam {
     @JsonProperty("context_path")
     private String contextPath;
 
+    private String host;
+
     private String apiId;
 }
