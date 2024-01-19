@@ -58,8 +58,8 @@ import { ApiV1PoliciesComponent } from './policy-studio-v1/policies/policies.com
 import { ApiEventsComponent } from './audit/events/api-events.component';
 import { ApiEndpointGroupComponent } from './endpoints-v4/endpoint-group/api-endpoint-group.component';
 import { ApiEndpointGroupCreateComponent } from './endpoints-v4/endpoint-group/create/api-endpoint-group-create.component';
-import { ApiRuntimeLogsSettingsComponent } from './runtime-logs-v4/runtime-logs-settings/api-runtime-logs-settings.component';
-import { ApiRuntimeLogsComponent } from './runtime-logs-v4/runtime-logs/api-runtime-logs.component';
+import { ApiRuntimeLogsSettingsComponent } from './api-traffic-v4/runtime-logs-settings/api-runtime-logs-settings.component';
+import { ApiRuntimeLogsComponent } from './api-traffic-v4/runtime-logs/api-runtime-logs.component';
 import { ApiListComponent } from './list/api-list.component';
 import { ApiNotificationSettingsListComponent } from './notification-settings/notification-settings-list/api-notification-settings-list.component';
 import { ApiNotificationSettingsDetailsComponent } from './notification-settings/notofication-settings-details/api-notification-settings-details.component';
@@ -71,7 +71,7 @@ import { ApiPropertiesComponent } from './proxy/properties/properties/api-proper
 import { ApiDocumentationV4Component } from './documentation-v4/api-documentation-v4.component';
 import { ApiDocumentationV4EditPageComponent } from './documentation-v4/documentation-edit-page/api-documentation-v4-edit-page.component';
 import { ApiDynamicPropertiesComponent } from './proxy/properties/dynamic-properties/api-dynamic-properties.component';
-import { ApiRuntimeLogsDetailsComponent } from './runtime-logs-v4/runtime-logs-details/api-runtime-logs-details.component';
+import { ApiRuntimeLogsDetailsComponent } from './api-traffic-v4/runtime-logs-details/api-runtime-logs-details.component';
 import { HasApiPermissionGuard } from './has-api-permission.guard';
 import { GioPolicyStudioLayoutComponent } from './policy-studio-v2/gio-policy-studio-layout.component';
 import { PolicyStudioDesignComponent } from './policy-studio-v2/design/policy-studio-design.component';
