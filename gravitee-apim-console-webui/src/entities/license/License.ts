@@ -17,4 +17,5 @@ export type License = {
   tier: string;
   packs: Array<string>;
   features: Array<string>;
+  expiresAt?: Date;
 };
