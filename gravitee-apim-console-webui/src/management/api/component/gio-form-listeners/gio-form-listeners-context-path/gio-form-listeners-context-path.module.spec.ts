@@ -158,6 +158,17 @@ describe('GioFormListenersContextPathModule', () => {
     expectApiVerify();
   });
 
+  it('should mark control as invalid if path length is invalid', async () => {
+    const formPaths = await loader.getHarness(GioFormListenersContextPathHarness);
+
+    const rows = await formPaths.getListenerRows();
+    expect(rows.length).toEqual(1);
+
+    await rows[0].pathInput.setValue('/a');
+
+    expect(await (await rows[0].pathInput.host()).hasClass('ng-invalid')).toEqual(true);
+  });
+
   it('should mark control as invalid if path is already defined', async () => {
     const formPaths = await loader.getHarness(GioFormListenersContextPathHarness);
     await formPaths.addListenerRow();
