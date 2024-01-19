@@ -35,19 +35,36 @@ export class ApiV4MenuService implements ApiMenuService {
     groupItems: MenuGroupItem[];
   } {
     const hasTcpListeners = api.listeners.find((listener) => listener.type === 'TCP') != null;
-    const subMenuItems: MenuItem[] = [
-      {
-        displayName: 'Policies',
-        icon: 'shield-star',
-        header: {
-          title: 'Policies',
-          subtitle: 'Policies let you customize and enhance your API behavior and functionality',
-        },
-        routerLink: hasTcpListeners ? 'DISABLED' : 'v4/policy-studio',
-        tabs: undefined,
-      },
-    ];
+    const subMenuItems: MenuItem[] = [];
+    this.addPoliciesMenuEntry(subMenuItems, hasTcpListeners);
+    this.addApiTrafficMenuEntry(subMenuItems, hasTcpListeners);
 
+    const groupItems: MenuGroupItem[] = [
+      this.getGeneralGroup(),
+      this.getEntrypointsGroup(hasTcpListeners),
+      this.getEndpointsGroup(),
+      this.getAnalyticsGroup(),
+      this.getAuditGroup(),
+      this.getNotificationsGroup(),
+    ].filter((group) => !!group);
+
+    return { subMenuItems, groupItems };
+  }
+
+  private addPoliciesMenuEntry(subMenuItems: MenuItem[], hasTcpListeners: boolean): void {
+    subMenuItems.push({
+      displayName: 'Policies',
+      icon: 'shield-star',
+      header: {
+        title: 'Policies',
+        subtitle: 'Policies let you customize and enhance your API behavior and functionality',
+      },
+      routerLink: hasTcpListeners ? 'DISABLED' : 'v4/policy-studio',
+      tabs: undefined,
+    });
+  }
+
+  private addApiTrafficMenuEntry(subMenuItems: MenuItem[], hasTcpListeners: boolean): void {
     const logsTabs = [];
     if (this.permissionService.hasAnyMatching(['api-log-r'])) {
       logsTabs.push({
@@ -59,6 +76,12 @@ export class ApiV4MenuService implements ApiMenuService {
       logsTabs.push({
         displayName: 'Settings',
         routerLink: 'v4/runtime-logs-settings',
+      });
+    }
+    if (this.permissionService.hasAnyMatching(['api-audit-r'])) {
+      logsTabs.push({
+        displayName: 'Audit Logs',
+        routerLink: 'DISABLED',
       });
     }
     if (logsTabs.length > 0) {
@@ -73,17 +96,8 @@ export class ApiV4MenuService implements ApiMenuService {
         tabs: logsTabs,
       });
     }
-    const groupItems: MenuGroupItem[] = [
-      this.getGeneralGroup(),
-      this.getEntrypointsGroup(hasTcpListeners),
-      this.getEndpointsGroup(),
-      this.getAnalyticsGroup(),
-      this.getAuditGroup(),
-      this.getNotificationsGroup(),
-    ].filter((group) => !!group);
-
-    return { subMenuItems, groupItems };
   }
+
   private getGeneralGroup(): MenuGroupItem {
     const generalGroup: MenuGroupItem = {
       title: 'General',
@@ -247,12 +261,6 @@ export class ApiV4MenuService implements ApiMenuService {
       items: [],
     };
 
-    if (this.permissionService.hasAnyMatching(['api-audit-r'])) {
-      auditGroup.items.push({
-        displayName: 'Audit',
-        routerLink: 'DISABLED',
-      });
-    }
     if (this.permissionService.hasAnyMatching(['api-event-r'])) {
       auditGroup.items.push({
         displayName: 'History',
