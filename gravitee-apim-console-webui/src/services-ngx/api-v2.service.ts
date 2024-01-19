@@ -145,7 +145,7 @@ export class ApiV2Service {
   }
 
   getLastApiFetch(apiId: string): Observable<Api> {
-    const start = this.lastApiFetch$.value ? of(this.lastApiFetch$.value) : this.get(apiId);
+    const start = this.lastApiFetch$.value && this.lastApiFetch$.value.id === apiId ? of(this.lastApiFetch$.value) : this.get(apiId);
     return start.pipe(
       switchMap(() => this.lastApiFetch$.asObservable()),
       filter((api) => !!api),
