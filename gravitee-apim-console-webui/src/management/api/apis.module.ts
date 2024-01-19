@@ -22,7 +22,7 @@ import { ApiListModule } from './list/api-list.module';
 import { ApiNavigationModule } from './api-navigation/api-navigation.module';
 import { ApiProxyModule } from './proxy/api-proxy.module';
 import { ApiV4PolicyStudioModule } from './policy-studio-v4/api-v4-policy-studio.module';
-import { ApiRuntimeLogsV4Module } from './runtime-logs-v4/api-runtime-logs-v4.module';
+import { ApiRuntimeLogsV4Module } from './api-traffic-v4/api-runtime-logs-v4.module';
 import { ApisGeneralModule } from './general/apis-general.module';
 import { ApiEndpointsModule } from './endpoints-v4/api-endpoints.module';
 import { ApiEntrypointsV4Module } from './entrypoints-v4/api-entrypoints-v4.module';
