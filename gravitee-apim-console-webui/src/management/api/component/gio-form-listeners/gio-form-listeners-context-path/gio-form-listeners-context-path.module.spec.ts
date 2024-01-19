@@ -145,9 +145,9 @@ describe('GioFormListenersContextPathModule', () => {
     await emptyLastContextPathRow.pathInput.setValue('/abc yeh');
     expect(await pathInputHost.hasClass('ng-invalid')).toEqual(true);
 
-    // Valid
+    // Invalid: too short
     await emptyLastContextPathRow.pathInput.setValue('/ba');
-    expect(await pathInputHost.hasClass('ng-invalid')).toEqual(false);
+    expect(await pathInputHost.hasClass('ng-invalid')).toEqual(true);
 
     // Valid
     await emptyLastContextPathRow.pathInput.setValue('/good-path');
