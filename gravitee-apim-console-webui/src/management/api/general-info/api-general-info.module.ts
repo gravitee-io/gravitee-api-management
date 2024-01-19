@@ -49,10 +49,10 @@ import { ApiGeneralInfoDuplicateDialogComponent } from './api-general-info-dupli
 import { ApiGeneralInfoExportDialogComponent } from './api-general-info-export-dialog/api-general-info-export-dialog.component';
 import { ApiGeneralInfoPromoteDialogComponent } from './api-general-info-promote-dialog/api-general-info-promote-dialog.component';
 
-import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
-import { GioCircularPercentageModule } from '../../../../shared/components/gio-circular-percentage/gio-circular-percentage.module';
-import { GioApiImportDialogModule } from '../../../../shared/components/gio-api-import-dialog/gio-api-import-dialog.module';
-import { GioLicenseBannerModule } from '../../../../shared/components/gio-license-banner/gio-license-banner.module';
+import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
+import { GioCircularPercentageModule } from '../../../shared/components/gio-circular-percentage/gio-circular-percentage.module';
+import { GioApiImportDialogModule } from '../../../shared/components/gio-api-import-dialog/gio-api-import-dialog.module';
+import { GioLicenseBannerModule } from '../../../shared/components/gio-license-banner/gio-license-banner.module';
 
 @NgModule({
   declarations: [

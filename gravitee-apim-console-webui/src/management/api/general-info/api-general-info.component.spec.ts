@@ -37,11 +37,11 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ApiGeneralInfoModule } from './api-general-info.module';
 import { ApiGeneralInfoComponent } from './api-general-info.component';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
-import { Category } from '../../../../entities/category/Category';
-import { Api, DefinitionVersion, fakeApiV1, fakeApiV2, fakeApiV4, fakeProxyTcpApiV4 } from '../../../../entities/management-api-v2';
-import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
-import { Tag } from '../../../../entities/tag/tag';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { Category } from '../../../entities/category/Category';
+import { Api, DefinitionVersion, fakeApiV1, fakeApiV2, fakeApiV4, fakeProxyTcpApiV4 } from '../../../entities/management-api-v2';
+import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
+import { Tag } from '../../../entities/tag/tag';
 
 describe('ApiGeneralInfoComponent', () => {
   const API_ID = 'apiId';

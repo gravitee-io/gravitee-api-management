@@ -20,14 +20,14 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { EMPTY, Subject } from 'rxjs';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
 
-import { Api, ApiV2, ApiV4, DuplicateFilteredField, HttpListener, TcpListener } from '../../../../../entities/management-api-v2';
-import { ApiService } from '../../../../../services-ngx/api.service';
-import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
-import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
-import { tcpHostSyncValidator } from '../../../../../shared/validators/tcp-hosts/tcp-host-sync-validator.directive';
-import { tcpHostAsyncValidator } from '../../../../../shared/validators/tcp-hosts/tcp-host-async-validator.directive';
-import { contextPathSyncValidator } from '../../../../../shared/validators/context-path/context-path-sync-validator.directive';
-import { contextPathAsyncValidator } from '../../../../../shared/validators/context-path/context-path-async-validator.directive';
+import { Api, ApiV2, ApiV4, DuplicateFilteredField, HttpListener, TcpListener } from '../../../../entities/management-api-v2';
+import { ApiService } from '../../../../services-ngx/api.service';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
+import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
+import { tcpHostSyncValidator } from '../../../../shared/validators/tcp-hosts/tcp-host-sync-validator.directive';
+import { tcpHostAsyncValidator } from '../../../../shared/validators/tcp-hosts/tcp-host-async-validator.directive';
+import { contextPathSyncValidator } from '../../../../shared/validators/context-path/context-path-sync-validator.directive';
+import { contextPathAsyncValidator } from '../../../../shared/validators/context-path/context-path-async-validator.directive';
 
 export type ApiPortalDetailsDuplicateDialogData = {
   api: Api;

@@ -26,11 +26,11 @@ import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/materia
 
 import { ApiGeneralInfoPromoteDialogComponent } from './api-general-info-promote-dialog.component';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { ApiGeneralInfoModule } from '../api-general-info.module';
-import { fakePromotion, fakePromotionTarget, Promotion, PromotionTarget } from '../../../../../entities/promotion';
-import { fakeApiV2 } from '../../../../../entities/management-api-v2';
-import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
+import { fakePromotion, fakePromotionTarget, Promotion, PromotionTarget } from '../../../../entities/promotion';
+import { fakeApiV2 } from '../../../../entities/management-api-v2';
+import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiPortalDetailsPromoteDialogComponent', () => {
   const API_ID = 'apiId';

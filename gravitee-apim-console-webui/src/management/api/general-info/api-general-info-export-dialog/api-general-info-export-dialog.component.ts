@@ -20,9 +20,9 @@ import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { EMPTY, Observable, Subject } from 'rxjs';
 import { catchError, map, takeUntil, tap } from 'rxjs/operators';
 
-import { Api } from '../../../../../entities/management-api-v2';
-import { ApiService } from '../../../../../services-ngx/api.service';
-import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
+import { Api } from '../../../../entities/management-api-v2';
+import { ApiService } from '../../../../services-ngx/api.service';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 
 export type ApiPortalDetailsExportDialogData = {
   api: Api;

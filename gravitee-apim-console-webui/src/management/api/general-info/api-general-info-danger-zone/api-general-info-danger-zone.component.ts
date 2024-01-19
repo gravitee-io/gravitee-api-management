@@ -27,12 +27,12 @@ import { EMPTY, Observable, of, Subject } from 'rxjs';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { Constants } from '../../../../../entities/Constants';
-import { Api, ApiV4, UpdateApi } from '../../../../../entities/management-api-v2';
-import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
-import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
-import { ApiReviewV2Service } from '../../../../../services-ngx/api-review-v2.service';
-import { ApimFeature, UTMTags } from '../../../../../shared/components/gio-license/gio-license-data';
+import { Constants } from '../../../../entities/Constants';
+import { Api, ApiV4, UpdateApi } from '../../../../entities/management-api-v2';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
+import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
+import { ApiReviewV2Service } from '../../../../services-ngx/api-review-v2.service';
+import { ApimFeature, UTMTags } from '../../../../shared/components/gio-license/gio-license-data';
 
 @Component({
   selector: 'api-general-info-danger-zone',
