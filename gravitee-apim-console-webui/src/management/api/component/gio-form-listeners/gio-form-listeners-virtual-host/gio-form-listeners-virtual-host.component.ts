@@ -71,7 +71,7 @@ export class GioFormListenersVirtualHostComponent extends GioFormListenersContex
   }
 
   validateListenerControl(listenerControl: AbstractControl, httpListeners: PathV4[], currentIndex: number): ValidationErrors | null {
-    const inheritErrors = super.validateGenericPathListenerControl(listenerControl);
+    const inheritErrors = this.validateVirtualHostPath(listenerControl);
     const subDomainControl = listenerControl.get('_hostSubDomain');
     const domainControl = listenerControl.get('_hostDomain');
     const contextPathControl = listenerControl.get('path');
@@ -104,6 +104,16 @@ export class GioFormListenersVirtualHostComponent extends GioFormListenersContex
 
     setTimeout(() => subDomainControl.setErrors(null), 0);
     return inheritErrors;
+  }
+
+  private validateVirtualHostPath(listenerControl: AbstractControl): ValidationErrors | null {
+    const listenerPathControl = listenerControl.get('path');
+    const contextPath: string = listenerPathControl.value;
+
+    const errors = this.validateGenericPathListenerControl(contextPath);
+
+    setTimeout(() => listenerPathControl.setErrors(errors), 0);
+    return errors;
   }
 
   protected getValue(): PathV4[] {
