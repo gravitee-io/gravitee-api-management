@@ -15,10 +15,17 @@
  */
 
 import { forManagementV2AsApiUser } from '@gravitee/utils/configuration';
-import { APIPlansApi, APIsApi, ApiV4, ListenerType, PlanSecurityType } from '../../../../../lib/management-v2-webclient-sdk/src/lib';
+import {
+  APIPlansApi,
+  APIsApi,
+  ApiV4,
+  ListenerType,
+  PlanSecurityType,
+  UpdateApi,
+} from '../../../../../lib/management-v2-webclient-sdk/src/lib';
 import { afterAll, beforeAll, expect, test } from '@jest/globals';
 import { MAPIV2PlansFaker } from '@gravitee/fixtures/management/MAPIV2PlansFaker';
-import { created, fail } from '@lib/jest-utils';
+import { created, fail, noContent, succeed } from '@lib/jest-utils';
 import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
 import faker from '@faker-js/faker';
 
@@ -57,10 +64,20 @@ describe('With a TCP API', () => {
 
   afterAll(async () => {
     if (importedApi) {
-      await v2ApisResourceAsApiPublisher.deleteApi({
-        envId,
-        apiId: importedApi.id,
-      });
+      await succeed(
+        v2ApisResourceAsApiPublisher.updateApiRaw({
+          envId,
+          apiId: importedApi.id,
+          updateApi: { ...importedApi, lifecycleState: 'DEPRECATED' } as UpdateApi,
+        }),
+      );
+
+      await noContent(
+        v2ApisResourceAsApiPublisher.deleteApiRaw({
+          envId,
+          apiId: importedApi.id,
+        }),
+      );
     }
   });
 
