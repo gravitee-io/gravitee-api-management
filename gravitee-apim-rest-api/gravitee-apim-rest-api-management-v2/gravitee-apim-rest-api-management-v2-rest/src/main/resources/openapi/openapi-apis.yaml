@@ -1928,6 +1928,11 @@ components:
                     example:
                         - feature-debug-mode
                         - feature-datadog-reporter
+                expiresAt:
+                    type: string
+                    format: date-time
+                    description: The date (as timestamp) when the license will expire.
+                    example: 1581256457163
         Analytics:
             type: object
             properties:
