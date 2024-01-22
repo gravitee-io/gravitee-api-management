@@ -37,6 +37,7 @@ export class ApiV4MenuService implements ApiMenuService {
     const hasTcpListeners = api.listeners.find((listener) => listener.type === 'TCP') != null;
     const subMenuItems: MenuItem[] = [
       this.addConfigurationMenuEntry(),
+      this.addEntrypointsMenuEntry(),
       this.addPoliciesMenuEntry(hasTcpListeners),
       this.addApiTrafficMenuEntry(hasTcpListeners),
     ];
@@ -93,6 +94,26 @@ export class ApiV4MenuService implements ApiMenuService {
       header: {
         title: 'Configuration',
         subtitle: 'Manage general settings, user permissions, properties, and resources, and track changes to your API',
+      },
+      tabs: tabs,
+    };
+  }
+
+  private addEntrypointsMenuEntry(): MenuItem {
+    const tabs: MenuItem[] = [
+      {
+        displayName: 'Entrypoints',
+        routerLink: 'v4/entrypoints',
+      },
+    ];
+
+    return {
+      displayName: 'Entrypoints',
+      icon: 'upload-cloud',
+      routerLink: '',
+      header: {
+        title: 'Entrypoints',
+        subtitle: 'Define the protocol and configuration settings by which the API consumer accesses the Gateway API',
       },
       tabs: tabs,
     };
@@ -230,12 +251,7 @@ export class ApiV4MenuService implements ApiMenuService {
     if (this.permissionService.hasAnyMatching(['api-definition-r', 'api-health-r'])) {
       const entrypointsGroup: MenuGroupItem = {
         title: 'Entrypoints',
-        items: [
-          {
-            displayName: 'General',
-            routerLink: 'v4/entrypoints',
-          },
-        ],
+        items: [],
       };
       if (!hasTcpListeners) {
         entrypointsGroup.items.push({
