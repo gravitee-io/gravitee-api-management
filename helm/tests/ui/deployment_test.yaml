@@ -125,7 +125,7 @@ tests:
           of: Deployment
       - equal:
           path: spec.template.spec.containers[0].lifecycle.preStop.exec.command
-          value: "['sh','-c', 'sleep 5 && /usr/sbin/nginx -s quit']"
+          value: ['sh','-c', 'sleep 5 && /usr/sbin/nginx -s quit']
 
 
   - it: Override the default preStop
@@ -140,11 +140,5 @@ tests:
       - isKind:
           of: Deployment
       - equal:
-          path: spec.template.spec.containers[0].lifecycle.preStop.exec.command[0]
-          value: "sh"
-      - equal:
-          path: spec.template.spec.containers[0].lifecycle.preStop.exec.command[1]
-          value: "-c"
-      - equal:
-          path: spec.template.spec.containers[0].lifecycle.preStop.exec.command[2]
-          value: "sleep 5 && /usr/sbin/nginx -s override"
+          path: spec.template.spec.containers[0].lifecycle.preStop.exec.command
+          value: ['sh','-c', 'sleep 5 && /usr/sbin/nginx -s override']

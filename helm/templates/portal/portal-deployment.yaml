@@ -122,19 +122,19 @@ spec:
           ports:
             - name: {{ .Values.portal.service.internalPortName }}
               containerPort: {{ .Values.portal.service.internalPort }}
+          {{- if .Values.portal.lifecycle }}
           lifecycle:
-            {{- if and .Values.portal.lifecycle .Values.portal.lifecycle.postStart }}
+            {{- if .Values.portal.lifecycle.postStart }}
             postStart:
               exec:
                 command: {{ .Values.portal.lifecycle.postStart }}
             {{- end }}
+            {{- if .Values.portal.lifecycle.preStop }}
             preStop:
               exec:
-                {{- if and .Values.portal.lifecycle .Values.portal.lifecycle.preStop }}
                 command: {{ .Values.portal.lifecycle.preStop }}
-                {{- else }}
-                command: "['sh','-c', 'sleep 5 && /usr/sbin/nginx -s quit']"
-                {{- end }}
+            {{- end }}
+          {{- end }}
           {{- if .Values.portal.deployment.livenessProbe.enabled }}
           livenessProbe: {{- omit .Values.portal.deployment.livenessProbe "enabled" | toYaml | nindent 12 }}
           {{- else if .Values.portal.deployment.customLivenessProbe }}
