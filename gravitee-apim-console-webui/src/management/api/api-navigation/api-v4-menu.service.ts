@@ -70,6 +70,14 @@ export class ApiV4MenuService implements ApiMenuService {
       });
     }
 
+    if (this.permissionService.hasAnyMatching(['api-notification-r'])) {
+      tabs.push({
+        displayName: 'Notifications',
+        routerLink: 'DISABLED',
+        routerLinkActiveOptions: { exact: true },
+      });
+    }
+
     return {
       displayName: 'Configuration',
       icon: 'settings',
@@ -302,13 +310,6 @@ export class ApiV4MenuService implements ApiMenuService {
       title: 'Notifications',
       items: [],
     };
-
-    if (this.permissionService.hasAnyMatching(['api-notification-r'])) {
-      notificationsGroup.items.push({
-        displayName: 'Notification settings',
-        routerLink: 'DISABLED',
-      });
-    }
 
     if (!this.constants.isOEM && this.constants.org.settings.alert?.enabled && this.permissionService.hasAnyMatching(['api-alert-r'])) {
       notificationsGroup.items.push({
