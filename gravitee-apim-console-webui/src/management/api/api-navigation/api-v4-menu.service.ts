@@ -54,13 +54,22 @@ export class ApiV4MenuService implements ApiMenuService {
   }
 
   private addConfigurationMenuEntry(): MenuItem {
-    const tabs = [
+    const tabs: MenuItem[] = [
       {
         displayName: 'General',
         routerLink: '.',
         routerLinkActiveOptions: { exact: true },
       },
     ];
+
+    if (this.permissionService.hasAnyMatching(['api-definition-r'])) {
+      tabs.push({
+        displayName: 'Resources',
+        routerLink: 'resources',
+        routerLinkActiveOptions: { exact: true },
+      });
+    }
+
     return {
       displayName: 'Configuration',
       icon: 'settings',
@@ -149,25 +158,19 @@ export class ApiV4MenuService implements ApiMenuService {
     }
 
     if (this.permissionService.hasAnyMatching(['api-definition-r'])) {
-      generalGroup.items.push(
-        {
-          displayName: 'Properties',
-          tabs: [
-            {
-              displayName: 'Properties',
-              routerLink: 'properties',
-            },
-            {
-              displayName: 'Dynamic properties',
-              routerLink: 'DISABLED',
-            },
-          ],
-        },
-        {
-          displayName: 'Resources',
-          routerLink: 'resources',
-        },
-      );
+      generalGroup.items.push({
+        displayName: 'Properties',
+        tabs: [
+          {
+            displayName: 'Properties',
+            routerLink: 'properties',
+          },
+          {
+            displayName: 'Dynamic properties',
+            routerLink: 'DISABLED',
+          },
+        ],
+      });
     }
 
     if (this.permissionService.hasAnyMatching(['api-documentation-r'])) {

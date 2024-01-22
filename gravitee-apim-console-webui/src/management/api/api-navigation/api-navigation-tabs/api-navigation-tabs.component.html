@@ -24,7 +24,7 @@
       #rla="routerLinkActive"
       [routerLink]="menuItem.routerLink"
       [active]="rla.isActive"
-      class="api-navigation-tabs__link"
+      [routerLinkActiveOptions]="menuItem?.routerLinkActiveOptions ?? { exact: false }"
       >{{ menuItem.displayName }}</a
     >
     <a
