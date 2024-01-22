@@ -17,11 +17,11 @@
 
 class ApiDetails {
   policyStudioMenuItem(): Cypress.Chainable<JQuery<HTMLElement>> {
-    return cy.get('.gio-submenu-item').contains('Policy Studio');
+    return cy.get('.gio-submenu-item__title').contains('Policies');
   }
 
   infoMenuItem(): Cypress.Chainable<JQuery<HTMLElement>> {
-    return cy.get('.gio-submenu-item__title').contains('Info');
+    return cy.get('.gio-submenu-item__title').contains('Configuration');
   }
 
   plansMenuItem(): Cypress.Chainable<JQuery<HTMLElement>> {
