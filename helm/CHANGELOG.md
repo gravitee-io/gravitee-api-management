@@ -14,7 +14,6 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 - Add support for Secret Manager's configuration
 - Add networkPolicy
 - fix helm backward compatibility during helm upgrade without `common` field
-- Changes: Helm Chart is no longer compatible with Helm version prior to 3.10
 
 ### 4.1.4
 
