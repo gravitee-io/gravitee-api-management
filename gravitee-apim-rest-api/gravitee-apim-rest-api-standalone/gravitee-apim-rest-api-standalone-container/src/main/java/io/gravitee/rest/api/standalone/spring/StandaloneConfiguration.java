@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.standalone.spring;
 
+import io.gravitee.node.api.Node;
 import io.gravitee.node.api.NodeMetadataResolver;
 import io.gravitee.node.container.NodeFactory;
 import io.gravitee.platform.repository.api.RepositoryScopeProvider;
@@ -45,8 +46,8 @@ import org.springframework.context.annotation.Import;
 public class StandaloneConfiguration {
 
     @Bean
-    public NodeFactory node() {
-        return new NodeFactory(GraviteeApisNode.class);
+    public Node node() {
+        return new GraviteeApisNode();
     }
 
     @Bean

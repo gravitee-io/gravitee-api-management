@@ -35,10 +35,9 @@ import io.gravitee.gateway.repository.plugins.GatewayRepositoryScopeProvider;
 import io.gravitee.gateway.standalone.node.GatewayNode;
 import io.gravitee.gateway.standalone.node.GatewayNodeMetadataResolver;
 import io.gravitee.gateway.standalone.vertx.VertxReactorConfiguration;
+import io.gravitee.node.api.Node;
 import io.gravitee.node.api.NodeMetadataResolver;
-import io.gravitee.node.container.NodeFactory;
 import io.gravitee.platform.repository.api.RepositoryScopeProvider;
-import io.gravitee.plugin.policy.spring.PolicyPluginConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -62,6 +61,11 @@ import org.springframework.context.annotation.Import;
     }
 )
 public class StandaloneConfiguration {
+
+    @Bean
+    public Node node() {
+        return new GatewayNode();
+    }
 
     @Bean
     public static GatewayConfiguration gatewayConfiguration() {
@@ -91,11 +95,6 @@ public class StandaloneConfiguration {
     @Bean
     public ExpressionLanguageInitializer expressionLanguageInitializer() {
         return new ExpressionLanguageInitializer();
-    }
-
-    @Bean
-    public NodeFactory node() {
-        return new NodeFactory(GatewayNode.class);
     }
 
     @Bean

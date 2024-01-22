@@ -26,10 +26,6 @@ import java.util.List;
  */
 public class GatewayContainer extends SpringBasedContainer {
 
-    public GatewayContainer() {
-        super(GatewayNode.class);
-    }
-
     @Override
     protected List<Class<?>> annotatedClasses() {
         List<Class<?>> classes = super.annotatedClasses();

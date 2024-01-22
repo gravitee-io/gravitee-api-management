@@ -22,6 +22,7 @@ import io.gravitee.apim.gateway.tests.sdk.tracer.NoOpTracer;
 import io.gravitee.gateway.api.service.ApiKeyService;
 import io.gravitee.gateway.api.service.SubscriptionService;
 import io.gravitee.gateway.standalone.GatewayContainer;
+import io.gravitee.node.api.Node;
 import io.gravitee.node.api.cache.CacheManager;
 import io.gravitee.node.api.cluster.ClusterManager;
 import io.gravitee.node.api.license.LicenseManager;
@@ -79,8 +80,8 @@ public class GatewayTestContainer extends GatewayContainer {
     public static class GatewayTestConfiguration {
 
         @Bean
-        public NodeFactory node() {
-            return new NodeFactory(GatewayTestNode.class);
+        public Node node() {
+            return new GatewayTestNode();
         }
 
         @Bean

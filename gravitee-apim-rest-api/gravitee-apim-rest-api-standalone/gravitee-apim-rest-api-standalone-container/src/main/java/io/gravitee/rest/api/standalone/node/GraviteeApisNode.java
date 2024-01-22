@@ -36,7 +36,6 @@ import org.springframework.context.annotation.Lazy;
  */
 public class GraviteeApisNode extends AbstractNode {
 
-    @Lazy
     @Autowired
     private NodeMetadataResolver nodeMetadataResolver;
 
