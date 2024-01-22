@@ -34,7 +34,6 @@ import org.springframework.context.annotation.Lazy;
  */
 public class GatewayNode extends AbstractNode {
 
-    @Lazy
     @Autowired
     private NodeMetadataResolver nodeMetadataResolver;
 

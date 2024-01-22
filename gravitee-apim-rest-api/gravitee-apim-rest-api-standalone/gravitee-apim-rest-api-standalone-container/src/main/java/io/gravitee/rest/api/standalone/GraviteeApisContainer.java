@@ -27,10 +27,6 @@ import org.slf4j.bridge.SLF4JBridgeHandler;
  */
 public class GraviteeApisContainer extends SpringBasedContainer {
 
-    public GraviteeApisContainer() {
-        super(GraviteeApisNode.class);
-    }
-
     @Override
     protected List<Class<?>> annotatedClasses() {
         List<Class<?>> classes = super.annotatedClasses();
