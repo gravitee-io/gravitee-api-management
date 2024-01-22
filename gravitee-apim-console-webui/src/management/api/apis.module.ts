@@ -36,6 +36,7 @@ import { ApiCreationV4Module } from './creation-v4/api-creation-v4.module';
 import { ApiDocumentationV4Module } from './documentation-v4/api-documentation-v4.module';
 import { ApisRoutingModule } from './apis-routing.module';
 import { ApiGeneralInfoModule } from './general-info/api-general-info.module';
+import { ApiResourcesModule } from './resources-ng/api-resources.module';
 
 import { SpecificJsonSchemaTypeModule } from '../../shared/components/specific-json-schema-type/specific-json-schema-type.module';
 import { DocumentationModule } from '../../components/documentation/documentation.module';
@@ -48,26 +49,27 @@ import { AlertsModule } from '../../components/alerts/alerts.module';
 
     ApisRoutingModule,
 
+    AlertsModule,
     ApiAnalyticsModule,
-    ApiListModule,
-    ApiNavigationModule,
-    ApiV4PolicyStudioModule,
-    ApiRuntimeLogsV4Module,
-    ApisGeneralModule,
-    ApiGeneralInfoModule,
-    ApiProxyModule,
-    ApiEntrypointsV4Module,
-    ApiEndpointsModule,
     ApiAuditModule,
-    ApiNotificationSettingsModule,
-    GioPolicyStudioRoutingModule,
-    SpecificJsonSchemaTypeModule,
-    DocumentationModule,
     ApiCreationGetStartedModule,
     ApiCreationV2Module,
     ApiCreationV4Module,
     ApiDocumentationV4Module,
-    AlertsModule,
+    ApiEndpointsModule,
+    ApiEntrypointsV4Module,
+    ApisGeneralModule,
+    ApiGeneralInfoModule,
+    ApiListModule,
+    ApiNavigationModule,
+    ApiNotificationSettingsModule,
+    ApiProxyModule,
+    ApiResourcesModule,
+    ApiRuntimeLogsV4Module,
+    ApiV4PolicyStudioModule,
+    DocumentationModule,
+    GioPolicyStudioRoutingModule,
+    SpecificJsonSchemaTypeModule,
   ],
 })
 export class ApisModule {}

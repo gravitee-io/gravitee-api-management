@@ -23,11 +23,11 @@ import { ActivatedRoute } from '@angular/router';
 
 import { ApiResourcesService } from './api-resources.service';
 
-import { ResourceListItem } from '../../../../entities/resource/resourceListItem';
-import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
-import { ApiV2, ApiV4 } from '../../../../entities/management-api-v2';
-import { stringFeature, UTMTags } from '../../../../shared/components/gio-license/gio-license-data';
-import { Constants } from '../../../../entities/Constants';
+import { ResourceListItem } from '../../../entities/resource/resourceListItem';
+import { ApiV2Service } from '../../../services-ngx/api-v2.service';
+import { ApiV2, ApiV4 } from '../../../entities/management-api-v2';
+import { stringFeature, UTMTags } from '../../../shared/components/gio-license/gio-license-data';
+import { Constants } from '../../../entities/Constants';
 
 @Component({
   selector: 'api-resources',
