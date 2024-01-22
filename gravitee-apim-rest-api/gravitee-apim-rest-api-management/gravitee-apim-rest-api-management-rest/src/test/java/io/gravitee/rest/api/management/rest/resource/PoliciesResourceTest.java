@@ -15,20 +15,22 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.node.api.license.License;
+import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.model.PolicyEntity;
 import io.gravitee.rest.api.model.platform.plugin.SchemaDisplayFormat;
 import jakarta.ws.rs.core.Response;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.Set;
+import java.util.*;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Nicolas Geraud (nicolas.geraud at gmail.com)
@@ -39,6 +41,9 @@ public class PoliciesResourceTest extends AbstractResourceTest {
     protected String contextPath() {
         return "policies";
     }
+
+    @Autowired
+    protected LicenseManager licenseManager;
 
     @Test
     public void shouldGetPoliciesemptyList() {
@@ -54,23 +59,43 @@ public class PoliciesResourceTest extends AbstractResourceTest {
     public void shouldGetPoliciesList() {
         HashSet<PolicyEntity> policyEntities = new HashSet<>();
         PolicyEntity policyEntity = new PolicyEntity();
+        policyEntity.setId("policy-1");
+        policyEntity.setName("Policy 1");
+        policyEntity.setDeployed(true);
+        policyEntity.setFeature("feature-1");
+        PolicyEntity policyEntity2 = new PolicyEntity();
+        policyEntity2.setId("policy-2");
+        policyEntity2.setName("Policy 2");
+        policyEntity2.setDeployed(true);
+        policyEntity2.setFeature("feature-2");
+        PolicyEntity policyEntity3 = new PolicyEntity();
+        policyEntity3.setId("policy-3");
+        policyEntity3.setName("Policy 3");
+        policyEntity3.setDeployed(false);
+        policyEntity3.setFeature("feature-3");
+
         policyEntities.add(policyEntity);
-        policyEntity.setId("my-api");
-        policyEntity.setName("My Api");
+        policyEntities.add(policyEntity2);
+        policyEntities.add(policyEntity3);
 
         when(policyService.findAll(null)).thenReturn(policyEntities);
+        var license = mock(License.class);
+        when(licenseManager.getOrganizationLicenseOrPlatform("DEFAULT")).thenReturn(license);
+        when(license.isFeatureEnabled("feature-1")).thenReturn(false);
+        when(license.isFeatureEnabled("feature-2")).thenReturn(true);
+        when(license.isFeatureEnabled("feature-3")).thenReturn(true);
 
         final Response response = envTarget().request().get();
 
-        assertEquals(HttpStatusCode.OK_200, response.getStatus());
-        Set entity = response.readEntity(Set.class);
-        assertFalse("not empty", entity.isEmpty());
-        assertEquals("one element", 1, entity.size());
-        Object o = entity.iterator().next();
-        assertTrue(o instanceof LinkedHashMap);
-        LinkedHashMap<String, String> elt = (LinkedHashMap<String, String>) o;
-        assertEquals("id", "my-api", elt.get("id"));
-        assertEquals("name", "My Api", elt.get("name"));
+        assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
+        Set<?> entity = response.readEntity(Set.class);
+        assertThat(entity)
+            .hasSize(3)
+            .hasToString(
+                "[{id=policy-2, name=Policy 2, onRequest=true, onResponse=false, deployed=true}, " +
+                "{id=policy-3, name=Policy 3, onRequest=true, onResponse=false, deployed=false}, " +
+                "{id=policy-1, name=Policy 1, onRequest=true, onResponse=false, deployed=false}]"
+            );
     }
 
     @Test
