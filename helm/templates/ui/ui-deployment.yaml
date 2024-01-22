@@ -117,20 +117,19 @@ spec:
           ports:
             - name: {{ .Values.ui.service.internalPortName }}
               containerPort: {{ .Values.ui.service.internalPort }}
+          {{- if .Values.ui.lifecycle }}
           lifecycle:
-            {{- if and .Values.ui.lifecycle .Values.ui.lifecycle.postStart }}
+            {{- if .Values.ui.lifecycle.postStart }}
             postStart:
               exec:
                 command: {{ .Values.ui.lifecycle.postStart }}
             {{- end }}
+            {{- if .Values.ui.lifecycle.preStop }}
             preStop:
               exec:
-                {{- if and .Values.ui.lifecycle .Values.ui.lifecycle.preStop }}
                 command: {{ .Values.ui.lifecycle.preStop }}
-                {{- else}}
-                # wait 5 seconds to let kubernetes Endpoint balance the connexion elsewhere and then ask nginx to stop
-                command: "['sh','-c', 'sleep 5 && /usr/sbin/nginx -s quit']"
-                {{- end }}
+            {{- end }}
+          {{- end }}
           {{- if .Values.ui.deployment.livenessProbe.enabled }}
           livenessProbe: {{- omit .Values.ui.deployment.livenessProbe "enabled" | toYaml | nindent 12 }}
           {{- else if .Values.ui.deployment.customLivenessProbe }}
