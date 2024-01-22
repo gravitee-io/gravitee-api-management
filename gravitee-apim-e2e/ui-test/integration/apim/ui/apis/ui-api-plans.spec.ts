@@ -55,6 +55,7 @@ describe('API Plans Feature', () => {
     cy.contains('DEPRECATED').should('be.visible');
     cy.contains('CLOSED').should('be.visible');
     cy.contains('There is no plan (yet).').should('be.visible');
+    cy.wait(250);
     cy.getByDataTestId('api_plans_add_plan_button').should('be.visible');
   });
 
@@ -69,7 +70,7 @@ describe('API Plans Feature', () => {
     cy.getByDataTestId('api_plans_nextstep').click();
     cy.contains('Propagate API Key').should('exist').scrollIntoView().should('be.visible');
     cy.getByDataTestId('api_plans_nextstep').click();
-    cy.contains('Rate Limiting').should('be.visible');
+    cy.get('gio-form-label').contains('Rate Limiting').should('exist');
     cy.contains('Quota').should('be.visible');
     cy.contains('Resource Filtering').should('be.visible');
     cy.get('[type="submit"]').contains('Create').click();
@@ -97,7 +98,7 @@ describe('API Plans Feature', () => {
     // ^ I can't find html element for this, this doesn't feel good but was best I could do as OAuth2 Resource a mandatory field
     cy.contains('OAuth2 resource').should('exist').scrollIntoView().should('be.visible');
     cy.getByDataTestId('api_plans_nextstep').click();
-    cy.contains('Rate Limiting').should('be.visible');
+    cy.get('gio-form-label').contains('Rate Limiting').should('exist');
     cy.contains('Quota').should('be.visible');
     cy.contains('Resource Filtering').should('be.visible');
     cy.get('[type="submit"]').contains('Create').click();
@@ -123,7 +124,7 @@ describe('API Plans Feature', () => {
     cy.getByDataTestId('api_plans_nextstep').click();
     cy.contains('JWKS resolver').should('exist').scrollIntoView().should('be.visible');
     cy.getByDataTestId('api_plans_nextstep').click();
-    cy.contains('Rate Limiting').should('be.visible');
+    cy.get('gio-form-label').contains('Rate Limiting').should('exist');
     cy.contains('Quota').should('be.visible');
     cy.contains('Resource Filtering').should('be.visible');
     cy.get('[type="submit"]').contains('Create').click();
@@ -147,7 +148,7 @@ describe('API Plans Feature', () => {
     cy.getByDataTestId('api_plans_name_field').type(`${planName}-Keyless`);
     cy.getByDataTestId('api_plans_description_field').type(`${planDescription} Keyless`);
     cy.getByDataTestId('api_plans_nextstep').click();
-    cy.contains('Rate Limiting').should('be.visible');
+    cy.get('gio-form-label').contains('Rate Limiting').should('exist');
     cy.contains('Quota').should('be.visible');
     cy.contains('Resource Filtering').should('be.visible');
     cy.get('[type="submit"]').contains('Create').click();
