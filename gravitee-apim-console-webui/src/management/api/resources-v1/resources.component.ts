@@ -17,8 +17,8 @@ import { Component, ElementRef, Injector, SimpleChange } from '@angular/core';
 import { UpgradeComponent } from '@angular/upgrade/static';
 import { ActivatedRoute } from '@angular/router';
 
-import { ApiService } from '../../../../services-ngx/api.service';
-import { ResourceService } from '../../../../services-ngx/resource.service';
+import { ApiService } from '../../../services-ngx/api.service';
+import { ResourceService } from '../../../services-ngx/resource.service';
 
 @Component({
   template: '',

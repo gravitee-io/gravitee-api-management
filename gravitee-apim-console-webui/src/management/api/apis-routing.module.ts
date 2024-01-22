@@ -53,7 +53,7 @@ import { ApiAlertsDashboardComponent } from './analytics/alerts/api-alerts-dashb
 import { ApiAuditComponent } from './audit/general/audit.component';
 import { ApiHistoryComponent } from './audit/history/apiHistory.component';
 import { ApiV1PropertiesComponent } from './proxy/properties-v1/properties.component';
-import { ApiV1ResourcesComponent } from './proxy/resources-v1/resources.component';
+import { ApiV1ResourcesComponent } from './resources-v1/resources.component';
 import { ApiV1PoliciesComponent } from './policy-studio-v1/policies/policies.component';
 import { ApiEventsComponent } from './audit/events/api-events.component';
 import { ApiEndpointGroupComponent } from './endpoints-v4/endpoint-group/api-endpoint-group.component';
