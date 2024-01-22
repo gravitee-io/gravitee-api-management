@@ -27,7 +27,7 @@ import { ApiGeneralSubscriptionEditComponent } from './general/subscriptions/edi
 import { ApiEntrypointsV4GeneralComponent } from './entrypoints-v4/api-entrypoints-v4-general.component';
 import { ApiEndpointComponent } from './endpoints-v4/endpoint/api-endpoint.component';
 import { ApiEntrypointsV4EditComponent } from './entrypoints-v4/edit/api-entrypoints-v4-edit.component';
-import { ApiResourcesComponent } from './proxy/resources-ng/api-resources.component';
+import { ApiResourcesComponent } from './resources-ng/api-resources.component';
 import { ApiGeneralMembersComponent } from './general/user-group-access/members/api-general-members.component';
 import { ApiGeneralGroupsComponent } from './general/user-group-access/groups/api-general-groups.component';
 import { ApiGeneralTransferOwnershipComponent } from './general/user-group-access/transfer-ownership/api-general-transfer-ownership.component';

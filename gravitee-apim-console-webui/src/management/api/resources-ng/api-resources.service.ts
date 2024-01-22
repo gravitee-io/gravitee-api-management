@@ -18,9 +18,9 @@ import { Inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-import { ResourceListItem } from '../../../../entities/resource/resourceListItem';
-import { Constants } from '../../../../entities/Constants';
-import { ListParams } from '../../policy-studio-v2/models/ListParams';
+import { ResourceListItem } from '../../../entities/resource/resourceListItem';
+import { Constants } from '../../../entities/Constants';
+import { ListParams } from '../policy-studio-v2/models/ListParams';
 
 @Injectable({
   providedIn: 'root',
