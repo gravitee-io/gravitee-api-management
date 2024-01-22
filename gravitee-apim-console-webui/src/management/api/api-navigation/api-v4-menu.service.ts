@@ -70,6 +70,14 @@ export class ApiV4MenuService implements ApiMenuService {
       });
     }
 
+    if (this.permissionService.hasAnyMatching(['api-metadata-r'])) {
+      tabs.push({
+        displayName: 'Metadata',
+        routerLink: 'DISABLED',
+        routerLinkActiveOptions: { exact: true },
+      });
+    }
+
     if (this.permissionService.hasAnyMatching(['api-notification-r'])) {
       tabs.push({
         displayName: 'Notifications',
