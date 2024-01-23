@@ -33,10 +33,19 @@ import io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApplicationMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.DuplicateApiMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.ImportExportApiMapper;
-import io.gravitee.rest.api.management.v2.rest.model.*;
+import io.gravitee.rest.api.management.v2.rest.model.ApiReview;
+import io.gravitee.rest.api.management.v2.rest.model.ApiTransferOwnership;
+import io.gravitee.rest.api.management.v2.rest.model.DuplicateApiOptions;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
+import io.gravitee.rest.api.management.v2.rest.model.Pagination;
+import io.gravitee.rest.api.management.v2.rest.model.SubscribersResponse;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV2;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV4;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateGenericApi;
+import io.gravitee.rest.api.management.v2.rest.model.VerifyApiDeploymentResponse;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
+import io.gravitee.rest.api.management.v2.rest.resource.api.audit.ApiAuditsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.log.ApiLogsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.documentation.ApiPagesResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.LifecycleAction;
@@ -69,10 +78,14 @@ import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.SubscriptionService;
-import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.exceptions.*;
+import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
+import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
+import io.gravitee.rest.api.service.exceptions.ForbiddenFeatureException;
+import io.gravitee.rest.api.service.exceptions.InvalidLicenseException;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.ApiDuplicateService;
 import io.gravitee.rest.api.service.v4.ApiImagesService;
 import io.gravitee.rest.api.service.v4.ApiImportExportService;
@@ -178,6 +191,11 @@ public class ApiResource extends AbstractResource {
     @Path("/logs")
     public ApiLogsResource getApiLogsResource() {
         return resourceContext.getResource(ApiLogsResource.class);
+    }
+
+    @Path("/audits")
+    public ApiAuditsResource getApiAuditsResource() {
+        return resourceContext.getResource(ApiAuditsResource.class);
     }
 
     @Path("/pages")

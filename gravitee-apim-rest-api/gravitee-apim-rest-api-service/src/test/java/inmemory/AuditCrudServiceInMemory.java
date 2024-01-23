@@ -23,7 +23,7 @@ import java.util.List;
 
 public class AuditCrudServiceInMemory implements AuditCrudService, InMemoryAlternative<AuditEntity> {
 
-    private final List<AuditEntity> storage = new ArrayList<>();
+    final List<AuditEntity> storage = new ArrayList<>();
 
     @Override
     public void create(AuditEntity auditEntity) {

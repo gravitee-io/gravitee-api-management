@@ -34,6 +34,8 @@ import io.gravitee.apim.core.api_key.use_case.RevokeApplicationApiKeyUseCase;
 import io.gravitee.apim.core.api_key.use_case.RevokeApplicationSubscriptionApiKeyUseCase;
 import io.gravitee.apim.core.api_key.use_case.RevokeSubscriptionApiKeyUseCase;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
+import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
+import io.gravitee.apim.core.audit.use_case.SearchApiAuditUseCase;
 import io.gravitee.apim.core.console.use_case.GetConsoleCustomizationUseCase;
 import io.gravitee.apim.core.debug.use_case.DebugApiUseCase;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
@@ -368,5 +370,10 @@ public class UsecaseSpringConfiguration {
     @Bean
     public CreatePlanUseCase createPlanUseCase(CreatePlanDomainService createPlanDomainService, ApiCrudService apiCrudService) {
         return new CreatePlanUseCase(createPlanDomainService, apiCrudService);
+    }
+
+    @Bean
+    public SearchApiAuditUseCase searchApiAuditUseCase(SearchAuditDomainService searchAuditDomainService) {
+        return new SearchApiAuditUseCase(searchAuditDomainService);
     }
 }

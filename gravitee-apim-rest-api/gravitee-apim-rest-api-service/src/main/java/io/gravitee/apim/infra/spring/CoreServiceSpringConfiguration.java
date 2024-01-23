@@ -26,6 +26,9 @@ import io.gravitee.apim.core.api_key.query_service.ApiKeyQueryService;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.audit.crud_service.AuditCrudService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
+import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
+import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
+import io.gravitee.apim.core.audit.query_service.AuditQueryService;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.crud_service.PageRevisionCrudService;
 import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
@@ -286,5 +289,13 @@ public class CoreServiceSpringConfiguration {
     @Bean
     public PluginFilterByLicenseDomainService pluginFilterByLicenseDomainService(LicenseManager licenseManager) {
         return new PluginFilterByLicenseDomainService(licenseManager);
+    }
+
+    @Bean
+    public SearchAuditDomainService searchAuditDomainService(
+        AuditQueryService auditQueryService,
+        AuditMetadataQueryService auditMetadataQueryService
+    ) {
+        return new SearchAuditDomainService(auditQueryService, auditMetadataQueryService);
     }
 }

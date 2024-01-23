@@ -15,10 +15,42 @@
  */
 package io.gravitee.rest.api.management.v2.rest.spring;
 
-import inmemory.*;
+import inmemory.AccessPointQueryServiceInMemory;
+import inmemory.ApiCrudServiceInMemory;
+import inmemory.ApiKeyCrudServiceInMemory;
+import inmemory.ApiKeyQueryServiceInMemory;
+import inmemory.ApiQueryServiceInMemory;
+import inmemory.ApplicationCrudServiceInMemory;
+import inmemory.AuditCrudServiceInMemory;
+import inmemory.AuditMetadataQueryServiceInMemory;
+import inmemory.AuditQueryServiceInMemory;
+import inmemory.ConnectionLogsCrudServiceInMemory;
+import inmemory.EndpointPluginQueryServiceInMemory;
+import inmemory.EntrypointPluginQueryServiceInMemory;
+import inmemory.EnvironmentCrudServiceInMemory;
+import inmemory.EventCrudInMemory;
+import inmemory.FlowCrudServiceInMemory;
+import inmemory.InstallationAccessQueryServiceInMemory;
+import inmemory.InstanceQueryServiceInMemory;
+import inmemory.LicenseCrudServiceInMemory;
+import inmemory.MessageLogCrudServiceInMemory;
+import inmemory.PageCrudServiceInMemory;
+import inmemory.PageQueryServiceInMemory;
+import inmemory.PageRevisionCrudServiceInMemory;
+import inmemory.ParametersDomainServiceInMemory;
+import inmemory.ParametersQueryServiceInMemory;
+import inmemory.PlanCrudServiceInMemory;
+import inmemory.PlanQueryServiceInMemory;
+import inmemory.PolicyPluginQueryServiceInMemory;
+import inmemory.SubscriptionCrudServiceInMemory;
+import inmemory.SubscriptionQueryServiceInMemory;
+import inmemory.TriggerNotificationDomainServiceInMemory;
+import inmemory.UserCrudServiceInMemory;
+import io.gravitee.apim.core.audit.query_service.AuditEventQueryService;
 import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.gateway.query_service.InstanceQueryService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
+import io.gravitee.apim.infra.query_service.audit.AuditEventQueryServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -170,5 +202,20 @@ public class InMemoryConfiguration {
     @Bean
     public LicenseCrudServiceInMemory licenseCrudServiceInMemory() {
         return new LicenseCrudServiceInMemory();
+    }
+
+    @Bean
+    public AuditQueryServiceInMemory auditQueryServiceInMemory(AuditCrudServiceInMemory auditCrudServiceInMemory) {
+        return new AuditQueryServiceInMemory(auditCrudServiceInMemory);
+    }
+
+    @Bean
+    public AuditMetadataQueryServiceInMemory auditMetadataQueryServiceInMemory() {
+        return new AuditMetadataQueryServiceInMemory();
+    }
+
+    @Bean
+    public AuditEventQueryService auditEventQueryService() {
+        return new AuditEventQueryServiceImpl();
     }
 }

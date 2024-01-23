@@ -1626,6 +1626,50 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+    # Audits
+    /environments/{envId}/apis/{apiId}/audits:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        get:
+            parameters:
+                - $ref: "#/components/parameters/pageParam"
+                - $ref: "#/components/parameters/perPageParam"
+                - $ref: "#/components/parameters/from"
+                - $ref: "#/components/parameters/to"
+                - $ref: "#/components/parameters/auditEvents"
+            tags:
+                - Audits
+            summary: Get API Audit
+            description: |-
+                Get API Audit.
+
+                User must have the API_AUDIT[READ] permission.
+            operationId: getApiAudits
+            responses:
+                "200":
+                    $ref: "#/components/responses/AuditsResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/audits/events:
+        get:
+            parameters:
+                - $ref: "#/components/parameters/envIdParam"
+                - $ref: "#/components/parameters/apiIdParam"
+            tags:
+                - Audits Events
+            summary: List available audit event type for API
+            description: |-
+                List available audit event type for API.
+
+                User must have the API_AUDIT[READ] permission.
+            operationId: ListApiAuditEvents
+            responses:
+                "200":
+                    $ref: "#/components/responses/AuditEventsResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+
     # API Documentation
     /environments/{envId}/apis/{apiId}/pages:
         parameters:
@@ -5060,6 +5104,78 @@ components:
                     description: The value of the metadata
                     example: [my-value]
 
+        # Audits
+        Audit:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: The internal UUID of the audit.
+                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                createdAt:
+                    type: string
+                    format: date-time
+                    description: The date when the audit has been created.
+                    example: 2023-05-18T12:40:46.184Z
+                organizationId:
+                    type: string
+                    description: The id of the organization.
+                    example: 1719d8d1-8d01-48f6-99d8-d18d0178f6d4
+                environmentId:
+                    type: string
+                    description: The id of the environment.
+                    example: 1719d8d1-8d01-48f6-99d8-d18d0178f6d4
+                reference:
+                    $ref: "#/components/schemas/AuditReference"
+                user:
+                    $ref: "#/components/schemas/BaseUser"
+                event:
+                    type: string
+                    description: The audit event.
+                    example: API_CREATED
+                properties:
+                    description: Properties of the audits.
+                    type: array
+                    items:
+                        type: object
+                        properties:
+                            key:
+                                type: string
+                                description: The key of the property.
+                                example: API
+                            value:
+                                type: string
+                                description: The value of the property. Usually an id of an entity.
+                                example: 1719d8d1-8d01-48f6-99d8-d18d0178f6d4
+                            name:
+                                type: string
+                                description: The name of the entity identified by the value.
+                                example: My API
+                patch:
+                    type: string
+                    description: The JSON Patch of the modification.
+                    example: "[{ \"op\": \"add\", \"path\": \"/hello\", \"value\": [\"world\"] }]"
+        AuditReference:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: The id of the auditable element.
+                    example: 1719d8d1-8d01-48f6-99d8-d18d0178f6d4
+                type:
+                    type: string
+                    description: The type of the auditable element
+                    example: API
+                    enum:
+                        - API
+                        - APPLICATION
+                        - ENVIRONMENT
+                        - ORGANIZATION
+                name:
+                    type: string
+                    description: The name of the auditable element
+                    example: My API
+
         # Documentation pages
         AccessControl:
             type: object
@@ -5627,6 +5743,15 @@ components:
                 type: array
                 items:
                     type: string
+        auditEvents:
+            name: events
+            description: List of Audit event name to filter on.
+            in: query
+            explode: false
+            schema:
+                type: array
+                items:
+                    type: string
         parentId:
             name: parentId
             in: query
@@ -5911,6 +6036,36 @@ components:
                                 $ref: "#/components/schemas/Pagination"
                             links:
                                 $ref: "#/components/schemas/Links"
+
+        # Audit
+        AuditsResponse:
+            description: Page of Audit
+            content:
+                application/json:
+                    schema:
+                        title: "AuditsResponse"
+                        properties:
+                            data:
+                                description: List of audits.
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/Audit"
+                            pagination:
+                                $ref: "#/components/schemas/Pagination"
+                            links:
+                                $ref: "#/components/schemas/Links"
+        AuditEventsResponse:
+            description: Audit events response
+            content:
+                application/json:
+                    schema:
+                        title: "AuditEventsResponse"
+                        properties:
+                            data:
+                                description: List of Audit events name.
+                                type: array
+                                items:
+                                    type: string
 
         # API Documentation
         ApiDocumentationPagesResponse:
