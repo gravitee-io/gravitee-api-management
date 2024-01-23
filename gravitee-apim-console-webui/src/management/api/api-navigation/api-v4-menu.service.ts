@@ -107,6 +107,13 @@ export class ApiV4MenuService implements ApiMenuService {
       },
     ];
 
+    if (this.permissionService.hasAnyMatching(['api-response_templates-r'])) {
+      tabs.push({
+        displayName: 'Response Templates',
+        routerLink: 'DISABLED',
+      });
+    }
+
     return {
       displayName: 'Entrypoints',
       icon: 'upload-cloud',
