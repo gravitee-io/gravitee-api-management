@@ -34,8 +34,8 @@ import { ApiGeneralTransferOwnershipComponent } from './general/user-group-acces
 import { ApiPortalDocumentationMetadataComponent } from './general/documentation/metadata/api-portal-documentation-metadata.component';
 import { ApiEntrypointsComponent } from './entrypoints/api-entrypoints.component';
 import { ApiCorsComponent } from './cors/api-cors.component';
-import { ApiProxyResponseTemplatesListComponent } from './proxy/response-templates/list/api-proxy-response-templates-list.component';
-import { ApiProxyResponseTemplatesEditComponent } from './proxy/response-templates/edit/api-proxy-response-templates-edit.component';
+import { ApiResponseTemplatesListComponent } from './response-templates/list/api-response-templates-list.component';
+import { ApiResponseTemplatesEditComponent } from './response-templates/edit/api-response-templates-edit.component';
 import { ApiProxyEndpointListComponent } from './proxy/endpoints/list/api-proxy-endpoint-list.component';
 import { ApiEndpointGroupsComponent } from './endpoints-v4/endpoint-groups/api-endpoint-groups.component';
 import { ApiProxyGroupEndpointEditComponent } from './proxy/endpoints/groups/endpoint/edit/api-proxy-group-endpoint-edit.component';
@@ -327,7 +327,7 @@ const apisRoutes: Routes = [
       },
       {
         path: 'response-templates/new',
-        component: ApiProxyResponseTemplatesEditComponent,
+        component: ApiResponseTemplatesEditComponent,
         data: {
           apiPermissions: {
             only: ['api-definition-r'],
@@ -339,7 +339,7 @@ const apisRoutes: Routes = [
       },
       {
         path: 'response-templates/:responseTemplateId',
-        component: ApiProxyResponseTemplatesEditComponent,
+        component: ApiResponseTemplatesEditComponent,
         data: {
           apiPermissions: {
             only: ['api-response_templates-c', 'api-response_templates-r', 'api-response_templates-u'],
@@ -351,7 +351,7 @@ const apisRoutes: Routes = [
       },
       {
         path: 'response-templates',
-        component: ApiProxyResponseTemplatesListComponent,
+        component: ApiResponseTemplatesListComponent,
         data: {
           apiPermissions: {
             only: ['api-response_templates-r'],

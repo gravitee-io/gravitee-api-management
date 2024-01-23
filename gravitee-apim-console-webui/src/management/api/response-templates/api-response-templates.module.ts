@@ -28,15 +28,15 @@ import { MatInputModule } from '@angular/material/input';
 import { MatDialogModule } from '@angular/material/dialog';
 import { RouterModule } from '@angular/router';
 
-import { ApiProxyResponseTemplatesEditComponent } from './edit/api-proxy-response-templates-edit.component';
-import { ApiProxyResponseTemplatesListComponent } from './list/api-proxy-response-templates-list.component';
+import { ApiResponseTemplatesEditComponent } from './edit/api-response-templates-edit.component';
+import { ApiResponseTemplatesListComponent } from './list/api-response-templates-list.component';
 
-import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
-import { GioGoBackButtonModule } from '../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
+import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
+import { GioGoBackButtonModule } from '../../../shared/components/gio-go-back-button/gio-go-back-button.module';
 
 @NgModule({
-  declarations: [ApiProxyResponseTemplatesListComponent, ApiProxyResponseTemplatesEditComponent],
-  exports: [ApiProxyResponseTemplatesListComponent, ApiProxyResponseTemplatesEditComponent],
+  declarations: [ApiResponseTemplatesListComponent, ApiResponseTemplatesEditComponent],
+  exports: [ApiResponseTemplatesListComponent, ApiResponseTemplatesEditComponent],
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -61,4 +61,4 @@ import { GioGoBackButtonModule } from '../../../../shared/components/gio-go-back
     GioGoBackButtonModule,
   ],
 })
-export class ApiProxyResponseTemplatesModule {}
+export class ApiResponseTemplatesModule {}

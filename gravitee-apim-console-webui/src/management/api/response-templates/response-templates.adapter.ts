@@ -15,7 +15,7 @@
  */
 import { flatMap } from 'lodash';
 
-import { ApiV1, ApiV2 } from '../../../../entities/management-api-v2';
+import { ApiV1, ApiV2 } from '../../../entities/management-api-v2';
 
 export type ResponseTemplate = {
   id: string;
