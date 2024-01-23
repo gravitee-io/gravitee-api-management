@@ -14,13 +14,6 @@
  * limitations under the License.
  */
 
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Services } from '../../../../../../entities/services';
 
-import { ApiEndpointGroupsModule } from './endpoint-groups/api-endpoint-groups.module';
-import { ApiEndpointGroupModule } from './endpoint-group/api-endpoint-group.module';
-
-@NgModule({
-  imports: [CommonModule, ApiEndpointGroupsModule, ApiEndpointGroupModule],
-})
-export class ApiEndpointsV4Module {}
+export type ProxyGroupServiceDiscoveryConfiguration = Pick<Services, 'discovery'>;
