@@ -33,7 +33,7 @@ import { asyncScheduler, Observable, Subject } from 'rxjs';
 import { PortalSettingsService } from '../../../../../services-ngx/portal-settings.service';
 import { PathV4 } from '../../../../../entities/management-api-v2';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
-import { contextPathSyncValidator } from '../../../../../shared/validators/context-path/context-path-sync-validator.directive';
+import { contextPathModePathSyncValidator } from '../../../../../shared/validators/context-path/context-path-sync-validator.directive';
 import { contextPathAsyncValidator } from '../../../../../shared/validators/context-path/context-path-async-validator.directive';
 
 const DEFAULT_LISTENER: PathV4 = {
@@ -162,7 +162,7 @@ export class GioFormListenersContextPathComponent implements OnInit, OnDestroy, 
   public newListenerFormGroup(listener: PathV4) {
     return new UntypedFormGroup({
       path: new UntypedFormControl(listener.path || '/', {
-        validators: [contextPathSyncValidator],
+        validators: [contextPathModePathSyncValidator],
         asyncValidators: [contextPathAsyncValidator(this.apiV2Service, this.apiId)],
       }),
     });
