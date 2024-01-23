@@ -39,7 +39,7 @@ servers:
           managementAPIHost:
               description: The domain of the server hosting your Management API
               default: localhost:8083
-          ordId:
+          orgId:
               description: The unique ID of your organization
               default: DEFAULT
 
