@@ -40,6 +40,9 @@ describe('API Plans Feature', () => {
     cy.visit('/#!/environments/default/apis/');
     cy.url().should('include', '/apis/');
     cy.contains(api.name).should('exist', { timeout: 60000 });
+    cy.contains('tr', api.name).find('[data-testid="api_list_edit_button"]').click();
+    ApiDetails.plansMenuItem().click();
+    cy.intercept('POST', '**/_close').as('closePlan');
   });
 
   const ApiDetails = new apiDetails();
@@ -48,19 +51,16 @@ describe('API Plans Feature', () => {
   const planDescription = faker.lorem.words(5);
 
   it('Verify Plan page elements', () => {
-    cy.getByDataTestId('api_list_edit_button').first().click();
-    ApiDetails.plansMenuItem().click();
     cy.contains('STAGING').scrollIntoView().should('be.visible');
     cy.contains('PUBLISHED').should('be.visible');
     cy.contains('DEPRECATED').should('be.visible');
     cy.contains('CLOSED').should('be.visible');
     cy.contains('There is no plan (yet).').should('be.visible');
-    cy.getByDataTestId('api_plans_add_plan_button').should('be.visible');
+    cy.getByDataTestId('api_plans_add_plan_button').scrollIntoView().should('be.visible');
   });
 
   it('Create a generic New Plan (API Key), verify and delete', () => {
-    cy.getByDataTestId('api_list_edit_button').first().click();
-    ApiDetails.plansMenuItem().click();
+    // create API Key plan
     cy.getByDataTestId('api_plans_add_plan_button').click();
     cy.contains('API Key').click();
     cy.url().should('include', '/new?selectedPlanMenuItem=API_KEY');
@@ -69,24 +69,28 @@ describe('API Plans Feature', () => {
     cy.getByDataTestId('api_plans_nextstep').click();
     cy.contains('Propagate API Key').should('exist').scrollIntoView().should('be.visible');
     cy.getByDataTestId('api_plans_nextstep').click();
-    cy.contains('Rate Limiting').should('be.visible');
+    cy.get('gio-form-label').contains('Rate Limiting').should('exist');
     cy.contains('Quota').should('be.visible');
     cy.contains('Resource Filtering').should('be.visible');
     cy.get('[type="submit"]').contains('Create').click();
+
+    // verify
     cy.contains('Configuration successfully saved!').should('be.visible');
     cy.get('[type="button"]').contains('STAGING').click();
     cy.url().should('include', '/plans?status=STAGING');
     cy.contains(`${planName}-APIKey`).should('be.visible');
-    cy.getByDataTestId('api_plans_close_plan_button').first().click();
+
+    // close API Key plan
+    cy.contains('tr', `${planName}-APIKey`).find('[data-testid="api_plans_close_plan_button"]').click();
     cy.get(`[placeholder="${planName}-APIKey"]`).type(`${planName}-APIKey`);
     cy.getByDataTestId('confirm-dialog').click();
+    cy.wait('@closePlan');
     cy.contains(`The plan ${planName}-APIKey has been closed with success.`).should('be.visible');
     cy.contains(`${planName}-APIKey`).should('not.exist');
   });
 
   it('Create a generic New Plan (OAuth2), verify and delete', () => {
-    cy.getByDataTestId('api_list_edit_button').first().click();
-    ApiDetails.plansMenuItem().click();
+    // create OAuth2 plan
     cy.getByDataTestId('api_plans_add_plan_button').click();
     cy.contains('OAuth2').click();
     cy.url().should('include', '/new?selectedPlanMenuItem=OAUTH2');
@@ -97,24 +101,28 @@ describe('API Plans Feature', () => {
     // ^ I can't find html element for this, this doesn't feel good but was best I could do as OAuth2 Resource a mandatory field
     cy.contains('OAuth2 resource').should('exist').scrollIntoView().should('be.visible');
     cy.getByDataTestId('api_plans_nextstep').click();
-    cy.contains('Rate Limiting').should('be.visible');
+    cy.get('gio-form-label').contains('Rate Limiting').should('exist');
     cy.contains('Quota').should('be.visible');
     cy.contains('Resource Filtering').should('be.visible');
     cy.get('[type="submit"]').contains('Create').click();
+
+    // verify
     cy.contains('Configuration successfully saved!').should('be.visible');
     cy.get('[type="button"]').contains('STAGING').click();
     cy.url().should('include', '/plans?status=STAGING');
     cy.contains(`${planName}-OAuth2`).should('be.visible');
-    cy.getByDataTestId('api_plans_close_plan_button').first().click();
+
+    // close OAuth2 plan
+    cy.contains('tr', `${planName}-OAuth2`).find('[data-testid="api_plans_close_plan_button"]').click();
     cy.get(`[placeholder="${planName}-OAuth2"]`).type(`${planName}-OAuth2`);
     cy.getByDataTestId('confirm-dialog').click();
+    cy.wait('@closePlan');
     cy.contains(`The plan ${planName}-OAuth2 has been closed with success.`).should('be.visible');
     cy.contains(`${planName}-OAuth2`).should('not.exist');
   });
 
   it('Create a generic New Plan (JWT), verify and delete', () => {
-    cy.getByDataTestId('api_list_edit_button').first().click();
-    ApiDetails.plansMenuItem().click();
+    // create JWT plan
     cy.getByDataTestId('api_plans_add_plan_button').click();
     cy.contains('JWT').click();
     cy.url().should('include', '/new?selectedPlanMenuItem=JWT');
@@ -123,48 +131,56 @@ describe('API Plans Feature', () => {
     cy.getByDataTestId('api_plans_nextstep').click();
     cy.contains('JWKS resolver').should('exist').scrollIntoView().should('be.visible');
     cy.getByDataTestId('api_plans_nextstep').click();
-    cy.contains('Rate Limiting').should('be.visible');
+    cy.get('gio-form-label').contains('Rate Limiting').should('exist');
     cy.contains('Quota').should('be.visible');
     cy.contains('Resource Filtering').should('be.visible');
     cy.get('[type="submit"]').contains('Create').click();
+
+    // verify
     cy.contains('Configuration successfully saved!').should('be.visible');
     cy.get('[type="button"]').contains('STAGING').click();
     cy.url().should('include', '/plans?status=STAGING');
     cy.contains(`${planName}-JWT`).should('be.visible');
-    cy.getByDataTestId('api_plans_close_plan_button').first().click();
+
+    // close JWT plan
+    cy.contains('tr', `${planName}-JWT`).find('[data-testid="api_plans_close_plan_button"]').click();
     cy.get(`[placeholder="${planName}-JWT"]`).type(`${planName}-JWT`);
     cy.getByDataTestId('confirm-dialog').click();
+    cy.wait('@closePlan');
     cy.contains(`The plan ${planName}-JWT has been closed with success.`).should('be.visible');
     cy.contains(`${planName}-JWT`).should('not.exist');
   });
 
   it('Create a generic New Plan (Keyless), verify and delete', () => {
-    cy.getByDataTestId('api_list_edit_button').first().click();
-    ApiDetails.plansMenuItem().click();
+    // create keyless plan
     cy.getByDataTestId('api_plans_add_plan_button').click();
     cy.contains('Keyless (public)').click();
     cy.url().should('include', '/new?selectedPlanMenuItem=KEY_LESS');
     cy.getByDataTestId('api_plans_name_field').type(`${planName}-Keyless`);
     cy.getByDataTestId('api_plans_description_field').type(`${planDescription} Keyless`);
     cy.getByDataTestId('api_plans_nextstep').click();
-    cy.contains('Rate Limiting').should('be.visible');
+    cy.get('gio-form-label').contains('Rate Limiting').should('exist');
     cy.contains('Quota').should('be.visible');
     cy.contains('Resource Filtering').should('be.visible');
     cy.get('[type="submit"]').contains('Create').click();
+
+    // verify
     cy.contains('Configuration successfully saved!').should('be.visible');
     cy.get('[type="button"]').contains('STAGING').click();
     cy.url().should('include', '/plans?status=STAGING');
     cy.contains(`${planName}-Keyless`).should('be.visible');
-    cy.getByDataTestId('api_plans_close_plan_button').first().click();
+
+    // close keyless plan
+    cy.contains('tr', `${planName}-Keyless`).find('[data-testid="api_plans_close_plan_button"]').click();
     cy.get(`[placeholder="${planName}-Keyless"]`).type(`${planName}-Keyless`);
     cy.getByDataTestId('confirm-dialog').click();
+    cy.wait('@closePlan');
     cy.contains(`The plan ${planName}-Keyless has been closed with success.`).should('be.visible');
     cy.contains(`${planName}-Keyless`).should('not.exist');
   });
 
   it('Create a New Plan (Keyless), select Design the Plan, verify path and delete plan', () => {
-    cy.getByDataTestId('api_list_edit_button').first().click();
-    ApiDetails.plansMenuItem().click();
+    // create keyless plan
     cy.getByDataTestId('api_plans_add_plan_button').click();
     cy.contains('Keyless (public)').click();
     cy.url().should('include', '/new?selectedPlanMenuItem=KEY_LESS');
@@ -173,26 +189,30 @@ describe('API Plans Feature', () => {
     cy.getByDataTestId('api_plans_nextstep').click();
     cy.get('[type="submit"]').contains('Create').click();
     cy.contains('Configuration successfully saved!').should('be.visible');
+
+    // select Design the Plan
     cy.get('[type="button"]').contains('STAGING').click();
     cy.url().should('include', '/plans?status=STAGING');
     cy.contains(`${planName}-Keyless`).should('be.visible');
-    cy.getByDataTestId('api_plans_design_plan_button').first().click();
+    cy.contains('tr', `${planName}-Keyless`).find('[data-testid="api_plans_design_plan_button"]').click();
     cy.url().should('include', 'policy-studio/');
+
+    // close keyless plan
     cy.visit('/#!/environments/default/apis/');
-    cy.getByDataTestId('api_list_edit_button').first().click();
+    cy.contains('tr', api.name).find('[data-testid="api_list_edit_button"]').click();
     ApiDetails.plansMenuItem().click();
     cy.get('[type="button"]').contains('STAGING').click();
     cy.url().should('include', '/plans?status=STAGING');
-    cy.getByDataTestId('api_plans_close_plan_button').first().click();
+    cy.contains('tr', `${planName}-Keyless`).find('[data-testid="api_plans_close_plan_button"]').click();
     cy.get(`[placeholder="${planName}-Keyless"]`).type(`${planName}-Keyless`);
     cy.getByDataTestId('confirm-dialog').click();
+    cy.wait('@closePlan');
     cy.contains(`The plan ${planName}-Keyless has been closed with success.`).should('be.visible');
     cy.contains(`${planName}-Keyless`).should('not.exist');
   });
 
   it('Create a New Plan (Keyless), edit the plan and delete plan', () => {
-    cy.getByDataTestId('api_list_edit_button').first().click();
-    ApiDetails.plansMenuItem().click();
+    // create keyless plan
     cy.getByDataTestId('api_plans_add_plan_button').click();
     cy.contains('Keyless (public)').click();
     cy.url().should('include', '/new?selectedPlanMenuItem=KEY_LESS');
@@ -201,26 +221,31 @@ describe('API Plans Feature', () => {
     cy.getByDataTestId('api_plans_nextstep').click();
     cy.get('[type="submit"]').contains('Create').click();
     cy.contains('Configuration successfully saved!').should('be.visible');
+
+    // edit plan
     cy.get('[type="button"]').contains('STAGING').click();
     cy.url().should('include', '/plans?status=STAGING');
     cy.contains(`${planName}-Keyless`).should('be.visible');
-    cy.getByDataTestId('api_plans_edit_plan_button').first().click();
+    cy.contains('tr', `${planName}-Keyless`).find('[data-testid="api_plans_edit_plan_button"]').click();
     cy.getByDataTestId('api_plans_name_field').type('EDIT');
+    cy.contains('Configuration successfully saved!').should('not.exist');
     cy.get('[type="submit"]').contains('Save').click();
     cy.contains('Configuration successfully saved!').should('be.visible');
     cy.get('[type="button"]').contains('STAGING').click();
     cy.url().should('include', '/plans?status=STAGING');
     cy.contains(`${planName}-KeylessEDIT`).should('be.visible');
-    cy.getByDataTestId('api_plans_close_plan_button').first().click();
+
+    // close keyless plan
+    cy.contains('tr', `${planName}-KeylessEDIT`).find('[data-testid="api_plans_close_plan_button"]').click();
     cy.get(`[placeholder="${planName}-KeylessEDIT"]`).type(`${planName}-KeylessEDIT`);
     cy.getByDataTestId('confirm-dialog').click();
+    cy.wait('@closePlan');
     cy.contains(`The plan ${planName}-KeylessEDIT has been closed with success.`).should('be.visible');
     cy.contains(`${planName}-KeylessEDIT`).should('not.exist');
   });
 
   it('Create a New Plan (Keyless), publish the plan and delete plan', () => {
-    cy.getByDataTestId('api_list_edit_button').first().click();
-    ApiDetails.plansMenuItem().click();
+    // create keyless plan
     cy.getByDataTestId('api_plans_add_plan_button').click();
     cy.contains('Keyless (public)').click();
     cy.url().should('include', '/new?selectedPlanMenuItem=KEY_LESS');
@@ -229,26 +254,30 @@ describe('API Plans Feature', () => {
     cy.getByDataTestId('api_plans_nextstep').click();
     cy.get('[type="submit"]').contains('Create').click();
     cy.contains('Configuration successfully saved!').should('be.visible');
+
+    // publish plan
     cy.get('[type="button"]').contains('STAGING').click();
     cy.url().should('include', '/plans?status=STAGING');
     cy.contains(`${planName}-Keyless`).should('be.visible');
-    cy.getByDataTestId('api_plans_publish_plan_button').first().click();
+    cy.contains('tr', `${planName}-Keyless`).find('[data-testid="api_plans_publish_plan_button"]').click();
     cy.getByDataTestId('confirm-dialog').click();
     cy.contains(`The plan ${planName}-Keyless has been published with success.`).should('be.visible');
     cy.contains(`${planName}-Keyless`).should('not.exist');
     cy.get('[type="button"]').contains('PUBLISHED').click();
     cy.url().should('include', '/plans?status=PUBLISHED');
     cy.contains(`${planName}-Keyless`).should('be.visible');
-    cy.getByDataTestId('api_plans_close_plan_button').first().click();
+
+    // close keyless plan
+    cy.contains('tr', `${planName}-Keyless`).find('[data-testid="api_plans_close_plan_button"]').click();
     cy.get(`[placeholder="${planName}-Keyless"]`).type(`${planName}-Keyless`);
     cy.getByDataTestId('confirm-dialog').click();
+    cy.wait('@closePlan');
     cy.contains(`The plan ${planName}-Keyless has been closed with success.`).should('be.visible');
     cy.contains(`${planName}-Keyless`).should('not.exist');
   });
 
   it('Create a New Plan (Keyless), publish then deprecate the plan and delete plan', () => {
-    cy.getByDataTestId('api_list_edit_button').first().click();
-    ApiDetails.plansMenuItem().click();
+    // create keyless plan
     cy.getByDataTestId('api_plans_add_plan_button').click();
     cy.contains('Keyless (public)').click();
     cy.url().should('include', '/new?selectedPlanMenuItem=KEY_LESS');
@@ -257,25 +286,32 @@ describe('API Plans Feature', () => {
     cy.getByDataTestId('api_plans_nextstep').click();
     cy.get('[type="submit"]').contains('Create').click();
     cy.contains('Configuration successfully saved!').should('be.visible');
+
+    // publish plan
     cy.get('[type="button"]').contains('STAGING').click();
     cy.url().should('include', '/plans?status=STAGING');
     cy.contains(`${planName}-Keyless`).should('be.visible');
-    cy.getByDataTestId('api_plans_publish_plan_button').first().click();
+    cy.contains('tr', `${planName}-Keyless`).find('[data-testid="api_plans_publish_plan_button"]').click();
     cy.getByDataTestId('confirm-dialog').click();
     cy.contains(`The plan ${planName}-Keyless has been published with success.`).should('be.visible');
     cy.contains(`${planName}-Keyless`).should('not.exist');
     cy.get('[type="button"]').contains('PUBLISHED').click();
     cy.url().should('include', '/plans?status=PUBLISHED');
     cy.contains(`${planName}-Keyless`).should('be.visible');
-    cy.getByDataTestId('api_plans_deprecate_plan_button').first().click();
+
+    // deprecate plan
+    cy.contains('tr', `${planName}-Keyless`).find('[data-testid="api_plans_deprecate_plan_button"]').click();
     cy.getByDataTestId('confirm-dialog').click();
     cy.contains(`The plan ${planName}-Keyless has been deprecated with success.`).should('be.visible');
     cy.get('[type="button"]').contains('DEPRECATED').click();
     cy.url().should('include', '/plans?status=DEPRECATED');
     cy.contains(`${planName}-Keyless`).should('be.visible');
-    cy.getByDataTestId('api_plans_close_plan_button').first().click();
+
+    // close keyless plan
+    cy.contains('tr', `${planName}-Keyless`).find('[data-testid="api_plans_close_plan_button"]').click();
     cy.get(`[placeholder="${planName}-Keyless"]`).type(`${planName}-Keyless`);
     cy.getByDataTestId('confirm-dialog').click();
+    cy.wait('@closePlan');
     cy.contains(`The plan ${planName}-Keyless has been closed with success.`).should('be.visible');
     cy.contains(`${planName}-Keyless`).should('not.exist');
   });
