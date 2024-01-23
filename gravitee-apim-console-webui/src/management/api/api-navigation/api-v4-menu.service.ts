@@ -38,13 +38,13 @@ export class ApiV4MenuService implements ApiMenuService {
     const subMenuItems: MenuItem[] = [
       this.addConfigurationMenuEntry(),
       this.addEntrypointsMenuEntry(hasTcpListeners),
+      this.addEndpointsMenuEntry(),
       this.addPoliciesMenuEntry(hasTcpListeners),
       this.addApiTrafficMenuEntry(hasTcpListeners),
     ];
 
     const groupItems: MenuGroupItem[] = [
       this.getGeneralGroup(),
-      this.getEndpointsGroup(),
       this.getAnalyticsGroup(),
       this.getAuditGroup(),
       this.getNotificationsGroup(),
@@ -127,6 +127,29 @@ export class ApiV4MenuService implements ApiMenuService {
       header: {
         title: 'Entrypoints',
         subtitle: 'Define the protocol and configuration settings by which the API consumer accesses the Gateway API',
+      },
+      tabs: tabs,
+    };
+  }
+
+  private addEndpointsMenuEntry(): MenuItem {
+    const tabs: MenuItem[] = [];
+
+    if (this.permissionService.hasAnyMatching(['api-definition-r'])) {
+      tabs.push({
+        displayName: 'Endpoints',
+        routerLink: 'v4/endpoints',
+      });
+    }
+
+    return {
+      displayName: 'Endpoints',
+      icon: 'download-cloud',
+      routerLink: '',
+      header: {
+        title: 'Endpoints',
+        subtitle:
+          'Define the protocol and configuration settings by which the Gateway API will fetch data from, or post data to, the backend API',
       },
       tabs: tabs,
     };
@@ -258,22 +281,6 @@ export class ApiV4MenuService implements ApiMenuService {
     }
 
     return generalGroup;
-  }
-
-  private getEndpointsGroup(): MenuGroupItem {
-    const endpointsGroup: MenuGroupItem = {
-      title: 'Endpoints',
-      items: [],
-    };
-
-    if (this.permissionService.hasAnyMatching(['api-definition-r'])) {
-      endpointsGroup.items.push({
-        displayName: 'Backend services',
-        routerLink: 'v4/endpoints',
-      });
-    }
-
-    return endpointsGroup;
   }
 
   private getAnalyticsGroup(): MenuGroupItem {

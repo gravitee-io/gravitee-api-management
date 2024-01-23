@@ -24,7 +24,7 @@ import { ApiProxyModule } from './proxy/api-proxy.module';
 import { ApiV4PolicyStudioModule } from './policy-studio-v4/api-v4-policy-studio.module';
 import { ApiRuntimeLogsV4Module } from './api-traffic-v4/api-runtime-logs-v4.module';
 import { ApisGeneralModule } from './general/apis-general.module';
-import { ApiEndpointsModule } from './endpoints-v4/api-endpoints.module';
+import { ApiEndpointsV4Module } from './endpoints-v4/api-endpoints-v4.module';
 import { ApiEntrypointsV4Module } from './entrypoints-v4/api-entrypoints-v4.module';
 import { GioPolicyStudioRoutingModule } from './policy-studio-v2/gio-policy-studio-routing.module';
 import { ApiAuditModule } from './audit/api-audit.module';
@@ -58,7 +58,7 @@ import { AlertsModule } from '../../components/alerts/alerts.module';
     ApiCreationV2Module,
     ApiCreationV4Module,
     ApiDocumentationV4Module,
-    ApiEndpointsModule,
+    ApiEndpointsV4Module,
     ApiEntrypointsModule,
     ApiEntrypointsV4Module,
     ApisGeneralModule,
