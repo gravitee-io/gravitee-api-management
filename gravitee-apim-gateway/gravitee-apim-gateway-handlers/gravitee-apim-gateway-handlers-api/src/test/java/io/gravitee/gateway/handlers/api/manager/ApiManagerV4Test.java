@@ -17,13 +17,8 @@ package io.gravitee.gateway.handlers.api.manager;
 
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.EventManager;
@@ -38,6 +33,9 @@ import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.manager.impl.ApiManagerImpl;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
 import io.gravitee.gateway.reactor.ReactorEvent;
+import io.gravitee.node.api.license.ForbiddenFeatureException;
+import io.gravitee.node.api.license.InvalidLicenseException;
+import io.gravitee.node.api.license.LicenseManager;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
@@ -48,6 +46,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -75,9 +74,12 @@ public class ApiManagerV4Test {
     @Mock
     private DataEncryptor dataEncryptor;
 
+    @Mock
+    private LicenseManager licenseManager;
+
     @Before
     public void setUp() throws Exception {
-        apiManager = spy(new ApiManagerImpl(eventManager, gatewayConfiguration, dataEncryptor));
+        apiManager = spy(new ApiManagerImpl(eventManager, gatewayConfiguration, licenseManager, dataEncryptor));
         when(gatewayConfiguration.shardingTags()).thenReturn(Optional.empty());
         when(gatewayConfiguration.hasMatchingTags(any())).thenCallRealMethod();
     }
@@ -415,10 +417,42 @@ public class ApiManagerV4Test {
         );
     }
 
+    @Test
+    @SneakyThrows
+    public void shouldNotDeployIfLicenseIsInvalid() {
+        final Api api = buildTestApi();
+        final String orgId = api.getOrganizationId();
+        doThrow(new InvalidLicenseException("Invalid license for test"))
+            .when(licenseManager)
+            .validatePluginFeatures(eq(orgId), anyCollection());
+        apiManager.register(api);
+
+        verify(eventManager, never()).publishEvent(ReactorEvent.DEPLOY, api);
+    }
+
+    @Test
+    @SneakyThrows
+    public void shouldNotDeployIfApiUsesFeatureNotEntitledByLicense() {
+        final Api api = buildTestApi();
+        final String orgId = api.getOrganizationId();
+        doThrow(new ForbiddenFeatureException(List.of(new LicenseManager.ForbiddenFeature("Not entitled feature", "some plugin"))))
+            .when(licenseManager)
+            .validatePluginFeatures(eq(orgId), anyCollection());
+        apiManager.register(api);
+
+        verify(eventManager, never()).publishEvent(ReactorEvent.DEPLOY, api);
+    }
+
     private Api buildTestApi() {
         HttpListener httpListener = new HttpListener();
         httpListener.setPaths(List.of(mock(Path.class)));
-        return new ApiBuilder().id("api-test").name("api-name-test").listeners(List.of(httpListener)).deployedAt(new Date()).build();
+        return new ApiBuilder()
+            .id("api-test")
+            .name("api-name-test")
+            .listeners(List.of(httpListener))
+            .deployedAt(new Date())
+            .organizationId("org-id")
+            .build();
     }
 
     class ApiBuilder {
@@ -443,6 +477,11 @@ public class ApiManagerV4Test {
 
         public ApiBuilder deployedAt(Date updatedAt) {
             this.api.setDeployedAt(updatedAt);
+            return this;
+        }
+
+        public ApiBuilder organizationId(String organizationId) {
+            this.api.setOrganizationId(organizationId);
             return this;
         }
 

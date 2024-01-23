@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.gateway.tests.sdk.license;
+package io.gravitee.gateway.standalone.license;
 
 import io.gravitee.node.api.license.InvalidLicenseException;
 import io.gravitee.node.api.license.License;
@@ -23,6 +23,10 @@ import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 
+/**
+ * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
+ * @author GraviteeSource Team
+ */
 class PermissiveLicense implements License {
 
     @Override

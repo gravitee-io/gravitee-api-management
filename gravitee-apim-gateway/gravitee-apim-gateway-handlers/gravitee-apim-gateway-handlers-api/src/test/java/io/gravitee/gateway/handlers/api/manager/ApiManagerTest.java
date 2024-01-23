@@ -17,13 +17,10 @@ package io.gravitee.gateway.handlers.api.manager;
 
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.anyCollection;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doThrow;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.event.EventManager;
@@ -38,6 +35,9 @@ import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.impl.ApiManagerImpl;
 import io.gravitee.gateway.reactor.ReactorEvent;
 import io.gravitee.node.api.cluster.ClusterManager;
+import io.gravitee.node.api.license.ForbiddenFeatureException;
+import io.gravitee.node.api.license.InvalidLicenseException;
+import io.gravitee.node.api.license.LicenseManager;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Arrays;
@@ -47,6 +47,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import lombok.SneakyThrows;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -75,11 +76,14 @@ public class ApiManagerTest {
     @Mock
     private ClusterManager clusterManager;
 
+    @Mock
+    private LicenseManager licenseManager;
+
     private ApiManagerImpl apiManager;
 
     @Before
     public void setUp() throws Exception {
-        apiManager = spy(new ApiManagerImpl(eventManager, gatewayConfiguration, dataEncryptor));
+        apiManager = spy(new ApiManagerImpl(eventManager, gatewayConfiguration, licenseManager, dataEncryptor));
         when(gatewayConfiguration.shardingTags()).thenReturn(Optional.empty());
         when(gatewayConfiguration.hasMatchingTags(any())).thenCallRealMethod();
     }
@@ -493,6 +497,32 @@ public class ApiManagerTest {
 
         ActionOnApi actionOnApi = apiManager.requiredActionFor(api);
         assertEquals(ActionOnApi.UNDEPLOY, actionOnApi);
+    }
+
+    @Test
+    @SneakyThrows
+    public void shouldNotDeployIfLicenseIsInvalid() {
+        var api = buildTestApi();
+        final String orgId = api.getOrganizationId();
+        doThrow(new InvalidLicenseException("Invalid license for test"))
+            .when(licenseManager)
+            .validatePluginFeatures(eq(orgId), anyCollection());
+        apiManager.register(api);
+
+        verify(eventManager, never()).publishEvent(ReactorEvent.DEPLOY, api);
+    }
+
+    @Test
+    @SneakyThrows
+    public void shouldNotDeployIfApiUsesFeatureNotEntitledByLicense() {
+        var api = buildTestApi();
+        final String orgId = api.getOrganizationId();
+        doThrow(new ForbiddenFeatureException(List.of(new LicenseManager.ForbiddenFeature("Not entitled feature", "some plugin"))))
+            .when(licenseManager)
+            .validatePluginFeatures(eq(orgId), anyCollection());
+        apiManager.register(api);
+
+        verify(eventManager, never()).publishEvent(ReactorEvent.DEPLOY, api);
     }
 
     private Api mockApi(final io.gravitee.repository.management.model.Api api) throws Exception {
