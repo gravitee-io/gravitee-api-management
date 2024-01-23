@@ -22,19 +22,19 @@ import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 
-import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
-import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
-import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
-import { ApiV1, ApiV2, PathV4, Proxy, UpdateApiV2, VirtualHost } from '../../../../entities/management-api-v2';
-import { onlyApiV1V2Filter, onlyApiV2Filter } from '../../../../util/apiFilter.operator';
-import { RestrictedDomainService } from '../../../../services-ngx/restricted-domain.service';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
+import { ApiV2Service } from '../../../services-ngx/api-v2.service';
+import { ApiV1, ApiV2, PathV4, Proxy, UpdateApiV2, VirtualHost } from '../../../entities/management-api-v2';
+import { onlyApiV1V2Filter, onlyApiV2Filter } from '../../../util/apiFilter.operator';
+import { RestrictedDomainService } from '../../../services-ngx/restricted-domain.service';
 
 @Component({
-  selector: 'api-proxy-entrypoints',
-  templateUrl: './api-proxy-entrypoints.component.html',
-  styleUrls: ['./api-proxy-entrypoints.component.scss'],
+  selector: 'api-entrypoints',
+  templateUrl: './api-entrypoints.component.html',
+  styleUrls: ['./api-entrypoints.component.scss'],
 })
-export class ApiProxyEntrypointsComponent implements OnInit, OnDestroy {
+export class ApiEntrypointsComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   public virtualHostModeEnabled = false;

@@ -34,15 +34,15 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 
-import { ApiProxyEntrypointsComponent } from './api-proxy-entrypoints.component';
+import { ApiEntrypointsComponent } from './api-entrypoints.component';
 
-import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
-import { GioFormListenersContextPathModule } from '../../component/gio-form-listeners/gio-form-listeners-context-path/gio-form-listeners-context-path.module';
-import { GioFormListenersVirtualHostModule } from '../../component/gio-form-listeners/gio-form-listeners-virtual-host/gio-form-listeners-virtual-host.module';
+import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
+import { GioFormListenersContextPathModule } from '../component/gio-form-listeners/gio-form-listeners-context-path/gio-form-listeners-context-path.module';
+import { GioFormListenersVirtualHostModule } from '../component/gio-form-listeners/gio-form-listeners-virtual-host/gio-form-listeners-virtual-host.module';
 
 @NgModule({
-  declarations: [ApiProxyEntrypointsComponent],
-  exports: [ApiProxyEntrypointsComponent],
+  declarations: [ApiEntrypointsComponent],
+  exports: [ApiEntrypointsComponent],
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -65,4 +65,4 @@ import { GioFormListenersVirtualHostModule } from '../../component/gio-form-list
     GioFormListenersVirtualHostModule,
   ],
 })
-export class ApiProxyEntrypointsModule {}
+export class ApiEntrypointsModule {}
