@@ -64,7 +64,6 @@ public class OrganizationResource extends AbstractResource {
     @Path("/license")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_INSTALLATION, acls = { RolePermissionAction.READ }) })
     public GraviteeLicense getOrganizationLicense(@PathParam("orgId") String orgId) {
         // Throw error if organization does not exist
         organizationService.findById(orgId);
