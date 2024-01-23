@@ -37,14 +37,13 @@ export class ApiV4MenuService implements ApiMenuService {
     const hasTcpListeners = api.listeners.find((listener) => listener.type === 'TCP') != null;
     const subMenuItems: MenuItem[] = [
       this.addConfigurationMenuEntry(),
-      this.addEntrypointsMenuEntry(),
+      this.addEntrypointsMenuEntry(hasTcpListeners),
       this.addPoliciesMenuEntry(hasTcpListeners),
       this.addApiTrafficMenuEntry(hasTcpListeners),
     ];
 
     const groupItems: MenuGroupItem[] = [
       this.getGeneralGroup(),
-      this.getEntrypointsGroup(hasTcpListeners),
       this.getEndpointsGroup(),
       this.getAnalyticsGroup(),
       this.getAuditGroup(),
@@ -99,7 +98,7 @@ export class ApiV4MenuService implements ApiMenuService {
     };
   }
 
-  private addEntrypointsMenuEntry(): MenuItem {
+  private addEntrypointsMenuEntry(hasTcpListeners: boolean): MenuItem {
     const tabs: MenuItem[] = [
       {
         displayName: 'Entrypoints',
@@ -111,6 +110,13 @@ export class ApiV4MenuService implements ApiMenuService {
       tabs.push({
         displayName: 'Response Templates',
         routerLink: 'DISABLED',
+      });
+    }
+
+    if (!hasTcpListeners) {
+      tabs.push({
+        displayName: 'Cors',
+        routerLink: 'v4/cors',
       });
     }
 
@@ -252,23 +258,6 @@ export class ApiV4MenuService implements ApiMenuService {
     }
 
     return generalGroup;
-  }
-
-  private getEntrypointsGroup(hasTcpListeners: boolean): MenuGroupItem {
-    if (this.permissionService.hasAnyMatching(['api-definition-r', 'api-health-r'])) {
-      const entrypointsGroup: MenuGroupItem = {
-        title: 'Entrypoints',
-        items: [],
-      };
-      if (!hasTcpListeners) {
-        entrypointsGroup.items.push({
-          displayName: 'Cors',
-          routerLink: 'v4/cors',
-        });
-      }
-      return entrypointsGroup;
-    }
-    return undefined;
   }
 
   private getEndpointsGroup(): MenuGroupItem {
