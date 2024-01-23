@@ -1,0 +1,30 @@
+.api-audits {
+  &__filters {
+    margin-bottom: 8px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+
+    &__field {
+      margin-right: 16px;
+
+      &.right {
+        float: right;
+      }
+    }
+
+    .action {
+      // here we align the padding and margin of the button to angular mat-form-fields
+      margin: 0.45em 0;
+
+      &__button {
+        height: 48px;
+        margin-right: 16px;
+        mat-icon {
+          margin-right: 4px;
+        }
+      }
+    }
+  }
+}

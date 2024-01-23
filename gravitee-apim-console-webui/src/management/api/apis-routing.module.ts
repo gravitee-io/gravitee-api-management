@@ -77,6 +77,7 @@ import { ApiProxyGroupEndpointEditComponent } from './endpoints/groups/endpoint/
 import { ApiProxyGroupEditComponent } from './endpoints/groups/edit/api-proxy-group-edit.component';
 import { ApiProxyEndpointListComponent } from './endpoints/list/api-proxy-endpoint-list.component';
 import { ApiAuditListComponent } from './api-audit-list/api-audit-list.component';
+import { AuditLogsComponent as ApiAuditLogsComponent } from './api-traffic-v4/audit-logs/audit-logs.component';
 
 import { DocumentationManagementComponent } from '../../components/documentation/documentation-management.component';
 import { DocumentationNewPageComponent } from '../../components/documentation/new-page.component';
@@ -951,6 +952,19 @@ const apisRoutes: Routes = [
           },
           docs: {
             page: 'management-api-proxy-endpoints',
+          },
+        },
+      },
+      {
+        path: 'v4/audit',
+        component: ApiAuditLogsComponent,
+        data: {
+          requireLicense: {
+            license: { feature: ApimFeature.APIM_AUDIT_TRAIL },
+            redirect: '/',
+          },
+          apiPermissions: {
+            only: ['api-audit-r'],
           },
         },
       },

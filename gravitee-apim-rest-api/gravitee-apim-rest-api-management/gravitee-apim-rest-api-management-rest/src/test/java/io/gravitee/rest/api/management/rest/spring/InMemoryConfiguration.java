@@ -155,4 +155,14 @@ public class InMemoryConfiguration {
     public LicenseCrudServiceInMemory licenseCrudServiceInMemory() {
         return new LicenseCrudServiceInMemory();
     }
+
+    @Bean
+    public AuditQueryServiceInMemory auditQueryServiceInMemory(AuditCrudServiceInMemory auditCrudServiceInMemory) {
+        return new AuditQueryServiceInMemory(auditCrudServiceInMemory);
+    }
+
+    @Bean
+    public AuditMetadataQueryServiceInMemory auditMetadataQueryServiceInMemory() {
+        return new AuditMetadataQueryServiceInMemory();
+    }
 }

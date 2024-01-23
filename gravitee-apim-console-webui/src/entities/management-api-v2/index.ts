@@ -15,6 +15,7 @@
  */
 export * from './api';
 export * from './application';
+export * from './audit';
 export * from './plugin';
 export * from './createApi';
 export * from './group';

@@ -1,0 +1,36 @@
+.audits-table {
+  .mat-column-date {
+    width: 214px;
+  }
+
+  .mat-column-patch {
+    .pre-wrapper {
+      display: flex;
+      align-items: center;
+      pre {
+        margin: 0 0 0 0;
+      }
+    }
+  }
+
+  .mat-column-targets {
+    .targets {
+      display: grid;
+      grid-gap: 5px;
+      grid-template-columns: auto 1fr;
+      line-height: 20px;
+
+      &__target {
+        font-weight: bold;
+      }
+    }
+  }
+
+  .mat-column-date,
+  .mat-column-user,
+  .mat-column-event,
+  .mat-column-targets,
+  .mat-column-patch {
+    padding: 0 6px;
+  }
+}

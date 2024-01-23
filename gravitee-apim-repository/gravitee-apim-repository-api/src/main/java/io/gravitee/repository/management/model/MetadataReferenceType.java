@@ -23,5 +23,13 @@ public enum MetadataReferenceType {
     DEFAULT,
     API,
     APPLICATION,
-    USER,
+    USER;
+
+    public static MetadataReferenceType parse(String value) {
+        try {
+            return MetadataReferenceType.valueOf(value.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return MetadataReferenceType.DEFAULT;
+        }
+    }
 }

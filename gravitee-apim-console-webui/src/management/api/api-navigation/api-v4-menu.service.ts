@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 import { Inject, Injectable } from '@angular/core';
+import { GioLicenseService } from '@gravitee/ui-particles-angular';
+import { map } from 'rxjs/operators';
 
 import { MenuGroupItem, MenuItem } from './MenuGroupItem';
 import { ApiMenuService } from './ApiMenuService';
 
+import { ApimFeature, UTMTags } from '../../../shared/components/gio-license/gio-license-data';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
-import { Constants } from '../../../entities/Constants';
 import { GioRoleService } from '../../../shared/components/gio-role/gio-role.service';
+import { Constants } from '../../../entities/Constants';
 import { ApiV4 } from '../../../entities/management-api-v2';
 
 @Injectable()
@@ -28,6 +31,7 @@ export class ApiV4MenuService implements ApiMenuService {
   constructor(
     private readonly permissionService: GioPermissionService,
     private readonly roleService: GioRoleService,
+    private readonly gioLicenseService: GioLicenseService,
     @Inject('Constants') private readonly constants: Constants,
   ) {}
   public getMenu(api: ApiV4): {
@@ -239,6 +243,10 @@ export class ApiV4MenuService implements ApiMenuService {
 
   private addApiTrafficMenuEntry(hasTcpListeners: boolean): MenuItem {
     const logsTabs = [];
+
+    const license = { feature: ApimFeature.APIM_AUDIT_TRAIL, context: UTMTags.CONTEXT_API };
+    const iconRight$ = this.gioLicenseService.isMissingFeature$(license).pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : null)));
+
     if (this.permissionService.hasAnyMatching(['api-log-r'])) {
       logsTabs.push({
         displayName: 'Runtime Logs',
@@ -254,7 +262,9 @@ export class ApiV4MenuService implements ApiMenuService {
     if (this.permissionService.hasAnyMatching(['api-audit-r'])) {
       logsTabs.push({
         displayName: 'Audit Logs',
-        routerLink: 'DISABLED',
+        routerLink: 'v4/audit',
+        license,
+        iconRight$,
       });
     }
     if (logsTabs.length > 0) {
