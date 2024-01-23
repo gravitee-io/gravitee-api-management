@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Component, Input } from '@angular/core';
+import { UntypedFormGroup } from '@angular/forms';
 
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { LOAD_BALANCER_TYPES } from '../../../../../../entities/management-api-v2';
 
-import { ApiEndpointGroupsModule } from './endpoint-groups/api-endpoint-groups.module';
-import { ApiEndpointGroupModule } from './endpoint-group/api-endpoint-group.module';
-
-@NgModule({
-  imports: [CommonModule, ApiEndpointGroupsModule, ApiEndpointGroupModule],
+@Component({
+  selector: 'api-proxy-group-general',
+  templateUrl: './api-proxy-group-general.component.html',
+  styleUrls: ['./api-proxy-group-general.component.scss'],
 })
-export class ApiEndpointsV4Module {}
+export class ApiProxyGroupGeneralComponent {
+  @Input() generalForm: UntypedFormGroup;
+  public loadBalancingValues = LOAD_BALANCER_TYPES;
+}

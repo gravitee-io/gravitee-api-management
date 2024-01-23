@@ -36,10 +36,7 @@ import { ApiEntrypointsComponent } from './entrypoints/api-entrypoints.component
 import { ApiCorsComponent } from './cors/api-cors.component';
 import { ApiResponseTemplatesListComponent } from './response-templates/list/api-response-templates-list.component';
 import { ApiResponseTemplatesEditComponent } from './response-templates/edit/api-response-templates-edit.component';
-import { ApiProxyEndpointListComponent } from './proxy/endpoints/list/api-proxy-endpoint-list.component';
 import { ApiEndpointGroupsComponent } from './endpoints-v4/endpoint-groups/api-endpoint-groups.component';
-import { ApiProxyGroupEndpointEditComponent } from './proxy/endpoints/groups/endpoint/edit/api-proxy-group-endpoint-edit.component';
-import { ApiProxyGroupEditComponent } from './proxy/endpoints/groups/edit/api-proxy-group-edit.component';
 import { ApiProxyFailoverComponent } from './proxy/failover/api-proxy-failover.component';
 import { ApiProxyHealthCheckComponent } from './proxy/health-check/api-proxy-health-check.component';
 import { ApiHealthCheckDashboardComponent } from './proxy/health-check-dashboard/healthcheck-dashboard.component';
@@ -77,6 +74,9 @@ import { GioPolicyStudioLayoutComponent } from './policy-studio-v2/gio-policy-st
 import { PolicyStudioDesignComponent } from './policy-studio-v2/design/policy-studio-design.component';
 import { PolicyStudioConfigComponent } from './policy-studio-v2/config/policy-studio-config.component';
 import { PolicyStudioDebugComponent } from './policy-studio-v2/debug/policy-studio-debug.component';
+import { ApiProxyGroupEndpointEditComponent } from './endpoints/groups/endpoint/edit/api-proxy-group-endpoint-edit.component';
+import { ApiProxyGroupEditComponent } from './endpoints/groups/edit/api-proxy-group-edit.component';
+import { ApiProxyEndpointListComponent } from './endpoints/list/api-proxy-endpoint-list.component';
 
 import { DocumentationManagementComponent } from '../../components/documentation/documentation-management.component';
 import { DocumentationNewPageComponent } from '../../components/documentation/new-page.component';
