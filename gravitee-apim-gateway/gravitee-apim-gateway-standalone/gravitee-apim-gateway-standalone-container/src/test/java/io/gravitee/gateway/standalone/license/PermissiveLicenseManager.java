@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.gateway.tests.sdk.license;
+package io.gravitee.gateway.standalone.license;
 
 import io.gravitee.common.service.AbstractService;
 import io.gravitee.node.api.license.ForbiddenFeatureException;
@@ -24,6 +24,10 @@ import java.util.function.Consumer;
 import javax.annotation.Nullable;
 import lombok.NonNull;
 
+/**
+ * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
+ * @author GraviteeSource Team
+ */
 public class PermissiveLicenseManager extends AbstractService<LicenseManager> implements LicenseManager {
 
     private static final PermissiveLicense PERMISSIVE_LICENSE = new PermissiveLicense();

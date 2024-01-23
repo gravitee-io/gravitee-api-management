@@ -18,11 +18,13 @@ package io.gravitee.gateway.standalone.container;
 import static org.mockito.Mockito.mock;
 
 import io.gravitee.gateway.standalone.GatewayContainer;
+import io.gravitee.gateway.standalone.license.PermissiveLicenseManager;
 import io.gravitee.gateway.standalone.reporter.FakeReporter;
 import io.gravitee.gateway.standalone.tracer.NoOpTracer;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.cache.CacheManager;
 import io.gravitee.node.api.cluster.ClusterManager;
+import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.node.container.NodeFactory;
 import io.gravitee.node.plugin.cache.standalone.StandaloneCacheManager;
 import io.gravitee.node.plugin.cluster.standalone.StandaloneClusterManager;
@@ -102,6 +104,11 @@ public class GatewayTestContainer extends GatewayContainer {
         @Bean
         public EnvironmentRepository environmentRepository() {
             return Mockito.mock(EnvironmentRepository.class);
+        }
+
+        @Bean
+        public LicenseManager licenseManager() {
+            return new PermissiveLicenseManager();
         }
     }
 }

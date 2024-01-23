@@ -52,6 +52,7 @@ import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactory;
 import io.gravitee.gateway.reactor.handler.context.ApiTemplateVariableProviderFactory;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;
+import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.plugin.apiservice.ApiServicePluginManager;
 import io.gravitee.plugin.endpoint.EndpointConnectorPluginManager;
 import io.gravitee.plugin.entrypoint.EntrypointConnectorPluginManager;
@@ -59,7 +60,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.core.env.Environment;
 
 /**
@@ -79,8 +79,13 @@ public class ApiHandlerConfiguration {
     private io.gravitee.node.api.configuration.Configuration configuration;
 
     @Bean
-    public ApiManager apiManager(EventManager eventManager, GatewayConfiguration gatewayConfiguration, DataEncryptor dataEncryptor) {
-        return new ApiManagerImpl(eventManager, gatewayConfiguration, dataEncryptor);
+    public ApiManager apiManager(
+        EventManager eventManager,
+        GatewayConfiguration gatewayConfiguration,
+        LicenseManager licenseManager,
+        DataEncryptor dataEncryptor
+    ) {
+        return new ApiManagerImpl(eventManager, gatewayConfiguration, licenseManager, dataEncryptor);
     }
 
     @Bean

@@ -17,6 +17,8 @@ package io.gravitee.gateway.handlers.api.manager.impl;
 
 import io.gravitee.common.event.EventManager;
 import io.gravitee.common.util.DataEncryptor;
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.Plugin;
 import io.gravitee.gateway.env.GatewayConfiguration;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import io.gravitee.gateway.handlers.api.manager.ActionOnApi;
@@ -25,11 +27,13 @@ import io.gravitee.gateway.handlers.api.manager.Deployer;
 import io.gravitee.gateway.handlers.api.manager.deployer.ApiDeployer;
 import io.gravitee.gateway.reactor.ReactableApi;
 import io.gravitee.gateway.reactor.ReactorEvent;
-import io.vertx.core.impl.ConcurrentHashSet;
+import io.gravitee.node.api.license.ForbiddenFeatureException;
+import io.gravitee.node.api.license.InvalidLicenseException;
+import io.gravitee.node.api.license.License;
+import io.gravitee.node.api.license.LicenseManager;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -53,16 +57,19 @@ public class ApiManagerImpl implements ApiManager {
 
     private final EventManager eventManager;
     private final GatewayConfiguration gatewayConfiguration;
+    private final LicenseManager licenseManager;
     private final Map<String, ReactableApi<?>> apis = new ConcurrentHashMap<>();
     private final Map<Class<? extends ReactableApi<?>>, ? extends Deployer<?>> deployers;
 
     public ApiManagerImpl(
         final EventManager eventManager,
         final GatewayConfiguration gatewayConfiguration,
+        LicenseManager licenseManager,
         final DataEncryptor dataEncryptor
     ) {
         this.eventManager = eventManager;
         this.gatewayConfiguration = gatewayConfiguration;
+        this.licenseManager = licenseManager;
         deployers =
             Map.of(
                 Api.class,
@@ -76,7 +83,23 @@ public class ApiManagerImpl implements ApiManager {
         // Get deployed API
         ReactableApi<?> deployedApi = get(api.getId());
 
-        // Does the API have a matching sharding tags ?
+        List<Plugin> plugins;
+        if (api.getDefinitionVersion() == DefinitionVersion.V4) {
+            plugins = ((io.gravitee.definition.model.v4.Api) api.getDefinition()).getPlugins();
+        } else {
+            plugins = ((io.gravitee.definition.model.Api) api.getDefinition()).getPlugins();
+        }
+
+        try {
+            licenseManager.validatePluginFeatures(
+                api.getOrganizationId(),
+                plugins.stream().map(p -> new LicenseManager.Plugin(p.type(), p.id())).collect(Collectors.toSet())
+            );
+        } catch (InvalidLicenseException | ForbiddenFeatureException e) {
+            log.warn("The API {} could not be deployed because it is not allowed by the current license", api.getName(), e);
+            return false;
+        }
+
         // Keep the check of Sharding Tags for io.gravitee.gateway.services.localregistry.LocalApiDefinitionRegistry
         if (gatewayConfiguration.hasMatchingTags(api.getTags())) {
             boolean apiToDeploy = deployedApi == null || force;
