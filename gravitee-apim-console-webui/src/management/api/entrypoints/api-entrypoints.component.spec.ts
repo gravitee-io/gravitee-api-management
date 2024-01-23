@@ -24,20 +24,20 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { ActivatedRoute } from '@angular/router';
 
-import { ApiProxyEntrypointsModule } from './api-proxy-entrypoints.module';
-import { ApiProxyEntrypointsComponent } from './api-proxy-entrypoints.component';
+import { ApiEntrypointsModule } from './api-entrypoints.module';
+import { ApiEntrypointsComponent } from './api-entrypoints.component';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
-import { PortalSettings } from '../../../../entities/portal/portalSettings';
-import { ApiV1, ApiV2, fakeApiV1, fakeApiV2 } from '../../../../entities/management-api-v2';
-import { GioFormListenersContextPathHarness } from '../../component/gio-form-listeners/gio-form-listeners-context-path/gio-form-listeners-context-path.harness';
-import { GioFormListenersVirtualHostHarness } from '../../component/gio-form-listeners/gio-form-listeners-virtual-host/gio-form-listeners-virtual-host.harness';
-import { RestrictedDomain } from '../../../../entities/restricted-domain/restrictedDomain';
-import { fakeRestrictedDomains } from '../../../../entities/restricted-domain/restrictedDomain.fixture';
-import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { PortalSettings } from '../../../entities/portal/portalSettings';
+import { ApiV1, ApiV2, fakeApiV1, fakeApiV2 } from '../../../entities/management-api-v2';
+import { GioFormListenersContextPathHarness } from '../component/gio-form-listeners/gio-form-listeners-context-path/gio-form-listeners-context-path.harness';
+import { GioFormListenersVirtualHostHarness } from '../component/gio-form-listeners/gio-form-listeners-virtual-host/gio-form-listeners-virtual-host.harness';
+import { RestrictedDomain } from '../../../entities/restricted-domain/restrictedDomain';
+import { fakeRestrictedDomains } from '../../../entities/restricted-domain/restrictedDomain.fixture';
+import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiProxyEntrypointsComponent', () => {
-  let fixture: ComponentFixture<ApiProxyEntrypointsComponent>;
+  let fixture: ComponentFixture<ApiEntrypointsComponent>;
   let loader: HarnessLoader;
   let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
@@ -46,7 +46,7 @@ describe('ApiProxyEntrypointsComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiProxyEntrypointsModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiEntrypointsModule, MatIconTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
         { provide: GioTestingPermissionProvider, useValue: ['api-definition-u', 'api-gateway_definition-u'] },
@@ -59,7 +59,7 @@ describe('ApiProxyEntrypointsComponent', () => {
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ApiProxyEntrypointsComponent);
+    fixture = TestBed.createComponent(ApiEntrypointsComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
 
