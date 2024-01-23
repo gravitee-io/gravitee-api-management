@@ -15,20 +15,21 @@
  */
 import { FormControl } from '@angular/forms';
 
-import { contextPathSyncValidator } from './context-path-sync-validator.directive';
+import { contextPathModePathSyncValidator } from './context-path-sync-validator.directive';
 
-describe('TcpHostSyncValidator', () => {
+describe('ContextPathModePathSyncValidator', () => {
   it.each`
-    message                         | contextPath
-    ${`Context path is not valid.`} | ${'missingSlash'}
-    ${`Context path is not valid.`} | ${'invalid/'}
-    ${`Context path is required.`}  | ${''}
-    ${`Context path is required.`}  | ${null}
+    message                                                  | contextPath
+    ${`Context path is not valid.`}                          | ${'missingSlash'}
+    ${`Context path is not valid.`}                          | ${'invalid/'}
+    ${`Context path has to be more than 3 characters long.`} | ${'/ad'}
+    ${`Context path is required.`}                           | ${''}
+    ${`Context path is required.`}                           | ${null}
   `('should be invalid context path: $contextPath because $message', ({ message, contextPath }) => {
-    expect(contextPathSyncValidator(new FormControl(contextPath))).toEqual({ contextPath: message });
+    expect(contextPathModePathSyncValidator(new FormControl(contextPath))).toEqual({ contextPath: message });
   });
 
   it('should be valid contextPath', () => {
-    expect(contextPathSyncValidator(new FormControl('/contextPath'))).toBeNull();
+    expect(contextPathModePathSyncValidator(new FormControl('/contextPath'))).toBeNull();
   });
 });

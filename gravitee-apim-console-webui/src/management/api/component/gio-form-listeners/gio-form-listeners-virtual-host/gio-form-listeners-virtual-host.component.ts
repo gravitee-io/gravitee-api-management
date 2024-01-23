@@ -30,7 +30,7 @@ import { map, switchMap } from 'rxjs/operators';
 
 import { GioFormListenersContextPathComponent } from '../gio-form-listeners-context-path/gio-form-listeners-context-path.component';
 import { PathV4 } from '../../../../../entities/management-api-v2';
-import { contextPathSyncValidator } from '../../../../../shared/validators/context-path/context-path-sync-validator.directive';
+import { virtualHostModePathPathSyncValidator } from '../../../../../shared/validators/context-path/context-path-sync-validator.directive';
 
 interface InternalPathV4 extends PathV4 {
   _hostSubDomain?: string;
@@ -67,7 +67,7 @@ export class GioFormListenersVirtualHostComponent extends GioFormListenersContex
         // Private controls for internal process
         _hostSubDomain: new UntypedFormControl(host || ''),
         _hostDomain: new UntypedFormControl(hostDomain || ''),
-        path: new UntypedFormControl(listener.path, { validators: [contextPathSyncValidator] }),
+        path: new UntypedFormControl(listener.path, { validators: [virtualHostModePathPathSyncValidator] }),
         overrideAccess: new UntypedFormControl(listener.overrideAccess || false),
       },
       { validators: [this.validateListenerControl()], asyncValidators: [this.listenersAsyncValidator()] },

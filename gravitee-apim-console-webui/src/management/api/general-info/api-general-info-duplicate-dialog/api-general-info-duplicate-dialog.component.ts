@@ -26,7 +26,7 @@ import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { tcpHostSyncValidator } from '../../../../shared/validators/tcp-hosts/tcp-host-sync-validator.directive';
 import { tcpHostAsyncValidator } from '../../../../shared/validators/tcp-hosts/tcp-host-async-validator.directive';
-import { contextPathSyncValidator } from '../../../../shared/validators/context-path/context-path-sync-validator.directive';
+import { contextPathModePathSyncValidator } from '../../../../shared/validators/context-path/context-path-sync-validator.directive';
 import { contextPathAsyncValidator } from '../../../../shared/validators/context-path/context-path-async-validator.directive';
 
 export type ApiPortalDetailsDuplicateDialogData = {
@@ -94,7 +94,7 @@ export class ApiGeneralInfoDuplicateDialogComponent implements OnDestroy {
       } else {
         this.duplicateApiForm.addControl(
           'contextPath',
-          new FormControl('', [contextPathSyncValidator], [contextPathAsyncValidator(this.apiV2Service)]),
+          new FormControl('', [contextPathModePathSyncValidator], [contextPathAsyncValidator(this.apiV2Service)]),
         );
       }
     } else {
