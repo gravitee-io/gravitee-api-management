@@ -25,4 +25,4 @@ import { ApiProxyEndpointModule } from '../proxy/endpoints/api-proxy-endpoints.m
 @NgModule({
   imports: [CommonModule, ApiProxyEndpointModule, ApiEndpointGroupsModule, ApiEndpointGroupModule],
 })
-export class ApiEndpointsModule {}
+export class ApiEndpointsV4Module {}
