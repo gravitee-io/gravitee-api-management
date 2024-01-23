@@ -1,0 +1,146 @@
+/*
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpTestingController } from '@angular/common/http/testing';
+import { HarnessLoader } from '@angular/cdk/testing';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { InteractivityChecker } from '@angular/cdk/a11y';
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { GioLicenseExpirationNotificationHarness, LICENSE_CONFIGURATION_TESTING } from '@gravitee/ui-particles-angular';
+import { ActivatedRoute } from '@angular/router';
+import { of } from 'rxjs';
+
+import { GioSideNavComponent } from './gio-side-nav.component';
+import { GioSideNavModule } from './gio-side-nav.module';
+
+import { License } from '../../entities/license/License';
+import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../shared/testing';
+describe('GioSideNavComponent', () => {
+  let fixture: ComponentFixture<GioSideNavComponent>;
+  let httpTestingController: HttpTestingController;
+  let loader: HarnessLoader;
+
+  const expirationDateInOneYear = new Date();
+  expirationDateInOneYear.setFullYear(expirationDateInOneYear.getFullYear() + 1);
+
+  const init = async (licenseNotificationEnabled = true, hasLicenseMgmtPermission = true) => {
+    await TestBed.configureTestingModule({
+      declarations: [GioSideNavComponent],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, GioSideNavModule, MatIconTestingModule],
+      providers: [
+        {
+          provide: GioPermissionService,
+          useValue: {
+            hasAnyMatching: (permissions: string[]) => {
+              const isMatchingLicenseNotificationPermission =
+                permissions.length === 1 && permissions[0] === 'organization-license_management-r';
+              if (isMatchingLicenseNotificationPermission && !hasLicenseMgmtPermission) {
+                return false;
+              }
+              // Return default true for all the rest of 'hasMatching' permission checks
+              return true;
+            },
+          },
+        },
+        {
+          provide: 'Constants',
+          useFactory: () => {
+            const constants = CONSTANTS_TESTING;
+            constants.org.settings = { ...constants.org.settings, licenseExpirationNotification: { enabled: licenseNotificationEnabled } };
+            constants.org.environments = [{ id: 'DEFAULT', name: 'default', hrids: [], organizationId: 'organizationId' }];
+
+            return constants;
+          },
+        },
+        { provide: 'LicenseConfiguration', useValue: LICENSE_CONFIGURATION_TESTING },
+        { provide: ActivatedRoute, useValue: { params: of({ envId: 'DEFAULT' }) } },
+      ],
+    })
+      .overrideProvider(InteractivityChecker, {
+        useValue: {
+          isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
+          isTabbable: () => true, // This traps focus checks and so avoid warnings when dealing with
+        },
+      })
+      .compileComponents();
+
+    fixture = TestBed.createComponent(GioSideNavComponent);
+    httpTestingController = TestBed.inject(HttpTestingController);
+    loader = TestbedHarnessEnvironment.loader(fixture);
+
+    fixture.detectChanges();
+  };
+
+  afterEach(() => {
+    httpTestingController.verify();
+  });
+
+  describe('License expiration notification', () => {
+    describe('when configuration is enabled', () => {
+      beforeEach(async () => {
+        await init();
+      });
+      it('should load the component with expired license', async () => {
+        expectLicense({ tier: '', features: [], packs: [], expiresAt: new Date() });
+
+        const expirationNotification = await loader.getHarness(GioLicenseExpirationNotificationHarness);
+        expect(expirationNotification).toBeDefined();
+
+        expect(await expirationNotification.getTitleText()).toEqual('Your license has expired');
+      });
+
+      it.each([expirationDateInOneYear, undefined])('should not show notification', async (date: Date) => {
+        expectLicense({ tier: '', features: [], packs: [], expiresAt: date });
+
+        const expirationNotification = await loader.getHarness(GioLicenseExpirationNotificationHarness);
+        await expirationNotification
+          .getTitleText()
+          .then((_) => fail('Should not be able to find title'))
+          .catch((err) => expect(err).toBeDefined());
+      });
+    });
+
+    describe('when configuration is disabled', () => {
+      beforeEach(async () => {
+        await init(false);
+      });
+      it('should not load the component with expired license', async () => {
+        expectLicense({ tier: '', features: [], packs: [], expiresAt: new Date() });
+
+        const expirationNotification = await loader.getHarnessOrNull(GioLicenseExpirationNotificationHarness);
+        expect(expirationNotification).toBeNull();
+      });
+    });
+
+    describe('when permission is not present', () => {
+      beforeEach(async () => {
+        await init(true, false);
+      });
+      it('should not load the component with expired license', async () => {
+        expectLicense({ tier: '', features: [], packs: [], expiresAt: new Date() });
+
+        const expirationNotification = await loader.getHarnessOrNull(GioLicenseExpirationNotificationHarness);
+        expect(expirationNotification).toBeNull();
+      });
+    });
+  });
+
+  function expectLicense(license: License) {
+    httpTestingController.expectOne(`${LICENSE_CONFIGURATION_TESTING.resourceURL}`).flush(license);
+  }
+});
