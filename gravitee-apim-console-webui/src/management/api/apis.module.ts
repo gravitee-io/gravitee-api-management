@@ -38,6 +38,7 @@ import { ApisRoutingModule } from './apis-routing.module';
 import { ApiGeneralInfoModule } from './general-info/api-general-info.module';
 import { ApiResourcesModule } from './resources-ng/api-resources.module';
 import { ApiEntrypointsModule } from './entrypoints/api-entrypoints.module';
+import { ApiResponseTemplatesModule } from './response-templates/api-response-templates.module';
 
 import { SpecificJsonSchemaTypeModule } from '../../shared/components/specific-json-schema-type/specific-json-schema-type.module';
 import { DocumentationModule } from '../../components/documentation/documentation.module';
@@ -67,6 +68,7 @@ import { AlertsModule } from '../../components/alerts/alerts.module';
     ApiNotificationSettingsModule,
     ApiProxyModule,
     ApiResourcesModule,
+    ApiResponseTemplatesModule,
     ApiRuntimeLogsV4Module,
     ApiV4PolicyStudioModule,
     DocumentationModule,

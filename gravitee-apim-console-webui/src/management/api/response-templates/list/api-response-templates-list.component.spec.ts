@@ -25,24 +25,24 @@ import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { ActivatedRoute } from '@angular/router';
 
-import { ApiProxyResponseTemplatesListComponent } from './api-proxy-response-templates-list.component';
+import { ApiResponseTemplatesListComponent } from './api-response-templates-list.component';
 
-import { ApiProxyResponseTemplatesModule } from '../api-proxy-response-templates.module';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
-import { ApiV2, fakeApiV2 } from '../../../../../entities/management-api-v2';
-import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
+import { ApiResponseTemplatesModule } from '../api-response-templates.module';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { ApiV2, fakeApiV2 } from '../../../../entities/management-api-v2';
+import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiProxyResponseTemplatesListComponent', () => {
   const API_ID = 'apiId';
 
-  let fixture: ComponentFixture<ApiProxyResponseTemplatesListComponent>;
+  let fixture: ComponentFixture<ApiResponseTemplatesListComponent>;
   let loader: HarnessLoader;
   let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiProxyResponseTemplatesModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiResponseTemplatesModule, MatIconTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
         {
@@ -58,7 +58,7 @@ describe('ApiProxyResponseTemplatesListComponent', () => {
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ApiProxyResponseTemplatesListComponent);
+    fixture = TestBed.createComponent(ApiResponseTemplatesListComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
 

@@ -21,20 +21,20 @@ import { EMPTY, Observable, Subject } from 'rxjs';
 import { catchError, map, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
-import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
-import { HttpUtil, StatusCode } from '../../../../../shared/utils';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
+import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { HttpUtil, StatusCode } from '../../../../shared/utils';
 import { fromResponseTemplates, ResponseTemplate, toResponseTemplates } from '../response-templates.adapter';
-import { gatewayErrorKeys } from '../../../../../entities/gateway-error-keys/GatewayErrorKeys';
-import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
-import { onlyApiV1V2Filter, onlyApiV2Filter } from '../../../../../util/apiFilter.operator';
+import { gatewayErrorKeys } from '../../../../entities/gateway-error-keys/GatewayErrorKeys';
+import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
+import { onlyApiV1V2Filter, onlyApiV2Filter } from '../../../../util/apiFilter.operator';
 
 @Component({
   selector: 'api-proxy-response-templates-edit',
-  templateUrl: './api-proxy-response-templates-edit.component.html',
-  styleUrls: ['./api-proxy-response-templates-edit.component.scss'],
+  templateUrl: './api-response-templates-edit.component.html',
+  styleUrls: ['./api-response-templates-edit.component.scss'],
 })
-export class ApiProxyResponseTemplatesEditComponent implements OnInit, OnDestroy {
+export class ApiResponseTemplatesEditComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   public defaultKeys = ['DEFAULT', ...gatewayErrorKeys] as const;
