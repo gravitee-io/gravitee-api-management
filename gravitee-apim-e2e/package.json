@@ -39,7 +39,7 @@
         "@types/node": "16.10.9",
         "@types/node-fetch": "2.6.1",
         "ansi-regex": "6.0.1",
-        "cypress": "13.3.3",
+        "cypress": "13.6.3",
         "dotenv": "16.0.0",
         "har-validator": "5.1.5",
         "jest": "27.5.1",
@@ -48,7 +48,7 @@
         "node-fetch": "2.6.7",
         "prettier": "2.8.4",
         "ts-jest": "27.1.5",
-        "typescript": "4.5.2",
+        "typescript": "4.5.5",
         "zx": "7.1.1"
     },
     "dependencies": {
