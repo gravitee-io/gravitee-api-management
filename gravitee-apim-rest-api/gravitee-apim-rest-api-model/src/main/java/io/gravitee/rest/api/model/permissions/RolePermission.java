@@ -94,7 +94,8 @@ public enum RolePermission {
     ORGANIZATION_TENANT(RoleScope.ORGANIZATION, OrganizationPermission.TENANT),
     ORGANIZATION_ENTRYPOINT(RoleScope.ORGANIZATION, OrganizationPermission.ENTRYPOINT),
     ORGANIZATION_POLICIES(RoleScope.ORGANIZATION, OrganizationPermission.POLICIES),
-    ORGANIZATION_AUDIT(RoleScope.ORGANIZATION, OrganizationPermission.AUDIT);
+    ORGANIZATION_AUDIT(RoleScope.ORGANIZATION, OrganizationPermission.AUDIT),
+    ORGANIZATION_LICENSE_MANAGEMENT(RoleScope.ORGANIZATION, OrganizationPermission.LICENSE_MANAGEMENT);
 
     RoleScope scope;
     Permission permission;
