@@ -45,7 +45,10 @@
     </gio-menu-list>
 
     <gio-menu-license-expiration-notification *ngIf="licenseExpirationNotificationEnabled">
-      <gio-license-expiration-notification [expirationDate]="licenseExpirationDate$ | async"></gio-license-expiration-notification>
+      <gio-license-expiration-notification
+        *gioPermission="{ anyOf: ['organization-license_management-r'] }"
+        [expirationDate]="licenseExpirationDate$ | async"
+      ></gio-license-expiration-notification>
     </gio-menu-license-expiration-notification>
     <gio-menu-footer *ngIf="footerMenuItems.length > 0">
       <ng-container *ngFor="let item of footerMenuItems">

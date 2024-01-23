@@ -18,8 +18,11 @@ import { NgModule } from '@angular/core';
 import { GioLicenseExpirationNotificationModule, GioLicenseModule, GioMenuModule, GioSubmenuModule } from '@gravitee/ui-particles-angular';
 import { MatSelectModule } from '@angular/material/select';
 import { RouterModule } from '@angular/router';
+import { MatButtonModule } from '@angular/material/button';
 
 import { GioSideNavComponent } from './gio-side-nav.component';
+
+import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
 
 @NgModule({
   imports: [
@@ -30,6 +33,8 @@ import { GioSideNavComponent } from './gio-side-nav.component';
     GioLicenseModule,
     RouterModule,
     GioLicenseExpirationNotificationModule,
+    GioPermissionModule,
+    MatButtonModule,
   ],
   declarations: [GioSideNavComponent],
   exports: [GioSideNavComponent],
