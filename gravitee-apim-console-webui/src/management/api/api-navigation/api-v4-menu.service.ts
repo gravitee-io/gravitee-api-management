@@ -35,10 +35,12 @@ export class ApiV4MenuService implements ApiMenuService {
     groupItems: MenuGroupItem[];
   } {
     const hasTcpListeners = api.listeners.find((listener) => listener.type === 'TCP') != null;
+    const isHttpProxyApi = api.type === 'PROXY' && !hasTcpListeners;
+
     const subMenuItems: MenuItem[] = [
       this.addConfigurationMenuEntry(),
       this.addEntrypointsMenuEntry(hasTcpListeners),
-      this.addEndpointsMenuEntry(),
+      this.addEndpointsMenuEntry(isHttpProxyApi),
       this.addPoliciesMenuEntry(hasTcpListeners),
       this.addApiTrafficMenuEntry(hasTcpListeners),
     ];
@@ -132,7 +134,7 @@ export class ApiV4MenuService implements ApiMenuService {
     };
   }
 
-  private addEndpointsMenuEntry(): MenuItem {
+  private addEndpointsMenuEntry(isHttpProxyApi: boolean): MenuItem {
     const tabs: MenuItem[] = [];
 
     if (this.permissionService.hasAnyMatching(['api-definition-r'])) {
@@ -140,6 +142,20 @@ export class ApiV4MenuService implements ApiMenuService {
         displayName: 'Endpoints',
         routerLink: 'v4/endpoints',
       });
+    }
+
+    if (isHttpProxyApi) {
+      tabs.push({
+        displayName: 'Failover',
+        routerLink: 'DISABLED',
+      });
+
+      if (this.permissionService.hasAnyMatching(['api-health-r'])) {
+        tabs.push({
+          displayName: 'Health-check',
+          routerLink: 'DISABLED',
+        });
+      }
     }
 
     return {
