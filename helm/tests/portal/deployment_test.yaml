@@ -107,3 +107,37 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].lifecycle.preStop.exec.command
           value: ['sh','-c', 'sleep 5 && /usr/sbin/nginx -s override']
+
+  - it: Default SecurityContext
+    template: portal/portal-deployment.yaml
+    set:
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsUser
+          value: 101
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsNonRoot
+          value: true
+
+  - it: Override SecurityContext
+    template: portal/portal-deployment.yaml
+    set:
+      portal:
+        deployment:
+          securityContext:
+            runAsUser: 102
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsUser
+          value: 102
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsNonRoot
+          value: true

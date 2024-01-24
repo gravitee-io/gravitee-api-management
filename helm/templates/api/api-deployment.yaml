@@ -129,7 +129,7 @@ spec:
         - name: {{ template "gravitee.api.fullname" . }}
           image: "{{ .Values.api.image.repository }}:{{ default .Chart.AppVersion .Values.api.image.tag }}"
           imagePullPolicy: {{ .Values.api.image.pullPolicy }}
-          securityContext: {{ toYaml ( .Values.api.securityContext | default .Values.api.deployment.securityContext ) | nindent 12 }}
+          securityContext: {{ toYaml .Values.api.deployment.securityContext | nindent 12 }}
           ports:
             - name: {{ .Values.api.service.internalPortName }}
               containerPort: {{ .Values.api.service.internalPort }}
