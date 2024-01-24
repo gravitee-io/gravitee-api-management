@@ -24,6 +24,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.*;
@@ -96,6 +97,9 @@ public class Plan implements Serializable {
 
     @JsonIgnore
     public List<Plugin> getPlugins() {
-        return this.flows.stream().filter(Flow::isEnabled).map(Flow::getPlugins).flatMap(List::stream).collect(Collectors.toList());
+        return Optional
+            .ofNullable(this.flows)
+            .map(f -> f.stream().filter(Flow::isEnabled).map(Flow::getPlugins).flatMap(List::stream).collect(Collectors.toList()))
+            .orElse(List.of());
     }
 }
