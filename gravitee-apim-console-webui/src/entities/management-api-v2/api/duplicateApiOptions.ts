@@ -16,7 +16,9 @@
 
 export interface DuplicateApiOptions {
   /** The context path of the duplicated API */
-  contextPath: string;
+  contextPath?: string;
+  /** The context path of the duplicated TCP API */
+  host?: string;
   /** The version of the duplicated API. If it is not defined, the value of the source API is used. */
   version?: string;
   /** The list of API fields that can be excluded to create the new API. */

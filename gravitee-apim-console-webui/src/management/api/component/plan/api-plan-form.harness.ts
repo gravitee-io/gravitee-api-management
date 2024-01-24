@@ -104,7 +104,7 @@ export class ApiPlanFormHarness extends ComponentHarness {
 
     function expectPolicySchemaV2GetRequest(type: string, schema: unknown) {
       httpTestingController
-        .expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/policies/${type}/schema`, method: 'GET' })
+        .expectOne({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/policies/${type}/schema`, method: 'GET' })
         .flush(schema);
     }
 

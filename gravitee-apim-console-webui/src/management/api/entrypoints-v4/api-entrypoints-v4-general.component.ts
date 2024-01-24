@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { EMPTY, forkJoin, Observable, of, Subject } from 'rxjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
@@ -57,7 +57,7 @@ type EntrypointVM = {
   templateUrl: './api-entrypoints-v4-general.component.html',
   styleUrls: ['./api-entrypoints-v4-general.component.scss'],
 })
-export class ApiEntrypointsV4GeneralComponent implements OnInit {
+export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   public apiId: string;
   public api: ApiV4;
@@ -104,15 +104,17 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
 
         if (api.definitionVersion === 'V4') {
           this.allEntrypoints = availableEntrypoints;
-          if (api.type === 'MESSAGE') {
-            this.shouldUpgrade = this.allEntrypoints.some(({ deployed }) => !deployed);
-          }
           this.initForm(api);
         }
       });
   }
 
   private initForm(api: ApiV4) {
+    if (api.type === 'MESSAGE') {
+      const selectedEntrypoints = flatten(api.listeners.map((l) => l.entrypoints)).map((e) => e.type);
+      this.shouldUpgrade = this.allEntrypoints.filter((e) => selectedEntrypoints.includes(e.id)).some(({ deployed }) => !deployed);
+    }
+
     this.api = api as ApiV4;
     this.formGroup = new UntypedFormGroup({});
 
@@ -213,6 +215,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
     this.matDialog
       .open<ApiEntrypointsV4AddDialogComponent, ApiEntrypointsV4AddDialogComponentData>(ApiEntrypointsV4AddDialogComponent, {
         data: { entrypoints: this.entrypointAvailableForAdd.sort((e1, e2) => e1.name.localeCompare(e2.name)), hasHttpListener },
+        width: GIO_DIALOG_WIDTH.LARGE,
       })
       .afterClosed()
       .pipe(
@@ -369,5 +372,10 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit {
 
   onRequestUpgrade() {
     this.licenseService.openDialog({ feature: ApimFeature.APIM_EN_MESSAGE_REACTOR, context: UTMTags.GENERAL_ENTRYPOINT_CONFIG });
+  }
+
+  ngOnDestroy(): void {
+    this.unsubscribe$.next(true);
+    this.unsubscribe$.unsubscribe();
   }
 }

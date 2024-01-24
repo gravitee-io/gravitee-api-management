@@ -46,11 +46,12 @@ public class DefaultReactorPluginManager extends AbstractPluginManager<ReactorPl
     public DefaultReactorPluginManager(
         ApplicationContext applicationContext,
         PluginContextFactory pluginContextFactory,
+        ReactorFactoryManager factoryManager,
         ServiceManager serviceManager
     ) {
         this.applicationContext = applicationContext;
         this.pluginContextFactory = pluginContextFactory;
-        this.factoryManager = applicationContext.getBean(ReactorFactoryManager.class);
+        this.factoryManager = factoryManager;
         this.serviceManager = serviceManager;
     }
 

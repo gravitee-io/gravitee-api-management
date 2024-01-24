@@ -36,17 +36,149 @@ export class ApiV4MenuService implements ApiMenuService {
   } {
     const hasTcpListeners = api.listeners.find((listener) => listener.type === 'TCP') != null;
     const subMenuItems: MenuItem[] = [
+      this.addConfigurationMenuEntry(),
+      this.addEntrypointsMenuEntry(hasTcpListeners),
+      this.addEndpointsMenuEntry(),
+      this.addPoliciesMenuEntry(hasTcpListeners),
+      this.addApiTrafficMenuEntry(hasTcpListeners),
+    ];
+
+    const groupItems: MenuGroupItem[] = [
+      this.getGeneralGroup(),
+      this.getAnalyticsGroup(),
+      this.getAuditGroup(),
+      this.getNotificationsGroup(),
+    ].filter((group) => !!group);
+
+    return { subMenuItems, groupItems };
+  }
+
+  private addConfigurationMenuEntry(): MenuItem {
+    const tabs: MenuItem[] = [
       {
-        displayName: 'Policy Studio',
-        routerLink: hasTcpListeners ? 'DISABLED' : 'v4/policy-studio',
-        tabs: undefined,
+        displayName: 'General',
+        routerLink: '.',
+        routerLinkActiveOptions: { exact: true },
       },
     ];
 
+    if (this.permissionService.hasAnyMatching(['api-definition-r'])) {
+      tabs.push({
+        displayName: 'Resources',
+        routerLink: 'resources',
+        routerLinkActiveOptions: { exact: true },
+      });
+    }
+
+    if (this.permissionService.hasAnyMatching(['api-metadata-r'])) {
+      tabs.push({
+        displayName: 'Metadata',
+        routerLink: 'DISABLED',
+        routerLinkActiveOptions: { exact: true },
+      });
+    }
+
+    if (this.permissionService.hasAnyMatching(['api-notification-r'])) {
+      tabs.push({
+        displayName: 'Notifications',
+        routerLink: 'DISABLED',
+        routerLinkActiveOptions: { exact: true },
+      });
+    }
+
+    return {
+      displayName: 'Configuration',
+      icon: 'settings',
+      routerLink: '',
+      header: {
+        title: 'Configuration',
+        subtitle: 'Manage general settings, user permissions, properties, and resources, and track changes to your API',
+      },
+      tabs: tabs,
+    };
+  }
+
+  private addEntrypointsMenuEntry(hasTcpListeners: boolean): MenuItem {
+    const tabs: MenuItem[] = [
+      {
+        displayName: 'Entrypoints',
+        routerLink: 'v4/entrypoints',
+      },
+    ];
+
+    if (this.permissionService.hasAnyMatching(['api-response_templates-r'])) {
+      tabs.push({
+        displayName: 'Response Templates',
+        routerLink: 'DISABLED',
+      });
+    }
+
+    if (!hasTcpListeners) {
+      tabs.push(
+        {
+          displayName: 'Cors',
+          routerLink: 'v4/cors',
+        },
+        {
+          displayName: 'Response Templates',
+          routerLink: 'response-templates',
+        }
+      );
+    }
+
+    return {
+      displayName: 'Entrypoints',
+      icon: 'upload-cloud',
+      routerLink: '',
+      header: {
+        title: 'Entrypoints',
+        subtitle: 'Define the protocol and configuration settings by which the API consumer accesses the Gateway API',
+      },
+      tabs: tabs,
+    };
+  }
+
+  private addEndpointsMenuEntry(): MenuItem {
+    const tabs: MenuItem[] = [];
+
+    if (this.permissionService.hasAnyMatching(['api-definition-r'])) {
+      tabs.push({
+        displayName: 'Endpoints',
+        routerLink: 'v4/endpoints',
+      });
+    }
+
+    return {
+      displayName: 'Endpoints',
+      icon: 'download-cloud',
+      routerLink: '',
+      header: {
+        title: 'Endpoints',
+        subtitle:
+          'Define the protocol and configuration settings by which the Gateway API will fetch data from, or post data to, the backend API',
+      },
+      tabs: tabs,
+    };
+  }
+
+  private addPoliciesMenuEntry(hasTcpListeners: boolean): MenuItem {
+    return {
+      displayName: 'Policies',
+      icon: 'shield-star',
+      header: {
+        title: 'Policies',
+        subtitle: 'Policies let you customize and enhance your API behavior and functionality',
+      },
+      routerLink: hasTcpListeners ? 'DISABLED' : 'v4/policy-studio',
+      tabs: undefined,
+    };
+  }
+
+  private addApiTrafficMenuEntry(hasTcpListeners: boolean): MenuItem {
     const logsTabs = [];
     if (this.permissionService.hasAnyMatching(['api-log-r'])) {
       logsTabs.push({
-        displayName: 'Connections',
+        displayName: 'Runtime Logs',
         routerLink: 'v4/runtime-logs',
       });
     }
@@ -56,38 +188,31 @@ export class ApiV4MenuService implements ApiMenuService {
         routerLink: 'v4/runtime-logs-settings',
       });
     }
-    if (logsTabs.length > 0) {
-      subMenuItems.push({
-        displayName: 'Analytics and logs',
-        routerLink: hasTcpListeners ? 'DISABLED' : '',
-        header: {
-          title: 'Runtime Logs',
-          subtitle: 'Debug and Optimize your API by displaying logs from your API runtime activities',
-        },
-        tabs: logsTabs,
+    if (this.permissionService.hasAnyMatching(['api-audit-r'])) {
+      logsTabs.push({
+        displayName: 'Audit Logs',
+        routerLink: 'DISABLED',
       });
     }
-    const groupItems: MenuGroupItem[] = [
-      this.getGeneralGroup(),
-      this.getEntrypointsGroup(hasTcpListeners),
-      this.getEndpointsGroup(),
-      this.getAnalyticsGroup(),
-      this.getAuditGroup(),
-      this.getNotificationsGroup(),
-    ].filter((group) => !!group);
-
-    return { subMenuItems, groupItems };
+    if (logsTabs.length > 0) {
+      return {
+        displayName: 'API Traffic',
+        icon: 'bar-chart-2',
+        routerLink: hasTcpListeners ? 'DISABLED' : '',
+        header: {
+          title: 'API Traffic',
+          subtitle: 'Gain actionable insights into API performance with real-time metrics, logs, and notifications',
+        },
+        tabs: logsTabs,
+      };
+    }
+    return null;
   }
+
   private getGeneralGroup(): MenuGroupItem {
     const generalGroup: MenuGroupItem = {
       title: 'General',
-      items: [
-        {
-          displayName: 'Info',
-          routerLink: '.',
-          routerLinkActiveOptions: { exact: true },
-        },
-      ],
+      items: [],
     };
     // Plans
     const plansMenuItem: MenuItem = {
@@ -112,25 +237,19 @@ export class ApiV4MenuService implements ApiMenuService {
     }
 
     if (this.permissionService.hasAnyMatching(['api-definition-r'])) {
-      generalGroup.items.push(
-        {
-          displayName: 'Properties',
-          tabs: [
-            {
-              displayName: 'Properties',
-              routerLink: 'properties',
-            },
-            {
-              displayName: 'Dynamic properties',
-              routerLink: 'DISABLED',
-            },
-          ],
-        },
-        {
-          displayName: 'Resources',
-          routerLink: 'resources',
-        },
-      );
+      generalGroup.items.push({
+        displayName: 'Properties',
+        tabs: [
+          {
+            displayName: 'Properties',
+            routerLink: 'properties',
+          },
+          {
+            displayName: 'Dynamic properties',
+            routerLink: 'DISABLED',
+          },
+        ],
+      });
     }
 
     if (this.permissionService.hasAnyMatching(['api-documentation-r'])) {
@@ -170,48 +289,6 @@ export class ApiV4MenuService implements ApiMenuService {
     return generalGroup;
   }
 
-  private getEntrypointsGroup(hasTcpListeners: boolean): MenuGroupItem {
-    if (this.permissionService.hasAnyMatching(['api-definition-r', 'api-health-r'])) {
-      const entrypointsGroup: MenuGroupItem = {
-        title: 'Entrypoints',
-        items: [
-          {
-            displayName: 'General',
-            routerLink: 'v4/entrypoints',
-          },
-          {
-            displayName: 'Response Templates',
-            routerLink: hasTcpListeners ? 'DISABLED' : 'response-templates',
-          }
-        ],
-      };
-      if (!hasTcpListeners) {
-        entrypointsGroup.items.push({
-          displayName: 'Cors',
-          routerLink: 'v4/cors',
-        });
-      }
-      return entrypointsGroup;
-    }
-    return undefined;
-  }
-
-  private getEndpointsGroup(): MenuGroupItem {
-    const endpointsGroup: MenuGroupItem = {
-      title: 'Endpoints',
-      items: [],
-    };
-
-    if (this.permissionService.hasAnyMatching(['api-definition-r'])) {
-      endpointsGroup.items.push({
-        displayName: 'Backend services',
-        routerLink: 'v4/endpoints',
-      });
-    }
-
-    return endpointsGroup;
-  }
-
   private getAnalyticsGroup(): MenuGroupItem {
     const analyticsGroup: MenuGroupItem = {
       title: 'Analytics',
@@ -245,12 +322,6 @@ export class ApiV4MenuService implements ApiMenuService {
       items: [],
     };
 
-    if (this.permissionService.hasAnyMatching(['api-audit-r'])) {
-      auditGroup.items.push({
-        displayName: 'Audit',
-        routerLink: 'DISABLED',
-      });
-    }
     if (this.permissionService.hasAnyMatching(['api-event-r'])) {
       auditGroup.items.push({
         displayName: 'History',
@@ -272,13 +343,6 @@ export class ApiV4MenuService implements ApiMenuService {
       title: 'Notifications',
       items: [],
     };
-
-    if (this.permissionService.hasAnyMatching(['api-notification-r'])) {
-      notificationsGroup.items.push({
-        displayName: 'Notification settings',
-        routerLink: 'DISABLED',
-      });
-    }
 
     if (!this.constants.isOEM && this.constants.org.settings.alert?.enabled && this.permissionService.hasAnyMatching(['api-alert-r'])) {
       notificationsGroup.items.push({

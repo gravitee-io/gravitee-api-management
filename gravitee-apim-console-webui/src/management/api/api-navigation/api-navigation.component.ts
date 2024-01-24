@@ -15,7 +15,7 @@
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { flatMap } from 'lodash';
-import { filter, map, switchMap, takeUntil, tap, shareReplay } from 'rxjs/operators';
+import { filter, map, shareReplay, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { GIO_DIALOG_WIDTH, GioBannerTypes, GioMenuService } from '@gravitee/ui-particles-angular';
 import { combineLatest, Observable, Subject } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
@@ -27,7 +27,7 @@ import {
   ApiConfirmDeploymentDialogResult,
 } from './api-confirm-deployment-dialog/api-confirm-deployment-dialog.component';
 import { ApiReviewDialogComponent, ApiReviewDialogData, ApiReviewDialogResult } from './api-review-dialog/api-review-dialog.component';
-import { MenuGroupItem, MenuItem } from './MenuGroupItem';
+import { MenuGroupItem, MenuItem, MenuItemHeader } from './MenuGroupItem';
 import { ApiV4MenuService } from './api-v4-menu.service';
 import { ApiV1V2MenuService } from './api-v1-v2-menu.service';
 
@@ -59,6 +59,7 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
   public subMenuItems: MenuItem[] = [];
   public groupItems: MenuGroupItem[] = [];
   public selectedItemWithTabs: MenuItem = undefined;
+  public selectedItemHeader: MenuItemHeader;
   public bannerState: string;
   public hasBreadcrumb = false;
   public breadcrumbItems: string[] = [];
@@ -288,12 +289,14 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
 
           this.breadcrumbItems = this.computeBreadcrumbItems();
           this.selectedItemWithTabs = this.findMenuItemWithTabs();
+          this.selectedItemHeader = this.findActiveMenuItemHeader();
         }),
         switchMap(() => this.router.events),
         filter((event) => event instanceof NavigationEnd),
         map((event: NavigationEnd) => event),
         tap(() => {
           this.selectedItemWithTabs = this.findMenuItemWithTabs();
+          this.selectedItemHeader = this.findActiveMenuItemHeader();
         }),
         takeUntil(this.unsubscribe$),
       )
@@ -320,6 +323,10 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
 
   private findActiveMenuItem(items: MenuItem[]) {
     return items.filter((item) => item.tabs).find((item) => this.isTabActive(item.tabs));
+  }
+
+  private findActiveMenuItemHeader() {
+    return this.subMenuItems.find((item) => this.isActive(item) || this.isTabActive(item.tabs))?.header;
   }
 
   isActive(item: MenuItem): boolean {

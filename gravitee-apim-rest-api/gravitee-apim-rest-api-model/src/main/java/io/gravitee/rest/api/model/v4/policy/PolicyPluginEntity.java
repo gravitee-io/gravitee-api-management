@@ -19,11 +19,14 @@ import io.gravitee.rest.api.model.platform.plugin.PlatformPluginEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Set;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @Data
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "PolicyPluginEntityV4")
+@SuperBuilder(toBuilder = true)
+@NoArgsConstructor
 public class PolicyPluginEntity extends PlatformPluginEntity {
 
     private Set<ExecutionPhase> proxy;

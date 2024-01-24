@@ -146,6 +146,10 @@ public class Endpoint implements Serializable {
         this.tenants = tenants;
     }
 
+    public void setType(String type) {
+        this.type = type;
+    }
+
     public String getType() {
         return type;
     }

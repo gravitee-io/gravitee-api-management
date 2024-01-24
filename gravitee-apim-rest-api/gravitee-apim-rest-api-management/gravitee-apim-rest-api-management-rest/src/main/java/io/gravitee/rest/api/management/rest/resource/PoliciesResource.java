@@ -16,6 +16,8 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.node.api.license.License;
+import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.model.PolicyDevelopmentEntity;
 import io.gravitee.rest.api.model.PolicyEntity;
 import io.gravitee.rest.api.model.PolicyListItem;
@@ -25,6 +27,8 @@ import io.gravitee.rest.api.model.platform.plugin.SchemaDisplayFormat;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.PolicyService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitor;
 import io.gravitee.rest.api.service.impl.swagger.policy.PolicyOperationVisitorManager;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -58,6 +62,9 @@ public class PoliciesResource {
     private PolicyService policyService;
 
     @Inject
+    LicenseManager licenseManager;
+
+    @Inject
     private PolicyOperationVisitorManager policyOperationVisitorManager;
 
     @GET
@@ -68,8 +75,12 @@ public class PoliciesResource {
         @QueryParam("expand") List<String> expand,
         @QueryParam("withResource") Boolean withResource
     ) {
-        Stream<PolicyListItem> stream = policyService.findAll(withResource).stream().map(this::convert);
-
+        License license = licenseManager.getOrganizationLicenseOrPlatform(
+            GraviteeContext.getCurrentOrganization() != null
+                ? GraviteeContext.getCurrentOrganization()
+                : GraviteeContext.getDefaultOrganization()
+        );
+        Stream<PolicyListItem> stream = policyService.findAll(withResource).stream().map(policy -> convert(policy, license));
         if (expand != null && !expand.isEmpty()) {
             for (String s : expand) {
                 switch (s) {
@@ -87,7 +98,6 @@ public class PoliciesResource {
                 }
             }
         }
-
         return stream.sorted(Comparator.comparing(PolicyListItem::getName)).collect(Collectors.toList());
     }
 
@@ -108,7 +118,7 @@ public class PoliciesResource {
         return policyOperationVisitorManager
             .getPolicyVisitors()
             .stream()
-            .filter(operationVisitor -> operationVisitor.display())
+            .filter(PolicyOperationVisitor::display)
             .map(operationVisitor -> {
                 PolicyListItem item = new PolicyListItem();
                 item.setId(operationVisitor.getId());
@@ -119,7 +129,7 @@ public class PoliciesResource {
             .collect(Collectors.toList());
     }
 
-    private PolicyListItem convert(PolicyEntity policy) {
+    private PolicyListItem convert(PolicyEntity policy, License license) {
         PolicyListItem item = new PolicyListItem();
         item.setId(policy.getId());
         item.setName(policy.getName());
@@ -135,7 +145,7 @@ public class PoliciesResource {
             item.setOnRequest(true);
             item.setOnResponse(false);
         }
-        item.setDeployed(policy.isDeployed());
+        item.setDeployed(policy.isDeployed() && license.isFeatureEnabled(policy.getFeature()));
         return item;
     }
 }

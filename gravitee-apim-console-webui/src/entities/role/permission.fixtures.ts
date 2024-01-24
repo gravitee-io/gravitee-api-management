@@ -24,6 +24,7 @@ export function fakePermissionsByScopes(attributes?: Partial<PermissionsByScopes
       'IDENTITY_PROVIDER',
       'IDENTITY_PROVIDER_ACTIVATION',
       'INSTALLATION',
+      'LICENSE_MANAGEMENT',
       'NOTIFICATION_TEMPLATES',
       'POLICIES',
       'ROLE',

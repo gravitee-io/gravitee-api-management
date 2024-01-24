@@ -22,9 +22,9 @@ import { ApiListModule } from './list/api-list.module';
 import { ApiNavigationModule } from './api-navigation/api-navigation.module';
 import { ApiProxyModule } from './proxy/api-proxy.module';
 import { ApiV4PolicyStudioModule } from './policy-studio-v4/api-v4-policy-studio.module';
-import { ApiRuntimeLogsV4Module } from './runtime-logs-v4/api-runtime-logs-v4.module';
+import { ApiRuntimeLogsV4Module } from './api-traffic-v4/api-runtime-logs-v4.module';
 import { ApisGeneralModule } from './general/apis-general.module';
-import { ApiEndpointsModule } from './endpoints-v4/api-endpoints.module';
+import { ApiEndpointsV4Module } from './endpoints-v4/api-endpoints-v4.module';
 import { ApiEntrypointsV4Module } from './entrypoints-v4/api-entrypoints-v4.module';
 import { GioPolicyStudioRoutingModule } from './policy-studio-v2/gio-policy-studio-routing.module';
 import { ApiAuditModule } from './audit/api-audit.module';
@@ -35,6 +35,11 @@ import { ApiCreationGetStartedModule } from './creation-get-started/api-creation
 import { ApiCreationV4Module } from './creation-v4/api-creation-v4.module';
 import { ApiDocumentationV4Module } from './documentation-v4/api-documentation-v4.module';
 import { ApisRoutingModule } from './apis-routing.module';
+import { ApiGeneralInfoModule } from './general-info/api-general-info.module';
+import { ApiResourcesModule } from './resources-ng/api-resources.module';
+import { ApiEntrypointsModule } from './entrypoints/api-entrypoints.module';
+import { ApiResponseTemplatesModule } from './response-templates/api-response-templates.module';
+import { ApiEndpointsModule } from './endpoints/api-endpoints.module';
 
 import { SpecificJsonSchemaTypeModule } from '../../shared/components/specific-json-schema-type/specific-json-schema-type.module';
 import { DocumentationModule } from '../../components/documentation/documentation.module';
@@ -47,25 +52,30 @@ import { AlertsModule } from '../../components/alerts/alerts.module';
 
     ApisRoutingModule,
 
+    AlertsModule,
     ApiAnalyticsModule,
-    ApiListModule,
-    ApiNavigationModule,
-    ApiV4PolicyStudioModule,
-    ApiRuntimeLogsV4Module,
-    ApisGeneralModule,
-    ApiProxyModule,
-    ApiEntrypointsV4Module,
-    ApiEndpointsModule,
     ApiAuditModule,
-    ApiNotificationSettingsModule,
-    GioPolicyStudioRoutingModule,
-    SpecificJsonSchemaTypeModule,
-    DocumentationModule,
     ApiCreationGetStartedModule,
     ApiCreationV2Module,
     ApiCreationV4Module,
     ApiDocumentationV4Module,
-    AlertsModule,
+    ApiEndpointsModule,
+    ApiEndpointsV4Module,
+    ApiEntrypointsModule,
+    ApiEntrypointsV4Module,
+    ApisGeneralModule,
+    ApiGeneralInfoModule,
+    ApiListModule,
+    ApiNavigationModule,
+    ApiNotificationSettingsModule,
+    ApiProxyModule,
+    ApiResourcesModule,
+    ApiResponseTemplatesModule,
+    ApiRuntimeLogsV4Module,
+    ApiV4PolicyStudioModule,
+    DocumentationModule,
+    GioPolicyStudioRoutingModule,
+    SpecificJsonSchemaTypeModule,
   ],
 })
 export class ApisModule {}

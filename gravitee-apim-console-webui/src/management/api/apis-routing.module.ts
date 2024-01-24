@@ -18,7 +18,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { NgModule } from '@angular/core';
 
 import { ApiNavigationComponent } from './api-navigation/api-navigation.component';
-import { ApiGeneralInfoComponent } from './general/details/api-general-info.component';
+import { ApiGeneralInfoComponent } from './general-info/api-general-info.component';
 import { ApiGeneralPlanEditComponent } from './general/plans/edit/api-general-plan-edit.component';
 import { ApiGeneralPlanListComponent } from './general/plans/list/api-general-plan-list.component';
 import { ApiGeneralSubscriptionListComponent } from './general/subscriptions/list/api-general-subscription-list.component';
@@ -27,19 +27,16 @@ import { ApiGeneralSubscriptionEditComponent } from './general/subscriptions/edi
 import { ApiEntrypointsV4GeneralComponent } from './entrypoints-v4/api-entrypoints-v4-general.component';
 import { ApiEndpointComponent } from './endpoints-v4/endpoint/api-endpoint.component';
 import { ApiEntrypointsV4EditComponent } from './entrypoints-v4/edit/api-entrypoints-v4-edit.component';
-import { ApiResourcesComponent } from './proxy/resources-ng/api-resources.component';
+import { ApiResourcesComponent } from './resources-ng/api-resources.component';
 import { ApiGeneralMembersComponent } from './general/user-group-access/members/api-general-members.component';
 import { ApiGeneralGroupsComponent } from './general/user-group-access/groups/api-general-groups.component';
 import { ApiGeneralTransferOwnershipComponent } from './general/user-group-access/transfer-ownership/api-general-transfer-ownership.component';
 import { ApiPortalDocumentationMetadataComponent } from './general/documentation/metadata/api-portal-documentation-metadata.component';
-import { ApiProxyEntrypointsComponent } from './proxy/entrypoints/api-proxy-entrypoints.component';
+import { ApiEntrypointsComponent } from './entrypoints/api-entrypoints.component';
 import { ApiCorsComponent } from './cors/api-cors.component';
-import { ApiProxyResponseTemplatesListComponent } from './proxy/response-templates/list/api-proxy-response-templates-list.component';
-import { ApiProxyResponseTemplatesEditComponent } from './proxy/response-templates/edit/api-proxy-response-templates-edit.component';
-import { ApiProxyEndpointListComponent } from './proxy/endpoints/list/api-proxy-endpoint-list.component';
+import { ApiResponseTemplatesListComponent } from './response-templates/list/api-response-templates-list.component';
+import { ApiResponseTemplatesEditComponent } from './response-templates/edit/api-response-templates-edit.component';
 import { ApiEndpointGroupsComponent } from './endpoints-v4/endpoint-groups/api-endpoint-groups.component';
-import { ApiProxyGroupEndpointEditComponent } from './proxy/endpoints/groups/endpoint/edit/api-proxy-group-endpoint-edit.component';
-import { ApiProxyGroupEditComponent } from './proxy/endpoints/groups/edit/api-proxy-group-edit.component';
 import { ApiProxyFailoverComponent } from './proxy/failover/api-proxy-failover.component';
 import { ApiProxyHealthCheckComponent } from './proxy/health-check/api-proxy-health-check.component';
 import { ApiHealthCheckDashboardComponent } from './proxy/health-check-dashboard/healthcheck-dashboard.component';
@@ -53,13 +50,13 @@ import { ApiAlertsDashboardComponent } from './analytics/alerts/api-alerts-dashb
 import { ApiAuditComponent } from './audit/general/audit.component';
 import { ApiHistoryComponent } from './audit/history/apiHistory.component';
 import { ApiV1PropertiesComponent } from './proxy/properties-v1/properties.component';
-import { ApiV1ResourcesComponent } from './proxy/resources-v1/resources.component';
+import { ApiV1ResourcesComponent } from './resources-v1/resources.component';
 import { ApiV1PoliciesComponent } from './policy-studio-v1/policies/policies.component';
 import { ApiEventsComponent } from './audit/events/api-events.component';
 import { ApiEndpointGroupComponent } from './endpoints-v4/endpoint-group/api-endpoint-group.component';
 import { ApiEndpointGroupCreateComponent } from './endpoints-v4/endpoint-group/create/api-endpoint-group-create.component';
-import { ApiRuntimeLogsSettingsComponent } from './runtime-logs-v4/runtime-logs-settings/api-runtime-logs-settings.component';
-import { ApiRuntimeLogsComponent } from './runtime-logs-v4/runtime-logs/api-runtime-logs.component';
+import { ApiRuntimeLogsSettingsComponent } from './api-traffic-v4/runtime-logs-settings/api-runtime-logs-settings.component';
+import { ApiRuntimeLogsComponent } from './api-traffic-v4/runtime-logs/api-runtime-logs.component';
 import { ApiListComponent } from './list/api-list.component';
 import { ApiNotificationSettingsListComponent } from './notification-settings/notification-settings-list/api-notification-settings-list.component';
 import { ApiNotificationSettingsDetailsComponent } from './notification-settings/notofication-settings-details/api-notification-settings-details.component';
@@ -71,12 +68,15 @@ import { ApiPropertiesComponent } from './proxy/properties/properties/api-proper
 import { ApiDocumentationV4Component } from './documentation-v4/api-documentation-v4.component';
 import { ApiDocumentationV4EditPageComponent } from './documentation-v4/documentation-edit-page/api-documentation-v4-edit-page.component';
 import { ApiDynamicPropertiesComponent } from './proxy/properties/dynamic-properties/api-dynamic-properties.component';
-import { ApiRuntimeLogsDetailsComponent } from './runtime-logs-v4/runtime-logs-details/api-runtime-logs-details.component';
+import { ApiRuntimeLogsDetailsComponent } from './api-traffic-v4/runtime-logs-details/api-runtime-logs-details.component';
 import { HasApiPermissionGuard } from './has-api-permission.guard';
 import { GioPolicyStudioLayoutComponent } from './policy-studio-v2/gio-policy-studio-layout.component';
 import { PolicyStudioDesignComponent } from './policy-studio-v2/design/policy-studio-design.component';
 import { PolicyStudioConfigComponent } from './policy-studio-v2/config/policy-studio-config.component';
 import { PolicyStudioDebugComponent } from './policy-studio-v2/debug/policy-studio-debug.component';
+import { ApiProxyGroupEndpointEditComponent } from './endpoints/groups/endpoint/edit/api-proxy-group-endpoint-edit.component';
+import { ApiProxyGroupEditComponent } from './endpoints/groups/edit/api-proxy-group-edit.component';
+import { ApiProxyEndpointListComponent } from './endpoints/list/api-proxy-endpoint-list.component';
 
 import { DocumentationManagementComponent } from '../../components/documentation/documentation-management.component';
 import { DocumentationNewPageComponent } from '../../components/documentation/new-page.component';
@@ -327,7 +327,7 @@ const apisRoutes: Routes = [
       },
       {
         path: 'response-templates/new',
-        component: ApiProxyResponseTemplatesEditComponent,
+        component: ApiResponseTemplatesEditComponent,
         data: {
           apiPermissions: {
             only: ['api-definition-r'],
@@ -339,7 +339,7 @@ const apisRoutes: Routes = [
       },
       {
         path: 'response-templates/:responseTemplateId',
-        component: ApiProxyResponseTemplatesEditComponent,
+        component: ApiResponseTemplatesEditComponent,
         data: {
           apiPermissions: {
             only: ['api-response_templates-c', 'api-response_templates-r', 'api-response_templates-u'],
@@ -351,7 +351,7 @@ const apisRoutes: Routes = [
       },
       {
         path: 'response-templates',
-        component: ApiProxyResponseTemplatesListComponent,
+        component: ApiResponseTemplatesListComponent,
         data: {
           apiPermissions: {
             only: ['api-response_templates-r'],
@@ -535,7 +535,7 @@ const apisRoutes: Routes = [
        */
       {
         path: 'v2/entrypoints',
-        component: ApiProxyEntrypointsComponent,
+        component: ApiEntrypointsComponent,
         data: {
           apiPermissions: {
             only: ['api-definition-r', 'api-health-r'],

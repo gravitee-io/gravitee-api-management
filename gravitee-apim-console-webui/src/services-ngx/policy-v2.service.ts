@@ -29,16 +29,16 @@ export class PolicyV2Service {
   constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
 
   list(): Observable<PolicyPlugin[]> {
-    return this.http.get<PolicyListItem[]>(`${this.constants.v2BaseURL}/plugins/policies`);
+    return this.http.get<PolicyListItem[]>(`${this.constants.org.v2BaseURL}/plugins/policies`);
   }
 
   getSchema(policyId: string): Observable<PolicySchema> {
-    return this.http.get<PolicySchema>(`${this.constants.v2BaseURL}/plugins/policies/${policyId}/schema`);
+    return this.http.get<PolicySchema>(`${this.constants.org.v2BaseURL}/plugins/policies/${policyId}/schema`);
   }
 
   getDocumentation(policyId: string): Observable<PolicyDocumentation> {
     return this.http
-      .get(`${this.constants.v2BaseURL}/plugins/policies/${policyId}/documentation`, {
+      .get(`${this.constants.org.v2BaseURL}/plugins/policies/${policyId}/documentation`, {
         responseType: 'text',
       })
       .pipe(map((buffer) => buffer.toString()));

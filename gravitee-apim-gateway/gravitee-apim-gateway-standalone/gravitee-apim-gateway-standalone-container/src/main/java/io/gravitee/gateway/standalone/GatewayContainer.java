@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.standalone;
 
+import io.gravitee.gateway.standalone.node.GatewayNode;
 import io.gravitee.gateway.standalone.spring.StandaloneConfiguration;
 import io.gravitee.node.container.spring.SpringBasedContainer;
 import java.util.List;

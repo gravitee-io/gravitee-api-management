@@ -52,10 +52,6 @@ public class GatewayNodeMetadataResolver implements NodeMetadataResolver {
 
     @Lazy
     @Autowired
-    private LicenseRepository licenseRepository;
-
-    @Lazy
-    @Autowired
     private EnvironmentRepository environmentRepository;
 
     @Autowired

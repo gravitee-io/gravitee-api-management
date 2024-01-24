@@ -33,6 +33,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 /**
  * Define a Plan for API.
@@ -42,7 +43,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder(toBuilder = true)
+@SuperBuilder(toBuilder = true)
 // Implement GenericPlanEntity to ease transition but it should be removed once core elements only use Plan instead of GenericPlanEntity
 public class Plan implements GenericPlanEntity {
 

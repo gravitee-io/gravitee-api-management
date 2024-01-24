@@ -15,12 +15,26 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
-import io.gravitee.rest.api.management.v2.rest.model.*;
+import io.gravitee.apim.core.plan.model.PlanWithFlows;
+import io.gravitee.rest.api.management.v2.rest.model.BasePlan;
+import io.gravitee.rest.api.management.v2.rest.model.CreatePlanV2;
+import io.gravitee.rest.api.management.v2.rest.model.CreatePlanV4;
+import io.gravitee.rest.api.management.v2.rest.model.Plan;
+import io.gravitee.rest.api.management.v2.rest.model.PlanCRD;
+import io.gravitee.rest.api.management.v2.rest.model.PlanSecurity;
+import io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType;
+import io.gravitee.rest.api.management.v2.rest.model.PlanV2;
+import io.gravitee.rest.api.management.v2.rest.model.PlanV4;
+import io.gravitee.rest.api.management.v2.rest.model.UpdatePlanV2;
+import io.gravitee.rest.api.management.v2.rest.model.UpdatePlanV4;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
-import io.gravitee.rest.api.model.v4.plan.NewPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.model.v4.plan.UpdatePlanEntity;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -39,6 +53,11 @@ public interface PlanMapper {
     @Mapping(target = "security.configuration", qualifiedByName = "deserializeConfiguration")
     @Mapping(constant = "V4", target = "definitionVersion")
     PlanV4 map(PlanEntity planEntity);
+
+    @Mapping(target = "security.type", qualifiedByName = "mapToPlanSecurityType")
+    @Mapping(target = "security.configuration", qualifiedByName = "deserializeConfiguration")
+    @Mapping(constant = "V4", target = "definitionVersion")
+    PlanV4 map(PlanWithFlows planWithFlows);
 
     Set<PlanV4> map(Set<PlanEntity> planEntityList);
 
@@ -69,7 +88,7 @@ public interface PlanMapper {
     @Mapping(target = "security.configuration", qualifiedByName = "serializeConfiguration")
     @Mapping(target = "validation", defaultValue = "MANUAL")
     @Mapping(target = "mode", defaultValue = "STANDARD")
-    NewPlanEntity map(CreatePlanV4 plan);
+    io.gravitee.apim.core.plan.model.Plan map(CreatePlanV4 plan);
 
     @Mapping(target = "security", source = "security.type")
     @Mapping(target = "securityDefinition", source = "security.configuration", qualifiedByName = "serializeConfiguration")

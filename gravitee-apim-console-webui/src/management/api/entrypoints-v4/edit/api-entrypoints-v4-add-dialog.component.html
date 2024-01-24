@@ -23,6 +23,11 @@
 
   <form *ngIf="formGroup" [formGroup]="formGroup" (ngSubmit)="save()">
     <gio-entrypoints-selection-list formControlName="selectedEntrypointsIds" [entrypoints]="entrypoints"></gio-entrypoints-selection-list>
+
+    <div *ngIf="requiresUpgrade" class="license-banner">
+      <gio-license-banner (onRequestUpgrade)="onRequestUpgrade()"></gio-license-banner>
+    </div>
+
     <mat-dialog-actions class="actions">
       <button mat-stroked-button type="button" (click)="cancel()">Cancel</button>
       <button mat-flat-button color="primary" type="submit" [disabled]="formGroup.invalid">Add API entrypoints</button>

@@ -25,6 +25,7 @@ import io.gravitee.rest.api.management.v2.rest.model.Organization;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.plugin.EndpointsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.plugin.EntrypointsResource;
+import io.gravitee.rest.api.management.v2.rest.resource.plugin.PoliciesResource;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.license.GraviteeLicenseEntity;
@@ -63,7 +64,6 @@ public class OrganizationResource extends AbstractResource {
     @Path("/license")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Permissions({ @Permission(value = RolePermission.ORGANIZATION_INSTALLATION, acls = { RolePermissionAction.READ }) })
     public GraviteeLicense getOrganizationLicense(@PathParam("orgId") String orgId) {
         // Throw error if organization does not exist
         organizationService.findById(orgId);
@@ -71,7 +71,13 @@ public class OrganizationResource extends AbstractResource {
         final License license = licenseManager.getOrganizationLicenseOrPlatform(orgId);
 
         return GraviteeLicenseMapper.INSTANCE.map(
-            GraviteeLicenseEntity.builder().tier(license.getTier()).packs(license.getPacks()).features(license.getFeatures()).build()
+            GraviteeLicenseEntity
+                .builder()
+                .tier(license.getTier())
+                .packs(license.getPacks())
+                .features(license.getFeatures())
+                .expiresAt(license.getExpirationDate())
+                .build()
         );
     }
 
@@ -88,5 +94,10 @@ public class OrganizationResource extends AbstractResource {
     @Path("/plugins/entrypoints")
     public EntrypointsResource getOrganizationEntrypointsResource() {
         return resourceContext.getResource(EntrypointsResource.class);
+    }
+
+    @Path("/plugins/policies")
+    public PoliciesResource getOrganizationPoliciesResource() {
+        return resourceContext.getResource(PoliciesResource.class);
     }
 }

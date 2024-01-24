@@ -134,10 +134,6 @@ public class ResponseProcessorChainFactory extends ApiProcessorChainFactory {
             add(() -> new CorsSimpleRequestProcessor(api.getDefinition().getProxy().getCors()));
         }
 
-        if (api.getDefinition().getPathMappings() != null && !api.getDefinition().getPathMappings().isEmpty()) {
-            add(() -> new PathMappingProcessor(api.getDefinition().getPathMappings()));
-        }
-
         addAll(policyChainProviderLoader.get(PolicyChainOrder.AFTER_API, StreamType.ON_RESPONSE));
     }
 }

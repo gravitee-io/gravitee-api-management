@@ -166,7 +166,8 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
             "proxyConfig": "proxy.conf.mjs",
-            "browserTarget": "apim-console:build"
+            "browserTarget": "apim-console:build",
+            "disableHostCheck": true
           },
           "configurations": {
             "production": {

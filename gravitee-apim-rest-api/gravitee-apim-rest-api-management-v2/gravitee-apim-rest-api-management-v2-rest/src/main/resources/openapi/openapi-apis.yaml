@@ -39,7 +39,7 @@ servers:
           managementAPIHost:
               description: The domain of the server hosting your Management API
               default: localhost:8083
-          ordId:
+          orgId:
               description: The unique ID of your organization
               default: DEFAULT
 
@@ -1928,6 +1928,11 @@ components:
                     example:
                         - feature-debug-mode
                         - feature-datadog-reporter
+                expiresAt:
+                    type: string
+                    format: date-time
+                    description: The date (as timestamp) when the license will expire.
+                    example: 1581256457163
         Analytics:
             type: object
             properties:
@@ -4355,6 +4360,7 @@ components:
                 propertyName: type
                 mapping:
                     http: HttpEndpointV2
+                    grpc: HttpEndpointV2
         BaseEndpointV2:
             type: object
             properties:
@@ -4395,10 +4401,6 @@ components:
                     default: false
                 healthCheck:
                     $ref: "#/components/schemas/EndpointHealthCheckService"
-            discriminator:
-                propertyName: type
-                mapping:
-                    http: HttpEndpointV2
             required:
                 - type
         HttpEndpointV2:

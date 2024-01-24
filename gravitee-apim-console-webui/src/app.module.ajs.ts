@@ -32,7 +32,7 @@ import { ApiService } from './services/api.service';
 import CorsService from './services/cors.service';
 import { ApiV1PoliciesComponentAjs } from './management/api/policy-studio-v1/policies/policies.component.ajs';
 import AddPoliciesPathController from './management/api/policy-studio-v1/policies/addPoliciesPath.controller';
-import { ApiV1ResourcesComponentAjs } from './management/api/proxy/resources-v1/resources.component.ajs';
+import { ApiV1ResourcesComponentAjs } from './management/api/resources-v1/resources.component.ajs';
 import { ApiV1PropertiesComponentAjs } from './management/api/proxy/properties-v1/properties.component.ajs';
 import { ApiHistoryComponentAjs } from './management/api/audit/history/apiHistory.component.ajs';
 import DialogAddPropertyController from './management/api/proxy/properties-v1/add-property.dialog.controller';

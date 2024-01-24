@@ -44,6 +44,7 @@ import io.gravitee.gateway.handlers.api.policy.plan.PlanPolicyResolver;
 import io.gravitee.gateway.handlers.api.processor.cors.CorsPreflightRequestProcessor;
 import io.gravitee.gateway.handlers.api.processor.forward.XForwardedPrefixProcessor;
 import io.gravitee.gateway.handlers.api.processor.logging.ApiLoggableRequestProcessor;
+import io.gravitee.gateway.handlers.api.processor.pathmapping.PathMappingProcessor;
 import io.gravitee.gateway.handlers.api.processor.pathparameters.PathParametersExtractor;
 import io.gravitee.gateway.handlers.api.processor.pathparameters.PathParametersIndexProcessor;
 import io.gravitee.gateway.handlers.api.processor.pathparameters.PathParametersProcessor;
@@ -179,6 +180,10 @@ public class RequestProcessorChainFactory extends ApiProcessorChainFactory {
                     )
                 );
             }
+        }
+
+        if (api.getDefinition().getPathMappings() != null && !api.getDefinition().getPathMappings().isEmpty()) {
+            add(() -> new PathMappingProcessor(api.getDefinition().getPathMappings()));
         }
     }
 

@@ -16,6 +16,7 @@
 package io.gravitee.apim.plugin.reactor.spring;
 
 import io.gravitee.apim.plugin.reactor.internal.DefaultReactorPluginManager;
+import io.gravitee.gateway.reactive.reactor.v4.reactor.ReactorFactoryManager;
 import io.gravitee.node.plugins.service.ServiceManager;
 import io.gravitee.plugin.core.api.PluginContextFactory;
 import org.springframework.context.ApplicationContext;
@@ -33,8 +34,9 @@ public class ReactorPluginConfiguration {
     public DefaultReactorPluginManager reactorPluginManager(
         final ApplicationContext applicationContext,
         final PluginContextFactory pluginContextFactory,
+        final ReactorFactoryManager factoryManager,
         final ServiceManager serviceManager
     ) {
-        return new DefaultReactorPluginManager(applicationContext, pluginContextFactory, serviceManager);
+        return new DefaultReactorPluginManager(applicationContext, pluginContextFactory, factoryManager, serviceManager);
     }
 }

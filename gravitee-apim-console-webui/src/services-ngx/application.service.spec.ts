@@ -15,6 +15,7 @@
  */
 import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { take } from 'rxjs/operators';
 
 import { ApplicationService } from './application.service';
 
@@ -206,6 +207,73 @@ describe('ApplicationService', () => {
       });
 
       req.flush(mockApplications);
+    });
+  });
+
+  describe('getLastApplicationFetch', () => {
+    it('should call the API', () => {
+      const mockApplication = fakeApplication({ id: 'my-app-id' });
+
+      const done: string[] = [];
+      // First call
+      applicationService.getLastApplicationFetch('my-app-id').subscribe((response) => {
+        expect(response).toMatchObject(mockApplication);
+        done.push('first');
+      });
+
+      // Only one call as the second one should be cached
+      httpTestingController
+        .expectOne({
+          method: 'GET',
+          url: `${CONSTANTS_TESTING.env.baseURL}/applications/my-app-id`,
+        })
+        .flush(mockApplication);
+
+      applicationService.getLastApplicationFetch('my-app-id').subscribe((response) => {
+        expect(response).toMatchObject(mockApplication);
+        done.push('second');
+      });
+
+      expect(done).toEqual(['first', 'second']);
+    });
+
+    it('should not use cache if applicationId is different', () => {
+      const mockApplicationOne = fakeApplication({ id: 'my-app-id' });
+      const mockApplicationTwo = fakeApplication({ id: 'another-app-id' });
+
+      const done: string[] = [];
+      // First call
+      applicationService
+        .getLastApplicationFetch('my-app-id')
+        .pipe(take(1))
+        .subscribe((response) => {
+          expect(response).toMatchObject(mockApplicationOne);
+          done.push('first');
+        });
+
+      httpTestingController
+        .expectOne({
+          method: 'GET',
+          url: `${CONSTANTS_TESTING.env.baseURL}/applications/my-app-id`,
+        })
+        .flush(mockApplicationOne);
+
+      applicationService
+        .getLastApplicationFetch('another-app-id')
+        .pipe(take(1))
+        .subscribe((response) => {
+          expect(response).toMatchObject(mockApplicationTwo);
+          done.push('second');
+        });
+
+      httpTestingController
+        .expectOne({
+          method: 'GET',
+          url: `${CONSTANTS_TESTING.env.baseURL}/applications/another-app-id`,
+        })
+        .flush(mockApplicationTwo);
+
+      expect(done).toEqual(['first', 'second']);
     });
   });
 });

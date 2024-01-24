@@ -1,6 +1,11 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
 :host {
   padding: 8px;
 }
+
 .api-navigation-disabled {
   display: flex;
   align-items: center;
@@ -9,5 +14,18 @@
 
   &__icon {
     width: 16px;
+  }
+
+  &__item {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    &__icon {
+      margin-right: 8px;
+      color: map.get(gio.$mat-dove-palette, default);
+      width: 20px;
+      height: 20px;
+    }
   }
 }

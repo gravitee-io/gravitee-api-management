@@ -44,7 +44,6 @@ public class ApisManagementEndpoint implements Handler<RoutingContext>, Manageme
 
     private final Logger LOGGER = LoggerFactory.getLogger(ApisManagementEndpoint.class);
 
-    @Lazy
     @Autowired
     private ApiManager apiManager;
 

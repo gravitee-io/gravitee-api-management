@@ -16,7 +16,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { GioMenuService } from '@gravitee/ui-particles-angular';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { startWith, takeUntil } from 'rxjs/operators';
 import { castArray, flatMap } from 'lodash';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -75,27 +75,25 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
         routerLink: 'general',
         permissions: ['application-definition-r'],
       },
-      // {
-      //   displayName: "User and group access",
-      //   targetRoute: "management.applications.application.membersng",
-      //   baseRoute: "management.applications.application.membersng",
-      //   permissions: ["application-definition-r"],
-      //   tabs: [
-      //     {
-      //       displayName: "Members",
-      //       targetRoute: "management.applications.application.membersng",
-      //       baseRoute: "management.applications.application.membersng"
-      //     }, {
-      //       displayName: "Groups",
-      //       targetRoute: "management.applications.application.groupsng",
-      //       baseRoute: "management.applications.application.groupsng"
-      //     }, {
-      //       displayName: "Transfer ownership",
-      //       targetRoute: "management.applications.application.transferownershipng",
-      //       baseRoute: "management.applications.application.transferownershipng"
-      //     }
-      //   ]
-      // },
+      {
+        displayName: 'User and group access',
+        permissions: ['application-member-r'],
+        routerLink: 'members',
+        tabs: [
+          {
+            displayName: 'Members',
+            routerLink: 'members',
+          },
+          {
+            displayName: 'Groups',
+            routerLink: 'groups',
+          },
+          {
+            displayName: 'Transfer ownership',
+            routerLink: 'transfer-ownership',
+          },
+        ],
+      },
       {
         displayName: 'Metadata',
         routerLink: 'metadata',
@@ -105,11 +103,6 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
         displayName: 'Subscriptions',
         routerLink: 'subscriptions',
         permissions: ['application-subscription-r'],
-      },
-      {
-        displayName: 'Members',
-        routerLink: 'members',
-        permissions: ['application-member-r'],
       },
       {
         displayName: 'Analytics',
@@ -128,7 +121,9 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
       },
     ]);
 
-    this.selectedItemWithTabs = this.subMenuItems.find((item) => item.tabs && this.isTabActive(item.tabs));
+    this.router.events.pipe(startWith({}), takeUntil(this.unsubscribe$)).subscribe(() => {
+      this.selectedItemWithTabs = this.subMenuItems.find((item) => item.tabs && this.isTabActive(item.tabs));
+    });
   }
 
   ngOnDestroy(): void {
@@ -171,7 +166,7 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
     return breadcrumbItems;
   }
 
-  private isTabActive(tabs: MenuItem[]): boolean {
+  isTabActive(tabs: MenuItem[]): boolean {
     return flatMap(tabs, (tab) => tab).some((tab) => this.isActive(tab));
   }
 }

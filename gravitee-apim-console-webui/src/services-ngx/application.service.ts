@@ -134,7 +134,10 @@ export class ApplicationService {
   }
 
   getLastApplicationFetch(applicationId: string): Observable<Application> {
-    const start = this.lastApplicationFetch$.value ? of(this.lastApplicationFetch$.value) : this.getById(applicationId);
+    const start =
+      this.lastApplicationFetch$.value && this.lastApplicationFetch$.value.id === applicationId
+        ? of(this.lastApplicationFetch$.value)
+        : this.getById(applicationId);
     return start.pipe(
       switchMap(() => this.lastApplicationFetch$.asObservable()),
       filter((application) => !!application),

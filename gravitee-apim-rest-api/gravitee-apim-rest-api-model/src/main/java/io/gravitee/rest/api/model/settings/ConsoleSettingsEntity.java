@@ -44,6 +44,7 @@ public class ConsoleSettingsEntity extends AbstractCommonSettingsEntity {
     private Newsletter newsletter;
     private V4EmulationEngine v4EmulationEngine;
     private AlertEngine alertEngine;
+    private LicenseExpirationNotification licenseExpirationNotification;
 
     public ConsoleSettingsEntity() {
         super();
@@ -59,6 +60,7 @@ public class ConsoleSettingsEntity extends AbstractCommonSettingsEntity {
         analyticsPendo = new ConsoleAnalyticsPendo();
         v4EmulationEngine = new V4EmulationEngine();
         alertEngine = new AlertEngine();
+        licenseExpirationNotification = new LicenseExpirationNotification();
     }
 
     //Classes

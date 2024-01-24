@@ -51,6 +51,19 @@ $textColor: map.get(gio.$mat-dove-palette, default);
     &__disabled {
       padding-left: 20px;
     }
+
+    &__item {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+
+      &__icon {
+        margin-right: 8px;
+        color: $textColor;
+        width: 20px;
+        height: 20px;
+      }
+    }
   }
 
   &__breadcrumb {
@@ -72,13 +85,10 @@ $textColor: map.get(gio.$mat-dove-palette, default);
       flex-direction: column;
       flex: 1 1 auto;
       height: 100%;
+      margin: 12px 24px 0 24px;
 
       &__ui {
         height: 100%;
-      }
-
-      &__banners {
-        padding: 0 32px;
       }
     }
   }

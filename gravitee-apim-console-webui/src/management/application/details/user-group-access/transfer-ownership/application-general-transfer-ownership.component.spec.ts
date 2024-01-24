@@ -177,14 +177,18 @@ describe('ApplicationGeneralTransferOwnershipComponent', () => {
 
   it('should transfer ownership to group', async () => {
     const membersList = [fakeMembers()];
-    const fakeGroups = [fakeGroup()];
-    expectGetGroupsRequest(fakeGroups);
+    expectGetGroupsRequest([
+      fakeGroup({ id: 'group1', name: 'Group 1', apiPrimaryOwner: true }),
+      fakeGroup({ id: 'group2', name: 'Group null', apiPrimaryOwner: null }),
+    ]);
     expectGetMembers(membersList);
     expectApplicationRoleGetRequest([
       fakeRole({ name: 'TEST_ROLE1', default: false }),
       fakeRole({ name: 'PRIMARY_OWNER' }),
       fakeRole({ name: 'DEFAULT_ROLE', default: true }),
     ]);
+
+    fixture.detectChanges();
 
     const userOrGroupRadio = await loader.getHarness(MatButtonToggleGroupHarness.with({ selector: '[formControlName="userOrGroup"' }));
     expect(userOrGroupRadio).toBeTruthy();
@@ -194,9 +198,16 @@ describe('ApplicationGeneralTransferOwnershipComponent', () => {
 
     const groupSelect = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="groupId"]' }));
     await groupSelect.open();
-
     const options = await groupSelect.getOptions();
-    expect(options.length).toBe(2);
+    expect(options.length).toBe(1);
+    await groupSelect.clickOptions({ text: 'Group 1' });
+
+    const roleSelect = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="roleId"]' }));
+    await roleSelect.open();
+
+    const roleOptions = await roleSelect.getOptions();
+    expect(roleOptions.length).toBe(2);
+    await roleSelect.clickOptions({ text: 'TEST_ROLE1' });
 
     const transferButton = await loader.getHarness(MatButtonHarness.with({ text: 'Transfer' }));
     await transferButton.click();

@@ -15,28 +15,23 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.plugin;
 
+import io.gravitee.apim.core.plugin.use_case.GetPolicyPluginsUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.PolicyPluginMapper;
 import io.gravitee.rest.api.management.v2.rest.model.PolicyPlugin;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.platform.plugin.SchemaDisplayFormat;
-import io.gravitee.rest.api.model.v4.policy.PolicyPluginEntity;
-import io.gravitee.rest.api.service.PolicyService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.v4.PolicyPluginService;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
-import java.util.Comparator;
-import java.util.HashSet;
+import jakarta.ws.rs.*;
 import java.util.Set;
-import java.util.TreeSet;
-import java.util.stream.Collectors;
 
 @Path("/plugins/policies")
 public class PoliciesResource extends AbstractResource {
+
+    @Inject
+    private GetPolicyPluginsUseCase getPolicyPluginsUseCase;
 
     @Inject
     private PolicyPluginService policyPluginService;
@@ -44,10 +39,12 @@ public class PoliciesResource extends AbstractResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Set<PolicyPlugin> getPolicies() {
-        return PolicyPluginMapper.INSTANCE
-            .map(policyPluginService.findAll())
-            .stream()
-            .collect(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(PolicyPlugin::getName))));
+        String organizationId = GraviteeContext.getCurrentOrganization() != null
+            ? GraviteeContext.getCurrentOrganization()
+            : GraviteeContext.getDefaultOrganization();
+        return PolicyPluginMapper.INSTANCE.mapToCore(
+            getPolicyPluginsUseCase.getPoliciesByOrganization(new GetPolicyPluginsUseCase.Input(organizationId)).plugins()
+        );
     }
 
     @Path("/{policyId}")

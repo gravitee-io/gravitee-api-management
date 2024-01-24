@@ -1,0 +1,29 @@
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+@use '../../../scss/gio-layout' as gio-layout;
+
+:host {
+  @include gio-layout.gio-full-width-content-container;
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 105px);
+}
+
+.resources {
+  background-color: white;
+  flex: 1 1 auto;
+  margin-top: 24px;
+
+  &.save-bar-opened {
+    --gv-policy-studio--pb: 84px;
+  }
+}
+
+.save-bar {
+  // Keep save bar aligned with properties component
+  position: sticky;
+  left: 30%;
+  width: 70%;
+  min-width: 580px; // keep save bar button on one line for small screen
+}

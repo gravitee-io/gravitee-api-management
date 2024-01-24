@@ -68,6 +68,7 @@ export const fakeAdminUser = (): User => {
           TAG: ['C', 'R', 'U', 'D'],
           IDENTITY_PROVIDER: ['C', 'R', 'U', 'D'],
           IDENTITY_PROVIDER_ACTIVATION: ['C', 'R', 'U', 'D'],
+          LICENSE_MANAGEMENT: ['C', 'R', 'U', 'D'],
         },
       },
     ],

@@ -17,6 +17,7 @@ package io.gravitee.apim.plugin.reactor.internal;
 
 import io.gravitee.apim.plugin.reactor.ReactorPlugin;
 import io.gravitee.apim.plugin.reactor.ReactorPluginManager;
+import io.gravitee.apim.plugin.reactor.spring.ReactorPluginConfiguration;
 import io.gravitee.plugin.core.api.AbstractSimplePluginHandler;
 import io.gravitee.plugin.core.api.Plugin;
 import java.io.IOException;
@@ -24,6 +25,7 @@ import java.net.URLClassLoader;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Import;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -31,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 @AllArgsConstructor
 @NoArgsConstructor
+@Import(ReactorPluginConfiguration.class)
 public class ReactorPluginHandler extends AbstractSimplePluginHandler<ReactorPlugin<?>> {
 
     @Autowired

@@ -1195,6 +1195,8 @@ portal:
     pullPolicy: Always
     # pullSecrets: gravitee_secrets
 
+  lifecycle:
+    preStop: "['sh','-c', 'sleep 5 && /usr/sbin/nginx -s quit']"
   deployment:
     # Annotations to apply to the deployment
     annotations: {}
@@ -1383,6 +1385,8 @@ ui:
     pullPolicy: Always
     # pullSecrets: gravitee_secrets
 
+  lifecycle:
+    preStop: "['sh','-c', 'sleep 5 && /usr/sbin/nginx -s quit']"
   deployment:
     # Annotations to apply to the deployment
     annotations: {}

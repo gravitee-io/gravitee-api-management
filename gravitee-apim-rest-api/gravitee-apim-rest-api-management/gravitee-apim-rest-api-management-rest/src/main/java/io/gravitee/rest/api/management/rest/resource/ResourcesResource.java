@@ -16,6 +16,8 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.node.api.license.License;
+import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.rest.api.model.ResourceListItem;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -23,6 +25,7 @@ import io.gravitee.rest.api.model.platform.plugin.PlatformPluginEntity;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.ResourceService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -41,6 +44,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -52,6 +56,9 @@ public class ResourcesResource {
 
     @Context
     private ResourceContext resourceContext;
+
+    @Inject
+    private LicenseManager licenseManager;
 
     @Inject
     private ResourceService resourceService;
@@ -70,7 +77,18 @@ public class ResourcesResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = RolePermissionAction.READ) })
     public Collection<ResourceListItem> getResources(@QueryParam("expand") List<String> expand) {
+        License license = licenseManager.getOrganizationLicenseOrPlatform(
+            GraviteeContext.getCurrentOrganization() != null
+                ? GraviteeContext.getCurrentOrganization()
+                : GraviteeContext.getDefaultOrganization()
+        );
+
         Stream<ResourceListItem> stream = resourceService.findAll().stream().map(this::convert);
+
+        stream =
+            stream.peek(resourceListItem ->
+                resourceListItem.setDeployed(resourceListItem.getDeployed() && license.isFeatureEnabled(resourceListItem.getFeature()))
+            );
 
         if (expand != null && !expand.isEmpty()) {
             for (String s : expand) {

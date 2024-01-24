@@ -19,6 +19,7 @@ import static java.util.stream.Collectors.toMap;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.gravitee.definition.model.Cors;
+import io.gravitee.definition.model.PathMapping;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -27,6 +28,7 @@ import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -72,7 +74,7 @@ public class HttpListener extends Listener {
     public void setPathMappings(final Set<String> pathMappings) {
         this.pathMappings = pathMappings;
         if (pathMappings != null) {
-            setPathMappingsPattern(pathMappings.stream().collect(toMap(pathMapping -> pathMapping, Pattern::compile)));
+            setPathMappingsPattern(pathMappings.stream().collect(toMap(Function.identity(), PathMapping::buildPattern)));
         }
     }
 }

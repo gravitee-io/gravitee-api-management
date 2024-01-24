@@ -15,6 +15,7 @@
  */
 import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { take } from 'rxjs/operators';
 
 import { ApiV2Service } from './api-v2.service';
 
@@ -406,6 +407,74 @@ describe('ApiV2Service', () => {
 
       expect(req.request.body).toEqual({ apiId, hosts });
       req.flush(null);
+    });
+  });
+
+  describe('getLastApiFetch', () => {
+    it('should call the API', () => {
+      const fakeApi = fakeApiV4({ id: 'my-api-id' });
+
+      const done: string[] = [];
+      // First call
+      apiV2Service.getLastApiFetch(fakeApi.id).subscribe((api) => {
+        expect(api.name).toEqual(fakeApi.name);
+        done.push('first');
+      });
+
+      // Only one call as the second one should be cached
+      httpTestingController
+        .expectOne({
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${fakeApi.id}`,
+          method: 'GET',
+        })
+        .flush(fakeApi);
+
+      apiV2Service.getLastApiFetch('my-api-id').subscribe((api) => {
+        expect(api.name).toEqual(fakeApi.name);
+        done.push('second');
+      });
+
+      expect(done).toEqual(['first', 'second']);
+    });
+
+    it('should not use cache if apiId is different', () => {
+      const fakeApiOne = fakeApiV4({ id: 'my-api-id' });
+      const fakeApiTwo = fakeApiV4({ id: 'my-another-api-id' });
+
+      const done: string[] = [];
+      // First call
+      apiV2Service
+        .getLastApiFetch(fakeApiOne.id)
+        .pipe(take(1))
+        .subscribe((api) => {
+          expect(api.name).toEqual(fakeApiOne.name);
+          done.push('first');
+        });
+
+      httpTestingController
+        .expectOne({
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${fakeApiOne.id}`,
+          method: 'GET',
+        })
+        .flush(fakeApiOne);
+
+      // Second call
+      apiV2Service
+        .getLastApiFetch(fakeApiTwo.id)
+        .pipe(take(1))
+        .subscribe((api) => {
+          expect(api.name).toEqual(fakeApiTwo.name);
+          done.push('second');
+        });
+
+      httpTestingController
+        .expectOne({
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${fakeApiTwo.id}`,
+          method: 'GET',
+        })
+        .flush(fakeApiTwo);
+
+      expect(done).toEqual(['first', 'second']);
     });
   });
 });

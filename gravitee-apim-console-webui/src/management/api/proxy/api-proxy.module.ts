@@ -16,33 +16,25 @@
 
 import { NgModule } from '@angular/core';
 
-import { ApiProxyEntrypointsModule } from './entrypoints/api-proxy-entrypoints.module';
-import { ApiProxyResponseTemplatesModule } from './response-templates/api-proxy-response-templates.module';
-import { ApiProxyEndpointModule } from './endpoints/api-proxy-endpoints.module';
 import { ApiProxyFailoverModule } from './failover/api-proxy-failover.module';
 import { ApiProxyHealthCheckModule } from './health-check/api-proxy-health-check.module';
-import { ApiResourcesModule } from './resources-ng/api-resources.module';
 import { ApiProxyHealthCheckDashboardModule } from './health-check-dashboard/api-proxy-health-check-dashboard.module';
 import { ApiV1PropertiesComponent } from './properties-v1/properties.component';
-import { ApiV1ResourcesComponent } from './resources-v1/resources.component';
 import { ApiPropertiesModule } from './properties/properties/api-properties.module';
 import { ApiDynamicPropertiesModule } from './properties/dynamic-properties/api-dynamic-properties.module';
 
+import { ApiV1ResourcesComponent } from '../resources-v1/resources.component';
 import { ApiProxyCorsModule } from '../cors/api-proxy-cors.module';
 
 @NgModule({
   declarations: [ApiV1PropertiesComponent, ApiV1ResourcesComponent],
   imports: [
-    ApiProxyEntrypointsModule,
     ApiProxyCorsModule,
-    ApiProxyResponseTemplatesModule,
-    ApiProxyEndpointModule,
     ApiProxyFailoverModule,
     ApiProxyHealthCheckModule,
     ApiProxyHealthCheckDashboardModule,
     ApiPropertiesModule,
     ApiDynamicPropertiesModule,
-    ApiResourcesModule,
   ],
 })
 export class ApiProxyModule {}

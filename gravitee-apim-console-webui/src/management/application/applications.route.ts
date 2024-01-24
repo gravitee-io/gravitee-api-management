@@ -20,7 +20,6 @@ import { ApplicationsModule } from './applications.module';
 import { ApplicationNavigationComponent } from './application-navigation/application-navigation.component';
 import { EnvApplicationListComponent } from './list/env-application-list.component';
 import { HasApplicationPermissionGuard } from './has-application-permission.guard';
-import { ApplicationGeneralComponent } from './details/general/application-general.component';
 import { ApplicationMetadataComponent } from './details/metadata/application-metadata.component';
 import { ApplicationSubscriptionsComponent } from './details/subscriptions/application-subscriptions.component';
 import { ApplicationSubscriptionComponent } from './details/subscriptions/application-subscription.component';
@@ -31,10 +30,10 @@ import { ApplicationNotificationSettingsListComponent } from './details/notifica
 import { ApplicationNotificationSettingsDetailsComponent } from './details/notifications/notification-settings/notification-settings-details/application-notification-settings-details.component';
 import { ApplicationCreationComponent } from './creation/steps/application-creation.component';
 import { ApplicationSubscribeComponent } from './details/subscribe/application-subscribe.component';
-import { ApplicationMembersComponent } from './details/members/application-members.component';
 import { ApplicationGeneralMembersComponent } from './details/user-group-access/members/application-general-members.component';
 import { ApplicationGeneralGroupsComponent } from './details/user-group-access/groups/application-general-groups.component';
 import { ApplicationGeneralTransferOwnershipComponent } from './details/user-group-access/transfer-ownership/application-general-transfer-ownership.component';
+import { ApplicationGeneralNgComponent } from './details/general/general-ng/application-general-ng.component';
 
 import { HasEnvironmentPermissionGuard } from '../has-environment-permission.guard';
 
@@ -77,18 +76,6 @@ const applicationRoutes: Routes = [
         path: '',
         redirectTo: 'general',
         pathMatch: 'full',
-      },
-      {
-        path: 'general',
-        component: ApplicationGeneralComponent,
-        data: {
-          perms: {
-            only: ['application-definition-r'],
-          },
-          docs: {
-            page: 'management-application',
-          },
-        },
       },
       {
         path: 'metadata',
@@ -194,7 +181,7 @@ const applicationRoutes: Routes = [
       },
       {
         path: 'members',
-        component: ApplicationMembersComponent,
+        component: ApplicationGeneralMembersComponent,
         data: {
           perms: {
             only: ['application-member-r'],
@@ -217,26 +204,32 @@ const applicationRoutes: Routes = [
         },
       },
       {
-        path: 'groups-ng',
+        path: 'groups',
         component: ApplicationGeneralGroupsComponent,
         data: {
           perms: {
-            only: ['application-definition-r'],
-          },
-          docs: {
-            page: 'management-application-groups',
+            only: ['application-member-r'],
           },
         },
       },
       {
-        path: 'transfer-ownership-ng',
+        path: 'transfer-ownership',
         component: ApplicationGeneralTransferOwnershipComponent,
+        data: {
+          perms: {
+            only: ['application-member-r'],
+          },
+        },
+      },
+      {
+        path: 'general',
+        component: ApplicationGeneralNgComponent,
         data: {
           perms: {
             only: ['application-definition-r'],
           },
           docs: {
-            page: 'management-application-transferownership',
+            page: 'management-application',
           },
         },
       },

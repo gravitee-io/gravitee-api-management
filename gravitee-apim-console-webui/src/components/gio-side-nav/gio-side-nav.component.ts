@@ -26,11 +26,7 @@ import { Environment } from '../../entities/environment/environment';
 
 interface MenuItem {
   icon: string;
-  // @Deprecated
-  targetRoute?: string;
   routerLink?: string;
-  // @Deprecated
-  baseRoute?: string | string[];
   displayName: string;
   permissions?: string[];
   licenseOptions?: LicenseOptions;
@@ -52,6 +48,8 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
   public environments: SelectorItem[] = [];
 
   public currentEnv: Environment;
+  public licenseExpirationDate$: Observable<Date>;
+  public licenseExpirationNotificationEnabled = true;
 
   constructor(
     private readonly permissionService: GioPermissionService,
@@ -77,6 +75,12 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
           this.footerMenuItems = this.buildFooterMenuItems();
         },
       });
+
+    if (this.constants.org.settings?.licenseExpirationNotification?.enabled !== undefined) {
+      this.licenseExpirationNotificationEnabled = this.constants.org.settings.licenseExpirationNotification.enabled;
+    }
+
+    this.licenseExpirationDate$ = this.gioLicenseService.getExpiresAt$().pipe(distinctUntilChanged(), takeUntil(this.unsubscribe$));
   }
 
   ngOnDestroy(): void {
@@ -99,19 +103,15 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
     const alertEngineIconRight$ = this.getMenuItemIconRight$(alertEngineLicenseOptions);
 
     const mainMenuItems: MenuItem[] = [
-      { icon: 'gio:home', routerLink: './home', baseRoute: 'home', displayName: 'Dashboard' },
+      { icon: 'gio:home', routerLink: './home', displayName: 'Dashboard' },
       {
         icon: 'gio:upload-cloud',
-        targetRoute: 'management.apis-list',
         routerLink: './apis',
-        baseRoute: ['management.apis-list', 'management.apis', 'management.apis-new', 'management.apis-new-v2', 'management.apis-new-v4'],
         displayName: 'APIs',
       },
       {
         icon: 'gio:multi-window',
         routerLink: './applications',
-        targetRoute: 'management.applications.list',
-        baseRoute: 'management.applications',
         displayName: 'Applications',
         permissions: ['environment-application-r'],
       },
@@ -157,7 +157,6 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
     mainMenuItems.push({
       icon: 'gio:settings',
       routerLink: './settings',
-      baseRoute: ['management.settings'],
       displayName: 'Settings',
       // prettier-ignore
       permissions: [
@@ -204,9 +203,7 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
     return this.filterMenuByPermission([
       {
         icon: 'gio:building',
-        targetRoute: 'organization.settings',
         routerLink: '/_organization',
-        baseRoute: 'organization',
         displayName: 'Organization',
         permissions: ['organization-settings-r'],
       },

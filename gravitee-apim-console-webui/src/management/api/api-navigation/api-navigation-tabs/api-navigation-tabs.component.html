@@ -15,14 +15,6 @@
     limitations under the License.
 
 -->
-<div class="header" *ngIf="menuItemHeader">
-  <div *ngIf="menuItemHeader.title">
-    <span class="mat-h2"> {{ menuItemHeader.title }}</span>
-  </div>
-  <div *ngIf="menuItemHeader.subtitle">
-    <span class="header__subtitle"> {{ menuItemHeader.subtitle }} </span>
-  </div>
-</div>
 <nav mat-tab-nav-bar class="api-navigation-tabs">
   <ng-container *ngFor="let menuItem of this.tabMenuItems">
     <a
@@ -32,7 +24,7 @@
       #rla="routerLinkActive"
       [routerLink]="menuItem.routerLink"
       [active]="rla.isActive"
-      class="api-navigation-tabs__link"
+      [routerLinkActiveOptions]="menuItem?.routerLinkActiveOptions ?? { exact: false }"
       >{{ menuItem.displayName }}</a
     >
     <a

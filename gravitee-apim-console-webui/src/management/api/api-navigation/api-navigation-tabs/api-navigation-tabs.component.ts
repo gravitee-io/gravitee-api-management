@@ -15,7 +15,7 @@
  */
 import { Component, Input } from '@angular/core';
 
-import { MenuItem, MenuItemHeader } from '../MenuGroupItem';
+import { MenuItem } from '../MenuGroupItem';
 
 @Component({
   selector: 'api-navigation-tabs',
@@ -25,7 +25,4 @@ import { MenuItem, MenuItemHeader } from '../MenuGroupItem';
 export class ApiNavigationTabsComponent {
   @Input()
   public tabMenuItems: MenuItem[] = [];
-
-  @Input()
-  public menuItemHeader: MenuItemHeader;
 }

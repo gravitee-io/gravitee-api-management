@@ -1,0 +1,149 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+@use '../../../scss/gio-layout' as gio-layout;
+
+$typography: map.get(gio.$mat-theme, typography);
+
+:host {
+  @include gio-layout.gio-responsive-margin-container;
+}
+
+.details-card {
+  &__header {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-content: center;
+    justify-content: space-between;
+    align-items: stretch;
+    gap: 16px;
+
+    &__info-inputs {
+      flex: 1 1 auto;
+
+      &__first-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        column-gap: 16px;
+
+        &__name-field {
+          flex: 6 1 auto;
+        }
+
+        &__version-field {
+          flex: 1 1 auto;
+          margin-top: 0; // Remove "Default margin between two mat-form-field" automatically added by ui-particles
+        }
+      }
+
+      &__second-row {
+        margin-top: 8px;
+        display: flex;
+        flex-direction: column;
+
+        &__description-field,
+        &__labels-field,
+        &__categories-field {
+          flex: 1 1 auto;
+        }
+      }
+    }
+
+    &__right-coll {
+      @include gio-layout.large-desktop {
+        flex: 0 0 320px;
+      }
+
+      &__media {
+        display: flex;
+
+        &__picture {
+          &__btn {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+
+            &__text {
+              @include mat.typography-level($typography, caption);
+              position: absolute;
+              width: 100%;
+              height: 114px;
+              z-index: 100;
+              left: 0;
+              visibility: hidden;
+              opacity: 0;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+            }
+          }
+
+          &:hover {
+            .details-card__header__right-coll__media__picture__btn__default-avatar {
+              opacity: 0.1;
+            }
+            .details-card__header__right-coll__media__picture__btn__text {
+              opacity: 1;
+              visibility: visible;
+            }
+          }
+        }
+
+        &__background {
+          &__btn {
+            &__text {
+              @include mat.typography-level($typography, caption);
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              height: 114px;
+            }
+          }
+        }
+      }
+    }
+
+    @include gio-layout.large-desktop {
+      flex-direction: row;
+    }
+  }
+
+  &__actions {
+    &_btn {
+      margin-right: 8px;
+    }
+  }
+
+  &__update-banner {
+    padding-bottom: 16px;
+
+    &__refresh-icon {
+      animation-name: spin;
+      animation-duration: 1s;
+      animation-iteration-count: infinite;
+      animation-timing-function: linear;
+    }
+  }
+}
+
+.api-quality {
+  margin-top: 16px;
+}
+
+.danger-zone {
+  margin-top: 16px;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0);
+  }
+  to {
+    transform: rotate(1turn);
+  }
+}

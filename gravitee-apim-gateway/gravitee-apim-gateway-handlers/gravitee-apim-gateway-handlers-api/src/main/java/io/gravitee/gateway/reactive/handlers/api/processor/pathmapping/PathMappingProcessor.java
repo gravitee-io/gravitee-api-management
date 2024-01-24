@@ -19,6 +19,7 @@ import static java.util.Comparator.comparing;
 
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
+import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.processor.Processor;
 import io.reactivex.rxjava3.core.Completable;
@@ -49,18 +50,20 @@ public class PathMappingProcessor implements Processor {
     public Completable execute(final MutableExecutionContext ctx) {
         return Completable.fromRunnable(() -> {
             Map<String, Pattern> pathMappings = getPathMappings(ctx);
+
             String path = ctx.request().pathInfo();
-            if (path.length() == 0 || path.charAt(path.length() - 1) != '/') {
-                path += '/';
-            }
-            final String finalPath = path;
+            String finalPath = path.endsWith("/") ? path : path + '/';
+
             pathMappings
                 .entrySet()
                 .stream()
                 .filter(regexMappedPath -> regexMappedPath.getValue().matcher(finalPath).matches())
                 .map(Map.Entry::getKey)
                 .min(comparing(this::countOccurrencesOf))
-                .ifPresent(resolvedMappedPath -> ctx.metrics().setMappedPath(resolvedMappedPath));
+                .ifPresent(resolvedMappedPath -> {
+                    ctx.metrics().setMappedPath(resolvedMappedPath);
+                    ctx.setAttribute(ContextAttributes.ATTR_MAPPED_PATH, resolvedMappedPath);
+                });
         });
     }
 

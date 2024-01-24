@@ -230,6 +230,11 @@ public class ConfigServiceTest {
         assertEquals("cors exposed headers", 2, consoleSettings.getCors().getExposedHeaders().size());
         assertEquals("analytics pendo enabled", Boolean.FALSE, consoleSettings.getAnalyticsPendo().getEnabled());
         assertEquals("analytics pendo apiKey", "", consoleSettings.getAnalyticsPendo().getApiKey());
+        assertEquals(
+            "license expiration notification enabled",
+            Boolean.TRUE,
+            consoleSettings.getLicenseExpirationNotification().getEnabled()
+        );
     }
 
     @Test
@@ -259,6 +264,11 @@ public class ConfigServiceTest {
         assertEquals("recaptcha siteKey", "my-site-key", consoleConfig.getReCaptcha().getSiteKey());
         assertEquals("alerting enabled", Boolean.TRUE, consoleConfig.getAlert().getEnabled());
         assertEquals("recaptcha enabled", Boolean.TRUE, consoleConfig.getReCaptcha().getEnabled());
+        assertEquals(
+            "license expiration notification enabled",
+            Boolean.TRUE,
+            consoleConfig.getLicenseExpirationNotification().getEnabled()
+        );
     }
 
     @Test

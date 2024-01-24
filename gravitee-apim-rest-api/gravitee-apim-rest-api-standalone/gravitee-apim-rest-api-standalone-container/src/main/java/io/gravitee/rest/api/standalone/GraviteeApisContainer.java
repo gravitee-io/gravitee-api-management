@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.standalone;
 
 import io.gravitee.node.container.spring.SpringBasedContainer;
+import io.gravitee.rest.api.standalone.node.GraviteeApisNode;
 import io.gravitee.rest.api.standalone.spring.StandaloneConfiguration;
 import java.util.List;
 import org.slf4j.bridge.SLF4JBridgeHandler;

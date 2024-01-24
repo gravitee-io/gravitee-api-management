@@ -19,7 +19,7 @@ import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
 import { Member } from '../entities/members/members';
-import { Role } from '../entities/role/role';
+import { ApplicationTransferOwnership } from '../entities/application/application';
 
 @Injectable({
   providedIn: 'root',
@@ -39,7 +39,10 @@ export class ApplicationMembersService {
     return this.http.post<Member>(`${this.constants.env.baseURL}/applications/${applicationId}/members`, newMember);
   }
 
-  transferOwnership(applicationId: string, ownership: Role): Observable<void> {
-    return this.http.post<void>(`${this.constants.env.baseURL}/applications/${applicationId}/members/transfer_ownership`, ownership);
+  transferOwnership(applicationId: string, ownership: ApplicationTransferOwnership): Observable<ApplicationTransferOwnership> {
+    return this.http.post<ApplicationTransferOwnership>(
+      `${this.constants.env.baseURL}/applications/${applicationId}/members/transfer_ownership`,
+      ownership,
+    );
   }
 }

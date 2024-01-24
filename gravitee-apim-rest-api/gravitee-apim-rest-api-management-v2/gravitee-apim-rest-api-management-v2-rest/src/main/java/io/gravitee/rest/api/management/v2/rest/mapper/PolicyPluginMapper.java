@@ -28,4 +28,8 @@ public interface PolicyPluginMapper {
     PolicyPlugin map(PolicyPluginEntity policyEntity);
 
     Set<PolicyPlugin> map(Set<PolicyPluginEntity> policyEntitySet);
+
+    PolicyPlugin mapToCore(io.gravitee.apim.core.plugin.model.PolicyPlugin policyEntity);
+
+    Set<PolicyPlugin> mapToCore(Set<io.gravitee.apim.core.plugin.model.PolicyPlugin> policyEntitySet);
 }
