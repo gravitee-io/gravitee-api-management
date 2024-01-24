@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.v2.rest.resource.api.log.param.validation;
+package io.gravitee.rest.api.management.v2.rest.validation;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
