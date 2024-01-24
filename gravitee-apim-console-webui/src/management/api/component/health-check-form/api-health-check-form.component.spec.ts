@@ -26,22 +26,22 @@ import { GioFormCronHarness, GioFormHeadersHarness } from '@gravitee/ui-particle
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 
-import { ApiProxyHealthCheckFormComponent } from './api-proxy-health-check-form.component';
-import { ApiProxyHealthCheckFormModule } from './api-proxy-health-check-form.module';
+import { ApiHealthCheckFormComponent } from './api-health-check-form.component';
+import { ApiHealthCheckFormModule } from './api-health-check-form.module';
 
-import { GioHttpTestingModule } from '../../../../../shared/testing';
-import { HealthCheck } from '../../../../../entities/health-check';
-import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
+import { GioHttpTestingModule } from '../../../../shared/testing';
+import { HealthCheck } from '../../../../entities/health-check';
+import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiProxyHealthCheckFormComponent', () => {
-  let fixture: ComponentFixture<ApiProxyHealthCheckFormComponent>;
+  let fixture: ComponentFixture<ApiHealthCheckFormComponent>;
   let loader: HarnessLoader;
-  let component: ApiProxyHealthCheckFormComponent;
+  let component: ApiHealthCheckFormComponent;
   let httpTestingController: HttpTestingController;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiProxyHealthCheckFormModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiHealthCheckFormModule, MatIconTestingModule],
       providers: [{ provide: GioTestingPermissionProvider, useValue: ['api-definition-u'] }],
     }).overrideProvider(InteractivityChecker, {
       useValue: {
@@ -51,7 +51,7 @@ describe('ApiProxyHealthCheckFormComponent', () => {
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ApiProxyHealthCheckFormComponent);
+    fixture = TestBed.createComponent(ApiHealthCheckFormComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
     TestbedHarnessEnvironment.documentRootLoader(fixture);
 
@@ -62,7 +62,7 @@ describe('ApiProxyHealthCheckFormComponent', () => {
   });
 
   const initHealthCheckFormComponent = (healthCheck?: HealthCheck, isReadOnly = false) => {
-    component.healthCheckForm = ApiProxyHealthCheckFormComponent.NewHealthCheckFormGroup(healthCheck, isReadOnly);
+    component.healthCheckForm = ApiHealthCheckFormComponent.NewHealthCheckFormGroup(healthCheck, isReadOnly);
     component.ngOnChanges({ healthCheckForm: {} } as any);
     fixture.detectChanges();
   };
@@ -153,7 +153,7 @@ describe('ApiProxyHealthCheckFormComponent', () => {
     const assertion_1 = await loader.getHarness(MatInputHarness.with({ selector: '[ng-reflect-name="1"]' }));
     await assertion_1.setValue('new assertion');
 
-    expect(ApiProxyHealthCheckFormComponent.HealthCheckFromFormGroup(component.healthCheckForm, false)).toEqual({
+    expect(ApiHealthCheckFormComponent.HealthCheckFromFormGroup(component.healthCheckForm, false)).toEqual({
       enabled: true,
       schedule: '* * * * * *',
       steps: [
@@ -242,7 +242,7 @@ describe('ApiProxyHealthCheckFormComponent', () => {
     expect(await assertion_0.isDisabled()).toEqual(true);
     expect(await assertion_0.getValue()).toEqual('inherit');
 
-    expect(ApiProxyHealthCheckFormComponent.HealthCheckFromFormGroup(component.healthCheckForm, true)).toEqual({
+    expect(ApiHealthCheckFormComponent.HealthCheckFromFormGroup(component.healthCheckForm, true)).toEqual({
       inherit: true,
     });
   });
@@ -267,7 +267,7 @@ describe('ApiProxyHealthCheckFormComponent', () => {
     expect(await enabledSlideToggle.isChecked()).toEqual(false);
     expect(await enabledSlideToggle.isDisabled()).toEqual(true);
 
-    expect(ApiProxyHealthCheckFormComponent.HealthCheckFromFormGroup(component.healthCheckForm, true)).toEqual({
+    expect(ApiHealthCheckFormComponent.HealthCheckFromFormGroup(component.healthCheckForm, true)).toEqual({
       inherit: true,
     });
   });
@@ -322,7 +322,7 @@ describe('ApiProxyHealthCheckFormComponent', () => {
     expect(await pathInput.isDisabled()).toEqual(false);
     await pathInput.setValue('/override');
 
-    expect(ApiProxyHealthCheckFormComponent.HealthCheckFromFormGroup(component.healthCheckForm, true)).toEqual({
+    expect(ApiHealthCheckFormComponent.HealthCheckFromFormGroup(component.healthCheckForm, true)).toEqual({
       enabled: true,
       inherit: false,
       schedule: '* */5 * * * *',
@@ -406,7 +406,7 @@ describe('ApiProxyHealthCheckFormComponent', () => {
     expect(await assertion_0.isDisabled()).toEqual(true);
     expect(await assertion_0.getValue()).toEqual('inherit');
 
-    expect(ApiProxyHealthCheckFormComponent.HealthCheckFromFormGroup(component.healthCheckForm, true)).toEqual({
+    expect(ApiHealthCheckFormComponent.HealthCheckFromFormGroup(component.healthCheckForm, true)).toEqual({
       inherit: true,
     });
   });
@@ -471,7 +471,7 @@ describe('ApiProxyHealthCheckFormComponent', () => {
     expect(await assertion.isDisabled()).toEqual(false);
     expect(await assertion.getValue()).toEqual('#response.status == 400');
 
-    expect(ApiProxyHealthCheckFormComponent.HealthCheckFromFormGroup(component.healthCheckForm, false)).toEqual(healthCheck);
+    expect(ApiHealthCheckFormComponent.HealthCheckFromFormGroup(component.healthCheckForm, false)).toEqual(healthCheck);
   });
 
   it('should be readonly', async () => {
