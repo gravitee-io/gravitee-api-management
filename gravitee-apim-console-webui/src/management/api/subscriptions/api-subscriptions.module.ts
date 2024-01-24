@@ -44,8 +44,8 @@ import { RouterModule } from '@angular/router';
 
 import { ApiPortalSubscriptionCreationDialogComponent } from './components/dialogs/creation/api-portal-subscription-creation-dialog.component';
 import { ApiPortalSubscriptionTransferDialogComponent } from './components/dialogs/transfer/api-portal-subscription-transfer-dialog.component';
-import { ApiGeneralSubscriptionEditComponent } from './edit/api-general-subscription-edit.component';
-import { ApiGeneralSubscriptionListComponent } from './list/api-general-subscription-list.component';
+import { ApiSubscriptionEditComponent } from './edit/api-subscription-edit.component';
+import { ApiSubscriptionListComponent } from './list/api-subscription-list.component';
 import { ApiPortalSubscriptionChangeEndDateDialogComponent } from './components/dialogs/change-end-date/api-portal-subscription-change-end-date-dialog.component';
 import { ApiPortalSubscriptionValidateDialogComponent } from './components/dialogs/validate/api-portal-subscription-validate-dialog.component';
 import { ApiKeyValidationComponent } from './components/api-key-validation/api-key-validation.component';
@@ -53,13 +53,13 @@ import { ApiPortalSubscriptionRejectDialogComponent } from './components/dialogs
 import { ApiPortalSubscriptionRenewDialogComponent } from './components/dialogs/renew/api-portal-subscription-renew-dialog.component';
 import { ApiPortalSubscriptionExpireApiKeyDialogComponent } from './components/dialogs/expire-api-key/api-portal-subscription-expire-api-key-dialog.component';
 
-import { GioTableWrapperModule } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
-import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
+import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
+import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 
 @NgModule({
   declarations: [
-    ApiGeneralSubscriptionEditComponent,
-    ApiGeneralSubscriptionListComponent,
+    ApiSubscriptionEditComponent,
+    ApiSubscriptionListComponent,
     ApiPortalSubscriptionChangeEndDateDialogComponent,
     ApiPortalSubscriptionCreationDialogComponent,
     ApiPortalSubscriptionTransferDialogComponent,
@@ -71,7 +71,7 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
 
     ApiKeyValidationComponent,
   ],
-  exports: [ApiGeneralSubscriptionEditComponent, ApiGeneralSubscriptionListComponent, ApiKeyValidationComponent],
+  exports: [ApiSubscriptionEditComponent, ApiSubscriptionListComponent, ApiKeyValidationComponent],
   imports: [
     CommonModule,
     FormsModule,
@@ -105,4 +105,4 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
   ],
   providers: [DatePipe],
 })
-export class ApiGeneralSubscriptionsModule {}
+export class ApiSubscriptionsModule {}

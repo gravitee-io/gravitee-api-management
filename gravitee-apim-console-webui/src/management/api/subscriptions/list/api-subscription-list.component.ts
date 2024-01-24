@@ -22,20 +22,20 @@ import { MatDialog } from '@angular/material/dialog';
 import { AutocompleteOptions } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { SubscriptionStatus } from '../../../../../entities/subscription/subscription';
-import { GioTableWrapperFilters } from '../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
-import { ApiSubscriptionV2Service } from '../../../../../services-ngx/api-subscription-v2.service';
-import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
-import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
-import { Api, ApiV4, Plan } from '../../../../../entities/management-api-v2';
-import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
-import { ApiPlanV2Service } from '../../../../../services-ngx/api-plan-v2.service';
+import { SubscriptionStatus } from '../../../../entities/subscription/subscription';
+import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
+import { ApiSubscriptionV2Service } from '../../../../services-ngx/api-subscription-v2.service';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
+import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { Api, ApiV4, Plan } from '../../../../entities/management-api-v2';
+import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
+import { ApiPlanV2Service } from '../../../../services-ngx/api-plan-v2.service';
 import {
   ApiPortalSubscriptionCreationDialogComponent,
   ApiPortalSubscriptionCreationDialogData,
   ApiPortalSubscriptionCreationDialogResult,
 } from '../components/dialogs/creation/api-portal-subscription-creation-dialog.component';
-import { ApplicationService } from '../../../../../services-ngx/application.service';
+import { ApplicationService } from '../../../../services-ngx/application.service';
 
 type SubscriptionsTableDS = {
   id: string;
@@ -49,11 +49,11 @@ type SubscriptionsTableDS = {
 };
 
 @Component({
-  selector: 'api-general-subscription-list',
-  templateUrl: './api-general-subscription-list.component.html',
-  styleUrls: ['./api-general-subscription-list.component.scss'],
+  selector: 'api-subscription-list',
+  templateUrl: './api-subscription-list.component.html',
+  styleUrls: ['./api-subscription-list.component.scss'],
 })
-export class ApiGeneralSubscriptionListComponent implements OnInit, OnDestroy {
+export class ApiSubscriptionListComponent implements OnInit, OnDestroy {
   public displayedColumns = ['plan', 'application', 'createdAt', 'processedAt', 'startingAt', 'endAt', 'status', 'actions'];
   public subscriptionsTableDS: SubscriptionsTableDS[] = [];
   public nbTotalSubscriptions = 0;

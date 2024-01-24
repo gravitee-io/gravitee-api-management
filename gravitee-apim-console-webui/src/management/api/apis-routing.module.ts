@@ -21,9 +21,9 @@ import { ApiNavigationComponent } from './api-navigation/api-navigation.componen
 import { ApiGeneralInfoComponent } from './general-info/api-general-info.component';
 import { ApiPlanEditComponent } from './plans/edit/api-plan-edit.component';
 import { ApiPlanListComponent } from './plans/list/api-plan-list.component';
-import { ApiGeneralSubscriptionListComponent } from './general/subscriptions/list/api-general-subscription-list.component';
+import { ApiSubscriptionListComponent } from './subscriptions/list/api-subscription-list.component';
 import { ApiV4PolicyStudioDesignComponent } from './policy-studio-v4/design/api-v4-policy-studio-design.component';
-import { ApiGeneralSubscriptionEditComponent } from './general/subscriptions/edit/api-general-subscription-edit.component';
+import { ApiSubscriptionEditComponent } from './subscriptions/edit/api-subscription-edit.component';
 import { ApiEntrypointsV4GeneralComponent } from './entrypoints-v4/api-entrypoints-v4-general.component';
 import { ApiEndpointComponent } from './endpoints-v4/endpoint/api-endpoint.component';
 import { ApiEntrypointsV4EditComponent } from './entrypoints-v4/edit/api-entrypoints-v4-edit.component';
@@ -202,7 +202,7 @@ const apisRoutes: Routes = [
       },
       {
         path: 'subscriptions',
-        component: ApiGeneralSubscriptionListComponent,
+        component: ApiSubscriptionListComponent,
         data: {
           docs: null,
           apiPermissions: {
@@ -212,7 +212,7 @@ const apisRoutes: Routes = [
       },
       {
         path: 'subscriptions/:subscriptionId',
-        component: ApiGeneralSubscriptionEditComponent,
+        component: ApiSubscriptionEditComponent,
         data: {
           docs: null,
           apiPermissions: {

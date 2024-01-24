@@ -25,9 +25,9 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
 import { ApiKeyValidationHarness } from './api-key-validation.harness';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../../shared/testing';
-import { ApiGeneralSubscriptionsModule } from '../../api-general-subscriptions.module';
-import { VerifySubscription } from '../../../../../../entities/management-api-v2';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
+import { ApiSubscriptionsModule } from '../../api-subscriptions.module';
+import { VerifySubscription } from '../../../../../entities/management-api-v2';
 
 const API_ID = 'my-api-id';
 const APP_ID = 'my-app-id';
@@ -48,7 +48,7 @@ describe('ApiKeyValidationComponent', () => {
 
   const init = async () => {
     await TestBed.configureTestingModule({
-      imports: [ApiGeneralSubscriptionsModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule, ReactiveFormsModule],
+      imports: [ApiSubscriptionsModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule, ReactiveFormsModule],
       declarations: [TestComponent],
       providers: [
         {

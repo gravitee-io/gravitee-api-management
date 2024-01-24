@@ -28,7 +28,7 @@ import { filter, map, startWith, take, takeUntil, tap } from 'rxjs/operators';
 import { Observable, of, Subject } from 'rxjs';
 import { FocusMonitor } from '@angular/cdk/a11y';
 
-import { ApiSubscriptionV2Service } from '../../../../../../services-ngx/api-subscription-v2.service';
+import { ApiSubscriptionV2Service } from '../../../../../services-ngx/api-subscription-v2.service';
 
 @Component({
   selector: 'api-key-validation',
