@@ -3,6 +3,10 @@
 
 This file documents all notable changes to [Gravitee.io API Management 3.x](https://github.com/gravitee-io/helm-charts/tree/master/apim/3.x) Helm Chart. The release numbering uses [semantic versioning](http://semver.org).
 
+### 4.2.2
+
+- BREAKING CHANGE: deprecated api|gateway|ui|portal.securityContext has been removed
+
 ### 4.2.1
 
 - Added "gateway.services.core.http.ssl.keystore.password"
