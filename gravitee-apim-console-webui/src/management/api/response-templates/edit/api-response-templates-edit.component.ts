@@ -25,9 +25,9 @@ import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { HttpUtil, StatusCode } from '../../../../shared/utils';
 import { fromResponseTemplates, ResponseTemplate, toResponseTemplates } from '../response-templates.adapter';
-import { gatewayErrorKeys } from '../../../../entities/gateway-error-keys/GatewayErrorKeys';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
-import { onlyApiV1V2Filter, onlyApiV2Filter } from '../../../../util/apiFilter.operator';
+import { onlyApiV2V4Filter } from '../../../../util/apiFilter.operator';
+import { gatewayErrorKeys } from '../../../../entities/gateway-error-keys/GatewayErrorKeys';
 
 @Component({
   selector: 'api-proxy-response-templates-edit',
@@ -61,7 +61,6 @@ export class ApiResponseTemplatesEditComponent implements OnInit, OnDestroy {
     this.apiService
       .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
-        onlyApiV1V2Filter(this.snackBarService),
         tap((api) => {
           this.apiId = api.id;
 
@@ -153,7 +152,7 @@ export class ApiResponseTemplatesEditComponent implements OnInit, OnDestroy {
     return this.apiService
       .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
-        onlyApiV2Filter(this.snackBarService),
+        onlyApiV2V4Filter(this.snackBarService),
         switchMap((api) => {
           const responseTemplates = toResponseTemplates(api.responseTemplates);
 
