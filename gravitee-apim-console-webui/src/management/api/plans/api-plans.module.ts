@@ -29,16 +29,16 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { MatMenuModule } from '@angular/material/menu';
 import { RouterModule } from '@angular/router';
 
-import { ApiGeneralPlanListComponent } from './list/api-general-plan-list.component';
-import { ApiGeneralPlanEditComponent } from './edit/api-general-plan-edit.component';
+import { ApiPlanListComponent } from './list/api-plan-list.component';
+import { ApiPlanEditComponent } from './edit/api-plan-edit.component';
 
-import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
-import { ApiPlanFormModule } from '../../component/plan/api-plan-form.module';
-import { GioGoBackButtonModule } from '../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
+import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
+import { ApiPlanFormModule } from '../component/plan/api-plan-form.module';
+import { GioGoBackButtonModule } from '../../../shared/components/gio-go-back-button/gio-go-back-button.module';
 
 @NgModule({
-  declarations: [ApiGeneralPlanListComponent, ApiGeneralPlanEditComponent],
-  exports: [ApiGeneralPlanListComponent, ApiGeneralPlanEditComponent],
+  declarations: [ApiPlanListComponent, ApiPlanEditComponent],
+  exports: [ApiPlanListComponent, ApiPlanEditComponent],
   imports: [
     CommonModule,
     DragDropModule,
@@ -63,4 +63,4 @@ import { GioGoBackButtonModule } from '../../../../shared/components/gio-go-back
     MatMenuModule,
   ],
 })
-export class ApiGeneralPlansModule {}
+export class ApiPlansModule {}

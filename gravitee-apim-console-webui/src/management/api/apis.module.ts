@@ -42,6 +42,7 @@ import { ApiResponseTemplatesModule } from './response-templates/api-response-te
 import { ApiEndpointsModule } from './endpoints/api-endpoints.module';
 import { ApiFailoverModule } from './failover/api-failover.module';
 import { ApiHealthCheckModule } from './health-check/api-health-check.module';
+import { ApiPlansModule } from './plans/api-plans.module';
 
 import { SpecificJsonSchemaTypeModule } from '../../shared/components/specific-json-schema-type/specific-json-schema-type.module';
 import { DocumentationModule } from '../../components/documentation/documentation.module';
@@ -72,6 +73,7 @@ import { AlertsModule } from '../../components/alerts/alerts.module';
     ApiListModule,
     ApiNavigationModule,
     ApiNotificationSettingsModule,
+    ApiPlansModule,
     ApiProxyModule,
     ApiResourcesModule,
     ApiResponseTemplatesModule,

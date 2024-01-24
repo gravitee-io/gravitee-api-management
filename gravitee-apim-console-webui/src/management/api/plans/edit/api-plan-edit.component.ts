@@ -19,20 +19,20 @@ import { EMPTY, of, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
-import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
-import { ApiPlanFormComponent, PlanFormValue } from '../../../component/plan/api-plan-form.component';
-import { AVAILABLE_PLANS_FOR_MENU, PlanFormType, PlanMenuItemVM } from '../../../../../services-ngx/constants.service';
-import { Api, CreatePlanV2, CreatePlanV4, Plan, PlanStatus } from '../../../../../entities/management-api-v2';
-import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
-import { ApiPlanV2Service } from '../../../../../services-ngx/api-plan-v2.service';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
+import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { ApiPlanFormComponent, PlanFormValue } from '../../component/plan/api-plan-form.component';
+import { AVAILABLE_PLANS_FOR_MENU, PlanFormType, PlanMenuItemVM } from '../../../../services-ngx/constants.service';
+import { Api, CreatePlanV2, CreatePlanV4, Plan, PlanStatus } from '../../../../entities/management-api-v2';
+import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
+import { ApiPlanV2Service } from '../../../../services-ngx/api-plan-v2.service';
 
 @Component({
-  selector: 'api-general-plan-edit',
-  templateUrl: './api-general-plan-edit.component.html',
-  styleUrls: ['./api-general-plan-edit.component.scss'],
+  selector: 'api-plan-edit',
+  templateUrl: './api-plan-edit.component.html',
+  styleUrls: ['./api-plan-edit.component.scss'],
 })
-export class ApiGeneralPlanEditComponent implements OnInit, OnDestroy {
+export class ApiPlanEditComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   public mode: 'create' | 'edit' = 'create';

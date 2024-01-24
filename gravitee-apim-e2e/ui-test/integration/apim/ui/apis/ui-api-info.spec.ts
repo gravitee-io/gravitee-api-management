@@ -117,7 +117,7 @@ describe('API Info Page functionality', () => {
     apiDetails.infoMenuItem().click();
     apiDetails.policyStudioMenuItem().should('be.visible');
     apiDetails.infoMenuItem().should('be.visible');
-    apiDetails.plansMenuItem().should('be.visible');
+    apiDetails.consumersMenuItem().should('be.visible');
     apiDetails.infoMenuItem().click();
     cy.getByDataTestId('api_info_namefield').scrollIntoView().should('be.visible');
     cy.getByDataTestId('api_info_versionfield').should('be.visible');
