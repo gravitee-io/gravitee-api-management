@@ -18,13 +18,16 @@ package io.gravitee.apim.infra.spring;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiPolicyValidatorDomainService;
+import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.DeployApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiHostsDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
+import io.gravitee.apim.core.api.query_service.ApiEventQueryService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.api.use_case.ImportCRDUseCase;
+import io.gravitee.apim.core.api.use_case.UpdateDynamicPropertiesUseCase;
 import io.gravitee.apim.core.api.use_case.VerifyApiHostsUseCase;
 import io.gravitee.apim.core.api.use_case.VerifyApiPathsUseCase;
 import io.gravitee.apim.core.api_key.domain_service.RevokeApiKeyDomainService;
@@ -34,6 +37,7 @@ import io.gravitee.apim.core.api_key.use_case.RevokeApplicationApiKeyUseCase;
 import io.gravitee.apim.core.api_key.use_case.RevokeApplicationSubscriptionApiKeyUseCase;
 import io.gravitee.apim.core.api_key.use_case.RevokeSubscriptionApiKeyUseCase;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
+import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
 import io.gravitee.apim.core.audit.use_case.SearchApiAuditUseCase;
 import io.gravitee.apim.core.console.use_case.GetConsoleCustomizationUseCase;
@@ -383,5 +387,22 @@ public class UsecaseSpringConfiguration {
     @Bean
     public SearchEventUseCase searchEventUseCase(EventQueryService eventQueryService, UserCrudService userCrudService) {
         return new SearchEventUseCase(eventQueryService, userCrudService);
+    }
+
+    @Bean
+    public UpdateDynamicPropertiesUseCase updateDynamicPropertiesUsecase(
+        ApiCrudService apiCrudService,
+        ApiStateDomainService apiStateDomainService,
+        EnvironmentCrudService environmentCrudService,
+        AuditDomainService auditDomainService,
+        ApiEventQueryService apiEventQueryService
+    ) {
+        return new UpdateDynamicPropertiesUseCase(
+            apiCrudService,
+            apiStateDomainService,
+            environmentCrudService,
+            auditDomainService,
+            apiEventQueryService
+        );
     }
 }

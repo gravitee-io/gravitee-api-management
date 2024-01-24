@@ -62,7 +62,7 @@ public class V4ApiServiceCockpitTest {
         startedApi.setId("any-started-id");
         when(apiServiceV4.create(any(), any(), any())).thenReturn(apiEntity);
         when(apiStateService.start(any(), any(), any())).thenReturn(startedApi);
-        when(apiStateService.deploy(any(), any(), any(), any())).thenReturn(startedApi);
+        when(apiStateService.deploy(any(), any(String.class), any(), any())).thenReturn(startedApi);
         when(apiServiceV4.update(any(), any(), any(), any())).thenReturn(startedApi);
 
         TestObserver<ApiEntity> observer = service
@@ -74,7 +74,7 @@ public class V4ApiServiceCockpitTest {
         verify(apiServiceV4, times(1)).create(any(), any(), any());
         verify(apiServiceV4, times(1)).update(any(), any(), any(), any());
         verify(apiStateService, times(1)).start(any(), any(), any());
-        verify(apiStateService, times(1)).deploy(any(), any(), any(), any());
+        verify(apiStateService, times(1)).deploy(any(), any(String.class), any(), any());
     }
 
     @Test

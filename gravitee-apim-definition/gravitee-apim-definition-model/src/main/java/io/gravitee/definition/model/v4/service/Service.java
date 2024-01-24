@@ -33,7 +33,7 @@ import lombok.*;
  */
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 @Getter
 @Setter
 @ToString
@@ -70,6 +70,6 @@ public class Service implements Serializable {
 
     @JsonIgnore
     public List<Plugin> getPlugins() {
-        return List.of(new Plugin("service", type));
+        return List.of(new Plugin("api-service", type));
     }
 }

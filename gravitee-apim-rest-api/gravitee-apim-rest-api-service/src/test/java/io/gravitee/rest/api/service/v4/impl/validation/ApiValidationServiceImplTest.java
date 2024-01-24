@@ -48,6 +48,7 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.LifecycleStateChangeNotAllowedException;
+import io.gravitee.rest.api.service.v4.ApiServicePluginService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.exception.ApiTypeException;
 import io.gravitee.rest.api.service.v4.validation.AnalyticsValidationService;
@@ -106,6 +107,9 @@ public class ApiValidationServiceImplTest {
     @Mock
     private PathParametersValidationService pathParametersValidationService;
 
+    @Mock
+    private ApiServicePluginService apiServicePluginService;
+
     private ApiValidationService apiValidationService;
 
     @Before
@@ -121,7 +125,8 @@ public class ApiValidationServiceImplTest {
                 loggingValidationService,
                 planSearchService,
                 planValidationService,
-                pathParametersValidationService
+                pathParametersValidationService,
+                apiServicePluginService
             );
     }
 

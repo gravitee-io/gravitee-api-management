@@ -63,6 +63,11 @@ public interface ApiAdapter {
     @Mapping(target = "metadata", ignore = true)
     ApiEntity toApiEntity(ApiCRD api);
 
+    @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
+    @Mapping(source = "version", target = "apiVersion")
+    @Mapping(target = "metadata", ignore = true)
+    ApiEntity toApiEntity(Api api);
+
     @Mapping(source = "state", target = "lifecycleState")
     @Mapping(source = "lifecycleState", target = "apiLifecycleState")
     @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)

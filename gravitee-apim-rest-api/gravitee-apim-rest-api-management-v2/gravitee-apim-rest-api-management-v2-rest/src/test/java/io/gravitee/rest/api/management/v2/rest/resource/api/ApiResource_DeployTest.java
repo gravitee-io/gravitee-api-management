@@ -57,7 +57,7 @@ public class ApiResource_DeployTest extends ApiResourceTest {
         deployEntity.setDeploymentLabel("label");
 
         ApiEntity apiEntity = ApiFixtures.aModelApiV4().toBuilder().state(Lifecycle.State.STARTED).updatedAt(new Date()).build();
-        doReturn(apiEntity).when(apiStateServiceV4).deploy(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
+        doReturn(apiEntity).when(apiStateServiceV4).deploy(eq(GraviteeContext.getExecutionContext()), any(String.class), any(), any());
 
         final Response response = rootTarget(API + "/deployments").request().post(Entity.json(deployEntity));
 
@@ -66,7 +66,7 @@ public class ApiResource_DeployTest extends ApiResourceTest {
         assertEquals(apiEntity.getUpdatedAt().toString(), response.getLastModified().toString());
         assertEquals(new EntityTag(Long.toString(apiEntity.getUpdatedAt().getTime())), response.getEntityTag());
 
-        verify(apiStateServiceV4, times(1)).deploy(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
+        verify(apiStateServiceV4, times(1)).deploy(eq(GraviteeContext.getExecutionContext()), any(String.class), any(), any());
     }
 
     @Test

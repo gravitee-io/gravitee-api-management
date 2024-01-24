@@ -46,6 +46,7 @@ import { ApiSubscriptionsModule } from './subscriptions/api-subscriptions.module
 import { ApiDocumentationModule } from './documentation/api-documentation.module';
 import { ApiUserGroupModule } from './user-group-access/api-user-group.module';
 import { ApiAuditListModule } from './api-audit-list/api-audit-list.module';
+import { ApiDynamicPropertiesV4Module } from './properties-v4/dynamic-properties/api-dynamic-properties-v4.module';
 import { ApiDeploymentConfigurationModule } from './deployment-configuration-v4/api-deployment-configuration.module';
 import { ApiAuditLogsModule } from './api-audit-logs/api-audit-logs.module';
 
@@ -70,6 +71,7 @@ import { AlertsModule } from '../../components/alerts/alerts.module';
     ApiDeploymentConfigurationModule,
     ApiDocumentationModule,
     ApiDocumentationV4Module,
+    ApiDynamicPropertiesV4Module,
     ApiEndpointsModule,
     ApiEndpointsV4Module,
     ApiEntrypointsModule,

@@ -135,17 +135,47 @@ public class ApiStateServiceImpl implements ApiStateService {
         String authenticatedUser,
         ApiDeploymentEntity apiDeploymentEntity
     ) {
-        log.debug("Deploy API: {}", apiId);
-
         Api api = apiSearchService.findRepositoryApiById(executionContext, apiId);
-        if (!apiValidationService.canDeploy(executionContext, apiId)) {
-            throw new ApiNotDeployableException("The api {" + apiId + "} can not be deployed without at least one published plan");
+        return deploy(executionContext, api, api, authenticatedUser, apiDeploymentEntity);
+    }
+
+    @Override
+    public GenericApiEntity deploy(
+        ExecutionContext executionContext,
+        Api apiToDeploy,
+        String authenticatedUser,
+        ApiDeploymentEntity apiDeploymentEntity
+    ) {
+        Api api = apiSearchService.findRepositoryApiById(executionContext, apiToDeploy.getId());
+        return deploy(executionContext, api, apiToDeploy, authenticatedUser, apiDeploymentEntity);
+    }
+
+    /**
+     * Deploys an api
+     * @param apiFromDb is the api coming from database, on which the deployedAt date will be set
+     * @param apiToDeploy is the api to deploy in an Event. It can defer from apiFromDb in case an ApiService is still running in background
+     */
+    private GenericApiEntity deploy(
+        ExecutionContext executionContext,
+        Api apiFromDb,
+        Api apiToDeploy,
+        String authenticatedUser,
+        ApiDeploymentEntity apiDeploymentEntity
+    ) {
+        log.debug("Deploy API: {}", apiToDeploy.getId());
+
+        if (!apiValidationService.canDeploy(executionContext, apiToDeploy.getId())) {
+            throw new ApiNotDeployableException(
+                "The api {" + apiToDeploy.getId() + "} can not be deployed without at least one published plan"
+            );
         }
 
-        this.deployApi(executionContext, authenticatedUser, apiDeploymentEntity, api);
+        // FIXME: improvement: what about updating deployedAt only when the user trigger it manually ?
+        this.updateDeploymentDate(apiFromDb);
+        this.deployApi(executionContext, authenticatedUser, apiDeploymentEntity, apiToDeploy);
 
-        PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext.getOrganizationId(), api.getId());
-        final GenericApiEntity deployedApi = genericApiMapper.toGenericApi(api, primaryOwner);
+        PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext.getOrganizationId(), apiToDeploy.getId());
+        final GenericApiEntity deployedApi = genericApiMapper.toGenericApi(apiToDeploy, primaryOwner);
         GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, deployedApi);
 
         apiNotificationService.triggerDeployNotification(executionContext, apiWithMetadata);
@@ -153,27 +183,29 @@ public class ApiStateServiceImpl implements ApiStateService {
         return deployedApi;
     }
 
-    private void deployApi(ExecutionContext executionContext, String authenticatedUser, ApiDeploymentEntity apiDeploymentEntity, Api api) {
+    private void updateDeploymentDate(Api api) {
         try {
             // add deployment date
             api.setUpdatedAt(new Date());
             api.setDeployedAt(api.getUpdatedAt());
-            api = apiRepository.update(api);
-
-            // Clear useless field for history
-            api.setPicture(null);
-
-            Map<String, String> properties = new HashMap<>();
-            properties.put(Event.EventProperties.USER.getValue(), authenticatedUser);
-
-            addDeploymentLabelToProperties(executionContext, api.getId(), properties, apiDeploymentEntity);
-
-            // And create event
-            eventService.createApiEvent(executionContext, singleton(executionContext.getEnvironmentId()), PUBLISH_API, api, properties);
+            apiRepository.update(api);
         } catch (TechnicalException e) {
             log.error("An error occurs while trying to deploy API: {}", api.getId(), e);
             throw new TechnicalManagementException("An error occurs while trying to deploy API: " + api.getId(), e);
         }
+    }
+
+    private void deployApi(ExecutionContext executionContext, String authenticatedUser, ApiDeploymentEntity apiDeploymentEntity, Api api) {
+        // Clear useless field for history
+        api.setPicture(null);
+
+        Map<String, String> properties = new HashMap<>();
+        properties.put(Event.EventProperties.USER.getValue(), authenticatedUser);
+
+        addDeploymentLabelToProperties(executionContext, api.getId(), properties, apiDeploymentEntity);
+
+        // And create event
+        eventService.createApiEvent(executionContext, singleton(executionContext.getEnvironmentId()), PUBLISH_API, api, properties);
     }
 
     private void addDeploymentLabelToProperties(

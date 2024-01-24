@@ -15,6 +15,7 @@
  */
 package io.gravitee.plugin.apiservice.internal;
 
+import io.gravitee.gateway.reactive.api.apiservice.ApiService;
 import io.gravitee.gateway.reactive.api.apiservice.ApiServiceFactory;
 import io.gravitee.gateway.reactive.api.helper.PluginConfigurationHelper;
 import io.gravitee.plugin.apiservice.ApiServiceClassLoaderFactory;
@@ -111,10 +112,22 @@ public class DefaultApiServicePluginManager
 
     @Override
     public List<?> getAllFactories(boolean includeNotDeployed) {
-        List<ApiServiceFactory<?>> allFactories = new ArrayList<>(factories.values());
+        return getAllFactories(includeNotDeployed, ApiServiceFactory.class);
+    }
+
+    @Override
+    public <T extends ApiServiceFactory<?>> List<T> getAllFactories(Class<? extends ApiServiceFactory> clazz) {
+        return getAllFactories(false, clazz);
+    }
+
+    @Override
+    public <T extends ApiServiceFactory<?>> List<T> getAllFactories(boolean includeNotDeployed, Class<?> clazz) {
+        List<ApiServiceFactory<?>> allFactories = new ArrayList<>(
+            factories.values().stream().filter(f -> clazz.isAssignableFrom(f.getClass())).toList()
+        );
         if (includeNotDeployed) {
             allFactories.addAll(notDeployedPluginFactories.values());
         }
-        return allFactories;
+        return (List<T>) allFactories;
     }
 }

@@ -1,0 +1,50 @@
+= Http health-check service
+
+== Description
+
+The *Http dynamic-properties Service* can be used to dynamically retrieve properties from a backend.
+
+The *Http dynamic-properties Service* regularly calls the backend and transform the response into properties using JOLT transformation.
+
+NOTE:: Only 200 - OK response from backend are processed. The response format should be a valid JSON.
+
+
+
+== Dynamic properties configuration
+
+|===
+|Attributes | Default | Mandatory | Description
+
+|schedule | N/A     | Yes | A cron expression to schedule the dynamic properties.
+|url | N/A     | Yes | The url to run the service on. Can be a path or a complete url. By default, the path is appended to the endpoint's path.
+|method | GET     | No | HTTP method to invoke the endpoint.
+|body | true    | No | The body of the request
+|transformation | N/A    | No | A valid JOLT transformation
+|headers | N/A  | No | HTTP headers to add to the request. This field expect an array of name/value pairs to use as HTTP Headers. (The value support Expression Language.)
+|systemProxy | false    | No | A valid JOLT transformation
+|===
+
+=== Examples
+
+Bellow you will find a full `http-dynamic-properties` service configuration example:
+
+```json
+{
+  "configuration": {
+  "enabled": true,
+  "type": "http-dynamic-properties",
+    "schedule": "*/30 * * * * *",
+    "headers": [
+      {
+        "name": "X-Custom-Header",
+        "value": "Custom-header-value"
+      }
+    ],
+    "method": "GET",
+    "systemProxy": false,
+    "transformation": "[\n  {\n    \"operation\": \"shift\",\n    \"spec\": {\n      \"headers\": {\n        \"*\": {\n          \"$\": \"[#2].key\",\n          \"@\": \"[#2].value\"\n        }\n      }\n    }\n  }\n]",
+    "url": "https://api.gravitee.io/echo"
+  }
+}
+```
+

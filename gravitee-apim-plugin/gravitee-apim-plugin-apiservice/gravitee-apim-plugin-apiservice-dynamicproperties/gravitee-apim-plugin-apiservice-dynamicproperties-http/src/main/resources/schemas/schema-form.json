@@ -1,0 +1,87 @@
+{
+  "type": "object",
+  "id": "urn:jsonschema:io:gravitee:apim:plugin:apiservice:dynamicproperties:http:DynamicPropertiesServiceConfiguration",
+  "properties": {
+    "schedule": {
+      "title": "Schedule",
+      "description": "A cron expression to schedule the health check.",
+      "default": "*/30 * * * * *",
+      "type": "string"
+    },
+    "method" : {
+      "title": "HTTP Method",
+      "description": "HTTP method to invoke the endpoint.",
+      "type" : "string",
+      "default": "GET",
+      "enum" : [ "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "CONNECT", "OPTIONS", "TRACE" ]
+    },
+    "url": {
+      "title": "URL",
+      "description": "The target to fetch the dynamic properties.",
+      "type": "string"
+    },
+    "headers": {
+      "type": "array",
+      "title": "Request Headers",
+      "description": "HTTP headers to add to the request fetching properties",
+      "items": {
+        "type": "object",
+        "title": "Header",
+        "id": "urn:jsonschema:io:gravitee:apiservice:dynamicproperties:configuration:HttpHeader",
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "value": {
+            "type": "string",
+            "title": "Value"
+          }
+        },
+        "required": ["name", "value"]
+      }
+    },
+    "body": {
+      "title": "Request body",
+      "type": "string",
+      "format": "gio-code-editor",
+      "x-schema-form": {
+        "type": "codemirror",
+        "codemirrorOptions": {
+          "placeholder": "Put the body content here",
+          "lineWrapping": true,
+          "lineNumbers": true,
+          "allowDropFileTypes": true,
+          "autoCloseTags": true,
+          "mode": "json"
+        }
+      }
+    },
+    "transformation": {
+      "title": "Transformation (JOLT Specification)",
+      "type": "string",
+      "format": "gio-code-editor",
+      "default": "[\n    {\n        \"operation\":\"default\",\n        \"spec\":{}\n    }\n]",
+      "x-schema-form": {
+        "type": "codemirror",
+        "codemirrorOptions": {
+          "placeholder": "Put the JOLT transformation content here",
+          "lineWrapping": true,
+          "lineNumbers": true,
+          "allowDropFileTypes": true,
+          "autoCloseTags": true,
+          "mode": "json"
+        }
+      }
+    },
+    "systemProxy": {
+      "title": "Use system proxy",
+      "description": "Use the system proxy configured in APIM installation.",
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "url", "method","schedule"
+  ]
+}

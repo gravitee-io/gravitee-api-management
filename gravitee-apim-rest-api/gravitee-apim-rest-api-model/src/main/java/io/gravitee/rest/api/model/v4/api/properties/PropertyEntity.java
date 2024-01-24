@@ -46,6 +46,11 @@ public class PropertyEntity extends Property {
         this.encryptable = encryptable;
     }
 
+    public PropertyEntity(String key, String value, boolean encryptable, boolean encrypted, boolean dynamic) {
+        super(key, value, encrypted, dynamic);
+        this.encryptable = encryptable;
+    }
+
     public PropertyEntity(Property property) {
         super(property.getKey(), property.getValue(), property.isEncrypted(), property.isDynamic());
     }

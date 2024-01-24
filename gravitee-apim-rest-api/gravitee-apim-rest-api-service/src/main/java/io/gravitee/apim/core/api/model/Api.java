@@ -15,9 +15,11 @@
  */
 package io.gravitee.apim.core.api.model;
 
+import io.gravitee.apim.core.datetime.TimeProvider;
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.property.Property;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Set;
@@ -165,6 +167,25 @@ public class Api {
         this.apiDefinition = apiDefinition;
         this.definitionVersion = apiDefinition.getDefinitionVersion();
         return this;
+    }
+
+    /**
+     * Updates the list of properties to include dynamic properties
+     * @param dynamicProperties the list of dynamic properties to update the list of property
+     * @return true if an update has been done, meaning the Api need to be persisted
+     */
+    public boolean updateDynamicProperties(List<Property> dynamicProperties) {
+        if (definitionVersion != DefinitionVersion.V4) {
+            return false;
+        }
+        final ApiProperties apiProperties = new ApiProperties(this.apiDefinitionV4.getProperties());
+        final ApiProperties.DynamicPropertiesResult properties = apiProperties.updateDynamicProperties(dynamicProperties);
+
+        this.getApiDefinitionV4().setProperties(properties.orderedProperties());
+
+        setUpdatedAt(TimeProvider.now());
+
+        return properties.needToUpdate();
     }
 
     public static class ApiBuilder {
