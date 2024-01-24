@@ -21,19 +21,14 @@ import { MatDialog } from '@angular/material/dialog';
 import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import {
-  PlanMode,
-  PlanSecurityType,
-  SubscriptionConsumerConfiguration,
-  SubscriptionStatus,
-} from '../../../../../entities/management-api-v2';
-import { ApiSubscriptionV2Service } from '../../../../../services-ngx/api-subscription-v2.service';
+import { PlanMode, PlanSecurityType, SubscriptionConsumerConfiguration, SubscriptionStatus } from '../../../../entities/management-api-v2';
+import { ApiSubscriptionV2Service } from '../../../../services-ngx/api-subscription-v2.service';
 import {
   ApiPortalSubscriptionTransferDialogComponent,
   ApiPortalSubscriptionTransferDialogData,
   ApiPortalSubscriptionTransferDialogResult,
 } from '../components/dialogs/transfer/api-portal-subscription-transfer-dialog.component';
-import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import {
   ApiPortalSubscriptionChangeEndDateDialogComponent,
   ApiPortalSubscriptionChangeEndDateDialogData,
@@ -44,7 +39,7 @@ import {
   ApiPortalSubscriptionAcceptDialogData,
   ApiPortalSubscriptionAcceptDialogResult,
 } from '../components/dialogs/validate/api-portal-subscription-validate-dialog.component';
-import { Constants } from '../../../../../entities/Constants';
+import { Constants } from '../../../../entities/Constants';
 import {
   ApiPortalSubscriptionRejectDialogComponent,
   ApiPortalSubscriptionRejectDialogResult,
@@ -54,8 +49,8 @@ import {
   ApiPortalSubscriptionRenewDialogData,
   ApiPortalSubscriptionRenewDialogResult,
 } from '../components/dialogs/renew/api-portal-subscription-renew-dialog.component';
-import { GioTableWrapperFilters } from '../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
-import { SubscriptionApiKeysResponse } from '../../../../../entities/management-api-v2/api-key';
+import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
+import { SubscriptionApiKeysResponse } from '../../../../entities/management-api-v2/api-key';
 import {
   ApiPortalSubscriptionExpireApiKeyDialogData,
   ApiPortalSubscriptionExpireApiKeyDialogResult,
@@ -91,11 +86,11 @@ interface ApiKeyVM {
 }
 
 @Component({
-  selector: 'api-general-subscription-detail',
-  templateUrl: './api-general-subscription-edit.component.html',
-  styleUrls: ['./api-general-subscription-edit.component.scss'],
+  selector: 'api-subscription-detail',
+  templateUrl: './api-subscription-edit.component.html',
+  styleUrls: ['./api-subscription-edit.component.scss'],
 })
-export class ApiGeneralSubscriptionEditComponent implements OnInit {
+export class ApiSubscriptionEditComponent implements OnInit {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   subscription: SubscriptionDetailVM;
   apiKeys: ApiKeyVM[];
