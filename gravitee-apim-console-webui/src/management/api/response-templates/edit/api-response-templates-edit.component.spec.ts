@@ -28,7 +28,7 @@ import { ApiResponseTemplatesEditComponent } from './api-response-templates-edit
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { ApiResponseTemplatesModule } from '../api-response-templates.module';
-import { ApiV2, fakeApiV2 } from '../../../../entities/management-api-v2';
+import { ApiV2, ApiV4, fakeApiV2, fakeApiV4 } from '../../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiProxyResponseTemplatesComponent', () => {

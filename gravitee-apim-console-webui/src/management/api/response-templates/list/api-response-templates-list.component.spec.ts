@@ -29,8 +29,8 @@ import { ApiResponseTemplatesListComponent } from './api-response-templates-list
 
 import { ApiResponseTemplatesModule } from '../api-response-templates.module';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
-import { ApiV2, ApiV4, fakeApiV2, fakeApiV4 } from '../../../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { ApiV2, ApiV4, fakeApiV2, fakeApiV4 } from '../../../../entities/management-api-v2';
 
 describe('ApiProxyResponseTemplatesListComponent', () => {
   const API_ID = 'apiId';

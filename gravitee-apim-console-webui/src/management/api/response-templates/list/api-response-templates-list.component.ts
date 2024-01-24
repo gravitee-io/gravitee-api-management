@@ -23,8 +23,8 @@ import { ActivatedRoute } from '@angular/router';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { ResponseTemplate, toResponseTemplates } from '../response-templates.adapter';
-import {onlyApiV2V4Filter} from '../../../../../util/apiFilter.operator';
-import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
+import {ApiV2Service} from "../../../../services-ngx/api-v2.service";
+import {onlyApiV2V4Filter} from "../../../../util/apiFilter.operator";
 
 @Component({
   selector: 'api-proxy-response-templates-list',

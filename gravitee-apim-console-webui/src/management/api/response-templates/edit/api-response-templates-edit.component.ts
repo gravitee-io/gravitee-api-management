@@ -25,9 +25,9 @@ import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { HttpUtil, StatusCode } from '../../../../shared/utils';
 import { fromResponseTemplates, ResponseTemplate, toResponseTemplates } from '../response-templates.adapter';
-import { gatewayErrorKeys } from '../../../../../entities/gateway-error-keys/GatewayErrorKeys';
-import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
-import { onlyApiV2V4Filter } from '../../../../../util/apiFilter.operator';
+import {ApiV2Service} from "../../../../services-ngx/api-v2.service";
+import {onlyApiV2V4Filter} from "../../../../util/apiFilter.operator";
+import {gatewayErrorKeys} from "../../../../entities/gateway-error-keys/GatewayErrorKeys";
 
 @Component({
   selector: 'api-proxy-response-templates-edit',
