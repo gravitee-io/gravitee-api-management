@@ -23,10 +23,12 @@
     <gio-radio-button-content icon="gio:language">
       <gio-radio-button-title>Public</gio-radio-button-title>
       <gio-radio-button-subtitle *ngIf="documentationType === 'page'"
-        >Anonymous users browsing the API in the Developer Portal can view the page</gio-radio-button-subtitle
+        >All users browsing the API in the Developer Portal can view the page, including anonymous users if permitted in Settings >
+        Authentication</gio-radio-button-subtitle
       >
       <gio-radio-button-subtitle *ngIf="documentationType === 'folder'"
-        >Anonymous users browsing the API in the Developer Portal can view the contents of the folder</gio-radio-button-subtitle
+        >All users browsing the API in the Developer Portal can view the content of the folder, including anonymous users if permitted in
+        Settings > Authentication</gio-radio-button-subtitle
       >
     </gio-radio-button-content>
   </mat-radio-button>
