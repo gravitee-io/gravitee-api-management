@@ -189,6 +189,7 @@ export class ApiV4MenuService implements ApiMenuService {
       });
     }
 
+    tabs.push({ displayName: 'Broadcasts', routerLink: 'DISABLED' });
     return {
       displayName: 'Consumers',
       icon: 'user',
