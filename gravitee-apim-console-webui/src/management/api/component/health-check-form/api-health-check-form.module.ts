@@ -32,11 +32,11 @@ import {
 } from '@gravitee/ui-particles-angular';
 import { MatButtonModule } from '@angular/material/button';
 
-import { ApiProxyHealthCheckFormComponent } from './api-proxy-health-check-form.component';
+import { ApiHealthCheckFormComponent } from './api-health-check-form.component';
 
 @NgModule({
-  declarations: [ApiProxyHealthCheckFormComponent],
-  exports: [ApiProxyHealthCheckFormComponent],
+  declarations: [ApiHealthCheckFormComponent],
+  exports: [ApiHealthCheckFormComponent],
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -56,4 +56,4 @@ import { ApiProxyHealthCheckFormComponent } from './api-proxy-health-check-form.
     GioIconsModule,
   ],
 })
-export class ApiProxyHealthCheckFormModule {}
+export class ApiHealthCheckFormModule {}

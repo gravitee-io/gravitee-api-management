@@ -32,7 +32,7 @@ import { GioPermissionService } from '../../../../../../shared/components/gio-pe
 import { ApiV2Service } from '../../../../../../services-ngx/api-v2.service';
 import { ApiV1, ApiV2, EndpointV2, HealthCheckService } from '../../../../../../entities/management-api-v2';
 import { onlyApiV1V2Filter, onlyApiV2Filter } from '../../../../../../util/apiFilter.operator';
-import { ApiProxyHealthCheckFormComponent } from '../../../../proxy/components/health-check-form/api-proxy-health-check-form.component';
+import { ApiHealthCheckFormComponent } from '../../../../component/health-check-form/api-health-check-form.component';
 
 @Component({
   selector: 'api-proxy-group-endpoint-edit',
@@ -115,7 +115,7 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
             endpointIndex = api.proxy.groups[groupIndex].endpoints.length;
           }
 
-          const healthCheck = ApiProxyHealthCheckFormComponent.HealthCheckFromFormGroup(this.healthCheckForm, true);
+          const healthCheck = ApiHealthCheckFormComponent.HealthCheckFromFormGroup(this.healthCheckForm, true);
 
           const updatedEndpoint = toProxyGroupEndpoint(
             api.proxy.groups[groupIndex]?.endpoints[endpointIndex],
@@ -177,7 +177,7 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
       backup: [{ value: this.endpoint?.backup ?? false, disabled: this.isReadOnly }],
     });
 
-    this.healthCheckForm = ApiProxyHealthCheckFormComponent.NewHealthCheckFormGroup(
+    this.healthCheckForm = ApiHealthCheckFormComponent.NewHealthCheckFormGroup(
       this.endpoint?.healthCheck ?? { inherit: true },
       this.isReadOnly,
     );

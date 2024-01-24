@@ -19,14 +19,14 @@ import { combineLatest, Observable, Subject } from 'rxjs';
 import { map, shareReplay, startWith, takeUntil } from 'rxjs/operators';
 import { omit } from 'lodash';
 
-import { EndpointHealthCheckService } from '../../../../../entities/management-api-v2';
+import { EndpointHealthCheckService } from '../../../../entities/management-api-v2';
 
 @Component({
-  selector: 'api-proxy-health-check-form',
-  templateUrl: './api-proxy-health-check-form.component.html',
-  styleUrls: ['./api-proxy-health-check-form.component.scss'],
+  selector: 'api-health-check-form',
+  templateUrl: './api-health-check-form.component.html',
+  styleUrls: ['./api-health-check-form.component.scss'],
 })
-export class ApiProxyHealthCheckFormComponent implements OnChanges, OnDestroy {
+export class ApiHealthCheckFormComponent implements OnChanges, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   public static NewHealthCheckFormGroup = (healthCheck?: EndpointHealthCheckService, isReadOnly = true): UntypedFormGroup => {
@@ -210,7 +210,7 @@ export class ApiProxyHealthCheckFormComponent implements OnChanges, OnDestroy {
             this.healthCheckFormInitialValue = omit(this.healthCheckForm.getRawValue(), ['inherit', 'enabled']);
 
             if (this.inheritHealthCheck.enabled) {
-              const inheritHealthCheckFormValue = ApiProxyHealthCheckFormComponent.NewHealthCheckFormGroup(
+              const inheritHealthCheckFormValue = ApiHealthCheckFormComponent.NewHealthCheckFormGroup(
                 this.inheritHealthCheck,
               ).getRawValue();
 

@@ -30,7 +30,7 @@
 </gio-banner-info>
 
 <form *ngIf="healthCheckForm" autocomplete="off" gioFormFocusInvalid [formGroup]="healthCheckForm">
-  <api-proxy-health-check-form [healthCheckForm]="healthCheckForm"></api-proxy-health-check-form>
+  <api-health-check-form [healthCheckForm]="healthCheckForm"></api-health-check-form>
 
   <gio-save-bar [form]="healthCheckForm" (resetClicked)="ngOnInit()" (submitted)="onSubmit()"></gio-save-bar>
 </form>

@@ -24,7 +24,7 @@ import { RouterModule } from '@angular/router';
 
 import { ApiHealthCheckComponent } from './api-health-check.component';
 
-import { ApiProxyHealthCheckFormModule } from '../proxy/components/health-check-form/api-proxy-health-check-form.module';
+import { ApiHealthCheckFormModule } from '../component/health-check-form/api-health-check-form.module';
 
 @NgModule({
   declarations: [ApiHealthCheckComponent],
@@ -38,7 +38,7 @@ import { ApiProxyHealthCheckFormModule } from '../proxy/components/health-check-
     MatButtonModule,
 
     GioSaveBarModule,
-    ApiProxyHealthCheckFormModule,
+    ApiHealthCheckFormModule,
     GioIconsModule,
     GioBannerModule,
     GioFormFocusInvalidModule,

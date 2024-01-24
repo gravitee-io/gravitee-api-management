@@ -21,7 +21,7 @@ import { ActivatedRoute } from '@angular/router';
 
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
-import { ApiProxyHealthCheckFormComponent } from '../proxy/components/health-check-form/api-proxy-health-check-form.component';
+import { ApiHealthCheckFormComponent } from '../component/health-check-form/api-health-check-form.component';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { onlyApiV1V2Filter, onlyApiV2Filter } from '../../../util/apiFilter.operator';
 import { Proxy } from '../../../entities/management-api-v2';
@@ -54,7 +54,7 @@ export class ApiHealthCheckComponent implements OnInit, OnDestroy {
           const isReadOnly =
             !this.permissionService.hasAnyMatching(['api-health-c', 'api-health-u']) || api.definitionContext?.origin === 'KUBERNETES';
 
-          this.healthCheckForm = ApiProxyHealthCheckFormComponent.NewHealthCheckFormGroup(api.services.healthCheck, isReadOnly);
+          this.healthCheckForm = ApiHealthCheckFormComponent.NewHealthCheckFormGroup(api.services.healthCheck, isReadOnly);
         }),
         takeUntil(this.unsubscribe$),
       )
@@ -72,7 +72,7 @@ export class ApiHealthCheckComponent implements OnInit, OnDestroy {
       .pipe(
         onlyApiV2Filter(this.snackBarService),
         switchMap((api) => {
-          const apiHealthCheck = ApiProxyHealthCheckFormComponent.HealthCheckFromFormGroup(this.healthCheckForm, false);
+          const apiHealthCheck = ApiHealthCheckFormComponent.HealthCheckFromFormGroup(this.healthCheckForm, false);
           this.updateEndpointsHealthCheckConfig(api.proxy?.groups);
 
           return this.apiService.update(api.id, {
