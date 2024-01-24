@@ -23,7 +23,7 @@ import { ActivatedRoute } from '@angular/router';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { ResponseTemplate, toResponseTemplates } from '../response-templates.adapter';
-import { onlyApiV1V2Filter, onlyApiV2Filter } from '../../../../../util/apiFilter.operator';
+import {onlyApiV2V4Filter} from '../../../../../util/apiFilter.operator';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 
 @Component({
@@ -51,7 +51,6 @@ export class ApiProxyResponseTemplatesListComponent implements OnInit, OnDestroy
     this.apiService
       .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
-        onlyApiV1V2Filter(this.snackBarService),
         tap((api) => {
           this.apiId = api.id;
           this.responseTemplateTableData = toResponseTemplates(api.responseTemplates);
@@ -85,7 +84,7 @@ export class ApiProxyResponseTemplatesListComponent implements OnInit, OnDestroy
       .pipe(
         filter((confirm) => confirm === true),
         switchMap(() => this.apiService.get(this.activatedRoute.snapshot.params.apiId)),
-        onlyApiV2Filter(this.snackBarService),
+        onlyApiV2V4Filter(this.snackBarService),
         switchMap((api) => {
           if (api.responseTemplates[element.key] && api.responseTemplates[element.key][element.contentType]) {
             delete api.responseTemplates[element.key][element.contentType];

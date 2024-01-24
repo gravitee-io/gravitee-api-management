@@ -179,6 +179,10 @@ export class ApiV4MenuService implements ApiMenuService {
             displayName: 'General',
             routerLink: 'v4/entrypoints',
           },
+          {
+            displayName: 'Response Templates',
+            routerLink: hasTcpListeners ? 'DISABLED' : 'response-templates',
+          }
         ],
       };
       if (!hasTcpListeners) {

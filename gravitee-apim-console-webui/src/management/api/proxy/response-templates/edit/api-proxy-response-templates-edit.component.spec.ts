@@ -28,7 +28,7 @@ import { ApiProxyResponseTemplatesEditComponent } from './api-proxy-response-tem
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { ApiProxyResponseTemplatesModule } from '../api-proxy-response-templates.module';
-import { ApiV2, fakeApiV2 } from '../../../../../entities/management-api-v2';
+import {ApiV2, ApiV4, fakeApiV2, fakeApiV4} from '../../../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiProxyResponseTemplatesComponent', () => {
@@ -65,6 +65,7 @@ describe('ApiProxyResponseTemplatesComponent', () => {
       initTestingComponent();
     });
 
+    describe('API V2', () => {
     it('should add new response template', async () => {
       const api = fakeApiV2({
         id: API_ID,
@@ -166,6 +167,112 @@ describe('ApiProxyResponseTemplatesComponent', () => {
         },
       });
     });
+    })
+
+    describe('API V4', () => {
+      it('should add new response template', async () => {
+        const api = fakeApiV4({
+          id: API_ID,
+          responseTemplates: {
+            customKey: {
+              '*/*': {
+                statusCode: 400,
+                body: '',
+              },
+            },
+            DEFAULT: {
+              '*/*': {
+                statusCode: 400,
+                body: '',
+              },
+              test: {
+                statusCode: 400,
+                body: '',
+              },
+            },
+          },
+        });
+        expectApiGetRequest(api);
+
+        const saveBar = await loader.getHarness(GioSaveBarHarness);
+        expect(await saveBar.isVisible()).toBe(true);
+
+        const keyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="key"]' }));
+        expect(await keyInput.isDisabled()).toEqual(false);
+        await keyInput.setValue('newTemplateKey');
+
+        const acceptHeaderInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="acceptHeader"]' }));
+        await acceptHeaderInput.setValue('application/json');
+
+        const statusCodeInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="statusCode"]' }));
+        await statusCodeInput.setValue('200');
+
+        const headersInput = await loader.getHarness(GioFormHeadersHarness.with({ selector: '[formControlName="headers"]' }));
+        headersInput.addHeader({ key: 'header1', value: 'value1' });
+
+        const bodyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="body"]' }));
+        await bodyInput.setValue('newTemplateBody');
+
+        await saveBar.clickSubmit();
+
+        // Expect fetch api and update
+        expectApiGetRequest(api);
+        const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
+        expect(req.request.body.responseTemplates).toEqual({
+          ...api.responseTemplates,
+          newTemplateKey: { 'application/json': { statusCode: 200, headers: undefined, body: 'newTemplateBody' } },
+        });
+      });
+
+      it('should add new response template to existing template key', async () => {
+        const api = fakeApiV4({
+          id: API_ID,
+          responseTemplates: {
+            customKey: {
+              '*/*': {
+                statusCode: 400,
+                body: '',
+              },
+            },
+            DEFAULT: {
+              '*/*': {
+                statusCode: 400,
+                body: '',
+              },
+              test: {
+                statusCode: 400,
+                body: '',
+              },
+            },
+          },
+        });
+        expectApiGetRequest(api);
+
+        const saveBar = await loader.getHarness(GioSaveBarHarness);
+        expect(await saveBar.isVisible()).toBe(true);
+
+        const keyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="key"]' }));
+        expect(await keyInput.isDisabled()).toEqual(false);
+        await keyInput.setValue('DEFAULT');
+
+        const acceptHeaderInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="acceptHeader"]' }));
+        await acceptHeaderInput.setValue('application/json');
+
+        await saveBar.clickSubmit();
+
+        // Expect fetch api and update
+        expectApiGetRequest(api);
+        const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
+        expect(req.request.body.responseTemplates).toEqual({
+          ...api.responseTemplates,
+          ['DEFAULT']: {
+            ...api.responseTemplates['DEFAULT'],
+            'application/json': { statusCode: 400, body: '' },
+          },
+        });
+      });
+    })
+
   });
 
   describe('edition mode', () => {
@@ -173,201 +280,399 @@ describe('ApiProxyResponseTemplatesComponent', () => {
       initTestingComponent('DEFAULT-*/*');
     });
 
-    it('should edit response template', async () => {
-      const api = fakeApiV2({
-        id: API_ID,
-        responseTemplates: {
-          customKey: {
-            '*/*': {
-              statusCode: 400,
-              body: '',
+    describe('API V2', () => {
+      it('should edit response template', async () => {
+        const api = fakeApiV2({
+          id: API_ID,
+          responseTemplates: {
+            customKey: {
+              '*/*': {
+                statusCode: 400,
+                body: '',
+              },
+            },
+            DEFAULT: {
+              '*/*': {
+                statusCode: 400,
+                body: '',
+              },
+              test: {
+                statusCode: 400,
+                body: '',
+              },
             },
           },
-          DEFAULT: {
+        });
+        expectApiGetRequest(api);
+
+        const saveBar = await loader.getHarness(GioSaveBarHarness);
+        expect(await saveBar.isVisible()).toBe(false);
+
+        const keyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="key"]' }));
+        expect(await keyInput.isDisabled()).toEqual(false);
+        expect(await keyInput.getValue()).toEqual('DEFAULT');
+
+        const acceptHeaderInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="acceptHeader"]' }));
+        expect(await acceptHeaderInput.getValue()).toEqual('*/*');
+
+        const statusCodeInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="statusCode"]' }));
+        expect(await statusCodeInput.getValue()).toEqual('400');
+
+        const headersInput = await loader.getHarness(GioFormHeadersHarness.with({ selector: '[formControlName="headers"]' }));
+        await headersInput.addHeader({ key: 'header1', value: 'value1' });
+
+        const bodyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="body"]' }));
+        await bodyInput.setValue('newTemplateBody');
+
+        await saveBar.clickSubmit();
+
+        // Expect fetch api and update
+        expectApiGetRequest(api);
+        const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
+        expect(req.request.body.responseTemplates).toEqual({
+          ...api.responseTemplates,
+          ['DEFAULT']: {
+            ...api.responseTemplates['DEFAULT'],
             '*/*': {
               statusCode: 400,
-              body: '',
-            },
-            test: {
-              statusCode: 400,
-              body: '',
+              headers: {
+                header1: 'value1',
+              },
+              body: 'newTemplateBody',
             },
           },
-        },
+        });
       });
-      expectApiGetRequest(api);
 
-      const saveBar = await loader.getHarness(GioSaveBarHarness);
-      expect(await saveBar.isVisible()).toBe(false);
-
-      const keyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="key"]' }));
-      expect(await keyInput.isDisabled()).toEqual(false);
-      expect(await keyInput.getValue()).toEqual('DEFAULT');
-
-      const acceptHeaderInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="acceptHeader"]' }));
-      expect(await acceptHeaderInput.getValue()).toEqual('*/*');
-
-      const statusCodeInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="statusCode"]' }));
-      expect(await statusCodeInput.getValue()).toEqual('400');
-
-      const headersInput = await loader.getHarness(GioFormHeadersHarness.with({ selector: '[formControlName="headers"]' }));
-      await headersInput.addHeader({ key: 'header1', value: 'value1' });
-
-      const bodyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="body"]' }));
-      await bodyInput.setValue('newTemplateBody');
-
-      await saveBar.clickSubmit();
-
-      // Expect fetch api and update
-      expectApiGetRequest(api);
-      const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
-      expect(req.request.body.responseTemplates).toEqual({
-        ...api.responseTemplates,
-        ['DEFAULT']: {
-          ...api.responseTemplates['DEFAULT'],
-          '*/*': {
-            statusCode: 400,
-            headers: {
-              header1: 'value1',
+      it('should edit response template key and accept header', async () => {
+        const api = fakeApiV2({
+          id: API_ID,
+          responseTemplates: {
+            customKey: {
+              '*/*': {
+                statusCode: 400,
+                body: '',
+              },
             },
-            body: 'newTemplateBody',
+            DEFAULT: {
+              '*/*': {
+                statusCode: 400,
+                body: '',
+              },
+              test: {
+                statusCode: 400,
+                body: '',
+              },
+            },
           },
-        },
+        });
+        expectApiGetRequest(api);
+
+        const saveBar = await loader.getHarness(GioSaveBarHarness);
+        expect(await saveBar.isVisible()).toBe(false);
+
+        const keyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="key"]' }));
+        expect(await keyInput.isDisabled()).toEqual(false);
+        expect(await keyInput.getValue()).toEqual('DEFAULT');
+        await keyInput.setValue('NewKey');
+
+        const acceptHeaderInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="acceptHeader"]' }));
+        await acceptHeaderInput.setValue('new/accept');
+
+        await saveBar.clickSubmit();
+
+        // Expect fetch api and update
+        expectApiGetRequest(api);
+
+        const expectedResponseTemplates = cloneDeep(api.responseTemplates);
+        delete expectedResponseTemplates['DEFAULT']['*/*'];
+        expectedResponseTemplates.NewKey = {
+          'new/accept': { statusCode: 400, body: '' },
+        };
+
+        const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
+        expect(req.request.body.responseTemplates).toEqual(expectedResponseTemplates);
+      });
+
+      it('should throw if new template key and accept header already exist', async () => {
+        const api = fakeApiV2({
+          id: API_ID,
+          responseTemplates: {
+            customKey: {
+              '*/*': {
+                statusCode: 400,
+                body: '',
+              },
+            },
+            DEFAULT: {
+              '*/*': {
+                statusCode: 400,
+                body: '',
+              },
+              test: {
+                statusCode: 400,
+                body: '',
+              },
+            },
+          },
+        });
+        expectApiGetRequest(api);
+
+        const saveBar = await loader.getHarness(GioSaveBarHarness);
+        expect(await saveBar.isVisible()).toBe(false);
+
+        const keyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="key"]' }));
+        const acceptHeaderInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="acceptHeader"]' }));
+
+        // Fake api already have a template with key `DEFAULT` and accept header `test`
+        await acceptHeaderInput.setValue('test');
+        expect(await saveBar.isSubmitButtonInvalid()).toBe(true);
+
+        // Ok no template with key `customKey` and accept header `test`
+        await keyInput.setValue('customKey');
+        expect(await saveBar.isSubmitButtonInvalid()).toBe(false);
+
+        // Fake api already have a template with key `customKey` and accept header `*/*`
+        await acceptHeaderInput.setValue('*/*');
+        expect(await saveBar.isSubmitButtonInvalid()).toBe(true);
+      });
+
+      it('should disable field when origin is kubernetes', async () => {
+        const api = fakeApiV2({
+          id: API_ID,
+          definitionContext: {
+            origin: 'KUBERNETES',
+          },
+          responseTemplates: {
+            DEFAULT: {
+              '*/*': {
+                body: 'json',
+                statusCode: 400,
+              },
+            },
+          },
+        });
+        expectApiGetRequest(api);
+
+        const keyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="key"]' }));
+        expect(await keyInput.isDisabled()).toEqual(true);
+        expect(await keyInput.getValue()).toEqual('DEFAULT');
+
+        const acceptHeaderInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="acceptHeader"]' }));
+        expect(await acceptHeaderInput.isDisabled()).toEqual(true);
+        expect(await acceptHeaderInput.getValue()).toEqual('*/*');
+
+        const statusCodeInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="statusCode"]' }));
+        expect(await statusCodeInput.isDisabled()).toEqual(true);
+        expect(await statusCodeInput.getValue()).toEqual('400');
+
+        const headersInput = await loader.getHarness(GioFormHeadersHarness.with({ selector: '[formControlName="headers"]' }));
+        expect(await headersInput.isDisabled()).toEqual(true);
+
+        const bodyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="body"]' }));
+        expect(await bodyInput.isDisabled()).toEqual(true);
+        expect(await bodyInput.getValue()).toEqual('json');
       });
     });
 
-    it('should edit response template key and accept header', async () => {
-      const api = fakeApiV2({
-        id: API_ID,
-        responseTemplates: {
-          customKey: {
-            '*/*': {
-              statusCode: 400,
-              body: '',
+    describe('API V4', () => {
+      it('should edit response template', async () => {
+        const api = fakeApiV4({
+          id: API_ID,
+          responseTemplates: {
+            customKey: {
+              '*/*': {
+                statusCode: 400,
+                body: '',
+              },
+            },
+            DEFAULT: {
+              '*/*': {
+                statusCode: 400,
+                body: '',
+              },
+              test: {
+                statusCode: 400,
+                body: '',
+              },
             },
           },
-          DEFAULT: {
+        });
+        expectApiGetRequest(api);
+
+        const saveBar = await loader.getHarness(GioSaveBarHarness);
+        expect(await saveBar.isVisible()).toBe(false);
+
+        const keyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="key"]' }));
+        expect(await keyInput.isDisabled()).toEqual(false);
+        expect(await keyInput.getValue()).toEqual('DEFAULT');
+
+        const acceptHeaderInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="acceptHeader"]' }));
+        expect(await acceptHeaderInput.getValue()).toEqual('*/*');
+
+        const statusCodeInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="statusCode"]' }));
+        expect(await statusCodeInput.getValue()).toEqual('400');
+
+        const headersInput = await loader.getHarness(GioFormHeadersHarness.with({ selector: '[formControlName="headers"]' }));
+        await headersInput.addHeader({ key: 'header1', value: 'value1' });
+
+        const bodyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="body"]' }));
+        await bodyInput.setValue('newTemplateBody');
+
+        await saveBar.clickSubmit();
+
+        // Expect fetch api and update
+        expectApiGetRequest(api);
+        const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
+        expect(req.request.body.responseTemplates).toEqual({
+          ...api.responseTemplates,
+          ['DEFAULT']: {
+            ...api.responseTemplates['DEFAULT'],
             '*/*': {
               statusCode: 400,
-              body: '',
-            },
-            test: {
-              statusCode: 400,
-              body: '',
+              headers: {
+                header1: 'value1',
+              },
+              body: 'newTemplateBody',
             },
           },
-        },
+        });
       });
-      expectApiGetRequest(api);
 
-      const saveBar = await loader.getHarness(GioSaveBarHarness);
-      expect(await saveBar.isVisible()).toBe(false);
+      it('should edit response template key and accept header', async () => {
+        const api = fakeApiV4({
+          id: API_ID,
+          responseTemplates: {
+            customKey: {
+              '*/*': {
+                statusCode: 400,
+                body: '',
+              },
+            },
+            DEFAULT: {
+              '*/*': {
+                statusCode: 400,
+                body: '',
+              },
+              test: {
+                statusCode: 400,
+                body: '',
+              },
+            },
+          },
+        });
+        expectApiGetRequest(api);
 
-      const keyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="key"]' }));
-      expect(await keyInput.isDisabled()).toEqual(false);
-      expect(await keyInput.getValue()).toEqual('DEFAULT');
-      await keyInput.setValue('NewKey');
+        const saveBar = await loader.getHarness(GioSaveBarHarness);
+        expect(await saveBar.isVisible()).toBe(false);
 
-      const acceptHeaderInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="acceptHeader"]' }));
-      await acceptHeaderInput.setValue('new/accept');
+        const keyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="key"]' }));
+        expect(await keyInput.isDisabled()).toEqual(false);
+        expect(await keyInput.getValue()).toEqual('DEFAULT');
+        await keyInput.setValue('NewKey');
 
-      await saveBar.clickSubmit();
+        const acceptHeaderInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="acceptHeader"]' }));
+        await acceptHeaderInput.setValue('new/accept');
 
-      // Expect fetch api and update
-      expectApiGetRequest(api);
+        await saveBar.clickSubmit();
 
-      const expectedResponseTemplates = cloneDeep(api.responseTemplates);
-      delete expectedResponseTemplates['DEFAULT']['*/*'];
-      expectedResponseTemplates.NewKey = {
-        'new/accept': { statusCode: 400, body: '' },
-      };
+        // Expect fetch api and update
+        expectApiGetRequest(api);
 
-      const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
-      expect(req.request.body.responseTemplates).toEqual(expectedResponseTemplates);
+        const expectedResponseTemplates = cloneDeep(api.responseTemplates);
+        delete expectedResponseTemplates['DEFAULT']['*/*'];
+        expectedResponseTemplates.NewKey = {
+          'new/accept': { statusCode: 400, body: '' },
+        };
+
+        const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
+        expect(req.request.body.responseTemplates).toEqual(expectedResponseTemplates);
+      });
+
+      it('should throw if new template key and accept header already exist', async () => {
+        const api = fakeApiV4({
+          id: API_ID,
+          responseTemplates: {
+            customKey: {
+              '*/*': {
+                statusCode: 400,
+                body: '',
+              },
+            },
+            DEFAULT: {
+              '*/*': {
+                statusCode: 400,
+                body: '',
+              },
+              test: {
+                statusCode: 400,
+                body: '',
+              },
+            },
+          },
+        });
+        expectApiGetRequest(api);
+
+        const saveBar = await loader.getHarness(GioSaveBarHarness);
+        expect(await saveBar.isVisible()).toBe(false);
+
+        const keyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="key"]' }));
+        const acceptHeaderInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="acceptHeader"]' }));
+
+        // Fake api already have a template with key `DEFAULT` and accept header `test`
+        await acceptHeaderInput.setValue('test');
+        expect(await saveBar.isSubmitButtonInvalid()).toBe(true);
+
+        // Ok no template with key `customKey` and accept header `test`
+        await keyInput.setValue('customKey');
+        expect(await saveBar.isSubmitButtonInvalid()).toBe(false);
+
+        // Fake api already have a template with key `customKey` and accept header `*/*`
+        await acceptHeaderInput.setValue('*/*');
+        expect(await saveBar.isSubmitButtonInvalid()).toBe(true);
+      });
+
+      it('should disable field when origin is kubernetes', async () => {
+        const api = fakeApiV4({
+          id: API_ID,
+          definitionContext: {
+            origin: 'KUBERNETES',
+          },
+          responseTemplates: {
+            DEFAULT: {
+              '*/*': {
+                body: 'json',
+                statusCode: 400,
+              },
+            },
+          },
+        });
+        expectApiGetRequest(api);
+
+        const keyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="key"]' }));
+        expect(await keyInput.isDisabled()).toEqual(true);
+        expect(await keyInput.getValue()).toEqual('DEFAULT');
+
+        const acceptHeaderInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="acceptHeader"]' }));
+        expect(await acceptHeaderInput.isDisabled()).toEqual(true);
+        expect(await acceptHeaderInput.getValue()).toEqual('*/*');
+
+        const statusCodeInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="statusCode"]' }));
+        expect(await statusCodeInput.isDisabled()).toEqual(true);
+        expect(await statusCodeInput.getValue()).toEqual('400');
+
+        const headersInput = await loader.getHarness(GioFormHeadersHarness.with({ selector: '[formControlName="headers"]' }));
+        expect(await headersInput.isDisabled()).toEqual(true);
+
+        const bodyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="body"]' }));
+        expect(await bodyInput.isDisabled()).toEqual(true);
+        expect(await bodyInput.getValue()).toEqual('json');
+      });
     });
 
-    it('should throw if new template key and accept header already exist', async () => {
-      const api = fakeApiV2({
-        id: API_ID,
-        responseTemplates: {
-          customKey: {
-            '*/*': {
-              statusCode: 400,
-              body: '',
-            },
-          },
-          DEFAULT: {
-            '*/*': {
-              statusCode: 400,
-              body: '',
-            },
-            test: {
-              statusCode: 400,
-              body: '',
-            },
-          },
-        },
-      });
-      expectApiGetRequest(api);
-
-      const saveBar = await loader.getHarness(GioSaveBarHarness);
-      expect(await saveBar.isVisible()).toBe(false);
-
-      const keyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="key"]' }));
-      const acceptHeaderInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="acceptHeader"]' }));
-
-      // Fake api already have a template with key `DEFAULT` and accept header `test`
-      await acceptHeaderInput.setValue('test');
-      expect(await saveBar.isSubmitButtonInvalid()).toBe(true);
-
-      // Ok no template with key `customKey` and accept header `test`
-      await keyInput.setValue('customKey');
-      expect(await saveBar.isSubmitButtonInvalid()).toBe(false);
-
-      // Fake api already have a template with key `customKey` and accept header `*/*`
-      await acceptHeaderInput.setValue('*/*');
-      expect(await saveBar.isSubmitButtonInvalid()).toBe(true);
-    });
-
-    it('should disable field when origin is kubernetes', async () => {
-      const api = fakeApiV2({
-        id: API_ID,
-        definitionContext: {
-          origin: 'KUBERNETES',
-        },
-        responseTemplates: {
-          DEFAULT: {
-            '*/*': {
-              body: 'json',
-              statusCode: 400,
-            },
-          },
-        },
-      });
-      expectApiGetRequest(api);
-
-      const keyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="key"]' }));
-      expect(await keyInput.isDisabled()).toEqual(true);
-      expect(await keyInput.getValue()).toEqual('DEFAULT');
-
-      const acceptHeaderInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="acceptHeader"]' }));
-      expect(await acceptHeaderInput.isDisabled()).toEqual(true);
-      expect(await acceptHeaderInput.getValue()).toEqual('*/*');
-
-      const statusCodeInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="statusCode"]' }));
-      expect(await statusCodeInput.isDisabled()).toEqual(true);
-      expect(await statusCodeInput.getValue()).toEqual('400');
-
-      const headersInput = await loader.getHarness(GioFormHeadersHarness.with({ selector: '[formControlName="headers"]' }));
-      expect(await headersInput.isDisabled()).toEqual(true);
-
-      const bodyInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName="body"]' }));
-      expect(await bodyInput.isDisabled()).toEqual(true);
-      expect(await bodyInput.getValue()).toEqual('json');
-    });
   });
 
-  function expectApiGetRequest(api: ApiV2) {
+  function expectApiGetRequest(api: ApiV2 | ApiV4) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
     fixture.detectChanges();
   }
