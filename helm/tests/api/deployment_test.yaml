@@ -217,3 +217,37 @@ tests:
       - equal:
           path: spec.template.spec.securityContext.fsGroup
           value: 1001
+
+  - it: Default SecurityContext
+    template: api/api-deployment.yaml
+    set:
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsUser
+          value: 1001
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsNonRoot
+          value: true
+
+  - it: Override SecurityContext
+    template: api/api-deployment.yaml
+    set:
+      api:
+        deployment:
+          securityContext:
+            runAsUser: 1002
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsUser
+          value: 1002
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsNonRoot
+          value: true

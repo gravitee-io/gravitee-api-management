@@ -14,6 +14,7 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 - Add support for Secret Manager's configuration
 - Add networkPolicy
 - fix helm backward compatibility during helm upgrade without `common` field
+- BREAKING CHANGE: deprecated api|gateway|ui|portal.securityContext has been removed
 
 ### 4.1.4
 

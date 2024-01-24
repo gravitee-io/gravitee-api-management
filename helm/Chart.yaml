@@ -26,3 +26,4 @@ annotations:
     - 'Added gateway.services.core.http.ssl.keystore.password'
     - 'fix helm backward compatibility during helm upgrade without `common` field'
     - 'Added default preStop command on ui and portal'
+    - 'BREAKING CHANGE: deprecated api|gateway|ui|portal.securityContext has been removed'
