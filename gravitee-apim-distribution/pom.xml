@@ -1069,6 +1069,19 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+            <groupId>io.gravitee.apim.plugin.apiservice.dynamicproperties</groupId>
+            <artifactId>gravitee-apim-plugin-apiservice-dynamicproperties-http</artifactId>
+            <version>${project.version}</version>
+            <type>zip</type>
+            <scope>runtime</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
 
         <!-- Tracers -->
         <dependency>

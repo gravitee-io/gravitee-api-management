@@ -16,7 +16,6 @@
 package io.gravitee.plugin.apiservice;
 
 import io.gravitee.gateway.reactive.api.apiservice.ApiServiceFactory;
-import io.gravitee.gateway.reactive.api.connector.endpoint.EndpointConnectorFactory;
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import java.util.List;
 
@@ -32,4 +31,8 @@ public interface ApiServicePluginManager extends ConfigurablePluginManager<ApiSe
     <T extends ApiServiceFactory<?>> List<T> getAllFactories();
 
     <T extends ApiServiceFactory<?>> List<T> getAllFactories(final boolean includeNotDeployed);
+
+    <T extends ApiServiceFactory<?>> List<T> getAllFactories(Class<? extends ApiServiceFactory> clazz);
+
+    <T extends ApiServiceFactory<?>> List<T> getAllFactories(boolean includeNotDeployed, Class<?> clazz);
 }

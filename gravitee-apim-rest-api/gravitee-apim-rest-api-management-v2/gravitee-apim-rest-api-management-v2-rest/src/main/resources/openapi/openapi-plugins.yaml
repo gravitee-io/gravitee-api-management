@@ -291,6 +291,25 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+    # Plugins - ApiServices
+    /plugins/api-services/{apiServiceId}/schema:
+        parameters:
+            - $ref: "#/components/parameters/apiServiceIdParam"
+        get:
+            tags:
+                - Plugins - ApiServices
+            summary: Get an api service schema
+            description: |
+                Get the JSON schema that describes the configuration of an api service.
+
+                User must be authenticated.
+            operationId: getApiServiceSchema
+            responses:
+                "200":
+                    $ref: "#/components/responses/SchemaFormResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+
     # Plugins - Policies
     /plugins/policies:
         get:
@@ -585,6 +604,13 @@ components:
             in: path
             required: true
             description: Id of an entrypoint.
+            schema:
+                type: string
+        apiServiceIdParam:
+            name: apiServiceId
+            in: path
+            required: true
+            description: Id of an api service.
             schema:
                 type: string
         policyIdParam:

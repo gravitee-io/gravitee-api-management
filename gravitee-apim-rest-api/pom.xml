@@ -35,6 +35,7 @@
     <name>Gravitee.io APIM - Management API</name>
 
     <modules>
+        <module>gravitee-apim-rest-api-common</module>
         <module>gravitee-apim-rest-api-fetcher</module>
         <module>gravitee-apim-rest-api-model</module>
         <module>gravitee-apim-rest-api-idp</module>

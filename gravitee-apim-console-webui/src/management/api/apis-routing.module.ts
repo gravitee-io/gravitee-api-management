@@ -76,6 +76,7 @@ import { ApiProxyEndpointListComponent } from './endpoints/list/api-proxy-endpoi
 import { ApiGeneralMembersComponent } from './user-group-access/members/api-general-members.component';
 import { ApiAuditListComponent } from './api-audit-list/api-audit-list.component';
 import { ApiAuditLogsComponent } from './api-audit-logs/api-audit-logs.component';
+import { ApiDynamicPropertiesV4Component } from './properties-v4/dynamic-properties/api-dynamic-properties-v4.component';
 import { ApiDeploymentConfigurationComponent } from './deployment-configuration-v4/api-deployment-configuration.component';
 
 import { DocumentationManagementComponent } from '../../components/documentation/documentation-management.component';
@@ -939,6 +940,15 @@ const apisRoutes: Routes = [
           },
           docs: {
             page: 'management-api-proxy-endpoints',
+          },
+        },
+      },
+      {
+        path: 'v4/dynamic-properties',
+        component: ApiDynamicPropertiesV4Component,
+        data: {
+          apiPermissions: {
+            only: ['api-definition-r'],
           },
         },
       },

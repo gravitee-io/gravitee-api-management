@@ -18,10 +18,12 @@ package io.gravitee.rest.api.management.v2.rest.spring;
 import static org.mockito.Mockito.mock;
 
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
+import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.DeployApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
+import io.gravitee.apim.core.api.query_service.ApiEventQueryService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
 import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
@@ -278,5 +280,15 @@ public class ResourceContextConfiguration {
         AuditMetadataQueryService auditMetadataQueryService
     ) {
         return new SearchAuditDomainService(auditQueryService, auditMetadataQueryService);
+    }
+
+    @Bean
+    public ApiStateDomainService apiStateDomainService() {
+        return mock(ApiStateDomainService.class);
+    }
+
+    @Bean
+    public ApiEventQueryService apiEventQueryService() {
+        return mock(ApiEventQueryService.class);
     }
 }

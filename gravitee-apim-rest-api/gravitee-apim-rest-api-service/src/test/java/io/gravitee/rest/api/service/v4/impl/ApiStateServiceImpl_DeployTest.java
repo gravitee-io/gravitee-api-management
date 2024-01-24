@@ -193,7 +193,7 @@ public class ApiStateServiceImpl_DeployTest {
         previousPublishedEvent.setProperties(Map.of(Event.EventProperties.DEPLOYMENT_NUMBER.getValue(), "3"));
 
         when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(true);
-        when(apiSearchService.findRepositoryApiById(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(api);
+        when(apiSearchService.findRepositoryApiById(any(), eq(API_ID))).thenReturn(api);
         when(apiRepository.update(api)).thenReturn(api);
         when(
             eventLatestRepository.search(
@@ -232,6 +232,7 @@ public class ApiStateServiceImpl_DeployTest {
     @Test(expected = ApiNotDeployableException.class)
     public void should_not_deploy_when_no_active_plan_for_api() {
         when(apiValidationService.canDeploy(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(false);
+        when(apiSearchService.findRepositoryApiById(any(), eq(API_ID))).thenReturn(api);
         apiStateService.deploy(GraviteeContext.getExecutionContext(), API_ID, "some-user", new ApiDeploymentEntity());
     }
 

@@ -83,6 +83,11 @@
             <artifactId>gravitee-apim-plugin-apiservice-servicediscovery-consul</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.gravitee.apim.plugin.apiservice.dynamicproperties</groupId>
+            <artifactId>gravitee-apim-plugin-apiservice-dynamicproperties-http</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!-- Engine -->
         <dependency>

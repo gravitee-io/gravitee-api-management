@@ -73,10 +73,12 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
   public apiProperties: (Property & { _id: string; dynamic: boolean })[] = [];
   public propertiesFormGroup: UntypedFormGroup = new UntypedFormGroup({});
   public isDirty = false;
+  public areDynamicPropertiesRunningWithDisableConfiguration = false;
+  public isV4 = false;
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
-    private readonly apiService: ApiV2Service,
+    private readonly apiV2Service: ApiV2Service,
     private readonly snackBarService: SnackBarService,
     private readonly matDialog: MatDialog,
   ) {}
@@ -85,15 +87,24 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.isDirty = false;
     this.filteredTableData = [];
-    this.apiService
+    this.apiV2Service
       .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
         tap((api) => {
           if (api.definitionVersion === 'V1') {
             throw new Error('Unexpected API type. This page is compatible only for API > V1');
           }
-          this.apiProperties =
-            api.properties?.map((p) => ({ ...p, _id: uniqueId(), dynamic: api.services?.dynamicProperty?.enabled && p.dynamic })) ?? [];
+          this.isV4 = api.definitionVersion === 'V4';
+          if (api.definitionVersion === 'V4') {
+            this.apiProperties = api.properties?.map((p) => ({ ...p, _id: uniqueId(), dynamic: p.dynamic })) ?? [];
+            this.areDynamicPropertiesRunningWithDisableConfiguration =
+              !api.services?.dynamicProperty?.enabled && api.properties.some((p) => p.dynamic);
+          } else {
+            // Keep the same behaviour in V2
+            this.apiProperties =
+              api.properties?.map((p) => ({ ...p, _id: uniqueId(), dynamic: api.services?.dynamicProperty?.enabled && p.dynamic })) ?? [];
+          }
+          this.apiProperties = api.properties?.map((p) => ({ ...p, _id: uniqueId(), dynamic: p.dynamic })) ?? [];
 
           // Initialize the properties form group
           this.initPropertiesFormGroup();
@@ -291,10 +302,10 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.filteredTableData = [];
 
-    return this.apiService.get(this.activatedRoute.snapshot.params.apiId).pipe(
+    return this.apiV2Service.get(this.activatedRoute.snapshot.params.apiId).pipe(
       switchMap((api: ApiV2 | ApiV4) => {
         const propertiesSorted = propertiesToSave(api.properties ?? []).sort((a, b) => a.key.localeCompare(b.key));
-        return this.apiService.update(this.activatedRoute.snapshot.params.apiId, {
+        return this.apiV2Service.update(this.activatedRoute.snapshot.params.apiId, {
           ...api,
           properties: propertiesSorted,
         });

@@ -21,10 +21,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiPolicyValidatorDomainService;
+import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.DeployApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
+import io.gravitee.apim.core.api.query_service.ApiEventQueryService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
 import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
@@ -561,5 +563,15 @@ public class ResourceContextConfiguration {
         AuditMetadataQueryService auditMetadataQueryService
     ) {
         return new SearchAuditDomainService(auditQueryService, auditMetadataQueryService);
+    }
+
+    @Bean
+    public ApiStateDomainService apiStateDomainService() {
+        return mock(ApiStateDomainService.class);
+    }
+
+    @Bean
+    public ApiEventQueryService apiEventQueryService() {
+        return mock(ApiEventQueryService.class);
     }
 }

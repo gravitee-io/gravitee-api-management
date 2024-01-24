@@ -26,8 +26,13 @@ import io.gravitee.plugin.apiservice.internal.fake.FakeApiService;
 import io.gravitee.plugin.apiservice.internal.fake.FakeApiServiceConfiguration;
 import io.gravitee.plugin.apiservice.internal.fake.FakeApiServiceFactory;
 import io.gravitee.plugin.apiservice.internal.fake.FakeApiServicePlugin;
+import io.gravitee.plugin.apiservice.internal.fake.FakeSpecializedApiServiceFactory;
+import io.gravitee.plugin.apiservice.internal.fake.FakeSpecializedApiServicePlugin;
+import io.gravitee.plugin.apiservice.internal.fake.SpecializedApiServiceFactory;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -38,6 +43,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author GraviteeSource Team
  */
 @ExtendWith(MockitoExtension.class)
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class DefaultApiServicePluginManagerTest {
 
     @Mock
@@ -51,7 +57,7 @@ class DefaultApiServicePluginManagerTest {
     }
 
     @Test
-    public void shouldRegisterNewApiServicePlugin() {
+    void should_register_new_api_service_plugin() {
         final DefaultApiServicePlugin<FakeApiServiceFactory, FakeApiServiceConfiguration> apiServicePlugin = new DefaultApiServicePlugin<>(
             new FakeApiServicePlugin(true),
             FakeApiServiceFactory.class,
@@ -68,13 +74,13 @@ class DefaultApiServicePluginManagerTest {
     }
 
     @Test
-    public void shouldNotRetrieveUnRegisterPlugin() {
+    void should_not_retrieve_unregistered_plugin() {
         final EndpointConnector factoryById = cut.getFactoryById("fake-api-service");
         assertThat(factoryById).isNull();
     }
 
     @Test
-    public void shouldRegisterNotDeployedPlugin() {
+    void should_register_not_deployed_plugin() {
         final DefaultApiServicePlugin<FakeApiServiceFactory, FakeApiServiceConfiguration> apiServicePlugin = new DefaultApiServicePlugin<>(
             new FakeApiServicePlugin(false),
             FakeApiServiceFactory.class,
@@ -91,7 +97,7 @@ class DefaultApiServicePluginManagerTest {
     }
 
     @Test
-    public void shouldRetrieveAllFactories() {
+    void should_retrieve_all_factories() {
         final DefaultApiServicePlugin<FakeApiServiceFactory, FakeApiServiceConfiguration> apiServicePlugin = new DefaultApiServicePlugin<>(
             new FakeApiServicePlugin(true),
             FakeApiServiceFactory.class,
@@ -106,11 +112,32 @@ class DefaultApiServicePluginManagerTest {
 
         List<ApiServiceFactory<FakeApiService>> factoryList = cut.getAllFactories(true);
 
-        assertThat(factoryList).isNotNull().hasSize(2);
+        assertThat(factoryList).hasSize(2);
     }
 
     @Test
-    public void shouldOnlyRetrieveDeployedPluginFactories() {
+    void should_retrieve_all_factories_of_specialized_type() {
+        final DefaultApiServicePlugin<FakeApiServiceFactory, FakeApiServiceConfiguration> apiServicePlugin = new DefaultApiServicePlugin<>(
+            new FakeApiServicePlugin(true),
+            FakeApiServiceFactory.class,
+            null
+        );
+
+        final DefaultApiServicePlugin<FakeSpecializedApiServiceFactory, FakeApiServiceConfiguration> specializedApiServicePlugin =
+            new DefaultApiServicePlugin<>(new FakeSpecializedApiServicePlugin(true), FakeSpecializedApiServiceFactory.class, null);
+
+        cut.register(apiServicePlugin);
+        cut.register(specializedApiServicePlugin);
+
+        List<ApiServiceFactory<FakeApiService>> factoryList = cut.getAllFactories(FakeSpecializedApiServiceFactory.class);
+
+        assertThat(factoryList)
+            .hasSize(1)
+            .satisfiesExactly(factory -> SpecializedApiServiceFactory.class.isAssignableFrom(factory.getClass()));
+    }
+
+    @Test
+    void should_only_retrieve_deployed_plugin_factories() {
         final DefaultApiServicePlugin<FakeApiServiceFactory, FakeApiServiceConfiguration> apiServicePlugin = new DefaultApiServicePlugin<>(
             new FakeApiServicePlugin(true),
             FakeApiServiceFactory.class,
@@ -125,6 +152,6 @@ class DefaultApiServicePluginManagerTest {
 
         List<ApiServiceFactory<FakeApiService>> factoryList = cut.getAllFactories();
 
-        assertThat(factoryList).isNotNull().hasSize(1);
+        assertThat(factoryList).hasSize(1);
     }
 }

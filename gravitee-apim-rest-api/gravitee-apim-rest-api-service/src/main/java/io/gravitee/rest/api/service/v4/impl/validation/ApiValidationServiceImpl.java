@@ -19,11 +19,13 @@ import static io.gravitee.rest.api.model.api.ApiLifecycleState.ARCHIVED;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.CREATED;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.DEPRECATED;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.UNPUBLISHED;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
@@ -34,9 +36,12 @@ import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.sanitizer.HtmlSanitizer;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.DefinitionVersionException;
+import io.gravitee.rest.api.service.exceptions.DynamicPropertiesInvalidException;
+import io.gravitee.rest.api.service.exceptions.HealthcheckInvalidException;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.LifecycleStateChangeNotAllowedException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
+import io.gravitee.rest.api.service.v4.ApiServicePluginService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.exception.ApiTypeException;
 import io.gravitee.rest.api.service.v4.validation.AnalyticsValidationService;
@@ -51,6 +56,7 @@ import io.gravitee.rest.api.service.v4.validation.ResourcesValidationService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
 import java.util.Set;
 import java.util.stream.Stream;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
@@ -58,6 +64,7 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
+@Slf4j
 public class ApiValidationServiceImpl extends TransactionalService implements ApiValidationService {
 
     private final TagsValidationService tagsValidationService;
@@ -70,6 +77,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
     private final PlanSearchService planSearchService;
     private final PlanValidationService planValidationService;
     private final PathParametersValidationService pathParametersValidationService;
+    private final ApiServicePluginService apiServicePluginService;
 
     public ApiValidationServiceImpl(
         final TagsValidationService tagsValidationService,
@@ -81,7 +89,8 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         final AnalyticsValidationService loggingValidationService,
         final PlanSearchService planSearchService,
         final PlanValidationService planValidationService,
-        final PathParametersValidationService pathParametersValidationService
+        final PathParametersValidationService pathParametersValidationService,
+        ApiServicePluginService apiServicePluginService
     ) {
         this.tagsValidationService = tagsValidationService;
         this.groupValidationService = groupValidationService;
@@ -93,6 +102,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         this.planSearchService = planSearchService;
         this.planValidationService = planValidationService;
         this.pathParametersValidationService = pathParametersValidationService;
+        this.apiServicePluginService = apiServicePluginService;
     }
 
     @Override
@@ -196,6 +206,8 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
 
         // Validate and clean resources
         updateApiEntity.setResources(resourcesValidationService.validateAndSanitize(updateApiEntity.getResources()));
+
+        this.validateDynamicProperties(updateApiEntity.getServices() != null ? updateApiEntity.getServices().getDynamicProperty() : null);
     }
 
     @Override
@@ -244,6 +256,8 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
 
         // Sanitize Description
         apiEntity.setDescription(HtmlSanitizer.sanitize(apiEntity.getDescription()));
+
+        this.validateDynamicProperties(apiEntity.getServices() != null ? apiEntity.getServices().getDynamicProperty() : null);
     }
 
     @Override
@@ -300,5 +314,19 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
             throw new LifecycleStateChangeNotAllowedException(updateApiEntity.getLifecycleState().name());
         }
         return updateApiEntity.getLifecycleState();
+    }
+
+    private void validateDynamicProperties(Service dynamicProperties) {
+        if (dynamicProperties == null) {
+            return;
+        }
+        if (isBlank(dynamicProperties.getType())) {
+            log.debug("Dynamic properties requires a type");
+            throw new DynamicPropertiesInvalidException(dynamicProperties.getType());
+        }
+
+        dynamicProperties.setConfiguration(
+            this.apiServicePluginService.validateApiServiceConfiguration(dynamicProperties.getType(), dynamicProperties.getConfiguration())
+        );
     }
 }

@@ -176,6 +176,12 @@
 			<artifactId>gravitee-node-services-initializer</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>io.gravitee.apim.rest.api</groupId>
+			<artifactId>gravitee-apim-rest-api-common</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
 		<!-- Lucene -->
 		<dependency>
 			<groupId>org.apache.lucene</groupId>

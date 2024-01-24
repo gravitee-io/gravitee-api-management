@@ -271,7 +271,7 @@ class ApiTest {
         dynamicPropertyService.setType("health-check");
         services.setDynamicProperty(dynamicPropertyService);
         apiWithServices.setServices(services);
-        assertThat(apiWithServices.getPlugins()).containsOnly(new Plugin("service", "health-check"));
+        assertThat(apiWithServices.getPlugins()).containsOnly(new Plugin("api-service", "health-check"));
     }
 
     @Test

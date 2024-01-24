@@ -15,7 +15,7 @@
  */
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
-import { GioIconsModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { GioBannerModule, GioIconsModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
 import { MatLegacyTableModule as MatTableModule } from '@angular/material/legacy-table';
 import { MatLegacyButtonModule as MatButtonModule } from '@angular/material/legacy-button';
 import { MatLegacyCardModule as MatCardModule } from '@angular/material/legacy-card';
@@ -58,6 +58,7 @@ import { GioTableWrapperModule } from '../../../../../shared/components/gio-tabl
     MatInputModule,
     MatSnackBarModule,
     MatDialogModule,
+    GioBannerModule,
   ],
   declarations: [ApiPropertiesComponent],
   exports: [ApiPropertiesComponent],

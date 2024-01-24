@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.v4;
 
+import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
@@ -25,6 +26,29 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
  * @author GraviteeSource Team
  */
 public interface ApiStateService {
+    /**
+     * Deploys an API
+     * @param executionContext the execution context containing organization and environment information
+     * @param apiToDeploy is the API to deploy
+     * @param authenticatedUser user to reference in deployment properties
+     * @param apiDeploymentEntity additional information about the deployment
+     * @return the deployed API
+     */
+    GenericApiEntity deploy(
+        ExecutionContext executionContext,
+        Api apiToDeploy,
+        String authenticatedUser,
+        ApiDeploymentEntity apiDeploymentEntity
+    );
+
+    /**
+     * Deploys an API fetched from database thanks to its id.
+     * @param executionContext the execution context containing organization and environment information
+     * @param apiId to get the last version of the API from database before deploying it
+     * @param authenticatedUser user to reference in deployment properties
+     * @param apiDeploymentEntity additional information about the deployment
+     * @return the deployed API
+     */
     GenericApiEntity deploy(
         ExecutionContext executionContext,
         String apiId,

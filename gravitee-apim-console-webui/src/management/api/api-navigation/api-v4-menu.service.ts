@@ -357,7 +357,7 @@ export class ApiV4MenuService implements ApiMenuService {
           },
           {
             displayName: 'Dynamic properties',
-            routerLink: 'DISABLED',
+            routerLink: 'v4/dynamic-properties',
           },
         ],
       });

@@ -188,6 +188,7 @@ const gatewayDependenciesExclusion = [
   // ArtifactIds to exclude
   'gravitee-apim-repository-elasticsearch',
   'gravitee-cockpit-connectors-ws',
+  'gravitee-apim-plugin-apiservice-dynamicproperties-http',
 ];
 
 console.log(chalk.blue(`Add plugins to Gateway`));
