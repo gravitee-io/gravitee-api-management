@@ -41,6 +41,7 @@ export class ApiV4MenuService implements ApiMenuService {
       this.addConfigurationMenuEntry(),
       this.addEntrypointsMenuEntry(hasTcpListeners),
       this.addEndpointsMenuEntry(isHttpProxyApi),
+      this.addConsumersMenuEntry(),
       this.addPoliciesMenuEntry(hasTcpListeners),
       this.addApiTrafficMenuEntry(hasTcpListeners),
     ];
@@ -171,6 +172,28 @@ export class ApiV4MenuService implements ApiMenuService {
     };
   }
 
+  private addConsumersMenuEntry(): MenuItem {
+    const tabs: MenuItem[] = [];
+
+    if (this.permissionService.hasAnyMatching(['api-plan-r'])) {
+      tabs.push({
+        displayName: 'Plans',
+        routerLink: 'plans',
+      });
+    }
+
+    return {
+      displayName: 'Consumers',
+      icon: 'user',
+      routerLink: '',
+      header: {
+        title: 'Consumers',
+        subtitle: 'Manage how your API is consumed',
+      },
+      tabs: tabs,
+    };
+  }
+
   private addPoliciesMenuEntry(hasTcpListeners: boolean): MenuItem {
     return {
       displayName: 'Policies',
@@ -230,12 +253,6 @@ export class ApiV4MenuService implements ApiMenuService {
       tabs: [],
     };
 
-    if (this.permissionService.hasAnyMatching(['api-plan-r'])) {
-      plansMenuItem.tabs.push({
-        displayName: 'Plans',
-        routerLink: 'plans',
-      });
-    }
     if (this.permissionService.hasAnyMatching(['api-subscription-r'])) {
       plansMenuItem.tabs.push({
         displayName: 'Subscriptions',
