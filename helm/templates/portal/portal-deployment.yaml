@@ -107,7 +107,7 @@ spec:
         - name: {{ template "gravitee.portal.fullname" . }}
           image: "{{ .Values.portal.image.repository }}:{{ default .Chart.AppVersion .Values.portal.image.tag }}"
           imagePullPolicy: {{ .Values.portal.image.pullPolicy }}
-          securityContext: {{ toYaml ( .Values.portal.securityContext | default .Values.portal.deployment.securityContext ) | nindent 12 }}
+          securityContext: {{ toYaml .Values.portal.deployment.securityContext | nindent 12 }}
           env:
             - name: PORTAL_API_URL
               value: "https://{{index .Values.api.ingress.portal.hosts 0 }}{{ .Values.api.ingress.portal.path }}/"
