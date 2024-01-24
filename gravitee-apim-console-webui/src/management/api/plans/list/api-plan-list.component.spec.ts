@@ -29,12 +29,12 @@ import { castArray, set } from 'lodash';
 import { MatMenuHarness } from '@angular/material/menu/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { ApiGeneralPlanListComponent } from './api-general-plan-list.component';
+import { ApiPlanListComponent } from './api-plan-list.component';
 
-import { ApiGeneralPlansModule } from '../api-general-plans.module';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
-import { Subscription } from '../../../../../entities/subscription/subscription';
-import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
+import { ApiPlansModule } from '../api-plans.module';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { Subscription } from '../../../../entities/subscription/subscription';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import {
   Api,
   ApiPlansResponse,
@@ -45,15 +45,15 @@ import {
   fakeProxyApiV4,
   Plan,
   PLAN_STATUS,
-} from '../../../../../entities/management-api-v2';
-import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
+} from '../../../../entities/management-api-v2';
+import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 
-describe('ApiGeneralPlanListComponent', () => {
+describe('ApiPlanListComponent', () => {
   const API_ID = 'api#1';
   const anAPi = fakeApiV2({ id: API_ID });
 
-  let fixture: ComponentFixture<ApiGeneralPlanListComponent>;
-  let component: ApiGeneralPlanListComponent;
+  let fixture: ComponentFixture<ApiPlanListComponent>;
+  let component: ApiPlanListComponent;
   let loader: HarnessLoader;
   let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
@@ -61,7 +61,7 @@ describe('ApiGeneralPlanListComponent', () => {
 
   const init = async () => {
     await TestBed.configureTestingModule({
-      imports: [ApiGeneralPlansModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
+      imports: [ApiPlansModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
       providers: [
         { provide: GioTestingPermissionProvider, useValue: ['api-plan-u', 'api-plan-r', 'api-plan-d'] },
         {
@@ -515,7 +515,7 @@ describe('ApiGeneralPlanListComponent', () => {
 
   async function initComponent(plans: Plan[], api: Api = anAPi) {
     await TestBed.overrideProvider(ActivatedRoute, { useValue: { snapshot: { params: { apiId: api.id } } } }).compileComponents();
-    fixture = TestBed.createComponent(ApiGeneralPlanListComponent);
+    fixture = TestBed.createComponent(ApiPlanListComponent);
     component = fixture.componentInstance;
     httpTestingController = TestBed.inject(HttpTestingController);
     const router = TestBed.inject(Router);

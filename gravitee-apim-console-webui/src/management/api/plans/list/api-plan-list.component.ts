@@ -27,20 +27,20 @@ import {
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { SubscriptionService } from '../../../../../services-ngx/subscription.service';
-import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
-import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
-import { ConstantsService, PlanMenuItemVM } from '../../../../../services-ngx/constants.service';
-import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
-import { Api, Plan, PLAN_STATUS, PlanStatus } from '../../../../../entities/management-api-v2';
-import { ApiPlanV2Service } from '../../../../../services-ngx/api-plan-v2.service';
+import { SubscriptionService } from '../../../../services-ngx/subscription.service';
+import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
+import { ConstantsService, PlanMenuItemVM } from '../../../../services-ngx/constants.service';
+import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
+import { Api, Plan, PLAN_STATUS, PlanStatus } from '../../../../entities/management-api-v2';
+import { ApiPlanV2Service } from '../../../../services-ngx/api-plan-v2.service';
 
 @Component({
-  selector: 'api-general-plan-list',
-  templateUrl: './api-general-plan-list.component.html',
-  styleUrls: ['./api-general-plan-list.component.scss'],
+  selector: 'api-plan-list',
+  templateUrl: './api-plan-list.component.html',
+  styleUrls: ['./api-plan-list.component.scss'],
 })
-export class ApiGeneralPlanListComponent implements OnInit, OnDestroy {
+export class ApiPlanListComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   private api: Api;
   public displayedColumns = ['name', 'type', 'status', 'deploy-on', 'actions'];

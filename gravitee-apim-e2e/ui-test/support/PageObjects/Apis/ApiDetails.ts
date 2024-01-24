@@ -24,6 +24,10 @@ class ApiDetails {
     return cy.get('.gio-submenu-item__title').contains('Configuration');
   }
 
+  consumersMenuItem(): Cypress.Chainable<JQuery<HTMLElement>> {
+    return cy.get('.gio-submenu-item__title').contains('Consumers');
+  }
+
   plansMenuItem(): Cypress.Chainable<JQuery<HTMLElement>> {
     return cy.get('.gio-submenu-item__title').contains('Plans');
   }
