@@ -654,10 +654,6 @@ api:
     internalPortName: http
 #    appProtocol: http
   # annotations:
-  # DEPRECATED, please define api.deployment.securityContext instead
-  securityContext:
-    runAsUser: 1001
-    runAsNonRoot: true
   autoscaling:
     enabled: true
     minReplicas: 1
@@ -1078,10 +1074,6 @@ gateway:
     internalPortName: http
 #    appProtocol: http
   # annotations:
-  # DEPRECATED, please define gateway.deployment.securityContext instead
-  securityContext:
-    runAsUser: 1001
-    runAsNonRoot: true
   autoscaling:
     enabled: true
     minReplicas: 1
@@ -1259,11 +1251,6 @@ portal:
     internalPortName: http
 #    appProtocol: http
   # annotations:
-  # DEPRECATED, please define portal.deployment.securityContext instead
-  securityContext:
-    runAsUser: 101
-    runAsGroup: 101
-    runAsNonRoot: true
   ingress:
     enabled: true
     pathType: Prefix
@@ -1448,11 +1435,6 @@ ui:
     internalPortName: http
 #    appProtocol: http
   # annotations:
-  # DEPRECATED, please define ui.deployment.securityContext instead
-  securityContext:
-    runAsUser: 101
-    runAsGroup: 101
-    runAsNonRoot: true
   ingress:
     enabled: true
     pathType: Prefix
