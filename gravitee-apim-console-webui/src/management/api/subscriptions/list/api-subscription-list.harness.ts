@@ -19,8 +19,8 @@ import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { GioFormTagsInputHarness } from '@gravitee/ui-particles-angular';
 
-export class ApiGeneralSubscriptionListHarness extends ComponentHarness {
-  static hostSelector = 'api-general-subscription-list';
+export class ApiSubscriptionListHarness extends ComponentHarness {
+  static hostSelector = 'api-subscription-list';
 
   public getPlanSelectInput = this.locatorFor(MatSelectHarness.with({ selector: '[formControlName="planIds"]' }));
   public getApplicationSelectInput = this.locatorFor(GioFormTagsInputHarness);

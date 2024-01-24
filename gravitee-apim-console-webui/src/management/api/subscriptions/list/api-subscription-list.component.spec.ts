@@ -27,11 +27,11 @@ import { set } from 'lodash';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { ApiGeneralSubscriptionListComponent } from './api-general-subscription-list.component';
-import { ApiGeneralSubscriptionListHarness } from './api-general-subscription-list.harness';
+import { ApiSubscriptionListComponent } from './api-subscription-list.component';
+import { ApiSubscriptionListHarness } from './api-subscription-list.harness';
 
-import { ApiGeneralSubscriptionsModule } from '../api-general-subscriptions.module';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
+import { ApiSubscriptionsModule } from '../api-subscriptions.module';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import {
   Api,
   ApiKeyMode,
@@ -44,23 +44,23 @@ import {
   Plan,
   Subscription,
   VerifySubscription,
-} from '../../../../../entities/management-api-v2';
-import { PagedResult } from '../../../../../entities/pagedResult';
-import { Application } from '../../../../../entities/application/application';
-import { fakeApplication } from '../../../../../entities/application/Application.fixture';
+} from '../../../../entities/management-api-v2';
+import { PagedResult } from '../../../../entities/pagedResult';
+import { Application } from '../../../../entities/application/application';
+import { fakeApplication } from '../../../../entities/application/Application.fixture';
 import { ApiPortalSubscriptionCreationDialogHarness } from '../components/dialogs/creation/api-portal-subscription-creation-dialog.harness';
-import { PlanSecurityType } from '../../../../../entities/plan';
-import { ApplicationSubscription } from '../../../../../entities/subscription/subscription';
-import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
+import { PlanSecurityType } from '../../../../entities/plan';
+import { ApplicationSubscription } from '../../../../entities/subscription/subscription';
+import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 @Component({
-  template: ` <api-general-subscription-list #apiGeneralSubscriptionList></api-general-subscription-list> `,
+  template: ` <api-subscription-list #apiSubscriptionList></api-subscription-list> `,
 })
 class TestComponent {
-  @ViewChild('apiGeneralSubscriptionList') apiGeneralSubscriptionList: ApiGeneralSubscriptionListComponent;
+  @ViewChild('apiSubscriptionList') apiSubscriptionListComponent: ApiSubscriptionListComponent;
 }
 
-describe('ApiGeneralSubscriptionListComponent', () => {
+describe('ApiSubscriptionListComponent', () => {
   const API_ID = 'api_1';
   const PLAN_ID = 'plan_1';
   const APPLICATION_ID = 'application_1';
@@ -77,7 +77,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
   const init = async (planSecurity?: any) => {
     await TestBed.configureTestingModule({
       declarations: [TestComponent],
-      imports: [ApiGeneralSubscriptionsModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
+      imports: [ApiSubscriptionsModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
       providers: [
         {
           provide: InteractivityChecker,
@@ -116,7 +116,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
 
     it('should display default filters', fakeAsync(async () => {
       await initComponent([]);
-      const harness = await loader.getHarness(ApiGeneralSubscriptionListHarness);
+      const harness = await loader.getHarness(ApiSubscriptionListHarness);
 
       const planSelectInput = await harness.getPlanSelectInput();
       expect(await planSelectInput.isDisabled()).toEqual(false);
@@ -141,7 +141,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
         status: 'CLOSED,REJECTED',
         apiKey: 'apiKey_1',
       });
-      const harness = await loader.getHarness(ApiGeneralSubscriptionListHarness);
+      const harness = await loader.getHarness(ApiSubscriptionListHarness);
 
       const planSelectInput = await harness.getPlanSelectInput();
       expect(await planSelectInput.isDisabled()).toEqual(false);
@@ -167,7 +167,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
         status: 'CLOSED,REJECTED',
         apiKey: 'apiKey_1',
       });
-      const harness = await loader.getHarness(ApiGeneralSubscriptionListHarness);
+      const harness = await loader.getHarness(ApiSubscriptionListHarness);
 
       const planSelectInput = await harness.getPlanSelectInput();
       await planSelectInput.open();
@@ -183,7 +183,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
         status: 'CLOSED,REJECTED',
         apiKey: 'apiKey_1',
       });
-      const harness = await loader.getHarness(ApiGeneralSubscriptionListHarness);
+      const harness = await loader.getHarness(ApiSubscriptionListHarness);
 
       const resetFilterButton = await harness.getResetFilterButton();
       await resetFilterButton.click();
@@ -344,7 +344,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
 
     it('should search closed subscription', fakeAsync(async () => {
       await initComponent([fakeSubscription()]);
-      const harness = await loader.getHarness(ApiGeneralSubscriptionListHarness);
+      const harness = await loader.getHarness(ApiSubscriptionListHarness);
 
       const statusSelectInput = await getEmptyFilterForm(harness);
       await statusSelectInput.clickOptions({ text: 'Closed' });
@@ -370,7 +370,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
     it('should search and not find any subscription', fakeAsync(async () => {
       await initComponent([fakeSubscription()]);
 
-      const harness = await loader.getHarness(ApiGeneralSubscriptionListHarness);
+      const harness = await loader.getHarness(ApiSubscriptionListHarness);
 
       const statusSelectInput = await getEmptyFilterForm(harness);
       await statusSelectInput.clickOptions({ text: 'Rejected' });
@@ -392,7 +392,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
       const application = fakeApplication();
 
       await initComponent([], fakeApiV4({ id: API_ID, listeners: [] }), [planV4]);
-      const harness = await loader.getHarness(ApiGeneralSubscriptionListHarness);
+      const harness = await loader.getHarness(ApiSubscriptionListHarness);
 
       const createSubBtn = await harness.getCreateSubscriptionButton();
       expect(await createSubBtn).toBeDefined();
@@ -443,7 +443,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
       const application = fakeApplication();
 
       await initComponent([], fakeApiV4({ id: API_ID, listeners: [] }), [planV4]);
-      const harness = await loader.getHarness(ApiGeneralSubscriptionListHarness);
+      const harness = await loader.getHarness(ApiSubscriptionListHarness);
 
       const createSubBtn = await harness.getCreateSubscriptionButton();
       expect(await createSubBtn).toBeDefined();
@@ -492,7 +492,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
       const application = fakeApplication();
 
       await initComponent([], fakeApiV4({ id: API_ID, listeners: [] }), [planV4]);
-      const harness = await loader.getHarness(ApiGeneralSubscriptionListHarness);
+      const harness = await loader.getHarness(ApiSubscriptionListHarness);
 
       const createSubBtn = await harness.getCreateSubscriptionButton();
       expect(await createSubBtn).toBeDefined();
@@ -527,7 +527,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
       const application = fakeApplication({ id: 'my-app' });
 
       await initComponent([], fakeApiV4({ id: API_ID, listeners: [] }), [planV4]);
-      const harness = await loader.getHarness(ApiGeneralSubscriptionListHarness);
+      const harness = await loader.getHarness(ApiSubscriptionListHarness);
 
       const createSubBtn = await harness.getCreateSubscriptionButton();
       expect(await createSubBtn).toBeDefined();
@@ -574,7 +574,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
       await init();
       await initComponent([], fakeApiV4({ id: API_ID, listeners: [] }));
 
-      const harness = await loader.getHarness(ApiGeneralSubscriptionListHarness);
+      const harness = await loader.getHarness(ApiSubscriptionListHarness);
       const createSubBtn = await harness.getCreateSubscriptionButton();
       expect(await createSubBtn).toBeDefined();
       expect(await createSubBtn.isDisabled()).toEqual(false);
@@ -597,7 +597,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
       await init();
       await initComponent([], fakeApiV4({ id: API_ID, definitionContext: { origin: 'KUBERNETES' } }));
 
-      const harness = await loader.getHarness(ApiGeneralSubscriptionListHarness);
+      const harness = await loader.getHarness(ApiSubscriptionListHarness);
       const createSubBtn = await harness.getCreateSubscriptionButton();
       expect(await createSubBtn).toBeDefined();
       expect(await createSubBtn.isDisabled()).toEqual(false);
@@ -607,7 +607,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
       await init();
       await initComponent([], fakeApiV1({ id: API_ID }));
 
-      const harness = await loader.getHarness(ApiGeneralSubscriptionListHarness);
+      const harness = await loader.getHarness(ApiSubscriptionListHarness);
       const createSubBtn = await harness.getCreateSubscriptionButton();
       expect(await createSubBtn).toBeDefined();
       expect(await createSubBtn.isDisabled()).toEqual(true);
@@ -621,7 +621,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
     it('should not export subscriptions if no subscription', fakeAsync(async () => {
       await initComponent([]);
 
-      const harness = await loader.getHarness(ApiGeneralSubscriptionListHarness);
+      const harness = await loader.getHarness(ApiSubscriptionListHarness);
       const exportBtn = await harness.getExportButton();
       expect(await exportBtn.isDisabled()).toEqual(true);
     }));
@@ -642,7 +642,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
         apiKey: '12345678',
       });
 
-      const harness = await loader.getHarness(ApiGeneralSubscriptionListHarness);
+      const harness = await loader.getHarness(ApiSubscriptionListHarness);
       const exportBtn = await harness.getExportButton();
       expect(await exportBtn.isDisabled()).toEqual(false);
 
@@ -702,10 +702,10 @@ describe('ApiGeneralSubscriptionListComponent', () => {
     fixture.detectChanges();
     tick(400);
 
-    expect(fixture.componentInstance.apiGeneralSubscriptionList.isLoadingData).toEqual(false);
-    expect(fixture.componentInstance.apiGeneralSubscriptionList.canUpdate).toEqual(permissions.includes('api-subscription-u'));
-    expect(fixture.componentInstance.apiGeneralSubscriptionList.subscriptionsTableDS).toBeDefined();
-    expect(fixture.componentInstance.apiGeneralSubscriptionList.subscriptionsTableDS.length).toEqual(subscriptions.length);
+    expect(fixture.componentInstance.apiSubscriptionListComponent.isLoadingData).toEqual(false);
+    expect(fixture.componentInstance.apiSubscriptionListComponent.canUpdate).toEqual(permissions.includes('api-subscription-u'));
+    expect(fixture.componentInstance.apiSubscriptionListComponent.subscriptionsTableDS).toBeDefined();
+    expect(fixture.componentInstance.apiSubscriptionListComponent.subscriptionsTableDS.length).toEqual(subscriptions.length);
   }
 
   async function computeSubscriptionsTableCells() {
@@ -719,7 +719,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
     return { headerCells, rowCells };
   }
 
-  async function getEmptyFilterForm(harness: ApiGeneralSubscriptionListHarness) {
+  async function getEmptyFilterForm(harness: ApiSubscriptionListHarness) {
     const statusSelectInput = await harness.getStatusSelectInput();
     expect(await statusSelectInput.isDisabled()).toEqual(false);
 

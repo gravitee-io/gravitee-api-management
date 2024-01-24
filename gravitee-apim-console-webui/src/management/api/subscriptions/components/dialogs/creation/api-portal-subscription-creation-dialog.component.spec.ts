@@ -34,8 +34,8 @@ import {
   ApiPortalSubscriptionCreationDialogResult,
 } from './api-portal-subscription-creation-dialog.component';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../../../shared/testing';
-import { ApiGeneralSubscriptionsModule } from '../../../api-general-subscriptions.module';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../../shared/testing';
+import { ApiSubscriptionsModule } from '../../../api-subscriptions.module';
 import {
   ConnectorPlugin,
   CreateSubscription,
@@ -45,13 +45,13 @@ import {
   fakePlanV4,
   Plan,
   VerifySubscription,
-} from '../../../../../../../entities/management-api-v2';
-import { ApiKeyMode, Application } from '../../../../../../../entities/application/application';
-import { PagedResult } from '../../../../../../../entities/pagedResult';
-import { fakeApplication } from '../../../../../../../entities/application/Application.fixture';
-import { SubscriptionService } from '../../../../../../../services-ngx/subscription.service';
-import { PlanSecurityType } from '../../../../../../../entities/plan';
-import { ApplicationSubscription } from '../../../../../../../entities/subscription/subscription';
+} from '../../../../../../entities/management-api-v2';
+import { ApiKeyMode, Application } from '../../../../../../entities/application/application';
+import { PagedResult } from '../../../../../../entities/pagedResult';
+import { fakeApplication } from '../../../../../../entities/application/Application.fixture';
+import { SubscriptionService } from '../../../../../../services-ngx/subscription.service';
+import { PlanSecurityType } from '../../../../../../entities/plan';
+import { ApplicationSubscription } from '../../../../../../entities/subscription/subscription';
 
 @Component({
   selector: 'gio-dialog-test',
@@ -96,7 +96,7 @@ describe('Subscription creation dialog', () => {
     beforeEach(() => {
       TestBed.configureTestingModule({
         declarations: [TestComponent],
-        imports: [ApiGeneralSubscriptionsModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
+        imports: [ApiSubscriptionsModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
         providers: [
           {
             provide: InteractivityChecker,
@@ -202,7 +202,7 @@ describe('Subscription creation dialog', () => {
       beforeEach(() => {
         TestBed.configureTestingModule({
           declarations: [TestComponent],
-          imports: [ApiGeneralSubscriptionsModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
+          imports: [ApiSubscriptionsModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
           providers: [
             {
               provide: InteractivityChecker,
@@ -327,7 +327,7 @@ describe('Subscription creation dialog', () => {
       beforeEach(() => {
         TestBed.configureTestingModule({
           declarations: [TestComponent],
-          imports: [ApiGeneralSubscriptionsModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
+          imports: [ApiSubscriptionsModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
           providers: [
             { provide: SubscriptionService },
             {
@@ -503,7 +503,7 @@ describe('Subscription creation dialog', () => {
       beforeEach(() => {
         TestBed.configureTestingModule({
           declarations: [TestComponent],
-          imports: [ApiGeneralSubscriptionsModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
+          imports: [ApiSubscriptionsModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
           providers: [
             {
               provide: InteractivityChecker,
@@ -562,7 +562,7 @@ describe('Subscription creation dialog', () => {
     beforeEach(() => {
       TestBed.configureTestingModule({
         declarations: [TestComponent],
-        imports: [ApiGeneralSubscriptionsModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
+        imports: [ApiSubscriptionsModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
         providers: [
           {
             provide: InteractivityChecker,
@@ -652,7 +652,7 @@ describe('Subscription creation dialog', () => {
       beforeEach(() => {
         TestBed.configureTestingModule({
           declarations: [TestComponent],
-          imports: [ApiGeneralSubscriptionsModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
+          imports: [ApiSubscriptionsModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
           providers: [
             {
               provide: InteractivityChecker,

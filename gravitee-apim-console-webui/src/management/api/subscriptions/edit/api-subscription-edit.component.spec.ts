@@ -28,11 +28,11 @@ import { set } from 'lodash';
 import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute } from '@angular/router';
 
-import { ApiGeneralSubscriptionEditComponent } from './api-general-subscription-edit.component';
-import { ApiGeneralSubscriptionEditHarness } from './api-general-subscription-edit.harness';
+import { ApiSubscriptionEditComponent } from './api-subscription-edit.component';
+import { ApiSubscriptionEditHarness } from './api-subscription-edit.harness';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
-import { ApiGeneralSubscriptionsModule } from '../api-general-subscriptions.module';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { ApiSubscriptionsModule } from '../api-subscriptions.module';
 import {
   AcceptSubscription,
   BaseApplication,
@@ -44,10 +44,10 @@ import {
   Subscription,
   UpdateSubscription,
   VerifySubscription,
-} from '../../../../../entities/management-api-v2';
+} from '../../../../entities/management-api-v2';
 import { ApiKeyValidationHarness } from '../components/api-key-validation/api-key-validation.harness';
-import { ApiKey, fakeApiKey } from '../../../../../entities/management-api-v2/api-key';
-import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
+import { ApiKey, fakeApiKey } from '../../../../entities/management-api-v2/api-key';
+import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 const SUBSCRIPTION_ID = 'my-nice-subscription';
 const API_ID = 'api_1';
@@ -71,14 +71,14 @@ const BASIC_SUBSCRIPTION = (apiKeyMode: BaseApplication['apiKeyMode'] = 'UNSPECI
     },
   });
 
-describe('ApiGeneralSubscriptionEditComponent', () => {
-  let fixture: ComponentFixture<ApiGeneralSubscriptionEditComponent>;
+describe('ApiSubscriptionEditComponent', () => {
+  let fixture: ComponentFixture<ApiSubscriptionEditComponent>;
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
   const init = async () => {
     await TestBed.configureTestingModule({
-      imports: [ApiGeneralSubscriptionsModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
+      imports: [ApiSubscriptionsModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
       providers: [
         { provide: GioTestingPermissionProvider, useValue: ['api-subscription-u', 'api-subscription-r', 'api-subscription-d'] },
         { provide: 'Constants', useValue: CONSTANTS_TESTING },
@@ -107,7 +107,7 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       await initComponent();
       expectApiKeyListGet();
 
-      const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
 
       expect(await harness.getId()).toEqual(SUBSCRIPTION_ID);
       expect(await harness.getPlan()).toEqual('Default plan (API_KEY)');
@@ -142,7 +142,7 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       await initComponent(pendingSubscription);
       expectApiKeyListGet();
 
-      const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
 
       expect(await harness.getStatus()).toEqual('PENDING');
 
@@ -162,7 +162,7 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       rejectedSubscription.status = 'REJECTED';
       await initComponent(rejectedSubscription);
 
-      const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
 
       expect(await harness.getStatus()).toEqual('REJECTED');
 
@@ -183,7 +183,7 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       await initComponent(closedSubscription);
       expectApiKeyListGet();
 
-      const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
 
       expect(await harness.getStatus()).toEqual('CLOSED');
       expect(await harness.pauseBtnIsVisible()).toEqual(false);
@@ -194,7 +194,7 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       await initComponent(BASIC_SUBSCRIPTION('SHARED'), ['api-subscription-r']);
       expectApiKeyListGet();
 
-      const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
       expect(await harness.footerIsVisible()).toEqual(false);
     });
   });
@@ -204,7 +204,7 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       const pushPlanSubscription = BASIC_SUBSCRIPTION();
       pushPlanSubscription.plan = fakeBasePlan({ id: PLAN_ID, security: { type: undefined, configuration: {} } });
       await initComponent(pushPlanSubscription);
-      const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
       expect(await harness.transferBtnIsVisible()).toEqual(true);
 
       await harness.openTransferDialog();
@@ -255,7 +255,7 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       await initComponent();
       expectApiKeyListGet();
 
-      const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
       expect(await harness.transferBtnIsVisible()).toEqual(true);
 
       await harness.openTransferDialog();
@@ -286,7 +286,7 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       await initComponent(BASIC_SUBSCRIPTION('EXCLUSIVE'));
       expectApiKeyListGet();
 
-      const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
       expect(await harness.pauseBtnIsVisible()).toEqual(true);
 
       await harness.openPauseDialog();
@@ -313,7 +313,7 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       await initComponent();
       expectApiKeyListGet();
 
-      const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
       await harness.openPauseDialog();
 
       const pauseDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
@@ -329,7 +329,7 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       keylessSubscription.plan = fakeBasePlan({ security: { type: 'KEY_LESS' } });
       await initComponent(keylessSubscription);
 
-      const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
       await harness.openPauseDialog();
 
       const pauseDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
@@ -347,7 +347,7 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       await initComponent(pausedSubscription);
       expectApiKeyListGet();
 
-      const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
       expect(await harness.resumeBtnIsVisible()).toEqual(true);
 
       await harness.openResumeDialog();
@@ -369,7 +369,7 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       await initComponent(pausedSubscription);
       expectApiKeyListGet();
 
-      const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
       await harness.openResumeDialog();
 
       const resumeDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
@@ -387,7 +387,7 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       await initComponent();
       expectApiKeyListGet();
 
-      const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
       expect(await harness.getEndingAt()).toEqual('-');
       expect(await harness.changeEndDateBtnIsVisible()).toEqual(true);
       await harness.openChangeEndDateDialog();
@@ -437,7 +437,7 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       await initComponent(endingAtSubscription);
       expectApiKeyListGet();
 
-      const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
       expect(await harness.getEndingAt()).toEqual('2080-01-01 00:00:00');
 
       await harness.openChangeEndDateDialog();
@@ -481,7 +481,7 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       await initComponent();
       expectApiKeyListGet();
 
-      const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
       await harness.openChangeEndDateDialog();
 
       const changeEndDateDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
@@ -498,7 +498,7 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       expectApiKeyListGet();
     });
     it('should close subscription', async () => {
-      const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
       expect(await harness.closeBtnIsVisible()).toEqual(true);
       expect(await harness.getStatus()).toEqual('ACCEPTED');
 
@@ -520,7 +520,7 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       expectApiKeyListGet();
     });
     it('should not close subscription on cancel', async () => {
-      const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
       expect(await harness.closeBtnIsVisible()).toEqual(true);
 
       await harness.openCloseDialog();
@@ -547,7 +547,7 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       await initComponent(pendingSubscription);
       expectApiKeyListGet();
 
-      const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
       expect(await harness.validateBtnIsVisible()).toEqual(true);
 
       await harness.openValidateDialog();
@@ -570,7 +570,7 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       await initComponent(pendingSubscription);
       expectApiKeyListGet();
 
-      const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
       await harness.openValidateDialog();
 
       const validateDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
@@ -640,7 +640,7 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       await initComponent(pendingSubscription);
       expectApiKeyListGet();
 
-      const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
       await harness.openValidateDialog();
 
       const validateDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
@@ -651,7 +651,7 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
     });
 
     const validateInformation = async (apiKeyInputIsPresent: boolean) => {
-      const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
       await harness.openValidateDialog();
 
       const validateDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
@@ -682,7 +682,7 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       expectApiKeyListGet();
     });
     it('should reject subscription with no reason specified', async () => {
-      const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
       expect(await harness.rejectBtnIsVisible()).toEqual(true);
 
       await harness.openRejectDialog();
@@ -703,7 +703,7 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       expectApiSubscriptionGet(rejectedSubscription);
     });
     it('should reject subscription with reason specified', async () => {
-      const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
       await harness.openRejectDialog();
 
       const rejectDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
@@ -724,7 +724,7 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       expectApiSubscriptionGet(rejectedSubscription);
     });
     it('should not reject subscription on cancel', async () => {
-      const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
       await harness.openRejectDialog();
 
       const rejectDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
@@ -740,7 +740,7 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       await initComponent();
       expectApiKeyListGet(SUBSCRIPTION_ID, [], undefined, undefined, 0);
 
-      const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
       expect(await harness.renewApiKeyBtnIsVisible()).toEqual(false);
     });
     it('should not be possible if subscription is not accepted', async () => {
@@ -750,21 +750,21 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       await initComponent(pendingSubscription);
       expectApiKeyListGet(SUBSCRIPTION_ID);
 
-      const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
       expect(await harness.renewApiKeyBtnIsVisible()).toEqual(false);
     });
     it('should not be possible with shareApiKeys enabled', async () => {
       await initComponent(BASIC_SUBSCRIPTION('SHARED'));
       expectApiKeyListGet(SUBSCRIPTION_ID);
 
-      const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
       expect(await harness.renewApiKeyBtnIsVisible()).toEqual(false);
     });
     it('should renew API Key without customApiKey enabled', async () => {
       await initComponent(undefined, undefined, false);
       expectApiKeyListGet(SUBSCRIPTION_ID);
 
-      const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
       expect(await harness.renewApiKeyBtnIsVisible()).toEqual(true);
       expect(await harness.getApiKeyByRowIndex(0)).toContain('49765a30-659b-4284-b65a-30659be28431');
 
@@ -793,7 +793,7 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       await initComponent();
       expectApiKeyListGet(SUBSCRIPTION_ID, [fakeApiKey({ id: 'my-api-key', key: 'old-key' })]);
 
-      const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
       expect(await harness.getApiKeyByRowIndex(0)).toContain('old-key');
       await harness.openRenewApiKeyDialog();
 
@@ -818,7 +818,7 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       await initComponent();
       expectApiKeyListGet(SUBSCRIPTION_ID, [fakeApiKey({ key: 'my-api-key' })]);
 
-      const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
       await harness.openRenewApiKeyDialog();
 
       const renewDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
@@ -836,7 +836,7 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       await initComponent(BASIC_SUBSCRIPTION('SHARED'));
       expectApiKeyListGet(SUBSCRIPTION_ID);
 
-      const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
       await harness
         .getRevokeApiKeyBtn(0)
         .then((_) => fail('Revoke button should not be visible'))
@@ -848,7 +848,7 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       await initComponent(pendingSubscription);
       expectApiKeyListGet(SUBSCRIPTION_ID);
 
-      const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
       await harness
         .getRevokeApiKeyBtn(0)
         .then((_) => fail('Revoke button should not be visible'))
@@ -858,7 +858,7 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       await initComponent(undefined, ['api-subscription-r', 'api-subscription-c', 'api-subscription-d']);
       expectApiKeyListGet(SUBSCRIPTION_ID);
 
-      const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
       await harness
         .getRevokeApiKeyBtn(0)
         .then((_) => fail('Revoke button should not be visible'))
@@ -868,7 +868,7 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       await initComponent();
       expectApiKeyListGet(SUBSCRIPTION_ID, [fakeApiKey({ id: API_KEY_ID })]);
 
-      const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
       const revokeBtn = await harness.getRevokeApiKeyBtn(0);
       expect(await revokeBtn.isDisabled()).toEqual(false);
       await revokeBtn.click();
@@ -890,7 +890,7 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       await initComponent();
       expectApiKeyListGet(SUBSCRIPTION_ID, [fakeApiKey({ id: API_KEY_ID })]);
 
-      const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
       const revokeBtn = await harness.getRevokeApiKeyBtn(0);
       await revokeBtn.click();
 
@@ -904,7 +904,7 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       await initComponent();
       expectApiKeyListGet(SUBSCRIPTION_ID, [fakeApiKey({ expireAt: undefined })]);
 
-      const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
       expect(await harness.getApiKeyEndDateByRowIndex(0)).toEqual('-');
 
       const expireBtn = await harness.getExpireApiKeyBtn(0);
@@ -941,7 +941,7 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       await initComponent();
       expectApiKeyListGet(SUBSCRIPTION_ID, [fakeApiKey({ expireAt: endingAt })]);
 
-      const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
       const expireBtn = await harness.getExpireApiKeyBtn(0);
       await expireBtn.click();
 
@@ -973,7 +973,7 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       await initComponent();
       expectApiKeyListGet();
 
-      const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
       await harness.getExpireApiKeyBtn(0).then((btn) => btn.click());
 
       const changeEndDateDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
@@ -990,7 +990,7 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       await initComponent(BASIC_SUBSCRIPTION('SHARED'));
       expectApiKeyListGet(SUBSCRIPTION_ID, [fakeApiKey({ expired: false, revoked: false })]);
 
-      const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
       await harness
         .getReactivateApiKeyBtn(0)
         .then((_) => fail('Reactivate button should not be visible'))
@@ -1000,7 +1000,7 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       await initComponent();
       expectApiKeyListGet(SUBSCRIPTION_ID, [fakeApiKey({ id: API_KEY_ID, expired: true, revoked: false })]);
 
-      const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
       const reactivateBtn = await harness.getReactivateApiKeyBtn(0);
       expect(await reactivateBtn.isDisabled()).toEqual(false);
       await reactivateBtn.click();
@@ -1022,7 +1022,7 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
       await initComponent();
       expectApiKeyListGet(SUBSCRIPTION_ID, [fakeApiKey({ id: API_KEY_ID, expired: false, revoked: true })]);
 
-      const harness = await loader.getHarness(ApiGeneralSubscriptionEditHarness);
+      const harness = await loader.getHarness(ApiSubscriptionEditHarness);
       const reactivateBtn = await harness.getReactivateApiKeyBtn(0);
       await reactivateBtn.click();
 
@@ -1052,7 +1052,7 @@ describe('ApiGeneralSubscriptionEditComponent', () => {
         return constants;
       },
     });
-    fixture = TestBed.createComponent(ApiGeneralSubscriptionEditComponent);
+    fixture = TestBed.createComponent(ApiSubscriptionEditComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
 
