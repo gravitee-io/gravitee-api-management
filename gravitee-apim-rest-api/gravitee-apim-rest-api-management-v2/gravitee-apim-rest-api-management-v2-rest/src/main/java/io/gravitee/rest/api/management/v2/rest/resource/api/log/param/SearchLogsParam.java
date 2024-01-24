@@ -16,7 +16,8 @@
 package io.gravitee.rest.api.management.v2.rest.resource.api.log.param;
 
 import io.gravitee.common.http.HttpMethod;
-import io.gravitee.rest.api.management.v2.rest.resource.api.log.param.validation.IntervalParamConstraint;
+import io.gravitee.rest.api.management.v2.rest.validation.IntervalParamConstraint;
+import io.gravitee.rest.api.management.v2.rest.validation.TimeInterval;
 import jakarta.validation.constraints.Min;
 import jakarta.ws.rs.QueryParam;
 import java.util.Set;
@@ -24,7 +25,7 @@ import lombok.Data;
 
 @Data
 @IntervalParamConstraint
-public class SearchLogsParam {
+public class SearchLogsParam implements TimeInterval {
 
     public static final String FROM_QUERY_PARAM_NAME = "from";
     public static final String TO_QUERY_PARAM_NAME = "to";
