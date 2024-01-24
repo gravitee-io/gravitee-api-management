@@ -41,7 +41,7 @@ export class ApiV4MenuService implements ApiMenuService {
       this.addConfigurationMenuEntry(),
       this.addEntrypointsMenuEntry(hasTcpListeners),
       this.addEndpointsMenuEntry(isHttpProxyApi),
-      this.addConsumersMenuEntry(),
+      this.addConsumersMenuEntry(hasTcpListeners),
       this.addPoliciesMenuEntry(hasTcpListeners),
       this.addApiTrafficMenuEntry(hasTcpListeners),
     ];
@@ -172,13 +172,20 @@ export class ApiV4MenuService implements ApiMenuService {
     };
   }
 
-  private addConsumersMenuEntry(): MenuItem {
+  private addConsumersMenuEntry(hasTcpListeners: boolean): MenuItem {
     const tabs: MenuItem[] = [];
 
     if (this.permissionService.hasAnyMatching(['api-plan-r'])) {
       tabs.push({
         displayName: 'Plans',
         routerLink: 'plans',
+      });
+    }
+
+    if (this.permissionService.hasAnyMatching(['api-subscription-r']) && !hasTcpListeners) {
+      tabs.push({
+        displayName: 'Subscriptions',
+        routerLink: 'subscriptions',
       });
     }
 
@@ -247,21 +254,6 @@ export class ApiV4MenuService implements ApiMenuService {
       title: 'General',
       items: [],
     };
-    // Plans
-    const plansMenuItem: MenuItem = {
-      displayName: 'Plans',
-      tabs: [],
-    };
-
-    if (this.permissionService.hasAnyMatching(['api-subscription-r'])) {
-      plansMenuItem.tabs.push({
-        displayName: 'Subscriptions',
-        routerLink: 'subscriptions',
-      });
-    }
-    if (plansMenuItem.tabs.length > 0) {
-      generalGroup.items.push(plansMenuItem);
-    }
 
     if (this.permissionService.hasAnyMatching(['api-definition-r'])) {
       generalGroup.items.push({
