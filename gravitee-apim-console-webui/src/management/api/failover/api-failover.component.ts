@@ -19,18 +19,18 @@ import { EMPTY, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
 
-import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
-import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
-import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
-import { onlyApiV1V2Filter, onlyApiV2Filter } from '../../../../util/apiFilter.operator';
-import { Failover } from '../../../../entities/management-api-v2';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
+import { ApiV2Service } from '../../../services-ngx/api-v2.service';
+import { onlyApiV1V2Filter, onlyApiV2Filter } from '../../../util/apiFilter.operator';
+import { Failover } from '../../../entities/management-api-v2';
 
 @Component({
-  selector: 'api-proxy-failover',
-  templateUrl: './api-proxy-failover.component.html',
-  styleUrls: ['./api-proxy-failover.component.scss'],
+  selector: 'api-failover',
+  templateUrl: './api-failover.component.html',
+  styleUrls: ['./api-failover.component.scss'],
 })
-export class ApiProxyFailoverComponent implements OnInit, OnDestroy {
+export class ApiFailoverComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   public failoverForm: UntypedFormGroup;
