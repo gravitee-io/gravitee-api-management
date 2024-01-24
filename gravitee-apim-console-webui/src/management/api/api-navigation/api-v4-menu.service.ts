@@ -106,13 +106,6 @@ export class ApiV4MenuService implements ApiMenuService {
       },
     ];
 
-    if (this.permissionService.hasAnyMatching(['api-response_templates-r'])) {
-      tabs.push({
-        displayName: 'Response Templates',
-        routerLink: 'DISABLED',
-      });
-    }
-
     if (!hasTcpListeners) {
       tabs.push(
         {
