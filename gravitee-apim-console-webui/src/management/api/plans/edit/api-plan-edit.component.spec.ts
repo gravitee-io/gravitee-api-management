@@ -24,13 +24,13 @@ import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { ApiGeneralPlanEditComponent } from './api-general-plan-edit.component';
+import { ApiPlanEditComponent } from './api-plan-edit.component';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
-import { ApiGeneralPlansModule } from '../api-general-plans.module';
-import { fakeTag } from '../../../../../entities/tag/tag.fixture';
-import { fakeGroup } from '../../../../../entities/group/group.fixture';
-import { ApiPlanFormHarness } from '../../../component/plan/api-plan-form.harness';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { ApiPlansModule } from '../api-plans.module';
+import { fakeTag } from '../../../../entities/tag/tag.fixture';
+import { fakeGroup } from '../../../../entities/group/group.fixture';
+import { ApiPlanFormHarness } from '../../component/plan/api-plan-form.harness';
 import {
   Api,
   CreatePlanV2,
@@ -42,20 +42,20 @@ import {
   Plan,
   PlanStatus,
   PlanV2,
-} from '../../../../../entities/management-api-v2';
-import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
+} from '../../../../entities/management-api-v2';
+import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 
-describe('ApiGeneralPlanEditComponent', () => {
+describe('ApiPlanEditComponent', () => {
   const API_ID = 'my-api';
 
-  let fixture: ComponentFixture<ApiGeneralPlanEditComponent>;
+  let fixture: ComponentFixture<ApiPlanEditComponent>;
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
   let routerNavigationSpy: jest.SpyInstance;
 
   const configureTestingModule = (planId: string = undefined) => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiGeneralPlansModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiPlansModule, MatIconTestingModule],
       providers: [
         { provide: GioTestingPermissionProvider, useValue: ['api-plan-u'] },
         {
@@ -78,7 +78,7 @@ describe('ApiGeneralPlanEditComponent', () => {
       ],
     });
 
-    fixture = TestBed.createComponent(ApiGeneralPlanEditComponent);
+    fixture = TestBed.createComponent(ApiPlanEditComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
     TestbedHarnessEnvironment.documentRootLoader(fixture);
 

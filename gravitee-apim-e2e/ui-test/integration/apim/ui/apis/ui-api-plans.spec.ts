@@ -292,7 +292,6 @@ describe('API Plans Feature', () => {
     cy.url().should('include', '/plans?status=STAGING');
     cy.contains(`${planName}-Keyless`).should('be.visible');
 
-    // cy.getByDataTestId('api_plans_publish_plan_button').first().click();
     cy.contains('tr', `${planName}-Keyless`).find('[data-testid="api_plans_publish_plan_button"]').click();
     cy.getByDataTestId('confirm-dialog').click();
     cy.contains(`The plan ${planName}-Keyless has been published with success.`).should('be.visible');

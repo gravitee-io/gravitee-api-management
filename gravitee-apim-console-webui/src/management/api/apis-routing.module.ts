@@ -19,8 +19,8 @@ import { NgModule } from '@angular/core';
 
 import { ApiNavigationComponent } from './api-navigation/api-navigation.component';
 import { ApiGeneralInfoComponent } from './general-info/api-general-info.component';
-import { ApiGeneralPlanEditComponent } from './general/plans/edit/api-general-plan-edit.component';
-import { ApiGeneralPlanListComponent } from './general/plans/list/api-general-plan-list.component';
+import { ApiPlanEditComponent } from './plans/edit/api-plan-edit.component';
+import { ApiPlanListComponent } from './plans/list/api-plan-list.component';
 import { ApiGeneralSubscriptionListComponent } from './general/subscriptions/list/api-general-subscription-list.component';
 import { ApiV4PolicyStudioDesignComponent } from './policy-studio-v4/design/api-v4-policy-studio-design.component';
 import { ApiGeneralSubscriptionEditComponent } from './general/subscriptions/edit/api-general-subscription-edit.component';
@@ -178,11 +178,11 @@ const apisRoutes: Routes = [
             only: ['api-plan-r'],
           },
         },
-        component: ApiGeneralPlanListComponent,
+        component: ApiPlanListComponent,
       },
       {
         path: 'plans/new',
-        component: ApiGeneralPlanEditComponent,
+        component: ApiPlanEditComponent,
         data: {
           docs: null,
           apiPermissions: {
@@ -192,7 +192,7 @@ const apisRoutes: Routes = [
       },
       {
         path: 'plans/:planId',
-        component: ApiGeneralPlanEditComponent,
+        component: ApiPlanEditComponent,
         data: {
           docs: null,
           apiPermissions: {
