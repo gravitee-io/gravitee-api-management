@@ -40,6 +40,7 @@ import { ApiResourcesModule } from './resources-ng/api-resources.module';
 import { ApiEntrypointsModule } from './entrypoints/api-entrypoints.module';
 import { ApiResponseTemplatesModule } from './response-templates/api-response-templates.module';
 import { ApiEndpointsModule } from './endpoints/api-endpoints.module';
+import { ApiFailoverModule } from './failover/api-failover.module';
 
 import { SpecificJsonSchemaTypeModule } from '../../shared/components/specific-json-schema-type/specific-json-schema-type.module';
 import { DocumentationModule } from '../../components/documentation/documentation.module';
@@ -63,6 +64,7 @@ import { AlertsModule } from '../../components/alerts/alerts.module';
     ApiEndpointsV4Module,
     ApiEntrypointsModule,
     ApiEntrypointsV4Module,
+    ApiFailoverModule,
     ApisGeneralModule,
     ApiGeneralInfoModule,
     ApiListModule,

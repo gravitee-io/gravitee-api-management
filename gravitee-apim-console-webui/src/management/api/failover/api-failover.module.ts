@@ -32,11 +32,11 @@ import {
   GioFormFocusInvalidModule,
 } from '@gravitee/ui-particles-angular';
 
-import { ApiProxyFailoverComponent } from './api-proxy-failover.component';
+import { ApiFailoverComponent } from './api-failover.component';
 
 @NgModule({
-  declarations: [ApiProxyFailoverComponent],
-  exports: [ApiProxyFailoverComponent],
+  declarations: [ApiFailoverComponent],
+  exports: [ApiFailoverComponent],
   imports: [
     CommonModule,
 
@@ -56,4 +56,4 @@ import { ApiProxyFailoverComponent } from './api-proxy-failover.component';
     GioFormFocusInvalidModule,
   ],
 })
-export class ApiProxyFailoverModule {}
+export class ApiFailoverModule {}

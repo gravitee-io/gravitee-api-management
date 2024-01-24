@@ -37,7 +37,7 @@ import { ApiCorsComponent } from './cors/api-cors.component';
 import { ApiResponseTemplatesListComponent } from './response-templates/list/api-response-templates-list.component';
 import { ApiResponseTemplatesEditComponent } from './response-templates/edit/api-response-templates-edit.component';
 import { ApiEndpointGroupsComponent } from './endpoints-v4/endpoint-groups/api-endpoint-groups.component';
-import { ApiProxyFailoverComponent } from './proxy/failover/api-proxy-failover.component';
+import { ApiFailoverComponent } from './failover/api-failover.component';
 import { ApiProxyHealthCheckComponent } from './proxy/health-check/api-proxy-health-check.component';
 import { ApiHealthCheckDashboardComponent } from './proxy/health-check-dashboard/healthcheck-dashboard.component';
 import { ApiHealthCheckLogComponent } from './proxy/health-check-dashboard/healthcheck-log.controller';
@@ -583,7 +583,7 @@ const apisRoutes: Routes = [
       },
       {
         path: 'v2/failover',
-        component: ApiProxyFailoverComponent,
+        component: ApiFailoverComponent,
         data: {
           apiPermissions: {
             only: ['api-definition-r'],

@@ -24,23 +24,23 @@ import { MatInputHarness } from '@angular/material/input/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { ActivatedRoute } from '@angular/router';
 
-import { ApiProxyFailoverComponent } from './api-proxy-failover.component';
-import { ApiProxyFailoverModule } from './api-proxy-failover.module';
+import { ApiFailoverComponent } from './api-failover.component';
+import { ApiFailoverModule } from './api-failover.module';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
-import { ApiV2, fakeApiV2 } from '../../../../entities/management-api-v2';
-import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { ApiV2, fakeApiV2 } from '../../../entities/management-api-v2';
+import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiProxyFailoverComponent', () => {
   const API_ID = 'apiId';
 
-  let fixture: ComponentFixture<ApiProxyFailoverComponent>;
+  let fixture: ComponentFixture<ApiFailoverComponent>;
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiProxyFailoverModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiFailoverModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
         { provide: GioTestingPermissionProvider, useValue: ['api-definition-u'] },
@@ -53,7 +53,7 @@ describe('ApiProxyFailoverComponent', () => {
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ApiProxyFailoverComponent);
+    fixture = TestBed.createComponent(ApiFailoverComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
     TestbedHarnessEnvironment.documentRootLoader(fixture);
 

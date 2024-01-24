@@ -16,7 +16,6 @@
 
 import { NgModule } from '@angular/core';
 
-import { ApiProxyFailoverModule } from './failover/api-proxy-failover.module';
 import { ApiProxyHealthCheckModule } from './health-check/api-proxy-health-check.module';
 import { ApiProxyHealthCheckDashboardModule } from './health-check-dashboard/api-proxy-health-check-dashboard.module';
 import { ApiV1PropertiesComponent } from './properties-v1/properties.component';
@@ -30,7 +29,6 @@ import { ApiProxyCorsModule } from '../cors/api-proxy-cors.module';
   declarations: [ApiV1PropertiesComponent, ApiV1ResourcesComponent],
   imports: [
     ApiProxyCorsModule,
-    ApiProxyFailoverModule,
     ApiProxyHealthCheckModule,
     ApiProxyHealthCheckDashboardModule,
     ApiPropertiesModule,
