@@ -42,7 +42,9 @@ This chart will deploy the following:
   
 ## Upgrading
 
-Please always check [CHANGELOG.md](https://github.com/gravitee-io/helm-charts/blob/gh-pages/apim/CHANGELOG.md) and [BREAKING_CHANGES.md](https://github.com/gravitee-io/helm-charts/blob/gh-pages/apim/BREAKING_CHANGES.md) before upgrading to a new chart version.
+Please, before upgrading to a new chart version, always check [CHANGELOG.md](https://github.com/gravitee-io/gravitee-api-management/blob/master/helm/CHANGELOG.md). This one is about latest version (master), but you can switch to another maintained branch version in github to view the one dedicated to your version.
+
+Also, product or helm change with potential breaking changes are listed in the [releases-and-changelog](https://documentation.gravitee.io/apim/v/4.1/releases-and-changelog/changelogs) documentation page.
 
 ## Create a chart archive
 
