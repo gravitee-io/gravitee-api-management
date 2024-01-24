@@ -162,6 +162,9 @@ public class Plan implements Serializable {
 
     @JsonIgnore
     public List<Plugin> getPlugins() {
-        return this.getFlows().stream().map(Flow::getPlugins).flatMap(List::stream).toList();
+        return Optional
+            .ofNullable(this.getFlows())
+            .map(f -> f.stream().map(Flow::getPlugins).flatMap(List::stream).toList())
+            .orElse(List.of());
     }
 }
