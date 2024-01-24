@@ -26,23 +26,23 @@ import { GioFormCronHarness, GioSaveBarHarness } from '@gravitee/ui-particles-an
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { ActivatedRoute } from '@angular/router';
 
-import { ApiProxyHealthCheckComponent } from './api-proxy-health-check.component';
-import { ApiProxyHealthCheckModule } from './api-proxy-health-check.module';
+import { ApiHealthCheckComponent } from './api-health-check.component';
+import { ApiHealthCheckModule } from './api-health-check.module';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
-import { ApiV2, fakeApiV2 } from '../../../../entities/management-api-v2';
-import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { ApiV2, fakeApiV2 } from '../../../entities/management-api-v2';
+import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiProxyHealthCheckComponent', () => {
   const API_ID = 'my-api';
 
-  let fixture: ComponentFixture<ApiProxyHealthCheckComponent>;
+  let fixture: ComponentFixture<ApiHealthCheckComponent>;
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiProxyHealthCheckModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiHealthCheckModule, MatIconTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
         { provide: GioTestingPermissionProvider, useValue: ['api-health-c'] },
@@ -55,7 +55,7 @@ describe('ApiProxyHealthCheckComponent', () => {
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ApiProxyHealthCheckComponent);
+    fixture = TestBed.createComponent(ApiHealthCheckComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
     TestbedHarnessEnvironment.documentRootLoader(fixture);
 

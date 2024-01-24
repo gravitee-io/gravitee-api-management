@@ -45,6 +45,7 @@ import { ApiFailoverModule } from './failover/api-failover.module';
 import { SpecificJsonSchemaTypeModule } from '../../shared/components/specific-json-schema-type/specific-json-schema-type.module';
 import { DocumentationModule } from '../../components/documentation/documentation.module';
 import { AlertsModule } from '../../components/alerts/alerts.module';
+import { ApiHealthCheckModule } from "./health-check/api-health-check.module";
 
 @NgModule({
   declarations: [ApiV1PoliciesComponent],
@@ -67,6 +68,7 @@ import { AlertsModule } from '../../components/alerts/alerts.module';
     ApiFailoverModule,
     ApisGeneralModule,
     ApiGeneralInfoModule,
+    ApiHealthCheckModule,
     ApiListModule,
     ApiNavigationModule,
     ApiNotificationSettingsModule,

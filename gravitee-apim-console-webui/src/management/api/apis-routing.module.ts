@@ -38,7 +38,7 @@ import { ApiResponseTemplatesListComponent } from './response-templates/list/api
 import { ApiResponseTemplatesEditComponent } from './response-templates/edit/api-response-templates-edit.component';
 import { ApiEndpointGroupsComponent } from './endpoints-v4/endpoint-groups/api-endpoint-groups.component';
 import { ApiFailoverComponent } from './failover/api-failover.component';
-import { ApiProxyHealthCheckComponent } from './proxy/health-check/api-proxy-health-check.component';
+import { ApiHealthCheckComponent } from './health-check/api-health-check.component';
 import { ApiHealthCheckDashboardComponent } from './proxy/health-check-dashboard/healthcheck-dashboard.component';
 import { ApiHealthCheckLogComponent } from './proxy/health-check-dashboard/healthcheck-log.controller';
 import { ApiAnalyticsOverviewComponent } from './analytics/overview/analytics-overview.component';
@@ -595,7 +595,7 @@ const apisRoutes: Routes = [
       },
       {
         path: 'v2/healthcheck',
-        component: ApiProxyHealthCheckComponent,
+        component: ApiHealthCheckComponent,
         data: {
           apiPermissions: {
             only: ['api-health-c'],

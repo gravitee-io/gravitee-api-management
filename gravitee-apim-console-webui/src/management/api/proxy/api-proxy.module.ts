@@ -16,7 +16,6 @@
 
 import { NgModule } from '@angular/core';
 
-import { ApiProxyHealthCheckModule } from './health-check/api-proxy-health-check.module';
 import { ApiProxyHealthCheckDashboardModule } from './health-check-dashboard/api-proxy-health-check-dashboard.module';
 import { ApiV1PropertiesComponent } from './properties-v1/properties.component';
 import { ApiPropertiesModule } from './properties/properties/api-properties.module';
@@ -27,12 +26,6 @@ import { ApiProxyCorsModule } from '../cors/api-proxy-cors.module';
 
 @NgModule({
   declarations: [ApiV1PropertiesComponent, ApiV1ResourcesComponent],
-  imports: [
-    ApiProxyCorsModule,
-    ApiProxyHealthCheckModule,
-    ApiProxyHealthCheckDashboardModule,
-    ApiPropertiesModule,
-    ApiDynamicPropertiesModule,
-  ],
+  imports: [ApiProxyCorsModule, ApiProxyHealthCheckDashboardModule, ApiPropertiesModule, ApiDynamicPropertiesModule],
 })
 export class ApiProxyModule {}

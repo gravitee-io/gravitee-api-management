@@ -19,19 +19,19 @@ import { EMPTY, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { ActivatedRoute } from '@angular/router';
 
-import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
-import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
-import { ApiProxyHealthCheckFormComponent } from '../components/health-check-form/api-proxy-health-check-form.component';
-import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
-import { onlyApiV1V2Filter, onlyApiV2Filter } from '../../../../util/apiFilter.operator';
-import { Proxy } from '../../../../entities/management-api-v2';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
+import { ApiProxyHealthCheckFormComponent } from '../proxy/components/health-check-form/api-proxy-health-check-form.component';
+import { ApiV2Service } from '../../../services-ngx/api-v2.service';
+import { onlyApiV1V2Filter, onlyApiV2Filter } from '../../../util/apiFilter.operator';
+import { Proxy } from '../../../entities/management-api-v2';
 
 @Component({
-  selector: 'api-proxy-health-check',
-  templateUrl: './api-proxy-health-check.component.html',
-  styleUrls: ['./api-proxy-health-check.component.scss'],
+  selector: 'api-health-check',
+  templateUrl: './api-health-check.component.html',
+  styleUrls: ['./api-health-check.component.scss'],
 })
-export class ApiProxyHealthCheckComponent implements OnInit, OnDestroy {
+export class ApiHealthCheckComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   public healthCheckForm: UntypedFormGroup;

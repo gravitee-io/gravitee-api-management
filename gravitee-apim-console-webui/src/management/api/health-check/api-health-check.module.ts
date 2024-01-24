@@ -22,13 +22,13 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatButtonModule } from '@angular/material/button';
 import { RouterModule } from '@angular/router';
 
-import { ApiProxyHealthCheckComponent } from './api-proxy-health-check.component';
+import { ApiHealthCheckComponent } from './api-health-check.component';
 
-import { ApiProxyHealthCheckFormModule } from '../components/health-check-form/api-proxy-health-check-form.module';
+import { ApiProxyHealthCheckFormModule } from '../proxy/components/health-check-form/api-proxy-health-check-form.module';
 
 @NgModule({
-  declarations: [ApiProxyHealthCheckComponent],
-  exports: [ApiProxyHealthCheckComponent],
+  declarations: [ApiHealthCheckComponent],
+  exports: [ApiHealthCheckComponent],
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -44,4 +44,4 @@ import { ApiProxyHealthCheckFormModule } from '../components/health-check-form/a
     GioFormFocusInvalidModule,
   ],
 })
-export class ApiProxyHealthCheckModule {}
+export class ApiHealthCheckModule {}
