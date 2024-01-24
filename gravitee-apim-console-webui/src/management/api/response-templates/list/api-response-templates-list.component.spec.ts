@@ -29,11 +29,49 @@ import { ApiResponseTemplatesListComponent } from './api-response-templates-list
 
 import { ApiResponseTemplatesModule } from '../api-response-templates.module';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
-import { ApiV2, fakeApiV2 } from '../../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { ApiV2, ApiV4, fakeApiV2, fakeApiV4 } from '../../../../entities/management-api-v2';
 
 describe('ApiProxyResponseTemplatesListComponent', () => {
   const API_ID = 'apiId';
+  const apiV2 = fakeApiV2({
+    id: API_ID,
+    responseTemplates: {
+      DEFAULT: {
+        'application/json': {
+          body: 'json',
+          statusCode: 200,
+        },
+        'text/xml': {
+          body: 'xml',
+          statusCode: 200,
+        },
+        '*/*': {
+          body: 'default',
+          statusCode: 200,
+        },
+      },
+    },
+  });
+  const apiV4 = fakeApiV4({
+    id: API_ID,
+    responseTemplates: {
+      DEFAULT: {
+        'application/json': {
+          body: 'json',
+          statusCode: 200,
+        },
+        'text/xml': {
+          body: 'xml',
+          statusCode: 200,
+        },
+        '*/*': {
+          body: 'default',
+          statusCode: 200,
+        },
+      },
+    },
+  });
 
   let fixture: ComponentFixture<ApiResponseTemplatesListComponent>;
   let loader: HarnessLoader;
@@ -71,110 +109,82 @@ describe('ApiProxyResponseTemplatesListComponent', () => {
     httpTestingController.verify();
   });
 
-  it('should display response templates table', async () => {
-    const api = fakeApiV2({
-      id: API_ID,
-      responseTemplates: {
-        DEFAULT: {
-          'application/json': {
-            body: 'json',
-            statusCode: 200,
-          },
-          'text/xml': {
-            body: 'xml',
-            statusCode: 200,
-          },
-          '*/*': {
-            body: 'default',
-            statusCode: 200,
+  describe.each([{ api: apiV2 }, { api: apiV4 }])('With API $api.definitionVersion', ({ api }) => {
+    it('should display response templates table', async () => {
+      expectApiGetRequest(api);
+
+      const rtTable = await loader.getHarness(MatTableHarness.with({ selector: '#responseTemplateTable' }));
+      const rtTableRows = await rtTable.getCellTextByIndex();
+
+      expect(rtTableRows).toEqual([
+        ['DEFAULT', 'application/json', '200', ''],
+        ['DEFAULT', 'text/xml', '200', ''],
+        ['DEFAULT', '*/*', '200', ''],
+      ]);
+    });
+
+    it('should delete response template', async () => {
+      expectApiGetRequest(api);
+
+      const rtTable = await loader.getHarness(MatTableHarness.with({ selector: '#responseTemplateTable' }));
+      const rtTableFirstRow = (await rtTable.getRows())[0];
+
+      const [_1, _2, _3, rtTableFirstRowActionsCell] = await rtTableFirstRow.getCells();
+
+      const vhTableFirstRowHostInput = await rtTableFirstRowActionsCell.getHarness(
+        MatButtonHarness.with({ selector: '[aria-label="Button to delete a Response Template"]' }),
+      );
+      await vhTableFirstRowHostInput.click();
+
+      const confirmDialog = await rootLoader.getHarness(MatDialogHarness);
+      await (await confirmDialog.getHarness(MatButtonHarness.with({ text: /^Delete/ }))).click();
+
+      expectApiGetRequest(api);
+      const req = httpTestingController.expectOne({
+        method: 'PUT',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`,
+      });
+      expect(req.request.body.responseTemplates['DEFAULT']['application/json']).toBeUndefined();
+    });
+
+    it('should disable field when origin is kubernetes', async () => {
+      const api = fakeApiV2({
+        id: API_ID,
+        definitionContext: {
+          origin: 'KUBERNETES',
+        },
+        responseTemplates: {
+          DEFAULT: {
+            'application/json': {
+              body: 'json',
+              statusCode: 200,
+            },
           },
         },
-      },
+      });
+      expectApiGetRequest(api);
+
+      const rtTable = await loader.getHarness(MatTableHarness.with({ selector: '#responseTemplateTable' }));
+      const rtTableRows = await rtTable.getRows();
+
+      const [_1, _2, _3, rtTableFirstRowActionsCell] = await rtTableRows[0].getCells();
+
+      const allActionsBtn = await rtTableFirstRowActionsCell.getAllHarnesses(MatButtonHarness);
+      expect(allActionsBtn.length).toBe(1);
+
+      // expect open detail btn
+      const opentDetailBtn = allActionsBtn[0];
+      expect(await (await opentDetailBtn.host()).getAttribute('aria-label')).toBe('Button to open Response Template detail');
     });
-    expectApiGetRequest(api);
-
-    const rtTable = await loader.getHarness(MatTableHarness.with({ selector: '#responseTemplateTable' }));
-    const rtTableRows = await rtTable.getCellTextByIndex();
-
-    expect(rtTableRows).toEqual([
-      ['DEFAULT', 'application/json', '200', ''],
-      ['DEFAULT', 'text/xml', '200', ''],
-      ['DEFAULT', '*/*', '200', ''],
-    ]);
   });
 
-  it('should delete response template', async () => {
-    const api = fakeApiV2({
-      id: API_ID,
-      responseTemplates: {
-        DEFAULT: {
-          'application/json': {
-            body: 'json',
-            statusCode: 200,
-          },
-          'text/xml': {
-            body: 'xml',
-            statusCode: 200,
-          },
-          '*/*': {
-            body: 'default',
-            statusCode: 200,
-          },
-        },
-      },
-    });
-    expectApiGetRequest(api);
-
-    const rtTable = await loader.getHarness(MatTableHarness.with({ selector: '#responseTemplateTable' }));
-    const rtTableFirstRow = (await rtTable.getRows())[0];
-
-    const [_1, _2, _3, rtTableFirstRowActionsCell] = await rtTableFirstRow.getCells();
-
-    const vhTableFirstRowHostInput = await rtTableFirstRowActionsCell.getHarness(
-      MatButtonHarness.with({ selector: '[aria-label="Button to delete a Response Template"]' }),
-    );
-    await vhTableFirstRowHostInput.click();
-
-    const confirmDialog = await rootLoader.getHarness(MatDialogHarness);
-    await (await confirmDialog.getHarness(MatButtonHarness.with({ text: /^Delete/ }))).click();
-
-    expectApiGetRequest(api);
-    const req = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}` });
-    expect(req.request.body.responseTemplates['DEFAULT']['application/json']).toBeUndefined();
-  });
-
-  it('should disable field when origin is kubernetes', async () => {
-    const api = fakeApiV2({
-      id: API_ID,
-      definitionContext: {
-        origin: 'KUBERNETES',
-      },
-      responseTemplates: {
-        DEFAULT: {
-          'application/json': {
-            body: 'json',
-            statusCode: 200,
-          },
-        },
-      },
-    });
-    expectApiGetRequest(api);
-
-    const rtTable = await loader.getHarness(MatTableHarness.with({ selector: '#responseTemplateTable' }));
-    const rtTableRows = await rtTable.getRows();
-
-    const [_1, _2, _3, rtTableFirstRowActionsCell] = await rtTableRows[0].getCells();
-
-    const allActionsBtn = await rtTableFirstRowActionsCell.getAllHarnesses(MatButtonHarness);
-    expect(allActionsBtn.length).toBe(1);
-
-    // expect open detail btn
-    const opentDetailBtn = allActionsBtn[0];
-    expect(await (await opentDetailBtn.host()).getAttribute('aria-label')).toBe('Button to open Response Template detail');
-  });
-
-  function expectApiGetRequest(api: ApiV2) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
+  function expectApiGetRequest(api: ApiV2 | ApiV4) {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`,
+        method: 'GET',
+      })
+      .flush(api);
     fixture.detectChanges();
   }
 });
