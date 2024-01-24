@@ -94,7 +94,7 @@ describe('ApiProxyResponseTemplatesListComponent', () => {
       });
       expectApiGetRequest(api);
 
-      const rtTable = await loader.getHarness(MatTableHarness.with({selector: '#responseTemplateTable'}));
+      const rtTable = await loader.getHarness(MatTableHarness.with({ selector: '#responseTemplateTable' }));
       const rtTableRows = await rtTable.getCellTextByIndex();
 
       expect(rtTableRows).toEqual([
@@ -126,23 +126,23 @@ describe('ApiProxyResponseTemplatesListComponent', () => {
       });
       expectApiGetRequest(api);
 
-      const rtTable = await loader.getHarness(MatTableHarness.with({selector: '#responseTemplateTable'}));
+      const rtTable = await loader.getHarness(MatTableHarness.with({ selector: '#responseTemplateTable' }));
       const rtTableFirstRow = (await rtTable.getRows())[0];
 
       const [_1, _2, _3, rtTableFirstRowActionsCell] = await rtTableFirstRow.getCells();
 
       const vhTableFirstRowHostInput = await rtTableFirstRowActionsCell.getHarness(
-        MatButtonHarness.with({selector: '[aria-label="Button to delete a Response Template"]'}),
+        MatButtonHarness.with({ selector: '[aria-label="Button to delete a Response Template"]' }),
       );
       await vhTableFirstRowHostInput.click();
 
       const confirmDialog = await rootLoader.getHarness(MatDialogHarness);
-      await (await confirmDialog.getHarness(MatButtonHarness.with({text: /^Delete/}))).click();
+      await (await confirmDialog.getHarness(MatButtonHarness.with({ text: /^Delete/ }))).click();
 
       expectApiGetRequest(api);
       const req = httpTestingController.expectOne({
         method: 'PUT',
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`,
       });
       expect(req.request.body.responseTemplates['DEFAULT']['application/json']).toBeUndefined();
     });
@@ -164,7 +164,7 @@ describe('ApiProxyResponseTemplatesListComponent', () => {
       });
       expectApiGetRequest(api);
 
-      const rtTable = await loader.getHarness(MatTableHarness.with({selector: '#responseTemplateTable'}));
+      const rtTable = await loader.getHarness(MatTableHarness.with({ selector: '#responseTemplateTable' }));
       const rtTableRows = await rtTable.getRows();
 
       const [_1, _2, _3, rtTableFirstRowActionsCell] = await rtTableRows[0].getCells();
@@ -178,13 +178,15 @@ describe('ApiProxyResponseTemplatesListComponent', () => {
     });
 
     function expectApiGetRequest(api: ApiV2) {
-      httpTestingController.expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`,
-        method: 'GET'
-      }).flush(api);
+      httpTestingController
+        .expectOne({
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`,
+          method: 'GET',
+        })
+        .flush(api);
       fixture.detectChanges();
     }
-  })
+  });
 
   describe('API V4', () => {
     it('should display response templates table', async () => {
@@ -209,7 +211,7 @@ describe('ApiProxyResponseTemplatesListComponent', () => {
       });
       expectApiGetRequest(api);
 
-      const rtTable = await loader.getHarness(MatTableHarness.with({selector: '#responseTemplateTable'}));
+      const rtTable = await loader.getHarness(MatTableHarness.with({ selector: '#responseTemplateTable' }));
       const rtTableRows = await rtTable.getCellTextByIndex();
 
       expect(rtTableRows).toEqual([
@@ -241,23 +243,23 @@ describe('ApiProxyResponseTemplatesListComponent', () => {
       });
       expectApiGetRequest(api);
 
-      const rtTable = await loader.getHarness(MatTableHarness.with({selector: '#responseTemplateTable'}));
+      const rtTable = await loader.getHarness(MatTableHarness.with({ selector: '#responseTemplateTable' }));
       const rtTableFirstRow = (await rtTable.getRows())[0];
 
       const [_1, _2, _3, rtTableFirstRowActionsCell] = await rtTableFirstRow.getCells();
 
       const vhTableFirstRowHostInput = await rtTableFirstRowActionsCell.getHarness(
-        MatButtonHarness.with({selector: '[aria-label="Button to delete a Response Template"]'}),
+        MatButtonHarness.with({ selector: '[aria-label="Button to delete a Response Template"]' }),
       );
       await vhTableFirstRowHostInput.click();
 
       const confirmDialog = await rootLoader.getHarness(MatDialogHarness);
-      await (await confirmDialog.getHarness(MatButtonHarness.with({text: /^Delete/}))).click();
+      await (await confirmDialog.getHarness(MatButtonHarness.with({ text: /^Delete/ }))).click();
 
       expectApiGetRequest(api);
       const req = httpTestingController.expectOne({
         method: 'PUT',
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`,
       });
       expect(req.request.body.responseTemplates['DEFAULT']['application/json']).toBeUndefined();
     });
@@ -279,7 +281,7 @@ describe('ApiProxyResponseTemplatesListComponent', () => {
       });
       expectApiGetRequest(api);
 
-      const rtTable = await loader.getHarness(MatTableHarness.with({selector: '#responseTemplateTable'}));
+      const rtTable = await loader.getHarness(MatTableHarness.with({ selector: '#responseTemplateTable' }));
       const rtTableRows = await rtTable.getRows();
 
       const [_1, _2, _3, rtTableFirstRowActionsCell] = await rtTableRows[0].getCells();
@@ -292,14 +294,14 @@ describe('ApiProxyResponseTemplatesListComponent', () => {
       expect(await (await opentDetailBtn.host()).getAttribute('aria-label')).toBe('Button to open Response Template detail');
     });
 
-
     function expectApiGetRequest(api: ApiV4) {
-      httpTestingController.expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`,
-        method: 'GET'
-      }).flush(api);
+      httpTestingController
+        .expectOne({
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`,
+          method: 'GET',
+        })
+        .flush(api);
       fixture.detectChanges();
     }
-
-  })
+  });
 });

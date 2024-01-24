@@ -115,7 +115,7 @@ export class ApiV4MenuService implements ApiMenuService {
         {
           displayName: 'Response Templates',
           routerLink: 'response-templates',
-        }
+        },
       );
     }
 
