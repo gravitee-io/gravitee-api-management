@@ -24,13 +24,14 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyProvider;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyService;
 import io.gravitee.node.api.Node;
+import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.HttpClientService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.event.ApiEvent;
 import io.gravitee.rest.api.services.dynamicproperties.provider.http.HttpProvider;
@@ -44,7 +45,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
-public class DynamicPropertiesService extends AbstractService implements EventListener<ApiEvent, GenericApiEntity> {
+public class DynamicPropertiesService extends AbstractService implements EventListener<ApiEvent, Api> {
 
     final Map<ApiEntity, CronHandler> handlers = new HashMap<>();
 
@@ -88,20 +89,23 @@ public class DynamicPropertiesService extends AbstractService implements EventLi
     }
 
     @Override
-    public void onEvent(Event<ApiEvent, GenericApiEntity> event) {
-        final GenericApiEntity genericApiEntity = event.content();
-        // TODO: Handle Dynamic Properties on API v4
-        if (genericApiEntity.getDefinitionVersion() == null || genericApiEntity.getDefinitionVersion() != DefinitionVersion.V4) {
-            ApiEntity api = (ApiEntity) genericApiEntity;
+    public void onEvent(Event<ApiEvent, Api> event) {
+        final Api eventPayload = event.content();
+        if (eventPayload.getDefinitionVersion() != null && eventPayload.getDefinitionVersion() == DefinitionVersion.V4) {
+            return;
+        }
+        ApiEntity apiEntity = convert(eventPayload);
+
+        if (apiEntity.getDefinitionVersion() == null || apiEntity.getDefinitionVersion() != DefinitionVersion.V4) {
             switch (event.type()) {
                 case DEPLOY:
-                    startDynamicProperties(api);
+                    startDynamicProperties(apiEntity);
                     break;
                 case UNDEPLOY:
-                    stopDynamicProperties(api);
+                    stopDynamicProperties(apiEntity);
                     break;
                 case UPDATE:
-                    update(api);
+                    update(apiEntity);
                     break;
             }
         } else {
@@ -175,5 +179,13 @@ public class DynamicPropertiesService extends AbstractService implements EventLi
             LOGGER.info("{} Stopping dynamic properties service for API: {} [{}]", api.getId(), api.getName(), api.getVersion());
             handler.cancel();
         }
+    }
+
+    private ApiEntity convert(Api api) {
+        // When event was created with APIM < 3.x, the api doesn't have environmentId, we must use default.
+        if (api.getEnvironmentId() == null) {
+            api.setEnvironmentId(GraviteeContext.getDefaultEnvironment());
+        }
+        return apiConverter.toApiEntity(api, null);
     }
 }

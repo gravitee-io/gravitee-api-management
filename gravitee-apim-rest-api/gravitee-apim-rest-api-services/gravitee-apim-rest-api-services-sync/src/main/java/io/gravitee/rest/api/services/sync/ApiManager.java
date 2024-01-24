@@ -15,9 +15,9 @@
  */
 package io.gravitee.rest.api.services.sync;
 
-import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.event.EventManager;
-import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
+import io.gravitee.repository.management.model.Api;
+import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.rest.api.service.event.ApiEvent;
 import java.util.Collection;
 import java.util.HashMap;
@@ -33,30 +33,30 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class ApiManager {
 
     private final Logger logger = LoggerFactory.getLogger(ApiManager.class);
-    private final Map<String, GenericApiEntity> apis = new HashMap<>();
+    private final Map<String, Api> apis = new HashMap<>();
 
     @Autowired
     private EventManager eventManager;
 
-    public void deploy(GenericApiEntity api) {
+    public void deploy(Api api) {
         logger.info("Deployment of {}", api);
 
         apis.put(api.getId(), api);
 
-        if (api.getState() == Lifecycle.State.STARTED) {
+        if (api.getLifecycleState() == LifecycleState.STARTED) {
             eventManager.publishEvent(ApiEvent.DEPLOY, api);
         } else {
             logger.debug("{} is not enabled. Skip deployment.", api);
         }
     }
 
-    public void update(GenericApiEntity api) {
+    public void update(Api api) {
         apis.put(api.getId(), api);
         eventManager.publishEvent(ApiEvent.UPDATE, api);
     }
 
     public void undeploy(String apiId) {
-        GenericApiEntity currentApi = apis.remove(apiId);
+        Api currentApi = apis.remove(apiId);
         if (currentApi != null) {
             logger.info("Undeployment of {}", currentApi);
 
@@ -65,15 +65,15 @@ public class ApiManager {
         }
     }
 
-    public Collection<GenericApiEntity> apis() {
+    public void setEventManager(EventManager eventManager) {
+        this.eventManager = eventManager;
+    }
+
+    public Collection<Api> apis() {
         return apis.values();
     }
 
-    public GenericApiEntity get(String name) {
+    public Api get(String name) {
         return apis.get(name);
-    }
-
-    public void setEventManager(EventManager eventManager) {
-        this.eventManager = eventManager;
     }
 }

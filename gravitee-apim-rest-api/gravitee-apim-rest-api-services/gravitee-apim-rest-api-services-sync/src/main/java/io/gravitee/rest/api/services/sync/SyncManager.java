@@ -19,7 +19,6 @@ import static java.util.stream.Collectors.toMap;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.node.api.license.InvalidLicenseException;
 import io.gravitee.node.api.license.LicenseFactory;
 import io.gravitee.node.api.license.LicenseManager;
@@ -34,18 +33,11 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import io.gravitee.repository.management.model.License;
-import io.gravitee.rest.api.model.EnvironmentEntity;
-import io.gravitee.rest.api.model.PrimaryOwnerEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.converter.ApiConverter;
-import io.gravitee.rest.api.service.exceptions.PrimaryOwnerNotFoundException;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import java.time.Instant;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -66,7 +58,6 @@ public class SyncManager {
     private static final int TIMEFRAME_BEFORE_DELAY = 10 * 60 * 1000;
     private static final int TIMEFRAME_AFTER_DELAY = 1 * 60 * 1000;
     private final AtomicLong counter = new AtomicLong(0);
-    private final Map<String, String> organizationByEnvironment = new ConcurrentHashMap<>();
 
     @Autowired
     private DictionaryManager dictionaryManager;
@@ -224,34 +215,26 @@ public class SyncManager {
 
     protected void processApiEvent(String apiId, Event apiEvent) {
         switch (apiEvent.getType()) {
-            case UNPUBLISH_API:
-            case STOP_API:
-                apiManager.undeploy(apiId);
-                break;
-            case START_API:
-            case PUBLISH_API:
+            case UNPUBLISH_API, STOP_API:
+                {
+                    apiManager.undeploy(apiId);
+                    break;
+                }
+            case START_API, PUBLISH_API:
                 try {
                     // Read API definition from event
-                    Api payloadApi = objectMapper.readValue(apiEvent.getPayload(), Api.class);
+                    Api apiToDeploy = objectMapper.readValue(apiEvent.getPayload(), Api.class);
 
-                    // API to deploy
-                    GenericApiEntity indexableApiToDeploy;
-                    if (payloadApi.getDefinitionVersion() == null || payloadApi.getDefinitionVersion() != DefinitionVersion.V4) {
-                        indexableApiToDeploy = convert(payloadApi);
-                    } else {
-                        indexableApiToDeploy = convertV4(payloadApi);
-                    }
-
-                    if (indexableApiToDeploy != null) {
+                    if (apiToDeploy != null) {
                         // Get deployed API
-                        GenericApiEntity deployedApi = apiManager.get(indexableApiToDeploy.getId());
+                        Api deployedApi = apiManager.get(apiToDeploy.getId());
 
                         // API is not yet deployed, so let's do it !
                         if (deployedApi == null) {
-                            apiManager.deploy(indexableApiToDeploy);
+                            apiManager.deploy(apiToDeploy);
                         } else {
-                            if (deployedApi.getDeployedAt().before(indexableApiToDeploy.getDeployedAt())) {
-                                apiManager.update(indexableApiToDeploy);
+                            if (deployedApi.getDeployedAt().before(apiToDeploy.getDeployedAt())) {
+                                apiManager.update(apiToDeploy);
                             }
                         }
                     }
@@ -262,34 +245,5 @@ public class SyncManager {
             default:
                 break;
         }
-    }
-
-    private ApiEntity convert(Api api) {
-        // When event was created with APIM < 3.x, the api doesn't have environmentId, we must use default.
-        if (api.getEnvironmentId() == null) {
-            api.setEnvironmentId(GraviteeContext.getDefaultEnvironment());
-        }
-        PrimaryOwnerEntity primaryOwnerEntity = null;
-        try {
-            primaryOwnerEntity = primaryOwnerService.getPrimaryOwner(getOrganizationId(api.getEnvironmentId()), api.getId());
-        } catch (PrimaryOwnerNotFoundException e) {
-            log.error(e.getMessage());
-        }
-        return apiConverter.toApiEntity(api, primaryOwnerEntity);
-    }
-
-    private io.gravitee.rest.api.model.v4.api.ApiEntity convertV4(Api api) {
-        PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(getOrganizationId(api.getEnvironmentId()), api.getId());
-        return apiMapper.toEntity(api, primaryOwner);
-    }
-
-    private String getOrganizationId(String environmentId) {
-        return organizationByEnvironment.computeIfAbsent(
-            environmentId,
-            envId -> {
-                EnvironmentEntity environmentEntity = environmentService.findById(environmentId);
-                return environmentEntity.getOrganizationId();
-            }
-        );
     }
 }
