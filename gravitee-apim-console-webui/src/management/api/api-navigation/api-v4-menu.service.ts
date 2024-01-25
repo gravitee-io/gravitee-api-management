@@ -42,6 +42,7 @@ export class ApiV4MenuService implements ApiMenuService {
       this.addEntrypointsMenuEntry(hasTcpListeners),
       this.addEndpointsMenuEntry(isHttpProxyApi),
       this.addConsumersMenuEntry(hasTcpListeners),
+      this.addDocumentationMenuEntry(),
       this.addPoliciesMenuEntry(hasTcpListeners),
       this.addApiTrafficMenuEntry(hasTcpListeners),
     ];
@@ -69,14 +70,6 @@ export class ApiV4MenuService implements ApiMenuService {
       tabs.push({
         displayName: 'Resources',
         routerLink: 'resources',
-        routerLinkActiveOptions: { exact: true },
-      });
-    }
-
-    if (this.permissionService.hasAnyMatching(['api-metadata-r'])) {
-      tabs.push({
-        displayName: 'Metadata',
-        routerLink: 'DISABLED',
         routerLinkActiveOptions: { exact: true },
       });
     }
@@ -202,6 +195,35 @@ export class ApiV4MenuService implements ApiMenuService {
     };
   }
 
+  private addDocumentationMenuEntry(): MenuItem {
+    const tabs: MenuItem[] = [];
+
+    if (this.permissionService.hasAnyMatching(['api-documentation-r'])) {
+      tabs.push({
+        displayName: 'Pages',
+        routerLink: 'v4/documentation',
+      });
+    }
+
+    if (this.permissionService.hasAnyMatching(['api-metadata-r'])) {
+      tabs.push({
+        displayName: 'Metadata',
+        routerLink: 'DISABLED',
+      });
+    }
+
+    return {
+      displayName: 'Documentation',
+      icon: 'book',
+      routerLink: '',
+      header: {
+        title: 'Documentation',
+        subtitle: 'Documentation pages appear in the portal and inform API consumers how to use your API',
+      },
+      tabs: tabs,
+    };
+  }
+
   private addPoliciesMenuEntry(hasTcpListeners: boolean): MenuItem {
     return {
       displayName: 'Policies',
@@ -269,13 +291,6 @@ export class ApiV4MenuService implements ApiMenuService {
             routerLink: 'DISABLED',
           },
         ],
-      });
-    }
-
-    if (this.permissionService.hasAnyMatching(['api-documentation-r'])) {
-      generalGroup.items.push({
-        displayName: 'Documentation',
-        routerLink: 'v4/documentation',
       });
     }
 
