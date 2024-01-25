@@ -71,6 +71,10 @@ import { AuthModule } from './auth/auth.module';
       },
       deps: ['Constants'],
     },
+    {
+      provide: 'isFactory',
+      useValue: true,
+    },
   ],
 })
 export class AppModule implements DoBootstrap {
