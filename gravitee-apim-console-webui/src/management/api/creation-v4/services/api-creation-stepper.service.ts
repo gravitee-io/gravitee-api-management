@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable, Type } from '@angular/core';
+import {Inject, Injectable, Type} from '@angular/core';
 import { ReplaySubject, Subject } from 'rxjs';
 import { cloneDeep, toNumber } from 'lodash';
 
@@ -64,7 +64,7 @@ export class ApiCreationStepperService {
    */
   public finished$ = new Subject<ApiCreationPayload>();
 
-  constructor(public readonly groups: ApiCreationGroup[], initialPayload?: ApiCreationPayload) {
+  constructor(@Inject('isFactory') public readonly groups: ApiCreationGroup[], @Inject('isFactory') initialPayload?: ApiCreationPayload) {
     this.initialPayload = initialPayload ?? {};
     this.groups = groups ?? [];
   }

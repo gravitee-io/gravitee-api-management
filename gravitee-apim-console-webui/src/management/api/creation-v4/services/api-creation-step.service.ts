@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable } from '@angular/core';
+import {Inject, Injectable} from '@angular/core';
 
 import { ApiCreationStep, ApiCreationStepperService, NewApiCreationStep } from './api-creation-stepper.service';
 
@@ -24,7 +24,7 @@ import { ApiCreationPayload } from '../models/ApiCreationPayload';
  */
 @Injectable()
 export class ApiCreationStepService {
-  constructor(private readonly stepper: ApiCreationStepperService, public readonly step: ApiCreationStep) {}
+  constructor(@Inject('isFactory') private readonly stepper: ApiCreationStepperService, @Inject('isFactory') public readonly step: ApiCreationStep) {}
 
   public get payload(): ApiCreationPayload {
     return this.stepper.compileStepPayload(this.step);
