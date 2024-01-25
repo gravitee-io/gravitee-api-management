@@ -15,15 +15,18 @@
  */
 import { Component } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { Observable } from 'rxjs';
 
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
+import { ApiV4 } from '../../../../entities/management-api-v2';
+import { onlyApiV4Filter } from '../../../../util/apiFilter.operator';
 
 @Component({
   selector: 'api-runtime-logs-details',
   templateUrl: './api-runtime-logs-details.component.html',
 })
 export class ApiRuntimeLogsDetailsComponent {
-  api$ = this.apiService.get(this.activatedRoute.snapshot.params.apiId);
+  api$: Observable<ApiV4> = this.apiService.get(this.activatedRoute.snapshot.params.apiId).pipe(onlyApiV4Filter());
 
   constructor(private readonly activatedRoute: ActivatedRoute, private readonly apiService: ApiV2Service) {}
 }

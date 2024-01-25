@@ -138,7 +138,7 @@
     <mat-card *ngIf="mode === 'edit'" class="identity-provider__card" formArrayName="groupMappings">
       <h2 gioTableOfContents>Groups Mapping</h2>
       <mat-card
-        *ngFor="let groupMappingControl of this.identityProviderFormGroup.get('groupMappings')?.controls; index as groupMappingIndex"
+        *ngFor="let groupMappingControl of $any(this.identityProviderFormGroup.get('groupMappings'))?.controls; index as groupMappingIndex"
         class="identity-provider__card__group-mapping"
         [formGroupName]="groupMappingIndex"
       >
@@ -174,7 +174,7 @@
     <mat-card *ngIf="mode === 'edit'" class="identity-provider__card" formArrayName="roleMappings">
       <h2 gioTableOfContents>Roles Mapping</h2>
       <mat-card
-        *ngFor="let roleMappingControl of this.identityProviderFormGroup.get('roleMappings')?.controls; index as roleMappingIndex"
+        *ngFor="let roleMappingControl of $any(this.identityProviderFormGroup.get('roleMappings'))?.controls; index as roleMappingIndex"
         class="identity-provider__card__role-mapping"
         [formGroupName]="roleMappingIndex"
       >

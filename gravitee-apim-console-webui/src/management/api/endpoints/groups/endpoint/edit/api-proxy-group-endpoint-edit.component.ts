@@ -43,8 +43,8 @@ export class ApiProxyGroupEndpointEditComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   private api: ApiV1 | ApiV2;
   private connectors: ConnectorListItem[];
-  private mode: 'edit' | 'new';
 
+  public mode: 'edit' | 'new';
   public apiId: string;
   public isReadOnly: boolean;
   public supportedTypes: string[];

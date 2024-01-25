@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {Inject, Injectable, Type} from '@angular/core';
+import { Inject, Injectable, Type } from '@angular/core';
 import { ReplaySubject, Subject } from 'rxjs';
 import { cloneDeep, toNumber } from 'lodash';
 

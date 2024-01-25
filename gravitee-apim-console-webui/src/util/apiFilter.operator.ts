@@ -60,6 +60,22 @@ export const onlyApiV1V2Filter = (snackBarService?: SnackBarService) =>
     return of(api);
   });
 
+/**
+ * Filter API V4 only
+ */
+export const onlyApiV4Filter = (snackBarService?: SnackBarService) =>
+  switchMap((api: Api) => {
+    if (api.definitionVersion !== 'V4') {
+      if (snackBarService) {
+        snackBarService.error('Only V4 APIs are supported.');
+        return EMPTY;
+      }
+      throw new Error('Only V4 APIs are supported.');
+    }
+
+    return of(api);
+  });
+
 export const onlyApiV2V4Filter = (snackBarService?: SnackBarService) =>
   switchMap((api: Api) => {
     if (api.definitionVersion === 'V1') {

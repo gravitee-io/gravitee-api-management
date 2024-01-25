@@ -164,19 +164,19 @@
           </span>
         </gio-banner-info>
         <div
-          *ngFor="let option of healthCheckForm.get('assertions').controls; let i = index"
+          *ngFor="let option of $any(healthCheckForm.get('assertions')).controls; let i = index"
           class="health-check-card__assertions__assertion"
         >
           <mat-form-field class="health-check-card__assertions__assertion__form-field">
             <mat-label>Assertion #{{ i }}</mat-label>
             <input type="text" matInput [formControlName]="i" required />
-            <mat-error *ngIf="healthCheckForm.get('assertions').at(i).hasError('required')">Assertion is required.</mat-error>
+            <mat-error *ngIf="$any(healthCheckForm.get('assertions')).at(i).hasError('required')">Assertion is required.</mat-error>
           </mat-form-field>
           <button
             mat-icon-button
             class="health-check-card__assertions__assertion__remove-button"
             type="button"
-            [disabled]="healthCheckForm.get('assertions').length === 1"
+            [disabled]="$any(healthCheckForm.get('assertions')).length === 1"
             (click)="removeAssertion(i)"
             matTooltip="Remove assertion"
             aria-label="Remove assertion"

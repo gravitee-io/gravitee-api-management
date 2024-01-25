@@ -44,7 +44,7 @@
   </div>
   <div class="stepper">
     <form [formGroup]="form">
-      <mat-stepper linear color="accent" disableRipple>
+      <mat-stepper linear color="accent" [disableRipple]="true">
         <mat-step>
           <ng-template matStepLabel>Configure page</ng-template>
           <div class="stepper__content">

@@ -37,7 +37,7 @@ export class ApiCorsComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   public httpMethods = CorsUtil.httpMethods;
-  public defaultHttpHeaders = CorsUtil.defaultHttpHeaders;
+  public defaultHttpHeaders = CorsUtil.defaultHttpHeaders.map((e) => e);
   public corsForm: UntypedFormGroup;
   public initialCorsFormValue: unknown;
   public hasEntrypointsSupportingCors = false;

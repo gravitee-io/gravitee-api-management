@@ -20,7 +20,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { cloneDeep, get, merge } from 'lodash';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { AutocompleteOptions, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 
 import { ConsoleSettingsService } from '../../../services-ngx/console-settings.service';
 import { ConsoleSettings } from '../../../entities/consoleSettings';
@@ -43,7 +43,7 @@ export class OrgSettingsGeneralComponent implements OnInit, OnDestroy {
 
   httpMethods = CorsUtil.httpMethods;
 
-  defaultHttpHeaders = CorsUtil.defaultHttpHeaders;
+  defaultHttpHeaders: AutocompleteOptions = CorsUtil.defaultHttpHeaders.map((header) => header);
 
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
