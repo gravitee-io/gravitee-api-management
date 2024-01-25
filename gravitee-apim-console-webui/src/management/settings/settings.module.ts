@@ -41,6 +41,7 @@ import { DictionaryComponent } from './dictionaries/dictionary.component';
 import { CustomUserFieldsComponent } from './custom-user-fields/custom-user-fields.component';
 import { EnvironmentNotificationModule } from './notification/environment-notification.module';
 import { ApiQualityRulesNgModule } from './api-quality-rules-ng/api-quality-rules-ng.module';
+import { ApiPortalHeaderModule } from './api-portal-header/migrated/api-portal-header.module';
 import { IdentityProvidersNgModule } from './identity-providers-ng/identity-providers-ng.module';
 
 import { DocumentationModule } from '../../components/documentation/documentation.module';
@@ -59,6 +60,7 @@ import { DocumentationModule } from '../../components/documentation/documentatio
     ApiLoggingModule,
     IdentityProvidersNgModule,
     EnvironmentNotificationModule,
+    ApiPortalHeaderModule,
   ],
   declarations: [
     SettingsNavigationComponent,

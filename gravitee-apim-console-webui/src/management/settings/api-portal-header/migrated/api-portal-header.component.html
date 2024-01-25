@@ -1,0 +1,173 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+<div class="api-portal-headers">
+  <h1>API Portal Information</h1>
+
+  <div class="form">
+    <div class="form-cards">
+      <mat-card>
+        <mat-card-header class="card-header">
+          <h3>Header configuration</h3>
+          <p>Add additional information to each API header</p>
+        </mat-card-header>
+        <mat-card-content *ngIf="!!settings.portal" class="toggle-group">
+          <gio-form-slide-toggle>
+            Show tags list
+            <mat-slide-toggle
+              gioFormSlideToggle
+              aria-label="Show Tags"
+              [(ngModel)]="settings.portal.apis.apiHeaderShowTags.enabled"
+              (change)="saveToggle(ToggleOptions.show_tags)"
+              [disabled]="isReadonlySetting('portal.apis.apiheader.showtags.enabled') || !canUpdateSettings()"
+              data-testid="show_tags_toggle"
+            ></mat-slide-toggle>
+          </gio-form-slide-toggle>
+
+          <gio-form-slide-toggle>
+            Show categories
+            <mat-slide-toggle
+              gioFormSlideToggle
+              aria-label="Show Categories"
+              [(ngModel)]="settings.portal.apis.apiHeaderShowCategories.enabled"
+              (change)="saveToggle(ToggleOptions.show_categories)"
+              [disabled]="isReadonlySetting('portal.apis.apiheader.showcategories.enabled') || !canUpdateSettings()"
+              data-testid="show_categories_toggle"
+            ></mat-slide-toggle>
+          </gio-form-slide-toggle>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card>
+        <mat-card-header class="card-header">
+          <h3>General information</h3>
+          <p>Use hard-coded values or templating to display information about your API on the General Information page</p>
+        </mat-card-header>
+        <mat-card-content>
+          <table mat-table [dataSource]="headersList">
+            <caption style="display: none">
+              Table with API Information
+            </caption>
+            <!-- Name Column -->
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef>Name</th>
+              <td mat-cell *matCellDef="let element">{{ element.name }}</td>
+            </ng-container>
+
+            <!-- Value Column -->
+            <ng-container matColumnDef="value">
+              <th mat-header-cell *matHeaderCellDef>Value</th>
+              <td mat-cell *matCellDef="let element">{{ element.value }}</td>
+            </ng-container>
+
+            <!-- Actions Column -->
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef id="actions"></th>
+              <td mat-cell *matCellDef="let element">
+                <div class="actions__edit">
+                  <ng-container *ngIf="headersList.length > 1">
+                    <div class="order-buttons" *gioPermission="{ anyOf: ['environment-settings-u'] }">
+                      <button
+                        [disabled]="isFirst(element.order)"
+                        (click)="moveUp(element)"
+                        mat-icon-button
+                        aria-label="Button to move up header"
+                        data-testid="move-up-button"
+                      >
+                        <mat-icon>arrow_upward</mat-icon>
+                      </button>
+                      <button
+                        [disabled]="isLast(element.order)"
+                        (click)="moveDown(element)"
+                        mat-icon-button
+                        aria-label="Button to move down header"
+                        data-testid="move-down-button"
+                      >
+                        <mat-icon>arrow_downward</mat-icon>
+                      </button>
+                    </div>
+                  </ng-container>
+
+                  <button
+                    (click)="updateHeader(element)"
+                    mat-icon-button
+                    aria-label="Button to edit header"
+                    matTooltip="Edit header"
+                    *gioPermission="{ anyOf: ['environment-settings-c', 'environment-settings-u', 'environment-settings-d'] }"
+                    data-testid="edit-header-button"
+                  >
+                    <mat-icon data-testid="api_list_edit_button">edit</mat-icon>
+                  </button>
+
+                  <button
+                    (click)="deleteHeader(element)"
+                    mat-icon-button
+                    aria-label="Delete header button"
+                    *gioPermission="{ anyOf: ['environment-settings-d'] }"
+                    data-testid="delete-button"
+                  >
+                    <mat-icon data-testid="api_list_edit_button">delete</mat-icon>
+                  </button>
+                </div>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+
+            <!-- Row shown when there is no data -->
+            <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+              <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">No headers to display.</td>
+            </tr>
+          </table>
+          <div class="add-headers">
+            <button
+              class="add-button"
+              (click)="createHeader()"
+              mat-raised-button
+              color="primary"
+              *gioPermission="{ anyOf: ['environment-settings-c'] }"
+            >
+              Add Information
+            </button>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card>
+        <mat-card-header class="card-header">
+          <h3>Catalog settings</h3>
+          <p>Configure how lists of APIs are shown in the catalog</p>
+        </mat-card-header>
+        <mat-card-content>
+          <gio-form-slide-toggle *ngIf="!!settings.portal">
+            Display promotion banner
+            <mat-slide-toggle
+              gioFormSlideToggle
+              aria-label="Display promotion banner"
+              [(ngModel)]="settings.portal.apis.promotedApiMode.enabled"
+              (change)="saveToggle(ToggleOptions.promoted_api_mode)"
+              [disabled]="isReadonlySetting('portal.apis.promotedApiMode.enabled') || !canUpdateSettings()"
+              data-testid="promoted_api_mode_toggle"
+            ></mat-slide-toggle>
+          </gio-form-slide-toggle>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>

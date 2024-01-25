@@ -68,6 +68,9 @@ export interface PortalSettingsPortal {
     apiHeaderShowCategories: {
       enabled: boolean;
     };
+    promotedApiMode?: {
+      enabled: boolean;
+    };
   };
   entrypoint?: string;
   rating?: {

@@ -24,6 +24,7 @@ import { CategoriesComponent } from './categories/categories.component';
 import { CategoryComponent } from './categories/category/category.component';
 import { GroupsComponent } from './groups/groups.component';
 import { GroupComponent } from './groups/group/group.component';
+import { ApiPortalHeaderComponent as ApiPortalHeaderComponentMigrated } from './api-portal-header/migrated/api-portal-header.component';
 import { ClientRegistrationProvidersComponent } from './client-registration-providers/client-registration-providers.component';
 import { ClientRegistrationProviderComponent } from './client-registration-providers/client-registration-provider/client-registration-provider.component';
 import { EnvironmentMetadataComponent } from './metadata/environment-metadata.component';
@@ -94,6 +95,16 @@ export const settingsRoutes: Routes = [
           docs: {
             page: 'management-configuration-apiportalheader',
           },
+          permissions: {
+            anyOf: ['environment-api_header-r'],
+            unauthorizedFallbackTo: '../api-quality-rules',
+          },
+        },
+      },
+      {
+        path: 'api-portal-header-ng',
+        component: ApiPortalHeaderComponentMigrated,
+        data: {
           permissions: {
             anyOf: ['environment-api_header-r'],
             unauthorizedFallbackTo: '../api-quality-rules',
