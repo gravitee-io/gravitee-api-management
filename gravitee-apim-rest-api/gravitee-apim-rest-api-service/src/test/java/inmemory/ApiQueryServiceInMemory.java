@@ -53,6 +53,12 @@ public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlterna
     }
 
     @Override
+    public Stream<Api> findAllStartedApisByOrganization(String organizationId) {
+        // As organization id is not part of the API model, we ignore this criteria for in memory implementation
+        return storage.stream().filter(api -> api.getLifecycleState().equals(Api.LifecycleState.STARTED));
+    }
+
+    @Override
     public void initWith(List<Api> items) {
         storage.addAll(items);
     }

@@ -17,17 +17,23 @@ package io.gravitee.apim.infra.query_service.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.ApiFixtures;
+import inmemory.EnvironmentCrudServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiFieldFilter;
 import io.gravitee.apim.core.api.model.ApiSearchCriteria;
 import io.gravitee.apim.core.api.model.Sortable;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
+import io.gravitee.apim.core.environment.model.Environment;
 import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.repository.management.model.LifecycleState;
+import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,12 +41,14 @@ import org.junit.jupiter.api.Test;
 class ApiQueryServiceImplTest {
 
     ApiRepository apiRepository;
+    EnvironmentCrudServiceInMemory environmentCrudService;
     ApiQueryService service;
 
     @BeforeEach
     void setUp() {
         apiRepository = mock(ApiRepository.class);
-        service = new ApiQueryServiceImpl(apiRepository);
+        environmentCrudService = new EnvironmentCrudServiceInMemory();
+        service = new ApiQueryServiceImpl(apiRepository, environmentCrudService);
     }
 
     @Test
@@ -54,8 +62,34 @@ class ApiQueryServiceImplTest {
         assertThat(res).hasSize(1).containsExactly(api);
     }
 
+    @Test
+    void should_find_all_started_apis_for_an_organization() {
+        var api = anApi();
+        givenEnvironments(
+            List.of(
+                Environment.builder().organizationId("org-id").id("env-1").build(),
+                Environment.builder().organizationId("org-id").id("env-2").build()
+            )
+        );
+        when(
+            apiRepository.search(
+                eq(new ApiCriteria.Builder().environments(List.of("env-1", "env-2")).state(LifecycleState.STARTED).build()),
+                any(),
+                any()
+            )
+        )
+            .thenReturn(ApiAdapter.INSTANCE.toRepositoryStream(Stream.of(api)));
+
+        var res = service.findAllStartedApisByOrganization("org-id");
+        assertThat(res).hasSize(1).containsExactly(api);
+    }
+
     private void givenMatchingApis(Stream<Api> apis) {
         when(apiRepository.search(any(), any(), any())).thenReturn(ApiAdapter.INSTANCE.toRepositoryStream(apis));
+    }
+
+    private void givenEnvironments(List<Environment> environments) {
+        environmentCrudService.initWith(environments);
     }
 
     private Api anApi() {
