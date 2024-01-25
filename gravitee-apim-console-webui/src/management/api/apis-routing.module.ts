@@ -31,7 +31,7 @@ import { ApiResourcesComponent } from './resources-ng/api-resources.component';
 import { ApiGeneralMembersComponent } from './general/user-group-access/members/api-general-members.component';
 import { ApiGeneralGroupsComponent } from './general/user-group-access/groups/api-general-groups.component';
 import { ApiGeneralTransferOwnershipComponent } from './general/user-group-access/transfer-ownership/api-general-transfer-ownership.component';
-import { ApiPortalDocumentationMetadataComponent } from './general/documentation/metadata/api-portal-documentation-metadata.component';
+import { ApiPortalDocumentationMetadataComponent } from './documentation/metadata/api-portal-documentation-metadata.component';
 import { ApiEntrypointsComponent } from './entrypoints/api-entrypoints.component';
 import { ApiCorsComponent } from './cors/api-cors.component';
 import { ApiResponseTemplatesListComponent } from './response-templates/list/api-response-templates-list.component';

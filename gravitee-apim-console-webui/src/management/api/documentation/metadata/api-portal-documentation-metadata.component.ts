@@ -16,8 +16,8 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
-import { MetadataSaveServices } from '../../../../../components/gio-metadata/gio-metadata.component';
-import { ApiService } from '../../../../../services-ngx/api.service';
+import { MetadataSaveServices } from '../../../../components/gio-metadata/gio-metadata.component';
+import { ApiService } from '../../../../services-ngx/api.service';
 
 @Component({
   selector: 'api-portal-documentation-metadata',

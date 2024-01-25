@@ -15,10 +15,9 @@
  */
 import { NgModule } from '@angular/core';
 
-import { ApiGeneralDocumentationModule } from './documentation/api-general-documentation.module';
 import { ApiGeneralUserGroupModule } from './user-group-access/api-general-user-group.module';
 
 @NgModule({
-  imports: [ApiGeneralDocumentationModule, ApiGeneralUserGroupModule],
+  imports: [ApiGeneralUserGroupModule],
 })
 export class ApisGeneralModule {}
