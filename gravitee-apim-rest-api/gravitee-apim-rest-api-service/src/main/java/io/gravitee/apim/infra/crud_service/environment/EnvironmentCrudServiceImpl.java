@@ -22,6 +22,8 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -44,6 +46,19 @@ public class EnvironmentCrudServiceImpl implements EnvironmentCrudService {
             return this.environmentRepository.findById(environmentId)
                 .map(EnvironmentAdapter.INSTANCE::toModel)
                 .orElseThrow(() -> new EnvironmentNotFoundException(environmentId));
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException(e);
+        }
+    }
+
+    public Set<Environment> findByOrganizationId(String organizationId) {
+        try {
+            log.debug("Find environment by organization id: {}", organizationId);
+
+            return this.environmentRepository.findByOrganization(organizationId)
+                .stream()
+                .map(EnvironmentAdapter.INSTANCE::toModel)
+                .collect(Collectors.toSet());
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(e);
         }

@@ -26,6 +26,8 @@ import io.gravitee.apim.infra.adapter.EnvironmentAdapter;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -50,6 +52,14 @@ class EnvironmentCrudServiceImplTest {
     }
 
     @Test
+    void should_find_environments_by_organization_id() {
+        Environment environment = anEnvironment();
+        givenEnvironmentsByOrganization("org-id", Set.of(environment));
+
+        assertThat(service.findByOrganizationId("org-id")).isEqualTo(Set.of(environment));
+    }
+
+    @Test
     void should_throw_exception_if_environment_not_found() {
         var throwable = catchThrowable(() -> service.get("unknown"));
         assertThat(throwable).isInstanceOf(EnvironmentNotFoundException.class);
@@ -59,6 +69,12 @@ class EnvironmentCrudServiceImplTest {
     private void givenEnvironment(Environment environment) {
         when(environmentRepository.findById(environment.getId()))
             .thenReturn(Optional.of(EnvironmentAdapter.INSTANCE.toRepository(environment)));
+    }
+
+    @SneakyThrows
+    private void givenEnvironmentsByOrganization(String organizationId, Set<Environment> environments) {
+        when(environmentRepository.findByOrganization(organizationId))
+            .thenReturn(environments.stream().map(EnvironmentAdapter.INSTANCE::toRepository).collect(Collectors.toSet()));
     }
 
     private Environment anEnvironment() {

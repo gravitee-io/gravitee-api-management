@@ -21,6 +21,8 @@ import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class EnvironmentCrudServiceInMemory implements EnvironmentCrudService, InMemoryAlternative<Environment> {
 
@@ -48,5 +50,10 @@ public class EnvironmentCrudServiceInMemory implements EnvironmentCrudService, I
             .filter(env -> environmentId.equals(env.getId()))
             .findFirst()
             .orElseThrow(() -> new EnvironmentNotFoundException(environmentId));
+    }
+
+    @Override
+    public Set<Environment> findByOrganizationId(String organizationId) {
+        return storage.stream().filter(env -> organizationId.equals(env.getOrganizationId())).collect(Collectors.toSet());
     }
 }

@@ -16,7 +16,9 @@
 package io.gravitee.apim.core.environment.crud_service;
 
 import io.gravitee.apim.core.environment.model.Environment;
+import java.util.Set;
 
 public interface EnvironmentCrudService {
     Environment get(String environmentId);
+    Set<Environment> findByOrganizationId(String organizationId);
 }
