@@ -36,6 +36,9 @@ export function fakePortalSettings(attributes?: Partial<PortalSettings>): Portal
         apiHeaderShowCategories: {
           enabled: true,
         },
+        promotedApiMode: {
+          enabled: true,
+        },
       },
       analytics: {
         enabled: false,
