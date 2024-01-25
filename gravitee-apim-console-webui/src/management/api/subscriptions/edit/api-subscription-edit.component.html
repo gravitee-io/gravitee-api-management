@@ -164,7 +164,7 @@
           (filtersChange)="onFiltersChanged($event)"
           [paginationPageSizeOptions]="[5, 10, 25, 50]"
         >
-          <table mat-table [dataSource]="apiKeys" class="card__table" attr.aria-label="API Keys Table">
+          <table mat-table [dataSource]="apiKeys" class="card__table" aria-label="API Keys Table">
             <ng-container matColumnDef="key">
               <th mat-header-cell *matHeaderCellDef>Key</th>
               <td mat-cell *matCellDef="let apiKey" class="subscription__api-keys__id">

@@ -39,8 +39,8 @@ export class ApiRuntimeLogsMessageSettingsComponent implements OnInit, OnDestroy
   samplingType: SamplingTypeEnum;
   loggingModeDisabled = false;
   initialFormValue: unknown;
+  settings: ConsoleSettings;
   private unsubscribe$: Subject<void> = new Subject<void>();
-  private settings: ConsoleSettings;
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,

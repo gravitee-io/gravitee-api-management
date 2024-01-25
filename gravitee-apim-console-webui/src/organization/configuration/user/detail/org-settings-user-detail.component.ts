@@ -19,7 +19,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatLegacyDialog } from '@angular/material/legacy-dialog';
 import { combineLatest, EMPTY, from, Observable, Subject, zip } from 'rxjs';
 import { catchError, filter, mergeMap, shareReplay, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { isEmpty } from 'lodash';
+import { isEmpty, toString } from 'lodash';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute } from '@angular/router';
 
@@ -52,6 +52,7 @@ interface UserVM extends User {
   organizationRoles: string;
   avatarUrl: string;
   badgeCSSClass: string;
+  customFields?: Record<string, string>;
 }
 
 interface EnvironmentDS {
@@ -124,7 +125,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
     unknown[]
   > = { apisTableDS: [], applicationsTableDS: [], environmentsTableDS: [], groupsTableDS: [], tokensTableDS: [] };
 
-  private tablesUnpaginatedLength: Record<
+  public tablesUnpaginatedLength: Record<
     'environmentsTableDS' | 'groupsTableDS' | 'apisTableDS' | 'applicationsTableDS' | 'tokensTableDS',
     number
   > = { apisTableDS: 0, applicationsTableDS: 0, environmentsTableDS: 0, groupsTableDS: 0, tokensTableDS: 0 };
@@ -158,6 +159,9 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
           organizationRoles: organizationRoles.map((r) => r.name ?? r.id).join(', '),
           avatarUrl: this.usersService.getUserAvatar(this.activatedRoute.snapshot.params.userId),
           badgeCSSClass: UserHelper.getStatusBadgeCSSClass(user),
+          customFields: Object.entries(user.customFields ?? {}).reduce((result, [key, value]) => {
+            return { ...result, [key]: toString(value) };
+          }, {}),
         };
 
         this.initOrganizationRolesForm();

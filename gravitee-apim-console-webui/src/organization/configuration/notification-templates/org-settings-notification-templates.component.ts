@@ -29,6 +29,7 @@ interface NotificationTemplateVM {
   hook: string;
   description: string;
   overridden: boolean;
+  icon: string;
 }
 
 export type NotificationTemplatesByScope = Record<string, NotificationTemplateVM[]>;
@@ -72,7 +73,7 @@ export class OrgSettingsNotificationTemplatesComponent implements OnInit {
       .mapValues((notificationTemplatesWithSameName) => {
         const notificationTemplate = notificationTemplatesWithSameName[0];
 
-        return {
+        const notificationTemplateVM: NotificationTemplateVM = {
           humanReadableScope: this.getHumanReadableScope(notificationTemplate.scope),
           scope: notificationTemplate.scope,
           name: notificationTemplate.name,
@@ -81,6 +82,7 @@ export class OrgSettingsNotificationTemplatesComponent implements OnInit {
           overridden: notificationTemplatesWithSameName.some((notificationTemplate) => notificationTemplate.enabled === true),
           icon: this.getScopeIcon(notificationTemplate.scope),
         };
+        return notificationTemplateVM;
       })
       .toArray()
       .groupBy('humanReadableScope')

@@ -22,13 +22,13 @@
   <div class="gio-instance-details-monitoring__main-indicators">
     <mat-card class="gio-instance-details-monitoring__main-indicators__card">
       <div class="gio-instance-details-monitoring__main-indicators__card__percentage">
-        <gio-circular-percentage [score]="monitoringData?.process?.cpu_percent / 100" reverseColor="true"></gio-circular-percentage>
+        <gio-circular-percentage [score]="monitoringData?.process?.cpu_percent / 100" [reverseColor]="true"></gio-circular-percentage>
       </div>
       <h4>CPU</h4>
     </mat-card>
     <mat-card class="gio-instance-details-monitoring__main-indicators__card">
       <div class="gio-instance-details-monitoring__main-indicators__card__percentage">
-        <gio-circular-percentage [score]="monitoringData?.jvm?.heap_used_percent / 100" reverseColor="true"></gio-circular-percentage>
+        <gio-circular-percentage [score]="monitoringData?.jvm?.heap_used_percent / 100" [reverseColor]="true"></gio-circular-percentage>
       </div>
       <h4>Heap</h4>
     </mat-card>

@@ -39,8 +39,8 @@ import { ApiV1, ApiV2 } from '../../../../../entities/management-api-v2';
 })
 export class ApiProxyGroupEditComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
-  private mode: 'new' | 'edit';
 
+  public mode: 'new' | 'edit';
   public apiId: string;
   public api: ApiV1 | ApiV2;
   public isReadOnly: boolean;

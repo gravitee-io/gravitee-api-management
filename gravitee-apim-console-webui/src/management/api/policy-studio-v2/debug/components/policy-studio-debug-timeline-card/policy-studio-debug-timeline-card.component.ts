@@ -66,6 +66,7 @@ interface TimelineCardVM {
   clickable: boolean;
   selection: 'start' | 'content' | 'end' | 'single' | 'none';
   condition?: string;
+  executionStatus?: 'ERROR' | 'SKIPPED' | 'COMPLETED';
 }
 
 @Component({
@@ -147,6 +148,7 @@ export class PolicyStudioDebugTimelineCardComponent implements OnChanges {
           clickable: true,
           selection: timelineStep.selection,
           condition: timelineStep.condition,
+          executionStatus: timelineStep.executionStatus,
         };
       case 'RESPONSE_INPUT':
         return {

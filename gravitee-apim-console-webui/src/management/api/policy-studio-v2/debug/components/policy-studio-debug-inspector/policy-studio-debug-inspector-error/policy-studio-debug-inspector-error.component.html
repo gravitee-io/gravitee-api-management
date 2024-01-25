@@ -15,12 +15,12 @@
     limitations under the License.
 
 -->
-<table class="gio-table-light" attr.aria-label="Debug errors">
+<table class="gio-table-light" aria-label="Debug errors">
   <tbody>
     <tr *ngIf="error.status">
       <td class="key">Status</td>
       <td class="value">
-        <span gioClipboardCopyWrapper [contentToCopy]="error.status">{{ error.status }}</span>
+        <span gioClipboardCopyWrapper [contentToCopy]="error.status + ''">{{ error.status }}</span>
       </td>
     </tr>
     <tr *ngIf="error.message">

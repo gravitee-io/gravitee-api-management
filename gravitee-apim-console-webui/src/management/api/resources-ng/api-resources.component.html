@@ -20,8 +20,8 @@
     *ngIf="api"
     class="policy-studio-resources"
     [attr.readonly]="this.isReadonly"
-    (:gv-resources:change)="this.onChange($event)"
-    (:gv-resources:display-resource-cta)="this.onDisplayResourceCTA($event)"
+    (:gv-resources:change)="this.onChange($any($event))"
+    (:gv-resources:display-resource-cta)="this.onDisplayResourceCTA($any($event))"
     [resources]="api.resources ?? []"
     [types]="resourceTypes"
   ></gv-resources>

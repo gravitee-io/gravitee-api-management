@@ -45,7 +45,7 @@
               allowDropFileTypes: true,
               autoCloseTags: true
             }"
-            (:gv-code:input)="onBodyChange($event.detail)"
+            (:gv-code:input)="onBodyChange($any($event).detail)"
           ></gv-code>
         </mat-tab>
       </mat-tab-group>

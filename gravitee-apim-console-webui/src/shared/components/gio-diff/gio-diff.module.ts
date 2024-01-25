@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { CommonModule } from '@angular/common';
-import { NgModule } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { GioClipboardModule } from '@gravitee/ui-particles-angular';
@@ -25,5 +25,6 @@ import { GioDiffComponent } from './gio-diff.component';
   imports: [CommonModule, FormsModule, MatButtonToggleModule, GioClipboardModule],
   declarations: [GioDiffComponent],
   exports: [GioDiffComponent],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class GioDiffModule {}

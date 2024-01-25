@@ -38,7 +38,7 @@ export class ApiGeneralGroupsComponent implements OnInit, OnDestroy {
   public groups: Group[];
   public initialFormValue: unknown;
   public readOnlyGroupList: string;
-  private isV1Api = false;
+  public isV1Api = false;
 
   constructor(
     public readonly activatedRoute: ActivatedRoute,
