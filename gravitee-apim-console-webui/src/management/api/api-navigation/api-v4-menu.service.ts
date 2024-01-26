@@ -70,6 +70,13 @@ export class ApiV4MenuService implements ApiMenuService {
       },
     ];
 
+    if (this.permissionService.hasAnyMatching(['api-member-r'])) {
+      tabs.push({
+        displayName: 'User Permissions',
+        routerLink: 'members',
+      });
+    }
+
     if (this.permissionService.hasAnyMatching(['api-definition-r'])) {
       tabs.push({
         displayName: 'Resources',
@@ -302,33 +309,6 @@ export class ApiV4MenuService implements ApiMenuService {
           },
         ],
       });
-    }
-
-    // Users
-    const userAndGroupAccessMenuItems: MenuItem = {
-      displayName: 'User and group access',
-      tabs: [],
-    };
-    if (this.permissionService.hasAnyMatching(['api-member-r'])) {
-      userAndGroupAccessMenuItems.tabs.push(
-        {
-          displayName: 'Members',
-          routerLink: 'members',
-        },
-        {
-          displayName: 'Groups',
-          routerLink: 'groups',
-        },
-      );
-    }
-    if (this.roleService.isOrganizationAdmin() || this.permissionService.hasAnyMatching(['api-member-u'])) {
-      userAndGroupAccessMenuItems.tabs.push({
-        displayName: 'Transfer ownership',
-        routerLink: 'transfer-ownership',
-      });
-    }
-    if (userAndGroupAccessMenuItems.tabs.length > 0) {
-      generalGroup.items.push(userAndGroupAccessMenuItems);
     }
 
     return generalGroup;
