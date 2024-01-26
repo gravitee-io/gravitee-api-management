@@ -255,6 +255,15 @@
 							<inputSpec>${project.basedir}/src/main/resources/openapi/openapi-ui.yaml</inputSpec>
 						</configuration>
 					</execution>
+					<execution>
+						<id>model-plugins-deprecated</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputSpec>${project.basedir}/src/main/resources/openapi/openapi-plugins-deprecated.yaml</inputSpec>
+						</configuration>
+					</execution>
 				</executions>
 			</plugin>
         </plugins>
