@@ -28,14 +28,14 @@ import { ActivatedRoute } from '@angular/router';
 import { ApiGeneralMembersComponent } from './api-general-members.component';
 import { ApiGeneralMembersHarness } from './api-general-members.harness';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
-import { ApiGeneralUserGroupModule } from '../api-general-user-group.module';
-import { RoleService } from '../../../../../services-ngx/role.service';
-import { Role } from '../../../../../entities/role/role';
-import { fakeRole } from '../../../../../entities/role/role.fixture';
-import { fakeSearchableUser } from '../../../../../entities/user/searchableUser.fixture';
-import { Api, fakeApiV1, fakeApiV4, fakeGroup, fakeGroupsResponse, MembersResponse } from '../../../../../entities/management-api-v2';
-import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { ApiUserGroupModule } from '../api-user-group.module';
+import { RoleService } from '../../../../services-ngx/role.service';
+import { Role } from '../../../../entities/role/role';
+import { fakeRole } from '../../../../entities/role/role.fixture';
+import { fakeSearchableUser } from '../../../../entities/user/searchableUser.fixture';
+import { Api, fakeApiV1, fakeApiV4, fakeGroup, fakeGroupsResponse, MembersResponse } from '../../../../entities/management-api-v2';
+import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiGeneralMembersComponent', () => {
   let fixture: ComponentFixture<ApiGeneralMembersComponent>;
@@ -51,7 +51,7 @@ describe('ApiGeneralMembersComponent', () => {
 
   beforeEach(async () => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule, ApiGeneralUserGroupModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule, ApiUserGroupModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId } } } },
         { provide: RoleService, useValue: { list: () => of(roles) } },

@@ -40,10 +40,10 @@ import { ApiGeneralMembersComponent } from './members/api-general-members.compon
 import { ApiGeneralTransferOwnershipComponent } from './transfer-ownership/api-general-transfer-ownership.component';
 import { ApiGeneralGroupMembersComponent } from './members/api-general-group-members/api-general-group-members.component';
 
-import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
-import { GioUsersSelectorModule } from '../../../../shared/components/gio-users-selector/gio-users-selector.module';
-import { GioFormUserAutocompleteModule } from '../../../../shared/components/gio-user-autocomplete/gio-form-user-autocomplete.module';
-import { GioTableWrapperModule } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
+import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
+import { GioUsersSelectorModule } from '../../../shared/components/gio-users-selector/gio-users-selector.module';
+import { GioFormUserAutocompleteModule } from '../../../shared/components/gio-user-autocomplete/gio-form-user-autocomplete.module';
+import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 
 @NgModule({
   declarations: [
@@ -80,4 +80,4 @@ import { GioTableWrapperModule } from '../../../../shared/components/gio-table-w
     GioTableWrapperModule,
   ],
 })
-export class ApiGeneralUserGroupModule {}
+export class ApiUserGroupModule {}

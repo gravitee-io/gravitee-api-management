@@ -34,7 +34,7 @@ import { GioPermissionService } from '../../../../../shared/components/gio-permi
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { Role } from '../../../../../entities/management-api-v2';
 import { ApplicationService } from '../../../../../services-ngx/application.service';
-import { GroupData } from '../../../../api/general/user-group-access/members/api-general-members.component';
+import { GroupData } from '../../../../api/user-group-access/members/api-general-members.component';
 import { GroupV2Service } from '../../../../../services-ngx/group-v2.service';
 import { Member } from '../../../../../entities/members/members';
 import { Application } from '../../../../../entities/application/application';

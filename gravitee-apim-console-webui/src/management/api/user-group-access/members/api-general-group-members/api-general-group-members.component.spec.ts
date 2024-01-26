@@ -25,10 +25,10 @@ import { Component } from '@angular/core';
 import { ApiGeneralGroupMembersComponent } from './api-general-group-members.component';
 import { ApiGeneralGroupMembersHarness } from './api-general-group-members.harness';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../../shared/testing';
-import { ApiGeneralUserGroupModule } from '../../api-general-user-group.module';
-import { MembersResponse } from '../../../../../../entities/management-api-v2';
-import { fakeMember } from '../../../../../../entities/management-api-v2/member/member.fixture';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
+import { ApiUserGroupModule } from '../../api-user-group.module';
+import { MembersResponse } from '../../../../../entities/management-api-v2';
+import { fakeMember } from '../../../../../entities/management-api-v2/member/member.fixture';
 import { GroupData } from '../api-general-members.component';
 
 const GROUP_ID = 'groupId1';
@@ -51,7 +51,7 @@ describe('ApiGeneralGroupMembersComponent', () => {
 
   beforeEach(async () => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule, ApiGeneralUserGroupModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule, ApiUserGroupModule],
       declarations: [ApiGeneralGroupMembersComponent, TestComponent],
     }).overrideProvider(InteractivityChecker, {
       useValue: {

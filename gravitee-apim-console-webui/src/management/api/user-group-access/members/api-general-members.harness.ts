@@ -29,9 +29,9 @@ import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/le
 import { MatLegacySlideToggleHarness as MatSlideToggleHarness } from '@angular/material/legacy-slide-toggle/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 
-import { GioUsersSelectorHarness } from '../../../../../shared/components/gio-users-selector/gio-users-selector.harness';
-import { CONSTANTS_TESTING } from '../../../../../shared/testing';
-import { SearchableUser } from '../../../../../entities/user/searchableUser';
+import { GioUsersSelectorHarness } from '../../../../shared/components/gio-users-selector/gio-users-selector.harness';
+import { CONSTANTS_TESTING } from '../../../../shared/testing';
+import { SearchableUser } from '../../../../entities/user/searchableUser';
 
 export class ApiGeneralMembersHarness extends ComponentHarness {
   static hostSelector = 'api-portal-members';

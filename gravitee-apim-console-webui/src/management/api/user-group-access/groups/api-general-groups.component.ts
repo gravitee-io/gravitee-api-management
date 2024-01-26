@@ -19,11 +19,11 @@ import { switchMap, takeUntil } from 'rxjs/operators';
 import { Subject, combineLatest, throwError } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
 
-import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
-import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
-import { GroupV2Service } from '../../../../../services-ngx/group-v2.service';
-import { Group } from '../../../../../entities/management-api-v2';
-import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
+import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
+import { GroupV2Service } from '../../../../services-ngx/group-v2.service';
+import { Group } from '../../../../entities/management-api-v2';
+import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 
 @Component({
   selector: 'api-general-access-groups',
