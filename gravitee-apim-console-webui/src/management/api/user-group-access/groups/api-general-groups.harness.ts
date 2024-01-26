@@ -20,15 +20,15 @@ import {
   MatLegacyOptionHarness as MatOptionHarness,
   LegacyOptionHarnessFilters as OptionHarnessFilters,
 } from '@angular/material/legacy-core/testing';
-import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
+import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
 
 export class ApiGeneralGroupsHarness extends ComponentHarness {
-  static hostSelector = 'ng-api-portal-groups';
+  static readonly hostSelector = 'api-general-access-groups';
 
   protected getReadOnlyGroups = this.locatorFor('.api-portal-access-groups__body__read-only-groups');
   protected getFillForm = this.locatorFor(MatFormFieldHarness);
   protected getGroupsList = this.locatorFor(MatSelectHarness);
-  protected getSaveBar = this.locatorFor(GioSaveBarHarness);
+  protected getSaveButton = this.locatorForOptional(MatButtonHarness.with({ text: 'Save' }));
 
   async getFillFormLabel(): Promise<string> {
     return this.getFillForm().then((form) => form.getLabel());
@@ -84,19 +84,15 @@ export class ApiGeneralGroupsHarness extends ComponentHarness {
     return this.getReadOnlyGroups().then((readOnlyGroups) => readOnlyGroups.text());
   }
 
-  async isSaveBarVisible(): Promise<boolean> {
-    return this.getSaveBar().then((saveBar) => saveBar.isVisible());
+  async isSaveButtonVisible(): Promise<boolean> {
+    return (await this.getSaveButton()) !== null;
   }
 
-  async isResetButtonVisible(): Promise<boolean> {
-    return this.getSaveBar().then((saveBar) => saveBar.isResetButtonVisible());
+  async isSaveButtonDisabled(): Promise<boolean> {
+    return (await this.isSaveButtonVisible()) && this.getSaveButton().then((btn) => btn.isDisabled());
   }
 
-  async clickSubmit(): Promise<void> {
-    return this.getSaveBar().then((saveBar) => saveBar.clickSubmit());
-  }
-
-  async clickReset(): Promise<void> {
-    return this.getSaveBar().then((saveBar) => saveBar.clickReset());
+  async clickSave(): Promise<void> {
+    return this.getSaveButton().then((btn) => btn.click());
   }
 }

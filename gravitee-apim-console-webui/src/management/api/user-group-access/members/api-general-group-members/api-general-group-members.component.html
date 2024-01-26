@@ -17,7 +17,7 @@
 -->
 <mat-card class="card">
   <ng-container *ngIf="!canViewGroupMembers">
-    <h3>Group {{ groupData.name }}</h3>
+    <h3 class="title">Group {{ groupData.name }}</h3>
     <p id="cannot-view-members">You do not have the appropriate permissions to view members of this group.</p>
   </ng-container>
   <ng-container *ngIf="canViewGroupMembers">

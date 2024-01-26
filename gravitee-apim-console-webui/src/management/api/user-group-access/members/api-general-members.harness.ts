@@ -29,17 +29,21 @@ import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/le
 import { MatLegacySlideToggleHarness as MatSlideToggleHarness } from '@angular/material/legacy-slide-toggle/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 
+import { ApiGeneralGroupMembersHarness } from './api-general-group-members/api-general-group-members.harness';
+
 import { GioUsersSelectorHarness } from '../../../../shared/components/gio-users-selector/gio-users-selector.harness';
 import { CONSTANTS_TESTING } from '../../../../shared/testing';
 import { SearchableUser } from '../../../../entities/user/searchableUser';
 
 export class ApiGeneralMembersHarness extends ComponentHarness {
-  static hostSelector = 'api-portal-members';
+  static readonly hostSelector = 'api-portal-members';
 
-  protected getMemberTableElement = this.locatorFor(MatTableHarness);
-  protected getNotificationsToggle = this.locatorFor(MatSlideToggleHarness);
-  protected getSaveBarElement = this.locatorFor(GioSaveBarHarness);
-  protected getUsersSelector = this.documentRootLocatorFactory().locatorFor(GioUsersSelectorHarness);
+  private getMemberTableElement = this.locatorFor(MatTableHarness);
+  private getNotificationsToggle = this.locatorFor(MatSlideToggleHarness);
+  private getSaveBarElement = this.locatorFor(GioSaveBarHarness);
+  private getUsersSelector = this.documentRootLocatorFactory().locatorFor(GioUsersSelectorHarness);
+  private groupsSelector = this.locatorForAll(ApiGeneralGroupMembersHarness);
+  private manageGroupsButtonSelector = this.locatorFor(MatButtonHarness.with({ text: 'Manage groups' }));
 
   async getTableRows(): Promise<MatRowHarness[]> {
     return this.getMemberTableElement().then((table) => table.getRows());
@@ -130,5 +134,17 @@ export class ApiGeneralMembersHarness extends ComponentHarness {
     await usersSelector.selectUser(user.displayName);
 
     await usersSelector.validate();
+  }
+
+  async getGroupsLength(): Promise<number> {
+    return this.groupsSelector().then((groups) => groups.length);
+  }
+
+  async getGroupsNames(): Promise<string[]> {
+    return this.groupsSelector().then((groups) => Promise.all(groups.map((group) => group.getGroupTableName())));
+  }
+
+  async manageGroupsClick() {
+    return this.manageGroupsButtonSelector().then((btn) => btn.click());
   }
 }

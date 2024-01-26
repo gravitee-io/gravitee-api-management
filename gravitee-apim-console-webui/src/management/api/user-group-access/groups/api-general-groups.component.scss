@@ -2,16 +2,27 @@
 @use '@angular/material' as mat;
 @use '@gravitee/ui-particles-angular' as gio;
 @use '../../../../scss/gio-layout' as gio-layout;
-
-:host {
-  @include gio-layout.gio-responsive-margin-container;
-}
+$typography: map.get(gio.$mat-legacy-theme, typography);
 
 .api-portal-access-groups {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   height: 100%;
+  margin: 20px;
+
+  &__header {
+    margin-bottom: 24px;
+
+    &__title {
+      @include mat.typography-level($typography, title);
+    }
+
+    &__subtitle {
+      color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+      @include mat.typography-level($typography, body-1);
+    }
+  }
 
   &__body {
     display: flex;
@@ -29,6 +40,6 @@
 
   &__actions {
     display: flex;
-    gap: 16px;
+    justify-content: end;
   }
 }

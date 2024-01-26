@@ -15,8 +15,13 @@
     limitations under the License.
 
 -->
-<form *ngIf="form" [formGroup]="form" class="api-portal-access-groups">
-  <mat-card>
+<div class="api-portal-access-groups">
+  <div class="api-portal-access-groups__header">
+    <div class="api-portal-access-groups__header__title">Manage groups</div>
+    <div class="api-portal-access-groups__header__subtitle">Give groups access to your API through the API Management console</div>
+  </div>
+
+  <form *ngIf="form" [formGroup]="form">
     <div class="api-portal-access-groups__body">
       <mat-form-field *ngIf="!isReadOnly && !isV1Api; else readOnlyGroups">
         <mat-label>Groups</mat-label>
@@ -32,6 +37,18 @@
         </div>
       </ng-template>
     </div>
-  </mat-card>
-  <gio-save-bar [form]="form" [formInitialValues]="initialFormValue" (submitted)="save()"></gio-save-bar>
-</form>
+
+    <div class="api-portal-access-groups__actions">
+      <button
+        *ngIf="!isReadOnly && !isV1Api"
+        color="primary"
+        aria-label="Save api groups"
+        mat-raised-button
+        [disabled]="form.invalid"
+        (click)="save()"
+      >
+        Save
+      </button>
+    </div>
+  </form>
+</div>

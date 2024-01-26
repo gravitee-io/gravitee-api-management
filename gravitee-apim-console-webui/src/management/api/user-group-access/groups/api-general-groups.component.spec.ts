@@ -20,27 +20,39 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { ActivatedRoute } from '@angular/router';
+import { HarnessLoader } from '@angular/cdk/testing';
 
-import { ApiGeneralGroupsComponent } from './api-general-groups.component';
 import { ApiGeneralGroupsHarness } from './api-general-groups.harness';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { ApiUserGroupModule } from '../api-user-group.module';
-import { Api, fakeApiV1, fakeApiV2, fakeApiV4, fakeGroup, Group } from '../../../../entities/management-api-v2';
+import { Api, fakeApiV1, fakeApiV4, fakeGroup, fakeGroupsResponse, Group, MembersResponse } from '../../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { ApiGeneralMembersComponent } from '../members/api-general-members.component';
+import { ApiGeneralMembersHarness } from '../members/api-general-members.harness';
+import { Role } from '../../../../entities/role/role';
+import { fakeRole } from '../../../../entities/role/role.fixture';
 
 describe('ApiPortalGroupsComponent', () => {
-  const API_ID = 'api-id';
+  const apiId = 'api-id';
+  const groupId1 = 'group-1';
+  const groupId2 = 'group-2';
+  const defaultRoles: Role[] = [
+    fakeRole({ name: 'PRIMARY_OWNER', default: false }),
+    fakeRole({ name: 'OWNER', default: false }),
+    fakeRole({ name: 'USER', default: true }),
+  ];
 
-  let fixture: ComponentFixture<ApiGeneralGroupsComponent>;
-  let harness: ApiGeneralGroupsHarness;
+  let fixture: ComponentFixture<ApiGeneralMembersComponent>;
+  let harness: ApiGeneralMembersHarness;
+  let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
   const init = async (permissions: string[]) => {
     await TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiUserGroupModule, MatIconTestingModule],
       providers: [
-        { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
+        { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: apiId } } } },
         { provide: GioTestingPermissionProvider, useValue: permissions },
       ],
     })
@@ -51,10 +63,10 @@ describe('ApiPortalGroupsComponent', () => {
       })
       .compileComponents();
 
-    fixture = TestBed.createComponent(ApiGeneralGroupsComponent);
-
+    fixture = TestBed.createComponent(ApiGeneralMembersComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
-    harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiGeneralGroupsHarness);
+    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
+    harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiGeneralMembersHarness);
 
     fixture.detectChanges();
   };
@@ -64,108 +76,137 @@ describe('ApiPortalGroupsComponent', () => {
   });
 
   describe('Groups tab for user with writing rights', () => {
-    beforeEach(async () => await init(['api-definition-u', 'api-gateway_definition-u']));
+    beforeEach(async () => {
+      await init(['api-definition-u', 'api-member-u']);
+    });
 
     it('should show groups', async () => {
-      expectOneGroupList([fakeGroup({ id: 'my_group', name: 'My Group' })]);
-      expectOneApiGet(fakeApiV4({ id: API_ID }));
+      const api = fakeApiV4({ id: apiId, groups: [] });
+      await expectGetRequests(api, [groupId1, groupId2]);
+      expect(await harness.getGroupsLength()).toStrictEqual(api.groups.length);
+      expect(await harness.getGroupsNames()).toEqual(api.groups.map((id) => `Group ${id}-name`));
+      api.groups.forEach((id) => expectGetGroupMembersRequest(fakeGroup({ id })));
 
-      expect(await harness.getFillFormLabel()).toEqual('Groups');
-      await harness.selectGroups({ text: 'My Group' });
-      expect(await harness.getGroupsListValueText()).toEqual('My Group');
-      expect(await harness.isReadOnlyGroupsPresent()).toEqual(false);
+      await harness.manageGroupsClick();
+      const groupsHarness = await rootLoader.getHarness(ApiGeneralGroupsHarness);
+      expect(await groupsHarness.getFillFormLabel()).toEqual('Groups');
+      expect(await groupsHarness.isReadOnlyGroupsPresent()).toEqual(false);
+
+      await groupsHarness.selectGroups({ text: `${groupId2}-name` });
+      expect(await groupsHarness.getGroupsListValueText()).toEqual(`${groupId2}-name`);
+      expect(await groupsHarness.isReadOnlyGroupsPresent()).toEqual(false);
     });
 
     it('should pre-select groups found in user + save new groups', async () => {
-      expectOneGroupList([fakeGroup({ id: 'my_group', name: 'My Group' }), fakeGroup({ id: 'new_group', name: 'New Group' })]);
-      expectOneApiGet(fakeApiV2({ id: API_ID, groups: ['my_group'] }));
+      const api = fakeApiV4({ id: apiId, groups: [groupId1] });
+      await expectGetRequests(api, [groupId1, groupId2]);
+      api.groups.forEach((id) => expectGetGroupMembersRequest(fakeGroup({ id })));
 
-      expect(await harness.isFillFormControlDirty()).toEqual(false);
+      await harness.manageGroupsClick();
+      const groupsHarness = await rootLoader.getHarness(ApiGeneralGroupsHarness);
+      expect(await groupsHarness.isFillFormControlDirty()).toEqual(false);
 
-      const allGroups = await harness.getGroups();
+      const allGroups = await groupsHarness.getGroups();
       expect(allGroups.length).toEqual(2);
 
-      const selectedGroups = await harness.getSelectedGroups();
+      const selectedGroups = await groupsHarness.getSelectedGroups();
       expect(selectedGroups.length).toEqual(1);
-      expect(await selectedGroups[0].getText()).toEqual('My Group');
+      expect(await selectedGroups[0].getText()).toEqual(`${groupId1}-name`);
 
-      await harness.selectGroups({ text: 'New Group' });
-      expect(await harness.getGroupsListValueText()).toEqual('My Group, New Group');
-      await harness.closeGroupsList();
+      await groupsHarness.selectGroups({ text: `${groupId2}-name` });
+      expect(await groupsHarness.getGroupsListValueText()).toEqual(`${groupId1}-name, ${groupId2}-name`);
+      await groupsHarness.closeGroupsList();
 
-      expect(await harness.isFillFormControlDirty()).toEqual(true);
-      expect(await harness.isSaveBarVisible()).toEqual(true);
-      await harness.clickSubmit();
+      expect(await groupsHarness.isFillFormControlDirty()).toEqual(true);
+      expect(await groupsHarness.isSaveButtonVisible()).toEqual(true);
+      expect(await groupsHarness.isSaveButtonDisabled()).toEqual(false);
 
-      expectOneApiGet(fakeApiV2({ id: API_ID, groups: ['my_group'] }));
-      expectOneApiPut(fakeApiV2({ id: API_ID, groups: ['my_group', 'new_group'] }));
+      await groupsHarness.clickSave();
 
-      // expect reloaded component
-      expectOneGroupList([fakeGroup({ id: 'my_group', name: 'My Group' }), fakeGroup({ id: 'new_group', name: 'New Group' })]);
-      expectOneApiGet(fakeApiV2({ id: API_ID, groups: ['my_group', 'new_group'] }));
+      // expect save and after that reload of the component.
+      // MatDialog close is not called in the unit test context, so we do the PUT request with the real saved data
+      expectApiGetRequest(api);
+      expectApiPutRequest({ ...api, groups: [] });
+      expectGetRequests({ ...api, groups: [] });
     });
 
     it('should be read-only for V1 API', async () => {
-      expectOneGroupList([fakeGroup({ id: 'my_group', name: 'My Group' }), fakeGroup({ id: 'new_group', name: 'New Group' })]);
-      expectOneApiGet(fakeApiV1({ id: API_ID, groups: ['my_group'] }));
+      const api = fakeApiV1({ id: apiId, groups: [groupId1] });
+      await expectGetRequests(api, [groupId1]);
+      expectGetGroupMembersRequest(fakeGroup({ id: groupId1 }));
 
-      expect(await harness.isReadOnlyGroupsPresent()).toEqual(true);
-      expect(await harness.getReadOnlyGroupsText()).toContain('My Group');
-      expect(await harness.isFillFormPresent()).toEqual(false);
-      expect(await harness.isSaveBarVisible()).toEqual(false);
-    });
+      await harness.manageGroupsClick();
 
-    it("should reset to user's original groups after clicking reset button", async () => {
-      expectOneGroupList([fakeGroup({ id: 'my_group', name: 'My Group' }), fakeGroup({ id: 'new_group', name: 'New Group' })]);
-      expectOneApiGet(fakeApiV4({ id: API_ID, groups: ['my_group'] }));
-
-      await harness.selectGroups({ text: 'New Group' });
-      let selectedGroups = await harness.getSelectedGroups();
-
-      expect(selectedGroups.length).toEqual(2);
-      expect(await harness.getGroupsListValueText()).toEqual('My Group, New Group');
-      await harness.closeGroupsList();
-
-      expect(await harness.isResetButtonVisible()).toEqual(true);
-      await harness.clickReset();
-
-      selectedGroups = await harness.getSelectedGroups();
-      expect(selectedGroups.length).toEqual(1);
-      expect(await harness.isSaveBarVisible()).toEqual(false);
+      const groupsHarness = await rootLoader.getHarness(ApiGeneralGroupsHarness);
+      expect(await groupsHarness.isReadOnlyGroupsPresent()).toEqual(true);
+      expect(await groupsHarness.getReadOnlyGroupsText()).toContain(`${groupId1}-name`);
+      expect(await groupsHarness.isFillFormPresent()).toEqual(false);
+      expect(await groupsHarness.isSaveButtonVisible()).toEqual(false);
     });
   });
 
   describe('Groups tab for user with read-only rights', () => {
     beforeEach(async () => {
-      await init(['api-definition-r', 'api-gateway_definition-u']);
+      await init(['api-definition-r', 'api-member-r', 'api-gateway_definition-u']);
     });
 
     it('should display list of groups', async () => {
-      expectOneGroupList([fakeGroup({ id: 'my_group', name: 'My Group' }), fakeGroup({ id: 'my_other_group', name: 'My Other Group' })]);
-      expectOneApiGet(fakeApiV4({ id: API_ID, groups: ['my_group', 'my_other_group'] }));
+      const api = fakeApiV4({ id: apiId, groups: [groupId1, groupId2] });
+      await expectGetRequests(api, [groupId1, groupId2]);
 
-      expect(await harness.isReadOnlyGroupsPresent()).toEqual(true);
-      expect(await harness.getReadOnlyGroupsText()).toContain('My Group, My Other Group');
-      expect(await harness.isFillFormPresent()).toEqual(false);
-      expect(await harness.isSaveBarVisible()).toEqual(false);
+      expect(await harness.getGroupsNames()).toEqual(api.groups.map((id) => `Group ${id}-name`));
+      expect(await harness.getGroupsLength()).toStrictEqual(api.groups.length);
+      api.groups.forEach((id) => expectGetGroupMembersRequest(fakeGroup({ id })));
+
+      await harness.manageGroupsClick();
+
+      const groupsHarness = await rootLoader.getHarness(ApiGeneralGroupsHarness);
+      expect(await groupsHarness.isReadOnlyGroupsPresent()).toEqual(true);
+      expect(await groupsHarness.getReadOnlyGroupsText()).toContain(`${groupId1}-name, ${groupId2}-name`);
+      expect(await groupsHarness.isFillFormPresent()).toEqual(false);
+      expect(await groupsHarness.isSaveButtonVisible()).toEqual(false);
     });
   });
 
-  function expectOneApiGet(api: Api) {
+  async function expectGetRequests(api: Api, groups: string[] = [], members: MembersResponse = { data: [] }) {
+    expectApiGetRequest(api);
+    expectGetGroupsListRequest(groups);
+    expectApiMembersGetRequest(api, members);
+    expectApiRoleGetRequest();
+  }
+
+  function expectApiGetRequest(api: Api) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
+    fixture.detectChanges();
   }
 
-  function expectOneApiPut(api: Api) {
-    const httpCall = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'PUT' });
-    const requestBody = httpCall.request.body;
-    expect(requestBody.groups).toEqual(api.groups);
-
-    httpCall.flush(api);
+  function expectApiPutRequest(api: Api) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'PUT' }).flush(api);
   }
 
-  function expectOneGroupList(groups: Group[]) {
+  function expectGetGroupsListRequest(groups: string[]) {
     httpTestingController
       .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/groups?page=1&perPage=9999`, method: 'GET' })
-      .flush({ data: groups });
+      .flush(fakeGroupsResponse({ data: groups.map((id) => fakeGroup({ id, name: id + '-name' })) }));
+    fixture.detectChanges();
+  }
+
+  function expectApiMembersGetRequest(api: Api, members: MembersResponse = { data: [] }) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}/members`, method: 'GET' }).flush(members);
+    fixture.detectChanges();
+  }
+
+  function expectGetGroupMembersRequest(group: Group) {
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/groups/${group.id}/members?page=1&perPage=10`, method: 'GET' })
+      .flush({ data: [], metadata: { groupName: 'group1' }, pagination: {} });
+    fixture.detectChanges();
+  }
+
+  function expectApiRoleGetRequest(roles: Role[] = defaultRoles) {
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/API/roles`, method: 'GET' })
+      .flush(roles);
+    fixture.detectChanges();
   }
 });
