@@ -56,8 +56,6 @@ tags:
       description: Everything about API subscriptions
     - name: Groups
       description: Everything about groups
-    - name: Installation
-      description: Base resources about the installation
 
 paths:
     # APIs
@@ -1008,121 +1006,6 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
-    # Installation
-    /environments:
-        get:
-            parameters:
-                - $ref: "#/components/parameters/pageParam"
-                - $ref: "#/components/parameters/perPageParam"
-            tags:
-                - Installation
-            summary: List all environments.
-            description: |-
-                List all environments accessible by the current user.
-
-                User must be authenticated.
-            operationId: getEnvironments
-            responses:
-                "200":
-                    $ref: "#/components/responses/EnvironmentsResponse"
-                default:
-                    $ref: "#/components/responses/Error"
-    /environments/{envId}:
-        parameters:
-            - $ref: "#/components/parameters/envIdParam"
-        get:
-            tags:
-                - Installation
-            summary: Get a specific environment
-            description: |-
-                Get a specific environment.
-
-                User must be authenticated.
-            operationId: getEnvironmentById
-            responses:
-                "200":
-                    description: An environment
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Environment"
-                default:
-                    $ref: "#/components/responses/Error"
-    /license:
-        servers:
-            - url: /management/v2
-              description: Gravitee.io APIM - Management API -v2
-        get:
-            tags:
-                - Installation
-            summary: Get the license gravitee is running on.
-            description: |-
-                Returns the license information of the gravitee instance.
-
-                User must be authenticated.
-            operationId: getGraviteeLicense
-            responses:
-                "200":
-                    description: |-
-                        The license and its features. If there is no license, then the features will be empty.
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/GraviteeLicense"
-                default:
-                    $ref: "#/components/responses/Error"
-    /organizations/{orgId}:
-        servers:
-            - url: /management/v2
-              description: Gravitee.io APIM - Management API - v2
-        parameters:
-            - $ref: "#/components/parameters/orgIdParam"
-        get:
-            tags:
-                - Installation
-            summary: Get a specific organization
-            description: |-
-                Get a specific organization
-
-                User must be authenticated.
-            operationId: getOrganizationById
-            responses:
-                "200":
-                    description: An organization
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/Organization"
-                default:
-                    $ref: "#/components/responses/Error"
-    /organizations/{orgId}/license:
-        servers:
-            - url: /management/v2
-              description: Gravitee.io APIM - Management API -v2
-        parameters:
-            - $ref: "#/components/parameters/orgIdParam"
-        get:
-            tags:
-                - Installation
-            summary: Get the license used by an organization.
-            description: |-
-                Returns the organization license information.
-                If no license is scoped to the organization, then the platform license is returned.
-
-                User must be authenticated.
-            operationId: getOrganizationLicense
-            responses:
-                "200":
-                    description: |-
-                        The license and its features. If there is no license, then the features will be empty.
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/GraviteeLicense"
-                default:
-                    $ref: "#/components/responses/Error"
-
-
     # API Subscriptions
     /environments/{envId}/apis/{apiId}/subscribers:
         parameters:
@@ -1905,34 +1788,6 @@ paths:
                     $ref: "#/components/responses/Error"
 components:
     schemas:
-        GraviteeLicense:
-            type: object
-            properties:
-                tier:
-                    type: string
-                    description: The tier gravitee is running on.
-                    example: "tier-planet"
-                packs:
-                    type: array
-                    items:
-                        type: string
-                    description: The packs included in the tier gravitee is running on.
-                    example:
-                        - "pack-observability"
-                        - "pack-event-native"
-                features:
-                    type: array
-                    items:
-                        type: string
-                    description: The features included in the tier gravitee is running on.
-                    example:
-                        - feature-debug-mode
-                        - feature-datadog-reporter
-                expiresAt:
-                    type: string
-                    format: date-time
-                    description: The date (as timestamp) when the license will expire.
-                    example: 1581256457163
         Analytics:
             type: object
             properties:
@@ -2836,23 +2691,6 @@ components:
                     $ref: "#/components/schemas/Dlq"
                 configuration:
                     type: object
-        Environment:
-            type: object
-            properties:
-                id:
-                    type: string
-                    description: Environment's uuid.
-                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
-                name:
-                    type: string
-                    description: Environment's name. Duplicate names can exists.
-                    example: My Environment
-                    minLength: 1
-                description:
-                    type: string
-                    description: Environment's description. A short description of your Environment.
-                    example: I can use many characters to describe this Environment.
-                    minLength: 1
         Error:
             type: object
             properties:
@@ -3146,23 +2984,6 @@ components:
             enum:
                 - EQUALS
                 - STARTS_WITH
-        Organization:
-            type: object
-            properties:
-                id:
-                    type: string
-                    description: Organization's uuid.
-                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
-                name:
-                    type: string
-                    description: Organization's name. Duplicate names can exists.
-                    example: My Organization
-                    minLength: 1
-                description:
-                    type: string
-                    description: Organization's description. A short description of your Organization.
-                    example: I can use many characters to describe this Organization.
-                    minLength: 1
         Pagination:
             description: Generic object to handle pagination data.
             type: object
@@ -5848,21 +5669,6 @@ components:
                 items:
                     type: integer
     responses:
-        EnvironmentsResponse:
-            description: Page of environments
-            content:
-                application/json:
-                    schema:
-                        properties:
-                            data:
-                                description: List of Environments.
-                                type: array
-                                items:
-                                    $ref: "#/components/schemas/Environment"
-                            metadata:
-                                $ref: "#/components/schemas/MetadataResponse"
-                            links:
-                                $ref: "#/components/schemas/Links"
         ApisResponse:
             description: Page of apis
             content:

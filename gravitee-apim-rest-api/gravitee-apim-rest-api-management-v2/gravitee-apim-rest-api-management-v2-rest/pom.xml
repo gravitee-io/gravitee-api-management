@@ -247,6 +247,15 @@
 						</configuration>
 					</execution>
 					<execution>
+						<id>model-installation</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputSpec>${project.basedir}/src/main/resources/openapi/openapi-installation.yaml</inputSpec>
+						</configuration>
+					</execution>
+					<execution>
 						<id>model-ui</id>
 						<goals>
 							<goal>generate</goal>
@@ -262,6 +271,15 @@
 						</goals>
 						<configuration>
 							<inputSpec>${project.basedir}/src/main/resources/openapi/openapi-plugins-deprecated.yaml</inputSpec>
+						</configuration>
+					</execution>
+					<execution>
+						<id>model-installation-deprecated</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<inputSpec>${project.basedir}/src/main/resources/openapi/openapi-installation-deprecated.yaml</inputSpec>
 						</configuration>
 					</execution>
 				</executions>
