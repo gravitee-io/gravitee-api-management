@@ -40,6 +40,7 @@ public class GraviteeLicenseResource extends AbstractResource {
     private LicenseManager licenseManager;
 
     @GET
+    @Deprecated
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public GraviteeLicense get() {
