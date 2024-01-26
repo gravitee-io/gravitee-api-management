@@ -47,7 +47,6 @@ import { ApiLogsConfigurationComponent } from './analytics/logs/configuration/ap
 import { ApiAnalyticsLogComponent } from './analytics/logs/analytics-log.component';
 import { ApiPathMappingsComponent } from './analytics/pathMappings/api-path-mappings.component';
 import { ApiAlertsDashboardComponent } from './analytics/alerts/api-alerts-dashboard.component';
-import { ApiAuditComponent } from './audit/general/audit.component';
 import { ApiHistoryComponent } from './audit/history/apiHistory.component';
 import { ApiV1PropertiesComponent } from './proxy/properties-v1/properties.component';
 import { ApiV1ResourcesComponent } from './resources-v1/resources.component';
@@ -77,6 +76,7 @@ import { PolicyStudioDebugComponent } from './policy-studio-v2/debug/policy-stud
 import { ApiProxyGroupEndpointEditComponent } from './endpoints/groups/endpoint/edit/api-proxy-group-endpoint-edit.component';
 import { ApiProxyGroupEditComponent } from './endpoints/groups/edit/api-proxy-group-edit.component';
 import { ApiProxyEndpointListComponent } from './endpoints/list/api-proxy-endpoint-list.component';
+import { ApiAuditListComponent } from './api-audit-list/api-audit-list.component';
 
 import { DocumentationManagementComponent } from '../../components/documentation/documentation-management.component';
 import { DocumentationNewPageComponent } from '../../components/documentation/new-page.component';
@@ -363,7 +363,7 @@ const apisRoutes: Routes = [
       },
       {
         path: 'audit',
-        component: ApiAuditComponent,
+        component: ApiAuditListComponent,
         data: {
           requireLicense: {
             license: { feature: ApimFeature.APIM_AUDIT_TRAIL },
