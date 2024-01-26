@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-    title: Gravitee.io APIM - Management API - Plugins
+    title: Gravitee.io APIM - Management API - Plugins - Deprecated
     description: |-
         This is the OpenAPI specification for our new version of APIM Management API.
     contact:
@@ -11,12 +11,11 @@ info:
     version: 2.0.0
 
 security:
-    - BasicAuth: []
     - CookieAuth: []
 
 servers:
-    - url: "{protocol}://{managementAPIHost}/management/v2/organizations/{orgId}"
-      description: APIM Management API v2 - Base URL to target specific organizations
+    - url: "{protocol}://{managementAPIHost}/management/v2"
+      description: APIM Management API v2 - Default base URL
       variables:
           protocol:
               description: The protocol you want to use to communicate with the mAPI
@@ -27,9 +26,6 @@ servers:
           managementAPIHost:
               description: The domain of the server hosting your Management API
               default: localhost:8083
-          orgId:
-              description: The unique ID of your organization
-              default: DEFAULT
 
 tags:
     - name: Plugins - Endpoints
@@ -45,12 +41,13 @@ paths:
         get:
             tags:
                 - Plugins - Endpoints
-            summary: Get available endpoints by organization
+            summary: Get available endpoints on the platform
             description: |
-                Get available endpoint types by organization.
+                Get available endpoint types on the platform.
 
                 User must be authenticated.
-            operationId: getEndpoints
+            operationId: getEndpointsDeprecated
+            deprecated: true
             responses:
                 "200":
                     description: List of Endpoints.
@@ -73,7 +70,8 @@ paths:
                 Get an endpoint type.
 
                 User must be authenticated.
-            operationId: getEndpoint
+            operationId: getEndpointDeprecated
+            deprecated: true
             responses:
                 "200":
                     description: Endpoint
@@ -94,7 +92,8 @@ paths:
                 Get the documentation of an endpoint.
 
                 User must be authenticated.
-            operationId: getEndpointDocumentation
+            operationId: getEndpointDocumentationDeprecated
+            deprecated: true
             responses:
                 "200":
                     description: Documentation of the endpoint
@@ -115,7 +114,8 @@ paths:
                 More information about the endpoint.
 
                 User must be authenticated.
-            operationId: getEndpointMoreInformation
+            operationId: getEndpointMoreInformationDeprecated
+            deprecated: true
             responses:
                 "200":
                     description: More information of the endpoint
@@ -136,7 +136,8 @@ paths:
                 Get the JSON schema that describes the configuration of an endpoint.
 
                 User must be authenticated.
-            operationId: getEndpointSchema
+            operationId: getEndpointSchemaDeprecated
+            deprecated: true
             responses:
                 "200":
                     $ref: "#/components/responses/SchemaFormResponse"
@@ -153,7 +154,8 @@ paths:
                 Get an endpoint shared configuration schema.
 
                 User must be authenticated.
-            operationId: getEndpointSharedConfigurationSchema
+            operationId: getEndpointSharedConfigurationSchemaDeprecated
+            deprecated: true
             responses:
                 "200":
                     $ref: "#/components/responses/SchemaFormResponse"
@@ -165,12 +167,13 @@ paths:
         get:
             tags:
                 - Plugins - Entrypoints
-            summary: Get available entrypoints by organization
+            summary: Get available entrypoints on the platform
             description: |
-                Get available entrypoint types by organization.
+                Get available entrypoint types on the platform.
 
                 User must be authenticated.
-            operationId: getEntrypoints
+            operationId: getEntrypointsDeprecated
+            deprecated: true
             responses:
                 "200":
                     description: List of Entrypoints.
@@ -193,7 +196,8 @@ paths:
                 Get an entrypoint type.
 
                 User must be authenticated.
-            operationId: getEntrypoint
+            operationId: getEntrypointDeprecated
+            deprecated: true
             responses:
                 "200":
                     description: Entrypoint
@@ -214,7 +218,8 @@ paths:
                 Get the documentation of an entrypoint.
 
                 User must be authenticated.
-            operationId: getEntrypointDocumentation
+            operationId: getEntrypointDocumentationDeprecated
+            deprecated: true
             responses:
                 "200":
                     description: Documentation of the entrypoint
@@ -235,7 +240,8 @@ paths:
                 More information about the entrypoint.
 
                 User must be authenticated.
-            operationId: getEntrypointMoreInformation
+            operationId: getEntrypointMoreInformationDeprecated
+            deprecated: true
             responses:
                 "200":
                     description: More information of the entrypoint
@@ -256,7 +262,8 @@ paths:
                 Get the JSON schema that describes the configuration of an entrypoint.
 
                 User must be authenticated.
-            operationId: getEntrypointSchema
+            operationId: getEntrypointSchemaDeprecated
+            deprecated: true
             responses:
                 "200":
                     $ref: "#/components/responses/SchemaFormResponse"
@@ -284,7 +291,8 @@ paths:
                 Get the JSON schema that describes the subscription to a given entrypoint.
 
                 User must be authenticated.
-            operationId: getEntrypointSubscriptionSchema
+            operationId: getEntrypointSubscriptionSchemaDeprecated
+            deprecated: true
             responses:
                 "200":
                     $ref: "#/components/responses/SchemaFormResponse"
@@ -296,12 +304,13 @@ paths:
         get:
             tags:
                 - Plugins - Policies
-            summary: Get available policies by organization
+            summary: Get available policies on the platform
             description: |
-                Get available policies by organization.
+                Get available policies on the platform.
 
                 User must be authenticated.
-            operationId: getPolicies
+            operationId: getPoliciesDeprecated
+            deprecated: true
             responses:
                 "200":
                     description: List of Policies.
@@ -324,7 +333,8 @@ paths:
                 Get a policy.
 
                 User must be authenticated.
-            operationId: getPolicy
+            operationId: getPolicyDeprecated
+            deprecated: true
             responses:
                 "200":
                     description: Policy
@@ -345,7 +355,8 @@ paths:
                 Get the documentation of a policy.
 
                 User must be authenticated.
-            operationId: getPolicyDocumentation
+            operationId: getPolicyDocumentationDeprecated
+            deprecated: true
             responses:
                 "200":
                     description: Documentation of the entrypoint
@@ -377,7 +388,8 @@ paths:
                 Get the JSON schema that describes the configuration of a policy.
 
                 User must be authenticated.
-            operationId: getPolicySchema
+            operationId: getPolicySchemaDeprecated
+            deprecated: true
             responses:
                 "200":
                     $ref: "#/components/responses/SchemaFormResponse"
@@ -573,6 +585,13 @@ components:
                                 type: object
                                 description: The invalid value.
     parameters:
+        organizationIdParam:
+            name: orgId
+            in: path
+            required: true
+            description: Id of an organization.
+            schema:
+                type: string
         endpointIdParam:
             name: endpointId
             in: path
@@ -609,9 +628,6 @@ components:
                         $ref: "#/components/schemas/Error"
 
     securitySchemes:
-        BasicAuth:
-            type: http
-            scheme: basic
         CookieAuth:
             type: apiKey
             in: cookie

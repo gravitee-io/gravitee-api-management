@@ -64,6 +64,8 @@ public class GraviteeManagementV2Application extends ResourceConfig {
         register(OrganizationResource.class);
         register(EnvironmentsResource.class);
         register(ApisResource.class);
+
+        // Resources deprecated at root level
         register(EndpointsResource.class);
         register(EntrypointsResource.class);
         register(PoliciesResource.class);
