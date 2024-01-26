@@ -23,19 +23,19 @@ import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-pa
 import { isEmpty, uniqueId } from 'lodash';
 import { ActivatedRoute } from '@angular/router';
 
-import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
-import { UsersService } from '../../../../../services-ngx/users.service';
-import { RoleService } from '../../../../../services-ngx/role.service';
-import { GioPermissionService } from '../../../../../shared/components/gio-permission/gio-permission.service';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
+import { UsersService } from '../../../../services-ngx/users.service';
+import { RoleService } from '../../../../services-ngx/role.service';
+import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 import {
   GioUsersSelectorComponent,
   GioUsersSelectorData,
-} from '../../../../../shared/components/gio-users-selector/gio-users-selector.component';
-import { SearchableUser } from '../../../../../entities/user/searchableUser';
-import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
-import { ApiMemberV2Service } from '../../../../../services-ngx/api-member-v2.service';
-import { Api, Member, Role } from '../../../../../entities/management-api-v2';
-import { GroupV2Service } from '../../../../../services-ngx/group-v2.service';
+} from '../../../../shared/components/gio-users-selector/gio-users-selector.component';
+import { SearchableUser } from '../../../../entities/user/searchableUser';
+import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
+import { ApiMemberV2Service } from '../../../../services-ngx/api-member-v2.service';
+import { Api, Member, Role } from '../../../../entities/management-api-v2';
+import { GroupV2Service } from '../../../../services-ngx/group-v2.service';
 
 class MemberDataSource {
   id: string;

@@ -22,16 +22,16 @@ import { isEmpty } from 'lodash';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute } from '@angular/router';
 
-import { ApiMemberService } from '../../../../../services-ngx/api-member.service';
-import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
-import { GroupService } from '../../../../../services-ngx/group.service';
-import { Group } from '../../../../../entities/group/group';
-import { RoleService } from '../../../../../services-ngx/role.service';
-import { Role } from '../../../../../entities/role/role';
-import { Constants } from '../../../../../entities/Constants';
-import { SearchableUser } from '../../../../../entities/user/searchableUser';
-import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
-import { ApiTransferOwnership } from '../../../../../entities/management-api-v2/api/apiTransferOwnership';
+import { ApiMemberService } from '../../../../services-ngx/api-member.service';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
+import { GroupService } from '../../../../services-ngx/group.service';
+import { Group } from '../../../../entities/group/group';
+import { RoleService } from '../../../../services-ngx/role.service';
+import { Role } from '../../../../entities/role/role';
+import { Constants } from '../../../../entities/Constants';
+import { SearchableUser } from '../../../../entities/user/searchableUser';
+import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
+import { ApiTransferOwnership } from '../../../../entities/management-api-v2/api/apiTransferOwnership';
 
 @Component({
   selector: 'api-general-transfer-ownership',

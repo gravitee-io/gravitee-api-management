@@ -29,17 +29,17 @@ import { ActivatedRoute } from '@angular/router';
 
 import { ApiGeneralTransferOwnershipComponent } from './api-general-transfer-ownership.component';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
-import { ApiGeneralUserGroupModule } from '../api-general-user-group.module';
-import { ApiMember } from '../../../../../entities/api';
-import { Role } from '../../../../../entities/role/role';
-import { fakeRole } from '../../../../../entities/role/role.fixture';
-import { Group } from '../../../../../entities/group/group';
-import { fakeGroup } from '../../../../../entities/group/group.fixture';
-import { GioFormUserAutocompleteHarness } from '../../../../../shared/components/gio-user-autocomplete/gio-form-user-autocomplete.harness';
-import { fakeSearchableUser } from '../../../../../entities/user/searchableUser.fixture';
-import { SearchableUser } from '../../../../../entities/user/searchableUser';
-import { BaseApi, fakeBaseApi } from '../../../../../entities/management-api-v2';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { ApiUserGroupModule } from '../api-user-group.module';
+import { ApiMember } from '../../../../entities/api';
+import { Role } from '../../../../entities/role/role';
+import { fakeRole } from '../../../../entities/role/role.fixture';
+import { Group } from '../../../../entities/group/group';
+import { fakeGroup } from '../../../../entities/group/group.fixture';
+import { GioFormUserAutocompleteHarness } from '../../../../shared/components/gio-user-autocomplete/gio-form-user-autocomplete.harness';
+import { fakeSearchableUser } from '../../../../entities/user/searchableUser.fixture';
+import { SearchableUser } from '../../../../entities/user/searchableUser';
+import { BaseApi, fakeBaseApi } from '../../../../entities/management-api-v2';
 
 describe('ApiGeneralTransferOwnershipComponent', () => {
   let fixture: ComponentFixture<ApiGeneralTransferOwnershipComponent>;
@@ -52,7 +52,7 @@ describe('ApiGeneralTransferOwnershipComponent', () => {
   describe('Hybrid mode', () => {
     beforeEach(async () => {
       TestBed.configureTestingModule({
-        imports: [NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule, ApiGeneralUserGroupModule],
+        imports: [NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule, ApiUserGroupModule],
         providers: [
           { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId } } } },
           {
@@ -241,7 +241,7 @@ describe('ApiGeneralTransferOwnershipComponent', () => {
   describe('Group mode', () => {
     beforeEach(async () => {
       TestBed.configureTestingModule({
-        imports: [NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule, ApiGeneralUserGroupModule],
+        imports: [NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule, ApiUserGroupModule],
         providers: [
           { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId } } } },
           {

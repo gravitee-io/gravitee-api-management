@@ -23,7 +23,6 @@ import { ApiNavigationModule } from './api-navigation/api-navigation.module';
 import { ApiProxyModule } from './proxy/api-proxy.module';
 import { ApiV4PolicyStudioModule } from './policy-studio-v4/api-v4-policy-studio.module';
 import { ApiRuntimeLogsV4Module } from './api-traffic-v4/api-runtime-logs-v4.module';
-import { ApisGeneralModule } from './general/apis-general.module';
 import { ApiEndpointsV4Module } from './endpoints-v4/api-endpoints-v4.module';
 import { ApiEntrypointsV4Module } from './entrypoints-v4/api-entrypoints-v4.module';
 import { GioPolicyStudioRoutingModule } from './policy-studio-v2/gio-policy-studio-routing.module';
@@ -45,6 +44,7 @@ import { ApiHealthCheckModule } from './health-check/api-health-check.module';
 import { ApiPlansModule } from './plans/api-plans.module';
 import { ApiSubscriptionsModule } from './subscriptions/api-subscriptions.module';
 import { ApiDocumentationModule } from './documentation/api-documentation.module';
+import { ApiUserGroupModule } from './user-group-access/api-user-group.module';
 import { ApiAuditListModule } from './api-audit-list/api-audit-list.module';
 
 import { SpecificJsonSchemaTypeModule } from '../../shared/components/specific-json-schema-type/specific-json-schema-type.module';
@@ -72,7 +72,6 @@ import { AlertsModule } from '../../components/alerts/alerts.module';
     ApiEntrypointsModule,
     ApiEntrypointsV4Module,
     ApiFailoverModule,
-    ApisGeneralModule,
     ApiGeneralInfoModule,
     ApiHealthCheckModule,
     ApiListModule,
@@ -85,6 +84,7 @@ import { AlertsModule } from '../../components/alerts/alerts.module';
     ApiRuntimeLogsV4Module,
     ApiSubscriptionsModule,
     ApiV4PolicyStudioModule,
+    ApiUserGroupModule,
     DocumentationModule,
     GioPolicyStudioRoutingModule,
     SpecificJsonSchemaTypeModule,

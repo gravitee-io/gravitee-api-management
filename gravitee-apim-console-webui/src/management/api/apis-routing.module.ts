@@ -28,9 +28,6 @@ import { ApiEntrypointsV4GeneralComponent } from './entrypoints-v4/api-entrypoin
 import { ApiEndpointComponent } from './endpoints-v4/endpoint/api-endpoint.component';
 import { ApiEntrypointsV4EditComponent } from './entrypoints-v4/edit/api-entrypoints-v4-edit.component';
 import { ApiResourcesComponent } from './resources-ng/api-resources.component';
-import { ApiGeneralMembersComponent } from './general/user-group-access/members/api-general-members.component';
-import { ApiGeneralGroupsComponent } from './general/user-group-access/groups/api-general-groups.component';
-import { ApiGeneralTransferOwnershipComponent } from './general/user-group-access/transfer-ownership/api-general-transfer-ownership.component';
 import { ApiPortalDocumentationMetadataComponent } from './documentation/metadata/api-portal-documentation-metadata.component';
 import { ApiEntrypointsComponent } from './entrypoints/api-entrypoints.component';
 import { ApiCorsComponent } from './cors/api-cors.component';
@@ -76,6 +73,9 @@ import { PolicyStudioDebugComponent } from './policy-studio-v2/debug/policy-stud
 import { ApiProxyGroupEndpointEditComponent } from './endpoints/groups/endpoint/edit/api-proxy-group-endpoint-edit.component';
 import { ApiProxyGroupEditComponent } from './endpoints/groups/edit/api-proxy-group-edit.component';
 import { ApiProxyEndpointListComponent } from './endpoints/list/api-proxy-endpoint-list.component';
+import { ApiGeneralMembersComponent } from './user-group-access/members/api-general-members.component';
+import { ApiGeneralGroupsComponent } from './user-group-access/groups/api-general-groups.component';
+import { ApiGeneralTransferOwnershipComponent } from './user-group-access/transfer-ownership/api-general-transfer-ownership.component';
 import { ApiAuditListComponent } from './api-audit-list/api-audit-list.component';
 import { AuditLogsComponent as ApiAuditLogsComponent } from './api-traffic-v4/audit-logs/audit-logs.component';
 

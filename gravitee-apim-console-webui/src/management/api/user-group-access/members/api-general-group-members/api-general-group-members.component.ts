@@ -17,9 +17,9 @@ import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angu
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
-import { UsersService } from '../../../../../../services-ngx/users.service';
-import { GioTableWrapperFilters } from '../../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
-import { GroupV2Service } from '../../../../../../services-ngx/group-v2.service';
+import { UsersService } from '../../../../../services-ngx/users.service';
+import { GioTableWrapperFilters } from '../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
+import { GroupV2Service } from '../../../../../services-ngx/group-v2.service';
 import { GroupData } from '../api-general-members.component';
 
 interface MemberDataSource {
