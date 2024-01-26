@@ -45,6 +45,7 @@ import { ApiHealthCheckModule } from './health-check/api-health-check.module';
 import { ApiPlansModule } from './plans/api-plans.module';
 import { ApiSubscriptionsModule } from './subscriptions/api-subscriptions.module';
 import { ApiDocumentationModule } from './documentation/api-documentation.module';
+import { ApiAuditListModule } from './api-audit-list/api-audit-list.module';
 
 import { SpecificJsonSchemaTypeModule } from '../../shared/components/specific-json-schema-type/specific-json-schema-type.module';
 import { DocumentationModule } from '../../components/documentation/documentation.module';
@@ -60,6 +61,7 @@ import { AlertsModule } from '../../components/alerts/alerts.module';
     AlertsModule,
     ApiAnalyticsModule,
     ApiAuditModule,
+    ApiAuditListModule,
     ApiCreationGetStartedModule,
     ApiCreationV2Module,
     ApiCreationV4Module,
