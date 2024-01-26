@@ -17,11 +17,11 @@ import { ComponentHarness } from '@angular/cdk/testing';
 import { MatLegacyTableHarness as MatTableHarness } from '@angular/material/legacy-table/testing';
 
 export class ApiGeneralGroupMembersHarness extends ComponentHarness {
-  static hostSelector = 'api-general-group-members';
+  static readonly hostSelector = 'api-general-group-members';
 
-  protected getGroupTable = () => this.locatorFor(MatTableHarness)();
-
-  protected getDoNotHavePermissionMessage = () => this.locatorFor('#cannot-view-members')();
+  private getGroupTable = () => this.locatorFor(MatTableHarness)();
+  private getDoNotHavePermissionMessage = () => this.locatorFor('#cannot-view-members')();
+  private groupTableNameSelector = this.locatorFor('.title');
 
   public getGroupTableByGroupName(): Promise<MatTableHarness> {
     return this.getGroupTable();
@@ -37,5 +37,9 @@ export class ApiGeneralGroupMembersHarness extends ComponentHarness {
     return this.getDoNotHavePermissionMessage()
       .then((_) => true)
       .catch((_) => false);
+  }
+
+  public getGroupTableName(): Promise<string> {
+    return this.groupTableNameSelector().then((tableName) => tableName.text());
   }
 }

@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 import { Component, OnInit } from '@angular/core';
-import { combineLatest, EMPTY, forkJoin, Observable, Subject } from 'rxjs';
+import { combineLatest, EMPTY, forkJoin, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatLegacyDialog } from '@angular/material/legacy-dialog';
 import { MatDialog } from '@angular/material/dialog';
-import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { isEmpty, uniqueId } from 'lodash';
 import { ActivatedRoute } from '@angular/router';
 
@@ -34,8 +34,9 @@ import {
 import { SearchableUser } from '../../../../entities/user/searchableUser';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { ApiMemberV2Service } from '../../../../services-ngx/api-member-v2.service';
-import { Api, Member, Role } from '../../../../entities/management-api-v2';
+import { Api, Group, Member, Role } from '../../../../entities/management-api-v2';
 import { GroupV2Service } from '../../../../services-ngx/group-v2.service';
+import { ApiGeneralGroupsComponent, ApiGroupsDialogData, ApiGroupsDialogResult } from '../groups/api-general-groups.component';
 
 class MemberDataSource {
   id: string;
@@ -67,6 +68,8 @@ export class ApiGeneralMembersComponent implements OnInit {
 
   dataSource: MemberDataSource[];
   displayedColumns = ['picture', 'displayName', 'role'];
+  api: Api;
+  groups: Group[];
 
   private apiId: string;
 
@@ -101,6 +104,8 @@ export class ApiGeneralMembersComponent implements OnInit {
     ])
       .pipe(
         tap(([api, members, roles, groups]) => {
+          this.api = api;
+          this.groups = groups.data;
           this.members = members.data ?? [];
           this.roles = roles.map((r) => r.name) ?? [];
           this.defaultRole = roles.find((role) => role.default);
@@ -195,6 +200,32 @@ export class ApiGeneralMembersComponent implements OnInit {
       });
   }
 
+  public updateGroups(): void {
+    this.matDialog
+      .open<ApiGeneralGroupsComponent, ApiGroupsDialogData, ApiGroupsDialogResult>(ApiGeneralGroupsComponent, {
+        width: GIO_DIALOG_WIDTH.MEDIUM,
+        role: 'alertdialog',
+        id: 'addGroupsDialog',
+        data: {
+          api: this.api,
+          groups: this.groups,
+        },
+      })
+      .afterClosed()
+      .pipe(
+        switchMap((apiDialogResult) => {
+          return combineLatest([of(apiDialogResult), this.apiService.get(this.activatedRoute.snapshot.params.apiId)]);
+        }),
+        switchMap(([apiDialogResult, api]) => {
+          return api.definitionVersion === 'V1'
+            ? throwError({ message: 'You cannot modify a V1 API.' })
+            : this.apiService.update(api.id, { ...api, groups: apiDialogResult?.groups });
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe(() => this.ngOnInit());
+  }
+
   public onReset() {
     this.form = undefined;
     this.ngOnInit();
@@ -266,6 +297,7 @@ export class ApiGeneralMembersComponent implements OnInit {
     membersForm.addControl(member._viewId, roleFormControl);
     membersForm.markAsDirty();
   }
+
   private deleteMember(member: Member) {
     this.apiMemberService.deleteMember(this.apiId, member.id).subscribe({
       next: () => {

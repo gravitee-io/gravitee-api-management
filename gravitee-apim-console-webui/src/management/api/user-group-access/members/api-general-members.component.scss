@@ -9,6 +9,21 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
+
+    &__title {
+      width: 50%;
+    }
+
+    &__actions {
+      display: flex;
+      width: 50%;
+      justify-content: flex-end;
+      align-self: center;
+
+      &__button {
+        margin: 0 6px;
+      }
+    }
   }
 
   &__enable-notification-toggle {

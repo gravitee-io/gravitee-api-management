@@ -18,12 +18,24 @@
 <form [formGroup]="form" *ngIf="form">
   <mat-card>
     <div class="card__header">
-      <div>
-        <h3>Members ({{ members?.length }})</h3>
-        <p>Add users or groups as members of your API, and define their roles to manage and perform tasks and operations.</p>
+      <div class="card__header__title">
+        <h3>Members</h3>
+        <p>Manage who can interact with your API through the API Management console</p>
       </div>
-      <div>
+      <div class="card__header__actions">
         <button
+          class="card__header__actions__button"
+          aria-label="Manage groups"
+          *gioPermission="{ anyOf: ['api-member-r', 'api-member-u', 'api-member-d'] }"
+          mat-raised-button
+          (click)="updateGroups()"
+          [disabled]="this.groups?.length === 0"
+          type="button"
+        >
+          Manage groups
+        </button>
+        <button
+          class="card__header__actions__button"
           *gioPermission="{ anyOf: ['api-member-c'] }"
           [disabled]="isReadOnly"
           mat-raised-button
