@@ -32,13 +32,13 @@ import io.gravitee.rest.api.management.v2.rest.provider.CommaSeparatedQueryParam
 import io.gravitee.rest.api.management.v2.rest.provider.ObjectMapperResolver;
 import io.gravitee.rest.api.management.v2.rest.resource.OpenAPIResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.ApisResource;
-import io.gravitee.rest.api.management.v2.rest.resource.bootstrap.ManagementUIResource;
 import io.gravitee.rest.api.management.v2.rest.resource.installation.EnvironmentsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.installation.GraviteeLicenseResource;
 import io.gravitee.rest.api.management.v2.rest.resource.installation.OrganizationResource;
 import io.gravitee.rest.api.management.v2.rest.resource.plugin.EndpointsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.plugin.EntrypointsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.plugin.PoliciesResource;
+import io.gravitee.rest.api.management.v2.rest.resource.ui.ManagementUIResource;
 import io.gravitee.rest.api.rest.filter.GraviteeContextResponseFilter;
 import io.gravitee.rest.api.rest.filter.PermissionsFilter;
 import io.gravitee.rest.api.rest.filter.SecurityContextFilter;

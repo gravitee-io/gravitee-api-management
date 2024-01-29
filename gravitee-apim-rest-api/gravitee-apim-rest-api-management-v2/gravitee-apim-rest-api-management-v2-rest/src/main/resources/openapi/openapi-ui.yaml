@@ -33,12 +33,12 @@ paths:
         get:
             tags:
                 - Management UI
-            summary: Get customization of Console
+            summary: Get customization of Console by default organization
             description: |
-                Get the customization settings of Console.
+                Get the customization settings of Console by default organization.
 
-                User can only access the customization of their organization.
-                An error is returned if the OEM Customization is missing from the Gravitee License.
+                No authentication necessary.
+                An empty response is returned if the OEM Customization is missing from the Gravitee License.
             operationId: getConsoleCustomization
             responses:
                 "200":
@@ -47,6 +47,35 @@ paths:
                         application/json:
                             schema:
                                 $ref: "#/components/schemas/ConsoleCustomization"
+                "204":
+                    description: The license does not contain OEM Customization
+                default:
+                    $ref: "#/components/responses/Error"
+    /organizations/{orgId}/ui/customization:
+        parameters:
+            - $ref: "#/components/parameters/orgIdParam"
+        get:
+            tags:
+                - Management UI
+            summary: Get customization of Console by organization
+            description: |
+                Get the customization settings of Console by organization.
+
+                User can only access the customization of their organization.
+                An empty response is returned if the OEM Customization is missing from the Gravitee License.
+            operationId: getConsoleCustomizationByOrganization
+            security:
+                - BasicAuth: []
+                - CookieAuth: []
+            responses:
+                "200":
+                    description: The customization settings for the console.
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ConsoleCustomization"
+                "204":
+                    description: The license does not contain OEM Customization
                 default:
                     $ref: "#/components/responses/Error"
 components:
@@ -137,6 +166,15 @@ components:
                             invalidValue:
                                 type: object
                                 description: The invalid value.
+    parameters:
+        orgIdParam:
+            name: orgId
+            in: path
+            required: true
+            description: Id of an organization.
+            schema:
+                type: string
+                default: DEFAULT
 
     responses:
         Error:
@@ -145,3 +183,12 @@ components:
                 application/json:
                     schema:
                         $ref: "#/components/schemas/Error"
+
+    securitySchemes:
+        BasicAuth:
+            type: http
+            scheme: basic
+        CookieAuth:
+            type: apiKey
+            in: cookie
+            name: Auth-Graviteeio-APIM
