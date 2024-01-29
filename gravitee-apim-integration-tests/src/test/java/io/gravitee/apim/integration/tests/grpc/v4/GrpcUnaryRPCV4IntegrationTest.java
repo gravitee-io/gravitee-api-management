@@ -71,8 +71,7 @@ public class GrpcUnaryRPCV4IntegrationTest extends AbstractGrpcV4GatewayTest {
         httpServer.listen();
 
         // call the service through the gateway
-        GrpcClient client = GrpcClient.client(vertx);
-        client
+        getGrpcClient()
             .request(gatewayAddress(), GreeterGrpc.getSayHelloMethod())
             .compose(request -> {
                 request.end(HelloRequest.newBuilder().setName("You").build());

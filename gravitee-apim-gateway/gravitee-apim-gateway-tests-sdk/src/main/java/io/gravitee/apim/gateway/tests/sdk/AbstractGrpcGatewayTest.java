@@ -17,12 +17,13 @@ package io.gravitee.apim.gateway.tests.sdk;
 
 import io.gravitee.definition.model.Api;
 import io.gravitee.gateway.reactor.ReactableApi;
-import io.grpc.ManagedChannel;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerOptions;
 import io.vertx.core.net.SocketAddress;
+import io.vertx.grpc.client.GrpcClient;
 import io.vertx.grpc.server.GrpcServer;
+import java.util.function.Supplier;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
@@ -34,7 +35,7 @@ public abstract class AbstractGrpcGatewayTest extends AbstractGatewayTest {
     protected int grpcServerPort;
 
     protected HttpServer vertxServer;
-    protected ManagedChannel managedChannel;
+    private GrpcClient client;
 
     @BeforeEach
     public void setupVertx(io.vertx.rxjava3.core.Vertx v) {
@@ -46,15 +47,10 @@ public abstract class AbstractGrpcGatewayTest extends AbstractGatewayTest {
     @AfterEach
     public void tearDown() {
         if (vertxServer != null) {
-            vertxServer.close(event -> {
-                if (managedChannel != null) {
-                    managedChannel.shutdownNow();
-                }
-            });
+            vertxServer.close(event -> {});
         }
-
-        if (managedChannel != null && !managedChannel.isShutdown()) {
-            managedChannel.shutdownNow();
+        if (client != null) {
+            client.close();
         }
 
         vertx.close();
@@ -78,5 +74,14 @@ public abstract class AbstractGrpcGatewayTest extends AbstractGatewayTest {
 
     protected SocketAddress gatewayAddress() {
         return SocketAddress.inetSocketAddress(gatewayPort(), LOCALHOST);
+    }
+
+    protected GrpcClient getGrpcClient(Supplier<GrpcClient> factory) {
+        this.client = factory.get();
+        return this.client;
+    }
+
+    public final GrpcClient getGrpcClient() {
+        return getGrpcClient(() -> GrpcClient.client(vertx));
     }
 }

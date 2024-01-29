@@ -59,7 +59,7 @@ public class GrpcNoEndpointV4EmulationIntegrationTest extends AbstractGrpcGatewa
     @Test
     void should_have_request_in_error_when_no_endpoint(VertxTestContext testContext) throws InterruptedException {
         // Prepare gRPC Client
-        GrpcClientChannel channel = new GrpcClientChannel(GrpcClient.client(vertx), gatewayAddress());
+        GrpcClientChannel channel = new GrpcClientChannel(getGrpcClient(), gatewayAddress());
 
         // Get a stub to use for interacting with the remote service
         GreeterGrpc.GreeterStub stub = GreeterGrpc.newStub(channel);
