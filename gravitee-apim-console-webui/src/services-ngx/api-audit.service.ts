@@ -37,14 +37,16 @@ export class ApiAuditService {
     return this.http.get<string[]>(`${this.constants.env.baseURL}/apis/${apiId}/audit/events`);
   }
 
-  getAudit(apiId: string, filters: ApiAuditFilters): Observable<MetadataPage<Audit>> {
+  getAudit(apiId: string, filters: ApiAuditFilters, page = 1, size = 10): Observable<MetadataPage<Audit>> {
     return this.http.get<MetadataPage<Audit>>(`${this.constants.env.baseURL}/apis/${apiId}/audit?`, {
-      params: this.sanitizeAuditParams(filters),
+      params: this.sanitizeAuditParams(filters, page, size),
     });
   }
 
-  private sanitizeAuditParams(filters: ApiAuditFilters) {
+  private sanitizeAuditParams(filters: ApiAuditFilters, page: number, size: number) {
     return {
+      page,
+      size,
       ...(filters.event ? { event: filters.event } : {}),
       ...(filters.from ? { from: filters.from } : {}),
       ...(filters.to ? { to: filters.to } : {}),
