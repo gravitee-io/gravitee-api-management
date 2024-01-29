@@ -87,7 +87,6 @@ public class GrpcBidirectionalStreamingV4IntegrationTest extends AbstractGrpcV4G
         );
 
         // Need a new Vertx to avoid side effects with connection pools from previous tests
-        GrpcClient client = GrpcClient.client(Vertx.vertx());
         AtomicLong timerId = new AtomicLong();
 
         // Create http server handled by gRPC
@@ -99,7 +98,7 @@ public class GrpcBidirectionalStreamingV4IntegrationTest extends AbstractGrpcV4G
         AtomicBoolean done = new AtomicBoolean();
 
         // call the remote service
-        client
+        getGrpcClient()
             .request(gatewayAddress(), StreamingGreeterGrpc.getSayHelloStreamingMethod())
             .onSuccess(request -> {
                 AtomicInteger i = new AtomicInteger();

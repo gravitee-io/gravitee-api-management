@@ -53,6 +53,6 @@ public class GrpcSecuredServerStreamingV4IntegrationTest extends GrpcServerStrea
     }
 
     public GrpcClient createGrpcClient() {
-        return GrpcClient.client(vertx, new HttpClientOptions().setUseAlpn(true).setSsl(true).setTrustAll(true));
+        return getGrpcClient(() -> GrpcClient.client(vertx, new HttpClientOptions().setUseAlpn(true).setSsl(true).setTrustAll(true)));
     }
 }

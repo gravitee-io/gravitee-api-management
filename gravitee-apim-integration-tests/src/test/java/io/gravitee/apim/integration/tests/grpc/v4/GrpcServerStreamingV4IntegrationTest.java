@@ -106,6 +106,6 @@ public class GrpcServerStreamingV4IntegrationTest extends AbstractGrpcV4GatewayT
     }
 
     protected GrpcClient createGrpcClient() {
-        return GrpcClient.client(vertx);
+        return getGrpcClient();
     }
 }

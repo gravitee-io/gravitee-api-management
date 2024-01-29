@@ -57,7 +57,7 @@ public class GrpcUnknownEndpointV4EmulationIntegrationTest extends AbstractGrpcG
     @Test
     void should_request_and_not_get_response(VertxTestContext testContext) throws InterruptedException {
         // Get a stub to use for interacting with the remote service
-        GrpcClientChannel channel = new GrpcClientChannel(GrpcClient.client(vertx), gatewayAddress());
+        GrpcClientChannel channel = new GrpcClientChannel(getGrpcClient(), gatewayAddress());
         GreeterGrpc.GreeterStub stub = GreeterGrpc.newStub(channel);
 
         HelloRequest request = HelloRequest.newBuilder().setName("You").build();

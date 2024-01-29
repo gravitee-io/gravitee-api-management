@@ -57,7 +57,7 @@ public class GrpcUnknownServiceV4EmulationIntegrationTest extends AbstractGrpcGa
     @Test
     void should_request_and_not_get_response(VertxTestContext testContext) throws InterruptedException {
         // Get a stub to use for interacting with the remote service
-        GrpcClientChannel channel = new GrpcClientChannel(GrpcClient.client(vertx), gatewayAddress());
+        GrpcClientChannel channel = new GrpcClientChannel(getGrpcClient(), gatewayAddress());
         StreamingGreeterGrpc.StreamingGreeterStub stub = StreamingGreeterGrpc.newStub(channel);
 
         // Call the remote service, only to get a proper exception
