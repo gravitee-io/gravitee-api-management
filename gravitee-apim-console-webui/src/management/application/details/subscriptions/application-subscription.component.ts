@@ -40,7 +40,7 @@ export class ApplicationSubscriptionComponent extends UpgradeComponent {
     super('applicationSubscription', elementRef, injector);
   }
 
-  ngOnInit() {
+  override ngOnInit() {
     const applicationId = this.activatedRoute.snapshot.params.applicationId;
     combineLatest([
       this.applicationService.getLastApplicationFetch(applicationId),
@@ -60,7 +60,7 @@ export class ApplicationSubscriptionComponent extends UpgradeComponent {
       });
   }
 
-  ngOnDestroy() {
+  override ngOnDestroy() {
     this.unsubscribe$.next();
     this.unsubscribe$.complete();
 

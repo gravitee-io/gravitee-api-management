@@ -42,7 +42,7 @@ export class ApplicationGeneralComponent extends UpgradeComponent {
     super('applicationGeneral', elementRef, injector);
   }
 
-  ngOnInit() {
+  override ngOnInit() {
     const applicationId = this.activatedRoute.snapshot.params.applicationId;
     combineLatest([
       this.groupService.list(),
@@ -68,7 +68,7 @@ export class ApplicationGeneralComponent extends UpgradeComponent {
       });
   }
 
-  ngOnDestroy() {
+  override ngOnDestroy() {
     this.unsubscribe$.next();
     this.unsubscribe$.complete();
 

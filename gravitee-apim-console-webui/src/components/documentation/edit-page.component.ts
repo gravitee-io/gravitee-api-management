@@ -43,7 +43,7 @@ export class DocumentationEditPageComponent extends UpgradeComponent {
     super('documentationEditPageAjs', elementRef, injector);
   }
 
-  ngOnInit() {
+  override ngOnInit() {
     const apiId = this.activatedRoute.snapshot.params.apiId;
     const pageId = this.activatedRoute.snapshot.params.pageId;
     const type = this.activatedRoute.snapshot.queryParams.type;

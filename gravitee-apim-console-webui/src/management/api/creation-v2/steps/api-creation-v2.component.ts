@@ -48,7 +48,7 @@ export class ApiCreationV2Component extends UpgradeComponent implements OnDestro
     super('apiCreationV2ComponentAjs', elementRef, injector);
   }
 
-  ngOnInit() {
+  override ngOnInit() {
     combineLatest([this.groupService.list(), this.tenantService.list(), this.tagService.list()])
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe(([groups, tenants, tags]) => {
@@ -68,7 +68,7 @@ export class ApiCreationV2Component extends UpgradeComponent implements OnDestro
       });
   }
 
-  ngOnDestroy() {
+  override ngOnDestroy() {
     this.unsubscribe$.next();
     this.unsubscribe$.complete();
 

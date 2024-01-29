@@ -43,7 +43,7 @@ export class DocumentationManagementComponent extends UpgradeComponent {
     super('documentationManagementAjs', elementRef, injector);
   }
 
-  ngOnInit() {
+  override ngOnInit() {
     const apiId = this.activatedRoute.snapshot.params.apiId;
     const parent = this.activatedRoute.snapshot.queryParams.parent ?? '';
 

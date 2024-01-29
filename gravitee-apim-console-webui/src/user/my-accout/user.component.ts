@@ -49,7 +49,7 @@ export class UserComponent extends UpgradeComponent {
     super('user', elementRef, injector);
   }
 
-  ngOnInit() {
+  override ngOnInit() {
     this.currentUserService
       .current()
       .pipe(takeUntil(this.unsubscribe$))
@@ -70,7 +70,7 @@ export class UserComponent extends UpgradeComponent {
     });
   }
 
-  ngOnDestroy() {
+  override ngOnDestroy() {
     this.unsubscribe$.next();
     this.unsubscribe$.unsubscribe();
     super.ngOnDestroy();

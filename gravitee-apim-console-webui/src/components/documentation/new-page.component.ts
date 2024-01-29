@@ -42,7 +42,7 @@ export class DocumentationNewPageComponent extends UpgradeComponent {
     super('documentationNewPageAjs', elementRef, injector);
   }
 
-  ngOnInit() {
+  override ngOnInit() {
     const apiId = this.activatedRoute.snapshot.params.apiId;
     const type = this.activatedRoute.snapshot.queryParams.type;
 

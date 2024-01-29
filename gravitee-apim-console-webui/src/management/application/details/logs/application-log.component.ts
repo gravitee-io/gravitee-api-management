@@ -40,7 +40,7 @@ export class ApplicationLogComponent extends UpgradeComponent {
     super('applicationLog', elementRef, injector);
   }
 
-  ngOnInit() {
+  override ngOnInit() {
     this.applicationService
       .getLog(
         this.activatedRoute.snapshot.params.applicationId,
@@ -60,7 +60,7 @@ export class ApplicationLogComponent extends UpgradeComponent {
       });
   }
 
-  ngOnDestroy() {
+  override ngOnDestroy() {
     this.unsubscribe$.next();
     this.unsubscribe$.complete();
 

@@ -24,7 +24,7 @@ import { GioFormListenersContextPathHarness } from '../gio-form-listeners-contex
 import { PathV4 } from '../../../../../entities/management-api-v2';
 
 export class GioFormListenersVirtualHostHarness extends GioFormListenersContextPathHarness {
-  public static hostSelector = 'gio-form-listeners-virtual-host';
+  public static override hostSelector = 'gio-form-listeners-virtual-host';
 
   /**
    * Gets a `HarnessPredicate` that can be used to search for a `GioFormListenersVirtualHostHarness` that meets
@@ -33,11 +33,11 @@ export class GioFormListenersVirtualHostHarness extends GioFormListenersContextP
    * @param options Options for filtering which input instances are considered a match.
    * @return a `HarnessPredicate` configured with the given options.
    */
-  public static with(options: BaseHarnessFilters = {}): HarnessPredicate<GioFormListenersVirtualHostHarness> {
+  public static override with(options: BaseHarnessFilters = {}): HarnessPredicate<GioFormListenersVirtualHostHarness> {
     return new HarnessPredicate(GioFormListenersVirtualHostHarness, options);
   }
 
-  public async getListenerRows(): Promise<
+  public override async getListenerRows(): Promise<
     {
       hostDomainSuffix: DivHarness;
       hostSubDomainInput: MatInputHarness;
@@ -70,7 +70,7 @@ export class GioFormListenersVirtualHostHarness extends GioFormListenersContextP
       MatSlideToggleHarness.with({ ancestor: `[ng-reflect-name="${rowIndex}"]`, selector: '[formControlName=overrideAccess]' }),
     );
 
-  public async getLastListenerRow(): Promise<{
+  public override async getLastListenerRow(): Promise<{
     hostDomainInput: SpanHarness;
     hostSubDomainInput: MatInputHarness;
     pathInput: MatInputHarness;
@@ -86,7 +86,7 @@ export class GioFormListenersVirtualHostHarness extends GioFormListenersContextP
     };
   }
 
-  public async addListener({ host, path, overrideAccess }: PathV4): Promise<void> {
+  public override async addListener({ host, path, overrideAccess }: PathV4): Promise<void> {
     await this.addListenerRow();
 
     const { hostSubDomainInput, pathInput, overrideAccessInput } = await this.getLastListenerRow();

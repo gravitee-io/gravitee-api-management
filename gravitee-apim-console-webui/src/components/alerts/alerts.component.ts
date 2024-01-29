@@ -46,7 +46,7 @@ export class AlertsComponent extends UpgradeComponent {
     super('alertsComponentAjs', elementRef, injector);
   }
 
-  ngOnInit() {
+  override ngOnInit() {
     const apiId = this.activatedRoute.snapshot.params.apiId;
 
     this.ngOnChanges({
@@ -70,7 +70,7 @@ export class AlertsComponent extends UpgradeComponent {
     super.ngOnInit();
   }
 
-  ngOnDestroy() {
+  override ngOnDestroy() {
     this.unsubscribe$.next();
     this.unsubscribe$.unsubscribe();
     super.ngOnDestroy();

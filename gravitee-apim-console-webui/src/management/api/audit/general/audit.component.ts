@@ -29,7 +29,7 @@ export class ApiAuditComponent extends UpgradeComponent {
     super('apiAuditComponentAjs', elementRef, injector);
   }
 
-  ngOnInit() {
+  override ngOnInit() {
     this.ngOnChanges({
       activatedRoute: new SimpleChange(null, this.activatedRoute, true),
     });

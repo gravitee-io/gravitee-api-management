@@ -27,7 +27,7 @@ import { MatLegacyFormFieldHarness as MatFormFieldHarness } from '@angular/mater
 import { ApiKeyValidationHarness } from '../../api-key-validation/api-key-validation.harness';
 
 export class ApiPortalSubscriptionCreationDialogHarness extends MatDialogHarness {
-  static hostSelector = 'api-portal-subscription-creation-dialog';
+  static override hostSelector = 'api-portal-subscription-creation-dialog';
 
   protected getApplicationAutocomplete = this.locatorFor(MatAutocompleteHarness);
   protected getInputApplicationSearch = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="selectedApplication"]' }));
