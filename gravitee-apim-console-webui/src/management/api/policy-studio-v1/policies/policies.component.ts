@@ -36,7 +36,7 @@ export class ApiV1PoliciesComponent extends UpgradeComponent {
     super('apiV1PoliciesComponentAjs', elementRef, injector);
   }
 
-  ngOnInit() {
+  override ngOnInit() {
     // Hack to Force the binding between Angular and AngularJS
 
     this.apiService

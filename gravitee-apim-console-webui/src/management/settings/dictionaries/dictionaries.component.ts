@@ -29,7 +29,7 @@ export class DictionariesComponent extends UpgradeComponent {
     super('settingsDictionariesAjs', elementRef, injector);
   }
 
-  ngOnInit() {
+  override ngOnInit() {
     // Hack to Force the binding between Angular and AngularJS
     this.ngOnChanges({
       activatedRoute: new SimpleChange(null, this.activatedRoute, true),

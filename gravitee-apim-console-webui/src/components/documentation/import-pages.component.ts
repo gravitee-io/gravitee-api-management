@@ -40,7 +40,7 @@ export class DocumentationImportPagesComponent extends UpgradeComponent {
     super('documentationImportPagesAjs', elementRef, injector);
   }
 
-  ngOnInit() {
+  override ngOnInit() {
     const apiId = this.activatedRoute.snapshot.params.apiId;
 
     Promise.all([

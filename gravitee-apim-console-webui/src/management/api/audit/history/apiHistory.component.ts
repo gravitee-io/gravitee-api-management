@@ -28,7 +28,7 @@ export class ApiHistoryComponent extends UpgradeComponent {
   constructor(elementRef: ElementRef, injector: Injector, private readonly activatedRoute: ActivatedRoute) {
     super('apiHistoryComponentAjs', elementRef, injector);
   }
-  ngOnInit() {
+  override ngOnInit() {
     this.ngOnChanges({
       activatedRoute: new SimpleChange(null, this.activatedRoute, true),
     });

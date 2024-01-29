@@ -58,7 +58,7 @@ export class GioFormListenersVirtualHostComponent extends GioFormListenersContex
   @Input()
   public domainRestrictions: string[] = [];
 
-  public newListenerFormGroup(listener: PathV4): UntypedFormGroup {
+  public override newListenerFormGroup(listener: PathV4): UntypedFormGroup {
     const { host, hostDomain } = extractDomainToHost(listener?.host, this.domainRestrictions);
 
     return new UntypedFormGroup(
@@ -75,7 +75,7 @@ export class GioFormListenersVirtualHostComponent extends GioFormListenersContex
   }
 
   // From ControlValueAccessor interface
-  public registerOnChange(fn: (listeners: PathV4[] | null) => void): void {
+  public override registerOnChange(fn: (listeners: PathV4[] | null) => void): void {
     this._onChange = (listeners: InternalPathV4[]) =>
       fn(
         listeners.map((listener) => ({
@@ -107,7 +107,7 @@ export class GioFormListenersVirtualHostComponent extends GioFormListenersContex
     };
   }
 
-  public listenersValidator(): ValidatorFn {
+  public override listenersValidator(): ValidatorFn {
     return (formArray: UntypedFormArray): ValidationErrors | null => {
       const listenerFormArrayControls = formArray.controls;
       const listenerValues = listenerFormArrayControls.map((listener) => ({
@@ -123,7 +123,7 @@ export class GioFormListenersVirtualHostComponent extends GioFormListenersContex
     };
   }
 
-  protected getValue(): PathV4[] {
+  protected override getValue(): PathV4[] {
     return this.listenerFormArray?.controls.map((control) => {
       return {
         path: control.get('path').value,

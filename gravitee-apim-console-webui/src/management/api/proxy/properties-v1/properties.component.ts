@@ -36,7 +36,7 @@ export class ApiV1PropertiesComponent extends UpgradeComponent {
     super('apiV1PropertiesComponentAjs', elementRef, injector);
   }
 
-  ngOnInit() {
+  override ngOnInit() {
     // Hack to Force the binding between Angular and AngularJS
     this.apiService
       .get(this.activatedRoute.snapshot.params.apiId)

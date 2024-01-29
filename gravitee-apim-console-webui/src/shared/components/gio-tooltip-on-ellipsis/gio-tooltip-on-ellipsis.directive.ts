@@ -45,7 +45,7 @@ export class GioTooltipOnEllipsisDirective extends MatTooltip implements AfterVi
     return !this.isEllipsis;
   }
 
-  ngAfterViewInit(): void {
+  override ngAfterViewInit(): void {
     super.ngAfterViewInit();
     if (this.nativeElement.offsetWidth < this.nativeElement.scrollWidth) {
       this.isEllipsis = true;

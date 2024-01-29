@@ -42,7 +42,7 @@ export class ApplicationCreationComponent extends UpgradeComponent {
     super('createApplication', elementRef, injector);
   }
 
-  ngOnInit() {
+  override ngOnInit() {
     combineLatest([this.applicationTypeService.getEnabledApplicationTypes(), this.groupService.list()])
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe({
@@ -58,7 +58,7 @@ export class ApplicationCreationComponent extends UpgradeComponent {
       });
   }
 
-  ngOnDestroy() {
+  override ngOnDestroy() {
     this.unsubscribe$.next();
     this.unsubscribe$.complete();
 

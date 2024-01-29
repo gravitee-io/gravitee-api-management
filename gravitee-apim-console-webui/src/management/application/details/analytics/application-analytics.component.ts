@@ -40,7 +40,7 @@ export class ApplicationAnalyticsComponent extends UpgradeComponent {
     super('applicationAnalytics', elementRef, injector);
   }
 
-  ngOnInit() {
+  override ngOnInit() {
     this.applicationService
       .getLastApplicationFetch(this.activatedRoute.snapshot.params.applicationId)
       .pipe(takeUntil(this.unsubscribe$))
@@ -56,7 +56,7 @@ export class ApplicationAnalyticsComponent extends UpgradeComponent {
       });
   }
 
-  ngOnDestroy() {
+  override ngOnDestroy() {
     this.unsubscribe$.next();
     this.unsubscribe$.complete();
 
