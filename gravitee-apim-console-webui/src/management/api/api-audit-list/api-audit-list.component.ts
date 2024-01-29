@@ -101,13 +101,15 @@ export class ApiAuditListComponent implements OnInit, OnDestroy {
       .pipe(
         throttleTime(100),
         distinctUntilChanged(isEqual),
-        switchMap(({ auditFilters }) =>
-          this.apiAuditService.getAudit(this.activatedRoute.snapshot.params.apiId, auditFilters).pipe(
-            catchError(() => {
-              this.snackBarService.error('Unable to try the request, please try again');
-              return EMPTY;
-            }),
-          ),
+        switchMap(({ auditFilters, tableWrapper }) =>
+          this.apiAuditService
+            .getAudit(this.activatedRoute.snapshot.params.apiId, auditFilters, tableWrapper.pagination.index, tableWrapper.pagination.size)
+            .pipe(
+              catchError(() => {
+                this.snackBarService.error('Unable to try the request, please try again');
+                return EMPTY;
+              }),
+            ),
         ),
         takeUntil(this.unsubscribe$),
       )

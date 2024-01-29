@@ -121,7 +121,7 @@ describe('EnvAuditComponent', () => {
     const tableWrapper = await loader.getHarness(GioTableWrapperHarness);
 
     await (await tableWrapper.getPaginator()).goToNextPage();
-    expectGetApiAuditListRequest();
+    expectGetApiAuditListRequest(undefined, { page: 2, size: 10 });
 
     const eventInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName=event]' }));
     await eventInput.clickOptions({ text: 'ROLE_UPDATED' });
@@ -138,12 +138,16 @@ describe('EnvAuditComponent', () => {
       from?: number;
       to?: number;
     } = {},
+    pagination: {
+      page: number;
+      size: number;
+    } = { page: 1, size: 10 },
   ) {
     httpTestingController
       .expectOne({
-        url: `${CONSTANTS_TESTING.env.baseURL}/apis/undefined/audit?${filters.event ? 'event=' + filters.event : ''}${
-          filters.from ? 'from=' + filters.from : ''
-        }${filters.to ? '&to=' + filters.to : ''}`,
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/undefined/audit?page=${pagination.page}&size=${pagination.size}${
+          filters.event ? '&event=' + filters.event : ''
+        }${filters.from ? '&from=' + filters.from : ''}${filters.to ? '&to=' + filters.to : ''}`,
         method: 'GET',
       })
       .flush(fakeMetadataPageAudit());

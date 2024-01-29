@@ -50,7 +50,7 @@ describe('ApiAuditService', () => {
 
       const req = httpTestingController.expectOne({
         method: 'GET',
-        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/audit?`,
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/audit?page=1&size=10`,
       });
 
       req.flush(fakeAuditPage);
