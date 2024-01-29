@@ -87,7 +87,7 @@ public class CommaSeparatedQueryParamConverterProvider implements ParamConverter
 
         @Override
         public T fromString(final String value) {
-            if (value == null) {
+            if (value == null || value.isBlank()) {
                 if (nonNull) {
                     return Stream.<U>empty().collect(collector);
                 }
