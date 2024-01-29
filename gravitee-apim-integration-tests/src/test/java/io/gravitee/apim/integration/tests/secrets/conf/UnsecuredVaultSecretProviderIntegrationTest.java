@@ -23,10 +23,12 @@ import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayConfigurationBuil
 import io.gravitee.node.api.secrets.SecretManagerConfiguration;
 import io.gravitee.node.api.secrets.SecretProviderFactory;
 import io.gravitee.node.secrets.plugins.SecretProviderPlugin;
+import java.io.IOException;
 import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.*;
 import org.springframework.core.env.Environment;
+import org.testcontainers.containers.Container;
 
 /**
  * @author Benoit BORDIGONI (benoit.bordigoni at graviteesource.com)
@@ -40,14 +42,18 @@ class UnsecuredVaultSecretProviderIntegrationTest {
 
     private static final String VAULT_TOKEN = UUID.randomUUID().toString();
     private static org.testcontainers.vault.VaultContainer<?> vaultContainer;
+    private static String token;
 
     @BeforeAll
-    static void startAndConfigure() {
+    static void startAndConfigure() throws IOException, InterruptedException {
         vaultContainer =
             new org.testcontainers.vault.VaultContainer<>(SecuredVaultContainer.HASHICORP_VAULT_IMAGE)
                 .withVaultToken(VAULT_TOKEN)
                 .withInitCommand("kv put secret/test top_secret=thatWillRemainOurDirtyLittleSecret");
         vaultContainer.start();
+        // create a renewable token so the plugin does not start panicking
+        Container.ExecResult execResult = vaultContainer.execInContainer("vault", "token", "create", "-period=10m", "-field", "token");
+        token = execResult.getStdout();
     }
 
     @AfterAll
@@ -66,7 +72,7 @@ class UnsecuredVaultSecretProviderIntegrationTest {
             configurationBuilder.setYamlProperty("secrets.vault.port", vaultContainer.getMappedPort(8200));
             configurationBuilder.setYamlProperty("secrets.vault.ssl.enabled", false);
             configurationBuilder.setYamlProperty("secrets.vault.auth.method", "token");
-            configurationBuilder.setYamlProperty("secrets.vault.auth.config.token", VAULT_TOKEN);
+            configurationBuilder.setYamlProperty("secrets.vault.auth.config.token", token);
             configurationBuilder.setYamlProperty("test", "secret://vault/secret/test:top_secret");
         }
 
