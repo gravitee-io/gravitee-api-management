@@ -1,0 +1,44 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="content__header">
+  <div class="content__header__title">
+    <h4>Upload a file</h4>
+    <span class="gio-badge-neutral" *ngIf="!published">Unpublished</span>
+    <span class="gio-badge-success" *ngIf="published">Published</span>
+  </div>
+</div>
+<div class="content__file">
+  <gio-form-file-picker accept=".md,.markdown,.txt" [ngModel]="filePickerValue" (ngModelChange)="onImportFile($event)">
+    <gio-form-file-picker-add-button class="content__file__add-btn">
+      <div class="content__file__add-btn__wrapper">
+        <mat-icon svgIcon="gio:upload" class="content__file__add-btn__wrapper__icon"></mat-icon>
+        <p class="mat-body-strong">
+          Drag and drop a file to upload it.<br />
+          Alternatively, click here to choose a file.
+        </p>
+        <p>Supported file formats: {{ allowedFileExtensions }}</p>
+      </div>
+    </gio-form-file-picker-add-button>
+  </gio-form-file-picker>
+</div>
+<div *ngIf="!!importFileContent">
+  <h4>Preview of uploaded file</h4>
+  <div class="content__preview">
+    <markdown [data]="importFileContent"> </markdown>
+  </div>
+</div>

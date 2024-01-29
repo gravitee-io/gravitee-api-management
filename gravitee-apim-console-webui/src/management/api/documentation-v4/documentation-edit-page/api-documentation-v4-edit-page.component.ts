@@ -40,7 +40,8 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
   mode: 'create' | 'edit';
   pageTitle = 'Add new page';
   exitLabel = 'Exit without saving';
-  step2Title: string;
+  step3Title: string;
+  source: 'FILL' | 'IMPORT' | 'EXTERNAL' = 'FILL';
   breadcrumbs: Breadcrumb[];
 
   api: Api;
@@ -68,12 +69,14 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
     });
     this.form = this.formBuilder.group({
       stepOne: this.stepOneForm,
+      source: this.formBuilder.control(this.source, [Validators.required]),
       content: this.formBuilder.control('', [Validators.required]),
     });
 
     if (this.activatedRoute.snapshot.params.pageId) {
       this.mode = 'edit';
-      this.step2Title = 'Edit content';
+      this.step3Title = 'Edit content';
+      this.source = 'FILL';
 
       this.form.valueChanges
         .pipe(
@@ -82,6 +85,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
               this.formUnchanged =
                 this.page.name === value.stepOne?.name &&
                 this.page.visibility === value.stepOne?.visibility &&
+                this.source === value.source &&
                 this.page.content === value.content;
             }
           }),
@@ -94,7 +98,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
       }
     } else {
       this.mode = 'create';
-      this.step2Title = 'Add content';
+      this.step3Title = this.source === 'IMPORT' ? 'Upload a file' : 'Add content';
     }
 
     this.apiV2Service

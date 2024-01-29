@@ -16,7 +16,7 @@
 import { NgModule } from '@angular/core';
 import { MatLegacyCardModule as MatCardModule } from '@angular/material/legacy-card';
 import { CommonModule } from '@angular/common';
-import { GioIconsModule, GioMonacoEditorModule, GioRadioButtonModule } from '@gravitee/ui-particles-angular';
+import { GioFormFilePickerModule, GioIconsModule, GioMonacoEditorModule, GioRadioButtonModule } from '@gravitee/ui-particles-angular';
 import { MatLegacyButtonModule as MatButtonModule } from '@angular/material/legacy-button';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatLegacyInputModule as MatInputModule } from '@angular/material/legacy-input';
@@ -41,6 +41,7 @@ import { ApiDocumentationV4PagesListComponent } from './documentation-pages-list
 import { ApiDocumentationV4ContentEditorComponent } from './components/api-documentation-v4-content-editor/api-documentation-v4-content-editor.component';
 import { ApiDocumentationV4PageTitleComponent } from './components/api-documentation-v4-page-title/api-documentation-v4-page-title.component';
 import { ApiDocumentationV4BreadcrumbComponent } from './components/api-documentation-v4-breadcrumb/api-documentation-v4-breadcrumb.component';
+import { ApiDocumentationV4FileUploadComponent } from './components/api-documentation-v4-file-upload/api-documentation-v4-file-upload.component';
 
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { GioTooltipOnEllipsisModule } from '../../../shared/components/gio-tooltip-on-ellipsis/gio-tooltip-on-ellipsis.module';
@@ -58,6 +59,7 @@ import { GioTooltipOnEllipsisModule } from '../../../shared/components/gio-toolt
     ApiDocumentationV4EditPageComponent,
     ApiDocumentationV4PagesListComponent,
     ApiDocumentationV4BreadcrumbComponent,
+    ApiDocumentationV4FileUploadComponent,
   ],
   exports: [ApiDocumentationV4Component],
   imports: [
@@ -85,6 +87,7 @@ import { GioTooltipOnEllipsisModule } from '../../../shared/components/gio-toolt
     GioRadioButtonModule,
     GioPermissionModule,
     GioTooltipOnEllipsisModule,
+    GioFormFilePickerModule,
   ],
 })
 export class ApiDocumentationV4Module {}
