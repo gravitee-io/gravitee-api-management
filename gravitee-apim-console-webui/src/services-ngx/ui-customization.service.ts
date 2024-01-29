@@ -25,6 +25,6 @@ export class UiCustomizationService {
   constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
 
   getConsoleCustomization(): Observable<ConsoleCustomization> {
-    return this.http.get<ConsoleCustomization>(`${this.constants.v2BaseURL}/ui/customization`);
+    return this.http.get<ConsoleCustomization>(`${this.constants.org.v2BaseURL}/ui/customization`);
   }
 }

@@ -80,7 +80,7 @@ function fetchData(): Promise<{ constants: Constants; build: any }> {
 
       return Promise.all([
         fetch(`${constants.org.baseURL}/console`, requestConfig).then((r) => r.json()),
-        fetch(`${constants.v2BaseURL}/ui/customization`, requestConfig).then((r) => (r.status === 200 ? r.json() : null)),
+        fetch(`${constants.org.v2BaseURL}/ui/customization`, requestConfig).then((r) => (r.status === 200 ? r.json() : null)),
         fetch(`${constants.org.baseURL}/social-identities`, requestConfig).then((r) => r.json()),
       ]).then(([consoleResponse, uiCustomizationResponse, identityProvidersResponse]) => {
         constants.org.settings = consoleResponse;
