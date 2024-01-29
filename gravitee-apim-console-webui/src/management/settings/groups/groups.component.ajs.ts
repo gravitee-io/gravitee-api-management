@@ -16,7 +16,7 @@
 import { IScope } from 'angular';
 
 import { Router } from '@angular/router';
-import { filter } from 'rxjs/operators';
+import { filter } from 'lodash';
 
 import GroupService from '../../../services/group.service';
 import NotificationService from '../../../services/notification.service';
