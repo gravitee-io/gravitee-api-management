@@ -63,7 +63,7 @@ describe('UiCustomizationService', () => {
     });
 
     const req = httpTestingController.expectOne({
-      url: `${CONSTANTS_TESTING.v2BaseURL}/ui/customization`,
+      url: `${CONSTANTS_TESTING.org.v2BaseURL}/ui/customization`,
       method: 'GET',
     });
 
