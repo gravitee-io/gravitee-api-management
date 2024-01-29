@@ -1,0 +1,50 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+.content {
+  &__header {
+    padding: 16px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    &__title {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+  }
+
+  &__file {
+    display: flex;
+    justify-content: center;
+
+    gio-form-file-picker {
+      flex: 0 0 0px;
+    }
+
+    &__add-btn {
+      width: 800px;
+      height: 300px;
+
+      &__wrapper {
+        display: flex;
+        height: 300px;
+        flex-direction: column;
+        justify-content: space-evenly;
+        align-items: center;
+
+        &__icon {
+          color: mat.get-color-from-palette(gio.$mat-space-palette);
+        }
+      }
+    }
+  }
+
+  &__preview {
+    border: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10');
+    border-radius: 8px;
+    padding: 24px;
+  }
+}
