@@ -19,6 +19,10 @@ import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
+import io.gravitee.apim.core.api.use_case.UpdateFederatedApiUseCase;
+import io.gravitee.apim.core.audit.model.AuditActor;
+import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
@@ -52,6 +56,7 @@ import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.application.ApplicationQuery;
 import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.common.SortableImpl;
+import io.gravitee.rest.api.model.federation.FederatedApiEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -69,7 +74,6 @@ import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.SubscriptionService;
-import io.gravitee.rest.api.service.WorkflowService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.*;
@@ -157,6 +161,9 @@ public class ApiResource extends AbstractResource {
     @Inject
     private ApiDuplicateService duplicateApiService;
 
+    @Inject
+    private UpdateFederatedApiUseCase updateFederatedApiUseCase;
+
     @Context
     protected UriInfo uriInfo;
 
@@ -221,11 +228,47 @@ public class ApiResource extends AbstractResource {
                 return Response.status(Response.Status.BAD_REQUEST).entity(apiInvalid(apiId)).build();
             }
             updatedApi = updateApiV2(currentEntity, (UpdateApiV2) updateApi);
+        } else if (definitionVersion == io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.FEDERATED) {
+            if (!(currentEntity instanceof FederatedApiEntity)) {
+                return Response.status(Response.Status.BAD_REQUEST).entity(apiInvalid(apiId)).build();
+            }
+            updatedApi = updateApiFederated(currentEntity, (UpdateApiFederated) updateApi);
         } else {
             throw new ApiDefinitionVersionNotSupportedException(definitionVersion.name());
         }
 
         return apiResponse(updatedApi);
+    }
+
+    private GenericApiEntity updateApiFederated(GenericApiEntity currentEntity, UpdateApiFederated updateApiFederated) {
+        var executionContext = GraviteeContext.getExecutionContext();
+        var userDetails = getAuthenticatedUserDetails();
+
+        var updatedApi = updateFederatedApiUseCase
+            .execute(
+                UpdateFederatedApiUseCase.Input
+                    .builder()
+                    .auditInfo(
+                        AuditInfo
+                            .builder()
+                            .organizationId(executionContext.getOrganizationId())
+                            .environmentId(executionContext.getEnvironmentId())
+                            .actor(
+                                AuditActor
+                                    .builder()
+                                    .userId(userDetails.getUsername())
+                                    .userSource(userDetails.getSource())
+                                    .userSourceId(userDetails.getSourceId())
+                                    .build()
+                            )
+                            .build()
+                    )
+                    .api(ApiMapper.INSTANCE.map(updateApiFederated, currentEntity.getId()))
+                    .build()
+            )
+            .api();
+
+        return ApiAdapter.INSTANCE.toFederatedApiEntity(updatedApi);
     }
 
     private GenericApiEntity updateApiV4(GenericApiEntity currentEntity, UpdateApiV4 updateApiV4) {

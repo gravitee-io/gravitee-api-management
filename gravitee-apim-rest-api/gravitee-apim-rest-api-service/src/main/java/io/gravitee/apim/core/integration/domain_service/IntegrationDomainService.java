@@ -16,12 +16,11 @@
 
 package io.gravitee.apim.core.integration.domain_service;
 
+import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.integration.model.IntegrationEntity;
 import io.gravitee.common.component.LifecycleComponent;
-import io.gravitee.integration.api.model.Integration;
-import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Flowable;
-import io.reactivex.rxjava3.core.Single;
 import java.util.List;
 
 /**
@@ -29,9 +28,11 @@ import java.util.List;
  * @author GraviteeSource Team
  */
 public interface IntegrationDomainService extends LifecycleComponent<IntegrationDomainService> {
-    void startIntegration(Integration integration);
+    void startIntegration(IntegrationEntity integration);
 
-    Flowable<IntegrationEntity> getIntegrationEntities(Integration integration);
+    Flowable<IntegrationEntity> getIntegrationEntities(IntegrationEntity integration);
 
-    Flowable<IntegrationEntity> fetchEntities(Integration integration, List<IntegrationEntity> entities);
+    Flowable<IntegrationEntity> fetchEntities(IntegrationEntity integration, List<IntegrationEntity> entities);
+
+    Api importApi(IntegrationEntity entity, AuditInfo auditInfo, IntegrationEntity integration);
 }

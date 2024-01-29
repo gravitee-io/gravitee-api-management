@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.integration.usecase;
 
-import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
-import io.gravitee.integration.api.model.Integration;
+package io.gravitee.apim.core.api.use_case;
+
+import io.gravitee.apim.core.api.domain_service.UpdateFederatedApiDomainService;
+import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.audit.model.AuditInfo;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 
@@ -25,22 +27,16 @@ import lombok.RequiredArgsConstructor;
  * @author GraviteeSource Team
  */
 @RequiredArgsConstructor
-public class IntegrationDeleteUsecase {
+public class UpdateFederatedApiUseCase {
 
-    private final IntegrationCrudService integrationCrudService;
+    private final UpdateFederatedApiDomainService updateFederatedApiDomainService;
 
-    public Output execute(Input input) {
-        var integrationIdToDelete = input.integrationId();
-
-        Integration integrationDeleted = integrationCrudService.deleteIntegration(integrationIdToDelete);
-
-        //TODO manage the integration provider
-
-        return new Output(integrationDeleted);
+    public UpdateFederatedApiUseCase.Output execute(UpdateFederatedApiUseCase.Input input) {
+        return new Output(updateFederatedApiDomainService.update(input.api(), input.auditInfo()));
     }
 
-    @Builder
-    public record Input(String integrationId) {}
+    public record Output(Api api) {}
 
-    public record Output(Integration deletedIntegration) {}
+    @Builder
+    public record Input(AuditInfo auditInfo, Api api) {}
 }

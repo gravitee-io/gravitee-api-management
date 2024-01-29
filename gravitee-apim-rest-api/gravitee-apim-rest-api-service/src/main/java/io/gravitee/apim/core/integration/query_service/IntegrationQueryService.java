@@ -15,9 +15,9 @@
  */
 package io.gravitee.apim.core.integration.query_service;
 
-import io.gravitee.integration.api.model.Integration;
+import io.gravitee.apim.core.integration.model.IntegrationEntity;
 import java.util.Optional;
 
 public interface IntegrationQueryService {
-    Optional<Integration> findByEnvironmentIdAndRemoteId(String environmentId, String remoteId);
+    Optional<IntegrationEntity> findByEnvironmentIdAndRemoteId(String environmentId, String remoteId);
 }

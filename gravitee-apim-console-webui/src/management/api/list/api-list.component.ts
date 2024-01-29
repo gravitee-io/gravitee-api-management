@@ -26,6 +26,7 @@ import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { Constants } from '../../../entities/Constants';
 import {
   Api,
+  ApiFederated,
   ApiLifecycleState,
   ApisResponse,
   ApiV2,
@@ -184,6 +185,13 @@ export class ApiListComponent implements OnInit, OnDestroy {
               isNotSynced$: undefined,
               qualityScore$: null,
             };
+          } else if (api.definitionVersion == 'FEDERATED') {
+            const apiFederated = api as ApiFederated;
+            return {
+              ...tableDS,
+              isNotSynced$: undefined,
+              qualityScore$: null,
+            };
           } else {
             const apiv2 = api as ApiV2;
             return {
@@ -204,6 +212,8 @@ export class ApiListComponent implements OnInit, OnDestroy {
         return { label: api.definitionVersion };
       case 'V4':
         return { label: `${api.definitionVersion} - ${(api as ApiV4).type}` };
+      case 'FEDERATED':
+        return { label: api.definitionVersion };
       default:
         return { icon: 'gio:alert-circle', label: 'V1' };
     }
@@ -246,6 +256,8 @@ export class ApiListComponent implements OnInit, OnDestroy {
         .flat();
 
       return tcpListenerHosts.length > 0 ? tcpListenerHosts : httpListenerPaths.length > 0 ? httpListenerPaths : null;
+    } else if (api.definitionVersion === 'FEDERATED') {
+      return [api.accessPoint];
     }
 
     return api.proxy.virtualHosts?.length > 0 ? api.proxy.virtualHosts.map((vh) => `${vh.host ?? ''}${vh.path}`) : [api.contextPath];

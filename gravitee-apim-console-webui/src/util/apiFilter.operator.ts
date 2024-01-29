@@ -34,6 +34,14 @@ export const onlyApiV2Filter = (snackBarService?: SnackBarService) =>
       throw new Error('API V4 not supported.');
     }
 
+    if (api.definitionVersion === 'FEDERATED') {
+      if (snackBarService) {
+        snackBarService.error('API FEDERATED not supported.');
+        return EMPTY;
+      }
+      throw new Error('API FEDERATED not supported.');
+    }
+
     if (api.definitionVersion === 'V1') {
       if (snackBarService) {
         snackBarService.error('API V1 are deprecated. Please upgrade your API to V2.');
@@ -55,6 +63,14 @@ export const onlyApiV1V2Filter = (snackBarService?: SnackBarService) =>
         return EMPTY;
       }
       throw new Error('API V4 not supported.');
+    }
+
+    if (api.definitionVersion === 'FEDERATED') {
+      if (snackBarService) {
+        snackBarService.error('API FEDERATED not supported.');
+        return EMPTY;
+      }
+      throw new Error('API FEDERATED not supported.');
     }
 
     return of(api);

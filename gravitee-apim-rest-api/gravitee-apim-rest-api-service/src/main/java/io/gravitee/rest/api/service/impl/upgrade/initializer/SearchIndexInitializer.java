@@ -18,6 +18,8 @@ package io.gravitee.rest.api.service.impl.upgrade.initializer;
 import static io.gravitee.rest.api.service.common.SecurityContextHelper.authenticateAsSystem;
 import static java.util.stream.Collectors.toList;
 
+import io.gravitee.apim.infra.adapter.ApiAdapter;
+import io.gravitee.apim.infra.adapter.PrimaryOwnerAdapter;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.node.api.initializer.Initializer;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -47,7 +49,6 @@ import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.UserConverter;
 import io.gravitee.rest.api.service.exceptions.PrimaryOwnerNotFoundException;
 import io.gravitee.rest.api.service.search.SearchEngineService;
-import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
@@ -55,7 +56,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicLong;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -195,6 +200,8 @@ public class SearchIndexInitializer implements Initializer {
         try {
             if (api.getDefinitionVersion() == DefinitionVersion.V4) {
                 indexable = apiMapper.toEntity(executionContext, api, primaryOwner, null, false);
+            } else if (api.getDefinitionVersion() == DefinitionVersion.FEDERATED) {
+                indexable = ApiAdapter.INSTANCE.toFederatedApiEntity(api, PrimaryOwnerAdapter.INSTANCE.fromRestEntity(primaryOwner));
             } else {
                 indexable = apiConverter.toApiEntity(api, primaryOwner);
             }

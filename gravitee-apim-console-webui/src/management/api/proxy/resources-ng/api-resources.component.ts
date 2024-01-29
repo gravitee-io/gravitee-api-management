@@ -25,7 +25,7 @@ import { ApiResourcesService } from './api-resources.service';
 
 import { ResourceListItem } from '../../../../entities/resource/resourceListItem';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
-import { ApiV2, ApiV4 } from '../../../../entities/management-api-v2';
+import { ApiFederated, ApiV2, ApiV4 } from '../../../../entities/management-api-v2';
 import { stringFeature, UTMTags } from '../../../../shared/components/gio-license/gio-license-data';
 import { Constants } from '../../../../entities/Constants';
 
@@ -60,7 +60,7 @@ export class ApiResourcesComponent implements OnInit, OnDestroy {
     ])
       .pipe(
         tap(([api, resourceTypes]) => {
-          if (api.definitionVersion !== 'V1') {
+          if (api.definitionVersion !== 'V1' && api.definitionVersion !== 'FEDERATED') {
             this.api = api;
             this.initialApiDefinition = this.api;
             this.isReadonly = this.api.definitionContext.origin === 'KUBERNETES' ? true : null;

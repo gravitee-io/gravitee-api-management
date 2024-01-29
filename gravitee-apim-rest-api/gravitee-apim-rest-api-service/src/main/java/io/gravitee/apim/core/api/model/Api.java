@@ -67,6 +67,7 @@ public class Api {
 
     private io.gravitee.definition.model.v4.Api apiDefinitionV4;
     private io.gravitee.definition.model.Api apiDefinition;
+    private io.gravitee.definition.model.federation.FederatedApi apiDefinitionFederated;
 
     /**
      * The api type.
@@ -150,10 +151,14 @@ public class Api {
     public Set<String> getTags() {
         if (definitionVersion == DefinitionVersion.V4) {
             return apiDefinitionV4.getTags();
+        } else if (definitionVersion == DefinitionVersion.FEDERATED) {
+            return apiDefinitionFederated.getTags();
         } else {
             return apiDefinition.getTags();
         }
     }
+
+    //public Api setApiDefinitionFederated
 
     public Api setApiDefinitionV4(io.gravitee.definition.model.v4.Api apiDefinitionV4) {
         this.apiDefinitionV4 = apiDefinitionV4;

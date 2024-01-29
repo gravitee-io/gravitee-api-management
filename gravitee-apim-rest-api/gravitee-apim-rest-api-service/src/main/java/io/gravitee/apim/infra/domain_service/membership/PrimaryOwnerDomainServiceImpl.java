@@ -17,10 +17,13 @@ package io.gravitee.apim.infra.domain_service.membership;
 
 import io.gravitee.apim.core.api.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.application.domain_service.ApplicationPrimaryOwnerDomainService;
+import io.gravitee.apim.core.exception.NotFoundDomainException;
+import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.membership.exception.ApiPrimaryOwnerNotFoundException;
 import io.gravitee.apim.core.membership.exception.ApplicationPrimaryOwnerNotFoundException;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
+import io.gravitee.apim.core.user.domain_service.UserPrimaryOwnerDomainService;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.GroupRepository;
@@ -40,7 +43,8 @@ import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-public class PrimaryOwnerDomainServiceImpl implements ApiPrimaryOwnerDomainService, ApplicationPrimaryOwnerDomainService {
+public class PrimaryOwnerDomainServiceImpl
+    implements ApiPrimaryOwnerDomainService, ApplicationPrimaryOwnerDomainService, UserPrimaryOwnerDomainService {
 
     private final RoleRepository roleRepository;
     private final MembershipRepository membershipRepository;
@@ -66,7 +70,7 @@ public class PrimaryOwnerDomainServiceImpl implements ApiPrimaryOwnerDomainServi
                 findApiPrimaryOwnerMembership(apiId, role)
                     .flatMap(membership ->
                         switch (membership.getMemberType()) {
-                            case USER -> findUserPrimaryOwner(membership);
+                            case USER -> findUserPrimaryOwner(membership.getMemberId());
                             case GROUP -> findGroupPrimaryOwner(membership, role.getId());
                         }
                     )
@@ -82,7 +86,7 @@ public class PrimaryOwnerDomainServiceImpl implements ApiPrimaryOwnerDomainServi
                 findApplicationPrimaryOwnerMembership(applicationId, role)
                     .flatMap(membership ->
                         switch (membership.getMemberType()) {
-                            case USER -> findUserPrimaryOwner(membership);
+                            case USER -> findUserPrimaryOwner(membership.getMemberId());
                             case GROUP -> findGroupPrimaryOwner(membership, role.getId());
                         }
                     )
@@ -125,9 +129,9 @@ public class PrimaryOwnerDomainServiceImpl implements ApiPrimaryOwnerDomainServi
         }
     }
 
-    private Optional<PrimaryOwnerEntity> findUserPrimaryOwner(Membership membership) {
+    private Optional<PrimaryOwnerEntity> findUserPrimaryOwner(String userId) {
         return userCrudService
-            .findBaseUserById(membership.getMemberId())
+            .findBaseUserById(userId)
             .map(user ->
                 PrimaryOwnerEntity.builder().id(user.getId()).displayName(user.displayName()).email(user.getEmail()).type("USER").build()
             );
@@ -164,5 +168,10 @@ public class PrimaryOwnerDomainServiceImpl implements ApiPrimaryOwnerDomainServi
             log.error("An error occurs while trying to get group member for [groupId={}]", groupId, e);
             throw new TechnicalManagementException(e);
         }
+    }
+
+    @Override
+    public PrimaryOwnerEntity getUserPrimaryOwner(String userId) throws TechnicalDomainException {
+        return this.findUserPrimaryOwner(userId).orElseThrow(() -> new NotFoundDomainException("User not found", userId));
     }
 }

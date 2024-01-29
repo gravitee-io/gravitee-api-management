@@ -28,6 +28,8 @@ import {
 } from './api-confirm-deployment-dialog/api-confirm-deployment-dialog.component';
 import { ApiReviewDialogComponent, ApiReviewDialogData, ApiReviewDialogResult } from './api-review-dialog/api-review-dialog.component';
 import { MenuGroupItem, MenuItem, MenuItemHeader } from './MenuGroupItem';
+import { ApiMenuService } from './ApiMenuService';
+import { ApiFederatedMenuService } from './api-federated-menu.service';
 import { ApiV4MenuService } from './api-v4-menu.service';
 import { ApiV1V2MenuService } from './api-v1-v2-menu.service';
 
@@ -52,7 +54,7 @@ type TopBanner = {
   selector: 'api-navigation',
   templateUrl: './api-navigation.component.html',
   styleUrls: ['./api-navigation.component.scss'],
-  providers: [ApiV1V2MenuService, ApiV4MenuService],
+  providers: [ApiV1V2MenuService, ApiV4MenuService, ApiFederatedMenuService],
 })
 export class ApiNavigationComponent implements OnInit, OnDestroy {
   public currentApi: Api;
@@ -268,6 +270,7 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
     private readonly matDialog: MatDialog,
     private readonly apiNgV1V2MenuService: ApiV1V2MenuService,
     private readonly apiNgV4MenuService: ApiV4MenuService,
+    private readonly apiNgFederatedMenuService: ApiFederatedMenuService,
     private readonly snackBarService: SnackBarService,
   ) {}
 
@@ -283,7 +286,7 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
       .pipe(
         tap((api) => (this.currentApi = api)),
         tap((api) => {
-          const menu = api.definitionVersion !== 'V4' ? this.apiNgV1V2MenuService.getMenu(api) : this.apiNgV4MenuService.getMenu(api);
+          const menu = this.computeMenu(api).getMenu(api);
           this.groupItems = menu.groupItems;
           this.subMenuItems = menu.subMenuItems;
 
@@ -361,5 +364,14 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
     });
 
     return breadcrumbItems;
+  }
+
+  public computeMenu(api: Api): ApiMenuService {
+    if (api.definitionVersion == 'V4') {
+      return this.apiNgV4MenuService;
+    } else if (api.definitionVersion == 'FEDERATED') {
+      return this.apiNgFederatedMenuService;
+    }
+    return this.apiNgV1V2MenuService;
   }
 }

@@ -87,7 +87,11 @@ public class VerifyApiPathDomainService {
     private void checkPathsAreAvailable(String environmentId, String apiId, List<Path> paths) {
         apiSearchService
             .search(
-                ApiSearchCriteria.builder().environmentId(environmentId).build(),
+                ApiSearchCriteria
+                    .builder()
+                    .definitionVersion(List.of(DefinitionVersion.V1, DefinitionVersion.V2, DefinitionVersion.V4))
+                    .environmentId(environmentId)
+                    .build(),
                 null,
                 ApiFieldFilter.builder().pictureExcluded(true).build()
             )

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package io.gravitee.apim.core.integration.usecase;
+package io.gravitee.apim.core.integration.use_case;
 
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
-import io.gravitee.integration.api.model.Integration;
+import io.gravitee.apim.core.integration.model.IntegrationEntity;
 import java.util.Set;
 import lombok.Builder;
 
@@ -25,24 +25,24 @@ import lombok.Builder;
  * @author Remi Baptiste (remi.baptiste at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class IntegrationsGetUsecase {
+public class IntegrationsGetUseCase {
 
     private final IntegrationCrudService integrationCrudService;
 
-    public IntegrationsGetUsecase(IntegrationCrudService integrationCrudService) {
+    public IntegrationsGetUseCase(IntegrationCrudService integrationCrudService) {
         this.integrationCrudService = integrationCrudService;
     }
 
-    public IntegrationsGetUsecase.Output execute(IntegrationsGetUsecase.Input input) {
+    public IntegrationsGetUseCase.Output execute(IntegrationsGetUseCase.Input input) {
         var environmentId = input.environmentId();
 
-        Set<Integration> integrations = integrationCrudService.findByEnvironment(environmentId);
+        Set<IntegrationEntity> integrations = integrationCrudService.findByEnvironment(environmentId);
 
-        return new IntegrationsGetUsecase.Output(integrations);
+        return new IntegrationsGetUseCase.Output(integrations);
     }
 
     @Builder
     public record Input(String environmentId) {}
 
-    public record Output(Set<Integration> integrations) {}
+    public record Output(Set<IntegrationEntity> integrations) {}
 }

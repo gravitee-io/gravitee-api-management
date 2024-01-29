@@ -18,6 +18,7 @@ package io.gravitee.apim.infra.crud_service.integration;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
 import io.gravitee.apim.core.integration.exception.IntegrationNotFoundException;
+import io.gravitee.apim.core.integration.model.IntegrationEntity;
 import io.gravitee.apim.infra.adapter.IntegrationAdapter;
 import io.gravitee.integration.api.model.Integration;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -48,7 +49,7 @@ public class IntegrationCrudServiceImpl implements IntegrationCrudService {
     }
 
     @Override
-    public Integration createIntegration(Integration integration) {
+    public IntegrationEntity create(IntegrationEntity integration) {
         try {
             integration.setId(UUID.randomUUID().toString());
             var createdIntegration = integrationRepository.create(IntegrationAdapter.INSTANCE.toRepository(integration));
@@ -60,20 +61,20 @@ public class IntegrationCrudServiceImpl implements IntegrationCrudService {
     }
 
     @Override
-    public Integration get(String id) {
+    public IntegrationEntity findById(String integrationId) {
         try {
-            var foundIntegration = integrationRepository.findById(id);
+            var foundIntegration = integrationRepository.findById(integrationId);
             if (foundIntegration.isPresent()) {
                 return IntegrationAdapter.INSTANCE.toEntity(foundIntegration.get());
             }
         } catch (TechnicalException e) {
-            logger.error("An error occurred while finding Integration by id {}", id, e);
+            logger.error("An error occurred while finding Integration by id {}", integrationId, e);
         }
-        throw new IntegrationNotFoundException(id);
+        throw new IntegrationNotFoundException(integrationId);
     }
 
     @Override
-    public Set<Integration> findAll() {
+    public Set<IntegrationEntity> findAll() {
         try {
             var integrations = integrationRepository.findAll();
             if (integrations != null) {
@@ -86,7 +87,7 @@ public class IntegrationCrudServiceImpl implements IntegrationCrudService {
     }
 
     @Override
-    public Set<Integration> findByEnvironment(String environmentId) {
+    public Set<IntegrationEntity> findByEnvironment(String environmentId) {
         try {
             var integrations = integrationRepository.findAllByEnvironment(environmentId);
             if (integrations != null) {
@@ -99,16 +100,15 @@ public class IntegrationCrudServiceImpl implements IntegrationCrudService {
     }
 
     @Override
-    public Integration deleteIntegration(String id) {
+    public void delete(String integrationId) {
         try {
-            var foundIntegration = integrationRepository.findById(id);
+            var foundIntegration = integrationRepository.findById(integrationId);
             if (foundIntegration.isPresent()) {
-                integrationRepository.delete(id);
-                return IntegrationAdapter.INSTANCE.toEntity(foundIntegration.get());
+                integrationRepository.delete(integrationId);
             }
         } catch (TechnicalException e) {
-            logger.error("An error occurred while finding Integration by id {}", id, e);
+            logger.error("An error occurred while finding Integration by id {}", integrationId, e);
         }
-        throw new IntegrationNotFoundException(id);
+        throw new IntegrationNotFoundException(integrationId);
     }
 }

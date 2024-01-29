@@ -16,8 +16,8 @@
 
 package io.gravitee.rest.api.management.v2.rest.resource.integration;
 
-import io.gravitee.apim.core.integration.usecase.IntegrationGetEntitiesUsecase;
-import io.gravitee.apim.core.integration.usecase.IntegrationImportUsecase;
+import io.gravitee.apim.core.integration.use_case.IntegrationGetEntitiesUseCase;
+import io.gravitee.apim.core.integration.use_case.IntegrationImportUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.IntegrationMapper;
 import io.gravitee.rest.api.management.v2.rest.model.IntegrationEntity;
@@ -45,10 +45,10 @@ import lombok.extern.slf4j.Slf4j;
 public class IntegrationEntitiesResource extends AbstractResource {
 
     @Inject
-    private IntegrationGetEntitiesUsecase integrationGetEntitiesUsecase;
+    private IntegrationGetEntitiesUseCase integrationGetEntitiesUsecase;
 
     @Inject
-    private IntegrationImportUsecase integrationImportUsecase;
+    private IntegrationImportUseCase integrationImportUsecase;
 
     @PathParam("integrationId")
     String integrationId;
@@ -57,7 +57,7 @@ public class IntegrationEntitiesResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public void getIntegrationEntities(@Suspended final AsyncResponse response) {
         integrationGetEntitiesUsecase
-            .execute(IntegrationGetEntitiesUsecase.Input.builder().integrationId(integrationId).build())
+            .execute(IntegrationGetEntitiesUseCase.Input.builder().integrationId(integrationId).build())
             .entities()
             .toList()
             .doOnSuccess(entity -> log.info("received entities {}", entity))
@@ -69,16 +69,14 @@ public class IntegrationEntitiesResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public void importIntegrationEntities(@Valid @NotNull List<IntegrationEntity> entities, @Suspended final AsyncResponse response) {
-        var userDetails = getAuthenticatedUserDetails();
-
         var modelEntities = IntegrationMapper.INSTANCE.mapEntities(entities);
         integrationImportUsecase
             .execute(
-                IntegrationImportUsecase.Input
+                IntegrationImportUseCase.Input
                     .builder()
                     .integrationId(integrationId)
                     .entities(modelEntities)
-                    .userId(userDetails.getUsername())
+                    .auditInfo(getAuditInfo())
                     .build()
             )
             .completable()

@@ -375,7 +375,13 @@ class VerifyApiPathDomainServiceTest {
         lenient()
             .when(
                 apiSearchService.search(
-                    eq(ApiSearchCriteria.builder().environmentId(environmentId).build()),
+                    eq(
+                        ApiSearchCriteria
+                            .builder()
+                            .definitionVersion(List.of(DefinitionVersion.V1, DefinitionVersion.V2, DefinitionVersion.V4))
+                            .environmentId(environmentId)
+                            .build()
+                    ),
                     eq(null),
                     eq(ApiFieldFilter.builder().pictureExcluded(true).build())
                 )

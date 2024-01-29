@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.core.integration.crud_service;
 
-import io.gravitee.integration.api.model.Integration;
+import io.gravitee.apim.core.integration.model.IntegrationEntity;
 import java.util.Set;
 
 /**
@@ -23,12 +23,12 @@ import java.util.Set;
  * @author GraviteeSource Team
  */
 public interface IntegrationCrudService {
-    Integration createIntegration(Integration integration);
-    Integration get(String id);
+    IntegrationEntity create(IntegrationEntity integration);
+    IntegrationEntity findById(String integrationId);
 
-    Set<Integration> findAll();
+    Set<IntegrationEntity> findAll();
 
-    Set<Integration> findByEnvironment(String environmentId);
+    Set<IntegrationEntity> findByEnvironment(String environmentId);
 
-    Integration deleteIntegration(String id);
+    void delete(String integrationId);
 }

@@ -15,8 +15,8 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.integration;
 
-import io.gravitee.apim.core.integration.usecase.IntegrationCreateUsecase;
-import io.gravitee.apim.core.integration.usecase.IntegrationsGetUsecase;
+import io.gravitee.apim.core.integration.use_case.IntegrationCreateUseCase;
+import io.gravitee.apim.core.integration.use_case.IntegrationsGetUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.IntegrationMapper;
 import io.gravitee.rest.api.management.v2.rest.model.CreateIntegration;
@@ -51,10 +51,10 @@ public class IntegrationsResource extends AbstractResource {
     private ResourceContext resourceContext;
 
     @Inject
-    private IntegrationCreateUsecase integrationCreateUsecase;
+    private IntegrationCreateUseCase integrationCreateUseCase;
 
     @Inject
-    private IntegrationsGetUsecase integrationsGetUsecase;
+    private IntegrationsGetUseCase integrationsGetUseCase;
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
@@ -64,8 +64,8 @@ public class IntegrationsResource extends AbstractResource {
         var newIntegrationEntity = IntegrationMapper.INSTANCE.map(integration);
         newIntegrationEntity.setEnvironmentId(environmentId);
 
-        var createdIntegration = integrationCreateUsecase
-            .execute(IntegrationCreateUsecase.Input.builder().integration(newIntegrationEntity).build())
+        var createdIntegration = integrationCreateUseCase
+            .execute(IntegrationCreateUseCase.Input.builder().integration(newIntegrationEntity).build())
             .integration();
 
         return Response
@@ -78,8 +78,8 @@ public class IntegrationsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_INTEGRATION, acls = { RolePermissionAction.CREATE }) })
     public Response listIntegrations(@PathParam("envId") String environmentId) {
-        var integrations = integrationsGetUsecase
-            .execute(IntegrationsGetUsecase.Input.builder().environmentId(environmentId).build())
+        var integrations = integrationsGetUseCase
+            .execute(IntegrationsGetUseCase.Input.builder().environmentId(environmentId).build())
             .integrations();
 
         return Response.ok().entity(IntegrationMapper.INSTANCE.map(integrations)).build();

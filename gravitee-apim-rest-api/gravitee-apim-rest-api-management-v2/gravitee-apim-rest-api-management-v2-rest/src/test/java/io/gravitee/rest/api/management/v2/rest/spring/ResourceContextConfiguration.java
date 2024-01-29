@@ -21,7 +21,13 @@ import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.DeployApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
+import io.gravitee.apim.core.api.domain_service.UpdateFederatedApiDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
+import io.gravitee.apim.core.api.use_case.UpdateFederatedApiUseCase;
+import io.gravitee.apim.core.integration.domain_service.IntegrationDomainService;
+import io.gravitee.apim.core.integration.use_case.IntegrationCreateUseCase;
+import io.gravitee.apim.core.integration.use_case.IntegrationGetEntitiesUseCase;
+import io.gravitee.apim.core.integration.use_case.IntegrationImportUseCase;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
@@ -36,7 +42,6 @@ import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.v4.*;
 import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.PolicyPluginService;
-import jakarta.inject.Inject;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -267,5 +272,15 @@ public class ResourceContextConfiguration {
     @Bean
     public UpdateApiDomainService updateApiDomainService() {
         return mock(UpdateApiDomainService.class);
+    }
+
+    @Bean
+    public UpdateFederatedApiDomainService updateFederatedApiDomainService() {
+        return mock(UpdateFederatedApiDomainService.class);
+    }
+
+    @Bean
+    public IntegrationDomainService integrationDomainService() {
+        return mock(IntegrationDomainService.class);
     }
 }

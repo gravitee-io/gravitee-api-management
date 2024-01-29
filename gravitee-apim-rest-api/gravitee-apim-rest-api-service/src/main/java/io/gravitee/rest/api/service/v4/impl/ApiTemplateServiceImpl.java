@@ -23,6 +23,8 @@ import io.gravitee.rest.api.model.ApiMetadataEntity;
 import io.gravitee.rest.api.model.ApiModel;
 import io.gravitee.rest.api.model.ProxyModelEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.federation.FederatedApiEntity;
+import io.gravitee.rest.api.model.federation.FederatedApiModel;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiModel;
 import io.gravitee.rest.api.service.ApiMetadataService;
@@ -70,7 +72,32 @@ public class ApiTemplateServiceImpl implements ApiTemplateService {
     public GenericApiModel findByIdForTemplates(ExecutionContext executionContext, String apiId, boolean decodeTemplate) {
         final GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId);
 
-        if (genericApiEntity.getDefinitionVersion() != DefinitionVersion.V4) {
+        if (genericApiEntity.getDefinitionVersion() == DefinitionVersion.FEDERATED) {
+            FederatedApiEntity federatedApiEntity = (FederatedApiEntity) genericApiEntity;
+            final FederatedApiModel federatedApiModel = new FederatedApiModel();
+
+            federatedApiModel.setId(federatedApiEntity.getId());
+            federatedApiModel.setDefinitionVersion(federatedApiEntity.getDefinitionVersion());
+            federatedApiModel.setName(federatedApiEntity.getName());
+            federatedApiModel.setDescription(federatedApiEntity.getDescription());
+            federatedApiModel.setCreatedAt(federatedApiEntity.getCreatedAt());
+            federatedApiModel.setDeployedAt(federatedApiEntity.getDeployedAt());
+            federatedApiModel.setUpdatedAt(federatedApiEntity.getUpdatedAt());
+            federatedApiModel.setGroups(federatedApiEntity.getGroups());
+            federatedApiModel.setVisibility(federatedApiEntity.getVisibility());
+            federatedApiModel.setCategories(federatedApiEntity.getCategories());
+            federatedApiModel.setApiVersion(federatedApiEntity.getApiVersion());
+            federatedApiModel.setState(federatedApiEntity.getState());
+            federatedApiModel.setTags(federatedApiEntity.getTags());
+            federatedApiModel.setPicture(federatedApiEntity.getPicture());
+            federatedApiModel.setPrimaryOwner(federatedApiEntity.getPrimaryOwner());
+            federatedApiModel.setLifecycleState(federatedApiEntity.getLifecycleState());
+            federatedApiModel.setDisableMembershipNotifications(federatedApiEntity.isDisableMembershipNotifications());
+            federatedApiModel.setAccessPoint(federatedApiEntity.getAccessPoint());
+
+            federatedApiModel.setMetadata(getApiMetadata(executionContext, apiId, decodeTemplate, federatedApiModel));
+            return federatedApiModel;
+        } else if (genericApiEntity.getDefinitionVersion() != DefinitionVersion.V4) {
             ApiEntity apiEntity = (ApiEntity) genericApiEntity;
             final ApiModel apiModelEntity = new ApiModel();
 

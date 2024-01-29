@@ -28,6 +28,7 @@ export * from './cors';
 export * from './definitionContext';
 export * from './definitionVersion';
 export * from './duplicateApiOptions';
+export * from './federated';
 export * from './flowMode';
 export * from './httpMethod';
 export * from './loadBalancer';

@@ -444,6 +444,10 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
 
     @Override
     public boolean handle(Class<? extends Indexable> source) {
-        return source.isAssignableFrom(ApiEntity.class) || source.isAssignableFrom(io.gravitee.rest.api.model.v4.api.ApiEntity.class);
+        return (
+            source.isAssignableFrom(ApiEntity.class) ||
+            source.isAssignableFrom(io.gravitee.rest.api.model.v4.api.ApiEntity.class) ||
+            source.isAssignableFrom(io.gravitee.rest.api.model.federation.FederatedApiEntity.class)
+        );
     }
 }

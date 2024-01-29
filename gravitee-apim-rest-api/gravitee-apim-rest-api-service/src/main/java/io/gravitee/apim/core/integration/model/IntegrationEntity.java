@@ -16,6 +16,7 @@
 
 package io.gravitee.apim.core.integration.model;
 
+import io.gravitee.integration.api.model.Integration;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -35,14 +36,23 @@ public class IntegrationEntity {
     String id;
     String name;
     String version;
-    Type type;
+    DeploymentType deploymentType;
     String host;
     String path;
     String description;
     List<Page> pages;
 
-    public enum Type {
-        OPENAPI,
-        ASYNCAPI,
+    String remoteId;
+    String provider;
+    String configuration;
+    String environmentId;
+
+    public enum Feature {
+        SUBSCRIBE,
+    }
+
+    public enum DeploymentType {
+        REMOTE,
+        EMBEDDED,
     }
 }

@@ -19,6 +19,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.model.federation.FederatedApiEntity;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.ApiService;
@@ -122,7 +123,13 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
             }
         }
 
-        if (api.getDefinitionVersion() != DefinitionVersion.V4) {
+        if (api.getDefinitionVersion() == DefinitionVersion.FEDERATED) {
+            FederatedApiEntity federatedApiEntity = (FederatedApiEntity) api;
+            if (federatedApiEntity.getAccessPoint() != null) {
+                final int[] pathIndex = { 0 };
+                appendPath(doc, pathIndex, federatedApiEntity.getAccessPoint(), "");
+            }
+        } else if (api.getDefinitionVersion() != DefinitionVersion.V4) {
             ApiEntity apiEntity = (ApiEntity) api;
             if (apiEntity.getProxy() != null) {
                 final int[] pathIndex = { 0 };

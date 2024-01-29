@@ -20,6 +20,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.FlowMode;
 import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.federation.FederatedApi;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
@@ -261,6 +262,23 @@ public class ApiFixtures {
                     )
                     .flows(List.of())
                     .flowExecution(new FlowExecution())
+                    .build()
+            )
+            .build();
+    }
+
+    public static Api aFederatedApi() {
+        return BASE
+            .get()
+            .definitionVersion(DefinitionVersion.FEDERATED)
+            .apiDefinitionFederated(
+                FederatedApi
+                    .builder()
+                    .id("my-api-federated")
+                    .name("My federated api")
+                    .apiVersion("1.0.0")
+                    .accessPoint("https://myfederatedapi.execute-api.provider.com")
+                    .tags(Set.of("tag1"))
                     .build()
             )
             .build();

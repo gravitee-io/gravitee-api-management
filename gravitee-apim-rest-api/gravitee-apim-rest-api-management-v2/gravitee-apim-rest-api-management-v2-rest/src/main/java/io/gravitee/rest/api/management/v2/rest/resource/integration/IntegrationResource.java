@@ -15,8 +15,8 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.integration;
 
-import io.gravitee.apim.core.integration.usecase.IntegrationDeleteUsecase;
-import io.gravitee.apim.core.integration.usecase.IntegrationGetUsecase;
+import io.gravitee.apim.core.integration.use_case.IntegrationDeleteUseCase;
+import io.gravitee.apim.core.integration.use_case.IntegrationGetUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.IntegrationMapper;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
@@ -42,16 +42,16 @@ public class IntegrationResource extends AbstractResource {
     private ResourceContext resourceContext;
 
     @Inject
-    private IntegrationGetUsecase integrationGetUsecase;
+    private IntegrationGetUseCase integrationGetUsecase;
 
     @Inject
-    private IntegrationDeleteUsecase integrationDeleteUsecase;
+    private IntegrationDeleteUseCase integrationDeleteUsecase;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getIntegrationById(@PathParam("integrationId") String integrationId) {
         var integration = integrationGetUsecase
-            .execute(IntegrationGetUsecase.Input.builder().integrationId(integrationId).build())
+            .execute(IntegrationGetUseCase.Input.builder().integrationId(integrationId).build())
             .integration();
 
         return Response.ok(IntegrationMapper.INSTANCE.map(integration)).build();
@@ -59,7 +59,7 @@ public class IntegrationResource extends AbstractResource {
 
     @DELETE
     public Response deleteIntegration(@PathParam("integrationId") String integrationId) {
-        integrationDeleteUsecase.execute(IntegrationDeleteUsecase.Input.builder().integrationId(integrationId).build());
+        integrationDeleteUsecase.execute(IntegrationDeleteUseCase.Input.builder().integrationId(integrationId).build());
 
         return Response.noContent().build();
     }

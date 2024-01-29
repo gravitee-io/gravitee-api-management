@@ -79,7 +79,7 @@ export class ApiGeneralGroupsComponent implements OnInit, OnDestroy {
       .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(
         switchMap((api) =>
-          api.definitionVersion === 'V1'
+          api.definitionVersion === 'V1' || api.definitionVersion === 'FEDERATED'
             ? throwError({ message: 'You cannot modify a V1 API.' })
             : this.apiService.update(api.id, { ...api, groups: this.form.getRawValue()?.selectedGroups ?? this.initialFormValue }),
         ),

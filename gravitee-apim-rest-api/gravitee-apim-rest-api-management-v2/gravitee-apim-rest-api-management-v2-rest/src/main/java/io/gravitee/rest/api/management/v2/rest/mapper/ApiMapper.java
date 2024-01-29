@@ -19,6 +19,7 @@ import static java.util.stream.Collectors.toMap;
 
 import io.gravitee.apim.core.api.model.crd.ApiCRD;
 import io.gravitee.rest.api.management.v2.rest.model.Api;
+import io.gravitee.rest.api.management.v2.rest.model.ApiFederated;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLinks;
 import io.gravitee.rest.api.management.v2.rest.model.ApiReview;
 import io.gravitee.rest.api.management.v2.rest.model.ApiV2;
@@ -28,10 +29,12 @@ import io.gravitee.rest.api.management.v2.rest.model.CreateApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion;
 import io.gravitee.rest.api.management.v2.rest.model.GenericApi;
 import io.gravitee.rest.api.management.v2.rest.model.PlanCRD;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateApiFederated;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV2;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV4;
 import io.gravitee.rest.api.management.v2.rest.utils.ManagementApiLinkHelper;
 import io.gravitee.rest.api.model.ReviewEntity;
+import io.gravitee.rest.api.model.federation.FederatedApiEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
@@ -82,6 +85,9 @@ public interface ApiMapper {
         if (apiEntity == null) {
             return null;
         }
+        if (apiEntity.getDefinitionVersion() == io.gravitee.definition.model.DefinitionVersion.FEDERATED) {
+            return new io.gravitee.rest.api.management.v2.rest.model.Api(this.mapToFederated((FederatedApiEntity) apiEntity, uriInfo));
+        }
         if (apiEntity.getDefinitionVersion() == io.gravitee.definition.model.DefinitionVersion.V4) {
             return new io.gravitee.rest.api.management.v2.rest.model.Api(this.mapToV4((ApiEntity) apiEntity, uriInfo, state));
         }
@@ -111,6 +117,9 @@ public interface ApiMapper {
         });
         return result;
     }
+
+    @Mapping(target = "links", expression = "java(computeApiLinks(apiEntity, uriInfo))")
+    ApiFederated mapToFederated(FederatedApiEntity apiEntity, UriInfo uriInfo);
 
     @Mapping(target = "listeners", qualifiedByName = "fromListeners")
     @Mapping(target = "links", expression = "java(computeApiLinks(apiEntity, uriInfo))")
@@ -148,6 +157,12 @@ public interface ApiMapper {
     @Mapping(target = "version", source = "apiVersion")
     @Mapping(target = "graviteeDefinitionVersion", source = "definitionVersion", qualifiedByName = "mapFromDefinitionVersion")
     io.gravitee.rest.api.model.api.UpdateApiEntity map(UpdateApiV2 updateApi);
+
+    @Mapping(target = "id", expression = "java(apiId)")
+    @Mapping(target = "version", source = "updateApiFederated.apiVersion")
+    @Mapping(target = "apiLifecycleState", source = "updateApiFederated.lifecycleState")
+    @Mapping(target = "lifecycleState", ignore = true)
+    io.gravitee.apim.core.api.model.Api map(UpdateApiFederated updateApiFederated, String apiId);
 
     // DefinitionVersion
     io.gravitee.definition.model.DefinitionVersion mapDefinitionVersion(DefinitionVersion definitionVersion);

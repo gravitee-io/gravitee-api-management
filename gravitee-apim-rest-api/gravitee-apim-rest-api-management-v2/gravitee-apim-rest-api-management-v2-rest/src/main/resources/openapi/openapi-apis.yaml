@@ -2059,12 +2059,14 @@ components:
                 - $ref: "#/components/schemas/ApiV1"
                 - $ref: "#/components/schemas/ApiV2"
                 - $ref: "#/components/schemas/ApiV4"
+                - $ref: "#/components/schemas/ApiFederated"
             discriminator:
                 propertyName: definitionVersion
                 mapping:
                     V1: ApiV1
                     V2: ApiV2
                     V4: ApiV4
+                    FEDERATED: ApiFederated
 
         BaseApi:
             type: object
@@ -2199,6 +2201,7 @@ components:
                     V1: ApiV1
                     V2: ApiV2
                     V4: ApiV4
+                    FEDERATED: ApiFederated
             required:
                 - definitionVersion
         ApiV1:
@@ -2303,6 +2306,15 @@ components:
                               $ref: "#/components/schemas/FlowV4"
                       services:
                           $ref: "#/components/schemas/ApiServices"
+        ApiFederated:
+            type: object
+            title: "ApiFederated"
+            allOf:
+                - $ref: "#/components/schemas/GenericApi"
+                - properties:
+                      accessPoint:
+                          type: string
+                          description: The access point to consume this API.
         ApiLinks:
             type: object
             properties:
@@ -2506,11 +2518,13 @@ components:
             oneOf:
                 - $ref: "#/components/schemas/UpdateApiV2"
                 - $ref: "#/components/schemas/UpdateApiV4"
+                - $ref: "#/components/schemas/UpdateApiFederated"
             discriminator:
                 propertyName: definitionVersion
                 mapping:
                     V2: UpdateApiV2
                     V4: UpdateApiV4
+                    FEDERATED: UpdateApiFederated
         UpdateGenericApi:
             type: object
             properties:
@@ -2591,6 +2605,7 @@ components:
                 mapping:
                     V2: UpdateApiV2
                     V4: UpdateApiV4
+                    FEDERATED: UpdateApiFederated
         UpdateApiV2:
             type: object
             title: "UpdateApiV2"
@@ -2647,6 +2662,11 @@ components:
                       services:
                           $ref: "#/components/schemas/ApiServices"
                   required: [ listeners, endpointGroups, type ]
+        UpdateApiFederated:
+            type: object
+            title: "UpdateApiFederated"
+            allOf:
+                - $ref: "#/components/schemas/UpdateGenericApi"
 
         ApiDeployment:
             type: object
@@ -2855,6 +2875,7 @@ components:
                 - V1
                 - V2
                 - V4
+                - FEDERATED
         EndpointV4:
             type: object
             properties:

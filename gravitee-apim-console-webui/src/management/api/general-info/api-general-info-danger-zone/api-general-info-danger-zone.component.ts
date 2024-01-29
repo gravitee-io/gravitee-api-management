@@ -71,11 +71,14 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy {
   public get shouldUpgrade$(): Observable<boolean> {
     if (this.api.definitionVersion === 'V2') {
       return of(false);
+    } else if (this.api.definitionVersion === 'FEDERATED') {
+      return of(false);
     }
     const api = this.api as ApiV4;
     if (api.type === 'PROXY') {
       return of(false);
     }
+
     return this.licenseService?.isMissingFeature$(this.licenseOptions);
   }
 
@@ -108,6 +111,7 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy {
         canStartApi:
           (!this.constants.env?.settings?.apiReview?.enabled ||
             (this.constants.env?.settings?.apiReview?.enabled && (!this.api.workflowState || this.api.workflowState === 'REVIEW_OK'))) &&
+          this.api.definitionVersion !== 'FEDERATED' &&
           this.api.state === 'STOPPED',
         canStopApi:
           (!this.constants.env?.settings?.apiReview?.enabled ||
@@ -206,7 +210,7 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy {
         filter((confirm) => confirm === true),
         switchMap(() => this.apiService.get(this.api.id)),
         switchMap((api) => {
-          if (api.definitionVersion === 'V2' || api.definitionVersion === 'V4') {
+          if (api.definitionVersion === 'V2' || api.definitionVersion === 'V4' || api.definitionVersion === 'FEDERATED') {
             const apiToUpdate: UpdateApi = { ...api, lifecycleState: lifecycleState };
             return this.apiService.update(this.api.id, apiToUpdate);
           } else {
@@ -245,7 +249,7 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy {
         filter((confirm) => confirm === true),
         switchMap(() => this.apiService.get(this.api.id)),
         switchMap((api) => {
-          if (api.definitionVersion === 'V2' || api.definitionVersion === 'V4') {
+          if (api.definitionVersion === 'V2' || api.definitionVersion === 'V4' || api.definitionVersion === 'FEDERATED') {
             return this.apiService.update(api.id, {
               ...api,
               visibility: visibility,

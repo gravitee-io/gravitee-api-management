@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.integration.usecase;
+package io.gravitee.apim.core.integration.use_case;
 
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
 import io.gravitee.apim.core.integration.domain_service.IntegrationDomainService;
-import io.gravitee.integration.api.model.Integration;
+import io.gravitee.apim.core.integration.model.IntegrationEntity;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 
@@ -26,14 +26,14 @@ import lombok.RequiredArgsConstructor;
  * @author GraviteeSource Team
  */
 @RequiredArgsConstructor
-public class IntegrationCreateUsecase {
+public class IntegrationCreateUseCase {
 
     private final IntegrationCrudService integrationCrudService;
     private final IntegrationDomainService integrationDomainService;
 
-    public IntegrationCreateUsecase.Output execute(final IntegrationCreateUsecase.Input input) {
+    public IntegrationCreateUseCase.Output execute(final IntegrationCreateUseCase.Input input) {
         var integrationToCreate = input.integration();
-        Integration integrationCreated = integrationCrudService.createIntegration(integrationToCreate);
+        IntegrationEntity integrationCreated = integrationCrudService.create(integrationToCreate);
 
         integrationDomainService.startIntegration(integrationCreated);
 
@@ -41,7 +41,7 @@ public class IntegrationCreateUsecase {
     }
 
     @Builder
-    public record Input(Integration integration) {}
+    public record Input(IntegrationEntity integration) {}
 
-    public record Output(Integration integration) {}
+    public record Output(IntegrationEntity integration) {}
 }

@@ -59,12 +59,12 @@ export class ApiCorsComponent implements OnInit, OnDestroy {
       .pipe(
         tap(([api, entrypoints]) => {
           let cors: Cors;
-          if (api.definitionVersion !== 'V4') {
+          if (api.definitionVersion !== 'V4' && api.definitionVersion !== 'FEDERATED') {
             this.hasEntrypointsSupportingCors = true;
             cors = api.proxy?.cors ?? {
               enabled: false,
             };
-          } else {
+          } else if (api.definitionVersion === 'V4') {
             cors = api.listeners
               .filter((listener) => listener.type === 'HTTP')
               .map((listener) => listener as HttpListener)

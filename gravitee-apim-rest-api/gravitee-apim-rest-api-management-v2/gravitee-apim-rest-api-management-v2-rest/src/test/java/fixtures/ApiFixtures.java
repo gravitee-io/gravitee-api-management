@@ -15,6 +15,8 @@
  */
 package fixtures;
 
+import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.definition.model.federation.FederatedApi;
 import io.gravitee.rest.api.management.v2.rest.model.Analytics;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLifecycleState;
 import io.gravitee.rest.api.management.v2.rest.model.ApiServices;
@@ -31,14 +33,18 @@ import io.gravitee.rest.api.management.v2.rest.model.GenericApi;
 import io.gravitee.rest.api.management.v2.rest.model.Listener;
 import io.gravitee.rest.api.management.v2.rest.model.Proxy;
 import io.gravitee.rest.api.management.v2.rest.model.ResponseTemplate;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateApiFederated;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV2;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.Visibility;
+import io.gravitee.rest.api.model.federation.FederatedApiEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import java.time.OffsetDateTime;
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class ApiFixtures {
 
@@ -134,6 +140,23 @@ public class ApiFixtures {
         .disableMembershipNotifications(true)
         .responseTemplates(Map.of("template-id", Map.of("application/json", new ResponseTemplate())));
 
+    private static final UpdateApiFederated.UpdateApiFederatedBuilder BASE_UPDATE_API_FEDERATED = UpdateApiFederated
+        .builder()
+        .apiVersion("v1")
+        .definitionVersion(DefinitionVersion.FEDERATED)
+        .name("api-name")
+        .description("api-description")
+        .visibility(Visibility.PUBLIC)
+        .tags(List.of("tag1", "tag2"))
+        .groups(List.of("group1", "group2"))
+        .labels(List.of("label1", "label2"))
+        .categories(List.of("category1", "category2"))
+        .resources(List.of(ResourceFixtures.aResource()))
+        .properties(List.of(PropertyFixtures.aProperty()))
+        .lifecycleState(ApiLifecycleState.ARCHIVED)
+        .disableMembershipNotifications(true)
+        .responseTemplates(Map.of("template-id", Map.of("application/json", new ResponseTemplate())));
+
     public static ApiV4 anApiV4() {
         return BASE_API_V4.build();
     }
@@ -151,6 +174,10 @@ public class ApiFixtures {
         return BASE_UPDATE_API_V2.build();
     }
 
+    public static UpdateApiFederated anUpdateApiFederated() {
+        return BASE_UPDATE_API_FEDERATED.build();
+    }
+
     public static io.gravitee.rest.api.model.api.ApiEntity aModelApiV1() {
         return ApiModelFixtures.aModelApiV1();
     }
@@ -161,5 +188,28 @@ public class ApiFixtures {
 
     public static ApiEntity aModelApiV4() {
         return ApiModelFixtures.aModelApiV4();
+    }
+
+    public static FederatedApiEntity aModelFederatedApi() {
+        return ApiModelFixtures.aModelApiFederated();
+    }
+
+    public static Api aCoreApi() {
+        return Api
+            .builder()
+            .id("my-api")
+            .definitionVersion(io.gravitee.definition.model.DefinitionVersion.FEDERATED)
+            .apiDefinitionFederated(
+                FederatedApi
+                    .builder()
+                    .id("my-api")
+                    .apiVersion("1.0")
+                    .name("api-name")
+                    .accessPoint("access-point")
+                    .tags(Set.of("tag1", "tag2"))
+                    .build()
+            )
+            .updatedAt(ZonedDateTime.now())
+            .build();
     }
 }

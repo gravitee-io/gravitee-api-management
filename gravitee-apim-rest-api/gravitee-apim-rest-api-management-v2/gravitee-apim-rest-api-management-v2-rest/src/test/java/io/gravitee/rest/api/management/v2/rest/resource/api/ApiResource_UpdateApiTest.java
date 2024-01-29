@@ -27,13 +27,18 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import fixtures.ApiFixtures;
+import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.rest.api.management.v2.rest.model.ApiFederated;
 import io.gravitee.rest.api.management.v2.rest.model.ApiV2;
 import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.GenericApi;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateApiFederated;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV2;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV4;
+import io.gravitee.rest.api.model.federation.FederatedApiEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
@@ -125,7 +130,7 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
     }
 
     @Test
-    public void should_return_bad_request_when_updating_v2_api_with_v4_defition() {
+    public void should_return_bad_request_when_updating_v2_api_with_v4_definition() {
         final io.gravitee.rest.api.model.api.ApiEntity apiEntity = ApiFixtures.aModelApiV2().toBuilder().id(API).build();
         final UpdateApiV4 updateApiV4 = ApiFixtures.anUpdateApiV4();
 
@@ -177,7 +182,7 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
     }
 
     @Test
-    public void should_return_bad_request_when_updating_v4_api_with_v2_defition() {
+    public void should_return_bad_request_when_updating_v4_api_with_v2_definition() {
         final ApiEntity apiEntity = ApiFixtures.aModelApiV4().toBuilder().id(API).build();
         final UpdateApiV2 updateApiV2 = ApiFixtures.anUpdateApiV2();
 
@@ -189,5 +194,32 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
         var error = response.readEntity(Error.class);
         assertEquals(BAD_REQUEST_400, (int) error.getHttpStatus());
         assertEquals("Api [" + API + "] is not valid.", error.getMessage());
+    }
+
+    @Test
+    public void should_update_federated_api() {
+        FederatedApiEntity federatedApiEntity = ApiFixtures.aModelFederatedApi().toBuilder().id(API).build();
+        Api api = ApiFixtures.aCoreApi();
+        UpdateApiFederated updateApiFederated = ApiFixtures.anUpdateApiFederated();
+
+        when(apiSearchServiceV4.findGenericById(GraviteeContext.getExecutionContext(), API)).thenReturn(federatedApiEntity);
+        when(updateFederatedApiDomainService.update(any(Api.class), any(AuditInfo.class))).thenReturn(api);
+
+        final Response response = rootTarget(API).request().put(Entity.json(updateApiFederated));
+        assertEquals(OK_200, response.getStatus());
+
+        final ApiFederated apiFederated = response.readEntity(ApiFederated.class);
+        assertEquals(API, apiFederated.getId());
+
+        verify(updateFederatedApiDomainService)
+            .update(
+                argThat(updateApi -> {
+                    assertEquals(updateApi.getName(), updateApiFederated.getName());
+                    assertEquals(API, updateApi.getId());
+                    assertEquals(updateApi.getDefinitionVersion(), DefinitionVersion.FEDERATED);
+                    return true;
+                }),
+                any(AuditInfo.class)
+            );
     }
 }

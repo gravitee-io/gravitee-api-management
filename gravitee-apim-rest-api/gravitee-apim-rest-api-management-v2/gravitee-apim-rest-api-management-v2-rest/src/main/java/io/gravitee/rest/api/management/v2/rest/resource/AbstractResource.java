@@ -19,6 +19,8 @@ import static io.gravitee.rest.api.model.MembershipMemberType.USER;
 import static io.gravitee.rest.api.model.MembershipReferenceType.API;
 import static io.gravitee.rest.api.model.MembershipReferenceType.GROUP;
 
+import io.gravitee.apim.core.audit.model.AuditActor;
+import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.management.v2.rest.model.Links;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationLinks;
@@ -37,6 +39,7 @@ import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import io.gravitee.rest.api.service.exceptions.PaginationInvalidException;
 import io.gravitee.rest.api.service.exceptions.PreconditionFailedException;
@@ -292,5 +295,16 @@ public abstract class AbstractResource {
             totalElements,
             paginationParam
         );
+    }
+
+    protected AuditInfo getAuditInfo() {
+        var executionContext = GraviteeContext.getExecutionContext();
+        var user = getAuthenticatedUserDetails();
+        return AuditInfo
+            .builder()
+            .organizationId(executionContext.getOrganizationId())
+            .environmentId(executionContext.getEnvironmentId())
+            .actor(AuditActor.builder().userId(user.getUsername()).userSource(user.getSource()).userSourceId(user.getSourceId()).build())
+            .build();
     }
 }

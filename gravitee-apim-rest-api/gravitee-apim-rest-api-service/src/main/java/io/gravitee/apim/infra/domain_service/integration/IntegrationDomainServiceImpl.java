@@ -18,12 +18,17 @@ package io.gravitee.apim.infra.domain_service.integration;
 
 import static io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService.APIM_INTEGRATION;
 
+import io.gravitee.apim.core.api.domain_service.CreateFederatedApiDomainService;
+import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
 import io.gravitee.apim.core.integration.domain_service.IntegrationDomainService;
 import io.gravitee.apim.core.integration.model.IntegrationEntity;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
 import io.gravitee.apim.infra.adapter.IntegrationAdapter;
 import io.gravitee.common.service.AbstractService;
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.federation.FederatedApiBuilder;
 import io.gravitee.exchange.api.command.Command;
 import io.gravitee.exchange.api.command.CommandHandler;
 import io.gravitee.exchange.api.command.CommandStatus;
@@ -41,15 +46,17 @@ import io.gravitee.integration.api.command.fetch.FetchCommandPayload;
 import io.gravitee.integration.api.command.fetch.FetchReply;
 import io.gravitee.integration.api.command.list.ListCommand;
 import io.gravitee.integration.api.command.list.ListReply;
-import io.gravitee.integration.api.model.Integration;
 import io.gravitee.integration.connector.command.IntegrationConnectorCommandContext;
 import io.gravitee.integration.connector.command.IntegrationConnectorCommandHandlersFactory;
 import io.gravitee.plugin.integrationprovider.IntegrationProviderPluginManager;
+import io.gravitee.rest.api.model.NewPageEntity;
+import io.gravitee.rest.api.model.PageType;
+import io.gravitee.rest.api.service.PageService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
 import java.util.List;
 import java.util.Map;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -70,13 +77,19 @@ public class IntegrationDomainServiceImpl extends AbstractService<IntegrationDom
     private final IntegrationProviderPluginManager integrationProviderPluginManager;
     private final IntegrationCrudService integrationCrudService;
 
+    private final PageService pageService;
+
+    private final CreateFederatedApiDomainService createFederatedApiDomainService;
+
     public IntegrationDomainServiceImpl(
         final GraviteeLicenseDomainService graviteeLicenseDomainService,
         final ExchangeConnectorManager exchangeConnectorManager,
         @Qualifier("integrationExchangeController") final ExchangeController exchangeController,
         final IntegrationConnectorCommandHandlersFactory connectorCommandHandlersFactory,
         final IntegrationProviderPluginManager integrationProviderPluginManager,
-        final IntegrationCrudService integrationCrudService
+        final IntegrationCrudService integrationCrudService,
+        final PageService pageService,
+        final CreateFederatedApiDomainService createFederatedApiDomainService
     ) {
         this.graviteeLicenseDomainService = graviteeLicenseDomainService;
         this.exchangeConnectorManager = exchangeConnectorManager;
@@ -84,6 +97,8 @@ public class IntegrationDomainServiceImpl extends AbstractService<IntegrationDom
         this.connectorCommandHandlersFactory = connectorCommandHandlersFactory;
         this.integrationProviderPluginManager = integrationProviderPluginManager;
         this.integrationCrudService = integrationCrudService;
+        this.pageService = pageService;
+        this.createFederatedApiDomainService = createFederatedApiDomainService;
     }
 
     // TODO To be removed when the license is up to date
@@ -103,8 +118,8 @@ public class IntegrationDomainServiceImpl extends AbstractService<IntegrationDom
     }
 
     @Override
-    public void startIntegration(Integration integration) {
-        if (integration.getDeploymentType() == Integration.DeploymentType.EMBEDDED) {
+    public void startIntegration(IntegrationEntity integration) {
+        if (integration.getDeploymentType() == IntegrationEntity.DeploymentType.EMBEDDED) {
             try {
                 IntegrationProviderFactory<?> integrationProviderFactory = integrationProviderPluginManager.getIntegrationProviderFactory(
                     integration.getProvider().toLowerCase()
@@ -156,9 +171,9 @@ public class IntegrationDomainServiceImpl extends AbstractService<IntegrationDom
     }
 
     @Override
-    public Flowable<IntegrationEntity> getIntegrationEntities(Integration integration) {
+    public Flowable<IntegrationEntity> getIntegrationEntities(IntegrationEntity integration) {
         ListCommand listCommand = new ListCommand();
-        String targetId = integration.getDeploymentType() == Integration.DeploymentType.EMBEDDED
+        String targetId = integration.getDeploymentType() == IntegrationEntity.DeploymentType.EMBEDDED
             ? integration.getId()
             : integration.getRemoteId();
         return sendListCommand(listCommand, targetId)
@@ -177,12 +192,12 @@ public class IntegrationDomainServiceImpl extends AbstractService<IntegrationDom
     }
 
     @Override
-    public Flowable<IntegrationEntity> fetchEntities(Integration integration, List<IntegrationEntity> integrationEntities) {
+    public Flowable<IntegrationEntity> fetchEntities(IntegrationEntity integration, List<IntegrationEntity> integrationEntities) {
         List<Entity> entities = integrationEntities.stream().map(IntegrationAdapter.INSTANCE::toEntityApi).toList();
 
         FetchCommandPayload fetchCommandPayload = new FetchCommandPayload(entities);
         FetchCommand fetchCommand = new FetchCommand(fetchCommandPayload);
-        String targetId = integration.getDeploymentType() == Integration.DeploymentType.EMBEDDED
+        String targetId = integration.getDeploymentType() == IntegrationEntity.DeploymentType.EMBEDDED
             ? integration.getId()
             : integration.getRemoteId();
         return sendFetchCommand(fetchCommand, targetId)
@@ -199,6 +214,54 @@ public class IntegrationDomainServiceImpl extends AbstractService<IntegrationDom
                 }
                 return Flowable.empty();
             });
+    }
+
+    @Override
+    public Api importApi(IntegrationEntity entity, AuditInfo auditInfo, IntegrationEntity integration) {
+        // Create API
+        var api = Api
+            .builder()
+            .version(entity.getVersion())
+            .definitionVersion(DefinitionVersion.FEDERATED)
+            .name(entity.getName())
+            .description(entity.getDescription())
+            .apiDefinitionFederated(
+                FederatedApiBuilder
+                    .aFederatedApi()
+                    .apiVersion(entity.getVersion())
+                    .name(entity.getName())
+                    .accessPoint(entity.getHost() + entity.getPath())
+                    .build()
+            )
+            .build();
+
+        //TODO manage context to save access point, runtime ...
+
+        var createdApiEntity = createFederatedApiDomainService.create(api, auditInfo);
+
+        // Create page
+        entity
+            .getPages()
+            .forEach(page -> {
+                PageType pageType = PageType.valueOf(page.getPageType().name());
+                createPage(createdApiEntity.getId(), entity.getName(), page.getContent(), pageType, auditInfo.actor().userId());
+            });
+
+        log.info("API Imported {}", createdApiEntity.getId());
+        return createdApiEntity;
+    }
+
+    private void createPage(String apiId, String apiName, String content, PageType pageType, String userId) {
+        NewPageEntity newPageEntity = new NewPageEntity();
+        newPageEntity.setType(pageType);
+        newPageEntity.setName(apiName);
+        newPageEntity.setContent(content);
+
+        int order = pageService.findMaxApiPageOrderByApi(apiId) + 1;
+        newPageEntity.setOrder(order);
+        newPageEntity.setLastContributor(userId);
+
+        pageService.createPage(GraviteeContext.getExecutionContext(), apiId, newPageEntity);
     }
 
     private Single<ListReply> sendListCommand(ListCommand listCommand, String integrationId) {

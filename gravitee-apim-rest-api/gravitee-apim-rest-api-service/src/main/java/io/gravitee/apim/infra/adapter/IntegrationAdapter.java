@@ -29,9 +29,9 @@ import org.mapstruct.factory.Mappers;
 public interface IntegrationAdapter {
     IntegrationAdapter INSTANCE = Mappers.getMapper(IntegrationAdapter.class);
 
-    Integration toEntity(io.gravitee.repository.management.model.Integration integration);
+    IntegrationEntity toEntity(io.gravitee.repository.management.model.Integration integration);
 
-    io.gravitee.repository.management.model.Integration toRepository(Integration integration);
+    io.gravitee.repository.management.model.Integration toRepository(IntegrationEntity integration);
 
     Entity toEntityApi(IntegrationEntity integrationEntity);
 

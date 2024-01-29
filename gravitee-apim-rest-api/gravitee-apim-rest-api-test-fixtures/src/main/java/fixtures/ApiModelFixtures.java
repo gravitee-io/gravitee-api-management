@@ -16,10 +16,12 @@
 package fixtures;
 
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.rest.api.model.WorkflowState;
+import io.gravitee.rest.api.model.federation.FederatedApiEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import java.util.Date;
@@ -104,6 +106,34 @@ public class ApiModelFixtures {
         .background("my-background")
         .backgroundUrl("my-background-url");
 
+    private static final FederatedApiEntity.FederatedApiEntityBuilder BASE_MODEL_API_FEDERATED = FederatedApiEntity
+        .builder()
+        .id("my-id")
+        .crossId("my-cross-id")
+        .name("my-name")
+        .apiVersion("v1.0")
+        .definitionVersion(DefinitionVersion.FEDERATED)
+        .deployedAt(new Date())
+        .createdAt(new Date())
+        .updatedAt(new Date())
+        .description("my-description")
+        .tags(Set.of("tag1", "tag2"))
+        .groups(Set.of("my-group1", "my-group2"))
+        .visibility(io.gravitee.rest.api.model.Visibility.PUBLIC)
+        .state(Lifecycle.State.STARTED)
+        .primaryOwner(PrimaryOwnerModelFixtures.aPrimaryOwnerEntity())
+        .picture("my-picture")
+        .pictureUrl("my-picture-url")
+        .categories(Set.of("my-category1", "my-category2"))
+        .labels(List.of("my-label1", "my-label2"))
+        .definitionContext(BASE_MODEL_DEFINITION_CONTEXT.build())
+        .metadata(Map.of("key", "value"))
+        .lifecycleState(io.gravitee.rest.api.model.api.ApiLifecycleState.CREATED)
+        .workflowState(WorkflowState.REVIEW_OK)
+        .disableMembershipNotifications(true)
+        .background("my-background")
+        .backgroundUrl("my-background-url");
+
     public static io.gravitee.rest.api.model.api.ApiEntity aModelApiV1() {
         return BASE_MODEL_API_V1.build();
     }
@@ -116,11 +146,16 @@ public class ApiModelFixtures {
         return BASE_MODEL_API_V4.build();
     }
 
+    public static FederatedApiEntity aModelApiFederated() {
+        return BASE_MODEL_API_FEDERATED.build();
+    }
+
     public static GenericApiEntity aGenericApiEntity(final io.gravitee.definition.model.DefinitionVersion definitionVersion) {
         return switch (definitionVersion) {
             case V1 -> aModelApiV1();
             case V2 -> aModelApiV2();
             case V4 -> aModelApiV4();
+            case FEDERATED -> aModelApiFederated();
         };
     }
 }

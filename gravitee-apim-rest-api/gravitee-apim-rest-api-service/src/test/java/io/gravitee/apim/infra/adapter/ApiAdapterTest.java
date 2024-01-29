@@ -266,6 +266,42 @@ class ApiAdapterTest {
     }
 
     @Test
+    void should_convert_federated_api_to_repository() {
+        var model = ApiFixtures.aFederatedApi();
+
+        var api = ApiAdapter.INSTANCE.toRepository(model);
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(api.getApiLifecycleState()).isEqualTo(ApiLifecycleState.PUBLISHED);
+            soft.assertThat(api.getBackground()).isEqualTo("api-background");
+            soft.assertThat(api.getCategories()).containsExactly("category-1");
+            soft.assertThat(api.getCreatedAt()).isEqualTo(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")));
+            soft.assertThat(api.getCrossId()).isEqualTo("my-api-crossId");
+            soft
+                .assertThat(api.getDefinition())
+                .isEqualTo(
+                    "{\"id\":\"my-api-federated\",\"name\":\"My federated api\",\"apiVersion\":\"1.0.0\",\"definitionVersion\":\"FEDERATED\",\"accessPoint\":\"https://myfederatedapi.execute-api.provider.com\",\"tags\":[\"tag1\"]}"
+                );
+            soft.assertThat(api.getDefinitionVersion()).isEqualTo(DefinitionVersion.FEDERATED);
+            soft.assertThat(api.getDeployedAt()).isEqualTo(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")));
+            soft.assertThat(api.getDescription()).isEqualTo("api-description");
+            soft.assertThat(api.isDisableMembershipNotifications()).isTrue();
+            soft.assertThat(api.getEnvironmentId()).isEqualTo("environment-id");
+            soft.assertThat(api.getGroups()).containsExactly("group-1");
+            soft.assertThat(api.getId()).isEqualTo("my-api");
+            soft.assertThat(api.getLabels()).containsExactly("label-1");
+            soft.assertThat(api.getLifecycleState()).isEqualTo(LifecycleState.STARTED);
+            soft.assertThat(api.getMode()).isEqualTo("fully_managed");
+            soft.assertThat(api.getName()).isEqualTo("My Api");
+            soft.assertThat(api.getOrigin()).isEqualTo("management");
+            soft.assertThat(api.getPicture()).isEqualTo("api-picture");
+            soft.assertThat(api.getUpdatedAt()).isEqualTo(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")));
+            soft.assertThat(api.getVisibility()).isEqualTo(Visibility.PUBLIC);
+            soft.assertThat(api.getVersion()).isEqualTo("1.0.0");
+        });
+    }
+
+    @Test
     void should_convert_v2_api_to_repository() {
         var model = ApiFixtures.aProxyApiV2();
 

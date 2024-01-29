@@ -15,7 +15,6 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
-import io.gravitee.integration.api.model.Integration;
 import io.gravitee.rest.api.management.v2.rest.model.CreateIntegration;
 import io.gravitee.rest.api.management.v2.rest.model.IntegrationEntity;
 import java.util.List;
@@ -36,11 +35,15 @@ public interface IntegrationMapper {
     IntegrationMapper INSTANCE = Mappers.getMapper(IntegrationMapper.class);
 
     @Mapping(target = "configuration", qualifiedByName = "serializeConfiguration")
-    Integration map(CreateIntegration createIntegration);
+    io.gravitee.apim.core.integration.model.IntegrationEntity map(CreateIntegration createIntegration);
 
-    io.gravitee.rest.api.management.v2.rest.model.Integration map(Integration createdIntegration);
+    io.gravitee.rest.api.management.v2.rest.model.Integration map(
+        io.gravitee.apim.core.integration.model.IntegrationEntity createdIntegration
+    );
 
-    List<io.gravitee.rest.api.management.v2.rest.model.Integration> map(Set<Integration> createdIntegration);
+    List<io.gravitee.rest.api.management.v2.rest.model.Integration> map(
+        Set<io.gravitee.apim.core.integration.model.IntegrationEntity> createdIntegration
+    );
 
     List<IntegrationEntity> map(List<io.gravitee.apim.core.integration.model.IntegrationEntity> entities);
 

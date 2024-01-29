@@ -81,6 +81,7 @@ import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.descriptor.GraviteeDescriptorEntity;
 import io.gravitee.rest.api.model.descriptor.GraviteeDescriptorPageEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
+import io.gravitee.rest.api.model.federation.FederatedApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiModel;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
@@ -646,7 +647,10 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     }
 
     private String getContextPath(GenericApiEntity genericApiEntity) {
-        if (genericApiEntity.getDefinitionVersion() != DefinitionVersion.V4) {
+        if (genericApiEntity.getDefinitionVersion() == DefinitionVersion.FEDERATED) {
+            FederatedApiEntity federatedApiEntity = (FederatedApiEntity) genericApiEntity;
+            return federatedApiEntity.getAccessPoint();
+        } else if (genericApiEntity.getDefinitionVersion() != DefinitionVersion.V4) {
             ApiEntity apiEntity = (ApiEntity) genericApiEntity;
             return apiEntity.getContextPath();
         } else {

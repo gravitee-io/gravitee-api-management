@@ -24,10 +24,16 @@ import io.gravitee.apim.core.api.domain_service.ApiPolicyValidatorDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.DeployApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
+import io.gravitee.apim.core.api.domain_service.UpdateFederatedApiDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
+import io.gravitee.apim.core.api.use_case.UpdateFederatedApiUseCase;
 import io.gravitee.apim.core.installation.domain_service.InstallationTypeDomainService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
+import io.gravitee.apim.core.integration.domain_service.IntegrationDomainService;
+import io.gravitee.apim.core.integration.use_case.IntegrationCreateUseCase;
+import io.gravitee.apim.core.integration.use_case.IntegrationGetEntitiesUseCase;
+import io.gravitee.apim.core.integration.use_case.IntegrationImportUseCase;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
 import io.gravitee.apim.core.parameters.domain_service.ParametersDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
@@ -505,5 +511,15 @@ public class ResourceContextConfiguration {
     @Bean
     public UpdateApiDomainService updateApiDomainService() {
         return mock(UpdateApiDomainService.class);
+    }
+
+    @Bean
+    public UpdateFederatedApiDomainService updateFederatedApiDomainService() {
+        return mock(UpdateFederatedApiDomainService.class);
+    }
+
+    @Bean
+    public IntegrationDomainService integrationDomainService() {
+        return mock(IntegrationDomainService.class);
     }
 }

@@ -150,4 +150,14 @@ public class InMemoryConfiguration {
     public LicenseCrudServiceInMemory licenseCrudServiceInMemory() {
         return new LicenseCrudServiceInMemory();
     }
+
+    @Bean
+    public IntegrationCrudServiceInMemory integrationCrudServiceInMemory() {
+        return new IntegrationCrudServiceInMemory();
+    }
+
+    @Bean
+    public IntegrationQueryServiceInMemory integrationQueryServiceInMemory() {
+        return new IntegrationQueryServiceInMemory();
+    }
 }

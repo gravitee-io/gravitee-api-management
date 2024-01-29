@@ -15,5 +15,6 @@
  */
 import { UpdateApiV2 } from './updateApiV2';
 import { UpdateApiV4 } from './updateApiV4';
+import { UpdateApiFederated } from './updateApiFederated';
 
-export type UpdateApi = UpdateApiV2 | UpdateApiV4;
+export type UpdateApi = UpdateApiV2 | UpdateApiV4 | UpdateApiFederated;

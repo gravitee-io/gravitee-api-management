@@ -21,6 +21,7 @@ import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.rest.api.model.EntrypointEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
+import io.gravitee.rest.api.model.federation.FederatedApiEntity;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
@@ -102,7 +103,10 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
         final String entrypointHost,
         final Set<String> tagEntrypoints
     ) {
-        if (genericApiEntity.getDefinitionVersion() != DefinitionVersion.V4) {
+        if (genericApiEntity.getDefinitionVersion() == DefinitionVersion.FEDERATED) {
+            FederatedApiEntity federatedApiEntity = (FederatedApiEntity) genericApiEntity;
+            return List.of(new ApiEntrypointEntity(null, federatedApiEntity.getAccessPoint(), null));
+        } else if (genericApiEntity.getDefinitionVersion() != DefinitionVersion.V4) {
             ApiEntity api = (ApiEntity) genericApiEntity;
             return api
                 .getProxy()

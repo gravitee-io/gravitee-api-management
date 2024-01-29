@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.v4.mapper;
 
+import io.gravitee.apim.infra.adapter.ApiAdapter;
+import io.gravitee.apim.infra.adapter.PrimaryOwnerAdapter;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.CategoryEntity;
@@ -43,6 +45,8 @@ public class GenericApiMapper {
     public GenericApiEntity toGenericApi(final Api api, final PrimaryOwnerEntity primaryOwner) {
         if (api.getDefinitionVersion() == DefinitionVersion.V4) {
             return apiMapper.toEntity(api, primaryOwner);
+        } else if (api.getDefinitionVersion() == DefinitionVersion.FEDERATED) {
+            return ApiAdapter.INSTANCE.toFederatedApiEntity(api, PrimaryOwnerAdapter.INSTANCE.fromRestEntity(primaryOwner));
         } else {
             return apiConverter.toApiEntity(api, primaryOwner);
         }
@@ -56,6 +60,8 @@ public class GenericApiMapper {
     ) {
         if (api.getDefinitionVersion() == DefinitionVersion.V4) {
             return apiMapper.toEntity(executionContext, api, primaryOwner, categories, true);
+        } else if (api.getDefinitionVersion() == DefinitionVersion.FEDERATED) {
+            return ApiAdapter.INSTANCE.toFederatedApiEntity(api, PrimaryOwnerAdapter.INSTANCE.fromRestEntity(primaryOwner));
         } else {
             return apiConverter.toApiEntity(executionContext, api, primaryOwner, categories, true);
         }
