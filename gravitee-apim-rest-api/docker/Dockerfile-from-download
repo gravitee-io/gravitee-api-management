@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-FROM graviteeio/java:21
+FROM graviteeio/java:17
 LABEL maintainer="contact@graviteesource.com"
 
 ARG GRAVITEEIO_VERSION=0
