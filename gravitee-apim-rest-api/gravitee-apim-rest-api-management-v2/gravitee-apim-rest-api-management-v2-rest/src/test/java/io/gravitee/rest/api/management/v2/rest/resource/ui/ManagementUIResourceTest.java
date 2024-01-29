@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.v2.rest.resource.boostrap;
+package io.gravitee.rest.api.management.v2.rest.resource.ui;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -58,7 +58,7 @@ class ManagementUIResourceTest extends AbstractResourceTest {
 
     @Override
     protected String contextPath() {
-        return "/ui/customization";
+        return "/organizations/" + ORGANIZATION + "/ui/customization";
     }
 
     @Test

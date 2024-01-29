@@ -26,11 +26,8 @@ import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.plugin.EndpointsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.plugin.EntrypointsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.plugin.PoliciesResource;
-import io.gravitee.rest.api.model.permissions.RolePermission;
-import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.management.v2.rest.resource.ui.ManagementUIResource;
 import io.gravitee.rest.api.model.v4.license.GraviteeLicenseEntity;
-import io.gravitee.rest.api.rest.annotation.Permission;
-import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.OrganizationService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
@@ -99,5 +96,10 @@ public class OrganizationResource extends AbstractResource {
     @Path("/plugins/policies")
     public PoliciesResource getOrganizationPoliciesResource() {
         return resourceContext.getResource(PoliciesResource.class);
+    }
+
+    @Path("ui")
+    public ManagementUIResource getManagementUIResource() {
+        return resourceContext.getResource(ManagementUIResource.class);
     }
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.v2.rest.resource.bootstrap;
+package io.gravitee.rest.api.management.v2.rest.resource.ui;
 
 import io.gravitee.apim.core.console.use_case.GetConsoleCustomizationUseCase;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
