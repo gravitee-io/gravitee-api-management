@@ -40,7 +40,7 @@
         <gravitee-node.version>4.8.3</gravitee-node.version>
 
         <jackson-dataformat-msgpack.version>0.9.8</jackson-dataformat-msgpack.version>
-        <commons-validator.version>1.7</commons-validator.version>
+        <commons-validator.version>1.8.0</commons-validator.version>
     </properties>
 
     <dependencyManagement>
