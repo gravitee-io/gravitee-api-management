@@ -29,15 +29,17 @@ import org.mapstruct.factory.Mappers;
 public interface EventAdapter {
     EventAdapter INSTANCE = Mappers.getMapper(EventAdapter.class);
 
-    @Mapping(target = "properties", expression = "java(computeEventProperties(source))")
+    @Mapping(target = "properties", expression = "java(computeEventProperties(source.getProperties()))")
+    Event map(io.gravitee.repository.management.model.Event source);
+
+    @Mapping(target = "properties", expression = "java(computeEventProperties(source.getProperties()))")
     Event fromEntity(EventEntity source);
 
     EventEntity toEntity(Event source);
 
     @Named("computeEventProperties")
-    default EnumMap<Event.EventProperties, String> computeEventProperties(EventEntity source) {
-        return source
-            .getProperties()
+    default EnumMap<Event.EventProperties, String> computeEventProperties(Map<String, String> properties) {
+        return properties
             .entrySet()
             .stream()
             .collect(
