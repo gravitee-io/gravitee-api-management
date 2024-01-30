@@ -32,7 +32,7 @@
     <name>Gravitee.io APIM - Reporter - Elasticsearch</name>
 
     <properties>
-        <gravitee-bom.version>6.0.4</gravitee-bom.version>
+        <gravitee-bom.version>6.0.24</gravitee-bom.version>
         <gravitee-common.version>3.3.3</gravitee-common.version>
         <gravitee-reporter-common.version>1.0.4</gravitee-reporter-common.version>
         <gravitee-common-elasticsearch.version>5.1.0</gravitee-common-elasticsearch.version>
