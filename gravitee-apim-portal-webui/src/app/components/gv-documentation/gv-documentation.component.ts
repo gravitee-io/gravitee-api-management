@@ -76,7 +76,7 @@ export class GvDocumentationComponent implements OnInit, AfterViewInit {
   currentMenuItem: TreeItem;
   menu: TreeItem[];
   isLoaded = false;
-  hasTreeClosed = false;
+  hasTreeClosed = true;
 
   @Input() rootDir: string;
   private _pages: Page[];
