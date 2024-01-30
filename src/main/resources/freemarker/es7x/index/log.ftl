@@ -38,6 +38,8 @@
     }
     </#if>
   }
+  </#if>
+  <#if log.getClientResponse()??>
   ,"client-response": {
   "status":${log.getClientResponse().getStatus()}
     <#if log.getClientResponse().getBody()??>
