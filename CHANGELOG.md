@@ -1,3 +1,11 @@
+## [5.1.1](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/5.1.0...5.1.1) (2024-01-30)
+
+
+### Bug Fixes
+
+* **deps:** update dependency io.gravitee:gravitee-parent to v22.0.19 ([eaf8d8c](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/eaf8d8ce783d496fc41e19ac4b720fe44fdb5ccb))
+* **deps:** update dependency io.gravitee.common:gravitee-common to v3.3.3 ([32c442e](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/32c442ed3904174e714a282ea959b9430b4667f8))
+
 # [5.1.0](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/5.0.3...5.1.0) (2023-11-10)
 
 
