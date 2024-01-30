@@ -15,7 +15,7 @@
  */
 
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { MatLegacyDialog } from '@angular/material/legacy-dialog';
 import { MatDialog } from '@angular/material/dialog';
 import { combineLatest, EMPTY, Observable, of, Subject } from 'rxjs';
@@ -114,11 +114,19 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
         this.tagsTableUnpaginatedLength = this.tagsTableDS.length;
 
         this.portalSettings = portalSettings;
+
         this.defaultConfigForm = new UntypedFormGroup({
           entrypoint: new UntypedFormControl({
             value: this.portalSettings.portal.entrypoint,
             disabled: this.isReadonlySetting('portal.entrypoint'),
           }),
+          tcpPort: new UntypedFormControl(
+            {
+              value: this.portalSettings.portal.tcpPort,
+              disabled: this.isReadonlySetting('portal.tcpPort'),
+            },
+            [tcpPortValidator],
+          ),
         });
         this.initialDefaultConfigFormValues = this.defaultConfigForm.getRawValue();
 
@@ -378,3 +386,7 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
       .subscribe(() => this.ngOnInit());
   }
 }
+const tcpPortValidator: ValidatorFn = (control: UntypedFormControl): ValidationErrors | null => {
+  const tcpPort = control.value;
+  return tcpPort < 1024 || tcpPort > 65535 ? { invalidTcpPort: true } : null;
+};

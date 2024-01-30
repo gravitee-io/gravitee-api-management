@@ -36,6 +36,7 @@ public enum Key {
 
     PORTAL_TOP_APIS("portal.top-apis", List.class, false, new HashSet<>(singletonList(ENVIRONMENT))),
     PORTAL_ENTRYPOINT("portal.entrypoint", "https://api.company.com", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    PORTAL_TCP_PORT("portal.tcpPort", "4082", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
     PORTAL_APIKEY_HEADER("portal.apikey.header", "X-Gravitee-Api-Key", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
     PORTAL_SUPPORT_ENABLED("portal.support.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
     PORTAL_RATING_ENABLED("portal.rating.enabled", "true", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),

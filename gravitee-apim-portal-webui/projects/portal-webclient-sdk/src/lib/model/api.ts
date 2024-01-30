@@ -10,6 +10,7 @@
  */
 import { RatingSummary } from './ratingSummary';
 import { User } from './user';
+import { ListenerType } from './listenerType';
 import { Page } from './page';
 import { ApiLinks } from './apiLinks';
 import { Plan } from './plan';
@@ -51,6 +52,7 @@ export interface Api {
      * List of all the avaible endpoints to call the API.
      */
     entrypoints?: Array<string>;
+    listener_type?: ListenerType;
     /**
      * List of labels linked to this API.
      */

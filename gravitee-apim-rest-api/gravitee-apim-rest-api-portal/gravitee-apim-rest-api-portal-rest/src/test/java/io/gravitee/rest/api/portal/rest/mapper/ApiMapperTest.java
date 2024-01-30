@@ -123,6 +123,7 @@ public class ApiMapperTest {
 
         when(apiEntrypointService.getApiEntrypoints(any(), eq(apiEntity)))
             .thenReturn(Arrays.asList(new ApiEntrypointEntity(API_ENTRYPOINT_1), new ApiEntrypointEntity(API + "/foo")));
+        when(apiEntrypointService.getApiEntrypointsListenerType(eq(apiEntity))).thenReturn("HTTP");
 
         Map<String, Object> metadata = new HashMap<>();
         metadata.put("meta", API);

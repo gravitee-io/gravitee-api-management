@@ -16,8 +16,8 @@
 package io.gravitee.rest.api.service.v4.impl;
 
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
+import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
 import io.gravitee.rest.api.model.EntrypointEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
@@ -27,16 +27,13 @@ import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.EntrypointService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.exceptions.EntrypointNotFoundException;
 import io.gravitee.rest.api.service.v4.ApiEntrypointService;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -63,9 +60,16 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
     @Override
     public List<ApiEntrypointEntity> getApiEntrypoints(final ExecutionContext executionContext, final GenericApiEntity genericApiEntity) {
         List<ApiEntrypointEntity> apiEntrypoints = new ArrayList<>();
+        String defaultTcpPort = parameterService.find(
+            executionContext,
+            Key.PORTAL_TCP_PORT,
+            executionContext.getEnvironmentId(),
+            ParameterReferenceType.ENVIRONMENT
+        );
 
         if (genericApiEntity.getTags() != null && !genericApiEntity.getTags().isEmpty()) {
             List<EntrypointEntity> organizationEntrypoints = entrypointService.findAll(executionContext);
+
             organizationEntrypoints.forEach(entrypoint -> {
                 final String entrypointScheme = getScheme(entrypoint.getValue());
                 final String entrypointValue = entrypoint.getValue();
@@ -73,7 +77,9 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
                 tagEntrypoints.retainAll(genericApiEntity.getTags());
 
                 if (tagEntrypoints.size() == entrypoint.getTags().length) {
-                    apiEntrypoints.addAll(getEntrypoints(genericApiEntity, entrypointScheme, entrypointValue, tagEntrypoints));
+                    apiEntrypoints.addAll(
+                        getEntrypoints(genericApiEntity, entrypointScheme, entrypointValue, defaultTcpPort, tagEntrypoints)
+                    );
                 }
             });
         }
@@ -88,7 +94,7 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
             );
             final String defaultScheme = getScheme(defaultEntrypoint);
 
-            apiEntrypoints.addAll(getEntrypoints(genericApiEntity, defaultScheme, defaultEntrypoint, null));
+            apiEntrypoints.addAll(getEntrypoints(genericApiEntity, defaultScheme, defaultEntrypoint, defaultTcpPort, null));
         }
 
         return apiEntrypoints;
@@ -98,6 +104,7 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
         final GenericApiEntity genericApiEntity,
         final String entrypointScheme,
         final String entrypointHost,
+        final String tcpPort,
         final Set<String> tagEntrypoints
     ) {
         if (genericApiEntity.getDefinitionVersion() != DefinitionVersion.V4) {
@@ -107,7 +114,7 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
                 .getVirtualHosts()
                 .stream()
                 .map(virtualHost ->
-                    getApiEntrypointEntity(
+                    getHttpApiEntrypointEntity(
                         entrypointScheme,
                         entrypointHost,
                         virtualHost.getHost(),
@@ -116,32 +123,39 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
                         tagEntrypoints
                     )
                 )
-                .collect(Collectors.toList());
+                .toList();
         } else {
             io.gravitee.rest.api.model.v4.api.ApiEntity api = (io.gravitee.rest.api.model.v4.api.ApiEntity) genericApiEntity;
             return api
                 .getListeners()
                 .stream()
-                .filter(listener -> listener.getType() == ListenerType.HTTP)
                 .flatMap(listener -> {
-                    HttpListener httpListener = (HttpListener) listener;
-                    return httpListener.getPaths().stream();
+                    if (listener instanceof HttpListener httpListener) {
+                        return httpListener
+                            .getPaths()
+                            .stream()
+                            .map(path ->
+                                getHttpApiEntrypointEntity(
+                                    entrypointScheme,
+                                    entrypointHost,
+                                    path.getHost(),
+                                    path.getPath(),
+                                    path.isOverrideAccess(),
+                                    tagEntrypoints
+                                )
+                            );
+                    } else if (listener instanceof TcpListener tcpListener) {
+                        return tcpListener
+                            .getHosts()
+                            .stream()
+                            .map(tcpHost -> getTcpApiEntrypointEntity(tcpHost, tcpPort, entrypointHost, tagEntrypoints));
+                    } else return Stream.empty();
                 })
-                .map(path ->
-                    getApiEntrypointEntity(
-                        entrypointScheme,
-                        entrypointHost,
-                        path.getHost(),
-                        path.getPath(),
-                        path.isOverrideAccess(),
-                        tagEntrypoints
-                    )
-                )
-                .collect(Collectors.toList());
+                .toList();
         }
     }
 
-    private ApiEntrypointEntity getApiEntrypointEntity(
+    private ApiEntrypointEntity getHttpApiEntrypointEntity(
         final String defaultScheme,
         final String entrypointValue,
         final String host,
@@ -160,6 +174,16 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
         );
     }
 
+    private ApiEntrypointEntity getTcpApiEntrypointEntity(
+        final String tcpHost,
+        final String tcpPort,
+        final String host,
+        final Set<String> tags
+    ) {
+        String target = String.join(":", tcpHost, tcpPort);
+        return new ApiEntrypointEntity(tags, target, host);
+    }
+
     private String getScheme(String entrypointValue) {
         String scheme = "https";
         if (entrypointValue != null) {
@@ -170,5 +194,21 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
             }
         }
         return scheme;
+    }
+
+    public String getApiEntrypointsListenerType(GenericApiEntity genericApiEntity) {
+        if (
+            genericApiEntity.getDefinitionVersion() == DefinitionVersion.V1 ||
+            genericApiEntity.getDefinitionVersion() == DefinitionVersion.V2
+        ) {
+            return "HTTP";
+        }
+        io.gravitee.rest.api.model.v4.api.ApiEntity api = (io.gravitee.rest.api.model.v4.api.ApiEntity) genericApiEntity;
+        return api
+            .getListeners()
+            .stream()
+            .findFirst()
+            .map(listener -> listener.getType().toString())
+            .orElseThrow(() -> new EntrypointNotFoundException(api.getId()));
     }
 }

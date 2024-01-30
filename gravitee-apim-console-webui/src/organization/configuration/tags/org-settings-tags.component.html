@@ -140,6 +140,16 @@
       <gio-clipboard-copy-icon matSuffix [contentToCopy]="entrypointInput.value"></gio-clipboard-copy-icon>
     </mat-form-field>
 
+    <mat-form-field [matTooltip]="providedConfigurationMessage" [matTooltipDisabled]="!isReadonlySetting('tcpPort')">
+      <mat-icon *ngIf="isReadonlySetting('tcpPort')" class="org-settings-tags__entrypoints-card__form-field__icon" matPrefix>lock</mat-icon>
+      <mat-label>Default TCP port</mat-label>
+      <input #tcpPortInput matInput formControlName="tcpPort" />
+      <mat-error *ngIf="defaultConfigForm.get('tcpPort').hasError('invalidTcpPort')"
+        >TCP port should be in range between 1024 and 65535</mat-error
+      >
+      <gio-clipboard-copy-icon matSuffix [contentToCopy]="tcpPortInput.value"></gio-clipboard-copy-icon>
+    </mat-form-field>
+
     <gio-table-wrapper [length]="entrypointsTableUnpaginatedLength" (filtersChange)="onEntrypointsFiltersChanged($event)">
       <table
         mat-table

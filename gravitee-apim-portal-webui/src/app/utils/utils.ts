@@ -38,3 +38,10 @@ export function formatCurlCommandLine(url: string, ...headers: Header[]): string
 
   return `curl${headersFormatted}${url}`;
 }
+
+export function formatOpenSslCommandLine(url: string): string {
+  const tcpHost = url.split(':')[0];
+  const sClientCommand = 's_client -connect';
+  const servernameParameter = '-servername';
+  return `openssl ${sClientCommand} ${url} ${servernameParameter} ${tcpHost}`;
+}

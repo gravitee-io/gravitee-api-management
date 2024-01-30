@@ -25,6 +25,8 @@ import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
+import io.gravitee.definition.model.v4.listener.subscription.SubscriptionListener;
+import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
 import io.gravitee.rest.api.model.EntrypointEntity;
 import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
 import io.gravitee.rest.api.model.parameters.Key;
@@ -37,18 +39,20 @@ import io.gravitee.rest.api.service.v4.ApiEntrypointService;
 import java.util.List;
 import java.util.Set;
 import org.assertj.core.util.Arrays;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
-public class ApiEntrypointServiceImplTest {
+@ExtendWith(MockitoExtension.class)
+class ApiEntrypointServiceImplTest {
 
     @Mock
     private ParameterService parameterService;
@@ -58,28 +62,29 @@ public class ApiEntrypointServiceImplTest {
 
     private ApiEntrypointService apiEntrypointService;
 
-    @Before
+    @BeforeEach
     public void before() {
         apiEntrypointService = new ApiEntrypointServiceImpl(parameterService, entrypointService);
     }
 
     @Test
-    public void shouldReturnDefaultEntrypointWithoutApiV4Tags() {
+    void shouldReturnDefaultEntrypointWithoutApiV4Tags() {
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().host("host").path("path").build())).build();
         apiEntity.setListeners(List.of(httpListener));
         when(parameterService.find(any(), eq(Key.PORTAL_ENTRYPOINT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
             .thenReturn("https://default-entrypoint");
+        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("4082");
         List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
-        assertThat(apiEntrypoints.size()).isEqualTo(1);
+        assertThat(apiEntrypoints).hasSize(1);
         assertThat(apiEntrypoints.get(0).getHost()).isEqualTo("host");
         assertThat(apiEntrypoints.get(0).getTarget()).isEqualTo("https://default-entrypoint/path");
     }
 
     @Test
-    public void shouldReturnDefaultEntrypointWithoutApiV4MatchingTags() {
+    void shouldReturnDefaultEntrypointWithoutApiV4MatchingTags() {
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         apiEntity.setTags(Set.of("tag"));
@@ -87,24 +92,26 @@ public class ApiEntrypointServiceImplTest {
         apiEntity.setListeners(List.of(httpListener));
         when(parameterService.find(any(), eq(Key.PORTAL_ENTRYPOINT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
             .thenReturn("https://default-entrypoint");
+        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("4082");
         EntrypointEntity entrypointEntity = new EntrypointEntity();
         entrypointEntity.setTags(Arrays.array("tag-unmatching"));
         entrypointEntity.setValue("https://tag-entrypoint");
         when(entrypointService.findAll(any())).thenReturn(List.of(entrypointEntity));
         List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
-        assertThat(apiEntrypoints.size()).isEqualTo(1);
+        assertThat(apiEntrypoints).hasSize(1);
         assertThat(apiEntrypoints.get(0).getHost()).isEqualTo("host");
         assertThat(apiEntrypoints.get(0).getTarget()).isEqualTo("https://default-entrypoint/path");
     }
 
     @Test
-    public void shouldReturnEntrypointWithApiV4Tags() {
+    void shouldReturnEntrypointWithApiV4Tags() {
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         apiEntity.setTags(Set.of("tag"));
         HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().host("host").path("path").build())).build();
         apiEntity.setListeners(List.of(httpListener));
+        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("4082");
 
         EntrypointEntity entrypointEntity = new EntrypointEntity();
         entrypointEntity.setTags(Arrays.array("tag"));
@@ -112,13 +119,49 @@ public class ApiEntrypointServiceImplTest {
         when(entrypointService.findAll(any())).thenReturn(List.of(entrypointEntity));
         List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
-        assertThat(apiEntrypoints.size()).isEqualTo(1);
+        assertThat(apiEntrypoints).hasSize(1);
         assertThat(apiEntrypoints.get(0).getHost()).isEqualTo("host");
         assertThat(apiEntrypoints.get(0).getTarget()).isEqualTo("https://tag-entrypoint/path");
     }
 
     @Test
-    public void shouldReturnDefaultEntrypointWithoutApiV2Tags() {
+    void shouldReturnDefaultTcpPortAndEntrypointWithoutApiV4Tags() {
+        ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        TcpListener tcpListener = TcpListener.builder().hosts(List.of("some_tcp_host")).build();
+        apiEntity.setListeners(List.of(tcpListener));
+        when(parameterService.find(any(), eq(Key.PORTAL_ENTRYPOINT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
+            .thenReturn("https://default-entrypoint");
+        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("4082");
+        List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
+
+        assertThat(apiEntrypoints).hasSize(1);
+        assertThat(apiEntrypoints.get(0).getHost()).isEqualTo("https://default-entrypoint");
+        assertThat(apiEntrypoints.get(0).getTarget()).isEqualTo("some_tcp_host:4082");
+    }
+
+    @Test
+    void shouldReturnDefaultTcpPortAndMatchingEntrypointWithApiV4Tags() {
+        ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        apiEntity.setTags(Set.of("tag"));
+        TcpListener tcpListener = TcpListener.builder().hosts(List.of("some_tcp_host")).build();
+        apiEntity.setListeners(List.of(tcpListener));
+
+        EntrypointEntity entrypointEntity = new EntrypointEntity();
+        entrypointEntity.setTags(Arrays.array("tag"));
+        entrypointEntity.setValue("https://tag-entrypoint");
+        when(entrypointService.findAll(any())).thenReturn(List.of(entrypointEntity));
+        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("4082");
+        List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
+
+        assertThat(apiEntrypoints).hasSize(1);
+        assertThat(apiEntrypoints.get(0).getHost()).isEqualTo("https://tag-entrypoint");
+        assertThat(apiEntrypoints.get(0).getTarget()).isEqualTo("some_tcp_host:4082");
+    }
+
+    @Test
+    void shouldReturnDefaultEntrypointWithoutApiV2Tags() {
         io.gravitee.rest.api.model.api.ApiEntity apiEntity = new io.gravitee.rest.api.model.api.ApiEntity();
         Proxy proxy = new Proxy();
         VirtualHost virtualHost = new VirtualHost();
@@ -128,15 +171,16 @@ public class ApiEntrypointServiceImplTest {
         apiEntity.setProxy(proxy);
         when(parameterService.find(any(), eq(Key.PORTAL_ENTRYPOINT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
             .thenReturn("https://default-entrypoint");
+        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("4082");
         List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
-        assertThat(apiEntrypoints.size()).isEqualTo(1);
+        assertThat(apiEntrypoints).hasSize(1);
         assertThat(apiEntrypoints.get(0).getHost()).isEqualTo("host");
         assertThat(apiEntrypoints.get(0).getTarget()).isEqualTo("https://default-entrypoint/path");
     }
 
     @Test
-    public void shouldReturnDefaultEntrypointWithoutApiV2MatchingTags() {
+    void shouldReturnDefaultEntrypointWithoutApiV2MatchingTags() {
         io.gravitee.rest.api.model.api.ApiEntity apiEntity = new io.gravitee.rest.api.model.api.ApiEntity();
         apiEntity.setTags(Set.of("tag"));
         Proxy proxy = new Proxy();
@@ -147,19 +191,20 @@ public class ApiEntrypointServiceImplTest {
         apiEntity.setProxy(proxy);
         when(parameterService.find(any(), eq(Key.PORTAL_ENTRYPOINT), any(), eq(ParameterReferenceType.ENVIRONMENT)))
             .thenReturn("https://default-entrypoint");
+        when(parameterService.find(any(), eq(Key.PORTAL_TCP_PORT), any(), eq(ParameterReferenceType.ENVIRONMENT))).thenReturn("4082");
         EntrypointEntity entrypointEntity = new EntrypointEntity();
         entrypointEntity.setTags(Arrays.array("tag-unmatching"));
         entrypointEntity.setValue("https://tag-entrypoint");
         when(entrypointService.findAll(any())).thenReturn(List.of(entrypointEntity));
         List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
-        assertThat(apiEntrypoints.size()).isEqualTo(1);
+        assertThat(apiEntrypoints).hasSize(1);
         assertThat(apiEntrypoints.get(0).getHost()).isEqualTo("host");
         assertThat(apiEntrypoints.get(0).getTarget()).isEqualTo("https://default-entrypoint/path");
     }
 
     @Test
-    public void shouldReturnEntrypointWithApiV2Tags() {
+    void shouldReturnEntrypointWithApiV2Tags() {
         io.gravitee.rest.api.model.api.ApiEntity apiEntity = new io.gravitee.rest.api.model.api.ApiEntity();
         apiEntity.setTags(Set.of("tag"));
         Proxy proxy = new Proxy();
@@ -175,8 +220,55 @@ public class ApiEntrypointServiceImplTest {
         when(entrypointService.findAll(any())).thenReturn(List.of(entrypointEntity));
         List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(GraviteeContext.getExecutionContext(), apiEntity);
 
-        assertThat(apiEntrypoints.size()).isEqualTo(1);
+        assertThat(apiEntrypoints).hasSize(1);
         assertThat(apiEntrypoints.get(0).getHost()).isEqualTo("host");
         assertThat(apiEntrypoints.get(0).getTarget()).isEqualTo("https://tag-entrypoint/path");
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = DefinitionVersion.class, names = { "V1", "V2" })
+    void shouldReturnHttpEntrypointListenerForV1AndV2Api(DefinitionVersion version) {
+        ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setDefinitionVersion(version);
+
+        String apiEntrypointListener = apiEntrypointService.getApiEntrypointsListenerType(apiEntity);
+
+        assertThat(apiEntrypointListener).isEqualTo("HTTP");
+    }
+
+    @Test
+    void shouldReturnHttpEntrypointListenerForV4HttpApi() {
+        ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().host("host").path("path").build())).build();
+        apiEntity.setListeners(List.of(httpListener));
+
+        String apiEntrypointListener = apiEntrypointService.getApiEntrypointsListenerType(apiEntity);
+
+        assertThat(apiEntrypointListener).isEqualTo("HTTP");
+    }
+
+    @Test
+    void shouldReturnTcpEntrypointListenerForV4TcpApi() {
+        ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        TcpListener tcpListener = TcpListener.builder().hosts(List.of("some_tcp_host")).build();
+        apiEntity.setListeners(List.of(tcpListener));
+
+        String apiEntrypointListener = apiEntrypointService.getApiEntrypointsListenerType(apiEntity);
+
+        assertThat(apiEntrypointListener).isEqualTo("TCP");
+    }
+
+    @Test
+    void shouldReturnSubscriptionEntrypointListenerForV4MessagingApi() {
+        ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        SubscriptionListener subscriptionListener = SubscriptionListener.builder().build();
+        apiEntity.setListeners(List.of(subscriptionListener));
+
+        String apiEntrypointListener = apiEntrypointService.getApiEntrypointsListenerType(apiEntity);
+
+        assertThat(apiEntrypointListener).isEqualTo("SUBSCRIPTION");
     }
 }
