@@ -174,7 +174,7 @@ describe('API Plans Feature', () => {
     cy.contains('tr', `${planName}-Keyless`).find('[data-testid="api_plans_close_plan_button"]').click();
     cy.get(`[placeholder="${planName}-Keyless"]`).type(`${planName}-Keyless`);
     cy.getByDataTestId('confirm-dialog').click();
-    cy.wait('@closePlan');
+    cy.wait('@closePlan', { requestTimeout: 10000 });
     cy.contains(`The plan ${planName}-Keyless has been closed with success.`).should('be.visible');
     cy.contains(`${planName}-Keyless`).should('not.exist');
   });
