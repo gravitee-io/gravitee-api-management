@@ -1,3 +1,10 @@
+## [1.0.5](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.0.4...1.0.5) (2024-01-30)
+
+
+### Bug Fixes
+
+* handle null client response ([3536624](https://github.com/gravitee-io/gravitee-reporter-common/commit/3536624c672e5443d82ef430e055f04f3d37ed4b))
+
 ## [1.0.4](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.0.3...1.0.4) (2023-11-02)
 
 
