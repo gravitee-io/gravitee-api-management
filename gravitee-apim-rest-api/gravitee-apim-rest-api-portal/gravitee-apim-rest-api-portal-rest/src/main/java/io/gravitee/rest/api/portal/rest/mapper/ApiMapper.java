@@ -24,10 +24,7 @@ import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
-import io.gravitee.rest.api.portal.rest.model.Api;
-import io.gravitee.rest.api.portal.rest.model.ApiLinks;
-import io.gravitee.rest.api.portal.rest.model.RatingSummary;
-import io.gravitee.rest.api.portal.rest.model.User;
+import io.gravitee.rest.api.portal.rest.model.*;
 import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.RatingService;
@@ -70,6 +67,10 @@ public class ApiMapper {
         if (apiEntrypoints != null) {
             List<String> entrypoints = apiEntrypoints.stream().map(ApiEntrypointEntity::getTarget).collect(Collectors.toList());
             apiItem.setEntrypoints(entrypoints);
+        }
+        if (apiEntrypoints != null && !apiEntrypoints.isEmpty()) {
+            String apiListenerType = apiEntrypointService.getApiEntrypointsListenerType(api);
+            apiItem.setListenerType(ListenerType.valueOf(apiListenerType));
         }
 
         apiItem.setDraft(api.getLifecycleState() == ApiLifecycleState.UNPUBLISHED || api.getLifecycleState() == ApiLifecycleState.CREATED);

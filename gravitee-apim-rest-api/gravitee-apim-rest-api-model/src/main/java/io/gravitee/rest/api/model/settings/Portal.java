@@ -41,6 +41,9 @@ public class Portal {
     @ParameterKey(Key.PORTAL_HOMEPAGE_TITLE)
     private String homepageTitle;
 
+    @ParameterKey(Key.PORTAL_TCP_PORT)
+    private String tcpPort;
+
     private PortalApis apis;
     private PortalAnalytics analytics;
     private PortalRating rating;
@@ -87,6 +90,14 @@ public class Portal {
 
     public void setHomepageTitle(String homepageTitle) {
         this.homepageTitle = homepageTitle;
+    }
+
+    public String getTcpPort() {
+        return tcpPort;
+    }
+
+    public void setTcpPort(String tcpPort) {
+        this.tcpPort = tcpPort;
     }
 
     public PortalApis getApis() {

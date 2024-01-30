@@ -26,4 +26,5 @@ import java.util.List;
  */
 public interface ApiEntrypointService {
     List<ApiEntrypointEntity> getApiEntrypoints(final ExecutionContext executionContext, final GenericApiEntity genericApiEntity);
+    String getApiEntrypointsListenerType(final GenericApiEntity genericApiEntity);
 }

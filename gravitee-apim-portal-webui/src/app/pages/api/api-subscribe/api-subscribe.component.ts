@@ -23,7 +23,7 @@ import { getPicture, getPictureDisplayName } from '@gravitee/ui-components/src/l
 import { ConfigurationService } from '../../../services/configuration.service';
 import { ItemResourceTypeEnum } from '../../../model/itemResourceType.enum';
 import { FeatureEnum } from '../../../model/feature.enum';
-import { formatCurlCommandLine } from '../../../utils/utils';
+import { formatCurlCommandLine, formatOpenSslCommandLine } from '../../../utils/utils';
 import {
   Api,
   ApiKeyModeEnum,
@@ -148,7 +148,8 @@ export class ApiSubscribeComponent implements OnInit {
 
     this.apiId = this.route.snapshot.params.apiId;
     this.api = this.route.snapshot.data.api;
-    this.apiSample = formatCurlCommandLine(this.api.entrypoints[0]);
+    this.apiSample =
+      this.api.listener_type === 'TCP' ? formatOpenSslCommandLine(this.api.entrypoints[0]) : formatCurlCommandLine(this.api.entrypoints[0]);
     this.apiName = this.api.name;
 
     if (this.canConfigureSharedApiKey()) {

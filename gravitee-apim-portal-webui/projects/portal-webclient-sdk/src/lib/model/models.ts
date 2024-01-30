@@ -64,6 +64,7 @@ export * from './key';
 export * from './link';
 export * from './links';
 export * from './linksResponse';
+export * from './listenerType';
 export * from './log';
 export * from './logsResponse';
 export * from './member';

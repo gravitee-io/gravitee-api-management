@@ -76,6 +76,7 @@ export interface PortalSettingsPortal {
   support?: {
     enabled: boolean;
   };
+  tcpPort?: number;
   uploadMedia?: {
     enabled: boolean;
     maxSizeInOctet: number;

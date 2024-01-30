@@ -3802,6 +3802,8 @@ components:
           type: array
           items:
             type: string
+        listener_type:
+          $ref: '#/components/schemas/ListenerType'
         labels:
           description: List of labels linked to this API.
           type: array
@@ -3848,6 +3850,15 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Plan'
+
+    ListenerType:
+      description: Listener of the API entrypoints.
+      type: string
+      example: HTTP
+      enum:
+        - HTTP
+        - TCP
+        - SUBSCRIPTION
     ApiInformation:
       properties:
         name:
