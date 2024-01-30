@@ -74,8 +74,6 @@ import { ApiProxyGroupEndpointEditComponent } from './endpoints/groups/endpoint/
 import { ApiProxyGroupEditComponent } from './endpoints/groups/edit/api-proxy-group-edit.component';
 import { ApiProxyEndpointListComponent } from './endpoints/list/api-proxy-endpoint-list.component';
 import { ApiGeneralMembersComponent } from './user-group-access/members/api-general-members.component';
-import { ApiGeneralGroupsComponent } from './user-group-access/groups/api-general-groups.component';
-import { ApiGeneralTransferOwnershipComponent } from './user-group-access/transfer-ownership/api-general-transfer-ownership.component';
 import { ApiAuditListComponent } from './api-audit-list/api-audit-list.component';
 import { AuditLogsComponent as ApiAuditLogsComponent } from './api-traffic-v4/audit-logs/audit-logs.component';
 
@@ -281,30 +279,6 @@ const apisRoutes: Routes = [
       {
         path: 'members',
         component: ApiGeneralMembersComponent,
-        data: {
-          apiPermissions: {
-            only: ['api-member-r'],
-          },
-          docs: {
-            page: 'management-api-members',
-          },
-        },
-      },
-      {
-        path: 'groups',
-        component: ApiGeneralGroupsComponent,
-        data: {
-          apiPermissions: {
-            only: ['api-member-r'],
-          },
-          docs: {
-            page: 'management-api-members',
-          },
-        },
-      },
-      {
-        path: 'transfer-ownership',
-        component: ApiGeneralTransferOwnershipComponent,
         data: {
           apiPermissions: {
             only: ['api-member-r'],
