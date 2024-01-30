@@ -131,21 +131,9 @@ export class ApiV1V2MenuService implements ApiMenuService {
       tabs: [],
     };
     if (this.permissionService.hasAnyMatching(['api-member-r'])) {
-      userAndGroupAccessMenuItems.tabs.push(
-        {
-          displayName: 'Members',
-          routerLink: 'members',
-        },
-        {
-          displayName: 'Groups',
-          routerLink: 'groups',
-        },
-      );
-    }
-    if (this.roleService.isOrganizationAdmin() || this.permissionService.hasAnyMatching(['api-member-u'])) {
       userAndGroupAccessMenuItems.tabs.push({
-        displayName: 'Transfer ownership',
-        routerLink: 'transfer-ownership',
+        displayName: 'Members',
+        routerLink: 'members',
       });
     }
     if (userAndGroupAccessMenuItems.tabs.length > 0) {
