@@ -35,4 +35,5 @@ export interface Group extends BaseGroup {
   emailInvitation?: boolean;
   disableMembershipNotifications?: boolean;
   primaryOwner?: boolean;
+  apiPrimaryOwner?: string;
 }

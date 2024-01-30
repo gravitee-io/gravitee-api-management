@@ -13,94 +13,74 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnInit } from '@angular/core';
-import { combineLatest, EMPTY, Subject } from 'rxjs';
-import { filter, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { AbstractControl, UntypedFormControl, UntypedFormGroup, ValidationErrors } from '@angular/forms';
-import { MatDialog } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { isEmpty } from 'lodash';
-import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute } from '@angular/router';
 
-import { ApiMemberService } from '../../../../services-ngx/api-member.service';
-import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
-import { GroupService } from '../../../../services-ngx/group.service';
-import { Group } from '../../../../entities/group/group';
-import { RoleService } from '../../../../services-ngx/role.service';
-import { Role } from '../../../../entities/role/role';
 import { Constants } from '../../../../entities/Constants';
 import { SearchableUser } from '../../../../entities/user/searchableUser';
-import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { ApiTransferOwnership } from '../../../../entities/management-api-v2/api/apiTransferOwnership';
+import { Api, Group, Member } from '../../../../entities/management-api-v2';
+import { Role } from '../../../../entities/role/role';
+
+export interface ApiOwnershipDialogData {
+  api: Api;
+  groups: Group[];
+  roles: Role[];
+  members: Member[];
+}
+export interface ApiOwnershipDialogResult {
+  isUserMode: boolean;
+  transferOwnershipToUser?: ApiTransferOwnership;
+  transferOwnershipToGroup: ApiTransferOwnership;
+}
+
+type TransferOwnershipMode = 'USER' | 'GROUP' | 'HYBRID';
 
 @Component({
   selector: 'api-general-transfer-ownership',
   templateUrl: './api-general-transfer-ownership.component.html',
   styleUrls: ['./api-general-transfer-ownership.component.scss'],
 })
-export class ApiGeneralTransferOwnershipComponent implements OnInit {
+export class ApiGeneralTransferOwnershipComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+  private api: Api;
+  private groups: Group[];
+  private roles: Role[];
 
-  mode: 'USER' | 'GROUP' | 'HYBRID';
+  mode: TransferOwnershipMode;
   warnUseGroupAsPrimaryOwner = false;
-
   form: UntypedFormGroup;
-
   poGroups: Group[];
-
   poRoles: Role[];
-
-  apiMembers: SearchableUser[];
-
-  private apiId: string;
+  apiMembers: Member[];
 
   constructor(
     public readonly activatedRoute: ActivatedRoute,
-    private readonly apiV2Service: ApiV2Service,
-    private readonly apiMembersService: ApiMemberService,
-    private readonly groupService: GroupService,
-    private readonly roleService: RoleService,
-    private readonly snackBarService: SnackBarService,
-    private readonly matDialog: MatDialog,
     @Inject('Constants') private readonly constants: Constants,
-  ) {}
+    @Inject(MAT_DIALOG_DATA) dialogData: ApiOwnershipDialogData,
+    public dialogRef: MatDialogRef<ApiOwnershipDialogData, ApiOwnershipDialogResult>,
+  ) {
+    this.api = dialogData.api;
+    this.groups = dialogData.groups;
+    this.roles = dialogData.roles;
+    this.apiMembers = dialogData.members.filter((member) => !member.roles?.map((r) => r.name)?.includes('PRIMARY_OWNER'));
+  }
 
   ngOnInit(): void {
-    this.apiId = this.activatedRoute.snapshot.params.apiId;
-
-    this.mode = this.constants.env.settings.api.primaryOwnerMode.toUpperCase() as 'USER' | 'GROUP' | 'HYBRID';
-
-    combineLatest([
-      this.apiV2Service.get(this.apiId),
-      this.groupService.list(),
-      this.roleService.list('API'),
-      this.apiMembersService.getMembers(this.apiId),
-    ])
-      .pipe(
-        tap(([api, groups, roles, apiMembers]) => {
-          this.poGroups = groups.filter((group) => group.apiPrimaryOwner != null);
-          if (api.primaryOwner.type === 'GROUP') {
-            this.poGroups = this.poGroups.filter((group) => group.id !== api.primaryOwner.id);
-          }
-
-          this.warnUseGroupAsPrimaryOwner = (this.mode === 'HYBRID' || this.mode === 'GROUP') && isEmpty(this.poGroups);
-
-          this.poRoles = roles.filter((role) => role.name !== 'PRIMARY_OWNER');
-          const defaultRolePO = roles.find((role) => role.default);
-
-          this.apiMembers = apiMembers
-            .filter((member) => member.role !== 'PRIMARY_OWNER')
-            .map((member) => ({
-              reference: member.reference,
-              id: member.id,
-              displayName: member.displayName,
-            }));
-
-          this.initForm(defaultRolePO);
-        }),
-        takeUntil(this.unsubscribe$),
-      )
-      .subscribe();
+    this.mode = this.constants.env.settings.api.primaryOwnerMode.toUpperCase() as TransferOwnershipMode;
+    this.poGroups = this.groups.filter((group) => group.apiPrimaryOwner != null);
+    if (this.api.primaryOwner.type === 'GROUP') {
+      this.poGroups = this.poGroups.filter((group) => group.id !== this.api.primaryOwner.id);
+    }
+    this.warnUseGroupAsPrimaryOwner = (this.mode === 'HYBRID' || this.mode === 'GROUP') && isEmpty(this.poGroups);
+    this.poRoles = this.roles.filter((role) => role.name !== 'PRIMARY_OWNER');
+    const defaultRolePO = this.roles.find((role) => role.default);
+    this.initForm(defaultRolePO);
   }
 
   ngOnDestroy() {
@@ -110,17 +90,6 @@ export class ApiGeneralTransferOwnershipComponent implements OnInit {
 
   public onSubmit() {
     const newRole = this.form.get('roleId').value;
-
-    const confirm = this.matDialog.open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
-      data: {
-        title: `Transfer API ownership`,
-        content: `This action cannot be undone. If you are the primary owner of this API, your role will be set to <code>${newRole}</code>.`,
-        confirmButton: 'Transfer',
-      },
-      role: 'alertdialog',
-      id: 'confirmTransferDialog',
-    });
-
     const user: SearchableUser = this.form.get('user').value;
     const transferOwnershipToUser: ApiTransferOwnership = {
       userId: user?.id,
@@ -134,26 +103,9 @@ export class ApiGeneralTransferOwnershipComponent implements OnInit {
       poRole: newRole,
       userType: 'GROUP',
     };
-
     const userMode = this.form.get('userOrGroup').value;
     const isUserMode = userMode === 'user' || userMode === 'apiMember';
-
-    confirm
-      .afterClosed()
-      .pipe(
-        filter((confirmed) => confirmed),
-        switchMap(() => this.apiV2Service.transferOwnership(this.apiId, isUserMode ? transferOwnershipToUser : transferOwnershipToGroup)),
-        tap(
-          () => this.snackBarService.success('Transfer ownership done.'),
-          ({ error }) => {
-            this.snackBarService.error(error.message);
-            return EMPTY;
-          },
-        ),
-        tap(() => this.ngOnInit()),
-        takeUntil(this.unsubscribe$),
-      )
-      .subscribe();
+    this.dialogRef.close({ isUserMode, transferOwnershipToGroup, transferOwnershipToUser });
   }
 
   private initForm(defaultRolePO: Role) {
@@ -186,7 +138,7 @@ export class ApiGeneralTransferOwnershipComponent implements OnInit {
             errors.roleRequired = true;
           }
 
-          return errors ? errors : null;
+          return errors ?? null;
         },
       ],
     );

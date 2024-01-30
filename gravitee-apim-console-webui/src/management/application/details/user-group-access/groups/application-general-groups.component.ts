@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Group } from 'src/entities/group/group';
+
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { combineLatest, EMPTY, Subject } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
@@ -21,7 +23,6 @@ import { FormControl, FormGroup } from '@angular/forms';
 
 import { GroupService } from '../../../../../services-ngx/group.service';
 import { ApplicationService } from '../../../../../services-ngx/application.service';
-import { Group } from '../../../../../entities/management-api-v2';
 import { Application } from '../../../../../entities/application/application';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 

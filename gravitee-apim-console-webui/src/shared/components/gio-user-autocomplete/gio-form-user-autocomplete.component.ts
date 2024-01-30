@@ -61,7 +61,11 @@ export class GioFormUserAutocompleteComponent implements OnInit, ControlValueAcc
       distinctUntilChanged(),
       debounceTime(100),
       // Rest form control when value is no more a selected user
-      tap((value) => (isSearchableUser(value) ? null : this._onChange(null))),
+      tap((value) => {
+        if (!isSearchableUser(value)) {
+          this._onChange(null);
+        }
+      }),
       switchMap((term) => {
         return term.length > 0 ? this.usersService.search(term) : of([]);
       }),

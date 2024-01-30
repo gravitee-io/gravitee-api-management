@@ -44,6 +44,7 @@ export class ApiGeneralMembersHarness extends ComponentHarness {
   private getUsersSelector = this.documentRootLocatorFactory().locatorFor(GioUsersSelectorHarness);
   private groupsSelector = this.locatorForAll(ApiGeneralGroupMembersHarness);
   private manageGroupsButtonSelector = this.locatorFor(MatButtonHarness.with({ text: 'Manage groups' }));
+  private transferOwnershipButtonSelector = this.locatorForOptional(MatButtonHarness.with({ text: 'Transfer ownership' }));
 
   async getTableRows(): Promise<MatRowHarness[]> {
     return this.getMemberTableElement().then((table) => table.getRows());
@@ -146,5 +147,13 @@ export class ApiGeneralMembersHarness extends ComponentHarness {
 
   async manageGroupsClick() {
     return this.manageGroupsButtonSelector().then((btn) => btn.click());
+  }
+
+  async isTransferOwnershipVisible() {
+    return (await this.transferOwnershipButtonSelector()) != null;
+  }
+
+  async transferOwnershipClick() {
+    return this.transferOwnershipButtonSelector().then((btn) => btn.click());
   }
 }
