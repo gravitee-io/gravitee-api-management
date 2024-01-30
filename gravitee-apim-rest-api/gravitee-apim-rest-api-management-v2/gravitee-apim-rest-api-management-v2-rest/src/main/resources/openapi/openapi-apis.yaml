@@ -3878,6 +3878,9 @@ components:
                       primaryOwner:
                           type: boolean
                           description: Group's members contain one primary owner.
+                      apiPrimaryOwner:
+                          type: string
+                          description: The group member id with API primary owner role.
         GroupEvent:
             type: string
             description: Type of group event.

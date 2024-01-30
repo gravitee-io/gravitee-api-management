@@ -23,31 +23,33 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { MatLegacySelectHarness as MatSelectHarness } from '@angular/material/legacy-select/testing';
 import { set } from 'lodash';
 import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
-import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { MatButtonToggleGroupHarness } from '@angular/material/button-toggle/testing';
 import { ActivatedRoute } from '@angular/router';
 
-import { ApiGeneralTransferOwnershipComponent } from './api-general-transfer-ownership.component';
-
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
 import { ApiUserGroupModule } from '../api-user-group.module';
-import { ApiMember } from '../../../../entities/api';
 import { Role } from '../../../../entities/role/role';
 import { fakeRole } from '../../../../entities/role/role.fixture';
-import { Group } from '../../../../entities/group/group';
-import { fakeGroup } from '../../../../entities/group/group.fixture';
 import { GioFormUserAutocompleteHarness } from '../../../../shared/components/gio-user-autocomplete/gio-form-user-autocomplete.harness';
 import { fakeSearchableUser } from '../../../../entities/user/searchableUser.fixture';
 import { SearchableUser } from '../../../../entities/user/searchableUser';
-import { BaseApi, fakeBaseApi } from '../../../../entities/management-api-v2';
+import { ApiGeneralMembersComponent } from '../members/api-general-members.component';
+import { Api, fakeApiV2, fakeApiV4, fakeGroup, fakeGroupsResponse, Group, MembersResponse } from '../../../../entities/management-api-v2';
+import { ApiGeneralMembersHarness } from '../members/api-general-members.harness';
+import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { fakeMember } from '../../../../entities/management-api-v2/member/member.fixture';
 
 describe('ApiGeneralTransferOwnershipComponent', () => {
-  let fixture: ComponentFixture<ApiGeneralTransferOwnershipComponent>;
-  let httpTestingController: HttpTestingController;
-  let loader: HarnessLoader;
-  let rootLoader: HarnessLoader;
-
   const apiId = 'apiId';
+  const defaultRole = fakeRole({ name: 'DEFAULT_ROLE', default: true });
+  const poRole = fakeRole({ name: 'PRIMARY_OWNER', default: false });
+  const role1 = fakeRole({ name: 'ROLE_1', default: false });
+  const defaultRoles: Role[] = [poRole, role1, defaultRole];
+
+  let fixture: ComponentFixture<ApiGeneralMembersComponent>;
+  let harness: ApiGeneralMembersHarness;
+  let rootLoader: HarnessLoader;
+  let httpTestingController: HttpTestingController;
 
   describe('Hybrid mode', () => {
     beforeEach(async () => {
@@ -63,19 +65,19 @@ describe('ApiGeneralTransferOwnershipComponent', () => {
               return constants;
             },
           },
+          { provide: GioTestingPermissionProvider, useValue: ['api-definition-u', 'api-member-u'] },
         ],
       }).overrideProvider(InteractivityChecker, {
         useValue: {
-          isFocusable: () => true, // This checks focus trap, set it to true to  avoid the warning
+          isFocusable: () => true,
+          isTabbable: () => true,
         },
       });
 
-      fixture = TestBed.createComponent(ApiGeneralTransferOwnershipComponent);
-      httpTestingController = TestBed.inject(HttpTestingController);
-
-      loader = await TestbedHarnessEnvironment.loader(fixture);
+      fixture = TestBed.createComponent(ApiGeneralMembersComponent);
+      harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiGeneralMembersHarness);
       rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
-
+      httpTestingController = TestBed.inject(HttpTestingController);
       fixture.detectChanges();
     });
 
@@ -85,30 +87,28 @@ describe('ApiGeneralTransferOwnershipComponent', () => {
     });
 
     it('should transfer ownership to user', async () => {
-      const api = fakeBaseApi({ id: apiId });
-      expectApiGetRequest(api);
-      expectGroupsGetRequest([]);
-      expectApiRoleGetRequest([
-        fakeRole({ name: 'ROLE_1', default: false }),
-        fakeRole({ name: 'DEFAULT_ROLE', default: true }),
-        fakeRole({ name: 'PRIMARY_OWNER' }),
-      ]);
-      expectApiMembersGetRequest();
+      const api = fakeApiV2({ id: apiId, groups: [] });
+      await expectGetRequests(api, [], { data: [fakeMember({ id: '1', displayName: 'Joe', roles: [defaultRole] })] });
+
+      expect(await harness.isTransferOwnershipVisible()).toBeTruthy();
+      await harness.transferOwnershipClick();
 
       // Select User mode
-      const userOrGroupRadio = await loader.getHarness(MatButtonToggleGroupHarness.with({ selector: '[formControlName="userOrGroup"]' }));
+      const userOrGroupRadio = await rootLoader.getHarness(
+        MatButtonToggleGroupHarness.with({ selector: '[formControlName="userOrGroup"]' }),
+      );
       const otherUserButton = await userOrGroupRadio.getToggles({ text: 'Other user' });
       await otherUserButton[0].check();
 
       // Search and select user
-      const userSelect = await loader.getHarness(GioFormUserAutocompleteHarness);
+      const userSelect = await rootLoader.getHarness(GioFormUserAutocompleteHarness);
       await userSelect.setSearchText('Joe');
       respondToUserSearchRequest('Joe', [fakeSearchableUser({ displayName: 'Joe' })]);
       await userSelect.selectOption({ text: 'Joe' });
       respondToUserSearchRequest('Joe', [fakeSearchableUser({ displayName: 'Joe' })]);
 
       // Select role
-      const roleSelect = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="roleId"]' }));
+      const roleSelect = await rootLoader.getHarness(MatSelectHarness.with({ selector: '[formControlName="roleId"]' }));
       await roleSelect.open();
       const roleOptions = await roleSelect.getOptions();
       expect(roleOptions.length).toBe(2);
@@ -117,12 +117,10 @@ describe('ApiGeneralTransferOwnershipComponent', () => {
       await roleSelect.clickOptions({ text: 'ROLE_1' });
 
       // Submit
-      const transferBtn = await loader.getHarness(MatButtonHarness.with({ text: /Transfer/ }));
+      const transferBtn = await rootLoader.getHarness(MatButtonHarness.with({ text: 'Transfer' }));
+      expect(await transferBtn.isDisabled()).toBeFalsy();
       await transferBtn.click();
-
-      // Confirm dialog
-      const dialog = await rootLoader.getHarness(MatDialogHarness);
-      await (await dialog.getHarness(MatButtonHarness.with({ text: /^Transfer/ }))).click();
+      fixture.detectChanges();
 
       // Check request
       const req = httpTestingController.expectOne({
@@ -138,28 +136,25 @@ describe('ApiGeneralTransferOwnershipComponent', () => {
     });
 
     it('should transfer ownership to api members', async () => {
-      const api = fakeBaseApi({ id: apiId });
-      expectApiGetRequest(api);
-      expectGroupsGetRequest([]);
-      expectApiRoleGetRequest([
-        fakeRole({ name: 'ROLE_1', default: false }),
-        fakeRole({ name: 'DEFAULT_ROLE', default: true }),
-        fakeRole({ name: 'PRIMARY_OWNER' }),
-      ]);
-      const members: ApiMember[] = [{ id: '1', displayName: 'Joe', role: 'USER' }];
-      expectApiMembersGetRequest(members);
+      const api = fakeApiV4({ id: apiId, groups: [] });
+      await expectGetRequests(api, [], { data: [fakeMember({ id: '1', displayName: 'Joe', roles: [defaultRole] })] });
+
+      expect(await harness.isTransferOwnershipVisible()).toBeTruthy();
+      await harness.transferOwnershipClick();
 
       // Select User mode
-      const userOrGroupRadio = await loader.getHarness(MatButtonToggleGroupHarness.with({ selector: '[formControlName="userOrGroup"]' }));
+      const userOrGroupRadio = await rootLoader.getHarness(
+        MatButtonToggleGroupHarness.with({ selector: '[formControlName="userOrGroup"]' }),
+      );
       const otherUserButton = await userOrGroupRadio.getToggles({ text: 'API member' });
       await otherUserButton[0].check();
 
       // Search and select user
-      const userSelect = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="user"]' }));
+      const userSelect = await rootLoader.getHarness(MatSelectHarness.with({ selector: '[formControlName="user"]' }));
       await userSelect.clickOptions({ text: 'Joe' });
 
       // Select role
-      const roleSelect = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="roleId"]' }));
+      const roleSelect = await rootLoader.getHarness(MatSelectHarness.with({ selector: '[formControlName="roleId"]' }));
       await roleSelect.open();
       const roleOptions = await roleSelect.getOptions();
       expect(roleOptions.length).toBe(2);
@@ -168,12 +163,10 @@ describe('ApiGeneralTransferOwnershipComponent', () => {
       await roleSelect.clickOptions({ text: 'ROLE_1' });
 
       // Submit
-      const transferBtn = await loader.getHarness(MatButtonHarness.with({ text: /Transfer/ }));
+      const transferBtn = await rootLoader.getHarness(MatButtonHarness.with({ text: 'Transfer' }));
+      expect(await transferBtn.isDisabled()).toBeFalsy();
       await transferBtn.click();
-
-      // Confirm dialog
-      const dialog = await rootLoader.getHarness(MatDialogHarness);
-      await (await dialog.getHarness(MatButtonHarness.with({ text: /^Transfer/ }))).click();
+      fixture.detectChanges();
 
       // Check request
       const req = httpTestingController.expectOne({
@@ -189,26 +182,28 @@ describe('ApiGeneralTransferOwnershipComponent', () => {
     });
 
     it('should transfer ownership to group', async () => {
-      const api = fakeBaseApi({ id: apiId });
-      expectApiGetRequest(api);
-      expectGroupsGetRequest([
-        fakeGroup({ id: 'group1', name: 'Group 1', apiPrimaryOwner: true }),
-        fakeGroup({ id: 'group2', name: 'Group null', apiPrimaryOwner: null }),
-      ]);
-      expectApiRoleGetRequest([
-        fakeRole({ name: 'ROLE_1', default: false }),
-        fakeRole({ name: 'DEFAULT_ROLE', default: true }),
-        fakeRole({ name: 'PRIMARY_OWNER' }),
-      ]);
-      expectApiMembersGetRequest();
+      const api = fakeApiV4({ id: apiId, groups: [] });
+      await expectGetRequests(
+        api,
+        [
+          fakeGroup({ id: 'group1', name: 'Group 1', apiPrimaryOwner: 'apo-uuid' }),
+          fakeGroup({ id: 'group2', name: 'Group null', apiPrimaryOwner: null }),
+        ],
+        { data: [fakeMember({ id: '1', displayName: 'Joe', roles: [defaultRole] })] },
+      );
+
+      expect(await harness.isTransferOwnershipVisible()).toBeTruthy();
+      await harness.transferOwnershipClick();
 
       // Select Group mode
-      const userOrGroupRadio = await loader.getHarness(MatButtonToggleGroupHarness.with({ selector: '[formControlName="userOrGroup"]' }));
+      const userOrGroupRadio = await rootLoader.getHarness(
+        MatButtonToggleGroupHarness.with({ selector: '[formControlName="userOrGroup"]' }),
+      );
       const otherUserButton = await userOrGroupRadio.getToggles({ text: 'Primary owner group' });
       await otherUserButton[0].check();
 
       // Select group
-      const groupSelect = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="groupId"]' }));
+      const groupSelect = await rootLoader.getHarness(MatSelectHarness.with({ selector: '[formControlName="groupId"]' }));
       await groupSelect.open();
       const options = await groupSelect.getOptions();
       expect(options.length).toBe(1);
@@ -217,12 +212,10 @@ describe('ApiGeneralTransferOwnershipComponent', () => {
       // Not select role -> use default role
 
       // Submit
-      const transferBtn = await loader.getHarness(MatButtonHarness.with({ text: /Transfer/ }));
+      const transferBtn = await rootLoader.getHarness(MatButtonHarness.with({ text: 'Transfer' }));
+      expect(await transferBtn.isDisabled()).toBeFalsy();
       await transferBtn.click();
-
-      // Confirm dialog
-      const dialog = await rootLoader.getHarness(MatDialogHarness);
-      await (await dialog.getHarness(MatButtonHarness.with({ text: /^Transfer/ }))).click();
+      fixture.detectChanges();
 
       // Check request
       const req = httpTestingController.expectOne({
@@ -252,6 +245,7 @@ describe('ApiGeneralTransferOwnershipComponent', () => {
               return constants;
             },
           },
+          { provide: GioTestingPermissionProvider, useValue: ['api-definition-u', 'api-member-u'] },
         ],
       }).overrideProvider(InteractivityChecker, {
         useValue: {
@@ -259,12 +253,10 @@ describe('ApiGeneralTransferOwnershipComponent', () => {
         },
       });
 
-      fixture = TestBed.createComponent(ApiGeneralTransferOwnershipComponent);
-      httpTestingController = TestBed.inject(HttpTestingController);
-
-      loader = await TestbedHarnessEnvironment.loader(fixture);
+      fixture = TestBed.createComponent(ApiGeneralMembersComponent);
+      harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiGeneralMembersHarness);
       rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
-
+      httpTestingController = TestBed.inject(HttpTestingController);
       fixture.detectChanges();
     });
 
@@ -274,40 +266,53 @@ describe('ApiGeneralTransferOwnershipComponent', () => {
     });
 
     it('should only allow transfer ownership to group', async () => {
-      const api = fakeBaseApi({ id: apiId });
-      expectApiGetRequest(api);
-      expectGroupsGetRequest([
-        { id: '1', name: 'group1', apiPrimaryOwner: true },
-        { id: '2', name: 'group2', apiPrimaryOwner: true },
-      ]);
-      expectApiRoleGetRequest([
-        fakeRole({ name: 'ROLE_1', default: false }),
-        fakeRole({ name: 'DEFAULT_ROLE', default: true }),
-        fakeRole({ name: 'PRIMARY_OWNER' }),
-      ]);
-      expectApiMembersGetRequest();
+      const api = fakeApiV4({ id: apiId, groups: [] });
+      await expectGetRequests(
+        api,
+        [
+          fakeGroup({ id: 'group1', name: 'group1', apiPrimaryOwner: 'apo-uuid' }),
+          fakeGroup({ id: 'group2', name: 'group2', apiPrimaryOwner: 'apo-uuid' }),
+        ],
+        { data: [fakeMember({ id: '1', displayName: 'Joe', roles: [defaultRole] })] },
+      );
 
-      fixture.detectChanges();
+      expect(await harness.isTransferOwnershipVisible()).toBeTruthy();
+      await harness.transferOwnershipClick();
 
       // No toggle from selection mode
-      expect((await loader.getAllHarnesses(MatButtonToggleGroupHarness.with({ selector: '[formControlName=groupId]' }))).length).toEqual(0);
+      expect(
+        (await rootLoader.getAllHarnesses(MatButtonToggleGroupHarness.with({ selector: '[formControlName=groupId]' }))).length,
+      ).toEqual(0);
       // Only one select with groups
-      const groupOptions = await loader.getHarness(MatSelectHarness).then(async (harness) => {
-        await harness.open();
-        return await harness.getOptions();
-      });
+      const groupOptions = await rootLoader
+        .getHarness(MatSelectHarness.with({ selector: '[formControlName="groupId"]' }))
+        .then(async (harness) => {
+          await harness.open();
+          return await harness.getOptions();
+        });
       expect(await Promise.all(groupOptions.map(async (opt) => await opt.getText()))).toEqual(['group1', 'group2']);
     });
   });
 
-  function expectApiGetRequest(api: BaseApi) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}`, method: 'GET' }).flush(api);
+  async function expectGetRequests(api: Api, groups: Group[] = [], members: MembersResponse = { data: [] }) {
+    expectApiGetRequest(api);
+    expectGetGroupsListRequest(groups);
+    expectApiMembersGetRequest(api, members);
+    expectApiRoleGetRequest(defaultRoles);
+  }
+
+  function expectGetGroupsListRequest(groups: Group[]) {
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/groups?page=1&perPage=9999`, method: 'GET' })
+      .flush(fakeGroupsResponse({ data: groups }));
     fixture.detectChanges();
   }
 
-  function expectGroupsGetRequest(groups: Group[] = []) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/configuration/groups`, method: 'GET' }).flush(groups);
+  function expectApiGetRequest(api: Api) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
+    fixture.detectChanges();
   }
+
   function expectApiRoleGetRequest(roles: Role[] = []) {
     httpTestingController
       .expectOne({ url: `${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/API/roles`, method: 'GET' })
@@ -323,8 +328,8 @@ describe('ApiGeneralTransferOwnershipComponent', () => {
       .flush(searchableUsers);
   }
 
-  function expectApiMembersGetRequest(members: ApiMember[] = []) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/members`, method: 'GET' }).flush(members);
+  function expectApiMembersGetRequest(api: Api, members: MembersResponse = { data: [] }) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}/members`, method: 'GET' }).flush(members);
     fixture.detectChanges();
   }
 });

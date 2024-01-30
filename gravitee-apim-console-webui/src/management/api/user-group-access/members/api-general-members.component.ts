@@ -34,9 +34,16 @@ import {
 import { SearchableUser } from '../../../../entities/user/searchableUser';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { ApiMemberV2Service } from '../../../../services-ngx/api-member-v2.service';
-import { Api, Group, Member, Role } from '../../../../entities/management-api-v2';
+import { Api, Group, Member } from '../../../../entities/management-api-v2';
 import { GroupV2Service } from '../../../../services-ngx/group-v2.service';
 import { ApiGeneralGroupsComponent, ApiGroupsDialogData, ApiGroupsDialogResult } from '../groups/api-general-groups.component';
+import {
+  ApiGeneralTransferOwnershipComponent,
+  ApiOwnershipDialogData,
+  ApiOwnershipDialogResult,
+} from '../transfer-ownership/api-general-transfer-ownership.component';
+import { Role } from '../../../../entities/role/role';
+import { GioRoleService } from '../../../../shared/components/gio-role/gio-role.service';
 
 class MemberDataSource {
   id: string;
@@ -56,22 +63,21 @@ export interface GroupData {
 })
 export class ApiGeneralMembersComponent implements OnInit {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+  private apiId: string;
 
   form: UntypedFormGroup;
-
-  roles: string[];
+  roles: Role[];
+  roleNames: string[];
   defaultRole?: Role;
   members: Member[];
   membersToAdd: (Member & { _viewId: string; reference: string })[] = [];
   groupData: GroupData[];
   isReadOnly = false;
-
   dataSource: MemberDataSource[];
   displayedColumns = ['picture', 'displayName', 'role'];
   api: Api;
   groups: Group[];
-
-  private apiId: string;
+  canTransferOwnership: boolean;
 
   constructor(
     public readonly activatedRoute: ActivatedRoute,
@@ -85,6 +91,7 @@ export class ApiGeneralMembersComponent implements OnInit {
     private readonly formBuilder: UntypedFormBuilder,
     private readonly matDialog: MatDialog,
     private readonly matLegacyDialog: MatLegacyDialog,
+    private readonly gioRoleService: GioRoleService,
   ) {}
 
   ngOnInit(): void {
@@ -107,8 +114,9 @@ export class ApiGeneralMembersComponent implements OnInit {
           this.api = api;
           this.groups = groups.data;
           this.members = members.data ?? [];
-          this.roles = roles.map((r) => r.name) ?? [];
+          this.roles = roles ?? [];
           this.defaultRole = roles.find((role) => role.default);
+          this.roleNames = roles.map((r) => r.name) ?? [];
           this.groupData = api.groups?.map((id) => ({
             id,
             name: groups.data.find((g) => g.id === id)?.name,
@@ -120,6 +128,8 @@ export class ApiGeneralMembersComponent implements OnInit {
         takeUntil(this.unsubscribe$),
       )
       .subscribe();
+
+    this.canTransferOwnership = this.gioRoleService.isOrganizationAdmin() || this.permissionService.hasAnyMatching(['api-member-u']);
   }
 
   ngOnDestroy() {
@@ -220,6 +230,32 @@ export class ApiGeneralMembersComponent implements OnInit {
           return api.definitionVersion === 'V1'
             ? throwError({ message: 'You cannot modify a V1 API.' })
             : this.apiService.update(api.id, { ...api, groups: apiDialogResult?.groups });
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe(() => this.ngOnInit());
+  }
+
+  public transferOwnership(): void {
+    this.matDialog
+      .open<ApiGeneralTransferOwnershipComponent, ApiOwnershipDialogData, ApiOwnershipDialogResult>(ApiGeneralTransferOwnershipComponent, {
+        width: GIO_DIALOG_WIDTH.MEDIUM,
+        role: 'alertdialog',
+        id: 'transferOwnershipDialog',
+        data: {
+          api: this.api,
+          groups: this.groups,
+          roles: this.roles,
+          members: this.members,
+        },
+      })
+      .afterClosed()
+      .pipe(
+        switchMap((apiDialogResult) => {
+          return this.apiService.transferOwnership(
+            this.apiId,
+            apiDialogResult.isUserMode ? apiDialogResult.transferOwnershipToUser : apiDialogResult.transferOwnershipToGroup,
+          );
         }),
         takeUntil(this.unsubscribe$),
       )
