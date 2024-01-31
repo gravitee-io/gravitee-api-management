@@ -62,14 +62,13 @@ $typography: map.get(gio.$mat-legacy-theme, typography);
     }
 
     .api-v4-creation-card {
-      margin-right: 24px;
-
       &__img {
         background-color: mat.get-color-from-palette(gio.$mat-cyan-palette, 'lighter60');
       }
     }
 
     .api-designer-card {
+      margin-left: 24px;
       &__img {
         background-color: mat.get-color-from-palette(gio.$mat-blue-palette, 'lighter60');
       }
