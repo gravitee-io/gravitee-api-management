@@ -46,6 +46,7 @@ import { ApiSubscriptionsModule } from './subscriptions/api-subscriptions.module
 import { ApiDocumentationModule } from './documentation/api-documentation.module';
 import { ApiUserGroupModule } from './user-group-access/api-user-group.module';
 import { ApiAuditListModule } from './api-audit-list/api-audit-list.module';
+import { ApiDeploymentConfigurationModule } from './deployment-configuration-v4/api-deployment-configuration.module';
 
 import { SpecificJsonSchemaTypeModule } from '../../shared/components/specific-json-schema-type/specific-json-schema-type.module';
 import { DocumentationModule } from '../../components/documentation/documentation.module';
@@ -65,6 +66,7 @@ import { AlertsModule } from '../../components/alerts/alerts.module';
     ApiCreationGetStartedModule,
     ApiCreationV2Module,
     ApiCreationV4Module,
+    ApiDeploymentConfigurationModule,
     ApiDocumentationModule,
     ApiDocumentationV4Module,
     ApiEndpointsModule,
