@@ -41,6 +41,7 @@ export class ApiCreationGetStartedComponent implements OnInit, OnDestroy {
   cockpitLink: string;
 
   isLoading = true;
+  isOEM = false;
 
   policies = [];
 
@@ -60,6 +61,7 @@ export class ApiCreationGetStartedComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     const hasInstallationPermission = this.permissionService.hasAnyMatching(['organization-installation-r']);
+    this.isOEM = this.constants.isOEM;
 
     (hasInstallationPermission ? this.installationService.get() : of(undefined))
       .pipe(
