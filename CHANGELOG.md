@@ -1,3 +1,10 @@
+## [3.0.2](https://github.com/gravitee-io/gravitee-reporter-file/compare/3.0.1...3.0.2) (2024-01-31)
+
+
+### Bug Fixes
+
+* **deps:** update dependency io.gravitee.reporter:gravitee-reporter-common to v1.0.5 ([2385a46](https://github.com/gravitee-io/gravitee-reporter-file/commit/2385a467c06ae14d1646e5ee266b35e711579d88))
+
 ## [3.0.1](https://github.com/gravitee-io/gravitee-reporter-file/compare/3.0.0...3.0.1) (2023-11-06)
 
 
