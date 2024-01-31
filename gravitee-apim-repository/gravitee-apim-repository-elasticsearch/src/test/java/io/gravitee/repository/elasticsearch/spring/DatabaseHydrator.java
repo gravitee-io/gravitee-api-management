@@ -57,16 +57,17 @@ public class DatabaseHydrator {
         } else {
             for (String type : new String[] { "request", "monitor", "health", "log" }) {
                 indexTemplateData.put("indexName", "gravitee-" + type);
-                client
-                    .putTemplate(
-                        "gravitee-" + type,
-                        freeMarkerComponent.generateFromTemplate(
-                            "es" + elasticMajorVersion + "x/mapping/index-template-" + type + ".ftl",
-                            indexTemplateData
-                        )
-                    )
-                    .test()
-                    .await();
+
+                String name = "gravitee-" + type;
+                String template = freeMarkerComponent.generateFromTemplate(
+                    "es" + elasticMajorVersion + "x/mapping/index-template-" + type + ".ftl",
+                    indexTemplateData
+                );
+                if (elasticMajorVersion.equals("7")) {
+                    client.putTemplate(name, template).test().await();
+                } else {
+                    client.putIndexTemplate(name, template).test().await();
+                }
             }
         }
 
