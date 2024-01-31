@@ -47,16 +47,14 @@ export class ApiV4MenuService implements ApiMenuService {
       this.addEndpointsMenuEntry(isHttpProxyApi),
       this.addConsumersMenuEntry(hasTcpListeners),
       this.addDocumentationMenuEntry(),
+      this.addDeploymentMenuEntry(),
       this.addPoliciesMenuEntry(hasTcpListeners),
       this.addApiTrafficMenuEntry(hasTcpListeners),
     ];
 
-    const groupItems: MenuGroupItem[] = [
-      this.getGeneralGroup(),
-      this.getAnalyticsGroup(),
-      this.getAuditGroup(),
-      this.getNotificationsGroup(),
-    ].filter((group) => !!group);
+    const groupItems: MenuGroupItem[] = [this.getGeneralGroup(), this.getAnalyticsGroup(), this.getNotificationsGroup()].filter(
+      (group) => !!group,
+    );
 
     return { subMenuItems, groupItems };
   }
@@ -235,6 +233,35 @@ export class ApiV4MenuService implements ApiMenuService {
     };
   }
 
+  private addDeploymentMenuEntry(): MenuItem {
+    const tabs: MenuItem[] = [];
+
+    if (this.permissionService.hasAnyMatching(['api-definition-r'])) {
+      tabs.push({
+        displayName: 'Configuration',
+        routerLink: 'deployments',
+      });
+    }
+
+    if (this.permissionService.hasAnyMatching(['api-event-r'])) {
+      tabs.push({
+        displayName: 'History',
+        routerLink: 'DISABLED',
+      });
+    }
+
+    return {
+      displayName: 'Deployment',
+      icon: 'rocket',
+      routerLink: '',
+      header: {
+        title: 'Deployment',
+        subtitle: 'Manage sharding tags and track every change of your API',
+      },
+      tabs: tabs,
+    };
+  }
+
   private addPoliciesMenuEntry(hasTcpListeners: boolean): MenuItem {
     return {
       displayName: 'Policies',
@@ -339,28 +366,6 @@ export class ApiV4MenuService implements ApiMenuService {
     }
 
     return analyticsGroup;
-  }
-
-  private getAuditGroup(): MenuGroupItem {
-    const auditGroup: MenuGroupItem = {
-      title: 'Audit',
-      items: [],
-    };
-
-    if (this.permissionService.hasAnyMatching(['api-event-r'])) {
-      auditGroup.items.push({
-        displayName: 'History',
-        routerLink: 'DISABLED',
-      });
-    }
-    if (this.permissionService.hasAnyMatching(['api-event-u'])) {
-      auditGroup.items.push({
-        displayName: 'Events',
-        routerLink: 'DISABLED',
-      });
-    }
-
-    return auditGroup;
   }
 
   private getNotificationsGroup(): MenuGroupItem {
