@@ -52,6 +52,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.scheduling.support.SimpleTriggerContext;
@@ -117,12 +118,17 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
 
     @Override
     public void handle(Long timer) {
-        T endpoint = rule.endpoint();
-        logger.debug("Running health-check for endpoint: {} [{}]", endpoint.getName(), endpoint.getTarget());
+        try {
+            MDC.put("api", rule.api().getId());
+            T endpoint = rule.endpoint();
+            logger.debug("Running health-check for endpoint: {} [{}]", endpoint.getName(), endpoint.getTarget());
 
-        // Run request for each step
-        for (HealthCheckStep step : rule.steps()) {
-            runStep(endpoint, step);
+            // Run request for each step
+            for (HealthCheckStep step : rule.steps()) {
+                runStep(endpoint, step);
+            }
+        } finally {
+            MDC.remove("api");
         }
     }
 
