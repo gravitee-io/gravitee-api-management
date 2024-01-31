@@ -74,7 +74,12 @@ public class DatabaseHydrator {
                 var filename = "es" + elasticMajorVersion + "x/mapping/index-template-" + type + ".ftl";
                 return Map.entry(indexName, freeMarkerComponent.generateFromTemplate(filename, data));
             })
-            .flatMapCompletable(entry -> client.putTemplate(entry.getKey(), entry.getValue()));
+            .flatMapCompletable(entry -> {
+                if (elasticMajorVersion.equals("7")) {
+                    return client.putTemplate(entry.getKey(), entry.getValue());
+                }
+                return client.putIndexTemplate(entry.getKey(), entry.getValue());
+            });
     }
 
     private List<Buffer> prepareData(List<String> types) {
