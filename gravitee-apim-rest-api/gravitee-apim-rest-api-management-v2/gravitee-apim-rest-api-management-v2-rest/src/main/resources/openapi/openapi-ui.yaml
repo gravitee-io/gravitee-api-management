@@ -64,9 +64,6 @@ paths:
                 User can only access the customization of their organization.
                 An empty response is returned if the OEM Customization is missing from the Gravitee License.
             operationId: getConsoleCustomizationByOrganization
-            security:
-                - BasicAuth: []
-                - CookieAuth: []
             responses:
                 "200":
                     description: The customization settings for the console.
@@ -183,12 +180,3 @@ components:
                 application/json:
                     schema:
                         $ref: "#/components/schemas/Error"
-
-    securitySchemes:
-        BasicAuth:
-            type: http
-            scheme: basic
-        CookieAuth:
-            type: apiKey
-            in: cookie
-            name: Auth-Graviteeio-APIM
