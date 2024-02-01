@@ -15,11 +15,18 @@
  */
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule } from '@angular/forms';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatCardModule } from '@angular/material/card';
+import { MatSelectModule } from '@angular/material/select';
+import { GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { MatLegacySnackBarModule as MatSnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { ApiDeploymentConfigurationComponent } from './api-deployment-configuration.component';
 
 @NgModule({
   declarations: [ApiDeploymentConfigurationComponent],
-  imports: [CommonModule],
+  exports: [ApiDeploymentConfigurationComponent],
+  imports: [CommonModule, MatCardModule, MatFormFieldModule, MatSelectModule, MatSnackBarModule, ReactiveFormsModule, GioSaveBarModule],
 })
 export class ApiDeploymentConfigurationModule {}
