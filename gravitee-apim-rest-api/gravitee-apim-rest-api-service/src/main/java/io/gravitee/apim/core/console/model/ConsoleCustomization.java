@@ -18,11 +18,4 @@ package io.gravitee.apim.core.console.model;
 import lombok.Builder;
 
 @Builder
-public record ConsoleCustomization(
-    String title,
-    String logo,
-    String favicon,
-    String customEnterpriseName,
-    ConsoleTheme theme,
-    CtaConfiguration ctaConfiguration
-) {}
+public record ConsoleCustomization(String title, String logo, String favicon, ConsoleTheme theme, CtaConfiguration ctaConfiguration) {}
