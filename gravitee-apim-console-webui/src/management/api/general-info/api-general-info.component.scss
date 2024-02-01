@@ -45,7 +45,6 @@ $typography: map.get(gio.$mat-legacy-theme, typography);
         flex-direction: column;
 
         &__description-field,
-        &__labels-field,
         &__categories-field {
           flex: 1 1 auto;
         }

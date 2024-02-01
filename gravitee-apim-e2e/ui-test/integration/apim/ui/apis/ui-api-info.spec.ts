@@ -125,10 +125,6 @@ describe('API Info Page functionality', () => {
     cy.getByDataTestId('api_info_labelsfield').should('be.visible');
     cy.getByDataTestId('api_info_categoriesdropdown').should('be.visible').click();
     cy.getByDataTestId('api_info_categorieslist-unavailable').should('be.visible');
-    // Click outside the category drop down, allowing to click on the tags dropdown afterward
-    cy.get('body').click(0, 0);
-    cy.getByDataTestId('api_info_tagsdropdown').should('be.visible').click();
-    cy.getByDataTestId('api_info_tagslist-unavailable').should('be.visible');
   });
 
   it('Edit Info Page and Verify changes', () => {

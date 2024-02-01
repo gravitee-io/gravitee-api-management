@@ -63,18 +63,6 @@
             </mat-select>
           </mat-form-field>
 
-          <mat-form-field class="details-card__header__info-inputs__second-row__tags-field">
-            <mat-label>Sharding tags</mat-label>
-            <mat-select formControlName="tags" data-testid="api_info_tagsdropdown" multiple>
-              <mat-option data-testid="api_info_tagslist-unavailable" *ngIf="shardingTags.length === 0" disabled
-                >No sharding tags available</mat-option
-              >
-              <mat-option *ngFor="let shardingTag of shardingTags" [value]="shardingTag.id"
-                >{{ shardingTag.name }} <em *ngIf="shardingTag.description"> - {{ shardingTag.description }}</em></mat-option
-              >
-            </mat-select>
-          </mat-form-field>
-
           <gio-form-slide-toggle
             *ngIf="canDisplayV4EmulationEngineToggle"
             class="details-card__header__info-inputs__second-row__emulate-v4-engine-field"
