@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { UntypedFormGroup, UntypedFormControl, Validators } from '@angular/forms';
+import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
 import { combineLatest, EMPTY, of, Subject } from 'rxjs';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
@@ -47,8 +47,6 @@ import {
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { Api, ApiV2, ApiV4, UpdateApi, UpdateApiV2, UpdateApiV4 } from '../../../entities/management-api-v2';
-import { Tag } from '../../../entities/tag/tag';
-import { TagService } from '../../../services-ngx/tag.service';
 
 @Component({
   selector: 'api-general-info',
@@ -67,7 +65,6 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
   public initialApiDetailsFormValue: unknown;
   public labelsAutocompleteOptions: string[] = [];
   public apiCategories: Category[] = [];
-  public shardingTags: Tag[] = [];
   public apiOwner: string;
   public apiCreatedAt: Date;
   public apiLastDeploymentAt: Date;
@@ -97,7 +94,6 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
     private readonly apiService: ApiV2Service,
     private readonly policyService: PolicyService,
     private readonly categoryService: CategoryService,
-    private readonly tagService: TagService,
     private readonly permissionService: GioPermissionService,
     private readonly snackBarService: SnackBarService,
     private readonly matDialog: MatDialog,
@@ -111,9 +107,9 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
 
     this.apiId = this.activatedRoute.snapshot.params.apiId;
 
-    combineLatest([this.apiService.get(this.apiId), this.categoryService.list(), this.tagService.list()])
+    combineLatest([this.apiService.get(this.apiId), this.categoryService.list()])
       .pipe(
-        switchMap(([api, categories, shardingTags]) =>
+        switchMap(([api, categories]) =>
           combineLatest([isImgUrl(api._links['pictureUrl']), isImgUrl(api._links['backgroundUrl'])]).pipe(
             map(
               ([hasPictureImg, hasBackgroundImg]) =>
@@ -128,12 +124,11 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
                     },
                   },
                   categories,
-                  shardingTags,
                 ] as const,
             ),
           ),
         ),
-        tap(([api, categories, shardingTags]) => {
+        tap(([api, categories]) => {
           this.isKubernetesOrigin = api.definitionContext?.origin === 'KUBERNETES';
           this.isReadOnly =
             !this.permissionService.hasAnyMatching(['api-definition-u']) || this.isKubernetesOrigin || api.definitionVersion === 'V1';
@@ -141,7 +136,6 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
           this.api = api;
 
           this.apiCategories = categories;
-          this.shardingTags = shardingTags;
           this.apiOwner = api.primaryOwner.displayName;
           this.apiCreatedAt = api.createdAt;
           this.apiLastDeploymentAt = api.updatedAt;
@@ -201,10 +195,6 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
               value: api.categories,
               disabled: this.isReadOnly,
             }),
-            tags: new UntypedFormControl({
-              value: api.tags,
-              disabled: this.isReadOnly,
-            }),
             emulateV4Engine: new UntypedFormControl({
               value: api.definitionVersion === 'V2' && (api as ApiV2).executionMode === 'V4_EMULATION_ENGINE',
               disabled: this.isReadOnly,
@@ -253,7 +243,6 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
               description: apiDetailsFormValue.description,
               labels: apiDetailsFormValue.labels,
               categories: apiDetailsFormValue.categories,
-              tags: apiDetailsFormValue.tags,
               ...(this.canDisplayV4EmulationEngineToggle
                 ? { executionMode: apiDetailsFormValue.emulateV4Engine ? 'V4_EMULATION_ENGINE' : 'V3' }
                 : {}),
@@ -267,7 +256,6 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
             description: apiDetailsFormValue.description,
             labels: apiDetailsFormValue.labels,
             categories: apiDetailsFormValue.categories,
-            tags: apiDetailsFormValue.tags,
           };
           return apiToUpdate;
         }),
