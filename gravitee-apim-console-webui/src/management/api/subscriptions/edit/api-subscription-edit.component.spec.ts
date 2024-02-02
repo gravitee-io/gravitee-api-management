@@ -49,6 +49,7 @@ import {
 import { ApiKeyValidationHarness } from '../components/api-key-validation/api-key-validation.harness';
 import { ApiKey, fakeApiKey } from '../../../../entities/management-api-v2/api-key';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { ApiPortalSubscriptionValidateDialogHarness } from '../components/dialogs/validate/api-portal-subscription-validate-dialog.harness';
 
 const SUBSCRIPTION_ID = 'my-nice-subscription';
 const API_ID = 'api_1';
@@ -575,7 +576,7 @@ describe('ApiSubscriptionEditComponent', () => {
       await harness.openValidateDialog();
 
       const validateDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
-        MatLegacyDialogHarness.with({ selector: '#validateSubscriptionDialog' }),
+        ApiPortalSubscriptionValidateDialogHarness,
       );
 
       const datePicker = await validateDialog.getHarness(MatInputHarness.with({ selector: '[formControlName="dateTimeRange"]' }));
@@ -587,9 +588,8 @@ describe('ApiSubscriptionEditComponent', () => {
       expect(await message.getValue()).toEqual('');
       await message.setValue('A great new message');
 
-      const customApiKey = await validateDialog.getHarness(ApiKeyValidationHarness);
-      expect(await customApiKey.getInputValue()).toEqual('');
-      await customApiKey.setInputValue('12345678');
+      expect(await validateDialog.getCustomApiKey()).toEqual('');
+      await validateDialog.setCustomApiKey('12345678');
       expectApiSubscriptionVerify(true, '12345678');
 
       const validateBtn = await validateDialog.getHarness(MatButtonHarness.with({ text: 'Validate' }));
@@ -650,22 +650,30 @@ describe('ApiSubscriptionEditComponent', () => {
       const cancelBtn = await validateDialog.getHarness(MatButtonHarness.with({ text: 'Cancel' }));
       await cancelBtn.click();
     });
+    it('should not show custom key field if not API_KEY', async () => {
+      const jwtSubscription: Subscription = { ...pendingSubscription };
+      jwtSubscription.plan.security.type = 'JWT';
+      await initComponent(jwtSubscription);
+      await validateInformation(false);
+    });
+    it('should show custom key field if API_KEY', async () => {
+      await initComponent(pendingSubscription);
+      expectApiKeyListGet();
+      await validateInformation(true);
+    });
 
     const validateInformation = async (apiKeyInputIsPresent: boolean) => {
       const harness = await loader.getHarness(ApiSubscriptionEditHarness);
       await harness.openValidateDialog();
 
-      const validateDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
-        MatLegacyDialogHarness.with({ selector: '#validateSubscriptionDialog' }),
+      const validateDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarnessOrNull(
+        ApiPortalSubscriptionValidateDialogHarness,
       );
 
-      await validateDialog
-        .getHarness(ApiKeyValidationHarness)
-        .then((isPresent) => (apiKeyInputIsPresent ? expect(isPresent).toBeTruthy() : fail('ApiKeyValidationComponent should be present')))
-        .catch((err) => (apiKeyInputIsPresent ? fail('ApiKeyValidationComponent should not be present') : expect(err).toBeTruthy()));
+      expect(validateDialog).toBeTruthy();
+      expect(await validateDialog.isCustomApiKeyInputDisplayed()).toEqual(apiKeyInputIsPresent);
 
-      const validateBtn = await validateDialog.getHarness(MatButtonHarness.with({ text: 'Validate' }));
-      await validateBtn.click();
+      await validateDialog.validateSubscription();
 
       expectApiSubscriptionValidate(SUBSCRIPTION_ID, {}, BASIC_SUBSCRIPTION());
 
@@ -1039,20 +1047,18 @@ describe('ApiSubscriptionEditComponent', () => {
   ) {
     await TestBed.overrideProvider(ActivatedRoute, {
       useValue: { snapshot: { params: { apiId: API_ID, subscriptionId: SUBSCRIPTION_ID } } },
-    }).compileComponents();
-    if (permissions) {
-      await TestBed.overrideProvider(GioTestingPermissionProvider, { useValue: permissions });
-    }
-
-    await TestBed.overrideProvider('Constants', {
-      useFactory: () => {
-        const constants = CONSTANTS_TESTING;
-        set(constants, 'env.settings.plan.security', {
-          customApiKey: { enabled: canUseCustomApiKey },
-        });
-        return constants;
-      },
-    });
+    })
+      .overrideProvider(GioTestingPermissionProvider, { useValue: permissions })
+      .overrideProvider('Constants', {
+        useFactory: () => {
+          const constants = { ...CONSTANTS_TESTING };
+          set(constants, 'env.settings.plan.security', {
+            customApiKey: { enabled: canUseCustomApiKey },
+          });
+          return constants;
+        },
+      })
+      .compileComponents();
     fixture = TestBed.createComponent(ApiSubscriptionEditComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
