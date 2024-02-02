@@ -115,7 +115,6 @@ export class ApiSubscriptionEditComponent implements OnInit {
 
   ngOnInit(): void {
     this.apiId = this.activatedRoute.snapshot.params.apiId;
-    this.canUseCustomApiKey = this.constants.env?.settings?.plan?.security?.customApiKey?.enabled;
     this.displayedColumns = ['key', 'createdAt', 'endDate', 'actions'];
     this.apiKeys = [];
     this.apiKeysTotalCount = 0;
@@ -156,6 +155,9 @@ export class ApiSubscriptionEditComponent implements OnInit {
               consumerConfiguration: subscription.consumerConfiguration,
               metadata: subscription.metadata,
             };
+
+            this.canUseCustomApiKey =
+              this.subscription.plan.securityType === 'API_KEY' && this.constants.env?.settings?.plan?.security?.customApiKey?.enabled;
 
             if (this.subscription.plan.securityType === 'API_KEY' && this.subscription.status !== 'REJECTED') {
               this.hasSharedApiKeyMode = subscription.application.apiKeyMode === 'SHARED';
