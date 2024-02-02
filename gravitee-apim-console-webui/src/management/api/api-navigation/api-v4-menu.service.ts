@@ -22,7 +22,6 @@ import { ApiMenuService } from './ApiMenuService';
 
 import { ApimFeature, UTMTags } from '../../../shared/components/gio-license/gio-license-data';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
-import { GioRoleService } from '../../../shared/components/gio-role/gio-role.service';
 import { Constants } from '../../../entities/Constants';
 import { ApiV4 } from '../../../entities/management-api-v2';
 
@@ -30,7 +29,6 @@ import { ApiV4 } from '../../../entities/management-api-v2';
 export class ApiV4MenuService implements ApiMenuService {
   constructor(
     private readonly permissionService: GioPermissionService,
-    private readonly roleService: GioRoleService,
     private readonly gioLicenseService: GioLicenseService,
     @Inject('Constants') private readonly constants: Constants,
   ) {}
@@ -50,11 +48,10 @@ export class ApiV4MenuService implements ApiMenuService {
       this.addDeploymentMenuEntry(),
       this.addPoliciesMenuEntry(hasTcpListeners),
       this.addApiTrafficMenuEntry(hasTcpListeners),
-    ];
+      this.addApiRuntimeAlertsMenuEntry(),
+    ].filter((entry) => !entry?.tabs?.every((tab) => tab.routerLink === 'DISABLED'));
 
-    const groupItems: MenuGroupItem[] = [this.getGeneralGroup(), this.getAnalyticsGroup(), this.getNotificationsGroup()].filter(
-      (group) => !!group,
-    );
+    const groupItems: MenuGroupItem[] = [this.getGeneralGroup()].filter((group) => !!group);
 
     return { subMenuItems, groupItems };
   }
@@ -152,13 +149,13 @@ export class ApiV4MenuService implements ApiMenuService {
         displayName: 'Failover',
         routerLink: 'DISABLED',
       });
+    }
 
-      if (this.permissionService.hasAnyMatching(['api-health-r'])) {
-        tabs.push({
-          displayName: 'Health-check',
-          routerLink: 'DISABLED',
-        });
-      }
+    if (this.permissionService.hasAnyMatching(['api-health-r'])) {
+      tabs.push({
+        displayName: 'Health-check',
+        routerLink: 'DISABLED',
+      });
     }
 
     return {
@@ -316,6 +313,33 @@ export class ApiV4MenuService implements ApiMenuService {
     return null;
   }
 
+  private addApiRuntimeAlertsMenuEntry(): MenuItem {
+    const tabs = [
+      {
+        displayName: 'Alerts',
+        routerLink: 'DISABLED',
+      },
+      {
+        displayName: 'Notifications',
+        routerLink: 'DISABLED',
+      },
+      {
+        displayName: 'History',
+        routerLink: 'DISABLED',
+      },
+    ];
+    return {
+      displayName: 'Runtime Alerts',
+      icon: 'alarm',
+      routerLink: '',
+      header: {
+        title: 'Runtime Alerts',
+        subtitle: 'Gain actionable insights into API performance with real-time metrics and connection logs',
+      },
+      tabs,
+    };
+  }
+
   private getGeneralGroup(): MenuGroupItem {
     const generalGroup: MenuGroupItem = {
       title: 'General',
@@ -339,48 +363,5 @@ export class ApiV4MenuService implements ApiMenuService {
     }
 
     return generalGroup;
-  }
-
-  private getAnalyticsGroup(): MenuGroupItem {
-    const analyticsGroup: MenuGroupItem = {
-      title: 'Analytics',
-      items: [],
-    };
-    if (this.permissionService.hasAnyMatching(['api-analytics-r'])) {
-      analyticsGroup.items.push({
-        displayName: 'Overview',
-        routerLink: 'DISABLED',
-      });
-    }
-    if (this.permissionService.hasAnyMatching(['api-definition-u'])) {
-      analyticsGroup.items.push({
-        displayName: 'Path mappings',
-        routerLink: 'DISABLED',
-      });
-    }
-    if (!this.constants.isOEM && this.constants.org.settings.alert?.enabled && this.permissionService.hasAnyMatching(['api-alert-r'])) {
-      analyticsGroup.items.push({
-        displayName: 'Alerts',
-        routerLink: 'DISABLED',
-      });
-    }
-
-    return analyticsGroup;
-  }
-
-  private getNotificationsGroup(): MenuGroupItem {
-    const notificationsGroup: MenuGroupItem = {
-      title: 'Notifications',
-      items: [],
-    };
-
-    if (!this.constants.isOEM && this.constants.org.settings.alert?.enabled && this.permissionService.hasAnyMatching(['api-alert-r'])) {
-      notificationsGroup.items.push({
-        displayName: 'Alerts',
-        routerLink: 'DISABLED',
-      });
-    }
-
-    return notificationsGroup;
   }
 }
