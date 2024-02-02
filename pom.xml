@@ -37,7 +37,7 @@
 		<gravitee-gateway-api.version>3.5.0</gravitee-gateway-api.version>
 		<gravitee-reporter-api.version>1.26.0</gravitee-reporter-api.version>
 		<gravitee-reporter-common.version>1.0.5</gravitee-reporter-common.version>
-		<gravitee-common.version>3.3.3</gravitee-common.version>
+		<gravitee-common.version>3.4.0</gravitee-common.version>
 		<gravitee-node.version>4.1.0</gravitee-node.version>
 
 		<maven-plugin-assembly.version>3.6.0</maven-plugin-assembly.version>
