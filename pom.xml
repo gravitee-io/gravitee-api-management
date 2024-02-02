@@ -38,7 +38,7 @@
 		<gravitee-reporter-api.version>1.26.0</gravitee-reporter-api.version>
 		<gravitee-reporter-common.version>1.0.5</gravitee-reporter-common.version>
 		<gravitee-common.version>3.4.0</gravitee-common.version>
-		<gravitee-node.version>4.1.0</gravitee-node.version>
+		<gravitee-node.version>4.8.2</gravitee-node.version>
 
 		<maven-plugin-assembly.version>3.6.0</maven-plugin-assembly.version>
         <!-- Property used by the publication job in CI-->
