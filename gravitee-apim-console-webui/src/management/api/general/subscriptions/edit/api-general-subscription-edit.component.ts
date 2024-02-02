@@ -122,7 +122,6 @@ export class ApiGeneralSubscriptionEditComponent implements OnInit {
   ngOnInit(): void {
     this.routeBase = this.ajsGlobals.current?.data?.baseRouteState ?? 'management.apis.detail.portal';
     this.apiId = this.ajsStateParams.apiId;
-    this.canUseCustomApiKey = this.constants.env?.settings?.plan?.security?.customApiKey?.enabled;
     this.displayedColumns = ['key', 'createdAt', 'endDate', 'actions'];
     this.apiKeys = [];
     this.apiKeysTotalCount = 0;
@@ -163,6 +162,9 @@ export class ApiGeneralSubscriptionEditComponent implements OnInit {
               consumerConfiguration: subscription.consumerConfiguration,
               metadata: subscription.metadata,
             };
+
+            this.canUseCustomApiKey =
+              this.subscription.plan.securityType === 'API_KEY' && this.constants.env?.settings?.plan?.security?.customApiKey?.enabled;
 
             if (this.subscription.plan.securityType === 'API_KEY' && this.subscription.status !== 'REJECTED') {
               this.hasSharedApiKeyMode = subscription.application.apiKeyMode === 'SHARED';
