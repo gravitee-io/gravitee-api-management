@@ -1419,6 +1419,32 @@
                     </exclusions>
                 </dependency>
                 <dependency>
+                    <groupId>com.graviteesource.policy</groupId>
+                    <artifactId>gravitee-policy-transform-protobuf-json</artifactId>
+                    <version>${gravitee-policy-transform-protobuf-json.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
+                    <groupId>com.graviteesource.policy</groupId>
+                    <artifactId>gravitee-policy-transform-avro-protobuf</artifactId>
+                    <version>${gravitee-policy-transform-avro-protobuf.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+                <dependency>
                     <groupId>io.gravitee.policy</groupId>
                     <artifactId>gravitee-policy-aws-lambda</artifactId>
                     <version>${gravitee-policy-aws-lambda.version}</version>
