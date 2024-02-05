@@ -49,6 +49,48 @@ describe('QualityRuleService', () => {
     });
   });
 
+  describe('add quality rule', () => {
+    it('should call the API', (done) => {
+      const qualityRule: QualityRule = { name: 'name', description: 'description', weight: 42 };
+
+      qualityRuleService.add(qualityRule).subscribe((newQualityRule) => {
+        expect(newQualityRule).toMatchObject(qualityRule);
+        done();
+      });
+
+      httpTestingController
+        .expectOne({ method: 'POST', url: `${CONSTANTS_TESTING.env.baseURL}/configuration/quality-rules` })
+        .flush(qualityRule);
+    });
+  });
+
+  describe('update quality rule', () => {
+    it('should call the API', (done) => {
+      const updatedQualityRule: QualityRule = { name: 'name2', description: 'description2', weight: 42 };
+
+      qualityRuleService.update('1', updatedQualityRule).subscribe((selectedQualityRule) => {
+        expect(selectedQualityRule).toMatchObject(updatedQualityRule);
+        done();
+      });
+
+      httpTestingController
+        .expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.baseURL}/configuration/quality-rules/1` })
+        .flush(updatedQualityRule);
+    });
+  });
+
+  describe('delete quality rule', () => {
+    it('should call the API', (done) => {
+      const qualityRuleId = '2';
+
+      qualityRuleService.delete(qualityRuleId).subscribe(() => done());
+
+      httpTestingController
+        .expectOne({ method: 'DELETE', url: `${CONSTANTS_TESTING.env.baseURL}/configuration/quality-rules/2` })
+        .flush(qualityRuleId);
+    });
+  });
+
   afterEach(() => {
     httpTestingController.verify();
   });

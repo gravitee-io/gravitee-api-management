@@ -1,0 +1,168 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="title">
+  <h1>API Quality</h1>
+</div>
+
+<form [formGroup]="apiQualityRulesForm" autocomplete="off">
+  <mat-card class="api-quality-rules__form__card">
+    <mat-card-content>
+      <gio-form-slide-toggle formGroupName="apiReview" class="api-quality-rules__form__card__form-field">
+        <gio-form-label>Enable API review</gio-form-label>
+        <mat-slide-toggle formControlName="enabled" gioFormSlideToggle aria-label="Enable API review"></mat-slide-toggle>
+      </gio-form-slide-toggle>
+      <gio-form-slide-toggle formGroupName="apiQualityMetrics" class="api-quality-rules__form__card__form-field">
+        <gio-form-label>Enable API Quality Metrics</gio-form-label>
+        <mat-slide-toggle formControlName="enabled" gioFormSlideToggle aria-label="Enable API Quality Metrics"></mat-slide-toggle>
+      </gio-form-slide-toggle>
+      <div formGroupName="apiQualityMetrics">
+        <h3>General</h3>
+        <mat-form-field class="api-quality-rules__form__card__form-field">
+          <mat-label>Description weight</mat-label>
+          <input formControlName="descriptionWeight" matInput type="number" min="0" max="9999" />
+        </mat-form-field>
+        <mat-form-field class="api-quality-rules__form__card__form-field">
+          <mat-label>Description minimum length</mat-label>
+          <input formControlName="descriptionMinLength" matInput type="number" min="0" max="99999" />
+        </mat-form-field>
+        <mat-form-field class="api-quality-rules__form__card__form-field">
+          <mat-label>Logo weight</mat-label>
+          <input formControlName="logoWeight" matInput type="number" min="0" max="99999" />
+        </mat-form-field>
+        <mat-form-field class="api-quality-rules__form__card__form-field">
+          <mat-label>Categories weight</mat-label>
+          <input formControlName="categoriesWeight" matInput type="number" min="0" max="99999" />
+        </mat-form-field>
+        <mat-form-field class="api-quality-rules__form__card__form-field">
+          <mat-label>Labels weight</mat-label>
+          <input formControlName="labelsWeight" matInput type="number" min="0" max="99999" />
+        </mat-form-field>
+        <h3>Documentation</h3>
+        <mat-form-field class="api-quality-rules__form__card__form-field">
+          <mat-label>Functional documentation weight</mat-label>
+          <input formControlName="functionalDocumentationWeight" matInput type="number" min="0" max="99999" />
+        </mat-form-field>
+        <mat-form-field class="api-quality-rules__form__card__form-field">
+          <mat-label>Technical documentation weight</mat-label>
+          <input formControlName="technicalDocumentationWeight" matInput type="number" min="0" max="99999" />
+        </mat-form-field>
+        <h3>Endpoint</h3>
+        <mat-form-field class="api-quality-rules__form__card__form-field">
+          <mat-label>Healthcheck weight</mat-label>
+          <input formControlName="healthcheckWeight" matInput type="number" min="0" max="99999" />
+        </mat-form-field>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</form>
+
+<mat-card>
+  <div class="title">
+    <h3>Manual rules</h3>
+    <button
+      *gioPermission="{ anyOf: ['environment-quality_rule-c'] }"
+      mat-raised-button
+      color="primary"
+      aria-label="Add new quality rule"
+      (click)="addQualityRule()"
+    >
+      <mat-icon>add</mat-icon>
+      Add new quality rule
+    </button>
+  </div>
+  <gio-table-wrapper
+    [filters]="initialFilters"
+    [length]="qualityRulesUnpaginatedLength"
+    [paginationPageSizeOptions]="[5, 10, 25, 50]"
+    (filtersChange)="onPropertiesFiltersChanged($event)"
+  >
+    <table
+      mat-table
+      [dataSource]="filteredQualityRulesSettingsTable"
+      class="api-quality-rules__table"
+      id="apiQualityRulesTable"
+      aria-label="Api Quality rules table"
+    >
+      <ng-container matColumnDef="quality">
+        <th mat-header-cell *matHeaderCellDef id="date">Quality rule</th>
+        <td mat-cell *matCellDef="let element">{{ element.name }}</td>
+      </ng-container>
+      <ng-container matColumnDef="description">
+        <th mat-header-cell *matHeaderCellDef id="description">Description</th>
+        <td mat-cell *matCellDef="let element">
+          {{ element.description }}
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="weight">
+        <th mat-header-cell *matHeaderCellDef id="user">Weight</th>
+        <td mat-cell *matCellDef="let element">
+          {{ element.weight }}
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef id="actions" width="1%">Actions</th>
+        <td mat-cell *matCellDef="let element">
+          <div class="api-quality-rules__actions">
+            <div>
+              <ng-container *ngIf="element.id">
+                <button
+                  *gioPermission="{ anyOf: ['environment-quality_rule-u'] }"
+                  mat-icon-button
+                  (click)="updateRule(element)"
+                  aria-label="Edit manual rule"
+                  id="editRule"
+                  matTooltip="Edit manual rule"
+                >
+                  <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
+                </button>
+              </ng-container>
+            </div>
+            <div>
+              <ng-container *ngIf="element.id">
+                <button
+                  *gioPermission="{ anyOf: ['environment-quality_rule-d'] }"
+                  mat-icon-button
+                  (click)="deleteRule(element.name, element.id)"
+                  aria-label="Delete manual rule"
+                  id="deleteRule"
+                  matTooltip="Delete manual rule"
+                >
+                  <mat-icon svgIcon="gio:trash"></mat-icon>
+                </button>
+              </ng-container>
+            </div>
+          </div>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+
+      <!-- Row shown when there is no data -->
+      <tr class="mat-row" *matNoDataRow>
+        <td *ngIf="!isLoadingData" class="mat-cell" [attr.colspan]="displayedColumns.length">
+          {{ 'No notifications to display.' }}
+        </td>
+        <td *ngIf="isLoadingData" class="mat-cell" [attr.colspan]="displayedColumns.length">
+          {{ 'Loading...' }}
+        </td>
+      </tr>
+    </table>
+  </gio-table-wrapper>
+</mat-card>
+<gio-save-bar [form]="apiQualityRulesForm" [formInitialValues]="formInitialValues" (submitted)="onSubmit()"></gio-save-bar>

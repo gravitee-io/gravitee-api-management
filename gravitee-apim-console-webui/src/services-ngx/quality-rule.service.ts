@@ -29,4 +29,16 @@ export class QualityRuleService {
   list(): Observable<QualityRule[]> {
     return this.http.get<QualityRule[]>(`${this.constants.env.baseURL}/configuration/quality-rules`);
   }
+
+  add(newQualityRule: QualityRule): Observable<QualityRule> {
+    return this.http.post<QualityRule>(`${this.constants.env.baseURL}/configuration/quality-rules`, newQualityRule);
+  }
+
+  update(qualityRuleId: string, editedQualityRule: QualityRule): Observable<QualityRule> {
+    return this.http.put<QualityRule>(`${this.constants.env.baseURL}/configuration/quality-rules/${qualityRuleId}`, editedQualityRule);
+  }
+
+  delete(qualityRuleId: string): Observable<QualityRule> {
+    return this.http.delete<QualityRule>(`${this.constants.env.baseURL}/configuration/quality-rules/${qualityRuleId}`);
+  }
 }
