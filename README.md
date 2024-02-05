@@ -1,14 +1,14 @@
-<p align="center" >
+<p style="text-align: center;">
   <img src="./assets/gravitee-logo-dark.svg#gh-light-mode-only" width="400" alt="Gravitee Dark Logo">
   <img src="./assets/gravitee-logo-white.svg#gh-dark-mode-only" width="400" alt="Gravitee Light Logo">
 </p>
 
-<h1 align="center">API Management</h1>
-<p align="center">Flexible and blazing-fast Open Source API Gateway.</p>
+<h1 style="text-align: center;">API Management</h1>
+<p style="text-align: center;">Flexible and blazing-fast Open Source API Gateway.</p>
 
 <br/>
 
-<p align="center">
+<p style="text-align: center;">
   <a href="https://circleci.com/gh/gravitee-io/gravitee-api-management">
     <img src="https://circleci.com/gh/gravitee-io/gravitee-api-management.svg?style=svg" alt="Build Status on CircleCI" />
   </a>
