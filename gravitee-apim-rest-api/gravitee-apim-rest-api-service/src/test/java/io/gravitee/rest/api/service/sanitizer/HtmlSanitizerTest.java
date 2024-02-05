@@ -63,6 +63,12 @@ public class HtmlSanitizerTest {
     }
 
     @Test
+    public void sanitizeOlStart() {
+        var ol = "<ol start=\"48\"><li>First</li><li>Second</li></ol>";
+        assertEquals(ol, HtmlSanitizer.sanitize(ol));
+    }
+
+    @Test
     public void sanitizeExcludeSensitive() {
         String html = getNotSafe();
         assertEquals("", HtmlSanitizer.sanitize(html));
