@@ -33,5 +33,15 @@
         ></api-audits-table>
       </ng-container>
     </div>
+
+    <div class="events">
+      <div class="events__title">
+        <h3 class="events__title__main">Events</h3>
+      </div>
+
+      <ng-container *ngIf="apiEvents$ | async as eventsResponse">
+        <api-events-table [events]="eventsResponse.data"></api-events-table>
+      </ng-container>
+    </div>
   </mat-card-content>
 </mat-card>

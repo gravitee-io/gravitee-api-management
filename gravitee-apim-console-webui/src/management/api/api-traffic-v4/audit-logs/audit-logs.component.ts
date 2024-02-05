@@ -23,6 +23,7 @@ import { ApiAuditFilter } from './components/api-audits-filter-form/api-audits-f
 
 import { ApiAuditsV2Service } from '../../../../services-ngx/api-audits-v2.service';
 import { Pagination } from '../../../../entities/management-api-v2';
+import { ApiEventsV2Service } from '../../../../services-ngx/api-events-v2.service';
 
 interface SearchQuery {
   query: ApiAuditFilter;
@@ -53,9 +54,9 @@ const INITIAL_SEARCH_QUERY: SearchQuery = {
 export class AuditLogsComponent {
   private apiId = this.activatedRoute.snapshot.params.apiId;
 
-  public filters = new BehaviorSubject<SearchQuery>(INITIAL_SEARCH_QUERY);
+  protected filters = new BehaviorSubject<SearchQuery>(INITIAL_SEARCH_QUERY);
 
-  public apiAudits$ = this.filters.pipe(
+  protected apiAudits$ = this.filters.pipe(
     distinctUntilChanged(isEqual),
     switchMap(({ query, pagination }) => {
       return this.apiAuditsV2Service.searchApiAudit(this.apiId, {
@@ -67,8 +68,13 @@ export class AuditLogsComponent {
     }),
   );
   protected auditEvents$ = this.apiAuditsV2Service.listAllApiAuditEvents(this.apiId);
+  protected apiEvents$ = this.apiEventsV2Service.searchApiEvents(this.apiId, { types: 'START_API,STOP_API,PUBLISH_API' });
 
-  constructor(private readonly apiAuditsV2Service: ApiAuditsV2Service, private readonly activatedRoute: ActivatedRoute) {}
+  constructor(
+    private readonly apiAuditsV2Service: ApiAuditsV2Service,
+    private readonly apiEventsV2Service: ApiEventsV2Service,
+    private readonly activatedRoute: ActivatedRoute,
+  ) {}
 
   protected queryChange(event: ApiAuditFilter) {
     this.filters.next({ ...this.filters.getValue(), query: event, pagination: INITIAL_PAGINATION });

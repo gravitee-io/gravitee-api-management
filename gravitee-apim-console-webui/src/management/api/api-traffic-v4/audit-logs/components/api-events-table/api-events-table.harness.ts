@@ -13,16 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CommonModule } from '@angular/common';
-import { NgModule } from '@angular/core';
-import { MatCardModule } from '@angular/material/card';
-import { GioLoaderModule } from '@gravitee/ui-particles-angular';
+import { ComponentHarness, parallel } from '@angular/cdk/testing';
+import { MatTableHarness } from '@angular/material/table/testing';
 
-import { AuditLogsComponent } from './audit-logs.component';
-import { ApiAuditsFilterFormModule, ApiAuditsTableModule, ApiEventsTableModule } from './components';
+export class ApiEventsTableHarness extends ComponentHarness {
+  static hostSelector = 'api-events-table';
 
-@NgModule({
-  declarations: [AuditLogsComponent],
-  imports: [CommonModule, MatCardModule, GioLoaderModule, ApiAuditsFilterFormModule, ApiAuditsTableModule, ApiEventsTableModule],
-})
-export class AuditLogsModule {}
+  public async rows() {
+    const table = await this.getTable();
+    const rows = await table.getRows();
+
+    return await parallel(() => rows.map((row) => row.getCellTextByColumnName()));
+  }
+
+  private getTable = this.locatorFor(MatTableHarness.with({ selector: '#eventsTable' }));
+}

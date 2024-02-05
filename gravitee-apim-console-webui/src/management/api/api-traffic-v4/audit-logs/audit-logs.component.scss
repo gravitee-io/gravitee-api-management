@@ -9,10 +9,13 @@ $typography: map.get(gio.$mat-theme, typography);
   @include gio-layout.gio-responsive-content-container;
 }
 
-.audits {
+.audits,
+.events {
   padding: 24px;
 
   &__title {
+    margin-bottom: 12px;
+
     &__main {
       margin-bottom: 0;
     }

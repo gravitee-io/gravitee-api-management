@@ -1,0 +1,26 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+@use '../../../../../../scss/gio-layout' as gio-layout;
+$foreground: map.get(gio.$mat-legacy-theme, foreground);
+
+:host {
+  display: block;
+  border-top: 1px solid mat.get-color-from-palette($foreground, divider);
+
+  @include mat.elevation(3); // default elevation
+}
+
+.row {
+  &__api-started {
+    background-color: mat.get-color-from-palette(gio.$mat-success-palette, 'lighter');
+  }
+
+  &__api-deployed {
+  }
+
+  &__api-stopped {
+    background-color: mat.get-color-from-palette(gio.$mat-error-palette, 'lighter');
+  }
+}

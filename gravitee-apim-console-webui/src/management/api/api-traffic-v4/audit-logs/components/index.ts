@@ -16,3 +16,4 @@
 
 export * from './api-audits-filter-form';
 export * from './api-audits-table';
+export * from './api-events-table';

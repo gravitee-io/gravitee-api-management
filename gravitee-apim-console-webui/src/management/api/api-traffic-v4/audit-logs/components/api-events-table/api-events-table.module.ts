@@ -15,14 +15,18 @@
  */
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
-import { MatCardModule } from '@angular/material/card';
 import { GioLoaderModule } from '@gravitee/ui-particles-angular';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTableModule } from '@angular/material/table';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
-import { AuditLogsComponent } from './audit-logs.component';
-import { ApiAuditsFilterFormModule, ApiAuditsTableModule, ApiEventsTableModule } from './components';
+import { ApiEventsTableComponent } from './api-events-table.component';
+
+import { GioTableWrapperModule } from '../../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 
 @NgModule({
-  declarations: [AuditLogsComponent],
-  imports: [CommonModule, MatCardModule, GioLoaderModule, ApiAuditsFilterFormModule, ApiAuditsTableModule, ApiEventsTableModule],
+  declarations: [ApiEventsTableComponent],
+  exports: [ApiEventsTableComponent],
+  imports: [CommonModule, GioLoaderModule, MatIconModule, MatTableModule, MatTooltipModule, GioTableWrapperModule],
 })
-export class AuditLogsModule {}
+export class ApiEventsTableModule {}

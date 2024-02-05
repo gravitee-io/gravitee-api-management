@@ -13,16 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CommonModule } from '@angular/common';
-import { NgModule } from '@angular/core';
-import { MatCardModule } from '@angular/material/card';
-import { GioLoaderModule } from '@gravitee/ui-particles-angular';
 
-import { AuditLogsComponent } from './audit-logs.component';
-import { ApiAuditsFilterFormModule, ApiAuditsTableModule, ApiEventsTableModule } from './components';
-
-@NgModule({
-  declarations: [AuditLogsComponent],
-  imports: [CommonModule, MatCardModule, GioLoaderModule, ApiAuditsFilterFormModule, ApiAuditsTableModule, ApiEventsTableModule],
-})
-export class AuditLogsModule {}
+export * from './event';
+export * from './event.fixture';
