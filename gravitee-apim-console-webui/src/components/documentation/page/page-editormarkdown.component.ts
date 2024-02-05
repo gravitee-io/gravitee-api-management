@@ -38,9 +38,9 @@ class ComponentCtrl implements ng.IComponentController {
   constructor(
     private readonly $http: ng.IHttpService,
     private readonly Constants,
-    private readonly activatedRoute: ActivatedRoute,
     private readonly $mdDialog: angular.material.IDialogService,
     private readonly NotificationService: NotificationService,
+    private readonly activatedRoute: ActivatedRoute,
   ) {}
 
   $onInit() {
