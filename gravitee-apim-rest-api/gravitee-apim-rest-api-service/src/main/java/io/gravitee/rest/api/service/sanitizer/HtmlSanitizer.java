@@ -91,6 +91,7 @@ public final class HtmlSanitizer {
         .and(HTML_CSS_SANITIZER)
         .and(Sanitizers.TABLES)
         .and(new HtmlPolicyBuilder().allowElements("pre", "hr").toFactory())
+        .and(new HtmlPolicyBuilder().allowElements("ol").allowAttributes("start").onElements("ol").toFactory())
         .and(HTML_IMAGES_SANITIZER)
         .and(new HtmlPolicyBuilder().allowElements("code").allowAttributes("class").globally().toFactory())
         .and(GITHUB_FLAVOURED_MARKDOWN);
