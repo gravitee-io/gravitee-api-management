@@ -40,11 +40,13 @@ import { DictionariesComponent } from './dictionaries/dictionaries.component';
 import { DictionaryComponent } from './dictionaries/dictionary.component';
 import { CustomUserFieldsComponent } from './custom-user-fields/custom-user-fields.component';
 import { EnvironmentNotificationSettingsModule } from './notifications/notification-settings/environment-notification-settings.module';
+import { ApiQualityRulesNgModule } from './api-quality-rules-ng/api-quality-rules-ng.module';
 
 import { DocumentationModule } from '../../components/documentation/documentation.module';
 
 @NgModule({
   imports: [
+    ApiQualityRulesNgModule,
     SettingsRoutingModule,
     RouterModule,
     GioSubmenuModule,

@@ -39,6 +39,7 @@ import { DictionaryComponent } from './dictionaries/dictionary.component';
 import { CustomUserFieldsComponent } from './custom-user-fields/custom-user-fields.component';
 import { EnvironmentNotificationSettingsListComponent } from './notifications/notification-settings/notification-settings-list/environment-notification-settings-list.component';
 import { EnvironmentNotificationSettingsDetailsComponent } from './notifications/notification-settings/notification-settings-details/environment-notification-settings-details.component';
+import { ApiQualityRulesNgComponent } from './api-quality-rules-ng/api-quality-rules-ng.component';
 
 import { DocumentationEditPageComponent } from '../../components/documentation/edit-page.component';
 import { DocumentationImportPagesComponent } from '../../components/documentation/import-pages.component';
@@ -103,6 +104,19 @@ export const settingsRoutes: Routes = [
       {
         path: 'api-quality-rules',
         component: ApiQualityRulesComponent,
+        data: {
+          docs: {
+            page: 'management-configuration-apiquality',
+          },
+          perms: {
+            only: ['environment-quality_rule-r'],
+            unauthorizedFallbackTo: 'management.settings.environment.identityproviders',
+          },
+        },
+      },
+      {
+        path: 'api-quality-rules-ng',
+        component: ApiQualityRulesNgComponent,
         data: {
           docs: {
             page: 'management-configuration-apiquality',
