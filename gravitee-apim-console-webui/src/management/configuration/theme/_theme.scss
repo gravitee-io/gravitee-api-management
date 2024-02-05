@@ -45,9 +45,11 @@
   }
 
   .theme-component-colors {
-    display: flex;
-    align-items: center;
-    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+    grid-auto-rows: minmax(8px, auto);
+    margin-bottom: 8px;
   }
 
   .theme-component-color-picker .md-color-picker-preview {
@@ -97,5 +99,11 @@
 
   v-pane-header {
     text-transform: capitalize;
+  }
+
+  .md-color-picker-input-container {
+    .md-auto-horizontal-margin {
+      margin-left: 0px!important;
+    }
   }
 }
