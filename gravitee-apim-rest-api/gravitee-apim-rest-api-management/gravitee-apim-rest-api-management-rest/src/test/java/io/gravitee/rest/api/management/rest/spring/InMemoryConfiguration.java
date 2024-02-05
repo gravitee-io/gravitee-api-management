@@ -15,7 +15,35 @@
  */
 package io.gravitee.rest.api.management.rest.spring;
 
-import inmemory.*;
+import inmemory.ApiCrudServiceInMemory;
+import inmemory.ApiKeyCrudServiceInMemory;
+import inmemory.ApiKeyQueryServiceInMemory;
+import inmemory.ApiQueryServiceInMemory;
+import inmemory.ApplicationCrudServiceInMemory;
+import inmemory.AuditCrudServiceInMemory;
+import inmemory.AuditMetadataQueryServiceInMemory;
+import inmemory.AuditQueryServiceInMemory;
+import inmemory.ConnectionLogsCrudServiceInMemory;
+import inmemory.EndpointPluginQueryServiceInMemory;
+import inmemory.EntrypointPluginQueryServiceInMemory;
+import inmemory.EnvironmentCrudServiceInMemory;
+import inmemory.EventCrudInMemory;
+import inmemory.EventQueryServiceInMemory;
+import inmemory.FlowCrudServiceInMemory;
+import inmemory.InstanceQueryServiceInMemory;
+import inmemory.LicenseCrudServiceInMemory;
+import inmemory.MessageLogCrudServiceInMemory;
+import inmemory.PageCrudServiceInMemory;
+import inmemory.PageQueryServiceInMemory;
+import inmemory.PageRevisionCrudServiceInMemory;
+import inmemory.ParametersQueryServiceInMemory;
+import inmemory.PlanCrudServiceInMemory;
+import inmemory.PlanQueryServiceInMemory;
+import inmemory.PolicyPluginQueryServiceInMemory;
+import inmemory.SubscriptionCrudServiceInMemory;
+import inmemory.SubscriptionQueryServiceInMemory;
+import inmemory.TriggerNotificationDomainServiceInMemory;
+import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
@@ -164,5 +192,10 @@ public class InMemoryConfiguration {
     @Bean
     public AuditMetadataQueryServiceInMemory auditMetadataQueryServiceInMemory() {
         return new AuditMetadataQueryServiceInMemory();
+    }
+
+    @Bean
+    public EventQueryServiceInMemory eventQueryService() {
+        return new EventQueryServiceInMemory();
     }
 }

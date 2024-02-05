@@ -46,6 +46,7 @@ import io.gravitee.rest.api.management.v2.rest.model.VerifyApiDeploymentResponse
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.audit.ApiAuditsResource;
+import io.gravitee.rest.api.management.v2.rest.resource.api.event.ApiEventsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.log.ApiLogsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.documentation.ApiPagesResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.LifecycleAction;
@@ -196,6 +197,11 @@ public class ApiResource extends AbstractResource {
     @Path("/audits")
     public ApiAuditsResource getApiAuditsResource() {
         return resourceContext.getResource(ApiAuditsResource.class);
+    }
+
+    @Path("/events")
+    public ApiEventsResource getApiEventsResource() {
+        return resourceContext.getResource(ApiEventsResource.class);
     }
 
     @Path("/pages")
