@@ -20,20 +20,26 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { GioLicenseExpirationNotificationHarness, LICENSE_CONFIGURATION_TESTING } from '@gravitee/ui-particles-angular';
+import {
+  GioLicenseExpirationNotificationHarness,
+  GioMenuSearchService,
+  LICENSE_CONFIGURATION_TESTING,
+} from '@gravitee/ui-particles-angular';
 import { ActivatedRoute } from '@angular/router';
 import { of } from 'rxjs';
 
-import { GioSideNavComponent } from './gio-side-nav.component';
+import { GioSideNavComponent, SIDE_NAV_GROUP_ID } from './gio-side-nav.component';
 import { GioSideNavModule } from './gio-side-nav.module';
 
 import { License } from '../../entities/license/License';
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../shared/testing';
+
 describe('GioSideNavComponent', () => {
   let fixture: ComponentFixture<GioSideNavComponent>;
   let httpTestingController: HttpTestingController;
   let loader: HarnessLoader;
+  const menuSearchService = new GioMenuSearchService();
 
   const expirationDateInOneYear = new Date();
   expirationDateInOneYear.setFullYear(expirationDateInOneYear.getFullYear() + 1);
@@ -69,6 +75,7 @@ describe('GioSideNavComponent', () => {
         },
         { provide: 'LicenseConfiguration', useValue: LICENSE_CONFIGURATION_TESTING },
         { provide: ActivatedRoute, useValue: { params: of({ envId: 'DEFAULT' }) } },
+        { provide: GioMenuSearchService, useValue: menuSearchService },
       ],
     })
       .overrideProvider(InteractivityChecker, {
@@ -137,6 +144,32 @@ describe('GioSideNavComponent', () => {
         const expirationNotification = await loader.getHarnessOrNull(GioLicenseExpirationNotificationHarness);
         expect(expirationNotification).toBeNull();
       });
+    });
+  });
+
+  describe('Side nav search test', () => {
+    it('should remove previous search entries and then add new ones', async () => {
+      const removeSearchItemByGroupIds = jest.spyOn(menuSearchService, 'removeMenuSearchItems');
+      const addSearchItemByGroupIds = jest.spyOn(menuSearchService, 'addMenuSearchItems');
+
+      await init();
+      expectLicense({ tier: '', features: [], packs: [], expiresAt: new Date() });
+
+      expect(removeSearchItemByGroupIds).toHaveBeenCalledTimes(1);
+      expect(removeSearchItemByGroupIds).toHaveBeenCalledWith([SIDE_NAV_GROUP_ID]);
+      expect(addSearchItemByGroupIds).toHaveBeenCalledTimes(1);
+      expect(addSearchItemByGroupIds).toHaveBeenCalledWith(
+        expect.arrayContaining([
+          expect.objectContaining({ name: 'Dashboard', routerLink: expect.not.stringContaining('./') }),
+          expect.objectContaining({ name: 'APIs', routerLink: expect.not.stringContaining('./') }),
+          expect.objectContaining({ name: 'Applications', routerLink: expect.not.stringContaining('./') }),
+          expect.objectContaining({ name: 'Gateways', routerLink: expect.not.stringContaining('./') }),
+          expect.objectContaining({ name: 'Audit', routerLink: expect.not.stringContaining('./') }),
+          expect.objectContaining({ name: 'Messages', routerLink: expect.not.stringContaining('./') }),
+          expect.objectContaining({ name: 'Analytics', routerLink: expect.not.stringContaining('./') }),
+          expect.objectContaining({ name: 'Settings', routerLink: expect.not.stringContaining('./') }),
+        ]),
+      );
     });
   });
 

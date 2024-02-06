@@ -25,6 +25,7 @@ export interface MenuItem {
   header?: MenuItemHeader;
   tabs?: MenuItem[];
   icon?: string;
+  category?: string;
 }
 
 export interface MenuGroupItem {

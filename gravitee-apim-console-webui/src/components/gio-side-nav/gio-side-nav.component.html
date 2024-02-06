@@ -18,13 +18,16 @@
 <div class="gio-side-nav">
   <gio-menu class="gio-side-nav__menu">
     <gio-menu-header>
-      <gio-menu-selector
-        [tabIndex]="1"
-        [selectedItemValue]="currentEnv.id"
-        selectorTitle="Environment"
-        [selectorItems]="environments"
-        (selectChange)="this.changeCurrentEnv($event)"
-      ></gio-menu-selector>
+      <div class="gio-side-nav__menu__selector">
+        <gio-menu-selector
+          [tabIndex]="1"
+          [selectedItemValue]="currentEnv.id"
+          selectorTitle="Environment"
+          [selectorItems]="environments"
+          (selectChange)="this.changeCurrentEnv($event)"
+        ></gio-menu-selector>
+      </div>
+      <gio-menu-search (valueChanges)="navigate($event)"> </gio-menu-search>
     </gio-menu-header>
     <gio-menu-list>
       <ng-container *ngFor="let item of mainMenuItems">
