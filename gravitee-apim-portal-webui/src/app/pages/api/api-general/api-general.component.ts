@@ -46,6 +46,7 @@ import { CurrentUserService } from '../../../services/current-user.service';
 import { NotificationService } from '../../../services/notification.service';
 import { ScrollService } from '../../../services/scroll.service';
 import { SearchQueryParam } from '../../../utils/search-query-param.enum';
+import { MarkdownService } from '../../../services/markdown.service';
 
 type RatingFormType = FormGroup<{
   title: FormControl<string>;
@@ -103,6 +104,7 @@ export class ApiGeneralComponent implements OnInit {
     private scrollService: ScrollService,
     private portalService: PortalService,
     private applicationService: ApplicationService,
+    private markdownService: MarkdownService,
   ) {
     this.ratingListPermissions = {
       update: [],
@@ -180,7 +182,12 @@ export class ApiGeneralComponent implements OnInit {
         this.apiHomepage = this.route.snapshot.data.apiHomepage;
         this.permissions = this.route.snapshot.data.permissions;
         this.apiInformations = this.route.snapshot.data.apiInformations;
-        this.description = this.currentApi.description;
+
+        if (!!this.currentApi.description || this.currentApi.description.trim().length > 0) {
+          const baseUrl = this.configService.get('baseURL');
+          this.description = this.markdownService.render(this.currentApi.description, baseUrl, undefined);
+        }
+
         this.computeBackButton();
         return this.currentApi;
       }

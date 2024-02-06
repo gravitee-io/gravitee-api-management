@@ -34,7 +34,7 @@
       </div>
 
       <div class="page__box-content">
-        {{ description }}
+        <div [innerHTML]="description | safe : 'html'"></div>
       </div>
     </div>
 
@@ -115,7 +115,7 @@
       </div>
 
       <div class="page__box-content">
-        {{ description }}
+        <div [innerHTML]="description | safe : 'html'"></div>
       </div>
     </div>
 
