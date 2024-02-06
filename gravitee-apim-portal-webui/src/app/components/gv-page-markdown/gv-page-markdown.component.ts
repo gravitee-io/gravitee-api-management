@@ -14,18 +14,14 @@
  * limitations under the License.
  */
 import { AfterViewInit, Component, ElementRef, HostListener, Input, OnInit, ViewChild } from '@angular/core';
-import { Renderer } from 'marked';
-import { gfmHeadingId } from 'marked-gfm-heading-id';
-import { markedHighlight } from 'marked-highlight';
-import hljs from 'highlight.js';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer } from '@angular/platform-browser';
-import { marked } from 'marked';
 
 import { Page } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { PageService } from '../../services/page.service';
 import { ScrollService } from '../../services/scroll.service';
 import { ConfigurationService } from '../../services/configuration.service';
+import { MarkdownService } from '../../services/markdown.service';
 
 @Component({
   selector: 'app-gv-page-markdown',
@@ -42,8 +38,6 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
   baseURL: string;
 
   @ViewChild('mdContent', { static: false }) mdContent: ElementRef;
-  private ANCHOR_CLASSNAME = 'anchor';
-  private INTERNAL_LINK_CLASSNAME = 'internal-link';
 
   constructor(
     private configurationService: ConfigurationService,
@@ -51,6 +45,7 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
     private router: Router,
     private activatedRoute: ActivatedRoute,
     private scrollService: ScrollService,
+    private markdownService: MarkdownService,
     private elementRef: ElementRef,
     private readonly sanitizer: DomSanitizer,
   ) {}
@@ -59,64 +54,9 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
     this.baseURL = this.configurationService.get('baseURL');
 
     this.page = this.pageService.getCurrentPage();
-    if (this.page && this.page.content) {
-      marked.use({ renderer: this.renderer });
-      marked.use(gfmHeadingId());
-      marked.use(
-        markedHighlight({
-          langPrefix: 'hljs language-',
-          highlight(code, language) {
-            const validLanguage = hljs.getLanguage(language) ? language : 'plaintext';
-            return hljs.highlight(validLanguage, code).value;
-          },
-        }),
-      );
-
-      this.pageContent = marked(this.page.content) as string;
+    if (this.page?.content) {
+      this.pageContent = this.markdownService.render(this.page.content, this.baseURL, this.pageBaseUrl);
     }
-  }
-
-  get renderer() {
-    const defaultRenderer = new Renderer();
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const that = this;
-    return {
-      image(href, title, text) {
-        // is it a portal media ?
-        let parsedURL = /\/environments\/(?:[\w-]+)\/portal\/media\/([\w-]+)/g.exec(href);
-        if (parsedURL) {
-          const portalHref = `${that.baseURL}/media/${parsedURL[1]}`;
-          return `<img alt="${text != null ? text : ''}" title="${title != null ? title : ''}" src="${portalHref}" />`;
-        } else {
-          // is it a API media ?
-          parsedURL = /\/environments\/(?:[\w-]+)\/apis\/([\w-]+)\/media\/([\w-]+)/g.exec(href);
-          if (parsedURL) {
-            const portalHref = `${that.baseURL}/apis/${parsedURL[1]}/media/${parsedURL[2]}`;
-            return `<img alt="${text != null ? text : ''}" title="${title != null ? title : ''}" src="${portalHref}" />`;
-          }
-        }
-        return defaultRenderer.image(href, title, text);
-      },
-      link(href, title, text) {
-        // is it a portal page URL ?
-        let parsedURL = /\/#!\/settings\/pages\/([\w-]+)/g.exec(href);
-        if (!parsedURL) {
-          // is it a API page URL ?
-          parsedURL = /\/#!\/apis\/(?:[\w-]+)\/documentation\/([\w-]+)/g.exec(href);
-        }
-
-        if (parsedURL) {
-          const pageId = parsedURL[1];
-          return `<a class="${that.INTERNAL_LINK_CLASSNAME}" href="${that.pageBaseUrl}?page=${pageId}">${text}</a>`;
-        }
-
-        if (href.startsWith('#')) {
-          return `<a class="${that.ANCHOR_CLASSNAME}" href="${href}">${text}</a>`;
-        }
-
-        return defaultRenderer.link(href, title, text);
-      },
-    };
   }
 
   ngAfterViewInit() {
@@ -179,10 +119,10 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
       return true;
     }
     const url = new URL($event.target.href);
-    if ($event.target.classList.contains(this.ANCHOR_CLASSNAME)) {
+    if ($event.target.classList.contains(this.markdownService.getAnchorClassName())) {
       this.scrollService.scrollToAnchor(url.hash);
       return false;
-    } else if ($event.target.classList.contains(this.INTERNAL_LINK_CLASSNAME)) {
+    } else if ($event.target.classList.contains(this.markdownService.getInternalClassName())) {
       this.router.navigateByUrl(url.pathname + url.search);
       return false;
     }
