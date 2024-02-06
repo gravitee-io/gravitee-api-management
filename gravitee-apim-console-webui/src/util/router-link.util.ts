@@ -13,23 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@use 'sass:map';
+import { ActivatedRoute } from '@angular/router';
 
-.gio-side-nav {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  z-index: 1;
+export const cleanRouterLink = (link: string) => {
+  return link?.replace(/^\.?\/?/, '');
+};
 
-  &__menu {
-    flex: 1 1 auto;
-
-    &__selector {
-      margin-bottom: 24px;
-    }
-  }
-
-  a {
-    text-decoration: none;
-  }
-}
+export const getPathFromRoot = (activatedRoute: ActivatedRoute) => {
+  return activatedRoute.pathFromRoot
+    .flatMap((r) => r.snapshot.url)
+    .map((r) => r.path)
+    .join('/');
+};

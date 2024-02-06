@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { GioLicenseService, LicenseOptions, SelectorItem } from '@gravitee/ui-particles-angular';
+import { GioLicenseService, GioMenuSearchService, LicenseOptions, MenuSearchItem, SelectorItem } from '@gravitee/ui-particles-angular';
 import { distinctUntilChanged, map, takeUntil } from 'rxjs/operators';
 import { Observable, Subject } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -23,6 +23,7 @@ import { GioPermissionService } from '../../shared/components/gio-permission/gio
 import { Constants } from '../../entities/Constants';
 import { ApimFeature, UTMTags } from '../../shared/components/gio-license/gio-license-data';
 import { Environment } from '../../entities/environment/environment';
+import { cleanRouterLink } from '../../util/router-link.util';
 
 interface MenuItem {
   icon: string;
@@ -32,7 +33,10 @@ interface MenuItem {
   licenseOptions?: LicenseOptions;
   iconRight$?: Observable<any>;
   subMenuPermissions?: string[];
+  category: string;
 }
+
+export const SIDE_NAV_GROUP_ID = 'side-nav-items';
 
 @Component({
   selector: 'gio-side-nav',
@@ -57,6 +61,7 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
     private readonly gioLicenseService: GioLicenseService,
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
+    private readonly gioMenuSearchService: GioMenuSearchService,
   ) {}
 
   ngOnInit(): void {
@@ -73,6 +78,8 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
 
           this.mainMenuItems = this.buildMainMenuItems();
           this.footerMenuItems = this.buildFooterMenuItems();
+          this.gioMenuSearchService.removeMenuSearchItems([SIDE_NAV_GROUP_ID]);
+          this.gioMenuSearchService.addMenuSearchItems(this.getSideNaveMenuSearchItems());
         },
       });
 
@@ -86,6 +93,14 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.unsubscribe$.next();
     this.unsubscribe$.complete();
+  }
+
+  changeCurrentEnv(envId: string): void {
+    this.router.navigate(['/', envId]);
+  }
+
+  navigate(selectedItem: MenuSearchItem): void {
+    this.router.navigate([selectedItem.routerLink]);
   }
 
   private buildMainMenuItems(): MenuItem[] {
@@ -103,23 +118,26 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
     const alertEngineIconRight$ = this.getMenuItemIconRight$(alertEngineLicenseOptions);
 
     const mainMenuItems: MenuItem[] = [
-      { icon: 'gio:home', routerLink: './home', displayName: 'Dashboard' },
+      { icon: 'gio:home', routerLink: './home', displayName: 'Dashboard', category: 'home' },
       {
         icon: 'gio:upload-cloud',
         routerLink: './apis',
         displayName: 'APIs',
+        category: 'Apis',
       },
       {
         icon: 'gio:multi-window',
         routerLink: './applications',
         displayName: 'Applications',
         permissions: ['environment-application-r'],
+        category: 'Applications',
       },
       {
         icon: 'gio:cloud-server',
         displayName: 'Gateways',
         routerLink: './gateways',
         permissions: ['environment-instance-r'],
+        category: 'Gateways',
       },
       {
         icon: 'gio:verified',
@@ -128,18 +146,21 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
         permissions: ['environment-audit-r'],
         licenseOptions: auditLicenseOptions,
         iconRight$: auditIconRight$,
+        category: 'Audit',
       },
       {
         icon: 'gio:message-text',
         displayName: 'Messages',
         routerLink: './messages',
         permissions: ['environment-message-c'],
+        category: 'Messages',
       },
       {
         icon: 'gio:bar-chart-2',
         displayName: 'Analytics',
         routerLink: './analytics/dashboard',
         permissions: ['environment-platform-r'],
+        category: 'Analytics',
       },
     ];
 
@@ -151,6 +172,7 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
         permissions: ['environment-alert-r'],
         licenseOptions: alertEngineLicenseOptions,
         iconRight$: alertEngineIconRight$,
+        category: 'Alerts',
       });
     }
 
@@ -158,6 +180,7 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
       icon: 'gio:settings',
       routerLink: './settings',
       displayName: 'Settings',
+      category: 'Environment',
       // prettier-ignore
       permissions: [
         // Portal
@@ -206,6 +229,7 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
         routerLink: '/_organization',
         displayName: 'Organization',
         permissions: ['organization-settings-r'],
+        category: 'Organization',
       },
     ]);
   }
@@ -214,7 +238,23 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
     return menuItems.filter((item) => !item.permissions || this.permissionService.hasAnyMatching(item.permissions));
   }
 
-  changeCurrentEnv(envId: string): void {
-    this.router.navigate(['/', envId]);
+  private getSideNaveMenuSearchItems(): MenuSearchItem[] {
+    return this.mainMenuItems
+      .map((item) => {
+        return {
+          name: item.displayName,
+          routerLink: `/${this.currentEnv.hrids}/${cleanRouterLink(item.routerLink)}`,
+          category: item.category,
+          groupIds: [SIDE_NAV_GROUP_ID],
+        };
+      })
+      .concat(
+        this.footerMenuItems.map((item) => ({
+          name: item.displayName,
+          routerLink: `/${cleanRouterLink(item.routerLink)}`,
+          category: item.category,
+          groupIds: [SIDE_NAV_GROUP_ID],
+        })),
+      );
   }
 }
