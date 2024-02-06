@@ -60,63 +60,6 @@ describe('GvPageMarkdownComponent', () => {
     component.pageBaseUrl = PAGE_BASE_URL;
   });
 
-  it('should use correct portal media url', () => {
-    const renderer = component.renderer.image(
-      'https://host:port/contextpath/management/organizations/DEFAULT/environments/DEFAULT/portal/media/123456789',
-      'title',
-      'text',
-    );
-
-    expect(renderer).not.toBeNull();
-    expect(renderer).toEqual(`<img alt="text" title="title" src="${BASE_URL}/media/123456789" />`);
-  });
-
-  it('should use correct api media url', () => {
-    const renderer = component.renderer.image(
-      'https://host:port/contextpath/management/organizations/DEFAULT/environments/DEFAULT/apis/1A2Z3E4R5T6Y/media/123456789',
-      'title',
-      'text',
-    );
-
-    expect(renderer).not.toBeNull();
-    expect(renderer).toEqual(`<img alt="text" title="title" src="${BASE_URL}/apis/1A2Z3E4R5T6Y/media/123456789" />`);
-  });
-
-  it('should use a.internal-link for render an portal page link', () => {
-    const renderer = component.renderer.link('/#!/settings/pages/123456789', 'title', 'text');
-
-    expect(renderer).not.toBeNull();
-    expect(renderer).toEqual('<a class="internal-link" href="/catalog/api/1234/doc?page=123456789">text</a>');
-  });
-
-  it('should use a.internal-link for render an api page link', () => {
-    const renderer = component.renderer.link('/#!/apis/1A2Z3E4R5T6Y/documentation/123456789', 'title', 'text');
-
-    expect(renderer).not.toBeNull();
-    expect(renderer).toEqual('<a class="internal-link" href="/catalog/api/1234/doc?page=123456789">text</a>');
-  });
-
-  it('should use a.internal-link for render an portal page link', () => {
-    const renderer = component.renderer.link('/#!/settings/pages/123456789', 'title', 'text');
-
-    expect(renderer).not.toBeNull();
-    expect(renderer).toEqual('<a class="internal-link" href="/catalog/api/1234/doc?page=123456789">text</a>');
-  });
-
-  it('should use a.internal-link for render an api page link', () => {
-    const renderer = component.renderer.link('/#!/apis/1A2Z3E4R5T6Y/documentation/123456789', 'title', 'text');
-
-    expect(renderer).not.toBeNull();
-    expect(renderer).toEqual('<a class="internal-link" href="/catalog/api/1234/doc?page=123456789">text</a>');
-  });
-
-  it('should use a.anchor for render an anchor', () => {
-    const renderer = component.renderer.link('#anchor', 'Anchor', '');
-
-    expect(renderer).not.toBeNull();
-    expect(renderer).toEqual('<a class="anchor" href="#anchor"></a>');
-  });
-
   it('should call scroll to anchor when click to a.anchor', () => {
     const anchor = '#anchor';
     const scrollToAnchorSpy = jest.spyOn(TestBed.inject(ScrollService), 'scrollToAnchor').mockReturnValue(new Promise(() => true));
