@@ -1656,6 +1656,20 @@
                     </exclusions>
                 </dependency>
 
+                <dependency>
+                    <groupId>io.gravitee.node</groupId>
+                    <artifactId>gravitee-node-cluster-plugin-hazelcast</artifactId>
+                    <version>${gravitee-node.version}</version>
+                    <type>zip</type>
+                    <scope>runtime</scope>
+                    <exclusions>
+                        <exclusion>
+                            <groupId>*</groupId>
+                            <artifactId>*</artifactId>
+                        </exclusion>
+                    </exclusions>
+                </dependency>
+
                 <!-- Services -->
                 <!-- Using service GeoIP requires to adapt Java HeapSpace: https://github.com/gravitee-io/gravitee-service-geoip/blob/master/README.adoc -->
                 <!-- So keep it commented for the moment -->
