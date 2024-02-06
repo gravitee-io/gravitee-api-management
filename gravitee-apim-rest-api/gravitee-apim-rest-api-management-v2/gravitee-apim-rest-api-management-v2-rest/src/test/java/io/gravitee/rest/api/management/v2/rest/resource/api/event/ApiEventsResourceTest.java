@@ -139,7 +139,7 @@ class ApiEventsResourceTest extends ApiResourceTest {
                             .id("event-id")
                             .environmentIds(List.of(ENVIRONMENT))
                             .initiator(new BaseUser().id("user-id").displayName("John Doe"))
-                            .type("PUBLISH_API")
+                            .type(io.gravitee.rest.api.management.v2.rest.model.EventType.PUBLISH_API)
                             .createdAt(OffsetDateTime.parse("2020-02-01T20:22:02.00Z"))
                             .payload("event-payload")
                             .properties(Map.of("API_ID", API, "USER", "user-id"))
