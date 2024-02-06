@@ -16,9 +16,27 @@
 
 import { BaseUser } from '../user';
 
+export type EventType =
+  | 'ALERT_NOTIFICATION'
+  | 'DEBUG_API'
+  | 'GATEWAY_STARTED'
+  | 'GATEWAY_STOPPED'
+  | 'PUBLISH_API'
+  | 'PUBLISH_API_RESULT'
+  | 'PUBLISH_DICTIONARY'
+  | 'PUBLISH_ORGANIZATION'
+  | 'PUBLISH_ORGANIZATION_LICENSE'
+  | 'START_API'
+  | 'START_DICTIONARY'
+  | 'STOP_API'
+  | 'STOP_DICTIONARY'
+  | 'UNPUBLISH_API'
+  | 'UNPUBLISH_API_RESULT'
+  | 'UNPUBLISH_DICTIONARY';
+
 export interface Event {
   id: string;
-  type: string;
+  type: EventType;
   payload: string;
   parentId?: string;
   environmentIds: string[];
