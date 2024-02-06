@@ -12,7 +12,12 @@
       max-width: 450px;
       cursor: pointer;
       gap: 8px;
+      padding-left: 8px;
       align-items: center;
+
+      &__header {
+        padding-left: 18px;
+      }
 
       p {
         margin-bottom: 0;
