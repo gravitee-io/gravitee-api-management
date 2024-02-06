@@ -21,11 +21,11 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ActivatedRoute } from '@angular/router';
 
-import { AuditLogsComponent } from './audit-logs.component';
-import { AuditLogsModule } from './audit-logs.module';
+import { ApiAuditLogsComponent } from './api-audit-logs.component';
+import { ApiAuditLogsModule } from './api-audit-logs.module';
 import { ApiAuditsFilterFormHarness, ApiAuditsTableHarness, ApiEventsTableHarness } from './components';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import {
   fakeAuditResponse,
   fakeEvent,
@@ -33,22 +33,22 @@ import {
   Pagination,
   SearchApiAuditParam,
   SearchApiEventParam,
-} from '../../../../entities/management-api-v2';
+} from '../../../entities/management-api-v2';
 
 describe('AuditLogsComponent', () => {
   const API_ID = 'an-api-id';
 
-  let fixture: ComponentFixture<AuditLogsComponent>;
+  let fixture: ComponentFixture<ApiAuditLogsComponent>;
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, MatIconTestingModule, GioHttpTestingModule, AuditLogsModule],
+      imports: [NoopAnimationsModule, MatIconTestingModule, GioHttpTestingModule, ApiAuditLogsModule],
       providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } }],
     });
 
-    fixture = TestBed.createComponent(AuditLogsComponent);
+    fixture = TestBed.createComponent(ApiAuditLogsComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();

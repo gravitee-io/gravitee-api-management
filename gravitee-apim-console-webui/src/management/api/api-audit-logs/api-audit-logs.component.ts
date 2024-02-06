@@ -21,9 +21,9 @@ import { distinctUntilChanged, switchMap } from 'rxjs/operators';
 
 import { ApiAuditFilter } from './components/api-audits-filter-form/api-audits-filter-form.component';
 
-import { ApiAuditsV2Service } from '../../../../services-ngx/api-audits-v2.service';
-import { Pagination } from '../../../../entities/management-api-v2';
-import { ApiEventsV2Service } from '../../../../services-ngx/api-events-v2.service';
+import { ApiAuditsV2Service } from '../../../services-ngx/api-audits-v2.service';
+import { Pagination } from '../../../entities/management-api-v2';
+import { ApiEventsV2Service } from '../../../services-ngx/api-events-v2.service';
 
 interface SearchQuery {
   query: ApiAuditFilter;
@@ -47,11 +47,11 @@ const INITIAL_SEARCH_QUERY: SearchQuery = {
 };
 
 @Component({
-  selector: 'app-audit-logs',
-  templateUrl: './audit-logs.component.html',
-  styleUrls: ['./audit-logs.component.scss'],
+  selector: 'api-audit-logs',
+  templateUrl: './api-audit-logs.component.html',
+  styleUrls: ['./api-audit-logs.component.scss'],
 })
-export class AuditLogsComponent {
+export class ApiAuditLogsComponent {
   private apiId = this.activatedRoute.snapshot.params.apiId;
 
   protected filters = new BehaviorSubject<SearchQuery>(INITIAL_SEARCH_QUERY);

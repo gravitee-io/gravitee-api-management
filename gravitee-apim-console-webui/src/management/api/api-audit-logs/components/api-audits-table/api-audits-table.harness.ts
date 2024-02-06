@@ -16,7 +16,7 @@
 import { ComponentHarness, parallel } from '@angular/cdk/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 
-import { GioTableWrapperHarness } from '../../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
+import { GioTableWrapperHarness } from '../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
 
 export class ApiAuditsTableHarness extends ComponentHarness {
   static hostSelector = 'api-audits-table';

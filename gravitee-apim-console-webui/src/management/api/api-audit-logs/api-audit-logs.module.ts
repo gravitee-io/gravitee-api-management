@@ -13,24 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { NgModule } from '@angular/core';
+import { MatCardModule } from '@angular/material/card';
+import { GioLoaderModule } from '@gravitee/ui-particles-angular';
 
-import { Event } from '../../../../../../entities/management-api-v2/event';
+import { ApiAuditLogsComponent } from './api-audit-logs.component';
+import { ApiAuditsFilterFormModule, ApiAuditsTableModule, ApiEventsTableModule } from './components';
 
-@Component({
-  selector: 'api-events-table',
-  templateUrl: './api-events-table.component.html',
-  styleUrls: ['./api-events-table.component.scss'],
+@NgModule({
+  declarations: [ApiAuditLogsComponent],
+  imports: [CommonModule, MatCardModule, GioLoaderModule, ApiAuditsFilterFormModule, ApiAuditsTableModule, ApiEventsTableModule],
 })
-export class ApiEventsTableComponent {
-  protected displayedColumns = ['icon', 'type', 'createdAt', 'user'];
-  private _events?: Event[];
-
-  public get events(): Event[] | undefined {
-    return this._events;
-  }
-  @Input()
-  public set events(value: Event[] | undefined) {
-    this._events = value;
-  }
-}
+export class ApiAuditLogsModule {}
