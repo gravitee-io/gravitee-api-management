@@ -57,6 +57,9 @@ export class ApiV4MenuService implements ApiMenuService {
   }
 
   private addConfigurationMenuEntry(): MenuItem {
+    const license = { feature: ApimFeature.APIM_AUDIT_TRAIL, context: UTMTags.CONTEXT_API };
+    const iconRight$ = this.gioLicenseService.isMissingFeature$(license).pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : null)));
+
     const tabs: MenuItem[] = [
       {
         displayName: 'General',
@@ -85,6 +88,15 @@ export class ApiV4MenuService implements ApiMenuService {
         displayName: 'Notifications',
         routerLink: 'DISABLED',
         routerLinkActiveOptions: { exact: true },
+      });
+    }
+
+    if (this.permissionService.hasAnyMatching(['api-audit-r'])) {
+      tabs.push({
+        displayName: 'Audit Logs',
+        routerLink: 'v4/audit',
+        license,
+        iconRight$,
       });
     }
 
@@ -275,9 +287,6 @@ export class ApiV4MenuService implements ApiMenuService {
   private addApiTrafficMenuEntry(hasTcpListeners: boolean): MenuItem {
     const logsTabs = [];
 
-    const license = { feature: ApimFeature.APIM_AUDIT_TRAIL, context: UTMTags.CONTEXT_API };
-    const iconRight$ = this.gioLicenseService.isMissingFeature$(license).pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : null)));
-
     if (this.permissionService.hasAnyMatching(['api-log-r'])) {
       logsTabs.push({
         displayName: 'Runtime Logs',
@@ -288,14 +297,6 @@ export class ApiV4MenuService implements ApiMenuService {
       logsTabs.push({
         displayName: 'Settings',
         routerLink: 'v4/runtime-logs-settings',
-      });
-    }
-    if (this.permissionService.hasAnyMatching(['api-audit-r'])) {
-      logsTabs.push({
-        displayName: 'Audit Logs',
-        routerLink: 'v4/audit',
-        license,
-        iconRight$,
       });
     }
     if (logsTabs.length > 0) {
