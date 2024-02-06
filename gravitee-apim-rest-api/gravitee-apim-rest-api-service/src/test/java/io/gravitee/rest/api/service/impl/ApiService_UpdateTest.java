@@ -33,6 +33,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.anyMap;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.clearInvocations;
@@ -47,6 +48,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.util.collections.Sets.newSet;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -86,31 +88,14 @@ import io.gravitee.rest.api.model.ReviewEntity;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.WorkflowState;
-import io.gravitee.rest.api.model.api.ApiEntity;
-import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
-import io.gravitee.rest.api.model.api.UpdateApiEntity;
+import io.gravitee.rest.api.model.api.*;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.ApiPermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
-import io.gravitee.rest.api.service.ApiMetadataService;
-import io.gravitee.rest.api.service.AuditService;
-import io.gravitee.rest.api.service.CategoryService;
-import io.gravitee.rest.api.service.ConnectorService;
-import io.gravitee.rest.api.service.EmailService;
-import io.gravitee.rest.api.service.GroupService;
-import io.gravitee.rest.api.service.MembershipService;
-import io.gravitee.rest.api.service.NotifierService;
-import io.gravitee.rest.api.service.ParameterService;
-import io.gravitee.rest.api.service.PlanService;
-import io.gravitee.rest.api.service.PolicyService;
-import io.gravitee.rest.api.service.ResourceService;
-import io.gravitee.rest.api.service.RoleService;
-import io.gravitee.rest.api.service.TagService;
-import io.gravitee.rest.api.service.UserService;
-import io.gravitee.rest.api.service.WorkflowService;
+import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -320,6 +305,9 @@ public class ApiService_UpdateTest {
 
     @Mock
     private TagsValidationService tagsValidationService;
+
+    @Mock
+    private PageService pageService;
 
     @AfterClass
     public static void cleanSecurityContextHolder() {
@@ -574,6 +562,7 @@ public class ApiService_UpdateTest {
         api.setApiLifecycleState(ApiLifecycleState.CREATED);
         api.setPicture("picture");
         api.setBackground("background");
+        api.setVersion("2.0.0");
 
         updateApiEntity.setName(API_NAME);
         updateApiEntity.setVersion("v1");
@@ -1415,6 +1404,36 @@ public class ApiService_UpdateTest {
         when(apiRepository.findById(API_ID)).thenReturn(Optional.of(apiEntityToUpdate));
 
         apiService.updateFromSwagger(GraviteeContext.getExecutionContext(), API_ID, null, null);
+    }
+
+    @Test
+    public void shouldSanitizeUnsafeApiDescriptionDuringUpdate() throws TechnicalException {
+        prepareUpdate();
+        when(apiRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        updateApiEntity.setDescription("\"A<img src=\\\"../../../image.png\\\"> Description\"");
+
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
+
+        verify(apiRepository).update(argThat(api -> api.getId().equals(API_ID) && api.getDescription().equals("\"A Description\"")));
+    }
+
+    @Test
+    public void shouldSanitizeUnsafeApiDescriptionDuringUpdateFromSwagger() throws TechnicalException {
+        prepareUpdate(DefinitionVersion.V2, DefinitionVersion.V2);
+        updateApiEntity.setDescription("\"A<img src=\\\"../../../image.png\\\"> Description\"");
+
+        SwaggerApiEntity swaggerApiEntity = new SwaggerApiEntity();
+        swaggerApiEntity.setName(updateApiEntity.getName());
+        swaggerApiEntity.setDescription(updateApiEntity.getDescription());
+        swaggerApiEntity.setVersion(updateApiEntity.getVersion());
+        swaggerApiEntity.setProxy(updateApiEntity.getProxy());
+        swaggerApiEntity.setLifecycleState(updateApiEntity.getLifecycleState());
+        swaggerApiEntity.setGraviteeDefinitionVersion(updateApiEntity.getGraviteeDefinitionVersion());
+
+        apiService.updateFromSwagger(GraviteeContext.getExecutionContext(), API_ID, swaggerApiEntity, null);
+
+        verify(apiRepository).update(argThat(api -> api.getId().equals(API_ID) && api.getDescription().equals("\"A Description\"")));
     }
 
     private void assertUpdate(

@@ -31,6 +31,7 @@ import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
+import io.gravitee.rest.api.sanitizer.HtmlSanitizer;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.DefinitionVersionException;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
@@ -240,6 +241,9 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
 
         // Validate and clean resources
         apiEntity.setResources(resourcesValidationService.validateAndSanitize(apiEntity.getResources()));
+
+        // Sanitize Description
+        apiEntity.setDescription(HtmlSanitizer.sanitize(apiEntity.getDescription()));
     }
 
     @Override

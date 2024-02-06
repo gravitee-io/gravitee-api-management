@@ -32,6 +32,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
@@ -347,6 +348,56 @@ public class ApiValidationServiceImplTest {
                 Set.of(PlanEntity.builder().status(PlanStatus.STAGING).build(), PlanEntity.builder().status(PlanStatus.CLOSED).build())
             );
         assertFalse(apiValidationService.canDeploy(executionContext, apiId));
+    }
+
+    @Test
+    public void shouldSanitizeApiDefinitionOnUpdate() {
+        UpdateApiEntity updateApiEntity = new UpdateApiEntity();
+        updateApiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        updateApiEntity.setType(ApiType.MESSAGE);
+        updateApiEntity.setDescription("\"A<img src=\\\"../../../image.png\\\"> Description\"");
+
+        ApiEntity existingApiEntity = new ApiEntity();
+        existingApiEntity.setDescription("Old description");
+        existingApiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        existingApiEntity.setType(ApiType.MESSAGE);
+        existingApiEntity.setLifecycleState(CREATED);
+
+        assertEquals("\"A Description\"", updateApiEntity.getDescription());
+
+        apiValidationService.validateAndSanitizeUpdateApi(
+            GraviteeContext.getExecutionContext(),
+            updateApiEntity,
+            new PrimaryOwnerEntity(),
+            existingApiEntity
+        );
+        assertEquals("\"A Description\"", updateApiEntity.getDescription());
+    }
+
+    @Test
+    public void shouldSanitizeApiDefinitionOnCreateFromImport() {
+        PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity();
+        ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setDefinitionVersion(DefinitionVersion.V4);
+        apiEntity.setType(ApiType.PROXY);
+        apiEntity.setLifecycleState(CREATED);
+        apiEntity.setDescription("\"A<img src=\\\"../../../image.png\\\"> Description\"");
+
+        apiValidationService.validateAndSanitizeImportApiForCreation(GraviteeContext.getExecutionContext(), apiEntity, primaryOwnerEntity);
+
+        assertEquals("\"A Description\"", apiEntity.getDescription());
+    }
+
+    @Test
+    public void shouldSanitizeApiDefinitionOnCreate() {
+        PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity();
+        NewApiEntity newApiEntity = new NewApiEntity();
+        newApiEntity.setType(ApiType.PROXY);
+        newApiEntity.setDescription("\"A<img src=\\\"../../../image.png\\\"> Description\"");
+
+        apiValidationService.validateAndSanitizeNewApi(GraviteeContext.getExecutionContext(), newApiEntity, primaryOwnerEntity);
+
+        assertEquals("\"A Description\"", newApiEntity.getDescription());
     }
 
     private void assertUpdate(
