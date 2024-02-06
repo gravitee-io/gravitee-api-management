@@ -19,14 +19,8 @@ import static io.gravitee.rest.api.service.V4EmulationEngineService.DefaultMode.
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.argThat;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
@@ -428,5 +422,35 @@ public class ApiService_CreateTest {
 
         assertEquals(ExecutionMode.V4_EMULATION_ENGINE, apiEntity.getExecutionMode());
         verify(alertService, times(1)).createDefaults(any(ExecutionContext.class), eq(AlertReferenceType.API), any());
+    }
+
+    @Test
+    public void shouldSanitizeUnsafeApiDescription() throws TechnicalException {
+        when(apiRepository.findById(anyString())).thenReturn(Optional.empty());
+        when(apiRepository.create(any())).thenReturn(api);
+
+        NewApiEntity apiToCreate = new NewApiEntity();
+        apiToCreate.setName(API_NAME);
+        apiToCreate.setVersion("v1");
+        apiToCreate.setDescription("\"A<img src=\\\"../../../image.png\\\"> Description\"");
+        apiToCreate.setContextPath("/context");
+
+        apiService.create(GraviteeContext.getExecutionContext(), apiToCreate, USER_NAME);
+        verify(apiRepository).create(argThat(api -> api.getDescription().equals("\"A Description\"")));
+    }
+
+    @Test
+    public void shouldNotModifySafeApiDescription() throws TechnicalException {
+        when(apiRepository.findById(anyString())).thenReturn(Optional.empty());
+        when(apiRepository.create(any())).thenReturn(api);
+
+        NewApiEntity apiToCreate = new NewApiEntity();
+        apiToCreate.setName(API_NAME);
+        apiToCreate.setVersion("v1");
+        apiToCreate.setDescription("# This is my description\n## In markdown");
+        apiToCreate.setContextPath("/context");
+
+        apiService.create(GraviteeContext.getExecutionContext(), apiToCreate, USER_NAME);
+        verify(apiRepository).create(argThat(api -> api.getDescription().equals(apiToCreate.getDescription())));
     }
 }
