@@ -25,7 +25,7 @@ import { MatLegacyDialogModule } from '@angular/material/legacy-dialog';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatStepperModule } from '@angular/material/stepper';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { MatLegacyTableModule as MatTableModule } from '@angular/material/legacy-table';
+import { MatTableModule } from '@angular/material/table';
 import { MarkdownModule } from 'ngx-markdown';
 import { MatLegacySnackBarModule as MatSnackBarModule } from '@angular/material/legacy-snack-bar';
 import { MatLegacyTooltipModule as MatTooltipModule } from '@angular/material/legacy-tooltip';
