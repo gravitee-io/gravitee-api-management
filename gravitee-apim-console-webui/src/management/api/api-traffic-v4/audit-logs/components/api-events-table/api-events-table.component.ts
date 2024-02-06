@@ -17,15 +17,6 @@ import { Component, Input } from '@angular/core';
 
 import { Event } from '../../../../../../entities/management-api-v2/event';
 
-// type EventsTableVM = {
-//   type: string;
-//   createdAt: Date;
-//   user: {
-//     id: string;
-//     displayName: string;
-//   };
-// };
-
 @Component({
   selector: 'api-events-table',
   templateUrl: './api-events-table.component.html',
@@ -41,13 +32,5 @@ export class ApiEventsTableComponent {
   @Input()
   public set events(value: Event[] | undefined) {
     this._events = value;
-    // this._events = value.map((event) => ({
-    //   type: event.type,
-    //   createdAt: event.createdAt,
-    //   user: {
-    //     id: event.initiator.id,
-    //     displayName: event.initiator.displayName,
-    //   },
-    // }));
   }
 }
