@@ -55,6 +55,8 @@ import io.gravitee.apim.core.documentation.use_case.ApiUnpublishDocumentationPag
 import io.gravitee.apim.core.documentation.use_case.ApiUpdateDocumentationPageUseCase;
 import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
 import io.gravitee.apim.core.event.crud_service.EventCrudService;
+import io.gravitee.apim.core.event.query_service.EventQueryService;
+import io.gravitee.apim.core.event.use_case.SearchEventUseCase;
 import io.gravitee.apim.core.gateway.query_service.InstanceQueryService;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
 import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
@@ -82,6 +84,7 @@ import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomain
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.apim.core.subscription.use_case.CloseExpiredSubscriptionsUseCase;
 import io.gravitee.apim.core.subscription.use_case.CloseSubscriptionUseCase;
+import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -375,5 +378,10 @@ public class UsecaseSpringConfiguration {
     @Bean
     public SearchApiAuditUseCase searchApiAuditUseCase(SearchAuditDomainService searchAuditDomainService) {
         return new SearchApiAuditUseCase(searchAuditDomainService);
+    }
+
+    @Bean
+    public SearchEventUseCase searchEventUseCase(EventQueryService eventQueryService, UserCrudService userCrudService) {
+        return new SearchEventUseCase(eventQueryService, userCrudService);
     }
 }

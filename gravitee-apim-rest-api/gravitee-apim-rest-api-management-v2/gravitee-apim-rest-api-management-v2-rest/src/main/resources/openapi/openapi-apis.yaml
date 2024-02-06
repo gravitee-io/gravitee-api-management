@@ -1670,6 +1670,32 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+    # API Events
+    /environments/{envId}/apis/{apiId}/events:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        get:
+            parameters:
+                - $ref: "#/components/parameters/pageParam"
+                - $ref: "#/components/parameters/perPageParam"
+                - $ref: "#/components/parameters/from"
+                - $ref: "#/components/parameters/to"
+                - $ref: "#/components/parameters/eventTypes"
+            tags:
+                - API Events
+            summary: Get API Events
+            description: |-
+                Get API Events.
+
+                User must have the API_EVENT[READ] permission.
+            operationId: getApiEvents
+            responses:
+                "200":
+                    $ref: "#/components/responses/EventsResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+
     # API Documentation
     /environments/{envId}/apis/{apiId}/pages:
         parameters:
@@ -5179,6 +5205,60 @@ components:
                     description: The name of the auditable element
                     example: My API
 
+        # Event
+        Event:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: The internal UUID of the event.
+                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                createdAt:
+                    type: string
+                    format: date-time
+                    description: The date when the event has been created.
+                    example: 2023-05-18T12:40:46.184Z
+                environmentIds:
+                    type: array
+                    items:
+                        type: string
+                    description: The id of the environments.
+                    example: ["1719d8d1-8d01-48f6-99d8-d18d0178f6d4"]
+                initiator:
+                    $ref: "#/components/schemas/BaseUser"
+                type:
+                    $ref: "#/components/schemas/EventType"
+                payload:
+                    type: string
+                    description: The event payload.
+                    example: "{\"id\":\"023d7a64-b5de-4e1a-bd7a-64b5dede1adb\"}"
+                properties:
+                    type: object
+                    description: Properties of the event.
+                    additionalProperties:
+                        type: string
+        EventType:
+            type: string
+            description: The type of the event.
+            example: START_API
+            enum:
+                - ALERT_NOTIFICATION
+                - DEBUG_API
+                - GATEWAY_STARTED
+                - GATEWAY_STOPPED
+                - PUBLISH_API
+                - PUBLISH_API_RESULT
+                - PUBLISH_DICTIONARY
+                - PUBLISH_ORGANIZATION
+                - PUBLISH_ORGANIZATION_LICENSE
+                - START_API
+                - START_DICTIONARY
+                - STOP_API
+                - STOP_DICTIONARY
+                - UNPUBLISH_API
+                - UNPUBLISH_API_RESULT
+                - UNPUBLISH_DICTIONARY
+
         # Documentation pages
         AccessControl:
             type: object
@@ -5755,6 +5835,15 @@ components:
                 type: array
                 items:
                     type: string
+        eventTypes:
+            name: types
+            description: List of event types to filter on.
+            in: query
+            explode: false
+            schema:
+                type: array
+                items:
+                    type: string
         parentId:
             name: parentId
             in: query
@@ -6069,6 +6158,24 @@ components:
                                 type: array
                                 items:
                                     type: string
+
+        # Events
+        EventsResponse:
+            description: Page of Event
+            content:
+                application/json:
+                    schema:
+                        title: "EventsResponse"
+                        properties:
+                            data:
+                                description: List of events.
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/Event"
+                            pagination:
+                                $ref: "#/components/schemas/Pagination"
+                            links:
+                                $ref: "#/components/schemas/Links"
 
         # API Documentation
         ApiDocumentationPagesResponse:

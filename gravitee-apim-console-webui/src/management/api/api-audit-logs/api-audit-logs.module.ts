@@ -15,12 +15,14 @@
  */
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
+import { MatCardModule } from '@angular/material/card';
+import { GioLoaderModule } from '@gravitee/ui-particles-angular';
 
-import { ApiRuntimeLogsSettingsModule } from './runtime-logs-settings/api-runtime-logs-settings.module';
-import { ApiRuntimeLogsModule } from './runtime-logs/api-runtime-logs.module';
-import { ApiRuntimeLogsDetailsModule } from './runtime-logs-details/api-runtime-logs-details.module';
+import { ApiAuditLogsComponent } from './api-audit-logs.component';
+import { ApiAuditsFilterFormModule, ApiAuditsTableModule, ApiEventsTableModule } from './components';
 
 @NgModule({
-  imports: [CommonModule, ApiRuntimeLogsModule, ApiRuntimeLogsSettingsModule, ApiRuntimeLogsDetailsModule],
+  declarations: [ApiAuditLogsComponent],
+  imports: [CommonModule, MatCardModule, GioLoaderModule, ApiAuditsFilterFormModule, ApiAuditsTableModule, ApiEventsTableModule],
 })
-export class ApiRuntimeLogsV4Module {}
+export class ApiAuditLogsModule {}

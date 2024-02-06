@@ -18,6 +18,7 @@ export * from './application';
 export * from './audit';
 export * from './plugin';
 export * from './createApi';
+export * from './event';
 export * from './group';
 export * from './log';
 export * from './member';

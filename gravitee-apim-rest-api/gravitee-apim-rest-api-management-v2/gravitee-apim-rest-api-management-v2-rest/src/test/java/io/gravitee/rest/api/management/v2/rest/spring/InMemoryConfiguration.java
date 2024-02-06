@@ -29,6 +29,7 @@ import inmemory.EndpointPluginQueryServiceInMemory;
 import inmemory.EntrypointPluginQueryServiceInMemory;
 import inmemory.EnvironmentCrudServiceInMemory;
 import inmemory.EventCrudInMemory;
+import inmemory.EventQueryServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
 import inmemory.InstallationAccessQueryServiceInMemory;
 import inmemory.InstanceQueryServiceInMemory;
@@ -48,6 +49,7 @@ import inmemory.TriggerNotificationDomainServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.audit.query_service.AuditEventQueryService;
 import io.gravitee.apim.core.event.crud_service.EventCrudService;
+import io.gravitee.apim.core.event.query_service.EventQueryService;
 import io.gravitee.apim.core.gateway.query_service.InstanceQueryService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.apim.infra.query_service.audit.AuditEventQueryServiceImpl;
@@ -217,5 +219,10 @@ public class InMemoryConfiguration {
     @Bean
     public AuditEventQueryService auditEventQueryService() {
         return new AuditEventQueryServiceImpl();
+    }
+
+    @Bean
+    public EventQueryServiceInMemory eventQueryService() {
+        return new EventQueryServiceInMemory();
     }
 }

@@ -16,30 +16,40 @@
 package io.gravitee.apim.core.event.model;
 
 import io.gravitee.rest.api.model.EventType;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Data
-@Builder(toBuilder = true)
+@SuperBuilder(toBuilder = true)
+@NoArgsConstructor
+@AllArgsConstructor
 public class Event {
 
     private String id;
     private EventType type;
     private String payload;
     private String parentId;
-    private EnumMap<EventProperties, String> properties;
-    private Set<String> environments;
-    private Date createdAt;
-    private Date updatedAt;
+
+    @Builder.Default
+    private EnumMap<EventProperties, String> properties = new EnumMap<>(EventProperties.class);
+
+    @Builder.Default
+    private Set<String> environments = Set.of();
+
+    private ZonedDateTime createdAt;
+    private ZonedDateTime updatedAt;
 
     @RequiredArgsConstructor
     @Getter

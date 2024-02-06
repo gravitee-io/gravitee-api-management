@@ -14,5 +14,5 @@
  * limitations under the License.
  */
 
-export * from './api-audits-filter-form';
-export * from './api-audits-table';
+export * from './api-events-table.harness';
+export * from './api-events-table.module';

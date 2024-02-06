@@ -16,8 +16,8 @@
 
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 
-import { Audit, Pagination } from '../../../../../../entities/management-api-v2';
-import { GioTableWrapperFilters } from '../../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
+import { Audit, Pagination } from '../../../../../entities/management-api-v2';
+import { GioTableWrapperFilters } from '../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 
 @Component({
   selector: 'api-audits-table',

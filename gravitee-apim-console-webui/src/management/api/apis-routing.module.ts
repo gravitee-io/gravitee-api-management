@@ -75,7 +75,7 @@ import { ApiProxyGroupEditComponent } from './endpoints/groups/edit/api-proxy-gr
 import { ApiProxyEndpointListComponent } from './endpoints/list/api-proxy-endpoint-list.component';
 import { ApiGeneralMembersComponent } from './user-group-access/members/api-general-members.component';
 import { ApiAuditListComponent } from './api-audit-list/api-audit-list.component';
-import { AuditLogsComponent as ApiAuditLogsComponent } from './api-traffic-v4/audit-logs/audit-logs.component';
+import { ApiAuditLogsComponent } from './api-audit-logs/api-audit-logs.component';
 import { ApiDeploymentConfigurationComponent } from './deployment-configuration-v4/api-deployment-configuration.component';
 
 import { DocumentationManagementComponent } from '../../components/documentation/documentation-management.component';

@@ -13,14 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CommonModule } from '@angular/common';
-import { NgModule } from '@angular/core';
+import { Component, Input } from '@angular/core';
 
-import { ApiRuntimeLogsSettingsModule } from './runtime-logs-settings/api-runtime-logs-settings.module';
-import { ApiRuntimeLogsModule } from './runtime-logs/api-runtime-logs.module';
-import { ApiRuntimeLogsDetailsModule } from './runtime-logs-details/api-runtime-logs-details.module';
+import { Event } from '../../../../../entities/management-api-v2/event';
 
-@NgModule({
-  imports: [CommonModule, ApiRuntimeLogsModule, ApiRuntimeLogsSettingsModule, ApiRuntimeLogsDetailsModule],
+@Component({
+  selector: 'api-events-table',
+  templateUrl: './api-events-table.component.html',
+  styleUrls: ['./api-events-table.component.scss'],
 })
-export class ApiRuntimeLogsV4Module {}
+export class ApiEventsTableComponent {
+  protected displayedColumns = ['icon', 'type', 'createdAt', 'user'];
+  private _events?: Event[];
+
+  public get events(): Event[] | undefined {
+    return this._events;
+  }
+  @Input()
+  public set events(value: Event[] | undefined) {
+    this._events = value;
+  }
+}

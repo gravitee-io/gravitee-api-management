@@ -15,23 +15,22 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
-import io.gravitee.apim.core.user.model.BaseUserEntity;
-import io.gravitee.rest.api.management.v2.rest.model.BaseUser;
-import io.gravitee.rest.api.model.UserEntity;
-import java.util.Collection;
+import io.gravitee.apim.core.event.model.EventWithInitiator;
+import io.gravitee.rest.api.management.v2.rest.model.Event;
 import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Mapper
-public interface UserMapper {
-    UserMapper INSTANCE = Mappers.getMapper(UserMapper.class);
+@Mapper(uses = { DateMapper.class, UserMapper.class })
+public interface ApiEventMapper {
+    Logger logger = LoggerFactory.getLogger(ApiEventMapper.class);
+    ApiEventMapper INSTANCE = Mappers.getMapper(ApiEventMapper.class);
 
-    BaseUser map(UserEntity user);
+    @Mapping(source = "environments", target = "environmentIds")
+    Event map(EventWithInitiator source);
 
-    @Mapping(target = "displayName", expression = "java(source.displayName())")
-    BaseUser map(BaseUserEntity source);
-
-    List<BaseUser> mapToBaseUserList(Collection<UserEntity> users);
+    List<Event> map(List<EventWithInitiator> source);
 }
