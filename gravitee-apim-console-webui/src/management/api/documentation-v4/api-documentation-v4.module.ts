@@ -15,7 +15,7 @@
  */
 import { NgModule } from '@angular/core';
 import { MatLegacyCardModule as MatCardModule } from '@angular/material/legacy-card';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { GioFormFilePickerModule, GioIconsModule, GioMonacoEditorModule, GioRadioButtonModule } from '@gravitee/ui-particles-angular';
 import { MatLegacyButtonModule as MatButtonModule } from '@angular/material/legacy-button';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -88,6 +88,7 @@ import { GioTooltipOnEllipsisModule } from '../../../shared/components/gio-toolt
     GioPermissionModule,
     GioTooltipOnEllipsisModule,
     GioFormFilePickerModule,
+    NgOptimizedImage,
   ],
 })
 export class ApiDocumentationV4Module {}
