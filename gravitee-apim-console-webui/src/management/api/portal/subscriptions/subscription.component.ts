@@ -57,7 +57,8 @@ const ApiSubscriptionComponent: ng.IComponentOptions = {
     }
 
     $onInit() {
-      this.canUseCustomApiKey = this.Constants.env.settings.plan.security.customApiKey.enabled;
+      this.canUseCustomApiKey =
+        this.subscription.plan.security === PlanSecurityType.API_KEY && this.Constants.env.settings.plan.security.customApiKey.enabled;
       this.listApiKeys();
       this.getApiPlans();
     }
