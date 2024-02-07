@@ -19,18 +19,7 @@ import { Subject } from 'rxjs';
 import { GioMenuService } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
-
-interface MenuItem {
-  routerLink?: string;
-  displayName: string;
-  permissions?: string[];
-}
-
-interface GroupItem {
-  title: string;
-  items: MenuItem[];
-}
+import { GroupItem, MenuItem, SettingsNavigationService } from './settings-navigation.service';
 
 @Component({
   selector: 'settings-navigation',
@@ -45,8 +34,8 @@ export class SettingsNavigationComponent implements OnInit {
   constructor(
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
-    private readonly permissionService: GioPermissionService,
     private readonly gioMenuService: GioMenuService,
+    private readonly settingsNavigationService: SettingsNavigationService,
   ) {}
 
   ngOnInit() {
@@ -54,114 +43,7 @@ export class SettingsNavigationComponent implements OnInit {
       this.hasBreadcrumb = reduced;
     });
 
-    this.groupItems = [
-      {
-        title: 'Portal',
-        items: [
-          {
-            displayName: 'Analytics',
-            routerLink: './analytics',
-            permissions: ['environment-dashboard-r'],
-          },
-          {
-            displayName: 'API Portal Information',
-            routerLink: './api-portal-header',
-            permissions: ['environment-api_header-r'],
-          },
-          {
-            displayName: 'API Quality',
-            routerLink: './api-quality-rules',
-            permissions: ['environment-quality_rule-r'],
-          },
-          {
-            displayName: 'Authentication',
-            routerLink: './identity-providers',
-            permissions: ['organization-identity_provider-r', 'environment-identity_provider_activation-r'],
-          },
-          {
-            displayName: 'Categories',
-            routerLink: './categories',
-            permissions: ['environment-category-r'],
-          },
-          {
-            displayName: 'Client Registration',
-            routerLink: './client-registration-providers',
-            permissions: ['environment-client_registration_provider-r'],
-          },
-          {
-            displayName: 'Documentation',
-            routerLink: './documentation',
-            permissions: ['environment-documentation-c', 'environment-documentation-u', 'environment-documentation-d'],
-          },
-          {
-            displayName: 'Metadata',
-            routerLink: './metadata',
-            permissions: ['environment-metadata-r'],
-          },
-          {
-            displayName: 'Settings',
-            routerLink: './portal',
-            permissions: ['environment-settings-r'],
-          },
-          {
-            displayName: 'Theme',
-            routerLink: './theme',
-            permissions: ['environment-theme-r'],
-          },
-          {
-            displayName: 'Top APIs',
-            routerLink: './top-apis',
-            permissions: ['environment-top_apis-r'],
-          },
-        ],
-      },
-      {
-        title: 'Gateway',
-        items: [
-          {
-            displayName: 'API Logging',
-            routerLink: './api-logging',
-            permissions: ['organization-settings-r'],
-          },
-          {
-            displayName: 'Dictionaries',
-            routerLink: './dictionaries',
-            permissions: ['environment-dictionary-r'],
-          },
-        ],
-      },
-      {
-        title: 'User Management',
-        items: [
-          {
-            displayName: 'User Fields',
-            routerLink: './custom-user-fields',
-            permissions: ['organization-custom_user_fields-r'],
-          },
-          {
-            displayName: 'Groups',
-            routerLink: './groups',
-            permissions: ['environment-group-r'],
-          },
-        ],
-      },
-    ];
-
-    const notificationGroupItem: GroupItem = {
-      title: 'Notifications',
-      items: [
-        {
-          displayName: 'Notification settings',
-          routerLink: './notifications',
-          permissions: ['environment-notification-r'],
-        },
-      ],
-    };
-    this.groupItems.push(notificationGroupItem);
-
-    this.groupItems.forEach((groupItem) => {
-      groupItem.items = groupItem.items.filter((item) => !item.permissions || this.permissionService.hasAnyMatching(item.permissions));
-    });
+    this.groupItems = this.settingsNavigationService.getSettingsNavigationRoutes();
   }
 
   isActive(item: MenuItem): boolean {

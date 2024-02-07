@@ -15,10 +15,12 @@
  */
 import { Inject, Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivate, CanActivateChild, CanDeactivate, Router, RouterStateSnapshot } from '@angular/router';
-import { switchMap, tap } from 'rxjs/operators';
+import { map, switchMap, tap } from 'rxjs/operators';
 import { Observable, of } from 'rxjs';
+import { GioMenuSearchService } from '@gravitee/ui-particles-angular';
 
 import { ManagementComponent } from './management.component';
+import { SettingsNavigationService } from './settings/settings-navigation/settings-navigation.service';
 
 import { GioPermissionService } from '../shared/components/gio-permission/gio-permission.service';
 import { EnvironmentService } from '../services-ngx/environment.service';
@@ -34,7 +36,9 @@ export class HasEnvironmentPermissionGuard implements CanActivate, CanActivateCh
     private readonly environmentService: EnvironmentService,
     private readonly environmentSettingsService: EnvironmentSettingsService,
     @Inject('Constants') private constants: Constants,
-    private router: Router,
+    private readonly router: Router,
+    private readonly settingsNavigationService: SettingsNavigationService,
+    private readonly gioMenuSearchService: GioMenuSearchService,
   ) {}
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
@@ -65,6 +69,13 @@ export class HasEnvironmentPermissionGuard implements CanActivate, CanActivateCh
         this.constants.env.settings = settings;
       }),
       switchMap(() => this.canActivateChild(route, state)),
+      map((canActivateChild) => {
+        if (canActivateChild) {
+          this.gioMenuSearchService.addMenuSearchItems(this.settingsNavigationService.getSettingsNavigationSearchItems(route.params.envId));
+          return true;
+        }
+        return false;
+      }),
     );
   }
 
@@ -84,6 +95,7 @@ export class HasEnvironmentPermissionGuard implements CanActivate, CanActivateCh
 
   canDeactivate(_component: ManagementComponent, _currentRoute: ActivatedRouteSnapshot, _currentState: RouterStateSnapshot): boolean {
     this.gioPermissionService.clearEnvironmentPermissions();
+    this.gioMenuSearchService.removeMenuSearchItems([_currentRoute.params.envId]);
     return true;
   }
 }
