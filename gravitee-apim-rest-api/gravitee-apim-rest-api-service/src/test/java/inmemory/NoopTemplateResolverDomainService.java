@@ -13,13 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.documentation.exception;
+package inmemory;
 
-import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.documentation.domain_service.TemplateResolverDomainService;
+import io.gravitee.apim.core.documentation.exception.InvalidPageContentException;
+import java.util.Map;
 
-public class InvalidPageContentException extends ValidationDomainException {
+public class NoopTemplateResolverDomainService implements TemplateResolverDomainService {
 
-    public InvalidPageContentException(String message, Throwable cause) {
-        super(message, cause);
+    @Override
+    public String resolveTemplate(String content, Map<String, Object> params) throws InvalidPageContentException {
+        return content;
     }
 }

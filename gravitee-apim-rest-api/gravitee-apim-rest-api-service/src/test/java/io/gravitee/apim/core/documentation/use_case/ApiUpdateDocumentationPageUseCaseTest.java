@@ -18,15 +18,9 @@ package io.gravitee.apim.core.documentation.use_case;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.AuditInfoFixtures;
-import inmemory.ApiCrudServiceInMemory;
-import inmemory.AuditCrudServiceInMemory;
-import inmemory.InMemoryAlternative;
-import inmemory.PageCrudServiceInMemory;
-import inmemory.PageQueryServiceInMemory;
-import inmemory.PageRevisionCrudServiceInMemory;
-import inmemory.PlanQueryServiceInMemory;
-import inmemory.UserCrudServiceInMemory;
+import inmemory.*;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
@@ -113,7 +107,9 @@ class ApiUpdateDocumentationPageUseCaseTest {
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private final PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
     private final DocumentationValidationDomainService documentationValidationDomainService = new DocumentationValidationDomainService(
-        new HtmlSanitizerImpl()
+        new HtmlSanitizerImpl(),
+        new NoopTemplateResolverDomainService(),
+        apiCrudService
     );
     AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
@@ -138,6 +134,7 @@ class ApiUpdateDocumentationPageUseCaseTest {
                 pageQueryService,
                 documentationValidationDomainService
             );
+        apiCrudService.initWith(List.of(ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).build()));
     }
 
     @AfterEach
@@ -378,7 +375,12 @@ class ApiUpdateDocumentationPageUseCaseTest {
         void should_throw_error_if_api_not_found() {
             assertThatThrownBy(() ->
                     apiUpdateDocumentationPageUsecase.execute(
-                        ApiUpdateDocumentationPageUseCase.Input.builder().apiId(API_ID).pageId(PAGE_ID).auditInfo(AUDIT_INFO).build()
+                        ApiUpdateDocumentationPageUseCase.Input
+                            .builder()
+                            .apiId("unknown-api-id")
+                            .pageId(PAGE_ID)
+                            .auditInfo(AUDIT_INFO)
+                            .build()
                     )
                 )
                 .isInstanceOf(ApiNotFoundException.class);

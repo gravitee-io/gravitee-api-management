@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.infra.spring;
 
+import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiHostValidatorDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiPolicyValidatorDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiHostsDomainService;
@@ -31,12 +32,7 @@ import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
 import io.gravitee.apim.core.audit.query_service.AuditQueryService;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.crud_service.PageRevisionCrudService;
-import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
-import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
-import io.gravitee.apim.core.documentation.domain_service.DeleteApiDocumentationDomainService;
-import io.gravitee.apim.core.documentation.domain_service.DocumentationValidationDomainService;
-import io.gravitee.apim.core.documentation.domain_service.HomepageDomainService;
-import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
+import io.gravitee.apim.core.documentation.domain_service.*;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
@@ -63,6 +59,7 @@ import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomain
 import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
+import io.gravitee.apim.infra.domain_service.documentation.FreemarkerTemplateResolver;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.node.api.license.LicenseManager;
 import org.springframework.context.annotation.Bean;
@@ -196,8 +193,17 @@ public class CoreServiceSpringConfiguration {
     }
 
     @Bean
-    DocumentationValidationDomainService documentationValidationDomainService(HtmlSanitizer htmlSanitizer) {
-        return new DocumentationValidationDomainService(htmlSanitizer);
+    public TemplateResolverDomainService templateResolverDomainService() {
+        return new FreemarkerTemplateResolver();
+    }
+
+    @Bean
+    DocumentationValidationDomainService documentationValidationDomainService(
+        HtmlSanitizer htmlSanitizer,
+        TemplateResolverDomainService templateResolverDomainService,
+        ApiCrudService apiCrudService
+    ) {
+        return new DocumentationValidationDomainService(htmlSanitizer, templateResolverDomainService, apiCrudService);
     }
 
     @Bean

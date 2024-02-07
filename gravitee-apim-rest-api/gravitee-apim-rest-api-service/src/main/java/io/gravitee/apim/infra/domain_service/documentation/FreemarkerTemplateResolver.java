@@ -35,8 +35,10 @@ public class FreemarkerTemplateResolver implements TemplateResolverDomainService
         try {
             Template template = new Template("template", new StringReader(content), freemarkerConfiguration);
             return FreeMarkerTemplateUtils.processTemplateIntoString(template, params);
-        } catch (IOException | TemplateException e) {
-            throw new InvalidPageContentException(e);
+        } catch (IOException e) {
+            throw new InvalidPageContentException("Invalid template " + e.getMessage(), e);
+        } catch (TemplateException e) {
+            throw new InvalidPageContentException("Invalid expression " + e.getBlamedExpressionString(), e);
         }
     }
 

@@ -19,6 +19,8 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
+import inmemory.ApiCrudServiceInMemory;
+import inmemory.NoopTemplateResolverDomainService;
 import io.gravitee.apim.core.documentation.exception.InvalidPageNameException;
 import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import io.gravitee.rest.api.service.exceptions.PageContentUnsafeException;
@@ -35,7 +37,12 @@ public class DocumentationValidationDomainServiceTest {
 
     @BeforeEach
     void setUp() {
-        cut = new DocumentationValidationDomainService(new HtmlSanitizerImpl());
+        cut =
+            new DocumentationValidationDomainService(
+                new HtmlSanitizerImpl(),
+                new NoopTemplateResolverDomainService(),
+                new ApiCrudServiceInMemory()
+            );
     }
 
     @Nested
