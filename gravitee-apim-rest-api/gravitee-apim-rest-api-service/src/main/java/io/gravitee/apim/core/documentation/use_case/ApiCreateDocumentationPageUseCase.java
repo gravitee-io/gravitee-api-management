@@ -49,7 +49,7 @@ public class ApiCreateDocumentationPageUseCase {
         pageToCreate.setName(documentationValidationDomainService.sanitizeDocumentationName(pageToCreate.getName()));
 
         if (pageToCreate.isMarkdown()) {
-            this.documentationValidationDomainService.validateContentIsSafe(pageToCreate.getContent());
+            this.documentationValidationDomainService.validateContent(pageToCreate.getContent(), pageToCreate.getReferenceId());
         }
 
         this.validateParentId(pageToCreate);

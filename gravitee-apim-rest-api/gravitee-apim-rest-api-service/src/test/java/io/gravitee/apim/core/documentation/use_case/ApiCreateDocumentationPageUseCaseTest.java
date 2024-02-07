@@ -15,11 +15,13 @@
  */
 package io.gravitee.apim.core.documentation.use_case;
 
+import static fixtures.core.model.ApiFixtures.aMessageApiV4;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import fixtures.core.model.AuditInfoFixtures;
 import inmemory.*;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
@@ -51,12 +53,18 @@ class ApiCreateDocumentationPageUseCaseTest {
     private static final String PARENT_ID = "parent-id";
     private static final String PAGE_ID = "page-id";
 
+    private static final Api API_MESSAGE_V4 = aMessageApiV4().toBuilder().id(API_ID).build();
+
     private final PageQueryServiceInMemory pageQueryService = new PageQueryServiceInMemory();
     private final PageCrudServiceInMemory pageCrudService = new PageCrudServiceInMemory();
     private final PageRevisionCrudServiceInMemory pageRevisionCrudService = new PageRevisionCrudServiceInMemory();
     private final PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
+
+    private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private final DocumentationValidationDomainService documentationValidationDomainService = new DocumentationValidationDomainService(
-        new HtmlSanitizerImpl()
+        new HtmlSanitizerImpl(),
+        new NoopTemplateResolverDomainService(),
+        apiCrudService
     );
     AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
@@ -82,6 +90,7 @@ class ApiCreateDocumentationPageUseCaseTest {
                 pageQueryService,
                 documentationValidationDomainService
             );
+        apiCrudService.initWith(List.of(API_MESSAGE_V4));
     }
 
     @AfterEach
