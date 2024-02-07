@@ -19,32 +19,14 @@ import { gfmHeadingId } from 'marked-gfm-heading-id';
 import { markedHighlight } from 'marked-highlight';
 import hljs from 'highlight.js';
 
+import { Page } from '../../../projects/portal-webclient-sdk/src/lib';
+
 @Injectable({
   providedIn: 'root',
 })
 export class MarkdownService {
-  private readonly ANCHOR_CLASSNAME = 'anchor';
-  private readonly INTERNAL_LINK_CLASSNAME = 'internal-link';
-
-  constructor() {
-    marked.use(gfmHeadingId());
-    marked.use(
-      markedHighlight({
-        langPrefix: 'hljs language-',
-        highlight(code, language) {
-          const validLanguage = hljs.getLanguage(language) ? language : 'plaintext';
-          return hljs.highlight(validLanguage, code).value;
-        },
-      }),
-    );
-  }
-
-  public renderer(baseUrl: string, pageBaseUrl: string): RendererObject {
+  public renderer(baseUrl: string, pageBaseUrl: string, pages: Page[]): RendererObject {
     const defaultRenderer = new Renderer();
-
-    // Add to local scope in order to access in return object
-    const anchorClassName = this.ANCHOR_CLASSNAME;
-    const internalLinkClassName = this.INTERNAL_LINK_CLASSNAME;
 
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     return {
@@ -65,36 +47,100 @@ export class MarkdownService {
         return defaultRenderer.image(href, title, text);
       },
       link(href, title, text) {
-        // is it a portal page URL ?
-        let parsedURL = /\/#!\/settings\/pages\/([\w-]+)/g.exec(href);
-        if (!parsedURL) {
-          // is it a API page URL ?
-          parsedURL = /\/#!\/apis\/(?:[\w-]+)\/documentation\/([\w-]+)/g.exec(href);
+        const parsedSettingsUrl = /\/#!\/settings\/pages\/([\w-]+)/g.exec(href);
+        const parsedApisUrl = /\/#!\/apis\/(?:[\w-]+)\/documentation\/([\w-]+)/g.exec(href);
+        const parsedRelativeDocApiUrl = /\/#!\/documentation\/api\/(.*)#([MARKDOWN|SWAGGER|ASYNCAPI|ASCIIDOC]+)/g.exec(href);
+
+        let pageId: string;
+
+        if (parsedSettingsUrl) {
+          pageId = parsedSettingsUrl[1];
+        } else if (parsedApisUrl) {
+          pageId = parsedApisUrl[1];
+        } else if (parsedRelativeDocApiUrl) {
+          pageId = pageIdFromParsedRelativeDocApiUrl(parsedRelativeDocApiUrl, pages);
         }
 
-        if (parsedURL && pageBaseUrl) {
-          const pageId = parsedURL[1];
-          return `<a class="${internalLinkClassName}" href="${pageBaseUrl}?page=${pageId}">${text}</a>`;
+        if (pageBaseUrl && pageId) {
+          return `<a class="${INTERNAL_LINK_CLASSNAME}" href="${pageBaseUrl}?page=${pageId}">${text}</a>`;
         }
 
         if (href.startsWith('#')) {
-          return `<a class="${anchorClassName}" href="${href}">${text}</a>`;
+          return `<a class="${ANCHOR_CLASSNAME}" href="${href}">${text}</a>`;
         }
 
         return defaultRenderer.link(href, title, text);
       },
     };
   }
-  public render(content: string, baseUrl: string, pageBaseUrl: string): string {
-    marked.use({ renderer: this.renderer(baseUrl, pageBaseUrl) });
+
+  public render(content: string, baseUrl: string, pageBaseUrl: string, pages: Page[]): string {
+    marked.use({ renderer: this.renderer(baseUrl, pageBaseUrl, pages) });
+    marked.use(gfmHeadingId());
+    marked.use(
+      markedHighlight({
+        langPrefix: 'hljs language-',
+        highlight(code, language) {
+          const validLanguage = hljs.getLanguage(language) ? language : 'plaintext';
+          return hljs.highlight(validLanguage, code).value;
+        },
+      }),
+    );
+
     return marked(content) as string;
   }
 
   public getInternalClassName(): string {
-    return this.INTERNAL_LINK_CLASSNAME;
+    return INTERNAL_LINK_CLASSNAME;
   }
 
   public getAnchorClassName(): string {
-    return this.ANCHOR_CLASSNAME;
+    return ANCHOR_CLASSNAME;
   }
 }
+
+const ANCHOR_CLASSNAME = 'anchor';
+const INTERNAL_LINK_CLASSNAME = 'internal-link';
+
+/**
+ * Find the page ID from the parsed url.
+ * If the page is not found, the page name is returned.
+ *
+ * @param parsedDocApiUrl - ex. ['/#!/documentation/api/my/doc%20page#MARKDOWN', 'my/doc%20page', 'MARKDOWN']
+ */
+const pageIdFromParsedRelativeDocApiUrl = (parsedDocApiUrl: RegExpExecArray, pages: Page[]) => {
+  const pagePath = parsedDocApiUrl[1];
+  const pathWithSpaces = pagePath.replace(/%20/g, ' ');
+  const splitPath = pathWithSpaces.split('/');
+  const pageName = splitPath[splitPath.length - 1];
+
+  const pageType = parsedDocApiUrl[2];
+
+  const pageId = findPageId(pageType, undefined, 0, splitPath, pages);
+  return pageId ?? pageName;
+};
+
+/**
+ * Find the page id given the path and name of the page.
+ *
+ * @param finalChildPageType - i.e. MARKDOWN
+ * @param parentId
+ * @param index
+ * @param path
+ * @param pages
+ */
+const findPageId = (finalChildPageType: string, parentId: string, index: number, path: string[], pages: Page[]) => {
+  const findingFinalChildPage = index === path.length - 1;
+  const typeToFind: string = findingFinalChildPage ? finalChildPageType : 'FOLDER';
+
+  const page = pages.find(
+    p => p.name.toLowerCase() === path[index].toLowerCase() && p.type.toString() === typeToFind && p.parent === parentId,
+  );
+
+  // If page not found
+  if (!page) {
+    return undefined;
+  }
+
+  return findingFinalChildPage ? page?.id : findPageId(finalChildPageType, page?.id, index + 1, path, pages);
+};
