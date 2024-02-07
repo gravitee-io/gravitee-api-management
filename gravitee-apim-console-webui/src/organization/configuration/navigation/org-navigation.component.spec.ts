@@ -21,7 +21,7 @@ import { OrgNavigationComponent } from './org-navigation.component';
 
 import { OrganizationSettingsModule } from '../organization-settings.module';
 import { GioHttpTestingModule } from '../../../shared/testing';
-import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
+import { GioPermissionService, GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 
 describe('OrgNavigationComponent', () => {
   let fixture: ComponentFixture<OrgNavigationComponent>;
@@ -36,6 +36,22 @@ describe('OrgNavigationComponent', () => {
           useValue: {
             hasAnyMatching: () => hasAnyMatching,
           },
+        },
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(OrgNavigationComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  }
+
+  function createComponentWithPermissions(permissions: string[]) {
+    TestBed.configureTestingModule({
+      imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule, GioLicenseTestingModule],
+      providers: [
+        {
+          provide: GioTestingPermissionProvider,
+          useValue: permissions,
         },
       ],
     }).compileComponents();
@@ -69,12 +85,12 @@ describe('OrgNavigationComponent', () => {
 
   describe('without any permission', () => {
     beforeEach(() => {
-      createComponent(false);
+      createComponentWithPermissions(['organization-settings-r']);
     });
 
     it('should build group items', () => {
-      expect(component.groupItems.length).toEqual(1);
-      expect(component.groupItems.map((item) => item.title)).toEqual(['Audit']);
+      expect(component.groupItems.length).toEqual(2);
+      expect(component.groupItems.map((item) => item.title)).toEqual(['Console', 'Audit']);
     });
   });
 });

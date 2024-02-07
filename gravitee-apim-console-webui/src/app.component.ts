@@ -13,10 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { GioMenuSearchService } from '@gravitee/ui-particles-angular';
+
+import {
+  ORGANIZATION_MENU_GROUP_ID,
+  OrganizationNavigationService,
+} from './organization/configuration/navigation/organization-navigation.service';
 
 @Component({
   selector: 'app-root',
   template: `<router-outlet></router-outlet>`,
 })
-export class AppComponent {}
+export class AppComponent implements OnInit {
+  constructor(
+    private readonly organizationNavigationService: OrganizationNavigationService,
+    private readonly gioMenuSearchService: GioMenuSearchService,
+  ) {}
+
+  public ngOnInit() {
+    this.gioMenuSearchService.removeMenuSearchItems([ORGANIZATION_MENU_GROUP_ID]);
+    this.gioMenuSearchService.addMenuSearchItems(this.organizationNavigationService.getOrganizationNavigationSearchItems());
+  }
+}
