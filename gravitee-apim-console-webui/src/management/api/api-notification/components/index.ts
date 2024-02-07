@@ -13,14 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export interface NotificationSettings {
-  id?: string;
-  name: string;
-  referenceType: string;
-  referenceId: string;
-  notifier?: string;
-  hooks?: string[];
-  useSystemProxy?: boolean;
-  config_type: string;
-  config?: string;
-}
+
+export * from './notification-add-dialog';
+export * from './notification-edit-dialog';
+export * from './notification-list';

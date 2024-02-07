@@ -78,6 +78,7 @@ import { ApiAuditListComponent } from './api-audit-list/api-audit-list.component
 import { ApiAuditLogsComponent } from './api-audit-logs/api-audit-logs.component';
 import { ApiDynamicPropertiesV4Component } from './properties-v4/dynamic-properties/api-dynamic-properties-v4.component';
 import { ApiDeploymentConfigurationComponent } from './deployment-configuration-v4/api-deployment-configuration.component';
+import { ApiNotificationComponent } from './api-notification/api-notification.component';
 
 import { DocumentationManagementComponent } from '../../components/documentation/documentation-management.component';
 import { DocumentationNewPageComponent } from '../../components/documentation/new-page.component';
@@ -962,6 +963,15 @@ const apisRoutes: Routes = [
           },
           apiPermissions: {
             only: ['api-audit-r'],
+          },
+        },
+      },
+      {
+        path: 'v4/notifications',
+        component: ApiNotificationComponent,
+        data: {
+          apiPermissions: {
+            only: ['api-notification-r'],
           },
         },
       },

@@ -86,7 +86,7 @@ export class ApiV4MenuService implements ApiMenuService {
     if (this.permissionService.hasAnyMatching(['api-notification-r'])) {
       tabs.push({
         displayName: 'Notifications',
-        routerLink: 'DISABLED',
+        routerLink: 'v4/notifications',
         routerLinkActiveOptions: { exact: true },
       });
     }
