@@ -159,7 +159,7 @@
         },
         {
           "name": "--gv-theme-neutral-color-lighter",
-          "description": "Neutral light color",
+          "description": "Neutral lighter color",
           "type": "color",
           "default": "#FAFAFA",
           "value": "#FAFAFA"
