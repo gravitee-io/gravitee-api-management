@@ -31,3 +31,17 @@ export function fakeNotificationSettings(attributes?: Partial<NotificationSettin
     ...attributes,
   };
 }
+
+export function fakePortalNotificationSettings(attributes?: Partial<NotificationSettings>): NotificationSettings {
+  const defaultValue: NotificationSettings = {
+    name: 'Portal Notification',
+    referenceType: 'API',
+    referenceId: 'f1ddf4b5-c23a-33a7-87bf-28ec0a1d9db9',
+    hooks: [],
+    config_type: 'PORTAL',
+  };
+  return {
+    ...defaultValue,
+    ...attributes,
+  };
+}

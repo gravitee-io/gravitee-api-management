@@ -49,6 +49,7 @@ import { ApiAuditListModule } from './api-audit-list/api-audit-list.module';
 import { ApiDynamicPropertiesV4Module } from './properties-v4/dynamic-properties/api-dynamic-properties-v4.module';
 import { ApiDeploymentConfigurationModule } from './deployment-configuration-v4/api-deployment-configuration.module';
 import { ApiAuditLogsModule } from './api-audit-logs/api-audit-logs.module';
+import { ApiNotificationModule } from './api-notification/api-notification.module';
 
 import { SpecificJsonSchemaTypeModule } from '../../shared/components/specific-json-schema-type/specific-json-schema-type.module';
 import { DocumentationModule } from '../../components/documentation/documentation.module';
@@ -88,6 +89,7 @@ import { AlertsModule } from '../../components/alerts/alerts.module';
     ApiResponseTemplatesModule,
     ApiRuntimeLogsV4Module,
     ApiAuditLogsModule,
+    ApiNotificationModule,
     ApiSubscriptionsModule,
     ApiV4PolicyStudioModule,
     ApiUserGroupModule,

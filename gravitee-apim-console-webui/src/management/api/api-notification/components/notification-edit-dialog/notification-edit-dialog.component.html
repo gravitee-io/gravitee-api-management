@@ -1,0 +1,64 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+<h2 mat-dialog-title>Edit {{ notification.name }}</h2>
+
+<form [formGroup]="staticForm" (ngSubmit)="submit()">
+  <mat-dialog-content>
+    <ng-container *ngIf="notifier" formGroupName="notifier">
+      <mat-form-field>
+        <mat-label *ngIf="notifier.type === 'EMAIL'">Email list</mat-label>
+        <mat-label *ngIf="notifier.type === 'WEBHOOK'">Webhook</mat-label>
+        <input matInput formControlName="config" />
+        <mat-hint *ngIf="notifier.type === 'EMAIL'">Use space, ',' or ';' to separate emails. EL supported.</mat-hint>
+        <mat-hint *ngIf="notifier.type === 'WEBHOOK'">URL (Gravitee will POST datas to this url)</mat-hint>
+      </mat-form-field>
+      <div *ngIf="notifier.type === 'WEBHOOK'">
+        <gio-form-slide-toggle>
+          Use system proxy
+          <mat-slide-toggle
+            gioFormSlideToggle
+            formControlName="useSystemProxy"
+            aria-label="Use system proxy"
+            name="useSystemProxy"
+          ></mat-slide-toggle>
+        </gio-form-slide-toggle>
+      </div>
+    </ng-container>
+
+    <div formGroupName="hooks">
+      <h3>Event subscribed</h3>
+
+      <div *ngFor="let category of categories" class="category">
+        <h6>{{ category.name }}</h6>
+
+        <div [formGroupName]="category.name" class="events">
+          <mat-checkbox *ngFor="let hook of category.hooks" [formControlName]="hook.id" [name]="hook.id" class="event">
+            <span class="event__label">{{ hook.label }}</span>
+            <p class="event__description">{{ hook.description }}</p>
+          </mat-checkbox>
+        </div>
+      </div>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="actions">
+    <button mat-flat-button [mat-dialog-close]="" data-testid="cancel-button">Cancel</button>
+    <button mat-raised-button [disabled]="staticForm.invalid" color="primary" type="submit" data-testid="save-button">Save</button>
+  </mat-dialog-actions>
+</form>
