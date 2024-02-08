@@ -132,7 +132,7 @@
         <jsoup.version>1.15.3</jsoup.version>
         <lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
         <lucene.version>9.5.0</lucene.version>
-        <mapstruct.version>1.5.3.Final</mapstruct.version>
+        <mapstruct.version>1.5.5.Final</mapstruct.version>
         <netty-tcnative-boringssl-static.version>2.0.62.Final</netty-tcnative-boringssl-static.version>
         <nimbus-jose-jwt.version>9.31</nimbus-jose-jwt.version>
         <owasp-java-html-sanitizer.version>20211018.2</owasp-java-html-sanitizer.version>
@@ -156,7 +156,7 @@
         <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
         <jacoco-maven-plugin.version>0.8.11</jacoco-maven-plugin.version>
         <os-maven-plugin.version>1.7.0</os-maven-plugin.version>
-        <swagger-maven-plugin.version>>2.2.9</swagger-maven-plugin.version>
+        <swagger-maven-plugin.version>&gt;2.2.9</swagger-maven-plugin.version>
         <maven-plugin-prettier.version>0.19</maven-plugin-prettier.version>
         <maven-plugin-prettier.prettierjava.version>2.1.0</maven-plugin-prettier.prettierjava.version>
         <skip.validation>false</skip.validation>
