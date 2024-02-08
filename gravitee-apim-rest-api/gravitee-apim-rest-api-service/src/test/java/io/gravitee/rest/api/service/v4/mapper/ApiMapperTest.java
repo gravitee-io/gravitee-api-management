@@ -235,7 +235,6 @@ public class ApiMapperTest {
         newApiEntity.setName("name");
         newApiEntity.setApiVersion("version");
         newApiEntity.setType(ApiType.MESSAGE);
-        newApiEntity.setDescription("description");
         newApiEntity.setTags(Set.of("tag"));
         newApiEntity.setGroups(Set.of("group1"));
         newApiEntity.setListeners(List.of(new HttpListener()));
@@ -244,6 +243,10 @@ public class ApiMapperTest {
         newApiEntity.setFlows(List.of(new Flow(), new Flow()));
 
         Api api = apiMapper.toRepository(GraviteeContext.getExecutionContext(), newApiEntity);
+        assertThat(api.getDescription()).isNull();
+
+        newApiEntity.setDescription("description");
+        api = apiMapper.toRepository(GraviteeContext.getExecutionContext(), newApiEntity);
 
         assertThat(api.getId()).isNotNull();
         assertThat(api.getType()).isEqualTo(ApiType.MESSAGE);
@@ -367,7 +370,6 @@ public class ApiMapperTest {
         apiEntity.setApiVersion("version");
         apiEntity.setDefinitionVersion(DefinitionVersion.V4);
         apiEntity.setType(ApiType.MESSAGE);
-        apiEntity.setDescription("description");
         apiEntity.setVisibility(io.gravitee.rest.api.model.Visibility.PUBLIC);
         apiEntity.setTags(Set.of("tag1", "tag2"));
         apiEntity.setPicture("my-picture");
@@ -397,6 +399,10 @@ public class ApiMapperTest {
             .thenReturn(List.of(existingCategoryByIdEntity, existingCategoryByKeyEntity));
 
         Api api = apiMapper.toRepository(GraviteeContext.getExecutionContext(), apiEntity);
+        assertThat(api.getDescription()).isNull();
+
+        apiEntity.setDescription("description");
+        api = apiMapper.toRepository(GraviteeContext.getExecutionContext(), apiEntity);
 
         assertThat(api.getId()).isEqualTo("id");
         assertThat(api.getEnvironmentId()).isEqualTo("DEFAULT");
