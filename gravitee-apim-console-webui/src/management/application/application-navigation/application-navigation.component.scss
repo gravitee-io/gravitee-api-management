@@ -18,6 +18,7 @@
 @use '@gravitee/ui-particles-angular' as gio;
 
 $textColor: map.get(gio.$mat-dove-palette, default);
+$borderColor: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter80');
 
 .application-navigation {
   height: 100%;
@@ -45,6 +46,8 @@ $textColor: map.get(gio.$mat-dove-palette, default);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      border-bottom: 1px solid $borderColor;
+      padding: 0 8px 20px;
     }
   }
 

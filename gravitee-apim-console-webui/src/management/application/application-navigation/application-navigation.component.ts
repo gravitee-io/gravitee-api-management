@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { GioMenuService } from '@gravitee/ui-particles-angular';
+import { GioMenuSearchService, GioMenuService, MenuSearchItem } from '@gravitee/ui-particles-angular';
 import { Subject } from 'rxjs';
 import { startWith, takeUntil } from 'rxjs/operators';
 import { castArray, flatMap } from 'lodash';
 import { ActivatedRoute, Router } from '@angular/router';
 
+import { cleanRouterLink, getPathFromRoot } from '../../../util/router-link.util';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { Application } from '../../../entities/application/application';
 import { ApplicationService } from '../../../services-ngx/application.service';
@@ -56,6 +58,7 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
     private readonly permissionService: GioPermissionService,
     private readonly gioMenuService: GioMenuService,
     private readonly applicationService: ApplicationService,
+    private readonly gioMenuSearchService: GioMenuSearchService,
   ) {}
 
   ngOnInit() {
@@ -121,6 +124,8 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
       },
     ]);
 
+    this.gioMenuSearchService.addMenuSearchItems(this.getApplicationNavigationSearchItems());
+
     this.router.events.pipe(startWith({}), takeUntil(this.unsubscribe$)).subscribe(() => {
       this.selectedItemWithTabs = this.subMenuItems.find((item) => item.tabs && this.isTabActive(item.tabs));
     });
@@ -129,13 +134,7 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.unsubscribe$.next();
     this.unsubscribe$.unsubscribe();
-  }
-
-  private filterMenuByPermission(menuItems: MenuItem[]): MenuItem[] {
-    if (menuItems) {
-      return menuItems.filter((item) => !item.permissions || this.permissionService.hasAnyMatching(item.permissions));
-    }
-    return [];
+    this.gioMenuSearchService.removeMenuSearchItems([this.activatedRoute.snapshot.params.applicationId]);
   }
 
   isActive(item: MenuItem): boolean {
@@ -154,7 +153,7 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
       });
   }
 
-  public computeBreadcrumbItems(): string[] {
+  computeBreadcrumbItems(): string[] {
     const breadcrumbItems: string[] = [];
 
     this.subMenuItems.forEach((item) => {
@@ -168,5 +167,38 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
 
   isTabActive(tabs: MenuItem[]): boolean {
     return flatMap(tabs, (tab) => tab).some((tab) => this.isActive(tab));
+  }
+
+  private filterMenuByPermission(menuItems: MenuItem[]): MenuItem[] {
+    if (menuItems) {
+      return menuItems.filter((item) => !item.permissions || this.permissionService.hasAnyMatching(item.permissions));
+    }
+    return [];
+  }
+
+  private getApplicationNavigationSearchItems(): MenuSearchItem[] {
+    const environmentId = this.activatedRoute.snapshot.params.envId;
+    const applicationId = this.activatedRoute.snapshot.params.applicationId;
+    const parentRouterLink = getPathFromRoot(this.activatedRoute);
+
+    return this.subMenuItems.reduce((acc: MenuSearchItem[], item: MenuItem) => {
+      acc.push({
+        name: item.displayName,
+        routerLink: `${parentRouterLink}/${cleanRouterLink(item.routerLink)}`,
+        category: `Applications`,
+        groupIds: [environmentId, applicationId],
+      });
+
+      item.tabs?.forEach((tab) => {
+        acc.push({
+          name: tab.displayName,
+          routerLink: `${parentRouterLink}/${cleanRouterLink(tab.routerLink)}`,
+          category: `Applications / ${item.displayName}`,
+          groupIds: [environmentId, applicationId],
+        });
+      });
+
+      return acc;
+    }, []);
   }
 }
