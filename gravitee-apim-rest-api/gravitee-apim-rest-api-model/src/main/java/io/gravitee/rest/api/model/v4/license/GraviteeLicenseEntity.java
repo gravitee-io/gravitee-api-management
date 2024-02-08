@@ -41,4 +41,6 @@ public class GraviteeLicenseEntity {
     private Set<String> features = Set.of();
 
     private Date expiresAt;
+
+    private String scope;
 }

@@ -34,6 +34,7 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
+import java.util.Objects;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -75,6 +76,7 @@ public class OrganizationResource extends AbstractResource {
                 .packs(license.getPacks())
                 .features(license.getFeatures())
                 .expiresAt(license.getExpirationDate())
+                .scope(license.getReferenceType())
                 .build()
         );
     }

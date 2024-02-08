@@ -51,6 +51,7 @@ public class GraviteeLicenseResourceTest extends AbstractResourceTest {
         when(license.getTier()).thenReturn("universe");
         when(license.getPacks()).thenReturn(Set.of("observability"));
         when(license.getFeatures()).thenReturn(Set.of("apim-reporter-datadog"));
+        when(license.getReferenceType()).thenReturn("PLATFORM");
 
         var now = Instant.now();
         var nowDate = Date.from(now);
@@ -65,5 +66,6 @@ public class GraviteeLicenseResourceTest extends AbstractResourceTest {
         assertThat(graviteeLicense.getPacks()).containsExactly("observability");
         assertThat(graviteeLicense.getFeatures()).containsExactly("apim-reporter-datadog");
         assertThat(graviteeLicense.getExpiresAt().toInstant().toEpochMilli()).isEqualTo(now.toEpochMilli());
+        assertThat(graviteeLicense.getScope()).isEqualTo("PLATFORM");
     }
 }
