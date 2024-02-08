@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.infra.notification;
 
+import static fixtures.core.model.MembershipFixtures.anApiPrimaryOwnerUserMembership;
+import static fixtures.core.model.MembershipFixtures.anApplicationPrimaryOwnerUserMembership;
 import static fixtures.repository.ApiFixtures.anApi;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -24,10 +26,14 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 
 import inmemory.ApiMetadataQueryServiceInMemory;
-import inmemory.PrimaryOwnerDomainServiceInMemory;
+import inmemory.GroupQueryServiceInMemory;
+import inmemory.MembershipQueryServiceInMemory;
+import inmemory.RoleQueryServiceInMemory;
+import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api.model.ApiMetadata;
+import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
+import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
-import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity.Type;
 import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
 import io.gravitee.apim.core.notification.model.ApiNotificationTemplateData;
 import io.gravitee.apim.core.notification.model.ApplicationNotificationTemplateData;
@@ -38,6 +44,7 @@ import io.gravitee.apim.core.notification.model.SubscriptionNotificationTemplate
 import io.gravitee.apim.core.notification.model.hook.ApiHookContext;
 import io.gravitee.apim.core.notification.model.hook.ApplicationHookContext;
 import io.gravitee.apim.core.notification.model.hook.HookContextEntry;
+import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.notification.internal.TemplateDataFetcher;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -80,6 +87,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class TriggerNotificationDomainServiceFacadeImplTest {
 
     public static final String ORGANIZATION_ID = "DEFAULT";
+    public static final String USER_ID = "user-id";
+    public static final String USER_ID_2 = "user-id-2";
+    public static final String API_ID = "api-id";
+    public static final String APPLICATION_ID = "application-id";
 
     @Mock
     NotifierService notifierService;
@@ -96,7 +107,9 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
     @Mock
     SubscriptionRepository subscriptionRepository;
 
-    PrimaryOwnerDomainServiceInMemory primaryOwnerDomainService = new PrimaryOwnerDomainServiceInMemory();
+    MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory();
+    RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
+    UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
 
     ApiMetadataQueryServiceInMemory apiMetadataQueryService = new ApiMetadataQueryServiceInMemory();
 
@@ -115,12 +128,30 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                     applicationRepository,
                     planRepository,
                     subscriptionRepository,
-                    primaryOwnerDomainService,
-                    primaryOwnerDomainService,
+                    new ApiPrimaryOwnerDomainService(
+                        new GroupQueryServiceInMemory(),
+                        membershipQueryService,
+                        roleQueryService,
+                        userCrudService
+                    ),
+                    new ApplicationPrimaryOwnerDomainService(
+                        new GroupQueryServiceInMemory(),
+                        membershipQueryService,
+                        roleQueryService,
+                        userCrudService
+                    ),
                     apiMetadataQueryService,
                     new FreemarkerTemplateProcessor()
                 )
             );
+
+        roleQueryService.resetSystemRoles(ORGANIZATION_ID);
+        userCrudService.initWith(
+            List.of(
+                BaseUserEntity.builder().id(USER_ID).firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build(),
+                BaseUserEntity.builder().id(USER_ID_2).firstname("Jen").lastname("Doe").email("jen.doe@gravitee.io").build()
+            )
+        );
     }
 
     @AfterEach
@@ -134,13 +165,10 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
         @Test
         public void should_fetch_api_notification_data() {
             // Given
-            givenExistingApi(
-                anApi().withId("api-id"),
-                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type(Type.USER).build()
-            );
+            givenExistingApi(anApi().withId(API_ID), PrimaryOwnerEntity.builder().id(USER_ID).build());
 
             // When
-            final SimpleApiHookContextForTest apiHookContext = new SimpleApiHookContextForTest("api-id");
+            final SimpleApiHookContextForTest apiHookContext = new SimpleApiHookContextForTest(API_ID);
             service.triggerApiNotification(ORGANIZATION_ID, apiHookContext);
 
             // Then
@@ -148,7 +176,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                 .trigger(
                     eq(new ExecutionContext(ORGANIZATION_ID, null)),
                     eq(ApiHook.SUBSCRIPTION_CLOSED),
-                    eq("api-id"),
+                    eq(API_ID),
                     paramsCaptor.capture()
                 );
             var params = paramsCaptor.getValue();
@@ -157,7 +185,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                     "api",
                     ApiNotificationTemplateData
                         .builder()
-                        .id("api-id")
+                        .id(API_ID)
                         .name("api-name")
                         .description("api-description")
                         .apiVersion("api-version")
@@ -168,7 +196,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                         .primaryOwner(
                             PrimaryOwnerNotificationTemplateData
                                 .builder()
-                                .id("user-id")
+                                .id(USER_ID)
                                 .email("jane.doe@gravitee.io")
                                 .displayName("Jane Doe")
                                 .type("USER")
@@ -183,8 +211,8 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
         public void should_fetch_api_notification_data_with_metadata() {
             // Given
             givenExistingApi(
-                anApi().withId("api-id"),
-                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type(Type.USER).build(),
+                anApi().withId(API_ID),
+                PrimaryOwnerEntity.builder().id(USER_ID).build(),
                 List.of(
                     ApiMetadata.builder().key("key1").value("value1").format(MetadataFormat.STRING).build(),
                     ApiMetadata.builder().key("null_key").value(null).format(MetadataFormat.STRING).build(),
@@ -193,7 +221,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             );
 
             // When
-            final SimpleApiHookContextForTest apiHookContext = new SimpleApiHookContextForTest("api-id");
+            final SimpleApiHookContextForTest apiHookContext = new SimpleApiHookContextForTest(API_ID);
             service.triggerApiNotification(ORGANIZATION_ID, apiHookContext);
 
             // Then
@@ -201,7 +229,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                 .trigger(
                     eq(new ExecutionContext(ORGANIZATION_ID, null)),
                     eq(ApiHook.SUBSCRIPTION_CLOSED),
-                    eq("api-id"),
+                    eq(API_ID),
                     paramsCaptor.capture()
                 );
             var params = paramsCaptor.getValue();
@@ -210,7 +238,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                     "api",
                     ApiNotificationTemplateData
                         .builder()
-                        .id("api-id")
+                        .id(API_ID)
                         .name("api-name")
                         .description("api-description")
                         .apiVersion("api-version")
@@ -221,7 +249,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                         .primaryOwner(
                             PrimaryOwnerNotificationTemplateData
                                 .builder()
-                                .id("user-id")
+                                .id(USER_ID)
                                 .email("jane.doe@gravitee.io")
                                 .displayName("Jane Doe")
                                 .type("USER")
@@ -235,14 +263,11 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
         @Test
         public void should_fetch_application_notification_data() {
             // Given
-            givenExistingApi(
-                anApi().withId("api-id"),
-                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type(Type.USER).build()
-            );
+            givenExistingApi(anApi().withId(API_ID), PrimaryOwnerEntity.builder().id(USER_ID).build());
             givenExistingApplication(
                 Application
                     .builder()
-                    .id("application-id")
+                    .id(APPLICATION_ID)
                     .name("application-name")
                     .type(ApplicationType.SIMPLE)
                     .status(ApplicationStatus.ACTIVE)
@@ -251,13 +276,13 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                     .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
                     .apiKeyMode(ApiKeyMode.SHARED)
                     .build(),
-                PrimaryOwnerEntity.builder().id("user-2").displayName("Jen Doe").email("jen.doe@gravitee.io").type(Type.USER).build()
+                PrimaryOwnerEntity.builder().id(USER_ID_2).build()
             );
 
             // When
             final SimpleApiHookContextForTest apiHookContext = new SimpleApiHookContextForTest(
-                "api-id",
-                Map.of(HookContextEntry.APPLICATION_ID, "application-id")
+                API_ID,
+                Map.of(HookContextEntry.APPLICATION_ID, APPLICATION_ID)
             );
             service.triggerApiNotification(ORGANIZATION_ID, apiHookContext);
 
@@ -266,7 +291,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                 .trigger(
                     eq(new ExecutionContext(ORGANIZATION_ID, null)),
                     eq(ApiHook.SUBSCRIPTION_CLOSED),
-                    eq("api-id"),
+                    eq(API_ID),
                     paramsCaptor.capture()
                 );
             var params = paramsCaptor.getValue();
@@ -284,7 +309,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                         .primaryOwner(
                             PrimaryOwnerNotificationTemplateData
                                 .builder()
-                                .id("user-2")
+                                .id(USER_ID_2)
                                 .email("jen.doe@gravitee.io")
                                 .displayName("Jen Doe")
                                 .type("USER")
@@ -298,16 +323,13 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
         @Test
         public void should_fetch_plan_notification_data() {
             // Given
-            givenExistingApi(
-                anApi().withId("api-id"),
-                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type(Type.USER).build()
-            );
+            givenExistingApi(anApi().withId(API_ID), PrimaryOwnerEntity.builder().id(USER_ID).build());
 
             givenExistingPlan(
                 Plan
                     .builder()
                     .id("plan-id")
-                    .api("api-id")
+                    .api(API_ID)
                     .name("plan")
                     .description("plan-description")
                     .order(1)
@@ -323,7 +345,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             );
             // When
             final SimpleApiHookContextForTest apiHookContext = new SimpleApiHookContextForTest(
-                "api-id",
+                API_ID,
                 Map.of(HookContextEntry.PLAN_ID, "plan-id")
             );
             service.triggerApiNotification(ORGANIZATION_ID, apiHookContext);
@@ -333,7 +355,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                 .trigger(
                     eq(new ExecutionContext(ORGANIZATION_ID, null)),
                     eq(ApiHook.SUBSCRIPTION_CLOSED),
-                    eq("api-id"),
+                    eq(API_ID),
                     paramsCaptor.capture()
                 );
             var params = paramsCaptor.getValue();
@@ -360,16 +382,13 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
         @Test
         public void should_fetch_push_plan_notification_data() {
             // Given
-            givenExistingApi(
-                anApi().withId("api-id"),
-                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type(Type.USER).build()
-            );
+            givenExistingApi(anApi().withId(API_ID), PrimaryOwnerEntity.builder().id(USER_ID).build());
 
             givenExistingPlan(
                 Plan
                     .builder()
                     .id("plan-id")
-                    .api("api-id")
+                    .api(API_ID)
                     .name("plan")
                     .description("plan-description")
                     .order(1)
@@ -384,7 +403,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             );
             // When
             final SimpleApiHookContextForTest apiHookContext = new SimpleApiHookContextForTest(
-                "api-id",
+                API_ID,
                 Map.of(HookContextEntry.PLAN_ID, "plan-id")
             );
             service.triggerApiNotification(ORGANIZATION_ID, apiHookContext);
@@ -394,7 +413,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                 .trigger(
                     eq(new ExecutionContext(ORGANIZATION_ID, null)),
                     eq(ApiHook.SUBSCRIPTION_CLOSED),
-                    eq("api-id"),
+                    eq(API_ID),
                     paramsCaptor.capture()
                 );
             var params = paramsCaptor.getValue();
@@ -420,15 +439,12 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
         @Test
         public void should_fetch_subscription_notification_data() {
             // Given
-            givenExistingApi(
-                anApi().withId("api-id"),
-                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type(Type.USER).build()
-            );
+            givenExistingApi(anApi().withId(API_ID), PrimaryOwnerEntity.builder().id(USER_ID).build());
 
             givenExistingSubscription(Subscription.builder().id("subscription-id").request("my-request").reason("my-reason").build());
             // When
             final SimpleApiHookContextForTest apiHookContext = new SimpleApiHookContextForTest(
-                "api-id",
+                API_ID,
                 Map.of(HookContextEntry.SUBSCRIPTION_ID, "subscription-id")
             );
             service.triggerApiNotification(ORGANIZATION_ID, apiHookContext);
@@ -438,7 +454,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                 .trigger(
                     eq(new ExecutionContext(ORGANIZATION_ID, null)),
                     eq(ApiHook.SUBSCRIPTION_CLOSED),
-                    eq("api-id"),
+                    eq(API_ID),
                     paramsCaptor.capture()
                 );
             var params = paramsCaptor.getValue();
@@ -478,7 +494,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             givenExistingApplication(
                 Application
                     .builder()
-                    .id("application-id")
+                    .id(APPLICATION_ID)
                     .name("application-name")
                     .type(ApplicationType.SIMPLE)
                     .status(ApplicationStatus.ACTIVE)
@@ -487,11 +503,11 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                     .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
                     .apiKeyMode(ApiKeyMode.SHARED)
                     .build(),
-                PrimaryOwnerEntity.builder().id("user-2").displayName("Jen Doe").email("jen.doe@gravitee.io").type(Type.USER).build()
+                PrimaryOwnerEntity.builder().id(USER_ID_2).build()
             );
 
             // When
-            final SimpleApplicationHookContextForTest applicationHookContext = new SimpleApplicationHookContextForTest("application-id");
+            final SimpleApplicationHookContextForTest applicationHookContext = new SimpleApplicationHookContextForTest(APPLICATION_ID);
             service.triggerApplicationNotification(ORGANIZATION_ID, applicationHookContext);
 
             // Then
@@ -499,7 +515,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                 .trigger(
                     eq(new ExecutionContext(ORGANIZATION_ID, null)),
                     eq(ApplicationHook.SUBSCRIPTION_CLOSED),
-                    eq("application-id"),
+                    eq(APPLICATION_ID),
                     paramsCaptor.capture(),
                     eq(Collections.emptyList())
                 );
@@ -518,7 +534,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                         .primaryOwner(
                             PrimaryOwnerNotificationTemplateData
                                 .builder()
-                                .id("user-2")
+                                .id(USER_ID_2)
                                 .email("jen.doe@gravitee.io")
                                 .displayName("Jen Doe")
                                 .type("USER")
@@ -535,7 +551,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             givenExistingApplication(
                 Application
                     .builder()
-                    .id("application-id")
+                    .id(APPLICATION_ID)
                     .name("application-name")
                     .description("application-description")
                     .type(ApplicationType.SIMPLE)
@@ -544,17 +560,14 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                     .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
                     .apiKeyMode(ApiKeyMode.SHARED)
                     .build(),
-                PrimaryOwnerEntity.builder().id("user-2").displayName("Jen Doe").email("jen.doe@gravitee.io").type(Type.USER).build()
+                PrimaryOwnerEntity.builder().id(USER_ID_2).build()
             );
-            givenExistingApi(
-                anApi().withId("api-id"),
-                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type(Type.USER).build()
-            );
+            givenExistingApi(anApi().withId(API_ID), PrimaryOwnerEntity.builder().id(USER_ID).build());
 
             // When
             final SimpleApplicationHookContextForTest applicationHookContext = new SimpleApplicationHookContextForTest(
-                "application-id",
-                Map.of(HookContextEntry.API_ID, "api-id")
+                APPLICATION_ID,
+                Map.of(HookContextEntry.API_ID, API_ID)
             );
             service.triggerApplicationNotification(ORGANIZATION_ID, applicationHookContext);
 
@@ -563,7 +576,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                 .trigger(
                     eq(new ExecutionContext(ORGANIZATION_ID, null)),
                     eq(ApplicationHook.SUBSCRIPTION_CLOSED),
-                    eq("application-id"),
+                    eq(APPLICATION_ID),
                     paramsCaptor.capture(),
                     eq(Collections.emptyList())
                 );
@@ -573,7 +586,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                     "api",
                     ApiNotificationTemplateData
                         .builder()
-                        .id("api-id")
+                        .id(API_ID)
                         .name("api-name")
                         .description("api-description")
                         .apiVersion("api-version")
@@ -584,7 +597,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                         .primaryOwner(
                             PrimaryOwnerNotificationTemplateData
                                 .builder()
-                                .id("user-id")
+                                .id(USER_ID)
                                 .email("jane.doe@gravitee.io")
                                 .displayName("Jane Doe")
                                 .type("USER")
@@ -599,8 +612,8 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
         public void should_fetch_api_notification_data_with_metadata() {
             // Given
             givenExistingApi(
-                anApi().withId("api-id"),
-                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type(Type.USER).build(),
+                anApi().withId(API_ID),
+                PrimaryOwnerEntity.builder().id(USER_ID).build(),
                 List.of(
                     ApiMetadata.builder().key("key1").value("value1").format(MetadataFormat.STRING).build(),
                     ApiMetadata.builder().key("null_key").value(null).format(MetadataFormat.STRING).build(),
@@ -610,8 +623,8 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
 
             // When
             final SimpleApplicationHookContextForTest applicationHookContext = new SimpleApplicationHookContextForTest(
-                "application-id",
-                Map.of(HookContextEntry.API_ID, "api-id")
+                APPLICATION_ID,
+                Map.of(HookContextEntry.API_ID, API_ID)
             );
             service.triggerApplicationNotification(ORGANIZATION_ID, applicationHookContext);
 
@@ -620,7 +633,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                 .trigger(
                     eq(new ExecutionContext(ORGANIZATION_ID, null)),
                     eq(ApplicationHook.SUBSCRIPTION_CLOSED),
-                    eq("application-id"),
+                    eq(APPLICATION_ID),
                     paramsCaptor.capture(),
                     eq(Collections.emptyList())
                 );
@@ -630,7 +643,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                     "api",
                     ApiNotificationTemplateData
                         .builder()
-                        .id("api-id")
+                        .id(API_ID)
                         .name("api-name")
                         .description("api-description")
                         .apiVersion("api-version")
@@ -641,7 +654,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                         .primaryOwner(
                             PrimaryOwnerNotificationTemplateData
                                 .builder()
-                                .id("user-id")
+                                .id(USER_ID)
                                 .email("jane.doe@gravitee.io")
                                 .displayName("Jane Doe")
                                 .type("USER")
@@ -655,16 +668,13 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
         @Test
         public void should_fetch_plan_notification_data() {
             // Given
-            givenExistingApi(
-                anApi().withId("api-id"),
-                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type(Type.USER).build()
-            );
+            givenExistingApi(anApi().withId(API_ID), PrimaryOwnerEntity.builder().id(USER_ID).build());
 
             givenExistingPlan(
                 Plan
                     .builder()
                     .id("plan-id")
-                    .api("api-id")
+                    .api(API_ID)
                     .name("plan")
                     .description("plan-description")
                     .order(1)
@@ -680,7 +690,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             );
             // When
             final SimpleApplicationHookContextForTest applicationHookContext = new SimpleApplicationHookContextForTest(
-                "application-id",
+                APPLICATION_ID,
                 Map.of(HookContextEntry.PLAN_ID, "plan-id")
             );
             service.triggerApplicationNotification(ORGANIZATION_ID, applicationHookContext);
@@ -690,7 +700,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                 .trigger(
                     eq(new ExecutionContext(ORGANIZATION_ID, null)),
                     eq(ApplicationHook.SUBSCRIPTION_CLOSED),
-                    eq("application-id"),
+                    eq(APPLICATION_ID),
                     paramsCaptor.capture(),
                     eq(Collections.emptyList())
                 );
@@ -718,16 +728,13 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
         @Test
         public void should_fetch_push_plan_notification_data() {
             // Given
-            givenExistingApi(
-                anApi().withId("api-id"),
-                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type(Type.USER).build()
-            );
+            givenExistingApi(anApi().withId(API_ID), PrimaryOwnerEntity.builder().id(USER_ID).build());
 
             givenExistingPlan(
                 Plan
                     .builder()
                     .id("plan-id")
-                    .api("api-id")
+                    .api(API_ID)
                     .name("plan")
                     .description("plan-description")
                     .order(1)
@@ -742,7 +749,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             );
             // When
             final SimpleApplicationHookContextForTest applicationHookContext = new SimpleApplicationHookContextForTest(
-                "application-id",
+                APPLICATION_ID,
                 Map.of(HookContextEntry.PLAN_ID, "plan-id")
             );
             service.triggerApplicationNotification(ORGANIZATION_ID, applicationHookContext);
@@ -752,7 +759,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                 .trigger(
                     eq(new ExecutionContext(ORGANIZATION_ID, null)),
                     eq(ApplicationHook.SUBSCRIPTION_CLOSED),
-                    eq("application-id"),
+                    eq(APPLICATION_ID),
                     paramsCaptor.capture(),
                     eq(Collections.emptyList())
                 );
@@ -779,17 +786,11 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
         @Test
         public void should_fetch_subscription_notification_data() {
             // Given
-            givenExistingApi(
-                anApi().withId("api-id"),
-                PrimaryOwnerEntity.builder().id("user-id").displayName("Jane Doe").email("jane.doe@gravitee.io").type(Type.USER).build()
-            );
+            givenExistingApi(anApi().withId(API_ID), PrimaryOwnerEntity.builder().id(USER_ID).build());
 
             givenExistingSubscription(Subscription.builder().id("subscription-id").request("my-request").reason("my-reason").build());
             // When
-            var hook = new SimpleApplicationHookContextForTest(
-                "application-id",
-                Map.of(HookContextEntry.SUBSCRIPTION_ID, "subscription-id")
-            );
+            var hook = new SimpleApplicationHookContextForTest(APPLICATION_ID, Map.of(HookContextEntry.SUBSCRIPTION_ID, "subscription-id"));
             service.triggerApplicationNotification(ORGANIZATION_ID, hook);
 
             // Then
@@ -797,7 +798,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                 .trigger(
                     eq(new ExecutionContext(ORGANIZATION_ID, null)),
                     eq(ApplicationHook.SUBSCRIPTION_CLOSED),
-                    eq("application-id"),
+                    eq(APPLICATION_ID),
                     paramsCaptor.capture(),
                     eq(Collections.emptyList())
                 );
@@ -815,7 +816,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
             givenExistingApplication(
                 Application
                     .builder()
-                    .id("application-id")
+                    .id(APPLICATION_ID)
                     .name("application-name")
                     .type(ApplicationType.SIMPLE)
                     .status(ApplicationStatus.ACTIVE)
@@ -824,11 +825,11 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                     .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
                     .apiKeyMode(ApiKeyMode.SHARED)
                     .build(),
-                PrimaryOwnerEntity.builder().id("user-2").displayName("Jen Doe").email("jen.doe@gravitee.io").type(Type.USER).build()
+                PrimaryOwnerEntity.builder().id(USER_ID_2).build()
             );
 
             // When
-            final SimpleApplicationHookContextForTest applicationHookContext = new SimpleApplicationHookContextForTest("application-id");
+            final SimpleApplicationHookContextForTest applicationHookContext = new SimpleApplicationHookContextForTest(APPLICATION_ID);
             List<Recipient> additionalRecipients = List.of(new Recipient("EMAIL", "user@gravitee.io"));
             service.triggerApplicationNotification(ORGANIZATION_ID, applicationHookContext, additionalRecipients);
 
@@ -837,7 +838,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                 .trigger(
                     eq(new ExecutionContext(ORGANIZATION_ID, null)),
                     eq(ApplicationHook.SUBSCRIPTION_CLOSED),
-                    eq("application-id"),
+                    eq(APPLICATION_ID),
                     paramsCaptor.capture(),
                     same(additionalRecipients)
                 );
@@ -856,7 +857,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                         .primaryOwner(
                             PrimaryOwnerNotificationTemplateData
                                 .builder()
-                                .id("user-2")
+                                .id(USER_ID_2)
                                 .email("jen.doe@gravitee.io")
                                 .displayName("Jen Doe")
                                 .type("USER")
@@ -897,7 +898,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
         lenient().when(apiRepository.findById(any())).thenReturn(Optional.empty());
         lenient().when(apiRepository.findById(api.getId())).thenReturn(Optional.of(api));
 
-        primaryOwnerDomainService.add(api.getId(), primaryOwnerEntity);
+        membershipQueryService.initWith(List.of(anApiPrimaryOwnerUserMembership(API_ID, primaryOwnerEntity.id(), ORGANIZATION_ID)));
 
         apiMetadataQueryService.initWith(List.of(Map.entry(api.getId(), metadata)));
     }
@@ -907,7 +908,9 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
         lenient().when(applicationRepository.findById(any())).thenReturn(Optional.empty());
         lenient().when(applicationRepository.findById(eq(application.getId()))).thenReturn(Optional.of(application));
 
-        primaryOwnerDomainService.add(application.getId(), primaryOwnerEntity);
+        membershipQueryService.initWith(
+            List.of(anApplicationPrimaryOwnerUserMembership(APPLICATION_ID, primaryOwnerEntity.id(), ORGANIZATION_ID))
+        );
     }
 
     @SneakyThrows

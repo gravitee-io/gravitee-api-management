@@ -22,7 +22,7 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.apim.core.api.domain_service.ApiPrimaryOwnerDomainService;
+import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipEntity;

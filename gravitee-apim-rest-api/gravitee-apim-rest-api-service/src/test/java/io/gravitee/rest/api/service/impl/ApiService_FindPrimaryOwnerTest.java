@@ -21,7 +21,7 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import io.gravitee.apim.core.api.domain_service.ApiPrimaryOwnerDomainService;
+import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.UserEntity;
