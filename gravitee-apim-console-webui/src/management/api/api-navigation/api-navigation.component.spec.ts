@@ -18,18 +18,19 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { LICENSE_CONFIGURATION_TESTING } from '@gravitee/ui-particles-angular';
+import { GioMenuSearchService, LICENSE_CONFIGURATION_TESTING } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute } from '@angular/router';
 
 import { ApiNavigationModule } from './api-navigation.module';
 import { ApiNavigationComponent } from './api-navigation.component';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
-import { fakeApiV1, fakeApiV4 } from '../../../entities/management-api-v2';
-import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
+import { Api, fakeApiV1, fakeApiV2, fakeApiV4 } from '../../../entities/management-api-v2';
+import { GioPermissionService, GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiNavigationComponent', () => {
   const API_ID = 'apiId';
+  const ENVIRONMENT_ID = 'envid';
 
   let fixture: ComponentFixture<ApiNavigationComponent>;
   let apiNgNavigationComponent: ApiNavigationComponent;
@@ -47,11 +48,8 @@ describe('ApiNavigationComponent', () => {
           {
             provide: ActivatedRoute,
             useValue: {
-              snapshot: {
-                params: {
-                  apiId: API_ID,
-                },
-              },
+              snapshot: { params: { apiId: API_ID, envId: ENVIRONMENT_ID } },
+              pathFromRoot: [{ snapshot: { url: { path: `${ENVIRONMENT_ID}/apis/${API_ID}` } } }],
             },
           },
           {
@@ -160,4 +158,130 @@ describe('ApiNavigationComponent', () => {
       });
     });
   });
+
+  describe('side nave search items', () => {
+    let addSearchItemByGroupIds: jest.SpyInstance;
+    const menuSearchService = new GioMenuSearchService();
+
+    beforeEach(async () => {
+      addSearchItemByGroupIds = jest.spyOn(menuSearchService, 'addMenuSearchItems');
+
+      await TestBed.configureTestingModule({
+        imports: [ApiNavigationModule, MatIconTestingModule, NoopAnimationsModule, GioHttpTestingModule],
+        providers: [
+          {
+            provide: ActivatedRoute,
+            useValue: {
+              snapshot: { params: { apiId: API_ID, envId: ENVIRONMENT_ID } },
+              pathFromRoot: [{ snapshot: { url: { path: `${ENVIRONMENT_ID}/apis/${API_ID}` } } }],
+            },
+          },
+          {
+            provide: GioPermissionService,
+            useValue: {
+              hasAnyMatching: () => true,
+            },
+          },
+          { provide: 'Constants', useValue: CONSTANTS_TESTING },
+          { provide: 'LicenseConfiguration', useValue: LICENSE_CONFIGURATION_TESTING },
+          { provide: GioMenuSearchService, useValue: menuSearchService },
+        ],
+      }).compileComponents();
+
+      fixture = TestBed.createComponent(ApiNavigationComponent);
+      apiNgNavigationComponent = await fixture.componentInstance;
+      httpTestingController = TestBed.inject(HttpTestingController);
+    });
+
+    it('should compute menu search items for V4 API', async () => {
+      fixture.detectChanges();
+      expectApiGetRequest(fakeApiV4({ id: API_ID }));
+
+      expect(addSearchItemByGroupIds).toHaveBeenCalledTimes(1);
+      expect(addSearchItemByGroupIds).toHaveBeenCalledWith(
+        expect.arrayContaining(
+          [
+            'Configuration',
+            'General',
+            'User Permissions',
+            'Resources',
+            'Audit Logs',
+            'Entrypoints',
+            'Response Templates',
+            'Cors',
+            'Endpoints',
+            'Endpoints',
+            'Consumers',
+            'Plans',
+            'Subscriptions',
+            'Documentation',
+            'Pages',
+            'Deployment',
+            'Configuration',
+            'Policies',
+            'API Traffic',
+            'Runtime Logs',
+            'Settings',
+            'Properties',
+            'Dynamic properties',
+          ].map((name) =>
+            expect.objectContaining({
+              name,
+              routerLink: expect.not.stringContaining('./') && expect.stringContaining(`${ENVIRONMENT_ID}/apis/${API_ID}/`),
+            }),
+          ),
+        ),
+      );
+    });
+
+    it('should compute menu search items for V2 API', async () => {
+      fixture.detectChanges();
+      expectApiGetRequest(fakeApiV2({ id: API_ID }));
+
+      expect(addSearchItemByGroupIds).toHaveBeenCalledTimes(1);
+      expect(addSearchItemByGroupIds).toHaveBeenCalledWith(
+        expect.arrayContaining(
+          [
+            'Policy Studio',
+            'Messages',
+            'Info',
+            'Plans',
+            'Subscriptions',
+            'Documentation',
+            'Pages',
+            'Metadata',
+            'User and group access',
+            'Members',
+            'Entrypoints',
+            'CORS',
+            'Deployments',
+            'Response Templates',
+            'Properties',
+            'Dynamic properties',
+            'Resources',
+            'Endpoints',
+            'Failover',
+            'Health-check',
+            'Health-check dashboard',
+            'Overview',
+            'Logs',
+            'Path mappings',
+            'Audit',
+            'History',
+            'Events',
+            'Notification settings',
+          ].map((name) =>
+            expect.objectContaining({
+              name,
+              routerLink: expect.not.stringContaining('./') && expect.stringContaining(`${ENVIRONMENT_ID}/apis/${API_ID}/`),
+            }),
+          ),
+        ),
+      );
+    });
+  });
+
+  function expectApiGetRequest(api: Api) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
+  }
 });

@@ -44,10 +44,6 @@ $textColor: map.get(gio.$mat-dove-palette, default);
     height: 100%;
     color: $textColor;
 
-    &__title {
-      padding: 2px;
-    }
-
     &__disabled {
       padding-left: 20px;
     }

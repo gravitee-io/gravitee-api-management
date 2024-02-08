@@ -28,7 +28,7 @@ $borderColor: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter80');
   display: flex;
   flex-direction: column;
   border-bottom: 1px solid $borderColor;
-  padding-bottom: 20px;
+  padding: 0 8px 20px;
 
   &__states {
     display: flex;

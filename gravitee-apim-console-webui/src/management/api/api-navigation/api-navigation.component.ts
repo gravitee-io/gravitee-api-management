@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { flatMap } from 'lodash';
 import { filter, map, shareReplay, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { GIO_DIALOG_WIDTH, GioBannerTypes, GioMenuService } from '@gravitee/ui-particles-angular';
+import { GIO_DIALOG_WIDTH, GioBannerTypes, GioMenuSearchService, GioMenuService, MenuSearchItem } from '@gravitee/ui-particles-angular';
 import { combineLatest, Observable, Subject } from 'rxjs';
 import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
@@ -31,6 +32,7 @@ import { MenuGroupItem, MenuItem, MenuItemHeader } from './MenuGroupItem';
 import { ApiV4MenuService } from './api-v4-menu.service';
 import { ApiV1V2MenuService } from './api-v1-v2-menu.service';
 
+import { cleanRouterLink, getPathFromRoot } from '../../../util/router-link.util';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { Constants } from '../../../entities/Constants';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
@@ -269,6 +271,7 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
     private readonly apiNgV1V2MenuService: ApiV1V2MenuService,
     private readonly apiNgV4MenuService: ApiV4MenuService,
     private readonly snackBarService: SnackBarService,
+    private readonly gioMenuSearchService: GioMenuSearchService,
   ) {}
 
   ngOnInit() {
@@ -286,6 +289,7 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
           const menu = api.definitionVersion !== 'V4' ? this.apiNgV1V2MenuService.getMenu(api) : this.apiNgV4MenuService.getMenu(api);
           this.groupItems = menu.groupItems;
           this.subMenuItems = menu.subMenuItems;
+          this.gioMenuSearchService.addMenuSearchItems(this.getApiNavigationSearchItems());
 
           this.breadcrumbItems = this.computeBreadcrumbItems();
           this.selectedItemWithTabs = this.findMenuItemWithTabs();
@@ -304,9 +308,11 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.unsubscribe$.next(true);
-    this.unsubscribe$.unsubscribe();
+    this.unsubscribe$?.next(true);
+    this.unsubscribe$?.unsubscribe();
+    this.gioMenuSearchService.removeMenuSearchItems([this.currentApi?.id]);
   }
+
   private findMenuItemWithTabs(): MenuItem {
     let item: MenuItem = this.findActiveMenuItem(this.subMenuItems);
     if (item) {
@@ -361,5 +367,50 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
     });
 
     return breadcrumbItems;
+  }
+
+  private getApiNavigationSearchItems() {
+    const environmentId = this.activatedRoute.snapshot.params.envId;
+    const apiId = this.currentApi.id;
+    const parentRouterLink = getPathFromRoot(this.activatedRoute);
+    return this.mapToMenuSearchItem(environmentId, apiId, parentRouterLink, this.subMenuItems).concat(
+      this.mapToMenuSearchItem(
+        environmentId,
+        apiId,
+        parentRouterLink,
+        this.groupItems.flatMap((item) => item.items),
+      ),
+    );
+  }
+
+  private mapToMenuSearchItem(environmentId: string, apiId: string, parentRouterLink: string, items: MenuItem[]): MenuSearchItem[] {
+    return items.reduce((acc: MenuSearchItem[], item: MenuItem) => {
+      const cleanItemLink = cleanRouterLink(item.routerLink);
+      const routerLink = cleanItemLink || cleanRouterLink(item.tabs?.[0]?.routerLink) || '';
+
+      // check if parent route is empty  ('') and if the first tab has the same name than the parent.
+      const isUniqueItem = cleanItemLink || item.displayName !== item.tabs?.[0]?.displayName;
+
+      if (routerLink !== 'DISABLED' && isUniqueItem) {
+        acc.push({
+          name: item.displayName,
+          routerLink: `${parentRouterLink}/${routerLink}`,
+          category: `Apis`,
+          groupIds: [environmentId, apiId],
+        });
+      }
+
+      item.tabs?.forEach((tab) => {
+        if (tab.routerLink !== 'DISABLED') {
+          acc.push({
+            name: tab.displayName,
+            routerLink: `${parentRouterLink}/${cleanRouterLink(tab.routerLink)}`,
+            category: `Apis / ${item.displayName}`,
+            groupIds: [environmentId, apiId],
+          });
+        }
+      });
+      return acc;
+    }, []);
   }
 }
