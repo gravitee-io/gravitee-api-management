@@ -204,8 +204,10 @@ public class ApiMapper {
 
         repoApi.setName(newApiEntity.getName().trim());
         repoApi.setVersion(newApiEntity.getApiVersion().trim());
-        repoApi.setDescription(newApiEntity.getDescription().trim());
-
+        String description = newApiEntity.getDescription();
+        if (description != null) {
+            repoApi.setDescription(description.trim());
+        }
         repoApi.setDefinitionVersion(newApiEntity.getDefinitionVersion());
         repoApi.setDefinition(toApiDefinition(generatedApiId, newApiEntity));
         repoApi.setType(newApiEntity.getType());
@@ -253,7 +255,10 @@ public class ApiMapper {
 
         repoApi.setName(updateApiEntity.getName().trim());
         repoApi.setVersion(updateApiEntity.getApiVersion().trim());
-        repoApi.setDescription(updateApiEntity.getDescription().trim());
+        String description = updateApiEntity.getDescription();
+        if (description != null) {
+            repoApi.setDescription(description.trim());
+        }
         repoApi.setPicture(updateApiEntity.getPicture());
         repoApi.setBackground(updateApiEntity.getBackground());
 
