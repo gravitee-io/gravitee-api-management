@@ -17,6 +17,8 @@ import { Component, HostListener, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Params, PRIMARY_OUTLET, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
+import { Subject } from 'rxjs';
+import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 
 import {
   Api,
@@ -71,6 +73,7 @@ export class ApiGeneralComponent implements OnInit {
   private apiId: any;
   private ratingPageSize: any;
   private ratingsMetadata: any;
+  private unsubscribe$ = new Subject();
 
   canRate: boolean;
   currentApi: Api;
@@ -116,82 +119,97 @@ export class ApiGeneralComponent implements OnInit {
   }
 
   ngOnInit() {
-    const apiId = this.route.snapshot.params.apiId;
-    this.pageBaseUrl = `/catalog/api/${apiId}/doc`;
     if (this.apiHomepage == null) {
       this.apiHomepageLoaded = true;
     }
 
     this.hasRatingFeature = this.configService.hasFeature(FeatureEnum.rating);
 
-    this.route.params.subscribe(() => {
-      if (apiId) {
-        if (this.hasRatingFeature) {
-          this.translateService
-            .get([
-              'apiGeneral.ratingsSortOptions.newest',
-              'apiGeneral.ratingsSortOptions.oldest',
-              'apiGeneral.ratingsSortOptions.best',
-              'apiGeneral.ratingsSortOptions.worst',
-              'apiGeneral.ratingsSortOptions.answers',
-            ])
-            .toPromise()
-            .then(translations => {
-              const options = Object.values(translations).map(label => ({ label, value: 'date' }));
-              options[1].value = '-date';
-              options[2].value = 'value';
-              options[3].value = '-value';
-              options[4].value = 'answers';
-              this.ratingsSortOptions = options;
-            });
-          this.ratingPageSize = 3;
-          this.currentOrder = 'date';
-        }
+    this.route.data
+      .pipe(
+        filter(data => !!data.api),
+        map(data => {
+          this.currentApi = data.api;
+          this.pageBaseUrl = `/catalog/api/${this.currentApi.id}/doc`;
+          this.apiHomepage = data.apiHomepage;
+          this.permissions = data.permissions;
+          this.apiInformations = data.apiInformations;
 
-        this.apiId = apiId;
-
-        this.apiService
-          .getApiMetricsByApiId({ apiId })
-          .toPromise()
-          .then(metrics => (this.currentApiMetrics = metrics));
-        this.currentApi = this.route.snapshot.data.api;
-        this.pageBaseUrl = `/catalog/api/${this.currentApi.id}/doc`;
-        this.apiService.getApiLinks({ apiId }).subscribe(apiLinks => {
-          if (apiLinks.slots && apiLinks.slots.aside) {
-            apiLinks.slots.aside.forEach(catLinks => {
-              if (catLinks.root) {
-                this.resources = this._buildLinks(apiId, catLinks.links);
-              }
-            });
-          }
-        });
-
-        this.currentUser = this.currentUserService.getUser();
-        if (this.currentUser) {
-          this._updateRatings();
-          this.connectedApps = this.apiService
-            .getSubscriberApplicationsByApiId({
-              apiId,
-              statuses: [StatusEnum.ACCEPTED],
-            })
-            .toPromise()
-            .then(response => response.data.map(app => ({ item: app, type: ItemResourceTypeEnum.APPLICATION })))
-            .catch(() => []);
-        }
-
-        this.apiHomepage = this.route.snapshot.data.apiHomepage;
-        this.permissions = this.route.snapshot.data.permissions;
-        this.apiInformations = this.route.snapshot.data.apiInformations;
-
-        if (!!this.currentApi.description || this.currentApi.description.trim().length > 0) {
+          return this.currentApi.description;
+        }),
+        filter(description => !!description && description.trim().length > 0),
+        switchMap(_ => this.apiService.getPagesByApiId({ apiId: this.currentApi.id, size: -1 })),
+        tap(pagesResponse => {
           const baseUrl = this.configService.get('baseURL');
-          this.description = this.markdownService.render(this.currentApi.description, baseUrl, undefined);
-        }
+          this.description = this.markdownService.render(this.currentApi.description, baseUrl, this.pageBaseUrl, pagesResponse?.data ?? []);
+        }),
+        catchError(_ => (this.description = this.currentApi.description)),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
 
-        this.computeBackButton();
-        return this.currentApi;
-      }
-    });
+    this.route.params
+      .pipe(
+        filter(params => !!params.apiId),
+        map(params => params.apiId),
+        tap(apiId => {
+          this.apiId = apiId;
+          if (this.hasRatingFeature) {
+            this.translateService
+              .get([
+                'apiGeneral.ratingsSortOptions.newest',
+                'apiGeneral.ratingsSortOptions.oldest',
+                'apiGeneral.ratingsSortOptions.best',
+                'apiGeneral.ratingsSortOptions.worst',
+                'apiGeneral.ratingsSortOptions.answers',
+              ])
+              .toPromise()
+              .then(translations => {
+                const options = Object.values(translations).map(label => ({ label, value: 'date' }));
+                options[1].value = '-date';
+                options[2].value = 'value';
+                options[3].value = '-value';
+                options[4].value = 'answers';
+                this.ratingsSortOptions = options;
+              });
+            this.ratingPageSize = 3;
+            this.currentOrder = 'date';
+          }
+
+          this.computeBackButton();
+        }),
+        tap(apiId => {
+          this.currentUser = this.currentUserService.getUser();
+          if (this.currentUser) {
+            this._updateRatings();
+            this.connectedApps = this.apiService
+              .getSubscriberApplicationsByApiId({
+                apiId,
+                statuses: [StatusEnum.ACCEPTED],
+              })
+              .toPromise()
+              .then(response => response.data.map(app => ({ item: app, type: ItemResourceTypeEnum.APPLICATION })))
+              .catch(() => []);
+          }
+        }),
+        tap(_ => {
+          this.apiService
+            .getApiMetricsByApiId({ apiId: this.apiId })
+            .toPromise()
+            .then(metrics => (this.currentApiMetrics = metrics));
+        }),
+        switchMap(apiId => this.apiService.getApiLinks({ apiId })),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe(apiLinks => {
+        if (apiLinks.slots && apiLinks.slots.aside) {
+          apiLinks.slots.aside.forEach(catLinks => {
+            if (catLinks.root) {
+              this.resources = this._buildLinks(this.apiId, catLinks.links);
+            }
+          });
+        }
+      });
   }
 
   _updateRatings() {
