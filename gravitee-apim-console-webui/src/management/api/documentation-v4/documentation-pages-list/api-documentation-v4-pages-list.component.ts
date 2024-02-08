@@ -71,4 +71,16 @@ export class ApiDocumentationV4PagesListComponent implements OnInit, OnChanges {
   getLogoForPageType(pageType: PageType) {
     return `assets/logo_${pageType.toLowerCase()}.svg`;
   }
+  getTooltipForPageType(pageType: PageType) {
+    switch (pageType) {
+      case PageType.ASCIIDOC:
+        return 'AsciiDoc';
+      case PageType.ASYNCAPI:
+        return 'AsyncAPI';
+      case PageType.SWAGGER:
+        return 'Swagger';
+      case PageType.MARKDOWN:
+        return 'Markdown';
+    }
+  }
 }

@@ -32,23 +32,30 @@
           </div></ng-container
         >
         <ng-container *ngIf="page.type !== 'FOLDER'">
+          <ng-template #pageName>
+            <mat-icon svgIcon="gio:page"></mat-icon>
+            <p gioTooltipOnEllipsis>{{ page.name }}</p>
+            <img
+              [ngSrc]="getLogoForPageType(page.type)"
+              height="24"
+              width="24"
+              alt="{{ page.type }} logo"
+              [matTooltip]="getTooltipForPageType(page.type)"
+            />
+          </ng-template>
           <div
             class="documentation-pages-list__table__name"
             *gioPermission="{ anyOf: ['api-documentation-u', 'api-documentation-r'] }"
             (click)="onEditPage.emit(page.id)"
           >
-            <mat-icon svgIcon="gio:page"></mat-icon>
-            <p gioTooltipOnEllipsis>{{ page.name }}</p>
-            <img [ngSrc]="getLogoForPageType(page.type)" height="24" width="24" alt="{{ page.type }} logo" />
+            <ng-container *ngTemplateOutlet="pageName"></ng-container>
           </div>
           <div
             class="documentation-pages-list__table__name no-pointer"
             *gioPermission="{ noneOf: ['api-documentation-u', 'api-documentation-r'] }"
           >
-            <mat-icon svgIcon="gio:page"></mat-icon>
-            <p gioTooltipOnEllipsis>{{ page.name }}</p>
-          </div></ng-container
-        >
+            <ng-container *ngTemplateOutlet="pageName"></ng-container></div
+        ></ng-container>
       </td>
     </ng-container>
     <ng-container matColumnDef="status">
