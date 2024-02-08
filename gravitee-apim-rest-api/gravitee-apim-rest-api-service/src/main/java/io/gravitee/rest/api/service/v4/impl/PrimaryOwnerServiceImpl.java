@@ -17,7 +17,7 @@ package io.gravitee.rest.api.service.v4.impl;
 
 import static java.util.stream.Collectors.toSet;
 
-import io.gravitee.apim.core.api.domain_service.ApiPrimaryOwnerDomainService;
+import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.exception.ApiPrimaryOwnerNotFoundException;
 import io.gravitee.apim.infra.adapter.PrimaryOwnerAdapter;
 import io.gravitee.rest.api.model.*;

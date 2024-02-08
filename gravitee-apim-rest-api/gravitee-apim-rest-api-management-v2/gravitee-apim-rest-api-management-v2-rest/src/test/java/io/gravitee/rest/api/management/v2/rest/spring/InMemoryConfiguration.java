@@ -31,9 +31,11 @@ import inmemory.EnvironmentCrudServiceInMemory;
 import inmemory.EventCrudInMemory;
 import inmemory.EventQueryServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
+import inmemory.GroupQueryServiceInMemory;
 import inmemory.InstallationAccessQueryServiceInMemory;
 import inmemory.InstanceQueryServiceInMemory;
 import inmemory.LicenseCrudServiceInMemory;
+import inmemory.MembershipQueryServiceInMemory;
 import inmemory.MessageLogCrudServiceInMemory;
 import inmemory.PageCrudServiceInMemory;
 import inmemory.PageQueryServiceInMemory;
@@ -43,6 +45,7 @@ import inmemory.ParametersQueryServiceInMemory;
 import inmemory.PlanCrudServiceInMemory;
 import inmemory.PlanQueryServiceInMemory;
 import inmemory.PolicyPluginQueryServiceInMemory;
+import inmemory.RoleQueryServiceInMemory;
 import inmemory.SubscriptionCrudServiceInMemory;
 import inmemory.SubscriptionQueryServiceInMemory;
 import inmemory.TriggerNotificationDomainServiceInMemory;
@@ -224,5 +227,20 @@ public class InMemoryConfiguration {
     @Bean
     public EventQueryServiceInMemory eventQueryService() {
         return new EventQueryServiceInMemory();
+    }
+
+    @Bean
+    public GroupQueryServiceInMemory groupQueryService() {
+        return new GroupQueryServiceInMemory();
+    }
+
+    @Bean
+    public MembershipQueryServiceInMemory membershipQueryServiceInMemory() {
+        return new MembershipQueryServiceInMemory();
+    }
+
+    @Bean
+    public RoleQueryServiceInMemory roleQueryServiceInMemory() {
+        return new RoleQueryServiceInMemory();
     }
 }
