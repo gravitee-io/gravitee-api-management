@@ -29,6 +29,7 @@
   <app-gv-page
     *ngIf="currentPage"
     [page]="currentPage"
+    [pages]="pages"
     withToc="true"
     [ngClass]="{ 'gv-documentation__content_swagger': isSwagger(currentPage), show: isLoaded, fullscreen: this.hasTreeClosed }"
     [fragment]="this.fragment"

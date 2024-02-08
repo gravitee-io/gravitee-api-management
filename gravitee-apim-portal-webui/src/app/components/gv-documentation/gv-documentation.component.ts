@@ -67,6 +67,10 @@ export class GvDocumentationComponent implements OnInit, AfterViewInit {
     this.isLoaded = true;
   }
 
+  get pages() {
+    return this._pages;
+  }
+
   constructor(private notificationService: NotificationService, private route: ActivatedRoute, private router: Router) {}
 
   static PAGE_PADDING_TOP_BOTTOM = 44;
