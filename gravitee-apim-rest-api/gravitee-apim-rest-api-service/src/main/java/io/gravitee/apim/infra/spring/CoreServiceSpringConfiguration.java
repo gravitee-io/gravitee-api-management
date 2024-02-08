@@ -36,10 +36,15 @@ import io.gravitee.apim.core.documentation.domain_service.*;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
+import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.apim.core.license.crud_service.LicenseCrudService;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
+import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
+import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
+import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
+import io.gravitee.apim.core.membership.query_service.RoleQueryService;
 import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
 import io.gravitee.apim.core.parameters.query_service.ParametersQueryService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
@@ -303,5 +308,25 @@ public class CoreServiceSpringConfiguration {
         AuditMetadataQueryService auditMetadataQueryService
     ) {
         return new SearchAuditDomainService(auditQueryService, auditMetadataQueryService);
+    }
+
+    @Bean
+    public ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService(
+        GroupQueryService groupQueryService,
+        MembershipQueryService membershipQueryService,
+        RoleQueryService roleQueryService,
+        UserCrudService userCrudService
+    ) {
+        return new ApiPrimaryOwnerDomainService(groupQueryService, membershipQueryService, roleQueryService, userCrudService);
+    }
+
+    @Bean
+    public ApplicationPrimaryOwnerDomainService applicationPrimaryOwnerDomainService(
+        GroupQueryService groupQueryService,
+        MembershipQueryService membershipQueryService,
+        RoleQueryService roleQueryService,
+        UserCrudService userCrudService
+    ) {
+        return new ApplicationPrimaryOwnerDomainService(groupQueryService, membershipQueryService, roleQueryService, userCrudService);
     }
 }
