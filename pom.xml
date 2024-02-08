@@ -87,7 +87,7 @@
         <classgraph.version>4.8.138</classgraph.version>
         <commons-io.version>2.11.0</commons-io.version>
         <commons-lang.version>2.6</commons-lang.version>
-        <commons-lang3.version>3.12.0</commons-lang3.version>
+        <commons-lang3.version>3.14.0</commons-lang3.version>
         <commons-pool2.version>2.11.1</commons-pool2.version>
         <commons-text.version>1.10.0</commons-text.version>
         <commons-email.version>1.5</commons-email.version>
@@ -156,7 +156,7 @@
         <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
         <jacoco-maven-plugin.version>0.8.11</jacoco-maven-plugin.version>
         <os-maven-plugin.version>1.7.0</os-maven-plugin.version>
-        <swagger-maven-plugin.version>>2.2.9</swagger-maven-plugin.version>
+        <swagger-maven-plugin.version>&gt;2.2.9</swagger-maven-plugin.version>
         <maven-plugin-prettier.version>0.19</maven-plugin-prettier.version>
         <maven-plugin-prettier.prettierjava.version>2.1.0</maven-plugin-prettier.prettierjava.version>
         <skip.validation>false</skip.validation>
