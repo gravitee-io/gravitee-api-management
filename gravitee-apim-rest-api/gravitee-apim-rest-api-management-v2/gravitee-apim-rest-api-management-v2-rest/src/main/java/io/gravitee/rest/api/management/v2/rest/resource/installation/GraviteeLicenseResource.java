@@ -53,6 +53,7 @@ public class GraviteeLicenseResource extends AbstractResource {
                 .packs(license.getPacks())
                 .features(license.getFeatures())
                 .expiresAt(license.getExpirationDate())
+                .scope(license.getReferenceType())
                 .build()
         );
     }
