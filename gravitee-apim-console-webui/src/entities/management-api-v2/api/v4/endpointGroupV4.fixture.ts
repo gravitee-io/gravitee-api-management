@@ -47,3 +47,72 @@ export function fakeEndpointGroupV4(
     ...modifier,
   };
 }
+
+export function fakeHTTPProxyEndpointGroupV4(
+  modifier?: Partial<EndpointGroupV4> | ((baseApi: EndpointGroupV4) => EndpointGroupV4),
+): EndpointGroupV4 {
+  const base: EndpointGroupV4 = {
+    name: 'Default Endpoint HTTP proxy group',
+    type: 'http-proxy',
+    loadBalancer: {
+      type: 'ROUND_ROBIN',
+    },
+    sharedConfiguration: {
+      proxy: {
+        useSystemProxy: false,
+        enabled: false,
+      },
+      http: {
+        keepAlive: true,
+        followRedirects: false,
+        readTimeout: 10000,
+        idleTimeout: 60000,
+        connectTimeout: 3000,
+        useCompression: true,
+        maxConcurrentConnections: 20,
+        version: 'HTTP_1_1',
+        pipelining: false,
+      },
+      ssl: {
+        hostnameVerifier: true,
+        trustAll: false,
+        truststore: {
+          type: '',
+        },
+        keystore: {
+          type: '',
+        },
+      },
+    },
+    endpoints: [
+      {
+        name: 'Default Endpoint HTTP proxy',
+        type: 'http-proxy',
+        weight: 1,
+        inheritConfiguration: true,
+        configuration: {
+          target: 'https://api.gravitee.io/echo',
+        },
+        services: {},
+        secondary: false,
+      },
+    ],
+    services: {
+      healthCheck: {
+        configuration: {},
+        enabled: false,
+        overrideConfiguration: false,
+        type: 'http-health-check',
+      },
+    },
+  };
+
+  if (isFunction(modifier)) {
+    return modifier(base);
+  }
+
+  return {
+    ...base,
+    ...modifier,
+  };
+}

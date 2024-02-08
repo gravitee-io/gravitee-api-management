@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
-import { switchMap, takeUntil } from 'rxjs/operators';
+import { FormControl, FormGroup, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { Observable, Subject } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -24,6 +24,13 @@ import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { isEndpointNameUniqueAndDoesNotMatchDefaultValue } from '../api-endpoint-v4-unique-name';
+import { ApiHealthCheckV4FormComponent } from '../../component/health-check-v4-form/api-health-check-v4-form.component';
+import { ApiServicePluginsV2Service } from '../../../../services-ngx/apiservice-plugins-v2.service';
+
+export type EndpointGroupHealthCheckFormType = FormGroup<{
+  enabled: FormControl<boolean>;
+  configuration: FormControl<unknown>;
+}>;
 
 @Component({
   selector: 'api-endpoint-group',
@@ -40,6 +47,9 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
   public generalForm: UntypedFormGroup;
   public groupForm: UntypedFormGroup;
   public configurationForm: UntypedFormGroup;
+  public healthCheckForm: EndpointGroupHealthCheckFormType;
+  public healthCheckSchema: unknown;
+  public isHttpProxyApi: boolean;
 
   public initialGroupFormValue: any;
   public endpointGroup: EndpointGroupV4;
@@ -50,6 +60,7 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
     private readonly apiService: ApiV2Service,
     private readonly snackBarService: SnackBarService,
     private readonly permissionService: GioPermissionService,
+    private readonly apiServicePluginsV2Service: ApiServicePluginsV2Service,
   ) {}
 
   public ngOnInit(): void {
@@ -90,6 +101,9 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
    */
   private initializeComponent(api: ApiV4): void {
     this.api = api;
+
+    this.isHttpProxyApi = api.type === 'PROXY' && !(api.listeners.find((listener) => listener.type === 'TCP') != null);
+
     this.initialApi = this.api;
 
     this.endpointGroup = this.api.endpointGroups[this.activatedRoute.snapshot.params.groupIndex];
@@ -126,9 +140,45 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
       }),
     });
 
+    this.healthCheckForm = new FormGroup({
+      enabled: new FormControl({
+        value: this.endpointGroup.services?.healthCheck?.enabled ?? false,
+        disabled: this.isReadOnly,
+      }),
+      configuration: new FormControl(
+        {
+          value: this.endpointGroup.services?.healthCheck?.configuration ?? {},
+          disabled: this.isReadOnly,
+        } ?? {},
+      ),
+    });
+
+    if (this.isHttpProxyApi) {
+      this.apiServicePluginsV2Service
+        .getApiServicePluginSchema(ApiHealthCheckV4FormComponent.HTTP_HEALTH_CHECK)
+        .pipe(
+          tap((schema) => {
+            this.healthCheckSchema = schema;
+
+            this.healthCheckForm.controls.enabled.valueChanges
+              .pipe(startWith(this.healthCheckForm.controls.enabled.value), takeUntil(this.unsubscribe$))
+              .subscribe((enabled) => {
+                if (enabled) {
+                  this.healthCheckForm.controls.configuration.enable({ emitEvent: false });
+                } else {
+                  this.healthCheckForm.controls.configuration.disable({ emitEvent: false });
+                }
+              });
+          }),
+          takeUntil(this.unsubscribe$),
+        )
+        .subscribe();
+    }
+
     this.groupForm = new UntypedFormGroup({
       general: this.generalForm,
       configuration: this.configurationForm,
+      healthCheck: this.healthCheckForm,
     });
 
     this.initialGroupFormValue = this.groupForm.getRawValue();
@@ -150,6 +200,17 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
       },
       sharedConfiguration: this.configurationForm.getRawValue().groupConfiguration,
     };
+    if (this.isHttpProxyApi && this.healthCheckForm.controls.enabled.value) {
+      updatedEndpointGroups[this.activatedRoute.snapshot.params.groupIndex].services = {
+        ...this.endpointGroup.services,
+        healthCheck: {
+          enabled: this.healthCheckForm.getRawValue().enabled,
+          type: ApiHealthCheckV4FormComponent.HTTP_HEALTH_CHECK,
+          configuration: this.healthCheckForm.getRawValue().configuration,
+          overrideConfiguration: false,
+        },
+      };
+    }
 
     return {
       ...api,

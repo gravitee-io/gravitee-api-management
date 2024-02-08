@@ -28,9 +28,9 @@ import { ApiEndpointGroupHarness } from './api-endpoint-group.harness';
 import { ApiEndpointGroupModule } from './api-endpoint-group.module';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
-import { ApiV4, EndpointGroupV4, fakeApiV4 } from '../../../../entities/management-api-v2';
+import { ApiV4, EndpointGroupV4, fakeApiV4, fakeProxyApiV4, fakeProxyTcpApiV4 } from '../../../../entities/management-api-v2';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
-import { fakeEndpointGroupV4 } from '../../../../entities/management-api-v2/api/v4/endpointGroupV4.fixture';
+import { fakeEndpointGroupV4, fakeHTTPProxyEndpointGroupV4 } from '../../../../entities/management-api-v2/api/v4/endpointGroupV4.fixture';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 /**
@@ -44,6 +44,21 @@ const DEFAULT_LOAD_BALANCER_TYPE = 'ROUND_ROBIN';
 const ALTERNATE_LOAD_BALANCER_TYPE = 'RANDOM';
 const ALTERNATE_LOAD_BALANCER_TYPE_2 = 'WEIGHTED_RANDOM';
 const GROUP_INDEX = 0;
+const VALID_HEALTH_CHECK_VALUE = 'New health check value';
+const INVALID_HEALTH_CHECK_VALUE = '';
+const healthCheckSchema = {
+  $schema: 'http://json-schema.org/draft-07/schema#',
+  type: 'object',
+  properties: {
+    dummy: {
+      title: 'dummy',
+      type: 'string',
+      description: 'A dummy string',
+      readOnly: true,
+    },
+  },
+  required: ['dummy'],
+};
 
 /**
  * Given the api and the updated endpoint group attributes
@@ -77,7 +92,7 @@ function expectApiGetRequest(api: ApiV4, fixture: ComponentFixture<any>, httpTes
  */
 function expectApiSchemaGetRequests(api: ApiV4, fixture: ComponentFixture<any>, httpTestingController) {
   httpTestingController.match({
-    url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/endpoints/kafka/shared-configuration-schema`,
+    url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/endpoints/${api.endpointGroups[0].type}/shared-configuration-schema`,
     method: 'GET',
   });
   fixture.detectChanges();
@@ -92,6 +107,19 @@ function expectApiSchemaGetRequests(api: ApiV4, fixture: ComponentFixture<any>, 
  */
 function expectApiPutRequest(api: ApiV4, fixture: ComponentFixture<any>, httpTestingController: HttpTestingController): TestRequest {
   return httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'PUT' });
+}
+
+/**
+ * Expect that a single PUT request has been made which matches the specified URL
+ *
+ * @param fixture testing fixture
+ * @param httpTestingController http testing controller
+ */
+function expectHealthCheckSchemaGet(fixture: ComponentFixture<any>, httpTestingController: HttpTestingController): void {
+  httpTestingController
+    .expectOne({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/api-services/http-health-check/schema`, method: 'GET' })
+    .flush(healthCheckSchema);
+  fixture.detectChanges();
 }
 
 describe('ApiEndpointGroupComponent', () => {
@@ -241,14 +269,109 @@ describe('ApiEndpointGroupComponent', () => {
     });
   });
 
+  // Health-check Tab
+  describe('WHEN the Health-check tab is selected', () => {
+    beforeEach(async () => {
+      api = fakeProxyApiV4({
+        id: API_ID,
+        endpointGroups: [fakeHTTPProxyEndpointGroupV4()],
+      });
+      await initComponent(api);
+      await componentHarness.clickHealthCheckTab();
+      expectApiSchemaGetRequests(api, fixture, httpTestingController);
+      expectHealthCheckSchemaGet(fixture, httpTestingController);
+    });
+
+    it('should fill and save the configuration form', async () => {
+      expect(await componentHarness.isHealthCheckConfigurationInputDisabled('dummy')).toBeTruthy();
+      await componentHarness.toggleEnableHealthCheckInput();
+      expect(await componentHarness.isHealthCheckConfigurationInputDisabled('dummy')).toBeFalsy();
+
+      await componentHarness.writeToHealthCheckConfigurationValueInput('dummy', VALID_HEALTH_CHECK_VALUE);
+      expect(await componentHarness.readHealthCheckConfigurationValueInput('dummy')).toEqual(VALID_HEALTH_CHECK_VALUE);
+
+      expect(await componentHarness.isGeneralTabSaveButtonInvalid()).toBeFalsy();
+      await componentHarness.clickEndpointGroupSaveButton();
+      expectApiGetRequest(api, fixture, httpTestingController);
+      expect(expectApiPutRequest(api, fixture, httpTestingController).request.body.endpointGroups).toEqual(
+        getExpectedEndpoints(api, {
+          services: {
+            healthCheck: {
+              enabled: true,
+              overrideConfiguration: false,
+              type: 'http-health-check',
+              configuration: { dummy: VALID_HEALTH_CHECK_VALUE },
+            },
+          },
+        }),
+      );
+    });
+
+    it('should fill invalid value and save should be disabled', async () => {
+      expect(await componentHarness.isHealthCheckConfigurationInputDisabled('dummy')).toBeTruthy();
+      await componentHarness.toggleEnableHealthCheckInput();
+      expect(await componentHarness.isHealthCheckConfigurationInputDisabled('dummy')).toBeFalsy();
+
+      await componentHarness.writeToHealthCheckConfigurationValueInput('dummy', INVALID_HEALTH_CHECK_VALUE);
+      expect(await componentHarness.readHealthCheckConfigurationValueInput('dummy')).toEqual(INVALID_HEALTH_CHECK_VALUE);
+
+      expect(await componentHarness.isGeneralTabSaveButtonInvalid()).toBeTruthy();
+    });
+
+    it('should fill and dismiss', async () => {
+      expect(await componentHarness.isHealthCheckConfigurationInputDisabled('dummy')).toBeTruthy();
+      await componentHarness.toggleEnableHealthCheckInput();
+      expect(await componentHarness.isHealthCheckConfigurationInputDisabled('dummy')).toBeFalsy();
+
+      await componentHarness.writeToHealthCheckConfigurationValueInput('dummy', VALID_HEALTH_CHECK_VALUE);
+      await componentHarness.clickEndpointGroupDismissButton();
+
+      expect(await componentHarness.readHealthCheckConfigurationValueInput('dummy')).toEqual('');
+    });
+  });
+
   describe('GIVEN the current page is a mock endpoint group page', () => {
     beforeEach(async () => {
       const apiWithMockEndpointGroup = fakeApiV4({ id: API_ID, endpointGroups: [fakeEndpointGroupV4({ type: 'mock' })] });
       await initComponent(apiWithMockEndpointGroup);
     });
 
-    it('THEN the configuration tab is not visible', async () => {
+    it('THEN the configuration tab and health-check tab is not visible', async () => {
       expect(await componentHarness.configurationTabIsVisible()).toEqual(false);
+      expect(await componentHarness.healthCheckTabIsVisible()).toEqual(false);
+    });
+  });
+
+  describe('GIVEN the current page is a TCP Proxy endpoint group page', () => {
+    beforeEach(async () => {
+      const apiWithMockEndpointGroup = fakeProxyTcpApiV4({ id: API_ID, endpointGroups: [fakeEndpointGroupV4({ services: {} })] });
+      await initComponent(apiWithMockEndpointGroup);
+      expectApiSchemaGetRequests(api, fixture, httpTestingController);
+    });
+
+    it('THEN the health-check tab is not visible', async () => {
+      expect(await componentHarness.healthCheckTabIsVisible()).toEqual(false);
+    });
+  });
+
+  describe('GIVEN the current page is a Message endpoint group page', () => {
+    beforeEach(async () => {
+      const apiWithMockEndpointGroup = fakeApiV4({
+        id: API_ID,
+        endpointGroups: [
+          fakeEndpointGroupV4({
+            type: 'kafka',
+            name: 'group name',
+            endpoints: [fakeKafkaMessageEndpoint({ name: 'kafka' })],
+          }),
+        ],
+      });
+      await initComponent(apiWithMockEndpointGroup);
+      expectApiSchemaGetRequests(api, fixture, httpTestingController);
+    });
+
+    it('THEN the health-check tab is not visible', async () => {
+      expect(await componentHarness.healthCheckTabIsVisible()).toEqual(false);
     });
   });
 

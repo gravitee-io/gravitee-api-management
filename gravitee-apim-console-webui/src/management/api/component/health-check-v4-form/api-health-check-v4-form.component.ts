@@ -13,9 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ServiceV4 } from './serviceV4';
 
-export interface EndpointGroupServices {
-  discovery?: ServiceV4;
-  healthCheck?: ServiceV4;
+import { Component, Input } from '@angular/core';
+
+import { EndpointGroupHealthCheckFormType } from '../../endpoints-v4/endpoint-group/api-endpoint-group.component';
+
+@Component({
+  selector: 'api-health-check-v4-form',
+  templateUrl: './api-health-check-v4-form.component.html',
+  styleUrls: ['./api-health-check-v4-form.component.scss'],
+})
+export class ApiHealthCheckV4FormComponent {
+  @Input() healthCheckForm: EndpointGroupHealthCheckFormType;
+  @Input() healthCheckSchema: unknown;
+
+  public static readonly HTTP_HEALTH_CHECK = 'http-health-check';
 }

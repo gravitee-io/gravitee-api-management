@@ -167,13 +167,6 @@ export class ApiV4MenuService implements ApiMenuService {
       });
     }
 
-    if (this.permissionService.hasAnyMatching(['api-health-r'])) {
-      tabs.push({
-        displayName: 'Health-check',
-        routerLink: 'DISABLED',
-      });
-    }
-
     return {
       displayName: 'Endpoints',
       icon: 'endpoints',
