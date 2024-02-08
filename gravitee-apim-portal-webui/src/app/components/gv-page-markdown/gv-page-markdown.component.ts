@@ -31,6 +31,7 @@ import { MarkdownService } from '../../services/markdown.service';
 export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
   @Input() withToc: boolean;
   @Input() pageBaseUrl: string;
+  @Input() pages: Page[];
 
   pageContent: string;
   pageElementsPosition: any[];
@@ -55,7 +56,7 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
 
     this.page = this.pageService.getCurrentPage();
     if (this.page?.content) {
-      this.pageContent = this.markdownService.render(this.page.content, this.baseURL, this.pageBaseUrl);
+      this.pageContent = this.markdownService.render(this.page.content, this.baseURL, this.pageBaseUrl, this.pages ?? []);
     }
   }
 
