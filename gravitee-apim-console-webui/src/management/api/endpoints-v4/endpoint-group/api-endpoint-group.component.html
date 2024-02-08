@@ -38,6 +38,16 @@
             ></api-endpoint-group-configuration>
           </div>
         </mat-tab>
+        <mat-tab label="Health-check" *ngIf="healthCheckForm && isHttpProxyApi">
+          <!-- Health check tab content -->
+          <div class="tab-body-wrapper">
+            <api-health-check-v4-form
+              *ngIf="healthCheckSchema"
+              [healthCheckForm]="healthCheckForm"
+              [healthCheckSchema]="healthCheckSchema"
+            ></api-health-check-v4-form>
+          </div>
+        </mat-tab>
       </mat-tab-group>
     </mat-card-content>
   </mat-card>

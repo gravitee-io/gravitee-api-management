@@ -20,13 +20,17 @@ import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 
 import { ApiEndpointGroupGeneralHarness } from './general/api-endpoint-group-general.harness';
 
+import { ApiHealthCheckV4FormHarness } from '../../component/health-check-v4-form/api-health-check-v4-form.harness';
+
 export class ApiEndpointGroupHarness extends ComponentHarness {
   static hostSelector = 'api-endpoint-group';
 
   private getBackButton = this.locatorFor(MatButtonHarness.with({ selector: '[mattooltip="Go back"]' }));
   private getGeneralTab = this.locatorFor(MatTabHarness.with({ label: 'General' }));
   private getConfigurationTab = this.locatorFor(MatTabHarness.with({ label: 'Configuration' }));
+  private getHealthCheckTab = this.locatorFor(MatTabHarness.with({ label: 'Health-check' }));
   private getEndpointGroupGeneralHarness = this.locatorFor(ApiEndpointGroupGeneralHarness);
+  private getHealthCheckGeneralHarness = this.locatorFor(ApiHealthCheckV4FormHarness);
   private getEndpointGroupSubmissionBar = this.locatorFor(GioSaveBarHarness);
 
   public async clickBackButton() {
@@ -65,8 +69,34 @@ export class ApiEndpointGroupHarness extends ComponentHarness {
     return this.getEndpointGroupSubmissionBar().then((saveBar) => saveBar.clickReset());
   }
 
+  public async clickHealthCheckTab() {
+    return this.getHealthCheckTab().then((tab) => tab.select());
+  }
+
+  public async toggleEnableHealthCheckInput() {
+    return this.getHealthCheckGeneralHarness().then((harness) => harness.toggleEnableInput());
+  }
+
+  public async isHealthCheckConfigurationInputDisabled(inputId: string): Promise<boolean> {
+    return this.getHealthCheckGeneralHarness().then((harness) => harness.isConfigurationInputDisabled(inputId));
+  }
+
+  public async readHealthCheckConfigurationValueInput(inputId: string) {
+    return this.getHealthCheckGeneralHarness().then((harness) => harness.getConfigurationInputValue(inputId));
+  }
+
+  public writeToHealthCheckConfigurationValueInput(inputId: string, inputValue) {
+    return this.getHealthCheckGeneralHarness().then((harness) => harness.setConfigurationInputValue(inputId, inputValue));
+  }
+
   public configurationTabIsVisible(): Promise<boolean> {
     return this.getConfigurationTab()
+      .then((_) => true)
+      .catch((_) => false);
+  }
+
+  public healthCheckTabIsVisible(): Promise<boolean> {
+    return this.getHealthCheckTab()
       .then((_) => true)
       .catch((_) => false);
   }
