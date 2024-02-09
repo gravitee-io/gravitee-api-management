@@ -15,12 +15,14 @@
     limitations under the License.
 
 -->
-<h2 mat-dialog-title>{{ isUpdate ? 'Edit a tag' : 'Create a tag' }}</h2>
-
-<gio-banner-info>Sharding tag can be restricted to some groups to only allow users of these groups to deploy on this tag.</gio-banner-info>
+<span mat-dialog-title>{{ isUpdate ? 'Edit a tag' : 'Create a tag' }}</span>
 
 <form autocomplete="off" [formGroup]="tagForm" (ngSubmit)="onSubmit()">
   <mat-dialog-content>
+    <gio-banner-info
+      >Sharding tag can be restricted to some groups to only allow users of these groups to deploy on this tag.</gio-banner-info
+    >
+
     <div class="form">
       <mat-form-field>
         <mat-label>Name</mat-label>

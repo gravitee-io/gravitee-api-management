@@ -18,12 +18,11 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
-import { MatLegacyCardHarness as MatCardHarness } from '@angular/material/legacy-card/testing';
-import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
-import { MatLegacySelectHarness as MatSelectHarness } from '@angular/material/legacy-select/testing';
-import { MatLegacyTableHarness as MatTableHarness } from '@angular/material/legacy-table/testing';
-import { MatLegacyCheckboxHarness as MatCheckboxHarness } from '@angular/material/legacy-checkbox/testing';
-import { MatLegacyDialogHarness as MatLegacyDialogHarness } from '@angular/material/legacy-dialog/testing';
+import { MatCardHarness } from '@angular/material/card/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatSelectHarness } from '@angular/material/select/testing';
+import { MatTableHarness } from '@angular/material/table/testing';
+import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
@@ -540,7 +539,7 @@ describe('OrgSettingsUserDetailComponent', () => {
     expectRolesListRequest('API');
     expectRolesListRequest('APPLICATION');
 
-    const dialog = await rootLoader.getHarness(MatLegacyDialogHarness);
+    const dialog = await rootLoader.getHarness(MatDialogHarness);
 
     const groupIdSelect = await dialog.getHarness(MatSelectHarness.with({ selector: '[formControlName=groupId' }));
     await groupIdSelect.open();
@@ -599,7 +598,7 @@ describe('OrgSettingsUserDetailComponent', () => {
 
     await generateTokenButton.click();
 
-    const dialog = await rootLoader.getHarness(MatLegacyDialogHarness);
+    const dialog = await rootLoader.getHarness(MatDialogHarness);
     expect(dialog).toBeTruthy();
   });
 

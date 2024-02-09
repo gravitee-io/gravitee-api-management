@@ -30,10 +30,9 @@
       information.
     </gio-banner-info>
 
-    <mat-card class="settings-general__form__card" formGroupName="management">
-      <h2 gioTableOfContents>Management</h2>
-
+    <mat-card appearance="outlined" class="settings-general__form__card" formGroupName="management">
       <mat-card-content>
+        <h2 gioTableOfContents>Management</h2>
         <mat-form-field
           [matTooltip]="providedConfigurationMessage"
           [matTooltipDisabled]="!isReadonlySetting('management.title')"
@@ -112,9 +111,9 @@
       </mat-card-content>
     </mat-card>
 
-    <mat-card class="settings-general__form__card" formGroupName="scheduler">
-      <h2 gioTableOfContents>Schedulers</h2>
+    <mat-card appearance="outlined" class="settings-general__form__card" formGroupName="scheduler">
       <mat-card-content>
+        <h2 gioTableOfContents>Schedulers</h2>
         <mat-form-field
           [matTooltip]="providedConfigurationMessage"
           [matTooltipDisabled]="!isReadonlySetting('console.scheduler.tasks')"
@@ -144,9 +143,9 @@
       </mat-card-content>
     </mat-card>
 
-    <mat-card class="settings-general__form__card" formGroupName="cors">
-      <h2 gioTableOfContents>CORS</h2>
+    <mat-card appearance="outlined" class="settings-general__form__card" formGroupName="cors">
       <mat-card-content>
+        <h2 gioTableOfContents>CORS</h2>
         <div class="settings-general__form__card__label">Allow-Origin</div>
         <p>
           The origin parameter specifies a URI that may access the resource. Scheme, domain and port are part of the
@@ -269,9 +268,9 @@
       </mat-card-content>
     </mat-card>
 
-    <mat-card class="settings-general__form__card" formGroupName="email">
-      <h2 gioTableOfContents>SMTP</h2>
+    <mat-card appearance="outlined" class="settings-general__form__card" formGroupName="email">
       <mat-card-content>
+        <h2 gioTableOfContents>SMTP</h2>
         <gio-form-slide-toggle
           [matTooltip]="providedConfigurationMessage"
           [matTooltipDisabled]="!isReadonlySetting('email.enabled')"

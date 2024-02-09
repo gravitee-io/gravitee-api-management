@@ -89,16 +89,6 @@ $typography: map.get(gio.$mat-legacy-theme, typography);
     flex-direction: column;
   }
 
-  &__environments-card {
-    &__table {
-      .mat-cell.mat-column-roles {
-        display: flex;
-        flex-direction: column;
-        padding-top: 1.34375em; // to center mat-form-field in cell. Same value of mat-form-field's bottom padding
-      }
-    }
-  }
-
   &__groups-card {
     &__header {
       display: flex;
@@ -112,27 +102,17 @@ $typography: map.get(gio.$mat-legacy-theme, typography);
     }
 
     &__table {
-      .mat-cell.mat-column-name {
+      .mat-mdc-cell.mat-column-name {
         .error {
           color: mat.get-color-from-palette(gio.$mat-error-palette, default);
         }
       }
 
-      .mat-cell.mat-column-groupAdmin {
+      .mat-mdc-cell.mat-column-groupAdmin {
         text-align: center;
       }
 
-      .mat-cell.mat-column-applicationRole,
-      .mat-cell.mat-column-apiRoles {
-        .mat-form-field {
-          width: 100%;
-        }
-
-        padding-top: 1.34375em; // to center mat-form-field in cell. Same value of mat-form-field's bottom padding
-        padding-right: 8px;
-      }
-
-      .mat-row.error {
+      .mat-mdc-row.error {
         box-shadow: 8px 0px 0px 0px mat.get-color-from-palette(gio.$mat-error-palette, default, 0.42) inset;
       }
     }

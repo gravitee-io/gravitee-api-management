@@ -19,8 +19,8 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { MatLegacyInputHarness as MatInputHarness } from '@angular/material/legacy-input/testing';
-import { MatLegacySlideToggleHarness as MatSlideToggleHarness } from '@angular/material/legacy-slide-toggle/testing';
-import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
+import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
+import { GioMonacoEditorHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ActivatedRoute } from '@angular/router';
 import { of } from 'rxjs';
@@ -91,7 +91,7 @@ describe('OrgSettingsNotificationTemplateComponent', () => {
       respondToNotificationTemplatesRequest([baseNotificationTemplate]);
 
       const titleInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=title]' }));
-      const contentInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=content]' }));
+      const contentInput = await loader.getHarness(GioMonacoEditorHarness.with({ selector: '[formControlName=content]' }));
       const useCustomTemplateToggle = await loader.getHarness(
         MatSlideToggleHarness.with({ selector: '[formControlName=useCustomTemplate]' }),
       );
@@ -107,7 +107,6 @@ describe('OrgSettingsNotificationTemplateComponent', () => {
       expect(await titleInput.isDisabled()).toBeFalsy();
       expect(await titleInput.isRequired()).toBeTruthy();
       expect(await contentInput.isDisabled()).toBeFalsy();
-      expect(await contentInput.isRequired()).toBeTruthy();
 
       await titleInput.setValue('New Title');
       await contentInput.setValue('<html>New Content</html>');
@@ -145,7 +144,7 @@ describe('OrgSettingsNotificationTemplateComponent', () => {
       respondToNotificationTemplatesRequest([baseNotificationTemplate]);
 
       const titleInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=title]' }));
-      const contentInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=content]' }));
+      const contentInput = await loader.getHarness(GioMonacoEditorHarness.with({ selector: '[formControlName=content]' }));
       const useCustomTemplateToggle = await loader.getHarness(
         MatSlideToggleHarness.with({ selector: '[formControlName=useCustomTemplate]' }),
       );
@@ -161,7 +160,6 @@ describe('OrgSettingsNotificationTemplateComponent', () => {
       expect(await titleInput.isDisabled()).toBeFalsy();
       expect(await titleInput.isRequired()).toBeTruthy();
       expect(await contentInput.isDisabled()).toBeFalsy();
-      expect(await contentInput.isRequired()).toBeTruthy();
 
       await titleInput.setValue('New Title');
       await contentInput.setValue('<html>New Content</html>');
@@ -204,7 +202,7 @@ describe('OrgSettingsNotificationTemplateComponent', () => {
       // Title form control should not be in the DOM
       expect(fixture.nativeElement.querySelector('[formControlName=title]')).toBeNull();
 
-      const contentInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=content]' }));
+      const contentInput = await loader.getHarness(GioMonacoEditorHarness.with({ selector: '[formControlName=content]' }));
       const useCustomTemplateToggle = await loader.getHarness(
         MatSlideToggleHarness.with({ selector: '[formControlName=useCustomTemplate]' }),
       );
@@ -217,7 +215,6 @@ describe('OrgSettingsNotificationTemplateComponent', () => {
       await useCustomTemplateToggle.toggle();
 
       expect(await contentInput.isDisabled()).toBeFalsy();
-      expect(await contentInput.isRequired()).toBeTruthy();
 
       await contentInput.setValue('<html>New Content</html>');
 

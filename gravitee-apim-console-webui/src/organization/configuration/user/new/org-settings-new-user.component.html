@@ -19,23 +19,25 @@
   <h1><gio-go-back-button routerLink=".."></gio-go-back-button>Pre-register a user</h1>
   <h4>The new user will receive an email to finalize the creation by setting a password.</h4>
 
-  <mat-card class="org-settings-new-user__card">
-    <h2>User type</h2>
+  <mat-card appearance="outlined" class="org-settings-new-user__card">
+    <mat-card-content>
+      <h2>User type</h2>
 
-    <gio-form-card-group class="org-settings-new-user__card__provider-type-group" formControlName="type">
-      <gio-form-card class="org-settings-new-user__card__user-type-group__button" value="EXTERNAL_USER">
-        <mat-icon class="org-settings-new-user__card__user-type-group__button__logo" matPrefix>perm_identity</mat-icon>
-        <p class="org-settings-new-user__card__user-type-group__button__label">User</p>
-      </gio-form-card>
+      <gio-form-card-group class="org-settings-new-user__card__provider-type-group" formControlName="type">
+        <gio-form-card class="org-settings-new-user__card__user-type-group__button" value="EXTERNAL_USER">
+          <mat-icon class="org-settings-new-user__card__user-type-group__button__logo" matPrefix>perm_identity</mat-icon>
+          <p class="org-settings-new-user__card__user-type-group__button__label">User</p>
+        </gio-form-card>
 
-      <gio-form-card class="org-settings-new-user__card__user-type-group__button" value="SERVICE_ACCOUNT">
-        <mat-icon class="org-settings-new-user__card__user-type-group__button__logo" matPrefix>manage_accounts</mat-icon>
-        <p class="org-settings-new-user__card__user-type-group__button__label">Service Account</p>
-      </gio-form-card>
-    </gio-form-card-group>
+        <gio-form-card class="org-settings-new-user__card__user-type-group__button" value="SERVICE_ACCOUNT">
+          <mat-icon class="org-settings-new-user__card__user-type-group__button__logo" matPrefix>manage_accounts</mat-icon>
+          <p class="org-settings-new-user__card__user-type-group__button__label">Service Account</p>
+        </gio-form-card>
+      </gio-form-card-group>
+    </mat-card-content>
   </mat-card>
 
-  <mat-card class="org-settings-new-user__card">
+  <mat-card appearance="outlined" class="org-settings-new-user__card">
     <mat-card-content *ngIf="userForm.get('type').value === UserType.EXTERNAL_USER">
       <h2>User</h2>
       <mat-form-field class="org-settings-new-user__card__form-field">

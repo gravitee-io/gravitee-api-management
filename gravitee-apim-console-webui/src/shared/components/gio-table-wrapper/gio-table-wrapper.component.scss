@@ -21,6 +21,9 @@ $typography: map.get(gio.$mat-legacy-theme, typography);
   margin-bottom: -12px;
   @include mat.elevation(0);
 }
+:host-context(.mat-mdc-card) {
+  @include mat.elevation(0);
+}
 
 .gio-table-wrapper {
   border-radius: 4px;

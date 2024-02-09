@@ -16,7 +16,6 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { AbstractControl, UntypedFormControl, UntypedFormGroup, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
-import { MatLegacyDialog } from '@angular/material/legacy-dialog';
 import { combineLatest, EMPTY, from, Observable, Subject, zip } from 'rxjs';
 import { catchError, filter, mergeMap, shareReplay, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { isEmpty, toString } from 'lodash';
@@ -140,7 +139,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
     private readonly groupService: GroupService,
     private readonly snackBarService: SnackBarService,
     private readonly environmentService: EnvironmentService,
-    private readonly matLegacyDialog: MatLegacyDialog,
+    private readonly matLegacyDialog: MatDialog,
     private readonly matDialog: MatDialog,
     @Inject('Constants') private readonly constants: Constants,
   ) {}

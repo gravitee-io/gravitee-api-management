@@ -19,58 +19,68 @@
   <div class="org-settings-roles__content">
     <h1>Roles</h1>
 
-    <mat-card *ngFor="let item of rolesByScope" class="org-settings-roles__content__card">
-      <div class="org-settings-roles__content__headline">
-        <h2 gioTableOfContents>{{ item.scope }}</h2>
-        <button
-          *gioPermission="{ anyOf: ['organization-role-c'] }"
-          [gioLicense]="customRolesLicenseOptions"
-          [routerLink]="'../role/' + item.scopeId"
-          mat-raised-button
-          color="primary"
-        >
-          <mat-icon>add</mat-icon>Add a role
-          <mat-icon *ngIf="hasCustomRolesLock$ | async" class="mat-icon-right" svgIcon="gio:lock"></mat-icon>
-        </button>
-      </div>
-      <mat-list class="org-settings-roles__content__list">
-        <mat-list-item class="org-settings-roles__content__list__item" *ngFor="let role of item.roles">
-          <mat-icon mat-list-icon>{{ role.icon }}</mat-icon>
-          <div class="org-settings-roles__content__list__item__description" [routerLink]="'../role/' + item.scopeId + '/' + role.name">
-            <div mat-line>
+    <mat-card appearance="outlined" *ngFor="let item of rolesByScope" class="org-settings-roles__content__card">
+      <mat-card-content>
+        <div class="org-settings-roles__content__headline">
+          <h2 gioTableOfContents>{{ item.scope }}</h2>
+          <button
+            *gioPermission="{ anyOf: ['organization-role-c'] }"
+            [gioLicense]="customRolesLicenseOptions"
+            [routerLink]="'../role/' + item.scopeId"
+            mat-raised-button
+            color="primary"
+          >
+            <mat-icon>add</mat-icon>Add a role
+            <mat-icon *ngIf="hasCustomRolesLock$ | async" class="mat-icon-right" svgIcon="gio:lock"></mat-icon>
+          </button>
+        </div>
+        <mat-list class="org-settings-roles__content__list">
+          <a mat-list-item class="org-settings-roles__content__list__item" *ngFor="let role of item.roles">
+            <mat-icon matListItemIcon>{{ role.icon }}</mat-icon>
+            <div
+              matListItemTitle
+              class="org-settings-roles__content__list__item__clickable"
+              [routerLink]="'../role/' + item.scopeId + '/' + role.name"
+            >
               <span>{{ role.name }}</span>
               <span *ngIf="role.isSystem" class="gio-badge">System</span>
               <span *ngIf="role.isDefault" class="gio-badge gio-badge-accent">Default</span>
             </div>
-            <div mat-line>{{ role.description }}</div>
-          </div>
-          <div>
-            <ng-container *gioPermission="{ anyOf: ['organization-role-d'] }">
-              <button
-                *ngIf="role.canBeDeleted"
-                (click)="onDeleteRoleClicked(item.scopeId, role)"
-                mat-icon-button
-                aria-label="Button to delete a role"
-                matTooltip="Delete role"
-              >
-                <mat-icon>delete</mat-icon>
-              </button>
-            </ng-container>
+            <div
+              matListItemLine
+              class="org-settings-roles__content__list__item__clickable"
+              [routerLink]="'../role/' + item.scopeId + '/' + role.name"
+            >
+              {{ role.description }}
+            </div>
+            <div matListItemMeta class="org-settings-roles__content__list__item__actions">
+              <ng-container *gioPermission="{ anyOf: ['organization-role-d'] }">
+                <button
+                  *ngIf="role.canBeDeleted"
+                  (click)="onDeleteRoleClicked(item.scopeId, role)"
+                  mat-icon-button
+                  aria-label="Button to delete a role"
+                  matTooltip="Delete role"
+                >
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </ng-container>
 
-            <ng-container *gioPermission="{ anyOf: ['organization-role-u'] }">
-              <button
-                *ngIf="role.hasUserRoleManagement"
-                [routerLink]="'../role/' + item.scopeId + '/' + role.name + '/members'"
-                mat-icon-button
-                aria-label="Button to see members with this role"
-                matTooltip="See members"
-              >
-                <mat-icon>people</mat-icon>
-              </button>
-            </ng-container>
-          </div>
-        </mat-list-item>
-      </mat-list>
+              <ng-container *gioPermission="{ anyOf: ['organization-role-u'] }">
+                <button
+                  *ngIf="role.hasUserRoleManagement"
+                  [routerLink]="'../role/' + item.scopeId + '/' + role.name + '/members'"
+                  mat-icon-button
+                  aria-label="Button to see members with this role"
+                  matTooltip="See members"
+                >
+                  <mat-icon>people</mat-icon>
+                </button>
+              </ng-container>
+            </div>
+          </a>
+        </mat-list>
+      </mat-card-content>
     </mat-card>
   </div>
 

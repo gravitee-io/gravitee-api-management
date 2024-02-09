@@ -25,7 +25,7 @@
   width: 10%;
 }
 
-.mat-cell.mat-column-id {
+.mat-mdc-cell.mat-column-id {
   cursor: pointer;
 }
 
@@ -72,10 +72,6 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 16px;
-
-      h2 {
-        margin-bottom: 0;
-      }
     }
   }
 

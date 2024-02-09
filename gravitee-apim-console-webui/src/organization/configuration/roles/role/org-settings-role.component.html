@@ -25,26 +25,28 @@
   <form *ngIf="!isLoading" autocomplete="off" [formGroup]="roleForm" (ngSubmit)="onSubmit()">
     <gio-banner-info *ngIf="isReadOnly">System role are not editable</gio-banner-info>
 
-    <mat-card class="org-settings-role__role-card">
-      <mat-form-field>
-        <mat-label>Role name</mat-label>
-        <input class="org-settings-role__role-card__field__name" matInput formControlName="name" required />
-        <mat-hint>The name cannot be changed after it has been created.</mat-hint>
-        <mat-error *ngIf="roleForm.get('name').hasError('required')">Name is required.</mat-error>
-      </mat-form-field>
+    <mat-card appearance="outlined">
+      <mat-card-content class="org-settings-role__role-card">
+        <mat-form-field>
+          <mat-label>Role name</mat-label>
+          <input class="org-settings-role__role-card__field__name" matInput formControlName="name" required />
+          <mat-hint>The name cannot be changed after it has been created.</mat-hint>
+          <mat-error *ngIf="roleForm.get('name').hasError('required')">Name is required.</mat-error>
+        </mat-form-field>
 
-      <mat-form-field>
-        <mat-label>Role description</mat-label>
-        <input matInput formControlName="description" />
-      </mat-form-field>
+        <mat-form-field>
+          <mat-label>Role description</mat-label>
+          <input matInput formControlName="description" />
+        </mat-form-field>
 
-      <gio-form-slide-toggle>
-        <gio-form-label>Default role</gio-form-label>
-        <mat-slide-toggle gioFormSlideToggle aria-label="Default role toggle" formControlName="default"></mat-slide-toggle>
-      </gio-form-slide-toggle>
+        <gio-form-slide-toggle>
+          <gio-form-label>Default role</gio-form-label>
+          <mat-slide-toggle gioFormSlideToggle aria-label="Default role toggle" formControlName="default"></mat-slide-toggle>
+        </gio-form-slide-toggle>
+      </mat-card-content>
     </mat-card>
 
-    <mat-card class="org-settings-role__permissions-card" formGroupName="permissions">
+    <mat-card appearance="outlined" class="org-settings-role__permissions-card" formGroupName="permissions">
       <table
         *ngIf="rolePermissionsTableDS"
         mat-table
@@ -147,8 +149,8 @@
         <tr mat-header-row *matHeaderRowDef="rolePermissionsTableDisplayedColumns"></tr>
         <tr mat-row *matRowDef="let row; columns: rolePermissionsTableDisplayedColumns"></tr>
 
-        <tr class="mat-row" *matNoDataRow>
-          <td class="mat-cell" [attr.colspan]="rolePermissionsTableDisplayedColumns.length">No permission</td>
+        <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+          <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="rolePermissionsTableDisplayedColumns.length">No permission</td>
         </tr>
       </table>
     </mat-card>

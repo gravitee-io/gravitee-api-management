@@ -16,9 +16,8 @@
 
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { EMPTY, Subject } from 'rxjs';
-import { MatLegacyTableDataSource as MatTableDataSource } from '@angular/material/legacy-table';
+import { MatTableDataSource } from '@angular/material/table';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { MatLegacyDialog } from '@angular/material/legacy-dialog';
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 
@@ -45,7 +44,7 @@ export class OrgSettingsTenantsComponent implements OnInit, OnDestroy {
 
   constructor(
     private readonly tenantService: TenantService,
-    private readonly matLegacyDialog: MatLegacyDialog,
+    private readonly matLegacyDialog: MatDialog,
     private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,
   ) {}

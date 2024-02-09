@@ -19,8 +19,8 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
-import { MatLegacySlideToggleHarness as MatSlideToggleHarness } from '@angular/material/legacy-slide-toggle/testing';
-import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
+import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
 import { OrgSettingsIdentityProvidersComponent } from './org-settings-identity-providers.component';
 

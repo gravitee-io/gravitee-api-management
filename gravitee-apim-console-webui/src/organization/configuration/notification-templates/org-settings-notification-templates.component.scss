@@ -27,7 +27,7 @@ $background: map.get(gio.$mat-legacy-theme, background);
 
     &__list {
       &__item {
-        cursor: pointer;
+        cursor: pointer !important;
         &:hover {
           background-color: mat.get-color-from-palette($background, hover);
         }

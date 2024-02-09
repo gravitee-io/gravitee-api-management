@@ -15,86 +15,90 @@
     limitations under the License.
 
 -->
-<mat-card class="identity-provider__card" [formGroup]="configurationFormGroup">
-  <h2 gioTableOfContents>Configuration</h2>
+<mat-card appearance="outlined" class="identity-provider__card" [formGroup]="configurationFormGroup">
+  <mat-card-content>
+    <h2 gioTableOfContents>Configuration</h2>
 
-  <mat-form-field class="identity-provider__card__form-field">
-    <mat-label>Client Id</mat-label>
-    <input matInput name="configurationClientId" formControlName="clientId" required />
-    <mat-error *ngIf="configurationFormGroup.get('clientId').hasError('required')">Client Id is required.</mat-error>
-  </mat-form-field>
+    <mat-form-field class="identity-provider__card__form-field">
+      <mat-label>Client Id</mat-label>
+      <input matInput name="configurationClientId" formControlName="clientId" required />
+      <mat-error *ngIf="configurationFormGroup.get('clientId').hasError('required')">Client Id is required.</mat-error>
+    </mat-form-field>
 
-  <mat-form-field class="identity-provider__card__form-field">
-    <mat-label>Client Secret</mat-label>
-    <input matInput name="configurationClientSecret" type="password" formControlName="clientSecret" required />
-    <mat-error *ngIf="configurationFormGroup.get('clientSecret').hasError('required')">Client Secret is required.</mat-error>
-  </mat-form-field>
+    <mat-form-field class="identity-provider__card__form-field">
+      <mat-label>Client Secret</mat-label>
+      <input matInput name="configurationClientSecret" type="password" formControlName="clientSecret" required />
+      <mat-error *ngIf="configurationFormGroup.get('clientSecret').hasError('required')">Client Secret is required.</mat-error>
+    </mat-form-field>
 
-  <mat-form-field class="identity-provider__card__form-field">
-    <mat-label>Token Endpoint</mat-label>
-    <input matInput name="configurationTokenEndpoint" type="url" formControlName="tokenEndpoint" required />
-    <mat-error *ngIf="configurationFormGroup.get('tokenEndpoint').hasError('required')">Token Endpoint is required.</mat-error>
-  </mat-form-field>
+    <mat-form-field class="identity-provider__card__form-field">
+      <mat-label>Token Endpoint</mat-label>
+      <input matInput name="configurationTokenEndpoint" type="url" formControlName="tokenEndpoint" required />
+      <mat-error *ngIf="configurationFormGroup.get('tokenEndpoint').hasError('required')">Token Endpoint is required.</mat-error>
+    </mat-form-field>
 
-  <mat-form-field class="identity-provider__card__form-field">
-    <mat-label>Token Introspection Endpoint</mat-label>
-    <input matInput name="configurationTokenIntrospectionEndpoint" type="url" formControlName="tokenIntrospectionEndpoint" />
-  </mat-form-field>
+    <mat-form-field class="identity-provider__card__form-field">
+      <mat-label>Token Introspection Endpoint</mat-label>
+      <input matInput name="configurationTokenIntrospectionEndpoint" type="url" formControlName="tokenIntrospectionEndpoint" />
+    </mat-form-field>
 
-  <mat-form-field class="identity-provider__card__form-field">
-    <mat-label>Authorize Endpoint</mat-label>
-    <input matInput name="configurationAuthorizeEndpoint" type="url" formControlName="authorizeEndpoint" required />
-    <mat-error *ngIf="configurationFormGroup.get('authorizeEndpoint').hasError('required')">Authorize Endpoint is required.</mat-error>
-  </mat-form-field>
+    <mat-form-field class="identity-provider__card__form-field">
+      <mat-label>Authorize Endpoint</mat-label>
+      <input matInput name="configurationAuthorizeEndpoint" type="url" formControlName="authorizeEndpoint" required />
+      <mat-error *ngIf="configurationFormGroup.get('authorizeEndpoint').hasError('required')">Authorize Endpoint is required.</mat-error>
+    </mat-form-field>
 
-  <mat-form-field class="identity-provider__card__form-field">
-    <mat-label>UserInfo Endpoint</mat-label>
-    <input matInput name="configurationUserInfoEndpoint" type="url" formControlName="userInfoEndpoint" required />
-    <mat-error *ngIf="configurationFormGroup.get('userInfoEndpoint').hasError('required')">UserInfo Endpoint is required.</mat-error>
-  </mat-form-field>
+    <mat-form-field class="identity-provider__card__form-field">
+      <mat-label>UserInfo Endpoint</mat-label>
+      <input matInput name="configurationUserInfoEndpoint" type="url" formControlName="userInfoEndpoint" required />
+      <mat-error *ngIf="configurationFormGroup.get('userInfoEndpoint').hasError('required')">UserInfo Endpoint is required.</mat-error>
+    </mat-form-field>
 
-  <mat-form-field class="identity-provider__card__form-field">
-    <mat-label>UserInfo Logout Endpoint</mat-label>
-    <input matInput name="configurationUserLogoutEndpoint" type="url" formControlName="userLogoutEndpoint" />
-  </mat-form-field>
+    <mat-form-field class="identity-provider__card__form-field">
+      <mat-label>UserInfo Logout Endpoint</mat-label>
+      <input matInput name="configurationUserLogoutEndpoint" type="url" formControlName="userLogoutEndpoint" />
+    </mat-form-field>
 
-  <mat-form-field class="identity-provider__card__form-field">
-    <mat-label>Scopes</mat-label>
-    <gio-form-tags-input placeholder="Enter a scope and press Enter" formControlName="scopes"></gio-form-tags-input>
-  </mat-form-field>
+    <mat-form-field class="identity-provider__card__form-field">
+      <mat-label>Scopes</mat-label>
+      <gio-form-tags-input placeholder="Enter a scope and press Enter" formControlName="scopes"></gio-form-tags-input>
+    </mat-form-field>
 
-  <mat-form-field class="identity-provider__card__form-field">
-    <mat-label>Authentication button color</mat-label>
-    <gio-form-color-input placeholder="Select color" formControlName="color"></gio-form-color-input>
-  </mat-form-field>
+    <mat-form-field class="identity-provider__card__form-field">
+      <mat-label>Authentication button color</mat-label>
+      <gio-form-color-input placeholder="Select color" formControlName="color"></gio-form-color-input>
+    </mat-form-field>
+  </mat-card-content>
 </mat-card>
 
-<mat-card class="identity-provider__card" [formGroup]="userProfileMappingFormGroup">
-  <h2 gioTableOfContents>User profile mapping</h2>
+<mat-card appearance="outlined" class="identity-provider__card" [formGroup]="userProfileMappingFormGroup">
+  <mat-card-content>
+    <h2 gioTableOfContents>User profile mapping</h2>
 
-  <mat-form-field class="identity-provider__card__form-field">
-    <mat-label>ID</mat-label>
-    <input matInput name="userProfileMappingId" placeholder="sub" formControlName="id" required />
-    <mat-error *ngIf="userProfileMappingFormGroup.get('id').hasError('required')">ID is required.</mat-error>
-  </mat-form-field>
+    <mat-form-field class="identity-provider__card__form-field">
+      <mat-label>ID</mat-label>
+      <input matInput name="userProfileMappingId" placeholder="sub" formControlName="id" required />
+      <mat-error *ngIf="userProfileMappingFormGroup.get('id').hasError('required')">ID is required.</mat-error>
+    </mat-form-field>
 
-  <mat-form-field class="identity-provider__card__form-field">
-    <mat-label>First name</mat-label>
-    <input matInput name="userProfileMappingFirstname" placeholder="given_name" formControlName="firstname" />
-  </mat-form-field>
+    <mat-form-field class="identity-provider__card__form-field">
+      <mat-label>First name</mat-label>
+      <input matInput name="userProfileMappingFirstname" placeholder="given_name" formControlName="firstname" />
+    </mat-form-field>
 
-  <mat-form-field class="identity-provider__card__form-field">
-    <mat-label>Last name</mat-label>
-    <input matInput name="userProfileMappingLastname" placeholder="family_name" formControlName="lastname" />
-  </mat-form-field>
+    <mat-form-field class="identity-provider__card__form-field">
+      <mat-label>Last name</mat-label>
+      <input matInput name="userProfileMappingLastname" placeholder="family_name" formControlName="lastname" />
+    </mat-form-field>
 
-  <mat-form-field class="identity-provider__card__form-field">
-    <mat-label>Email</mat-label>
-    <input matInput name="userProfileMappingEmail" placeholder="email" formControlName="email" />
-  </mat-form-field>
+    <mat-form-field class="identity-provider__card__form-field">
+      <mat-label>Email</mat-label>
+      <input matInput name="userProfileMappingEmail" placeholder="email" formControlName="email" />
+    </mat-form-field>
 
-  <mat-form-field class="identity-provider__card__form-field">
-    <mat-label>Picture</mat-label>
-    <input matInput name="userProfileMappingPicture" placeholder="picture" formControlName="picture" />
-  </mat-form-field>
+    <mat-form-field class="identity-provider__card__form-field">
+      <mat-label>Picture</mat-label>
+      <input matInput name="userProfileMappingPicture" placeholder="picture" formControlName="picture" />
+    </mat-form-field>
+  </mat-card-content>
 </mat-card>

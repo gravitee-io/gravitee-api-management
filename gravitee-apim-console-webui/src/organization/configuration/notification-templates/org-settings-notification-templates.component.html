@@ -19,22 +19,28 @@
   <div class="org-settings-notification-templates__content">
     <h1>Templates</h1>
 
-    <mat-card *ngFor="let item of notificationTemplatesByScope | keyvalue" class="org-settings-notification-templates__content__card">
-      <h2 gioTableOfContents>{{ item.key }}</h2>
-      <mat-list class="org-settings-notification-templates__content__list">
-        <mat-list-item
-          class="org-settings-notification-templates__content__list__item"
-          *ngFor="let notificationTemplate of item.value"
-          (click)="onEditActionClicked(notificationTemplate)"
-        >
-          <mat-icon mat-list-icon>{{ notificationTemplate.icon }}</mat-icon>
-          <div mat-line>
-            <span>{{ notificationTemplate.name }}</span>
-            <span *ngIf="notificationTemplate.overridden" class="gio-badge">Custom</span>
-          </div>
-          <div mat-line>{{ notificationTemplate.description }}</div>
-        </mat-list-item>
-      </mat-list>
+    <mat-card
+      appearance="outlined"
+      *ngFor="let item of notificationTemplatesByScope | keyvalue"
+      class="org-settings-notification-templates__content__card"
+    >
+      <mat-card-content>
+        <h2 gioTableOfContents>{{ item.key }}</h2>
+        <mat-list class="org-settings-notification-templates__content__list">
+          <mat-list-item
+            class="org-settings-notification-templates__content__list__item"
+            *ngFor="let notificationTemplate of item.value"
+            (click)="onEditActionClicked(notificationTemplate)"
+          >
+            <mat-icon matListItemIcon>{{ notificationTemplate.icon }}</mat-icon>
+            <div matListItemTitle>
+              <span>{{ notificationTemplate.name }}</span>
+              <span *ngIf="notificationTemplate.overridden" class="gio-badge">Custom</span>
+            </div>
+            <div matListItemLine>{{ notificationTemplate.description }}</div>
+          </mat-list-item>
+        </mat-list>
+      </mat-card-content>
     </mat-card>
   </div>
 

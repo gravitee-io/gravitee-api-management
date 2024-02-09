@@ -18,9 +18,9 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { MatLegacyCellHarness as MatCellHarness } from '@angular/material/legacy-table/testing';
-import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
-import { MatLegacyInputHarness as MatInputHarness } from '@angular/material/legacy-input/testing';
+import { MatCellHarness } from '@angular/material/table/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatInputHarness } from '@angular/material/input/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 
 import { OrgSettingsTenantsComponent } from './org-settings-tenants.component';
@@ -45,6 +45,7 @@ describe('OrgSettingsTenantsComponent', () => {
     }).overrideProvider(InteractivityChecker, {
       useValue: {
         isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
+        isTabbable: () => true,
       },
     });
     httpTestingController = TestBed.inject(HttpTestingController);
