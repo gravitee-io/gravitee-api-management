@@ -13,29 +13,123 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { MatButtonModule } from '@angular/material/button';
 import { Meta, moduleMetadata, StoryObj } from '@storybook/angular';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { License } from '@gravitee/ui-particles-angular';
+import { action } from '@storybook/addon-actions';
 
-import { GioLicenseBannerModule } from './gio-license-banner.module';
 import { GioLicenseBannerComponent } from './gio-license-banner.component';
+import { GioLicenseBannerModule } from './gio-license-banner.module';
+
+const OSS_LICENSE: License = {
+  tier: 'oss',
+  packs: [],
+  features: [],
+  scope: 'PLATFORM',
+};
+const EE_LICENSE: License = {
+  tier: 'universe',
+  packs: [],
+  features: [],
+  scope: 'PLATFORM',
+};
+const CLOUD_LICENSE: License = {
+  tier: 'universe',
+  packs: [],
+  features: [],
+  scope: 'ORGANIZATION',
+};
+const OEM_LICENSE: License = {
+  tier: 'universe',
+  packs: [],
+  features: ['oem-customization'],
+  scope: 'ORGANIZATION',
+};
 
 export default {
   title: 'Shared / Gio License banner',
   component: GioLicenseBannerComponent,
   decorators: [
     moduleMetadata({
-      imports: [BrowserAnimationsModule, MatButtonModule, GioLicenseBannerModule],
+      imports: [GioLicenseBannerModule],
     }),
   ],
   argTypes: {
-    onRequestUpgrade: { action: 'onRequestUpgrade' },
+    onRequestUpgrade: { action: 'on-request-upgrade' },
   },
-
-  render: ({ onRequestUpgrade }) => ({
-    props: { onRequestUpgrade },
-    template: `<gio-license-banner (onRequestUpgrade)="onRequestUpgrade()"></gio-license-banner>`,
-  }),
 } as Meta;
 
-export const Default: StoryObj = {};
+export const NoLicense: StoryObj = {
+  args: {
+    onRequestUpgrade: action('on-request-upgrade'),
+  },
+  render: ({ onRequestUpgrade }) => {
+    return {
+      props: {
+        license: null,
+        isOEM: false,
+        onRequestUpgrade,
+      },
+      template: `<gio-license-banner [license]="license" [isOEM]="isOEM" (onRequestUpgrade)="onRequestUpgrade()"></gio-license-banner>`,
+    };
+  },
+};
+export const OSSLicense: StoryObj = {
+  args: {
+    onRequestUpgrade: action('on-request-upgrade'),
+  },
+  render: ({ onRequestUpgrade }) => {
+    return {
+      props: {
+        license: OSS_LICENSE,
+        isOEM: false,
+        onRequestUpgrade,
+      },
+      template: `<gio-license-banner [license]="license" [isOEM]="isOEM" (onRequestUpgrade)="onRequestUpgrade()"></gio-license-banner>`,
+    };
+  },
+};
+export const OEMLicense: StoryObj = {
+  args: {
+    onRequestUpgrade: action('on-request-upgrade'),
+  },
+  render: ({ onRequestUpgrade }) => {
+    return {
+      props: {
+        license: OEM_LICENSE,
+        isOEM: true,
+        onRequestUpgrade,
+      },
+      template: `<gio-license-banner [license]="license" [isOEM]="isOEM" (onRequestUpgrade)="onRequestUpgrade()"></gio-license-banner>`,
+    };
+  },
+};
+export const EELicense: StoryObj = {
+  args: {
+    onRequestUpgrade: action('on-request-upgrade'),
+  },
+  render: ({ onRequestUpgrade }) => {
+    return {
+      props: {
+        license: EE_LICENSE,
+        isOEM: false,
+        onRequestUpgrade,
+      },
+      template: `<gio-license-banner [license]="license" [isOEM]="isOEM" (onRequestUpgrade)="onRequestUpgrade()"></gio-license-banner>`,
+    };
+  },
+};
+export const CloudLicense: StoryObj = {
+  args: {
+    onRequestUpgrade: action('on-request-upgrade'),
+  },
+  render: ({ onRequestUpgrade }) => {
+    return {
+      props: {
+        license: CLOUD_LICENSE,
+        isOEM: false,
+        onRequestUpgrade,
+      },
+      template: `<gio-license-banner [license]="license" [isOEM]="isOEM" (onRequestUpgrade)="onRequestUpgrade()"></gio-license-banner>`,
+    };
+  },
+};

@@ -16,13 +16,12 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { MatLegacyButtonModule as MatButtonModule } from '@angular/material/legacy-button';
-import { MatIconModule } from '@angular/material/icon';
-import { GioBannerModule } from '@gravitee/ui-particles-angular';
+import { GioBannerModule, GioIconsModule } from '@gravitee/ui-particles-angular';
 
 import { GioLicenseBannerComponent } from './gio-license-banner.component';
 
 @NgModule({
-  imports: [CommonModule, MatButtonModule, MatIconModule, GioBannerModule],
+  imports: [CommonModule, MatButtonModule, GioIconsModule, GioBannerModule],
   declarations: [GioLicenseBannerComponent],
   exports: [GioLicenseBannerComponent],
 })
