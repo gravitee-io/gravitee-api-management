@@ -16,12 +16,9 @@
 
 -->
 <gio-banner type="error" icon="gio:universe" class="gio-license-banner">
-  This configuration requires an enterprise license
-  <span gioBannerBody
-    >Request a license to unlock enterprise functionality, such as support for event brokers, asynchronous APIS, and Webhook
-    subscriptions.</span
-  >
-  <div gioBannerAction>
+  {{ header }}
+  <span gioBannerBody>{{ body }}</span>
+  <div gioBannerAction *ngIf="showCta">
     <button mat-raised-button (click)="requestUpgrade($event)" type="button">Request upgrade</button>
   </div>
 </gio-banner>

@@ -14,7 +14,33 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
+import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 
 export class GioLicenseBannerHarness extends ComponentHarness {
   static hostSelector = 'gio-license-banner';
+
+  protected getButton = this.locatorForOptional(MatButtonHarness);
+  protected getBannerTitle = this.locatorForOptional(DivHarness.with({ selector: '.banner__wrapper__title' }));
+  protected getBannerBody = this.locatorForOptional(DivHarness.with({ selector: '.banner__wrapper__body' }));
+
+  public async buttonIsVisible(): Promise<boolean> {
+    const btn = await this.getButton();
+    return !!btn;
+  }
+
+  public async clickButton(): Promise<void> {
+    const btn = await this.getButton();
+    return await btn.click();
+  }
+
+  public async getTitle(): Promise<string> {
+    const div = await this.getBannerTitle();
+    return await div.getText();
+  }
+
+  public async getBody(): Promise<string> {
+    const div = await this.getBannerBody();
+    return await div.getText();
+  }
 }

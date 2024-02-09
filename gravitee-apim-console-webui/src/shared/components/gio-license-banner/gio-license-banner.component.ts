@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { License } from '@gravitee/ui-particles-angular';
 
 @Component({
   selector: 'gio-license-banner',
@@ -21,8 +22,39 @@ import { Component, EventEmitter, Output } from '@angular/core';
   styleUrls: ['./gio-license-banner.component.scss'],
   host: {},
 })
-export class GioLicenseBannerComponent {
+export class GioLicenseBannerComponent implements OnInit {
+  @Input()
+  license: License;
+
+  @Input()
+  isOEM = false;
+
   @Output() onRequestUpgrade = new EventEmitter<MouseEvent>();
+
+  // Default values for OSS or when license is null
+  header = 'This configuration requires an enterprise license';
+  body =
+    'Request a license to unlock enterprise functionality, such as support for connecting to event brokers, connecting to APIs via Websocket and Server-Sent Events, and publishing Webhooks.';
+  showCta = true;
+
+  ngOnInit(): void {
+    if (!this.license) {
+      return;
+    }
+
+    if (this.isOEM) {
+      // OEM
+      this.header = 'This configuration requires a license upgrade';
+      this.body = 'Your platform license does not support this feature. Please contact your platform administrator to find out more.';
+      this.showCta = false;
+    } else if (this.license.scope === 'ORGANIZATION' || this.license.tier !== 'oss') {
+      // Cloud + EE
+      this.header = 'This configuration requires a license upgrade';
+      this.body =
+        'Your organization’s license does not support some features used in this API. Request an upgrade to enable the selected features.';
+      this.showCta = this.license.scope !== 'ORGANIZATION'; // Hide for Cloud
+    }
+  }
 
   requestUpgrade($event: MouseEvent) {
     this.onRequestUpgrade.emit($event);
