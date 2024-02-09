@@ -36,49 +36,51 @@
     </p>
 
     <mat-card
+      appearance="outlined"
       *ngFor="let notificationTemplate of notificationTemplates"
       class="org-settings-notification-template__form__card"
       [formGroupName]="notificationTemplate.type"
     >
-      <div class="org-settings-notification-template__form__card__title">
-        <h2 gioTableOfContents>{{ notificationTemplate.type | titlecase }} Notification</h2>
-        <span *ngIf="notificationTemplate.enabled" class="gio-badge org-settings-notification-template__form__card__title__badge"
-          >Custom</span
-        >
-      </div>
-
-      <div class="org-settings-notification-template__form__card__fields">
-        <gio-form-slide-toggle>
-          <gio-form-label>Override default template</gio-form-label>
-          <mat-slide-toggle
-            gioFormSlideToggle
-            aria-label="Override default template"
-            formControlName="useCustomTemplate"
-          ></mat-slide-toggle>
-        </gio-form-slide-toggle>
-
-        <mat-form-field *ngIf="!isTemplateToInclude">
-          <mat-label>Title of the notification</mat-label>
-          <input matInput formControlName="title" required />
-          <mat-error *ngIf="notificationTemplatesForm.get(notificationTemplate.type).get('title').hasError('required')"
-            >Title of the notification is required.</mat-error
+      <mat-card-content>
+        <div class="org-settings-notification-template__form__card__title">
+          <h2 gioTableOfContents>{{ notificationTemplate.type | titlecase }} Notification</h2>
+          <span *ngIf="notificationTemplate.enabled" class="gio-badge org-settings-notification-template__form__card__title__badge"
+            >Custom</span
           >
-        </mat-form-field>
+        </div>
 
-        <mat-form-field>
-          <mat-label>Content</mat-label>
-          <textarea
-            matInput
-            formControlName="content"
-            class="org-settings-notification-template__form__card__fields__content-field"
-            required
-          >
-          </textarea>
-          <mat-error *ngIf="notificationTemplatesForm.get(notificationTemplate.type).get('content').hasError('required')"
-            >Content is required.</mat-error
-          >
-        </mat-form-field>
-      </div>
+        <div class="org-settings-notification-template__form__card__fields">
+          <gio-form-slide-toggle>
+            <gio-form-label>Override default template</gio-form-label>
+            <mat-slide-toggle
+              gioFormSlideToggle
+              aria-label="Override default template"
+              formControlName="useCustomTemplate"
+            ></mat-slide-toggle>
+          </gio-form-slide-toggle>
+
+          <mat-form-field *ngIf="!isTemplateToInclude">
+            <mat-label>Title of the notification</mat-label>
+            <input matInput formControlName="title" required />
+            <mat-error *ngIf="notificationTemplatesForm.get(notificationTemplate.type).get('title').hasError('required')"
+              >Title of the notification is required.</mat-error
+            >
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-label>Content</mat-label>
+            <gio-monaco-editor
+              class="org-settings-notification-template__form__card__fields__content-field"
+              gioMonacoEditorFormField
+              [languageConfig]="{ language: 'html' }"
+              formControlName="content"
+            ></gio-monaco-editor>
+            <mat-error *ngIf="notificationTemplatesForm.get(notificationTemplate.type).get('content').hasError('required')"
+              >Content is required.</mat-error
+            >
+          </mat-form-field>
+        </div>
+      </mat-card-content>
     </mat-card>
     <gio-save-bar [form]="notificationTemplatesForm" [formInitialValues]="formInitialValues"> </gio-save-bar>
   </form>

@@ -15,15 +15,15 @@
     limitations under the License.
 
 -->
-<h2 mat-dialog-title>{{ isUpdate ? 'Edit an entrypoint mapping' : 'Create an entrypoint mapping' }}</h2>
-
-<gio-banner-info>
-  Add a mapping between an entry point url and a tag list. This mapping will be used on the portal to display different entry points
-  depending on API tags.
-</gio-banner-info>
+<span mat-dialog-title>{{ isUpdate ? 'Edit an entrypoint mapping' : 'Create an entrypoint mapping' }}</span>
 
 <form autocomplete="off" [formGroup]="mappingForm" (ngSubmit)="onSubmit()">
   <mat-dialog-content>
+    <gio-banner-info>
+      Add a mapping between an entry point url and a tag list. This mapping will be used on the portal to display different entry points
+      depending on API tags.
+    </gio-banner-info>
+
     <div class="form">
       <mat-form-field>
         <mat-label>Entrypoint url</mat-label>

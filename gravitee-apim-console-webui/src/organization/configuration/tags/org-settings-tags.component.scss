@@ -19,7 +19,6 @@ $foreground: map.get(gio.$mat-legacy-theme, foreground);
 
     h2 {
       flex: 1 1 auto;
-      margin-bottom: 0;
     }
   }
 
@@ -27,22 +26,25 @@ $foreground: map.get(gio.$mat-legacy-theme, foreground);
     margin-bottom: 16px;
 
     .mat-column-actions {
-      width: 104px;
+      width: 128px;
     }
   }
 
   &__entrypoints-card {
-    display: flex;
-    flex-direction: column;
+    &__content {
+      display: flex;
+      flex-direction: column;
+      padding-bottom: 16px;
 
-    &__form-field {
-      &__icon {
-        color: mat.get-color-from-palette($foreground, disabled);
+      &__form-field {
+        &__icon {
+          color: mat.get-color-from-palette($foreground, disabled);
+        }
       }
     }
 
     .mat-column-actions {
-      width: 104px;
+      width: 128px;
     }
   }
 }

@@ -40,10 +40,12 @@ $accent: map.get(gio.$mat-legacy-theme, accent);
           background-color: mat.get-color-from-palette($background, hover);
         }
 
-        &__description {
+        &__clickable {
           cursor: pointer;
-          padding-left: 16px;
-          flex: 1 1 auto;
+        }
+
+        &__actions {
+          --mdc-list-list-item-trailing-supporting-text-color: none;
         }
       }
     }

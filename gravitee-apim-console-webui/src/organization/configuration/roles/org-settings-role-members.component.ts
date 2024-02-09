@@ -17,10 +17,10 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { combineLatest, EMPTY, Subject } from 'rxjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { MatLegacyDialog } from '@angular/material/legacy-dialog';
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute } from '@angular/router';
+import { MatLegacyDialog } from '@angular/material/legacy-dialog';
 
 import { RoleService } from '../../../services-ngx/role.service';
 import { MembershipListItem } from '../../../entities/role/membershipListItem';

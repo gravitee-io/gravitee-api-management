@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<h2 mat-dialog-title>{{ isUpdate ? 'Edit a tenant' : 'Create a tenant' }}</h2>
+<span mat-dialog-title>{{ isUpdate ? 'Edit a tenant' : 'Create a tenant' }}</span>
 
 <form autocomplete="off" [formGroup]="tenantForm" (ngSubmit)="onSubmit()">
   <mat-dialog-content>

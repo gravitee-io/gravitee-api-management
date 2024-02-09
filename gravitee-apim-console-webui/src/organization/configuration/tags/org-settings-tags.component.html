@@ -21,22 +21,23 @@
 
   <h4>Copy/paste the sharding tag's id to the API gateway configuration file in order to manage API deployments.</h4>
 
-  <mat-card class="org-settings-tags__tags-card">
-    <div class="org-settings-tags__add-button-container" *gioPermission="{ anyOf: ['organization-tag-c'] }">
-      <h2>Tags</h2>
-      <button
-        [gioLicense]="shardingTagsLicenseOptions"
-        (click)="onAddTagClicked()"
-        mat-raised-button
-        color="primary"
-        aria-label="Button to add a tag"
-        type="button"
-      >
-        <mat-icon>add</mat-icon>Add a tag
-        <mat-icon *ngIf="hasShardingTagsLock$ | async" class="mat-icon-right" svgIcon="gio:lock"></mat-icon>
-      </button>
-    </div>
-
+  <mat-card appearance="outlined" class="org-settings-tags__tags-card">
+    <mat-card-content>
+      <div class="org-settings-tags__add-button-container" *gioPermission="{ anyOf: ['organization-tag-c'] }">
+        <h2>Tags</h2>
+        <button
+          [gioLicense]="shardingTagsLicenseOptions"
+          (click)="onAddTagClicked()"
+          mat-raised-button
+          color="primary"
+          aria-label="Button to add a tag"
+          type="button"
+        >
+          <mat-icon>add</mat-icon>Add a tag
+          <mat-icon *ngIf="hasShardingTagsLock$ | async" class="mat-icon-right" svgIcon="gio:lock"></mat-icon>
+        </button>
+      </div>
+    </mat-card-content>
     <gio-table-wrapper [length]="tagsTableUnpaginatedLength" (filtersChange)="onTagsFiltersChanged($event)">
       <table
         mat-table
@@ -108,48 +109,51 @@
         <tr mat-header-row *matHeaderRowDef="tagsTableDisplayedColumns"></tr>
         <tr mat-row *matRowDef="let row; columns: tagsTableDisplayedColumns"></tr>
 
-        <tr class="mat-row" *matNoDataRow>
-          <td class="mat-cell" [attr.colspan]="tagsTableDisplayedColumns.length">No tag</td>
+        <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+          <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="tagsTableDisplayedColumns.length">No tag</td>
         </tr>
       </table>
     </gio-table-wrapper>
   </mat-card>
 
-  <mat-card class="org-settings-tags__entrypoints-card">
-    <div class="org-settings-tags__add-button-container">
-      <h2>Entrypoint mappings</h2>
+  <mat-card appearance="outlined" class="org-settings-tags__entrypoints-card">
+    <mat-card-content class="org-settings-tags__entrypoints-card__content">
+      <div class="org-settings-tags__add-button-container">
+        <h2>Entrypoint mappings</h2>
 
-      <button
-        *gioPermission="{ anyOf: ['organization-entrypoint-c'] }"
-        (click)="onAddEntrypointClicked()"
-        mat-raised-button
-        color="primary"
-        type="button"
-        aria-label="Button to add a mapping"
-      >
-        <mat-icon>add</mat-icon>Add a mapping
-      </button>
-    </div>
+        <button
+          *gioPermission="{ anyOf: ['organization-entrypoint-c'] }"
+          (click)="onAddEntrypointClicked()"
+          mat-raised-button
+          color="primary"
+          type="button"
+          aria-label="Button to add a mapping"
+        >
+          <mat-icon>add</mat-icon>Add a mapping
+        </button>
+      </div>
 
-    <mat-form-field [matTooltip]="providedConfigurationMessage" [matTooltipDisabled]="!isReadonlySetting('entrypoint')">
-      <mat-icon *ngIf="isReadonlySetting('entrypoint')" class="org-settings-tags__entrypoints-card__form-field__icon" matPrefix
-        >lock</mat-icon
-      >
-      <mat-label>Default entrypoint</mat-label>
-      <input #entrypointInput matInput formControlName="entrypoint" />
-      <gio-clipboard-copy-icon matSuffix [contentToCopy]="entrypointInput.value"></gio-clipboard-copy-icon>
-    </mat-form-field>
+      <mat-form-field [matTooltip]="providedConfigurationMessage" [matTooltipDisabled]="!isReadonlySetting('entrypoint')">
+        <mat-icon *ngIf="isReadonlySetting('entrypoint')" class="org-settings-tags__entrypoints-card__content__form-field__icon" matPrefix
+          >lock</mat-icon
+        >
+        <mat-label>Default entrypoint</mat-label>
+        <input #entrypointInput matInput formControlName="entrypoint" />
+        <gio-clipboard-copy-icon matSuffix [contentToCopy]="entrypointInput.value"></gio-clipboard-copy-icon>
+      </mat-form-field>
 
-    <mat-form-field [matTooltip]="providedConfigurationMessage" [matTooltipDisabled]="!isReadonlySetting('tcpPort')">
-      <mat-icon *ngIf="isReadonlySetting('tcpPort')" class="org-settings-tags__entrypoints-card__form-field__icon" matPrefix>lock</mat-icon>
-      <mat-label>Default TCP port</mat-label>
-      <input #tcpPortInput matInput formControlName="tcpPort" />
-      <mat-error *ngIf="defaultConfigForm.get('tcpPort').hasError('invalidTcpPort')"
-        >TCP port should be in range between 1024 and 65535</mat-error
-      >
-      <gio-clipboard-copy-icon matSuffix [contentToCopy]="tcpPortInput.value"></gio-clipboard-copy-icon>
-    </mat-form-field>
-
+      <mat-form-field [matTooltip]="providedConfigurationMessage" [matTooltipDisabled]="!isReadonlySetting('tcpPort')">
+        <mat-icon *ngIf="isReadonlySetting('tcpPort')" class="org-settings-tags__entrypoints-card__content__form-field__icon" matPrefix
+          >lock</mat-icon
+        >
+        <mat-label>Default TCP port</mat-label>
+        <input #tcpPortInput matInput formControlName="tcpPort" />
+        <mat-error *ngIf="defaultConfigForm.get('tcpPort').hasError('invalidTcpPort')"
+          >TCP port should be in range between 1024 and 65535</mat-error
+        >
+        <gio-clipboard-copy-icon matSuffix [contentToCopy]="tcpPortInput.value"></gio-clipboard-copy-icon>
+      </mat-form-field>
+    </mat-card-content>
     <gio-table-wrapper [length]="entrypointsTableUnpaginatedLength" (filtersChange)="onEntrypointsFiltersChanged($event)">
       <table
         mat-table
@@ -207,8 +211,8 @@
         <tr mat-header-row *matHeaderRowDef="entrypointsTableDisplayedColumns"></tr>
         <tr mat-row *matRowDef="let row; columns: entrypointsTableDisplayedColumns"></tr>
 
-        <tr class="mat-row" *matNoDataRow>
-          <td class="mat-cell" [attr.colspan]="entrypointsTableDisplayedColumns.length">No entrypoint</td>
+        <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+          <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="entrypointsTableDisplayedColumns.length">No entrypoint</td>
         </tr>
       </table>
     </gio-table-wrapper>

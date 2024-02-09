@@ -22,24 +22,28 @@
   accounts from GitHub, Google, OpenID Connect server or Gravitee.io AM.
 </h4>
 
-<mat-card class="org-settings-identity-providers__config-card">
-  <h2>Configuration</h2>
-  <mat-slide-toggle
-    [checked]="consoleSettings?.authentication?.localLogin?.enabled"
-    [disabled]="isReadonlySetting('console.authentication.localLogin.enabled') || !hasActivatedIdp()"
-    [matTooltip]="getLocalLoginTooltipMessage()"
-    [matTooltipDisabled]="getLocalLoginTooltipMessage() === null"
-    (change)="updateLocalLogin($event.checked)"
-    >Show login form on management console
-  </mat-slide-toggle>
+<mat-card appearance="outlined" class="org-settings-identity-providers__config-card">
+  <mat-card-content>
+    <h2>Configuration</h2>
+    <mat-slide-toggle
+      [checked]="consoleSettings?.authentication?.localLogin?.enabled"
+      [disabled]="isReadonlySetting('console.authentication.localLogin.enabled') || !hasActivatedIdp()"
+      [matTooltip]="getLocalLoginTooltipMessage()"
+      [matTooltipDisabled]="getLocalLoginTooltipMessage() === null"
+      (change)="updateLocalLogin($event.checked)"
+      >Show login form on management console
+    </mat-slide-toggle>
+  </mat-card-content>
 </mat-card>
 
-<mat-card class="org-settings-identity-providers__list-card">
-  <div class="org-settings-identity-providers__list-card__title">
-    <h2>Identity Providers</h2>
+<mat-card appearance="outlined" class="org-settings-identity-providers__list-card">
+  <mat-card-content>
+    <div class="org-settings-identity-providers__list-card__title">
+      <h2>Identity Providers</h2>
 
-    <button [routerLink]="'new'" mat-raised-button color="primary"><mat-icon>add</mat-icon>Add an identity provider</button>
-  </div>
+      <button [routerLink]="'new'" mat-raised-button color="primary"><mat-icon>add</mat-icon>Add an identity provider</button>
+    </div>
+  </mat-card-content>
 
   <gio-table-wrapper [length]="tableUnpaginatedLength" (filtersChange)="onFiltersChanged($event)">
     <table
@@ -163,8 +167,8 @@
       <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
 
       <!-- Row shown when there is no data -->
-      <tr class="mat-row" *matNoDataRow>
-        <td class="mat-cell" [attr.colspan]="displayedColumns.length">No Identity Provider</td>
+      <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+        <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">No Identity Provider</td>
       </tr>
     </table>
   </gio-table-wrapper>

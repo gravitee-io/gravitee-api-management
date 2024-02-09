@@ -18,12 +18,12 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HarnessLoader, parallel } from '@angular/cdk/testing';
-import { MatLegacyTableHarness as MatTableHarness } from '@angular/material/legacy-table/testing';
-import { MatLegacyInputHarness as MatInputHarness } from '@angular/material/legacy-input/testing';
+import { MatTableHarness } from '@angular/material/table/testing';
+import { MatInputHarness } from '@angular/material/input/testing';
 import { GioSaveBarHarness, GioLicenseTestingModule } from '@gravitee/ui-particles-angular';
-import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
-import { MatLegacySelectHarness as MatSelectHarness } from '@angular/material/legacy-select/testing';
+import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 
@@ -72,6 +72,7 @@ describe('OrgSettingsTagsComponent', () => {
     }).overrideProvider(InteractivityChecker, {
       useValue: {
         isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
+        isTabbable: () => true,
       },
     });
     httpTestingController = TestBed.inject(HttpTestingController);

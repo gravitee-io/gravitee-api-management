@@ -16,7 +16,7 @@
 
 -->
 <div class="header">
-  <nav mat-tab-nav-bar mat-align-tabs="end" class="header__nav">
+  <nav mat-tab-nav-bar mat-align-tabs="end" class="header__nav" [tabPanel]="tabPanel">
     <a mat-tab-link [active]="activeTab === 'design'" (click)="activeTab = 'design'"> Design </a>
     <a mat-tab-link [active]="activeTab === 'config'" (click)="activeTab = 'config'"> Configuration </a>
     <!-- save button -->
@@ -32,7 +32,7 @@
     </button>
   </nav>
 </div>
-<div>
+<mat-tab-nav-panel #tabPanel>
   <div class="content">
     <ng-container *ngIf="!isLoading && activeTab === 'design'">
       <org-settings-platform-policies-studio (change)="onChangeStudio($event)"></org-settings-platform-policies-studio>
@@ -44,4 +44,4 @@
 
     <ng-container *ngIf="isLoading"> Loading... </ng-container>
   </div>
-</div>
+</mat-tab-nav-panel>

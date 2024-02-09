@@ -16,15 +16,17 @@
 
 -->
 
-<mat-card>
-  <div *ngIf="!isLoading" class="policy-studio-api-config">
-    <gio-banner-info>
-      By default, the selection of a flow is based on the operator defined in the flow itself. This operator allows either to select a flow
-      when the path matches exactly, or when the start of the path matches. The "Best match" option allows you to select the flow from the
-      path that is closest.
-    </gio-banner-info>
+<mat-card appearance="outlined">
+  <mat-card-content>
+    <div *ngIf="!isLoading" class="policy-studio-api-config">
+      <gio-banner-info>
+        By default, the selection of a flow is based on the operator defined in the flow itself. This operator allows either to select a
+        flow when the path matches exactly, or when the start of the path matches. The "Best match" option allows you to select the flow
+        from the path that is closest.
+      </gio-banner-info>
 
-    <gio-form-json-schema *ngIf="formControl" [jsonSchema]="flowConfigurationSchema" [formControl]="formControl"></gio-form-json-schema>
-  </div>
-  <ng-container *ngIf="isLoading"> Loading... </ng-container>
+      <gio-form-json-schema *ngIf="formControl" [jsonSchema]="flowConfigurationSchema" [formControl]="formControl"></gio-form-json-schema>
+    </div>
+    <ng-container *ngIf="isLoading"> Loading... </ng-container>
+  </mat-card-content>
 </mat-card>

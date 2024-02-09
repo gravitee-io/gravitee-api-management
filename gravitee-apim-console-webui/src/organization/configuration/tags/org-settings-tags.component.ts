@@ -16,7 +16,6 @@
 
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup, ValidationErrors, ValidatorFn } from '@angular/forms';
-import { MatLegacyDialog } from '@angular/material/legacy-dialog';
 import { MatDialog } from '@angular/material/dialog';
 import { combineLatest, EMPTY, Observable, of, Subject } from 'rxjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
@@ -86,7 +85,7 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
     private readonly portalSettingsService: PortalSettingsService,
     private readonly entrypointService: EntrypointService,
     private readonly snackBarService: SnackBarService,
-    private readonly matLegacyDialog: MatLegacyDialog,
+    private readonly matLegacyDialog: MatDialog,
     private readonly matDialog: MatDialog,
     private readonly gioLicenseService: GioLicenseService,
   ) {}

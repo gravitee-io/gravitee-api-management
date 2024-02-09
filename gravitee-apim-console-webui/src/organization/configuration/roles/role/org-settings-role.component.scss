@@ -28,8 +28,8 @@ $infoColor: mat.get-color-from-palette(gio.$mat-primary-palette, default);
     overflow: hidden;
     padding: 0;
 
-    .mat-table {
-      .mat-header-row {
+    .mat-mdc-table {
+      .mat-mdc-header-row {
         background-color: mat.get-color-from-palette($background, 'background');
       }
 
@@ -44,7 +44,7 @@ $infoColor: mat.get-color-from-palette(gio.$mat-primary-palette, default);
       .mat-column-read,
       .mat-column-update,
       .mat-column-delete {
-        width: 64px;
+        width: 70px;
         padding-right: 0;
         text-align: center;
       }

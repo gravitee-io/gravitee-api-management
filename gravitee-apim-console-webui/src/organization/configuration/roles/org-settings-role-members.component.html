@@ -19,14 +19,16 @@
   <h1><gio-go-back-button routerLink="../../../../roles"></gio-go-back-button>{{ roleScope | titlecase }} - {{ role }}</h1>
   <h4>List all the users having the role {{ role }} in the {{ roleScope }} scope.</h4>
 
-  <mat-card>
-    <div class="org-settings-role-members__add-button-container" *gioPermission="{ anyOf: ['organization-role-u'] }">
-      <h2>Members</h2>
+  <mat-card appearance="outlined">
+    <mat-card-content>
+      <div class="org-settings-role-members__add-button-container" *gioPermission="{ anyOf: ['organization-role-u'] }">
+        <h2>Members</h2>
 
-      <button (click)="onAddMemberClicked()" mat-raised-button color="primary" type="button" aria-label="Button to add a member">
-        <mat-icon>add</mat-icon>Add a member
-      </button>
-    </div>
+        <button (click)="onAddMemberClicked()" mat-raised-button color="primary" type="button" aria-label="Button to add a member">
+          <mat-icon>add</mat-icon>Add a member
+        </button>
+      </div>
+    </mat-card-content>
 
     <gio-table-wrapper [length]="membershipsTableUnpaginatedLength" (filtersChange)="onMembershipFiltersChanged($event)">
       <table mat-table [dataSource]="filteredMemberships" class="memberships-table" id="membershipsTable" aria-label="Members table">
@@ -58,8 +60,8 @@
         <tr mat-header-row *matHeaderRowDef="membershipsTableDisplayedColumns"></tr>
         <tr mat-row *matRowDef="let row; columns: membershipsTableDisplayedColumns"></tr>
 
-        <tr class="mat-row" *matNoDataRow>
-          <td class="mat-cell" [attr.colspan]="membershipsTableDisplayedColumns.length">No member</td>
+        <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+          <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="membershipsTableDisplayedColumns.length">No member</td>
         </tr>
       </table>
     </gio-table-wrapper>

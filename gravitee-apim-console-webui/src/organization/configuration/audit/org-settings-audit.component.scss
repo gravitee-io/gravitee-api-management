@@ -8,11 +8,13 @@
   &__filters {
     margin-bottom: 8px;
 
-    &__field {
-      margin-right: 16px;
+    &__content {
+      &__field {
+        margin-right: 16px;
 
-      &.right {
-        float: right;
+        &.right {
+          float: right;
+        }
       }
     }
   }
