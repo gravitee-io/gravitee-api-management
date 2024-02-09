@@ -23,8 +23,8 @@ const envId = 'DEFAULT';
 
 const v2ApisResourceAsApiPublisher = new APIsApi(forManagementV2AsApiUser());
 
-describe('API - V4 - Import - Gravitee Definition - Only API', () => {
-  describe('Create v4 API from import', () => {
+describe('API - V4 - Import - Gravitee Definition - Only API -', () => {
+  describe('Create v4 API from import -', () => {
     describe('Create v4 API without ID', () => {
       let importedApi;
 
@@ -94,10 +94,10 @@ describe('API - V4 - Import - Gravitee Definition - Only API', () => {
           ],
           services: {
             dynamicProperty: {
-              enabled: true,
+              enabled: false,
               configuration: undefined,
               overrideConfiguration: false,
-              type: 'dynamic-property',
+              type: 'http-dynamic-properties',
             },
           },
           properties: [
