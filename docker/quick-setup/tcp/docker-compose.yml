@@ -33,6 +33,7 @@ services:
     image: mongo:${MONGODB_VERSION:-6.0}
     container_name: gio_apim_mongodb
     restart: always
+    command: [ "--quiet", "--logpath", "/dev/null" ]
     volumes:
       - data-mongo:/data/db
       - ./.logs/apim-mongodb:/var/log/mongodb
@@ -127,9 +128,8 @@ services:
       - gravitee_http_ssl_keystore_type=pkcs12
       - gravitee_http_ssl_keystore_path=/opt/graviteeio-gateway/certificates/server.p12
       - gravitee_http_ssl_keystore_password=server-secret
-      - gravitee_http_ssl_truststore_type=pkcs12
-      - gravitee_http_ssl_truststore_path=/opt/graviteeio-gateway/certificates/ca.p12
-      - gravitee_http_ssl_truststore_password=ca-secret
+      - gravitee_http_ssl_truststore_type=pem
+      - gravitee_http_ssl_truststore_path=/opt/graviteeio-gateway/certificates/ca.pem
     networks:
       - storage
       - frontend
