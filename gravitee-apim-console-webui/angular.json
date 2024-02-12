@@ -103,7 +103,7 @@
             "styles": [
               "src/index.scss",
               {
-                "input": "node_modules/swagger-ui-dist/swagger-ui.css",
+                "input": "node_modules/swagger-ui/dist/swagger-ui.css",
                 "inject": true,
                 "bundleName": "swagger-ui"
               }
@@ -113,16 +113,6 @@
                 "input": "node_modules/@asyncapi/web-component/lib/asyncapi-web-component.js",
                 "inject": true,
                 "bundleName": "asyncapi-web-component"
-              },
-              {
-                "input": "node_modules/swagger-ui-dist/swagger-ui-bundle.js",
-                "inject": true,
-                "bundleName": "swagger-ui-bundle"
-              },
-              {
-                "input": "node_modules/swagger-ui-dist/swagger-ui-standalone-preset.js",
-                "inject": true,
-                "bundleName": "swagger-ui-standalone-preset"
               }
             ],
             "stylePreprocessorOptions": {

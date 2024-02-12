@@ -17,13 +17,13 @@ import angular, { IController } from 'angular';
 
 import * as jsyaml from 'js-yaml';
 import { ActivatedRoute } from '@angular/router';
-import { isNaN, merge } from 'lodash';
+import { isNaN } from 'lodash';
+import SwaggerUI from 'swagger-ui';
 
 import UserService from '../../../services/user.service';
 
 const yamlSchema = jsyaml.Schema.create(jsyaml.JSON_SCHEMA, []);
 
-declare const SwaggerUIBundle: any;
 const DisableTryItOutPlugin = function () {
   return {
     statePlugins: {
@@ -44,22 +44,7 @@ class PageSwaggerComponentController implements IController {
 
   private activatedRoute: ActivatedRoute;
 
-  constructor(private readonly Constants, private readonly UserService: UserService, private $window: ng.IWindowService) {
-    this.cfg = {
-      dom_id: '#swagger-container',
-      presets: [SwaggerUIBundle.presets.apis],
-      layout: 'BaseLayout',
-      // plugins: will be replaced in $onChanges
-      requestInterceptor: (req) => {
-        if (req.loadSpec) {
-          req.credentials = 'include';
-        }
-        return req;
-      },
-      // spec: will be replaced in $onChanges
-      // oauth2RedirectUrl: will be replaced in $onChanges
-    };
-  }
+  constructor(private readonly Constants, private readonly UserService: UserService, private $window: ng.IWindowService) {}
 
   tryItEnabled() {
     return (
@@ -124,20 +109,10 @@ class PageSwaggerComponentController implements IController {
         ? undefined
         : Number(this.pageConfiguration.maxDisplayedTags);
 
-    const swaggerRenderer = SwaggerUIBundle(
-      merge(config, {
-        onComplete: () => {
-          // May be used in a short future, so keeping this part of the code to not forget about it.
-          swaggerRenderer.initOAuth({
-            clientId: '',
-            //              appName: "Swagger UI",
-            scopeSeparator: ' ',
-            //              additionalQueryStringParams: {some_parm: "val"}
-          });
-          //            ui.preauthorizeApiKey('api_key', 'my_api_key')
-        },
-      }),
-    );
+    SwaggerUI({
+      dom_id: '#swagger-container',
+      ...config,
+    });
   }
 }
 PageSwaggerComponentController.$inject = ['Constants', 'UserService', '$window'];
