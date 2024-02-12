@@ -18,9 +18,9 @@ import angular from 'angular';
 
 import { cloneDeep, filter, forEach, remove } from 'lodash';
 
-import { ApiService } from '../../../../services/api.service';
-import NotificationService from '../../../../services/notification.service';
-import { IfMatchEtagInterceptor } from '../../../../shared/interceptors/if-match-etag.interceptor';
+import { ApiService } from '../../../services/api.service';
+import NotificationService from '../../../services/notification.service';
+import { IfMatchEtagInterceptor } from '../../../shared/interceptors/if-match-etag.interceptor';
 
 interface IApiPropertiesScope extends ng.IScope {
   formDynamicProperties: any;
@@ -111,7 +111,7 @@ class ApiV1PropertiesControllerAjs {
       .show({
         controller: 'DialogConfirmController',
         controllerAs: 'ctrl',
-        template: require('html-loader!../../../../components/dialog/confirmWarning.dialog.html'),
+        template: require('html-loader!../../../components/dialog/confirmWarning.dialog.html'),
         clickOutsideToClose: true,
         locals: {
           title: 'Are you sure you want to remove property [' + key + ']?',
@@ -234,7 +234,7 @@ class ApiV1PropertiesControllerAjs {
       .show({
         controller: 'DialogConfirmController',
         controllerAs: 'ctrl',
-        template: require('html-loader!../../../../components/dialog/confirmWarning.dialog.html'),
+        template: require('html-loader!../../../components/dialog/confirmWarning.dialog.html'),
         clickOutsideToClose: true,
         locals: {
           title: 'Are you sure you want to remove selected properties?',

@@ -45,7 +45,7 @@ import { ApiAnalyticsLogComponent } from './analytics/logs/analytics-log.compone
 import { ApiPathMappingsComponent } from './analytics/pathMappings/api-path-mappings.component';
 import { ApiAlertsDashboardComponent } from './analytics/alerts/api-alerts-dashboard.component';
 import { ApiHistoryComponent } from './audit/history/apiHistory.component';
-import { ApiV1PropertiesComponent } from './proxy/properties-v1/properties.component';
+import { ApiV1PropertiesComponent } from './properties-v1/properties.component';
 import { ApiV1ResourcesComponent } from './resources-v1/resources.component';
 import { ApiV1PoliciesComponent } from './policy-studio-v1/policies/policies.component';
 import { ApiEventsComponent } from './audit/events/api-events.component';
