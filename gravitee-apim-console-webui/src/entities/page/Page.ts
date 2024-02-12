@@ -31,3 +31,7 @@ export enum PageType {
   MARKDOWN = 'MARKDOWN',
   MARKDOWN_TEMPLATE = 'MARKDOWN_TEMPLATE',
 }
+
+export const getLogoForPageType = (pageType: PageType) => {
+  return `assets/logo_${pageType.toLowerCase()}.svg`;
+};

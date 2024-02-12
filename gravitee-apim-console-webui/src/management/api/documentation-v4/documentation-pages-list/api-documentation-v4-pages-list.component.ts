@@ -18,7 +18,7 @@ import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChange
 import { MatTableDataSource } from '@angular/material/table';
 
 import { Page } from '../../../../entities/management-api-v2/documentation/page';
-import { PageType } from '../../../../entities/page';
+import { getLogoForPageType, PageType } from '../../../../entities/page';
 
 @Component({
   selector: 'api-documentation-v4-pages-list',
@@ -68,9 +68,8 @@ export class ApiDocumentationV4PagesListComponent implements OnInit, OnChanges {
     }
   }
 
-  getLogoForPageType(pageType: PageType) {
-    return `assets/logo_${pageType.toLowerCase()}.svg`;
-  }
+  readonly getLogoForPageType = getLogoForPageType;
+
   getTooltipForPageType(pageType: PageType) {
     switch (pageType) {
       case PageType.ASCIIDOC:
