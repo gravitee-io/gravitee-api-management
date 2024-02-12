@@ -38,6 +38,7 @@ import { Breadcrumb, Page } from '../../../entities/management-api-v2/documentat
 import { fakeFolder, fakeMarkdown } from '../../../entities/management-api-v2/documentation/page.fixture';
 import { ApiLifecycleState, fakeApiV4 } from '../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
+import { PageType } from '../../../entities/page';
 
 describe('ApiDocumentationV4', () => {
   let fixture: ComponentFixture<ApiDocumentationV4Component>;
@@ -122,11 +123,11 @@ describe('ApiDocumentationV4', () => {
 
     it('should navigate to create page', async () => {
       const headerHarness = await harnessLoader.getHarness(ApiDocumentationV4EmptyStateHarness);
-      await headerHarness.clickAddNewPage();
+      await headerHarness.clickAddNewPage(PageType.MARKDOWN);
 
       expect(routerNavigateSpy).toHaveBeenCalledWith(['new'], {
         relativeTo: expect.anything(),
-        queryParams: { parentId: 'ROOT' },
+        queryParams: { parentId: 'ROOT', pageType: 'MARKDOWN' },
       });
     });
   });
@@ -205,11 +206,11 @@ describe('ApiDocumentationV4', () => {
     it('should navigate to create page', async () => {
       await init([fakeFolder({ name: 'my first folder', visibility: 'PUBLIC' })], []);
       const headerHarness = await harnessLoader.getHarness(ApiDocumentationV4ListNavigationHeaderHarness);
-      await headerHarness.clickAddNewPage();
+      await headerHarness.clickAddNewPage(PageType.MARKDOWN);
 
       expect(routerNavigateSpy).toHaveBeenCalledWith(['new'], {
         relativeTo: expect.anything(),
-        queryParams: { parentId: 'ROOT' },
+        queryParams: { parentId: 'ROOT', pageType: 'MARKDOWN' },
       });
     });
 

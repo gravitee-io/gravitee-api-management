@@ -21,7 +21,7 @@
     [breadcrumbs]="breadcrumbs || []"
     [hasPages]="pages && pages.length > 0"
     (onAddFolder)="addFolder()"
-    (onAddPage)="addPage()"
+    (onAddPage)="addPage($event)"
     (onNavigateTo)="navigateTo($event)"
   ></api-documentation-list-navigation-header>
   <api-documentation-v4-pages-list
@@ -37,6 +37,6 @@
     (onMoveDown)="moveDown($event)"
   ></api-documentation-v4-pages-list>
   <ng-template #emptyState>
-    <api-documentation-empty-state *ngIf="!isLoading" (onAddPage)="addPage()"></api-documentation-empty-state>
+    <api-documentation-empty-state *ngIf="!isLoading" (onAddPage)="addPage($event)"></api-documentation-empty-state>
   </ng-template>
 </mat-card>

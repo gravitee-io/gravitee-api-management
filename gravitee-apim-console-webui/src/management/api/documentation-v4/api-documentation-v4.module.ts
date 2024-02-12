@@ -45,6 +45,7 @@ import { ApiDocumentationV4FileUploadComponent } from './components/api-document
 
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { GioTooltipOnEllipsisModule } from '../../../shared/components/gio-tooltip-on-ellipsis/gio-tooltip-on-ellipsis.module';
+import { MatMenuModule } from '@angular/material/menu';
 
 @NgModule({
   declarations: [
@@ -89,6 +90,7 @@ import { GioTooltipOnEllipsisModule } from '../../../shared/components/gio-toolt
     GioTooltipOnEllipsisModule,
     GioFormFilePickerModule,
     NgOptimizedImage,
+    MatMenuModule,
   ],
 })
 export class ApiDocumentationV4Module {}

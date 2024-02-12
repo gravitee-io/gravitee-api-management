@@ -34,6 +34,7 @@ import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { EditDocumentationFolder } from '../../../entities/management-api-v2/documentation/editDocumentation';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { Api } from '../../../entities/management-api-v2';
+import { PageType } from '../../../entities/page';
 
 @Component({
   selector: 'api-documentation-v4',
@@ -118,10 +119,10 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
       });
   }
 
-  addPage() {
+  addPage(pageType: PageType) {
     this.router.navigate(['new'], {
       relativeTo: this.activatedRoute,
-      queryParams: { parentId: this.parentId },
+      queryParams: { parentId: this.parentId, pageType },
     });
   }
 

@@ -17,6 +17,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 
 import { Breadcrumb } from '../../../../../entities/management-api-v2/documentation/page';
+import { getLogoForPageType, PageType } from '../../../../../entities/page';
 
 @Component({
   selector: 'api-documentation-list-navigation-header',
@@ -31,7 +32,11 @@ export class ApiDocumentationV4ListNavigationHeaderComponent {
   @Output()
   onAddFolder = new EventEmitter<void>();
   @Output()
-  onAddPage = new EventEmitter<void>();
+  onAddPage = new EventEmitter<PageType>();
   @Output()
   onNavigateTo = new EventEmitter<string>();
+
+  // expose constants
+  readonly getLogoForPageType = getLogoForPageType;
+  pageTypes = [PageType.MARKDOWN, PageType.SWAGGER];
 }
