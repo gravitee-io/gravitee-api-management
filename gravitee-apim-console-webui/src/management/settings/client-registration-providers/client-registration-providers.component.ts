@@ -176,6 +176,7 @@ export class ClientRegistrationProvidersComponent implements OnInit, OnDestroy {
           this.settings.application = portalSettingsApplication;
           return this.portalSettingsService.save(this.settings);
         }),
+        tap(() => this.snackBarService.success(`Configuration has been saved.`)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe();
