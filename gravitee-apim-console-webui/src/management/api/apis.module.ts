@@ -54,6 +54,7 @@ import { ApiNotificationModule } from './api-notification/api-notification.modul
 import { SpecificJsonSchemaTypeModule } from '../../shared/components/specific-json-schema-type/specific-json-schema-type.module';
 import { DocumentationModule } from '../../components/documentation/documentation.module';
 import { AlertsModule } from '../../components/alerts/alerts.module';
+import { ApiCorsModule } from "./cors/api-cors.module";
 
 @NgModule({
   declarations: [ApiV1PoliciesComponent],
@@ -66,6 +67,7 @@ import { AlertsModule } from '../../components/alerts/alerts.module';
     ApiAnalyticsModule,
     ApiAuditModule,
     ApiAuditListModule,
+    ApiCorsModule,
     ApiCreationGetStartedModule,
     ApiCreationV2Module,
     ApiCreationV4Module,
