@@ -26,6 +26,12 @@
     >
       Add new folder
     </button>
-    <button *ngIf="hasPages" class="header__action__button" mat-flat-button color="primary" (click)="onAddPage.emit()">Add new page</button>
+    <button *ngIf="hasPages" class="header__action__button" mat-flat-button color="primary" [matMenuTriggerFor]="menu">Add new page</button>
+    <mat-menu #menu="matMenu">
+      <button *ngFor="let pageType of pageTypes" (click)="onAddPage.emit(pageType)" mat-menu-item>
+        {{ pageType | titlecase }}
+        <img [ngSrc]="getLogoForPageType(pageType)" height="24" width="24" [alt]="pageType.toLowerCase() + ' logo'" />
+      </button>
+    </mat-menu>
   </div>
 </div>

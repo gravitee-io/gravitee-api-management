@@ -16,6 +16,7 @@
 
 import { Component, EventEmitter, OnDestroy, Output } from '@angular/core';
 import { Subject } from 'rxjs';
+import { getLogoForPageType, PageType } from '../../../../../entities/page';
 
 @Component({
   selector: 'api-documentation-empty-state',
@@ -26,10 +27,14 @@ export class ApiDocumentationV4EmptyStateComponent implements OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
 
   @Output()
-  onAddPage = new EventEmitter<void>();
+  onAddPage = new EventEmitter<PageType>();
 
   ngOnDestroy() {
     this.unsubscribe$.next();
     this.unsubscribe$.unsubscribe();
   }
+
+  // expose constants
+  readonly getLogoForPageType = getLogoForPageType;
+  pageTypes = [PageType.MARKDOWN, PageType.SWAGGER];
 }

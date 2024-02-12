@@ -18,12 +18,15 @@ import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/le
 import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 
 import { ApiDocumentationV4BreadcrumbHarness } from '../api-documentation-v4-breadcrumb/api-documentation-v4-breadcrumb.harness';
+import { PageType } from '../../../../../entities/page';
+import { MatMenuHarness } from '@angular/material/menu/testing';
 
 export class ApiDocumentationV4ListNavigationHeaderHarness extends ComponentHarness {
   public static hostSelector = 'api-documentation-list-navigation-header';
   private addNewPageButtonLocator = this.locatorForOptional(MatButtonHarness.with({ text: 'Add new page' }));
 
   private addNewFolderButtonLocator = this.locatorFor(MatButtonHarness.with({ text: 'Add new folder' }));
+  private menuLocator = this.locatorFor(MatMenuHarness);
   public async clickAddNewFolder() {
     return this.addNewFolderButtonLocator().then((btn) => btn.click());
   }
@@ -38,8 +41,11 @@ export class ApiDocumentationV4ListNavigationHeaderHarness extends ComponentHarn
     return this.locatorFor(ApiDocumentationV4BreadcrumbHarness)().then((el) => el.getContent());
   }
 
-  async clickAddNewPage() {
-    return this.addNewPageButtonLocator().then((btn) => btn.click());
+  async clickAddNewPage(pageType: PageType) {
+    return this.addNewPageButtonLocator()
+      .then((btn) => btn.click())
+      .then(() => this.menuLocator())
+      .then((menu) => menu.clickItem({ text: new RegExp(pageType, 'i') }));
   }
 
   async getNewPageButton() {

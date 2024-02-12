@@ -26,6 +26,8 @@ import { ApiDocumentationV4EmptyStateComponent } from './api-documentation-v4-em
 import { ApiDocumentationV4Module } from '../../api-documentation-v4.module';
 import { GioHttpTestingModule } from '../../../../../shared/testing';
 import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
+import { MatMenu } from '@angular/material/menu';
+import { MatMenuHarness } from '@angular/material/menu/testing';
 
 describe('ApiDocumentationV4EmptyStateComponent', () => {
   let fixture: ComponentFixture<ApiDocumentationV4EmptyStateComponent>;
@@ -64,10 +66,13 @@ describe('ApiDocumentationV4EmptyStateComponent', () => {
     expect(await subtitle.getText()).toEqual('Start creating pages to fill up your folder.');
   });
 
-  it('should emit event when clicking on add button', async () => {
+  it('should show menu to select page type and emit event when clicking on add button', async () => {
     const spy = jest.spyOn(component.onAddPage, 'emit');
     const button = await harnessLoader.getHarness(MatButtonHarness.with({ text: 'Add new page' }));
     await button.click();
+
+    const menu = await harnessLoader.getHarness(MatMenuHarness);
+    await menu.clickItem({ text: new RegExp('MARKDOWN', 'i') });
 
     expect(spy).toHaveBeenCalled();
   });

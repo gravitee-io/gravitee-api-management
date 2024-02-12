@@ -24,10 +24,16 @@
       class="empty__action"
       mat-flat-button
       color="primary"
-      (click)="onAddPage.emit()"
       *gioPermission="{ anyOf: ['api-documentation-c'] }"
+      [matMenuTriggerFor]="menu"
     >
       Add new page
     </button>
+
+    <mat-menu #menu="matMenu">
+      <button *ngFor="let pageType of pageTypes" (click)="onAddPage.emit(pageType)" mat-menu-item>
+        {{ pageType | titlecase }} <img [ngSrc]="getLogoForPageType(pageType)" height="24" width="24" alt="Markdown logo" />
+      </button>
+    </mat-menu>
   </div>
 </div>
