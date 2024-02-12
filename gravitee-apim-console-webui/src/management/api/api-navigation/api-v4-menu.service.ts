@@ -49,7 +49,7 @@ export class ApiV4MenuService implements ApiMenuService {
       this.addPoliciesMenuEntry(hasTcpListeners),
       this.addApiTrafficMenuEntry(hasTcpListeners),
       this.addApiRuntimeAlertsMenuEntry(),
-    ].filter((entry) => !entry?.tabs?.every((tab) => tab.routerLink === 'DISABLED'));
+    ].filter((entry) => entry != null && !entry.tabs?.every((tab) => tab.routerLink === 'DISABLED'));
 
     const groupItems: MenuGroupItem[] = [this.getGeneralGroup()].filter((group) => !!group);
 

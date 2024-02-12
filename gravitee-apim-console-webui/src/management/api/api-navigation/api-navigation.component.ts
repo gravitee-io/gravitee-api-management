@@ -328,7 +328,7 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
   }
 
   private findActiveMenuItem(items: MenuItem[]) {
-    return items.filter((item) => item.tabs).find((item) => this.isTabActive(item.tabs));
+    return items.filter((item) => item?.tabs).find((item) => this.isTabActive(item?.tabs));
   }
 
   private findActiveMenuItemHeader() {
@@ -373,6 +373,7 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
     const environmentId = this.activatedRoute.snapshot.params.envId;
     const apiId = this.currentApi.id;
     const parentRouterLink = getPathFromRoot(this.activatedRoute);
+
     return this.mapToMenuSearchItem(environmentId, apiId, parentRouterLink, this.subMenuItems).concat(
       this.mapToMenuSearchItem(
         environmentId,
