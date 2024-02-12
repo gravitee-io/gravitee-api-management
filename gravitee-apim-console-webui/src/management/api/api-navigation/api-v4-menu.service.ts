@@ -51,9 +51,7 @@ export class ApiV4MenuService implements ApiMenuService {
       this.addApiRuntimeAlertsMenuEntry(),
     ].filter((entry) => entry != null && !entry.tabs?.every((tab) => tab.routerLink === 'DISABLED'));
 
-    const groupItems: MenuGroupItem[] = [this.getGeneralGroup()].filter((group) => !!group);
-
-    return { subMenuItems, groupItems };
+    return { subMenuItems, groupItems: [] };
   }
 
   private addConfigurationMenuEntry(): MenuItem {
@@ -76,11 +74,18 @@ export class ApiV4MenuService implements ApiMenuService {
     }
 
     if (this.permissionService.hasAnyMatching(['api-definition-r'])) {
-      tabs.push({
-        displayName: 'Resources',
-        routerLink: 'resources',
-        routerLinkActiveOptions: { exact: true },
-      });
+      tabs.push(
+        {
+          displayName: 'Properties',
+          routerLink: 'properties',
+          routerLinkActiveOptions: { exact: true },
+        },
+        {
+          displayName: 'Resources',
+          routerLink: 'resources',
+          routerLinkActiveOptions: { exact: true },
+        },
+      );
     }
 
     if (this.permissionService.hasAnyMatching(['api-notification-r'])) {
@@ -346,22 +351,6 @@ export class ApiV4MenuService implements ApiMenuService {
       title: 'General',
       items: [],
     };
-
-    if (this.permissionService.hasAnyMatching(['api-definition-r'])) {
-      generalGroup.items.push({
-        displayName: 'Properties',
-        tabs: [
-          {
-            displayName: 'Properties',
-            routerLink: 'properties',
-          },
-          {
-            displayName: 'Dynamic properties',
-            routerLink: 'v4/dynamic-properties',
-          },
-        ],
-      });
-    }
 
     return generalGroup;
   }

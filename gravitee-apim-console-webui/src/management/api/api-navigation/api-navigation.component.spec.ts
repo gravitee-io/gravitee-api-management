@@ -189,7 +189,7 @@ describe('ApiNavigationComponent', () => {
       }).compileComponents();
 
       fixture = TestBed.createComponent(ApiNavigationComponent);
-      apiNgNavigationComponent = await fixture.componentInstance;
+      apiNgNavigationComponent = fixture.componentInstance;
       httpTestingController = TestBed.inject(HttpTestingController);
     });
 
@@ -204,6 +204,7 @@ describe('ApiNavigationComponent', () => {
             'Configuration',
             'General',
             'User Permissions',
+            'Properties',
             'Resources',
             'Audit Logs',
             'Entrypoints',
@@ -222,8 +223,6 @@ describe('ApiNavigationComponent', () => {
             'API Traffic',
             'Runtime Logs',
             'Settings',
-            'Properties',
-            'Dynamic properties',
           ].map((name) =>
             expect.objectContaining({
               name,
@@ -257,7 +256,6 @@ describe('ApiNavigationComponent', () => {
             'Deployments',
             'Response Templates',
             'Properties',
-            'Dynamic properties',
             'Resources',
             'Endpoints',
             'Failover',

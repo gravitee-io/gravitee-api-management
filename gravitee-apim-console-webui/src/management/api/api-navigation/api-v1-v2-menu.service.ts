@@ -189,16 +189,8 @@ export class ApiV1V2MenuService implements ApiMenuService {
         proxyGroup.items.push(
           {
             displayName: 'Properties',
-            tabs: [
-              {
-                displayName: 'Properties',
-                routerLink: 'properties',
-              },
-              {
-                displayName: 'Dynamic properties',
-                routerLink: 'dynamic-properties',
-              },
-            ],
+            routerLink: 'properties',
+            tabs: [],
           },
           {
             displayName: 'Resources',
