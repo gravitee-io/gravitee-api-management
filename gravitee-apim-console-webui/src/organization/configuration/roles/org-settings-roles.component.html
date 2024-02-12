@@ -31,7 +31,7 @@
             color="primary"
           >
             <mat-icon>add</mat-icon>Add a role
-            <mat-icon *ngIf="hasCustomRolesLock$ | async" class="mat-icon-right" svgIcon="gio:lock"></mat-icon>
+            <mat-icon *ngIf="hasCustomRolesLock$ | async" iconPositionEnd svgIcon="gio:lock"></mat-icon>
           </button>
         </div>
         <mat-list class="org-settings-roles__content__list">
