@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 import { FormsModule } from '@angular/forms';
-import { moduleMetadata } from '@storybook/angular';
-import { Story, Meta } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
+import { Meta, moduleMetadata, StoryObj } from '@storybook/angular';
 
 import { GioDiffComponent } from './gio-diff.component';
 import { GioDiffModule } from './gio-diff.module';
@@ -40,7 +39,7 @@ export default {
   }),
 } as Meta;
 
-export const Default: Story = {
+export const Default: StoryObj = {
   args: {
     leftContent: JSON.stringify(
       {

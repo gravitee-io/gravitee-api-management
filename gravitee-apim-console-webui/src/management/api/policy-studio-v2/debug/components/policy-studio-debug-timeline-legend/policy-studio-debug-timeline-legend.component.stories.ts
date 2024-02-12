@@ -15,9 +15,8 @@
  */
 import { CommonModule } from '@angular/common';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { Meta, moduleMetadata } from '@storybook/angular';
+import { Meta, moduleMetadata, StoryObj } from '@storybook/angular';
 import { MatIconModule } from '@angular/material/icon';
-import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
 
 import { PolicyStudioDebugTimelineLegendComponent } from './policy-studio-debug-timeline-legend.component';
@@ -38,4 +37,4 @@ export default {
   }),
 } as Meta;
 
-export const Default: Story = {};
+export const Default: StoryObj = {};

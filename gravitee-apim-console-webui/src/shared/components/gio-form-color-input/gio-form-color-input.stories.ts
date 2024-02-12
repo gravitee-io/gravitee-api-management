@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Meta, moduleMetadata } from '@storybook/angular';
-import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
+import { Meta, moduleMetadata, StoryObj } from '@storybook/angular';
 import { action } from '@storybook/addon-actions';
 import { MatLegacyFormFieldModule as MatFormFieldModule } from '@angular/material/legacy-form-field';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -51,7 +50,7 @@ export default {
   },
 } as Meta;
 
-export const Simple: Story = {
+export const Simple: StoryObj = {
   render: ({ color, placeholder, required, disabled }) => {
     const colorControl = new FormControl({ value: color, disabled });
 
@@ -81,7 +80,7 @@ export const Simple: Story = {
   args: {},
 };
 
-export const Disabled: Story = {
+export const Disabled: StoryObj = {
   render: Simple.render,
   args: {
     disabled: true,
@@ -89,7 +88,7 @@ export const Disabled: Story = {
   },
 };
 
-export const Validation: Story = {
+export const Validation: StoryObj = {
   render: Simple.render,
   args: {
     color: 'aaaaa',

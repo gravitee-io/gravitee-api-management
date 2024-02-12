@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 import { MatButtonModule } from '@angular/material/button';
-import { Meta, moduleMetadata } from '@storybook/angular';
-import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
+import { Meta, moduleMetadata, StoryObj } from '@storybook/angular';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { GioGoBackComponent } from './gio-go-back-button.component';
@@ -32,7 +31,7 @@ export default {
   render: () => ({}),
 } as Meta;
 
-export const insideH1: Story = {
+export const InsideH1: StoryObj = {
   render: () => ({
     template: `<h1><gio-go-back-button></gio-go-back-button> Title 1</h1>`,
   }),

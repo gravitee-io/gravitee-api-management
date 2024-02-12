@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Meta, moduleMetadata } from '@storybook/angular';
-import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
+import { Meta, moduleMetadata, StoryObj } from '@storybook/angular';
 
 import { ApiRuntimeLogsListRowComponent } from './api-runtime-logs-list-row.component';
 import { ApiRuntimeLogsListRowModule } from './api-runtime-logs-list-row.module';
@@ -43,8 +42,8 @@ export default {
   }),
 } as Meta;
 
-export const First: Story = {};
+export const First: StoryObj = {};
 First.args = { log, index: 0 };
 
-export const NthElement: Story = {};
+export const NthElement: StoryObj = {};
 NthElement.args = { log, index: 1 };

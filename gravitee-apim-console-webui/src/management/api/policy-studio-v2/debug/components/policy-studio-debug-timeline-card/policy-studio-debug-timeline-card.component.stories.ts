@@ -15,9 +15,8 @@
  */
 import { CommonModule, TitleCasePipe } from '@angular/common';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { Meta, moduleMetadata } from '@storybook/angular';
+import { Meta, moduleMetadata, StoryObj } from '@storybook/angular';
 import { MatIconModule } from '@angular/material/icon';
-import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
 
 import { PolicyStudioDebugTimelineCardComponent, TimelineStep } from './policy-studio-debug-timeline-card.component';
@@ -50,9 +49,9 @@ export default {
   }),
 } as Meta;
 
-export const Empty: Story = {};
+export const Empty: StoryObj = {};
 
-export const ClientApp: Story = {
+export const ClientApp: StoryObj = {
   args: {
     timelineStep: {
       id: '42',
@@ -61,7 +60,7 @@ export const ClientApp: Story = {
   },
 };
 
-export const BackendTarget: Story = {
+export const BackendTarget: StoryObj = {
   args: {
     timelineStep: {
       id: '42',
@@ -70,7 +69,7 @@ export const BackendTarget: Story = {
   },
 };
 
-export const RequestInput: Story = {
+export const RequestInput: StoryObj = {
   args: {
     timelineStep: {
       id: '42',
@@ -79,7 +78,7 @@ export const RequestInput: Story = {
   },
 };
 
-export const RequestOutput: Story = {
+export const RequestOutput: StoryObj = {
   args: {
     timelineStep: {
       id: '42',
@@ -88,7 +87,7 @@ export const RequestOutput: Story = {
   },
 };
 
-export const Policy: Story = {
+export const Policy: StoryObj = {
   args: {
     timelineStep: {
       id: '42',
@@ -102,7 +101,7 @@ export const Policy: Story = {
   },
 };
 
-export const PolicyWithError: Story = {
+export const PolicyWithError: StoryObj = {
   args: {
     timelineStep: {
       id: '42',
@@ -117,7 +116,7 @@ export const PolicyWithError: Story = {
   },
 };
 
-export const PolicyLongText: Story = {
+export const PolicyLongText: StoryObj = {
   args: {
     timelineStep: {
       id: '42',
@@ -131,7 +130,7 @@ export const PolicyLongText: Story = {
   },
 };
 
-export const ResponseInput: Story = {
+export const ResponseInput: StoryObj = {
   args: {
     timelineStep: {
       id: '42',
@@ -140,7 +139,7 @@ export const ResponseInput: Story = {
   },
 };
 
-export const ResponseOutput: Story = {
+export const ResponseOutput: StoryObj = {
   args: {
     timelineStep: {
       id: '42',
@@ -149,7 +148,7 @@ export const ResponseOutput: Story = {
   },
 };
 
-export const Selected: Story = {
+export const Selected: StoryObj = {
   args: {
     timelineStep: {
       id: '42',
@@ -165,7 +164,7 @@ export const Selected: Story = {
   },
 };
 
-export const SelectedContent: Story = {
+export const SelectedContent: StoryObj = {
   args: {
     timelineStep: {
       id: '42',
@@ -181,7 +180,7 @@ export const SelectedContent: Story = {
   },
 };
 
-export const PolicyWithConditional: Story = {
+export const PolicyWithConditional: StoryObj = {
   args: {
     timelineStep: {
       id: '42',

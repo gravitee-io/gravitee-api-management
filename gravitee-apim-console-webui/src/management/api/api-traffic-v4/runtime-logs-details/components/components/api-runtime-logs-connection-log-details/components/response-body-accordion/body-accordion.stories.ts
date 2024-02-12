@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Meta, moduleMetadata } from '@storybook/angular';
-import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
+import { Meta, moduleMetadata, StoryObj } from '@storybook/angular';
 
 import { BodyAccordionComponent } from './body-accordion.component';
 import { BodyAccordionModule } from './body-accordion.module';
@@ -40,7 +39,7 @@ export default {
   }),
 } as Meta;
 
-export const Default: Story = {};
+export const Default: StoryObj = {};
 Default.args = {
   body: '{\n  "message": "My awesome body" \n}',
 };

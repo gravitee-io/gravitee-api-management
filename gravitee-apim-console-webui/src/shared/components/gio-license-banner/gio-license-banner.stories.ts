@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 import { MatButtonModule } from '@angular/material/button';
-import { Meta, moduleMetadata } from '@storybook/angular';
-import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
+import { Meta, moduleMetadata, StoryObj } from '@storybook/angular';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { GioLicenseBannerModule } from './gio-license-banner.module';
@@ -39,4 +38,4 @@ export default {
   }),
 } as Meta;
 
-export const Default: Story = {};
+export const Default: StoryObj = {};

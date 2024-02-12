@@ -15,7 +15,6 @@
  */
 
 import { Component, Input } from '@angular/core';
-import { Object } from 'core-js';
 
 import { ConnectionLogDetail } from '../../../../../../../entities/management-api-v2';
 

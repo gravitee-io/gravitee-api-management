@@ -13,15 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Meta } from '@storybook/angular';
-import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
+import { Meta, StoryObj } from '@storybook/angular';
 
 export default {
   title: 'Shared / Description list (dl,dt,dd)',
   decorators: [],
 } as Meta;
 
-export const Default: Story = {
+export const Default: StoryObj = {
   render: () => {
     return {
       template: `

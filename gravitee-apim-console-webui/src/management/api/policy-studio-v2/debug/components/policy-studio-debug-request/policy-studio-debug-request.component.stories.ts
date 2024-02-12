@@ -22,8 +22,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTabsModule } from '@angular/material/tabs';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { GioFormHeadersModule } from '@gravitee/ui-particles-angular';
-import { Meta, moduleMetadata } from '@storybook/angular';
-import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
+import { Meta, moduleMetadata, StoryObj } from '@storybook/angular';
 
 import { PolicyStudioDebugRequestComponent } from './policy-studio-debug-request.component';
 
@@ -65,4 +64,4 @@ export default {
   }),
 } as Meta;
 
-export const Default: Story = {};
+export const Default: StoryObj = {};

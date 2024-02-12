@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 import { APP_INITIALIZER } from '@angular/core';
-import { Meta, moduleMetadata } from '@storybook/angular';
-import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
+import { Meta, moduleMetadata, StoryObj } from '@storybook/angular';
 
 import { GioTableOfContentsComponent } from './gio-table-of-contents.component';
 import { GioTableOfContentsModule } from './gio-table-of-contents.module';
@@ -31,7 +30,7 @@ export default {
   ],
 } as Meta;
 
-export const Default: Story = {
+export const Default: StoryObj = {
   render: () => ({
     template: `
     <div style="display: flex;justify-content: space-between; align-items: flex-start;">
@@ -69,7 +68,7 @@ export const Default: Story = {
   }),
 };
 
-export const Multiple: Story = {
+export const Multiple: StoryObj = {
   render: () => ({
     template: `
     <div style="display: flex;justify-content: space-between; align-items: flex-start;">
@@ -111,7 +110,7 @@ export const Multiple: Story = {
   }),
 };
 
-export const AddAndRemoveDynamically: Story = {
+export const AddAndRemoveDynamically: StoryObj = {
   render: () => ({
     template: `
     <div style="display: flex;justify-content: space-between; align-items: flex-start;">
@@ -129,7 +128,7 @@ export const AddAndRemoveDynamically: Story = {
 
         <h3 gioTableOfContents>Link 1.1.2</h3>
         <br *ngFor="let item of [].constructor(30)">
-        
+
         <ng-container *ngIf="moreLinks">
           <h3 gioTableOfContents>Link 1.1.3</h3>
           <br *ngFor="let item of [].constructor(30)">
@@ -171,7 +170,7 @@ export const AddAndRemoveDynamically: Story = {
   }),
 };
 
-export const scrollingContainer: Story = {
+export const ScrollingContainer: StoryObj = {
   render: () => ({
     template: `
     <div style="height:24px"> The TopBar 🍻 <button *ngIf="moreLinks" (click)="moreLinks = false">- Remove</button> <button *ngIf="!moreLinks" (click)="moreLinks = true">+ Add</button></div>
