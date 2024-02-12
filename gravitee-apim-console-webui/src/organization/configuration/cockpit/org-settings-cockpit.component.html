@@ -16,7 +16,7 @@
 
 -->
 <div class="org-settings-cockpit">
-  <mat-card appearance="outlined" *ngIf="!isLoading" class="org-settings-cockpit__card">
+  <mat-card *ngIf="!isLoading" class="org-settings-cockpit__card">
     <mat-icon class="org-settings-cockpit__card__icon">{{ icon }}</mat-icon>
     <h2 class="org-settings-cockpit__card__title">{{ title }}</h2>
     <div class="org-settings-cockpit__card__message" [innerHTML]="message"></div>

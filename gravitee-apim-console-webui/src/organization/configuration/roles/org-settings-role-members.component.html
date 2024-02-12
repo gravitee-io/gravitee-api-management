@@ -19,7 +19,7 @@
   <h1><gio-go-back-button routerLink="../../../../roles"></gio-go-back-button>{{ roleScope | titlecase }} - {{ role }}</h1>
   <h4>List all the users having the role {{ role }} in the {{ roleScope }} scope.</h4>
 
-  <mat-card appearance="outlined">
+  <mat-card>
     <mat-card-content>
       <div class="org-settings-role-members__add-button-container" *gioPermission="{ anyOf: ['organization-role-u'] }">
         <h2>Members</h2>
