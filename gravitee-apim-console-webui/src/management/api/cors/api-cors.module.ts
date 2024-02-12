@@ -58,4 +58,4 @@ import { ApiCorsComponent } from './api-cors.component';
     GioBannerModule,
   ],
 })
-export class ApiProxyCorsModule {}
+export class ApiCorsModule {}

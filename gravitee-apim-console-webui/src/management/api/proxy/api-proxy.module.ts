@@ -21,10 +21,9 @@ import { ApiPropertiesModule } from './properties/properties/api-properties.modu
 import { ApiDynamicPropertiesModule } from './properties/dynamic-properties/api-dynamic-properties.module';
 
 import { ApiV1ResourcesComponent } from '../resources-v1/resources.component';
-import { ApiProxyCorsModule } from '../cors/api-proxy-cors.module';
 
 @NgModule({
   declarations: [ApiV1ResourcesComponent],
-  imports: [ApiProxyCorsModule, ApiProxyHealthCheckDashboardModule, ApiPropertiesModule, ApiDynamicPropertiesModule],
+  imports: [ApiProxyHealthCheckDashboardModule, ApiPropertiesModule, ApiDynamicPropertiesModule],
 })
 export class ApiProxyModule {}

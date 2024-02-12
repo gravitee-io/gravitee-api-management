@@ -30,7 +30,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 
 import { ApiCorsComponent } from './api-cors.component';
-import { ApiProxyCorsModule } from './api-proxy-cors.module';
+import { ApiCorsModule } from './api-cors.module';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { ApiV2, ApiV4, ConnectorPlugin, fakeApiV2, fakeApiV4, fakeConnectorPlugin } from '../../../entities/management-api-v2';
@@ -54,7 +54,7 @@ describe('ApiCorsComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiProxyCorsModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiCorsModule, MatIconTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
         { provide: GioTestingPermissionProvider, useValue: ['api-definition-u'] },
