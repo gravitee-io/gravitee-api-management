@@ -41,17 +41,10 @@ $textColor: map.get(gio.$mat-dove-palette, default);
   &__card {
     margin-bottom: 24px;
 
-    &__title {
+    &__add-btn {
       display: flex;
-      flex-direction: row;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 24px;
-      gap: 16px;
-
-      &__add-btn {
-        flex: 1 0 auto;
-      }
+      flex-direction: column;
+      align-items: flex-end;
     }
 
     &__subtitle {
@@ -59,8 +52,12 @@ $textColor: map.get(gio.$mat-dove-palette, default);
       padding: 12px 0;
     }
 
-    &__toggle {
-      display: block;
+    &__type {
+      margin: 16px 0;
+      &__toggle {
+        display: flex;
+        align-items: center;
+      }
     }
 
     &__table {
