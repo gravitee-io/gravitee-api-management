@@ -46,15 +46,15 @@ import { ApiSubscriptionsModule } from './subscriptions/api-subscriptions.module
 import { ApiDocumentationModule } from './documentation/api-documentation.module';
 import { ApiUserGroupModule } from './user-group-access/api-user-group.module';
 import { ApiAuditListModule } from './api-audit-list/api-audit-list.module';
-import { ApiDynamicPropertiesV4Module } from './properties-v4/dynamic-properties/api-dynamic-properties-v4.module';
 import { ApiDeploymentConfigurationModule } from './deployment-configuration-v4/api-deployment-configuration.module';
 import { ApiAuditLogsModule } from './api-audit-logs/api-audit-logs.module';
 import { ApiNotificationModule } from './api-notification/api-notification.module';
+import { ApiCorsModule } from './cors/api-cors.module';
+import { ApiPropertiesModule } from './properties/properties/api-properties.module';
 
 import { SpecificJsonSchemaTypeModule } from '../../shared/components/specific-json-schema-type/specific-json-schema-type.module';
 import { DocumentationModule } from '../../components/documentation/documentation.module';
 import { AlertsModule } from '../../components/alerts/alerts.module';
-import { ApiCorsModule } from "./cors/api-cors.module";
 
 @NgModule({
   declarations: [ApiV1PoliciesComponent],
@@ -74,7 +74,6 @@ import { ApiCorsModule } from "./cors/api-cors.module";
     ApiDeploymentConfigurationModule,
     ApiDocumentationModule,
     ApiDocumentationV4Module,
-    ApiDynamicPropertiesV4Module,
     ApiEndpointsModule,
     ApiEndpointsV4Module,
     ApiEntrypointsModule,
@@ -86,6 +85,7 @@ import { ApiCorsModule } from "./cors/api-cors.module";
     ApiNavigationModule,
     ApiNotificationSettingsModule,
     ApiPlansModule,
+    ApiPropertiesModule,
     ApiProxyModule,
     ApiResourcesModule,
     ApiResponseTemplatesModule,

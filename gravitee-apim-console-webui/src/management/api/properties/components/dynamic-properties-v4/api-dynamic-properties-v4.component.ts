@@ -21,12 +21,12 @@ import { startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { GioJsonSchema } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute } from '@angular/router';
 
-import { CorsUtil } from '../../../../shared/utils';
-import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
-import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
-import { onlyApiV4Filter } from '../../../../util/apiFilter.operator';
-import { ApiV4 } from '../../../../entities/management-api-v2';
-import { ApiServicePluginsV2Service } from '../../../../services-ngx/apiservice-plugins-v2.service';
+import { CorsUtil } from '../../../../../shared/utils';
+import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
+import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
+import { onlyApiV4Filter } from '../../../../../util/apiFilter.operator';
+import { ApiV4 } from '../../../../../entities/management-api-v2';
+import { ApiServicePluginsV2Service } from '../../../../../services-ngx/apiservice-plugins-v2.service';
 
 @Component({
   selector: 'api-dynamic-properties-v4',

@@ -18,8 +18,8 @@ import { UntypedFormControl, UntypedFormGroup, ValidatorFn } from '@angular/form
 import { MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA, MatLegacyDialogRef as MatDialogRef } from '@angular/material/legacy-dialog';
 import { isEmpty } from 'lodash';
 
-import { Property } from '../../../../../../entities/management-api-v2';
-import { parsePropertiesStringFormat } from '../../../../../../shared/utils';
+import { Property } from '../../../../../entities/management-api-v2';
+import { parsePropertiesStringFormat } from '../../../../../shared/utils';
 
 export type PropertiesImportDialogData = {
   properties: Property[];

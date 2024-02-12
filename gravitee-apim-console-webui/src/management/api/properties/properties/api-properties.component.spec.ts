@@ -33,9 +33,9 @@ import { ApiPropertiesModule } from './api-properties.module';
 import { PropertiesAddDialogHarness } from './properties-add-dialog/properties-add-dialog.harness';
 import { PropertiesImportDialogHarness } from './properties-import-dialog/properties-import-dialog.harness';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
-import { Api, fakeApiV4 } from '../../../../../entities/management-api-v2/api';
-import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { Api, fakeApiV4 } from '../../../../entities/management-api-v2/api';
+import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiPropertiesComponent', () => {
   const API_ID = 'apiId';

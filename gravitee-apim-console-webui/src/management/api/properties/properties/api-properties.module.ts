@@ -32,8 +32,10 @@ import { ApiPropertiesComponent } from './api-properties.component';
 import { PropertiesAddDialogModule } from './properties-add-dialog/properties-add-dialog.module';
 import { PropertiesImportDialogModule } from './properties-import-dialog/properties-import-dialog.module';
 
-import { GioPermissionModule } from '../../../../../shared/components/gio-permission/gio-permission.module';
-import { GioTableWrapperModule } from '../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
+import { GioTableWrapperModule } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
+import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
+import { ApiDynamicPropertiesV2Module } from '../components/dynamic-properties-v2/api-dynamic-properties-v2.module';
+import { ApiDynamicPropertiesV4Module } from '../components/dynamic-properties-v4/api-dynamic-properties-v4.module';
 
 @NgModule({
   imports: [
@@ -59,6 +61,9 @@ import { GioTableWrapperModule } from '../../../../../shared/components/gio-tabl
     MatSnackBarModule,
     MatDialogModule,
     GioBannerModule,
+
+    ApiDynamicPropertiesV2Module,
+    ApiDynamicPropertiesV4Module,
   ],
   declarations: [ApiPropertiesComponent],
   exports: [ApiPropertiesComponent],
