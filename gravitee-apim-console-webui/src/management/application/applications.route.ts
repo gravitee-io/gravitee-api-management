@@ -26,14 +26,13 @@ import { ApplicationSubscriptionComponent } from './details/subscriptions/applic
 import { ApplicationAnalyticsComponent } from './details/analytics/application-analytics.component';
 import { ApplicationLogsComponent } from './details/logs/application-logs.component';
 import { ApplicationLogComponent } from './details/logs/application-log.component';
-import { ApplicationNotificationSettingsListComponent } from './details/notifications/notification-settings/notification-settings-list/application-notification-settings-list.component';
-import { ApplicationNotificationSettingsDetailsComponent } from './details/notifications/notification-settings/notification-settings-details/application-notification-settings-details.component';
 import { ApplicationCreationComponent } from './creation/steps/application-creation.component';
 import { ApplicationSubscribeComponent } from './details/subscribe/application-subscribe.component';
 import { ApplicationGeneralMembersComponent } from './details/user-group-access/members/application-general-members.component';
 import { ApplicationGeneralGroupsComponent } from './details/user-group-access/groups/application-general-groups.component';
 import { ApplicationGeneralTransferOwnershipComponent } from './details/user-group-access/transfer-ownership/application-general-transfer-ownership.component';
 import { ApplicationGeneralComponent } from './details/general/application-general.component';
+import { ApplicationNotificationComponent } from './details/notification/application-notification.component';
 
 import { HasEnvironmentPermissionGuard } from '../has-environment-permission.guard';
 
@@ -156,25 +155,13 @@ const applicationRoutes: Routes = [
         },
       },
       {
-        path: 'notification-settings',
-        component: ApplicationNotificationSettingsListComponent,
+        path: 'notifications',
+        component: ApplicationNotificationComponent,
         data: {
           perms: {
             only: ['application-notification-r', 'application-alert-r'],
           },
           docs: {
-            page: 'management-application-notifications',
-          },
-        },
-      },
-      {
-        path: 'notification-settings/:notificationId',
-        component: ApplicationNotificationSettingsDetailsComponent,
-        data: {
-          docs: {
-            perms: {
-              only: ['application-notification-r'],
-            },
             page: 'management-application-notifications',
           },
         },

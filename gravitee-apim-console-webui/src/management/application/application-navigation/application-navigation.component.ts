@@ -119,7 +119,7 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
       },
       {
         displayName: 'Notification settings',
-        routerLink: 'notification-settings',
+        routerLink: 'notifications',
         permissions: ['application-notification-r', 'application-alert-r'],
       },
     ]);
