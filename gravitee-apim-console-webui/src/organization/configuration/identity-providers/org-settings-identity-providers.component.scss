@@ -7,16 +7,6 @@
   @include gio-responsive-content-container;
 }
 
-.mat-column-id,
-.mat-column-name,
-.mat-column-description,
-.mat-column-availableOnPortal,
-.mat-column-activated,
-.mat-column-updatedAt,
-.mat-column-actions {
-  padding: 0 4px;
-}
-
 .mat-column-logo {
   width: 4%;
 }

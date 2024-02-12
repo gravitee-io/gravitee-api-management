@@ -44,9 +44,18 @@ $infoColor: mat.get-color-from-palette(gio.$mat-primary-palette, default);
       .mat-column-read,
       .mat-column-update,
       .mat-column-delete {
-        width: 70px;
-        padding-right: 0;
+        width: 56px;
         text-align: center;
+      }
+
+      .mat-column-create,
+      .mat-column-read,
+      .mat-column-update {
+        padding-right: 2px;
+        padding-left: 2px;
+      }
+      .mat-column-delete {
+        padding-left: 2px;
       }
     }
   }
