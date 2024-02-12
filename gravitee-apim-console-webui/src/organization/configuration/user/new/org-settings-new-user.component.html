@@ -19,7 +19,7 @@
   <h1><gio-go-back-button routerLink=".."></gio-go-back-button>Pre-register a user</h1>
   <h4>The new user will receive an email to finalize the creation by setting a password.</h4>
 
-  <mat-card appearance="outlined" class="org-settings-new-user__card">
+  <mat-card class="org-settings-new-user__card">
     <mat-card-content>
       <h2>User type</h2>
 
@@ -37,7 +37,7 @@
     </mat-card-content>
   </mat-card>
 
-  <mat-card appearance="outlined" class="org-settings-new-user__card">
+  <mat-card class="org-settings-new-user__card">
     <mat-card-content *ngIf="userForm.get('type').value === UserType.EXTERNAL_USER">
       <h2>User</h2>
       <mat-form-field class="org-settings-new-user__card__form-field">

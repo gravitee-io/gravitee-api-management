@@ -19,7 +19,7 @@
   <div class="org-settings-roles__content">
     <h1>Roles</h1>
 
-    <mat-card appearance="outlined" *ngFor="let item of rolesByScope" class="org-settings-roles__content__card">
+    <mat-card *ngFor="let item of rolesByScope" class="org-settings-roles__content__card">
       <mat-card-content>
         <div class="org-settings-roles__content__headline">
           <h2 gioTableOfContents>{{ item.scope }}</h2>

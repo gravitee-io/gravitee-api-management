@@ -23,7 +23,7 @@
       <ng-container *ngIf="mode === 'edit'">Update {{ identityProviderType | titlecase }} identity provider</ng-container>
     </h1>
 
-    <mat-card appearance="outlined" *ngIf="mode === 'new'" class="identity-provider__card">
+    <mat-card *ngIf="mode === 'new'" class="identity-provider__card">
       <mat-card-content>
         <h2 gioTableOfContents>Provider type</h2>
 
@@ -72,7 +72,7 @@
       </mat-card-content>
     </mat-card>
 
-    <mat-card appearance="outlined" class="identity-provider__card">
+    <mat-card class="identity-provider__card">
       <mat-card-content>
         <h2 gioTableOfContents>General</h2>
 
@@ -147,11 +147,10 @@
       ></org-settings-identity-provider-graviteeio-am>
     </ng-container>
 
-    <mat-card appearance="outlined" *ngIf="mode === 'edit'" class="identity-provider__card" formArrayName="groupMappings">
+    <mat-card *ngIf="mode === 'edit'" class="identity-provider__card" formArrayName="groupMappings">
       <mat-card-content>
         <h2 gioTableOfContents>Groups Mapping</h2>
         <mat-card
-          appearance="outlined"
           *ngFor="
             let groupMappingControl of $any(this.identityProviderFormGroup.get('groupMappings'))?.controls;
             index as groupMappingIndex
@@ -188,11 +187,10 @@
       </mat-card-actions>
     </mat-card>
 
-    <mat-card appearance="outlined" *ngIf="mode === 'edit'" class="identity-provider__card" formArrayName="roleMappings">
+    <mat-card *ngIf="mode === 'edit'" class="identity-provider__card" formArrayName="roleMappings">
       <mat-card-content>
         <h2 gioTableOfContents>Roles Mapping</h2>
         <mat-card
-          appearance="outlined"
           *ngFor="let roleMappingControl of $any(this.identityProviderFormGroup.get('roleMappings'))?.controls; index as roleMappingIndex"
           [formGroupName]="roleMappingIndex"
         >

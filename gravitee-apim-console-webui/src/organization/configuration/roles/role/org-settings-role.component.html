@@ -25,7 +25,7 @@
   <form *ngIf="!isLoading" autocomplete="off" [formGroup]="roleForm" (ngSubmit)="onSubmit()">
     <gio-banner-info *ngIf="isReadOnly">System role are not editable</gio-banner-info>
 
-    <mat-card appearance="outlined">
+    <mat-card>
       <mat-card-content class="org-settings-role__role-card">
         <mat-form-field>
           <mat-label>Role name</mat-label>
@@ -46,7 +46,7 @@
       </mat-card-content>
     </mat-card>
 
-    <mat-card appearance="outlined" class="org-settings-role__permissions-card" formGroupName="permissions">
+    <mat-card class="org-settings-role__permissions-card" formGroupName="permissions">
       <table
         *ngIf="rolePermissionsTableDS"
         mat-table
