@@ -19,22 +19,15 @@ import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ApiNotificationComponent } from './api-notification.component';
-import { NotificationAddDialogModule, NotificationEditDialogModule, NotificationListModule } from './components';
+
+import { NotificationModule } from '../../../components/notification';
 
 @NgModule({
   declarations: [ApiNotificationComponent],
   exports: [],
-  imports: [
-    CommonModule,
-    MatCardModule,
-    MatButtonModule,
-    MatIconModule,
-    MatDialogModule,
-    NotificationListModule,
-    NotificationAddDialogModule,
-    NotificationEditDialogModule,
-  ],
+  imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule, MatDialogModule, MatSnackBarModule, NotificationModule],
 })
 export class ApiNotificationModule {}

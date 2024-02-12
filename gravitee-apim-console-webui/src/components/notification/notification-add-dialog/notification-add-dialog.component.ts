@@ -17,7 +17,7 @@ import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 
-import { Notifier } from '../../../../../entities/notification/notifier';
+import { Notifier } from '../../../entities/notification/notifier';
 
 export interface NotificationAddDialogData {
   notifiers: Notifier[];

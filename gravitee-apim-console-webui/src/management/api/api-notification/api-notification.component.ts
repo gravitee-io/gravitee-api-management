@@ -21,7 +21,6 @@ import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operato
 import { BehaviorSubject, combineLatest, EMPTY, Observable, Subject } from 'rxjs';
 import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 
-import { NotificationSummary } from './components/notification-list/notification-list.component';
 import {
   NotificationAddDialogComponent,
   NotificationAddDialogData,
@@ -29,8 +28,8 @@ import {
   NotificationEditDialogComponent,
   NotificationEditDialogData,
   NotificationEditDialogResult,
-} from './components';
-
+  NotificationSummary,
+} from '../../../components/notification';
 import { ApiNotificationSettingsService } from '../../../services-ngx/api-notification-settings.service';
 import { Notifier } from '../../../entities/notification/notifier';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';

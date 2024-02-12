@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
@@ -26,9 +27,8 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 
 import { ApiNotificationComponent } from './api-notification.component';
 import { ApiNotificationModule } from './api-notification.module';
-import { NotificationListHarness } from './components/notification-list/notification-list.harness';
-import { NotificationAddDialogHarness, NotificationEditDialogHarness } from './components';
 
+import { NotificationAddDialogHarness, NotificationEditDialogHarness, NotificationListHarness } from '../../../components/notification';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { fakeNotifier } from '../../../entities/notification/notifier.fixture';
 import { fakeNotificationSettings, fakePortalNotificationSettings } from '../../../entities/notification/notificationSettings.fixture';

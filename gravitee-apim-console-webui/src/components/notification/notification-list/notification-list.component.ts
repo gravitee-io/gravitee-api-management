@@ -15,7 +15,7 @@
  */
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 
-import { Notifier } from '../../../../../entities/notification/notifier';
+import { Notifier } from '../../../entities/notification/notifier';
 
 export interface NotificationSummary {
   id: string;

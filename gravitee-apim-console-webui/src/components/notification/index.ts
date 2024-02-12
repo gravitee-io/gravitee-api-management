@@ -13,5 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-export * from './notification-list.module';
+export * from './notification-add-dialog';
+export * from './notification-edit-dialog';
+export * from './notification-list';
+export * from './notification.module';
