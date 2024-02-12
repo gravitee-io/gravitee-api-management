@@ -28,7 +28,7 @@ import { MatLegacyInputHarness as MatInputHarness } from '@angular/material/lega
 import { ActivatedRoute } from '@angular/router';
 
 import { ApiDynamicPropertiesComponent } from './api-dynamic-properties.component';
-import { ApiDynamicPropertiesModule } from './api-dynamic-properties.module';
+import { ApiDynamicPropertiesV2Module } from './api-dynamic-properties-v2.module';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { Api, fakeApiV2 } from '../../../../../entities/management-api-v2';
@@ -41,7 +41,7 @@ describe('ApiDynamicPropertiesComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiDynamicPropertiesModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiDynamicPropertiesV2Module, MatIconTestingModule],
       providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } }],
     }).overrideProvider(InteractivityChecker, {
       useValue: {

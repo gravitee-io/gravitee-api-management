@@ -17,8 +17,8 @@ import { Component, Inject } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA, MatLegacyDialogRef as MatDialogRef } from '@angular/material/legacy-dialog';
 
-import { Property } from '../../../../../../entities/management-api-v2';
-import { isUnique } from '../../../../../../shared/utils';
+import { Property } from '../../../../../entities/management-api-v2';
+import { isUnique } from '../../../../../shared/utils';
 
 export type PropertiesAddDialogData = {
   properties: Property[];

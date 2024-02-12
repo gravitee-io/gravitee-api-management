@@ -17,13 +17,11 @@
 import { NgModule } from '@angular/core';
 
 import { ApiProxyHealthCheckDashboardModule } from './health-check-dashboard/api-proxy-health-check-dashboard.module';
-import { ApiPropertiesModule } from './properties/properties/api-properties.module';
-import { ApiDynamicPropertiesModule } from './properties/dynamic-properties/api-dynamic-properties.module';
 
 import { ApiV1ResourcesComponent } from '../resources-v1/resources.component';
 
 @NgModule({
   declarations: [ApiV1ResourcesComponent],
-  imports: [ApiProxyHealthCheckDashboardModule, ApiPropertiesModule, ApiDynamicPropertiesModule],
+  imports: [ApiProxyHealthCheckDashboardModule],
 })
 export class ApiProxyModule {}

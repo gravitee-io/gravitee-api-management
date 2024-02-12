@@ -1,7 +1,7 @@
 @use '@angular/material/index' as mat;
 @use '@gravitee/ui-particles-angular/index' as gio;
 
-@use '../../../../../scss/gio-layout' as gio-layout;
+@use '../../../../scss/gio-layout' as gio-layout;
 
 :host {
   @include gio-layout.gio-responsive-margin-container;

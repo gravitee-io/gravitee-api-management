@@ -62,4 +62,4 @@ import { ApiDynamicPropertiesComponent } from './api-dynamic-properties.componen
   declarations: [ApiDynamicPropertiesComponent],
   exports: [ApiDynamicPropertiesComponent],
 })
-export class ApiDynamicPropertiesModule {}
+export class ApiDynamicPropertiesV2Module {}

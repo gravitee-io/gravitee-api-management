@@ -34,12 +34,12 @@ import {
   PropertiesImportDialogResult,
 } from './properties-import-dialog/properties-import-dialog.component';
 
-import { GioTableWrapperFilters } from '../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
-import { ApiV2, ApiV4, Property } from '../../../../../entities/management-api-v2';
-import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
-import { gioTableFilterCollection } from '../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
-import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
-import { isUniqueAndDoesNotMatchDefaultValue } from '../../../../../shared/utils';
+import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
+import { ApiV2, ApiV4, Property } from '../../../../entities/management-api-v2';
+import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
+import { gioTableFilterCollection } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
+import { isUniqueAndDoesNotMatchDefaultValue } from '../../../../shared/utils';
 
 type TableDataSource = {
   _id: string;
