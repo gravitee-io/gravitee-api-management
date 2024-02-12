@@ -28,7 +28,7 @@ import { distinctUntilChanged, filter, map, startWith, takeUntil } from 'rxjs/op
         class="header"
       ></gio-top-nav>
       <gio-side-nav class="sidebar"></gio-side-nav>
-      <div class="content gio-toc-scrolling-container" *ngIf="!isLoading">
+      <div id="gio-toc-scrolling-container" class="content" *ngIf="!isLoading">
         <router-outlet></router-outlet>
       </div>
       <gio-contextual-doc
