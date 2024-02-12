@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Meta, moduleMetadata } from '@storybook/angular';
-import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
+import { Meta, moduleMetadata, StoryObj } from '@storybook/angular';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatCardModule } from '@angular/material/card';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -51,7 +50,7 @@ export default {
   render: () => ({}),
 } as Meta;
 
-export const SelectionList: Story = {
+export const SelectionList: StoryObj = {
   render: () => {
     const formGroup = new FormGroup({
       checkboxControl: new FormControl('', Validators.required),
@@ -119,7 +118,7 @@ export const SelectionList: Story = {
     };
   },
 };
-export const RadioGroup: Story = {
+export const RadioGroup: StoryObj = {
   render: () => {
     const formGroup = new FormGroup({
       radioControl: new FormControl('', Validators.required),

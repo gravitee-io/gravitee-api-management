@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Meta, moduleMetadata } from '@storybook/angular';
-import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
+import { Meta, moduleMetadata, StoryObj } from '@storybook/angular';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatCardModule } from '@angular/material/card';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -34,7 +33,7 @@ export default {
   render: () => ({}),
 } as Meta;
 
-export const Simple: Story = {
+export const Simple: StoryObj = {
   render: () => ({
     template: `
     <gio-form-card-group [ngModel]="selected" (ngModelChange)="onSelect($event)">
@@ -52,7 +51,7 @@ export const Simple: Story = {
   }),
 };
 
-export const ReactiveForms: Story = {
+export const ReactiveForms: StoryObj = {
   render: () => {
     const selectControl = new FormControl('A');
 
@@ -77,7 +76,7 @@ export const ReactiveForms: Story = {
   },
 };
 
-export const ReactiveFormsGroupDisable: Story = {
+export const ReactiveFormsGroupDisable: StoryObj = {
   render: () => {
     const selectControl = new FormControl({ value: 'A', disabled: true });
 

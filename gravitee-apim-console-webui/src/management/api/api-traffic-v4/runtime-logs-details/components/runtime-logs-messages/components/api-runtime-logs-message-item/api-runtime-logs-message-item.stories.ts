@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Meta, moduleMetadata } from '@storybook/angular';
-import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
+import { Meta, moduleMetadata, StoryObj } from '@storybook/angular';
 
 import { ApiRuntimeLogsMessageItemModule } from './api-runtime-logs-message-item.module';
 import { ApiRuntimeLogsMessageItemComponent } from './api-runtime-logs-message-item.component';
@@ -40,7 +39,7 @@ export default {
   }),
 } as Meta;
 
-export const WithEntrypointAndEndpoint: Story = {};
+export const WithEntrypointAndEndpoint: StoryObj = {};
 WithEntrypointAndEndpoint.args = {
   messageLog: fakeAggregatedMessageLog({
     entrypoint: fakeMessage({ connectorId: 'http-get' }),
@@ -50,7 +49,7 @@ WithEntrypointAndEndpoint.args = {
   endpointConnectorIcon: 'gio:kafka',
 };
 
-export const WithEntrypointOnly: Story = {};
+export const WithEntrypointOnly: StoryObj = {};
 WithEntrypointOnly.args = {
   messageLog: fakeAggregatedMessageLog({
     entrypoint: fakeMessage({ connectorId: 'http-get' }),
@@ -59,7 +58,7 @@ WithEntrypointOnly.args = {
   entrypointConnectorIcon: 'gio:http-get',
 };
 
-export const WithEndpointOnly: Story = {};
+export const WithEndpointOnly: StoryObj = {};
 WithEndpointOnly.args = {
   messageLog: fakeAggregatedMessageLog({
     endpoint: fakeMessage({ connectorId: 'kafka' }),
@@ -68,7 +67,7 @@ WithEndpointOnly.args = {
   endpointConnectorIcon: 'gio:kafka',
 };
 
-export const WithNoContent: Story = {};
+export const WithNoContent: StoryObj = {};
 WithNoContent.args = {
   messageLog: fakeAggregatedMessageLog({
     entrypoint: fakeMessage({ connectorId: 'http-get', payload: undefined }),
@@ -78,7 +77,7 @@ WithNoContent.args = {
   endpointConnectorIcon: 'gio:kafka',
 };
 
-export const WithNoHeaders: Story = {};
+export const WithNoHeaders: StoryObj = {};
 WithNoHeaders.args = {
   messageLog: fakeAggregatedMessageLog({
     entrypoint: fakeMessage({ connectorId: 'http-get', headers: undefined }),
@@ -88,7 +87,7 @@ WithNoHeaders.args = {
   endpointConnectorIcon: 'gio:kafka',
 };
 
-export const WithNoMetadata: Story = {};
+export const WithNoMetadata: StoryObj = {};
 WithNoMetadata.args = {
   messageLog: fakeAggregatedMessageLog({
     entrypoint: fakeMessage({ connectorId: 'http-get', metadata: undefined }),

@@ -15,9 +15,8 @@
  */
 import { CommonModule } from '@angular/common';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { Meta, moduleMetadata } from '@storybook/angular';
+import { Meta, moduleMetadata, StoryObj } from '@storybook/angular';
 import { MatIconModule } from '@angular/material/icon';
-import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
 import { GioClipboardModule, GioIconsModule } from '@gravitee/ui-particles-angular';
 import { MatTreeModule } from '@angular/material/tree';
 import { MatButtonModule } from '@angular/material/button';
@@ -68,9 +67,9 @@ export default {
   }),
 } as Meta;
 
-export const Empty: Story = {};
+export const Empty: StoryObj = {};
 
-export const ResponseSuccess: Story = {
+export const ResponseSuccess: StoryObj = {
   args: {
     inputDebugStep: fakeRequestDebugStep(),
     outputDebugStep: fakeRequestDebugStep({
@@ -95,7 +94,7 @@ export const ResponseSuccess: Story = {
   },
 };
 
-export const ResponseError: Story = {
+export const ResponseError: StoryObj = {
   args: {
     inputDebugStep: fakeRequestDebugStep(),
     outputDebugStep: fakeErrorRequestDebugStep(),

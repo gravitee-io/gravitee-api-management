@@ -16,8 +16,7 @@
 import { range } from 'lodash';
 import { CommonModule } from '@angular/common';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { Meta, moduleMetadata } from '@storybook/angular';
-import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
+import { Meta, moduleMetadata, StoryObj } from '@storybook/angular';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
@@ -58,9 +57,9 @@ export default {
   }),
 } as Meta;
 
-export const Empty: Story = {};
+export const Empty: StoryObj = {};
 
-export const SimpleAllCases: Story = {
+export const SimpleAllCases: StoryObj = {
   args: {
     timelineSteps: [
       {
@@ -129,7 +128,7 @@ export const SimpleAllCases: Story = {
   },
 };
 
-export const ManyPolicies: Story = {
+export const ManyPolicies: StoryObj = {
   args: {
     timelineSteps: [
       {

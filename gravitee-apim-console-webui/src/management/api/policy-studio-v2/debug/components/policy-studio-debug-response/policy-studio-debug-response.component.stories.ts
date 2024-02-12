@@ -16,12 +16,11 @@
 import { CommonModule, TitleCasePipe } from '@angular/common';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { Meta, moduleMetadata } from '@storybook/angular';
+import { Meta, moduleMetadata, StoryObj } from '@storybook/angular';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTreeModule } from '@angular/material/tree';
 import { MatButtonModule } from '@angular/material/button';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
-import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 import '@gravitee/ui-components/wc/gv-icon';
@@ -85,9 +84,9 @@ export default {
   }),
 } as Meta;
 
-export const Default: Story = {};
+export const Default: StoryObj = {};
 
-export const Loading: Story = {
+export const Loading: StoryObj = {
   args: {
     debugResponse: {
       isLoading: true,
@@ -101,7 +100,7 @@ export const Loading: Story = {
   },
 };
 
-export const ResponseSuccess: Story = {
+export const ResponseSuccess: StoryObj = {
   args: {
     debugResponse: fakeDebugResponse({
       isLoading: false,
@@ -133,7 +132,7 @@ export const ResponseSuccess: Story = {
   },
 };
 
-export const ResponseErrorFullEmpty: Story = {
+export const ResponseErrorFullEmpty: StoryObj = {
   args: {
     debugResponse: {
       isLoading: false,

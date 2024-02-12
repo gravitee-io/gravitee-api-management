@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Meta, moduleMetadata } from '@storybook/angular';
-import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
+import { Meta, moduleMetadata, StoryObj } from '@storybook/angular';
 
 import { ApiRuntimeLogsConnectionLogDetailsModule } from './api-runtime-logs-connection-log-details.module';
 import { ApiRuntimeLogsConnectionLogDetailsComponent } from './api-runtime-logs-connection-log-details.component';
@@ -42,7 +41,7 @@ export default {
   }),
 } as Meta;
 
-export const Default: Story = {};
+export const Default: StoryObj = {};
 Default.args = {
   connectionLogDetail: fakeConnectionLogDetail(),
 };

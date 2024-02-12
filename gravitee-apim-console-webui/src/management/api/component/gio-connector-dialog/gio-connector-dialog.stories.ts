@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 import { Component, Input } from '@angular/core';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { Meta, moduleMetadata, StoryObj } from '@storybook/angular';
 import { action } from '@storybook/addon-actions';
 import { tap } from 'rxjs/operators';
 import { MatButtonModule } from '@angular/material/button';
+import { MatLegacyDialogModule as MatDialogModule, MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
 
 import { GioConnectorDialogComponent, GioConnectorDialogData } from './gio-connector-dialog.component';
 import { GioConnectorDialogModule } from './gio-connector-dialog.module';
@@ -62,7 +61,7 @@ export default {
   decorators: [
     moduleMetadata({
       declarations: [GioConnectorDialogStoryComponent],
-      imports: [GioConnectorDialogModule, MatButtonModule, MatDialogModule, BrowserAnimationsModule],
+      imports: [GioConnectorDialogModule, MatButtonModule, MatDialogModule],
     }),
   ],
   argTypes: {

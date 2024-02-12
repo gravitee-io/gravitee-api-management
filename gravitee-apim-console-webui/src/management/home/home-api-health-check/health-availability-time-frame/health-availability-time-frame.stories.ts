@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Meta, moduleMetadata } from '@storybook/angular';
-import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
+import { Meta, moduleMetadata, StoryObj } from '@storybook/angular';
 import { MatCardModule } from '@angular/material/card';
 
 import { HealthAvailabilityTimeFrameComponent, HealthAvailabilityTimeFrameOption } from './health-availability-time-frame.component';
@@ -42,7 +41,7 @@ export default {
   },
 } as Meta;
 
-export const Simple: Story = {
+export const Simple: StoryObj = {
   args: {
     option: {
       timestamp: {
@@ -54,7 +53,7 @@ export const Simple: Story = {
   },
 };
 
-export const NoData: Story = {
+export const NoData: StoryObj = {
   args: {
     option: {
       timestamp: {

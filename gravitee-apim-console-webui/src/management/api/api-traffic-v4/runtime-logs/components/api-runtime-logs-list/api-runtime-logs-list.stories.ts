@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Meta, moduleMetadata } from '@storybook/angular';
-import { Story } from '@storybook/angular/dist/ts3.9/client/preview/types-7-0';
+import { Meta, moduleMetadata, StoryObj } from '@storybook/angular';
 
 import { ApiRuntimeLogsListComponent } from './api-runtime-logs-list.component';
 import { ApiRuntimeLogsListModule } from './api-runtime-logs-list.module';
@@ -49,13 +48,13 @@ export default {
   }),
 } as Meta;
 
-export const Empty: Story = {};
+export const Empty: StoryObj = {};
 Empty.args = {
   pagination: { page: 1, perPage: 10, pageCount: 1, pageItemsCount: 0, totalCount: 0 },
   logs,
 };
 
-export const FirstPage: Story = {};
+export const FirstPage: StoryObj = {};
 FirstPage.args = {
   pagination: { page: 1, perPage: 10, pageCount: 5, pageItemsCount: 3, totalCount: 30 },
   logs,
