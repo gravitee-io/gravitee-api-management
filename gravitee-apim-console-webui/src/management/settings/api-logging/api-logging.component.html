@@ -31,9 +31,8 @@
     </gio-banner-info>
 
     <mat-card class="api-logging__form__card" formGroupName="duration">
-      <h2 gioTableOfContents>Duration</h2>
-
       <mat-card-content>
+        <h2 gioTableOfContents>Duration</h2>
         <p>
           Limit the duration of API full logging (0 means no max duration). This avoids API publishers to log headers and / or body payload
           during too much time and avoid to consume too much CPU/memory. By default, the calls are logged with the minimal information.
@@ -53,8 +52,8 @@
     </mat-card>
 
     <mat-card class="api-logging__form__card" formGroupName="audit">
-      <h2 gioTableOfContents>Audit</h2>
       <mat-card-content>
+        <h2 gioTableOfContents>Audit</h2>
         <p>Enable to audit the consultation of log details to track who accessed to a specific data from the audit view.</p>
         <gio-form-slide-toggle
           [matTooltip]="providedConfigurationMessage"
@@ -94,8 +93,8 @@
     </mat-card>
 
     <mat-card class="api-logging__form__card" formGroupName="user">
-      <h2 gioTableOfContents>User</h2>
       <mat-card-content>
+        <h2 gioTableOfContents>User</h2>
         <p>Display or not the end user in case of a OAuth2 / JWT plan (extracted from the sub claim).</p>
         <gio-form-slide-toggle
           [matTooltip]="providedConfigurationMessage"
@@ -115,9 +114,9 @@
     </mat-card>
 
     <mat-card class="api-logging__form__card" formGroupName="messageSampling">
-      <h2 gioTableOfContents>Message Sampling</h2>
-      <p>A sampling strategy is applied to prevent issues while logging messages.</p>
       <mat-card-content>
+        <h2 gioTableOfContents>Message Sampling</h2>
+        <p>A sampling strategy is applied to prevent issues while logging messages.</p>
         <ng-container formGroupName="probabilistic">
           <h3>Probabilistic</h3>
           <p>Samples messages based on a specified probability.</p>

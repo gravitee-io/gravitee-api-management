@@ -16,8 +16,8 @@
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatLegacyInputHarness as MatInputHarness } from '@angular/material/legacy-input/testing';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
-import { MatLegacyFormFieldHarness as MatFormFieldHarness } from '@angular/material/legacy-form-field/testing';
-import { MatLegacySlideToggleHarness as MatSlideToggleHarness } from '@angular/material/legacy-slide-toggle/testing';
+import { MatFormFieldHarness } from '@angular/material/form-field/testing';
+import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 export class ApiLoggingHarness extends ComponentHarness {
   static hostSelector = 'api-logging';
 
