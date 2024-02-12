@@ -26,6 +26,19 @@ export class MarkdownService {
   private readonly ANCHOR_CLASSNAME = 'anchor';
   private readonly INTERNAL_LINK_CLASSNAME = 'internal-link';
 
+  constructor() {
+    marked.use(gfmHeadingId());
+    marked.use(
+      markedHighlight({
+        langPrefix: 'hljs language-',
+        highlight(code, language) {
+          const validLanguage = hljs.getLanguage(language) ? language : 'plaintext';
+          return hljs.highlight(validLanguage, code).value;
+        },
+      }),
+    );
+  }
+
   public renderer(baseUrl: string, pageBaseUrl: string): RendererObject {
     const defaultRenderer = new Renderer();
 
@@ -74,17 +87,6 @@ export class MarkdownService {
   }
   public render(content: string, baseUrl: string, pageBaseUrl: string): string {
     marked.use({ renderer: this.renderer(baseUrl, pageBaseUrl) });
-    marked.use(gfmHeadingId());
-    marked.use(
-      markedHighlight({
-        langPrefix: 'hljs language-',
-        highlight(code, language) {
-          const validLanguage = hljs.getLanguage(language) ? language : 'plaintext';
-          return hljs.highlight(validLanguage, code).value;
-        },
-      }),
-    );
-
     return marked(content) as string;
   }
 
