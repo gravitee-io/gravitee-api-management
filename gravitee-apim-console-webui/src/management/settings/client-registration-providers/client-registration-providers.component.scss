@@ -40,7 +40,6 @@ $textColor: map.get(gio.$mat-dove-palette, default);
 .client-registration-providers {
   &__card {
     margin-bottom: 24px;
-    padding: 32px 24px;
 
     &__title {
       display: flex;
@@ -49,6 +48,10 @@ $textColor: map.get(gio.$mat-dove-palette, default);
       justify-content: space-between;
       margin-bottom: 24px;
       gap: 16px;
+
+      &__add-btn {
+        flex: 1 0 auto;
+      }
     }
 
     &__subtitle {
