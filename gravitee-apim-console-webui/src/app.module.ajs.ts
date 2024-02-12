@@ -33,9 +33,9 @@ import CorsService from './services/cors.service';
 import { ApiV1PoliciesComponentAjs } from './management/api/policy-studio-v1/policies/policies.component.ajs';
 import AddPoliciesPathController from './management/api/policy-studio-v1/policies/addPoliciesPath.controller';
 import { ApiV1ResourcesComponentAjs } from './management/api/resources-v1/resources.component.ajs';
-import { ApiV1PropertiesComponentAjs } from './management/api/proxy/properties-v1/properties.component.ajs';
+import { ApiV1PropertiesComponentAjs } from './management/api/properties-v1/properties.component.ajs';
 import { ApiHistoryComponentAjs } from './management/api/audit/history/apiHistory.component.ajs';
-import DialogAddPropertyController from './management/api/proxy/properties-v1/add-property.dialog.controller';
+import DialogAddPropertyController from './management/api/properties-v1/add-property.dialog.controller';
 import DialogEditPolicyController from './management/api/policy-studio-v1/policies/dialog/policyDialog.controller';
 import FileContentDirective from './components/filecontent/filecontent.directive';
 import FileLoaderDirective from './components/dialog/fileloader/fileloader.directive';
@@ -135,7 +135,7 @@ import ChartDirective from './management/api/proxy/health-check-dashboard/chart/
 import FileChooserDialogController from './components/dialog/fileChooserDialog.controller';
 import DialogConfirmController from './components/dialog/confirmDialog.controller';
 import DialogConfirmAndValidateController from './components/dialog/confirmAndValidateDialog.controller';
-import DialogDynamicProviderHttpController from './management/api/proxy/properties-v1/dynamic-provider-http-dialog.controller';
+import DialogDynamicProviderHttpController from './management/api/properties-v1/dynamic-provider-http-dialog.controller';
 import TenantService from './services/tenant.service';
 
 import CategoriesComponentAjs from './management/settings/categories/categories.component.ajs';
