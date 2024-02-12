@@ -13,7 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { NgModule } from '@angular/core';
 
-export * from './notification-add-dialog';
-export * from './notification-edit-dialog';
-export * from './notification-list';
+import { NotificationListModule } from './notification-list';
+import { NotificationAddDialogModule } from './notification-add-dialog';
+import { NotificationEditDialogModule } from './notification-edit-dialog';
+
+@NgModule({
+  declarations: [],
+  exports: [NotificationListModule],
+  imports: [NotificationListModule, NotificationAddDialogModule, NotificationEditDialogModule],
+})
+export class NotificationModule {}

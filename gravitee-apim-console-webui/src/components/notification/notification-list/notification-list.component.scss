@@ -2,14 +2,11 @@
 @use '@angular/material' as mat;
 @use '@gravitee/ui-particles-angular' as gio;
 
-@use '../../../../../scss/gio-layout' as gio-layout;
+@use '../../../scss/gio-layout' as gio-layout;
 $foreground: map.get(gio.$mat-theme, foreground);
 
 :host {
   display: block;
-  border-top: 1px solid mat.get-color-from-palette($foreground, divider);
-
-  @include mat.elevation(3); // default elevation
 }
 
 .notifications {

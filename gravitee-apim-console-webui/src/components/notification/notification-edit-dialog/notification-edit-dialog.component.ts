@@ -19,9 +19,9 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { FormControl, FormGroup } from '@angular/forms';
 import { groupBy, map } from 'lodash';
 
-import { Hooks } from '../../../../../entities/notification/hooks';
-import { Notifier } from '../../../../../entities/notification/notifier';
-import { NotificationSettings } from '../../../../../entities/notification/notificationSettings';
+import { Hooks } from '../../../entities/notification/hooks';
+import { Notifier } from '../../../entities/notification/notifier';
+import { NotificationSettings } from '../../../entities/notification/notificationSettings';
 
 export interface NotificationEditDialogData {
   hooks: Hooks[];
