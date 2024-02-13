@@ -53,6 +53,10 @@ $typography: map.get(gio.$mat-legacy-theme, typography);
     }
   }
 
+  &__table {
+    overflow-x: auto;
+  }
+
   &__footer-bar {
     background-color: mat.get-color-from-palette($background, 'card');
     min-height: 12px;
