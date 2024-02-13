@@ -19,16 +19,16 @@ import { combineLatest, Subject } from 'rxjs';
 import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 
-import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
-import { ApplicationService } from '../../../../../services-ngx/application.service';
-import { Application, ApplicationType } from '../../../../../entities/application/application';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
+import { ApplicationService } from '../../../../services-ngx/application.service';
+import { Application, ApplicationType } from '../../../../entities/application/application';
 
 @Component({
-  selector: 'application-general-ng',
-  templateUrl: './application-general-ng.component.html',
-  styleUrls: ['./application-general-ng.component.scss'],
+  selector: 'application-general',
+  templateUrl: './application-general.component.html',
+  styleUrls: ['./application-general.component.scss'],
 })
-export class ApplicationGeneralNgComponent implements OnInit {
+export class ApplicationGeneralComponent implements OnInit {
   public initialApplication: Application;
   public applicationType: ApplicationType;
   public applicationForm: UntypedFormGroup;

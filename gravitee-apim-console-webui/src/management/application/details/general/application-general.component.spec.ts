@@ -24,24 +24,24 @@ import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatLegacyInputHarness as MatInputHarness } from '@angular/material/legacy-input/testing';
 import { ActivatedRoute } from '@angular/router';
 
-import { ApplicationGeneralNgComponent } from './application-general-ng.component';
-import { ApplicationGeneralNgModule } from './application-general-ng.module';
+import { ApplicationGeneralComponent } from './application-general.component';
+import { ApplicationGeneralModule } from './application-general.module';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
-import { fakeApplication, fakeApplicationType } from '../../../../../entities/application/Application.fixture';
-import { Application, ApplicationType } from '../../../../../entities/application/application';
-import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
+import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { fakeApplication, fakeApplicationType } from '../../../../entities/application/Application.fixture';
+import { Application, ApplicationType } from '../../../../entities/application/application';
+import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApplicationGeneralInfoComponent', () => {
   const APPLICATION_ID = 'id_test';
 
-  let fixture: ComponentFixture<ApplicationGeneralNgComponent>;
+  let fixture: ComponentFixture<ApplicationGeneralComponent>;
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApplicationGeneralNgModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, ApplicationGeneralModule, MatIconTestingModule],
       providers: [
         {
           provide: GioTestingPermissionProvider,
@@ -59,7 +59,7 @@ describe('ApplicationGeneralInfoComponent', () => {
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ApplicationGeneralNgComponent);
+    fixture = TestBed.createComponent(ApplicationGeneralComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();

@@ -37,13 +37,13 @@ import { MatLegacySnackBarModule as MatSnackBarModule } from '@angular/material/
 import { MatLegacyChipsModule as MatChipsModule } from '@angular/material/legacy-chips';
 import { RouterModule } from '@angular/router';
 
-import { ApplicationGeneralNgComponent } from './application-general-ng.component';
+import { ApplicationGeneralComponent } from './application-general.component';
 
-import { GioPermissionModule } from '../../../../../shared/components/gio-permission/gio-permission.module';
+import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
 
 @NgModule({
-  declarations: [ApplicationGeneralNgComponent],
-  exports: [ApplicationGeneralNgComponent],
+  declarations: [ApplicationGeneralComponent],
+  exports: [ApplicationGeneralComponent],
   imports: [
     CommonModule,
 
@@ -71,4 +71,4 @@ import { GioPermissionModule } from '../../../../../shared/components/gio-permis
     RouterModule,
   ],
 })
-export class ApplicationGeneralNgModule {}
+export class ApplicationGeneralModule {}

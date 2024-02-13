@@ -33,7 +33,7 @@ import { ApplicationSubscribeComponent } from './details/subscribe/application-s
 import { ApplicationGeneralMembersComponent } from './details/user-group-access/members/application-general-members.component';
 import { ApplicationGeneralGroupsComponent } from './details/user-group-access/groups/application-general-groups.component';
 import { ApplicationGeneralTransferOwnershipComponent } from './details/user-group-access/transfer-ownership/application-general-transfer-ownership.component';
-import { ApplicationGeneralNgComponent } from './details/general/general-ng/application-general-ng.component';
+import { ApplicationGeneralComponent } from './details/general/application-general.component';
 
 import { HasEnvironmentPermissionGuard } from '../has-environment-permission.guard';
 
@@ -223,7 +223,7 @@ const applicationRoutes: Routes = [
       },
       {
         path: 'general',
-        component: ApplicationGeneralNgComponent,
+        component: ApplicationGeneralComponent,
         data: {
           perms: {
             only: ['application-definition-r'],
