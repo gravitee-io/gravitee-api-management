@@ -331,7 +331,7 @@ export class ApiV1V2MenuService implements ApiMenuService {
     if (this.permissionService.hasAnyMatching(['api-notification-r'])) {
       notificationsGroup.items.push({
         displayName: 'Notification settings',
-        routerLink: 'notification-settings',
+        routerLink: 'notifications',
       });
     }
 
