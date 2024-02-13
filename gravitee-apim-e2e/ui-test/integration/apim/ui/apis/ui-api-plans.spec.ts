@@ -90,6 +90,7 @@ describe('API Plans Feature', () => {
   });
 
   it('Create a generic New Plan (OAuth2), verify and delete', () => {
+    cy.viewport(1920, 1200); // viewport adjustment to overcome unusual Cypress scrolling issue in this test
     // create OAuth2 plan
     cy.getByDataTestId('api_plans_add_plan_button').click();
     cy.contains('OAuth2').click();
@@ -97,11 +98,11 @@ describe('API Plans Feature', () => {
     cy.getByDataTestId('api_plans_name_field').type(`${planName}-OAuth2`);
     cy.getByDataTestId('api_plans_description_field').type(`${planDescription} OAuth2`);
     cy.getByDataTestId('api_plans_nextstep').click();
-    cy.get('[role="combobox"]').eq(4).type('Test');
-    // ^ I can't find html element for this, this doesn't feel good but was best I could do as OAuth2 Resource a mandatory field
-    cy.contains('OAuth2 resource').should('exist').scrollIntoView().should('be.visible');
+    cy.contains('h2', 'OAuth2 authentication configuration').scrollIntoView().should('be.visible');
+    cy.contains('OAuth2 resource').closest('div').find('input').type('Dummy OAuth2 resource');
     cy.getByDataTestId('api_plans_nextstep').click();
-    cy.get('gio-form-label').contains('Rate Limiting').should('exist');
+
+    cy.contains('Rate Limiting').scrollIntoView().should('be.visible');
     cy.contains('Quota').should('be.visible');
     cy.contains('Resource Filtering').should('be.visible');
     cy.get('[type="submit"]').contains('Create').click();
