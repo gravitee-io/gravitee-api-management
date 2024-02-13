@@ -16,97 +16,101 @@
 
 -->
 <form *ngIf="applicationForm" [formGroup]="applicationForm" autocomplete="off" gioFormFocusInvalid>
-  <mat-card class="details-card">
-    <div class="details-card__header">
-      <div class="details-card__header__info-inputs" formGroupName="details">
-        <div class="details-card__header__info-inputs__first-row">
-          <mat-form-field class="details-card__header__info-inputs__first-row__name-field">
-            <mat-label>Application name</mat-label>
-            <input formControlName="name" matInput type="text" maxlength="50" required />
-            <mat-error *ngIf="applicationForm.get('details.name').hasError('required')">Application name is required. </mat-error>
-          </mat-form-field>
-        </div>
-        <div class="details-card__header__info-inputs__second-row">
-          <mat-form-field class="details-card__header__info-inputs__second-row__description-field">
-            <mat-label>Description</mat-label>
-            <input formControlName="description" matInput type="text" required />
-            <mat-error *ngIf="applicationForm.get('details.description').hasError('required')"
-              >Application description is required.
-            </mat-error>
-            <mat-hint align="start">Provide a description of your application, what it does, ...</mat-hint>
-          </mat-form-field>
+  <mat-card appearance="outlined" class="details-card">
+    <mat-card-content>
+      <div class="details-card__header">
+        <div class="details-card__header__info-inputs" formGroupName="details">
+          <div class="details-card__header__info-inputs__first-row">
+            <mat-form-field class="details-card__header__info-inputs__first-row__name-field">
+              <mat-label>Application name</mat-label>
+              <input formControlName="name" matInput type="text" maxlength="50" required />
+              <mat-error *ngIf="applicationForm.get('details.name').hasError('required')">Application name is required. </mat-error>
+            </mat-form-field>
+          </div>
+          <div class="details-card__header__info-inputs__second-row">
+            <mat-form-field class="details-card__header__info-inputs__second-row__description-field">
+              <mat-label>Description</mat-label>
+              <input formControlName="description" matInput type="text" required />
+              <mat-error *ngIf="applicationForm.get('details.description').hasError('required')"
+                >Application description is required.
+              </mat-error>
+              <mat-hint align="start">Provide a description of your application, what it does, ...</mat-hint>
+            </mat-form-field>
 
-          <mat-form-field class="details-card__header__info-inputs__second-row__domain-field">
-            <mat-label>Domain</mat-label>
-            <input formControlName="domain" matInput type="text" />
-            <mat-hint align="start">The domain your application will use, if relevant.</mat-hint>
-          </mat-form-field>
+            <mat-form-field class="details-card__header__info-inputs__second-row__domain-field">
+              <mat-label>Domain</mat-label>
+              <input formControlName="domain" matInput type="text" />
+              <mat-hint align="start">The domain your application will use, if relevant.</mat-hint>
+            </mat-form-field>
+          </div>
+        </div>
+        <div class="details-card__header__right-coll" formGroupName="images">
+          <div class="details-card__header__right-coll__media">
+            <gio-form-file-picker class="details-card__header__right-coll__media__picture" formControlName="picture" accept="image/*">
+              <gio-form-file-picker-label>Application picture</gio-form-file-picker-label>
+              <gio-form-file-picker-add-button class="details-card__header__right-coll__media__picture__btn">
+                <span class="details-card__header__right-coll__media__picture__btn__text"> Click here or drag an image </span>
+                <gio-avatar class="details-card__header__right-coll__media__picture__btn__default-avatar" [size]="114"></gio-avatar>
+              </gio-form-file-picker-add-button>
+              <gio-form-file-picker-empty>
+                <gio-avatar [size]="114"></gio-avatar>
+              </gio-form-file-picker-empty>
+            </gio-form-file-picker>
+            <gio-form-file-picker class="details-card__header__right-coll__media__background" formControlName="background" accept="image/*">
+              <gio-form-file-picker-label>Application background</gio-form-file-picker-label>
+              <gio-form-file-picker-add-button class="details-card__header__right-coll__media__background__btn">
+                <span class="details-card__header__right-coll__media__background__btn__text"> Click here or drag an image </span>
+              </gio-form-file-picker-add-button>
+              <gio-form-file-picker-empty><span>No background defined</span></gio-form-file-picker-empty>
+            </gio-form-file-picker>
+          </div>
+          <div class="details-card__header__right-coll__info">
+            <dl class="gio-description-list">
+              <dt>Owner</dt>
+              <dd gioClipboardCopyWrapper [contentToCopy]="initialApplication.owner.displayName">
+                {{ initialApplication.owner.displayName }}
+              </dd>
+              <dt>Created</dt>
+              <dd>{{ initialApplication.created_at | date : 'medium' }}</dd>
+              <dt>Type</dt>
+              <dd>{{ initialApplication.type }}</dd>
+            </dl>
+          </div>
         </div>
       </div>
-      <div class="details-card__header__right-coll" formGroupName="images">
-        <div class="details-card__header__right-coll__media">
-          <gio-form-file-picker class="details-card__header__right-coll__media__picture" formControlName="picture" accept="image/*">
-            <gio-form-file-picker-label>Application picture</gio-form-file-picker-label>
-            <gio-form-file-picker-add-button class="details-card__header__right-coll__media__picture__btn">
-              <span class="details-card__header__right-coll__media__picture__btn__text"> Click here or drag an image </span>
-              <gio-avatar class="details-card__header__right-coll__media__picture__btn__default-avatar" [size]="114"></gio-avatar>
-            </gio-form-file-picker-add-button>
-            <gio-form-file-picker-empty>
-              <gio-avatar [size]="114"></gio-avatar>
-            </gio-form-file-picker-empty>
-          </gio-form-file-picker>
-          <gio-form-file-picker class="details-card__header__right-coll__media__background" formControlName="background" accept="image/*">
-            <gio-form-file-picker-label>Application background</gio-form-file-picker-label>
-            <gio-form-file-picker-add-button class="details-card__header__right-coll__media__background__btn">
-              <span class="details-card__header__right-coll__media__background__btn__text"> Click here or drag an image </span>
-            </gio-form-file-picker-add-button>
-            <gio-form-file-picker-empty><span>No background defined</span></gio-form-file-picker-empty>
-          </gio-form-file-picker>
-        </div>
-        <div class="details-card__header__right-coll__info">
-          <dl class="gio-description-list">
-            <dt>Owner</dt>
-            <dd gioClipboardCopyWrapper [contentToCopy]="initialApplication.owner.displayName">
-              {{ initialApplication.owner.displayName }}
-            </dd>
-            <dt>Created</dt>
-            <dd>{{ initialApplication.created_at | date : 'medium' }}</dd>
-            <dt>Type</dt>
-            <dd>{{ initialApplication.type }}</dd>
-          </dl>
-        </div>
+      <div class="details-card__actions" *ngIf="!isReadOnly">
+        <button
+          *gioPermission="{ anyOf: ['application-definition-u'] }"
+          mat-button
+          class="details-card__actions_btn"
+          [routerLink]="'../subscriptions/subscribe'"
+        >
+          <mat-icon svgIcon="gio:language"></mat-icon>
+          Subscribe to APIs
+        </button>
       </div>
-    </div>
-    <div class="details-card__actions" *ngIf="!isReadOnly">
-      <button
-        *gioPermission="{ anyOf: ['application-definition-u'] }"
-        mat-button
-        class="details-card__actions_btn"
-        [routerLink]="'../subscriptions/subscribe'"
-      >
-        <mat-icon svgIcon="gio:language"></mat-icon>
-        Subscribe to APIs
-      </button>
-    </div>
+    </mat-card-content>
   </mat-card>
 
   <ng-container *ngIf="initialApplication.type === 'SIMPLE'">
     <h2 class="details-title-oauth">OAuth2 Integration</h2>
     <mat-card class="details-card" formGroupName="OAuth2Form">
-      <div class="details-card__header">
-        <div class="details-card__header__info-inputs">
-          <div class="details-card__header__info-inputs__client_id-row">
-            <mat-form-field>
-              <mat-label>Client ID</mat-label>
-              <input formControlName="client_id" matInput type="text" maxlength="300" minlength="1" gioClipboardCopyWrapper />
-              <mat-hint align="start"
-                >The <code>Client_id</code> of the application. This field is required to subscribe to certain type of API Plan (OAuth2,
-                JWT).
-              </mat-hint>
-            </mat-form-field>
+      <mat-card-content>
+        <div class="details-card__header">
+          <div class="details-card__header__info-inputs">
+            <div class="details-card__header__info-inputs__client_id-row">
+              <mat-form-field>
+                <mat-label>Client ID</mat-label>
+                <input formControlName="client_id" matInput type="text" maxlength="300" minlength="1" gioClipboardCopyWrapper />
+                <mat-hint align="start"
+                  >The <code>Client_id</code> of the application. This field is required to subscribe to certain type of API Plan (OAuth2,
+                  JWT).
+                </mat-hint>
+              </mat-form-field>
+            </div>
           </div>
         </div>
-      </div>
+      </mat-card-content>
     </mat-card>
   </ng-container>
 
