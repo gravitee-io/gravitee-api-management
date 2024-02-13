@@ -1285,7 +1285,7 @@ public class ApplicationServiceImpl extends AbstractService implements Applicati
         return criteriaBuilder.build();
     }
 
-    private Set<String> findUserApplicationsIds(ExecutionContext executionContext, String username, ApplicationStatus status) {
+    public Set<String> findUserApplicationsIds(ExecutionContext executionContext, String username, ApplicationStatus status) {
         //find applications where the user is a member
         Set<String> appIds = membershipService.getReferenceIdsByMemberAndReference(
             MembershipMemberType.USER,

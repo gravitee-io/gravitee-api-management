@@ -265,7 +265,7 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
             }
         }
 
-        Set<String> applicationIds = getUserApplicationIds(executionContext, userId);
+        Set<String> applicationIds = applicationService.findUserApplicationsIds(executionContext, userId, ApplicationStatus.ACTIVE);
 
         if (applicationIds.isEmpty()) {
             return false;
@@ -315,7 +315,7 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
 
             // get user subscribed apis, useful when an API becomes private and an app owner is not anymore in members.
             if (!manageOnly) {
-                Set<String> applicationIds = getUserApplicationIds(executionContext, userId);
+                Set<String> applicationIds = applicationService.findUserApplicationsIds(executionContext, userId, ApplicationStatus.ACTIVE);
 
                 if (!applicationIds.isEmpty()) {
                     final SubscriptionQuery query = new SubscriptionQuery();
