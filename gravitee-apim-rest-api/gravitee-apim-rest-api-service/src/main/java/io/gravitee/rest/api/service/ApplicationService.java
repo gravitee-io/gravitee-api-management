@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.rest.api.model.ApiKeyMode;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.InlinePictureEntity;
@@ -108,4 +109,6 @@ public interface ApplicationService {
     );
 
     Set<String> searchIds(final ExecutionContext executionContext, ApplicationQuery applicationQuery, Sortable sortable);
+
+    Set<String> findUserApplicationsIds(ExecutionContext executionContext, String username, ApplicationStatus status);
 }

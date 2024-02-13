@@ -32,6 +32,7 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
+import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.Visibility;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiQuery;
@@ -482,7 +483,8 @@ public class ApiAuthorizationServiceImplTest {
 
         when(roleService.findByScope(RoleScope.API, GraviteeContext.getCurrentOrganization())).thenReturn(List.of(poRole, userRole));
 
-        when(applicationService.searchIds(any(), any(), isNull())).thenReturn(Set.of(applicationId));
+        when(applicationService.findUserApplicationsIds(GraviteeContext.getExecutionContext(), USER_NAME, ApplicationStatus.ACTIVE))
+            .thenReturn(Set.of(applicationId));
 
         SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
         subscriptionEntity.setId("subscriptionId");
@@ -538,9 +540,7 @@ public class ApiAuthorizationServiceImplTest {
         when(api.getVisibility()).thenReturn(io.gravitee.rest.api.model.Visibility.PRIVATE);
         when(api.getVisibility()).thenReturn(io.gravitee.rest.api.model.Visibility.PRIVATE);
 
-        when(
-            membershipService.getReferenceIdsByMemberAndReference(MembershipMemberType.USER, USER_NAME, MembershipReferenceType.APPLICATION)
-        )
+        when(applicationService.findUserApplicationsIds(GraviteeContext.getExecutionContext(), USER_NAME, ApplicationStatus.ACTIVE))
             .thenReturn(Collections.singleton("application-id"));
 
         final SubscriptionQuery query = new SubscriptionQuery();
