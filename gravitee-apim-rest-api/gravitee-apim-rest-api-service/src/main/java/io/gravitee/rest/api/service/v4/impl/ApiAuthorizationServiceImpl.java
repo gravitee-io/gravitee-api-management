@@ -257,7 +257,7 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
             }
         }
 
-        Set<String> applicationIds = getUserApplicationIds(executionContext, userId);
+        Set<String> applicationIds = applicationService.findUserApplicationsIds(executionContext, userId, ApplicationStatus.ACTIVE);
 
         if (applicationIds.isEmpty()) {
             return false;
@@ -318,7 +318,7 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
 
             // get user subscribed apis, useful when an API becomes private and an app owner is not anymore in members.
             if (!manageOnly) {
-                Set<String> applicationIds = getUserApplicationIds(executionContext, userId);
+                Set<String> applicationIds = applicationService.findUserApplicationsIds(executionContext, userId, ApplicationStatus.ACTIVE);
 
                 if (!applicationIds.isEmpty()) {
                     final SubscriptionQuery query = new SubscriptionQuery();
@@ -344,31 +344,6 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
             }
         }
         return apiCriteriaList;
-    }
-
-    private Set<String> getUserApplicationIds(ExecutionContext executionContext, String userId) {
-        Set<String> userApplicationIds = membershipService.getReferenceIdsByMemberAndReference(
-            MembershipMemberType.USER,
-            userId,
-            MembershipReferenceType.APPLICATION
-        );
-
-        Set<String> applicationIds = new HashSet<>(userApplicationIds);
-
-        Set<String> userGroupIds = membershipService.getReferenceIdsByMemberAndReference(
-            MembershipMemberType.USER,
-            userId,
-            MembershipReferenceType.GROUP
-        );
-
-        ApplicationQuery appQuery = new ApplicationQuery();
-        appQuery.setGroups(userGroupIds);
-        appQuery.setStatus(ApplicationStatus.ACTIVE.name());
-
-        Set<String> groupApplicationIds = applicationService.searchIds(executionContext, appQuery, null);
-        applicationIds.addAll(groupApplicationIds);
-
-        return applicationIds;
     }
 
     private Set<String> findApiIdsByUserGroups(ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean manageOnly) {
