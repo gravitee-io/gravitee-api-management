@@ -74,7 +74,6 @@ import ApplicationCreationStep3Component from './management/application/creation
 import ApplicationCreationStep4Component from './management/application/creation/steps/application-creation-step4.component';
 
 import ApplicationHeaderComponent from './management/application/details/header/application-header.component';
-import ApplicationGeneralController from './management/application/details/general/application-general.controller';
 import ApplicationMembersController from './management/application/details/members/application-members.controller';
 import ApplicationMembersComponentAjs from './management/application/details/members/application-members.component.ajs';
 import ApplicationSubscriptionsController from './management/application/details/subscriptions/application-subscriptions.controller';
@@ -356,7 +355,6 @@ import { GioPermissionService } from './shared/components/gio-permission/gio-per
 import { ApiAnalyticsOverviewComponentAjs } from './management/api/analytics/overview/analytics-overview.component.ajs';
 import { Router } from '@angular/router';
 import SettingsAnalyticsComponentAjs from './management/settings/analytics/settings-analytics.component.ajs';
-import ApplicationGeneralComponentAjs from './management/application/details/general/application-general.component.ajs';
 import AnalyticsDashboardComponentAjs from './management/analytics/analytics-dashboard/analytics-dashboard.component.ajs';
 
 (<any>window).moment = moment;
@@ -601,7 +599,6 @@ graviteeManagementModule.component('applicationCreationStep3', ApplicationCreati
 graviteeManagementModule.component('applicationCreationStep4', ApplicationCreationStep4Component);
 
 graviteeManagementModule.component('applicationHeader', ApplicationHeaderComponent);
-graviteeManagementModule.component('applicationGeneral', ApplicationGeneralComponentAjs);
 graviteeManagementModule.component('applicationSubscriptions', ApplicationSubscriptionsComponentAjs);
 graviteeManagementModule.component('applicationSubscription', ApplicationSubscriptionComponentAjs);
 graviteeManagementModule.component('applicationSubscriptionsList', ApplicationSubscriptionsListComponent);
@@ -610,7 +607,6 @@ graviteeManagementModule.component('applicationAnalytics', ApplicationAnalyticsC
 graviteeManagementModule.component('applicationLogs', ApplicationLogsComponentAjs);
 graviteeManagementModule.component('applicationLog', ApplicationLogComponentAjs);
 graviteeManagementModule.controller('DialogAddMemberController', DialogAddMemberController);
-graviteeManagementModule.controller('ApplicationGeneralController', ApplicationGeneralController);
 graviteeManagementModule.controller('ApplicationMembersController', ApplicationMembersController);
 graviteeManagementModule.controller('ApplicationSubscriptionsController', ApplicationSubscriptionsController);
 graviteeManagementModule.controller('ApplicationSubscriptionsListController', ApplicationSubscriptionsListController);
