@@ -23,7 +23,7 @@
     <span class="header__subtitle"> {{ menuItemHeader.subtitle }} </span>
   </div>
 </div>
-<nav mat-tab-nav-bar class="application-navigation-tabs">
+<nav mat-tab-nav-bar class="application-navigation-tabs" [tabPanel]="tabPanel">
   <ng-container *ngFor="let menuItem of this.tabMenuItems">
     <a
       *ngIf="menuItem.routerLink !== 'DISABLED'"
@@ -39,3 +39,8 @@
     ></a>
   </ng-container>
 </nav>
+<mat-tab-nav-panel #tabPanel>
+  <div class="gv-sub-content">
+    <router-outlet></router-outlet>
+  </div>
+</mat-tab-nav-panel>
