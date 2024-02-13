@@ -30,6 +30,7 @@ import { MarkdownModule } from 'ngx-markdown';
 import { MatLegacySnackBarModule as MatSnackBarModule } from '@angular/material/legacy-snack-bar';
 import { MatLegacyTooltipModule as MatTooltipModule } from '@angular/material/legacy-tooltip';
 import { RouterModule } from '@angular/router';
+import { MatMenuModule } from '@angular/material/menu';
 
 import { ApiDocumentationV4EmptyStateComponent } from './components/documentation-empty-state/api-documentation-v4-empty-state.component';
 import { ApiDocumentationV4ListNavigationHeaderComponent } from './components/documentation-list-navigation-header/api-documentation-v4-list-navigation-header.component';
@@ -45,7 +46,7 @@ import { ApiDocumentationV4FileUploadComponent } from './components/api-document
 
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { GioTooltipOnEllipsisModule } from '../../../shared/components/gio-tooltip-on-ellipsis/gio-tooltip-on-ellipsis.module';
-import { MatMenuModule } from '@angular/material/menu';
+import { GioSwaggerUiModule } from '../../../components/documentation/gio-swagger-ui/gio-swagger-ui.module';
 
 @NgModule({
   declarations: [
@@ -91,6 +92,7 @@ import { MatMenuModule } from '@angular/material/menu';
     GioFormFilePickerModule,
     NgOptimizedImage,
     MatMenuModule,
+    GioSwaggerUiModule,
   ],
 })
 export class ApiDocumentationV4Module {}

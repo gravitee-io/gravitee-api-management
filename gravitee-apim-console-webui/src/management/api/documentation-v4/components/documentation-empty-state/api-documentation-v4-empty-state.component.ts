@@ -16,6 +16,7 @@
 
 import { Component, EventEmitter, OnDestroy, Output } from '@angular/core';
 import { Subject } from 'rxjs';
+
 import { getLogoForPageType, PageType } from '../../../../../entities/page';
 
 @Component({

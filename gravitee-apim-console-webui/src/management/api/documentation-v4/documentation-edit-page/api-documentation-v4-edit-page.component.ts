@@ -28,6 +28,7 @@ import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { Api } from '../../../../entities/management-api-v2';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { PageType } from '../../../../entities/management-api-v2/documentation/pageType';
 
 @Component({
   selector: 'api-documentation-edit-page',
@@ -40,6 +41,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
   mode: 'create' | 'edit';
   pageTitle = 'Add new page';
   exitLabel = 'Exit without saving';
+  pageType: PageType;
   step3Title: string;
   source: 'FILL' | 'IMPORT' | 'EXTERNAL' = 'FILL';
   breadcrumbs: Breadcrumb[];
@@ -72,6 +74,8 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
       source: this.formBuilder.control(this.source, [Validators.required]),
       content: this.formBuilder.control('', [Validators.required]),
     });
+
+    this.pageType = this.activatedRoute.snapshot.queryParams.pageType;
 
     if (this.activatedRoute.snapshot.params.pageId) {
       this.mode = 'edit';
@@ -250,6 +254,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
       tap((page) => {
         this.pageTitle = page.name;
         this.page = page;
+        this.pageType = page.type;
 
         this.stepOneForm.get('name').setValue(this.page.name);
         this.stepOneForm.get('visibility').setValue(this.page.visibility);

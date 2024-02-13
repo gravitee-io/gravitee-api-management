@@ -97,10 +97,12 @@
             <api-documentation-content
               formControlName="content"
               [published]="page?.published"
+              [pageType]="pageType"
               *ngIf="form.value?.source === 'FILL'"
             ></api-documentation-content>
             <api-documentation-file-upload
               formControlName="content"
+              [pageType]="pageType"
               *ngIf="form.value?.source === 'IMPORT'"
             ></api-documentation-file-upload>
             <mat-error *ngIf="stepOneForm.controls.content?.errors?.required">Page content cannot be empty</mat-error>

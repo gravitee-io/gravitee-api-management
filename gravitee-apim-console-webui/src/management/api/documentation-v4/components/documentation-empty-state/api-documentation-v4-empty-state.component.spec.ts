@@ -20,14 +20,13 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
+import { MatMenuHarness } from '@angular/material/menu/testing';
 
 import { ApiDocumentationV4EmptyStateComponent } from './api-documentation-v4-empty-state.component';
 
 import { ApiDocumentationV4Module } from '../../api-documentation-v4.module';
 import { GioHttpTestingModule } from '../../../../../shared/testing';
 import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
-import { MatMenu } from '@angular/material/menu';
-import { MatMenuHarness } from '@angular/material/menu/testing';
 
 describe('ApiDocumentationV4EmptyStateComponent', () => {
   let fixture: ComponentFixture<ApiDocumentationV4EmptyStateComponent>;
