@@ -19,7 +19,7 @@ import { flatMap } from 'lodash';
 import { filter, map, shareReplay, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { GIO_DIALOG_WIDTH, GioBannerTypes, GioMenuSearchService, GioMenuService, MenuSearchItem } from '@gravitee/ui-particles-angular';
 import { combineLatest, Observable, Subject } from 'rxjs';
-import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
+import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 
 import {

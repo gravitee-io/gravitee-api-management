@@ -50,5 +50,8 @@
     >
       <router-outlet></router-outlet>
     </application-navigation-tabs>
+    <ng-container *ngIf="!selectedItemWithTabs">
+      <router-outlet></router-outlet>
+    </ng-container>
   </div>
 </div>

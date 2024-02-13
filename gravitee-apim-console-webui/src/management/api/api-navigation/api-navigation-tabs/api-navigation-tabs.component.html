@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<nav mat-tab-nav-bar class="api-navigation-tabs">
+<nav mat-tab-nav-bar class="api-navigation-tabs" [tabPanel]="tabPanel">
   <ng-container *ngFor="let menuItem of this.tabMenuItems">
     <a
       *ngIf="menuItem.routerLink !== 'DISABLED'"
@@ -37,3 +37,7 @@
     ></a>
   </ng-container>
 </nav>
+
+<mat-tab-nav-panel #tabPanel>
+  <ng-content></ng-content>
+</mat-tab-nav-panel>
