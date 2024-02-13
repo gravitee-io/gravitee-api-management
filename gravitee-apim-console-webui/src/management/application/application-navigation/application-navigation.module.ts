@@ -16,8 +16,8 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { GioBreadcrumbModule, GioIconsModule, GioSubmenuModule } from '@gravitee/ui-particles-angular';
-import { MatLegacyTabsModule as MatTabsModule } from '@angular/material/legacy-tabs';
-import { MatLegacyTooltipModule as MatTooltipModule } from '@angular/material/legacy-tooltip';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterModule } from '@angular/router';
 
 import { ApplicationNavigationComponent } from './application-navigation.component';

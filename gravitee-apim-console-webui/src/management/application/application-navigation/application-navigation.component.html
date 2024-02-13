@@ -47,10 +47,8 @@
       class="application-navigation__content__tabs"
       [tabMenuItems]="this.selectedItemWithTabs.tabs"
       [menuItemHeader]="this.selectedItemWithTabs?.header"
-    ></application-navigation-tabs>
-
-    <div class="gv-sub-content">
+    >
       <router-outlet></router-outlet>
-    </div>
+    </application-navigation-tabs>
   </div>
 </div>
