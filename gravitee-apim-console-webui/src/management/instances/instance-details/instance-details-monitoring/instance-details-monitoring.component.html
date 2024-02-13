@@ -21,211 +21,239 @@
 <div *ngIf="instanceStarted" class="gio-instance-details-monitoring">
   <div class="gio-instance-details-monitoring__main-indicators">
     <mat-card class="gio-instance-details-monitoring__main-indicators__card">
-      <div class="gio-instance-details-monitoring__main-indicators__card__percentage">
-        <gio-circular-percentage [score]="monitoringData?.process?.cpu_percent / 100" [reverseColor]="true"></gio-circular-percentage>
-      </div>
-      <h4>CPU</h4>
+      <mat-card-content>
+        <div class="gio-instance-details-monitoring__main-indicators__card__percentage">
+          <gio-circular-percentage [score]="monitoringData?.process?.cpu_percent / 100" [reverseColor]="true"></gio-circular-percentage>
+        </div>
+        <h4>CPU</h4>
+      </mat-card-content>
     </mat-card>
     <mat-card class="gio-instance-details-monitoring__main-indicators__card">
-      <div class="gio-instance-details-monitoring__main-indicators__card__percentage">
-        <gio-circular-percentage [score]="monitoringData?.jvm?.heap_used_percent / 100" [reverseColor]="true"></gio-circular-percentage>
-      </div>
-      <h4>Heap</h4>
+      <mat-card-content>
+        <div class="gio-instance-details-monitoring__main-indicators__card__percentage">
+          <gio-circular-percentage [score]="monitoringData?.jvm?.heap_used_percent / 100" [reverseColor]="true"></gio-circular-percentage>
+        </div>
+        <h4>Heap</h4>
+      </mat-card-content>
     </mat-card>
     <mat-card class="gio-instance-details-monitoring__main-indicators__card">
-      <div class="gio-instance-details-monitoring__main-indicators__card__value">
-        {{ monitoringData?.gc?.old_collection_count }}
-      </div>
-      <h4>GC collections</h4>
+      <mat-card-content>
+        <div class="gio-instance-details-monitoring__main-indicators__card__value">
+          {{ monitoringData?.gc?.old_collection_count }}
+        </div>
+        <h4>GC collections</h4>
+      </mat-card-content>
     </mat-card>
     <mat-card class="gio-instance-details-monitoring__main-indicators__card">
-      <div class="gio-instance-details-monitoring__main-indicators__card__value">
-        {{ monitoringData?.process?.open_file_descriptors }}
-      </div>
-      <h4>File Descriptors</h4>
+      <mat-card-content>
+        <div class="gio-instance-details-monitoring__main-indicators__card__value">
+          {{ monitoringData?.process?.open_file_descriptors }}
+        </div>
+        <h4>File Descriptors</h4>
+      </mat-card-content>
     </mat-card>
   </div>
 
   <div class="gio-instance-details-monitoring__jvm">
     <mat-card data-testid="instance-monitoring_jvm-box">
-      <h2 class="gio-instance-details-monitoring__card-title">
-        <mat-icon svgIcon="gio:cpu"></mat-icon>
-        <span>JVM</span>
-      </h2>
-      <dl class="gio-description-list">
-        <dt>Date</dt>
-        <dd>{{ monitoringData?.jvm?.timestamp | date : 'medium' }}</dd>
-        <dt>Uptime</dt>
-        <dd>{{ humanizeDuration(monitoringData?.jvm?.uptime_in_millis) }}</dd>
-        <dt>Heap used</dt>
-        <dd>{{ humanizeSize(monitoringData?.jvm?.heap_used_in_bytes) }}</dd>
-        <dt>Percent of heap used</dt>
-        <dd>{{ monitoringData?.jvm?.heap_used_percent + '%' }}</dd>
-        <dt>Heap committed</dt>
-        <dd>{{ humanizeSize(monitoringData?.jvm?.heap_committed_in_bytes) }}</dd>
-        <dt>Heap max</dt>
-        <dd>{{ humanizeSize(monitoringData?.jvm?.heap_max_in_bytes) }}</dd>
-        <dt>Non heap used</dt>
-        <dd>{{ humanizeSize(monitoringData?.jvm?.non_heap_used_in_bytes) }}</dd>
-        <dt>Non heap committed</dt>
-        <dd>{{ humanizeSize(monitoringData?.jvm?.non_heap_committed_in_bytes) }}</dd>
-      </dl>
-      <div class="gio-instance-details-monitoring__jvm__pool">
-        <mat-card>
-          <dl class="gio-description-list">
-            <dt>Young pool used</dt>
-            <dd>{{ humanizeSize(monitoringData?.jvm?.young_pool_used_in_bytes) }}</dd>
-            <dt>Young pool max</dt>
-            <dd>{{ humanizeSize(monitoringData?.jvm?.young_pool_max_in_bytes) }}</dd>
-          </dl>
-          <div class="gio-instance-details-monitoring__jvm__pool__progress-bar">
-            <strong>{{ ratioLabel(monitoringData?.jvm?.young_pool_used_in_bytes, monitoringData?.jvm?.young_pool_max_in_bytes) }}</strong>
-            <mat-progress-bar
-              mode="determinate"
-              [value]="ratio(monitoringData?.jvm?.young_pool_used_in_bytes, monitoringData?.jvm?.young_pool_max_in_bytes)"
-            ></mat-progress-bar>
-          </div>
-          <dl class="gio-description-list">
-            <dt>Young pool peak used</dt>
-            <dd>{{ humanizeSize(monitoringData?.jvm?.young_pool_peak_used_in_bytes) }}</dd>
-            <dt>Young pool peak max</dt>
-            <dd>{{ humanizeSize(monitoringData?.jvm?.young_pool_peak_max_in_bytes) }}</dd>
-          </dl>
-          <div class="gio-instance-details-monitoring__jvm__pool__progress-bar">
-            <strong>{{
-              ratioLabel(monitoringData?.jvm?.young_pool_peak_used_in_bytes, monitoringData?.jvm?.young_pool_peak_max_in_bytes)
-            }}</strong>
-            <mat-progress-bar
-              mode="determinate"
-              [value]="ratio(monitoringData?.jvm?.young_pool_peak_used_in_bytes, monitoringData?.jvm?.young_pool_peak_max_in_bytes)"
-            ></mat-progress-bar>
-          </div>
-        </mat-card>
-        <mat-card>
-          <dl class="gio-description-list">
-            <dt>Survivor pool used</dt>
-            <dd>{{ humanizeSize(monitoringData?.jvm?.survivor_pool_used_in_bytes) }}</dd>
-            <dt>Survivor pool max</dt>
-            <dd>{{ humanizeSize(monitoringData?.jvm?.survivor_pool_max_in_bytes) }}</dd>
-          </dl>
-          <div class="gio-instance-details-monitoring__jvm__pool__progress-bar">
-            <strong>{{
-              ratioLabel(monitoringData?.jvm?.survivor_pool_used_in_bytes, monitoringData?.jvm?.survivor_pool_max_in_bytes)
-            }}</strong>
-            <mat-progress-bar
-              mode="determinate"
-              [value]="ratio(monitoringData?.jvm?.survivor_pool_used_in_bytes, monitoringData?.jvm?.survivor_pool_max_in_bytes)"
-            ></mat-progress-bar>
-          </div>
-          <dl class="gio-description-list">
-            <dt>Survivor pool peak used</dt>
-            <dd>{{ humanizeSize(monitoringData?.jvm?.survivor_pool_peak_used_in_bytes) }}</dd>
-            <dt>Survivor pool peak max</dt>
-            <dd>{{ humanizeSize(monitoringData?.jvm?.survivor_pool_peak_max_in_bytes) }}</dd>
-          </dl>
-          <div class="gio-instance-details-monitoring__jvm__pool__progress-bar">
-            <strong>{{
-              ratioLabel(monitoringData?.jvm?.survivor_pool_peak_used_in_bytes, monitoringData?.jvm?.survivor_pool_peak_max_in_bytes)
-            }}</strong>
-            <mat-progress-bar
-              mode="determinate"
-              [value]="ratio(monitoringData?.jvm?.survivor_pool_peak_used_in_bytes, monitoringData?.jvm?.survivor_pool_peak_max_in_bytes)"
-            ></mat-progress-bar>
-          </div>
-        </mat-card>
-        <mat-card>
-          <dl class="gio-description-list">
-            <dt>Old pool used</dt>
-            <dd>{{ humanizeSize(monitoringData?.jvm?.old_pool_used_in_bytes) }}</dd>
-            <dt>Old pool max</dt>
-            <dd>{{ humanizeSize(monitoringData?.jvm?.old_pool_max_in_bytes) }}</dd>
-          </dl>
-          <div class="gio-instance-details-monitoring__jvm__pool__progress-bar">
-            <strong>{{ ratioLabel(monitoringData?.jvm?.old_pool_used_in_bytes, monitoringData?.jvm?.old_pool_max_in_bytes) }}</strong>
-            <mat-progress-bar
-              mode="determinate"
-              [value]="ratio(monitoringData?.jvm?.old_pool_used_in_bytes, monitoringData?.jvm?.old_pool_max_in_bytes)"
-            ></mat-progress-bar>
-          </div>
-          <dl class="gio-description-list">
-            <dt>Old pool peak used</dt>
-            <dd>{{ humanizeSize(monitoringData?.jvm?.old_pool_peak_used_in_bytes) }}</dd>
-            <dt>Old pool peak max</dt>
-            <dd>{{ humanizeSize(monitoringData?.jvm?.old_pool_peak_max_in_bytes) }}</dd>
-          </dl>
-          <div class="gio-instance-details-monitoring__jvm__pool__progress-bar">
-            <strong>{{
-              ratioLabel(monitoringData?.jvm?.old_pool_peak_used_in_bytes, monitoringData?.jvm?.old_pool_peak_max_in_bytes)
-            }}</strong>
-            <mat-progress-bar
-              mode="determinate"
-              [value]="ratio(monitoringData?.jvm?.old_pool_peak_used_in_bytes, monitoringData?.jvm?.old_pool_peak_max_in_bytes)"
-            ></mat-progress-bar>
-          </div>
-        </mat-card>
-      </div>
+      <mat-card-content>
+        <h2 class="gio-instance-details-monitoring__card-title">
+          <mat-icon svgIcon="gio:cpu"></mat-icon>
+          <span>JVM</span>
+        </h2>
+        <dl class="gio-description-list">
+          <dt>Date</dt>
+          <dd>{{ monitoringData?.jvm?.timestamp | date : 'medium' }}</dd>
+          <dt>Uptime</dt>
+          <dd>{{ humanizeDuration(monitoringData?.jvm?.uptime_in_millis) }}</dd>
+          <dt>Heap used</dt>
+          <dd>{{ humanizeSize(monitoringData?.jvm?.heap_used_in_bytes) }}</dd>
+          <dt>Percent of heap used</dt>
+          <dd>{{ monitoringData?.jvm?.heap_used_percent + '%' }}</dd>
+          <dt>Heap committed</dt>
+          <dd>{{ humanizeSize(monitoringData?.jvm?.heap_committed_in_bytes) }}</dd>
+          <dt>Heap max</dt>
+          <dd>{{ humanizeSize(monitoringData?.jvm?.heap_max_in_bytes) }}</dd>
+          <dt>Non heap used</dt>
+          <dd>{{ humanizeSize(monitoringData?.jvm?.non_heap_used_in_bytes) }}</dd>
+          <dt>Non heap committed</dt>
+          <dd>{{ humanizeSize(monitoringData?.jvm?.non_heap_committed_in_bytes) }}</dd>
+        </dl>
+        <div class="gio-instance-details-monitoring__jvm__pool">
+          <mat-card>
+            <mat-card-content>
+              <dl class="gio-description-list">
+                <dt>Young pool used</dt>
+                <dd>{{ humanizeSize(monitoringData?.jvm?.young_pool_used_in_bytes) }}</dd>
+                <dt>Young pool max</dt>
+                <dd>{{ humanizeSize(monitoringData?.jvm?.young_pool_max_in_bytes) }}</dd>
+              </dl>
+              <div class="gio-instance-details-monitoring__jvm__pool__progress-bar">
+                <strong>{{
+                  ratioLabel(monitoringData?.jvm?.young_pool_used_in_bytes, monitoringData?.jvm?.young_pool_max_in_bytes)
+                }}</strong>
+                <mat-progress-bar
+                  mode="determinate"
+                  [value]="ratio(monitoringData?.jvm?.young_pool_used_in_bytes, monitoringData?.jvm?.young_pool_max_in_bytes)"
+                ></mat-progress-bar>
+              </div>
+              <dl class="gio-description-list">
+                <dt>Young pool peak used</dt>
+                <dd>{{ humanizeSize(monitoringData?.jvm?.young_pool_peak_used_in_bytes) }}</dd>
+                <dt>Young pool peak max</dt>
+                <dd>{{ humanizeSize(monitoringData?.jvm?.young_pool_peak_max_in_bytes) }}</dd>
+              </dl>
+              <div class="gio-instance-details-monitoring__jvm__pool__progress-bar">
+                <strong>{{
+                  ratioLabel(monitoringData?.jvm?.young_pool_peak_used_in_bytes, monitoringData?.jvm?.young_pool_peak_max_in_bytes)
+                }}</strong>
+                <mat-progress-bar
+                  mode="determinate"
+                  [value]="ratio(monitoringData?.jvm?.young_pool_peak_used_in_bytes, monitoringData?.jvm?.young_pool_peak_max_in_bytes)"
+                ></mat-progress-bar>
+              </div>
+            </mat-card-content>
+          </mat-card>
+          <mat-card>
+            <mat-card-content>
+              <dl class="gio-description-list">
+                <dt>Survivor pool used</dt>
+                <dd>{{ humanizeSize(monitoringData?.jvm?.survivor_pool_used_in_bytes) }}</dd>
+                <dt>Survivor pool max</dt>
+                <dd>{{ humanizeSize(monitoringData?.jvm?.survivor_pool_max_in_bytes) }}</dd>
+              </dl>
+              <div class="gio-instance-details-monitoring__jvm__pool__progress-bar">
+                <strong>{{
+                  ratioLabel(monitoringData?.jvm?.survivor_pool_used_in_bytes, monitoringData?.jvm?.survivor_pool_max_in_bytes)
+                }}</strong>
+                <mat-progress-bar
+                  mode="determinate"
+                  [value]="ratio(monitoringData?.jvm?.survivor_pool_used_in_bytes, monitoringData?.jvm?.survivor_pool_max_in_bytes)"
+                ></mat-progress-bar>
+              </div>
+              <dl class="gio-description-list">
+                <dt>Survivor pool peak used</dt>
+                <dd>{{ humanizeSize(monitoringData?.jvm?.survivor_pool_peak_used_in_bytes) }}</dd>
+                <dt>Survivor pool peak max</dt>
+                <dd>{{ humanizeSize(monitoringData?.jvm?.survivor_pool_peak_max_in_bytes) }}</dd>
+              </dl>
+              <div class="gio-instance-details-monitoring__jvm__pool__progress-bar">
+                <strong>{{
+                  ratioLabel(monitoringData?.jvm?.survivor_pool_peak_used_in_bytes, monitoringData?.jvm?.survivor_pool_peak_max_in_bytes)
+                }}</strong>
+                <mat-progress-bar
+                  mode="determinate"
+                  [value]="
+                    ratio(monitoringData?.jvm?.survivor_pool_peak_used_in_bytes, monitoringData?.jvm?.survivor_pool_peak_max_in_bytes)
+                  "
+                ></mat-progress-bar>
+              </div>
+            </mat-card-content>
+          </mat-card>
+          <mat-card>
+            <mat-card-content>
+              <dl class="gio-description-list">
+                <dt>Old pool used</dt>
+                <dd>{{ humanizeSize(monitoringData?.jvm?.old_pool_used_in_bytes) }}</dd>
+                <dt>Old pool max</dt>
+                <dd>{{ humanizeSize(monitoringData?.jvm?.old_pool_max_in_bytes) }}</dd>
+              </dl>
+              <div class="gio-instance-details-monitoring__jvm__pool__progress-bar">
+                <strong>{{ ratioLabel(monitoringData?.jvm?.old_pool_used_in_bytes, monitoringData?.jvm?.old_pool_max_in_bytes) }}</strong>
+                <mat-progress-bar
+                  mode="determinate"
+                  [value]="ratio(monitoringData?.jvm?.old_pool_used_in_bytes, monitoringData?.jvm?.old_pool_max_in_bytes)"
+                ></mat-progress-bar>
+              </div>
+              <dl class="gio-description-list">
+                <dt>Old pool peak used</dt>
+                <dd>{{ humanizeSize(monitoringData?.jvm?.old_pool_peak_used_in_bytes) }}</dd>
+                <dt>Old pool peak max</dt>
+                <dd>{{ humanizeSize(monitoringData?.jvm?.old_pool_peak_max_in_bytes) }}</dd>
+              </dl>
+              <div class="gio-instance-details-monitoring__jvm__pool__progress-bar">
+                <strong>{{
+                  ratioLabel(monitoringData?.jvm?.old_pool_peak_used_in_bytes, monitoringData?.jvm?.old_pool_peak_max_in_bytes)
+                }}</strong>
+                <mat-progress-bar
+                  mode="determinate"
+                  [value]="ratio(monitoringData?.jvm?.old_pool_peak_used_in_bytes, monitoringData?.jvm?.old_pool_peak_max_in_bytes)"
+                ></mat-progress-bar>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </mat-card-content>
     </mat-card>
   </div>
 
   <div class="gio-instance-details-monitoring__indicators">
     <mat-card flex="50" data-testid="instance-monitoring_cpu-box">
-      <h2 class="gio-instance-details-monitoring__card-title">
-        <mat-icon svgIcon="gio:cpu"></mat-icon>
-        <span>CPU</span>
-      </h2>
-      <dl class="gio-description-list">
-        <dt>Percent of use</dt>
-        <dd>{{ monitoringData?.cpu?.percent_use + '%' }}</dd>
-        <dt>Load average</dt>
-        <dd>
-          <div class="gio-instance-details-monitoring__load-average">
-            <ng-container *ngFor="let loadAverage of monitoringData?.cpu?.load_average | keyvalue : originalOrder">
-              <div>[{{ loadAverage.key }}]</div>
-              <div>{{ loadAverage.value }}</div>
-            </ng-container>
-          </div>
-        </dd>
-      </dl>
+      <mat-card-content>
+        <h2 class="gio-instance-details-monitoring__card-title">
+          <mat-icon svgIcon="gio:cpu"></mat-icon>
+          <span>CPU</span>
+        </h2>
+        <dl class="gio-description-list">
+          <dt>Percent of use</dt>
+          <dd>{{ monitoringData?.cpu?.percent_use + '%' }}</dd>
+          <dt>Load average</dt>
+          <dd>
+            <div class="gio-instance-details-monitoring__load-average">
+              <ng-container *ngFor="let loadAverage of monitoringData?.cpu?.load_average | keyvalue : originalOrder">
+                <div>[{{ loadAverage.key }}]</div>
+                <div>{{ loadAverage.value }}</div>
+              </ng-container>
+            </div>
+          </dd>
+        </dl>
+      </mat-card-content>
     </mat-card>
     <mat-card flex="50" data-testid="instance-monitoring_process-box">
-      <h2 class="gio-instance-details-monitoring__card-title">
-        <mat-icon svgIcon="gio:cpu"></mat-icon>
-        <span>Process</span>
-      </h2>
-      <dl class="gio-description-list">
-        <dt>Open file descriptors</dt>
-        <dd>{{ monitoringData?.process?.open_file_descriptors }}</dd>
-        <dt>Max file descriptors</dt>
-        <dd>{{ monitoringData?.process?.max_file_descriptors }}</dd>
-      </dl>
+      <mat-card-content>
+        <h2 class="gio-instance-details-monitoring__card-title">
+          <mat-icon svgIcon="gio:cpu"></mat-icon>
+          <span>Process</span>
+        </h2>
+        <dl class="gio-description-list">
+          <dt>Open file descriptors</dt>
+          <dd>{{ monitoringData?.process?.open_file_descriptors }}</dd>
+          <dt>Max file descriptors</dt>
+          <dd>{{ monitoringData?.process?.max_file_descriptors }}</dd>
+        </dl>
+      </mat-card-content>
     </mat-card>
     <mat-card flex="50" data-testid="instance-monitoring_thread-box">
-      <h2 class="gio-instance-details-monitoring__card-title">
-        <mat-icon svgIcon="gio:cpu"></mat-icon>
-        <span>Thread</span>
-      </h2>
-      <dl class="gio-description-list">
-        <dt>Count</dt>
-        <dd>{{ monitoringData?.thread?.count }}</dd>
-        <dt>Peak count</dt>
-        <dd>{{ monitoringData?.thread?.peak_count }}</dd>
-      </dl>
+      <mat-card-content>
+        <h2 class="gio-instance-details-monitoring__card-title">
+          <mat-icon svgIcon="gio:cpu"></mat-icon>
+          <span>Thread</span>
+        </h2>
+        <dl class="gio-description-list">
+          <dt>Count</dt>
+          <dd>{{ monitoringData?.thread?.count }}</dd>
+          <dt>Peak count</dt>
+          <dd>{{ monitoringData?.thread?.peak_count }}</dd>
+        </dl>
+      </mat-card-content>
     </mat-card>
     <mat-card flex="50" data-testid="instance-monitoring_gc-box">
-      <h2 class="gio-instance-details-monitoring__card-title">
-        <mat-icon svgIcon="gio:cpu"></mat-icon>
-        <span>Garbage collector</span>
-      </h2>
-      <dl class="gio-description-list">
-        <dt>Young collection count</dt>
-        <dd>{{ monitoringData?.gc?.young_collection_count }}</dd>
-        <dt>Young collection time</dt>
-        <dd>{{ monitoringData?.gc?.young_collection_time_in_millis + ' ms' }}</dd>
-        <dt>Old collection count</dt>
-        <dd>{{ monitoringData?.gc?.old_collection_count }}</dd>
-        <dt>Old collection time</dt>
-        <dd>{{ monitoringData?.gc?.old_collection_time_in_millis + ' ms' }}</dd>
-      </dl>
+      <mat-card-content>
+        <h2 class="gio-instance-details-monitoring__card-title">
+          <mat-icon svgIcon="gio:cpu"></mat-icon>
+          <span>Garbage collector</span>
+        </h2>
+        <dl class="gio-description-list">
+          <dt>Young collection count</dt>
+          <dd>{{ monitoringData?.gc?.young_collection_count }}</dd>
+          <dt>Young collection time</dt>
+          <dd>{{ monitoringData?.gc?.young_collection_time_in_millis + ' ms' }}</dd>
+          <dt>Old collection count</dt>
+          <dd>{{ monitoringData?.gc?.old_collection_count }}</dd>
+          <dt>Old collection time</dt>
+          <dd>{{ monitoringData?.gc?.old_collection_time_in_millis + ' ms' }}</dd>
+        </dl>
+      </mat-card-content>
     </mat-card>
   </div>
 </div>

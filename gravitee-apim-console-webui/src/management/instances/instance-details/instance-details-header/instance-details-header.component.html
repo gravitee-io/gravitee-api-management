@@ -17,16 +17,18 @@
 -->
 <div class="gio-instance-details-header">
   <mat-card *ngIf="instance">
-    <h3>
-      {{ instance.hostname }}
-      <small>( {{ instance.ip }}:{{ instance.port }} )</small>
-    </h3>
-    <h4>{{ instance.version }}</h4>
-    <div *ngIf="instance.tags?.length > 0">Tags: {{ instance.tags }}</div>
-    <div *ngIf="!instance.tags || instance.tags.length === 0">No tag configured</div>
+    <mat-card-content>
+      <h3>
+        {{ instance.hostname }}
+        <small>( {{ instance.ip }}:{{ instance.port }} )</small>
+      </h3>
+      <h4>{{ instance.version }}</h4>
+      <div *ngIf="instance.tags?.length > 0">Tags: {{ instance.tags }}</div>
+      <div *ngIf="!instance.tags || instance.tags.length === 0">No tag configured</div>
+    </mat-card-content>
   </mat-card>
 
-  <nav mat-tab-nav-bar class="gio-instance-details-header__navigation-tabs">
+  <nav mat-tab-nav-bar class="gio-instance-details-header__navigation-tabs" [tabPanel]="tabPanel">
     <a
       mat-tab-link
       *ngFor="let menuItem of this.tabMenuItems"
@@ -39,4 +41,8 @@
       >{{ menuItem.displayName }}</a
     >
   </nav>
+</div>
+
+<div>
+  <mat-tab-nav-panel #tabPanel><ng-content></ng-content></mat-tab-nav-panel>
 </div>
