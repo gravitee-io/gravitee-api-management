@@ -31,8 +31,16 @@
         (click)="importProperties()"
         aria-label="Import properties"
       >
-        <mat-icon svgIcon="gio:download"></mat-icon> Import
+        Import
       </button>
+      <a
+        *gioPermission="{ anyOf: ['api-definition-u'] }"
+        mat-raised-button
+        type="button"
+        aria-label="Manage dynamically"
+        [routerLink]="isV4 ? './v4/dynamic-properties' : './dynamic-properties'"
+        >Manage dynamically</a
+      >
       <button
         *gioPermission="{ anyOf: ['api-definition-u'] }"
         mat-raised-button
@@ -53,7 +61,7 @@
     (filtersChange)="onFiltersChanged($event)"
   >
     <table mat-table [dataSource]="filteredTableData" [formGroup]="propertiesFormGroup" aria-label="API Properties">
-      <ng-container matColumnDef="key">
+      <ng-containexr matColumnDef="key">
         <th mat-header-cell *matHeaderCellDef mat-sort-header>Key</th>
         <td mat-cell *matCellDef="let element" [formGroupName]="element._id">
           <mat-form-field class="apiProperties__table__field">
@@ -63,7 +71,7 @@
             <mat-error *ngIf="propertiesFormGroup.get(element._id).get('key').hasError('isUnique')">Key already exists.</mat-error>
           </mat-form-field>
         </td>
-      </ng-container>
+      </ng-containexr>
 
       <ng-container matColumnDef="value">
         <th mat-header-cell *matHeaderCellDef mat-sort-header>Value</th>

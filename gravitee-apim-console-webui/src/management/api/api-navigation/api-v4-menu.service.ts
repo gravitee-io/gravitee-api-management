@@ -78,7 +78,6 @@ export class ApiV4MenuService implements ApiMenuService {
         {
           displayName: 'Properties',
           routerLink: 'properties',
-          routerLinkActiveOptions: { exact: true },
         },
         {
           displayName: 'Resources',
