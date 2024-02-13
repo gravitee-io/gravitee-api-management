@@ -54,8 +54,6 @@ import { ApiEndpointGroupCreateComponent } from './endpoints-v4/endpoint-group/c
 import { ApiRuntimeLogsSettingsComponent } from './api-traffic-v4/runtime-logs-settings/api-runtime-logs-settings.component';
 import { ApiRuntimeLogsComponent } from './api-traffic-v4/runtime-logs/api-runtime-logs.component';
 import { ApiListComponent } from './list/api-list.component';
-import { ApiNotificationSettingsListComponent } from './notification-settings/notification-settings-list/api-notification-settings-list.component';
-import { ApiNotificationSettingsDetailsComponent } from './notification-settings/notofication-settings-details/api-notification-settings-details.component';
 import { ApiCreationGetStartedComponent } from './creation-get-started/api-creation-get-started.component';
 import { ApiCreationV4Component } from './creation-v4/api-creation-v4.component';
 import { ApiCreationV4ConfirmationComponent } from './creation-v4/api-creation-v4-confirmation.component';
@@ -393,26 +391,11 @@ const apisRoutes: Routes = [
         },
       },
       {
-        path: 'notification-settings',
-        component: ApiNotificationSettingsListComponent,
+        path: 'notifications',
+        component: ApiNotificationComponent,
         data: {
           apiPermissions: {
             only: ['api-notification-r'],
-          },
-          docs: {
-            page: 'management-api-notifications',
-          },
-        },
-      },
-      {
-        path: 'notification-settings/:notificationId',
-        component: ApiNotificationSettingsDetailsComponent,
-        data: {
-          apiPermissions: {
-            only: ['api-notification-r', 'api-notification-c', 'api-notification-u'],
-          },
-          docs: {
-            page: 'management-api-notifications',
           },
         },
       },
@@ -977,15 +960,6 @@ const apisRoutes: Routes = [
           },
           apiPermissions: {
             only: ['api-audit-r'],
-          },
-        },
-      },
-      {
-        path: 'v4/notifications',
-        component: ApiNotificationComponent,
-        data: {
-          apiPermissions: {
-            only: ['api-notification-r'],
           },
         },
       },

@@ -27,7 +27,6 @@ import { ApiEntrypointsV4Module } from './entrypoints-v4/api-entrypoints-v4.modu
 import { GioPolicyStudioRoutingModule } from './policy-studio-v2/gio-policy-studio-routing.module';
 import { ApiAuditModule } from './audit/api-audit.module';
 import { ApiV1PoliciesComponent } from './policy-studio-v1/policies/policies.component';
-import { ApiNotificationSettingsModule } from './notification-settings/api-notification-settings.module';
 import { ApiCreationV2Module } from './creation-v2/api-creation-v2.module';
 import { ApiCreationGetStartedModule } from './creation-get-started/api-creation-get-started.module';
 import { ApiCreationV4Module } from './creation-v4/api-creation-v4.module';
@@ -87,7 +86,6 @@ import { AlertsModule } from '../../components/alerts/alerts.module';
     ApiListModule,
     ApiNavigationModule,
     ApiNotificationModule,
-    ApiNotificationSettingsModule,
     ApiPlansModule,
     ApiPropertiesModule,
     ApiResourcesModule,
