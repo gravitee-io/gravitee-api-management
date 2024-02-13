@@ -26,10 +26,11 @@
 <div class="content__editor">
   <gio-monaco-editor
     [(ngModel)]="_value"
-    [languageConfig]="{ language: 'markdown' }"
+    [languageConfig]="pageType === 'MARKDOWN' ? { language: 'markdown' } : undefined"
     (ngModelChange)="_onChange(_value)"
     [disableMiniMap]="true"
     [disabled]="disabled"
   ></gio-monaco-editor>
-  <markdown *ngIf="preview" [data]="_value"> </markdown>
+  <markdown *ngIf="preview && pageType === 'MARKDOWN'" [data]="_value"> </markdown>
+  <gio-swagger-ui *ngIf="preview && pageType === 'SWAGGER'" [spec]="_value"></gio-swagger-ui>
 </div>

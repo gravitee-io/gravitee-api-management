@@ -66,7 +66,10 @@ describe('ApiDocumentationV4EditPageComponent', () => {
       declarations: [ApiDocumentationV4EditPageComponent],
       imports: [NoopAnimationsModule, ApiDocumentationV4Module, MatIconTestingModule, FormsModule, GioHttpTestingModule],
       providers: [
-        { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID, pageId }, queryParams: { parentId } } } },
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { params: { apiId: API_ID, pageId }, queryParams: { parentId, pageType: 'MARKDOWN' } } },
+        },
         { provide: GioTestingPermissionProvider, useValue: apiPermissions },
         {
           provide: 'Constants',

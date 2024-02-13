@@ -16,10 +16,10 @@
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
 import { DivHarness } from '@gravitee/ui-particles-angular/testing';
+import { MatMenuHarness } from '@angular/material/menu/testing';
 
 import { ApiDocumentationV4BreadcrumbHarness } from '../api-documentation-v4-breadcrumb/api-documentation-v4-breadcrumb.harness';
 import { PageType } from '../../../../../entities/page';
-import { MatMenuHarness } from '@angular/material/menu/testing';
 
 export class ApiDocumentationV4ListNavigationHeaderHarness extends ComponentHarness {
   public static hostSelector = 'api-documentation-list-navigation-header';

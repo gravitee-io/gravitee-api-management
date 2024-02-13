@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, forwardRef, Input } from '@angular/core';
+import { Component, forwardRef, Input, OnInit } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { NewFile } from '@gravitee/ui-particles-angular';
 
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
+import { PageType } from '../../../../../entities/management-api-v2/documentation/pageType';
 
-const allowedFileExtensions = ['md', 'markdown', 'txt'] as const;
+const allowedFileExtensions = ['md', 'markdown', 'txt', 'json', 'yml', 'yaml'] as const;
 type FileExtension = (typeof allowedFileExtensions)[number];
 
 @Component({
@@ -34,9 +35,12 @@ type FileExtension = (typeof allowedFileExtensions)[number];
     },
   ],
 })
-export class ApiDocumentationV4FileUploadComponent implements ControlValueAccessor {
+export class ApiDocumentationV4FileUploadComponent implements OnInit, ControlValueAccessor {
   @Input()
   published = false;
+
+  @Input()
+  pageType: PageType;
 
   public _onChange: (_selection: string) => void = () => ({});
 
@@ -44,8 +48,16 @@ export class ApiDocumentationV4FileUploadComponent implements ControlValueAccess
   filePickerValue = [];
   importFile: File;
   importFileContent: string;
+  acceptedFileExtensions: FileExtension[];
+  accept: string;
 
   constructor(private readonly snackBarService: SnackBarService) {}
+
+  ngOnInit(): void {
+    this.acceptedFileExtensions = this.pageType === 'MARKDOWN' ? ['md', 'markdown', 'txt'] : ['json', 'yml', 'yaml'];
+    // To work in file picker, accept must have . before file type
+    this.accept = this.acceptedFileExtensions.map((e) => '.' + e).join();
+  }
 
   async onImportFile(event: (NewFile | string)[] | undefined) {
     if (!event || event.length !== 1) {
@@ -59,8 +71,8 @@ export class ApiDocumentationV4FileUploadComponent implements ControlValueAccess
     }
 
     const extension = file.name.split('.').pop().toLowerCase() as FileExtension;
-    if (!allowedFileExtensions.includes(extension)) {
-      this.resetImportFile('Invalid file format. Supported file formats: ' + allowedFileExtensions.join(', '));
+    if (!this.acceptedFileExtensions.includes(extension)) {
+      this.resetImportFile('Invalid file format. Supported file formats: ' + this.acceptedFileExtensions.join(', '));
       return;
     }
     const fileContent = await getFileContent(file.file);
@@ -90,8 +102,6 @@ export class ApiDocumentationV4FileUploadComponent implements ControlValueAccess
   writeValue(content: string): void {
     this.importFileContent = content;
   }
-
-  protected readonly allowedFileExtensions = allowedFileExtensions;
 }
 
 const getFileContent = (file: File): Promise<string> => {

@@ -16,6 +16,8 @@
 import { Component, forwardRef, Input } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
+import { PageType } from '../../../../../entities/management-api-v2/documentation/pageType';
+
 @Component({
   selector: 'api-documentation-content',
   templateUrl: './api-documentation-v4-content-editor.component.html',
@@ -31,6 +33,9 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 export class ApiDocumentationV4ContentEditorComponent implements ControlValueAccessor {
   @Input()
   published = false;
+
+  @Input()
+  pageType: PageType;
 
   preview = true;
   _value: string;

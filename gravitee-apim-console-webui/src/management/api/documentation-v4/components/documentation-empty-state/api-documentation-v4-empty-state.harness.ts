@@ -16,8 +16,9 @@
 
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
-import { PageType } from '../../../../../entities/page';
 import { MatMenuHarness } from '@angular/material/menu/testing';
+
+import { PageType } from '../../../../../entities/page';
 
 export class ApiDocumentationV4EmptyStateHarness extends ComponentHarness {
   static hostSelector = 'api-documentation-empty-state';
