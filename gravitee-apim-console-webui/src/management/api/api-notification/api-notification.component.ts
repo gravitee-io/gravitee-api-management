@@ -35,6 +35,7 @@ import { Notifier } from '../../../entities/notification/notifier';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { NotificationSettings } from '../../../entities/notification/notificationSettings';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
+import { Hooks } from '../../../entities/notification/hooks';
 
 @Component({
   selector: 'api-notification',
@@ -123,6 +124,13 @@ export class ApiNotificationComponent implements OnInit, OnDestroy {
           this.snackBarService.success('Notification created successfully');
           this.refreshList();
         }),
+        switchMap((created) => {
+          return this.notificationService.getHooks().pipe(
+            switchMap((hooks) => {
+              return this.openEditDialog(hooks, created);
+            }),
+          );
+        }),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
           return EMPTY;
@@ -165,27 +173,7 @@ export class ApiNotificationComponent implements OnInit, OnDestroy {
     combineLatest([this.hooks$, this.notificationService.getSingleNotificationSetting(this.apiId, id)])
       .pipe(
         switchMap(([hooks, notification]) => {
-          return this.matDialog
-            .open<NotificationEditDialogComponent, NotificationEditDialogData, NotificationEditDialogResult>(
-              NotificationEditDialogComponent,
-              {
-                width: GIO_DIALOG_WIDTH.LARGE,
-                data: {
-                  hooks,
-                  notifier: this.notifiers.find((n) => n.id === notification.notifier),
-                  notification,
-                },
-                role: 'dialog',
-                id: 'editNotificationDialog',
-              },
-            )
-            .afterClosed();
-        }),
-        filter((result) => !!result),
-        switchMap((updated) => this.notificationService.update(this.apiId, id, updated)),
-        tap(() => {
-          this.snackBarService.success('Notification saved successfully');
-          this.refreshList();
+          return this.openEditDialog(hooks, notification);
         }),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
@@ -195,6 +183,29 @@ export class ApiNotificationComponent implements OnInit, OnDestroy {
       )
 
       .subscribe();
+  }
+
+  private openEditDialog(hooks: Hooks[], notification: NotificationSettings) {
+    return this.matDialog
+      .open<NotificationEditDialogComponent, NotificationEditDialogData, NotificationEditDialogResult>(NotificationEditDialogComponent, {
+        width: GIO_DIALOG_WIDTH.LARGE,
+        data: {
+          hooks,
+          notifier: this.notifiers.find((n) => n.id === notification.notifier),
+          notification,
+        },
+        role: 'dialog',
+        id: 'editNotificationDialog',
+      })
+      .afterClosed()
+      .pipe(
+        filter((result) => !!result),
+        switchMap((updated) => this.notificationService.update(this.apiId, notification.id ?? '', updated)),
+        tap(() => {
+          this.snackBarService.success('Notification saved successfully');
+          this.refreshList();
+        }),
+      );
   }
 
   private refreshList() {

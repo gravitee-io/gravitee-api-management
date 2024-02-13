@@ -50,8 +50,8 @@ export class ApiNotificationSettingsService {
     return this.http.get<Notifier[]>(`${this.constants.env.baseURL}/apis/${apiId}/notifiers`);
   }
 
-  create(apiId: string, notificationConfig: NewNotificationSettings): Observable<NewNotificationSettings> {
-    return this.http.post<NewNotificationSettings>(`${this.constants.env.baseURL}/apis/${apiId}/notificationsettings`, notificationConfig);
+  create(apiId: string, notificationConfig: NewNotificationSettings): Observable<NotificationSettings> {
+    return this.http.post<NotificationSettings>(`${this.constants.env.baseURL}/apis/${apiId}/notificationsettings`, notificationConfig);
   }
 
   update(apiId: string, notificationId: string, notificationConfig: NotificationSettings): Observable<NotificationSettings> {

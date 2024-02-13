@@ -40,7 +40,7 @@ export interface NotificationSettingsListServices {
   };
   getList: () => Observable<NotificationSettings[]>;
   getNotifiers: () => Observable<Notifier[]>;
-  create: (notificationSettings: NewNotificationSettings) => Observable<NewNotificationSettings>;
+  create: (notificationSettings: NewNotificationSettings) => Observable<NotificationSettings>;
   delete: (notificationId: string) => Observable<NotificationSettings[]>;
 }
 

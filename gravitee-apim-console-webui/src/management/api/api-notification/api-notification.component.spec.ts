@@ -156,7 +156,7 @@ describe('ApiNotificationComponent', () => {
       });
     });
 
-    it('should display a success notification and refresh the list', async () => {
+    it('should display a success notification, refresh the list and open edit dialog', async () => {
       const addButton = await loader.getHarness(MatButtonHarness.with({ selector: '[data-testid=add-notification]' }));
       await addButton.click();
 
@@ -167,7 +167,7 @@ describe('ApiNotificationComponent', () => {
         method: 'POST',
         url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/notificationsettings`,
       });
-      req.flush([]);
+      req.flush({ id: 'new-notification-id', ...req.request.body });
       expectNotificationSettingsRequest([PORTAL_NOTIFICATION, EMAIL_NOTIFICATION, WEBHOOK_NOTIFICATION, req.request.body]);
 
       // Check that the snackbar has been displayed
@@ -201,6 +201,10 @@ describe('ApiNotificationComponent', () => {
           actions: '',
         },
       ]);
+
+      // Check the edit dialog has been opened
+      expectHooksRequest();
+      expect(await rootLoader.getHarness(NotificationEditDialogHarness)).not.toBeNull();
     });
 
     it('should not show Add button if the user is not allowed', async () => {
