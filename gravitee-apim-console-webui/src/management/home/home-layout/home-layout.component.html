@@ -15,16 +15,11 @@
     limitations under the License.
 
 -->
-<nav mat-tab-nav-bar>
-  <a
-    *ngFor="let tab of tabs"
-    mat-tab-link
-    routerLinkActive
-    #rla="routerLinkActive"
-    [active]="rla.isActive"
-    [routerLink]="tab.routerLink"
-    [innerHTML]="tab.label | async"
-  >
+<nav mat-tab-nav-bar [tabPanel]="tabPanel">
+  <a *ngFor="let tab of tabs" mat-tab-link routerLinkActive #rla="routerLinkActive" [active]="rla.isActive" [routerLink]="tab.routerLink">
+    <span [innerHTML]="tab.label | async"></span>
   </a>
 </nav>
-<router-outlet></router-outlet>
+<mat-tab-nav-panel #tabPanel>
+  <router-outlet></router-outlet>
+</mat-tab-nav-panel>

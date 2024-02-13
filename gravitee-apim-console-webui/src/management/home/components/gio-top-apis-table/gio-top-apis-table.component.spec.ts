@@ -17,7 +17,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { MatLegacyTableHarness as MatTableHarness } from '@angular/material/legacy-table/testing';
+import { MatTableHarness } from '@angular/material/table/testing';
 import { SimpleChange } from '@angular/core';
 import { MatLegacyPaginatorHarness as MatPaginatorHarness } from '@angular/material/legacy-paginator/testing';
 import { RouterTestingModule } from '@angular/router/testing';

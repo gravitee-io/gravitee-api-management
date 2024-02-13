@@ -96,6 +96,8 @@ describe('HomeOverviewComponent', () => {
 
     req = expectCountApplicationRequest();
     expect(req.request.url).toContain('interval=120000');
+
+    expectSearchApiEventsRequest();
   });
 
   function expectRequestStatsRequest(): TestRequest {
@@ -189,7 +191,9 @@ describe('HomeOverviewComponent', () => {
         )
       );
     });
-    req.flush({});
+    req.flush({
+      content: [],
+    });
     return req;
   }
 });

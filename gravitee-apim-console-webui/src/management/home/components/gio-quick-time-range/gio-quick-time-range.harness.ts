@@ -15,9 +15,9 @@
  */
 
 import { BaseHarnessFilters, ComponentHarness, HarnessPredicate } from '@angular/cdk/testing';
-import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
-import { MatLegacySelectHarness as MatSelectHarness } from '@angular/material/legacy-select/testing';
-import { MatLegacyOptionHarness as MatOptionHarness } from '@angular/material/legacy-core/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatSelectHarness } from '@angular/material/select/testing';
+import { MatOptionHarness } from '@angular/material/core/testing';
 
 export class GioQuickTimeRangeHarness extends ComponentHarness {
   public static hostSelector = 'gio-quick-time-range';
