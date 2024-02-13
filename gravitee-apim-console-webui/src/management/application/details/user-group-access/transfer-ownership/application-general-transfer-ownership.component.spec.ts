@@ -15,7 +15,6 @@
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
-import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
@@ -23,8 +22,8 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { ActivatedRoute } from '@angular/router';
 import { MatButtonToggleGroupHarness } from '@angular/material/button-toggle/testing';
-import { MatLegacySelectHarness as MatSelectHarness } from '@angular/material/legacy-select/testing';
-import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
+import { MatSelectHarness } from '@angular/material/select/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 
 import { ApplicationGeneralTransferOwnershipComponent } from './application-general-transfer-ownership.component';
@@ -34,7 +33,6 @@ import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/t
 import { fakeMembers } from '../../../../../entities/members/Members.fixture';
 import { Role } from '../../../../../entities/role/role';
 import { fakeRole } from '../../../../../entities/role/role.fixture';
-import { User } from '../../../../../entities/user';
 import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { Member } from '../../../../../entities/management-api-v2';
 import { GioFormUserAutocompleteHarness } from '../../../../../shared/components/gio-user-autocomplete/gio-form-user-autocomplete.harness';
@@ -49,19 +47,17 @@ describe('ApplicationGeneralTransferOwnershipComponent', () => {
   let loader: HarnessLoader;
   let rootLoader: HarnessLoader;
   const APPLICATION_ID = 'id_test';
-  const currentUser = new User();
 
-  beforeEach(async () => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, ApplicationGeneralUserGroupModule, GioHttpTestingModule, MatIconTestingModule],
       providers: [
-        { provide: ActivatedRoute, useValue: { currentUser, applicationId: APPLICATION_ID } },
+        { provide: ActivatedRoute, useValue: { applicationId: APPLICATION_ID } },
         {
           provide: GioTestingPermissionProvider,
           useValue: ['application-member-u', 'application-member-d', 'application-member-c', 'application-member-r'],
         },
       ],
-      schemas: [NO_ERRORS_SCHEMA],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {
@@ -73,7 +69,7 @@ describe('ApplicationGeneralTransferOwnershipComponent', () => {
 
     fixture = TestBed.createComponent(ApplicationGeneralTransferOwnershipComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
-    loader = await TestbedHarnessEnvironment.loader(fixture);
+    loader = TestbedHarnessEnvironment.loader(fixture);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
 
     fixture.detectChanges();

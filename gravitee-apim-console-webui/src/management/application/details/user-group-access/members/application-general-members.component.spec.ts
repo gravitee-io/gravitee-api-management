@@ -21,16 +21,14 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { of } from 'rxjs';
-import { NO_ERRORS_SCHEMA } from '@angular/core';
-import { MatLegacyTableHarness as MatTableHarness } from '@angular/material/legacy-table/testing';
-import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
+import { MatTableHarness } from '@angular/material/table/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 import { GioConfirmDialogHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute } from '@angular/router';
 
 import { ApplicationGeneralMembersComponent } from './application-general-members.component';
 
 import { ApplicationGeneralUserGroupModule } from '../application-general-user-group.module';
-import { User } from '../../../../../entities/user';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { Role } from '../../../../../entities/role/role';
 import { fakeRole } from '../../../../../entities/role/role.fixture';
@@ -49,7 +47,6 @@ describe('ApplicationGeneralMembersComponent', () => {
   let loader: HarnessLoader;
   let rootLoader: HarnessLoader;
   const APPLICATION_ID = 'id_test';
-  const currentUser = new User();
 
   const roles: Role[] = [
     fakeRole({ name: 'PRIMARY_OWNER', default: false }),
@@ -62,13 +59,12 @@ describe('ApplicationGeneralMembersComponent', () => {
       imports: [NoopAnimationsModule, ApplicationGeneralUserGroupModule, GioHttpTestingModule, MatIconTestingModule],
       providers: [
         { provide: RoleService, useValue: { list: () => of(roles) } },
-        { provide: ActivatedRoute, useValue: { currentUser, applicationId: APPLICATION_ID } },
+        { provide: ActivatedRoute, useValue: { applicationId: APPLICATION_ID } },
         {
           provide: GioTestingPermissionProvider,
           useValue: ['application-member-u', 'application-member-d', 'application-member-c', 'application-member-r'],
         },
       ],
-      schemas: [NO_ERRORS_SCHEMA],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {

@@ -17,34 +17,35 @@
 -->
 <form [formGroup]="form" *ngIf="!isLoadingData">
   <mat-card>
-    <div class="card__header">
-      <div>
-        <h3>Members ({{ members?.length }})</h3>
-        <p>Add users or groups as members of your Application, and define their roles to manage and perform tasks and operations.</p>
+    <mat-card-content>
+      <div class="card__header">
+        <div>
+          <h3>Members ({{ members?.length }})</h3>
+          <p>Add users or groups as members of your Application, and define their roles to manage and perform tasks and operations.</p>
+        </div>
+        <div class="card__header__addBtn">
+          <button
+            *gioPermission="{ anyOf: ['application-member-c'] }"
+            mat-raised-button
+            type="button"
+            aria-label="Add member"
+            (click)="addMember()"
+            color="primary"
+          >
+            <mat-icon svgIcon="gio:plus"></mat-icon> Add members
+          </button>
+        </div>
       </div>
-      <div>
-        <button
-          *gioPermission="{ anyOf: ['application-member-c'] }"
-          mat-raised-button
-          type="button"
-          aria-label="Add member"
-          (click)="addMember()"
-          color="primary"
-        >
-          <mat-icon svgIcon="gio:plus"></mat-icon> Add members
-        </button>
-      </div>
-    </div>
 
-    <gio-form-slide-toggle class="card__enable-notification-toggle">
-      Notify members when they are added to the Application
-      <mat-slide-toggle
-        gioFormSlideToggle
-        formControlName="isNotificationsEnabled"
-        aria-label="Enable notifications when members are added to this Application"
-      ></mat-slide-toggle>
-    </gio-form-slide-toggle>
-
+      <gio-form-slide-toggle class="card__enable-notification-toggle">
+        Notify members when they are added to the Application
+        <mat-slide-toggle
+          gioFormSlideToggle
+          formControlName="isNotificationsEnabled"
+          aria-label="Enable notifications when members are added to this Application"
+        ></mat-slide-toggle>
+      </gio-form-slide-toggle>
+    </mat-card-content>
     <table
       mat-table
       *ngIf="membersTable"
