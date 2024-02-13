@@ -26,8 +26,9 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatNativeDateModule, MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
-import { MatLegacySnackBarModule as MatSnackBarModule } from '@angular/material/legacy-snack-bar';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatMomentDateModule } from '@angular/material-moment-adapter';
+import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { ApiAuditListComponent } from './api-audit-list.component';
 
@@ -55,6 +56,7 @@ import { GioPermissionModule } from '../../../shared/components/gio-permission/g
     MatOptionModule,
     MatSelectModule,
     MatSnackBarModule,
+    MatLegacySnackBarModule,
     MatTableModule,
     MatTooltipModule,
   ],
