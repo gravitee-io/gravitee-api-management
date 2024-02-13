@@ -18,10 +18,9 @@ import { HarnessLoader, parallel } from '@angular/cdk/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { MatLegacyTableHarness as MatTableHarness } from '@angular/material/legacy-table/testing';
+import { MatTableHarness } from '@angular/material/table/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
-import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
-import { MatLegacyDialogHarness } from '@angular/material/legacy-dialog/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatLegacyInputHarness as MatInputHarness } from '@angular/material/legacy-input/testing';
@@ -166,7 +165,7 @@ describe('ApiPathMappingsComponent', () => {
       await loader
         .getAllHarnesses(MatButtonHarness.with({ selector: '[aria-label="Button to edit a path mapping"]' }))
         .then((elements) => elements[1].click());
-      const dialog = await rootLoader.getHarness(MatLegacyDialogHarness);
+      const dialog = await rootLoader.getHarness(MatDialogHarness);
       await dialog
         .getHarness(MatInputHarness.with({ selector: '[aria-label="Path mapping input"]' }))
         .then((input) => input.setValue('/updated/:id'));

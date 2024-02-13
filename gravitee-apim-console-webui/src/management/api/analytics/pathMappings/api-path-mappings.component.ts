@@ -17,8 +17,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { EMPTY, Subject } from 'rxjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { remove, sortBy } from 'lodash';
-import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
-import { MatLegacyDialog } from '@angular/material/legacy-dialog';
+import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute } from '@angular/router';
 
@@ -60,7 +59,6 @@ export class ApiPathMappingsComponent implements OnInit, OnDestroy {
     private readonly activatedRoute: ActivatedRoute,
     private readonly apiService: ApiV2Service,
     private readonly matDialog: MatDialog,
-    private readonly matLegacyDialog: MatLegacyDialog,
     private readonly snackBarService: SnackBarService,
     private documentationService: DocumentationService,
   ) {}
@@ -97,7 +95,7 @@ export class ApiPathMappingsComponent implements OnInit, OnDestroy {
   public deletePathMapping(path: string): void {
     this.matDialog
       .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
-        width: '500px',
+        width: GIO_DIALOG_WIDTH.MEDIUM,
         data: {
           title: `Delete path mapping`,
           content: `Are you sure you want to delete the path mapping <strong>${path}</strong>?`,
@@ -131,8 +129,9 @@ export class ApiPathMappingsComponent implements OnInit, OnDestroy {
   }
 
   addPathMapping() {
-    this.matLegacyDialog
+    this.matDialog
       .open<ApiPathMappingsAddDialogComponent, ApiPathMappingsAddDialogData>(ApiPathMappingsAddDialogComponent, {
+        width: GIO_DIALOG_WIDTH.MEDIUM,
         data: {
           api: this.api,
           swaggerDocs: this.swaggerDocs,
@@ -149,8 +148,9 @@ export class ApiPathMappingsComponent implements OnInit, OnDestroy {
   }
 
   public editPathMapping(path: string): void {
-    this.matLegacyDialog
+    this.matDialog
       .open<ApiPathMappingsEditDialogComponent, ApiPathMappingsEditDialogData>(ApiPathMappingsEditDialogComponent, {
+        width: GIO_DIALOG_WIDTH.MEDIUM,
         data: {
           api: this.api,
           path,

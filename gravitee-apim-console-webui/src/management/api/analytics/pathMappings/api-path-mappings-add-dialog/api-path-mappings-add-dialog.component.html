@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<h2 mat-dialog-title class="title">Add Path Mapping</h2>
+<span mat-dialog-title class="title">Add Path Mapping</span>
 
 <mat-dialog-content class="content">
   <mat-tab-group dynamicHeight mat-stretch-tabs (selectedTabChange)="onSelectedTab($event)">
@@ -24,7 +24,7 @@
       <div class="content__tab">
         <mat-dialog-content class="content">
           <form [formGroup]="pathFormGroup">
-            <mat-form-field class="content__path__form-field" appearance="fill">
+            <mat-form-field class="content__path__form-field">
               <mat-label>Path mapping</mat-label>
               <input
                 type="text"
