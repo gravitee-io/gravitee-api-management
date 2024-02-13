@@ -8,7 +8,7 @@ module.exports = {
   setupFilesAfterEnv: [__dirname + '/src/setup-jest.ts'],
   restoreMocks: true,
   transformIgnorePatterns: [
-    '/node_modules/(?!(.*\\.mjs$)|(@gravitee/ui-components/.*?\\.js)|github-slugger|lit|@lit/reactive-element|(lit-element/.*?\\.js)|(resize-observer-polyfill/.*?\\.js)|(date-fns/.*?\\.js)$)',
+    '/node_modules/(?!(.*\\.mjs$)|(@gravitee/ui-components/.*?\\.js)|github-slugger|lit|@lit/reactive-element|(lit-element/.*?\\.js)|(resize-observer-polyfill/.*?\\.js)|(date-fns/.*?\\.js)|(@asciidoctor/.*?\\.js)$)',
   ],
   transform: {
     '\\.js$': 'babel-jest',
