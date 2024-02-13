@@ -136,7 +136,7 @@ export class ApiV4MenuService implements ApiMenuService {
 
     return {
       displayName: 'Entrypoints',
-      icon: 'upload-cloud',
+      icon: 'entrypoints',
       routerLink: '',
       header: {
         title: 'Entrypoints',
@@ -172,7 +172,7 @@ export class ApiV4MenuService implements ApiMenuService {
 
     return {
       displayName: 'Endpoints',
-      icon: 'download-cloud',
+      icon: 'endpoints',
       routerLink: '',
       header: {
         title: 'Endpoints',
@@ -203,7 +203,7 @@ export class ApiV4MenuService implements ApiMenuService {
     tabs.push({ displayName: 'Broadcasts', routerLink: 'DISABLED' });
     return {
       displayName: 'Consumers',
-      icon: 'user',
+      icon: 'cloud-consumers',
       routerLink: '',
       header: {
         title: 'Consumers',

@@ -120,7 +120,7 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
     const mainMenuItems: MenuItem[] = [
       { icon: 'gio:home', routerLink: './home', displayName: 'Dashboard', category: 'home' },
       {
-        icon: 'gio:upload-cloud',
+        icon: 'gio:cloud-settings',
         routerLink: './apis',
         displayName: 'APIs',
         category: 'Apis',
