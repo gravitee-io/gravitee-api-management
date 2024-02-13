@@ -59,6 +59,7 @@ import io.gravitee.apim.core.plugin.domain_service.PluginFilterByLicenseDomainSe
 import io.gravitee.apim.core.plugin.query_service.EntrypointPluginQueryService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.core.sanitizer.HtmlSanitizer;
+import io.gravitee.apim.core.search.Indexer;
 import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomainService;
@@ -66,7 +67,9 @@ import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.apim.infra.domain_service.documentation.FreemarkerTemplateResolver;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
+import io.gravitee.apim.infra.search.DistributedLuceneIndexer;
 import io.gravitee.node.api.license.LicenseManager;
+import io.gravitee.rest.api.service.search.SearchEngineService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -158,14 +161,16 @@ public class CoreServiceSpringConfiguration {
         PageQueryService pageQueryService,
         AuditDomainService auditDomainService,
         UpdateApiDocumentationDomainService updateApiDocumentationDomainService,
-        PlanQueryService planQueryService
+        PlanQueryService planQueryService,
+        Indexer indexer
     ) {
         return new DeleteApiDocumentationDomainService(
             pageCrudService,
             pageQueryService,
             auditDomainService,
             updateApiDocumentationDomainService,
-            planQueryService
+            planQueryService,
+            indexer
         );
     }
 
@@ -173,18 +178,25 @@ public class CoreServiceSpringConfiguration {
     public CreateApiDocumentationDomainService createApiDocumentationDomainService(
         PageCrudService pageCrudService,
         PageRevisionCrudService pageRevisionCrudService,
-        AuditDomainService auditDomainService
+        AuditDomainService auditDomainService,
+        Indexer indexer
     ) {
-        return new CreateApiDocumentationDomainService(pageCrudService, pageRevisionCrudService, auditDomainService);
+        return new CreateApiDocumentationDomainService(pageCrudService, pageRevisionCrudService, auditDomainService, indexer);
     }
 
     @Bean
     public UpdateApiDocumentationDomainService updateApiDocumentationDomainService(
         PageCrudService pageCrudService,
         PageRevisionCrudService pageRevisionCrudService,
-        AuditDomainService auditDomainService
+        AuditDomainService auditDomainService,
+        Indexer indexer
     ) {
-        return new UpdateApiDocumentationDomainService(pageCrudService, pageRevisionCrudService, auditDomainService);
+        return new UpdateApiDocumentationDomainService(pageCrudService, pageRevisionCrudService, auditDomainService, indexer);
+    }
+
+    @Bean
+    Indexer indexer(SearchEngineService searchEngineService) {
+        return new DistributedLuceneIndexer(searchEngineService);
     }
 
     @Bean

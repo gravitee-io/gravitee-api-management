@@ -17,6 +17,8 @@ package io.gravitee.rest.api.service.impl.search;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
+import io.gravitee.apim.core.search.model.IndexablePage;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.MessageRecipient;
 import io.gravitee.rest.api.model.ApiPageEntity;
@@ -98,6 +100,9 @@ public class SearchEngineServiceImpl implements SearchEngineService {
     @Lazy
     private UserService userService;
 
+    @Autowired
+    private PageCrudService pageCrudService;
+
     @Async("indexerThreadPoolTaskExecutor")
     @Override
     public void index(ExecutionContext executionContext, Indexable source, boolean locally, boolean commit) {
@@ -176,6 +181,8 @@ public class SearchEngineServiceImpl implements SearchEngineService {
                 return pageService.findById(id);
             } else if (UserEntity.class.getName().equals(clazz)) {
                 return userService.findById(executionContext, id);
+            } else if (IndexablePage.class.getName().equals(clazz)) {
+                return new IndexablePage(pageCrudService.get(id));
             }
         } catch (final AbstractNotFoundException nfe) {
             // ignore not found exception because may be due to synchronization not yet processed by DBs

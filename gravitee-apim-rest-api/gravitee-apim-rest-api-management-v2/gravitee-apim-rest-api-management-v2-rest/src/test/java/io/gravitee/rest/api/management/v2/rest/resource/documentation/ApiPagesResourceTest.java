@@ -29,6 +29,7 @@ import fixtures.core.model.PlanFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
+import inmemory.IndexerInMemory;
 import inmemory.PageCrudServiceInMemory;
 import inmemory.PageQueryServiceInMemory;
 import inmemory.PageRevisionCrudServiceInMemory;
@@ -88,6 +89,9 @@ class ApiPagesResourceTest extends AbstractResourceTest {
     @Autowired
     private UserCrudServiceInMemory userCrudService;
 
+    @Autowired
+    private IndexerInMemory indexer;
+
     protected static final String ENVIRONMENT = "my-env";
     protected static final String API_ID = "api-id";
     protected static final String PAGE_ID = "page-id";
@@ -117,7 +121,8 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 auditCrudService,
                 userCrudService,
                 apiCrudServiceInMemory,
-                planQueryServiceInMemory
+                planQueryServiceInMemory,
+                indexer
             )
             .forEach(InMemoryAlternative::reset);
     }

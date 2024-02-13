@@ -15,12 +15,12 @@
  */
 package io.gravitee.apim.core.documentation.use_case;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 
 import fixtures.core.model.AuditInfoFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
+import inmemory.IndexerInMemory;
 import inmemory.PageCrudServiceInMemory;
 import inmemory.PageQueryServiceInMemory;
 import inmemory.PageRevisionCrudServiceInMemory;
@@ -34,6 +34,7 @@ import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomain
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.search.model.IndexablePage;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 import java.util.Date;
@@ -51,6 +52,8 @@ class ApiPublishDocumentationPageUseCaseTest {
     private final AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     private final UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     private final PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
+    private final IndexerInMemory indexer = new IndexerInMemory();
+
     private ApiPublishDocumentationPageUseCase useCase;
     private static final String ORGANIZATION_ID = "organization-id";
     private static final String ENVIRONMENT_ID = "environment-id";
@@ -66,7 +69,8 @@ class ApiPublishDocumentationPageUseCaseTest {
         var updateDocumentationDomainService = new UpdateApiDocumentationDomainService(
             pageCrudService,
             pageRevisionCrudService,
-            new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor())
+            new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
+            indexer
         );
         useCase =
             new ApiPublishDocumentationPageUseCase(
@@ -82,6 +86,7 @@ class ApiPublishDocumentationPageUseCaseTest {
         pageCrudService.reset();
         pageQueryService.reset();
         apiCrudService.reset();
+        indexer.reset();
     }
 
     @Test
@@ -171,6 +176,26 @@ class ApiPublishDocumentationPageUseCaseTest {
         );
         useCase.execute(new ApiPublishDocumentationPageUseCase.Input(API_ID, PAGE_ID, AUDIT_INFO)).page();
         assertThat(auditCrudService.storage().get(0)).isNotNull().hasFieldOrPropertyWithValue("event", "PAGE_UPDATED");
+    }
+
+    @Test
+    void should_index_if_markdown() {
+        initApiServices(List.of(Api.builder().id(API_ID).build()));
+        initPageServices(
+            List.of(
+                Page
+                    .builder()
+                    .id(PAGE_ID)
+                    .referenceType(Page.ReferenceType.API)
+                    .referenceId(API_ID)
+                    .type(Page.Type.MARKDOWN)
+                    .published(false)
+                    .createdAt(DATE)
+                    .build()
+            )
+        );
+        useCase.execute(new ApiPublishDocumentationPageUseCase.Input(API_ID, PAGE_ID, AUDIT_INFO)).page();
+        assertThat(indexer.storage()).extracting("id").contains(PAGE_ID);
     }
 
     @Test

@@ -106,6 +106,8 @@ class ApiUpdateDocumentationPageUseCaseTest {
     private final PageRevisionCrudServiceInMemory pageRevisionCrudService = new PageRevisionCrudServiceInMemory();
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     private final PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
+    private final IndexerInMemory indexer = new IndexerInMemory();
+
     private final DocumentationValidationDomainService documentationValidationDomainService = new DocumentationValidationDomainService(
         new HtmlSanitizerImpl(),
         new NoopTemplateResolverDomainService(),
@@ -122,7 +124,8 @@ class ApiUpdateDocumentationPageUseCaseTest {
             new UpdateApiDocumentationDomainService(
                 pageCrudService,
                 pageRevisionCrudService,
-                new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor())
+                new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
+                indexer
             );
         apiUpdateDocumentationPageUsecase =
             new ApiUpdateDocumentationPageUseCase(

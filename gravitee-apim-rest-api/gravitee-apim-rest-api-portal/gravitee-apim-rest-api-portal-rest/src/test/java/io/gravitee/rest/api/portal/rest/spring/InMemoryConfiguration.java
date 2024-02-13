@@ -31,6 +31,7 @@ import inmemory.EventCrudInMemory;
 import inmemory.EventQueryServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
+import inmemory.IndexerInMemory;
 import inmemory.InstanceQueryServiceInMemory;
 import inmemory.LicenseCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
@@ -214,5 +215,10 @@ public class InMemoryConfiguration {
     @Bean
     public RoleQueryServiceInMemory roleQueryServiceInMemory() {
         return new RoleQueryServiceInMemory();
+    }
+
+    @Bean
+    public IndexerInMemory indexer() {
+        return new IndexerInMemory();
     }
 }

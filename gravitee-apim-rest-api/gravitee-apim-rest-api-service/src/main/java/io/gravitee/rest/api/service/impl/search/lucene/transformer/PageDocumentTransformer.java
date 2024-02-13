@@ -31,13 +31,14 @@ import org.springframework.stereotype.Component;
 @Component
 public class PageDocumentTransformer implements DocumentTransformer<PageEntity> {
 
-    private static final String FIELD_ID = "id";
-    private static final String FIELD_TYPE = "type";
     public static final String FIELD_TYPE_VALUE = "page";
     public static final String FIELD_NAME = "name";
     public static final String FIELD_NAME_LOWERCASE = "name_lowercase";
     public static final String FIELD_NAME_SPLIT = "name_split";
     public static final String FIELD_CONTENT = "content";
+
+    static final String FIELD_ID = "id";
+    static final String FIELD_TYPE = "type";
 
     @Override
     public Document transform(PageEntity page) {
