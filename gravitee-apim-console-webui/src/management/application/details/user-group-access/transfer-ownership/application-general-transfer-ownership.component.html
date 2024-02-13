@@ -17,58 +17,59 @@
 -->
 <form [formGroup]="form" *ngIf="form" (ngSubmit)="onSubmit()">
   <mat-card class="card">
-    <div class="card__header">
-      <div>
-        <h3>Transfer ownership</h3>
+    <mat-card-content>
+      <div class="card__header">
+        <div>
+          <h3>Transfer ownership</h3>
+        </div>
       </div>
-    </div>
-    <ng-container>
-      <p>Select your preferred method for granting complete application access</p>
-      <mat-button-toggle-group aria-label="Select User or Group" class="card__userOrGroup__toggle-group" formControlName="userOrGroup">
-        <mat-button-toggle class="card__userOrGroup__toggle-group__toggle" value="applicationMember">
-          Application member
-        </mat-button-toggle>
-        <mat-button-toggle class="card__userOrGroup__toggle-group__toggle" value="user"> Other user </mat-button-toggle>
-        <mat-button-toggle class="card__userOrGroup__toggle-group__toggle" value="group"> Primary owner group </mat-button-toggle>
-      </mat-button-toggle-group>
-    </ng-container>
+      <ng-container>
+        <p>Select your preferred method for granting complete application access</p>
+        <mat-button-toggle-group aria-label="Select User or Group" class="card__userOrGroup__toggle-group" formControlName="userOrGroup">
+          <mat-button-toggle class="card__userOrGroup__toggle-group__toggle" value="applicationMember">
+            Application member
+          </mat-button-toggle>
+          <mat-button-toggle class="card__userOrGroup__toggle-group__toggle" value="user"> Other user </mat-button-toggle>
+          <mat-button-toggle class="card__userOrGroup__toggle-group__toggle" value="group"> Primary owner group </mat-button-toggle>
+        </mat-button-toggle-group>
+      </ng-container>
 
-    <div class="card__userOrGroup" *ngIf="form.get('userOrGroup').value === 'applicationMember'">
-      <mat-form-field class="card__userOrGroup__field">
-        <mat-label>Select application member</mat-label>
-        <mat-select formControlName="user">
-          <mat-option *ngFor="let member of applicationMembers" [value]="member">{{ member.displayName }}</mat-option>
-        </mat-select>
-      </mat-form-field>
-    </div>
+      <div class="card__userOrGroup" *ngIf="form.get('userOrGroup').value === 'applicationMember'">
+        <mat-form-field class="card__userOrGroup__field">
+          <mat-label>Select application member</mat-label>
+          <mat-select formControlName="user">
+            <mat-option *ngFor="let member of applicationMembers" [value]="member">{{ member.displayName }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
 
-    <div *ngIf="form.get('userOrGroup').value === 'group'" class="card__userOrGroup">
-      <gio-banner-warning *ngIf="warnUseGroupAsPrimaryOwner">
-        You can't set a group as primary owner. To set a group as a primary owner, the group must contain a member with a primary owner
-        Application role.
-      </gio-banner-warning>
+      <div *ngIf="form.get('userOrGroup').value === 'group'" class="card__userOrGroup">
+        <gio-banner-warning *ngIf="warnUseGroupAsPrimaryOwner">
+          You can't set a group as primary owner. To set a group as a primary owner, the group must contain a member with a primary owner
+          Application role.
+        </gio-banner-warning>
 
-      <mat-form-field class="card__userOrGroup__field">
-        <mat-label>Select a primary owner group</mat-label>
-        <mat-select formControlName="groupId">
-          <mat-option *ngFor="let group of groups" [value]="group.id">{{ group.name }}</mat-option>
-        </mat-select>
-      </mat-form-field>
-    </div>
+        <mat-form-field class="card__userOrGroup__field">
+          <mat-label>Select a primary owner group</mat-label>
+          <mat-select formControlName="groupId">
+            <mat-option *ngFor="let group of groups" [value]="group.id">{{ group.name }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
 
-    <div class="card__userOrGroup" *ngIf="form.get('userOrGroup').value === 'user'">
-      <gio-form-user-autocomplete class="card__userOrGroup__field" formControlName="user"></gio-form-user-autocomplete>
-    </div>
+      <div class="card__userOrGroup" *ngIf="form.get('userOrGroup').value === 'user'">
+        <gio-form-user-autocomplete class="card__userOrGroup__field" formControlName="user"></gio-form-user-autocomplete>
+      </div>
 
-    <div *ngIf="form.get('user').value || form.get('groupId').value" class="card__userOrGroup">
-      <mat-form-field class="card__userOrGroup__field">
-        <mat-label>New role for current Primary Owner</mat-label>
-        <mat-select formControlName="roleId">
-          <mat-option *ngFor="let role of roles" [value]="role.name">{{ role.name }}</mat-option>
-        </mat-select>
-      </mat-form-field>
-    </div>
-
+      <div *ngIf="form.get('user').value || form.get('groupId').value" class="card__userOrGroup">
+        <mat-form-field class="card__userOrGroup__field">
+          <mat-label>New role for current Primary Owner</mat-label>
+          <mat-select formControlName="roleId">
+            <mat-option *ngFor="let role of roles" [value]="role.name">{{ role.name }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </mat-card-content>
     <mat-card-actions align="end">
       <button mat-raised-button color="primary" [disabled]="!form.valid">Transfer</button>
     </mat-card-actions>

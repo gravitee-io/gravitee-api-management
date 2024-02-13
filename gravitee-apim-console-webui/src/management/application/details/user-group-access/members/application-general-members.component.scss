@@ -9,6 +9,10 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
+
+    &__addBtn {
+      flex: 1 0 auto;
+    }
   }
 
   &__enable-notification-toggle {
