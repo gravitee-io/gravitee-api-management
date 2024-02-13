@@ -35,7 +35,6 @@ import { ApplicationNotificationSettingsModule } from './details/notifications/n
 import { ApplicationMetadataModule } from './details/metadata/application-metadata.module';
 import { ApplicationGeneralUserGroupModule } from './details/user-group-access/application-general-user-group.module';
 import { ApplicationGeneralNgModule } from './details/general/general-ng/application-general-ng.module';
-import { ApplicationGeneralComponent } from './details/general/application-general.component';
 import { ApplicationSubscriptionsComponent } from './details/subscriptions/application-subscriptions.component';
 import { ApplicationSubscriptionComponent } from './details/subscriptions/application-subscription.component';
 import { ApplicationAnalyticsComponent } from './details/analytics/application-analytics.component';
@@ -78,7 +77,6 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
   ],
   declarations: [
     EnvApplicationListComponent,
-    ApplicationGeneralComponent,
     ApplicationSubscriptionsComponent,
     ApplicationSubscriptionComponent,
     ApplicationAnalyticsComponent,
