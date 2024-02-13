@@ -21,56 +21,64 @@
   </div>
   <div class="home-overview__row">
     <mat-card class="home-overview__card flex">
-      <div class="mat-subheading-1">Quick Summary</div>
-      <div *ngIf="apiNb !== undefined && applicationNb !== undefined; else loader" class="home-overview__card__list">
-        <div class="home-overview__card__list__row">
-          <span class="home-overview__card__list__row__value">{{ apiNb }}</span>
-          <span class="home-overview__card__list__row__label">Total APIs</span>
+      <mat-card-content>
+        <div class="mat-body-1">Quick Summary</div>
+        <div *ngIf="apiNb !== undefined && applicationNb !== undefined; else loader" class="home-overview__card__list">
+          <div class="home-overview__card__list__row">
+            <span class="home-overview__card__list__row__value">{{ apiNb }}</span>
+            <span class="home-overview__card__list__row__label">Total APIs</span>
+          </div>
+          <div class="home-overview__card__list__row">
+            <span class="home-overview__card__list__row__value">{{ applicationNb }}</span>
+            <span class="home-overview__card__list__row__label">Total Applications</span>
+          </div>
         </div>
-        <div class="home-overview__card__list__row">
-          <span class="home-overview__card__list__row__value">{{ applicationNb }}</span>
-          <span class="home-overview__card__list__row__label">Total Applications</span>
-        </div>
-      </div>
+      </mat-card-content>
     </mat-card>
 
     <mat-card class="home-overview__card">
-      <div class="mat-subheading-1">API Lifecycle State</div>
-      <ng-container *ngIf="apiLifecycleState; else loader">
-        <gio-api-lifecycle-state [data]="apiLifecycleState"></gio-api-lifecycle-state>
-      </ng-container>
+      <mat-card-content>
+        <div class="mat-body-1">API Lifecycle State</div>
+        <ng-container *ngIf="apiLifecycleState; else loader">
+          <gio-api-lifecycle-state [data]="apiLifecycleState"></gio-api-lifecycle-state> </ng-container
+      ></mat-card-content>
     </mat-card>
 
     <mat-card class="home-overview__card">
-      <div class="mat-subheading-1">API State</div>
-      <ng-container *ngIf="apiState; else loader">
-        <gio-api-state [data]="apiState"></gio-api-state>
-      </ng-container>
+      <mat-card-content>
+        <div class="mat-body-1">API State</div>
+        <ng-container *ngIf="apiState; else loader"> <gio-api-state [data]="apiState"></gio-api-state> </ng-container
+      ></mat-card-content>
     </mat-card>
   </div>
   <div class="home-overview__row">
     <mat-card class="home-overview__card">
-      <div class="mat-subheading-1">API Response Status</div>
+      <mat-card-content>
+        <div class="mat-body-1">API Response Status</div>
 
-      <ng-container *ngIf="apiResponseStatus; else loader">
-        <gio-api-response-status [data]="apiResponseStatus"></gio-api-response-status>
-      </ng-container>
+        <ng-container *ngIf="apiResponseStatus; else loader">
+          <gio-api-response-status [data]="apiResponseStatus"></gio-api-response-status> </ng-container
+      ></mat-card-content>
     </mat-card>
 
     <mat-card class="home-overview__card">
-      <div class="mat-subheading-1">
-        Top APIs
-        <span class="mat-caption">(Ordered by API calls)</span>
-      </div>
+      <mat-card-content>
+        <div class="mat-body-1">
+          Top APIs
+          <span class="mat-caption">(Ordered by API calls)</span>
+        </div>
+      </mat-card-content>
       <ng-container *ngIf="topApis; else loader">
         <gio-top-apis-table [data]="topApis"></gio-top-apis-table>
       </ng-container>
     </mat-card>
 
     <mat-card class="home-overview__card flex">
-      <ng-container *ngIf="requestStats; else loader">
-        <gio-request-stats [data]="requestStats"></gio-request-stats>
-      </ng-container>
+      <mat-card-content>
+        <ng-container *ngIf="requestStats; else loader">
+          <gio-request-stats [data]="requestStats"></gio-request-stats>
+        </ng-container>
+      </mat-card-content>
     </mat-card>
   </div>
 </div>

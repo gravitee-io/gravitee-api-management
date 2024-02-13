@@ -15,7 +15,7 @@
  */
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatLegacyTableModule as MatTableModule } from '@angular/material/legacy-table';
+import { MatTableModule } from '@angular/material/table';
 import { GioLoaderModule } from '@gravitee/ui-particles-angular';
 
 import { GioApiEventsTableComponent } from './gio-api-events-table.component';

@@ -78,7 +78,7 @@ export class GioApiEventsTableComponent implements OnChanges {
               STOP_API: 'Stop',
             };
 
-            return eventPage.content.map<TableDataSource>((event) => ({
+            return eventPage.content?.map<TableDataSource>((event) => ({
               apiId: event.properties['api_id'],
               apiName: event.properties['api_name'],
               apiVersion: event.properties['api_version'],
