@@ -16,11 +16,8 @@
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatIconHarness } from '@angular/material/icon/testing';
 import { DivHarness } from '@gravitee/ui-particles-angular/testing';
-import {
-  MatLegacyTabGroupHarness as MatTabGroupHarness,
-  MatLegacyTabHarness as MatTabHarness,
-} from '@angular/material/legacy-tabs/testing';
-import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
+import { MatTabGroupHarness, MatTabHarness } from '@angular/material/tabs/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
 import { ApiRuntimeLogsConnectionLogDetailsHarness } from '../components/api-runtime-logs-connection-log-details/api-runtime-logs-connection-log-details.harness';
 

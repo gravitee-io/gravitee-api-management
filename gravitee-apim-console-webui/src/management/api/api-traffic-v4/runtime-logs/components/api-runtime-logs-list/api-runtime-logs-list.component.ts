@@ -15,7 +15,7 @@
  */
 
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { LegacyPageEvent as PageEvent } from '@angular/material/legacy-paginator';
+import { PageEvent } from '@angular/material/paginator';
 
 import { ConnectionLog, Pagination } from '../../../../../../entities/management-api-v2';
 

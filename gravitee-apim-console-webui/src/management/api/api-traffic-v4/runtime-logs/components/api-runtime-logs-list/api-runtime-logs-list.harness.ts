@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
-import { MatLegacyPaginatorHarness as MatPaginatorHarness } from '@angular/material/legacy-paginator/testing';
-import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
+import { MatPaginatorHarness } from '@angular/material/paginator/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 
 import { ApiRuntimeLogsEmptyHarness } from '../api-runtime-logs-empty';

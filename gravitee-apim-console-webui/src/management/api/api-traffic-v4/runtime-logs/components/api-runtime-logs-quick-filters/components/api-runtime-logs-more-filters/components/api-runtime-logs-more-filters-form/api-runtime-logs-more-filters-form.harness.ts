@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
-import { MatLegacySelectHarness as MatSelectHarness } from '@angular/material/legacy-select/testing';
-import { MatLegacyInputHarness as MatInputHarness } from '@angular/material/legacy-input/testing';
-import { MatLegacyChipListHarness as MatChipListHarness } from '@angular/material/legacy-chips/testing';
-import { MatLegacyFormFieldHarness as MatFormFieldHarness } from '@angular/material/legacy-form-field/testing';
+import { MatSelectHarness } from '@angular/material/select/testing';
+import { MatInputHarness } from '@angular/material/input/testing';
+import { MatChipGridHarness } from '@angular/material/chips/testing';
+import { MatFormFieldHarness } from '@angular/material/form-field/testing';
 import { GioFormTagsInputHarness } from '@gravitee/ui-particles-angular';
 
 export class ApiRuntimeLogsMoreFiltersFormHarness extends ComponentHarness {
@@ -26,7 +26,7 @@ export class ApiRuntimeLogsMoreFiltersFormHarness extends ComponentHarness {
   public getPeriodSelectInput = this.locatorFor(MatSelectHarness.with({ selector: '[formControlName="period"]' }));
   public getFromInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="from"]' }));
   public getToInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="to"]' }));
-  public getStatusesChips = this.locatorFor(MatChipListHarness.with({ selector: '[formControlName="statuses"]' }));
+  public getStatusesChips = this.locatorFor(MatChipGridHarness.with({ selector: '[formControlName="statuses"]' }));
   public getApplicationField = this.locatorFor(MatFormFieldHarness.with({ floatingLabelText: 'Applications' }));
 
   public async getApplicationAutocomplete() {

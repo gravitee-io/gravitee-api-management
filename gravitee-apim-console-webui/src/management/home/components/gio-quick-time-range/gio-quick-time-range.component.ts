@@ -68,7 +68,6 @@ export const timeFrames = [
 @Component({
   selector: 'gio-quick-time-range',
   templateUrl: './gio-quick-time-range.component.html',
-  styleUrls: ['./gio-quick-time-range.component.scss'],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,

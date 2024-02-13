@@ -15,8 +15,8 @@
  */
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatLegacyButtonModule as MatButtonModule } from '@angular/material/legacy-button';
-import { MatLegacyPaginatorModule as MatPaginatorModule } from '@angular/material/legacy-paginator';
+import { MatButtonModule } from '@angular/material/button';
+import { MatPaginatorModule } from '@angular/material/paginator';
 import { GioBannerModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
 
 import { ApiRuntimeLogsListComponent } from './api-runtime-logs-list.component';

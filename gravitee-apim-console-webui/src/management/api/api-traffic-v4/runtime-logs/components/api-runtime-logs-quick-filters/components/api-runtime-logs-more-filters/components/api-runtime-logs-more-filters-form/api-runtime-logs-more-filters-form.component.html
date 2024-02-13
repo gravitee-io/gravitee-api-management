@@ -49,13 +49,13 @@
     <span class="more-filters__body__title">Response</span>
     <mat-form-field>
       <mat-label>Status</mat-label>
-      <mat-chip-list #statusChipList aria-label="Status chips" formControlName="statuses">
-        <mat-chip removable="true" selectable="false" *ngFor="let status of statuses" [value]="status" (removed)="removeStatus(status)">
+      <mat-chip-grid #statusChipList aria-label="Status chips" formControlName="statuses">
+        <mat-chip-row removable="true" selectable="false" *ngFor="let status of statuses" [value]="status" (removed)="removeStatus(status)">
           {{ status }}
           <button matChipRemove>
             <mat-icon>cancel</mat-icon>
           </button>
-        </mat-chip>
+        </mat-chip-row>
         <input
           type="number"
           placeholder="HTTP status"
@@ -63,7 +63,7 @@
           [matChipInputFor]="statusChipList"
           (matChipInputTokenEnd)="addStatusFromInput($event)"
         />
-      </mat-chip-list>
+      </mat-chip-grid>
     </mat-form-field>
   </div>
   <div class="more-filters__body__block">
