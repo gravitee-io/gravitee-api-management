@@ -28,12 +28,13 @@ import {
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatLegacyCardModule as MatCardModule } from '@angular/material/legacy-card';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { MatButtonModule } from '@angular/material/button';
+import { MatLegacyButtonModule as MatButtonModule } from '@angular/material/legacy-button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { RouterModule } from '@angular/router';
 
 import { ApiDynamicPropertiesV4Component } from './api-dynamic-properties-v4.component';
 
@@ -41,6 +42,7 @@ import { ApiDynamicPropertiesV4Component } from './api-dynamic-properties-v4.com
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    RouterModule,
 
     MatCardModule,
     MatButtonModule,

@@ -760,7 +760,7 @@ const apisRoutes: Routes = [
         },
       },
       {
-        path: 'dynamic-properties',
+        path: 'properties/dynamic-properties',
         component: ApiDynamicPropertiesComponent,
         data: {
           apiPermissions: {
@@ -945,7 +945,7 @@ const apisRoutes: Routes = [
         },
       },
       {
-        path: 'v4/dynamic-properties',
+        path: 'properties/v4/dynamic-properties',
         component: ApiDynamicPropertiesV4Component,
         data: {
           apiPermissions: {

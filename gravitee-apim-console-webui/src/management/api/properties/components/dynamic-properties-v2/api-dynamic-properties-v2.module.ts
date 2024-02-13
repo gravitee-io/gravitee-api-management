@@ -33,6 +33,7 @@ import { MatLegacyOptionModule as MatOptionModule } from '@angular/material/lega
 import { MatLegacySelectModule as MatSelectModule } from '@angular/material/legacy-select';
 import { MatLegacyInputModule as MatInputModule } from '@angular/material/legacy-input';
 import { MatLegacySnackBarModule as MatSnackBarModule } from '@angular/material/legacy-snack-bar';
+import { RouterModule } from '@angular/router';
 
 import { ApiDynamicPropertiesComponent } from './api-dynamic-properties.component';
 
@@ -40,6 +41,7 @@ import { ApiDynamicPropertiesComponent } from './api-dynamic-properties.componen
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    RouterModule,
 
     MatCardModule,
     MatButtonModule,

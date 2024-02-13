@@ -27,6 +27,7 @@ import { MatLegacyFormFieldModule as MatFormFieldModule } from '@angular/materia
 import { MatLegacyInputModule as MatInputModule } from '@angular/material/legacy-input';
 import { MatLegacySnackBarModule as MatSnackBarModule } from '@angular/material/legacy-snack-bar';
 import { MatLegacyDialogModule as MatDialogModule } from '@angular/material/legacy-dialog';
+import { RouterModule } from '@angular/router';
 
 import { ApiPropertiesComponent } from './api-properties.component';
 import { PropertiesAddDialogModule } from './properties-add-dialog/properties-add-dialog.module';
@@ -42,6 +43,7 @@ import { ApiDynamicPropertiesV4Module } from '../components/dynamic-properties-v
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
+    RouterModule,
 
     GioSaveBarModule,
     GioTableWrapperModule,

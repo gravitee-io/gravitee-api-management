@@ -27,6 +27,7 @@ import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/le
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 import { ActivatedRoute } from '@angular/router';
+import { RouterTestingModule } from '@angular/router/testing';
 
 import { ApiPropertiesComponent } from './api-properties.component';
 import { ApiPropertiesModule } from './api-properties.module';
@@ -34,11 +35,13 @@ import { PropertiesAddDialogHarness } from './properties-add-dialog/properties-a
 import { PropertiesImportDialogHarness } from './properties-import-dialog/properties-import-dialog.harness';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
-import { Api, fakeApiV4 } from '../../../../entities/management-api-v2/api';
+import { Api, fakeApiV2, fakeApiV4 } from '../../../../entities/management-api-v2/api';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiPropertiesComponent', () => {
   const API_ID = 'apiId';
+  const API_V4 = fakeApiV4({ id: API_ID, properties: [] });
+  const API_V2 = fakeApiV2({ id: API_ID, properties: [] });
   let fixture: ComponentFixture<ApiPropertiesComponent>;
   let component: ApiPropertiesComponent;
   let httpTestingController: HttpTestingController;
@@ -47,7 +50,7 @@ describe('ApiPropertiesComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiPropertiesModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiPropertiesModule, MatIconTestingModule, RouterTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
         {
@@ -360,6 +363,20 @@ BadProperty
         value: 'value',
       },
     ]);
+  });
+
+  it.each`
+    api       | routerLink
+    ${API_V4} | ${'./v4/dynamic-properties'}
+    ${API_V2} | ${'./dynamic-properties'}
+  `('should navigate to dynamic properties with api $api.definitionVersion', async ({ api, routerLink }) => {
+    expectGetApi(api);
+
+    const dynamicPropertiesButton = loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Manage dynamically"]' }));
+
+    expect(
+      await dynamicPropertiesButton.then((btn) => btn.host()).then((host) => host.getAttribute('ng-reflect-router-link')),
+    ).toStrictEqual(routerLink);
   });
 
   async function getCellContentByIndex(table: MatTableHarness) {

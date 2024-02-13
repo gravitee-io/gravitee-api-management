@@ -26,6 +26,7 @@ import { MatLegacySelectHarness as MatSelectHarness } from '@angular/material/le
 import { GioFormCronHarness, GioFormHeadersHarness, GioMonacoEditorHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatLegacyInputHarness as MatInputHarness } from '@angular/material/legacy-input/testing';
 import { ActivatedRoute } from '@angular/router';
+import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
 
 import { ApiDynamicPropertiesComponent } from './api-dynamic-properties.component';
 import { ApiDynamicPropertiesV2Module } from './api-dynamic-properties-v2.module';
@@ -201,6 +202,24 @@ describe('ApiDynamicPropertiesComponent', () => {
         specification: 'specification',
       },
     });
+  });
+
+  it('should navigate to properties page', async () => {
+    expectGetApi(
+      fakeApiV2({
+        id: API_ID,
+        services: {
+          dynamicProperty: undefined,
+        },
+      }),
+    );
+
+    expect(
+      await loader
+        .getHarness(MatButtonHarness.with({ selector: '[aria-label="Go back"]' }))
+        .then((btn) => btn.host())
+        .then((host) => host.getAttribute('ng-reflect-router-link')),
+    ).toStrictEqual('..');
   });
 
   function expectGetApi(api: Api) {

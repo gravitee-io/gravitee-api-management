@@ -16,8 +16,8 @@
 
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { combineLatest, Subject } from 'rxjs';
-import { FormControl, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { FormControl, FormGroup } from '@angular/forms';
+import { distinctUntilChanged, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { GioJsonSchema } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute } from '@angular/router';
 
@@ -27,6 +27,11 @@ import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { onlyApiV4Filter } from '../../../../../util/apiFilter.operator';
 import { ApiV4 } from '../../../../../entities/management-api-v2';
 import { ApiServicePluginsV2Service } from '../../../../../services-ngx/apiservice-plugins-v2.service';
+
+export type DynamicPropertiesType = {
+  enabled: boolean;
+  configuration: unknown;
+};
 
 @Component({
   selector: 'api-dynamic-properties-v4',
@@ -50,12 +55,13 @@ export class ApiDynamicPropertiesV4Component implements OnInit, OnDestroy {
     "value": "https://south-asia.company.com/"
   }
 ]`;
-
-  public form: UntypedFormGroup;
-  public initialFormValue: unknown;
-
+  public readonly HTTP_DYNAMIC_PROPERTIES = 'http-dynamic-properties';
+  public form = new FormGroup({
+    enabled: new FormControl(false),
+    configuration: new FormControl<unknown>(null),
+  });
+  public initialFormValue: DynamicPropertiesType;
   public httpMethods = CorsUtil.httpMethods;
-
   public schema: GioJsonSchema;
 
   constructor(
@@ -64,8 +70,6 @@ export class ApiDynamicPropertiesV4Component implements OnInit, OnDestroy {
     private readonly apiServicePluginsV2Service: ApiServicePluginsV2Service,
     private readonly snackBarService: SnackBarService,
   ) {}
-
-  public readonly HTTP_DYNAMIC_PROPERTIES = 'http-dynamic-properties';
 
   ngOnInit(): void {
     combineLatest([
@@ -81,30 +85,28 @@ export class ApiDynamicPropertiesV4Component implements OnInit, OnDestroy {
           const isReadonly = api.definitionContext?.origin === 'KUBERNETES';
           const dynamicProperty = api.services?.dynamicProperty;
 
-          this.form = new UntypedFormGroup({
-            enabled: new FormControl({
-              value: dynamicProperty?.enabled ?? false,
-              disabled: isReadonly,
-            }),
-            [`${this.HTTP_DYNAMIC_PROPERTIES}-configuration`]: new UntypedFormControl(
-              {
-                value: dynamicProperty?.configuration ?? schema,
-                disabled: isReadonly,
-              } ?? {},
-            ),
+          this.form.setValue({
+            enabled: dynamicProperty?.enabled ?? false,
+            configuration: dynamicProperty?.configuration ?? schema,
           });
-          this.initialFormValue = this.form.value;
 
-          this.form
-            .get('enabled')
-            .valueChanges.pipe(startWith(this.form.get('enabled').value), takeUntil(this.unsubscribe$))
-            .subscribe((enabled) => {
-              if (enabled) {
-                this.form.get(`${this.HTTP_DYNAMIC_PROPERTIES}-configuration`).enable({ emitEvent: false });
-              } else {
-                this.form.get(`${this.HTTP_DYNAMIC_PROPERTIES}-configuration`).disable({ emitEvent: false });
-              }
-            });
+          if (isReadonly) {
+            this.form.disable({ emitEvent: false });
+          }
+
+          if (!dynamicProperty?.enabled) {
+            this.form.controls.configuration.disable();
+          }
+
+          this.initialFormValue = this.form.getRawValue();
+
+          this.form.controls.enabled.valueChanges.pipe(distinctUntilChanged(), takeUntil(this.unsubscribe$)).subscribe((enabled) => {
+            if (enabled) {
+              this.form.controls.configuration.enable();
+            } else {
+              this.form.controls.configuration.disable();
+            }
+          });
         }),
         takeUntil(this.unsubscribe$),
       )
@@ -131,7 +133,7 @@ export class ApiDynamicPropertiesV4Component implements OnInit, OnDestroy {
               dynamicProperty: {
                 enabled: dynamicPropertyFormValue.enabled,
                 type: this.HTTP_DYNAMIC_PROPERTIES,
-                configuration: this.form.get(`${this.HTTP_DYNAMIC_PROPERTIES}-configuration`).getRawValue(),
+                configuration: this.form.getRawValue().configuration,
               },
             },
           });
@@ -143,7 +145,8 @@ export class ApiDynamicPropertiesV4Component implements OnInit, OnDestroy {
         },
         next: () => {
           this.snackBarService.success('Dynamic properties updated.');
-          this.ngOnInit();
+          this.form.markAsPristine();
+          this.initialFormValue = this.form.getRawValue();
         },
       });
   }

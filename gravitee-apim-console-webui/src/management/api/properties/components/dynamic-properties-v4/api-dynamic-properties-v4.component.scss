@@ -43,4 +43,21 @@ $typography: map.get(gio.$mat-legacy-theme, typography);
   &__headersField {
     padding-bottom: 24px;
   }
+
+  &__header {
+    &__title {
+      display: flex;
+      flex-direction: row;
+      padding-bottom: 16px;
+      border-bottom: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10');
+
+      &__button {
+        margin: auto 12px;
+      }
+    }
+
+    &__banner {
+      margin-top: 16px;
+    }
+  }
 }
