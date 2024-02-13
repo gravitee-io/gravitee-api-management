@@ -18,9 +18,9 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { HarnessLoader, parallel } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { MatLegacyTableHarness as MatTableHarness } from '@angular/material/legacy-table/testing';
+import { MatTableHarness } from '@angular/material/table/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
-import { MatLegacySelectHarness as MatSelectHarness } from '@angular/material/legacy-select/testing';
+import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatDateRangeInputHarness } from '@angular/material/datepicker/testing';
 
 import { EnvAuditComponent } from './env-audit.component';

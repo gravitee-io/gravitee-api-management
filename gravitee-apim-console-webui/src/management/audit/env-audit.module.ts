@@ -16,15 +16,16 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
-import { MatLegacyButtonModule as MatButtonModule } from '@angular/material/legacy-button';
+import { MatButtonModule } from '@angular/material/button';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatLegacyFormFieldModule as MatFormFieldModule } from '@angular/material/legacy-form-field';
-import { MatLegacySelectModule as MatSelectModule } from '@angular/material/legacy-select';
-import { MatLegacySnackBarModule as MatSnackBarModule } from '@angular/material/legacy-snack-bar';
-import { MatLegacyTableModule as MatTableModule } from '@angular/material/legacy-table';
-import { MatLegacyCardModule as MatCardModule } from '@angular/material/legacy-card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTableModule } from '@angular/material/table';
+import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatNativeDateModule } from '@angular/material/core';
+import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { EnvAuditComponent } from './env-audit.component';
 
@@ -35,6 +36,7 @@ import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper
     CommonModule,
     ReactiveFormsModule,
     MatSnackBarModule,
+    MatLegacySnackBarModule,
     MatFormFieldModule,
     MatSelectModule,
     MatDatepickerModule,
