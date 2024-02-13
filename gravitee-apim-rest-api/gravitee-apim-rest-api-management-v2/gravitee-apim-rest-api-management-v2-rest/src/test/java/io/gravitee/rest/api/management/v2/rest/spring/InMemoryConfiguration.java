@@ -32,6 +32,7 @@ import inmemory.EventCrudInMemory;
 import inmemory.EventQueryServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
+import inmemory.IndexerInMemory;
 import inmemory.InstallationAccessQueryServiceInMemory;
 import inmemory.InstanceQueryServiceInMemory;
 import inmemory.LicenseCrudServiceInMemory;
@@ -55,9 +56,11 @@ import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.event.query_service.EventQueryService;
 import io.gravitee.apim.core.gateway.query_service.InstanceQueryService;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
+import io.gravitee.apim.core.search.Indexer;
 import io.gravitee.apim.infra.query_service.audit.AuditEventQueryServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 @Configuration
 public class InMemoryConfiguration {
@@ -242,5 +245,10 @@ public class InMemoryConfiguration {
     @Bean
     public RoleQueryServiceInMemory roleQueryServiceInMemory() {
         return new RoleQueryServiceInMemory();
+    }
+
+    @Bean
+    public IndexerInMemory indexer() {
+        return new IndexerInMemory();
     }
 }

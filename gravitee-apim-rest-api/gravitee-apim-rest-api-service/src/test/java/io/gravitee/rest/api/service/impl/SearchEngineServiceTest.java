@@ -21,6 +21,9 @@ import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDoc
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
+import inmemory.PageCrudServiceInMemory;
+import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
+import io.gravitee.apim.infra.spring.InfraServiceSpringConfiguration;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
@@ -31,7 +34,6 @@ import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.common.SortableImpl;
-import io.gravitee.rest.api.service.ApiService;
 import io.gravitee.rest.api.service.CommandService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -675,7 +677,7 @@ public class SearchEngineServiceTest {
     }
 
     @Configuration
-    @Import(SearchEngineConfiguration.class) // the actual configuration
+    @Import({ SearchEngineConfiguration.class }) // the actual configuration
     public static class TestConfig {
 
         @Bean
@@ -720,6 +722,11 @@ public class SearchEngineServiceTest {
         @Bean
         public CommandService commandService() {
             return mock(CommandService.class);
+        }
+
+        @Bean
+        public PageCrudService pageCrudService() {
+            return new PageCrudServiceInMemory();
         }
     }
 

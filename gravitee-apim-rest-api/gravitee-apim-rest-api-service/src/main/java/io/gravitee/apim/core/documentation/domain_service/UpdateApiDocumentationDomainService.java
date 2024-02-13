@@ -23,6 +23,9 @@ import io.gravitee.apim.core.audit.model.event.PageAuditEvent;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.crud_service.PageRevisionCrudService;
 import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.apim.core.search.Indexer;
+import io.gravitee.apim.core.search.Indexer.IndexationContext;
+import io.gravitee.apim.core.search.model.IndexablePage;
 import java.time.ZoneId;
 import java.util.Map;
 import java.util.Objects;
@@ -32,15 +35,18 @@ public class UpdateApiDocumentationDomainService {
     private final PageCrudService pageCrudService;
     private final PageRevisionCrudService pageRevisionCrudService;
     private final AuditDomainService auditDomainService;
+    private final Indexer indexer;
 
     public UpdateApiDocumentationDomainService(
         PageCrudService pageCrudService,
         PageRevisionCrudService pageRevisionCrudService,
-        AuditDomainService auditDomainService
+        AuditDomainService auditDomainService,
+        Indexer indexer
     ) {
         this.pageCrudService = pageCrudService;
         this.pageRevisionCrudService = pageRevisionCrudService;
         this.auditDomainService = auditDomainService;
+        this.indexer = indexer;
     }
 
     public Page updatePage(Page page, Page oldPage, AuditInfo auditInfo) {
@@ -51,6 +57,11 @@ public class UpdateApiDocumentationDomainService {
                 !Objects.equals(updatedPage.getName(), oldPage.getName()) || !Objects.equals(updatedPage.getContent(), oldPage.getContent())
             ) {
                 pageRevisionCrudService.create(updatedPage);
+            }
+            if (page.isPublished()) {
+                indexer.index(new IndexationContext(auditInfo.organizationId(), auditInfo.environmentId()), new IndexablePage(page));
+            } else {
+                indexer.delete(new IndexationContext(auditInfo.organizationId(), auditInfo.environmentId()), new IndexablePage(page));
             }
         }
 

@@ -70,6 +70,7 @@ class ApiCreateDocumentationPageUseCaseTest {
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     CreateApiDocumentationDomainService createApiDocumentationDomainService;
     ApiCreateDocumentationPageUseCase apiCreateDocumentationPageUsecase;
+    IndexerInMemory indexer = new IndexerInMemory();
 
     @BeforeEach
     void setUp() {
@@ -79,7 +80,8 @@ class ApiCreateDocumentationPageUseCaseTest {
             new CreateApiDocumentationDomainService(
                 pageCrudService,
                 pageRevisionCrudService,
-                new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor())
+                new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
+                indexer
             );
         apiCreateDocumentationPageUsecase =
             new ApiCreateDocumentationPageUseCase(

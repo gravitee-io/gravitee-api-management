@@ -23,6 +23,7 @@ import fixtures.core.model.AuditInfoFixtures;
 import fixtures.core.model.PlanFixtures;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
+import inmemory.IndexerInMemory;
 import inmemory.PageCrudServiceInMemory;
 import inmemory.PageQueryServiceInMemory;
 import inmemory.PageRevisionCrudServiceInMemory;
@@ -36,6 +37,7 @@ import io.gravitee.apim.core.documentation.exception.ApiFolderNotEmptyException;
 import io.gravitee.apim.core.documentation.exception.ApiPageInvalidReferenceTypeException;
 import io.gravitee.apim.core.documentation.exception.ApiPageUsedAsGeneralConditionException;
 import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.apim.core.search.model.IndexablePage;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -69,6 +71,7 @@ class DeleteApiDocumentationDomainServiceTest {
     private final PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
     private final AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     private final UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
+    private final IndexerInMemory indexer = new IndexerInMemory();
 
     @BeforeEach
     void setUp() {
@@ -76,7 +79,8 @@ class DeleteApiDocumentationDomainServiceTest {
             new UpdateApiDocumentationDomainService(
                 pageCrudService,
                 pageRevisionCrudService,
-                new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor())
+                new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
+                indexer
             );
         cut =
             new DeleteApiDocumentationDomainService(
@@ -84,7 +88,8 @@ class DeleteApiDocumentationDomainServiceTest {
                 pageQueryService,
                 new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
                 updateApiDocumentationDomainService,
-                planQueryService
+                planQueryService,
+                indexer
             );
     }
 
@@ -99,7 +104,7 @@ class DeleteApiDocumentationDomainServiceTest {
     class Validation {
 
         @Test
-        void should_throw_if_page_to_delete_not_founde() {
+        void should_throw_if_page_to_delete_not_found() {
             assertThatThrownBy(() -> cut.delete(API, PAGE_ID, AUDIT_INFO)).isInstanceOf(PageNotFoundException.class);
         }
 
@@ -236,6 +241,15 @@ class DeleteApiDocumentationDomainServiceTest {
                     .toList()
             )
                 .hasSize(4);
+        }
+
+        @Test
+        void should_remove_from_index() {
+            pageCrudService.initWith(List.of(BASE_PAGE));
+            pageQueryService.initWith(List.of(BASE_PAGE));
+            indexer.initWith(List.of(new IndexablePage(BASE_PAGE)));
+            cut.delete(API, BASE_PAGE.getId(), AUDIT_INFO);
+            assertThat(indexer.storage()).isEmpty();
         }
 
         private void syncPageStorage() {

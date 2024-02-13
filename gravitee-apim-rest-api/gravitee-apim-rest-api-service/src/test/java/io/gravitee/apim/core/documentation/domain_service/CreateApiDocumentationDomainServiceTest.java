@@ -22,6 +22,7 @@ import inmemory.*;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.apim.core.search.model.IndexablePage;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import java.util.Date;
 import java.util.List;
@@ -40,8 +41,10 @@ public class CreateApiDocumentationDomainServiceTest {
 
     private final PageCrudServiceInMemory pageCrudService = new PageCrudServiceInMemory();
     private final PageRevisionCrudServiceInMemory pageRevisionCrudService = new PageRevisionCrudServiceInMemory();
-    AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
-    UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
+    private final AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
+    private final UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
+    private final IndexerInMemory indexer = new IndexerInMemory();
+
     CreateApiDocumentationDomainService createApiDocumentationDomainService;
 
     @BeforeEach
@@ -50,7 +53,8 @@ public class CreateApiDocumentationDomainServiceTest {
             new CreateApiDocumentationDomainService(
                 pageCrudService,
                 pageRevisionCrudService,
-                new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor())
+                new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
+                indexer
             );
     }
 
@@ -162,6 +166,29 @@ public class CreateApiDocumentationDomainServiceTest {
                 .hasFieldOrPropertyWithValue("contributor", null)
                 .hasFieldOrPropertyWithValue("name", "new page")
                 .hasFieldOrPropertyWithValue("content", "nice content");
+        }
+
+        @Test
+        void shouldIndexPage() {
+            var page = Page
+                .builder()
+                .id(PAGE_ID)
+                .createdAt(DATE)
+                .updatedAt(DATE)
+                .type(Page.Type.MARKDOWN)
+                .name("new page")
+                .content("nice content")
+                .homepage(false)
+                .visibility(Page.Visibility.PRIVATE)
+                .parentId("parent-id")
+                .referenceId("api-id")
+                .referenceType(Page.ReferenceType.API)
+                .order(1)
+                .build();
+
+            createApiDocumentationDomainService.createPage(page, AUDIT_INFO);
+
+            assertThat(indexer.storage()).contains(new IndexablePage(page));
         }
     }
 

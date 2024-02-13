@@ -15,13 +15,13 @@
  */
 package io.gravitee.apim.core.documentation.use_case;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 
 import fixtures.core.model.AuditInfoFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
+import inmemory.IndexerInMemory;
 import inmemory.PageCrudServiceInMemory;
 import inmemory.PageQueryServiceInMemory;
 import inmemory.PageRevisionCrudServiceInMemory;
@@ -60,6 +60,8 @@ class ApiDeleteDocumentationPageUseCaseTest {
     private final PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
     private final AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     private final UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
+    private final IndexerInMemory indexer = new IndexerInMemory();
+
     private ApiDeleteDocumentationPageUseCase cut;
 
     @BeforeEach
@@ -75,8 +77,9 @@ class ApiDeleteDocumentationPageUseCaseTest {
                     pageCrudService,
                     pageQueryService,
                     auditDomainService,
-                    new UpdateApiDocumentationDomainService(pageCrudService, pageRevisionCrudService, auditDomainService),
-                    planQueryService
+                    new UpdateApiDocumentationDomainService(pageCrudService, pageRevisionCrudService, auditDomainService, indexer),
+                    planQueryService,
+                    indexer
                 ),
                 apiCrudService
             );

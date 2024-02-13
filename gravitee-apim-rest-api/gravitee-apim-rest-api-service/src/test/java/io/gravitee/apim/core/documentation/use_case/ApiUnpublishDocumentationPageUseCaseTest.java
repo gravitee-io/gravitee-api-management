@@ -22,6 +22,7 @@ import fixtures.core.model.AuditInfoFixtures;
 import fixtures.core.model.PlanFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
+import inmemory.IndexerInMemory;
 import inmemory.PageCrudServiceInMemory;
 import inmemory.PageQueryServiceInMemory;
 import inmemory.PageRevisionCrudServiceInMemory;
@@ -35,6 +36,7 @@ import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomain
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.search.model.IndexablePage;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
@@ -53,6 +55,8 @@ class ApiUnpublishDocumentationPageUseCaseTest {
     private final AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     private final UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     private final PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
+    private final IndexerInMemory indexer = new IndexerInMemory();
+
     private ApiUnpublishDocumentationPageUseCase useCase;
     private static final String ORGANIZATION_ID = "organization-id";
     private static final String ENVIRONMENT_ID = "environment-id";
@@ -68,7 +72,8 @@ class ApiUnpublishDocumentationPageUseCaseTest {
         var updateDocumentationDomainService = new UpdateApiDocumentationDomainService(
             pageCrudService,
             pageRevisionCrudService,
-            new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor())
+            new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
+            indexer
         );
         useCase =
             new ApiUnpublishDocumentationPageUseCase(
@@ -85,6 +90,7 @@ class ApiUnpublishDocumentationPageUseCaseTest {
         pageQueryService.reset();
         apiCrudService.reset();
         planQueryService.reset();
+        indexer.reset();
     }
 
     @Test
@@ -105,6 +111,25 @@ class ApiUnpublishDocumentationPageUseCaseTest {
         );
         var res = useCase.execute(new ApiUnpublishDocumentationPageUseCase.Input(API_ID, PAGE_ID, AUDIT_INFO)).page();
         assertThat(res).isNotNull().hasFieldOrPropertyWithValue("id", PAGE_ID).hasFieldOrPropertyWithValue("published", false);
+    }
+
+    @Test
+    void should_delete_from_index_if_markdown() {
+        var page = Page
+            .builder()
+            .id(PAGE_ID)
+            .referenceType(Page.ReferenceType.API)
+            .referenceId(API_ID)
+            .type(Page.Type.MARKDOWN)
+            .published(true)
+            .createdAt(DATE)
+            .build();
+
+        initApiServices(List.of(Api.builder().id(API_ID).build()));
+        initPageServices(List.of(page));
+        indexer.initWith(List.of(new IndexablePage(page)));
+        useCase.execute(new ApiUnpublishDocumentationPageUseCase.Input(API_ID, PAGE_ID, AUDIT_INFO)).page();
+        assertThat(indexer.storage()).isEmpty();
     }
 
     @Test

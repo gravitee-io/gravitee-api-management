@@ -23,6 +23,9 @@ import io.gravitee.apim.core.audit.model.event.PageAuditEvent;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.crud_service.PageRevisionCrudService;
 import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.apim.core.search.Indexer;
+import io.gravitee.apim.core.search.Indexer.IndexationContext;
+import io.gravitee.apim.core.search.model.IndexablePage;
 import java.time.ZoneId;
 import java.util.Map;
 
@@ -32,14 +35,18 @@ public class CreateApiDocumentationDomainService {
     private final PageRevisionCrudService pageRevisionCrudService;
     private final AuditDomainService auditDomainService;
 
+    private final Indexer indexer;
+
     public CreateApiDocumentationDomainService(
         PageCrudService pageCrudService,
         PageRevisionCrudService pageRevisionCrudService,
-        AuditDomainService auditDomainService
+        AuditDomainService auditDomainService,
+        Indexer indexer
     ) {
         this.pageCrudService = pageCrudService;
         this.pageRevisionCrudService = pageRevisionCrudService;
         this.auditDomainService = auditDomainService;
+        this.indexer = indexer;
     }
 
     public Page createPage(Page page, AuditInfo auditInfo) {
@@ -47,7 +54,7 @@ public class CreateApiDocumentationDomainService {
 
         if (page.isMarkdown()) {
             pageRevisionCrudService.create(createdPage);
-            // TODO: only markdown ==> add to index... is lucene necessary?
+            indexer.index(new IndexationContext(auditInfo.organizationId(), auditInfo.environmentId()), new IndexablePage(createdPage));
         }
 
         auditDomainService.createApiAuditLog(

@@ -64,7 +64,7 @@ import org.springframework.context.annotation.PropertySource;
 
 @Configuration
 @Import(
-    { InMemoryConfiguration.class, UsecaseSpringConfiguration.class, JacksonSpringConfiguration.class, SanitizerSpringConfiguration.class }
+    { UsecaseSpringConfiguration.class, InMemoryConfiguration.class, JacksonSpringConfiguration.class, SanitizerSpringConfiguration.class }
 )
 @PropertySource("classpath:/io/gravitee/rest/api/portal/rest/resource/jwt.properties")
 public class ResourceContextConfiguration {

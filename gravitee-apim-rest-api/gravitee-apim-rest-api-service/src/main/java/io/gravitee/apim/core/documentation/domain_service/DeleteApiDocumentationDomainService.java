@@ -28,6 +28,9 @@ import io.gravitee.apim.core.documentation.exception.ApiPageUsedAsGeneralConditi
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
+import io.gravitee.apim.core.search.Indexer;
+import io.gravitee.apim.core.search.Indexer.IndexationContext;
+import io.gravitee.apim.core.search.model.IndexablePage;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Map;
@@ -40,19 +43,22 @@ public class DeleteApiDocumentationDomainService {
     private final AuditDomainService auditDomainService;
     private final PlanQueryService planQueryService;
     private final UpdateApiDocumentationDomainService updateApiDocumentationDomainService;
+    private final Indexer indexer;
 
     public DeleteApiDocumentationDomainService(
         PageCrudService pageCrudService,
         PageQueryService pageQueryService,
         AuditDomainService auditDomainService,
         UpdateApiDocumentationDomainService updateApiDocumentationDomainService,
-        PlanQueryService planQueryService
+        PlanQueryService planQueryService,
+        Indexer indexer
     ) {
         this.pageCrudService = pageCrudService;
         this.pageQueryService = pageQueryService;
         this.auditDomainService = auditDomainService;
         this.updateApiDocumentationDomainService = updateApiDocumentationDomainService;
         this.planQueryService = planQueryService;
+        this.indexer = indexer;
     }
 
     public void delete(Api api, String pageId, AuditInfo auditInfo) {
@@ -66,8 +72,9 @@ public class DeleteApiDocumentationDomainService {
         updatePageOrders(pageToDelete, auditInfo);
 
         // TODO: remove revisions ?
-        // TODO: remove from search engine index
         // TODO: delete LINK and TRANSLATION associated pages
+
+        indexer.delete(new IndexationContext(auditInfo.organizationId(), auditInfo.environmentId()), new IndexablePage(pageToDelete));
 
         auditDomainService.createApiAuditLog(
             ApiAuditLogEntity
