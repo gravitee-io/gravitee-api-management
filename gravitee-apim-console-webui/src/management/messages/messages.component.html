@@ -17,54 +17,56 @@
 -->
 <h1>Messages</h1>
 <form [formGroup]="form" *ngIf="form" (ngSubmit)="sendMessage()">
-  <mat-card class="form">
-    <mat-form-field>
-      <mat-label>Channel</mat-label>
-      <mat-select formControlName="channel">
-        <mat-option *ngFor="let channel of channels" [value]="channel.id"> {{ channel.name }} </mat-option>
-      </mat-select>
-      <mat-error *ngIf="form.controls['channel'].hasError('required')">Channel is required</mat-error>
-    </mat-form-field>
-
-    <mat-form-field>
-      <mat-label>Recipients</mat-label>
-      <mat-select formControlName="recipients" multiple>
-        <mat-option *ngFor="let recipient of recipients" [value]="recipient.name">{{ recipient.displayName }}</mat-option>
-      </mat-select>
-      <mat-error *ngIf="form.controls['recipients'].hasError('required')">Recipients is required</mat-error>
-    </mat-form-field>
-
-    <mat-form-field *ngIf="form.value.channel !== 'HTTP'">
-      <mat-label>Title</mat-label>
-      <input matInput formControlName="title" required />
-      <mat-error *ngIf="form.controls['title'].hasError('required')">Title is required</mat-error>
-    </mat-form-field>
-    <div *ngIf="form.value.channel === 'HTTP'" class="form__field">
-      <mat-label>HTTP headers</mat-label>
-      <gio-form-headers formControlName="headers"></gio-form-headers>
-    </div>
-    <div class="form__field__two-columns" *ngIf="form.value.channel === 'HTTP'">
-      <mat-form-field class="full-width">
-        <mat-label>URL</mat-label>
-        <input matInput formControlName="url" type="url" />
-        <mat-error *ngIf="form.controls['url'].hasError('required')">URL is required</mat-error>
+  <mat-card>
+    <mat-card-content class="form">
+      <mat-form-field>
+        <mat-label>Channel</mat-label>
+        <mat-select formControlName="channel">
+          <mat-option *ngFor="let channel of channels" [value]="channel.id"> {{ channel.name }} </mat-option>
+        </mat-select>
+        <mat-error *ngIf="form.controls['channel'].hasError('required')">Channel is required</mat-error>
       </mat-form-field>
 
-      <gio-form-slide-toggle *ngIf="form.value.channel === 'HTTP'">
-        <gio-form-label>Use system proxy</gio-form-label>
-        <mat-slide-toggle gioFormSlideToggle formControlName="useSystemProxy"></mat-slide-toggle>
-      </gio-form-slide-toggle>
-    </div>
-    <mat-form-field>
-      <mat-label>Text</mat-label>
-      <textarea matInput formControlName="text" required></textarea>
-      <mat-error *ngIf="form.controls['text'].hasError('required')">Text is required</mat-error>
-    </mat-form-field>
+      <mat-form-field>
+        <mat-label>Recipients</mat-label>
+        <mat-select formControlName="recipients" multiple>
+          <mat-option *ngFor="let recipient of recipients" [value]="recipient.name">{{ recipient.displayName }}</mat-option>
+        </mat-select>
+        <mat-error *ngIf="form.controls['recipients'].hasError('required')">Recipients is required</mat-error>
+      </mat-form-field>
 
-    <mat-card-footer>
+      <mat-form-field *ngIf="form.value.channel !== 'HTTP'">
+        <mat-label>Title</mat-label>
+        <input matInput formControlName="title" required />
+        <mat-error *ngIf="form.controls['title'].hasError('required')">Title is required</mat-error>
+      </mat-form-field>
+      <div *ngIf="form.value.channel === 'HTTP'" class="form__field">
+        <mat-label>HTTP headers</mat-label>
+        <gio-form-headers formControlName="headers"></gio-form-headers>
+      </div>
+      <div class="form__field__two-columns" *ngIf="form.value.channel === 'HTTP'">
+        <mat-form-field class="full-width">
+          <mat-label>URL</mat-label>
+          <input matInput formControlName="url" type="url" />
+          <mat-error *ngIf="form.controls['url'].hasError('required')">URL is required</mat-error>
+        </mat-form-field>
+
+        <gio-form-slide-toggle *ngIf="form.value.channel === 'HTTP'">
+          <gio-form-label>Use system proxy</gio-form-label>
+          <mat-slide-toggle gioFormSlideToggle formControlName="useSystemProxy"></mat-slide-toggle>
+        </gio-form-slide-toggle>
+      </div>
+      <mat-form-field>
+        <mat-label>Text</mat-label>
+        <textarea matInput formControlName="text" rows="10" required></textarea>
+        <mat-error *ngIf="form.controls['text'].hasError('required')">Text is required</mat-error>
+      </mat-form-field>
+    </mat-card-content>
+
+    <mat-card-actions align="end">
       <button *gioPermission="requiredPermission()" color="primary" mat-flat-button type="submit" [disabled]="form.invalid || sending">
         Send
       </button>
-    </mat-card-footer>
+    </mat-card-actions>
   </mat-card>
 </form>
