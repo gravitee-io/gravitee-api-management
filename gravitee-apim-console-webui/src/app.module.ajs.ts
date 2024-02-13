@@ -74,8 +74,6 @@ import ApplicationCreationStep3Component from './management/application/creation
 import ApplicationCreationStep4Component from './management/application/creation/steps/application-creation-step4.component';
 
 import ApplicationHeaderComponent from './management/application/details/header/application-header.component';
-import ApplicationMembersController from './management/application/details/members/application-members.controller';
-import ApplicationMembersComponentAjs from './management/application/details/members/application-members.component.ajs';
 import ApplicationSubscriptionsController from './management/application/details/subscriptions/application-subscriptions.controller';
 import ApplicationSubscriptionsComponentAjs from './management/application/details/subscriptions/application-subscriptions.component.ajs';
 import ApplicationSubscriptionComponentAjs from './management/application/details/subscriptions/application-subscription.component.ajs';
@@ -84,8 +82,6 @@ import ApplicationAnalyticsComponentAjs from './management/application/details/a
 import ApplicationLogsController from './management/application/details/logs/application-logs.controller';
 import ApplicationLogsComponentAjs from './management/application/details/logs/application-logs.component.ajs';
 import ApplicationLogComponentAjs from './management/application/details/logs/application-log.component.ajs';
-import DialogAddMemberController from './management/application/details/members/addMemberDialog.controller';
-import DialogTransferApplicationController from './management/application/details/members/transferApplicationDialog.controller';
 // Analytics / widgets
 import WidgetComponent from './components/dashboard/widget/widget.component';
 import WidgetDataTableComponent from './components/dashboard/widget/table/widget-data-table.component';
@@ -602,17 +598,13 @@ graviteeManagementModule.component('applicationHeader', ApplicationHeaderCompone
 graviteeManagementModule.component('applicationSubscriptions', ApplicationSubscriptionsComponentAjs);
 graviteeManagementModule.component('applicationSubscription', ApplicationSubscriptionComponentAjs);
 graviteeManagementModule.component('applicationSubscriptionsList', ApplicationSubscriptionsListComponent);
-graviteeManagementModule.component('applicationMembers', ApplicationMembersComponentAjs);
 graviteeManagementModule.component('applicationAnalytics', ApplicationAnalyticsComponentAjs);
 graviteeManagementModule.component('applicationLogs', ApplicationLogsComponentAjs);
 graviteeManagementModule.component('applicationLog', ApplicationLogComponentAjs);
-graviteeManagementModule.controller('DialogAddMemberController', DialogAddMemberController);
-graviteeManagementModule.controller('ApplicationMembersController', ApplicationMembersController);
 graviteeManagementModule.controller('ApplicationSubscriptionsController', ApplicationSubscriptionsController);
 graviteeManagementModule.controller('ApplicationSubscriptionsListController', ApplicationSubscriptionsListController);
 graviteeManagementModule.controller('ApplicationAnalyticsController', ApplicationAnalyticsController);
 graviteeManagementModule.controller('ApplicationLogsController', ApplicationLogsController);
-graviteeManagementModule.controller('DialogTransferApplicationController', DialogTransferApplicationController);
 graviteeManagementModule.component('apiPlan', ApiPlanComponent);
 
 graviteeManagementModule.component('user', UserComponentAjs);

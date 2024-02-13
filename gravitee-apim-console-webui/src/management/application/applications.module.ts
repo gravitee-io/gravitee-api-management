@@ -42,7 +42,6 @@ import { ApplicationLogsComponent } from './details/logs/application-logs.compon
 import { ApplicationLogComponent } from './details/logs/application-log.component';
 import { ApplicationCreationComponent } from './creation/steps/application-creation.component';
 import { ApplicationSubscribeComponent } from './details/subscribe/application-subscribe.component';
-import { ApplicationMembersComponent } from './details/members/application-members.component';
 
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioRoleModule } from '../../shared/components/gio-role/gio-role.module';
@@ -84,7 +83,6 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
     ApplicationLogComponent,
     ApplicationCreationComponent,
     ApplicationSubscribeComponent,
-    ApplicationMembersComponent,
   ],
   exports: [EnvApplicationListComponent],
   providers: [],
