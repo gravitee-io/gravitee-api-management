@@ -109,7 +109,10 @@ public final class Services implements Serializable {
                     .ofNullable(this.getDiscoveryService())
                     .filter(Service::isEnabled)
                     .map(s -> new Plugin("service_discovery", s.getProvider())),
-                Optional.ofNullable(this.getHealthCheckService()).filter(Service::isEnabled).map(s -> new Plugin("service", "healthcheck")),
+                Optional
+                    .ofNullable(this.getHealthCheckService())
+                    .filter(Service::isEnabled)
+                    .map(s -> new Plugin("api-service", "http-health-check")),
                 Optional
                     .ofNullable(this.getDynamicPropertyService())
                     .filter(Service::isEnabled)

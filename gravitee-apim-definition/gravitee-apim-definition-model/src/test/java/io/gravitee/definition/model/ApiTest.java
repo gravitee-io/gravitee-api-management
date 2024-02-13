@@ -94,7 +94,7 @@ class ApiTest {
         Services services = new Services();
         services.set(List.of(new HealthCheckService()));
         apiWithServices.setServices(services);
-        assertThat(apiWithServices.getPlugins()).containsOnly(new Plugin("service", "healthcheck"));
+        assertThat(apiWithServices.getPlugins()).containsOnly(new Plugin("api-service", "http-health-check"));
     }
 
     @Test
@@ -135,7 +135,7 @@ class ApiTest {
             .containsOnly(
                 new Plugin("connector", "connector-http"),
                 new Plugin("service_discovery", "provider"),
-                new Plugin("service", "healthcheck"),
+                new Plugin("api-service", "http-health-check"),
                 new Plugin("service", "mgmt-service-dynamicproperties")
             );
     }
