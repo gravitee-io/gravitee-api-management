@@ -72,9 +72,11 @@ $typography: map.get(gio.$mat-legacy-theme, typography);
 ::ng-deep {
   // Force mat-table to full width only inside gio-table-wrapper
   gio-table-wrapper {
+    .mat-mdc-table,
     .mat-table {
       width: 100%;
 
+      .mat-mdc-header-row,
       .mat-header-row {
         height: 42px;
         background-color: mat.get-color-from-palette($background, 'background');
