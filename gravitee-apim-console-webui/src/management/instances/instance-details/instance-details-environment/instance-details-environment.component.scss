@@ -17,22 +17,11 @@
     flex-grow: 1;
 
     &__card {
-      &__title {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-
       & table {
         width: 100%;
 
-        & td.mat-cell:not(:first-of-type) {
+        & td.mat-mdc-cell:not(:first-of-type) {
           overflow-wrap: anywhere;
-        }
-
-        & td.mat-cell,
-        th.mat-header-cell {
-          padding: 0 8px;
         }
       }
     }

@@ -109,8 +109,8 @@
     <tr mat-row *matRowDef="let row; columns: this.displayedColumns" data-testid="instance-list-table-row"></tr>
 
     <!-- Row shown when there is no data -->
-    <tr class="mat-row" *matNoDataRow>
-      <td class="mat-cell" [attr.colspan]="this.displayedColumns.length">
+    <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+      <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="this.displayedColumns.length">
         {{ 'There are no Gateway instances (yet).' }}
       </td>
     </tr>

@@ -18,11 +18,12 @@
 <div class="gio-instance-details-environment">
   <div class="gio-instance-details-environment__cards">
     <mat-card class="gio-instance-details-environment__cards__card">
-      <h2 gioTableOfContents gioTableOfContentsName="Information" class="gio-instance-details-environment__cards__card__title">
-        <mat-icon svgIcon="gio:info"></mat-icon>
-        <span>Information</span>
-      </h2>
-
+      <mat-card-content>
+        <h2 gioTableOfContents gioTableOfContentsName="Information" class="gio-instance-details-environment__cards__card__title">
+          <mat-icon svgIcon="gio:info"></mat-icon>
+          <span>Information</span>
+        </h2>
+      </mat-card-content>
       <gio-table-wrapper
         *ngIf="filteredInformationItemsDS"
         [length]="informationTableUnpaginatedLength"
@@ -67,11 +68,12 @@
       </gio-table-wrapper>
     </mat-card>
     <mat-card class="gio-instance-details-environment__cards__card">
-      <h2 gioTableOfContents gioTableOfContentsName="Plugins" class="gio-instance-details-environment__cards__card__title">
-        <mat-icon svgIcon="gio:puzzle"></mat-icon>
-        <span>Plugins</span>
-      </h2>
-
+      <mat-card-content>
+        <h2 gioTableOfContents gioTableOfContentsName="Plugins" class="gio-instance-details-environment__cards__card__title">
+          <mat-icon svgIcon="gio:puzzle"></mat-icon>
+          <span>Plugins</span>
+        </h2>
+      </mat-card-content>
       <gio-table-wrapper
         *ngIf="filteredPluginsItemsDS"
         [length]="pluginsTableUnpaginatedLength"
@@ -115,11 +117,12 @@
       </gio-table-wrapper>
     </mat-card>
     <mat-card class="gio-instance-details-environment__cards__card">
-      <h2 gioTableOfContents gioTableOfContentsName="System properties" class="gio-instance-details-environment__cards__card__title">
-        <mat-icon svgIcon="gio:list"></mat-icon>
-        <span>System properties</span>
-      </h2>
-
+      <mat-card-content>
+        <h2 gioTableOfContents gioTableOfContentsName="System properties" class="gio-instance-details-environment__cards__card__title">
+          <mat-icon svgIcon="gio:list"></mat-icon>
+          <span>System properties</span>
+        </h2>
+      </mat-card-content>
       <gio-table-wrapper
         *ngIf="filteredPropertiesItemsDS"
         [length]="propertiesTableUnpaginatedLength"

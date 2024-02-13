@@ -17,6 +17,7 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
+import { MatTabsModule } from '@angular/material/tabs';
 
 import { InstanceDetailsComponent } from './instance-details.component';
 import { InstanceDetailsHeaderModule } from './instance-details-header/instance-details-header.module';
@@ -26,6 +27,13 @@ import { InstanceDetailsEnvironmentModule } from './instance-details-environment
 @NgModule({
   declarations: [InstanceDetailsComponent],
   exports: [InstanceDetailsComponent],
-  imports: [CommonModule, RouterModule, InstanceDetailsHeaderModule, InstanceDetailsMonitoringModule, InstanceDetailsEnvironmentModule],
+  imports: [
+    CommonModule,
+    RouterModule,
+    InstanceDetailsHeaderModule,
+    MatTabsModule,
+    InstanceDetailsMonitoringModule,
+    InstanceDetailsEnvironmentModule,
+  ],
 })
 export class InstanceDetailsModule {}

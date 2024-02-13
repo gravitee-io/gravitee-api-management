@@ -7,11 +7,8 @@
   @include gio-layout.gio-responsive-content-container;
 
   display: grid;
-  width: 100%;
   grid-gap: 16px;
   padding: 16px;
-  overflow-y: auto;
-  height: 80vh;
 
   &__main-indicators {
     display: grid;
@@ -19,7 +16,7 @@
     grid-template-rows: auto;
     grid-gap: 1rem;
 
-    & > .mat-card > * {
+    & > .mat-mdc-card > * {
       margin-top: auto;
     }
 
@@ -62,9 +59,8 @@
       &__progress-bar {
         display: flex;
         flex-direction: column;
-        justify-content: flex-end;
-        text-align: center;
-        margin-bottom: 2em;
+        justify-content: center;
+        min-height: 32px;
       }
     }
   }
