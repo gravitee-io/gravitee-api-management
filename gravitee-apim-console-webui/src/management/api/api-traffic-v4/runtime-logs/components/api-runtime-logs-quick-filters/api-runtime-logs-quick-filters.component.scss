@@ -22,6 +22,7 @@ $typography: map.get(gio.$mat-legacy-theme, typography);
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
+    align-items: flex-start;
   }
 
   &__plans {
@@ -69,7 +70,7 @@ $typography: map.get(gio.$mat-legacy-theme, typography);
     }
   }
 
-  .mat-standard-chip {
+  .mat-mdc-standard-chip {
     min-height: 24px;
     height: 24px;
   }
@@ -82,9 +83,5 @@ $typography: map.get(gio.$mat-legacy-theme, typography);
 
   &__reset {
     margin-left: 12px;
-
-    &__label {
-      margin-left: 8px;
-    }
   }
 }

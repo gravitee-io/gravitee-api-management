@@ -15,7 +15,7 @@
  */
 
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { LegacyPageEvent as PageEvent } from '@angular/material/legacy-paginator';
+import { PageEvent } from '@angular/material/paginator';
 import { map, shareReplay, skip, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { forkJoin, of, ReplaySubject, Subject } from 'rxjs';
 import * as moment from 'moment';

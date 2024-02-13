@@ -14,19 +14,16 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
-import { MatLegacySelectHarness as MatSelectHarness } from '@angular/material/legacy-select/testing';
-import {
-  MatLegacyChipHarness as MatChipHarness,
-  MatLegacyChipListHarness as MatChipListHarness,
-} from '@angular/material/legacy-chips/testing';
+import { MatSelectHarness } from '@angular/material/select/testing';
+import { MatChipHarness, MatChipListboxHarness } from '@angular/material/chips/testing';
 import { GioFormTagsInputHarness } from '@gravitee/ui-particles-angular';
-import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
 export class ApiRuntimeLogsQuickFiltersHarness extends ComponentHarness {
   static hostSelector = 'api-runtime-logs-quick-filters';
 
   public getPeriodSelectInput = this.locatorFor(MatSelectHarness.with({ selector: '[formControlName="period"]' }));
-  public getChips = this.locatorForOptional(MatChipListHarness.with({ selector: '[class="quick-filters__chip_list"]' }));
+  public getChips = this.locatorForOptional(MatChipListboxHarness.with({ selector: '[class="quick-filters__chip_list"]' }));
   public getPeriodChip = this.locatorFor(MatChipHarness.with({ text: /^period:/ }));
   public getApplicationsTags = this.locatorFor(GioFormTagsInputHarness);
   public getApplicationsChip = this.locatorFor(MatChipHarness.with({ text: /^applications:/ }));

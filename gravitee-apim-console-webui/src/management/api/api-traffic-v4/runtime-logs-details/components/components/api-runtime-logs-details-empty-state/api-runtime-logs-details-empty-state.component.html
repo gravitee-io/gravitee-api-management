@@ -17,21 +17,23 @@
 -->
 
 <mat-card class="empty-card">
-  <mat-icon class="icon" svgIcon="gio:search"></mat-icon>
-  <div class="mat-h3" aria-label="No runtime logs available">No log available</div>
-  <div class="empty-card__body">
-    <span class="empty-card__body__subtitle"> Modify the Runtime Logs settings to record additional data. </span>
-  </div>
+  <mat-card-content>
+    <mat-icon class="icon" svgIcon="gio:search"></mat-icon>
+    <div class="mat-h3" aria-label="No runtime logs available">No log available</div>
+    <div class="empty-card__body">
+      <span class="empty-card__body__subtitle"> Modify the Runtime Logs settings to record additional data. </span>
+    </div>
 
-  <div class="empty-card__actions">
-    <button
-      mat-flat-button
-      color="primary"
-      class="runtime-logs-card__actions__button"
-      (click)="navigateToSettings.emit()"
-      data-testId="open-settings-button"
-    >
-      Open log settings
-    </button>
-  </div>
+    <div class="empty-card__actions">
+      <button
+        mat-flat-button
+        color="primary"
+        class="runtime-logs-card__actions__button"
+        (click)="navigateToSettings.emit()"
+        data-testId="open-settings-button"
+      >
+        Open log settings
+      </button>
+    </div>
+  </mat-card-content>
 </mat-card>

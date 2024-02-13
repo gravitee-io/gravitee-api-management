@@ -15,11 +15,11 @@
  */
 import { ComponentHarness } from '@angular/cdk/testing';
 import { DivHarness } from '@gravitee/ui-particles-angular/testing';
-import { MatLegacyCheckboxHarness as MatCheckboxHarness } from '@angular/material/legacy-checkbox/testing';
-import { MatLegacyInputHarness as MatInputHarness } from '@angular/material/legacy-input/testing';
+import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
+import { MatInputHarness } from '@angular/material/input/testing';
 import { MatButtonToggleGroupHarness } from '@angular/material/button-toggle/testing';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
-import { MatLegacyFormFieldHarness as MatFormFieldHarness } from '@angular/material/legacy-form-field/testing';
+import { MatFormFieldHarness } from '@angular/material/form-field/testing';
 
 export class ApiRuntimeLogsMessageSettingsHarness extends ComponentHarness {
   static hostSelector = 'api-runtime-logs-settings';

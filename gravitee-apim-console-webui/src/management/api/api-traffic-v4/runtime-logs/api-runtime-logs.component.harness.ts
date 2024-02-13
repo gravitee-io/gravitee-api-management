@@ -277,14 +277,14 @@ export class ApiRuntimeLogsHarness extends ComponentHarness {
   async getStatusesInputChips() {
     return this.moreFiltersHarness()
       .then((harness) => harness.getStatusesChips())
-      .then((chipList) => chipList.getChips())
+      .then((chipList) => chipList.getRows())
       .then((chips) => Promise.all(chips.map((chip) => chip.getText())));
   }
 
   async removeInputStatusChip(text: string) {
     return this.moreFiltersHarness()
       .then((harness) => harness.getStatusesChips())
-      .then((chipList) => chipList.getChips({ text }))
+      .then((chipList) => chipList.getRows({ text }))
       .then((chips) => chips[0].getRemoveButton())
       .then((btn) => btn.click());
   }

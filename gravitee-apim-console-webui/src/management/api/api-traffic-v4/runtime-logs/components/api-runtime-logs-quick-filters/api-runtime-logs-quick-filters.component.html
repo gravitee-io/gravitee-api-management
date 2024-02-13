@@ -67,10 +67,10 @@
 
   <div class="quick-filters__applied">
     <ng-container *ngIf="isFiltering">
-      <mat-chip-list class="quick-filters__chip_list">
+      <mat-chip-listbox class="quick-filters__chip_list">
         <span>Filters applied:</span>
         <ng-container *ngFor="let filter of currentFilters | keyvalue">
-          <mat-chip
+          <mat-chip-option
             class="gio-badge-neutral quick-filters__chip"
             *ngIf="filter.value && defaultFilters[filter.key] !== filter.value"
             [removable]="true"
@@ -86,13 +86,13 @@
               <span class="quick-filters__chip__value">{{ $any(filter.value) | date : 'yyyy-MM-dd HH:mm:ss' }}</span>
             </ng-template>
             <mat-icon matChipRemove>cancel</mat-icon>
-          </mat-chip>
+          </mat-chip-option>
         </ng-container>
-        <button mat-icon-button class="quick-filters__reset" data-testId="reset-filters-button" (click)="resetAllFilters()">
+        <button mat-button class="quick-filters__reset" data-testId="reset-filters-button" (click)="resetAllFilters()">
           <mat-icon svgIcon="gio:x-circle"></mat-icon>
           <span class="quick-filters__reset__label">Reset filters</span>
         </button>
-      </mat-chip-list>
+      </mat-chip-listbox>
     </ng-container>
     <ng-container *ngIf="!isFiltering"><span>No filter applied</span></ng-container>
   </div>
