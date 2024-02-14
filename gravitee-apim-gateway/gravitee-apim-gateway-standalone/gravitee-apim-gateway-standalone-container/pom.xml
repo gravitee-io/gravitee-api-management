@@ -345,13 +345,6 @@
         </dependency>
 
         <dependency>
-            <groupId>io.grpc</groupId>
-            <artifactId>grpc-stub</artifactId>
-            <version>1.42.1</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
             <groupId>jakarta.annotation</groupId>
             <artifactId>jakarta.annotation-api</artifactId>
         </dependency>
