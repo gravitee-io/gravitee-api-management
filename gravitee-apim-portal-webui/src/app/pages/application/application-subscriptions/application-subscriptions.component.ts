@@ -122,7 +122,7 @@ export class ApplicationSubscriptionsComponent implements OnInit {
             type: () => 'div',
             attributes: {
               innerHTML: item => {
-                const securityType = this.metadata[item.plan]?.securityType.toLocaleLowerCase().replace('_', ' ');
+                const securityType = this.metadata[item.plan]?.securityType?.toLocaleLowerCase().replace('_', ' ');
                 if (this.isAPIKeySubscription(item.plan) && this.applicationHasSharedKey()) {
                   return `${securityType} <gv-state> ${this.application.api_key_mode} </gv-state>`;
                 }
