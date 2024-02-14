@@ -145,7 +145,7 @@
         <rhino.version>1.7.14</rhino.version>
         <testcontainers.version>1.18.3</testcontainers.version>
         <xmlbeans.version>3.1.0</xmlbeans.version>
-        <wiremock.version>3.0.4</wiremock.version>
+        <wiremock.version>3.3.1</wiremock.version>
         <wsdl4j.version>1.6.3</wsdl4j.version>
         <!-- Plugins version -->
         <gatling-maven-plugin.version>4.0.1</gatling-maven-plugin.version>
@@ -554,7 +554,7 @@
 
             <dependency>
                 <groupId>org.wiremock</groupId>
-                <artifactId>wiremock</artifactId>
+                <artifactId>wiremock-standalone</artifactId>
                 <version>${wiremock.version}</version>
                 <exclusions>
                     <exclusion>
