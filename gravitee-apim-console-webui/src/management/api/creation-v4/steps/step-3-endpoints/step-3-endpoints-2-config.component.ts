@@ -17,7 +17,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { combineLatest, forkJoin, Observable, Subject } from 'rxjs';
-import { GioFormJsonSchemaComponent, GioJsonSchema, GioLicenseService } from '@gravitee/ui-particles-angular';
+import { GioFormJsonSchemaComponent, GioJsonSchema, GioLicenseService, License } from '@gravitee/ui-particles-angular';
 import { takeUntil } from 'rxjs/operators';
 import { mapValues, omitBy } from 'lodash';
 
@@ -40,6 +40,8 @@ export class Step3Endpoints2ConfigComponent implements OnInit, OnDestroy {
   public endpointSchemas: Record<string, { config: GioJsonSchema; sharedConfig: GioJsonSchema }>;
 
   public shouldUpgrade = false;
+  public license$: Observable<License>;
+  public isOEM$: Observable<boolean>;
 
   private apiType: ApiCreationPayload['type'];
 
@@ -77,6 +79,8 @@ export class Step3Endpoints2ConfigComponent implements OnInit, OnDestroy {
 
         this.selectedEndpoints = currentStepPayload.selectedEndpoints;
         this.shouldUpgrade = this.selectedEndpoints.some(({ deployed }) => !deployed);
+        this.license$ = this.licenseService.getLicense$();
+        this.isOEM$ = this.licenseService.isOEM$();
 
         this.formGroup = new UntypedFormGroup({
           ...(currentStepPayload.selectedEndpoints?.reduce(

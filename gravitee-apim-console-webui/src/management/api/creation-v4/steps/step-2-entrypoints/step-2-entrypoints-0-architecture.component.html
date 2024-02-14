@@ -74,7 +74,11 @@
           </gio-connector-list-option-layout-body>
         </gio-connector-list-option-layout>
         <div *ngIf="shouldUpgrade$ | async">
-          <gio-license-banner (onRequestUpgrade)="onRequestUpgrade()"></gio-license-banner>
+          <gio-license-banner
+            [license]="license$ | async"
+            [isOEM]="isOEM$ | async"
+            (onRequestUpgrade)="onRequestUpgrade()"
+          ></gio-license-banner>
         </div>
       </mat-radio-button>
     </mat-radio-group>

@@ -15,8 +15,8 @@
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { Subject } from 'rxjs';
-import { GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService } from '@gravitee/ui-particles-angular';
+import { Observable, Subject } from 'rxjs';
+import { GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService, License } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
 
 import { Step2Entrypoints1ListComponent } from './step-2-entrypoints-1-list.component';
@@ -35,11 +35,12 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
   private initialValue: { type: ApiType };
 
   public form: UntypedFormGroup;
-  private licenseOptions = { feature: ApimFeature.APIM_EN_MESSAGE_REACTOR, context: UTMTags.API_CREATION_TRY_MESSAGE };
 
-  public get shouldUpgrade$() {
-    return this.licenseService?.isMissingFeature$(this.licenseOptions);
-  }
+  public shouldUpgrade$: Observable<boolean>;
+  public license$: Observable<License>;
+  public isOEM$: Observable<boolean>;
+
+  private licenseOptions = { feature: ApimFeature.APIM_EN_MESSAGE_REACTOR, context: UTMTags.API_CREATION_TRY_MESSAGE };
 
   constructor(
     private readonly formBuilder: UntypedFormBuilder,
@@ -56,6 +57,10 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
     });
 
     this.initialValue = this.form.getRawValue();
+
+    this.shouldUpgrade$ = this.licenseService.isMissingFeature$(this.licenseOptions);
+    this.license$ = this.licenseService.getLicense$();
+    this.isOEM$ = this.licenseService.isOEM$();
   }
 
   ngOnDestroy() {

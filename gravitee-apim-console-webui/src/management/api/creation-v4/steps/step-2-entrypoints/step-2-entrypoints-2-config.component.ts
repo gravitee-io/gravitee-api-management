@@ -17,7 +17,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { forkJoin, Observable, Subject } from 'rxjs';
-import { GioFormJsonSchemaComponent, GioJsonSchema, GioLicenseService } from '@gravitee/ui-particles-angular';
+import { GioFormJsonSchemaComponent, GioJsonSchema, GioLicenseService, License } from '@gravitee/ui-particles-angular';
 import { debounceTime, takeUntil, tap } from 'rxjs/operators';
 import { isEmpty, omitBy } from 'lodash';
 
@@ -48,6 +48,8 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
   public enableVirtualHost: boolean;
   public domainRestrictions: string[] = [];
   public shouldUpgrade = false;
+  public license$: Observable<License>;
+  public isOEM$: Observable<boolean>;
 
   private apiType: ApiCreationPayload['type'];
 
@@ -89,6 +91,8 @@ export class Step2Entrypoints2ConfigComponent implements OnInit, OnDestroy {
 
     if (this.apiType === 'MESSAGE') {
       this.shouldUpgrade = currentStepPayload.selectedEntrypoints.some(({ deployed }) => !deployed);
+      this.license$ = this.licenseService.getLicense$();
+      this.isOEM$ = this.licenseService.isOEM$();
     }
 
     forkJoin(

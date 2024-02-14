@@ -17,11 +17,13 @@ import { ComponentHarness } from '@angular/cdk/testing';
 import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
 
 import { GioConnectorRadioListHarness } from '../../../../../shared/components/gio-connector-list-option/gio-connector-radio-list.harness';
+import { GioLicenseBannerHarness } from '../../../../../shared/components/gio-license-banner/gio-license-banner.harness';
 
 export class Step2Entrypoints0ArchitectureHarness extends ComponentHarness {
   static hostSelector = 'step-2-entrypoints-0-architecture';
 
   private readonly selectionList = this.locatorFor(GioConnectorRadioListHarness);
+  private readonly gioLicenseBanner = this.locatorForOptional(GioLicenseBannerHarness);
 
   protected getButtonByText = (text: string) =>
     this.locatorFor(
@@ -32,6 +34,10 @@ export class Step2Entrypoints0ArchitectureHarness extends ComponentHarness {
 
   async getArchitecture(): Promise<GioConnectorRadioListHarness> {
     return this.selectionList();
+  }
+
+  async isLicenseBannerShown(): Promise<boolean> {
+    return (await this.gioLicenseBanner()) !== null;
   }
 
   async clickValidate(): Promise<void> {
