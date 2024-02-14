@@ -4,30 +4,17 @@
 
 $typography: map.get(gio.$mat-legacy-theme, typography);
 
-.header {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-
-  .mat-icon {
-    width: 24px;
-    height: 24px;
-  }
+.dialog-close {
+  right: 0;
+  position: absolute;
 }
+
 .new-folder-form {
   display: flex;
   flex-direction: column;
 
-  .mat-form-field {
+  .mat-mdc-form-field {
     width: 100%;
     padding-bottom: 0;
-  }
-
-  &__actions {
-    padding-top: 24px;
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-end;
-    gap: 16px;
   }
 }

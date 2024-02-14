@@ -86,6 +86,7 @@ describe('ApiDocumentationV4', () => {
       .overrideProvider(InteractivityChecker, {
         useValue: {
           isFocusable: () => true, // This checks focus trap, set it to true to avoid the warning
+          isTabbable: () => true, // This checks tab trap, set it to true to avoid the warning
         },
       })
       .compileComponents();

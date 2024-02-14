@@ -22,5 +22,6 @@ $typography: map.get(gio.$mat-legacy-theme, typography);
 
   &__actions {
     align-self: center;
+    flex: 1 0 auto;
   }
 }

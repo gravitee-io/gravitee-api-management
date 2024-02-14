@@ -16,11 +16,10 @@
 
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subject } from 'rxjs';
-import { MatLegacyDialog } from '@angular/material/legacy-dialog';
+import { MatDialog } from '@angular/material/dialog';
 import { filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute, Router } from '@angular/router';
-import { MatDialog } from '@angular/material/dialog';
 
 import {
   ApiDocumentationV4EditFolderDialog,
@@ -53,7 +52,6 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
     private readonly activatedRoute: ActivatedRoute,
     private readonly router: Router,
     private readonly matDialog: MatDialog,
-    private readonly matLegacyDialog: MatLegacyDialog,
     private readonly apiV2Service: ApiV2Service,
     private readonly apiDocumentationV2Service: ApiDocumentationV2Service,
     private readonly snackBarService: SnackBarService,
@@ -86,7 +84,7 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
   }
 
   addFolder() {
-    this.matLegacyDialog
+    this.matDialog
       .open<ApiDocumentationV4EditFolderDialog, ApiDocumentationV4EditFolderDialogData>(ApiDocumentationV4EditFolderDialog, {
         width: GIO_DIALOG_WIDTH.LARGE,
         data: {
@@ -140,7 +138,7 @@ export class ApiDocumentationV4Component implements OnInit, OnDestroy {
   }
 
   editFolder(folder: Page) {
-    this.matLegacyDialog
+    this.matDialog
       .open<ApiDocumentationV4EditFolderDialog, ApiDocumentationV4EditFolderDialogData>(ApiDocumentationV4EditFolderDialog, {
         width: GIO_DIALOG_WIDTH.LARGE,
         data: {

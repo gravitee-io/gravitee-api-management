@@ -41,6 +41,7 @@
     &__actions {
       display: flex;
       gap: 8px;
+      flex: 1 0 auto;
     }
     .mat-column-actions {
       max-width: 232px;

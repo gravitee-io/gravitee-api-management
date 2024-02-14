@@ -19,7 +19,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { DivHarness } from '@gravitee/ui-particles-angular/testing';
-import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatMenuHarness } from '@angular/material/menu/testing';
 
 import { ApiDocumentationV4EmptyStateComponent } from './api-documentation-v4-empty-state.component';
@@ -61,7 +61,7 @@ describe('ApiDocumentationV4EmptyStateComponent', () => {
   it('should show empty state text', async () => {
     const title = await harnessLoader.getHarness(DivHarness.with({ selector: '.mat-h2' }));
     expect(await title.getText()).toEqual('No pages available yet');
-    const subtitle = await harnessLoader.getHarness(DivHarness.with({ selector: '.mat-body-1' }));
+    const subtitle = await harnessLoader.getHarness(DivHarness.with({ selector: '.mat-body-2' }));
     expect(await subtitle.getText()).toEqual('Start creating pages to fill up your folder.');
   });
 

@@ -16,7 +16,7 @@
 
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
-import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 
 export class ApiDocumentationV4PagesListHarness extends ComponentHarness {
