@@ -28,9 +28,16 @@ $foreground: map.get(gio.$mat-legacy-theme, foreground);
   &__max-age,
   &__expose-headers,
   &__run-policies {
+    padding-bottom: 16px;
+
+    &:last-child {
+      padding-bottom: 0;
+    }
+
     &__label,
     &__hint {
       padding: 0 0.75em 0 0.75em;
+      margin-bottom: 0;
     }
 
     &__label {
