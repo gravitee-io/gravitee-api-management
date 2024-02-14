@@ -247,7 +247,6 @@
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-junit5-rx-java3</artifactId>
-            <version>4.3.3</version>
         </dependency>
 
         <dependency>
