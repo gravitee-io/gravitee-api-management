@@ -15,8 +15,8 @@
  */
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
-import { MatLegacyButtonModule as MatButtonModule } from '@angular/material/legacy-button';
-import { MatLegacyCardModule as MatCardModule } from '@angular/material/legacy-card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
 import {
   GioBannerModule,
   GioConfirmDialogModule,
@@ -24,20 +24,22 @@ import {
   GioFormJsonSchemaModule,
   GioIconsModule,
 } from '@gravitee/ui-particles-angular';
-import { MatLegacyInputModule as MatInputModule } from '@angular/material/legacy-input';
+import { MatInputModule } from '@angular/material/input';
 import { ReactiveFormsModule } from '@angular/forms';
-import { MatLegacyCheckboxModule as MatCheckboxModule } from '@angular/material/legacy-checkbox';
-import { MatLegacyListModule as MatListModule } from '@angular/material/legacy-list';
-import { MatLegacyDialogModule as MatDialogModule } from '@angular/material/legacy-dialog';
-import { MatLegacyTooltipModule as MatTooltipModule } from '@angular/material/legacy-tooltip';
-import { MatLegacySnackBarModule as MatSnackBarModule } from '@angular/material/legacy-snack-bar';
-import { MatLegacyProgressBarModule as MatProgressBarModule } from '@angular/material/legacy-progress-bar';
-import { MatLegacyRadioModule as MatRadioModule } from '@angular/material/legacy-radio';
-import { MatLegacyTableModule as MatTableModule } from '@angular/material/legacy-table';
-import { MatLegacyMenuModule as MatMenuModule } from '@angular/material/legacy-menu';
-import { MatLegacyOptionModule as MatOptionModule } from '@angular/material/legacy-core';
-import { MatLegacySelectModule as MatSelectModule } from '@angular/material/legacy-select';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatListModule } from '@angular/material/list';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatRadioModule } from '@angular/material/radio';
+import { MatTableModule } from '@angular/material/table';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatOptionModule } from '@angular/material/core';
+import { MatSelectModule } from '@angular/material/select';
 import { RouterModule } from '@angular/router';
+import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
+import { MatLegacyDialogModule } from '@angular/material/legacy-dialog';
 
 import { ApiCreationV4Component } from './api-creation-v4.component';
 import { Step1ApiDetailsComponent } from './steps/step-1-api-details/step-1-api-details.component';
@@ -80,7 +82,9 @@ import { GioFormListenersTcpHostsModule } from '../component/gio-form-listeners/
     MatRadioModule,
     MatListModule,
     MatDialogModule,
+    MatLegacyDialogModule,
     MatSnackBarModule,
+    MatLegacySnackBarModule,
     MatTableModule,
     MatTooltipModule,
     MatProgressBarModule,

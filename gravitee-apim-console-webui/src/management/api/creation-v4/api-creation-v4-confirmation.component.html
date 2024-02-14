@@ -16,41 +16,43 @@
 
 -->
 <mat-card *ngIf="api">
-  <div class="api-creation-confirmation__content">
-    <div class="api-creation-confirmation__content__header">
-      <div class="api-creation-confirmation__content__header__icon">
-        <mat-icon svgIcon="gio:check"></mat-icon>
-      </div>
-      <h2>{{ api.name }} has been {{ api.lifecycleState === 'PUBLISHED' ? 'deployed' : 'created' }}</h2>
-      <button mat-flat-button color="primary" data-testid="open_api_in_api_management_button" [routerLink]="['../../..', api.id]">
-        Open my API in API Management
-      </button>
-    </div>
-    <div class="api-creation-confirmation__content__actions">
-      <h3>Next steps</h3>
-      <div class="action">
-        <div class="action__text">
-          <h4>Policy configuration</h4>
-          <div class="action__text__subtitle">Shape traffic reaching the gateway by configuring your policies with our flow editor</div>
+  <mat-card-content>
+    <div class="api-creation-confirmation__content">
+      <div class="api-creation-confirmation__content__header">
+        <div class="api-creation-confirmation__content__header__icon">
+          <mat-icon svgIcon="gio:check"></mat-icon>
         </div>
-        <button mat-stroked-button [routerLink]="['../../..', api.id, 'v4', 'policy-studio']">Create policies</button>
+        <h2>{{ api.name }} has been {{ api.lifecycleState === 'PUBLISHED' ? 'deployed' : 'created' }}</h2>
+        <button mat-flat-button color="primary" data-testid="open_api_in_api_management_button" [routerLink]="['../../..', api.id]">
+          Open my API in API Management
+        </button>
       </div>
-      <div class="action">
-        <div class="action__text">
-          <h4>Developer Portal</h4>
-          <div class="action__text__subtitle">
-            Publish your API to the Developer Portal. From there, consumers can discover, learn about and use your API
+      <div class="api-creation-confirmation__content__actions">
+        <h3>Next steps</h3>
+        <div class="action">
+          <div class="action__text">
+            <h4>Policy configuration</h4>
+            <div class="action__text__subtitle">Shape traffic reaching the gateway by configuring your policies with our flow editor</div>
           </div>
+          <button mat-stroked-button [routerLink]="['../../..', api.id, 'v4', 'policy-studio']">Create policies</button>
         </div>
-        <button mat-stroked-button [routerLink]="['../../..', api.id]">Manage API visibility</button>
-      </div>
-      <div class="action">
-        <div class="action__text">
-          <h4>Documentation</h4>
-          <div class="action__text__subtitle">Find everything you need to know about how to use Gravitee</div>
+        <div class="action">
+          <div class="action__text">
+            <h4>Developer Portal</h4>
+            <div class="action__text__subtitle">
+              Publish your API to the Developer Portal. From there, consumers can discover, learn about and use your API
+            </div>
+          </div>
+          <button mat-stroked-button [routerLink]="['../../..', api.id]">Manage API visibility</button>
         </div>
-        <a mat-stroked-button href="https://documentation.gravitee.io/apim/overview/readme" target="_blank">Open documentation</a>
+        <div class="action">
+          <div class="action__text">
+            <h4>Documentation</h4>
+            <div class="action__text__subtitle">Find everything you need to know about how to use Gravitee</div>
+          </div>
+          <a mat-stroked-button href="https://documentation.gravitee.io/apim/overview/readme" target="_blank">Open documentation</a>
+        </div>
       </div>
     </div>
-  </div>
+  </mat-card-content>
 </mat-card>

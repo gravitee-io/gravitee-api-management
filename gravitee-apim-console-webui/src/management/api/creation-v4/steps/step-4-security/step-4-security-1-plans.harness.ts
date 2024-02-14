@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
-import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
-import { MatLegacyTableHarness as MatTableHarness } from '@angular/material/legacy-table/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatTableHarness } from '@angular/material/table/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
-import { MatLegacyMenuHarness as MatMenuHarness } from '@angular/material/legacy-menu/testing';
+import { MatMenuHarness } from '@angular/material/menu/testing';
 import { tick } from '@angular/core/testing';
 
 import { ApiPlanFormHarness } from '../../../component/plan/api-plan-form.harness';

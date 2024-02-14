@@ -12,14 +12,23 @@ $typography: map.get(gio.$mat-legacy-theme, typography);
     flex-direction: column;
     gap: 16px;
 
-    mat-list-option.mat-list-option,
+    .gio-connector-list-option,
+
+    .mat-mdc-list-item.mat-mdc-list-option,
+    mat-radio-button.mat-mdc-radio-button,
+    // mat legacy
     mat-radio-button.mat-radio-button {
+      padding: 0 16px;
       height: auto;
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       justify-content: space-between;
       border: 2px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker20');
       border-radius: 4px;
+    }
+
+    .gio-connector-list-option {
+      padding: 0 16px;
     }
 
     .gio-connector__selected {
@@ -29,20 +38,24 @@ $typography: map.get(gio.$mat-legacy-theme, typography);
     /**
     mat-selection-list
      */
-    mat-list-option.mat-list-option {
-      padding: 16px 0;
+    .mdc-list-item__start.mat-mdc-list-option-checkbox-before {
+      margin: 0;
     }
 
     /**
     mat-radio-group
      */
-    mat-radio-button.mat-radio-button {
-      padding: 0 16px;
+
+    .mdc-list-item__content,
+    .mdc-list-item__content > span {
+      overflow: unset;
     }
-    label.mat-radio-label {
-      gap: 8px;
+    mat-radio-button > .mdc-form-field {
+      width: 100%;
     }
-    span.mat-radio-label-content {
+
+    label {
+      cursor: pointer;
       width: 100%;
     }
   }
@@ -57,7 +70,7 @@ $typography: map.get(gio.$mat-legacy-theme, typography);
 }
 .gio-connector {
   &__description {
-    flex: 1 1 100%;
+    flex: 1 1 auto;
 
     &__title {
       @include mat.typography-level($typography, subheading-1);

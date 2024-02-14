@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { MatLegacyRadioGroupHarness as MatRadioGroupHarness } from '@angular/material/legacy-radio/testing';
+import { MatRadioGroupHarness } from '@angular/material/radio/testing';
 
 export class GioConnectorRadioListHarness extends MatRadioGroupHarness {
   static override hostSelector = '.gio-connector-list';

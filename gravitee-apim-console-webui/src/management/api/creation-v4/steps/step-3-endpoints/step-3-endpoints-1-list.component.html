@@ -16,64 +16,66 @@
 
 -->
 <mat-card class="api-creation-v4__step">
-  <div class="api-creation-v4__step__header">
-    <div class="api-creation-v4__step__header__step-number">Step 3</div>
-    <div class="api-creation-v4__step__header__subtitle">Select your API endpoints access</div>
-    <p class="api-creation-v4__step__header__paragraph-light">
-      Choose the type of event-brokers/backend that will be exposed through the API
-    </p>
-  </div>
+  <mat-card-content>
+    <div class="api-creation-v4__step__header">
+      <div class="api-creation-v4__step__header__step-number">Step 3</div>
+      <div class="api-creation-v4__step__header__subtitle">Select your API endpoints access</div>
+      <p class="api-creation-v4__step__header__paragraph-light">
+        Choose the type of event-brokers/backend that will be exposed through the API
+      </p>
+    </div>
 
-  <form *ngIf="formGroup" [formGroup]="formGroup" (ngSubmit)="save()">
-    <mat-selection-list
-      *ngIf="endpoints; else loadingTpl"
-      formControlName="selectedEndpointsIds"
-      class="gio-connector-list"
-      disableRipple="true"
-    >
-      <mat-list-option
-        *ngFor="let endpoint of endpoints"
-        [value]="endpoint.id"
-        checkboxPosition="before"
-        #listOption
-        [class.gio-connector__selected]="listOption.selected"
+    <form *ngIf="formGroup" [formGroup]="formGroup" (ngSubmit)="save()">
+      <mat-selection-list
+        *ngIf="endpoints; else loadingTpl"
+        formControlName="selectedEndpointsIds"
+        class="gio-connector-list"
+        disableRipple="true"
       >
-        <gio-connector-list-option-layout>
-          <gio-connector-list-option-layout-title>
-            <mat-icon class="api-creation-v4__icon" [svgIcon]="endpoint.icon"></mat-icon>
-            {{ endpoint.name }}
-            <span class="gio-badge-primary api-creation-v4__badge">New</span>
-            <span class="gio-badge-accent api-creation-v4__badge" *ngIf="endpoint.isEnterprise">Enterprise</span>
-            <span class="gio-badge-warning api-creation-v4__badge" *ngIf="!endpoint.deployed">Not deployed</span>
-          </gio-connector-list-option-layout-title>
+        <mat-list-option
+          *ngFor="let endpoint of endpoints"
+          [value]="endpoint.id"
+          checkboxPosition="before"
+          #listOption
+          [class.gio-connector__selected]="listOption.selected"
+        >
+          <gio-connector-list-option-layout>
+            <gio-connector-list-option-layout-title>
+              <mat-icon class="api-creation-v4__icon" [svgIcon]="endpoint.icon"></mat-icon>
+              {{ endpoint.name }}
+              <span class="gio-badge-primary api-creation-v4__badge">New</span>
+              <span class="gio-badge-accent api-creation-v4__badge" *ngIf="endpoint.isEnterprise">Enterprise</span>
+              <span class="gio-badge-warning api-creation-v4__badge" *ngIf="!endpoint.deployed">Not deployed</span>
+            </gio-connector-list-option-layout-title>
 
-          <gio-connector-list-option-layout-body>
-            {{ endpoint.description }}
-          </gio-connector-list-option-layout-body>
+            <gio-connector-list-option-layout-body>
+              {{ endpoint.description }}
+            </gio-connector-list-option-layout-body>
 
-          <gio-connector-list-option-layout-action>
-            <button type="button" mat-stroked-button (click)="onMoreInfoClick($event, endpoint)">
-              <mat-icon svgIcon="gio:eye-empty"></mat-icon>
-              More information
-            </button>
-          </gio-connector-list-option-layout-action>
-        </gio-connector-list-option-layout>
-      </mat-list-option>
-    </mat-selection-list>
+            <gio-connector-list-option-layout-action>
+              <button type="button" mat-stroked-button (click)="onMoreInfoClick($event, endpoint)">
+                <mat-icon svgIcon="gio:eye-empty"></mat-icon>
+                More information
+              </button>
+            </gio-connector-list-option-layout-action>
+          </gio-connector-list-option-layout>
+        </mat-list-option>
+      </mat-selection-list>
 
-    <div *ngIf="shouldUpgrade">
-      <gio-license-banner
-        [license]="license$ | async"
-        [isOEM]="isOEM$ | async"
-        (onRequestUpgrade)="onRequestUpgrade()"
-      ></gio-license-banner>
-    </div>
+      <div *ngIf="shouldUpgrade">
+        <gio-license-banner
+          [license]="license$ | async"
+          [isOEM]="isOEM$ | async"
+          (onRequestUpgrade)="onRequestUpgrade()"
+        ></gio-license-banner>
+      </div>
 
-    <div class="api-creation-v4__step__footer">
-      <button mat-stroked-button type="button" (click)="goBack()">Previous</button>
-      <button mat-flat-button color="primary" type="submit" [disabled]="formGroup.invalid">Select my endpoints</button>
-    </div>
-  </form>
+      <div class="api-creation-v4__step__footer">
+        <button mat-stroked-button type="button" (click)="goBack()">Previous</button>
+        <button mat-flat-button color="primary" type="submit" [disabled]="formGroup.invalid">Select my endpoints</button>
+      </div>
+    </form>
+  </mat-card-content>
 </mat-card>
 
 <ng-template #loadingTpl><mat-progress-bar mode="indeterminate"></mat-progress-bar></ng-template>

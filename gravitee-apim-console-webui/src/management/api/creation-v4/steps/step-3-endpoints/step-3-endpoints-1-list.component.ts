@@ -16,12 +16,12 @@
 
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { MatLegacyDialog } from '@angular/material/legacy-dialog';
 import { MatDialog } from '@angular/material/dialog';
 import { Observable, of, Subject } from 'rxjs';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
 import { GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService, License } from '@gravitee/ui-particles-angular';
 import { isEqual } from 'lodash';
+import { MatLegacyDialog } from '@angular/material/legacy-dialog';
 
 import { Step3Endpoints2ConfigComponent } from './step-3-endpoints-2-config.component';
 

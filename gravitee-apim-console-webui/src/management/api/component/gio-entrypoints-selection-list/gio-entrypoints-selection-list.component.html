@@ -24,7 +24,8 @@
   <mat-list-option
     *ngFor="let entrypoint of entrypoints"
     [value]="entrypoint.id"
-    checkboxPosition="before"
+    togglePosition="before"
+    [disableRipple]="true"
     #listOption
     [class.gio-connector__selected]="listOption.selected"
   >

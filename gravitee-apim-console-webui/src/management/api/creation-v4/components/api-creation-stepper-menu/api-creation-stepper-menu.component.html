@@ -16,19 +16,21 @@
 
 -->
 <mat-card class="api-creation-stepper">
-  <div class="api-creation-stepper__header">
-    <div class="api-creation-stepper__title mat-h3">API creation</div>
-    <div class="api-creation-stepper__subtitle">Follow these steps to get your API</div>
-  </div>
+  <mat-card-content>
+    <div class="api-creation-stepper__header">
+      <div class="api-creation-stepper__title mat-h3">API creation</div>
+      <div class="api-creation-stepper__subtitle">Follow these steps to get your API</div>
+    </div>
 
-  <div class="steps">
-    <stepper-menu-step
-      *ngFor="let menuStep of menuSteps"
-      [stepNumber]="menuStep.groupNumber"
-      [step]="menuStep"
-      [activeStep]="currentStep.group.groupNumber === menuStep.groupNumber"
-      (goToStep)="goToStep.emit($event)"
-      >{{ menuStep.label }}</stepper-menu-step
-    >
-  </div>
+    <div class="steps">
+      <stepper-menu-step
+        *ngFor="let menuStep of menuSteps"
+        [stepNumber]="menuStep.groupNumber"
+        [step]="menuStep"
+        [activeStep]="currentStep.group.groupNumber === menuStep.groupNumber"
+        (goToStep)="goToStep.emit($event)"
+        >{{ menuStep.label }}</stepper-menu-step
+      >
+    </div>
+  </mat-card-content>
 </mat-card>

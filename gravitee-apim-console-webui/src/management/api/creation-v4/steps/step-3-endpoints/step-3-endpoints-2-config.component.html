@@ -16,42 +16,44 @@
 
 -->
 <mat-card class="api-creation-v4__step">
-  <div class="api-creation-v4__step__header">
-    <div class="api-creation-v4__step__header__step-number">Step 3</div>
-    <div class="api-creation-v4__step__header__subtitle">Configure your API endpoints access</div>
-    <p class="api-creation-v4__step__header__paragraph-light">
-      Choose the type of event-brokers/backend that will be exposed through the API
-    </p>
-  </div>
+  <mat-card-content>
+    <div class="api-creation-v4__step__header">
+      <div class="api-creation-v4__step__header__step-number">Step 3</div>
+      <div class="api-creation-v4__step__header__subtitle">Configure your API endpoints access</div>
+      <p class="api-creation-v4__step__header__paragraph-light">
+        Choose the type of event-brokers/backend that will be exposed through the API
+      </p>
+    </div>
 
-  <form *ngIf="formGroup" [formGroup]="formGroup" (ngSubmit)="save()">
-    <ng-container *ngFor="let endpoint of selectedEndpoints">
-      <div class="api-creation-v4__form-container" *ngIf="endpointSchemas[endpoint.id]">
-        <h3>{{ endpoint.name }}</h3>
-        <gio-form-json-schema
-          [jsonSchema]="endpointSchemas[endpoint.id].config"
-          [formControlName]="endpoint.id + '-configuration'"
-        ></gio-form-json-schema>
-        <gio-form-json-schema
-          [jsonSchema]="endpointSchemas[endpoint.id].sharedConfig"
-          [formControlName]="endpoint.id + '-sharedConfiguration'"
-        ></gio-form-json-schema>
+    <form *ngIf="formGroup" [formGroup]="formGroup" (ngSubmit)="save()">
+      <ng-container *ngFor="let endpoint of selectedEndpoints">
+        <div class="api-creation-v4__form-container" *ngIf="endpointSchemas[endpoint.id]">
+          <h3>{{ endpoint.name }}</h3>
+          <gio-form-json-schema
+            [jsonSchema]="endpointSchemas[endpoint.id].config"
+            [formControlName]="endpoint.id + '-configuration'"
+          ></gio-form-json-schema>
+          <gio-form-json-schema
+            [jsonSchema]="endpointSchemas[endpoint.id].sharedConfig"
+            [formControlName]="endpoint.id + '-sharedConfiguration'"
+          ></gio-form-json-schema>
+        </div>
+      </ng-container>
+
+      <div *ngIf="shouldUpgrade">
+        <gio-license-banner
+          [license]="license$ | async"
+          [isOEM]="isOEM$ | async"
+          (onRequestUpgrade)="onRequestUpgrade()"
+        ></gio-license-banner>
       </div>
-    </ng-container>
 
-    <div *ngIf="shouldUpgrade">
-      <gio-license-banner
-        [license]="license$ | async"
-        [isOEM]="isOEM$ | async"
-        (onRequestUpgrade)="onRequestUpgrade()"
-      ></gio-license-banner>
-    </div>
-
-    <div class="api-creation-v4__step__footer">
-      <button mat-stroked-button type="button" (click)="goBack()">Previous</button>
-      <button mat-flat-button data-testid="validate_endpoint_button" color="primary" type="submit" [disabled]="formGroup.invalid">
-        Validate my endpoints
-      </button>
-    </div>
-  </form>
+      <div class="api-creation-v4__step__footer">
+        <button mat-stroked-button type="button" (click)="goBack()">Previous</button>
+        <button mat-flat-button data-testid="validate_endpoint_button" color="primary" type="submit" [disabled]="formGroup.invalid">
+          Validate my endpoints
+        </button>
+      </div>
+    </form>
+  </mat-card-content>
 </mat-card>

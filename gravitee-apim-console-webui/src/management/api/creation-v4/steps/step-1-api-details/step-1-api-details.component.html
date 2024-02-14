@@ -16,56 +16,58 @@
 
 -->
 <mat-card class="api-creation-v4__step">
-  <div class="api-creation-v4__step__header">
-    <div class="api-creation-v4__step__header__step-number">Step 1</div>
-    <div class="api-creation-v4__step__header__subtitle">Provide some details on your API</div>
-  </div>
-  <div class="mat-h3">API details</div>
-  <form [formGroup]="form" (ngSubmit)="save()">
-    <div class="step-1-api-details__row">
-      <mat-form-field appearance="outline">
-        <input
-          id="name"
-          type="text"
-          matInput
-          formControlName="name"
-          maxlength="50"
-          required="true"
-          data-testid="api_creation_v4_name_input"
-        />
-        <mat-label>API name</mat-label>
-        <mat-hint>This name will be public and will be used in the Gravitee Developer Portal</mat-hint>
-        <mat-error *ngIf="form.controls.name.errors?.required">API name is required</mat-error>
-      </mat-form-field>
-      <mat-form-field appearance="outline">
-        <input
-          id="version"
-          type="text"
-          matInput
-          formControlName="version"
-          maxlength="32"
-          required="true"
-          data-testid="api_creation_v4_version_input"
-        />
-        <mat-label>Version number</mat-label>
-        <mat-hint>For example 1.1, 1.1.1</mat-hint>
-        <mat-error *ngIf="form.controls.version.errors?.required">Version number is required</mat-error>
-      </mat-form-field>
+  <mat-card-content>
+    <div class="api-creation-v4__step__header">
+      <div class="api-creation-v4__step__header__step-number">Step 1</div>
+      <div class="api-creation-v4__step__header__subtitle">Provide some details on your API</div>
     </div>
-    <div class="step-1-api-details__row">
-      <mat-form-field appearance="outline">
-        <textarea id="description" matInput #input maxlength="250" formControlName="description" rows="4"></textarea>
-        <mat-label>Description</mat-label>
-        <mat-hint align="start">Describe how your API works</mat-hint>
-        <mat-hint align="end">{{ input.value.length }}/250</mat-hint>
-        <mat-error *ngIf="form.controls.description.errors?.required">Description is required</mat-error>
-      </mat-form-field>
-    </div>
-    <div class="api-creation-v4__step__footer">
-      <button mat-stroked-button type="button" (click)="onExit()">Exit</button>
-      <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid" data-testid="api_creation_v4_validate_button">
-        Validate my API details
-      </button>
-    </div>
-  </form>
+    <div class="mat-h3">API details</div>
+    <form [formGroup]="form" (ngSubmit)="save()">
+      <div class="step-1-api-details__row">
+        <mat-form-field appearance="outline">
+          <input
+            id="name"
+            type="text"
+            matInput
+            formControlName="name"
+            maxlength="50"
+            required="true"
+            data-testid="api_creation_v4_name_input"
+          />
+          <mat-label>API name</mat-label>
+          <mat-hint>This name will be public and will be used in the Gravitee Developer Portal</mat-hint>
+          <mat-error *ngIf="form.controls.name.errors?.required">API name is required</mat-error>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <input
+            id="version"
+            type="text"
+            matInput
+            formControlName="version"
+            maxlength="32"
+            required="true"
+            data-testid="api_creation_v4_version_input"
+          />
+          <mat-label>Version number</mat-label>
+          <mat-hint>For example 1.1, 1.1.1</mat-hint>
+          <mat-error *ngIf="form.controls.version.errors?.required">Version number is required</mat-error>
+        </mat-form-field>
+      </div>
+      <div class="step-1-api-details__row">
+        <mat-form-field appearance="outline">
+          <textarea id="description" matInput #input maxlength="250" formControlName="description" rows="4"></textarea>
+          <mat-label>Description</mat-label>
+          <mat-hint align="start">Describe how your API works</mat-hint>
+          <mat-hint align="end">{{ input.value.length }}/250</mat-hint>
+          <mat-error *ngIf="form.controls.description.errors?.required">Description is required</mat-error>
+        </mat-form-field>
+      </div>
+      <div class="api-creation-v4__step__footer">
+        <button mat-stroked-button type="button" (click)="onExit()">Exit</button>
+        <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid" data-testid="api_creation_v4_validate_button">
+          Validate my API details
+        </button>
+      </div>
+    </form>
+  </mat-card-content>
 </mat-card>
