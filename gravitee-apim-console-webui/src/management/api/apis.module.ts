@@ -20,7 +20,6 @@ import { CommonModule } from '@angular/common';
 import { ApiAnalyticsModule } from './analytics/api-analytics.module';
 import { ApiListModule } from './list/api-list.module';
 import { ApiNavigationModule } from './api-navigation/api-navigation.module';
-import { ApiProxyModule } from './proxy/api-proxy.module';
 import { ApiV4PolicyStudioModule } from './policy-studio-v4/api-v4-policy-studio.module';
 import { ApiRuntimeLogsV4Module } from './api-traffic-v4/api-runtime-logs-v4.module';
 import { ApiEndpointsV4Module } from './endpoints-v4/api-endpoints-v4.module';
@@ -51,6 +50,7 @@ import { ApiAuditLogsModule } from './api-audit-logs/api-audit-logs.module';
 import { ApiNotificationModule } from './api-notification/api-notification.module';
 import { ApiCorsModule } from './cors/api-cors.module';
 import { ApiPropertiesModule } from './properties/properties/api-properties.module';
+import { ApiProxyHealthCheckDashboardModule } from './health-check-dashboard/api-proxy-health-check-dashboard.module';
 
 import { SpecificJsonSchemaTypeModule } from '../../shared/components/specific-json-schema-type/specific-json-schema-type.module';
 import { DocumentationModule } from '../../components/documentation/documentation.module';
@@ -80,13 +80,13 @@ import { AlertsModule } from '../../components/alerts/alerts.module';
     ApiEntrypointsV4Module,
     ApiFailoverModule,
     ApiGeneralInfoModule,
+    ApiProxyHealthCheckDashboardModule,
     ApiHealthCheckModule,
     ApiListModule,
     ApiNavigationModule,
     ApiNotificationSettingsModule,
     ApiPlansModule,
     ApiPropertiesModule,
-    ApiProxyModule,
     ApiResourcesModule,
     ApiResponseTemplatesModule,
     ApiRuntimeLogsV4Module,

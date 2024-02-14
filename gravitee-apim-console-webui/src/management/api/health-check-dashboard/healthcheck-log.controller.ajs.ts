@@ -16,7 +16,7 @@
 
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { ApiService } from '../../../../services/api.service';
+import { ApiService } from '../../../services/api.service';
 
 class ApiHealthcheckLogControllerAjs {
   private activatedRoute: ActivatedRoute;

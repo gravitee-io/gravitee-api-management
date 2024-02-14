@@ -36,8 +36,8 @@ import { ApiResponseTemplatesEditComponent } from './response-templates/edit/api
 import { ApiEndpointGroupsComponent } from './endpoints-v4/endpoint-groups/api-endpoint-groups.component';
 import { ApiFailoverComponent } from './failover/api-failover.component';
 import { ApiHealthCheckComponent } from './health-check/api-health-check.component';
-import { ApiHealthCheckDashboardComponent } from './proxy/health-check-dashboard/healthcheck-dashboard.component';
-import { ApiHealthCheckLogComponent } from './proxy/health-check-dashboard/healthcheck-log.controller';
+import { ApiHealthCheckDashboardComponent } from './health-check-dashboard/healthcheck-dashboard.component';
+import { ApiHealthCheckLogComponent } from './health-check-dashboard/healthcheck-log.controller';
 import { ApiAnalyticsOverviewComponent } from './analytics/overview/analytics-overview.component';
 import { ApiAnalyticsLogsComponent } from './analytics/logs/analytics-logs.component';
 import { ApiLogsConfigurationComponent } from './analytics/logs/configuration/api-logs-configuration.component';

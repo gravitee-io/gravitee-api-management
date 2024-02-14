@@ -131,7 +131,7 @@ import DialogAddGroupMemberController from './management/settings/groups/group/a
 import SubscriptionService from './services/subscription.service';
 import EmptyStateDirective from './components/emptystate/emptystate.directive';
 import TagService from './services/tag.service';
-import ChartDirective from './management/api/proxy/health-check-dashboard/chart/chart.directive';
+import ChartDirective from './management/api/health-check-dashboard/chart/chart.directive';
 import FileChooserDialogController from './components/dialog/fileChooserDialog.controller';
 import DialogConfirmController from './components/dialog/confirmDialog.controller';
 import DialogConfirmAndValidateController from './components/dialog/confirmAndValidateDialog.controller';
@@ -152,10 +152,10 @@ import UserComponentAjs from './user/my-accout/user.component.ajs';
 import './components/documentation/documentation.module.ajs';
 
 // Healthcheck
-import ProgressBarComponent from './management/api/proxy/health-check-dashboard/progressbar/progress-bar.component';
-import HealthCheckMetricComponent from './management/api/proxy/health-check-dashboard/healthcheckmetric/healthcheck-metric.component';
-import { ApiHealthcheckDashboardComponentAjs } from './management/api/proxy/health-check-dashboard/healthcheck-dashboard.component.ajs';
-import { ApiHealthcheckLogComponentAjs } from './management/api/proxy/health-check-dashboard/healthcheck-log.component.ajs';
+import ProgressBarComponent from './management/api/health-check-dashboard/progressbar/progress-bar.component';
+import HealthCheckMetricComponent from './management/api/health-check-dashboard/healthcheckmetric/healthcheck-metric.component';
+import { ApiHealthcheckDashboardComponentAjs } from './management/api/health-check-dashboard/healthcheck-dashboard.component.ajs';
+import { ApiHealthcheckLogComponentAjs } from './management/api/health-check-dashboard/healthcheck-log.component.ajs';
 
 // Ticket
 import TicketService from './services/ticket.service';
