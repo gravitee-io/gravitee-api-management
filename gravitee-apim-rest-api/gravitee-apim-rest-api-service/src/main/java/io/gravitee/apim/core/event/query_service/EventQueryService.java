@@ -19,13 +19,13 @@ import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.common.Pageable;
 import java.util.Collection;
-import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 public interface EventQueryService {
     SearchResponse search(SearchQuery query, Pageable pageable);
+    Optional<Event> findById(String eventId);
 
     record SearchQuery(
         String environmentId,

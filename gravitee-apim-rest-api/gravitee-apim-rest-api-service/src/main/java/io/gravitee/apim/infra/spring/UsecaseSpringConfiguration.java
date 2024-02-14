@@ -63,6 +63,7 @@ import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
 import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.event.query_service.EventQueryService;
 import io.gravitee.apim.core.event.use_case.SearchEventUseCase;
+import io.gravitee.apim.core.event.use_case.SearchEventsUseCase;
 import io.gravitee.apim.core.gateway.query_service.InstanceQueryService;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
 import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
@@ -384,6 +385,11 @@ public class UsecaseSpringConfiguration {
     @Bean
     public SearchApiAuditUseCase searchApiAuditUseCase(SearchAuditDomainService searchAuditDomainService) {
         return new SearchApiAuditUseCase(searchAuditDomainService);
+    }
+
+    @Bean
+    public SearchEventsUseCase searchEventsUseCase(EventQueryService eventQueryService, UserCrudService userCrudService) {
+        return new SearchEventsUseCase(eventQueryService, userCrudService);
     }
 
     @Bean
