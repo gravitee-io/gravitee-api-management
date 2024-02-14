@@ -19,7 +19,7 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { MatLegacyDialogHarness as MatDialogHarness } from '@angular/material/legacy-dialog/testing';
+import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 
 import { ApiCreationGetStartedComponent } from './api-creation-get-started.component';

@@ -17,8 +17,9 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { EMPTY, of, Subject } from 'rxjs';
-import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
+import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
+import { MatLegacyDialog } from '@angular/material/legacy-dialog';
 
 import { CockpitService, UtmCampaign } from '../../../services-ngx/cockpit.service';
 import { Constants } from '../../../entities/Constants';
@@ -57,6 +58,7 @@ export class ApiCreationGetStartedComponent implements OnInit, OnDestroy {
     private readonly policyService: PolicyService,
     private readonly snackBarService: SnackBarService,
     private readonly matDialog: MatDialog,
+    private readonly matLegacyDialog: MatLegacyDialog,
   ) {}
 
   ngOnInit(): void {
@@ -84,7 +86,7 @@ export class ApiCreationGetStartedComponent implements OnInit, OnDestroy {
       .listSwaggerPolicies()
       .pipe(
         switchMap((policies) =>
-          this.matDialog
+          this.matLegacyDialog
             .open<GioApiImportDialogComponent, GioApiImportDialogData>(GioApiImportDialogComponent, {
               data: {
                 policies,
