@@ -7,6 +7,8 @@ module.exports = {
     },
   },
 
+  staticDirs: [{ from: '../node_modules/monaco-editor', to: '/assets/monaco-editor' }],
+
   stories: ['../src/**/*.stories.@(ts|mdx)'],
   addons: ['@storybook/addon-essentials'],
 

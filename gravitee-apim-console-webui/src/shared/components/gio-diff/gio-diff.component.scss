@@ -33,6 +33,11 @@ gio-diff {
         display: flex;
 
         &__gv-code {
+
+          .mat-mdc-form-field{
+            width: 100%;
+          }
+
           flex: 1 1 50%;
           max-height: 300px;
           overflow: auto;

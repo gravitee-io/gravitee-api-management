@@ -18,6 +18,8 @@ import * as Diff from 'diff';
 import { Component, Input, OnChanges, SimpleChange, SimpleChanges, ViewEncapsulation } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import '@gravitee/ui-components/wc/gv-code';
+import { MonacoEditorLanguageConfig } from '@gravitee/ui-particles-angular';
+import { FormGroup, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 
 @Component({
   selector: 'gio-diff',
@@ -37,16 +39,24 @@ export class GioDiffComponent implements OnChanges {
   outputFormat: 'raw' | 'side-by-side' | 'line-by-line' = 'side-by-side';
   hasChanges = true;
 
-  gvCodeOptions = {
-    lineWrapping: true,
-    lineNumbers: true,
-  };
+  languageConfig: MonacoEditorLanguageConfig = { language: 'json', schemas: [] };
+  diffGroup: UntypedFormGroup = new FormGroup({
+    leftDiff: new UntypedFormControl({
+      value: '',
+      disabled: true,
+    }),
+    rightDiff: new UntypedFormControl({
+      value: '',
+      disabled: true,
+    }),
+  });
 
   constructor(private readonly sanitizer: DomSanitizer) {}
 
   ngOnChanges(changes: SimpleChanges) {
     if (this.propHasChanged(changes.left) || this.propHasChanged(changes.right)) {
       this.computeDiff();
+      this.diffGroup.setValue({ leftDiff: this.left, rightDiff: this.right });
     }
   }
 
@@ -66,7 +76,6 @@ export class GioDiffComponent implements OnChanges {
         renderNothingWhenEmpty: true,
       });
       this.diffHTML = this.sanitizer.bypassSecurityTrustHtml(diff2Html);
-      return;
     }
   }
 

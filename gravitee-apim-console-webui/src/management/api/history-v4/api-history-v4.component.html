@@ -25,12 +25,15 @@
     </div>
   </mat-card-content>
   <ng-container *ngIf="apiEvents$ | async as apiDeployments; else loading">
-    <api-deployments-table
-      [deployments]="apiDeployments.data"
-      [pagination]="apiDeployments.pagination"
-      (paginationChange)="paginationChange($event)"
-    >
-    </api-deployments-table>
+    <ng-container *ngIf="currentAPI$ | async as currentApi; else loading">
+      <api-deployments-table
+        [deployments]="apiDeployments.data"
+        [pagination]="apiDeployments.pagination"
+        [currentApi]="currentApi"
+        (paginationChange)="paginationChange($event)"
+      >
+      </api-deployments-table>
+    </ng-container>
   </ng-container>
   <ng-template #loading>
     <gio-loader></gio-loader>

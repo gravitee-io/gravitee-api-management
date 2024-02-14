@@ -23,7 +23,8 @@
           <div class="card__header__title">
             <h3>Version {{ eventWithFormControl.deploymentEvent.properties[DEPLOYMENT_NUMBER_PROPERTY] }}</h3>
             <p id="subtitle">
-              This is the JSON API definition of version {{ eventWithFormControl.deploymentEvent.properties[DEPLOYMENT_NUMBER_PROPERTY] }}
+              This is the JSON API definition of
+              version {{ eventWithFormControl.deploymentEvent.properties[DEPLOYMENT_NUMBER_PROPERTY] }}
             </p>
           </div>
           <div>
@@ -39,11 +40,17 @@
           <p id="user"><b>User:</b> {{ eventWithFormControl.deploymentEvent.initiator.displayName }}</p>
           <p id="label"><b>Label:</b> {{ eventWithFormControl.deploymentEvent.properties[LABEL_PROPERTY] }}</p>
         </div>
-        <mat-form-field class="card__codeblock">
-          <mat-label>JSON</mat-label>
-          <gio-monaco-editor gioMonacoEditorFormField [languageConfig]="languageConfig" [formControl]="eventWithFormControl.control">
-          </gio-monaco-editor>
-        </mat-form-field>
+        <div class="card__codeblock">
+          <mat-form-field class="card__codeblock__form">
+            <mat-label>JSON</mat-label>
+            <gio-monaco-editor gioMonacoEditorFormField [languageConfig]="languageConfig"
+                               [formControl]="eventWithFormControl.control"
+                              [disableMiniMap]="true">
+            </gio-monaco-editor>
+          </mat-form-field>
+          <gio-clipboard-copy-icon class="card__codeblock__copy-to-clipboard"
+                                   [contentToCopy]="eventWithFormControl.control.getRawValue()"></gio-clipboard-copy-icon>
+        </div>
       </div>
     </ng-container>
   </mat-card-content>

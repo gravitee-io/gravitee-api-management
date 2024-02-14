@@ -21,6 +21,7 @@ import { isEqual } from 'lodash';
 
 import { SearchApiEventParam } from '../../../entities/management-api-v2';
 import { ApiEventsV2Service } from '../../../services-ngx/api-events-v2.service';
+import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 
 const INITIAL_SEARCH_PARAM: SearchApiEventParam = {
   page: 1,
@@ -45,7 +46,13 @@ export class ApiHistoryV4Component {
     }),
   );
 
-  constructor(private readonly eventsService: ApiEventsV2Service, private readonly activatedRoute: ActivatedRoute) {}
+  protected currentAPI$ = this.apiService.getLastApiFetch(this.apiId);
+
+  constructor(
+    private readonly eventsService: ApiEventsV2Service,
+    private readonly apiService: ApiV2Service,
+    private readonly activatedRoute: ActivatedRoute,
+  ) {}
 
   protected paginationChange(searchParam: SearchApiEventParam) {
     this.filter$.next({ ...this.filter$.getValue(), page: searchParam.page, perPage: searchParam.perPage });

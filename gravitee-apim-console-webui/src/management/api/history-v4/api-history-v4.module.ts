@@ -21,7 +21,13 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { GioBannerModule, GioIconsModule, GioLoaderModule, GioMonacoEditorModule } from '@gravitee/ui-particles-angular';
+import {
+  GioBannerModule,
+  GioClipboardModule,
+  GioIconsModule,
+  GioLoaderModule,
+  GioMonacoEditorModule,
+} from '@gravitee/ui-particles-angular';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule } from '@angular/material/paginator';
@@ -29,15 +35,22 @@ import { RouterLink } from '@angular/router';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
 
+import { ApiHistoryV4DeploymentCompareComponent } from './deployment-compare/api-history-v4-deployment-compare.component';
 import { ApiHistoryV4DeploymentInfoComponent } from './deployment-info/api-history-v4-deployment-info.component';
 import { ApiHistoryV4DeploymentsTableComponent } from './deployments-table/api-history-v4-deployments-table.component';
 import { ApiHistoryV4Component } from './api-history-v4.component';
 
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
+import { GioDiffModule } from '../../../shared/components/gio-diff/gio-diff.module';
 
 @NgModule({
-  declarations: [ApiHistoryV4Component, ApiHistoryV4DeploymentsTableComponent, ApiHistoryV4DeploymentInfoComponent],
+  declarations: [
+    ApiHistoryV4Component,
+    ApiHistoryV4DeploymentsTableComponent,
+    ApiHistoryV4DeploymentInfoComponent,
+    ApiHistoryV4DeploymentCompareComponent,
+  ],
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -59,6 +72,8 @@ import { GioPermissionModule } from '../../../shared/components/gio-permission/g
     GioMonacoEditorModule,
     RouterLink,
     GioLoaderModule,
+    GioDiffModule,
+    GioClipboardModule,
   ],
 })
 export class ApiHistoryV4Module {}
