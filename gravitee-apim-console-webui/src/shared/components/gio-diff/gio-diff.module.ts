@@ -15,14 +15,23 @@
  */
 import { CommonModule } from '@angular/common';
 import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { GioClipboardModule } from '@gravitee/ui-particles-angular';
+import { GioClipboardModule, GioMonacoEditorModule } from '@gravitee/ui-particles-angular';
+import { MatFormFieldModule } from '@angular/material/form-field';
 
 import { GioDiffComponent } from './gio-diff.component';
 
 @NgModule({
-  imports: [CommonModule, FormsModule, MatButtonToggleModule, GioClipboardModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatButtonToggleModule,
+    GioClipboardModule,
+    GioMonacoEditorModule,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+  ],
   declarations: [GioDiffComponent],
   exports: [GioDiffComponent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
