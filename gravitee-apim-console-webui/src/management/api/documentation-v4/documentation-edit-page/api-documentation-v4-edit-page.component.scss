@@ -10,7 +10,7 @@ $typography: map.get(gio.$mat-legacy-theme, typography);
 
 .header {
   display: grid;
-  grid-template-columns: 6fr 1fr;
+  grid-template-columns: 6fr 1.3fr;
   grid-template-rows: auto auto;
   grid-template-areas:
     'title actions'
@@ -44,19 +44,15 @@ $typography: map.get(gio.$mat-legacy-theme, typography);
   }
 }
 
-.mat-card {
-  padding: 0;
-}
-
 .stepper {
   border: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10');
 
   &__content {
     padding-bottom: 16px;
-    .mat-form-field {
+    .mat-mdc-form-field {
       width: 100%;
     }
-    .mat-radio-group {
+    .mat-mdc-radio-group {
       width: 100%;
     }
   }

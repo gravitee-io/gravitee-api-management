@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 import { NgModule } from '@angular/core';
-import { MatLegacyCardModule as MatCardModule } from '@angular/material/legacy-card';
+import { MatCardModule } from '@angular/material/card';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { GioFormFilePickerModule, GioIconsModule, GioMonacoEditorModule, GioRadioButtonModule } from '@gravitee/ui-particles-angular';
-import { MatLegacyButtonModule as MatButtonModule } from '@angular/material/legacy-button';
+import { MatButtonModule } from '@angular/material/button';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { MatLegacyInputModule as MatInputModule } from '@angular/material/legacy-input';
-import { MatLegacyRadioModule as MatRadioModule } from '@angular/material/legacy-radio';
-import { MatLegacyDialogModule } from '@angular/material/legacy-dialog';
+import { MatInputModule } from '@angular/material/input';
+import { MatRadioModule } from '@angular/material/radio';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatStepperModule } from '@angular/material/stepper';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatTableModule } from '@angular/material/table';
 import { MarkdownModule } from 'ngx-markdown';
-import { MatLegacySnackBarModule as MatSnackBarModule } from '@angular/material/legacy-snack-bar';
-import { MatLegacyTooltipModule as MatTooltipModule } from '@angular/material/legacy-tooltip';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterModule } from '@angular/router';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { ApiDocumentationV4EmptyStateComponent } from './components/documentation-empty-state/api-documentation-v4-empty-state.component';
 import { ApiDocumentationV4ListNavigationHeaderComponent } from './components/documentation-list-navigation-header/api-documentation-v4-list-navigation-header.component';
@@ -74,12 +74,12 @@ import { GioSwaggerUiModule } from '../../../components/documentation/gio-swagge
     MatButtonModule,
     MatInputModule,
     MatRadioModule,
-    MatLegacyDialogModule,
     MatDialogModule,
     MatStepperModule,
     MatButtonToggleModule,
     MatTableModule,
     MatSnackBarModule,
+    MatLegacySnackBarModule,
     MatTooltipModule,
 
     MarkdownModule.forRoot(),

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
-import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 import { MatMenuHarness } from '@angular/material/menu/testing';
 

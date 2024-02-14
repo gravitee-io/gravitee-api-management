@@ -7,7 +7,3 @@ $typography: map.get(gio.$mat-legacy-theme, typography);
 :host {
   @include gio-layout.gio-responsive-content-container;
 }
-
-.mat-card {
-  padding: 0;
-}
