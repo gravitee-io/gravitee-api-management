@@ -19,8 +19,8 @@ import * as moment from 'moment';
 import { ActivatedRoute, Router } from '@angular/router';
 import { assign, forEach } from 'lodash';
 
-import { ApiService, LogsQuery } from '../../../../services/api.service';
-import UserService from '../../../../services/user.service';
+import { ApiService, LogsQuery } from '../../../services/api.service';
+import UserService from '../../../services/user.service';
 
 class ApiHealthcheckDashboardControllerAjs {
   public activatedRoute: ActivatedRoute;
