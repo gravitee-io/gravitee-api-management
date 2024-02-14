@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
-import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
-import { MatLegacyTabHarness as MatTabHarness } from '@angular/material/legacy-tabs/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatTabHarness } from '@angular/material/tabs/testing';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 
 import { ApiEndpointGroupGeneralHarness } from './general/api-endpoint-group-general.harness';

@@ -15,9 +15,9 @@
  */
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatStepHarness } from '@angular/material/stepper/testing';
-import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 import { DivHarness } from '@gravitee/ui-particles-angular/testing';
-import { MatLegacyInputHarness as MatInputHarness } from '@angular/material/legacy-input/testing';
+import { MatInputHarness } from '@angular/material/input/testing';
 
 import { ApiEndpointGroupGeneralHarness } from '../general/api-endpoint-group-general.harness';
 import { GioConnectorRadioListHarness } from '../../../../../shared/components/gio-connector-list-option/gio-connector-radio-list.harness';

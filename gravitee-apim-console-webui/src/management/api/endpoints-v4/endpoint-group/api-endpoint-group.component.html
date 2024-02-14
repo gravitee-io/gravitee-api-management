@@ -15,31 +15,31 @@
     limitations under the License.
 
 -->
+
 <div class="back-button">
-  <gio-go-back-button [routerLink]="'..'"></gio-go-back-button>
-  Go back to endpoint groups
+  <a mat-button [routerLink]="'..'"><mat-icon svgIcon="gio:arrow-left"></mat-icon>Go back to your endpoints</a>
 </div>
 <form *ngIf="groupForm" autocomplete="off" gioFormFocusInvalid [formGroup]="groupForm">
   <mat-card class="endpoint-group-card">
-    <mat-tab-group animationDuration="0ms">
-      <mat-tab label="General" *ngIf="generalForm">
-        <!-- General tab content -->
-        <div class="tab-body-wrapper">
-          <mat-card>
+    <mat-card-content>
+      <mat-tab-group animationDuration="0ms">
+        <mat-tab label="General" *ngIf="generalForm">
+          <!-- General tab content -->
+          <div class="tab-body-wrapper">
             <api-endpoint-group-general [generalForm]="generalForm"></api-endpoint-group-general>
-          </mat-card>
-        </div>
-      </mat-tab>
-      <mat-tab label="Configuration" *ngIf="configurationForm && endpointGroup.type != 'mock'">
-        <!-- Configuration tab content -->
-        <div class="tab-body-wrapper">
-          <api-endpoint-group-configuration
-            [configurationForm]="configurationForm"
-            [endpointGroupType]="endpointGroup.type"
-          ></api-endpoint-group-configuration>
-        </div>
-      </mat-tab>
-    </mat-tab-group>
+          </div>
+        </mat-tab>
+        <mat-tab label="Configuration" *ngIf="configurationForm && endpointGroup.type != 'mock'">
+          <!-- Configuration tab content -->
+          <div class="tab-body-wrapper">
+            <api-endpoint-group-configuration
+              [configurationForm]="configurationForm"
+              [endpointGroupType]="endpointGroup.type"
+            ></api-endpoint-group-configuration>
+          </div>
+        </mat-tab>
+      </mat-tab-group>
+    </mat-card-content>
   </mat-card>
 
   <gio-save-bar
