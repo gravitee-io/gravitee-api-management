@@ -17,11 +17,11 @@
 -->
 <form *ngIf="corsForm" [formGroup]="corsForm" autocomplete="off" gioFormFocusInvalid>
   <mat-card>
-    <gio-banner-warning *ngIf="!hasEntrypointsSupportingCors">
-      CORS settings may not be applied properly as the configured entrypoints are not supporting them.
-      <div gioBannerBody>Entrypoints supporting CORS are: {{ entrypointsNameSupportingCors }}.</div>
-    </gio-banner-warning>
     <mat-card-content>
+      <gio-banner-warning *ngIf="!hasEntrypointsSupportingCors">
+        CORS settings may not be applied properly as the configured entrypoints are not supporting them.
+        <div gioBannerBody>Entrypoints supporting CORS are: {{ entrypointsNameSupportingCors }}.</div>
+      </gio-banner-warning>
       <!-- Enable Cors -->
       <gio-form-slide-toggle class="cors-card__enable-toggle">
         <gio-form-label>Enable CORS</gio-form-label>
@@ -79,7 +79,9 @@
       <!-- Allow Headers -->
       <div class="cors-card__allow-headers" [class.disabled]="!corsForm.get('enabled').value">
         <div class="cors-card__allow-headers__label">Access-Control-Allow-Headers</div>
-        <p>Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request.</p>
+        <p class="cors-card__allow-headers__hint">
+          Used in response to a preflight request to indicate which HTTP headers can be used when making the actual request.
+        </p>
         <mat-form-field class="cors-card__allow-headers__form-field">
           <mat-label>Allow-Headers</mat-label>
           <gio-form-tags-input
