@@ -161,7 +161,7 @@
         <!-- HTTP mock -->
         <dependency>
             <groupId>org.wiremock</groupId>
-            <artifactId>wiremock</artifactId>
+            <artifactId>wiremock-standalone</artifactId>
             <scope>test</scope>
         </dependency>
         <!-- Used to instantiate a Buffer through BufferFactory -->
