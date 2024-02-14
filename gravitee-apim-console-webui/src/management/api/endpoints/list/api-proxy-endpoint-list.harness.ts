@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import { ComponentHarness, HarnessLoader, parallel } from '@angular/cdk/testing';
-import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
-import { MatLegacyTableHarness as MatTableHarness } from '@angular/material/legacy-table/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatTableHarness } from '@angular/material/table/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { MatIconHarness } from '@angular/material/icon/testing';
 

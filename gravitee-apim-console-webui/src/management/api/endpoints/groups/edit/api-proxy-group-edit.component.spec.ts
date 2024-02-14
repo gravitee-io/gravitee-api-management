@@ -19,11 +19,11 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
-import { MatLegacyInputHarness as MatInputHarness } from '@angular/material/legacy-input/testing';
+import { MatInputHarness } from '@angular/material/input/testing';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
-import { MatLegacySelectHarness as MatSelectHarness } from '@angular/material/legacy-select/testing';
-import { MatLegacyTabHarness as MatTabHarness } from '@angular/material/legacy-tabs/testing';
-import { MatLegacySlideToggleHarness as MatSlideToggleHarness } from '@angular/material/legacy-slide-toggle/testing';
+import { MatSelectHarness } from '@angular/material/select/testing';
+import { MatTabHarness } from '@angular/material/tabs/testing';
+import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { ActivatedRoute } from '@angular/router';
 
 import { ApiProxyGroupEditComponent } from './api-proxy-group-edit.component';

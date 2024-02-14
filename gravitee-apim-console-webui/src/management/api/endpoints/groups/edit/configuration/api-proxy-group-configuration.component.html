@@ -16,5 +16,7 @@
 
 -->
 <mat-card>
-  <endpoint-http-config *ngIf="groupConfigurationFormGroup" [httpConfigFormGroup]="groupConfigurationFormGroup"></endpoint-http-config>
+  <mat-card-content>
+    <endpoint-http-config *ngIf="groupConfigurationFormGroup" [httpConfigFormGroup]="groupConfigurationFormGroup"></endpoint-http-config>
+  </mat-card-content>
 </mat-card>

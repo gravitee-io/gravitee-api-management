@@ -17,19 +17,21 @@
 -->
 <ng-container *ngIf="configurationFormGroup" [formGroup]="configurationFormGroup">
   <mat-card>
-    <gio-form-slide-toggle class="card__endpoint-configuration__inherit">
-      <gio-form-label>Inherit configuration</gio-form-label>
-      Inherit endpoint configuration from group.
-      <mat-slide-toggle
-        gioFormSlideToggle
-        formControlName="inherit"
-        aria-label="Inherit configuration"
-        name="enableEndpointConfiguration"
-      ></mat-slide-toggle>
-    </gio-form-slide-toggle>
+    <mat-card-content>
+      <gio-form-slide-toggle class="card__endpoint-configuration__inherit">
+        <gio-form-label>Inherit configuration</gio-form-label>
+        Inherit endpoint configuration from group.
+        <mat-slide-toggle
+          gioFormSlideToggle
+          formControlName="inherit"
+          aria-label="Inherit configuration"
+          name="enableEndpointConfiguration"
+        ></mat-slide-toggle>
+      </gio-form-slide-toggle>
 
-    <div *ngIf="!configurationFormGroup.get('inherit').value">
-      <endpoint-http-config [httpConfigFormGroup]="$any(configurationFormGroup.get('configuration'))"></endpoint-http-config>
-    </div>
+      <div *ngIf="!configurationFormGroup.get('inherit').value">
+        <endpoint-http-config [httpConfigFormGroup]="$any(configurationFormGroup.get('configuration'))"></endpoint-http-config>
+      </div>
+    </mat-card-content>
   </mat-card>
 </ng-container>

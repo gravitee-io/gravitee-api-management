@@ -17,75 +17,77 @@
 -->
 <ng-container *ngIf="!!generalForm" [formGroup]="generalForm">
   <mat-card>
-    <div class="card__group-endpoint__row">
-      <!-- Type -->
-      <div class="card__group-endpoint__row__type">
-        <div class="card__group-endpoint__row__type__label">Type</div>
-        <mat-form-field class="card__group-endpoint__row__type__form-field">
-          <mat-label>Type</mat-label>
-          <mat-select aria-label="Endpoint type" formControlName="type" required>
-            <mat-option *ngFor="let st of supportedTypes" [value]="st">{{ st }}</mat-option>
+    <mat-card-content>
+      <div class="card__group-endpoint__row">
+        <!-- Type -->
+        <div class="card__group-endpoint__row__type">
+          <div class="card__group-endpoint__row__type__label">Type</div>
+          <mat-form-field class="card__group-endpoint__row__type__form-field">
+            <mat-label>Type</mat-label>
+            <mat-select aria-label="Endpoint type" formControlName="type" required>
+              <mat-option *ngFor="let st of supportedTypes" [value]="st">{{ st }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- Name -->
+        <div class="card__group-endpoint__row__name">
+          <div class="card__group-endpoint__row__name__label">Name</div>
+          <mat-form-field class="card__group-endpoint__row__name__form-field">
+            <mat-label>Name</mat-label>
+            <input type="text" aria-label="Endpoint name input" matInput formControlName="name" required />
+            <mat-error *ngIf="generalForm.get('name').hasError('required')"> Name is required. </mat-error>
+            <mat-error *ngIf="generalForm.get('name').hasError('pattern')">
+              Endpoint name does not support <code>:</code> in its name.
+            </mat-error>
+            <mat-error *ngIf="generalForm.get('name').hasError('isUnique')"> This name is used by another endpoint. </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <!-- Target -->
+      <div class="card__group-endpoint__row__target">
+        <div class="card__group-endpoint__row__target__label">Target</div>
+        <mat-form-field class="card__group-endpoint__row__target__form-field">
+          <mat-label>Target</mat-label>
+          <input type="text" aria-label="Endpoint target input" matInput formControlName="target" required />
+          <mat-error *ngIf="generalForm.get('target').hasError('required')"> Target is required. </mat-error>
+        </mat-form-field>
+      </div>
+
+      <!-- Weight -->
+      <div class="card__group-endpoint__row__weight">
+        <div class="card__group-endpoint__row__weight__label">Weight</div>
+        <mat-form-field class="card__group-endpoint__row__weight__form-field">
+          <mat-label>Weight</mat-label>
+          <input type="number" aria-label="Endpoint weight input" matInput formControlName="weight" required />
+          <mat-error *ngIf="generalForm.get('weight').hasError('required')"> Weight is required. </mat-error>
+        </mat-form-field>
+      </div>
+
+      <!-- Tenants -->
+      <div class="card__group-endpoint__row__tenant">
+        <div class="card__group-endpoint__row__tenant__label">Tenants</div>
+        <mat-form-field class="card__group-endpoint__row__tenant__form-field">
+          <mat-label>Tenants</mat-label>
+          <mat-select aria-label="Endpoint tenants" formControlName="tenants" multiple>
+            <mat-option *ngFor="let tenant of tenants" [value]="tenant.id">
+              <span class="card__group-endpoint__row__tenant__name" [matTooltip]="tenant.description">{{ tenant.name }}</span>
+            </mat-option>
           </mat-select>
         </mat-form-field>
       </div>
 
-      <!-- Name -->
-      <div class="card__group-endpoint__row__name">
-        <div class="card__group-endpoint__row__name__label">Name</div>
-        <mat-form-field class="card__group-endpoint__row__name__form-field">
-          <mat-label>Name</mat-label>
-          <input type="text" aria-label="Endpoint name input" matInput formControlName="name" required />
-          <mat-error *ngIf="generalForm.get('name').hasError('required')"> Name is required. </mat-error>
-          <mat-error *ngIf="generalForm.get('name').hasError('pattern')">
-            Endpoint name does not support <code>:</code> in its name.
-          </mat-error>
-          <mat-error *ngIf="generalForm.get('name').hasError('isUnique')"> This name is used by another endpoint. </mat-error>
-        </mat-form-field>
+      <!-- Secondary endpoint -->
+      <div class="card__group-endpoint__row__backup">
+        <div class="card__group-endpoint__row__backup__label">Secondary endpoint</div>
+        <mat-checkbox class="card__group-endpoint__row__backup__checkbox" aria-label="Secondary endpoint checkbox" formControlName="backup">
+          <span class="card__group-endpoint__row__backup__checkbox__label">
+            A secondary endpoint is not included in load-balancer pool and can only be selected to handle requests when all primary
+            endpoints are marked as "DOWN" by health-check service.</span
+          >
+        </mat-checkbox>
       </div>
-    </div>
-
-    <!-- Target -->
-    <div class="card__group-endpoint__row__target">
-      <div class="card__group-endpoint__row__target__label">Target</div>
-      <mat-form-field class="card__group-endpoint__row__target__form-field">
-        <mat-label>Target</mat-label>
-        <input type="text" aria-label="Endpoint target input" matInput formControlName="target" required />
-        <mat-error *ngIf="generalForm.get('target').hasError('required')"> Target is required. </mat-error>
-      </mat-form-field>
-    </div>
-
-    <!-- Weight -->
-    <div class="card__group-endpoint__row__weight">
-      <div class="card__group-endpoint__row__weight__label">Weight</div>
-      <mat-form-field class="card__group-endpoint__row__weight__form-field">
-        <mat-label>Weight</mat-label>
-        <input type="number" aria-label="Endpoint weight input" matInput formControlName="weight" required />
-        <mat-error *ngIf="generalForm.get('weight').hasError('required')"> Weight is required. </mat-error>
-      </mat-form-field>
-    </div>
-
-    <!-- Tenants -->
-    <div class="card__group-endpoint__row__tenant">
-      <div class="card__group-endpoint__row__tenant__label">Tenants</div>
-      <mat-form-field class="card__group-endpoint__row__tenant__form-field">
-        <mat-label>Tenants</mat-label>
-        <mat-select aria-label="Endpoint tenants" formControlName="tenants" multiple>
-          <mat-option *ngFor="let tenant of tenants" [value]="tenant.id">
-            <span class="card__group-endpoint__row__tenant__name" [matTooltip]="tenant.description">{{ tenant.name }}</span>
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-    </div>
-
-    <!-- Secondary endpoint -->
-    <div class="card__group-endpoint__row__backup">
-      <div class="card__group-endpoint__row__backup__label">Secondary endpoint</div>
-      <mat-checkbox class="card__group-endpoint__row__backup__checkbox" aria-label="Secondary endpoint checkbox" formControlName="backup">
-        <span class="card__group-endpoint__row__backup__checkbox__label">
-          A secondary endpoint is not included in load-balancer pool and can only be selected to handle requests when all primary endpoints
-          are marked as "DOWN" by health-check service.</span
-        >
-      </mat-checkbox>
-    </div>
+    </mat-card-content>
   </mat-card>
 </ng-container>
