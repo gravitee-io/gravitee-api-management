@@ -16,29 +16,31 @@
 
 -->
 <mat-card class="deployment-configuration">
-  <div class="deployment-configuration__header">
-    <div class="deployment-configuration__header__title">Deployment configuration</div>
-    <div class="deployment-configuration__header__subtitle">Control where your API is deployed</div>
-  </div>
+  <mat-card-content>
+    <div class="deployment-configuration__header">
+      <div class="deployment-configuration__header__title">Deployment configuration</div>
+      <div class="deployment-configuration__header__subtitle">Control where your API is deployed</div>
+    </div>
 
-  <div class="deployment-configuration__content">
-    <form *ngIf="deploymentsForm" [formGroup]="deploymentsForm" autocomplete="off">
-      <div>
-        <div class="deployment-configuration__form-field__label">Sharding tags</div>
-        <div class="deployment-configuration__form-field__description">
-          Choose the sharding tag that you want to assign to the API. This will dictate where it is deployed. Sharding tags are configured
-          at the Organization level.
+    <div class="deployment-configuration__content">
+      <form *ngIf="deploymentsForm" [formGroup]="deploymentsForm" autocomplete="off">
+        <div>
+          <div class="deployment-configuration__form-field__label">Sharding tags</div>
+          <div class="deployment-configuration__form-field__description">
+            Choose the sharding tag that you want to assign to the API. This will dictate where it is deployed. Sharding tags are configured
+            at the Organization level.
+          </div>
+          <mat-form-field class="deployment-configuration__form-field">
+            <mat-label>Sharding tags</mat-label>
+            <mat-select formControlName="tags" multiple>
+              <mat-option *ngFor="let tag of shardingTags" [value]="tag.id"
+                >{{ tag.name }}<span *ngIf="tag.description"> - {{ tag.description }}</span></mat-option
+              >
+            </mat-select>
+          </mat-form-field>
         </div>
-        <mat-form-field class="deployment-configuration__form-field">
-          <mat-label>Sharding tags</mat-label>
-          <mat-select formControlName="tags" multiple>
-            <mat-option *ngFor="let tag of shardingTags" [value]="tag.id"
-              >{{ tag.name }}<span *ngIf="tag.description"> - {{ tag.description }}</span></mat-option
-            >
-          </mat-select>
-        </mat-form-field>
-      </div>
-    </form>
-  </div>
+      </form>
+    </div>
+  </mat-card-content>
 </mat-card>
 <gio-save-bar [form]="deploymentsForm" [formInitialValues]="initialDeploymentsFormValue" (submitted)="onSubmit()"></gio-save-bar>
