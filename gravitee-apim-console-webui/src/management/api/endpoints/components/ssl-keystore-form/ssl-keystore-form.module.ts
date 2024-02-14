@@ -16,9 +16,9 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
-import { MatLegacyFormFieldModule as MatFormFieldModule } from '@angular/material/legacy-form-field';
-import { MatLegacySelectModule as MatSelectModule } from '@angular/material/legacy-select';
-import { MatLegacyInputModule as MatInputModule } from '@angular/material/legacy-input';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { MatInputModule } from '@angular/material/input';
 
 import { SslKeyStoreFormComponent } from './ssl-keystore-form.component';
 

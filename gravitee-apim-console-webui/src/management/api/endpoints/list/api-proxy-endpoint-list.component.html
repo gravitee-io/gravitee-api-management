@@ -26,159 +26,164 @@
 
 <div *ngIf="endpointGroupsTableData">
   <mat-card class="endpoint-list__card" *ngFor="let endpointGroupData of endpointGroupsTableData; let i = index">
-    <div class="endpoint-list__header">
-      <h2>{{ endpointGroupData.name }}</h2>
-      <div>
-        <ng-container *ngIf="!isReadOnly; else readOnlyGroupActions">
-          <button
-            class="endpoint-list__action"
-            *gioPermission="{ anyOf: ['api-definition-u'] }"
-            mat-raised-button
-            [routerLink]="['./', endpointGroupData.name, '']"
-            aria-label="Add new endpoint"
-            matTooltip="Add new endpoint"
-          >
-            <mat-icon svgIcon="gio:plus"></mat-icon> Add new endpoint
-          </button>
-          <button
-            class="endpoint-list__action"
-            *gioPermission="{ anyOf: ['api-definition-u'] }"
-            mat-raised-button
-            [routerLink]="[endpointGroupData.name]"
-            aria-label="Edit group"
-            matTooltip="Edit group"
-          >
-            <mat-icon svgIcon="gio:edit-pencil"></mat-icon> Edit group
-          </button>
-          <button
-            class="endpoint-list__action"
-            *gioPermission="{ anyOf: ['api-definition-u'] }"
-            mat-raised-button
-            (click)="deleteGroup(endpointGroupData.name)"
-            aria-label="Delete group"
-            matTooltip="Delete group"
-          >
-            <mat-icon svgIcon="gio:trash"></mat-icon> Delete group
-          </button>
-        </ng-container>
-        <ng-template #readOnlyGroupActions>
-          <button
-            class="endpoint-list__action"
-            mat-raised-button
-            color="primary"
-            aria-label="Button to open group detail"
-            matTooltip="Open group detail"
-            [routerLink]="[endpointGroupData.name]"
-          >
-            <mat-icon svgIcon="gio:eye-empty"></mat-icon> Open group detail
-          </button>
-        </ng-template>
+    <mat-card-content>
+      <div class="endpoint-list__header">
+        <h2>{{ endpointGroupData.name }}</h2>
+        <div>
+          <ng-container *ngIf="!isReadOnly; else readOnlyGroupActions">
+            <button
+              class="endpoint-list__action"
+              *gioPermission="{ anyOf: ['api-definition-u'] }"
+              mat-raised-button
+              [routerLink]="['./', endpointGroupData.name, '']"
+              aria-label="Add new endpoint"
+              matTooltip="Add new endpoint"
+            >
+              <mat-icon svgIcon="gio:plus"></mat-icon> Add new endpoint
+            </button>
+            <button
+              class="endpoint-list__action"
+              *gioPermission="{ anyOf: ['api-definition-u'] }"
+              mat-raised-button
+              [routerLink]="[endpointGroupData.name]"
+              aria-label="Edit group"
+              matTooltip="Edit group"
+            >
+              <mat-icon svgIcon="gio:edit-pencil"></mat-icon> Edit group
+            </button>
+            <button
+              class="endpoint-list__action"
+              *gioPermission="{ anyOf: ['api-definition-u'] }"
+              mat-raised-button
+              (click)="deleteGroup(endpointGroupData.name)"
+              aria-label="Delete group"
+              matTooltip="Delete group"
+            >
+              <mat-icon svgIcon="gio:trash"></mat-icon> Delete group
+            </button>
+          </ng-container>
+          <ng-template #readOnlyGroupActions>
+            <button
+              class="endpoint-list__action"
+              mat-raised-button
+              color="primary"
+              aria-label="Button to open group detail"
+              matTooltip="Open group detail"
+              [routerLink]="[endpointGroupData.name]"
+            >
+              <mat-icon svgIcon="gio:eye-empty"></mat-icon> Open group detail
+            </button>
+          </ng-template>
+        </div>
       </div>
-    </div>
 
-    <table
-      mat-table
-      [dataSource]="endpointGroupData.endpoints"
-      [attr.id]="'endpointGroupsTable-' + i"
-      aria-label="Endpoint group table"
-      class="endpoint-list__table"
-    >
-      <!-- Name Column -->
-      <ng-container matColumnDef="name">
-        <th mat-header-cell *matHeaderCellDef id="name" width="20%">Name</th>
-        <td mat-cell *matCellDef="let element">
-          {{ element.name }}
-        </td>
-      </ng-container>
+      <table
+        mat-table
+        [dataSource]="endpointGroupData.endpoints"
+        [attr.id]="'endpointGroupsTable-' + i"
+        aria-label="Endpoint group table"
+        class="endpoint-list__table"
+      >
+        <!-- Name Column -->
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef id="name" width="20%">Name</th>
+          <td mat-cell *matCellDef="let element">
+            {{ element.name }}
+          </td>
+        </ng-container>
 
-      <!-- Health Check Column -->
-      <ng-container matColumnDef="healthCheck">
-        <th mat-header-cell *matHeaderCellDef id="healthCheck" width="10%"></th>
-        <td mat-cell *matCellDef="let element">
-          <div class="endpoint-list__table__hc">
-            <span *ngIf="element.isBackup" matTooltip="Secondary endpoint" class="gio-badge-neutral">Secondary</span>
-            <span *ngIf="element.healthcheck === 'inherit-enable'" matTooltip="Health-check is enabled (inherit)" class="gio-badge-neutral"
-              ><mat-icon svgIcon="gio:heart"></mat-icon
-            ></span>
-            <span *ngIf="element.healthcheck === 'enable'" matTooltip="Health-check is enabled locally" class="gio-badge-primary"
-              ><mat-icon svgIcon="gio:heart"></mat-icon
-            ></span>
-            <span *ngIf="element.inherit" matTooltip="Configuration inherited" class="gio-badge-neutral"
-              ><mat-icon svgIcon="gio:network-alt"></mat-icon
-            ></span>
-          </div>
-        </td>
-      </ng-container>
+        <!-- Health Check Column -->
+        <ng-container matColumnDef="healthCheck">
+          <th mat-header-cell *matHeaderCellDef id="healthCheck" width="10%"></th>
+          <td mat-cell *matCellDef="let element">
+            <div class="endpoint-list__table__hc">
+              <span *ngIf="element.isBackup" matTooltip="Secondary endpoint" class="gio-badge-neutral">Secondary</span>
+              <span
+                *ngIf="element.healthcheck === 'inherit-enable'"
+                matTooltip="Health-check is enabled (inherit)"
+                class="gio-badge-neutral"
+                ><mat-icon svgIcon="gio:heart"></mat-icon
+              ></span>
+              <span *ngIf="element.healthcheck === 'enable'" matTooltip="Health-check is enabled locally" class="gio-badge-primary"
+                ><mat-icon svgIcon="gio:heart"></mat-icon
+              ></span>
+              <span *ngIf="element.inherit" matTooltip="Configuration inherited" class="gio-badge-neutral"
+                ><mat-icon svgIcon="gio:network-alt"></mat-icon
+              ></span>
+            </div>
+          </td>
+        </ng-container>
 
-      <!-- Target Column -->
-      <ng-container matColumnDef="target">
-        <th mat-header-cell *matHeaderCellDef id="target" width="25%">Target</th>
-        <td mat-cell *matCellDef="let element">
-          {{ element.target }}
-        </td>
-      </ng-container>
+        <!-- Target Column -->
+        <ng-container matColumnDef="target">
+          <th mat-header-cell *matHeaderCellDef id="target" width="25%">Target</th>
+          <td mat-cell *matCellDef="let element">
+            {{ element.target }}
+          </td>
+        </ng-container>
 
-      <!-- Type Column -->
-      <ng-container matColumnDef="type">
-        <th mat-header-cell *matHeaderCellDef id="type" width="20%">Type</th>
-        <td mat-cell *matCellDef="let element">
-          {{ element.type }}
-        </td>
-      </ng-container>
+        <!-- Type Column -->
+        <ng-container matColumnDef="type">
+          <th mat-header-cell *matHeaderCellDef id="type" width="20%">Type</th>
+          <td mat-cell *matCellDef="let element">
+            {{ element.type }}
+          </td>
+        </ng-container>
 
-      <!-- Weight Column -->
-      <ng-container matColumnDef="weight">
-        <th mat-header-cell *matHeaderCellDef id="weight" width="20%">Weight</th>
-        <td mat-cell *matCellDef="let element">
-          {{ element.weight }}
-        </td>
-      </ng-container>
+        <!-- Weight Column -->
+        <ng-container matColumnDef="weight">
+          <th mat-header-cell *matHeaderCellDef id="weight" width="20%">Weight</th>
+          <td mat-cell *matCellDef="let element">
+            {{ element.weight }}
+          </td>
+        </ng-container>
 
-      <!-- Actions Column -->
-      <ng-container matColumnDef="actions">
-        <th mat-header-cell *matHeaderCellDef id="actions" width="1%"></th>
-        <td mat-cell *matCellDef="let element">
-          <div class="endpoint-list__table__actions">
-            <ng-container *ngIf="!isReadOnly; else readOnlyEndpointActions">
-              <button
-                mat-icon-button
-                aria-label="Button to edit an endpoint"
-                matTooltip="Edit endpoint"
-                [routerLink]="[endpointGroupData.name, element.name]"
-              >
-                <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
-              </button>
-              <button
-                *gioPermission="{ anyOf: ['api-definition-u'] }"
-                mat-icon-button
-                (click)="deleteEndpoint(endpointGroupData.name, element.name)"
-                aria-label="Delete endpoint"
-                matTooltip="Delete endpoint"
-              >
-                <mat-icon svgIcon="gio:trash"></mat-icon>
-              </button>
-            </ng-container>
-            <ng-template #readOnlyEndpointActions>
-              <button
-                mat-icon-button
-                aria-label="Button to open endpoint detail"
-                matTooltip="Open endpoint detail"
-                [routerLink]="[endpointGroupData.name, element.name]"
-              >
-                <mat-icon svgIcon="gio:eye-empty"></mat-icon>
-              </button>
-            </ng-template>
-          </div>
-        </td>
-      </ng-container>
+        <!-- Actions Column -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef id="actions" width="1%"></th>
+          <td mat-cell *matCellDef="let element">
+            <div class="endpoint-list__table__actions">
+              <ng-container *ngIf="!isReadOnly; else readOnlyEndpointActions">
+                <button
+                  mat-icon-button
+                  aria-label="Button to edit an endpoint"
+                  matTooltip="Edit endpoint"
+                  [routerLink]="[endpointGroupData.name, element.name]"
+                >
+                  <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
+                </button>
+                <button
+                  *gioPermission="{ anyOf: ['api-definition-u'] }"
+                  mat-icon-button
+                  (click)="deleteEndpoint(endpointGroupData.name, element.name)"
+                  aria-label="Delete endpoint"
+                  matTooltip="Delete endpoint"
+                >
+                  <mat-icon svgIcon="gio:trash"></mat-icon>
+                </button>
+              </ng-container>
+              <ng-template #readOnlyEndpointActions>
+                <button
+                  mat-icon-button
+                  aria-label="Button to open endpoint detail"
+                  matTooltip="Open endpoint detail"
+                  [routerLink]="[endpointGroupData.name, element.name]"
+                >
+                  <mat-icon svgIcon="gio:eye-empty"></mat-icon>
+                </button>
+              </ng-template>
+            </div>
+          </td>
+        </ng-container>
 
-      <tr mat-header-row *matHeaderRowDef="endpointTableDisplayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: endpointTableDisplayedColumns"></tr>
+        <tr mat-header-row *matHeaderRowDef="endpointTableDisplayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: endpointTableDisplayedColumns"></tr>
 
-      <!-- Row shown when there is no data -->
-      <tr class="mat-row" *matNoDataRow>
-        <td class="mat-cell" [attr.colspan]="endpointTableDisplayedColumns.length">No Endpoints</td>
-      </tr>
-    </table>
+        <!-- Row shown when there is no data -->
+        <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+          <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="endpointTableDisplayedColumns.length">No Endpoints</td>
+        </tr>
+      </table>
+    </mat-card-content>
   </mat-card>
 </div>

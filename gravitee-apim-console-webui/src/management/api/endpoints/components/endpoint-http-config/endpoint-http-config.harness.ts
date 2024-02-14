@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 import { ComponentHarness, parallel } from '@angular/cdk/testing';
-import { MatLegacySelectHarness as MatSelectHarness } from '@angular/material/legacy-select/testing';
+import { MatSelectHarness } from '@angular/material/select/testing';
 import { keyBy, mapValues } from 'lodash';
-import { MatLegacySlideToggleHarness as MatSlideToggleHarness } from '@angular/material/legacy-slide-toggle/testing';
-import { MatLegacyInputHarness as MatInputHarness } from '@angular/material/legacy-input/testing';
+import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
+import { MatInputHarness } from '@angular/material/input/testing';
 import { GioFormHeadersHarness } from '@gravitee/ui-particles-angular';
 
 import { EndpointHttpConfigValue } from './endpoint-http-config.component';

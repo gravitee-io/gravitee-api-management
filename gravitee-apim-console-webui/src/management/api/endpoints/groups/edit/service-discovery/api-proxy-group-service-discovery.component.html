@@ -16,29 +16,31 @@
 
 -->
 <mat-card *ngIf="!!serviceDiscoveryForm && !!serviceDiscoveryItems" [formGroup]="serviceDiscoveryForm">
-  <gio-form-slide-toggle class="card__group-sd__enable">
-    <gio-form-label>Enabled service discovery</gio-form-label>
-    By enabling service discovery, endpoints will be dynamically added or removed (without downtime).
-    <mat-slide-toggle
-      gioFormSlideToggle
-      formControlName="enabled"
-      aria-label="Enable service discovery"
-      name="enableServiceDiscoveryConfiguration"
-    ></mat-slide-toggle>
-  </gio-form-slide-toggle>
+  <mat-card-content>
+    <gio-form-slide-toggle class="card__group-sd__enable">
+      <gio-form-label>Enabled service discovery</gio-form-label>
+      By enabling service discovery, endpoints will be dynamically added or removed (without downtime).
+      <mat-slide-toggle
+        gioFormSlideToggle
+        formControlName="enabled"
+        aria-label="Enable service discovery"
+        name="enableServiceDiscoveryConfiguration"
+      ></mat-slide-toggle>
+    </gio-form-slide-toggle>
 
-  <!-- Type -->
-  <div class="card__group-sd" *ngIf="serviceDiscoveryForm.get('enabled').value">
-    <div class="card__group-sd__type__label">Type</div>
-    <mat-form-field class="card__group-sd__type__form-field">
-      <mat-label>Type</mat-label>
-      <mat-select aria-label="Service discovery provider" formControlName="provider">
-        <mat-option *ngFor="let sd of serviceDiscoveryItems" [value]="sd.id">{{ sd.name }}</mat-option>
-      </mat-select>
-    </mat-form-field>
-  </div>
+    <!-- Type -->
+    <div class="card__group-sd" *ngIf="serviceDiscoveryForm.get('enabled').value">
+      <div class="card__group-sd__type__label">Type</div>
+      <mat-form-field class="card__group-sd__type__form-field">
+        <mat-label>Type</mat-label>
+        <mat-select aria-label="Service discovery provider" formControlName="provider">
+          <mat-option *ngFor="let sd of serviceDiscoveryItems" [value]="sd.id">{{ sd.name }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
 
-  <div class="card__group-sd" *ngIf="serviceDiscoveryForm.get('enabled').value && schema">
-    <gio-form-json-schema ngDefaultControl formControlName="configuration" [jsonSchema]="schema"> </gio-form-json-schema>
-  </div>
+    <div class="card__group-sd" *ngIf="serviceDiscoveryForm.get('enabled').value && schema">
+      <gio-form-json-schema ngDefaultControl formControlName="configuration" [jsonSchema]="schema"> </gio-form-json-schema>
+    </div>
+  </mat-card-content>
 </mat-card>

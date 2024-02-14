@@ -16,30 +16,32 @@
 
 -->
 <mat-card *ngIf="!!generalForm" [formGroup]="generalForm">
-  <!-- Name -->
-  <div class="card__group-name">
-    <div class="card__group-name__label">Name</div>
-    <mat-form-field class="card__group-name__form-field">
-      <mat-label>Name</mat-label>
-      <input type="text" aria-label="Group name input" matInput formControlName="name" required />
-      <mat-error *ngIf="generalForm.get('name').hasError('required')"> Name is required. </mat-error>
-      <mat-error *ngIf="generalForm.get('name').hasError('pattern')"> Group name does not support <code>:</code> in its name. </mat-error>
-      <mat-error *ngIf="generalForm.get('name').hasError('isUnique')"> This name is used by another endpoint group. </mat-error>
-    </mat-form-field>
-  </div>
+  <mat-card-content>
+    <!-- Name -->
+    <div class="card__group-name">
+      <div class="card__group-name__label">Name</div>
+      <mat-form-field class="card__group-name__form-field">
+        <mat-label>Name</mat-label>
+        <input type="text" aria-label="Group name input" matInput formControlName="name" required />
+        <mat-error *ngIf="generalForm.get('name').hasError('required')"> Name is required. </mat-error>
+        <mat-error *ngIf="generalForm.get('name').hasError('pattern')"> Group name does not support <code>:</code> in its name. </mat-error>
+        <mat-error *ngIf="generalForm.get('name').hasError('isUnique')"> This name is used by another endpoint group. </mat-error>
+      </mat-form-field>
+    </div>
 
-  <!-- Load balancing algorithm -->
-  <div class="card__group-lb">
-    <div class="card__group-lb__label">Load balancing algorithm</div>
-    <p class="card__group-lb__hint">
-      You can configure load balancing by creating a logical group of endpoints and specifying a load balancing algorithm for them.
-    </p>
-    <mat-form-field class="card__group-lb__form-field">
-      <mat-label>Load balancing algorithm</mat-label>
-      <mat-select aria-label="Load balancing algorithm" formControlName="loadBalancerType" required>
-        <mat-option *ngFor="let lb of loadBalancingValues | keyvalue" [value]="lb.value">{{ lb.value }}</mat-option>
-      </mat-select>
-      <mat-error *ngIf="generalForm.get('loadBalancerType').hasError('required')"> Load balancing algorithm is required. </mat-error>
-    </mat-form-field>
-  </div>
+    <!-- Load balancing algorithm -->
+    <div class="card__group-lb">
+      <div class="card__group-lb__label">Load balancing algorithm</div>
+      <p class="card__group-lb__hint">
+        You can configure load balancing by creating a logical group of endpoints and specifying a load balancing algorithm for them.
+      </p>
+      <mat-form-field class="card__group-lb__form-field">
+        <mat-label>Load balancing algorithm</mat-label>
+        <mat-select aria-label="Load balancing algorithm" formControlName="loadBalancerType" required>
+          <mat-option *ngFor="let lb of loadBalancingValues | keyvalue" [value]="lb.value">{{ lb.value }}</mat-option>
+        </mat-select>
+        <mat-error *ngIf="generalForm.get('loadBalancerType').hasError('required')"> Load balancing algorithm is required. </mat-error>
+      </mat-form-field>
+    </div>
+  </mat-card-content>
 </mat-card>
