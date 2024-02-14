@@ -22,14 +22,11 @@ import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-import fixtures.core.model.AuditFixtures;
 import fixtures.core.model.EventFixtures;
 import inmemory.EventQueryServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
-import io.gravitee.rest.api.management.v2.rest.model.Audit;
-import io.gravitee.rest.api.management.v2.rest.model.AuditsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.BaseUser;
 import io.gravitee.rest.api.management.v2.rest.model.Event;
 import io.gravitee.rest.api.management.v2.rest.model.EventsResponse;

@@ -17,18 +17,13 @@ package io.gravitee.rest.api.management.v2.rest.resource.api.event;
 
 import static io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo.computePaginationInfo;
 
-import io.gravitee.apim.core.api.model.ApiAuditQueryFilters;
-import io.gravitee.apim.core.audit.query_service.AuditEventQueryService;
-import io.gravitee.apim.core.audit.use_case.SearchApiAuditUseCase;
 import io.gravitee.apim.core.event.query_service.EventQueryService;
 import io.gravitee.apim.core.event.use_case.SearchEventUseCase;
-import io.gravitee.rest.api.management.v2.rest.mapper.ApiAuditMapper;
+import io.gravitee.apim.core.event.use_case.SearchEventsUseCase;
+import io.gravitee.apim.core.log.use_case.SearchConnectionLogUseCase;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiEventMapper;
-import io.gravitee.rest.api.management.v2.rest.model.AuditEventsResponse;
-import io.gravitee.rest.api.management.v2.rest.model.AuditsResponse;
-import io.gravitee.rest.api.management.v2.rest.model.EventsResponse;
+import io.gravitee.rest.api.management.v2.rest.model.*;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
-import io.gravitee.rest.api.management.v2.rest.resource.api.audit.param.SearchApiAuditsParam;
 import io.gravitee.rest.api.management.v2.rest.resource.api.event.param.SearchApiEventsParam;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.model.EventType;
@@ -40,11 +35,9 @@ import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
-import jakarta.ws.rs.BeanParam;
-import jakarta.ws.rs.GET;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import java.util.List;
 import java.util.Map;
@@ -57,6 +50,9 @@ public class ApiEventsResource extends AbstractResource {
     private String apiId;
 
     @Inject
+    private SearchEventsUseCase searchEventsUseCase;
+
+    @Inject
     private SearchEventUseCase searchEventUseCase;
 
     @GET
@@ -65,7 +61,7 @@ public class ApiEventsResource extends AbstractResource {
     public EventsResponse getApiEvents(@BeanParam @Valid PaginationParam paginationParam, @BeanParam @Valid SearchApiEventsParam params) {
         var input = buildInput(paginationParam, params);
 
-        var output = searchEventUseCase.execute(input);
+        var output = searchEventsUseCase.execute(input);
 
         return EventsResponse
             .builder()
@@ -76,7 +72,7 @@ public class ApiEventsResource extends AbstractResource {
     }
 
     @NotNull
-    private SearchEventUseCase.Input buildInput(PaginationParam paginationParam, SearchApiEventsParam params) {
+    private SearchEventsUseCase.Input buildInput(PaginationParam paginationParam, SearchApiEventsParam params) {
         var executionContext = GraviteeContext.getExecutionContext();
         var query = new EventQueryService.SearchQuery(
             executionContext.getEnvironmentId(),
@@ -87,6 +83,20 @@ public class ApiEventsResource extends AbstractResource {
             Optional.ofNullable(params.getFrom()),
             Optional.ofNullable(params.getTo())
         );
-        return new SearchEventUseCase.Input(query, new PageableImpl(paginationParam.getPage(), paginationParam.getPerPage()));
+        return new SearchEventsUseCase.Input(query, new PageableImpl(paginationParam.getPage(), paginationParam.getPerPage()));
+    }
+
+    @Path("/{eventId}")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_EVENT, acls = { RolePermissionAction.READ }) })
+    public Event getApiEvent(@PathParam("eventId") @NotBlank String eventId) {
+        var input = new SearchEventUseCase.Input(eventId);
+
+        return searchEventUseCase
+            .execute(input)
+            .apiEvent()
+            .map(ApiEventMapper.INSTANCE::map)
+            .orElseThrow(() -> new NotFoundException("Not API event with id: " + eventId + " found"));
     }
 }

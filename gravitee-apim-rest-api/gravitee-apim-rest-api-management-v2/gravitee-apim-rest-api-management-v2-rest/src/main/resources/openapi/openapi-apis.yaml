@@ -1720,7 +1720,25 @@ paths:
                     $ref: "#/components/responses/EventsResponse"
                 default:
                     $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/events/{eventId}:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/eventIdParam"
+        get:
+            tags:
+                - API Events
+            summary: Get single API Event by it's ID
+            description: |-
+                Get specific single API Event.
 
+                User must have the API_EVENT[READ] permission.
+            operationId: getApiEventById
+            responses:
+                "200":
+                    $ref: "#/components/responses/EventResponse"
+                default:
+                    $ref: "#/components/responses/Error"
     # API Documentation
     /environments/{envId}/apis/{apiId}/pages:
         parameters:
@@ -6019,6 +6037,13 @@ components:
                 type: array
                 items:
                     type: integer
+        eventIdParam:
+            name: eventId
+            in: path
+            required: true
+            description: Id of an API Event.
+            schema:
+                type: string
     responses:
         ApisResponse:
             description: Page of apis
@@ -6328,6 +6353,12 @@ components:
                                 $ref: "#/components/schemas/Pagination"
                             links:
                                 $ref: "#/components/schemas/Links"
+        EventResponse:
+            description: Single Event
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/Event"
 
         # API Documentation
         ApiDocumentationPagesResponse:

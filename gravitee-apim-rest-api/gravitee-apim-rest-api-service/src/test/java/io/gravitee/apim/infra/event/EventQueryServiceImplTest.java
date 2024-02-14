@@ -181,5 +181,15 @@ public class EventQueryServiceImplTest {
                     )
                 );
         }
+
+        @Test
+        @SneakyThrows
+        void should_return_event_by_id() {
+            when(eventRepository.findById(any())).thenAnswer(invocation -> Optional.of(anEvent().build()));
+
+            var result = service.findById("event-id");
+
+            assertThat(result).isNotEmpty();
+        }
     }
 }

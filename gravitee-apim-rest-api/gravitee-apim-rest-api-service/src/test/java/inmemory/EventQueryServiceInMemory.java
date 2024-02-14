@@ -18,11 +18,7 @@ package inmemory;
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.core.event.query_service.EventQueryService;
 import io.gravitee.rest.api.model.common.Pageable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 public class EventQueryServiceInMemory implements EventQueryService, InMemoryAlternative<Event> {
 
@@ -53,6 +49,11 @@ public class EventQueryServiceInMemory implements EventQueryService, InMemoryAlt
         var page = matches.size() <= pageSize ? matches : matches.subList((pageNumber - 1) * pageSize, pageNumber * pageSize);
 
         return new SearchResponse(matches.size(), page);
+    }
+
+    @Override
+    public Optional<Event> findById(String eventId) {
+        return storage().stream().filter(event -> event.getId().equals(eventId)).findFirst();
     }
 
     @Override
