@@ -16,84 +16,84 @@
 
 -->
 <div class="back-button">
-  <a mat-icon-button class="mat-body-strong" [routerLink]="'../../'"
-    ><mat-icon svgIcon="gio:arrow-left"></mat-icon> Go back to your endpoints</a
-  >
+  <a mat-button [routerLink]="'../../'"><mat-icon svgIcon="gio:arrow-left"></mat-icon>Go back to your endpoints</a>
 </div>
 
 <mat-card class="endpoint-card">
-  <div class="endpoint-card__header">
-    <div class="endpoint-card__header__group-name">
-      <span class="mat-h3">{{ endpointGroup?.name }}</span>
-      <span class="gio-badge-primary">
-        <mat-icon *ngIf="connectorPlugin" [svgIcon]="connectorPlugin?.icon"></mat-icon>
-        {{ connectorPlugin?.name }}
-      </span>
+  <mat-card-content>
+    <div class="endpoint-card__header">
+      <div class="endpoint-card__header__group-name">
+        <span class="mat-h3">{{ endpointGroup?.name }}</span>
+        <span class="gio-badge-primary">
+          <mat-icon *ngIf="connectorPlugin" [svgIcon]="connectorPlugin?.icon"></mat-icon>
+          {{ connectorPlugin?.name }}
+        </span>
+      </div>
+
+      <div class="mat-h4">Configure your API endpoint access</div>
     </div>
 
-    <div class="mat-h4">Configure your API endpoint access</div>
-  </div>
-
-  <form *ngIf="formGroup && endpointSchema; else loadingTpl" [formGroup]="formGroup">
-    <div>
-      <mat-tab-group animationDuration="0ms">
-        <mat-tab label="General">
-          <div class="endpoint-card__form__tab-content">
-            <mat-form-field appearance="outline" class="endpoint-card__form__name">
-              <input id="name" type="text" matInput formControlName="name" required="true" />
-              <mat-label>Endpoint name</mat-label>
-              <mat-error *ngIf="formGroup.controls.name.errors?.required">Endpoint name is required</mat-error>
-              <mat-error *ngIf="formGroup.controls.name.errors?.isUnique">
-                This name is used by another endpoint or endpoint group.
-              </mat-error>
-            </mat-form-field>
-            <div class="endpoint-card__form__config">
-              <gio-form-json-schema formControlName="configuration" [jsonSchema]="endpointSchema?.config"></gio-form-json-schema>
-            </div>
-            <div class="endpoint-card__form__lb">
-              <span class="mat-h3">Configure the load balancer</span>
-              <mat-form-field class="endpoint-card__form__weight">
-                <mat-label>Weight</mat-label>
-                <input id="weight" type="number" aria-label="Endpoint weight input" matInput formControlName="weight" required />
-                <mat-error *ngIf="formGroup.get('weight').hasError('required')"> Weight is required. </mat-error>
+    <form *ngIf="formGroup && endpointSchema; else loadingTpl" [formGroup]="formGroup">
+      <div>
+        <mat-tab-group animationDuration="0ms">
+          <mat-tab label="General">
+            <div class="endpoint-card__form__tab-content">
+              <mat-form-field appearance="outline" class="endpoint-card__form__name">
+                <input id="name" type="text" matInput formControlName="name" required="true" />
+                <mat-label>Endpoint name</mat-label>
+                <mat-error *ngIf="formGroup.controls.name.errors?.required">Endpoint name is required</mat-error>
+                <mat-error *ngIf="formGroup.controls.name.errors?.isUnique">
+                  This name is used by another endpoint or endpoint group.
+                </mat-error>
               </mat-form-field>
+              <div class="endpoint-card__form__config">
+                <gio-form-json-schema formControlName="configuration" [jsonSchema]="endpointSchema?.config"></gio-form-json-schema>
+              </div>
+              <div class="endpoint-card__form__lb">
+                <span class="mat-h3">Configure the load balancer</span>
+                <mat-form-field class="endpoint-card__form__weight">
+                  <mat-label>Weight</mat-label>
+                  <input id="weight" type="number" aria-label="Endpoint weight input" matInput formControlName="weight" required />
+                  <mat-error *ngIf="formGroup.get('weight').hasError('required')"> Weight is required. </mat-error>
+                </mat-form-field>
+              </div>
             </div>
-          </div>
-        </mat-tab>
-        <mat-tab label="Configuration" *ngIf="endpointSchema.sharedConfig">
-          <gio-form-slide-toggle class="endpoint-card__form__toggle">
-            <gio-form-label>Inherit configuration from the endpoint group</gio-form-label>
-            <mat-slide-toggle
-              gioFormSlideToggle
-              formControlName="inheritConfiguration"
-              aria-label="Inherit configuration from the endpoint group"
-              (change)="onInheritConfigurationChange()"
-            ></mat-slide-toggle>
-          </gio-form-slide-toggle>
-          <div class="endpoint-card__form__shared-config">
-            <gio-form-json-schema
-              formControlName="sharedConfigurationOverride"
-              [jsonSchema]="endpointSchema?.sharedConfig"
-            ></gio-form-json-schema>
-          </div>
-        </mat-tab>
-      </mat-tab-group>
-    </div>
+          </mat-tab>
+          <mat-tab label="Configuration" *ngIf="endpointSchema.sharedConfig">
+            <gio-form-slide-toggle class="endpoint-card__form__toggle">
+              <gio-form-label>Inherit configuration from the endpoint group</gio-form-label>
+              <mat-slide-toggle
+                gioFormSlideToggle
+                formControlName="inheritConfiguration"
+                aria-label="Inherit configuration from the endpoint group"
+                (change)="onInheritConfigurationChange()"
+              ></mat-slide-toggle>
+            </gio-form-slide-toggle>
+            <div class="endpoint-card__form__shared-config">
+              <gio-form-json-schema
+                formControlName="sharedConfigurationOverride"
+                [jsonSchema]="endpointSchema?.sharedConfig"
+              ></gio-form-json-schema>
+            </div>
+          </mat-tab>
+        </mat-tab-group>
+      </div>
 
-    <div class="endpoint-card__actions">
-      <a mat-stroked-button type="button" [routerLink]="'../'">Previous</a>
-      <button
-        mat-flat-button
-        aria-label="Validate my endpoints"
-        color="primary"
-        type="submit"
-        [disabled]="formGroup.invalid || !formGroup.dirty"
-        (click)="onSave()"
-      >
-        Validate my endpoints
-      </button>
-    </div>
-  </form>
+      <div class="endpoint-card__actions">
+        <a mat-stroked-button type="button" [routerLink]="'../'">Previous</a>
+        <button
+          mat-flat-button
+          aria-label="Validate my endpoints"
+          color="primary"
+          type="submit"
+          [disabled]="formGroup.invalid || !formGroup.dirty"
+          (click)="onSave()"
+        >
+          Validate my endpoints
+        </button>
+      </div>
+    </form>
+  </mat-card-content>
 </mat-card>
 
 <ng-template #loadingTpl><mat-progress-bar mode="indeterminate"></mat-progress-bar></ng-template>

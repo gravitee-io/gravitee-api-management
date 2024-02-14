@@ -16,7 +16,7 @@
 
 -->
 <form *ngIf="!!configurationForm" [formGroup]="configurationForm">
-  <mat-card *ngIf="sharedConfigurationSchema">
+  <ng-container *ngIf="sharedConfigurationSchema">
     <gio-form-json-schema formControlName="groupConfiguration" [jsonSchema]="sharedConfigurationSchema"></gio-form-json-schema>
-  </mat-card>
+  </ng-container>
 </form>

@@ -17,17 +17,18 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { GioFormJsonSchemaModule, GioFormSlideToggleModule } from '@gravitee/ui-particles-angular';
-import { MatLegacyButtonModule as MatButtonModule } from '@angular/material/legacy-button';
-import { MatLegacyCardModule as MatCardModule } from '@angular/material/legacy-card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
 import { ReactiveFormsModule } from '@angular/forms';
-import { MatLegacyFormFieldModule as MatFormFieldModule } from '@angular/material/legacy-form-field';
-import { MatLegacyInputModule as MatInputModule } from '@angular/material/legacy-input';
-import { MatLegacyProgressBarModule as MatProgressBarModule } from '@angular/material/legacy-progress-bar';
-import { MatLegacySnackBarModule as MatSnackBarModule } from '@angular/material/legacy-snack-bar';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatIconModule } from '@angular/material/icon';
-import { MatLegacySlideToggleModule as MatSlideToggleModule } from '@angular/material/legacy-slide-toggle';
-import { MatLegacyTabsModule as MatTabsModule } from '@angular/material/legacy-tabs';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatTabsModule } from '@angular/material/tabs';
 import { RouterModule } from '@angular/router';
+import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { ApiEndpointComponent } from './api-endpoint.component';
 
@@ -47,6 +48,7 @@ import { GioGoBackButtonModule } from '../../../../shared/components/gio-go-back
     MatInputModule,
     MatProgressBarModule,
     MatSnackBarModule,
+    MatLegacySnackBarModule,
     MatIconModule,
     MatSlideToggleModule,
 

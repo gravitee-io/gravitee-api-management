@@ -18,71 +18,71 @@
 <ng-container *ngIf="groupsTableData">
   <ng-container *ngFor="let group of groupsTableData; let i = index">
     <mat-card class="endpoint-group-card">
-      <div class="endpoint-group-card__header">
-        <div class="endpoint-group-card__header__title">
-          <span class="mat-h4">{{ group?.name }}</span>
-          <span *ngIf="plugins?.get(group.type)" class="gio-badge-primary">
-            <mat-icon [svgIcon]="plugins?.get(group.type)?.icon"></mat-icon>
-            {{ plugins?.get(group.type)?.name }}
-          </span>
-          <span class="gio-badge-accent">
-            <mat-icon svgIcon="gio:share-2"></mat-icon>
-            {{ group.loadBalancerType }}
-          </span>
-          <span
-            class="gio-badge-neutral"
-            *ngIf="i === 0"
-            [matTooltip]="'The default group of endpoints used by the API is the first one listed'"
-          >
-            Default
-          </span>
-        </div>
-
-        <div class="endpoint-group-card__header__actions">
-          <button
-            id="{{ 'moveUpBtn-' + i }}"
-            *ngIf="groupsTableData?.length > 1 && i !== 0"
-            mat-stroked-button
-            class="endpoint-group-card__header__actions__button"
-            aria-label="Reorder element to a higher position"
-            (click)="reorderEndpointGroup(i, i - 1)"
-            [disabled]="isReordering"
-          >
-            <mat-icon svgIcon="gio:arrow-up"></mat-icon>
-          </button>
-          <button
-            id="{{ 'moveDownBtn-' + i }}"
-            *ngIf="groupsTableData?.length > 1 && i !== groupsTableData.length - 1"
-            mat-stroked-button
-            class="endpoint-group-card__header__actions__button"
-            aria-label="Reorder element to a lower position"
-            (click)="reorderEndpointGroup(i + 1, i)"
-            [disabled]="isReordering"
-          >
-            <mat-icon svgIcon="gio:arrow-down"></mat-icon>
-          </button>
-          <button
-            *gioPermission="{ anyOf: ['api-definition-u'] }"
-            mat-stroked-button
-            aria-label="Edit endpoint group"
-            [routerLink]="['./', i, '']"
-          >
-            <mat-icon svgIcon="gio:edit-pencil"></mat-icon>Edit
-          </button>
-          <ng-container *gioPermission="{ anyOf: ['api-definition-u'] }">
-            <button
-              *ngIf="groupsTableData?.length > 1"
-              mat-stroked-button
-              aria-label="Delete endpoints group"
-              (click)="deleteGroup(group.name)"
-            >
-              <mat-icon svgIcon="gio:trash"></mat-icon>
-              Delete
-            </button>
-          </ng-container>
-        </div>
-      </div>
       <mat-card-content>
+        <div class="endpoint-group-card__header">
+          <div class="endpoint-group-card__header__title">
+            <span class="mat-h4">{{ group?.name }}</span>
+            <span *ngIf="plugins?.get(group.type)" class="gio-badge-primary">
+              <mat-icon [svgIcon]="plugins?.get(group.type)?.icon"></mat-icon>
+              {{ plugins?.get(group.type)?.name }}
+            </span>
+            <span class="gio-badge-accent">
+              <mat-icon svgIcon="gio:share-2"></mat-icon>
+              {{ group.loadBalancerType }}
+            </span>
+            <span
+              class="gio-badge-neutral"
+              *ngIf="i === 0"
+              [matTooltip]="'The default group of endpoints used by the API is the first one listed'"
+            >
+              Default
+            </span>
+          </div>
+
+          <div class="endpoint-group-card__header__actions">
+            <button
+              id="{{ 'moveUpBtn-' + i }}"
+              *ngIf="groupsTableData?.length > 1 && i !== 0"
+              mat-stroked-button
+              class="endpoint-group-card__header__actions__button"
+              aria-label="Reorder element to a higher position"
+              (click)="reorderEndpointGroup(i, i - 1)"
+              [disabled]="isReordering"
+            >
+              <mat-icon svgIcon="gio:arrow-up"></mat-icon>
+            </button>
+            <button
+              id="{{ 'moveDownBtn-' + i }}"
+              *ngIf="groupsTableData?.length > 1 && i !== groupsTableData.length - 1"
+              mat-stroked-button
+              class="endpoint-group-card__header__actions__button"
+              aria-label="Reorder element to a lower position"
+              (click)="reorderEndpointGroup(i + 1, i)"
+              [disabled]="isReordering"
+            >
+              <mat-icon svgIcon="gio:arrow-down"></mat-icon>
+            </button>
+            <button
+              *gioPermission="{ anyOf: ['api-definition-u'] }"
+              mat-stroked-button
+              aria-label="Edit endpoint group"
+              [routerLink]="['./', i]"
+            >
+              <mat-icon svgIcon="gio:edit-pencil"></mat-icon>Edit
+            </button>
+            <ng-container *gioPermission="{ anyOf: ['api-definition-u'] }">
+              <button
+                *ngIf="groupsTableData?.length > 1"
+                mat-stroked-button
+                aria-label="Delete endpoints group"
+                (click)="deleteGroup(group.name)"
+              >
+                <mat-icon svgIcon="gio:trash"></mat-icon>
+                Delete
+              </button>
+            </ng-container>
+          </div>
+        </div>
         <table
           mat-table
           [dataSource]="group.endpoints"

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 import { ComponentHarness, HarnessLoader } from '@angular/cdk/testing';
-import { MatLegacyTableHarness as MatTableHarness } from '@angular/material/legacy-table/testing';
+import { MatTableHarness } from '@angular/material/table/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
-import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
 export class ApiEndpointGroupsHarness extends ComponentHarness {
   static hostSelector = 'api-endpoint-groups';

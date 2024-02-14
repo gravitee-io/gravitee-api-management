@@ -17,64 +17,69 @@
 -->
 <form *ngIf="createForm && apiType" [formGroup]="createForm" (submit)="createEndpointGroup()">
   <mat-card>
-    <mat-stepper [linear]="true">
-      <mat-step *ngIf="apiType === 'MESSAGE'" state="type" [stepControl]="createForm.get('type')">
-        <ng-template matStepperIcon="type">
-          <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
-        </ng-template>
-        <ng-template matStepLabel>Endpoint Group Type</ng-template>
-        <api-endpoints-group-selection [endpointGroupTypeForm]="endpointGroupTypeForm" [apiType]="apiType"></api-endpoints-group-selection>
-        <div class="api-endpoint-group-create__footer">
-          <ng-container *ngTemplateOutlet="exitButton"></ng-container>
-          <button mat-raised-button type="button" color="primary" [disabled]="createForm.get('type').invalid" matStepperNext>
-            Select endpoint group type
-          </button>
-        </div>
-      </mat-step>
-
-      <mat-step state="general" [stepControl]="createForm.get('general')">
-        <ng-template matStepperIcon="general">
-          <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
-        </ng-template>
-        <ng-template matStepLabel>General</ng-template>
-        <api-endpoint-group-general [generalForm]="generalForm"></api-endpoint-group-general>
-        <div class="api-endpoint-group-create__footer">
-          <ng-container *ngIf="apiType === 'PROXY'">
+    <mat-card-content>
+      <mat-stepper [linear]="true">
+        <mat-step *ngIf="apiType === 'MESSAGE'" state="type" [stepControl]="createForm.get('type')">
+          <ng-template matStepperIcon="type">
+            <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
+          </ng-template>
+          <ng-template matStepLabel>Endpoint Group Type</ng-template>
+          <api-endpoints-group-selection
+            [endpointGroupTypeForm]="endpointGroupTypeForm"
+            [apiType]="apiType"
+          ></api-endpoints-group-selection>
+          <div class="api-endpoint-group-create__footer">
             <ng-container *ngTemplateOutlet="exitButton"></ng-container>
-          </ng-container>
-          <button *ngIf="apiType === 'MESSAGE'" mat-stroked-button type="button" matStepperPrevious>Back</button>
-          <button mat-raised-button type="button" color="primary" [disabled]="createForm.get('general').invalid" matStepperNext>
-            Validate general information
-          </button>
-        </div>
-      </mat-step>
+            <button mat-raised-button type="button" color="primary" [disabled]="createForm.get('type').invalid" matStepperNext>
+              Select endpoint group type
+            </button>
+          </div>
+        </mat-step>
 
-      <mat-step state="configuration" [stepControl]="createForm.get('configuration')">
-        <ng-template matStepperIcon="configuration">
-          <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
-        </ng-template>
-        <ng-template matStepLabel>Configuration</ng-template>
-        <gio-banner-info *ngIf="endpointGroupTypeForm.get('endpointGroupType').value !== 'mock'">
-          Inherited configuration
-          <span gioBannerBody>Endpoints associated to this endpoint group will automatically inherit its configuration.</span>
-        </gio-banner-info>
-        <gio-banner-info *ngIf="endpointGroupTypeForm.get('endpointGroupType').value === 'mock'">
-          Mock endpoint group
-          <span gioBannerBody>Configuration is disabled for Mock endpoint groups.</span>
-        </gio-banner-info>
-        <gio-form-json-schema
-          *ngIf="sharedConfigurationSchema"
-          formControlName="configuration"
-          [jsonSchema]="sharedConfigurationSchema"
-        ></gio-form-json-schema>
-        <div class="api-endpoint-group-create__footer">
-          <button mat-stroked-button type="button" matStepperPrevious>Back</button>
-          <button mat-raised-button type="button" color="primary" [disabled]="createForm.invalid" type="submit">
-            Create endpoint group
-          </button>
-        </div>
-      </mat-step>
-    </mat-stepper>
+        <mat-step state="general" [stepControl]="createForm.get('general')">
+          <ng-template matStepperIcon="general">
+            <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
+          </ng-template>
+          <ng-template matStepLabel>General</ng-template>
+          <api-endpoint-group-general [generalForm]="generalForm"></api-endpoint-group-general>
+          <div class="api-endpoint-group-create__footer">
+            <ng-container *ngIf="apiType === 'PROXY'">
+              <ng-container *ngTemplateOutlet="exitButton"></ng-container>
+            </ng-container>
+            <button *ngIf="apiType === 'MESSAGE'" mat-stroked-button type="button" matStepperPrevious>Back</button>
+            <button mat-raised-button type="button" color="primary" [disabled]="createForm.get('general').invalid" matStepperNext>
+              Validate general information
+            </button>
+          </div>
+        </mat-step>
+
+        <mat-step state="configuration" [stepControl]="createForm.get('configuration')">
+          <ng-template matStepperIcon="configuration">
+            <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
+          </ng-template>
+          <ng-template matStepLabel>Configuration</ng-template>
+          <gio-banner-info *ngIf="endpointGroupTypeForm.get('endpointGroupType').value !== 'mock'">
+            Inherited configuration
+            <span gioBannerBody>Endpoints associated to this endpoint group will automatically inherit its configuration.</span>
+          </gio-banner-info>
+          <gio-banner-info *ngIf="endpointGroupTypeForm.get('endpointGroupType').value === 'mock'">
+            Mock endpoint group
+            <span gioBannerBody>Configuration is disabled for Mock endpoint groups.</span>
+          </gio-banner-info>
+          <gio-form-json-schema
+            *ngIf="sharedConfigurationSchema"
+            formControlName="configuration"
+            [jsonSchema]="sharedConfigurationSchema"
+          ></gio-form-json-schema>
+          <div class="api-endpoint-group-create__footer">
+            <button mat-stroked-button type="button" matStepperPrevious>Back</button>
+            <button mat-raised-button type="button" color="primary" [disabled]="createForm.invalid" type="submit">
+              Create endpoint group
+            </button>
+          </div>
+        </mat-step>
+      </mat-stepper>
+    </mat-card-content>
   </mat-card>
 </form>
 
