@@ -16,91 +16,93 @@
 
 -->
 <mat-card>
-  <div class="api-creation-get-started__header">
-    <h1 class="api-creation-get-started__header__title mat-title">Get started building your API</h1>
-    <span class="api-creation-get-started__header__description mat-body"
-      >Let’s create and configure your API in the easiest possible way</span
-    >
-  </div>
-
-  <div class="api-creation-get-started__row">
-    <div class="api-creation-get-started__row__card api-v4-creation-card">
-      <div mat-card-image class="api-v4-creation-card__img">
-        <img [src]="'assets/api-create-wizard.png'" alt="API Create wizard logo" />
-      </div>
-
-      <div class="api-creation-get-started__row__card__header">
-        <div>
-          <div class="api-creation-get-started__row__card__header__title mat-subheading-2">Create a V4 API from scratch</div>
-          <div class="gio-badge-neutral gio-caption-2">V4 API definition</div>
-        </div>
-
-        <div class="api-creation-get-started__row__card__action">
-          <button mat-flat-button color="primary" [routerLink]="'./v4'" data-testid="api_create_v4_button">
-            Create <mat-icon svgIcon="gio:right-circle"></mat-icon>
-          </button>
-        </div>
-      </div>
-
-      <div class="mat-body">Support for both sync and async APIs with proxies, event brokers, and Webhook subscriptions</div>
+  <mat-card-content>
+    <div class="api-creation-get-started__header">
+      <h1 class="api-creation-get-started__header__title mat-headline-6">Get started building your API</h1>
+      <span class="api-creation-get-started__header__description mat-body"
+        >Let’s create and configure your API in the easiest possible way</span
+      >
     </div>
 
-    <div *ngIf="!isLoading && !isOEM" class="api-creation-get-started__row__card api-designer-card">
-      <div mat-card-image class="api-designer-card__img">
-        <img [src]="'assets/api-create-design-link.png'" alt="Api Designer logo" />
-      </div>
-
-      <div class="api-creation-get-started__row__card__header">
-        <div>
-          <div class="api-creation-get-started__row__card__header__title mat-subheading-2">Build with API Designer</div>
-          <div class="gio-badge-neutral gio-caption-2">V2 API definition</div>
-          <div class="gio-badge-neutral gio-caption-2">V4 API definition - Coming soon</div>
+    <div class="api-creation-get-started__row">
+      <div class="api-creation-get-started__row__card api-v4-creation-card">
+        <div mat-card-image class="api-v4-creation-card__img">
+          <img [src]="'assets/api-create-wizard.png'" alt="API Create wizard logo" />
         </div>
 
-        <div class="api-creation-get-started__row__card__action">
-          <a [href]="cockpitLink" target="_blank" rel="noopener noreferrer" mat-stroked-button
-            >Try API Designer <mat-icon svgIcon="gio:external-link"></mat-icon
-          ></a>
+        <div class="api-creation-get-started__row__card__header">
+          <div>
+            <div class="api-creation-get-started__row__card__header__title mat-subtitle-1">Create a V4 API from scratch</div>
+            <div class="gio-badge-neutral gio-caption-2">V4 API definition</div>
+          </div>
+
+          <div class="api-creation-get-started__row__card__action">
+            <button mat-flat-button color="primary" [routerLink]="'./v4'" data-testid="api_create_v4_button">
+              Create <mat-icon svgIcon="gio:right-circle"></mat-icon>
+            </button>
+          </div>
         </div>
+
+        <div class="mat-body">Support for both sync and async APIs with proxies, event brokers, and Webhook subscriptions</div>
       </div>
 
-      <div class="mat-body">
-        Build faster with a design-first approach that reduces time spent translating requirements into API definitions.
+      <div *ngIf="!isLoading && !isOEM" class="api-creation-get-started__row__card api-designer-card">
+        <div mat-card-image class="api-designer-card__img">
+          <img [src]="'assets/api-create-design-link.png'" alt="Api Designer logo" />
+        </div>
+
+        <div class="api-creation-get-started__row__card__header">
+          <div>
+            <div class="api-creation-get-started__row__card__header__title mat-subtitle-1">Build with API Designer</div>
+            <div class="gio-badge-neutral gio-caption-2">V2 API definition</div>
+            <div class="gio-badge-neutral gio-caption-2">V4 API definition - Coming soon</div>
+          </div>
+
+          <div class="api-creation-get-started__row__card__action">
+            <a [href]="cockpitLink" target="_blank" rel="noopener noreferrer" mat-stroked-button
+              >Try API Designer <mat-icon svgIcon="gio:external-link"></mat-icon
+            ></a>
+          </div>
+        </div>
+
+        <div class="mat-body">
+          Build faster with a design-first approach that reduces time spent translating requirements into API definitions.
+        </div>
       </div>
     </div>
-  </div>
 
-  <div class="api-creation-get-started__row">
-    <div class="api-creation-get-started__row__card api-v2-creation-card">
-      <div class="api-creation-get-started__row__card__header">
-        <div>
-          <div class="api-creation-get-started__row__card__header__title mat-subheading-2">Create a V2 API from scratch</div>
-          <div class="gio-badge-neutral gio-caption-2">V2 API definition</div>
+    <div class="api-creation-get-started__row">
+      <div class="api-creation-get-started__row__card api-v2-creation-card">
+        <div class="api-creation-get-started__row__card__header">
+          <div>
+            <div class="api-creation-get-started__row__card__header__title mat-subtitle-1">Create a V2 API from scratch</div>
+            <div class="gio-badge-neutral gio-caption-2">V2 API definition</div>
+          </div>
+
+          <div class="api-creation-get-started__row__card__action">
+            <button mat-stroked-button [routerLink]="'./v2'">Create <mat-icon svgIcon="gio:right-circle"></mat-icon></button>
+          </div>
         </div>
 
-        <div class="api-creation-get-started__row__card__action">
-          <button mat-stroked-button [routerLink]="'./v2'">Create <mat-icon svgIcon="gio:right-circle"></mat-icon></button>
-        </div>
+        <div class="mat-body">Use API definition from previous versions of Gravitee APIM.</div>
       </div>
 
-      <div class="mat-body">Use API definition from previous versions of Gravitee APIM.</div>
-    </div>
+      <div class="api-creation-get-started__row__card import-existing-api-card">
+        <div class="api-creation-get-started__row__card__header">
+          <div>
+            <div class="api-creation-get-started__row__card__header__title mat-subtitle-1">Import an API definition</div>
+            <div class="gio-badge-neutral gio-caption-2">AsyncAPI definition - coming soon</div>
+            <div class="gio-badge-neutral gio-caption-2">V2 API Definition</div>
+            <div class="gio-badge-neutral gio-caption-2">V4 API Definition</div>
+          </div>
 
-    <div class="api-creation-get-started__row__card import-existing-api-card">
-      <div class="api-creation-get-started__row__card__header">
-        <div>
-          <div class="api-creation-get-started__row__card__header__title mat-subheading-2">Import an API definition</div>
-          <div class="gio-badge-neutral gio-caption-2">AsyncAPI definition - coming soon</div>
-          <div class="gio-badge-neutral gio-caption-2">V2 API Definition</div>
-          <div class="gio-badge-neutral gio-caption-2">V4 API Definition</div>
+          <div class="api-creation-get-started__row__card__action">
+            <button mat-stroked-button (click)="goToApiImport()">Import <mat-icon svgIcon="gio:right-circle"></mat-icon></button>
+          </div>
         </div>
 
-        <div class="api-creation-get-started__row__card__action">
-          <button mat-stroked-button (click)="goToApiImport()">Import <mat-icon svgIcon="gio:right-circle"></mat-icon></button>
-        </div>
+        <div class="mat-body">Import an existing API definition, Swagger/OpenAPI specifications or WSDL.</div>
       </div>
-
-      <div class="mat-body">Import an existing API definition, Swagger/OpenAPI specifications or WSDL.</div>
     </div>
-  </div>
+  </mat-card-content>
 </mat-card>
