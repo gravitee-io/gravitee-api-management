@@ -16,44 +16,46 @@
 
 -->
 <mat-card class="api-creation-v4__step">
-  <div class="api-creation-v4__step__header">
-    <div class="api-creation-v4__step__header__step-number">Step 2</div>
-    <div class="api-creation-v4__step__header__subtitle">Select your API entrypoints</div>
-    <p class="api-creation-v4__step__header__paragraph-light">Choose how your users will consume your API</p>
-  </div>
-
-  <form *ngIf="formGroup" [formGroup]="formGroup" (ngSubmit)="save()">
-    <gio-entrypoints-selection-list
-      *ngIf="entrypoints; else loadingTpl"
-      formControlName="selectedEntrypointsIds"
-      [entrypoints]="entrypoints"
-      [singleChoice]="apiType === 'PROXY'"
-    ></gio-entrypoints-selection-list>
-
-    <mat-card class="step-2-entrypoints-1-list__banner">
-      <mat-card-content class="step-2-entrypoints-1-list__banner__container">
-        <h3 class="mat-h3 step-2-entrypoints-1-list__banner__title">
-          Explore Gravitee’s brand new plugin marketplace
-          <mat-icon svgIcon="gio:right-circle" class="step-2-entrypoints-1-list__banner__icon"></mat-icon>
-        </h3>
-      </mat-card-content>
-    </mat-card>
-
-    <div *ngIf="shouldUpgrade">
-      <gio-license-banner
-        [license]="license$ | async"
-        [isOEM]="isOEM$ | async"
-        (onRequestUpgrade)="onRequestUpgrade()"
-      ></gio-license-banner>
+  <mat-card-content>
+    <div class="api-creation-v4__step__header">
+      <div class="api-creation-v4__step__header__step-number">Step 2</div>
+      <div class="api-creation-v4__step__header__subtitle">Select your API entrypoints</div>
+      <p class="api-creation-v4__step__header__paragraph-light">Choose how your users will consume your API</p>
     </div>
 
-    <div class="api-creation-v4__step__footer">
-      <button mat-stroked-button type="button" (click)="goBack()">Previous</button>
-      <button data-testid="select_entrypoints_button" mat-flat-button color="primary" type="submit" [disabled]="formGroup.invalid">
-        Select my entrypoints
-      </button>
-    </div>
-  </form>
+    <form *ngIf="formGroup" [formGroup]="formGroup" (ngSubmit)="save()">
+      <gio-entrypoints-selection-list
+        *ngIf="entrypoints; else loadingTpl"
+        formControlName="selectedEntrypointsIds"
+        [entrypoints]="entrypoints"
+        [singleChoice]="apiType === 'PROXY'"
+      ></gio-entrypoints-selection-list>
+
+      <mat-card class="step-2-entrypoints-1-list__banner">
+        <mat-card-content class="step-2-entrypoints-1-list__banner__container">
+          <h3 class="mat-h3 step-2-entrypoints-1-list__banner__title">
+            Explore Gravitee’s brand new plugin marketplace
+            <mat-icon svgIcon="gio:right-circle" class="step-2-entrypoints-1-list__banner__icon"></mat-icon>
+          </h3>
+        </mat-card-content>
+      </mat-card>
+
+      <div *ngIf="shouldUpgrade">
+        <gio-license-banner
+          [license]="license$ | async"
+          [isOEM]="isOEM$ | async"
+          (onRequestUpgrade)="onRequestUpgrade()"
+        ></gio-license-banner>
+      </div>
+
+      <div class="api-creation-v4__step__footer">
+        <button mat-stroked-button type="button" (click)="goBack()">Previous</button>
+        <button data-testid="select_entrypoints_button" mat-flat-button color="primary" type="submit" [disabled]="formGroup.invalid">
+          Select my entrypoints
+        </button>
+      </div>
+    </form>
+  </mat-card-content>
 </mat-card>
 
 <ng-template #loadingTpl><mat-progress-bar mode="indeterminate"></mat-progress-bar></ng-template>

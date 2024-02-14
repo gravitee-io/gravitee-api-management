@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
-import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
 export class Step5SummaryHarness extends ComponentHarness {
   static hostSelector = 'step-5-summary';

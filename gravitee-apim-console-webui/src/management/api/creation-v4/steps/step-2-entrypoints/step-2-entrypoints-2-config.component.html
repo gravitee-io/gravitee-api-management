@@ -16,85 +16,87 @@
 
 -->
 <mat-card class="api-creation-v4__step">
-  <div class="api-creation-v4__step__header">
-    <div class="api-creation-v4__step__header__step-number">Step 2</div>
-    <div class="api-creation-v4__step__header__subtitle">Configure your API entrypoints</div>
-    <p class="api-creation-v4__step__header__paragraph-light">Configure how your users will consume your API</p>
-  </div>
+  <mat-card-content>
+    <div class="api-creation-v4__step__header">
+      <div class="api-creation-v4__step__header__step-number">Step 2</div>
+      <div class="api-creation-v4__step__header__subtitle">Configure your API entrypoints</div>
+      <p class="api-creation-v4__step__header__paragraph-light">Configure how your users will consume your API</p>
+    </div>
 
-  <form *ngIf="formGroup" [formGroup]="formGroup" (ngSubmit)="save()">
-    <div id="http-listeners" class="api-creation-v4__form-container" *ngIf="hasHttpListeners">
-      <h3>Configure common entrypoints fields</h3>
+    <form *ngIf="formGroup" [formGroup]="formGroup" (ngSubmit)="save()">
+      <div id="http-listeners" class="api-creation-v4__form-container" *ngIf="hasHttpListeners">
+        <h3>Configure common entrypoints fields</h3>
 
-      <div class="step-2-entrypoints-2-config__listeners-context__title">
-        <span class="mat-body-strong">Entrypoints context</span>
+        <div class="step-2-entrypoints-2-config__listeners-context__title">
+          <span class="mat-body-strong">Entrypoints context</span>
 
+          <button
+            id="switchListenerType"
+            mat-button
+            type="button"
+            (click)="this.enableVirtualHost = !this.enableVirtualHost"
+            [disabled]="this.enableVirtualHost && this.domainRestrictions.length > 0"
+          >
+            <mat-icon [svgIcon]="enableVirtualHost ? 'gio:cancel' : 'gio:check'"></mat-icon>
+            {{ enableVirtualHost ? 'Disable virtual hosts' : 'Enable virtual hosts' }}
+          </button>
+        </div>
+
+        <gio-form-listeners-context-path *ngIf="!this.enableVirtualHost" formControlName="paths"></gio-form-listeners-context-path>
+        <gio-form-listeners-virtual-host
+          *ngIf="this.enableVirtualHost"
+          formControlName="paths"
+          [domainRestrictions]="domainRestrictions"
+        ></gio-form-listeners-virtual-host>
+      </div>
+      <div id="tcp-listeners" class="api-creation-v4__form-container" *ngIf="hasTcpListeners">
+        <h3>Configure common entrypoints fields</h3>
+
+        <div class="step-2-entrypoints-2-config__listeners-context__title">
+          <span class="mat-body-strong">Entrypoints context</span>
+        </div>
+
+        <gio-form-listeners-tcp-hosts formControlName="hosts"></gio-form-listeners-tcp-hosts>
+      </div>
+
+      <ng-container *ngFor="let entrypoint of selectedEntrypoints">
+        <div *ngIf="entrypointSchemas[entrypoint.id]" class="api-creation-v4__form-container">
+          <h3>{{ entrypoint.name }}</h3>
+          <gio-form-json-schema
+            [jsonSchema]="entrypointSchemas[entrypoint.id]"
+            [formControlName]="entrypoint.id + '-config'"
+          ></gio-form-json-schema>
+
+          <gio-form-qos
+            *ngIf="entrypoint"
+            [id]="entrypoint.id"
+            [supportedQos]="entrypoint.supportedQos"
+            [formControlName]="entrypoint.id + '-qos'"
+          ></gio-form-qos>
+        </div>
+      </ng-container>
+
+      <div *ngIf="shouldUpgrade">
+        <gio-license-banner
+          [license]="license$ | async"
+          [isOEM]="isOEM$ | async"
+          (onRequestUpgrade)="onRequestUpgrade()"
+        ></gio-license-banner>
+      </div>
+
+      <div class="api-creation-v4__step__footer">
+        <button id="previous" mat-stroked-button type="button" (click)="goBack()">Previous</button>
         <button
-          id="switchListenerType"
-          mat-button
-          type="button"
-          (click)="this.enableVirtualHost = !this.enableVirtualHost"
-          [disabled]="this.enableVirtualHost && this.domainRestrictions.length > 0"
+          id="validate"
+          mat-flat-button
+          color="primary"
+          type="submit"
+          [disabled]="formGroup.invalid || formGroup.pending"
+          data-testid="validate_entrypoints_button"
         >
-          <ng-container *ngIf="!this.enableVirtualHost"> <mat-icon svgIcon="gio:check"></mat-icon> Enable virtual hosts </ng-container>
-          <ng-container *ngIf="this.enableVirtualHost"> <mat-icon svgIcon="gio:cancel"></mat-icon> Disable virtual hosts </ng-container>
+          Validate my entrypoints
         </button>
       </div>
-
-      <gio-form-listeners-context-path *ngIf="!this.enableVirtualHost" formControlName="paths"></gio-form-listeners-context-path>
-      <gio-form-listeners-virtual-host
-        *ngIf="this.enableVirtualHost"
-        formControlName="paths"
-        [domainRestrictions]="domainRestrictions"
-      ></gio-form-listeners-virtual-host>
-    </div>
-    <div id="tcp-listeners" class="api-creation-v4__form-container" *ngIf="hasTcpListeners">
-      <h3>Configure common entrypoints fields</h3>
-
-      <div class="step-2-entrypoints-2-config__listeners-context__title">
-        <span class="mat-body-strong">Entrypoints context</span>
-      </div>
-
-      <gio-form-listeners-tcp-hosts formControlName="hosts"></gio-form-listeners-tcp-hosts>
-    </div>
-
-    <ng-container *ngFor="let entrypoint of selectedEntrypoints">
-      <div *ngIf="entrypointSchemas[entrypoint.id]" class="api-creation-v4__form-container">
-        <h3>{{ entrypoint.name }}</h3>
-        <gio-form-json-schema
-          [jsonSchema]="entrypointSchemas[entrypoint.id]"
-          [formControlName]="entrypoint.id + '-config'"
-        ></gio-form-json-schema>
-
-        <gio-form-qos
-          *ngIf="entrypoint"
-          [id]="entrypoint.id"
-          [supportedQos]="entrypoint.supportedQos"
-          [formControlName]="entrypoint.id + '-qos'"
-        ></gio-form-qos>
-      </div>
-    </ng-container>
-
-    <div *ngIf="shouldUpgrade">
-      <gio-license-banner
-        [license]="license$ | async"
-        [isOEM]="isOEM$ | async"
-        (onRequestUpgrade)="onRequestUpgrade()"
-      ></gio-license-banner>
-    </div>
-
-    <div class="api-creation-v4__step__footer">
-      <button id="previous" mat-stroked-button type="button" (click)="goBack()">Previous</button>
-      <button
-        id="validate"
-        mat-flat-button
-        color="primary"
-        type="submit"
-        [disabled]="formGroup.invalid || formGroup.pending"
-        data-testid="validate_entrypoints_button"
-      >
-        Validate my entrypoints
-      </button>
-    </div>
-  </form>
+    </form>
+  </mat-card-content>
 </mat-card>

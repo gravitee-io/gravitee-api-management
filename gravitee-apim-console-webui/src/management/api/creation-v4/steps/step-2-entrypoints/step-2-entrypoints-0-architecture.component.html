@@ -16,78 +16,80 @@
 
 -->
 <mat-card class="api-creation-v4__step">
-  <div class="api-creation-v4__step__header">
-    <div class="api-creation-v4__step__header__step-number">Step 2</div>
-    <div class="api-creation-v4__step__header__subtitle">Select how you want your backend service exposed</div>
-    <p class="api-creation-v4__step__header__paragraph-light">
-      Choose the consumption style of your API based on your upstream backend service architecture
-    </p>
-  </div>
-
-  <form *ngIf="form" [formGroup]="form">
-    <mat-radio-group class="gio-connector-list" formControlName="type">
-      <mat-radio-button
-        data-testid="api_creation_proxy_checkbox"
-        value="PROXY"
-        [class.gio-connector__selected]="form.controls['type'].value === 'PROXY'"
-      >
-        <gio-connector-list-option-layout>
-          <gio-connector-list-option-layout-title> Proxy upstream Protocol </gio-connector-list-option-layout-title>
-
-          <gio-connector-list-option-layout-body>
-            <p>
-              This mode puts a proxy in front of upstream services. It passes the response through the gateway with policies on request and
-              response phases.
-            </p>
-            <div class="option__badges">
-              Can proxy
-              <span class="gio-badge-neutral gio-caption-2"> REST API </span>
-              <span class="gio-badge-neutral gio-caption-2"> SOAP API </span>
-              <span class="gio-badge-neutral gio-caption-2"> WebSocket Server </span>
-              <span class="gio-badge-neutral gio-caption-2"> gRPC Service </span>
-              Via
-              <span class="gio-badge-neutral gio-caption-2"> HTTP </span>
-              <span class="gio-badge-neutral gio-caption-2"> TCP </span>
-            </div>
-          </gio-connector-list-option-layout-body>
-        </gio-connector-list-option-layout>
-      </mat-radio-button>
-
-      <mat-radio-button value="MESSAGE" [class.gio-connector__selected]="form.controls['type'].value === 'MESSAGE'">
-        <gio-connector-list-option-layout>
-          <gio-connector-list-option-layout-title>
-            <div class="option__badges">Introspect Messages from Event-Driven Backend <span class="gio-badge-primary">NEW</span></div>
-          </gio-connector-list-option-layout-title>
-
-          <gio-connector-list-option-layout-body>
-            <p>
-              This mode produces and consumes messages to event-driven services and allows for message transformation in between via message
-              policies and multiple entrypoints.
-            </p>
-            <div class="option__badges">
-              Can expose
-              <span class="gio-badge-neutral gio-caption-2">Kafka</span>
-              <span class="gio-badge-neutral gio-caption-2">MQTT</span>
-              <span class="gio-badge-neutral gio-caption-2">RabbitMQ</span>
-              <span class="gio-badge-neutral gio-caption-2">Solace</span>
-            </div>
-          </gio-connector-list-option-layout-body>
-        </gio-connector-list-option-layout>
-        <div *ngIf="shouldUpgrade$ | async">
-          <gio-license-banner
-            [license]="license$ | async"
-            [isOEM]="isOEM$ | async"
-            (onRequestUpgrade)="onRequestUpgrade()"
-          ></gio-license-banner>
-        </div>
-      </mat-radio-button>
-    </mat-radio-group>
-
-    <div class="api-creation-v4__step__footer">
-      <button mat-stroked-button type="button" (click)="goBack()">Previous</button>
-      <button data-testid="select_architecture_button" mat-flat-button color="primary" [disabled]="form.invalid" (click)="save()">
-        Select my API architecture
-      </button>
+  <mat-card-content>
+    <div class="api-creation-v4__step__header">
+      <div class="api-creation-v4__step__header__step-number">Step 2</div>
+      <div class="api-creation-v4__step__header__subtitle">Select how you want your backend service exposed</div>
+      <p class="api-creation-v4__step__header__paragraph-light">
+        Choose the consumption style of your API based on your upstream backend service architecture
+      </p>
     </div>
-  </form>
+
+    <form *ngIf="form" [formGroup]="form">
+      <mat-radio-group class="gio-connector-list" formControlName="type">
+        <mat-radio-button
+          data-testid="api_creation_proxy_checkbox"
+          value="PROXY"
+          [class.gio-connector__selected]="form.controls['type'].value === 'PROXY'"
+        >
+          <gio-connector-list-option-layout>
+            <gio-connector-list-option-layout-title> Proxy upstream Protocol </gio-connector-list-option-layout-title>
+
+            <gio-connector-list-option-layout-body>
+              <p>
+                This mode puts a proxy in front of upstream services. It passes the response through the gateway with policies on request
+                and response phases.
+              </p>
+              <div class="option__badges">
+                Can proxy
+                <span class="gio-badge-neutral gio-caption-2"> REST API </span>
+                <span class="gio-badge-neutral gio-caption-2"> SOAP API </span>
+                <span class="gio-badge-neutral gio-caption-2"> WebSocket Server </span>
+                <span class="gio-badge-neutral gio-caption-2"> gRPC Service </span>
+                Via
+                <span class="gio-badge-neutral gio-caption-2"> HTTP </span>
+                <span class="gio-badge-neutral gio-caption-2"> TCP </span>
+              </div>
+            </gio-connector-list-option-layout-body>
+          </gio-connector-list-option-layout>
+        </mat-radio-button>
+
+        <mat-radio-button value="MESSAGE" [class.gio-connector__selected]="form.controls['type'].value === 'MESSAGE'">
+          <gio-connector-list-option-layout>
+            <gio-connector-list-option-layout-title>
+              <div class="option__badges">Introspect Messages from Event-Driven Backend <span class="gio-badge-primary">NEW</span></div>
+            </gio-connector-list-option-layout-title>
+
+            <gio-connector-list-option-layout-body>
+              <p>
+                This mode produces and consumes messages to event-driven services and allows for message transformation in between via
+                message policies and multiple entrypoints.
+              </p>
+              <div class="option__badges">
+                Can expose
+                <span class="gio-badge-neutral gio-caption-2">Kafka</span>
+                <span class="gio-badge-neutral gio-caption-2">MQTT</span>
+                <span class="gio-badge-neutral gio-caption-2">RabbitMQ</span>
+                <span class="gio-badge-neutral gio-caption-2">Solace</span>
+              </div>
+            </gio-connector-list-option-layout-body>
+          </gio-connector-list-option-layout>
+          <div *ngIf="shouldUpgrade$ | async">
+            <gio-license-banner
+              [license]="license$ | async"
+              [isOEM]="isOEM$ | async"
+              (onRequestUpgrade)="onRequestUpgrade()"
+            ></gio-license-banner>
+          </div>
+        </mat-radio-button>
+      </mat-radio-group>
+
+      <div class="api-creation-v4__step__footer">
+        <button mat-stroked-button type="button" (click)="goBack()">Previous</button>
+        <button data-testid="select_architecture_button" mat-flat-button color="primary" [disabled]="form.invalid" (click)="save()">
+          Select my API architecture
+        </button>
+      </div>
+    </form>
+  </mat-card-content>
 </mat-card>

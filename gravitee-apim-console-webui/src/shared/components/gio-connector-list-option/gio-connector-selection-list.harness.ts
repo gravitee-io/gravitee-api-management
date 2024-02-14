@@ -13,10 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-  LegacyListOptionHarnessFilters as ListOptionHarnessFilters,
-  MatLegacySelectionListHarness as MatSelectionListHarness,
-} from '@angular/material/legacy-list/testing';
+import { ListOptionHarnessFilters, MatSelectionListHarness } from '@angular/material/list/testing';
 
 export class GioConnectorSelectionListHarness extends MatSelectionListHarness {
   static override hostSelector = '.gio-connector-list';

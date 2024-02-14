@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
-import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
 import { GioConnectorSelectionListHarness } from '../../../../../shared/components/gio-connector-list-option/gio-connector-selection-list.harness';
 import { GioConnectorRadioListHarness } from '../../../../../shared/components/gio-connector-list-option/gio-connector-radio-list.harness';

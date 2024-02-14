@@ -17,7 +17,7 @@ import { Component, forwardRef, Input, OnDestroy } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { catchError, switchMap, takeUntil } from 'rxjs/operators';
 import { of, Subject } from 'rxjs';
-import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
+import { MatDialog } from '@angular/material/dialog';
 import { isEmpty } from 'lodash';
 
 import { GioConnectorDialogComponent, GioConnectorDialogData } from '../gio-connector-dialog/gio-connector-dialog.component';

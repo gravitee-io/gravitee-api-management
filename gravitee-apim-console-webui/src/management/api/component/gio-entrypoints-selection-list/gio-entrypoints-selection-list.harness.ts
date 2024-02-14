@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
-import { MatLegacySelectionListHarness as MatSelectionListHarness } from '@angular/material/legacy-list/testing';
-import { MatLegacyRadioGroupHarness as MatRadioGroupHarness } from '@angular/material/legacy-radio/testing';
+import { MatSelectionListHarness } from '@angular/material/list/testing';
+import { MatRadioGroupHarness } from '@angular/material/radio/testing';
 
 export class GioEntrypointsSelectionListHarness extends ComponentHarness {
   public static hostSelector = 'gio-entrypoints-selection-list';

@@ -20,7 +20,7 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HarnessLoader } from '@angular/cdk/testing';
-import { MatLegacyCardHarness as MatCardHarness } from '@angular/material/legacy-card/testing';
+import { MatCardHarness } from '@angular/material/card/testing';
 import { ActivatedRoute } from '@angular/router';
 
 import { ApiCreationV4ConfirmationComponent } from './api-creation-v4-confirmation.component';

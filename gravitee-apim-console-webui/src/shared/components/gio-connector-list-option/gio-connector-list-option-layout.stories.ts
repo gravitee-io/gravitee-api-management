@@ -81,12 +81,12 @@ export const SelectionList: StoryObj = {
         <mat-list-option
             *ngFor="let option of optionList"
             [value]="option.id"
-            checkboxPosition="before"
-            style="padding: 0"
+            togglePosition="before"
+            [disableRipple]="true"
             #listOption
             [class.gio-connector__selected]="listOption.selected"
             >
-            <gio-connector-list-option-layout style="padding: 16px">
+            <gio-connector-list-option-layout>
                 <gio-connector-list-option-layout-title>
                     {{ option.name }}
                 </gio-connector-list-option-layout-title>

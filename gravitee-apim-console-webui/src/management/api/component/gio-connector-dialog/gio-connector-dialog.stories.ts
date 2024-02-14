@@ -18,7 +18,7 @@ import { Meta, moduleMetadata, StoryObj } from '@storybook/angular';
 import { action } from '@storybook/addon-actions';
 import { tap } from 'rxjs/operators';
 import { MatButtonModule } from '@angular/material/button';
-import { MatLegacyDialogModule as MatDialogModule, MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
+import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 
 import { GioConnectorDialogComponent, GioConnectorDialogData } from './gio-connector-dialog.component';
 import { GioConnectorDialogModule } from './gio-connector-dialog.module';

@@ -16,37 +16,39 @@
 
 -->
 <mat-card class="api-creation-v4__step">
-  <div class="api-creation-v4__step__header">
-    <div class="api-creation-v4__step__header__step-number">Step 4</div>
-    <div class="api-creation-v4__step__header__subtitle">Security</div>
-    <p class="api-creation-v4__step__header__paragraph-light">Regulate access to your API by configuring plans and access control</p>
-  </div>
+  <mat-card-content>
+    <div class="api-creation-v4__step__header">
+      <div class="api-creation-v4__step__header__step-number">Step 4</div>
+      <div class="api-creation-v4__step__header__subtitle">Security</div>
+      <p class="api-creation-v4__step__header__paragraph-light">Regulate access to your API by configuring plans and access control</p>
+    </div>
 
-  <ng-container *ngIf="view === 'list'">
-    <step-4-security-1-plans-list
-      [plans]="plans"
-      (addPlanClicked)="onAddPlanClicked($event)"
-      (editPlanClicked)="onEditPlanClicked($event)"
-      (removePlanClicked)="onRemovePlanClicked($event)"
-    ></step-4-security-1-plans-list>
-  </ng-container>
+    <ng-container *ngIf="view === 'list'">
+      <step-4-security-1-plans-list
+        [plans]="plans"
+        (addPlanClicked)="onAddPlanClicked($event)"
+        (editPlanClicked)="onEditPlanClicked($event)"
+        (removePlanClicked)="onRemovePlanClicked($event)"
+      ></step-4-security-1-plans-list>
+    </ng-container>
 
-  <ng-container *ngIf="view === 'add'">
-    <step-4-security-1-plans-add
-      [planMenuItem]="selectedPlanMenuItem"
-      [apiType]="apiType"
-      (planChanges)="addPlan($event)"
-      (exitPlanCreation)="onExitPlanCreation()"
-    ></step-4-security-1-plans-add>
-  </ng-container>
+    <ng-container *ngIf="view === 'add'">
+      <step-4-security-1-plans-add
+        [planMenuItem]="selectedPlanMenuItem"
+        [apiType]="apiType"
+        (planChanges)="addPlan($event)"
+        (exitPlanCreation)="onExitPlanCreation()"
+      ></step-4-security-1-plans-add>
+    </ng-container>
 
-  <ng-container *ngIf="view === 'edit'">
-    <step-4-security-1-plans-add
-      [plan]="planToEdit"
-      [planMenuItem]="selectedPlanMenuItem"
-      [apiType]="apiType"
-      (planChanges)="editPlan($event)"
-      (exitPlanCreation)="onExitPlanCreation()"
-    ></step-4-security-1-plans-add>
-  </ng-container>
+    <ng-container *ngIf="view === 'edit'">
+      <step-4-security-1-plans-add
+        [plan]="planToEdit"
+        [planMenuItem]="selectedPlanMenuItem"
+        [apiType]="apiType"
+        (planChanges)="editPlan($event)"
+        (exitPlanCreation)="onExitPlanCreation()"
+      ></step-4-security-1-plans-add>
+    </ng-container>
+  </mat-card-content>
 </mat-card>

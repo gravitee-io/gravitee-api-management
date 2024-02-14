@@ -100,10 +100,5 @@ $typography: map.get(gio.$mat-legacy-theme, typography);
       display: flex;
       gap: 8px;
     }
-    &__button-icon {
-      vertical-align: text-bottom;
-      margin-left: 8px;
-      margin-right: 0;
-    }
   }
 }
