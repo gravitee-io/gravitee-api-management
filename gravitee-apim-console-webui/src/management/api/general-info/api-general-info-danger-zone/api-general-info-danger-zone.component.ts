@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, EventEmitter, Inject, Input, OnChanges, OnDestroy, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Inject, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import {
   GioConfirmAndValidateDialogComponent,
@@ -22,6 +22,7 @@ import {
   GioConfirmDialogComponent,
   GioConfirmDialogData,
   GioLicenseService,
+  License,
 } from '@gravitee/ui-particles-angular';
 import { EMPTY, Observable, of, Subject } from 'rxjs';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
@@ -39,7 +40,7 @@ import { ApimFeature, UTMTags } from '../../../../shared/components/gio-license/
   templateUrl: './api-general-info-danger-zone.component.html',
   styleUrls: ['./api-general-info-danger-zone.component.scss'],
 })
-export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy {
+export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy, OnInit {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   private licenseOptions = {
@@ -67,6 +68,8 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy {
     canDelete: false,
   };
   public isReadOnly = false;
+  public license$: Observable<License>;
+  public isOEM$: Observable<boolean>;
 
   public get shouldUpgrade$(): Observable<boolean> {
     if (this.api.definitionVersion === 'V2') {
@@ -96,6 +99,11 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy {
     @Inject('Constants') private readonly constants: Constants,
     private readonly licenseService: GioLicenseService,
   ) {}
+
+  ngOnInit(): void {
+    this.license$ = this.licenseService.getLicense$();
+    this.isOEM$ = this.licenseService.isOEM$();
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.api) {
