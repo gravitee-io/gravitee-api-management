@@ -16,9 +16,9 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA, MatLegacyDialogRef as MatDialogRef } from '@angular/material/legacy-dialog';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { GioLicenseService } from '@gravitee/ui-particles-angular';
+import { GioLicenseService, License } from '@gravitee/ui-particles-angular';
 import { takeUntil, tap } from 'rxjs/operators';
-import { Subject } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 
 import { ApimFeature, UTMTags } from '../../../../shared/components/gio-license/gio-license-data';
 import { ConnectorVM } from '../../../../entities/management-api-v2';
@@ -40,6 +40,8 @@ export class ApiEntrypointsV4AddDialogComponent implements OnInit, OnDestroy {
   public showContextPathForm = false;
   public contextPathFormGroup: UntypedFormGroup;
   public requiresUpgrade = false;
+  public license$: Observable<License>;
+  public isOEM$: Observable<boolean>;
 
   constructor(
     public dialogRef: MatDialogRef<ApiEntrypointsV4AddDialogComponent>,
@@ -63,6 +65,8 @@ export class ApiEntrypointsV4AddDialogComponent implements OnInit, OnDestroy {
           this.requiresUpgrade = selectedEntrypointsIds
             .map((id) => this.entrypoints.find((entrypoint) => entrypoint.id === id))
             .some((entrypoint) => !entrypoint.deployed);
+          this.license$ = this.licenseService.getLicense$();
+          this.isOEM$ = this.licenseService.isOEM$();
         }),
         takeUntil(this.unsubscribe$),
       )

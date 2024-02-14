@@ -21,7 +21,7 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
-import { GioConfirmDialogHarness, GioLicenseTestingModule } from '@gravitee/ui-particles-angular';
+import { GioConfirmDialogHarness, LICENSE_CONFIGURATION_TESTING } from '@gravitee/ui-particles-angular';
 import { MatLegacyAutocompleteModule as MatAutocompleteModule } from '@angular/material/legacy-autocomplete';
 import { MatLegacyRowHarnessColumnsText as MatRowHarnessColumnsText } from '@angular/material/legacy-table/testing';
 import { ActivatedRoute } from '@angular/router';
@@ -41,6 +41,14 @@ import { fakeRestrictedDomain, fakeRestrictedDomains } from '../../../entities/r
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 import { GioFormListenersTcpHostsHarness } from '../component/gio-form-listeners/gio-form-listeners-tcp-hosts/gio-form-listeners-tcp-hosts.harness';
 import { GioLicenseBannerHarness } from '../../../shared/components/gio-license-banner/gio-license-banner.harness';
+import { License } from '../../../entities/license/License';
+
+const ENTRYPOINTS: Partial<ConnectorPlugin>[] = [
+  { id: 'http-get', supportedApiType: 'MESSAGE', supportedListenerType: 'HTTP', name: 'HTTP GET', deployed: true },
+  { id: 'http-post', supportedApiType: 'MESSAGE', supportedListenerType: 'HTTP', name: 'HTTP POST', deployed: true },
+  { id: 'sse', supportedApiType: 'MESSAGE', supportedListenerType: 'HTTP', name: 'Server-Sent Events', deployed: false },
+  { id: 'webhook', supportedApiType: 'MESSAGE', supportedListenerType: 'SUBSCRIPTION', name: 'Webhook', deployed: false },
+];
 
 describe('ApiProxyV4EntrypointsComponent', () => {
   const API_ID = 'apiId';
@@ -49,7 +57,13 @@ describe('ApiProxyV4EntrypointsComponent', () => {
   let httpTestingController: HttpTestingController;
   let rootLoader: HarnessLoader;
 
-  const createComponent = async (restrictedDomains: RestrictedDomain[], api: ApiV4, getPortalSettings = true, permissions?: string[]) => {
+  const createComponent = async (
+    restrictedDomains: RestrictedDomain[],
+    api: ApiV4,
+    getPortalSettings = true,
+    permissions?: string[],
+    checkLicense = true,
+  ) => {
     await init(permissions);
     fixture.detectChanges();
 
@@ -60,32 +74,33 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     if (getPortalSettings) {
       expectGetPortalSettings();
     }
+
+    if (api.type === 'MESSAGE' && checkLicense) {
+      expectLicenseGetRequest({ tier: 'universe', features: [], packs: [], scope: 'PLATFORM' });
+    }
   };
 
   const init = async (permissions: string[] = ['api-definition-u', 'api-definition-r']) => {
-    await TestBed.configureTestingModule({
-      imports: [
-        NoopAnimationsModule,
-        GioHttpTestingModule,
-        ApiEntrypointsV4Module,
-        MatIconTestingModule,
-        MatAutocompleteModule,
-        GioLicenseTestingModule,
-      ],
+    TestBed.configureTestingModule({
+      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiEntrypointsV4Module, MatIconTestingModule, MatAutocompleteModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
         { provide: GioTestingPermissionProvider, useValue: permissions },
+        {
+          provide: 'LicenseConfiguration',
+          useValue: LICENSE_CONFIGURATION_TESTING,
+        },
       ],
     }).overrideProvider(InteractivityChecker, {
       useValue: {
-        isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
-        isTabbable: () => true, // This checks tabbable trap, set it to true to  avoid the warning
+        isFocusable: () => true,
+        isTabbable: () => true,
       },
     });
     httpTestingController = TestBed.inject(HttpTestingController);
-    fixture = await TestBed.createComponent(ApiEntrypointsV4GeneralComponent);
+    fixture = TestBed.createComponent(ApiEntrypointsV4GeneralComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
-    rootLoader = await TestbedHarnessEnvironment.documentRootLoader(fixture);
+    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
   };
 
   afterEach(() => {
@@ -171,7 +186,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     const API = fakeApiV4({ listeners: [{ type: 'HTTP', paths: [{ path: '/context-path' }], entrypoints: [{ type: 'http-get' }] }] });
 
     beforeEach(async () => {
-      await createComponent(RESTRICTED_DOMAINS, API);
+      await createComponent(RESTRICTED_DOMAINS, API, undefined, undefined, false);
     });
 
     afterEach(() => {
@@ -319,7 +334,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     });
 
     beforeEach(async () => {
-      await createComponent(RESTRICTED_DOMAINS, API);
+      await createComponent(RESTRICTED_DOMAINS, API, undefined, undefined, false);
     });
 
     afterEach(() => {
@@ -376,7 +391,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     });
 
     beforeEach(async () => {
-      await createComponent(RESTRICTED_DOMAINS, API);
+      await createComponent(RESTRICTED_DOMAINS, API, undefined, undefined, false);
     });
 
     afterEach(() => {
@@ -788,7 +803,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
     });
 
     beforeEach(async () => {
-      await createComponent(RESTRICTED_DOMAINS, API);
+      await createComponent(RESTRICTED_DOMAINS, API, undefined, undefined, false);
       expectApiPathVerify();
     });
 
@@ -818,13 +833,10 @@ describe('ApiProxyV4EntrypointsComponent', () => {
   }
 
   function expectGetEntrypoints(): void {
-    const entrypoints: Partial<ConnectorPlugin>[] = [
-      { id: 'http-get', supportedApiType: 'MESSAGE', supportedListenerType: 'HTTP', name: 'HTTP GET', deployed: true },
-      { id: 'http-post', supportedApiType: 'MESSAGE', supportedListenerType: 'HTTP', name: 'HTTP POST', deployed: true },
-      { id: 'sse', supportedApiType: 'MESSAGE', supportedListenerType: 'HTTP', name: 'Server-Sent Events', deployed: false },
-      { id: 'webhook', supportedApiType: 'MESSAGE', supportedListenerType: 'SUBSCRIPTION', name: 'Webhook', deployed: false },
-    ];
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/entrypoints`, method: 'GET' }).flush(ENTRYPOINTS);
+  }
 
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/entrypoints`, method: 'GET' }).flush(entrypoints);
+  function expectLicenseGetRequest(license: License) {
+    httpTestingController.expectOne({ url: LICENSE_CONFIGURATION_TESTING.resourceURL, method: 'GET' }).flush(license);
   }
 });
