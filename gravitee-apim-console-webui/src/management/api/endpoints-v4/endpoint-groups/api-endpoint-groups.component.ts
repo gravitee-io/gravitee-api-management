@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService } from '@gravitee/ui-particles-angular';
+import { GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService, License } from '@gravitee/ui-particles-angular';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { find, remove } from 'lodash';
-import { combineLatest, EMPTY, Subject } from 'rxjs';
+import { combineLatest, EMPTY, Observable, Subject } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -42,6 +42,8 @@ export class ApiEndpointGroupsComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   public isReordering = false;
   public shouldUpgrade = false;
+  public license$: Observable<License>;
+  public isOEM$: Observable<boolean>;
 
   private licenseOptions = {
     feature: ApimFeature.APIM_EN_MESSAGE_REACTOR,
@@ -76,6 +78,9 @@ export class ApiEndpointGroupsComponent implements OnInit, OnDestroy {
           );
 
           this.shouldUpgrade = this.groupsTableData.some((group) => !this.plugins.get(group.type).deployed);
+
+          this.license$ = this.licenseService.getLicense$();
+          this.isOEM$ = this.licenseService.isOEM$();
         }),
         takeUntil(this.unsubscribe$),
       )
