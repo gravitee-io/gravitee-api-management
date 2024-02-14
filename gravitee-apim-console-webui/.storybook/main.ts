@@ -8,6 +8,7 @@ const config: StorybookConfig = {
       enableIvy: true,
     },
   },
+
   stories: ['../src/**/*.stories.@(ts|mdx)'],
   addons: ['@storybook/addon-essentials'],
   features: {
@@ -24,6 +25,7 @@ const config: StorybookConfig = {
       from: '../node_modules/@gravitee/ui-particles-angular/assets',
       to: '/assets',
     },
+    { from: '../node_modules/monaco-editor', to: '/assets/monaco-editor' },
   ],
 };
 
