@@ -45,8 +45,6 @@ import jakarta.ws.rs.core.Response;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.security.KeyStore;
 import java.security.cert.Certificate;
@@ -159,7 +157,7 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
                 "%s/#!/%s/%s",
                 installationAccessQueryService.getConsoleUrl(organizationId),
                 environmentId,
-                apiId == null ? "" : URLEncoder.encode(String.format("apis/%s/portal", apiId), StandardCharsets.UTF_8)
+                apiId == null ? "" : String.format("apis/%s", apiId)
             );
 
             // Redirect the user.
