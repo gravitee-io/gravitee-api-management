@@ -17,8 +17,8 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
-import { MatLegacyTooltipModule as MatTooltipModule } from '@angular/material/legacy-tooltip';
-import { MatLegacyTableModule as MatTableModule } from '@angular/material/legacy-table';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatTableModule } from '@angular/material/table';
 import { GioLoaderModule } from '@gravitee/ui-particles-angular';
 
 import { ApiEventsComponent } from './api-events.component';

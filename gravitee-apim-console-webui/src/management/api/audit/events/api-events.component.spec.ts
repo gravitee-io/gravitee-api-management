@@ -18,7 +18,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { HarnessLoader, parallel } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { MatLegacyRowHarness as MatRowHarness, MatLegacyTableHarness as MatTableHarness } from '@angular/material/legacy-table/testing';
+import { MatRowHarness, MatTableHarness } from '@angular/material/table/testing';
 import { MatIconHarness, MatIconTestingModule } from '@angular/material/icon/testing';
 import { ActivatedRoute } from '@angular/router';
 
