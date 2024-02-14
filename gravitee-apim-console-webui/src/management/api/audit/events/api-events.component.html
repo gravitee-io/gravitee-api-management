@@ -81,11 +81,15 @@
   ></tr>
 
   <!-- Row shown when there is no data -->
-  <tr class="mat-row" *matNoDataRow>
-    <td *ngIf="!isLoadingData && eventsTableDS.length === 0" class="mat-cell" [attr.colspan]="displayedColumns.length">
+  <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+    <td
+      *ngIf="!isLoadingData && eventsTableDS.length === 0"
+      class="mat-mdc-cell mdc-data-table__cell"
+      [attr.colspan]="displayedColumns.length"
+    >
       {{ 'There is no event (yet).' }}
     </td>
-    <td *ngIf="isLoadingData" class="mat-cell loader" [attr.colspan]="displayedColumns.length">
+    <td *ngIf="isLoadingData" class="mat-mdc-cell mdc-data-table__cell loader" [attr.colspan]="displayedColumns.length">
       <gio-loader></gio-loader>
     </td>
   </tr>
