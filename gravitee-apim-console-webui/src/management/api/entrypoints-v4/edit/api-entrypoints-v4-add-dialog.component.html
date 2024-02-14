@@ -25,7 +25,11 @@
     <gio-entrypoints-selection-list formControlName="selectedEntrypointsIds" [entrypoints]="entrypoints"></gio-entrypoints-selection-list>
 
     <div *ngIf="requiresUpgrade" class="license-banner">
-      <gio-license-banner (onRequestUpgrade)="onRequestUpgrade()"></gio-license-banner>
+      <gio-license-banner
+        [license]="license$ | async"
+        [isOEM]="isOEM$ | async"
+        (onRequestUpgrade)="onRequestUpgrade()"
+      ></gio-license-banner>
     </div>
 
     <mat-dialog-actions class="actions">

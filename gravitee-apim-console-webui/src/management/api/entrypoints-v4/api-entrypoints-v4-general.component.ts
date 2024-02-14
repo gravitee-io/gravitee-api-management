@@ -17,7 +17,13 @@ import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { EMPTY, forkJoin, Observable, of, Subject } from 'rxjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService } from '@gravitee/ui-particles-angular';
+import {
+  GIO_DIALOG_WIDTH,
+  GioConfirmDialogComponent,
+  GioConfirmDialogData,
+  GioLicenseService,
+  License,
+} from '@gravitee/ui-particles-angular';
 import { MatLegacyDialog } from '@angular/material/legacy-dialog';
 import { MatDialog } from '@angular/material/dialog';
 import { flatten, isEmpty, remove } from 'lodash';
@@ -74,6 +80,8 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
   public domainRestrictions: string[] = [];
   public entrypointAvailableForAdd: ConnectorVM[] = [];
   public shouldUpgrade = false;
+  public license$: Observable<License>;
+  public isOEM$: Observable<boolean>;
   public canUpdate = false;
   constructor(
     private readonly activatedRoute: ActivatedRoute,
@@ -115,6 +123,8 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
     if (api.type === 'MESSAGE') {
       const selectedEntrypoints = flatten(api.listeners.map((l) => l.entrypoints)).map((e) => e.type);
       this.shouldUpgrade = this.allEntrypoints.filter((e) => selectedEntrypoints.includes(e.id)).some(({ deployed }) => !deployed);
+      this.license$ = this.licenseService.getLicense$();
+      this.isOEM$ = this.licenseService.isOEM$();
     }
 
     this.api = api as ApiV4;
