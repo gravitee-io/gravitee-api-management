@@ -17,9 +17,9 @@
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
-import { Subject } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { takeUntil, tap } from 'rxjs/operators';
-import { GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService } from '@gravitee/ui-particles-angular';
+import { GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService, License } from '@gravitee/ui-particles-angular';
 import { isEqual } from 'lodash';
 
 import { Step2Entrypoints2ConfigComponent } from './step-2-entrypoints-2-config.component';
@@ -43,6 +43,8 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
   public entrypoints: ConnectorVM[];
 
   public shouldUpgrade = false;
+  public license$: Observable<License>;
+  public isOEM$: Observable<boolean>;
   public apiType: ApiType;
 
   constructor(
@@ -94,6 +96,9 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
               return name1 < name2 ? -1 : name1 > name2 ? 1 : 0;
             });
           this.checkShouldUpgrade(currentStepPayload.selectedEntrypoints?.map((e) => e.id) || []);
+          this.license$ = this.licenseService.getLicense$();
+          this.isOEM$ = this.licenseService.isOEM$();
+
           this.changeDetectorRef.detectChanges();
         });
     }

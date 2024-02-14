@@ -52,6 +52,9 @@ export class ApiCreationV4SpecStepperHelper {
 
   async fillAndValidateStep2_0_EntrypointsArchitecture(type: ApiType = 'MESSAGE') {
     const architecture = await this.harnessLoader.getHarness(Step2Entrypoints0ArchitectureHarness);
+    if (type === 'MESSAGE') {
+      expect(await architecture.isLicenseBannerShown()).toEqual(true);
+    }
     await architecture.fillAndValidate(type);
   }
 

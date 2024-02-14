@@ -18,9 +18,9 @@ import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { MatLegacyDialog } from '@angular/material/legacy-dialog';
 import { MatDialog } from '@angular/material/dialog';
-import { of, Subject } from 'rxjs';
+import { Observable, of, Subject } from 'rxjs';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
-import { GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService } from '@gravitee/ui-particles-angular';
+import { GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService, License } from '@gravitee/ui-particles-angular';
 import { isEqual } from 'lodash';
 
 import { Step3Endpoints2ConfigComponent } from './step-3-endpoints-2-config.component';
@@ -48,6 +48,8 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
   public endpoints: ConnectorVM[];
 
   public shouldUpgrade = false;
+  public license$: Observable<License>;
+  public isOEM$: Observable<boolean>;
 
   private licenseOptions = {
     feature: ApimFeature.APIM_EN_MESSAGE_REACTOR,
@@ -90,6 +92,8 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
       .valueChanges.pipe(
         tap((selectedEndpointsIds) => {
           this.checkShouldUpgrade(selectedEndpointsIds);
+          this.license$ = this.licenseService.getLicense$();
+          this.isOEM$ = this.licenseService.isOEM$();
         }),
         takeUntil(this.unsubscribe$),
       )

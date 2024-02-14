@@ -15,7 +15,8 @@
  */
 
 import { Component, Inject, OnInit } from '@angular/core';
-import { GioLicenseService } from '@gravitee/ui-particles-angular';
+import { GioLicenseService, License } from '@gravitee/ui-particles-angular';
+import { Observable } from 'rxjs';
 
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 import { ApiCreationPayload } from '../../models/ApiCreationPayload';
@@ -36,6 +37,8 @@ export class Step5SummaryComponent implements OnInit {
   public endpointsDeployable: boolean;
   public deployable: boolean;
   public shouldUpgrade: boolean;
+  public license$: Observable<License>;
+  public isOEM$: Observable<boolean>;
   public hasReviewEnabled = this.constants.env?.settings?.apiReview?.enabled ?? false;
 
   private apiType: ApiCreationPayload['type'];
@@ -60,6 +63,8 @@ export class Step5SummaryComponent implements OnInit {
     this.endpointsDeployable = this.currentStepPayload.selectedEndpoints.every(({ deployed }) => deployed);
     this.deployable = this.entrypointsDeployable && this.endpointsDeployable;
     this.shouldUpgrade = !this.deployable;
+    this.license$ = this.licenseService.getLicense$();
+    this.isOEM$ = this.licenseService.isOEM$();
   }
 
   createApi({ deploy, askForReview }: { deploy: boolean; askForReview: boolean }) {

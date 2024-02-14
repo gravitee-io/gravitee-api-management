@@ -126,7 +126,11 @@
       </div>
     </div>
     <div *ngIf="shouldUpgrade">
-      <gio-license-banner (onRequestUpgrade)="onRequestUpgrade()"></gio-license-banner>
+      <gio-license-banner
+        [license]="license$ | async"
+        [isOEM]="isOEM$ | async"
+        (onRequestUpgrade)="onRequestUpgrade()"
+      ></gio-license-banner>
     </div>
   </div>
   <div class="step-5-summary__footer">
