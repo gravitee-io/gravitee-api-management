@@ -51,6 +51,7 @@ import { ApiCorsModule } from './cors/api-cors.module';
 import { ApiPropertiesModule } from './properties/properties/api-properties.module';
 import { ApiProxyHealthCheckDashboardModule } from './health-check-dashboard/api-proxy-health-check-dashboard.module';
 import { ApiRuntimeAlertsModule } from './runtime-alerts';
+import { ApiHistoryV4Module } from './history-v4/api-history-v4.module';
 
 import { SpecificJsonSchemaTypeModule } from '../../shared/components/specific-json-schema-type/specific-json-schema-type.module';
 import { DocumentationModule } from '../../components/documentation/documentation.module';
@@ -83,6 +84,7 @@ import { AlertsModule } from '../../components/alerts/alerts.module';
     ApiGeneralInfoModule,
     ApiProxyHealthCheckDashboardModule,
     ApiHealthCheckModule,
+    ApiHistoryV4Module,
     ApiListModule,
     ApiNavigationModule,
     ApiNotificationModule,
