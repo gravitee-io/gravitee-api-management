@@ -33,8 +33,10 @@ export function fakeEvent(modifier?: Partial<Event> | ((base: Event) => Event)):
     properties: {
       API: 'api-id',
       USER: 'user-id',
+      DEPLOYMENT_LABEL: 'sample-label',
+      DEPLOYMENT_NUMBER: '1',
     },
-    payload: '{}',
+    payload: '{"definition":"{}"}',
   };
 
   if (isFunction(modifier)) {

@@ -79,6 +79,8 @@ import { ApiPropertiesComponent } from './properties/properties/api-properties.c
 import { ApiNotificationComponent } from './api-notification/api-notification.component';
 import { ApiRuntimeAlertsComponent } from './runtime-alerts';
 import { ApiDocumentationV4MetadataComponent } from './documentation-v4/documentation-metadata/api-documentation-v4-metadata.component';
+import { ApiHistoryV4Component } from './history-v4/api-history-v4.component';
+import { ApiHistoryV4DeploymentInfoComponent } from './history-v4/deployment-info/api-history-v4-deployment-info.component';
 
 import { DocumentationManagementComponent } from '../../components/documentation/documentation-management.component';
 import { DocumentationNewPageComponent } from '../../components/documentation/new-page.component';
@@ -976,6 +978,30 @@ const apisRoutes: Routes = [
           },
           permissions: {
             anyOf: ['api-audit-r'],
+          },
+        },
+      },
+      {
+        path: 'v4/history',
+        component: ApiHistoryV4Component,
+        data: {
+          permissions: {
+            anyOf: ['api-event-r'],
+          },
+          docs: {
+            page: 'management-api-history',
+          },
+        },
+      },
+      {
+        path: 'v4/history/:apiVersionId',
+        component: ApiHistoryV4DeploymentInfoComponent,
+        data: {
+          permissions: {
+            anyOf: ['api-event-r'],
+          },
+          docs: {
+            page: 'management-api-history',
           },
         },
       },
