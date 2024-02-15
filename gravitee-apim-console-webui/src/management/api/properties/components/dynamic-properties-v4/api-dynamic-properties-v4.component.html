@@ -16,46 +16,48 @@
 
 -->
 <mat-card class="apiDynamicProperties">
-  <div class="apiDynamicProperties__header">
-    <div class="apiDynamicProperties__header__title">
-      <div>
-        <h2>API dynamic properties</h2>
-        Dynamic properties let you fetch API properties from a remote resource, such as web service. You can set a polling frequency
-        property and apply response transformation thanks to the
-        <a href="https://github.com/bazaarvoice/jolt" target="_blank" rel="noopener">JOLT framework</a> . Like classical properties, dynamic
-        properties will be injected into the expression language context.
+  <mat-card-content>
+    <div class="apiDynamicProperties__header">
+      <div class="apiDynamicProperties__header__title">
+        <div>
+          <h2>API dynamic properties</h2>
+          Dynamic properties let you fetch API properties from a remote resource, such as web service. You can set a polling frequency
+          property and apply response transformation thanks to the
+          <a href="https://github.com/bazaarvoice/jolt" target="_blank" rel="noopener">JOLT framework</a> . Like classical properties,
+          dynamic properties will be injected into the expression language context.
+        </div>
+        <div class="apiDynamicProperties__header__title__button">
+          <a mat-raised-button type="button" aria-label="Go back" [routerLink]="'../..'">Go back</a>
+        </div>
       </div>
-      <div class="apiDynamicProperties__header__title__button">
-        <a mat-raised-button type="button" aria-label="Go back" [routerLink]="'../..'">Go back</a>
+
+      <div class="apiDynamicProperties__header__banner">
+        <gio-banner-info class="bannerTransformationJOLTExample" [collapsible]="true">
+          Set-up guide
+          <span gioBannerBody class="bannerTransformationJOLTExample__body">
+            1. Configure Scheduler with a cron expression to define the polling frequency. <br />
+            2. Set the HTTP endpoint to fetch the properties. <br />
+            3. (optional) If the HTTP service doesn’t return the expected output, you will need to edit the JOLT transformation
+            accordingly.<br />
+            <pre class="highlight" [innerHTML]="transformationJOLTExample"></pre>
+          </span>
+        </gio-banner-info>
       </div>
     </div>
 
-    <div class="apiDynamicProperties__header__banner">
-      <gio-banner-info class="bannerTransformationJOLTExample" [collapsible]="true">
-        Set-up guide
-        <span gioBannerBody class="bannerTransformationJOLTExample__body">
-          1. Configure Scheduler with a cron expression to define the polling frequency. <br />
-          2. Set the HTTP endpoint to fetch the properties. <br />
-          3. (optional) If the HTTP service doesn’t return the expected output, you will need to edit the JOLT transformation
-          accordingly.<br />
-          <pre class="highlight" [innerHTML]="transformationJOLTExample"></pre>
-        </span>
-      </gio-banner-info>
-    </div>
-  </div>
-
-  <form *ngIf="form" [formGroup]="form">
-    <gio-form-slide-toggle class="apiDynamicProperties__enableField">
-      <gio-form-label>Enabled</gio-form-label>
-      This service is requiring an API deployment. Do not forget to deploy API to start dynamic-properties service.
-      <mat-slide-toggle
-        gioFormSlideToggle
-        formControlName="enabled"
-        aria-label="Enable dynamic properties service"
-        name="enabled"
-      ></mat-slide-toggle>
-    </gio-form-slide-toggle>
-    <gio-form-json-schema [jsonSchema]="schema" formControlName="configuration"></gio-form-json-schema>
-  </form>
+    <form *ngIf="form" [formGroup]="form">
+      <gio-form-slide-toggle class="apiDynamicProperties__enableField">
+        <gio-form-label>Enabled</gio-form-label>
+        This service is requiring an API deployment. Do not forget to deploy API to start dynamic-properties service.
+        <mat-slide-toggle
+          gioFormSlideToggle
+          formControlName="enabled"
+          aria-label="Enable dynamic properties service"
+          name="enabled"
+        ></mat-slide-toggle>
+      </gio-form-slide-toggle>
+      <gio-form-json-schema [jsonSchema]="schema" formControlName="configuration"></gio-form-json-schema>
+    </form>
+  </mat-card-content>
 </mat-card>
 <gio-save-bar [form]="form" [formInitialValues]="initialFormValue" (submitted)="onSave()"> </gio-save-bar>

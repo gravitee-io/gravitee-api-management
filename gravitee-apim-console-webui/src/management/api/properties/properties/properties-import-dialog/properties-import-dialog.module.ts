@@ -16,12 +16,12 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
-import { MatLegacyButtonModule as MatButtonModule } from '@angular/material/legacy-button';
+import { MatButtonModule } from '@angular/material/button';
 import { GioBannerModule, GioIconsModule } from '@gravitee/ui-particles-angular';
-import { MatLegacyDialogModule as MatDialogModule } from '@angular/material/legacy-dialog';
-import { MatLegacyFormFieldModule as MatFormFieldModule } from '@angular/material/legacy-form-field';
-import { MatLegacyInputModule as MatInputModule } from '@angular/material/legacy-input';
-import { MatLegacyTooltipModule as MatTooltipModule } from '@angular/material/legacy-tooltip';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { PropertiesImportDialogComponent } from './properties-import-dialog.component';
 

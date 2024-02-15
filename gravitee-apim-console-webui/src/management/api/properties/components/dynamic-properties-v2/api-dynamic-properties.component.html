@@ -16,96 +16,98 @@
 
 -->
 <mat-card class="apiDynamicProperties">
-  <div class="apiDynamicProperties__header">
-    <div class="apiDynamicProperties__header__title">
-      <div>
-        <h2>API dynamic properties</h2>
-        Dynamic properties let you fetch API properties from a remote resource, such as web service. You can set a polling frequency
-        property and apply response transformation thanks to the
-        <a href="https://github.com/bazaarvoice/jolt" target="_blank" rel="noopener">JOLT framework</a> . Like classical properties, dynamic
-        properties will be injected into the expression language context.
+  <mat-card-content>
+    <div class="apiDynamicProperties__header">
+      <div class="apiDynamicProperties__header__title">
+        <div>
+          <h2>API dynamic properties</h2>
+          Dynamic properties let you fetch API properties from a remote resource, such as web service. You can set a polling frequency
+          property and apply response transformation thanks to the
+          <a href="https://github.com/bazaarvoice/jolt" target="_blank" rel="noopener">JOLT framework</a> . Like classical properties,
+          dynamic properties will be injected into the expression language context.
+        </div>
+        <div class="apiDynamicProperties__header__title__button">
+          <a mat-raised-button type="button" aria-label="Go back" [routerLink]="'..'">Go back</a>
+        </div>
       </div>
-      <div class="apiDynamicProperties__header__title__button">
-        <a mat-raised-button type="button" aria-label="Go back" [routerLink]="'..'">Go back</a>
+
+      <div class="apiDynamicProperties__header__banner">
+        <gio-banner-info class="bannerTransformationJOLTExample" [collapsible]="true">
+          Set-up guide
+          <span gioBannerBody class="bannerTransformationJOLTExample__body">
+            1. Configure Scheduler with a cron expression to define the polling frequency. <br />
+            2. Set the HTTP endpoint to fetch the properties. <br />
+            3. (optional) If the HTTP service doesn’t return the expected output, you will need to edit the JOLT transformation
+            accordingly.<br />
+            <pre class="highlight" [innerHTML]="transformationJOLTExample"></pre>
+          </span>
+        </gio-banner-info>
       </div>
     </div>
 
-    <div class="apiDynamicProperties__header__banner">
-      <gio-banner-info class="bannerTransformationJOLTExample" [collapsible]="true">
-        Set-up guide
-        <span gioBannerBody class="bannerTransformationJOLTExample__body">
-          1. Configure Scheduler with a cron expression to define the polling frequency. <br />
-          2. Set the HTTP endpoint to fetch the properties. <br />
-          3. (optional) If the HTTP service doesn’t return the expected output, you will need to edit the JOLT transformation
-          accordingly.<br />
-          <pre class="highlight" [innerHTML]="transformationJOLTExample"></pre>
-        </span>
-      </gio-banner-info>
-    </div>
-  </div>
+    <ng-container *ngIf="form" [formGroup]="form">
+      <gio-form-slide-toggle class="apiDynamicProperties__enableField">
+        <gio-form-label>Enabled</gio-form-label>
+        This service is requiring an API deployment. Do not forget to deploy API to start dynamic-properties service.
+        <mat-slide-toggle
+          gioFormSlideToggle
+          formControlName="enabled"
+          aria-label="Use proxy for client connections"
+          name="enabled"
+        ></mat-slide-toggle>
+      </gio-form-slide-toggle>
 
-  <ng-container *ngIf="form" [formGroup]="form">
-    <gio-form-slide-toggle class="apiDynamicProperties__enableField">
-      <gio-form-label>Enabled</gio-form-label>
-      This service is requiring an API deployment. Do not forget to deploy API to start dynamic-properties service.
-      <mat-slide-toggle
-        gioFormSlideToggle
-        formControlName="enabled"
-        aria-label="Use proxy for client connections"
-        name="enabled"
-      ></mat-slide-toggle>
-    </gio-form-slide-toggle>
+      <gio-form-cron class="apiDynamicProperties__scheduleField" formControlName="schedule">
+        <gio-form-cron-label>Schedule *</gio-form-cron-label>
+      </gio-form-cron>
 
-    <gio-form-cron class="apiDynamicProperties__scheduleField" formControlName="schedule">
-      <gio-form-cron-label>Schedule *</gio-form-cron-label>
-    </gio-form-cron>
+      <div class="apiDynamicProperties__methodUrl">
+        <mat-form-field class="apiDynamicProperties__methodUrl__methodField">
+          <mat-label>Method</mat-label>
+          <mat-select formControlName="method">
+            <mat-option *ngFor="let method of httpMethods" [value]="method">{{ method }}</mat-option>
+          </mat-select>
+        </mat-form-field>
 
-    <div class="apiDynamicProperties__methodUrl">
-      <mat-form-field class="apiDynamicProperties__methodUrl__methodField">
-        <mat-label>Method</mat-label>
-        <mat-select formControlName="method">
-          <mat-option *ngFor="let method of httpMethods" [value]="method">{{ method }}</mat-option>
-        </mat-select>
+        <mat-form-field class="apiDynamicProperties__methodUrl__urlField">
+          <mat-label>URL</mat-label>
+          <input type="text" matInput formControlName="url" />
+          <mat-error *ngIf="form.get('url').hasError('required')">URL is required.</mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="apiDynamicProperties__headersField">
+        <gio-form-headers [headerFieldMapper]="{ keyName: 'name', valueName: 'value' }" formControlName="headers">
+          <gio-form-headers-label>Request headers</gio-form-headers-label>
+        </gio-form-headers>
+      </div>
+
+      <mat-form-field class="apiDynamicProperties__field">
+        <mat-label>Request body</mat-label>
+        <gio-monaco-editor gioMonacoEditorFormField formControlName="body"></gio-monaco-editor>
       </mat-form-field>
 
-      <mat-form-field class="apiDynamicProperties__methodUrl__urlField">
-        <mat-label>URL</mat-label>
-        <input type="text" matInput formControlName="url" />
-        <mat-error *ngIf="form.get('url').hasError('required')">URL is required.</mat-error>
+      <mat-form-field class="apiDynamicProperties__field">
+        <mat-label>Transformation (JOLT Specification)</mat-label>
+        <gio-monaco-editor
+          gioMonacoEditorFormField
+          formControlName="specification"
+          [languageConfig]="specificationLanguageConfig"
+        ></gio-monaco-editor>
       </mat-form-field>
-    </div>
 
-    <div class="apiDynamicProperties__headersField">
-      <gio-form-headers [headerFieldMapper]="{ keyName: 'name', valueName: 'value' }" formControlName="headers">
-        <gio-form-headers-label>Request headers</gio-form-headers-label>
-      </gio-form-headers>
-    </div>
-
-    <mat-form-field class="apiDynamicProperties__field">
-      <mat-label>Request body</mat-label>
-      <gio-monaco-editor gioMonacoEditorFormField formControlName="body"></gio-monaco-editor>
-    </mat-form-field>
-
-    <mat-form-field class="apiDynamicProperties__field">
-      <mat-label>Transformation (JOLT Specification)</mat-label>
-      <gio-monaco-editor
-        gioMonacoEditorFormField
-        formControlName="specification"
-        [languageConfig]="specificationLanguageConfig"
-      ></gio-monaco-editor>
-    </mat-form-field>
-
-    <gio-form-slide-toggle class="apiDynamicProperties__field">
-      <gio-form-label>Use system proxy</gio-form-label>
-      Use the system proxy configured in APIM installation.
-      <mat-slide-toggle
-        gioFormSlideToggle
-        formControlName="useSystemProxy"
-        aria-label="Use proxy for client connections"
-        name="useSystemProxy"
-      ></mat-slide-toggle>
-    </gio-form-slide-toggle>
-  </ng-container>
+      <gio-form-slide-toggle class="apiDynamicProperties__field">
+        <gio-form-label>Use system proxy</gio-form-label>
+        Use the system proxy configured in APIM installation.
+        <mat-slide-toggle
+          gioFormSlideToggle
+          formControlName="useSystemProxy"
+          aria-label="Use proxy for client connections"
+          name="useSystemProxy"
+        ></mat-slide-toggle>
+      </gio-form-slide-toggle>
+    </ng-container>
+  </mat-card-content>
 </mat-card>
 
 <gio-save-bar [form]="form" [formInitialValues]="initialFormValue" (submitted)="onSave()"> </gio-save-bar>

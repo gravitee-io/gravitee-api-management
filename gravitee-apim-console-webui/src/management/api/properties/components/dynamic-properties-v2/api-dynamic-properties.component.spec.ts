@@ -21,12 +21,12 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
-import { MatLegacySlideToggleHarness as MatSlideToggleHarness } from '@angular/material/legacy-slide-toggle/testing';
-import { MatLegacySelectHarness as MatSelectHarness } from '@angular/material/legacy-select/testing';
+import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
+import { MatSelectHarness } from '@angular/material/select/testing';
 import { GioFormCronHarness, GioFormHeadersHarness, GioMonacoEditorHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
-import { MatLegacyInputHarness as MatInputHarness } from '@angular/material/legacy-input/testing';
+import { MatInputHarness } from '@angular/material/input/testing';
 import { ActivatedRoute } from '@angular/router';
-import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
 import { ApiDynamicPropertiesComponent } from './api-dynamic-properties.component';
 import { ApiDynamicPropertiesV2Module } from './api-dynamic-properties-v2.module';

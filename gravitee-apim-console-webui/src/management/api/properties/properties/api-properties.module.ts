@@ -16,18 +16,19 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { GioBannerModule, GioIconsModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
-import { MatLegacyTableModule as MatTableModule } from '@angular/material/legacy-table';
-import { MatLegacyButtonModule as MatButtonModule } from '@angular/material/legacy-button';
-import { MatLegacyCardModule as MatCardModule } from '@angular/material/legacy-card';
+import { MatTableModule } from '@angular/material/table';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
-import { MatLegacyTooltipModule as MatTooltipModule } from '@angular/material/legacy-tooltip';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { MatLegacySlideToggleModule as MatSlideToggleModule } from '@angular/material/legacy-slide-toggle';
-import { MatLegacyFormFieldModule as MatFormFieldModule } from '@angular/material/legacy-form-field';
-import { MatLegacyInputModule as MatInputModule } from '@angular/material/legacy-input';
-import { MatLegacySnackBarModule as MatSnackBarModule } from '@angular/material/legacy-snack-bar';
-import { MatLegacyDialogModule as MatDialogModule } from '@angular/material/legacy-dialog';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDialogModule } from '@angular/material/dialog';
 import { RouterModule } from '@angular/router';
+import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { ApiPropertiesComponent } from './api-properties.component';
 import { PropertiesAddDialogModule } from './properties-add-dialog/properties-add-dialog.module';
@@ -61,6 +62,7 @@ import { ApiDynamicPropertiesV4Module } from '../components/dynamic-properties-v
     MatFormFieldModule,
     MatInputModule,
     MatSnackBarModule,
+    MatLegacySnackBarModule,
     MatDialogModule,
     GioBannerModule,
 
