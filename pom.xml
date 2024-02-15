@@ -238,7 +238,7 @@
         <gravitee-reporter-elasticsearch.version>5.1.2</gravitee-reporter-elasticsearch.version>
         <gravitee-reporter-file.version>3.0.2</gravitee-reporter-file.version>
         <gravitee-reporter-tcp.version>2.0.2</gravitee-reporter-tcp.version>
-        <gravitee-tracer-jaeger.version>3.0.0</gravitee-tracer-jaeger.version>
+        <gravitee-tracer-jaeger.version>3.0.1</gravitee-tracer-jaeger.version>
 
         <!-- Versions of the plugins for the full distribution on dev environment-->
         <!-- Management API & Gateway -->
