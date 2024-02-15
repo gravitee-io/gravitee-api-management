@@ -21,6 +21,7 @@ import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
 import io.gravitee.apim.infra.adapter.MembershipAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.MembershipRepository;
+import io.gravitee.repository.management.model.MembershipMemberType;
 import io.gravitee.repository.management.model.MembershipReferenceType;
 import java.util.Collection;
 import java.util.List;
@@ -63,6 +64,22 @@ public class MembershipQueryServiceImpl implements MembershipQueryService {
                 .toList();
         } catch (TechnicalException e) {
             throw new TechnicalDomainException(String.format("An error occurs while trying to find %s membership", referenceType), e);
+        }
+    }
+
+    @Override
+    public Collection<Membership> findGroupsThatUserBelongsTo(String memberId) {
+        try {
+            return membershipRepository
+                .findByMemberIdAndMemberTypeAndReferenceType(memberId, MembershipMemberType.USER, MembershipReferenceType.GROUP)
+                .stream()
+                .map(MembershipAdapter.INSTANCE::toEntity)
+                .toList();
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException(
+                String.format("An error occurs while trying to find Group memberships of member %s", memberId),
+                e
+            );
         }
     }
 }
