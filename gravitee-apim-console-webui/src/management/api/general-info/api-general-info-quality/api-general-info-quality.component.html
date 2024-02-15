@@ -16,21 +16,23 @@
 
 -->
 <mat-card class="api-quality">
-  <h3>Quality</h3>
-  <div *ngIf="qualityMetrics; else loading" class="api-quality__content">
-    <gio-circular-percentage class="api-quality__content__score" [score]="qualityMetrics.score"></gio-circular-percentage>
-    <div class="api-quality__content__list">
-      <div *ngFor="let qualityMetric of qualityMetrics.metrics_passed | keyvalue" class="api-quality__content__list__item">
-        <mat-icon
-          *ngIf="qualityMetric.value"
-          class="api-quality__content__list__item__green-icon"
-          svgIcon="gio:check-circled-outline"
-        ></mat-icon>
-        <mat-icon *ngIf="!qualityMetric.value" class="api-quality__content__list__item__red-icon" svgIcon="gio:alert-circle"></mat-icon>
-        <span class="api-quality__content__list__item__text">{{ qualityMetricsDescription[qualityMetric.key] }}</span>
+  <mat-card-content>
+    <h3>Quality</h3>
+    <div *ngIf="qualityMetrics; else loading" class="api-quality__content">
+      <gio-circular-percentage class="api-quality__content__score" [score]="qualityMetrics.score"></gio-circular-percentage>
+      <div class="api-quality__content__list">
+        <div *ngFor="let qualityMetric of qualityMetrics.metrics_passed | keyvalue" class="api-quality__content__list__item">
+          <mat-icon
+            *ngIf="qualityMetric.value"
+            class="api-quality__content__list__item__green-icon"
+            svgIcon="gio:check-circled-outline"
+          ></mat-icon>
+          <mat-icon *ngIf="!qualityMetric.value" class="api-quality__content__list__item__red-icon" svgIcon="gio:alert-circle"></mat-icon>
+          <span class="api-quality__content__list__item__text">{{ qualityMetricsDescription[qualityMetric.key] }}</span>
+        </div>
       </div>
     </div>
-  </div>
+  </mat-card-content>
 </mat-card>
 
 <ng-template #loading>
