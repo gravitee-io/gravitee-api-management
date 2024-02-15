@@ -18,6 +18,8 @@ package io.gravitee.rest.api.model.settings;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.gravitee.rest.api.model.annotations.ParameterKey;
 import io.gravitee.rest.api.model.parameters.Key;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -42,7 +44,9 @@ public class Portal {
     private String homepageTitle;
 
     @ParameterKey(Key.PORTAL_TCP_PORT)
-    private String tcpPort;
+    @Min(1025)
+    @Max(65535)
+    private Integer tcpPort;
 
     private PortalApis apis;
     private PortalAnalytics analytics;
@@ -92,11 +96,11 @@ public class Portal {
         this.homepageTitle = homepageTitle;
     }
 
-    public String getTcpPort() {
+    public Integer getTcpPort() {
         return tcpPort;
     }
 
-    public void setTcpPort(String tcpPort) {
+    public void setTcpPort(Integer tcpPort) {
         this.tcpPort = tcpPort;
     }
 

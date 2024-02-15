@@ -18,6 +18,7 @@ package io.gravitee.rest.api.model.settings;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.gravitee.rest.api.model.annotations.ParameterKey;
 import io.gravitee.rest.api.model.parameters.Key;
+import jakarta.validation.Valid;
 import java.util.List;
 
 /**
@@ -37,7 +38,10 @@ public class PortalSettingsEntity extends AbstractCommonSettingsEntity {
     private Documentation documentation;
     private OpenAPIDocViewer openAPIDocViewer;
     private PlanSettings plan;
+
+    @Valid
     private Portal portal;
+
     private PortalReCaptcha reCaptcha;
     private PortalScheduler scheduler;
     private Dashboards dashboards;

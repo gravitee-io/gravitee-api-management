@@ -32,6 +32,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.inject.Inject;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
@@ -84,7 +85,9 @@ public class PortalSettingsResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_SETTINGS, acls = { CREATE, UPDATE, DELETE }) })
-    public Response savePortalSettings(@Parameter(name = "config", required = true) @NotNull PortalSettingsEntity portalSettingsEntity) {
+    public Response savePortalSettings(
+        @Parameter(name = "config", required = true) @Valid @NotNull PortalSettingsEntity portalSettingsEntity
+    ) {
         // check that environment exists
         environmentService.findById(GraviteeContext.getCurrentEnvironment());
 
