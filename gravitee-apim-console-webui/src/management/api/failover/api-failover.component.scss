@@ -15,7 +15,6 @@ $foreground: map.get(gio.$mat-legacy-theme, foreground);
   &__enable-toggle {
     padding-bottom: 16px;
     width: 100%;
-
     mat-slide-toggle {
       margin: 0 8px;
     }
