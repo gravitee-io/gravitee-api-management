@@ -765,14 +765,14 @@ workflows:
             - cicd-orchestrator
           apim-ui-project: gravitee-apim-portal-webui
           resource_class: large
-          node_version: "18.18"
+          node_version: "20.9"
       - job-webui-build:
           name: Build APIM Portal and publish image
           context:
             - cicd-orchestrator
           apim-ui-project: gravitee-apim-portal-webui
           docker-image-name: apim-portal-ui
-          node_version: "18.18"
+          node_version: "20.9"
       - job-sonarcloud-analysis:
           name: Sonar - gravitee-apim-portal-webui
           context:
