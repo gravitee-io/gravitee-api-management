@@ -24,7 +24,6 @@ import {
   GioLicenseService,
   License,
 } from '@gravitee/ui-particles-angular';
-import { MatLegacyDialog } from '@angular/material/legacy-dialog';
 import { MatDialog } from '@angular/material/dialog';
 import { flatten, isEmpty, remove } from 'lodash';
 import { ActivatedRoute } from '@angular/router';
@@ -92,7 +91,6 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
     private readonly iconService: IconService,
     private readonly snackBarService: SnackBarService,
     private readonly matDialog: MatDialog,
-    private readonly matLegacyDialog: MatLegacyDialog,
     private readonly permissionService: GioPermissionService,
     private readonly changeDetector: ChangeDetectorRef,
     private readonly licenseService: GioLicenseService,
@@ -224,7 +222,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
   addNewEntrypoint() {
     const hasHttpListener = this.api.listeners.find((l) => l.type === 'HTTP') !== undefined;
     // Show dialog to add a new entrypoint
-    this.matLegacyDialog
+    this.matDialog
       .open<ApiEntrypointsV4AddDialogComponent, ApiEntrypointsV4AddDialogComponentData>(ApiEntrypointsV4AddDialogComponent, {
         data: { entrypoints: this.entrypointAvailableForAdd.sort((e1, e2) => e1.name.localeCompare(e2.name)), hasHttpListener },
         width: GIO_DIALOG_WIDTH.LARGE,

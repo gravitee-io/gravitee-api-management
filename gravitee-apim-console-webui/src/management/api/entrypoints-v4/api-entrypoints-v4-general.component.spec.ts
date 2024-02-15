@@ -19,11 +19,11 @@ import { MatIconHarness, MatIconTestingModule } from '@angular/material/icon/tes
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
-import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { GioConfirmDialogHarness, LICENSE_CONFIGURATION_TESTING } from '@gravitee/ui-particles-angular';
-import { MatLegacyAutocompleteModule as MatAutocompleteModule } from '@angular/material/legacy-autocomplete';
-import { MatLegacyRowHarnessColumnsText as MatRowHarnessColumnsText } from '@angular/material/legacy-table/testing';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatRowHarnessColumnsText } from '@angular/material/table/testing';
 import { ActivatedRoute } from '@angular/router';
 
 import { ApiEntrypointsV4GeneralComponent } from './api-entrypoints-v4-general.component';

@@ -15,83 +15,86 @@
     limitations under the License.
 
 -->
-<div class="back"><gio-go-back-button [routerLink]="'..'"></gio-go-back-button>Go back to your entrypoints</div>
-
+<div class="back">
+  <a mat-button [routerLink]="'..'"><mat-icon svgIcon="gio:arrow-left"></mat-icon>Go back to your entrypoints</a>
+</div>
 <mat-card class="api-entrypoints-v4-edit">
-  <form [formGroup]="form" *ngIf="form; else loader" (ngSubmit)="onSaveEntrypointConfig()">
-    <div *ngIf="entrypointSchema" class="api-entrypoints-v4-edit__form-container">
-      <h3>{{ entrypointName }}</h3>
+  <mat-card-content>
+    <form [formGroup]="form" *ngIf="form; else loader" (ngSubmit)="onSaveEntrypointConfig()">
+      <div *ngIf="entrypointSchema" class="api-entrypoints-v4-edit__form-container">
+        <h3>{{ entrypointName }}</h3>
 
-      <gio-form-json-schema [jsonSchema]="entrypointSchema" [formControlName]="entrypoint.type + '-config'"></gio-form-json-schema>
+        <gio-form-json-schema [jsonSchema]="entrypointSchema" [formControlName]="entrypoint.type + '-config'"></gio-form-json-schema>
 
-      <gio-form-qos
-        *ngIf="entrypoint"
-        [id]="entrypoint.type"
-        [supportedQos]="supportedQos"
-        [formControlName]="entrypoint.type + '-qos'"
-      ></gio-form-qos>
+        <gio-form-qos
+          *ngIf="entrypoint"
+          [id]="entrypoint.type"
+          [supportedQos]="supportedQos"
+          [formControlName]="entrypoint.type + '-qos'"
+        ></gio-form-qos>
 
-      <mat-card *ngIf="supportDlq" class="api-entrypoints-v4-edit__form-container__dlq">
-        <h3>Dead Letter Queue</h3>
-        <p>
-          Define an external storage where each unsuccessfully pushed message will be stored, and configure a replay strategy to push them
-          again. You can select either an entire endpoint group or a single endpoint within a group.
-        </p>
-        <gio-form-slide-toggle class="api-entrypoints-v4-edit__form-container__dlq__toggle">
-          <div>Enable Dead Letter Queue</div>
-          <mat-slide-toggle gioFormSlideToggle formControlName="enabledDlq" aria-label="Enable Dead Letter toggle"></mat-slide-toggle>
-        </gio-form-slide-toggle>
+        <div *ngIf="supportDlq" class="api-entrypoints-v4-edit__form-container__dlq">
+          <h3>Dead Letter Queue</h3>
+          <p>
+            Define an external storage where each unsuccessfully pushed message will be stored, and configure a replay strategy to push them
+            again. You can select either an entire endpoint group or a single endpoint within a group.
+          </p>
+          <gio-form-slide-toggle class="api-entrypoints-v4-edit__form-container__dlq__toggle">
+            <div>Enable Dead Letter Queue</div>
+            <mat-slide-toggle gioFormSlideToggle formControlName="enabledDlq" aria-label="Enable Dead Letter toggle"></mat-slide-toggle>
+          </gio-form-slide-toggle>
 
-        <mat-card *ngIf="enabledDlq" class="api-entrypoints-v4-edit__form-container__dlq">
-          <h3>Create from existing endpoint</h3>
-          <ng-container *ngIf="dlqElements.length > 0; else noElement">
-            <mat-form-field>
-              <mat-select
-                aria-label="Dead letter queue endpoint"
-                required
-                formControlName="dlqElement"
-                class="api-entrypoints-v4-edit__form-container__dlq__select"
-              >
-                <mat-select-trigger *ngIf="form.get('dlqElement').value">
-                  <ng-container *ngTemplateOutlet="dlqTpl; context: { $implicit: form.get('dlqElement').value }"> </ng-container>
-                </mat-select-trigger>
-                <mat-optgroup *ngFor="let optgroup of dlqElements" [label]="optgroup.name">
-                  <mat-option *ngFor="let dlqElement of optgroup.elements" [value]="dlqElement">
-                    <ng-container *ngTemplateOutlet="dlqTpl; context: { $implicit: dlqElement }"> </ng-container>
-                  </mat-option>
-                </mat-optgroup>
-              </mat-select>
+          <div *ngIf="enabledDlq" class="api-entrypoints-v4-edit__form-container__dlq">
+            <h3>Create from existing endpoint</h3>
+            <ng-container *ngIf="dlqElements.length > 0; else noElement">
+              <mat-form-field>
+                <mat-select
+                  aria-label="Dead letter queue endpoint"
+                  required
+                  formControlName="dlqElement"
+                  class="api-entrypoints-v4-edit__form-container__dlq__select"
+                >
+                  <mat-select-trigger *ngIf="form.get('dlqElement').value">
+                    <ng-container *ngTemplateOutlet="dlqTpl; context: { $implicit: form.get('dlqElement').value }"> </ng-container>
+                  </mat-select-trigger>
+                  <mat-optgroup *ngFor="let optgroup of dlqElements" [label]="optgroup.name">
+                    <mat-option *ngFor="let dlqElement of optgroup.elements" [value]="dlqElement">
+                      <ng-container *ngTemplateOutlet="dlqTpl; context: { $implicit: dlqElement }"> </ng-container>
+                    </mat-option>
+                  </mat-optgroup>
+                </mat-select>
 
-              <!-- Template use to display a DLQ element, use many times in the mat-select above-->
-              <ng-template #dlqTpl let-dlqElement>
-                {{ dlqElement.name }}
-                <span *ngIf="dlqElement" class="gio-badge-neutral">
-                  <mat-icon [svgIcon]="dlqElement.icon"></mat-icon>
-                  {{ dlqElement.type }}
-                </span>
-              </ng-template>
-              <mat-hint>This endpoint or endpoint group will receive sent messages again</mat-hint>
-            </mat-form-field>
-          </ng-container>
+                <!-- Template use to display a DLQ element, use many times in the mat-select above-->
+                <ng-template #dlqTpl let-dlqElement>
+                  {{ dlqElement.name }}
+                  <span *ngIf="dlqElement" class="gio-badge-neutral">
+                    <mat-icon [svgIcon]="dlqElement.icon"></mat-icon>
+                    {{ dlqElement.type }}
+                  </span>
+                </ng-template>
+                <mat-hint>This endpoint or endpoint group will receive sent messages again</mat-hint>
+              </mat-form-field>
+            </ng-container>
 
-          <ng-template #noElement>
-            <mat-form-field>
-              <mat-select
-                aria-label="Dead letter queue endpoint"
-                class="api-entrypoints-v4-edit__form-container__dlq__select"
-                placeholder="No compatible endpoint or endpoint group available"
-              >
-              </mat-select>
-            </mat-form-field>
-          </ng-template>
-        </mat-card>
-      </mat-card>
-    </div>
+            <ng-template #noElement>
+              <mat-form-field>
+                <mat-select
+                  aria-label="Dead letter queue endpoint"
+                  class="api-entrypoints-v4-edit__form-container__dlq__select"
+                  placeholder="No compatible endpoint or endpoint group available"
+                >
+                </mat-select>
+              </mat-form-field>
+            </ng-template>
+          </div>
+        </div>
+      </div>
 
-    <div class="api-entrypoints-v4-edit__footer">
-      <button mat-flat-button color="primary" type="submit" [disabled]="form.pristine || form.invalid">Save changes</button>
-    </div>
-  </form>
+      <div class="api-entrypoints-v4-edit__footer">
+        <button mat-flat-button color="primary" type="submit" [disabled]="form.pristine || form.invalid">Save changes</button>
+      </div>
+    </form>
+  </mat-card-content>
   <ng-template #loader>
     <gio-loader> </gio-loader>
   </ng-template>
