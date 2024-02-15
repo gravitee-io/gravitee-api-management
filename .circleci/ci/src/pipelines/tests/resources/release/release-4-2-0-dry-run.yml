@@ -396,7 +396,7 @@ workflows:
           name: Build APIM Portal and publish image
           apim-ui-project: gravitee-apim-portal-webui
           docker-image-name: apim-portal-ui
-          node_version: "18.18"
+          node_version: "20.9"
           requires:
             - Setup
       - job-webui-publish-artifactory:
