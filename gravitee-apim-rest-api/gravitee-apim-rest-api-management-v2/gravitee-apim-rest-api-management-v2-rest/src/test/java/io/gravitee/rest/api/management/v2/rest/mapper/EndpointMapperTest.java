@@ -180,6 +180,7 @@ public class EndpointMapperTest {
         // Set http endpoint configuration into endpoint.configuration
         var endpointEntityV2 = EndpointModelFixtures.aModelEndpointV2();
         endpointEntityV2.setName("Should not be mapped");
+        endpointEntityV2.setType("HtTp");
         endpointEntityV2.setConfiguration(new ObjectMapper().writeValueAsString(httpEndpointV2Configuration));
 
         var endpointV2 = endpointMapper.map(endpointEntityV2);
@@ -215,7 +216,7 @@ public class EndpointMapperTest {
 
         // Set http endpoint configuration into endpoint.configuration
         var endpointEntityV2 = EndpointModelFixtures.aModelEndpointV2();
-        endpointEntityV2.setType("grpc");
+        endpointEntityV2.setType("gRpC");
         endpointEntityV2.setName("Should not be mapped");
         endpointEntityV2.setConfiguration(new ObjectMapper().writeValueAsString(httpEndpointV2Configuration));
 
