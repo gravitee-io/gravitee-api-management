@@ -54,7 +54,7 @@
     "messageformat": "2.3.0",
     "ngx-cookie-service": "17.0.0",
     "ngx-translate-messageformat-compiler": "6.5.0",
-    "redoc": "2.0.0",
+    "redoc": "2.1.3",
     "resize-observer-polyfill": "1.5.1",
     "rxjs": "6.5.5",
     "swagger-ui-dist": "5.10.3",
