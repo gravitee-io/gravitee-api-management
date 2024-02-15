@@ -147,7 +147,7 @@
           >lock</mat-icon
         >
         <mat-label>Default TCP port</mat-label>
-        <input #tcpPortInput matInput formControlName="tcpPort" />
+        <input #tcpPortInput matInput formControlName="tcpPort" type="number" />
         <mat-error *ngIf="defaultConfigForm.get('tcpPort').hasError('invalidTcpPort')"
           >TCP port should be in range between 1024 and 65535</mat-error
         >
