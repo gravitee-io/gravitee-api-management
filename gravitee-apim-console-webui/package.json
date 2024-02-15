@@ -72,7 +72,7 @@
     "monaco-editor": "0.37.1",
     "ng-file-upload": "12.2.13",
     "ngclipboard": "2.0.0",
-    "ngx-file-helpers": "^9.1.0",
+    "ngx-file-helpers": "9.1.0",
     "ngx-markdown": "13.1.0",
     "oidc-client-ts": "2.4.0",
     "prismjs": "1.29.0",
