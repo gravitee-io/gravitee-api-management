@@ -16,43 +16,45 @@
 
 -->
 <mat-card class="apiProperties">
-  <div class="apiProperties__header">
-    <div class="apiProperties__header__text">
-      <h2>API properties</h2>
-      These properties are automatically injected into the expression language context to be used later.<br />
-      For example, to get the value of the property <code>my-property</code> defined in API properties:
-      <code [innerHTML]="'{#properties[\'my-property\']}'"> </code>
+  <mat-card-content>
+    <div class="apiProperties__header">
+      <div class="apiProperties__header__text">
+        <h2>API properties</h2>
+        These properties are automatically injected into the expression language context to be used later.<br />
+        For example, to get the value of the property <code>my-property</code> defined in API properties:
+        <code [innerHTML]="'{#properties[\'my-property\']}'"> </code>
+      </div>
+      <div *ngIf="!isReadOnly" class="apiProperties__header__btn">
+        <button
+          *gioPermission="{ anyOf: ['api-definition-u'] }"
+          mat-raised-button
+          type="button"
+          (click)="importProperties()"
+          aria-label="Import properties"
+        >
+          Import
+        </button>
+        <a
+          *gioPermission="{ anyOf: ['api-definition-u'] }"
+          mat-raised-button
+          type="button"
+          aria-label="Manage dynamically"
+          [routerLink]="isV4 ? './v4/dynamic-properties' : './dynamic-properties'"
+          >Manage dynamically</a
+        >
+        <button
+          *gioPermission="{ anyOf: ['api-definition-u'] }"
+          mat-raised-button
+          type="button"
+          color="primary"
+          (click)="addProperty()"
+          aria-label="Add property"
+        >
+          <mat-icon svgIcon="gio:plus"></mat-icon> Add property
+        </button>
+      </div>
     </div>
-    <div *ngIf="!isReadOnly" class="apiProperties__header__btn">
-      <button
-        *gioPermission="{ anyOf: ['api-definition-u'] }"
-        mat-raised-button
-        type="button"
-        (click)="importProperties()"
-        aria-label="Import properties"
-      >
-        Import
-      </button>
-      <a
-        *gioPermission="{ anyOf: ['api-definition-u'] }"
-        mat-raised-button
-        type="button"
-        aria-label="Manage dynamically"
-        [routerLink]="isV4 ? './v4/dynamic-properties' : './dynamic-properties'"
-        >Manage dynamically</a
-      >
-      <button
-        *gioPermission="{ anyOf: ['api-definition-u'] }"
-        mat-raised-button
-        type="button"
-        color="primary"
-        (click)="addProperty()"
-        aria-label="Add property"
-      >
-        <mat-icon svgIcon="gio:plus"></mat-icon> Add property
-      </button>
-    </div>
-  </div>
+  </mat-card-content>
 
   <gio-table-wrapper
     class="apiProperties__table"
@@ -136,8 +138,8 @@
       <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
 
       <!-- Row shown when there is no data -->
-      <tr class="mat-row" *matNoDataRow>
-        <td class="mat-cell" [attr.colspan]="displayedColumns.length">
+      <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+        <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">
           <div *ngIf="!isLoading" class="mat-body">No properties</div>
           <div *ngIf="isLoading" class="mat-body">Loading...</div>
         </td>

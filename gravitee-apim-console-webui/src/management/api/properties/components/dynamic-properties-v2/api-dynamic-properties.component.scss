@@ -53,6 +53,7 @@ $typography: map.get(gio.$mat-legacy-theme, typography);
 
       &__button {
         margin: auto 12px;
+        flex: 1 0 auto;
       }
     }
 

@@ -12,7 +12,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 8px;
+    padding-bottom: 8px;
 
     &__text {
       padding-right: 48px;
@@ -22,6 +22,7 @@
       align-items: center;
       justify-content: flex-end;
       gap: 8px;
+      flex: 1 0 auto;
     }
   }
 
