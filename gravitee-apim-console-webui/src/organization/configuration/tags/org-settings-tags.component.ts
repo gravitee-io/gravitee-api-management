@@ -164,6 +164,7 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
       portal: {
         ...this.portalSettings.portal,
         entrypoint: this.defaultConfigForm.get('entrypoint').value,
+        tcpPort: this.defaultConfigForm.get('tcpPort').value,
       },
     };
 
@@ -387,5 +388,5 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
 }
 const tcpPortValidator: ValidatorFn = (control: UntypedFormControl): ValidationErrors | null => {
   const tcpPort = control.value;
-  return tcpPort < 1024 || tcpPort > 65535 ? { invalidTcpPort: true } : null;
+  return tcpPort < 1025 || tcpPort > 65535 ? { invalidTcpPort: true } : null;
 };
