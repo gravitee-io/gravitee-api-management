@@ -233,7 +233,7 @@
         <!-- Management API Only -->
         <gravitee-cockpit-connectors-ws.version>4.0.2</gravitee-cockpit-connectors-ws.version>
         <gravitee-fetcher-bitbucket.version>1.7.1</gravitee-fetcher-bitbucket.version>
-        <gravitee-fetcher-git.version>1.8.1</gravitee-fetcher-git.version>
+        <gravitee-fetcher-git.version>1.8.2</gravitee-fetcher-git.version>
         <gravitee-fetcher-github.version>1.6.0</gravitee-fetcher-github.version>
         <gravitee-fetcher-gitlab.version>1.11.0</gravitee-fetcher-gitlab.version>
         <gravitee-fetcher-http.version>1.12.0</gravitee-fetcher-http.version>
