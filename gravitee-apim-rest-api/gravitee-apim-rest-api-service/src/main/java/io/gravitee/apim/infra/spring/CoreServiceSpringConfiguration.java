@@ -41,6 +41,7 @@ import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryS
 import io.gravitee.apim.core.license.crud_service.LicenseCrudService;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
+import io.gravitee.apim.core.membership.crud_service.MembershipCrudService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
@@ -324,12 +325,21 @@ public class CoreServiceSpringConfiguration {
 
     @Bean
     public ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService(
+        AuditDomainService auditDomainService,
         GroupQueryService groupQueryService,
+        MembershipCrudService membershipCrudService,
         MembershipQueryService membershipQueryService,
         RoleQueryService roleQueryService,
         UserCrudService userCrudService
     ) {
-        return new ApiPrimaryOwnerDomainService(groupQueryService, membershipQueryService, roleQueryService, userCrudService);
+        return new ApiPrimaryOwnerDomainService(
+            auditDomainService,
+            groupQueryService,
+            membershipCrudService,
+            membershipQueryService,
+            roleQueryService,
+            userCrudService
+        );
     }
 
     @Bean
