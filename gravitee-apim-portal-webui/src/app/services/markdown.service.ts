@@ -25,6 +25,19 @@ import { Page } from '../../../projects/portal-webclient-sdk/src/lib';
   providedIn: 'root',
 })
 export class MarkdownService {
+  constructor() {
+    marked.use(gfmHeadingId());
+    marked.use(
+      markedHighlight({
+        langPrefix: 'hljs language-',
+        highlight(code, language) {
+          const validLanguage = hljs.getLanguage(language) ? language : 'plaintext';
+          return hljs.highlight(validLanguage, code).value;
+        },
+      }),
+    );
+  }
+
   public renderer(baseUrl: string, pageBaseUrl: string, pages: Page[]): RendererObject {
     const defaultRenderer = new Renderer();
 
@@ -76,17 +89,6 @@ export class MarkdownService {
 
   public render(content: string, baseUrl: string, pageBaseUrl: string, pages: Page[]): string {
     marked.use({ renderer: this.renderer(baseUrl, pageBaseUrl, pages) });
-    marked.use(gfmHeadingId());
-    marked.use(
-      markedHighlight({
-        langPrefix: 'hljs language-',
-        highlight(code, language) {
-          const validLanguage = hljs.getLanguage(language) ? language : 'plaintext';
-          return hljs.highlight(validLanguage, code).value;
-        },
-      }),
-    );
-
     return marked(content) as string;
   }
 
