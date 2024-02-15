@@ -216,7 +216,7 @@
         <gravitee-policy-transformqueryparams.version>1.9.0</gravitee-policy-transformqueryparams.version>
         <gravitee-policy-url-rewriting.version>1.7.0</gravitee-policy-url-rewriting.version>
         <gravitee-policy-xml-json.version>2.0.1</gravitee-policy-xml-json.version>
-        <gravitee-policy-xml-threat-protection.version>1.5.0</gravitee-policy-xml-threat-protection.version>
+        <gravitee-policy-xml-threat-protection.version>1.5.1</gravitee-policy-xml-threat-protection.version>
         <gravitee-policy-xml-validation.version>1.2.0</gravitee-policy-xml-validation.version>
         <gravitee-policy-xslt.version>3.0.1</gravitee-policy-xslt.version>
         <gravitee-policy-wssecurity-authentication.version>2.0.2</gravitee-policy-wssecurity-authentication.version>
