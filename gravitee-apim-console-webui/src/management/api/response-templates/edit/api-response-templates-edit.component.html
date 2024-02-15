@@ -26,81 +26,83 @@
   </div>
 
   <mat-card>
-    <!-- Key -->
-    <div class="card__template-key">
-      <div class="card__template-key__label">Template key</div>
-      <p class="card__template-key__hint">The template key for which template responses will be applied.</p>
+    <mat-card-content>
+      <!-- Key -->
+      <div class="card__template-key">
+        <div class="card__template-key__label">Template key</div>
+        <p class="card__template-key__hint">The template key for which template responses will be applied.</p>
 
-      <mat-form-field class="card__template-key__form-field">
-        <mat-label>Template key</mat-label>
-        <input type="text" aria-label="Template key input" matInput formControlName="key" [matAutocomplete]="tkAuto" required />
-        <mat-autocomplete #tkAuto="matAutocomplete">
-          <mat-option *ngFor="let key of defaultKeys" [value]="key">
-            {{ key }}
-          </mat-option>
-        </mat-autocomplete>
+        <mat-form-field class="card__template-key__form-field">
+          <mat-label>Template key</mat-label>
+          <input type="text" aria-label="Template key input" matInput formControlName="key" [matAutocomplete]="tkAuto" required />
+          <mat-autocomplete #tkAuto="matAutocomplete">
+            <mat-option *ngFor="let key of defaultKeys" [value]="key">
+              {{ key }}
+            </mat-option>
+          </mat-autocomplete>
 
-        <mat-error *ngIf="responseTemplatesForm.get('key').hasError('required')"> Status code is required. </mat-error>
-      </mat-form-field>
-    </div>
+          <mat-error *ngIf="responseTemplatesForm.get('key').hasError('required')"> Status code is required. </mat-error>
+        </mat-form-field>
+      </div>
 
-    <!-- Accept header -->
-    <div class="card__accept-header">
-      <div class="card__accept-header__label">Accept header to match</div>
-      <p class="card__accept-header__hint">The Accept header of requests for which this template response should be used.</p>
+      <!-- Accept header -->
+      <div class="card__accept-header">
+        <div class="card__accept-header__label">Accept header to match</div>
+        <p class="card__accept-header__hint">The Accept header of requests for which this template response should be used.</p>
 
-      <mat-form-field class="card__accept-header__form-field">
-        <mat-label>Accept</mat-label>
-        <input
-          type="text"
-          aria-label="Accept header to match input"
-          matInput
-          formControlName="acceptHeader"
-          placeholder="*/*, application/json, text/xml, ..."
-          required
-        />
-        <mat-error *ngIf="responseTemplatesForm.get('acceptHeader').hasError('uniqAcceptHeader')">
-          {{ responseTemplatesForm.get('acceptHeader').getError('uniqAcceptHeader') }}
-        </mat-error>
-      </mat-form-field>
-    </div>
+        <mat-form-field class="card__accept-header__form-field">
+          <mat-label>Accept</mat-label>
+          <input
+            type="text"
+            aria-label="Accept header to match input"
+            matInput
+            formControlName="acceptHeader"
+            placeholder="*/*, application/json, text/xml, ..."
+            required
+          />
+          <mat-error *ngIf="responseTemplatesForm.get('acceptHeader').hasError('uniqAcceptHeader')">
+            {{ responseTemplatesForm.get('acceptHeader').getError('uniqAcceptHeader') }}
+          </mat-error>
+        </mat-form-field>
+      </div>
 
-    <!-- Status code -->
-    <div class="card__status-code">
-      <div class="card__status-code__label">Status code</div>
-      <p class="card__status-code__hint">The status code sent to the API consumer.</p>
+      <!-- Status code -->
+      <div class="card__status-code">
+        <div class="card__status-code__label">Status code</div>
+        <p class="card__status-code__hint">The status code sent to the API consumer.</p>
 
-      <mat-form-field class="card__status-code__form-field">
-        <mat-label>Status code</mat-label>
-        <input type="text" aria-label="Status code input" matInput formControlName="statusCode" [matAutocomplete]="scAuto" required />
-        <mat-autocomplete #scAuto="matAutocomplete">
-          <mat-option *ngFor="let statusCode of filteredStatusCodes$ | async" [value]="statusCode.code">
-            {{ statusCode.code }} - {{ statusCode.label }}
-          </mat-option>
-        </mat-autocomplete>
-        <em matSuffix *ngIf="selectedStatusCodes$ | async as selectedStatusCodes">{{ selectedStatusCodes.label }}</em>
+        <mat-form-field class="card__status-code__form-field">
+          <mat-label>Status code</mat-label>
+          <input type="text" aria-label="Status code input" matInput formControlName="statusCode" [matAutocomplete]="scAuto" required />
+          <mat-autocomplete #scAuto="matAutocomplete">
+            <mat-option *ngFor="let statusCode of filteredStatusCodes$ | async" [value]="statusCode.code">
+              {{ statusCode.code }} - {{ statusCode.label }}
+            </mat-option>
+          </mat-autocomplete>
+          <em matTextSuffix *ngIf="selectedStatusCodes$ | async as selectedStatusCodes">{{ selectedStatusCodes.label }}</em>
 
-        <mat-error *ngIf="responseTemplatesForm.get('statusCode').hasError('required')"> Status code is required. </mat-error>
-        <mat-error *ngIf="responseTemplatesForm.get('statusCode').hasError('statusCode')">
-          {{ responseTemplatesForm.get('statusCode').getError('statusCode') }}
-        </mat-error>
-      </mat-form-field>
-    </div>
+          <mat-error *ngIf="responseTemplatesForm.get('statusCode').hasError('required')"> Status code is required. </mat-error>
+          <mat-error *ngIf="responseTemplatesForm.get('statusCode').hasError('statusCode')">
+            {{ responseTemplatesForm.get('statusCode').getError('statusCode') }}
+          </mat-error>
+        </mat-form-field>
+      </div>
 
-    <div class="card__http-headers">
-      <div class="card__http-headers__label">HTTP Headers</div>
-      <gio-form-headers class="card__http-headers__form-field" formControlName="headers"></gio-form-headers>
-    </div>
+      <div class="card__http-headers">
+        <div class="card__http-headers__label">HTTP Headers</div>
+        <gio-form-headers class="card__http-headers__form-field" formControlName="headers"></gio-form-headers>
+      </div>
 
-    <!-- Status code -->
-    <div class="card__body">
-      <div class="card__body__label">Body</div>
-      <p class="card__body__hint">Response template body.</p>
-      <mat-form-field class="card__body__form-field">
-        <mat-label>Body</mat-label>
-        <textarea matInput formControlName="body" rows="8"> </textarea>
-      </mat-form-field>
-    </div>
+      <!-- Status code -->
+      <div class="card__body">
+        <div class="card__body__label">Body</div>
+        <p class="card__body__hint">Response template body.</p>
+        <mat-form-field class="card__body__form-field">
+          <mat-label>Body</mat-label>
+          <textarea matInput formControlName="body" rows="8"> </textarea>
+        </mat-form-field>
+      </div>
+    </mat-card-content>
   </mat-card>
 
   <gio-save-bar
