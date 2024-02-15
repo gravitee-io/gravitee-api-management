@@ -46,42 +46,44 @@
 </div>
 
 <mat-card class="subscriptions__filters" [formGroup]="filtersForm">
-  <div class="subscriptions__filters__inputs">
-    <mat-form-field class="subscriptions__filters__inputs__field">
-      <mat-label>Plan</mat-label>
-      <mat-select formControlName="planIds" [multiple]="true">
-        <mat-option *ngFor="let plan of plans" [value]="plan.id">{{ plan.name }}</mat-option>
-      </mat-select>
-    </mat-form-field>
+  <mat-card-content>
+    <div class="subscriptions__filters__inputs">
+      <mat-form-field class="subscriptions__filters__inputs__field">
+        <mat-label>Plan</mat-label>
+        <mat-select formControlName="planIds" [multiple]="true">
+          <mat-option *ngFor="let plan of plans" [value]="plan.id">{{ plan.name }}</mat-option>
+        </mat-select>
+      </mat-form-field>
 
-    <mat-form-field class="subscriptions__filters__inputs__field">
-      <mat-label>Application</mat-label>
-      <gio-form-tags-input
-        [placeholder]="'Search for an application'"
-        formControlName="applicationIds"
-        [autocompleteOptions]="searchApplications"
-        [displayValueWith]="displayApplication"
-        [useAutocompleteOptionValueOnly]="true"
-      ></gio-form-tags-input>
-    </mat-form-field>
+      <mat-form-field class="subscriptions__filters__inputs__field">
+        <mat-label>Application</mat-label>
+        <gio-form-tags-input
+          [placeholder]="'Search for an application'"
+          formControlName="applicationIds"
+          [autocompleteOptions]="searchApplications"
+          [displayValueWith]="displayApplication"
+          [useAutocompleteOptionValueOnly]="true"
+        ></gio-form-tags-input>
+      </mat-form-field>
 
-    <mat-form-field class="subscriptions__filters__inputs__field">
-      <mat-label>Status</mat-label>
-      <mat-select formControlName="statuses" [multiple]="true">
-        <mat-option *ngFor="let status of statuses" [value]="status.id">{{ status.name }}</mat-option>
-      </mat-select>
-    </mat-form-field>
+      <mat-form-field class="subscriptions__filters__inputs__field">
+        <mat-label>Status</mat-label>
+        <mat-select formControlName="statuses" [multiple]="true">
+          <mat-option *ngFor="let status of statuses" [value]="status.id">{{ status.name }}</mat-option>
+        </mat-select>
+      </mat-form-field>
 
-    <mat-form-field class="subscriptions__filters__inputs__field">
-      <mat-label>API Key</mat-label>
-      <input matInput formControlName="apiKey" />
-    </mat-form-field>
-  </div>
-  <div class="subscriptions__filters__buttons">
-    <button mat-raised-button type="button" color="secondary" aria-label="Reset filters" (click)="resetFilters()">
-      <mat-icon svgIcon="gio:refresh-cw"></mat-icon>Reset filters
-    </button>
-  </div>
+      <mat-form-field class="subscriptions__filters__inputs__field">
+        <mat-label>API Key</mat-label>
+        <input matInput formControlName="apiKey" />
+      </mat-form-field>
+    </div>
+    <div class="subscriptions__filters__buttons">
+      <button mat-raised-button type="button" color="secondary" aria-label="Reset filters" (click)="resetFilters()">
+        <mat-icon svgIcon="gio:refresh-cw"></mat-icon>Reset filters
+      </button>
+    </div>
+  </mat-card-content>
 </mat-card>
 
 <gio-table-wrapper
@@ -184,11 +186,15 @@
     <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
 
     <!-- Row shown when there is no data -->
-    <tr class="mat-row" *matNoDataRow>
-      <td *ngIf="!isLoadingData && subscriptionsTableDS.length === 0" class="mat-cell" [attr.colspan]="displayedColumns.length">
+    <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+      <td
+        *ngIf="!isLoadingData && subscriptionsTableDS.length === 0"
+        class="mat-mdc-cell mdc-data-table__cell"
+        [attr.colspan]="displayedColumns.length"
+      >
         {{ 'There is no subscription (yet).' }}
       </td>
-      <td *ngIf="isLoadingData" class="mat-cell loader" [attr.colspan]="displayedColumns.length">
+      <td *ngIf="isLoadingData" class="mat-mdc-cell mdc-data-table__cell loader" [attr.colspan]="displayedColumns.length">
         <gio-loader></gio-loader>
       </td>
     </tr>
