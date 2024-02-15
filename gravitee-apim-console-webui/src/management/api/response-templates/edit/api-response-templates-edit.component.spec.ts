@@ -18,7 +18,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { MatLegacyInputHarness as MatInputHarness } from '@angular/material/legacy-input/testing';
+import { MatInputHarness } from '@angular/material/input/testing';
 import { GioFormHeadersHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { cloneDeep } from 'lodash';
 import { MatIconTestingModule } from '@angular/material/icon/testing';

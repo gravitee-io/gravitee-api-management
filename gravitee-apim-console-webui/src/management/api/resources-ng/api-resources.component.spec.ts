@@ -20,7 +20,7 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { GioLicenseService, GioSaveBarHarness, GioLicenseTestingModule } from '@gravitee/ui-particles-angular';
-import { MatLegacyDialogModule as MatDialogModule } from '@angular/material/legacy-dialog';
+import { MatDialogModule } from '@angular/material/dialog';
 import { ActivatedRoute } from '@angular/router';
 
 import { ApiResourcesComponent } from './api-resources.component';
