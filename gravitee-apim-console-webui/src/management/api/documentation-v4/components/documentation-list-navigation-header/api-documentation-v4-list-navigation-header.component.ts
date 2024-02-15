@@ -38,5 +38,5 @@ export class ApiDocumentationV4ListNavigationHeaderComponent {
 
   // expose constants
   readonly getLogoForPageType = getLogoForPageType;
-  pageTypes = [PageType.MARKDOWN, PageType.SWAGGER];
+  pageTypes = [PageType.MARKDOWN, PageType.SWAGGER, PageType.ASYNCAPI];
 }

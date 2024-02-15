@@ -47,6 +47,7 @@ import { ApiDocumentationV4MetadataComponent } from './documentation-metadata/ap
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { GioTooltipOnEllipsisModule } from '../../../shared/components/gio-tooltip-on-ellipsis/gio-tooltip-on-ellipsis.module';
 import { GioSwaggerUiModule } from '../../../components/documentation/gio-swagger-ui/gio-swagger-ui.module';
+import { GioAsyncApiModule } from '../../../components/documentation/gio-async-api/gio-async-api-module';
 import { GioMetadataModule } from '../../../components/gio-metadata/gio-metadata.module';
 
 @NgModule({
@@ -94,6 +95,7 @@ import { GioMetadataModule } from '../../../components/gio-metadata/gio-metadata
     NgOptimizedImage,
     MatMenuModule,
     GioSwaggerUiModule,
+    GioAsyncApiModule,
     GioMetadataModule,
   ],
 })
