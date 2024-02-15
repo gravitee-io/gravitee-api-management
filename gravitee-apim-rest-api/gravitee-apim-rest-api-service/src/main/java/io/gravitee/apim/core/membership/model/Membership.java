@@ -51,4 +51,8 @@ public class Membership {
         ORGANIZATION,
         PLATFORM,
     }
+
+    public boolean isGroupUser() {
+        return referenceType == ReferenceType.GROUP && memberType == Type.USER;
+    }
 }
