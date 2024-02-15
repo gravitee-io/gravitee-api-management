@@ -77,6 +77,7 @@
 
           <div *ngIf="isKeyLess() && apiSample">
             <h3>{{ 'apiSubscribe.plans.sample' | translate }}</h3>
+            <p *ngIf="isTcpApi">{{ 'apiSubscribe.plans.tcpSampleNote' | translate }}</p>
             <gv-code [options]="{ mode: 'shell', lineNumbers: true, lineWrapping: true }" [value]="apiSample" readonly clipboard></gv-code>
           </div>
         </div>

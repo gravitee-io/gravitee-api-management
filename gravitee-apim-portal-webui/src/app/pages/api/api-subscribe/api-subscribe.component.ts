@@ -97,6 +97,7 @@ export class ApiSubscribeComponent implements OnInit {
   showValidateLoader: boolean;
   hasSubscriptionError: boolean;
   subscriptionError: string;
+  isTcpApi: boolean;
 
   private _canSubscribe: boolean;
   entrypoints: Entrypoint[];
@@ -148,8 +149,9 @@ export class ApiSubscribeComponent implements OnInit {
 
     this.apiId = this.route.snapshot.params.apiId;
     this.api = this.route.snapshot.data.api;
-    this.apiSample =
-      this.api.listener_type === 'TCP' ? formatOpenSslCommandLine(this.api.entrypoints[0]) : formatCurlCommandLine(this.api.entrypoints[0]);
+
+    this.isTcpApi = this.api.listener_type === 'TCP';
+    this.apiSample = this.isTcpApi ? formatOpenSslCommandLine(this.api.entrypoints[0]) : formatCurlCommandLine(this.api.entrypoints[0]);
     this.apiName = this.api.name;
 
     if (this.canConfigureSharedApiKey()) {

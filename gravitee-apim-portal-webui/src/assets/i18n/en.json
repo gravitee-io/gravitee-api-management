@@ -101,7 +101,8 @@
     "plans": {
       "description": "An essential catalog to organize my APIs",
       "sample": "You can start using the API",
-      "title": "Plans and Features"
+      "title": "Plans and Features",
+      "tcpSampleNote": "The actual command may vary based on the security configuration for the API. Check the API documentation for more details."
     },
     "previousStep": "Previous",
     "success": {
