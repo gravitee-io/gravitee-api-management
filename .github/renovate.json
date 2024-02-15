@@ -59,6 +59,25 @@
         {
             "matchPackageNames": ["@gravitee/ui-components"],
             "schedule": ["at any time"]
+        },
+        {
+            "matchDatasources": ["orb"],
+            "matchUpdateTypes": ["patch", "minor"],
+            "automerge": true,
+            "automergeType": "branch",
+            "semanticCommitType": "ci"
+        },
+        {
+            "matchDepTypes": ["provided", "test", "build", "import", "parent"],
+            "matchUpdateTypes": ["patch", "minor"],
+            "automerge": true,
+            "automergeType": "branch",
+            "semanticCommitType": "chore"
+        },
+        {
+            "matchDepTypes": ["provided", "test", "build", "import", "parent"],
+            "matchUpdateTypes": ["major"],
+            "semanticCommitType": "chore"
         }
     ]
 }
