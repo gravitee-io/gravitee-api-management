@@ -18,9 +18,9 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { MatLegacySlideToggleHarness as MatSlideToggleHarness } from '@angular/material/legacy-slide-toggle/testing';
+import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
-import { MatLegacyInputHarness as MatInputHarness } from '@angular/material/legacy-input/testing';
+import { MatInputHarness } from '@angular/material/input/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { ActivatedRoute } from '@angular/router';
 
