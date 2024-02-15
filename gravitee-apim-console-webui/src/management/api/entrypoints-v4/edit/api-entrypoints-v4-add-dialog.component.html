@@ -16,22 +16,21 @@
 
 -->
 <ng-container *ngIf="!showContextPathForm; else contextPathForm">
-  <div class="header">
-    <div class="header__title">Add your API entrypoints</div>
-    <p class="header__subtitle">Choose how your users will consume your API</p>
-  </div>
+  <span mat-dialog-title>Add your API entrypoints</span>
 
   <form *ngIf="formGroup" [formGroup]="formGroup" (ngSubmit)="save()">
-    <gio-entrypoints-selection-list formControlName="selectedEntrypointsIds" [entrypoints]="entrypoints"></gio-entrypoints-selection-list>
+    <mat-dialog-content>
+      <p>Choose how your users will consume your API</p>
+      <gio-entrypoints-selection-list formControlName="selectedEntrypointsIds" [entrypoints]="entrypoints"></gio-entrypoints-selection-list>
 
-    <div *ngIf="requiresUpgrade" class="license-banner">
-      <gio-license-banner
-        [license]="license$ | async"
-        [isOEM]="isOEM$ | async"
-        (onRequestUpgrade)="onRequestUpgrade()"
-      ></gio-license-banner>
-    </div>
-
+      <div *ngIf="requiresUpgrade" class="license-banner">
+        <gio-license-banner
+          [license]="license$ | async"
+          [isOEM]="isOEM$ | async"
+          (onRequestUpgrade)="onRequestUpgrade()"
+        ></gio-license-banner>
+      </div>
+    </mat-dialog-content>
     <mat-dialog-actions class="actions">
       <button mat-stroked-button type="button" (click)="cancel()">Cancel</button>
       <button mat-flat-button color="primary" type="submit" [disabled]="formGroup.invalid">Add API entrypoints</button>
