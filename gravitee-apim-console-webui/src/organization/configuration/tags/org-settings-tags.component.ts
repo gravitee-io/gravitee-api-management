@@ -164,6 +164,7 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
       portal: {
         ...this.portalSettings.portal,
         entrypoint: this.defaultConfigForm.get('entrypoint').value,
+        tcpPort: this.defaultConfigForm.get('tcpPort').value,
       },
     };
 

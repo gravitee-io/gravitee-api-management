@@ -101,7 +101,8 @@
     "plans": {
       "description": "Základní katalog pro organizování mých API",
       "sample": "Můžete začít používat API",
-      "title": "Plány a funkce"
+      "title": "Plány a funkce",
+      "tcpCommandNote": "Note - the actual command may vary based on the security configuration for the API. Check the API documentation for more details."
     },
     "previousStep": "Předchozí",
     "success": {
