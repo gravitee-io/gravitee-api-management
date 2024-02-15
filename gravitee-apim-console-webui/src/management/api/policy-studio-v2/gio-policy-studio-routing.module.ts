@@ -15,11 +15,12 @@
  */
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
-import { MatLegacyTabsModule as MatTabsModule } from '@angular/material/legacy-tabs';
+import { MatTabsModule } from '@angular/material/tabs';
 import { ReactiveFormsModule } from '@angular/forms';
-import { MatLegacySnackBarModule as MatSnackBarModule } from '@angular/material/legacy-snack-bar';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { GioSaveBarModule, GioConfirmDialogModule, GioIconsModule, GioLicenseModule } from '@gravitee/ui-particles-angular';
 import { RouterModule } from '@angular/router';
+import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { GioPolicyStudioLayoutComponent } from './gio-policy-studio-layout.component';
 import { PolicyStudioDesignModule } from './design/policy-studio-design.module';
@@ -36,6 +37,7 @@ import { GioPermissionModule } from '../../../shared/components/gio-permission/g
 
     MatTabsModule,
     MatSnackBarModule,
+    MatLegacySnackBarModule,
 
     GioSaveBarModule,
     GioPermissionModule,

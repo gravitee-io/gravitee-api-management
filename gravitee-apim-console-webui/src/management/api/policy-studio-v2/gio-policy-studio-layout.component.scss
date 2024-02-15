@@ -8,18 +8,15 @@
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;
-  //position: relative;
   min-height: 600px;
-  background-color: mat.get-color-from-palette(gio.$mat-basic-palette, white);
 
   :host-context(.breadcrumb) {
     height: calc(100% - 16px /* Remove margin-top*/);
     margin-top: 16px;
-    border-top: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, darker20);
 
     .gio-policy-studio-layout {
       &__tab-content {
-        --gv-policy-studio--h: calc(100vh - 185px - 62px);
+        --gv-policy-studio--h: calc(100vh - 185px - 62px - 40px);
       }
     }
   }
@@ -35,16 +32,15 @@
   :host-context(.hasApiBanner.breadcrumb) {
     .gio-policy-studio-layout {
       &__tab-content {
-        --gv-policy-studio--h: calc(100vh - 185px - 62px - 82px);
+        --gv-policy-studio--h: calc(100vh - 185px - 62px - 82px - 40px);
       }
     }
   }
 
   .gio-policy-studio-layout {
     &__header {
-      //position: relative;
       display: flex;
-      background-color: mat.get-color-from-palette(gio.$mat-basic-palette, white);
+      margin-bottom: 20px;
 
       &__nav {
         flex: 1;
@@ -61,13 +57,20 @@
       flex: 1 1 auto;
       --gv-policy-studio--h: calc(100vh - 185px);
 
+      &__container {
+        height: 100%;
+      }
+
       &.save-bar-opened {
         --gv-policy-studio--pb: 84px;
       }
     }
 
+    &__tab-nav-panel {
+      display: contents;
+    }
+
     &__save-bar {
-      //position: absolute;
       width: 50%;
       margin: 0 25%;
     }
