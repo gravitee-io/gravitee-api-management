@@ -17,7 +17,6 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { EMPTY, Observable, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { DatePipe } from '@angular/common';
-import { MatLegacyDialog } from '@angular/material/legacy-dialog';
 import { MatDialog } from '@angular/material/dialog';
 import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -108,7 +107,6 @@ export class ApiSubscriptionEditComponent implements OnInit {
     @Inject('Constants') private readonly constants: Constants,
     private readonly apiSubscriptionService: ApiSubscriptionV2Service,
     private datePipe: DatePipe,
-    private readonly matLegacyDialog: MatLegacyDialog,
     private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,
   ) {}
@@ -176,7 +174,7 @@ export class ApiSubscriptionEditComponent implements OnInit {
   }
 
   validateSubscription() {
-    this.matLegacyDialog
+    this.matDialog
       .open<ApiPortalSubscriptionValidateDialogComponent, ApiPortalSubscriptionAcceptDialogData, ApiPortalSubscriptionAcceptDialogResult>(
         ApiPortalSubscriptionValidateDialogComponent,
         {
@@ -215,7 +213,7 @@ export class ApiSubscriptionEditComponent implements OnInit {
   }
 
   rejectSubscription() {
-    this.matLegacyDialog
+    this.matDialog
       .open<ApiPortalSubscriptionRejectDialogComponent, unknown, ApiPortalSubscriptionRejectDialogResult>(
         ApiPortalSubscriptionRejectDialogComponent,
         {
@@ -240,7 +238,7 @@ export class ApiSubscriptionEditComponent implements OnInit {
   }
 
   transferSubscription() {
-    this.matLegacyDialog
+    this.matDialog
       .open<
         ApiPortalSubscriptionTransferDialogComponent,
         ApiPortalSubscriptionTransferDialogData,
@@ -337,7 +335,7 @@ export class ApiSubscriptionEditComponent implements OnInit {
   }
 
   changeEndDate() {
-    this.matLegacyDialog
+    this.matDialog
       .open<
         ApiPortalSubscriptionChangeEndDateDialogComponent,
         ApiPortalSubscriptionChangeEndDateDialogData,
@@ -405,7 +403,7 @@ export class ApiSubscriptionEditComponent implements OnInit {
   }
 
   renewApiKey() {
-    this.matLegacyDialog
+    this.matDialog
       .open<ApiPortalSubscriptionRenewDialogComponent, ApiPortalSubscriptionRenewDialogData, ApiPortalSubscriptionRenewDialogResult>(
         ApiPortalSubscriptionRenewDialogComponent,
         {
@@ -461,7 +459,7 @@ export class ApiSubscriptionEditComponent implements OnInit {
   }
 
   expireApiKey(apiKey: ApiKeyVM) {
-    this.matLegacyDialog
+    this.matDialog
       .open<
         ApiPortalSubscriptionExpireApiKeyDialogComponent,
         ApiPortalSubscriptionExpireApiKeyDialogData,

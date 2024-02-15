@@ -21,17 +21,11 @@
   <mat-dialog-content class="subscription-creation__content">
     <ng-container *ngIf="plans?.length > 0; else noPlansForCreation">
       <label id="application-label">Select an application</label>
-      <mat-form-field class="subscription-creation__content__applications" #searchField aria-labelledby="application-label">
+      <mat-form-field class="subscription-creation__content__applications" aria-labelledby="application-label">
         <mat-icon matPrefix>search</mat-icon>
         <mat-label>Search an application by name</mat-label>
         <!--Using focus workaround to avoid label overlapping border https://github.com/angular/components/issues/15027#issuecomment-1335147036-->
-        <input
-          matInput
-          type="search"
-          [matAutocomplete]="auto"
-          formControlName="selectedApplication"
-          (focus)="searchField.updateOutlineGap()"
-        />
+        <input matInput type="search" [matAutocomplete]="auto" formControlName="selectedApplication" />
 
         <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayApplication">
           <mat-option
@@ -73,7 +67,7 @@
       </mat-radio-group>
 
       <ng-container *ngIf="form.get('apiKeyMode')">
-        <div class="mat-body-1">
+        <div class="mat-body-2">
           <p>You have to choose between two modes for your application :</p>
           <ul>
             <li><b>API Key</b> - a new API Key will be generated for each subscription</li>
@@ -95,7 +89,7 @@
       </ng-container>
 
       <ng-container *ngIf="form.get('customApiKey')">
-        <div class="mat-body-1">
+        <div class="mat-body-2">
           You can provide a custom API Key if you already have one. <br />
           Leave it blank to get a generated API Key.
         </div>

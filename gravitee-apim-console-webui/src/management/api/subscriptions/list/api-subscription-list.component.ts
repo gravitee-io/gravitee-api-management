@@ -18,7 +18,7 @@ import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap,
 import { BehaviorSubject, EMPTY, Observable, of, Subject } from 'rxjs';
 import { isEqual, now } from 'lodash';
 import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { MatLegacyDialog as MatDialog } from '@angular/material/legacy-dialog';
+import { MatDialog } from '@angular/material/dialog';
 import { AutocompleteOptions } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute, Router } from '@angular/router';
 

@@ -21,10 +21,10 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { Component, ViewChild } from '@angular/core';
 import { ComponentFixture, fakeAsync, flush, TestBed, tick } from '@angular/core/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
-import { MatLegacyTableHarness as MatTableHarness } from '@angular/material/legacy-table/testing';
+import { MatTableHarness } from '@angular/material/table/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { set } from 'lodash';
-import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApiSubscriptionListComponent } from './api-subscription-list.component';
@@ -510,6 +510,8 @@ describe('ApiSubscriptionListComponent', () => {
       expectApplicationsSearch('application', [application]);
       tick();
       await creationDialogHarness.selectApplication('application');
+      tick(400);
+      expectSubscriptionsForApplication(application.id, []);
       await creationDialogHarness.choosePlan(planV4.name);
       await creationDialogHarness.createSubscription();
       tick(400);
@@ -545,6 +547,8 @@ describe('ApiSubscriptionListComponent', () => {
       expectApplicationsSearch('application', [application]);
       tick();
       await creationDialogHarness.selectApplication(application.name);
+      tick(400);
+      expectSubscriptionsForApplication(application.id, []);
       await creationDialogHarness.choosePlan(planV4.name);
 
       expect(await creationDialogHarness.isCustomApiKeyInputDisplayed()).toBeTruthy();
