@@ -127,6 +127,7 @@ describe('OrgSettingsTagsComponent', () => {
         fakePortalSettings({
           portal: {
             entrypoint: 'https://api.company.com',
+            tcpPort: 4082,
           },
         }),
       );
@@ -135,9 +136,11 @@ describe('OrgSettingsTagsComponent', () => {
       const entrypointInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=entrypoint]' }));
       const saveBar = await loader.getHarness(GioSaveBarHarness);
 
-      expect(await entrypointInput.getValue()).toEqual('https://api.company.com');
-
       await entrypointInput.setValue('https://my-new-api.company.com');
+
+      const tcpPortInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=tcpPort]' }));
+      expect(await tcpPortInput.getValue()).toEqual('4082');
+      await tcpPortInput.setValue('8888');
 
       expect(await saveBar.isVisible()).toBeTruthy();
       await saveBar.clickSubmit();
@@ -146,20 +149,22 @@ describe('OrgSettingsTagsComponent', () => {
         fakePortalSettings({
           portal: {
             entrypoint: 'https://my-new-api.company.com',
+            tcpPort: 8888,
           },
         }),
       );
     });
 
-    it('should lock default configuration entrypoint input', async () => {
+    it('should lock default configuration entrypoint and tcp port input', async () => {
       expectTagsListRequest([fakeTag({ restricted_groups: ['group-a'] })]);
       expectGroupListByOrganizationRequest([fakeGroup({ id: 'group-a', name: 'Group A' })]);
       expectPortalSettingsGetRequest(
         fakePortalSettings({
           portal: {
             entrypoint: 'https://api.company.com',
+            tcpPort: 4082,
           },
-          metadata: { readonly: ['portal.entrypoint'] },
+          metadata: { readonly: ['portal.entrypoint', 'portal.tcpPort'] },
         }),
       );
       expectEntrypointsListRequest([fakeEntrypoint()]);
@@ -168,6 +173,11 @@ describe('OrgSettingsTagsComponent', () => {
 
       expect(await entrypointInput.getValue()).toEqual('https://api.company.com');
       expect(await entrypointInput.isDisabled()).toEqual(true);
+
+      const tcpPortInput = await loader.getHarness(MatInputHarness.with({ selector: '[formControlName=tcpPort]' }));
+
+      expect(await tcpPortInput.getValue()).toEqual('4082');
+      expect(await tcpPortInput.isDisabled()).toEqual(true);
     });
 
     it('should display entrypoint mappings table', async () => {
