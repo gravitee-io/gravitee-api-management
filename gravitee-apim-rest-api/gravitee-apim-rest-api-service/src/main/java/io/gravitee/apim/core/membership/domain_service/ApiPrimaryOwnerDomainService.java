@@ -15,7 +15,14 @@
  */
 package io.gravitee.apim.core.membership.domain_service;
 
+import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
+import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
+import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.audit.model.AuditProperties;
+import io.gravitee.apim.core.audit.model.event.MembershipAuditEvent;
+import io.gravitee.apim.core.datetime.TimeProvider;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
+import io.gravitee.apim.core.membership.crud_service.MembershipCrudService;
 import io.gravitee.apim.core.membership.exception.ApiPrimaryOwnerNotFoundException;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
@@ -26,22 +33,30 @@ import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.common.ReferenceContext;
+import io.gravitee.rest.api.service.common.UuidString;
+import java.util.Map;
 import java.util.Optional;
 
 public class ApiPrimaryOwnerDomainService {
 
+    private final AuditDomainService auditService;
     private final GroupQueryService groupQueryService;
+    private final MembershipCrudService membershipCrudService;
     private final MembershipQueryService membershipQueryService;
     private final RoleQueryService roleQueryService;
     private final UserCrudService userCrudService;
 
     public ApiPrimaryOwnerDomainService(
+        AuditDomainService auditDomainService,
         GroupQueryService groupQueryService,
+        MembershipCrudService membershipCrudService,
         MembershipQueryService membershipQueryService,
         RoleQueryService roleQueryService,
         UserCrudService userCrudService
     ) {
+        this.auditService = auditDomainService;
         this.groupQueryService = groupQueryService;
+        this.membershipCrudService = membershipCrudService;
         this.membershipQueryService = membershipQueryService;
         this.roleQueryService = roleQueryService;
         this.userCrudService = userCrudService;
@@ -59,6 +74,26 @@ public class ApiPrimaryOwnerDomainService {
                     )
             )
             .orElseThrow(() -> new ApiPrimaryOwnerNotFoundException(apiId));
+    }
+
+    public void createApiPrimaryOwnerMembership(String apiId, PrimaryOwnerEntity primaryOwner, AuditInfo auditInfo) {
+        findPrimaryOwnerRole(auditInfo.organizationId())
+            .ifPresent(role -> {
+                var membership = Membership
+                    .builder()
+                    .id(UuidString.generateRandom())
+                    .referenceId(apiId)
+                    .referenceType(Membership.ReferenceType.API)
+                    .roleId(role.getId())
+                    .memberId(primaryOwner.id())
+                    .memberType(Membership.Type.valueOf(primaryOwner.type().name()))
+                    .createdAt(TimeProvider.now())
+                    .updatedAt(TimeProvider.now())
+                    .build();
+                membershipCrudService.create(membership);
+
+                createAuditLog(membership, auditInfo);
+            });
     }
 
     private Optional<Role> findPrimaryOwnerRole(String organizationId) {
@@ -107,5 +142,27 @@ public class ApiPrimaryOwnerDomainService {
             .findByReferenceAndRoleId(Membership.ReferenceType.GROUP, groupId, primaryOwnerRoleId)
             .stream()
             .findFirst();
+    }
+
+    private void createAuditLog(Membership membership, AuditInfo auditInfo) {
+        Map<AuditProperties, String> properties =
+            switch (membership.getMemberType()) {
+                case USER -> Map.of(AuditProperties.USER, membership.getMemberId());
+                case GROUP -> Map.of(AuditProperties.GROUP, membership.getMemberId());
+            };
+
+        auditService.createApiAuditLog(
+            ApiAuditLogEntity
+                .builder()
+                .organizationId(auditInfo.organizationId())
+                .environmentId(auditInfo.environmentId())
+                .apiId(membership.getReferenceId())
+                .event(MembershipAuditEvent.MEMBERSHIP_CREATED)
+                .actor(auditInfo.actor())
+                .newValue(membership)
+                .createdAt(membership.getCreatedAt())
+                .properties(properties)
+                .build()
+        );
     }
 }

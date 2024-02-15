@@ -31,7 +31,10 @@ public class Membership {
     private ReferenceType referenceType;
     private String referenceId;
     private String roleId;
-    private String source;
+
+    @Builder.Default
+    private String source = "system";
+
     private ZonedDateTime createdAt;
     private ZonedDateTime updatedAt;
 

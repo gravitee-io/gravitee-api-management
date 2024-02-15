@@ -26,11 +26,14 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 
 import inmemory.ApiMetadataQueryServiceInMemory;
+import inmemory.AuditCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
+import inmemory.MembershipCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api.model.ApiMetadata;
+import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
@@ -45,6 +48,7 @@ import io.gravitee.apim.core.notification.model.hook.ApiHookContext;
 import io.gravitee.apim.core.notification.model.hook.ApplicationHookContext;
 import io.gravitee.apim.core.notification.model.hook.HookContextEntry;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
+import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.notification.internal.TemplateDataFetcher;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -107,7 +111,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
     @Mock
     SubscriptionRepository subscriptionRepository;
 
-    MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory();
+    MembershipCrudServiceInMemory membershipCrudService = new MembershipCrudServiceInMemory();
     RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
 
@@ -120,6 +124,8 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
 
     @BeforeEach
     void setUp() {
+        var membershipQueryService = new MembershipQueryServiceInMemory(membershipCrudService);
+
         service =
             new TriggerNotificationDomainServiceFacadeImpl(
                 notifierService,
@@ -129,7 +135,9 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                     planRepository,
                     subscriptionRepository,
                     new ApiPrimaryOwnerDomainService(
+                        new AuditDomainService(new AuditCrudServiceInMemory(), userCrudService, new JacksonJsonDiffProcessor()),
                         new GroupQueryServiceInMemory(),
+                        membershipCrudService,
                         membershipQueryService,
                         roleQueryService,
                         userCrudService
@@ -898,7 +906,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
         lenient().when(apiRepository.findById(any())).thenReturn(Optional.empty());
         lenient().when(apiRepository.findById(api.getId())).thenReturn(Optional.of(api));
 
-        membershipQueryService.initWith(List.of(anApiPrimaryOwnerUserMembership(API_ID, primaryOwnerEntity.id(), ORGANIZATION_ID)));
+        membershipCrudService.initWith(List.of(anApiPrimaryOwnerUserMembership(API_ID, primaryOwnerEntity.id(), ORGANIZATION_ID)));
 
         apiMetadataQueryService.initWith(List.of(Map.entry(api.getId(), metadata)));
     }
@@ -908,7 +916,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
         lenient().when(applicationRepository.findById(any())).thenReturn(Optional.empty());
         lenient().when(applicationRepository.findById(eq(application.getId()))).thenReturn(Optional.of(application));
 
-        membershipQueryService.initWith(
+        membershipCrudService.initWith(
             List.of(anApplicationPrimaryOwnerUserMembership(APPLICATION_ID, primaryOwnerEntity.id(), ORGANIZATION_ID))
         );
     }

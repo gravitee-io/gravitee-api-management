@@ -34,6 +34,7 @@ import inmemory.GroupQueryServiceInMemory;
 import inmemory.IndexerInMemory;
 import inmemory.InstanceQueryServiceInMemory;
 import inmemory.LicenseCrudServiceInMemory;
+import inmemory.MembershipCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.MessageLogCrudServiceInMemory;
 import inmemory.PageCrudServiceInMemory;
@@ -220,5 +221,10 @@ public class InMemoryConfiguration {
     @Bean
     public IndexerInMemory indexer() {
         return new IndexerInMemory();
+    }
+
+    @Bean
+    public MembershipCrudServiceInMemory membershipCrudServiceInMemory() {
+        return new MembershipCrudServiceInMemory();
     }
 }

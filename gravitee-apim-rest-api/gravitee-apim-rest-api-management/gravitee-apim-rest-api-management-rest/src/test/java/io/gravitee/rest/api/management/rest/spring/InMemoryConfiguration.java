@@ -190,4 +190,9 @@ public class InMemoryConfiguration {
     public IndexerInMemory indexer() {
         return new IndexerInMemory();
     }
+
+    @Bean
+    public MembershipCrudServiceInMemory membershipCrudServiceInMemory() {
+        return new MembershipCrudServiceInMemory();
+    }
 }
