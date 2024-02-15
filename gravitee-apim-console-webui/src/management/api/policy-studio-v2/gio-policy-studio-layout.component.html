@@ -16,7 +16,7 @@
 
 -->
 <div class="gio-policy-studio-layout__header">
-  <nav mat-tab-nav-bar mat-align-tabs="end" class="gio-policy-studio-layout__header__nav">
+  <nav mat-tab-nav-bar mat-align-tabs="end" class="gio-policy-studio-layout__header__nav" [tabPanel]="tabPanel">
     <a
       mat-tab-link
       routerLinkActive
@@ -31,10 +31,13 @@
     </a>
   </nav>
 </div>
-
-<section class="gio-policy-studio-layout__tab-content" [class.save-bar-opened]="this.isDirty">
-  <router-outlet></router-outlet>
-</section>
+<mat-tab-nav-panel #tabPanel class="gio-policy-studio-layout__tab-nav-panel">
+  <section class="gio-policy-studio-layout__tab-content" [class.save-bar-opened]="this.isDirty">
+    <div class="gio-policy-studio-layout__tab-content__container">
+      <router-outlet></router-outlet>
+    </div>
+  </section>
+</mat-tab-nav-panel>
 
 <gio-save-bar
   class="gio-policy-studio-layout__save-bar"

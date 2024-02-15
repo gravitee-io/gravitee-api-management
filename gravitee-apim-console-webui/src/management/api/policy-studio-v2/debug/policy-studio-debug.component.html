@@ -15,18 +15,20 @@
     limitations under the License.
 
 -->
-<div class="policy-studio-debug">
-  <div class="policy-studio-debug__request">
-    <policy-studio-debug-request
-      [debugInProgress]="debugResponse?.isLoading"
-      (requestSubmitted)="onRequestSubmitted($event)"
-      (cancelSubmitted)="onRequestCancelled()"
-    ></policy-studio-debug-request>
-  </div>
+<mat-card class="policy-studio-debug-card">
+  <div class="policy-studio-debug">
+    <div class="policy-studio-debug__request">
+      <policy-studio-debug-request
+        [debugInProgress]="debugResponse?.isLoading"
+        (requestSubmitted)="onRequestSubmitted($event)"
+        (cancelSubmitted)="onRequestCancelled()"
+      ></policy-studio-debug-request>
+    </div>
 
-  <div class="policy-studio-debug__response">
-    <div class="policy-studio-debug__response__container">
-      <policy-studio-debug-response [debugResponse]="debugResponse" [listPolicies]="listPolicies"></policy-studio-debug-response>
+    <div class="policy-studio-debug__response">
+      <div class="policy-studio-debug__response__container">
+        <policy-studio-debug-response [debugResponse]="debugResponse" [listPolicies]="listPolicies"></policy-studio-debug-response>
+      </div>
     </div>
   </div>
-</div>
+</mat-card>
