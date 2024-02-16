@@ -15,7 +15,7 @@
  */
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
-import { MatLegacyButtonModule as MatButtonModule } from '@angular/material/legacy-button';
+import { MatButtonModule } from '@angular/material/button';
 import { GioBannerModule, GioIconsModule } from '@gravitee/ui-particles-angular';
 
 import { GioLicenseBannerComponent } from './gio-license-banner.component';
