@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<mat-card class="gio-form-qos">
+<div class="gio-form-qos">
   <h3>Quality of service</h3>
   <gio-banner-info>
     Define the guaranteed level of message delivery.
@@ -37,4 +37,4 @@
       <mat-option *ngFor="let qos of supportedQos" [value]="qos">{{ qos }}</mat-option>
     </mat-select>
   </mat-form-field>
-</mat-card>
+</div>
