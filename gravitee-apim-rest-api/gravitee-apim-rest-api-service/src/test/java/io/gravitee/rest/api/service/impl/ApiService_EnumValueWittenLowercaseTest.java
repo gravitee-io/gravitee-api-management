@@ -17,12 +17,15 @@ package io.gravitee.rest.api.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
+import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiCompositeSerializer;
+import io.gravitee.rest.api.service.jackson.ser.api.ApiDefaultSerializer;
 import io.gravitee.rest.api.service.jackson.ser.api.ApiSerializer;
 import io.gravitee.rest.api.service.spring.ServiceConfiguration;
 import java.io.IOException;
@@ -31,23 +34,41 @@ import java.util.HashMap;
 import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.context.ApplicationContext;
 
 /**
  * @author Guillaume Gillon
  */
+@RunWith(MockitoJUnitRunner.class)
 public class ApiService_EnumValueWittenLowercaseTest {
 
     private static final String API_ID = "id-api";
 
     private ObjectMapper objectMapper;
 
+    @Mock
+    private GroupService groupService;
+
+    @Mock
+    private ApplicationContext applicationContext;
+
     @Before
     public void setUp() {
         ServiceConfiguration serviceConfiguration = new ServiceConfiguration();
         objectMapper = serviceConfiguration.objectMapper();
 
+        when(applicationContext.getBean(GroupService.class)).thenReturn(groupService);
+
         ApiCompositeSerializer apiSerializer = (ApiCompositeSerializer) serviceConfiguration.apiSerializer();
         apiSerializer.afterPropertiesSet();
+
+        ApiSerializer apiDefaultSerializer = new ApiDefaultSerializer();
+        apiDefaultSerializer.setApplicationContext(applicationContext);
+        apiSerializer.setSerializers(Arrays.asList(apiDefaultSerializer));
 
         SimpleModule module = new SimpleModule();
         module.addSerializer(ApiEntity.class, apiSerializer);
