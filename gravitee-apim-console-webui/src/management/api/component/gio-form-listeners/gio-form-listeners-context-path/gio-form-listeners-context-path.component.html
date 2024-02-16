@@ -42,7 +42,7 @@
       class="gio-form-listeners__table__row"
     >
       <td class="gio-form-listeners__table__row__td">
-        <mat-form-field appearance="standard" class="gio-form-listeners__table__field">
+        <mat-form-field class="gio-form-listeners__table__field">
           <input type="text" matInput formControlName="path" placeholder="Context-path *" />
           <mat-error *ngIf="control.get('path').hasError('contextPath')"> {{ control.get('path').getError('contextPath') }}</mat-error>
           <mat-error *ngIf="control.get('path').hasError('listeners')"> {{ control.get('path').getError('listeners') }}</mat-error>
