@@ -17,12 +17,17 @@
 -->
 <mat-card class="card">
   <ng-container *ngIf="!canViewGroupMembers">
-    <h3 class="title">Group {{ groupData.name }}</h3>
-    <p id="cannot-view-members">You do not have the appropriate permissions to view members of this group.</p>
+    <mat-card-content>
+      <h3 class="title">Group {{ groupData.name }}</h3>
+      <p id="cannot-view-members">You do not have the appropriate permissions to view members of this group.</p>
+    </mat-card-content>
   </ng-container>
   <ng-container *ngIf="canViewGroupMembers">
-    <h3>Group {{ groupData.name }} inherited members ({{ dataSourceGroup.memberTotalCount }})</h3>
-
+    <mat-card-content>
+      <div>
+        <h3>Group {{ groupData.name }} inherited members ({{ dataSourceGroup.memberTotalCount }})</h3>
+      </div>
+    </mat-card-content>
     <gio-table-wrapper
       [disableSearchInput]="true"
       [length]="dataSourceGroup.memberTotalCount"

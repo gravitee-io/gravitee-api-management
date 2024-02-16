@@ -14,13 +14,10 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
-import { MatLegacyFormFieldHarness as MatFormFieldHarness } from '@angular/material/legacy-form-field/testing';
-import { MatLegacySelectHarness as MatSelectHarness } from '@angular/material/legacy-select/testing';
-import {
-  MatLegacyOptionHarness as MatOptionHarness,
-  LegacyOptionHarnessFilters as OptionHarnessFilters,
-} from '@angular/material/legacy-core/testing';
-import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
+import { MatFormFieldHarness } from '@angular/material/form-field/testing';
+import { MatSelectHarness } from '@angular/material/select/testing';
+import { MatOptionHarness, OptionHarnessFilters } from '@angular/material/core/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
 export class ApiGeneralGroupsHarness extends ComponentHarness {
   static readonly hostSelector = 'api-general-access-groups';

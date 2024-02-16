@@ -24,11 +24,10 @@
 
 <mat-dialog-content>
   <div>
-    <mat-form-field class="gio-users-selector__search-autocomplete" #searchField>
+    <mat-form-field class="gio-users-selector__search-autocomplete">
       <mat-icon matPrefix>search</mat-icon>
       <mat-label>Search a user by name or email</mat-label>
-      <!--Using focus workaround to avoid label overlapping border https://github.com/angular/components/issues/15027#issuecomment-1335147036-->
-      <input matInput type="search" [matAutocomplete]="auto" [formControl]="userSearchTerm" (focus)="searchField.updateOutlineGap()" />
+      <input matInput type="search" [matAutocomplete]="auto" [formControl]="userSearchTerm" />
       <button *ngIf="this.userSearchTerm.value" matSuffix mat-icon-button aria-label="Clear" (click)="resetSearchTerm()">
         <mat-icon>close</mat-icon>
       </button>

@@ -17,7 +17,6 @@ import { Component, OnInit } from '@angular/core';
 import { combineLatest, EMPTY, forkJoin, Observable, of, Subject, throwError } from 'rxjs';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
-import { MatLegacyDialog } from '@angular/material/legacy-dialog';
 import { MatDialog } from '@angular/material/dialog';
 import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { isEmpty, uniqueId } from 'lodash';
@@ -90,7 +89,6 @@ export class ApiGeneralMembersComponent implements OnInit {
     private readonly snackBarService: SnackBarService,
     private readonly formBuilder: UntypedFormBuilder,
     private readonly matDialog: MatDialog,
-    private readonly matLegacyDialog: MatLegacyDialog,
     private readonly gioRoleService: GioRoleService,
   ) {}
 
@@ -167,7 +165,7 @@ export class ApiGeneralMembersComponent implements OnInit {
   }
 
   public addMember() {
-    this.matLegacyDialog
+    this.matDialog
       .open<GioUsersSelectorComponent, GioUsersSelectorData, SearchableUser[]>(GioUsersSelectorComponent, {
         width: '500px',
         data: {

@@ -18,7 +18,6 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { InteractivityChecker } from '@angular/cdk/a11y';
 import { ActivatedRoute } from '@angular/router';
 import { HarnessLoader } from '@angular/cdk/testing';
 
@@ -55,13 +54,7 @@ describe('ApiPortalGroupsComponent', () => {
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: apiId } } } },
         { provide: GioTestingPermissionProvider, useValue: permissions },
       ],
-    })
-      .overrideProvider(InteractivityChecker, {
-        useValue: {
-          isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
-        },
-      })
-      .compileComponents();
+    }).compileComponents();
 
     fixture = TestBed.createComponent(ApiGeneralMembersComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
