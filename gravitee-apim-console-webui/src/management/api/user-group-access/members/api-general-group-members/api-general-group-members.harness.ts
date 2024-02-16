@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
-import { MatLegacyTableHarness as MatTableHarness } from '@angular/material/legacy-table/testing';
+import { MatTableHarness } from '@angular/material/table/testing';
 
 export class ApiGeneralGroupMembersHarness extends ComponentHarness {
   static readonly hostSelector = 'api-general-group-members';

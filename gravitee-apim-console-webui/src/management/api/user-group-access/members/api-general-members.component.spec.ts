@@ -18,7 +18,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { of } from 'rxjs';
-import { MatLegacyOptionHarness as MatOptionHarness } from '@angular/material/legacy-core/testing';
+import { MatOptionHarness } from '@angular/material/core/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 import { MatIconTestingModule } from '@angular/material/icon/testing';

@@ -23,17 +23,18 @@ import {
   GioSaveBarModule,
   GioFormSlideToggleModule,
 } from '@gravitee/ui-particles-angular';
-import { MatLegacySelectModule as MatSelectModule } from '@angular/material/legacy-select';
+import { MatSelectModule } from '@angular/material/select';
 import { ReactiveFormsModule } from '@angular/forms';
-import { MatLegacyCardModule as MatCardModule } from '@angular/material/legacy-card';
-import { MatLegacySnackBarModule as MatSnackBarModule } from '@angular/material/legacy-snack-bar';
-import { MatLegacyCheckboxModule as MatCheckboxModule } from '@angular/material/legacy-checkbox';
-import { MatLegacyButtonModule as MatButtonModule } from '@angular/material/legacy-button';
-import { MatLegacyTableModule as MatTableModule } from '@angular/material/legacy-table';
-import { MatLegacyDialogModule as MatDialogModule } from '@angular/material/legacy-dialog';
-import { MatLegacyRadioModule as MatRadioModule } from '@angular/material/legacy-radio';
-import { MatLegacySlideToggleModule as MatSlideToggleModule } from '@angular/material/legacy-slide-toggle';
+import { MatCardModule } from '@angular/material/card';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatButtonModule } from '@angular/material/button';
+import { MatTableModule } from '@angular/material/table';
+import { MatDialogModule } from '@angular/material/dialog';
+import { MatRadioModule } from '@angular/material/radio';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { ApiGeneralGroupsComponent } from './groups/api-general-groups.component';
 import { ApiGeneralMembersComponent } from './members/api-general-members.component';
@@ -62,6 +63,7 @@ import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrap
     MatCheckboxModule,
     MatSelectModule,
     MatSnackBarModule,
+    MatLegacySnackBarModule,
     MatTableModule,
     MatDialogModule,
     MatSlideToggleModule,
