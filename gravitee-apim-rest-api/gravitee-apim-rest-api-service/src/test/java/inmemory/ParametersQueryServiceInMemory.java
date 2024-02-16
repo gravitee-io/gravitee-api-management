@@ -38,6 +38,16 @@ public class ParametersQueryServiceInMemory implements ParametersQueryService, I
     }
 
     @Override
+    public String findAsString(Key key, ParameterContext context) {
+        return parameters
+            .stream()
+            .filter(parameter -> key.equals(Key.findByKey(parameter.getKey())))
+            .map(Parameter::getValue)
+            .findFirst()
+            .orElse(null);
+    }
+
+    @Override
     public void initWith(List<Parameter> items) {
         parameters.clear();
         parameters.addAll(items);

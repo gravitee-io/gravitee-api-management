@@ -20,6 +20,7 @@ import io.gravitee.apim.core.membership.model.Role;
 import io.gravitee.apim.core.membership.query_service.RoleQueryService;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.common.ReferenceContext;
+import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.ArrayList;

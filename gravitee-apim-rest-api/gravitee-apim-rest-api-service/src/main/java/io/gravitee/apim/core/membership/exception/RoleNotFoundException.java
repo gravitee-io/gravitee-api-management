@@ -13,12 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.parameters.query_service;
+package io.gravitee.apim.core.membership.exception;
 
-import io.gravitee.apim.core.parameters.model.ParameterContext;
-import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.rest.api.service.common.ReferenceContext;
 
-public interface ParametersQueryService {
-    boolean findAsBoolean(Key key, ParameterContext context);
-    String findAsString(Key key, ParameterContext context);
+public class RoleNotFoundException extends ValidationDomainException {
+
+    private final String roleId;
+
+    public RoleNotFoundException(String roleId) {
+        super("Role not found: " + roleId);
+        this.roleId = roleId;
+    }
+
+    public RoleNotFoundException(String name, ReferenceContext referenceContext) {
+        super("Role '" + name + "' for " + referenceContext + " not found.");
+        this.roleId = name;
+    }
 }
