@@ -52,7 +52,8 @@
         </div>
 
         <div *ngIf="shouldUpgrade$ | async">
-          <gio-license-banner (onRequestUpgrade)="onRequestUpgrade()"></gio-license-banner>
+          <gio-license-banner [license]="license$ | async" [isOEM]="isOEM$ | async" (onRequestUpgrade)="onRequestUpgrade()">
+          </gio-license-banner>
         </div>
 
         <div *ngIf="dangerActions.canChangeApiLifecycle" class="danger-card__actions__action">
