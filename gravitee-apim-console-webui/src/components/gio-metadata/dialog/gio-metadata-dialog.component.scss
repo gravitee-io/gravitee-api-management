@@ -1,13 +1,8 @@
 .gio-metadata-dialog {
   &__title {
     display: flex;
-    padding-bottom: 32px;
     align-items: center;
     justify-content: space-between;
-
-    h2 {
-      margin: 0;
-    }
   }
 
   &__datepicker {
@@ -24,12 +19,6 @@
       mat-form-field {
         flex: 1 1 100%;
       }
-    }
-
-    &__footer {
-      display: flex;
-      justify-content: flex-end;
-      gap: 14px;
     }
   }
 }
