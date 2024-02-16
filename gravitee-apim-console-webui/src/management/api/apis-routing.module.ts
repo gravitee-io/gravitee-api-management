@@ -79,6 +79,7 @@ import { ApiDeploymentConfigurationComponent } from './deployment-configuration-
 import { ApiDynamicPropertiesComponent } from './properties/components/dynamic-properties-v2/api-dynamic-properties.component';
 import { ApiPropertiesComponent } from './properties/properties/api-properties.component';
 import { ApiNotificationComponent } from './api-notification/api-notification.component';
+import { ApiRuntimeAlertsComponent } from './runtime-alerts';
 
 import { DocumentationManagementComponent } from '../../components/documentation/documentation-management.component';
 import { DocumentationNewPageComponent } from '../../components/documentation/new-page.component';
@@ -460,6 +461,19 @@ const apisRoutes: Routes = [
           },
           docs: {
             page: 'management-alerts',
+          },
+        },
+      },
+      {
+        path: 'ng/alerts',
+        component: ApiRuntimeAlertsComponent,
+        data: {
+          requireLicense: {
+            license: { feature: ApimFeature.ALERT_ENGINE },
+            redirect: '/',
+          },
+          apiPermissions: {
+            only: ['api-alert-r'],
           },
         },
       },

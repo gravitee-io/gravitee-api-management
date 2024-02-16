@@ -1,0 +1,20 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+@use '../../../scss/gio-layout' as gio-layout;
+
+$foreground: map.get(gio.$mat-theme, foreground);
+
+:host {
+  @include gio-layout.gio-responsive-margin-container;
+}
+
+.runtime-alerts {
+  &__header {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+}
