@@ -17,67 +17,73 @@
 -->
 <ng-container *ngIf="restrictionForm" [formGroup]="restrictionForm">
   <mat-card class="rateLimit-card">
-    <gio-form-slide-toggle>
-      <gio-form-label>Rate Limiting</gio-form-label>
-      Rate limit how many HTTP requests an application can make in a given period of seconds or minutes.
-      <mat-slide-toggle
-        gioFormSlideToggle
-        formControlName="rateLimitEnabled"
-        aria-label="Toggle to enable rate limit"
-        name="rateLimit"
-      ></mat-slide-toggle>
-    </gio-form-slide-toggle>
-    <ng-container *ngIf="rateLimitSchema$ | async as rateLimitSchema">
-      <gio-form-json-schema
-        *ngIf="rateLimitSchema"
-        class="quota-card__schema-form"
-        formControlName="rateLimitConfig"
-        [jsonSchema]="rateLimitSchema"
-      ></gio-form-json-schema>
-    </ng-container>
+    <mat-card-content>
+      <gio-form-slide-toggle>
+        <gio-form-label>Rate Limiting</gio-form-label>
+        Rate limit how many HTTP requests an application can make in a given period of seconds or minutes.
+        <mat-slide-toggle
+          gioFormSlideToggle
+          formControlName="rateLimitEnabled"
+          aria-label="Toggle to enable rate limit"
+          name="rateLimit"
+        ></mat-slide-toggle>
+      </gio-form-slide-toggle>
+      <ng-container *ngIf="rateLimitSchema$ | async as rateLimitSchema">
+        <gio-form-json-schema
+          *ngIf="rateLimitSchema"
+          class="quota-card__schema-form"
+          formControlName="rateLimitConfig"
+          [jsonSchema]="rateLimitSchema"
+        ></gio-form-json-schema>
+      </ng-container>
+    </mat-card-content>
   </mat-card>
 
   <mat-card class="quota-card">
-    <gio-form-slide-toggle>
-      <gio-form-label>Quota</gio-form-label>
-      Rate limit how many HTTP requests an application can make in a given period of hours, days or months.
-      <mat-slide-toggle
-        gioFormSlideToggle
-        formControlName="quotaEnabled"
-        aria-label="Toggle to enable quota"
-        name="quota"
-      ></mat-slide-toggle>
-    </gio-form-slide-toggle>
+    <mat-card-content>
+      <gio-form-slide-toggle>
+        <gio-form-label>Quota</gio-form-label>
+        Rate limit how many HTTP requests an application can make in a given period of hours, days or months.
+        <mat-slide-toggle
+          gioFormSlideToggle
+          formControlName="quotaEnabled"
+          aria-label="Toggle to enable quota"
+          name="quota"
+        ></mat-slide-toggle>
+      </gio-form-slide-toggle>
 
-    <ng-container *ngIf="quotaSchema$ | async as quotaSchema">
-      <gio-form-json-schema
-        *ngIf="quotaSchema"
-        class="quota-card__schema-form"
-        formControlName="quotaConfig"
-        [jsonSchema]="quotaSchema"
-      ></gio-form-json-schema>
-    </ng-container>
+      <ng-container *ngIf="quotaSchema$ | async as quotaSchema">
+        <gio-form-json-schema
+          *ngIf="quotaSchema"
+          class="quota-card__schema-form"
+          formControlName="quotaConfig"
+          [jsonSchema]="quotaSchema"
+        ></gio-form-json-schema>
+      </ng-container>
+    </mat-card-content>
   </mat-card>
 
   <mat-card class="resourceFiltering-card">
-    <gio-form-slide-toggle>
-      <gio-form-label>Resource Filtering</gio-form-label>
-      Restrict resources according to whitelist and / or blacklist rules.
-      <mat-slide-toggle
-        gioFormSlideToggle
-        formControlName="resourceFilteringEnabled"
-        aria-label="Comment when subscribing to the plan toggle"
-        name="resourceFilteringEnabled"
-      ></mat-slide-toggle>
-    </gio-form-slide-toggle>
+    <mat-card-content>
+      <gio-form-slide-toggle>
+        <gio-form-label>Resource Filtering</gio-form-label>
+        Restrict resources according to whitelist and / or blacklist rules.
+        <mat-slide-toggle
+          gioFormSlideToggle
+          formControlName="resourceFilteringEnabled"
+          aria-label="Comment when subscribing to the plan toggle"
+          name="resourceFilteringEnabled"
+        ></mat-slide-toggle>
+      </gio-form-slide-toggle>
 
-    <ng-container *ngIf="resourceFilteringSchema$ | async as resourceFilteringSchema">
-      <gio-form-json-schema
-        *ngIf="resourceFilteringSchema"
-        class="quota-card__schema-form"
-        formControlName="resourceFilteringConfig"
-        [jsonSchema]="resourceFilteringSchema"
-      ></gio-form-json-schema>
-    </ng-container>
+      <ng-container *ngIf="resourceFilteringSchema$ | async as resourceFilteringSchema">
+        <gio-form-json-schema
+          *ngIf="resourceFilteringSchema"
+          class="quota-card__schema-form"
+          formControlName="resourceFilteringConfig"
+          [jsonSchema]="resourceFilteringSchema"
+        ></gio-form-json-schema>
+      </ng-container>
+    </mat-card-content>
   </mat-card>
 </ng-container>
