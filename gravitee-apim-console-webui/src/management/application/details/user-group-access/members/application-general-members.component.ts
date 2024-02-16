@@ -21,7 +21,6 @@ import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { isEmpty, uniqueId } from 'lodash';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute } from '@angular/router';
-import { MatLegacyDialog } from '@angular/material/legacy-dialog';
 
 import {
   GioUsersSelectorComponent,
@@ -71,7 +70,6 @@ export class ApplicationGeneralMembersComponent {
   constructor(
     private readonly activatedRoute: ActivatedRoute,
     private readonly matDialog: MatDialog,
-    private readonly matLegacyDialog: MatLegacyDialog,
     private readonly applicationMembersService: ApplicationMembersService,
     private readonly formBuilder: UntypedFormBuilder,
     private readonly userService: UsersService,
@@ -143,7 +141,7 @@ export class ApplicationGeneralMembersComponent {
   }
 
   public addMember() {
-    this.matLegacyDialog
+    this.matDialog
       .open<GioUsersSelectorComponent, GioUsersSelectorData, SearchableUser[]>(GioUsersSelectorComponent, {
         width: '500px',
         data: {

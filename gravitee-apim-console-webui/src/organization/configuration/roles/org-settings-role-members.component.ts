@@ -20,7 +20,6 @@ import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute } from '@angular/router';
-import { MatLegacyDialog } from '@angular/material/legacy-dialog';
 
 import { RoleService } from '../../../services-ngx/role.service';
 import { MembershipListItem } from '../../../entities/role/membershipListItem';
@@ -53,7 +52,6 @@ export class OrgSettingsRoleMembersComponent implements OnInit, OnDestroy {
     private readonly activatedRoute: ActivatedRoute,
     private readonly roleService: RoleService,
     private readonly matDialog: MatDialog,
-    private readonly matLegacyDialog: MatLegacyDialog,
     private readonly snackBarService: SnackBarService,
   ) {}
 
@@ -86,7 +84,7 @@ export class OrgSettingsRoleMembersComponent implements OnInit, OnDestroy {
   }
 
   onAddMemberClicked() {
-    this.matLegacyDialog
+    this.matDialog
       .open<GioUsersSelectorComponent, GioUsersSelectorData, SearchableUser[]>(GioUsersSelectorComponent, {
         width: '500px',
         data: {

@@ -17,56 +17,57 @@
 -->
 <form [formGroup]="form" *ngIf="form">
   <mat-card>
-    <div class="card__header">
-      <div class="card__header__title">
-        <h3>Members</h3>
-        <p>Manage who can interact with your API through the API Management console</p>
+    <mat-card-content>
+      <div class="card__header">
+        <div class="card__header__title">
+          <h3>Members</h3>
+          <p>Manage who can interact with your API through the API Management console</p>
+        </div>
+        <div class="card__header__actions">
+          <button
+            *ngIf="canTransferOwnership"
+            class="card__header__actions__button"
+            [disabled]="isReadOnly"
+            mat-raised-button
+            (click)="transferOwnership()"
+            type="button"
+          >
+            Transfer ownership
+          </button>
+          <button
+            class="card__header__actions__button"
+            aria-label="Manage groups"
+            *gioPermission="{ anyOf: ['api-member-r', 'api-member-u', 'api-member-d'] }"
+            mat-raised-button
+            (click)="updateGroups()"
+            [disabled]="this.groups?.length === 0"
+            type="button"
+          >
+            Manage groups
+          </button>
+          <button
+            class="card__header__actions__button"
+            *gioPermission="{ anyOf: ['api-member-c'] }"
+            [disabled]="isReadOnly"
+            mat-raised-button
+            type="button"
+            (click)="addMember()"
+            color="primary"
+          >
+            <mat-icon svgIcon="gio:plus"></mat-icon> Add members
+          </button>
+        </div>
       </div>
-      <div class="card__header__actions">
-        <button
-          *ngIf="canTransferOwnership"
-          class="card__header__actions__button"
-          [disabled]="isReadOnly"
-          mat-raised-button
-          (click)="transferOwnership()"
-          type="button"
-        >
-          Transfer ownership
-        </button>
-        <button
-          class="card__header__actions__button"
-          aria-label="Manage groups"
-          *gioPermission="{ anyOf: ['api-member-r', 'api-member-u', 'api-member-d'] }"
-          mat-raised-button
-          (click)="updateGroups()"
-          [disabled]="this.groups?.length === 0"
-          type="button"
-        >
-          Manage groups
-        </button>
-        <button
-          class="card__header__actions__button"
-          *gioPermission="{ anyOf: ['api-member-c'] }"
-          [disabled]="isReadOnly"
-          mat-raised-button
-          type="button"
-          (click)="addMember()"
-          color="primary"
-        >
-          <mat-icon svgIcon="gio:plus"></mat-icon> Add members
-        </button>
-      </div>
-    </div>
 
-    <gio-form-slide-toggle class="card__enable-notification-toggle">
-      Notify members when they are added to the API
-      <mat-slide-toggle
-        gioFormSlideToggle
-        formControlName="isNotificationsEnabled"
-        aria-label="Enable notifications when members are added to this API"
-      ></mat-slide-toggle>
-    </gio-form-slide-toggle>
-
+      <gio-form-slide-toggle class="card__enable-notification-toggle">
+        Notify members when they are added to the API
+        <mat-slide-toggle
+          gioFormSlideToggle
+          formControlName="isNotificationsEnabled"
+          aria-label="Enable notifications when members are added to this API"
+        ></mat-slide-toggle>
+      </gio-form-slide-toggle>
+    </mat-card-content>
     <table
       mat-table
       *ngIf="dataSource"

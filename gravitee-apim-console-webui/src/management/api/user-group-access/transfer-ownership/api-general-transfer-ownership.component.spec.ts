@@ -20,9 +20,9 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
-import { MatLegacySelectHarness as MatSelectHarness } from '@angular/material/legacy-select/testing';
+import { MatSelectHarness } from '@angular/material/select/testing';
 import { set } from 'lodash';
-import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatButtonToggleGroupHarness } from '@angular/material/button-toggle/testing';
 import { ActivatedRoute } from '@angular/router';
 
@@ -247,10 +247,6 @@ describe('ApiGeneralTransferOwnershipComponent', () => {
           },
           { provide: GioTestingPermissionProvider, useValue: ['api-definition-u', 'api-member-u'] },
         ],
-      }).overrideProvider(InteractivityChecker, {
-        useValue: {
-          isFocusable: () => true, // This checks focus trap, set it to true to  avoid the warning
-        },
       });
 
       fixture = TestBed.createComponent(ApiGeneralMembersComponent);
