@@ -32,7 +32,6 @@ import {
   GioFormFocusInvalidModule,
   GioBannerModule,
 } from '@gravitee/ui-particles-angular';
-import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { ApiCorsComponent } from './api-cors.component';
 
@@ -51,7 +50,6 @@ import { ApiCorsComponent } from './api-cors.component';
     MatSlideToggleModule,
     MatDividerModule,
     MatSnackBarModule,
-    MatLegacySnackBarModule,
     MatInputModule,
     GioFormSlideToggleModule,
     GioFormTagsInputModule,

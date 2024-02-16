@@ -34,7 +34,6 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { ApiGeneralGroupsComponent } from './groups/api-general-groups.component';
 import { ApiGeneralMembersComponent } from './members/api-general-members.component';
@@ -63,7 +62,7 @@ import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrap
     MatCheckboxModule,
     MatSelectModule,
     MatSnackBarModule,
-    MatLegacySnackBarModule,
+
     MatTableModule,
     MatDialogModule,
     MatSlideToggleModule,

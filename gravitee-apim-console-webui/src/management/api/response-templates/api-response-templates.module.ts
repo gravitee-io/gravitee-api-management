@@ -27,7 +27,6 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatDialogModule } from '@angular/material/dialog';
 import { RouterModule } from '@angular/router';
-import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { ApiResponseTemplatesEditComponent } from './edit/api-response-templates-edit.component';
 import { ApiResponseTemplatesListComponent } from './list/api-response-templates-list.component';
@@ -47,7 +46,7 @@ import { GioGoBackButtonModule } from '../../../shared/components/gio-go-back-bu
     MatCardModule,
     MatTableModule,
     MatSnackBarModule,
-    MatLegacySnackBarModule,
+
     MatAutocompleteModule,
     MatFormFieldModule,
     MatInputModule,

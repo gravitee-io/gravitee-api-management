@@ -36,7 +36,6 @@ import { MatInputModule } from '@angular/material/input';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { RouterModule } from '@angular/router';
-import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { NotificationSettingsAddDialogModule } from './notifications-settings-add-dialog/notification-settings-add-dialog.module';
 import { NotificationSettingsListComponent } from './notification-settings-list.component';
@@ -69,7 +68,6 @@ import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper
     MatTooltipModule,
     MatDialogModule,
     MatSnackBarModule,
-    MatLegacySnackBarModule,
     MatCardModule,
     MatCheckboxModule,
     MatFormFieldModule,

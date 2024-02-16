@@ -26,7 +26,6 @@ import { GioFormHeadersModule, GioFormSlideToggleModule } from '@gravitee/ui-par
 import { MatButtonModule } from '@angular/material/button';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { MessagesComponent } from './messages.component';
 
@@ -45,7 +44,7 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
     MatButtonModule,
     MatSlideToggleModule,
     MatSnackBarModule,
-    MatLegacySnackBarModule,
+
     GioFormHeadersModule,
     GioFormSlideToggleModule,
     GioPermissionModule,

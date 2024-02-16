@@ -24,7 +24,6 @@ import { GioBannerModule, GioIconsModule } from '@gravitee/ui-particles-angular'
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { RouterModule } from '@angular/router';
-import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { ResetPasswordComponent } from './reset-password.component';
 
@@ -41,7 +40,6 @@ import { ResetPasswordComponent } from './reset-password.component';
     MatCardModule,
     MatButtonModule,
     MatSnackBarModule,
-    MatLegacySnackBarModule,
 
     GioIconsModule,
     GioBannerModule,

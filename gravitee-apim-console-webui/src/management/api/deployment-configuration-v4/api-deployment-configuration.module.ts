@@ -21,22 +21,12 @@ import { MatCardModule } from '@angular/material/card';
 import { MatSelectModule } from '@angular/material/select';
 import { GioSaveBarModule } from '@gravitee/ui-particles-angular';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { ApiDeploymentConfigurationComponent } from './api-deployment-configuration.component';
 
 @NgModule({
   declarations: [ApiDeploymentConfigurationComponent],
   exports: [ApiDeploymentConfigurationComponent],
-  imports: [
-    CommonModule,
-    MatCardModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    MatSnackBarModule,
-    MatLegacySnackBarModule,
-    ReactiveFormsModule,
-    GioSaveBarModule,
-  ],
+  imports: [CommonModule, MatCardModule, MatFormFieldModule, MatSelectModule, MatSnackBarModule, ReactiveFormsModule, GioSaveBarModule],
 })
 export class ApiDeploymentConfigurationModule {}

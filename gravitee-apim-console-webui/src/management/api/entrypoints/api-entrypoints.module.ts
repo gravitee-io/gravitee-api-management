@@ -33,7 +33,6 @@ import { MatTableModule } from '@angular/material/table';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { ApiEntrypointsComponent } from './api-entrypoints.component';
 
@@ -56,7 +55,6 @@ import { GioFormListenersVirtualHostModule } from '../component/gio-form-listene
     MatCheckboxModule,
     MatAutocompleteModule,
     MatSnackBarModule,
-    MatLegacySnackBarModule,
     GioPermissionModule,
     GioSaveBarModule,
     GioConfirmDialogModule,

@@ -24,7 +24,7 @@ import { GioConfirmDialogHarness, GioMonacoEditorHarness } from '@gravitee/ui-pa
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
-import { MatLegacySnackBarHarness as MatSnackBarHarness } from '@angular/material/legacy-snack-bar/testing';
+import { MatSnackBarHarness } from '@angular/material/snack-bar/testing';
 import { set } from 'lodash';
 import { ActivatedRoute, Router } from '@angular/router';
 

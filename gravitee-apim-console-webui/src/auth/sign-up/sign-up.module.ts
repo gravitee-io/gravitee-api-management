@@ -25,7 +25,6 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { RouterModule } from '@angular/router';
 import { MatSelectModule } from '@angular/material/select';
-import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { SignUpComponent } from './sign-up.component';
 
@@ -42,7 +41,6 @@ import { SignUpComponent } from './sign-up.component';
     MatCardModule,
     MatButtonModule,
     MatSnackBarModule,
-    MatLegacySnackBarModule,
     MatSelectModule,
 
     GioIconsModule,

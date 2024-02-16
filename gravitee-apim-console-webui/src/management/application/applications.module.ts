@@ -28,7 +28,6 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { EnvApplicationListComponent } from './list/env-application-list.component';
 import { ApplicationNavigationModule } from './application-navigation/application-navigation.module';
@@ -66,7 +65,7 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
     MatPaginatorModule,
     MatRadioModule,
     MatSnackBarModule,
-    MatLegacySnackBarModule,
+
     MatSortModule,
     MatTableModule,
     MatTooltipModule,

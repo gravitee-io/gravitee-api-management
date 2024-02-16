@@ -31,7 +31,6 @@ import {
   GioFormSlideToggleModule,
   GioFormFocusInvalidModule,
 } from '@gravitee/ui-particles-angular';
-import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { ApiFailoverComponent } from './api-failover.component';
 
@@ -48,7 +47,6 @@ import { ApiFailoverComponent } from './api-failover.component';
     MatCardModule,
     MatDialogModule,
     MatSlideToggleModule,
-    MatLegacySnackBarModule,
     MatDividerModule,
     MatSnackBarModule,
     MatInputModule,

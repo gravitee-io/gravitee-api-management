@@ -20,7 +20,6 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { GioSaveBarModule, GioConfirmDialogModule, GioIconsModule, GioLicenseModule } from '@gravitee/ui-particles-angular';
 import { RouterModule } from '@angular/router';
-import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { GioPolicyStudioLayoutComponent } from './gio-policy-studio-layout.component';
 import { PolicyStudioDesignModule } from './design/policy-studio-design.module';
@@ -37,7 +36,6 @@ import { GioPermissionModule } from '../../../shared/components/gio-permission/g
 
     MatTabsModule,
     MatSnackBarModule,
-    MatLegacySnackBarModule,
 
     GioSaveBarModule,
     GioPermissionModule,

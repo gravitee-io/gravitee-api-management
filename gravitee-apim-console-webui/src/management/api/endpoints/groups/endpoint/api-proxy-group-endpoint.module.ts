@@ -28,7 +28,6 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { RouterModule } from '@angular/router';
-import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { ApiProxyGroupEndpointEditComponent } from './edit/api-proxy-group-endpoint-edit.component';
 import { ApiProxyGroupEndpointEditGeneralComponent } from './edit/general/api-proxy-group-endpoint-edit-general.component';
@@ -58,7 +57,6 @@ import { GioGoBackButtonModule } from '../../../../../shared/components/gio-go-b
     MatFormFieldModule,
     MatInputModule,
     MatSnackBarModule,
-    MatLegacySnackBarModule,
     MatCheckboxModule,
     MatSelectModule,
     MatTooltipModule,

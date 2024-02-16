@@ -21,7 +21,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { ActivatedRoute } from '@angular/router';
-import { MatLegacySnackBarHarness as MatSnackBarHarness } from '@angular/material/legacy-snack-bar/testing';
+import { MatSnackBarHarness } from '@angular/material/snack-bar/testing';
 
 import { ApiDeploymentConfigurationComponent } from './api-deployment-configuration.component';
 import { ApiDeploymentConfigurationModule } from './api-deployment-configuration.module';

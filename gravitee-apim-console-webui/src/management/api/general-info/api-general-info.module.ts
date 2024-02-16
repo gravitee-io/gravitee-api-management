@@ -41,7 +41,6 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTabsModule } from '@angular/material/tabs';
 import { A11yModule } from '@angular/cdk/a11y';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { ApiGeneralInfoComponent } from './api-general-info.component';
 import { ApiGeneralInfoQualityComponent } from './api-general-info-quality/api-general-info-quality.component';
@@ -79,7 +78,6 @@ import { GioLicenseBannerModule } from '../../../shared/components/gio-license-b
     MatButtonModule,
     MatDialogModule,
     MatSlideToggleModule,
-    MatLegacySnackBarModule,
     MatCheckboxModule,
     MatTooltipModule,
     MatTabsModule,

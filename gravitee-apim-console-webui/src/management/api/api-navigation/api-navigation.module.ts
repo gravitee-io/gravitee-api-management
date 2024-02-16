@@ -35,7 +35,6 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { RouterModule } from '@angular/router';
-import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { ApiReviewDialogComponent } from './api-review-dialog/api-review-dialog.component';
 import { ApiConfirmDeploymentDialogComponent } from './api-confirm-deployment-dialog/api-confirm-deployment-dialog.component';
@@ -65,7 +64,6 @@ import { ApiNavigationHeaderComponent } from './api-navigation-header/api-naviga
     GioLoaderModule,
     GioLicenseModule,
     MatSnackBarModule,
-    MatLegacySnackBarModule,
     RouterModule,
     GioMenuModule,
   ],

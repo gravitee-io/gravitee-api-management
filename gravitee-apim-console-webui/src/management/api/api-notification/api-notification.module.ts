@@ -19,7 +19,6 @@ import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { ApiNotificationComponent } from './api-notification.component';
 import { NotificationAddDialogModule, NotificationEditDialogModule, NotificationListModule } from './components';
@@ -36,7 +35,6 @@ import { NotificationAddDialogModule, NotificationEditDialogModule, Notification
     NotificationListModule,
     NotificationAddDialogModule,
     NotificationEditDialogModule,
-    MatLegacySnackBarModule,
   ],
 })
 export class ApiNotificationModule {}
