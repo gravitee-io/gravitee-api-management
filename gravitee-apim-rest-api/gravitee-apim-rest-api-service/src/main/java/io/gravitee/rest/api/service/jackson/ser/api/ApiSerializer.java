@@ -21,7 +21,6 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.plugins.resources.Resource;
@@ -170,10 +169,11 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
         List<String> filteredFieldsList = (List<String>) apiEntity.getMetadata().get(METADATA_FILTERED_FIELDS_LIST);
 
         if (filteredFieldsList != null) {
-            Set<GroupEntity> apiGroupEntities = null;
+            GroupService groupService = this.applicationContext.getBean(GroupService.class);
+
             if (!filteredFieldsList.contains("groups")) {
                 if (apiEntity.getGroups() != null && !apiEntity.getGroups().isEmpty()) {
-                    apiGroupEntities = applicationContext.getBean(GroupService.class).findByIds(apiEntity.getGroups());
+                    Set<GroupEntity> apiGroupEntities = groupService.findByIds(apiEntity.getGroups());
                     jsonGenerator.writeObjectField(
                         "groups",
                         apiGroupEntities.stream().map(GroupEntity::getName).collect(Collectors.toSet())
@@ -205,6 +205,9 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
                 }
                 jsonGenerator.writeObjectField("members", members);
             }
+
+            // map of groupID / groupName, used to export group name in plan and pages
+            final Map<String, String> groupIdNameMap = new HashMap<>();
 
             // pages
             if (!filteredFieldsList.contains("pages")) {
@@ -242,7 +245,6 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
                 }
 
                 // Replace group id by group name in access control list
-                final Map<String, String> pageGroupEntities = new HashMap<>();
                 pages.forEach(pageEntity -> {
                     if (pageEntity.getAccessControls() != null) {
                         pageEntity.setAccessControls(
@@ -254,13 +256,9 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
                                 )
                                 .peek(accessControlEntity ->
                                     accessControlEntity.setReferenceId(
-                                        pageGroupEntities.computeIfAbsent(
+                                        groupIdNameMap.computeIfAbsent(
                                             accessControlEntity.getReferenceId(),
-                                            key ->
-                                                applicationContext
-                                                    .getBean(GroupService.class)
-                                                    .findById(GraviteeContext.getExecutionContext(), key)
-                                                    .getName()
+                                            key -> groupService.findById(GraviteeContext.getExecutionContext(), key).getName()
                                         )
                                     )
                                 )
@@ -284,16 +282,22 @@ public abstract class ApiSerializer extends StdSerializer<ApiEntity> {
                 Set<PlanEntity> plansToAdd = plans == null
                     ? Collections.emptySet()
                     : plans.stream().filter(p -> !PlanStatus.CLOSED.equals(p.getStatus())).collect(Collectors.toSet());
-                if (!filteredFieldsList.contains("groups") && apiGroupEntities != null) {
-                    Map<String, String> apiGroupNameByIds = apiGroupEntities
-                        .stream()
-                        .collect(Collectors.toMap(GroupEntity::getId, GroupEntity::getName));
-                    plansToAdd.forEach(p -> {
-                        if (p.getExcludedGroups() != null) {
-                            p.setExcludedGroups(p.getExcludedGroups().stream().map(apiGroupNameByIds::get).collect(Collectors.toList()));
-                        }
-                    });
-                }
+                plansToAdd.forEach(p -> {
+                    if (p.getExcludedGroups() != null) {
+                        p.setExcludedGroups(
+                            p
+                                .getExcludedGroups()
+                                .stream()
+                                .map(groupId ->
+                                    groupIdNameMap.computeIfAbsent(
+                                        groupId,
+                                        key -> groupService.findById(GraviteeContext.getExecutionContext(), key).getName()
+                                    )
+                                )
+                                .collect(Collectors.toList())
+                        );
+                    }
+                });
                 jsonGenerator.writeObjectField("plans", plansToAdd);
             }
 
