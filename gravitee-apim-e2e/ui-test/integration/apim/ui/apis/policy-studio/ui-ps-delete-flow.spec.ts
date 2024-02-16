@@ -128,7 +128,7 @@ describe('Deleting a flow', () => {
     after(() => {
       cy.log('Deploy API');
       cy.contains('button', 'Deploy API').click();
-      cy.get('.mat-raised-button > .mat-button-wrapper').click();
+      cy.getByDataTestId('deploy_button').click();
     });
   });
 
