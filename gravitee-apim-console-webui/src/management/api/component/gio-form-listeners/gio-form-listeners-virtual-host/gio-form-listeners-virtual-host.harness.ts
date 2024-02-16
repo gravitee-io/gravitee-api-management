@@ -15,10 +15,10 @@
  */
 
 import { AsyncFactoryFn, BaseHarnessFilters, HarnessPredicate } from '@angular/cdk/testing';
-import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
-import { MatLegacyInputHarness as MatInputHarness } from '@angular/material/legacy-input/testing';
-import { MatLegacySlideToggleHarness as MatSlideToggleHarness } from '@angular/material/legacy-slide-toggle/testing';
-import { DivHarness, SpanHarness } from '@gravitee/ui-particles-angular/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatInputHarness } from '@angular/material/input/testing';
+import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
+import { SpanHarness } from '@gravitee/ui-particles-angular/testing';
 
 import { GioFormListenersContextPathHarness } from '../gio-form-listeners-context-path/gio-form-listeners-context-path.harness';
 import { PathV4 } from '../../../../../entities/management-api-v2';
@@ -39,7 +39,7 @@ export class GioFormListenersVirtualHostHarness extends GioFormListenersContextP
 
   public override async getListenerRows(): Promise<
     {
-      hostDomainSuffix: DivHarness;
+      hostDomainSuffix: SpanHarness;
       hostSubDomainInput: MatInputHarness;
       pathInput: MatInputHarness;
       overrideAccessInput: MatSlideToggleHarness;
@@ -59,8 +59,8 @@ export class GioFormListenersVirtualHostHarness extends GioFormListenersContextP
     );
   }
 
-  private getListenerRowInputHostDomain = (rowIndex: number): AsyncFactoryFn<DivHarness> =>
-    this.locatorFor(DivHarness.with({ ancestor: `[ng-reflect-name="${rowIndex}"]`, selector: '.mat-form-field-suffix' }));
+  private getListenerRowInputHostDomain = (rowIndex: number): AsyncFactoryFn<SpanHarness> =>
+    this.locatorFor(SpanHarness.with({ ancestor: `[ng-reflect-name="${rowIndex}"]`, selector: '.gio-form-listeners__table__field__host' }));
 
   private getListenerRowInputHostSubDomain = (rowIndex: number): AsyncFactoryFn<MatInputHarness> =>
     this.locatorFor(MatInputHarness.with({ ancestor: `[ng-reflect-name="${rowIndex}"]`, selector: '[formControlName=_hostSubDomain]' }));
