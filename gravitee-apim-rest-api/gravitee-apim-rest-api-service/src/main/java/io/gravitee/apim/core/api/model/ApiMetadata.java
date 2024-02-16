@@ -22,12 +22,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.With;
 
-@Builder
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class ApiMetadata {
 
+    String apiId;
     String key;
     String name;
     MetadataFormat format;
