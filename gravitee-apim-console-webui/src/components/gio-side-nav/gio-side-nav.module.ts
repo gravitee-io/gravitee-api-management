@@ -16,9 +16,9 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { GioLicenseExpirationNotificationModule, GioLicenseModule, GioMenuModule, GioSubmenuModule } from '@gravitee/ui-particles-angular';
-import { MatLegacySelectModule as MatSelectModule } from '@angular/material/legacy-select';
+import { MatSelectModule } from '@angular/material/select';
 import { RouterModule } from '@angular/router';
-import { MatLegacyButtonModule as MatButtonModule } from '@angular/material/legacy-button';
+import { MatButtonModule } from '@angular/material/button';
 
 import { GioSideNavComponent } from './gio-side-nav.component';
 
