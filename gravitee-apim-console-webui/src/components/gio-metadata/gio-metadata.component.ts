@@ -16,11 +16,10 @@
 import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { EMPTY, Observable, Subject } from 'rxjs';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { MatLegacyDialog } from '@angular/material/legacy-dialog';
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { MatSort } from '@angular/material/sort';
-import { MatLegacyTableDataSource as MatTableDataSource } from '@angular/material/legacy-table';
+import { MatTableDataSource } from '@angular/material/table';
 
 import { GioMetadataDialogComponent, GioMetadataDialogData } from './dialog/gio-metadata-dialog.component';
 
@@ -65,7 +64,7 @@ export class GioMetadataComponent implements OnInit, OnDestroy {
 
   @ViewChild(MatSort) sort: MatSort;
 
-  constructor(private matLegacyDialog: MatLegacyDialog, private matDialog: MatDialog, private readonly snackBarService: SnackBarService) {}
+  constructor(private matDialog: MatDialog, private readonly snackBarService: SnackBarService) {}
 
   ngOnInit(): void {
     this.referenceType = this.metadataSaveServices.type;
@@ -101,7 +100,7 @@ export class GioMetadataComponent implements OnInit, OnDestroy {
   }
 
   updateMetadata(element: MetadataVM): void {
-    this.matLegacyDialog
+    this.matDialog
       .open<GioMetadataDialogComponent, GioMetadataDialogData, GioMetadataDialogData>(GioMetadataDialogComponent, {
         data: {
           action: 'Update',
@@ -166,7 +165,7 @@ export class GioMetadataComponent implements OnInit, OnDestroy {
   }
 
   onAddMetadataClick(): void {
-    this.matLegacyDialog
+    this.matDialog
       .open<GioMetadataDialogComponent, GioMetadataDialogData, GioMetadataDialogData>(GioMetadataDialogComponent, {
         data: {
           action: 'Create',
