@@ -22,10 +22,18 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 public class FlowCrudServiceInMemory implements FlowCrudService, InMemoryAlternative<Flow> {
 
+    final Map<String, List<Flow>> apiFlows = new HashMap<>();
     final Map<String, List<Flow>> planFlows = new HashMap<>();
+
+    @Override
+    public List<Flow> saveApiFlows(String apiId, List<Flow> flows) {
+        apiFlows.put(apiId, flows);
+        return flows;
+    }
 
     @Override
     public List<Flow> savePlanFlows(String planId, List<Flow> flows) {
@@ -46,13 +54,12 @@ public class FlowCrudServiceInMemory implements FlowCrudService, InMemoryAlterna
     @Override
     public List<Flow> storage() {
         return Collections.unmodifiableList(
-            planFlows
-                .values()
-                .stream()
+            Stream
+                .concat(planFlows.values().stream(), apiFlows.values().stream())
                 .reduce(
                     new ArrayList<>(),
-                    (acc, flows) -> {
-                        acc.addAll(flows);
+                    (acc, flow) -> {
+                        acc.addAll(flow);
                         return acc;
                     }
                 )
