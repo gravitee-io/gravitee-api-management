@@ -86,6 +86,16 @@
                 </mat-select>
               </mat-form-field>
             </ng-template>
+            <div>
+              <a
+                *gioPermission="{ anyOf: ['api-definition-u'] }"
+                mat-stroked-button
+                [routerLink]="['../../../v4/endpoints/new']"
+                [queryParams]="{ dlq: entrypoint.type }"
+              >
+                <mat-icon>add</mat-icon> Create new endpoint
+              </a>
+            </div>
           </div>
         </div>
       </div>

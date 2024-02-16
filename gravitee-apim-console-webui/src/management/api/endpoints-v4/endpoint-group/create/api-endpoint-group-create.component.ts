@@ -18,7 +18,7 @@ import { STEPPER_GLOBAL_OPTIONS } from '@angular/cdk/stepper';
 import { of, Subject } from 'rxjs';
 import { GioJsonSchema } from '@gravitee/ui-particles-angular';
 import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
-import { distinctUntilChanged, switchMap, takeUntil } from 'rxjs/operators';
+import { distinctUntilChanged, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApiEndpointGroupSelectionComponent } from '../selection/api-endpoint-group-selection.component';
@@ -60,6 +60,8 @@ export class ApiEndpointGroupCreateComponent implements OnInit {
   public configuration: UntypedFormControl;
   public sharedConfigurationSchema: GioJsonSchema;
   public apiType: ApiType;
+  public dlqEntrypointType: string | null;
+  public createButtonText: string;
 
   constructor(
     private readonly router: Router,
@@ -72,7 +74,6 @@ export class ApiEndpointGroupCreateComponent implements OnInit {
 
   ngOnInit() {
     this.initCreateForm();
-
     this.apiService
       .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(takeUntil(this.unsubscribe$))
@@ -87,6 +88,8 @@ export class ApiEndpointGroupCreateComponent implements OnInit {
           this.changeDetectorRef.detectChanges();
         },
       });
+
+    this.verifyEntrypointForDlq();
 
     this.endpointGroupTypeForm
       .get('endpointGroupType')
@@ -131,6 +134,7 @@ export class ApiEndpointGroupCreateComponent implements OnInit {
       .pipe(
         switchMap((api) => {
           const updatedApi: UpdateApiV4 = { ...(api as ApiV4) };
+          this.updateDlq(updatedApi, newEndpointGroup);
           updatedApi.endpointGroups.push(newEndpointGroup);
           return this.apiService.update(api.id, updatedApi);
         }),
@@ -139,10 +143,57 @@ export class ApiEndpointGroupCreateComponent implements OnInit {
       .subscribe({
         next: (_) => {
           this.snackBarService.success(`Endpoint group ${newEndpointGroup.name} created!`);
-          this.goBackToEndpointGroups();
+          if (this.dlqEntrypointType) {
+            this.goBackToDlqEntrypoint();
+          } else {
+            this.goBackToEndpointGroups();
+          }
         },
         error: ({ err }) => this.snackBarService.error(err.message ?? 'An error occurred.'),
       });
+  }
+
+  private verifyEntrypointForDlq() {
+    this.dlqEntrypointType = this.activatedRoute.snapshot?.queryParams?.dlq;
+    const regularEndpointGroupButtonText = 'Create endpoint group';
+    this.createButtonText = this.dlqEntrypointType ? 'Create DLQ endpoint group' : regularEndpointGroupButtonText;
+
+    if (this.dlqEntrypointType) {
+      this.connectorPluginsV2Service
+        .listAsyncEntrypointPlugins()
+        .pipe(
+          tap((asyncEntrypoints) => {
+            const entrypointForDlq = asyncEntrypoints.find(
+              (entrypoint) =>
+                entrypoint.id.toLowerCase() === this.dlqEntrypointType.toLowerCase() && entrypoint.availableFeatures?.includes('DLQ'),
+            );
+            if (!entrypointForDlq) {
+              this.snackBarService.error(
+                `Cannot create DLQ endpoint group for '${this.dlqEntrypointType}' entrypoint, creating regular endpoint group instead.`,
+              );
+              this.dlqEntrypointType = null;
+              this.createButtonText = regularEndpointGroupButtonText;
+            }
+          }),
+          takeUntil(this.unsubscribe$),
+        )
+        .subscribe();
+    }
+  }
+
+  private updateDlq(updatedApi: UpdateApiV4, dlqEndpointGroup: EndpointGroupV4): void {
+    if (this.dlqEntrypointType) {
+      const dlqEntrypoint = updatedApi.listeners
+        .flatMap((listener) => listener.entrypoints)
+        .find((entrypoint) => entrypoint.type === this.dlqEntrypointType);
+      if (dlqEntrypoint) {
+        dlqEntrypoint.dlq = { endpoint: dlqEndpointGroup.name };
+      }
+    }
+  }
+
+  goBackToDlqEntrypoint() {
+    this.router.navigate(['../../entrypoints/', this.dlqEntrypointType], { relativeTo: this.activatedRoute });
   }
 
   goBackToEndpointGroups() {

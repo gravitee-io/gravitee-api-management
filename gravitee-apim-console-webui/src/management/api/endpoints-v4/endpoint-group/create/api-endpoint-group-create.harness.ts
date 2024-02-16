@@ -139,12 +139,20 @@ export class ApiEndpointGroupCreateHarness extends ComponentHarness {
     return this.getButtonByText('Create endpoint group');
   }
 
+  async getCreateDlqEndpointGroupButton(): Promise<MatButtonHarness> {
+    return this.getButtonByText('Create DLQ endpoint group');
+  }
+
   async canCreateEndpointGroup(): Promise<boolean> {
     return await this.isButtonClickable(this.getCreateEndpointGroupButton());
   }
 
   async createEndpointGroup(): Promise<void> {
     return this.getCreateEndpointGroupButton().then((btn) => btn.click());
+  }
+
+  async createDlqEndpointGroup(): Promise<void> {
+    return this.getCreateDlqEndpointGroupButton().then((btn) => btn.click());
   }
 
   private async bannerBodyContainsText(text: string): Promise<boolean> {
