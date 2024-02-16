@@ -20,28 +20,30 @@
     <h2>My tasks ({{ tasks.page.total_elements }})</h2>
     <ng-container *ngFor="let task of data">
       <mat-card class="task" data-testid="task-card">
-        <div class="task__header">
-          <div class="task__header__title">
-            <mat-icon [svgIcon]="task.icon"></mat-icon>
-            {{ task.title }}
-          </div>
-          <div>
-            {{ task.createdAt | date }}
-          </div>
-        </div>
-        <div class="task__content">
-          <div class="task__content__description" [innerHTML]="task.message"></div>
-          <div class="task__content__details" [innerHTML]="task.details"></div>
-          <div class="task__content__actions" *ngIf="task.type !== 'PROMOTION_APPROVAL'; else actionPromotion">
-            <button mat-stroked-button (click)="go(task)">{{ task.action }}</button>
-          </div>
-          <ng-template #actionPromotion>
-            <div class="task__content__actions">
-              <button mat-stroked-button (click)="openAcceptDialog(task)"><mat-icon svgIcon="gio:check"></mat-icon>Accept</button>
-              <button mat-flat-button (click)="openRejectDialog(task)"><mat-icon svgIcon="gio:cancel"></mat-icon>Reject</button>
+        <mat-card-content>
+          <div class="task__header">
+            <div class="task__header__title">
+              <mat-icon [svgIcon]="task.icon"></mat-icon>
+              {{ task.title }}
             </div>
-          </ng-template>
-        </div>
+            <div>
+              {{ task.createdAt | date }}
+            </div>
+          </div>
+          <div class="task__content">
+            <div class="task__content__description" [innerHTML]="task.message"></div>
+            <div class="task__content__details" [innerHTML]="task.details"></div>
+            <div class="task__content__actions" *ngIf="task.type !== 'PROMOTION_APPROVAL'; else actionPromotion">
+              <button mat-stroked-button (click)="go(task)">{{ task.action }}</button>
+            </div>
+            <ng-template #actionPromotion>
+              <div class="task__content__actions">
+                <button mat-stroked-button (click)="openAcceptDialog(task)"><mat-icon svgIcon="gio:check"></mat-icon>Accept</button>
+                <button mat-flat-button (click)="openRejectDialog(task)"><mat-icon svgIcon="gio:cancel"></mat-icon>Reject</button>
+              </div>
+            </ng-template>
+          </div>
+        </mat-card-content>
       </mat-card>
     </ng-container>
   </div>

@@ -15,13 +15,13 @@
  */
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatLegacyCardModule as MatCardModule } from '@angular/material/legacy-card';
+import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
-import { MatLegacyButtonModule as MatButtonModule } from '@angular/material/legacy-button';
+import { MatButtonModule } from '@angular/material/button';
 import { GioBannerModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
-import { MatLegacyDialogModule } from '@angular/material/legacy-dialog';
 import { MatDialogModule } from '@angular/material/dialog';
-import { MatLegacySnackBarModule as MatSnackBarModule } from '@angular/material/legacy-snack-bar';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { TasksComponent } from './tasks.component';
 import { TasksAcceptPromotionDialogComponent } from './tasks-accept-promotion-dialog.component';
@@ -33,8 +33,8 @@ import { TasksAcceptPromotionDialogComponent } from './tasks-accept-promotion-di
     MatIconModule,
     MatButtonModule,
     MatDialogModule,
-    MatLegacyDialogModule,
     MatSnackBarModule,
+    MatLegacySnackBarModule,
     GioLoaderModule,
     GioBannerModule,
   ],
