@@ -14,13 +14,7 @@ $typography: map.get(gio.$mat-legacy-theme, typography);
   @include mat.elevation(3); // default elevation
 }
 
-// remove card padding and default elevation when table is inside a card
-:host-context(.mat-card > :last-child:not(.mat-card-footer)) {
-  margin-left: -16px;
-  margin-right: -16px;
-  margin-bottom: -12px;
-  @include mat.elevation(0);
-}
+// default elevation when table is inside a card
 :host-context(.mat-mdc-card) {
   @include mat.elevation(0);
 }
@@ -39,16 +33,8 @@ $typography: map.get(gio.$mat-legacy-theme, typography);
     border-bottom: 1px solid mat.get-color-from-palette($foreground, divider);
 
     &__search-field {
-      font-family: mat.font-family($typography, caption);
-      font-size: mat.font-size($typography, caption);
-      padding-bottom: 0;
-
       @include gio-layout.large-desktop {
-        width: 360px;
-      }
-
-      & > .mat-form-field-wrapper {
-        padding-bottom: 0;
+        width: 380px;
       }
     }
   }
@@ -72,30 +58,12 @@ $typography: map.get(gio.$mat-legacy-theme, typography);
 ::ng-deep {
   // Force mat-table to full width only inside gio-table-wrapper
   gio-table-wrapper {
-    .mat-mdc-table,
-    .mat-table {
+    .mat-mdc-table {
       width: 100%;
 
-      .mat-mdc-header-row,
-      .mat-header-row {
+      .mat-mdc-header-row {
         height: 42px;
         background-color: mat.get-color-from-palette($background, 'background');
-      }
-    }
-
-    // ⚠️ Material override on custom override
-    // Remove form field padding provided to display mat-hint and mat-error. Not used here
-    // For search field and mat-paginator
-    .gio-table-wrapper__header-bar {
-      .mat-paginator-page-size {
-        align-items: center;
-        .mat-form-field {
-          margin: 0 4px;
-        }
-      }
-
-      .mat-form-field-wrapper {
-        padding-bottom: 0;
       }
     }
   }

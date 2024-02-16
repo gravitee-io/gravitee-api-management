@@ -16,6 +16,7 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { NgModule } from '@angular/core';
 import { RouterTestingModule } from '@angular/router/testing';
+import { MatIconTestingModule } from '@angular/material/icon/testing';
 
 import { Constants } from '../../entities/Constants';
 
@@ -50,7 +51,7 @@ export const CONSTANTS_TESTING: Constants = {
 };
 
 @NgModule({
-  imports: [HttpClientTestingModule, RouterTestingModule.withRoutes([{ path: '**', redirectTo: '' }])],
+  imports: [HttpClientTestingModule, RouterTestingModule.withRoutes([{ path: '**', redirectTo: '' }]), MatIconTestingModule],
   providers: [
     {
       provide: 'Constants',

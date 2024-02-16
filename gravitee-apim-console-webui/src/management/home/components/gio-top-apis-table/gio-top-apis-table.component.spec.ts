@@ -19,7 +19,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { SimpleChange } from '@angular/core';
-import { MatLegacyPaginatorHarness as MatPaginatorHarness } from '@angular/material/legacy-paginator/testing';
+import { MatPaginatorHarness } from '@angular/material/paginator/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 
 import { GioTopApisTableModule } from './gio-top-apis-table.module';
