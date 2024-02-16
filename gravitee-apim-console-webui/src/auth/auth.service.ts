@@ -167,7 +167,7 @@ export class AuthService {
       );
   }
 
-  logout(options?: { disableRedirect?: boolean }) {
+  logout(options: { disableRedirect?: boolean } = {}) {
     return this.http.post(`${this.constants.org.baseURL}/user/logout`, {}).pipe(
       catchError(() => {
         // If logout failed, we can continue
