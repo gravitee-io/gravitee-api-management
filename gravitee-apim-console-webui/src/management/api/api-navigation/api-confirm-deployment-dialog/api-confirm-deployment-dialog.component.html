@@ -32,5 +32,5 @@
 </mat-dialog-content>
 <mat-dialog-actions class="actions" align="end">
   <button mat-flat-button [mat-dialog-close]="undefined">Cancel</button>
-  <button color="primary" mat-raised-button aria-label="Deploy the API" (click)="onDeploy()">Deploy</button>
+  <button color="primary" mat-raised-button aria-label="Deploy the API" data-testid="deploy_button" (click)="onDeploy()">Deploy</button>
 </mat-dialog-actions>
