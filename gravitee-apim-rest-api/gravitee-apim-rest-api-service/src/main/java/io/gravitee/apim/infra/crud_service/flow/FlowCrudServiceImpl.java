@@ -40,6 +40,11 @@ public class FlowCrudServiceImpl extends TransactionalService implements FlowCru
     }
 
     @Override
+    public List<Flow> saveApiFlows(String apiId, List<Flow> flows) {
+        return save(FlowReferenceType.API, apiId, flows);
+    }
+
+    @Override
     public List<Flow> savePlanFlows(String planId, List<Flow> flows) {
         return save(FlowReferenceType.PLAN, planId, flows);
     }
