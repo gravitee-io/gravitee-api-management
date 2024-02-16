@@ -16,16 +16,26 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
-import { MatLegacyFormFieldModule as MatFormFieldModule } from '@angular/material/legacy-form-field';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
-import { MatLegacyInputModule as MatInputModule } from '@angular/material/legacy-input';
-import { MatLegacyPaginatorModule as MatPaginatorModule } from '@angular/material/legacy-paginator';
+import { MatInputModule } from '@angular/material/input';
+import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatSortModule } from '@angular/material/sort';
+import { GioIconsModule } from '@gravitee/ui-particles-angular';
 
 import { GioTableWrapperComponent } from './gio-table-wrapper.component';
 
 @NgModule({
-  imports: [CommonModule, ReactiveFormsModule, MatPaginatorModule, MatFormFieldModule, MatInputModule, MatIconModule, MatSortModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatPaginatorModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatIconModule,
+    MatSortModule,
+    GioIconsModule,
+  ],
   declarations: [GioTableWrapperComponent],
   exports: [GioTableWrapperComponent],
 })
