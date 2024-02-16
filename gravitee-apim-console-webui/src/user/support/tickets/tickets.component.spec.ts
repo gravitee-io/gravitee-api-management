@@ -18,7 +18,7 @@ import { HarnessLoader, parallel } from '@angular/cdk/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { MatLegacyTableHarness as MatTableHarness } from '@angular/material/legacy-table/testing';
+import { MatTableHarness } from '@angular/material/table/testing';
 
 import { TicketsComponent } from './tickets.component';
 
