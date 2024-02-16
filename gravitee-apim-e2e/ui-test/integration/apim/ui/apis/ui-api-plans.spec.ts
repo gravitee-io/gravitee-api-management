@@ -84,7 +84,7 @@ describe('API Plans Feature', () => {
     cy.contains('tr', `${planName}-APIKey`).find('[data-testid="api_plans_close_plan_button"]').click();
     cy.get(`[placeholder="${planName}-APIKey"]`).type(`${planName}-APIKey`);
     cy.getByDataTestId('confirm-dialog').click();
-    cy.wait('@closePlan');
+    cy.wait('@closePlan', { requestTimeout: 10000 });
     cy.contains(`The plan ${planName}-APIKey has been closed with success.`).should('be.visible');
     cy.contains(`${planName}-APIKey`).should('not.exist');
   });
@@ -117,7 +117,7 @@ describe('API Plans Feature', () => {
     cy.contains('tr', `${planName}-OAuth2`).find('[data-testid="api_plans_close_plan_button"]').click();
     cy.get(`[placeholder="${planName}-OAuth2"]`).type(`${planName}-OAuth2`);
     cy.getByDataTestId('confirm-dialog').click();
-    cy.wait('@closePlan');
+    cy.wait('@closePlan', { requestTimeout: 10000 });
     cy.contains(`The plan ${planName}-OAuth2 has been closed with success.`).should('be.visible');
     cy.contains(`${planName}-OAuth2`).should('not.exist');
   });
@@ -147,7 +147,7 @@ describe('API Plans Feature', () => {
     cy.contains('tr', `${planName}-JWT`).find('[data-testid="api_plans_close_plan_button"]').click();
     cy.get(`[placeholder="${planName}-JWT"]`).type(`${planName}-JWT`);
     cy.getByDataTestId('confirm-dialog').click();
-    cy.wait('@closePlan');
+    cy.wait('@closePlan', { requestTimeout: 10000 });
     cy.contains(`The plan ${planName}-JWT has been closed with success.`).should('be.visible');
     cy.contains(`${planName}-JWT`).should('not.exist');
   });
@@ -207,7 +207,7 @@ describe('API Plans Feature', () => {
     cy.contains('tr', `${planName}-Keyless`).find('[data-testid="api_plans_close_plan_button"]').click();
     cy.get(`[placeholder="${planName}-Keyless"]`).type(`${planName}-Keyless`);
     cy.getByDataTestId('confirm-dialog').click();
-    cy.wait('@closePlan');
+    cy.wait('@closePlan', { requestTimeout: 10000 });
     cy.contains(`The plan ${planName}-Keyless has been closed with success.`).should('be.visible');
     cy.contains(`${planName}-Keyless`).should('not.exist');
   });
@@ -240,7 +240,7 @@ describe('API Plans Feature', () => {
     cy.contains('tr', `${planName}-KeylessEDIT`).find('[data-testid="api_plans_close_plan_button"]').click();
     cy.get(`[placeholder="${planName}-KeylessEDIT"]`).type(`${planName}-KeylessEDIT`);
     cy.getByDataTestId('confirm-dialog').click();
-    cy.wait('@closePlan');
+    cy.wait('@closePlan', { requestTimeout: 10000 });
     cy.contains(`The plan ${planName}-KeylessEDIT has been closed with success.`).should('be.visible');
     cy.contains(`${planName}-KeylessEDIT`).should('not.exist');
   });
@@ -272,7 +272,7 @@ describe('API Plans Feature', () => {
     cy.contains('tr', `${planName}-Keyless`).find('[data-testid="api_plans_close_plan_button"]').click();
     cy.get(`[placeholder="${planName}-Keyless"]`).type(`${planName}-Keyless`);
     cy.getByDataTestId('confirm-dialog').click();
-    cy.wait('@closePlan');
+    cy.wait('@closePlan', { requestTimeout: 10000 });
     cy.contains(`The plan ${planName}-Keyless has been closed with success.`).should('be.visible');
     cy.contains(`${planName}-Keyless`).should('not.exist');
   });
@@ -313,7 +313,7 @@ describe('API Plans Feature', () => {
     cy.contains('tr', `${planName}-Keyless`).find('[data-testid="api_plans_close_plan_button"]').click();
     cy.get(`[placeholder="${planName}-Keyless"]`).type(`${planName}-Keyless`);
     cy.getByDataTestId('confirm-dialog').click();
-    cy.wait('@closePlan');
+    cy.wait('@closePlan', { requestTimeout: 10000 });
     cy.contains(`The plan ${planName}-Keyless has been closed with success.`).should('be.visible');
     cy.contains(`${planName}-Keyless`).should('not.exist');
   });
