@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<h2 mat-dialog-title class="title">{{ isUpdateMode ? 'Update the API' : 'Import an API' }}</h2>
+<span mat-dialog-title class="title">{{ isUpdateMode ? 'Update the API' : 'Import an API' }}</span>
 
 <mat-dialog-content class="content">
   <mat-tab-group dynamicHeight mat-stretch-tabs (selectedTabChange)="onSelectedTab($event)">
@@ -88,25 +88,33 @@
       <h4>Configuration imported from the {{ importType === 'WSDL' ? 'WSDL' : 'swagger' }} descriptor</h4>
 
       <div class="configs__checkbox">
-        <mat-checkbox formControlName="importDocumentation">Create documentation</mat-checkbox>
-        <div class="configs__checkbox__warn">
-          This will overwrite documentation if there is only one existing, or create it if it does not exist yet.
-        </div>
+        <mat-checkbox formControlName="importDocumentation">
+          Create documentation
+          <div class="configs__checkbox__warn">
+            This will overwrite documentation if there is only one existing, or create it if it does not exist yet.
+          </div>
+        </mat-checkbox>
       </div>
 
       <div class="configs__checkbox">
-        <mat-checkbox formControlName="importPathMapping">Create the path mapping for analytics</mat-checkbox>
-        <div class="configs__checkbox__warn">This will overwrite all the path-mappings.</div>
+        <mat-checkbox formControlName="importPathMapping">
+          Create the path mapping for analytics
+          <div class="configs__checkbox__warn">This will overwrite all the path-mappings.</div>
+        </mat-checkbox>
       </div>
 
       <div class="configs__checkbox">
-        <mat-checkbox formControlName="importPolicyPaths">Create flows on paths</mat-checkbox>
-        <div class="configs__checkbox__warn">This will overwrite all the policies.</div>
+        <mat-checkbox formControlName="importPolicyPaths">
+          Create flows on paths
+          <div class="configs__checkbox__warn">This will overwrite all the policies.</div>
+        </mat-checkbox>
       </div>
 
       <div *ngFor="let policy of policies" class="configs__checkbox policies-section" formGroupName="importPolicies">
-        <mat-checkbox [formControlName]="policy.id">Apply {{ policy.name }} policy</mat-checkbox>
-        <div class="configs__checkbox__warn">This will overwrite all the existing policy.</div>
+        <mat-checkbox [formControlName]="policy.id">
+          Apply {{ policy.name }} policy
+          <div class="configs__checkbox__warn">This will overwrite all the existing policy.</div>
+        </mat-checkbox>
       </div>
     </div>
   </ng-template>

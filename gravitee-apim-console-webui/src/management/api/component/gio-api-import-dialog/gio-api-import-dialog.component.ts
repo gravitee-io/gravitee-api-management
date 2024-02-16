@@ -15,18 +15,18 @@
  */
 import { Component, Inject, OnDestroy } from '@angular/core';
 import { FormGroup, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
-import { MatLegacyDialogRef as MatDialogRef, MAT_LEGACY_DIALOG_DATA as MAT_DIALOG_DATA } from '@angular/material/legacy-dialog';
-import { MatLegacyTabChangeEvent as MatTabChangeEvent } from '@angular/material/legacy-tabs';
+import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatTabChangeEvent } from '@angular/material/tabs';
 import { NewFile } from '@gravitee/ui-particles-angular';
 import { EMPTY, Observable, Subject } from 'rxjs';
 import { catchError, startWith, takeUntil, tap } from 'rxjs/operators';
 
-import { Api } from '../../../entities/api';
-import { PolicyListItem } from '../../../entities/policy';
-import { ApiService } from '../../../services-ngx/api.service';
-import { SnackBarService } from '../../../services-ngx/snack-bar.service';
-import { ApiV2Service } from '../../../services-ngx/api-v2.service';
-import { ApiV4 } from '../../../entities/management-api-v2';
+import { Api } from '../../../../entities/api';
+import { PolicyListItem } from '../../../../entities/policy';
+import { ApiService } from '../../../../services-ngx/api.service';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
+import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
+import { ApiV4 } from '../../../../entities/management-api-v2';
 
 const allowedFileExtensions = ['yml', 'yaml', 'json', 'wsdl', 'xml'] as const;
 const importType = ['WSDL', 'SWAGGER', 'GRAVITEE', 'MAPI_V2'] as const;

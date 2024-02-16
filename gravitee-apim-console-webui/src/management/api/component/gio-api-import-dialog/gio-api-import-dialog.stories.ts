@@ -25,8 +25,8 @@ import { of } from 'rxjs';
 import { GioApiImportDialogComponent, GioApiImportDialogData } from './gio-api-import-dialog.component';
 import { GioApiImportDialogModule } from './gio-api-import-dialog.module';
 
-import { PolicyListItem } from '../../../entities/policy';
-import { ApiService } from '../../../services-ngx/api.service';
+import { PolicyListItem } from '../../../../entities/policy';
+import { ApiService } from '../../../../services-ngx/api.service';
 
 @Component({
   selector: 'gio-api-import-dialog-story',
