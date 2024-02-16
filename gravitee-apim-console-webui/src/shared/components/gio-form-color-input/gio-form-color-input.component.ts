@@ -25,7 +25,7 @@ import {
   ValidationErrors,
   ValidatorFn,
 } from '@angular/forms';
-import { MatLegacyFormFieldControl as MatFormFieldControl } from '@angular/material/legacy-form-field';
+import { MatFormFieldControl } from '@angular/material/form-field';
 import { isEmpty } from 'lodash';
 import { Subject } from 'rxjs';
 import { debounceTime, takeUntil } from 'rxjs/operators';

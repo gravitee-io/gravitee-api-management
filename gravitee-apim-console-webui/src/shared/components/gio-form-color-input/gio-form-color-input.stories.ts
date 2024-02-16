@@ -15,10 +15,10 @@
  */
 import { Meta, moduleMetadata, StoryObj } from '@storybook/angular';
 import { action } from '@storybook/addon-actions';
-import { MatLegacyFormFieldModule as MatFormFieldModule } from '@angular/material/legacy-form-field';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { MatLegacyInputModule as MatInputModule } from '@angular/material/legacy-input';
+import { MatInputModule } from '@angular/material/input';
 
 import { GioFormColorInputComponent } from './gio-form-color-input.component';
 import { GioFormColorInputModule } from './gio-form-color-input.module';
