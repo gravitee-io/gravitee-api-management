@@ -17,7 +17,9 @@ package io.gravitee.apim.infra.domain_service.api;
 
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
 import io.gravitee.apim.core.api.model.ApiMetadata;
+import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.metadata.crud_service.MetadataCrudService;
 import io.gravitee.rest.api.model.UpdateApiMetadataEntity;
 import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -31,11 +33,16 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @Slf4j
-public class ApiMetadataDomainServiceLegacyWrapper implements ApiMetadataDomainService {
+public class ApiMetadataDomainServiceLegacyWrapper extends ApiMetadataDomainService {
 
     private final ApiMetadataService metadataService;
 
-    public ApiMetadataDomainServiceLegacyWrapper(ApiMetadataService metadataService) {
+    public ApiMetadataDomainServiceLegacyWrapper(
+        ApiMetadataService metadataService,
+        AuditDomainService auditDomainService,
+        MetadataCrudService metadataCrudService
+    ) {
+        super(metadataCrudService, auditDomainService);
         this.metadataService = metadataService;
     }
 

@@ -13,15 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.audit.model.event;
+package io.gravitee.apim.core.metadata.crud_service;
 
-/**
- * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
- * @author GraviteeSource Team
- */
-public enum ApiAuditEvent implements AuditEvent {
-    API_UPDATED,
-    METADATA_DELETED,
-    METADATA_CREATED,
-    METADATA_UPDATED,
+import io.gravitee.apim.core.metadata.model.Metadata;
+
+public interface MetadataCrudService {
+    Metadata create(Metadata metadata);
 }

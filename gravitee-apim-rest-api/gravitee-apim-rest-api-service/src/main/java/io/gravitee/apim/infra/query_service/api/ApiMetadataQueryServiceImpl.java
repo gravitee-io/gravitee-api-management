@@ -69,6 +69,7 @@ public class ApiMetadataQueryServiceImpl implements ApiMetadataQueryService {
                                 .orElse(
                                     ApiMetadata
                                         .builder()
+                                        .apiId(m.getReferenceId())
                                         .key(m.getKey())
                                         .value(m.getValue())
                                         .format(MetadataFormat.valueOf(m.getFormat().name()))

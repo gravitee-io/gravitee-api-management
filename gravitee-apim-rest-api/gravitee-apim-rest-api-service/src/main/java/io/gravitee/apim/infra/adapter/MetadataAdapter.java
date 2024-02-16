@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.audit.model.event;
+package io.gravitee.apim.infra.adapter;
 
-/**
- * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
- * @author GraviteeSource Team
- */
-public enum ApiAuditEvent implements AuditEvent {
-    API_UPDATED,
-    METADATA_DELETED,
-    METADATA_CREATED,
-    METADATA_UPDATED,
+import io.gravitee.apim.core.metadata.model.Metadata;
+import org.mapstruct.Mapper;
+import org.mapstruct.factory.Mappers;
+
+@Mapper
+public interface MetadataAdapter {
+    MetadataAdapter INSTANCE = Mappers.getMapper(MetadataAdapter.class);
+
+    Metadata toEntity(io.gravitee.repository.management.model.Metadata source);
+
+    io.gravitee.repository.management.model.Metadata toRepository(Metadata source);
 }
