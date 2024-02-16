@@ -16,19 +16,19 @@
 
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatLegacyTableModule as MatTableModule } from '@angular/material/legacy-table';
-import { MatLegacyTooltipModule as MatTooltipModule } from '@angular/material/legacy-tooltip';
-import { MatLegacyButtonModule as MatButtonModule } from '@angular/material/legacy-button';
+import { MatTableModule } from '@angular/material/table';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { GioFormFocusInvalidModule, GioIconsModule, GioSaveBarModule } from '@gravitee/ui-particles-angular';
-import { MatLegacyDialogModule } from '@angular/material/legacy-dialog';
 import { MatDialogModule } from '@angular/material/dialog';
-import { MatLegacySnackBarModule as MatSnackBarModule } from '@angular/material/legacy-snack-bar';
-import { MatLegacyCardModule as MatCardModule } from '@angular/material/legacy-card';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatCardModule } from '@angular/material/card';
 import { ReactiveFormsModule } from '@angular/forms';
-import { MatLegacyMenuModule as MatMenuModule } from '@angular/material/legacy-menu';
+import { MatMenuModule } from '@angular/material/menu';
 import { RouterModule } from '@angular/router';
+import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { ApiPlanListComponent } from './list/api-plan-list.component';
 import { ApiPlanEditComponent } from './edit/api-plan-edit.component';
@@ -49,8 +49,8 @@ import { GioGoBackButtonModule } from '../../../shared/components/gio-go-back-bu
     MatCardModule,
     MatButtonModule,
     MatDialogModule,
-    MatLegacyDialogModule,
     MatSnackBarModule,
+    MatLegacySnackBarModule,
     MatTableModule,
     MatTooltipModule,
     MatButtonToggleModule,

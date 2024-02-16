@@ -31,24 +31,24 @@
         (removePlanClicked)="onRemovePlanClicked($event)"
       ></step-4-security-1-plans-list>
     </ng-container>
-
-    <ng-container *ngIf="view === 'add'">
-      <step-4-security-1-plans-add
-        [planMenuItem]="selectedPlanMenuItem"
-        [apiType]="apiType"
-        (planChanges)="addPlan($event)"
-        (exitPlanCreation)="onExitPlanCreation()"
-      ></step-4-security-1-plans-add>
-    </ng-container>
-
-    <ng-container *ngIf="view === 'edit'">
-      <step-4-security-1-plans-add
-        [plan]="planToEdit"
-        [planMenuItem]="selectedPlanMenuItem"
-        [apiType]="apiType"
-        (planChanges)="editPlan($event)"
-        (exitPlanCreation)="onExitPlanCreation()"
-      ></step-4-security-1-plans-add>
-    </ng-container>
   </mat-card-content>
+
+  <ng-container *ngIf="view === 'add'">
+    <step-4-security-1-plans-add
+      [planMenuItem]="selectedPlanMenuItem"
+      [apiType]="apiType"
+      (planChanges)="addPlan($event)"
+      (exitPlanCreation)="onExitPlanCreation()"
+    ></step-4-security-1-plans-add>
+  </ng-container>
+
+  <ng-container *ngIf="view === 'edit'">
+    <step-4-security-1-plans-add
+      [plan]="planToEdit"
+      [planMenuItem]="selectedPlanMenuItem"
+      [apiType]="apiType"
+      (planChanges)="editPlan($event)"
+      (exitPlanCreation)="onExitPlanCreation()"
+    ></step-4-security-1-plans-add>
+  </ng-container>
 </mat-card>
