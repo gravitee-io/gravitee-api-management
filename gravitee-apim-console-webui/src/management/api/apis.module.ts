@@ -51,6 +51,7 @@ import { ApiNotificationModule } from './api-notification/api-notification.modul
 import { ApiCorsModule } from './cors/api-cors.module';
 import { ApiPropertiesModule } from './properties/properties/api-properties.module';
 import { ApiProxyHealthCheckDashboardModule } from './health-check-dashboard/api-proxy-health-check-dashboard.module';
+import { ApiRuntimeAlertsModule } from './runtime-alerts';
 
 import { SpecificJsonSchemaTypeModule } from '../../shared/components/specific-json-schema-type/specific-json-schema-type.module';
 import { DocumentationModule } from '../../components/documentation/documentation.module';
@@ -66,6 +67,7 @@ import { AlertsModule } from '../../components/alerts/alerts.module';
     AlertsModule,
     ApiAnalyticsModule,
     ApiAuditModule,
+    ApiAuditLogsModule,
     ApiAuditListModule,
     ApiCorsModule,
     ApiCreationGetStartedModule,
@@ -84,14 +86,14 @@ import { AlertsModule } from '../../components/alerts/alerts.module';
     ApiHealthCheckModule,
     ApiListModule,
     ApiNavigationModule,
+    ApiNotificationModule,
     ApiNotificationSettingsModule,
     ApiPlansModule,
     ApiPropertiesModule,
     ApiResourcesModule,
     ApiResponseTemplatesModule,
     ApiRuntimeLogsV4Module,
-    ApiAuditLogsModule,
-    ApiNotificationModule,
+    ApiRuntimeAlertsModule,
     ApiSubscriptionsModule,
     ApiV4PolicyStudioModule,
     ApiUserGroupModule,

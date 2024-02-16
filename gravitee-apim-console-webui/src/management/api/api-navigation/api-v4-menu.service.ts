@@ -337,13 +337,4 @@ export class ApiV4MenuService implements ApiMenuService {
       tabs,
     };
   }
-
-  private getGeneralGroup(): MenuGroupItem {
-    const generalGroup: MenuGroupItem = {
-      title: 'General',
-      items: [],
-    };
-
-    return generalGroup;
-  }
 }
