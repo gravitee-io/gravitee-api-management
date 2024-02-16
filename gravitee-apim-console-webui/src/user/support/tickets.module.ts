@@ -30,7 +30,6 @@ import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSortModule } from '@angular/material/sort';
-import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { TicketComponent } from './ticket/ticket.component';
 import { NewTicketComponent } from './new-ticket/new-ticket.component';
@@ -53,7 +52,7 @@ import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper
     MatOptionModule,
     MatSelectModule,
     MatSnackBarModule,
-    MatLegacySnackBarModule,
+
     MatButtonModule,
     MatIconModule,
     MatTableModule,

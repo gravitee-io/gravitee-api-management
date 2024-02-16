@@ -35,7 +35,6 @@ import {
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { PlanEditGeneralStepComponent } from './1-general-step/plan-edit-general-step.component';
 import { PlanEditSecureStepComponent } from './2-secure-step/plan-edit-secure-step.component';
@@ -61,7 +60,6 @@ import { SpecificJsonSchemaTypeModule } from '../../../../shared/components/spec
     MatSelectModule,
     MatSlideToggleModule,
     MatSnackBarModule,
-    MatLegacySnackBarModule,
     MatDividerModule,
     MatAutocompleteModule,
 

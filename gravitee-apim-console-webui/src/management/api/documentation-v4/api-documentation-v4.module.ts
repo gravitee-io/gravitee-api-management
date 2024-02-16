@@ -30,7 +30,6 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterModule } from '@angular/router';
 import { MatMenuModule } from '@angular/material/menu';
-import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { ApiDocumentationV4EmptyStateComponent } from './components/documentation-empty-state/api-documentation-v4-empty-state.component';
 import { ApiDocumentationV4ListNavigationHeaderComponent } from './components/documentation-list-navigation-header/api-documentation-v4-list-navigation-header.component';
@@ -79,7 +78,6 @@ import { GioSwaggerUiModule } from '../../../components/documentation/gio-swagge
     MatButtonToggleModule,
     MatTableModule,
     MatSnackBarModule,
-    MatLegacySnackBarModule,
     MatTooltipModule,
 
     MarkdownModule.forRoot(),

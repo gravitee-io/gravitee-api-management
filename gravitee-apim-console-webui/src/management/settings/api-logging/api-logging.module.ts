@@ -38,7 +38,6 @@ import { MatTableModule } from '@angular/material/table';
 import { MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { ApiLoggingComponent } from './api-logging.component';
 
@@ -59,7 +58,7 @@ import { GioTableOfContentsModule } from '../../../shared/components/gio-table-o
     MatInputModule,
     MatSlideToggleModule,
     MatSnackBarModule,
-    MatLegacySnackBarModule,
+
     MatSortModule,
     MatTableModule,
     MatTooltipModule,

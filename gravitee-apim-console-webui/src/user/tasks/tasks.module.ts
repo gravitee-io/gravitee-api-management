@@ -21,7 +21,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { GioBannerModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { TasksComponent } from './tasks.component';
 import { TasksAcceptPromotionDialogComponent } from './tasks-accept-promotion-dialog.component';
@@ -34,7 +33,7 @@ import { TasksAcceptPromotionDialogComponent } from './tasks-accept-promotion-di
     MatButtonModule,
     MatDialogModule,
     MatSnackBarModule,
-    MatLegacySnackBarModule,
+
     GioLoaderModule,
     GioBannerModule,
   ],

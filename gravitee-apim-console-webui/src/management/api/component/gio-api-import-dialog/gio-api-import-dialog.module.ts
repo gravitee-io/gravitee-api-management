@@ -24,7 +24,6 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
 import { GioFormFilePickerModule } from '@gravitee/ui-particles-angular';
-import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { GioApiImportDialogComponent } from './gio-api-import-dialog.component';
 
@@ -38,7 +37,6 @@ import { GioApiImportDialogComponent } from './gio-api-import-dialog.component';
     MatTabsModule,
     MatCheckboxModule,
     MatSnackBarModule,
-    MatLegacySnackBarModule,
     MatFormFieldModule,
     MatInputModule,
     GioFormFilePickerModule,

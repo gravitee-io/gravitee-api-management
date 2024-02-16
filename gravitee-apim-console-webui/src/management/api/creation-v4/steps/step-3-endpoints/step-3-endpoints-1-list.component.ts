@@ -21,7 +21,6 @@ import { Observable, of, Subject } from 'rxjs';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
 import { GioConfirmDialogComponent, GioConfirmDialogData, GioLicenseService, License } from '@gravitee/ui-particles-angular';
 import { isEqual } from 'lodash';
-import { MatLegacyDialog } from '@angular/material/legacy-dialog';
 
 import { Step3Endpoints2ConfigComponent } from './step-3-endpoints-2-config.component';
 
@@ -59,7 +58,6 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
   constructor(
     private readonly formBuilder: UntypedFormBuilder,
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
-    private readonly matLegacyDialog: MatLegacyDialog,
     private readonly matDialog: MatDialog,
     private readonly stepService: ApiCreationStepService,
     private readonly changeDetectorRef: ChangeDetectorRef,
@@ -163,7 +161,7 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
       .pipe(
         catchError(() => of({})),
         tap((pluginMoreInformation) => {
-          this.matLegacyDialog
+          this.matDialog
             .open<GioConnectorDialogComponent, GioConnectorDialogData, boolean>(GioConnectorDialogComponent, {
               data: {
                 name: endpoint.name,

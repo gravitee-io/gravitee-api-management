@@ -16,7 +16,7 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { GioPolicyStudioModule } from '@gravitee/ui-policy-studio-angular';
-import { MatLegacySnackBarModule as MatSnackBarModule } from '@angular/material/legacy-snack-bar';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ApiV4PolicyStudioDesignComponent } from './design/api-v4-policy-studio-design.component';
 

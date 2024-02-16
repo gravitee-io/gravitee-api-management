@@ -25,7 +25,6 @@ import { MatTableModule } from '@angular/material/table';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatNativeDateModule } from '@angular/material/core';
-import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { EnvAuditComponent } from './env-audit.component';
 
@@ -36,7 +35,6 @@ import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper
     CommonModule,
     ReactiveFormsModule,
     MatSnackBarModule,
-    MatLegacySnackBarModule,
     MatFormFieldModule,
     MatSelectModule,
     MatDatepickerModule,

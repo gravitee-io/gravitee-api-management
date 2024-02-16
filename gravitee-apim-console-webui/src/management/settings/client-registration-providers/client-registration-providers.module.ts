@@ -40,7 +40,6 @@ import { MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { RouterModule } from '@angular/router';
-import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { ClientRegistrationProvidersComponent } from './client-registration-providers.component';
 import { ClientRegistrationProviderComponent } from './client-registration-provider/client-registration-provider.component';
@@ -62,7 +61,7 @@ import { GioPermissionModule } from '../../../shared/components/gio-permission/g
     MatInputModule,
     MatSlideToggleModule,
     MatSnackBarModule,
-    MatLegacySnackBarModule,
+
     MatSortModule,
     MatTableModule,
     MatTooltipModule,

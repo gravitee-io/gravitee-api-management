@@ -34,7 +34,6 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { RouterModule } from '@angular/router';
-import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { ApiDynamicPropertiesComponent } from './api-dynamic-properties.component';
 
@@ -52,7 +51,6 @@ import { ApiDynamicPropertiesComponent } from './api-dynamic-properties.componen
     MatSelectModule,
     MatInputModule,
     MatSnackBarModule,
-    MatLegacySnackBarModule,
 
     GioSaveBarModule,
     GioIconsModule,

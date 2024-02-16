@@ -23,7 +23,6 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatDialogModule } from '@angular/material/dialog';
 import { ActivatedRoute } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
-import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { GioPolicyStudioLayoutComponent } from './gio-policy-studio-layout.component';
 import { toApiDefinition, toApiPlansDefinition } from './models/ApiDefinition';
@@ -49,7 +48,6 @@ describe('GioPolicyStudioLayoutComponent', () => {
         NoopAnimationsModule,
         GioHttpTestingModule,
         MatSnackBarModule,
-        MatLegacySnackBarModule,
         MatTabsModule,
         GioSaveBarModule,
         GioLicenseModule,

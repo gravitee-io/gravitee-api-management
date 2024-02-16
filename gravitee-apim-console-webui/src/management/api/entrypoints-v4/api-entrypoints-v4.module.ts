@@ -35,7 +35,6 @@ import { MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { RouterModule } from '@angular/router';
-import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { ApiEntrypointsV4GeneralComponent } from './api-entrypoints-v4-general.component';
 import { ApiEntrypointsV4EditComponent } from './edit/api-entrypoints-v4-edit.component';
@@ -68,7 +67,6 @@ import { GioFormListenersTcpHostsModule } from '../component/gio-form-listeners/
     MatDialogModule,
     MatIconModule,
     MatSnackBarModule,
-    MatLegacySnackBarModule,
     MatTableModule,
     MatTooltipModule,
     GioBannerModule,

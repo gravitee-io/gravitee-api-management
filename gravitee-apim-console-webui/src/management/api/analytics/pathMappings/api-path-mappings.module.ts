@@ -27,7 +27,6 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatRadioModule } from '@angular/material/radio';
-import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { ApiPathMappingsComponent } from './api-path-mappings.component';
 import { ApiPathMappingsEditDialogComponent } from './api-path-mappings-edit-dialog/api-path-mappings-edit-dialog.component';
@@ -54,7 +53,6 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
     MatInputModule,
     MatRadioModule,
     MatSnackBarModule,
-    MatLegacySnackBarModule,
     MatTableModule,
     MatTooltipModule,
     MatTabsModule,

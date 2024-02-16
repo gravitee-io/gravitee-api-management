@@ -26,7 +26,6 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatTreeModule } from '@angular/material/tree';
 import { GioIconsModule, GioFormHeadersModule, GioClipboardModule } from '@gravitee/ui-particles-angular';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
 import { MatCardModule } from '@angular/material/card';
 
 import { PolicyStudioDebugComponent } from './policy-studio-debug.component';
@@ -56,7 +55,6 @@ import { GioDiffModule } from '../../../../shared/components/gio-diff/gio-diff.m
     MatIconModule,
     MatSelectModule,
     MatSnackBarModule,
-    MatLegacySnackBarModule,
     MatTabsModule,
     MatTreeModule,
     MatTooltipModule,

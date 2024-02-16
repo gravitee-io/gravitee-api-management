@@ -27,7 +27,6 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatCardModule } from '@angular/material/card';
-import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { ApiRuntimeLogsMessageSettingsComponent } from './api-runtime-logs-message-settings.component';
 
@@ -47,7 +46,6 @@ import { GioPermissionModule } from '../../../../../shared/components/gio-permis
     MatInputModule,
     MatSlideToggleModule,
     MatSnackBarModule,
-    MatLegacySnackBarModule,
     MatTooltipModule,
     ReactiveFormsModule,
 

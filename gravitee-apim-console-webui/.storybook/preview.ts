@@ -5,7 +5,7 @@ import { importProvidersFrom } from '@angular/core';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpClientModule } from '@angular/common/http';
 import { CONSTANTS_TESTING } from '../src/shared/testing';
-import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { RouterTestingModule } from '@angular/router/testing';
 
 // Set material classes to the Storybook root div
@@ -19,7 +19,7 @@ export const decorators = [
     providers: [
       importProvidersFrom(BrowserAnimationsModule),
       importProvidersFrom(HttpClientModule),
-      importProvidersFrom(MatLegacySnackBarModule),
+      importProvidersFrom(MatSnackBarModule),
       {
         provide: 'Constants',
         useValue: CONSTANTS_TESTING,

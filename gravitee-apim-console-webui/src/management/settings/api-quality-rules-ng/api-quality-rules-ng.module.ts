@@ -27,7 +27,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ApiQualityRulesNgComponent } from './api-quality-rules-ng.component';
 import { ApiQualityRulesNgAddDialogComponent } from './api-quality-rules-ng-add-dialog/api-quality-rules-ng-add-dialog.component';
@@ -51,11 +51,11 @@ import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrap
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
-    MatLegacySnackBarModule,
     MatSlideToggleModule,
     MatSortModule,
     MatTableModule,
     MatTooltipModule,
+    MatSnackBarModule,
   ],
   declarations: [ApiQualityRulesNgComponent, ApiQualityRulesNgAddDialogComponent],
   exports: [ApiQualityRulesNgComponent, ApiQualityRulesNgAddDialogComponent],

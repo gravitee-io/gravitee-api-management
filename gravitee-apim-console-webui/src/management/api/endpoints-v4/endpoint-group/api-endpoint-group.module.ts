@@ -39,7 +39,6 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { RouterModule } from '@angular/router';
-import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { ApiEndpointGroupComponent } from './api-endpoint-group.component';
 import { ApiEndpointGroupGeneralComponent } from './general/api-endpoint-group-general.component';
@@ -79,7 +78,6 @@ import { ApiHealthCheckV4FormModule } from '../../component/health-check-v4-form
     MatSelectModule,
     MatSlideToggleModule,
     MatSnackBarModule,
-    MatLegacySnackBarModule,
     MatStepperModule,
     MatTabsModule,
 

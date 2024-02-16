@@ -38,8 +38,6 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
 import { RouterModule } from '@angular/router';
-import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
-import { MatLegacyDialogModule } from '@angular/material/legacy-dialog';
 
 import { ApiCreationV4Component } from './api-creation-v4.component';
 import { Step1ApiDetailsComponent } from './steps/step-1-api-details/step-1-api-details.component';
@@ -82,9 +80,7 @@ import { GioFormListenersTcpHostsModule } from '../component/gio-form-listeners/
     MatRadioModule,
     MatListModule,
     MatDialogModule,
-    MatLegacyDialogModule,
     MatSnackBarModule,
-    MatLegacySnackBarModule,
     MatTableModule,
     MatTooltipModule,
     MatProgressBarModule,

@@ -56,8 +56,6 @@ import {
 } from '@gravitee/ui-particles-angular';
 import { MatTabsModule } from '@angular/material/tabs';
 import { RouterModule } from '@angular/router';
-import { MatLegacyDialogModule } from '@angular/material/legacy-dialog';
-import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { OrgSettingsGeneralComponent } from './console/org-settings-general.component';
 import { OrgSettingsUsersComponent } from './users/org-settings-users.component';
@@ -114,9 +112,7 @@ import { GioUsersSelectorModule } from '../../shared/components/gio-users-select
     MatSelectModule,
     MatAutocompleteModule,
     MatDialogModule,
-    MatLegacyDialogModule,
     MatSnackBarModule,
-    MatLegacySnackBarModule,
     MatTableModule,
     MatBadgeModule,
     MatPaginatorModule,

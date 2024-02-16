@@ -28,7 +28,6 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatMomentDateModule, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
 import { MatCardModule } from '@angular/material/card';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { GioMetadataDialogComponent } from './dialog/gio-metadata-dialog.component';
 import { GioMetadataComponent } from './gio-metadata.component';
@@ -50,7 +49,6 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
     MatMomentDateModule,
     MatSelectModule,
     MatSnackBarModule,
-    MatLegacySnackBarModule,
     MatSortModule,
     MatTableModule,
     MatTooltipModule,

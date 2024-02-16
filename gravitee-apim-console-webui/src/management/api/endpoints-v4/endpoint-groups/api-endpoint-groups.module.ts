@@ -24,7 +24,6 @@ import { GioBannerModule, GioIconsModule } from '@gravitee/ui-particles-angular'
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { RouterModule } from '@angular/router';
-import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { ApiEndpointGroupsComponent } from './api-endpoint-groups.component';
 
@@ -44,7 +43,6 @@ import { GioLicenseBannerModule } from '../../../../shared/components/gio-licens
     MatTableModule,
     MatTooltipModule,
     MatSnackBarModule,
-    MatLegacySnackBarModule,
     GioIconsModule,
 
     ApiEndpointModule,

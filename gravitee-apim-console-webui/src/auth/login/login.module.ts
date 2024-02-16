@@ -25,7 +25,6 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
-import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { LoginComponent } from './login.component';
 
@@ -43,7 +42,6 @@ import { GioFormCardGroupModule } from '../../shared/components/gio-form-card-gr
     MatCardModule,
     MatButtonModule,
     MatSnackBarModule,
-    MatLegacySnackBarModule,
     MatIconModule,
 
     GioIconsModule,

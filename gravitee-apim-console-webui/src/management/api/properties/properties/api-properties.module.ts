@@ -28,7 +28,6 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialogModule } from '@angular/material/dialog';
 import { RouterModule } from '@angular/router';
-import { MatLegacySnackBarModule } from '@angular/material/legacy-snack-bar';
 
 import { ApiPropertiesComponent } from './api-properties.component';
 import { PropertiesAddDialogModule } from './properties-add-dialog/properties-add-dialog.module';
@@ -62,7 +61,7 @@ import { ApiDynamicPropertiesV4Module } from '../components/dynamic-properties-v
     MatFormFieldModule,
     MatInputModule,
     MatSnackBarModule,
-    MatLegacySnackBarModule,
+
     MatDialogModule,
     GioBannerModule,
 
