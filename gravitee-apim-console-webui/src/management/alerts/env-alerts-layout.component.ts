@@ -18,7 +18,7 @@ import { Component } from '@angular/core';
 @Component({
   selector: 'env-alerts-layout',
   template: `
-    <nav mat-tab-nav-bar class="navigation-tabs">
+    <nav mat-tab-nav-bar class="navigation-tabs" [tabPanel]="tabPanel">
       <a mat-tab-link routerLinkActive #rla1="routerLinkActive" [active]="rla1.isActive" routerLink="list"
         ><mat-icon class="navigation-tabs__icon" svgIcon="gio:home"></mat-icon> My alerts</a
       >
@@ -26,7 +26,9 @@ import { Component } from '@angular/core';
         ><mat-icon class="navigation-tabs__icon" svgIcon="gio:activity"></mat-icon> Activity</a
       >
     </nav>
-    <router-outlet></router-outlet>
+    <mat-tab-nav-panel #tabPanel>
+      <router-outlet></router-outlet>
+    </mat-tab-nav-panel>
   `,
   styles: [
     `
