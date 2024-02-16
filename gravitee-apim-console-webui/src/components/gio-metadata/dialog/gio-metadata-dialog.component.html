@@ -16,17 +16,17 @@
 
 -->
 <div class="gio-metadata-dialog__title">
-  <h2 mat-dialog-title>
+  <span mat-dialog-title>
     {{ metadata.defaultValue ? 'Override global metadata' : metadata.action + ' ' + metadata.referenceType + ' metadata' }}
-  </h2>
+  </span>
   <mat-icon class="gio-metadata-dialog__title__cancel"></mat-icon>
   <button mat-icon-button [attr.aria-label]="'Close'" (click)="onClose()">
     <mat-icon class="gio-metadata-dialog__title__cancel" svgIcon="gio:cancel"> </mat-icon>
   </button>
 </div>
 
-<mat-dialog-content>
-  <form [formGroup]="form" (ngSubmit)="save()" class="gio-metadata-dialog__form">
+<form [formGroup]="form" (ngSubmit)="save()" class="gio-metadata-dialog__form">
+  <mat-dialog-content>
     <div class="gio-metadata-dialog__form__row">
       <mat-form-field appearance="outline" *ngIf="metadata.action === 'Update'">
         <input id="key" type="text" matInput formControlName="key" data-testid="api_metadata_dialog_key" />
@@ -141,20 +141,19 @@
         <mat-label>Global value</mat-label>
       </mat-form-field>
     </div>
-
-    <div class="gio-metadata-dialog__form__footer">
-      <button mat-stroked-button type="button" [attr.aria-label]="'Cancel'" (click)="onClose()" data-testid="api_metadata_dialog_cancel">
-        Cancel
-      </button>
-      <button
-        [disabled]="this.form.invalid || this.form.pristine || !hasChange"
-        mat-raised-button
-        type="submit"
-        color="primary"
-        data-testid="api_metadata_dialog_save"
-      >
-        Save
-      </button>
-    </div>
-  </form>
-</mat-dialog-content>
+  </mat-dialog-content>
+  <mat-dialog-actions align="end">
+    <button mat-stroked-button type="button" [attr.aria-label]="'Cancel'" (click)="onClose()" data-testid="api_metadata_dialog_cancel">
+      Cancel
+    </button>
+    <button
+      [disabled]="this.form.invalid || this.form.pristine || !hasChange"
+      mat-raised-button
+      type="submit"
+      color="primary"
+      data-testid="api_metadata_dialog_save"
+    >
+      Save
+    </button>
+  </mat-dialog-actions>
+</form>
