@@ -19,12 +19,12 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { InteractivityChecker } from '@angular/cdk/a11y';
-import { MatLegacySlideToggleHarness as MatSlideToggleHarness } from '@angular/material/legacy-slide-toggle/testing';
-import { MatLegacySelectHarness as MatSelectHarness } from '@angular/material/legacy-select/testing';
-import { MatLegacyInputHarness as MatInputHarness } from '@angular/material/legacy-input/testing';
+import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
+import { MatSelectHarness } from '@angular/material/select/testing';
+import { MatInputHarness } from '@angular/material/input/testing';
 import { GioFormCronHarness, GioFormHeadersHarness } from '@gravitee/ui-particles-angular';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
-import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
 import { ApiHealthCheckFormComponent } from './api-health-check-form.component';
 import { ApiHealthCheckFormModule } from './api-health-check-form.module';
