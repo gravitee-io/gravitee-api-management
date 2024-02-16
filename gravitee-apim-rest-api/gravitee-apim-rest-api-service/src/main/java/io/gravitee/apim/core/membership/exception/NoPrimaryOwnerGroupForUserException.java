@@ -13,12 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.parameters.query_service;
+package io.gravitee.apim.core.membership.exception;
 
-import io.gravitee.apim.core.parameters.model.ParameterContext;
-import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 
-public interface ParametersQueryService {
-    boolean findAsBoolean(Key key, ParameterContext context);
-    String findAsString(Key key, ParameterContext context);
+public class NoPrimaryOwnerGroupForUserException extends ValidationDomainException {
+
+    private final String userId;
+
+    public NoPrimaryOwnerGroupForUserException(String userId) {
+        super("User must belong to at least one group with a primary owner member.");
+        this.userId = userId;
+    }
 }

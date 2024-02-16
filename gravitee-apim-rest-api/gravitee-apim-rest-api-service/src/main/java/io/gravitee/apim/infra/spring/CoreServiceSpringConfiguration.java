@@ -43,6 +43,7 @@ import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.core.membership.crud_service.MembershipCrudService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
+import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
 import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
 import io.gravitee.apim.core.membership.query_service.RoleQueryService;
@@ -350,5 +351,22 @@ public class CoreServiceSpringConfiguration {
         UserCrudService userCrudService
     ) {
         return new ApplicationPrimaryOwnerDomainService(groupQueryService, membershipQueryService, roleQueryService, userCrudService);
+    }
+
+    @Bean
+    public ApiPrimaryOwnerFactory apiPrimaryOwnerFactory(
+        MembershipQueryService membershipQueryService,
+        ParametersQueryService parametersQueryService,
+        RoleQueryService roleQueryService,
+        UserCrudService userCrudService,
+        GroupQueryService groupQueryService
+    ) {
+        return new ApiPrimaryOwnerFactory(
+            groupQueryService,
+            membershipQueryService,
+            parametersQueryService,
+            roleQueryService,
+            userCrudService
+        );
     }
 }

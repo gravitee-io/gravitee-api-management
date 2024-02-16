@@ -39,4 +39,9 @@ public class ParameterQueryServiceLegacyWrapper implements ParametersQueryServic
             context.referenceType()
         );
     }
+
+    @Override
+    public String findAsString(Key key, ParameterContext context) {
+        return parameterService.find(new ExecutionContext(context.environmentId(), context.organizationId()), key, context.referenceType());
+    }
 }
