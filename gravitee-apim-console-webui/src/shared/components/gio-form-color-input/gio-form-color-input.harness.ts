@@ -15,7 +15,7 @@
  */
 
 import { BaseHarnessFilters, HarnessPredicate, parallel } from '@angular/cdk/testing';
-import { MatLegacyFormFieldControlHarness as MatFormFieldControlHarness } from '@angular/material/legacy-form-field/testing';
+import { MatFormFieldControlHarness } from '@angular/material/form-field/testing';
 
 /** A set of criteria that can be used to filter a list of `GioFormColorInputHarness` instances. */
 export interface GioFormColorInputHarnessFilters extends BaseHarnessFilters {
