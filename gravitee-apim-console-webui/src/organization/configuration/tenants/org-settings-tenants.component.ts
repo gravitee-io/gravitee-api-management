@@ -44,7 +44,6 @@ export class OrgSettingsTenantsComponent implements OnInit, OnDestroy {
 
   constructor(
     private readonly tenantService: TenantService,
-    private readonly matLegacyDialog: MatDialog,
     private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,
   ) {}
@@ -63,7 +62,7 @@ export class OrgSettingsTenantsComponent implements OnInit, OnDestroy {
   }
 
   onAddTenantClicked(): void {
-    this.matLegacyDialog
+    this.matDialog
       .open<OrgSettingAddTenantComponent, OrgSettingAddTenantDialogData, Tenant>(OrgSettingAddTenantComponent, {
         width: '450px',
         data: {},
@@ -109,7 +108,7 @@ export class OrgSettingsTenantsComponent implements OnInit, OnDestroy {
   }
 
   onEditTenantClicked(tenant: Tenant) {
-    this.matLegacyDialog
+    this.matDialog
       .open<OrgSettingAddTenantComponent, OrgSettingAddTenantDialogData, Tenant>(OrgSettingAddTenantComponent, {
         width: '450px',
         data: {

@@ -85,7 +85,6 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
     private readonly portalSettingsService: PortalSettingsService,
     private readonly entrypointService: EntrypointService,
     private readonly snackBarService: SnackBarService,
-    private readonly matLegacyDialog: MatDialog,
     private readonly matDialog: MatDialog,
     private readonly gioLicenseService: GioLicenseService,
   ) {}
@@ -185,7 +184,7 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
   }
 
   onAddTagClicked() {
-    this.matLegacyDialog
+    this.matDialog
       .open<OrgSettingAddTagDialogComponent, OrgSettingAddTagDialogData, Tag>(OrgSettingAddTagDialogComponent, {
         width: '450px',
         data: {},
@@ -209,7 +208,7 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
   }
 
   onEditTagClicked(tag: TagTableDS[number]) {
-    this.matLegacyDialog
+    this.matDialog
       .open<OrgSettingAddTagDialogComponent, OrgSettingAddTagDialogData, Tag>(OrgSettingAddTagDialogComponent, {
         width: '450px',
         data: {
@@ -311,7 +310,7 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
   }
 
   onAddEntrypointClicked() {
-    this.matLegacyDialog
+    this.matDialog
       .open<OrgSettingAddMappingDialogComponent, OrgSettingAddMappingDialogData, Entrypoint>(OrgSettingAddMappingDialogComponent, {
         width: '450px',
         data: {},
@@ -335,7 +334,7 @@ export class OrgSettingsTagsComponent implements OnInit, OnDestroy {
   }
 
   onEditEntrypointClicked(entrypoint: EntrypointTableDS[number]) {
-    this.matLegacyDialog
+    this.matDialog
       .open<OrgSettingAddMappingDialogComponent, OrgSettingAddMappingDialogData, Entrypoint>(OrgSettingAddMappingDialogComponent, {
         width: '450px',
         data: {

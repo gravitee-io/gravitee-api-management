@@ -139,7 +139,6 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
     private readonly groupService: GroupService,
     private readonly snackBarService: SnackBarService,
     private readonly environmentService: EnvironmentService,
-    private readonly matLegacyDialog: MatDialog,
     private readonly matDialog: MatDialog,
     @Inject('Constants') private readonly constants: Constants,
   ) {}
@@ -421,7 +420,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
   }
 
   onAddGroupClicked() {
-    this.matLegacyDialog
+    this.matDialog
       .open<
         OrgSettingsUserDetailAddGroupDialogComponent,
         OrgSettingsUserDetailAddGroupDialogData,
@@ -559,7 +558,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
   }
 
   onGenerateTokenClicked() {
-    this.matLegacyDialog
+    this.matDialog
       .open<OrgSettingsUserGenerateTokenComponent, OrgSettingsUserGenerateTokenDialogData, Token>(OrgSettingsUserGenerateTokenComponent, {
         width: '750px',
         data: {
