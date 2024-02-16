@@ -19,8 +19,9 @@ import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatSortHarness } from '@angular/material/sort/testing';
-import { MatLegacyTableModule as MatTableModule } from '@angular/material/legacy-table';
+import { MatTableModule } from '@angular/material/table';
 import { MatSortModule } from '@angular/material/sort';
+import { MatIconTestingModule } from '@angular/material/icon/testing';
 
 import { GioTableWrapperModule } from './gio-table-wrapper.module';
 import { GioTableWrapperFilters } from './gio-table-wrapper.component';
@@ -41,8 +42,8 @@ describe('GioTableWrapperComponent', () => {
             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
             <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
 
-            <tr class="mat-row" *matNoDataRow>
-              <td class="mat-cell" [attr.colspan]="displayedColumns.length">No Data</td>
+            <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+              <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">No Data</td>
             </tr>
           </table>
         </gio-table-wrapper>
@@ -63,7 +64,7 @@ describe('GioTableWrapperComponent', () => {
     beforeEach(() => {
       TestBed.configureTestingModule({
         declarations: [TestComponent],
-        imports: [NoopAnimationsModule, GioTableWrapperModule, MatTableModule, MatSortModule],
+        imports: [NoopAnimationsModule, GioTableWrapperModule, MatTableModule, MatSortModule, MatIconTestingModule],
       });
       fixture = TestBed.createComponent(TestComponent);
       component = fixture.componentInstance;
@@ -255,7 +256,7 @@ describe('GioTableWrapperComponent', () => {
     beforeEach(() => {
       TestBed.configureTestingModule({
         declarations: [TestComponentWithSort],
-        imports: [NoopAnimationsModule, GioTableWrapperModule, MatTableModule, MatSortModule, MatSortModule],
+        imports: [NoopAnimationsModule, GioTableWrapperModule, MatTableModule, MatSortModule, MatSortModule, MatIconTestingModule],
       });
       fixture = TestBed.createComponent(TestComponentWithSort);
       component = fixture.componentInstance;
