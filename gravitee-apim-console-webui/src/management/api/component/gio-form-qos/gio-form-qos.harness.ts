@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { BaseHarnessFilters, ComponentHarness, HarnessPredicate } from '@angular/cdk/testing';
-import { MatLegacySelectHarness as MatSelectHarness } from '@angular/material/legacy-select/testing';
+import { MatSelectHarness } from '@angular/material/select/testing';
 
 import { Qos } from '../../../../entities/management-api-v2';
 
