@@ -15,7 +15,7 @@
  */
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { MatLegacyTabsModule as MatTabsModule } from '@angular/material/legacy-tabs';
+import { MatTabsModule } from '@angular/material/tabs';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
 
 import { EnvAnalyticsLayoutComponent } from './env-analytics-layout.component';
@@ -67,7 +67,7 @@ const routes: Routes = [
 
 @NgModule({
   declarations: [EnvAnalyticsLayoutComponent, AnalyticsDashboardComponent, PlatformLogsComponent, PlatformLogComponent],
-  imports: [RouterModule.forChild(routes), MatTabsModule, GioIconsModule],
+  imports: [RouterModule.forChild(routes), MatTabsModule, GioIconsModule, MatTabsModule],
   exports: [RouterModule],
 })
 export class EnvAnalyticsModule {}
