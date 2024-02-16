@@ -23,37 +23,39 @@
   </div>
   <form *ngIf="!isLoadingData" autocomplete="off" gioFormFocusInvalid [formGroup]="notificationForm" (ngSubmit)="onSubmit()">
     <mat-card>
-      <ng-container *ngIf="notifier">
-        <mat-form-field class="notifications-form__notifier">
-          <mat-label *ngIf="notifier.type === 'EMAIL'">Email list</mat-label>
-          <mat-label *ngIf="notifier.type === 'WEBHOOK'">Webhook</mat-label>
-          <input matInput formControlName="notifier" />
-          <mat-hint *ngIf="notifier.type === 'EMAIL'">Use space, ',' or ';' to separate emails. EL supported.</mat-hint>
-          <mat-hint *ngIf="notifier.type === 'WEBHOOK'">URL (Gravitee will POST datas to this url)</mat-hint>
-        </mat-form-field>
-        <div *ngIf="notifier.type === 'WEBHOOK'" class="checkbox-use-system-proxy">
-          <gio-form-slide-toggle>
-            Use system proxy
-            <mat-slide-toggle
-              gioFormSlideToggle
-              formControlName="useSystemProxy"
-              aria-label="Use system proxy"
-              name="useSystemProxy"
-            ></mat-slide-toggle>
-          </gio-form-slide-toggle>
-        </div>
-      </ng-container>
-      <h3>Event subscribed</h3>
+      <mat-card-content>
+        <ng-container *ngIf="notifier">
+          <mat-form-field class="notifications-form__notifier">
+            <mat-label *ngIf="notifier.type === 'EMAIL'">Email list</mat-label>
+            <mat-label *ngIf="notifier.type === 'WEBHOOK'">Webhook</mat-label>
+            <input matInput formControlName="notifier" />
+            <mat-hint *ngIf="notifier.type === 'EMAIL'">Use space, ',' or ';' to separate emails. EL supported.</mat-hint>
+            <mat-hint *ngIf="notifier.type === 'WEBHOOK'">URL (Gravitee will POST datas to this url)</mat-hint>
+          </mat-form-field>
+          <div *ngIf="notifier.type === 'WEBHOOK'" class="checkbox-use-system-proxy">
+            <gio-form-slide-toggle>
+              Use system proxy
+              <mat-slide-toggle
+                gioFormSlideToggle
+                formControlName="useSystemProxy"
+                aria-label="Use system proxy"
+                name="useSystemProxy"
+              ></mat-slide-toggle>
+            </gio-form-slide-toggle>
+          </div>
+        </ng-container>
+        <h3>Event subscribed</h3>
 
-      <div *ngFor="let category of categoriesHooksVM" class="notifications-hooks-categories">
-        <h6>{{ category.name }}</h6>
-        <div class="checkbox-container">
-          <mat-checkbox *ngFor="let singleHook of category.hooks" [formControlName]="singleHook.id" class="checkbox-container__checkbox">
-            <b>{{ singleHook.label }}</b
-            ><br />{{ singleHook.description }}
-          </mat-checkbox>
+        <div *ngFor="let category of categoriesHooksVM" class="notifications-hooks-categories">
+          <h6>{{ category.name }}</h6>
+          <div class="checkbox-container">
+            <mat-checkbox *ngFor="let singleHook of category.hooks" [formControlName]="singleHook.id" class="checkbox-container__checkbox">
+              <b>{{ singleHook.label }}</b
+              ><br />{{ singleHook.description }}
+            </mat-checkbox>
+          </div>
         </div>
-      </div>
+      </mat-card-content>
     </mat-card>
     <gio-save-bar [form]="notificationForm" [formInitialValues]="formInitialValues"></gio-save-bar>
   </form>
