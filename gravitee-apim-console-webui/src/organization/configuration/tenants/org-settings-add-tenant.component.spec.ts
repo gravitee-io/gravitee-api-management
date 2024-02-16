@@ -18,7 +18,7 @@ import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
-import { MatLegacyInputHarness as MatInputHarness } from '@angular/material/legacy-input/testing';
+import { MatInputHarness } from '@angular/material/input/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 import { OrgSettingAddTenantComponent, OrgSettingAddTenantDialogData } from './org-settings-add-tenant.component';

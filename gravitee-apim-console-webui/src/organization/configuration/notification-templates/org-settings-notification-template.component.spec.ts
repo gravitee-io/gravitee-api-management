@@ -18,7 +18,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HarnessLoader } from '@angular/cdk/testing';
-import { MatLegacyInputHarness as MatInputHarness } from '@angular/material/legacy-input/testing';
+import { MatInputHarness } from '@angular/material/input/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { GioMonacoEditorHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';

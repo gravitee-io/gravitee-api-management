@@ -23,7 +23,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
-import { MatLegacyInputHarness as MatInputHarness } from '@angular/material/legacy-input/testing';
+import { MatInputHarness } from '@angular/material/input/testing';
 import { ActivatedRoute } from '@angular/router';
 
 import { ApiPathMappingsComponent } from './api-path-mappings.component';
