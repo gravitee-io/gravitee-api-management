@@ -71,7 +71,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
   apisTableDSUnpaginatedLength = 0;
   apisTableDS: ApisTableDS = [];
   filters: GioTableWrapperFilters = {
-    pagination: { index: 1, size: 10 },
+    pagination: { index: 1, size: 25 },
     searchTerm: '',
   };
   isQualityDisplayed: boolean;

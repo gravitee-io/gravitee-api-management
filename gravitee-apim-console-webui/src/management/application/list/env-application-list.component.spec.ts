@@ -283,7 +283,7 @@ describe('EnvApplicationListComponent', () => {
     tick(400);
 
     const req = httpTestingController.expectOne(
-      `${CONSTANTS_TESTING.env.baseURL}/applications/_paged?page=${page}&size=10&status=${status}${q ? `&query=${q}` : ''}`,
+      `${CONSTANTS_TESTING.env.baseURL}/applications/_paged?page=${page}&size=25&status=${status}${q ? `&query=${q}` : ''}`,
     );
     expect(req.request.method).toEqual('GET');
     req.flush(fakePagedResult(applicationsResponse));

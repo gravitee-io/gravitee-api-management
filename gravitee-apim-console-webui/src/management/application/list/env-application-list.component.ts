@@ -60,7 +60,7 @@ export class EnvApplicationListComponent implements OnInit, OnDestroy {
 
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   private defaultFilters: ApplicationTableFilters = {
-    pagination: { index: 1, size: 10 },
+    pagination: { index: 1, size: 25 },
     searchTerm: '',
     status: 'ACTIVE',
     sort: {
