@@ -15,7 +15,7 @@
  */
 import { ComponentHarness } from '@angular/cdk/testing';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
-import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 

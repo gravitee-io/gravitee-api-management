@@ -19,7 +19,7 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
-import { MatLegacyInputHarness as MatInputHarness } from '@angular/material/legacy-input/testing';
+import { MatInputHarness } from '@angular/material/input/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { MatCheckboxHarness } from '@angular/material/checkbox/testing';
 import { MatTableHarness } from '@angular/material/table/testing';

@@ -15,11 +15,11 @@
  */
 import { AfterViewInit, Directive, ElementRef, Inject, NgZone, Optional, ViewContainerRef } from '@angular/core';
 import {
-  MAT_LEGACY_TOOLTIP_DEFAULT_OPTIONS as MAT_TOOLTIP_DEFAULT_OPTIONS,
-  MAT_LEGACY_TOOLTIP_SCROLL_STRATEGY as MAT_TOOLTIP_SCROLL_STRATEGY,
-  MatLegacyTooltip as MatTooltip,
-  MatLegacyTooltipDefaultOptions as MatTooltipDefaultOptions,
-} from '@angular/material/legacy-tooltip';
+  MAT_TOOLTIP_DEFAULT_OPTIONS,
+  MAT_TOOLTIP_SCROLL_STRATEGY,
+  MatTooltip,
+  MatTooltipDefaultOptions,
+} from '@angular/material/tooltip';
 import { Overlay, ScrollDispatcher } from '@angular/cdk/overlay';
 import { Platform } from '@angular/cdk/platform';
 import { AriaDescriber, FocusMonitor } from '@angular/cdk/a11y';

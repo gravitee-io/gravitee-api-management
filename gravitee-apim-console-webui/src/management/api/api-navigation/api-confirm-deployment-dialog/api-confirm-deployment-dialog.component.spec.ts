@@ -23,7 +23,7 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
-import { MatLegacyInputHarness as MatInputHarness } from '@angular/material/legacy-input/testing';
+import { MatInputHarness } from '@angular/material/input/testing';
 
 import {
   ApiConfirmDeploymentDialogComponent,
