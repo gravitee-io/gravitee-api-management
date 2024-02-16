@@ -23,13 +23,15 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatStepHarness } from '@angular/material/stepper/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { fakeKafkaMessageEndpoint } from '@gravitee/ui-policy-studio-angular/testing';
+import { cloneDeep } from 'lodash';
+import { MatLegacySnackBarHarness as MatSnackBarHarness } from '@angular/material/legacy-snack-bar/testing';
 
 import { ApiEndpointGroupCreateComponent } from './api-endpoint-group-create.component';
 import { ApiEndpointGroupCreateHarness } from './api-endpoint-group-create.harness';
 
 import { ApiEndpointGroupModule } from '../api-endpoint-group.module';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
-import { ApiV4, EndpointGroupV4, EndpointV4Default, fakeApiV4 } from '../../../../../entities/management-api-v2';
+import { ApiV4, ConnectorPlugin, EndpointGroupV4, EndpointV4Default, fakeApiV4 } from '../../../../../entities/management-api-v2';
 import { fakeEndpointGroupV4 } from '../../../../../entities/management-api-v2/api/v4/endpointGroupV4.fixture';
 
 const API_ID = 'api-id';
@@ -102,6 +104,26 @@ const ENDPOINT_LIST = [
     supportedApiType: 'MESSAGE',
   },
 ];
+const ENTRYPOINT_LIST: ConnectorPlugin[] = [
+  {
+    id: 'webhook',
+    name: 'Webhook',
+    description: 'Webhook entrypoint',
+    icon: 'webhook-icon',
+    deployed: true,
+    supportedApiType: 'MESSAGE',
+    availableFeatures: ['DLQ'],
+  },
+  {
+    id: 'http-get',
+    name: 'HTTP Get',
+    description: 'HTTP Get entrypoint',
+    icon: 'http-get-icon',
+    deployed: true,
+    supportedApiType: 'MESSAGE',
+    availableFeatures: [],
+  },
+];
 describe('ApiEndpointGroupCreateComponent', () => {
   let httpTestingController: HttpTestingController;
   let fixture: ComponentFixture<ApiEndpointGroupCreateComponent>;
@@ -109,14 +131,14 @@ describe('ApiEndpointGroupCreateComponent', () => {
   let api: ApiV4;
   let routerNavigationSpy: jest.SpyInstance;
 
-  const initComponent = async (testApi: ApiV4) => {
+  const initComponent = async (testApi: ApiV4, queryParams?: unknown) => {
     const routerParams: unknown = { apiId: API_ID };
 
     api = testApi;
 
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiEndpointGroupModule, MatIconTestingModule, FormsModule],
-      providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: routerParams } } }],
+      providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: routerParams, queryParams } } }],
     }).overrideProvider(InteractivityChecker, {
       useValue: {
         isFocusable: () => true,
@@ -315,6 +337,50 @@ describe('ApiEndpointGroupCreateComponent', () => {
         expect(await harness.canGoToConfigurationStep()).toEqual(false);
       });
     });
+
+    describe('Creating a DLQ Kafka endpoint group', () => {
+      async function beforeTest(dlqQueryParam: string, endpointGroupName: string) {
+        await initComponent(fakeApiV4({ id: API_ID }), { dlq: dlqQueryParam });
+        expectEntrypointListGet();
+        await fillOutAndValidateEndpointSelection('kafka');
+        await fillOutAndValidateGeneralInformation(endpointGroupName);
+        await harness.setConfigurationInputValue('topic', 'my-kafka-topic');
+        expect(await harness.isConfigurationStepValid()).toEqual(true);
+      }
+
+      it('should create DLQ endpoint group and assign it as DLQ', async () => {
+        await beforeTest('webhook', 'dlq group');
+        await createDlqEndpointGroup(
+          {
+            name: 'dlq group',
+            type: 'kafka',
+            loadBalancer: { type: 'ROUND_ROBIN' },
+            endpoints: [EndpointV4Default.byTypeAndGroupName('kafka', 'dlq group')],
+            sharedConfiguration: {
+              topic: 'my-kafka-topic',
+            },
+          },
+          'webhook',
+        );
+      });
+
+      it('should show error and create regular endpoint group if incompatible DLQ query param', async () => {
+        await beforeTest('http-get', ENDPOINT_GROUP_NAME);
+        const snackBar = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(MatSnackBarHarness);
+        expect(await snackBar.getMessage()).toEqual(
+          "Cannot create DLQ endpoint group for 'http-get' entrypoint, creating regular endpoint group instead.",
+        );
+        await createEndpointGroup({
+          name: ENDPOINT_GROUP_NAME,
+          type: 'kafka',
+          loadBalancer: { type: 'ROUND_ROBIN' },
+          endpoints: [EndpointV4Default.byTypeAndGroupName('kafka', ENDPOINT_GROUP_NAME)],
+          sharedConfiguration: {
+            topic: 'my-kafka-topic',
+          },
+        });
+      });
+    });
   });
 
   describe('V4 API - Proxy', () => {
@@ -367,11 +433,18 @@ describe('ApiEndpointGroupCreateComponent', () => {
   function expectApiPut(updatedApi: ApiV4): void {
     const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'PUT' });
     expect(req.request.body.endpointGroups).toEqual(updatedApi.endpointGroups);
+    expect(req.request.body.listeners).toStrictEqual(updatedApi.listeners);
     req.flush(updatedApi);
   }
 
   function expectEndpointListGet(): void {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/endpoints`, method: 'GET' }).flush(ENDPOINT_LIST);
+  }
+
+  function expectEntrypointListGet(): void {
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/entrypoints`, method: 'GET' })
+      .flush(ENTRYPOINT_LIST);
   }
 
   /**
@@ -392,9 +465,9 @@ describe('ApiEndpointGroupCreateComponent', () => {
     expect(await harness.isGeneralStepSelected()).toEqual(true);
   }
 
-  async function fillOutAndValidateGeneralInformation(): Promise<void> {
+  async function fillOutAndValidateGeneralInformation(endpointGroupName = ENDPOINT_GROUP_NAME): Promise<void> {
     expect(await harness.isGeneralStepSelected()).toEqual(true);
-    await harness.setNameValue(ENDPOINT_GROUP_NAME);
+    await harness.setNameValue(endpointGroupName);
     await harness.setLoadBalancerValue('ROUND_ROBIN');
     await harness.validateGeneralInformation();
     expect(await harness.isGeneralStepSelected()).toEqual(false);
@@ -430,6 +503,19 @@ describe('ApiEndpointGroupCreateComponent', () => {
     }
   }
 
+  async function createDlqEndpointGroup(endpointGroup: EndpointGroupV4, dlqEntrypoint: string): Promise<void> {
+    await harness.createDlqEndpointGroup();
+    // need to clone deep to be able to modify listeners
+    const updatedApi = cloneDeep(api);
+    updatedApi.endpointGroups = [...api.endpointGroups, endpointGroup];
+    updatedApi.listeners
+      .flatMap((listener) => listener.entrypoints)
+      .filter((entrypoint) => entrypoint.type === dlqEntrypoint)
+      .forEach((entrypoint) => (entrypoint.dlq = { endpoint: endpointGroup.name }));
+    expectApiGet();
+    expectApiPut(updatedApi);
+    expect(routerNavigationSpy).toHaveBeenCalledWith(['../../entrypoints/', dlqEntrypoint], { relativeTo: expect.anything() });
+  }
   async function createEndpointGroup(endpointGroup: EndpointGroupV4): Promise<void> {
     await harness.createEndpointGroup();
     const updatedApi = { ...api };

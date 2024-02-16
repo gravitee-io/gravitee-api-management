@@ -48,6 +48,7 @@ import { GioEntrypointsSelectionListModule } from '../component/gio-entrypoints-
 import { GioFormQosModule } from '../component/gio-form-qos/gio-form-qos.module';
 import { GioLicenseBannerModule } from '../../../shared/components/gio-license-banner/gio-license-banner.module';
 import { GioFormListenersTcpHostsModule } from '../component/gio-form-listeners/gio-form-listeners-tcp-hosts/gio-form-listeners-tcp-hosts.module';
+import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 
 @NgModule({
   imports: [
@@ -80,6 +81,7 @@ import { GioFormListenersTcpHostsModule } from '../component/gio-form-listeners/
     MatSlideToggleModule,
     GioLicenseBannerModule,
     GioFormListenersTcpHostsModule,
+    GioPermissionModule,
   ],
   declarations: [ApiEntrypointsV4GeneralComponent, ApiEntrypointsV4EditComponent, ApiEntrypointsV4AddDialogComponent],
 })
