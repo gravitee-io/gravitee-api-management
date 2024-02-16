@@ -16,7 +16,7 @@
 
 -->
 
-<h2 mat-dialog-title class="title">New notification</h2>
+<span mat-dialog-title class="title">New notification</span>
 
 <form autocomplete="off" [formGroup]="notificationForm" (ngSubmit)="onSubmit()">
   <mat-dialog-content>
@@ -35,7 +35,7 @@
     </div>
   </mat-dialog-content>
 
-  <mat-dialog-actions class="actions">
+  <mat-dialog-actions class="actions" align="end">
     <button mat-button [mat-dialog-close]="">Cancel</button>
     <button mat-button [disabled]="notificationForm.invalid" color="primary" type="submit">Create</button>
   </mat-dialog-actions>
