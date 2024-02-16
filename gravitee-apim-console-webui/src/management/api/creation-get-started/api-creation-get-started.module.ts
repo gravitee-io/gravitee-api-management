@@ -24,7 +24,7 @@ import { RouterModule } from '@angular/router';
 
 import { ApiCreationGetStartedComponent } from './api-creation-get-started.component';
 
-import { GioApiImportDialogModule } from '../../../shared/components/gio-api-import-dialog/gio-api-import-dialog.module';
+import { GioApiImportDialogModule } from '../component/gio-api-import-dialog/gio-api-import-dialog.module';
 
 @NgModule({
   imports: [

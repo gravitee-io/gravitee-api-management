@@ -52,7 +52,7 @@ import { ApiGeneralInfoPromoteDialogComponent } from './api-general-info-promote
 
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { GioCircularPercentageModule } from '../../../shared/components/gio-circular-percentage/gio-circular-percentage.module';
-import { GioApiImportDialogModule } from '../../../shared/components/gio-api-import-dialog/gio-api-import-dialog.module';
+import { GioApiImportDialogModule } from '../component/gio-api-import-dialog/gio-api-import-dialog.module';
 import { GioLicenseBannerModule } from '../../../shared/components/gio-license-banner/gio-license-banner.module';
 
 @NgModule({

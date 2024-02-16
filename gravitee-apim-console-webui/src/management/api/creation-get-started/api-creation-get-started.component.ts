@@ -19,7 +19,6 @@ import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { EMPTY, of, Subject } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
-import { MatLegacyDialog } from '@angular/material/legacy-dialog';
 
 import { CockpitService, UtmCampaign } from '../../../services-ngx/cockpit.service';
 import { Constants } from '../../../entities/Constants';
@@ -28,10 +27,7 @@ import { Installation } from '../../../entities/installation/installation';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { PolicyService } from '../../../services-ngx/policy.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
-import {
-  GioApiImportDialogComponent,
-  GioApiImportDialogData,
-} from '../../../shared/components/gio-api-import-dialog/gio-api-import-dialog.component';
+import { GioApiImportDialogComponent, GioApiImportDialogData } from '../component/gio-api-import-dialog/gio-api-import-dialog.component';
 
 @Component({
   selector: 'api-creation-get-started',
@@ -58,7 +54,6 @@ export class ApiCreationGetStartedComponent implements OnInit, OnDestroy {
     private readonly policyService: PolicyService,
     private readonly snackBarService: SnackBarService,
     private readonly matDialog: MatDialog,
-    private readonly matLegacyDialog: MatLegacyDialog,
   ) {}
 
   ngOnInit(): void {
@@ -86,7 +81,7 @@ export class ApiCreationGetStartedComponent implements OnInit, OnDestroy {
       .listSwaggerPolicies()
       .pipe(
         switchMap((policies) =>
-          this.matLegacyDialog
+          this.matDialog
             .open<GioApiImportDialogComponent, GioApiImportDialogData>(GioApiImportDialogComponent, {
               data: {
                 policies,

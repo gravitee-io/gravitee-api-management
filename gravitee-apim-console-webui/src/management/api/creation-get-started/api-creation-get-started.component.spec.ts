@@ -16,11 +16,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
-import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HarnessLoader } from '@angular/cdk/testing';
-import { MatLegacyDialogHarness } from '@angular/material/legacy-dialog/testing';
+import { MatDialogHarness } from '@angular/material/dialog/testing';
 
 import { ApiCreationGetStartedComponent } from './api-creation-get-started.component';
 import { ApiCreationGetStartedModule } from './api-creation-get-started.module';
@@ -45,13 +44,7 @@ describe('ApiCreationGetStartedComponent', () => {
           useValue: permissions,
         },
       ],
-    })
-      .overrideProvider(InteractivityChecker, {
-        useValue: {
-          isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
-        },
-      })
-      .compileComponents();
+    }).compileComponents();
 
     fixture = TestBed.createComponent(ApiCreationGetStartedComponent);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
@@ -103,7 +96,7 @@ describe('ApiCreationGetStartedComponent', () => {
 
       expectPoliciesSwaggerGetRequest();
 
-      const confirmDialog = await rootLoader.getHarness(MatLegacyDialogHarness.with({ selector: '#importApiDialog' }));
+      const confirmDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#importApiDialog' }));
       await confirmDialog.close();
     });
   });
