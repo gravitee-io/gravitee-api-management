@@ -21,7 +21,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { set } from 'lodash';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
-import { MatLegacyButtonHarness as MatButtonHarness } from '@angular/material/legacy-button/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApiPlanEditComponent } from './api-plan-edit.component';
