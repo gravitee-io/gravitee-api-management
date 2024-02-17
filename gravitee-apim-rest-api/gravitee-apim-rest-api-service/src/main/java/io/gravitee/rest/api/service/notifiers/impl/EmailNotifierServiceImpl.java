@@ -15,8 +15,8 @@
  */
 package io.gravitee.rest.api.service.notifiers.impl;
 
-import io.gravitee.apim.infra.template.TemplateProcessor;
-import io.gravitee.apim.infra.template.TemplateProcessorException;
+import io.gravitee.apim.core.template.TemplateProcessor;
+import io.gravitee.apim.core.template.TemplateProcessorException;
 import io.gravitee.rest.api.service.EmailService;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.ExecutionContext;

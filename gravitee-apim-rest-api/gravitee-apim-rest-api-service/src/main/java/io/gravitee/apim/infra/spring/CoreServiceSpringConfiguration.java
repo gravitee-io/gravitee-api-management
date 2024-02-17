@@ -17,9 +17,11 @@ package io.gravitee.apim.infra.spring;
 
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiHostValidatorDomainService;
+import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiPolicyValidatorDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiHostsDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
+import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.api_key.crud_service.ApiKeyCrudService;
 import io.gravitee.apim.core.api_key.domain_service.RevokeApiKeyDomainService;
@@ -66,6 +68,7 @@ import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
+import io.gravitee.apim.core.template.TemplateProcessor;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.apim.infra.domain_service.documentation.FreemarkerTemplateResolver;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
@@ -368,5 +371,13 @@ public class CoreServiceSpringConfiguration {
             roleQueryService,
             userCrudService
         );
+    }
+
+    @Bean
+    public ApiMetadataDecoderDomainService apiMetadataDecoderDomainService(
+        ApiMetadataQueryService metadataQueryService,
+        TemplateProcessor templateProcessor
+    ) {
+        return new ApiMetadataDecoderDomainService(metadataQueryService, templateProcessor);
     }
 }

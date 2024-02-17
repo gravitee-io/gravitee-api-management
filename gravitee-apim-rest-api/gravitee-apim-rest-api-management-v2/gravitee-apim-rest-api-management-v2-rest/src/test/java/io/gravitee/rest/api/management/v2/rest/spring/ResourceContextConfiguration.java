@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.spring;
 
 import static org.mockito.Mockito.mock;
 
+import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
@@ -36,9 +37,30 @@ import io.gravitee.apim.infra.sanitizer.SanitizerSpringConfiguration;
 import io.gravitee.apim.infra.spring.UsecaseSpringConfiguration;
 import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.repository.management.api.ApiRepository;
-import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.ApiDuplicatorService;
+import io.gravitee.rest.api.service.ApiKeyService;
+import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.ApiService;
-import io.gravitee.rest.api.service.v4.*;
+import io.gravitee.rest.api.service.ApplicationService;
+import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.service.GroupService;
+import io.gravitee.rest.api.service.MediaService;
+import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.OrganizationService;
+import io.gravitee.rest.api.service.PageService;
+import io.gravitee.rest.api.service.ParameterService;
+import io.gravitee.rest.api.service.PermissionService;
+import io.gravitee.rest.api.service.RoleService;
+import io.gravitee.rest.api.service.SubscriptionService;
+import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.WorkflowService;
+import io.gravitee.rest.api.service.v4.ApiDuplicateService;
+import io.gravitee.rest.api.service.v4.ApiImportExportService;
+import io.gravitee.rest.api.service.v4.ApiLicenseService;
+import io.gravitee.rest.api.service.v4.ApiWorkflowStateService;
+import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
+import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
+import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.PolicyPluginService;
 import org.springframework.context.annotation.Bean;
@@ -289,5 +311,10 @@ public class ResourceContextConfiguration {
     @Bean
     public ApiEventQueryService apiEventQueryService() {
         return mock(ApiEventQueryService.class);
+    }
+
+    @Bean
+    public ApiMetadataDecoderDomainService apiMetadataDecoderDomainService() {
+        return mock(ApiMetadataDecoderDomainService.class);
     }
 }

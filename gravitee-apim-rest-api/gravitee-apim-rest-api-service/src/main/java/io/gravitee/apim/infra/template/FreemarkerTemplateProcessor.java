@@ -18,6 +18,8 @@ package io.gravitee.apim.infra.template;
 import freemarker.core.TemplateClassResolver;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
+import io.gravitee.apim.core.template.TemplateProcessor;
+import io.gravitee.apim.core.template.TemplateProcessorException;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.Map;
@@ -41,7 +43,7 @@ public class FreemarkerTemplateProcessor implements TemplateProcessor {
             Template freemarkerTemplate = new Template("", new StringReader(template), configuration);
             return FreeMarkerTemplateUtils.processTemplateIntoString(freemarkerTemplate, params);
         } catch (TemplateException | IOException e) {
-            throw new TemplateProcessorException(e);
+            throw new TemplateProcessorException(template, e);
         }
     }
 }

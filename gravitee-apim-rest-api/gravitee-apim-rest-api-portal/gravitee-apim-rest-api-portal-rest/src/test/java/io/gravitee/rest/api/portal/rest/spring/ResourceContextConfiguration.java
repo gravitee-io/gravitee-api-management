@@ -19,6 +19,7 @@ import static org.mockito.Mockito.mock;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
+import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiPolicyValidatorDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
@@ -528,5 +529,10 @@ public class ResourceContextConfiguration {
     @Bean
     public ApiEventQueryService apiEventQueryService() {
         return mock(ApiEventQueryService.class);
+    }
+
+    @Bean
+    public ApiMetadataDecoderDomainService apiMetadataDecoderDomainService() {
+        return mock(ApiMetadataDecoderDomainService.class);
     }
 }
