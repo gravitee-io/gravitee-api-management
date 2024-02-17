@@ -181,8 +181,9 @@
             mat-icon-button
             aria-label="Button to edit an API"
             matTooltip="Edit API"
+            data-testid="api_list_edit_button"
           >
-            <mat-icon data-testid="api_list_edit_button">edit</mat-icon>
+            <mat-icon>edit</mat-icon>
           </button>
           <button
             *ngIf="element.readonly"

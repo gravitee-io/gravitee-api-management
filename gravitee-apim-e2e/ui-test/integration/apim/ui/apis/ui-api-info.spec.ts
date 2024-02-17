@@ -189,7 +189,7 @@ describe('API Info Page functionality', () => {
     cy.getByDataTestId('search').type(`${v4dangerzoneApi.id}{enter}`);
     cy.getByDataTestId('api_list_table_row').should('have.length', 1);
     cy.getByDataTestId('api_list_table_row').should('contain.text', v4dangerzoneApi.name);
-    cy.getByDataTestId('api_list_edit_button').first().click();
+    cy.contains('tr', v4dangerzoneApi.name).find('[data-testid="api_list_edit_button"]').click();
 
     cy.url().should('include', v4dangerzoneApi.id);
     cy.contains(`${v4dangerzoneApi.name}`).should('be.visible');
