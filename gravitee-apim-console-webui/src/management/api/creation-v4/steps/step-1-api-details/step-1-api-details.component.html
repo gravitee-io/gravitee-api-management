@@ -39,16 +39,8 @@
           <mat-error *ngIf="form.controls.name.errors?.required">API name is required</mat-error>
         </mat-form-field>
         <mat-form-field appearance="outline">
-          <input
-            id="version"
-            type="text"
-            matInput
-            formControlName="version"
-            maxlength="32"
-            required="true"
-            data-testid="api_creation_v4_version_input"
-          />
-          <mat-label>Version number</mat-label>
+          <input id="version" type="text" matInput formControlName="version" maxlength="32" required="true" />
+          <mat-label data-testid="api_creation_v4_version_input">Version number</mat-label>
           <mat-hint>For example 1.1, 1.1.1</mat-hint>
           <mat-error *ngIf="form.controls.version.errors?.required">Version number is required</mat-error>
         </mat-form-field>
