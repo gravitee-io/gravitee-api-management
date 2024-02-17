@@ -42,6 +42,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 public class ApiMetadataQueryServiceImplTest {
 
+    private static final String API_ID = "api-id";
+
     @Mock
     MetadataRepository metadataRepository;
 
@@ -59,7 +61,7 @@ public class ApiMetadataQueryServiceImplTest {
         void should_return_api_metadata() {
             // given
             givenExistingApiMetadata(
-                "api-id",
+                API_ID,
                 List.of(
                     Metadata
                         .builder()
@@ -75,7 +77,7 @@ public class ApiMetadataQueryServiceImplTest {
             );
 
             // when
-            var result = service.findApiMetadata("api-id");
+            var result = service.findApiMetadata(API_ID);
 
             // then
             Assertions
@@ -83,11 +85,11 @@ public class ApiMetadataQueryServiceImplTest {
                 .hasSize(2)
                 .containsEntry(
                     "team-contact",
-                    ApiMetadata.builder().key("team-contact").value("team@gravitee.io").format(MetadataFormat.MAIL).build()
+                    ApiMetadata.builder().apiId(API_ID).key("team-contact").value("team@gravitee.io").format(MetadataFormat.MAIL).build()
                 )
                 .containsEntry(
                     "homepage",
-                    ApiMetadata.builder().key("homepage").value("https://gravitee.io").format(MetadataFormat.URL).build()
+                    ApiMetadata.builder().apiId(API_ID).key("homepage").value("https://gravitee.io").format(MetadataFormat.URL).build()
                 );
         }
 
@@ -105,7 +107,7 @@ public class ApiMetadataQueryServiceImplTest {
                 )
             );
             givenExistingApiMetadata(
-                "api-id",
+                API_ID,
                 List.of(
                     Metadata
                         .builder()
@@ -121,7 +123,7 @@ public class ApiMetadataQueryServiceImplTest {
             );
 
             // when
-            var result = service.findApiMetadata("api-id");
+            var result = service.findApiMetadata(API_ID);
 
             // then
             Assertions
@@ -139,7 +141,7 @@ public class ApiMetadataQueryServiceImplTest {
                 )
                 .containsEntry(
                     "homepage",
-                    ApiMetadata.builder().key("homepage").value("https://gravitee.io").format(MetadataFormat.URL).build()
+                    ApiMetadata.builder().apiId(API_ID).key("homepage").value("https://gravitee.io").format(MetadataFormat.URL).build()
                 )
                 .containsEntry("brand", ApiMetadata.builder().key("brand").defaultValue("Gravitee").format(MetadataFormat.STRING).build());
         }
@@ -148,7 +150,7 @@ public class ApiMetadataQueryServiceImplTest {
         public void should_throw_when_fail_to_fetch_api_metadata() {
             givenApiMetadataFailToBeFetched("technical exception");
 
-            Throwable throwable = catchThrowable(() -> service.findApiMetadata("api-id"));
+            Throwable throwable = catchThrowable(() -> service.findApiMetadata(API_ID));
 
             assertThat(throwable).isInstanceOf(TechnicalManagementException.class).hasMessageContaining("technical exception");
         }
@@ -157,7 +159,7 @@ public class ApiMetadataQueryServiceImplTest {
         public void should_throw_when_fail_to_fetch_default_metadata() {
             givenDefaultMetadataFailToBeFetched("technical exception");
 
-            Throwable throwable = catchThrowable(() -> service.findApiMetadata("api-id"));
+            Throwable throwable = catchThrowable(() -> service.findApiMetadata(API_ID));
 
             assertThat(throwable).isInstanceOf(TechnicalManagementException.class).hasMessageContaining("technical exception");
         }

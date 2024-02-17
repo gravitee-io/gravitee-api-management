@@ -19,24 +19,38 @@ import static java.util.stream.Collectors.toMap;
 
 import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
-import java.util.HashMap;
+import io.gravitee.apim.core.metadata.model.Metadata;
+import io.gravitee.apim.infra.adapter.MetadataAdapter;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-public class ApiMetadataQueryServiceInMemory implements ApiMetadataQueryService, InMemoryAlternative<Map.Entry<String, List<ApiMetadata>>> {
+public class ApiMetadataQueryServiceInMemory implements ApiMetadataQueryService, InMemoryAlternative<ApiMetadata> {
 
-    Map<String, List<ApiMetadata>> storage = new HashMap<>();
+    final List<Metadata> storage;
 
-    @Override
-    public Map<String, ApiMetadata> findApiMetadata(String apiId) {
-        return storage.get(apiId).stream().collect(toMap(ApiMetadata::getKey, Function.identity()));
+    public ApiMetadataQueryServiceInMemory() {
+        storage = new ArrayList<>();
+    }
+
+    public ApiMetadataQueryServiceInMemory(MetadataCrudServiceInMemory metadataCrudServiceInMemory) {
+        this.storage = metadataCrudServiceInMemory.storage;
     }
 
     @Override
-    public void initWith(List<Map.Entry<String, List<ApiMetadata>>> items) {
+    public Map<String, ApiMetadata> findApiMetadata(String apiId) {
+        return storage
+            .stream()
+            .filter(metadata -> metadata.getReferenceId().equals(apiId))
+            .collect(toMap(Metadata::getKey, MetadataAdapter.INSTANCE::toApiMetadata));
+    }
+
+    @Override
+    public void initWith(List<ApiMetadata> items) {
         storage.clear();
-        items.forEach(entry -> storage.put(entry.getKey(), entry.getValue()));
+        storage.addAll(items.stream().map(MetadataAdapter.INSTANCE::toMetadata).toList());
     }
 
     @Override
@@ -45,7 +59,7 @@ public class ApiMetadataQueryServiceInMemory implements ApiMetadataQueryService,
     }
 
     @Override
-    public List<Map.Entry<String, List<ApiMetadata>>> storage() {
-        return storage.entrySet().stream().toList();
+    public List<ApiMetadata> storage() {
+        return storage.stream().map(MetadataAdapter.INSTANCE::toApiMetadata).toList();
     }
 }

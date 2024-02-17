@@ -222,9 +222,15 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                 anApi().withId(API_ID),
                 PrimaryOwnerEntity.builder().id(USER_ID).build(),
                 List.of(
-                    ApiMetadata.builder().key("key1").value("value1").format(MetadataFormat.STRING).build(),
-                    ApiMetadata.builder().key("null_key").value(null).format(MetadataFormat.STRING).build(),
-                    ApiMetadata.builder().key("email-support").value("${(api.primaryOwner.email)!''}").format(MetadataFormat.STRING).build()
+                    ApiMetadata.builder().apiId(API_ID).key("key1").value("value1").format(MetadataFormat.STRING).build(),
+                    ApiMetadata.builder().apiId(API_ID).key("null_key").value(null).format(MetadataFormat.STRING).build(),
+                    ApiMetadata
+                        .builder()
+                        .apiId(API_ID)
+                        .key("email-support")
+                        .value("${(api.primaryOwner.email)!''}")
+                        .format(MetadataFormat.STRING)
+                        .build()
                 )
             );
 
@@ -623,9 +629,15 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                 anApi().withId(API_ID),
                 PrimaryOwnerEntity.builder().id(USER_ID).build(),
                 List.of(
-                    ApiMetadata.builder().key("key1").value("value1").format(MetadataFormat.STRING).build(),
-                    ApiMetadata.builder().key("null_key").value(null).format(MetadataFormat.STRING).build(),
-                    ApiMetadata.builder().key("email-support").value("${(api.primaryOwner.email)!''}").format(MetadataFormat.STRING).build()
+                    ApiMetadata.builder().apiId(API_ID).key("key1").value("value1").format(MetadataFormat.STRING).build(),
+                    ApiMetadata.builder().apiId(API_ID).key("null_key").value(null).format(MetadataFormat.STRING).build(),
+                    ApiMetadata
+                        .builder()
+                        .apiId(API_ID)
+                        .key("email-support")
+                        .value("${(api.primaryOwner.email)!''}")
+                        .format(MetadataFormat.STRING)
+                        .build()
                 )
             );
 
@@ -908,7 +920,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
 
         membershipCrudService.initWith(List.of(anApiPrimaryOwnerUserMembership(API_ID, primaryOwnerEntity.id(), ORGANIZATION_ID)));
 
-        apiMetadataQueryService.initWith(List.of(Map.entry(api.getId(), metadata)));
+        apiMetadataQueryService.initWith(metadata);
     }
 
     @SneakyThrows
