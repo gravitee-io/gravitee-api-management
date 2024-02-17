@@ -15,8 +15,10 @@
  */
 package io.gravitee.apim.infra.adapter;
 
+import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.metadata.model.Metadata;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 @Mapper
@@ -26,4 +28,11 @@ public interface MetadataAdapter {
     Metadata toEntity(io.gravitee.repository.management.model.Metadata source);
 
     io.gravitee.repository.management.model.Metadata toRepository(Metadata source);
+
+    @Mapping(target = "apiId", source = "referenceId")
+    ApiMetadata toApiMetadata(Metadata source);
+
+    @Mapping(target = "referenceType", expression = "java(io.gravitee.apim.core.metadata.model.Metadata.ReferenceType.API)")
+    @Mapping(target = "referenceId", source = "apiId")
+    Metadata toMetadata(ApiMetadata source);
 }
