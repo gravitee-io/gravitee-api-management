@@ -15,10 +15,11 @@
  */
 package io.gravitee.apim.infra.notification.internal;
 
-import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
+import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
+import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService.ApiMetadataDecodeContext;
+import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService.PrimaryOwnerMetadataDecodeContext;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
-import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.notification.model.ApiNotificationTemplateData;
 import io.gravitee.apim.core.notification.model.ApplicationNotificationTemplateData;
 import io.gravitee.apim.core.notification.model.PlanNotificationTemplateData;
@@ -26,24 +27,15 @@ import io.gravitee.apim.core.notification.model.PrimaryOwnerNotificationTemplate
 import io.gravitee.apim.core.notification.model.SubscriptionNotificationTemplateData;
 import io.gravitee.apim.core.notification.model.hook.HookContext;
 import io.gravitee.apim.core.notification.model.hook.HookContextEntry;
-import io.gravitee.apim.infra.template.TemplateProcessor;
-import io.gravitee.apim.infra.template.TemplateProcessorException;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.ApplicationRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.api.SubscriptionRepository;
-import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -58,8 +50,7 @@ public class TemplateDataFetcher {
     private final SubscriptionRepository subscriptionRepository;
     private final ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService;
     private final ApplicationPrimaryOwnerDomainService applicationPrimaryOwnerDomainService;
-    private final ApiMetadataQueryService metadataQueryService;
-    private final TemplateProcessor templateProcessor;
+    private final ApiMetadataDecoderDomainService apiMetadataDecoderDomainService;
 
     public TemplateDataFetcher(
         @Lazy ApiRepository apiRepository,
@@ -68,8 +59,7 @@ public class TemplateDataFetcher {
         @Lazy SubscriptionRepository subscriptionRepository,
         ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService,
         ApplicationPrimaryOwnerDomainService applicationPrimaryOwnerDomainService,
-        ApiMetadataQueryService metadataQueryService,
-        TemplateProcessor templateProcessor
+        ApiMetadataDecoderDomainService apiMetadataDecoderDomainService
     ) {
         this.apiRepository = apiRepository;
         this.applicationRepository = applicationRepository;
@@ -77,8 +67,7 @@ public class TemplateDataFetcher {
         this.subscriptionRepository = subscriptionRepository;
         this.apiPrimaryOwnerDomainService = apiPrimaryOwnerDomainService;
         this.applicationPrimaryOwnerDomainService = applicationPrimaryOwnerDomainService;
-        this.metadataQueryService = metadataQueryService;
-        this.templateProcessor = templateProcessor;
+        this.apiMetadataDecoderDomainService = apiMetadataDecoderDomainService;
     }
 
     public Map<String, Object> fetchData(String organizationId, HookContext hookContext) {
@@ -119,13 +108,24 @@ public class TemplateDataFetcher {
                 .findById(apiId)
                 .map(api -> {
                     var apiPrimaryOwner = apiPrimaryOwnerDomainService.getApiPrimaryOwner(organizationId, apiId);
-                    var metadata = metadataQueryService
-                        .findApiMetadata(apiId)
-                        .entrySet()
-                        .stream()
-                        .filter(entry -> entry.getValue().getValue() != null)
-                        .map(entry -> Map.entry(entry.getKey(), entry.getValue().getValue()))
-                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                    var metadata = apiMetadataDecoderDomainService.decodeMetadata(
+                        apiId,
+                        ApiMetadataDecodeContext
+                            .builder()
+                            .name(api.getName())
+                            .description(api.getDescription())
+                            .createdAt(api.getCreatedAt())
+                            .updatedAt(api.getUpdatedAt())
+                            .primaryOwner(
+                                new PrimaryOwnerMetadataDecodeContext(
+                                    apiPrimaryOwner.id(),
+                                    apiPrimaryOwner.displayName(),
+                                    apiPrimaryOwner.email(),
+                                    apiPrimaryOwner.type().name()
+                                )
+                            )
+                            .build()
+                    );
 
                     return ApiNotificationTemplateData
                         .builder()
@@ -138,7 +138,7 @@ public class TemplateDataFetcher {
                         .updatedAt(api.getUpdatedAt())
                         .deployedAt(api.getDeployedAt())
                         .primaryOwner(PrimaryOwnerNotificationTemplateData.from(apiPrimaryOwner))
-                        .metadata(decodeMetadata(metadata, api, apiPrimaryOwner))
+                        .metadata(metadata)
                         .build();
                 });
         } catch (TechnicalException e) {
@@ -212,68 +212,5 @@ public class TemplateDataFetcher {
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(e);
         }
-    }
-
-    private Map<String, String> decodeMetadata(Map<String, String> metadata, Api api, PrimaryOwnerEntity primaryOwner) {
-        if (metadata.isEmpty()) {
-            return metadata;
-        }
-
-        try {
-            var decodedValue = templateProcessor.processInlineTemplate(
-                metadata.toString(),
-                Collections.singletonMap(
-                    "api",
-                    ApiMetadataDecodeContext
-                        .builder()
-                        .name(api.getName())
-                        .description(api.getDescription())
-                        .createdAt(api.getCreatedAt())
-                        .updatedAt(api.getUpdatedAt())
-                        .primaryOwner(
-                            new PrimaryOwnerMetadataDecodeContext(
-                                primaryOwner.id(),
-                                primaryOwner.displayName(),
-                                primaryOwner.email(),
-                                primaryOwner.type().name()
-                            )
-                        )
-                        .build()
-                )
-            );
-
-            return Arrays
-                .stream(decodedValue.substring(1, decodedValue.length() - 1).split(", "))
-                .map(entry -> entry.split("=", 2))
-                .collect(Collectors.toMap(entry -> entry[0], entry -> entry.length > 1 ? entry[1] : ""));
-        } catch (TemplateProcessorException e) {
-            log.warn("Error while creating template from reader:\n{}", e.getMessage());
-            return metadata;
-        } catch (Exception ex) {
-            throw new TechnicalManagementException("An error occurs while evaluating API metadata", ex);
-        }
-    }
-
-    @Builder
-    @AllArgsConstructor
-    @Data
-    public static class ApiMetadataDecodeContext {
-
-        private String name;
-        private String description;
-        private Date createdAt;
-        private Date updatedAt;
-        private PrimaryOwnerMetadataDecodeContext primaryOwner;
-    }
-
-    @Builder
-    @AllArgsConstructor
-    @Data
-    public static class PrimaryOwnerMetadataDecodeContext {
-
-        private String id;
-        private String displayName;
-        private String email;
-        private String type;
     }
 }

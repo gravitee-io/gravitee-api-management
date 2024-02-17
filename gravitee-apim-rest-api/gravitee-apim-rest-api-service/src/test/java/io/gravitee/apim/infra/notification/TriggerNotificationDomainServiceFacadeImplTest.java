@@ -32,6 +32,7 @@ import inmemory.MembershipCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
+import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
@@ -148,8 +149,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                         roleQueryService,
                         userCrudService
                     ),
-                    apiMetadataQueryService,
-                    new FreemarkerTemplateProcessor()
+                    new ApiMetadataDecoderDomainService(apiMetadataQueryService, new FreemarkerTemplateProcessor())
                 )
             );
 

@@ -13,11 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.infra.template;
+package io.gravitee.apim.core.template;
 
+import lombok.Getter;
+
+@Getter
 public class TemplateProcessorException extends Exception {
 
-    public TemplateProcessorException(Throwable cause) {
+    private String template;
+
+    public TemplateProcessorException(String template, Throwable cause) {
         super(cause);
+        this.template = template;
     }
 }
