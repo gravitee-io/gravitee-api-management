@@ -5,6 +5,7 @@ import { importProvidersFrom } from '@angular/core';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpClientModule } from '@angular/common/http';
 import { CONSTANTS_TESTING } from '../src/shared/testing';
+import { Constants } from '../src/entities/Constants';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { RouterTestingModule } from '@angular/router/testing';
 
@@ -21,7 +22,7 @@ export const decorators = [
       importProvidersFrom(HttpClientModule),
       importProvidersFrom(MatSnackBarModule),
       {
-        provide: 'Constants',
+        provide: Constants,
         useValue: CONSTANTS_TESTING,
       },
     ],

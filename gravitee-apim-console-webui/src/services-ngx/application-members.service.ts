@@ -25,7 +25,7 @@ import { ApplicationTransferOwnership } from '../entities/application/applicatio
   providedIn: 'root',
 })
 export class ApplicationMembersService {
-  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
+  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
 
   get(applicationId: string): Observable<Member[]> {
     return this.http.get<Member[]>(`${this.constants.env.baseURL}/applications/${applicationId}/members`);

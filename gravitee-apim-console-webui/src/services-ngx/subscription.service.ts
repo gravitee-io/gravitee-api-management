@@ -25,7 +25,7 @@ import { PagedResult } from '../entities/pagedResult';
   providedIn: 'root',
 })
 export class SubscriptionService {
-  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
+  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
 
   public getApiSubscriptionsByPlan(apiId: string, planId): Observable<PagedResult<Subscription>> {
     return this.http.get<PagedResult<Subscription>>(

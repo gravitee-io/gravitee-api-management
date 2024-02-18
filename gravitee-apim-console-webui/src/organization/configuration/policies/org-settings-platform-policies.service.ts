@@ -36,7 +36,7 @@ export class OrgSettingsPlatformPoliciesService {
     readonly http: HttpClient,
     readonly apiService: ApiService,
     readonly flowService: FlowService,
-    @Inject('Constants') readonly constants: Constants,
+    @Inject(Constants) readonly constants: Constants,
   ) {}
 
   listPolicies(params: ListParams): Observable<PolicyListItem[]> {

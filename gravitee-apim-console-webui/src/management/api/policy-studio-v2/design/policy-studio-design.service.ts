@@ -35,7 +35,7 @@ export class PolicyStudioDesignService {
     readonly http: HttpClient,
     readonly apiService: ApiService,
     readonly permissionService: GioPermissionService,
-    @Inject('Constants') readonly constants: Constants,
+    @Inject(Constants) readonly constants: Constants,
   ) {}
 
   listPolicies(params: ListParams): Observable<PolicyListItem[]> {

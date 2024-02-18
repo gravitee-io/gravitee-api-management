@@ -263,7 +263,7 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
     private readonly permissionService: GioPermissionService,
-    @Inject('Constants') private readonly constants: Constants,
+    @Inject(Constants) private readonly constants: Constants,
     private readonly gioMenuService: GioMenuService,
     private readonly apiV2Service: ApiV2Service,
     private readonly legacyApiService: ApiService,

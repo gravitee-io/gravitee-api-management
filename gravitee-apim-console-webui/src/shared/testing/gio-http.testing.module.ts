@@ -54,7 +54,7 @@ export const CONSTANTS_TESTING: Constants = {
   imports: [HttpClientTestingModule, RouterTestingModule.withRoutes([{ path: '**', redirectTo: '' }]), MatIconTestingModule],
   providers: [
     {
-      provide: 'Constants',
+      provide: Constants,
       useValue: CONSTANTS_TESTING,
     },
   ],

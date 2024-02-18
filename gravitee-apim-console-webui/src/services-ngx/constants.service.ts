@@ -56,7 +56,7 @@ export const AVAILABLE_PLANS_FOR_MENU: PlanMenuItemVM[] = [
   providedIn: 'root',
 })
 export class ConstantsService {
-  constructor(@Inject('Constants') private readonly constants: Constants) {}
+  constructor(@Inject(Constants) private readonly constants: Constants) {}
 
   getEnabledPlanMenuItems(): PlanMenuItemVM[] {
     const planSecuritySettings: [string, { enabled: boolean }][] = Object.entries(this.constants.env?.settings?.plan?.security ?? {});

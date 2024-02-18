@@ -234,11 +234,13 @@ export class PullRequestsWorkflow {
         new workflow.WorkflowJob(storybookConsoleJob, {
           name: 'Build Console Storybook',
           context: config.jobContext,
+          node_version: config.executor.node.console.version,
         }),
         new workflow.WorkflowJob(chromaticConsoleJob, {
           name: 'Deploy console in chromatic',
           context: config.jobContext,
           requires: ['Build Console Storybook'],
+          node_version: config.executor.node.console.version,
         }),
         new workflow.WorkflowJob(sonarCloudAnalysisJob, {
           name: 'Sonar - gravitee-apim-console-webui',

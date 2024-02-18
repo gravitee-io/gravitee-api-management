@@ -31,7 +31,7 @@ export class ReCaptchaService {
   private reCaptchaToken: string;
   private display = false;
 
-  constructor(@Inject('Constants') private readonly constants: Constants) {
+  constructor(@Inject(Constants) private readonly constants: Constants) {
     this.enabled = this.constants.org.settings.reCaptcha && !!this.constants.org.settings.reCaptcha.enabled;
     if (this.enabled) {
       this.siteKey = this.constants.org.settings.reCaptcha.siteKey;

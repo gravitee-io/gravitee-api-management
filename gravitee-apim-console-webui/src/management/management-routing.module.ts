@@ -34,9 +34,9 @@ const managementRoutes: Routes = [
   {
     path: '',
     component: ManagementComponent,
-    canActivate: [HasEnvironmentPermissionGuard],
-    canActivateChild: [HasEnvironmentPermissionGuard, HasLicenseGuard],
-    canDeactivate: [HasEnvironmentPermissionGuard],
+    canActivate: [HasEnvironmentPermissionGuard.canActivate],
+    canActivateChild: [HasEnvironmentPermissionGuard.canActivateChild, HasLicenseGuard],
+    canDeactivate: [HasEnvironmentPermissionGuard.canDeactivate],
     children: [
       {
         path: 'home',

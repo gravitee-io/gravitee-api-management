@@ -31,7 +31,7 @@ interface ListParams {
   providedIn: 'root',
 })
 export class PolicyService {
-  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
+  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
 
   list(params: ListParams): Observable<PolicyListItem[]> {
     let httpParams = new HttpParams();

@@ -26,7 +26,7 @@ import { NewIdentityProvider } from '../entities/identity-provider/newIdentityPr
   providedIn: 'root',
 })
 export class IdentityProviderService {
-  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
+  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
 
   list(): Observable<IdentityProviderListItem[]> {
     return this.http.get<IdentityProviderListItem[]>(`${this.constants.org.baseURL}/configuration/identities`);

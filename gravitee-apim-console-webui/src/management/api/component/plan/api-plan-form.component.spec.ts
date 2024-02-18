@@ -48,6 +48,7 @@ import {
 } from '../../../../entities/management-api-v2';
 import { AVAILABLE_PLANS_FOR_MENU, PlanFormType, PlanMenuItemVM } from '../../../../services-ngx/constants.service';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { Constants } from '../../../../entities/Constants';
 
 @Component({
   template: `
@@ -96,7 +97,7 @@ describe('ApiPlanFormComponent', () => {
       providers: [
         { provide: GioTestingPermissionProvider, useValue: ['api-plan-u'] },
         {
-          provide: 'Constants',
+          provide: Constants,
           useFactory: () => {
             const constants = CONSTANTS_TESTING;
             set(constants, 'env.settings.plan.security', {

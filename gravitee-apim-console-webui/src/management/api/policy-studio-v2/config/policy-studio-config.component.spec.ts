@@ -30,6 +30,7 @@ import { fakeFlowConfigurationSchema } from '../../../../entities/flow/configura
 import { PolicyStudioService } from '../policy-studio.service';
 import { toApiDefinition } from '../models/ApiDefinition';
 import { fakeApiV2 } from '../../../../entities/management-api-v2';
+import { Constants } from '../../../../entities/Constants';
 
 describe('PolicyStudioConfigComponent', () => {
   let fixture: ComponentFixture<PolicyStudioConfigComponent>;
@@ -46,7 +47,7 @@ describe('PolicyStudioConfigComponent', () => {
       imports: [NoopAnimationsModule, GioHttpTestingModule, PolicyStudioConfigModule, MatIconTestingModule],
       providers: [
         {
-          provide: 'Constants',
+          provide: Constants,
           useValue: {
             ...CONSTANTS_TESTING,
             org: {

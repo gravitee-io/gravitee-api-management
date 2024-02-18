@@ -49,7 +49,7 @@ export class GioTopNavComponent implements OnInit, OnDestroy {
   public portalUrl?: string;
 
   constructor(
-    @Inject('Constants') public readonly constants: Constants,
+    @Inject(Constants) public readonly constants: Constants,
     public readonly taskService: TaskService,
     private readonly uiCustomizationService: UiCustomizationService,
     private readonly licenseService: GioLicenseService,

@@ -192,7 +192,7 @@ function bootstrapApplication(constants: Constants) {
   }
 
   platformBrowserDynamic([
-    { provide: 'Constants', useValue: constants },
+    { provide: Constants, useValue: constants },
     { provide: 'LicenseConfiguration', useValue: licenseConfiguration },
   ])
     .bootstrapModule(AppModule)

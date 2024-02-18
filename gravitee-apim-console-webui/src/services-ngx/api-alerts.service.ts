@@ -13,19 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AlertTriggerEntity } from 'src/entities/alerts/alertTriggerEntity';
 
 import { Inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
+import { AlertTriggerEntity } from '../entities/alerts/alertTriggerEntity';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ApiAlertsService {
-  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
+  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
 
   listAlerts(apiId: string, withEventCounts: boolean): Observable<AlertTriggerEntity[]> {
     return this.http.get<AlertTriggerEntity[]>(`${this.constants.env.baseURL}/apis/${apiId}/alerts?event_counts=${withEventCounts}`);

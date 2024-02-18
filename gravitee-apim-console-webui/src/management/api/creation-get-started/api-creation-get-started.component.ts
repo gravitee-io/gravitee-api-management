@@ -45,7 +45,7 @@ export class ApiCreationGetStartedComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
 
   constructor(
-    @Inject('Constants') private readonly constants: Constants,
+    @Inject(Constants) private readonly constants: Constants,
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
     private readonly cockpitService: CockpitService,

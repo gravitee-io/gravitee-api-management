@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable } from '@angular/core';
-import { ActivatedRouteSnapshot, CanActivateChild, Router, RouterStateSnapshot } from '@angular/router';
+import { inject } from '@angular/core';
+import { ActivatedRouteSnapshot, CanActivateChildFn, Router, RouterStateSnapshot } from '@angular/router';
 import { map } from 'rxjs/operators';
-import { Observable, of } from 'rxjs';
 import { GioLicenseService } from '@gravitee/ui-particles-angular';
 
 export interface GioRequireLicenseRouterData {
@@ -26,28 +25,24 @@ export interface GioRequireLicenseRouterData {
   redirect: string;
 }
 
-@Injectable({
-  providedIn: 'root',
-})
-export class HasLicenseGuard implements CanActivateChild {
-  constructor(private readonly gioLicenseService: GioLicenseService, private readonly router: Router) {}
+export const HasLicenseGuard: CanActivateChildFn = (route: ActivatedRouteSnapshot, _state: RouterStateSnapshot) => {
+  const gioLicenseService = inject(GioLicenseService);
+  const router = inject(Router);
 
-  canActivateChild(route: ActivatedRouteSnapshot, _state: RouterStateSnapshot): Observable<boolean> {
-    const licenseRouterData: GioRequireLicenseRouterData | undefined = route.data.requireLicense;
-    if (!licenseRouterData) {
-      // no license required
-      return of(true);
-    }
-
-    return this.gioLicenseService.isMissingFeature$(licenseRouterData.license).pipe(
-      map((notAllowed) => {
-        if (notAllowed) {
-          this.router.navigate([licenseRouterData.redirect]);
-          return false;
-        }
-
-        return true;
-      }),
-    );
+  const licenseRouterData: GioRequireLicenseRouterData | undefined = route.data.requireLicense;
+  if (!licenseRouterData) {
+    // no license required
+    return of(true);
   }
-}
+
+  return gioLicenseService.isMissingFeature$(licenseRouterData.license).pipe(
+    map((notAllowed) => {
+      if (notAllowed) {
+        router.navigate([licenseRouterData.redirect]);
+        return false;
+      }
+
+      return true;
+    }),
+  );
+};

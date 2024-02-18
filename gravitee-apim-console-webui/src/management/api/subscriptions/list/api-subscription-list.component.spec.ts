@@ -52,6 +52,7 @@ import { ApiPortalSubscriptionCreationDialogHarness } from '../components/dialog
 import { PlanSecurityType } from '../../../../entities/plan';
 import { ApplicationSubscription } from '../../../../entities/subscription/subscription';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { Constants } from '../../../../entities/Constants';
 
 @Component({
   template: ` <api-subscription-list #apiSubscriptionList></api-subscription-list> `,
@@ -87,7 +88,7 @@ describe('ApiSubscriptionListComponent', () => {
           },
         },
         {
-          provide: 'Constants',
+          provide: Constants,
           useFactory: () => {
             const constants = CONSTANTS_TESTING;
             set(

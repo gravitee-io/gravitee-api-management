@@ -25,7 +25,7 @@ import { Audit, AuditEventsResponse, PagedResult, SearchApiAuditParam } from '..
   providedIn: 'root',
 })
 export class ApiAuditsV2Service {
-  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
+  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
 
   searchApiAudit(apiId: string, queryParam?: SearchApiAuditParam): Observable<PagedResult<Audit>> {
     let params = new HttpParams();

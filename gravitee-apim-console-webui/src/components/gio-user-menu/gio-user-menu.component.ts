@@ -39,7 +39,7 @@ export class GioUserMenuComponent implements OnInit {
   public newsletterProposed: boolean;
 
   constructor(
-    @Inject('Constants') public readonly constants: Constants,
+    @Inject(Constants) public readonly constants: Constants,
     public readonly router: Router,
     public readonly activatedRoute: ActivatedRoute,
     public readonly currentUserService: CurrentUserService,

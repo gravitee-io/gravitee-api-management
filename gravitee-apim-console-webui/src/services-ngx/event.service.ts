@@ -32,7 +32,7 @@ export interface EventPage {
   providedIn: 'root',
 })
 export class EventService {
-  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
+  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
 
   public findById(apiId: string, eventId: string): Observable<Event> {
     return this.http.get<Event>(`${this.constants.env.baseURL}/apis/${apiId}/events/${eventId}`);

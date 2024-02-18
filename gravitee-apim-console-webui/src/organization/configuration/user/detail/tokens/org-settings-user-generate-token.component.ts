@@ -48,7 +48,7 @@ export class OrgSettingsUserGenerateTokenComponent implements OnDestroy {
     private locationStrategy: LocationStrategy,
     private readonly snackBarService: SnackBarService,
     @Inject(MAT_DIALOG_DATA) confirmDialogData: OrgSettingsUserGenerateTokenDialogData,
-    @Inject('Constants') private readonly constants: Constants,
+    @Inject(Constants) private readonly constants: Constants,
   ) {
     this.token = confirmDialogData.token;
     this.userId = confirmDialogData.userId;

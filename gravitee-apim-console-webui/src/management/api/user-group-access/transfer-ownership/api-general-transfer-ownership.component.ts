@@ -61,7 +61,7 @@ export class ApiGeneralTransferOwnershipComponent implements OnInit, OnDestroy {
 
   constructor(
     public readonly activatedRoute: ActivatedRoute,
-    @Inject('Constants') private readonly constants: Constants,
+    @Inject(Constants) private readonly constants: Constants,
     @Inject(MAT_DIALOG_DATA) dialogData: ApiOwnershipDialogData,
     public dialogRef: MatDialogRef<ApiOwnershipDialogData, ApiOwnershipDialogResult>,
   ) {

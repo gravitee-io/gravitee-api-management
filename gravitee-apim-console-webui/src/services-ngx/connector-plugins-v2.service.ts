@@ -26,7 +26,7 @@ import { ApiType, ConnectorPlugin, MoreInformation } from '../entities/managemen
   providedIn: 'root',
 })
 export class ConnectorPluginsV2Service {
-  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
+  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
 
   listEndpointPlugins(): Observable<ConnectorPlugin[]> {
     return this.http.get<ConnectorPlugin[]>(`${this.constants.org.v2BaseURL}/plugins/endpoints`);

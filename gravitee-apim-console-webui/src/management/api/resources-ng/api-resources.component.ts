@@ -50,7 +50,7 @@ export class ApiResourcesComponent implements OnInit, OnDestroy {
     private readonly apiService: ApiV2Service,
     private readonly apiResourcesService: ApiResourcesService,
     private readonly gioLicenseService: GioLicenseService,
-    @Inject('Constants') private readonly constants: Constants,
+    @Inject(Constants) private readonly constants: Constants,
   ) {}
 
   ngOnInit(): void {

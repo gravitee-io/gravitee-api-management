@@ -19,7 +19,7 @@ import { ActivatedRoute } from '@angular/router';
 
 @Component({
   template: '',
-  selector: 'settings-analytics',
+  selector: 'settings-analytics-dashboard-ajs',
   host: {
     class: 'bootstrap gv-sub-content',
   },

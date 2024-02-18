@@ -27,6 +27,7 @@ import { ApiNavigationComponent } from './api-navigation.component';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { Api, fakeApiV1, fakeApiV2, fakeApiV4 } from '../../../entities/management-api-v2';
 import { GioPermissionService, GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
+import { Constants } from '../../../entities/Constants';
 
 describe('ApiNavigationComponent', () => {
   const API_ID = 'apiId';
@@ -56,7 +57,7 @@ describe('ApiNavigationComponent', () => {
             provide: GioTestingPermissionProvider,
             useValue: ['environment-api-c'],
           },
-          { provide: 'Constants', useValue: CONSTANTS_TESTING },
+          { provide: Constants, useValue: CONSTANTS_TESTING },
           { provide: 'LicenseConfiguration', useValue: LICENSE_CONFIGURATION_TESTING },
         ],
       }).compileComponents();
@@ -182,7 +183,7 @@ describe('ApiNavigationComponent', () => {
               hasAnyMatching: () => true,
             },
           },
-          { provide: 'Constants', useValue: CONSTANTS_TESTING },
+          { provide: Constants, useValue: CONSTANTS_TESTING },
           { provide: 'LicenseConfiguration', useValue: LICENSE_CONFIGURATION_TESTING },
           { provide: GioMenuSearchService, useValue: menuSearchService },
         ],

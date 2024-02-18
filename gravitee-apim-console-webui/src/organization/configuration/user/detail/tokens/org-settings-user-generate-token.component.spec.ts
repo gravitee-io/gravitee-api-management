@@ -32,6 +32,7 @@ import { OrganizationSettingsModule } from '../../../organization-settings.modul
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { Token } from '../../../../../entities/user/userTokens';
 import { fakeUserToken } from '../../../../../entities/user/userToken.fixture';
+import { Constants } from '../../../../../entities/Constants';
 
 describe('OrgSettingsUserGenerateTokenComponent', () => {
   let component: OrgSettingsUserGenerateTokenComponent;
@@ -50,7 +51,7 @@ describe('OrgSettingsUserGenerateTokenComponent', () => {
       imports: [NoopAnimationsModule, OrganizationSettingsModule, GioHttpTestingModule],
       providers: [
         {
-          provide: 'Constants',
+          provide: Constants,
           useValue: fakeConstants,
         },
         {

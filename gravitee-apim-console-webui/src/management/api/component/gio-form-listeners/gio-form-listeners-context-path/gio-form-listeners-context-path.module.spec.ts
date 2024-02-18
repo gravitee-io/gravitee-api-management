@@ -28,6 +28,7 @@ import { GioFormListenersContextPathHarness } from './gio-form-listeners-context
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
 import { PortalSettings } from '../../../../../entities/portal/portalSettings';
+import { Constants } from '../../../../../entities/Constants';
 
 @Component({
   template: ` <gio-form-listeners-context-path [formControl]="formControl"></gio-form-listeners-context-path> `,
@@ -84,7 +85,7 @@ describe('GioFormListenersContextPathModule', () => {
         imports: [NoopAnimationsModule, GioFormListenersContextPathModule, MatIconTestingModule, ReactiveFormsModule, GioHttpTestingModule],
         providers: [
           {
-            provide: 'Constants',
+            provide: Constants,
             useValue: fakeConstants,
           },
         ],
@@ -286,7 +287,7 @@ describe('GioFormListenersContextPathModule', () => {
         imports: [NoopAnimationsModule, GioFormListenersContextPathModule, MatIconTestingModule, ReactiveFormsModule, GioHttpTestingModule],
         providers: [
           {
-            provide: 'Constants',
+            provide: Constants,
             useValue: fakeConstants,
           },
         ],

@@ -36,7 +36,7 @@ export class PortalSettingsService {
 
   constructor(
     private readonly http: HttpClient,
-    @Inject('Constants') private readonly constants: Constants,
+    @Inject(Constants) private readonly constants: Constants,
     private readonly environmentSettingsService: EnvironmentSettingsService,
   ) {}
 

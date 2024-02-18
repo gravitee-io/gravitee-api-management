@@ -104,7 +104,7 @@ export class ApiSubscriptionEditComponent implements OnInit {
   constructor(
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
-    @Inject('Constants') private readonly constants: Constants,
+    @Inject(Constants) private readonly constants: Constants,
     private readonly apiSubscriptionService: ApiSubscriptionV2Service,
     private datePipe: DatePipe,
     private readonly matDialog: MatDialog,

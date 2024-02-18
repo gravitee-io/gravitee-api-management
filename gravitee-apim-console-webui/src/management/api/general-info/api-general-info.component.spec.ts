@@ -41,6 +41,7 @@ import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing
 import { Category } from '../../../entities/category/Category';
 import { Api, DefinitionVersion, fakeApiV1, fakeApiV2, fakeApiV4, fakeProxyTcpApiV4 } from '../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
+import { Constants } from '../../../entities/Constants';
 
 describe('ApiGeneralInfoComponent', () => {
   const API_ID = 'apiId';
@@ -72,7 +73,7 @@ describe('ApiGeneralInfoComponent', () => {
           useValue: LICENSE_CONFIGURATION_TESTING,
         },
         {
-          provide: 'Constants',
+          provide: Constants,
           useValue: {
             ...CONSTANTS_TESTING,
             org: {
@@ -107,9 +108,10 @@ describe('ApiGeneralInfoComponent', () => {
     const router = TestBed.inject(Router);
     routerNavigateSpy = jest.spyOn(router, 'navigate');
     fixture.detectChanges();
-
-    GioFormFilePickerInputHarness.forceImageOnload();
   };
+  beforeAll(() => {
+    GioFormFilePickerInputHarness.forceImageOnload();
+  });
 
   afterEach(() => {
     httpTestingController.verify({ ignoreCancelled: true });

@@ -48,7 +48,7 @@ export class OrgSettingsNotificationTemplatesComponent implements OnInit {
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
     private readonly notificationTemplateService: NotificationTemplateService,
-    @Inject('Constants') private readonly constants: Constants,
+    @Inject(Constants) private readonly constants: Constants,
   ) {}
 
   ngOnInit(): void {

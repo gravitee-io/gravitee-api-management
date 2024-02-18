@@ -46,7 +46,7 @@ export class Step5SummaryComponent implements OnInit {
   constructor(
     private readonly stepService: ApiCreationStepService,
     public readonly licenseService: GioLicenseService,
-    @Inject('Constants') private readonly constants: Constants,
+    @Inject(Constants) private readonly constants: Constants,
   ) {}
 
   ngOnInit(): void {

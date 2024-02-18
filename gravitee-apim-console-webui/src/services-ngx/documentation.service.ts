@@ -36,7 +36,7 @@ export interface DocumentationQuery {
   providedIn: 'root',
 })
 export class DocumentationService {
-  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
+  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
 
   apiSearch(apiId: string, q?: DocumentationQuery): Observable<Page[]> {
     const queryParams = Object.entries(q ?? []).map(([key, value]) => (isNil(value) ? null : `${key}=${value}`));

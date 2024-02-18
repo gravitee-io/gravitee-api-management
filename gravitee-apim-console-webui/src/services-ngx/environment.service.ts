@@ -24,7 +24,7 @@ import { Environment } from '../entities/environment/environment';
   providedIn: 'root',
 })
 export class EnvironmentService {
-  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
+  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
 
   list(): Observable<Environment[]> {
     return this.http.get<Environment[]>(`${this.constants.org.baseURL}/environments`);

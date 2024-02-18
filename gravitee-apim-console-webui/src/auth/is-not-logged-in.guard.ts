@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot } from '@angular/router';
-import { Injectable } from '@angular/core';
+import { ActivatedRouteSnapshot, CanActivateFn, Router, RouterStateSnapshot } from '@angular/router';
+import { inject } from '@angular/core';
 import { catchError, map, switchMap } from 'rxjs/operators';
 import { of } from 'rxjs';
 
@@ -22,34 +22,27 @@ import { AuthService } from './auth.service';
 
 import { CurrentUserService } from '../services-ngx/current-user.service';
 
-@Injectable({
-  providedIn: 'root',
-})
-export class IsNotLoggedInGuard implements CanActivate {
-  constructor(
-    private readonly currentUserService: CurrentUserService,
-    private readonly authService: AuthService,
-    private readonly router: Router,
-  ) {}
+export const IsNotLoggedInGuard: CanActivateFn = (route: ActivatedRouteSnapshot, _state: RouterStateSnapshot) => {
+  const authService = inject(AuthService);
+  const currentUserService = inject(CurrentUserService);
+  const router = inject(Router);
 
-  canActivate(route: ActivatedRouteSnapshot, _state: RouterStateSnapshot) {
-    return this.authService.checkAuth().pipe(
-      switchMap(() => this.currentUserService.current()),
-      map((user) => {
-        return !!user;
-      }),
-      catchError(() => {
-        // If the user is not logged in, we can continue
-        return of(false);
-      }),
-      map((isLoggedIn) => {
-        if (isLoggedIn) {
-          const redirect = route.queryParams['redirect'];
+  return authService.checkAuth().pipe(
+    switchMap(() => currentUserService.current()),
+    map((user) => {
+      return !!user;
+    }),
+    catchError(() => {
+      // If the user is not logged in, we can continue
+      return of(false);
+    }),
+    map((isLoggedIn) => {
+      if (isLoggedIn) {
+        const redirect = route.queryParams['redirect'];
 
-          this.router.navigateByUrl(redirect ?? '/');
-        }
-        return !isLoggedIn;
-      }),
-    );
-  }
-}
+        router.navigateByUrl(redirect ?? '/');
+      }
+      return !isLoggedIn;
+    }),
+  );
+};

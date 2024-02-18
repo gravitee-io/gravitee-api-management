@@ -54,7 +54,7 @@ export class ApplicationGeneralTransferOwnershipComponent implements OnInit {
     private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,
     private readonly groupService: GroupService,
-    @Inject('Constants') private readonly constants: Constants,
+    @Inject(Constants) private readonly constants: Constants,
   ) {}
 
   ngOnInit(): void {

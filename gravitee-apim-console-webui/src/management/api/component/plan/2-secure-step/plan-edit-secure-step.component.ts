@@ -49,7 +49,7 @@ export class PlanEditSecureStepComponent implements OnInit, OnDestroy {
   securityType: PlanMenuItemVM;
 
   constructor(
-    @Inject('Constants') private readonly constants: Constants,
+    @Inject(Constants) private readonly constants: Constants,
     private readonly policyService: PolicyV2Service,
     private readonly resourceService: ResourceService,
     private readonly snackBarService: SnackBarService,

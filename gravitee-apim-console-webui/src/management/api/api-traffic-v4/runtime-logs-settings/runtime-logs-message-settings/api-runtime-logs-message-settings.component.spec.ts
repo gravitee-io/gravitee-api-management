@@ -28,6 +28,7 @@ import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/t
 import { ApiV4, fakeApiV4 } from '../../../../../entities/management-api-v2';
 import { ConsoleSettings } from '../../../../../entities/consoleSettings';
 import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
+import { Constants } from '../../../../../entities/Constants';
 
 describe('ApiRuntimeLogsSettingsComponent', () => {
   const API_ID = 'apiId';
@@ -81,7 +82,7 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
         { provide: GioTestingPermissionProvider, useValue: ['api-definition-u'] },
         {
-          provide: 'Constants',
+          provide: Constants,
           useValue: CONSTANTS_TESTING,
         },
       ],

@@ -15,7 +15,6 @@
  */
 import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { ProviderToken } from '@angular/core';
 
 import { ConsoleSettingsService } from './console-settings.service';
 
@@ -61,7 +60,7 @@ describe('ConsoleSettingsService', () => {
           css: 'hello.css',
         },
       };
-      const constants = TestBed.inject('Constants' as unknown as ProviderToken<Constants>);
+      const constants = TestBed.inject(Constants);
 
       consoleSettingsService.save(consoleSettingsPayload).subscribe(() => {
         expect(constants.org.settings).toEqual(newConsoleSettings());

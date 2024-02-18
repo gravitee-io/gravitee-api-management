@@ -17,7 +17,6 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { GioFormFilePickerInputHarness } from '@gravitee/ui-particles-angular';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatButtonHarness } from '@angular/material/button/testing';
@@ -31,6 +30,7 @@ import { ApiGeneralInfoModule } from '../api-general-info.module';
 import { fakePromotion, fakePromotionTarget, Promotion, PromotionTarget } from '../../../../entities/promotion';
 import { fakeApiV2 } from '../../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { Constants } from '../../../../entities/Constants';
 
 describe('ApiPortalDetailsPromoteDialogComponent', () => {
   const API_ID = 'apiId';
@@ -53,7 +53,7 @@ describe('ApiPortalDetailsPromoteDialogComponent', () => {
         { provide: MatDialogRef, useValue: {} },
         { provide: MAT_DIALOG_DATA, useValue: { api } },
         {
-          provide: 'Constants',
+          provide: Constants,
           useValue: {
             ...CONSTANTS_TESTING,
           },
@@ -74,8 +74,6 @@ describe('ApiPortalDetailsPromoteDialogComponent', () => {
 
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
-
-    GioFormFilePickerInputHarness.forceImageOnload();
   });
 
   afterEach(() => {

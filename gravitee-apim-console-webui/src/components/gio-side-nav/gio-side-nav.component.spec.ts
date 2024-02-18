@@ -34,6 +34,7 @@ import { GioSideNavModule } from './gio-side-nav.module';
 import { License } from '../../entities/license/License';
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../shared/testing';
+import { Constants } from '../../entities/Constants';
 
 describe('GioSideNavComponent', () => {
   let fixture: ComponentFixture<GioSideNavComponent>;
@@ -64,7 +65,7 @@ describe('GioSideNavComponent', () => {
           },
         },
         {
-          provide: 'Constants',
+          provide: Constants,
           useFactory: () => {
             const constants = CONSTANTS_TESTING;
             constants.org.settings = { ...constants.org.settings, licenseExpirationNotification: { enabled: licenseNotificationEnabled } };

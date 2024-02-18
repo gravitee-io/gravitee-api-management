@@ -96,7 +96,7 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy, 
     private readonly apiService: ApiV2Service,
     private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,
-    @Inject('Constants') private readonly constants: Constants,
+    @Inject(Constants) private readonly constants: Constants,
     private readonly licenseService: GioLicenseService,
   ) {}
 
