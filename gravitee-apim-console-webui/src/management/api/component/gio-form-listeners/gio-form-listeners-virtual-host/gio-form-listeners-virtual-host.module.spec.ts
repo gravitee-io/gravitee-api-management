@@ -26,6 +26,7 @@ import { GioFormListenersVirtualHostModule } from './gio-form-listeners-virtual-
 import { GioFormListenersVirtualHostHarness } from './gio-form-listeners-virtual-host.harness';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
+import { Constants } from '../../../../../entities/Constants';
 
 @Component({
   template: `
@@ -65,7 +66,7 @@ describe('GioFormListenersVirtualHostModule', () => {
       imports: [NoopAnimationsModule, GioFormListenersVirtualHostModule, MatIconTestingModule, ReactiveFormsModule, GioHttpTestingModule],
       providers: [
         {
-          provide: 'Constants',
+          provide: Constants,
           useValue: fakeConstants,
         },
       ],

@@ -23,6 +23,7 @@ import { OrganizationSettingsModule } from '../organization-settings.module';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { fakeNotificationTemplate } from '../../../entities/notification/notificationTemplate.fixture';
 import { NotificationTemplate } from '../../../entities/notification/notificationTemplate';
+import { Constants } from '../../../entities/Constants';
 
 describe('OrgSettingsNotificationTemplatesComponent', () => {
   let fixture: ComponentFixture<OrgSettingsNotificationTemplatesComponent>;
@@ -35,7 +36,7 @@ describe('OrgSettingsNotificationTemplatesComponent', () => {
       imports: [GioHttpTestingModule, OrganizationSettingsModule],
       providers: [
         {
-          provide: 'Constants',
+          provide: Constants,
           useValue: fakeConstants,
         },
       ],

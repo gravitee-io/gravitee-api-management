@@ -38,6 +38,7 @@ import { Api, fakeApiV2, fakeApiV4, fakeGroup, fakeGroupsResponse, Group, Member
 import { ApiGeneralMembersHarness } from '../members/api-general-members.harness';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { fakeMember } from '../../../../entities/management-api-v2/member/member.fixture';
+import { Constants } from '../../../../entities/Constants';
 
 describe('ApiGeneralTransferOwnershipComponent', () => {
   const apiId = 'apiId';
@@ -58,7 +59,7 @@ describe('ApiGeneralTransferOwnershipComponent', () => {
         providers: [
           { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId } } } },
           {
-            provide: 'Constants',
+            provide: Constants,
             useFactory: () => {
               const constants = CONSTANTS_TESTING;
               set(constants, 'env.settings.api.primaryOwnerMode', 'HYBRID');
@@ -238,7 +239,7 @@ describe('ApiGeneralTransferOwnershipComponent', () => {
         providers: [
           { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId } } } },
           {
-            provide: 'Constants',
+            provide: Constants,
             useFactory: () => {
               const constants = CONSTANTS_TESTING;
               set(constants, 'env.settings.api.primaryOwnerMode', 'GROUP');

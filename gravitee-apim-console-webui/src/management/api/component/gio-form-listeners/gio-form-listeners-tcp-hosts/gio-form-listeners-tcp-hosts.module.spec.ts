@@ -27,6 +27,7 @@ import { GioFormListenersTcpHostsModule } from './gio-form-listeners-tcp-hosts.m
 import { GioFormListenersTcpHostsHarness } from './gio-form-listeners-tcp-hosts.harness';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
+import { Constants } from '../../../../../entities/Constants';
 
 @Component({
   template: ` <gio-form-listeners-tcp-hosts [formControl]="formControl"></gio-form-listeners-tcp-hosts> `,
@@ -65,7 +66,7 @@ describe('GioFormListenersTcpHostsModule', () => {
         imports: [NoopAnimationsModule, GioFormListenersTcpHostsModule, MatIconTestingModule, ReactiveFormsModule, GioHttpTestingModule],
         providers: [
           {
-            provide: 'Constants',
+            provide: Constants,
             useValue: fakeConstants,
           },
         ],
@@ -250,7 +251,7 @@ describe('GioFormListenersTcpHostsModule', () => {
         imports: [NoopAnimationsModule, GioFormListenersTcpHostsModule, MatIconTestingModule, ReactiveFormsModule, GioHttpTestingModule],
         providers: [
           {
-            provide: 'Constants',
+            provide: Constants,
             useValue: fakeConstants,
           },
         ],

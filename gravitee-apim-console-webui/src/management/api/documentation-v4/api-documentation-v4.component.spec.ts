@@ -39,6 +39,7 @@ import { fakeFolder, fakeMarkdown } from '../../../entities/management-api-v2/do
 import { ApiLifecycleState, fakeApiV4 } from '../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 import { PageType } from '../../../entities/page';
+import { Constants } from '../../../entities/Constants';
 
 describe('ApiDocumentationV4', () => {
   let fixture: ComponentFixture<ApiDocumentationV4Component>;
@@ -70,7 +71,7 @@ describe('ApiDocumentationV4', () => {
           useValue: ['api-documentation-u', 'api-documentation-c', 'api-documentation-r', 'api-documentation-d'],
         },
         {
-          provide: 'Constants',
+          provide: Constants,
           useFactory: () => {
             const constants = CONSTANTS_TESTING;
             set(constants, 'env.settings.portal', {

@@ -21,6 +21,7 @@ import { contextPathAsyncValidator } from './context-path-async-validator.direct
 
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../testing';
+import { Constants } from '../../../entities/Constants';
 
 describe('ContextPathAsyncValidator', () => {
   const fakeConstants = CONSTANTS_TESTING;
@@ -32,7 +33,7 @@ describe('ContextPathAsyncValidator', () => {
       imports: [GioHttpTestingModule],
       providers: [
         {
-          provide: 'Constants',
+          provide: Constants,
           useValue: fakeConstants,
         },
       ],

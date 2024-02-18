@@ -69,7 +69,7 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
   constructor(
     private readonly dialogRef: MatDialogRef<ApiPortalSubscriptionCreationDialogComponent, ApiPortalSubscriptionCreationDialogResult>,
     @Inject(MAT_DIALOG_DATA) dialogData: ApiPortalSubscriptionCreationDialogData,
-    @Inject('Constants') private readonly constants: Constants,
+    @Inject(Constants) private readonly constants: Constants,
     private readonly applicationService: ApplicationService,
     private readonly subscriptionService: SubscriptionService,
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,

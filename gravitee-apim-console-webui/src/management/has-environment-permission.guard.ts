@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Inject, Injectable } from '@angular/core';
-import { ActivatedRouteSnapshot, CanActivate, CanActivateChild, CanDeactivate, Router, RouterStateSnapshot } from '@angular/router';
+import { inject } from '@angular/core';
+import { ActivatedRouteSnapshot, CanActivateChildFn, CanActivateFn, CanDeactivateFn, Router, RouterStateSnapshot } from '@angular/router';
 import { map, switchMap } from 'rxjs/operators';
-import { Observable, of } from 'rxjs';
+import { of } from 'rxjs';
 import { GioMenuSearchService } from '@gravitee/ui-particles-angular';
 
 import { ManagementComponent } from './management.component';
@@ -27,71 +27,87 @@ import { EnvironmentService } from '../services-ngx/environment.service';
 import { Constants } from '../entities/Constants';
 import { EnvironmentSettingsService } from '../services-ngx/environment-settings.service';
 
-@Injectable({
-  providedIn: 'root',
-})
-export class HasEnvironmentPermissionGuard implements CanActivate, CanActivateChild, CanDeactivate<ManagementComponent> {
-  constructor(
-    private readonly gioPermissionService: GioPermissionService,
-    private readonly environmentService: EnvironmentService,
-    private readonly environmentSettingsService: EnvironmentSettingsService,
-    @Inject('Constants') private constants: Constants,
-    private readonly router: Router,
-    private readonly settingsNavigationService: SettingsNavigationService,
-    private readonly gioMenuSearchService: GioMenuSearchService,
-  ) {}
-
-  canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot) {
-    const paramEnv = route.params.envId;
-
-    return this.environmentService.list().pipe(
-      switchMap((environments) => {
-        this.constants.org.environments = environments;
-
-        const currentEnvironment = environments.find((e) => e.id === paramEnv || e.hrids?.includes(paramEnv));
-
-        if (!currentEnvironment) {
-          this.router.navigate([environments[0].hrids[0] ?? environments[0].id]);
-        }
-
-        this.constants.org.currentEnv = currentEnvironment;
-
-        if (paramEnv === currentEnvironment.id && currentEnvironment.hrids?.length > 0) {
-          // Replace environment ID by hrid but keep url path
-          this.router.navigateByUrl(state.url.replace(currentEnvironment.id, currentEnvironment.hrids[0]));
-        }
-
-        return this.gioPermissionService.loadEnvironmentPermissions(paramEnv);
-      }),
-      switchMap(() => this.environmentSettingsService.load()),
-      switchMap(() => this.canActivateChild(route, state)),
-      map((canActivateChild) => {
-        if (canActivateChild) {
-          this.gioMenuSearchService.addMenuSearchItems(this.settingsNavigationService.getSettingsNavigationSearchItems(route.params.envId));
-          return true;
-        }
-        return false;
-      }),
-    );
+const hasEnvironmentPermission = (gioPermissionService: GioPermissionService, permissions: string[]): boolean => {
+  if (!permissions) {
+    return true;
   }
+  return gioPermissionService.hasAnyMatching(permissions);
+};
 
-  canActivateChild(route: ActivatedRouteSnapshot, _state: RouterStateSnapshot): Observable<boolean> {
-    const permissions = route.data.apiPermissions?.only;
-    if (!permissions) {
-      return of(true);
-    }
-    if (this.gioPermissionService.hasAnyMatching(permissions)) {
+const canActivate: CanActivateFn = (route: ActivatedRouteSnapshot, state: RouterStateSnapshot) => {
+  const router = inject(Router);
+  const constants = inject(Constants);
+  const environmentService = inject(EnvironmentService);
+  const environmentSettingsService = inject(EnvironmentSettingsService);
+  const gioPermissionService = inject(GioPermissionService);
+  const gioMenuSearchService = inject(GioMenuSearchService);
+  const settingsNavigationService = inject(SettingsNavigationService);
+
+  const paramEnv = route.params.envId;
+
+  return environmentService.list().pipe(
+    switchMap((environments) => {
+      constants.org.environments = environments;
+
+      const currentEnvironment = environments.find((e) => e.id === paramEnv || e.hrids?.includes(paramEnv));
+
+      if (!currentEnvironment) {
+        router.navigate([environments[0].hrids[0] ?? environments[0].id]);
+      }
+
+      constants.org.currentEnv = currentEnvironment;
+
+      if (paramEnv === currentEnvironment.id && currentEnvironment.hrids?.length > 0) {
+        // Replace environment ID by hrid but keep url path
+        router.navigateByUrl(state.url.replace(currentEnvironment.id, currentEnvironment.hrids[0]));
+      }
+
+      return gioPermissionService.loadEnvironmentPermissions(paramEnv);
+    }),
+    switchMap(() => environmentSettingsService.load()),
+    switchMap(() => {
+      const permissions = route.data.apiPermissions?.only;
+      return of(hasEnvironmentPermission(gioPermissionService, permissions));
+    }),
+    map((canActivateChild) => {
+      if (canActivateChild) {
+        gioMenuSearchService.addMenuSearchItems(settingsNavigationService.getSettingsNavigationSearchItems(route.params.envId));
+        return true;
+      }
+      // TODO : redirect to 403 page
+      router.navigate(['_login']);
+      return false;
+    }),
+  );
+};
+
+export const HasEnvironmentPermissionGuard: {
+  canActivate: CanActivateFn;
+  canActivateChild: CanActivateChildFn;
+  canDeactivate: CanDeactivateFn<unknown>;
+} = {
+  canActivate,
+
+  canActivateChild: (childRoute: ActivatedRouteSnapshot, _state: RouterStateSnapshot) => {
+    const gioPermissionService = inject(GioPermissionService);
+    const router = inject(Router);
+    const permissions = childRoute.data.apiPermissions?.only;
+
+    if (hasEnvironmentPermission(gioPermissionService, permissions)) {
       return of(true);
     }
 
     // TODO : redirect to 403 page
-    this.router.navigate(['_login']);
+    router.navigate(['_login']);
     return of(false);
-  }
+  },
 
-  canDeactivate(_component: ManagementComponent, _currentRoute: ActivatedRouteSnapshot, _currentState: RouterStateSnapshot): boolean {
-    this.gioPermissionService.clearEnvironmentPermissions();
-    this.gioMenuSearchService.removeMenuSearchItems([_currentRoute.params.envId]);
+  canDeactivate: (_component: ManagementComponent, currentRoute: ActivatedRouteSnapshot, _currentState: RouterStateSnapshot) => {
+    const gioPermissionService = inject(GioPermissionService);
+    const gioMenuSearchService = inject(GioMenuSearchService);
+
+    gioPermissionService.clearEnvironmentPermissions();
+    gioMenuSearchService.removeMenuSearchItems([currentRoute.params.envId]);
     return true;
-  }
-}
+  },
+};

@@ -87,7 +87,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
   constructor(
     private readonly activatedRoute: ActivatedRoute,
     private readonly router: Router,
-    @Inject('Constants') private readonly constants: Constants,
+    @Inject(Constants) private readonly constants: Constants,
     private readonly apiService: ApiService,
     private readonly apiServiceV2: ApiV2Service,
   ) {}

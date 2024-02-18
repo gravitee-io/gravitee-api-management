@@ -21,7 +21,7 @@ import { MENU_ITEM_PAYLOAD } from '../../components/api-creation-stepper-menu/ap
 import { ConnectorVM } from '../../../../../entities/management-api-v2';
 
 @Component({
-  selector: 'step-connector-menu-item',
+  selector: 'step-endpoint-menu-item',
   templateUrl: './step-connector-menu-item.component.html',
   styleUrls: ['./step-connector-menu-item.component.scss'],
 })

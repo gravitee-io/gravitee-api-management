@@ -26,7 +26,7 @@ import { Constants, EnvSettings } from '../entities/Constants';
 export class EnvironmentSettingsService {
   private currentSettings: BehaviorSubject<EnvSettings> = new BehaviorSubject<EnvSettings>(null);
 
-  constructor(private readonly http: HttpClient, @Inject('Constants') private constants: Constants) {}
+  constructor(private readonly http: HttpClient, @Inject(Constants) private constants: Constants) {}
 
   load(): Observable<void> {
     return this.http.get<EnvSettings>(`${this.constants.env.baseURL}/portal`).pipe(

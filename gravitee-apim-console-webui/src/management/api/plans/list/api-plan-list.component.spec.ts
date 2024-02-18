@@ -47,6 +47,7 @@ import {
   PLAN_STATUS,
 } from '../../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { Constants } from '../../../../entities/Constants';
 
 describe('ApiPlanListComponent', () => {
   const API_ID = 'api#1';
@@ -71,7 +72,7 @@ describe('ApiPlanListComponent', () => {
           },
         },
         {
-          provide: 'Constants',
+          provide: Constants,
           useFactory: () => {
             const constants = CONSTANTS_TESTING;
             set(constants, 'env.settings.plan.security', {

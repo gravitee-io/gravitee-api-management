@@ -31,7 +31,7 @@ export class OrgNavigationComponent implements OnInit {
 
   constructor(
     private readonly router: Router,
-    @Inject('Constants') private readonly constants: Constants,
+    @Inject(Constants) private readonly constants: Constants,
     private readonly organizationNavigationService: OrganizationNavigationService,
   ) {}
 

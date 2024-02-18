@@ -24,7 +24,7 @@ import { Constants } from '../entities/Constants';
   providedIn: 'root',
 })
 export class ApiServicePluginsV2Service {
-  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
+  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
 
   getApiServicePluginSchema(id: string): Observable<GioJsonSchema> {
     return this.http.get<GioJsonSchema>(`${this.constants.org.v2BaseURL}/plugins/api-services/${id}/schema`);

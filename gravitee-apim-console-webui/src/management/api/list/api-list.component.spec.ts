@@ -30,6 +30,7 @@ import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing
 import { GioTableWrapperHarness } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
 import { Api, ApiV4, fakeApiV2, fakeApiV4, fakePagedResult, fakeProxyApiV4 } from '../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
+import { Constants } from '../../../entities/Constants';
 
 describe('ApisListComponent', () => {
   let fixture: ComponentFixture<ApiListComponent>;
@@ -48,7 +49,7 @@ describe('ApisListComponent', () => {
           imports: [ApiListModule, MatIconTestingModule, NoopAnimationsModule, GioHttpTestingModule],
           providers: [
             { provide: GioTestingPermissionProvider, useValue: ['environment-api-c'] },
-            { provide: 'Constants', useValue: fakeConstants },
+            { provide: Constants, useValue: fakeConstants },
           ],
         }).compileComponents();
 
@@ -306,7 +307,7 @@ describe('ApisListComponent', () => {
           imports: [ApiListModule, MatIconTestingModule, NoopAnimationsModule, GioHttpTestingModule],
           providers: [
             { provide: GioTestingPermissionProvider, useValue: ['environment-api-c'] },
-            { provide: 'Constants', useValue: withQualityEnabled },
+            { provide: Constants, useValue: withQualityEnabled },
           ],
         }).compileComponents();
 
@@ -372,7 +373,7 @@ describe('ApisListComponent', () => {
         imports: [ApiListModule, MatIconTestingModule, NoopAnimationsModule, GioHttpTestingModule],
         providers: [
           { provide: GioTestingPermissionProvider, useValue: ['environment-api-c'] },
-          { provide: 'Constants', useValue: fakeConstants },
+          { provide: Constants, useValue: fakeConstants },
         ],
       }).compileComponents();
 

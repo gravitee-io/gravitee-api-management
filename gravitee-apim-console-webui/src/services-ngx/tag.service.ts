@@ -25,7 +25,7 @@ import { NewTag } from '../entities/tag/newTag';
   providedIn: 'root',
 })
 export class TagService {
-  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
+  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
 
   list(): Observable<Tag[]> {
     return this.http.get<Tag[]>(`${this.constants.org.baseURL}/configuration/tags`);

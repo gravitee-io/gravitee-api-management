@@ -27,6 +27,7 @@ import { IdentityProvider } from '../../entities/identity-provider';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
 import { SocialIdentityProvider } from '../../entities/organization/socialIdentityProvider';
 import { AuthService } from '../auth.service';
+import { Constants } from '../../entities/Constants';
 
 @Component({
   selector: 'login',
@@ -46,7 +47,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   public loginInProgress = false;
 
   constructor(
-    @Inject('Constants') private readonly constants,
+    @Inject(Constants) private readonly constants: Constants,
     private readonly activatedRoute: ActivatedRoute,
     private readonly reCaptchaService: ReCaptchaService,
     private readonly snackBarService: SnackBarService,

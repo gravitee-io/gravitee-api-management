@@ -90,6 +90,9 @@ export interface ConsoleSettingsScheduler {
 export interface ConsoleSettingsAnalyticsPendo {
   enabled?: boolean;
   apiKey?: string;
+  accountType?: string;
+  accountHrid?: string;
+  accountId?: string;
 }
 
 export interface ConsoleSettingsLogging {

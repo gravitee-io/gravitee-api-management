@@ -25,7 +25,7 @@ import { Scope as AlertScope } from '../../entities/alert';
 
 @Component({
   template: '',
-  selector: 'documentation-edit-page',
+  selector: 'alerts-ajs',
   host: {
     class: 'bootstrap',
   },

@@ -31,7 +31,7 @@ export class ApiV1V2MenuService implements ApiMenuService {
   constructor(
     private readonly permissionService: GioPermissionService,
     private readonly roleService: GioRoleService,
-    @Inject('Constants') private readonly constants: Constants,
+    @Inject(Constants) private readonly constants: Constants,
     private readonly gioLicenseService: GioLicenseService,
   ) {}
 

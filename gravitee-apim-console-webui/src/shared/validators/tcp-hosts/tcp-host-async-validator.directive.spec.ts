@@ -21,6 +21,7 @@ import { tcpHostAsyncValidator } from './tcp-host-async-validator.directive';
 
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../testing';
+import { Constants } from '../../../entities/Constants';
 
 describe('TcpHostAsyncValidator', () => {
   const fakeConstants = CONSTANTS_TESTING;
@@ -32,7 +33,7 @@ describe('TcpHostAsyncValidator', () => {
       imports: [GioHttpTestingModule],
       providers: [
         {
-          provide: 'Constants',
+          provide: Constants,
           useValue: fakeConstants,
         },
       ],

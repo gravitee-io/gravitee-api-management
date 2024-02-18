@@ -26,7 +26,7 @@ import { PolicyPlugin } from '../entities/management-api-v2';
   providedIn: 'root',
 })
 export class PolicyV2Service {
-  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
+  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
 
   list(): Observable<PolicyPlugin[]> {
     return this.http.get<PolicyListItem[]>(`${this.constants.org.v2BaseURL}/plugins/policies`);

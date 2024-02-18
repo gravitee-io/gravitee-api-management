@@ -26,7 +26,7 @@ import { GroupMembership } from '../entities/group/groupMember';
   providedIn: 'root',
 })
 export class GroupService {
-  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
+  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
 
   list(): Observable<Group[]> {
     return this.http.get<Group[]>(`${this.constants.env.baseURL}/configuration/groups`);

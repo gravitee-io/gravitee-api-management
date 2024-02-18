@@ -52,7 +52,7 @@ export class OrgSettingsRolesComponent implements OnInit, OnDestroy {
     private readonly roleService: RoleService,
     private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,
-    @Inject('Constants') private readonly constants: Constants,
+    @Inject(Constants) private readonly constants: Constants,
     private readonly licenseService: GioLicenseService,
   ) {}
 

@@ -22,7 +22,7 @@ import { ApiMember, ApiMembership } from '../entities/api';
 
 @Injectable({ providedIn: 'root' })
 export class ApiMemberService {
-  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
+  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
 
   getMembers(api: string): Observable<ApiMember[]> {
     return this.http.get<ApiMember[]>(`${this.constants.env.baseURL}/apis/${api}/members`);

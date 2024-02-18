@@ -57,7 +57,7 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
 
   constructor(
     private readonly permissionService: GioPermissionService,
-    @Inject('Constants') private readonly constants: Constants,
+    @Inject(Constants) private readonly constants: Constants,
     private readonly gioLicenseService: GioLicenseService,
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,

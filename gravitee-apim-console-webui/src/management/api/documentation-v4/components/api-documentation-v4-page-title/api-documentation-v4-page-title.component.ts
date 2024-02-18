@@ -30,7 +30,7 @@ export class ApiDocumentationV4PageTitleComponent implements OnInit, OnChanges {
   public apiPortalUrl: string;
   public apiNotInPortalTooltip: string;
 
-  constructor(@Inject('Constants') public readonly constants: Constants) {}
+  constructor(@Inject(Constants) public readonly constants: Constants) {}
 
   ngOnInit(): void {
     if (this.api) {

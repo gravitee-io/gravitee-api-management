@@ -26,7 +26,7 @@ import { UserNotification } from '../entities/user-notification/userNotification
   providedIn: 'root',
 })
 export class UserNotificationService {
-  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
+  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
 
   private getNotificationSchedulerInSeconds(): number {
     if (this.constants.org.settings.scheduler && this.constants.org.settings.scheduler.notifications) {

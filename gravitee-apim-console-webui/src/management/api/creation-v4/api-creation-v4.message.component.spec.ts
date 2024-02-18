@@ -33,6 +33,7 @@ import { ApiCreationV4SpecHttpExpects } from './api-creation-v4-spec-http-expect
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { fakeRestrictedDomains } from '../../../entities/restricted-domain/restrictedDomain.fixture';
+import { Constants } from '../../../entities/Constants';
 
 describe('ApiCreationV4Component - Message', () => {
   let fixture: ComponentFixture<ApiCreationV4Component>;
@@ -49,7 +50,7 @@ describe('ApiCreationV4Component - Message', () => {
       declarations: [ApiCreationV4Component],
       providers: [
         {
-          provide: 'Constants',
+          provide: Constants,
           useFactory: () => {
             const constants = CONSTANTS_TESTING;
             set(constants, 'env.settings.plan.security', {

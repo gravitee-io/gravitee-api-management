@@ -42,6 +42,7 @@ import { ApiCreationV4SpecHttpExpects } from './api-creation-v4-spec-http-expect
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { ConnectorPlugin } from '../../../entities/management-api-v2';
+import { Constants } from '../../../entities/Constants';
 
 describe('ApiCreationV4Component - Navigation', () => {
   const httpProxyEntrypoint: Partial<ConnectorPlugin> = {
@@ -107,7 +108,7 @@ describe('ApiCreationV4Component - Navigation', () => {
       declarations: [ApiCreationV4Component],
       providers: [
         {
-          provide: 'Constants',
+          provide: Constants,
           useFactory: () => {
             const constants = CONSTANTS_TESTING;
             set(constants, 'env.settings.plan.security', {

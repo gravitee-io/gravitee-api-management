@@ -33,6 +33,7 @@ import { Step2Entrypoints1ListHarness } from './steps/step-2-entrypoints/step-2-
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { ConnectorPlugin } from '../../../entities/management-api-v2';
+import { Constants } from '../../../entities/Constants';
 
 describe('ApiCreationV4Component - OEM', () => {
   const httpProxyEntrypoint: Partial<ConnectorPlugin>[] = [
@@ -58,7 +59,7 @@ describe('ApiCreationV4Component - OEM', () => {
       declarations: [ApiCreationV4Component],
       providers: [
         {
-          provide: 'Constants',
+          provide: Constants,
           useFactory: () => {
             const constants = CONSTANTS_TESTING;
             set(constants, 'env.settings.plan.security', {

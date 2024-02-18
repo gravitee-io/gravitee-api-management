@@ -52,6 +52,7 @@ import { fakeApplication } from '../../../../../../entities/application/Applicat
 import { SubscriptionService } from '../../../../../../services-ngx/subscription.service';
 import { PlanSecurityType } from '../../../../../../entities/plan';
 import { ApplicationSubscription } from '../../../../../../entities/subscription/subscription';
+import { Constants } from '../../../../../../entities/Constants';
 
 @Component({
   selector: 'gio-dialog-test',
@@ -106,7 +107,7 @@ describe('Subscription creation dialog', () => {
             },
           },
           {
-            provide: 'Constants',
+            provide: Constants,
             useFactory: () => {
               const constants = CONSTANTS_TESTING;
               set(constants, 'env.settings.plan.security', {
@@ -212,7 +213,7 @@ describe('Subscription creation dialog', () => {
               },
             },
             {
-              provide: 'Constants',
+              provide: Constants,
               useFactory: () => {
                 const constants = CONSTANTS_TESTING;
                 set(constants, 'env.settings.plan.security', {
@@ -338,7 +339,7 @@ describe('Subscription creation dialog', () => {
               },
             },
             {
-              provide: 'Constants',
+              provide: Constants,
               useFactory: () => {
                 const constants = CONSTANTS_TESTING;
                 set(constants, 'env.settings.plan.security', {
@@ -513,7 +514,7 @@ describe('Subscription creation dialog', () => {
               },
             },
             {
-              provide: 'Constants',
+              provide: Constants,
               useFactory: () => {
                 const constants = CONSTANTS_TESTING;
                 set(constants, 'env.settings.plan.security', {

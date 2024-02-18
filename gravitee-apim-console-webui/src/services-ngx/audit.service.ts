@@ -35,7 +35,7 @@ export type AuditListFilters = {
   providedIn: 'root',
 })
 export class AuditService {
-  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
+  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
 
   listByOrganization(filters: AuditListFilters = {}, page = 1, size = 10): Observable<MetadataPage<Audit>> {
     return this.http.get<MetadataPage<Audit>>(`${this.constants.org.baseURL}/audit`, {

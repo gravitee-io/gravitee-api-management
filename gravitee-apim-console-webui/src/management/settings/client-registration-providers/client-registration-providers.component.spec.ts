@@ -33,6 +33,7 @@ import { fakeClientRegistrationProvider } from '../../../entities/client-registr
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { PortalSettings } from '../../../entities/portal/portalSettings';
+import { Constants } from '../../../entities/Constants';
 
 describe('ClientRegistrationProviders', () => {
   const providers = [fakeClientRegistrationProvider(), fakeClientRegistrationProvider()];
@@ -82,7 +83,7 @@ describe('ClientRegistrationProviders', () => {
       ],
       providers: [
         {
-          provide: 'Constants',
+          provide: Constants,
           useValue: CONSTANTS_TESTING,
         },
         {

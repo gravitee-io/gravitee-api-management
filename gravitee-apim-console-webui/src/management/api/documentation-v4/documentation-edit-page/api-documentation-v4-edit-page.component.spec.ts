@@ -41,6 +41,7 @@ import { ApiDocumentationV4PageTitleHarness } from '../components/api-documentat
 import { fakeApiV4 } from '../../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { ApiDocumentationV4FileUploadHarness } from '../components/api-documentation-v4-file-upload/api-documentation-v4-file-upload.harness';
+import { Constants } from '../../../../entities/Constants';
 
 interface InitInput {
   pages?: Page[];
@@ -72,7 +73,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
         },
         { provide: GioTestingPermissionProvider, useValue: apiPermissions },
         {
-          provide: 'Constants',
+          provide: Constants,
           useFactory: () => {
             const constants = CONSTANTS_TESTING;
             set(constants, 'env.settings.portal', {

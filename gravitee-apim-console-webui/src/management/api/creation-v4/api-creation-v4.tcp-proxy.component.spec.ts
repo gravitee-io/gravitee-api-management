@@ -34,6 +34,7 @@ import { Step4Security1PlansHarness } from './steps/step-4-security/step-4-secur
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { ConnectorPlugin } from '../../../entities/management-api-v2';
+import { Constants } from '../../../entities/Constants';
 
 describe('ApiCreationV4Component - TCP Proxy', () => {
   const tcpProxyEntrypoint: Partial<ConnectorPlugin>[] = [
@@ -53,7 +54,7 @@ describe('ApiCreationV4Component - TCP Proxy', () => {
       declarations: [ApiCreationV4Component],
       providers: [
         {
-          provide: 'Constants',
+          provide: Constants,
           useFactory: () => {
             const constants = CONSTANTS_TESTING;
             set(constants, 'env.settings.plan.security', {

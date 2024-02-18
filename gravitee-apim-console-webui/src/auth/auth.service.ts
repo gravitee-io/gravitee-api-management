@@ -49,7 +49,7 @@ export class AuthService {
   }
 
   constructor(
-    @Inject('Constants') public readonly constants: Constants,
+    @Inject(Constants) public readonly constants: Constants,
     private readonly http: HttpClient,
     private readonly router: Router,
     private readonly currentUserService: CurrentUserService,

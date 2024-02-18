@@ -25,6 +25,7 @@ import { ApiLoggingHarness } from './api-logging.harness';
 
 import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
 import { ConsoleSettings } from '../../../entities/consoleSettings';
+import { Constants } from '../../../entities/Constants';
 
 describe('ApiLogging', () => {
   let httpTestingController: HttpTestingController;
@@ -69,7 +70,7 @@ describe('ApiLogging', () => {
       imports: [NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule, ApiLoggingModule],
       providers: [
         {
-          provide: 'Constants',
+          provide: Constants,
           useValue: CONSTANTS_TESTING,
         },
       ],

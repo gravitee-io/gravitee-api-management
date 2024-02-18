@@ -140,7 +140,7 @@ export class OrgSettingsUserDetailComponent implements OnInit, OnDestroy {
     private readonly snackBarService: SnackBarService,
     private readonly environmentService: EnvironmentService,
     private readonly matDialog: MatDialog,
-    @Inject('Constants') private readonly constants: Constants,
+    @Inject(Constants) private readonly constants: Constants,
   ) {}
 
   ngOnInit(): void {

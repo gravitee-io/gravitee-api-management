@@ -30,7 +30,7 @@ export class ApiV4MenuService implements ApiMenuService {
   constructor(
     private readonly permissionService: GioPermissionService,
     private readonly gioLicenseService: GioLicenseService,
-    @Inject('Constants') private readonly constants: Constants,
+    @Inject(Constants) private readonly constants: Constants,
   ) {}
   public getMenu(api: ApiV4): {
     subMenuItems: MenuItem[];

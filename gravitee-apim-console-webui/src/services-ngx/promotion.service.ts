@@ -25,7 +25,7 @@ import { PromotionSearchParams } from '../entities/promotion/promotionSearchPara
   providedIn: 'root',
 })
 export class PromotionService {
-  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
+  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
 
   listPromotionTargets(): Observable<PromotionTarget[]> {
     return this.http.get<PromotionTarget[]>(`${this.constants.env.baseURL}/promotion-targets`);

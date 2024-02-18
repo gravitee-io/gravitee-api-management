@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Injectable } from '@angular/core';
-import { ActivatedRouteSnapshot, CanActivate, CanActivateChild, Router, RouterStateSnapshot } from '@angular/router';
+import { ActivatedRouteSnapshot, Router, RouterStateSnapshot } from '@angular/router';
 import { Observable, of } from 'rxjs';
 
 import { GioPermissionService } from '../../shared/components/gio-permission/gio-permission.service';
@@ -22,7 +22,7 @@ import { GioPermissionService } from '../../shared/components/gio-permission/gio
 @Injectable({
   providedIn: 'root',
 })
-export class HasOrganizationPermissionGuard implements CanActivate, CanActivateChild {
+export class HasOrganizationPermissionGuard {
   constructor(private readonly gioPermissionService: GioPermissionService, private readonly router: Router) {}
 
   canActivate(route: ActivatedRouteSnapshot, _state: RouterStateSnapshot): Observable<boolean> {
