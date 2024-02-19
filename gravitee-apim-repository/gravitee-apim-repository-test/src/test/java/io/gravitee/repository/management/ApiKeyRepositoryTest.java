@@ -26,6 +26,7 @@ import io.gravitee.repository.management.api.search.ApiKeyCriteria.Builder;
 import io.gravitee.repository.management.model.ApiKey;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
 
 public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
@@ -328,5 +329,27 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
                     apiKey.getId().equals("id-of-apikey-8") && apiKey.getSubscriptions() != null && apiKey.getSubscriptions().isEmpty()
                 )
         );
+    }
+
+    @Test
+    public void should_add_subscription_to_apikey() throws TechnicalException {
+        Optional<ApiKey> apiKey = apiKeyRepository.findById("id-of-apikey-2");
+        assertTrue(apiKey.isPresent());
+
+        List<String> subscriptions = apiKey.get().getSubscriptions();
+        Assertions.assertThat(subscriptions).hasSize(2);
+        Assertions.assertThat(subscriptions).contains("subscription2", "subscriptionX");
+
+        Optional<ApiKey> updatedApiKey = apiKeyRepository.addSubscription("id-of-apikey-2", "newSubscription");
+        assertTrue(updatedApiKey.isPresent());
+        List<String> updatedSubscriptions = updatedApiKey.get().getSubscriptions();
+        Assertions.assertThat(updatedSubscriptions).hasSize(3);
+        Assertions.assertThat(updatedSubscriptions).contains("subscription2", "subscriptionX", "newSubscription");
+    }
+
+    @Test
+    public void return_empty_if_apikey_does_not_exist() throws TechnicalException {
+        Optional<ApiKey> updatedApiKey = apiKeyRepository.addSubscription("unknown_apikey_id", "newSubscription");
+        assertTrue(updatedApiKey.isEmpty());
     }
 }
