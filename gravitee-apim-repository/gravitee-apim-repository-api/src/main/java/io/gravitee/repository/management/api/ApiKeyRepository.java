@@ -95,4 +95,13 @@ public interface ApiKeyRepository extends FindAllRepository<ApiKey> {
     List<ApiKey> findByCriteria(ApiKeyCriteria filter) throws TechnicalException;
 
     List<ApiKey> findByCriteria(ApiKeyCriteria filter, Sortable sortable) throws TechnicalException;
+
+    /**
+     *
+     * @param id apikey ID
+     * @param subscriptionId subscription ID to add to this shared apikey
+     * @return the updated apikey if found
+     * @throws TechnicalException
+     */
+    Optional<ApiKey> addSubscription(String id, String subscriptionId) throws TechnicalException;
 }
