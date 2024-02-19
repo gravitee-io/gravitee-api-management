@@ -81,6 +81,11 @@ public class NoOpApiKeyRepository implements ApiKeyRepository {
     }
 
     @Override
+    public Optional<ApiKey> addSubscription(String id, String subscriptionId) throws TechnicalException {
+        return Optional.empty();
+    }
+
+    @Override
     public Set<ApiKey> findAll() throws TechnicalException {
         return Set.of();
     }

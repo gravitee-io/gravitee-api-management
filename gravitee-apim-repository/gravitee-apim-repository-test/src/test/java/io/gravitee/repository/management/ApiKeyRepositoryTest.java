@@ -36,6 +36,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
 
 public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
@@ -400,5 +401,27 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
 
         List<String> expectedKeys = List.of("findByCriteria2", "findByCriteria1Revoked", "findByCriteria1");
         assertTrue(expectedKeys.containsAll(apiKeys.stream().map(ApiKey::getKey).collect(toList())));
+    }
+
+    @Test
+    public void should_add_subscription_to_apikey() throws TechnicalException {
+        Optional<ApiKey> apiKey = apiKeyRepository.findById("id-of-apikey-2");
+        assertTrue(apiKey.isPresent());
+
+        List<String> subscriptions = apiKey.get().getSubscriptions();
+        Assertions.assertThat(subscriptions).hasSize(2);
+        Assertions.assertThat(subscriptions).contains("subscription2", "subscriptionX");
+
+        Optional<ApiKey> updatedApiKey = apiKeyRepository.addSubscription("id-of-apikey-2", "newSubscription");
+        assertTrue(updatedApiKey.isPresent());
+        List<String> updatedSubscriptions = updatedApiKey.get().getSubscriptions();
+        Assertions.assertThat(updatedSubscriptions).hasSize(3);
+        Assertions.assertThat(updatedSubscriptions).contains("subscription2", "subscriptionX", "newSubscription");
+    }
+
+    @Test
+    public void return_empty_if_apikey_does_not_exist() throws TechnicalException {
+        Optional<ApiKey> updatedApiKey = apiKeyRepository.addSubscription("unknown_apikey_id", "newSubscription");
+        assertTrue(updatedApiKey.isEmpty());
     }
 }
