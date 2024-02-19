@@ -19,6 +19,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.model.ApiKey;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -95,4 +96,13 @@ public interface ApiKeyRepository extends FindAllRepository<ApiKey> {
     List<ApiKey> findByCriteria(ApiKeyCriteria filter) throws TechnicalException;
 
     List<ApiKey> findByCriteria(ApiKeyCriteria filter, Sortable sortable) throws TechnicalException;
+
+    /**
+     *
+     * @param id apikey ID
+     * @param subscriptionId subscription ID to add to this shared apikey
+     * @return the updated apikey if found
+     * @throws TechnicalException
+     */
+    Optional<ApiKey> addSubscription(String id, String subscriptionId) throws TechnicalException;
 }

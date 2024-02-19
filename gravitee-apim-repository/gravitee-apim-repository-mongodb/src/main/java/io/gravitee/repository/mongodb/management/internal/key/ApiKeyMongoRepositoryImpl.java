@@ -23,12 +23,13 @@ import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.gte;
 import static com.mongodb.client.model.Filters.in;
-import static com.mongodb.client.model.Filters.lt;
 import static com.mongodb.client.model.Filters.lte;
 import static com.mongodb.client.model.Filters.or;
+import static com.mongodb.client.model.Updates.push;
 
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.model.Sorts;
+import com.mongodb.client.result.UpdateResult;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.management.api.search.Order;
 import io.gravitee.repository.management.api.search.Sortable;
@@ -139,6 +140,13 @@ public class ApiKeyMongoRepositoryImpl implements ApiKeyMongoRepositoryCustom {
             .aggregate(pipeline);
 
         return getListFromAggregate(aggregate);
+    }
+
+    @Override
+    public UpdateResult addSubscription(String id, String subscriptionId) {
+        return mongoTemplate
+            .getCollection(mongoTemplate.getCollectionName(ApiKeyMongo.class))
+            .updateOne(eq("_id", id), push("subscriptions", subscriptionId));
     }
 
     private List<ApiKeyMongo> getListFromAggregate(AggregateIterable<Document> aggregate) {
