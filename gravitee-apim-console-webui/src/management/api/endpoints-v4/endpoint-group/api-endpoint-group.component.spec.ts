@@ -74,12 +74,6 @@ function expectApiPutRequest(api: ApiV4, fixture: ComponentFixture<any>, httpTes
   return httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'PUT' });
 }
 
-/**
- * Expect that a single PUT request has been made which matches the specified URL
- *
- * @param fixture testing fixture
- * @param httpTestingController http testing controller
- */
 function expectHealthCheckSchemaGet(
   fixture: ComponentFixture<any>,
   httpTestingController: HttpTestingController,

@@ -28,6 +28,8 @@ export class ApiEndpointHarness extends ComponentHarness {
   private getConfigurationToggle = this.locatorFor(MatSlideToggleHarness);
   private getWeightButton = this.locatorFor(MatInputHarness.with({ selector: '#weight' }));
   private getConfigurationTab = this.locatorFor(MatTabHarness.with({ label: 'Configuration' }));
+  private getHealthCheckTab = this.locatorFor(MatTabHarness.with({ label: 'Health-check' }));
+  private getHealthCheckInheritToggle = this.locatorFor(MatSlideToggleHarness.with({ selector: '[formControlName=inherit]' }));
 
   public async fillInputName(name: string) {
     return this.getNameInput().then((input) => input.setValue(name));
@@ -57,11 +59,29 @@ export class ApiEndpointHarness extends ComponentHarness {
     return this.getConfigurationToggle().then((toggle) => toggle.toggle());
   }
 
+  public async isHealthCheckInheritButtonToggled() {
+    return this.getHealthCheckInheritToggle().then((toggle) => toggle.isChecked());
+  }
+
+  public async toggleHealthCheckInheritButton() {
+    return this.getHealthCheckInheritToggle().then((toggle) => toggle.toggle());
+  }
+
   public async fillWeightButton(weight: number) {
     return this.getWeightButton().then((button) => button.setValue(weight.toString()));
   }
 
   public async clickConfigurationTab() {
     return this.getConfigurationTab().then((tab) => tab.select());
+  }
+
+  public async clickHealthCheckTab() {
+    return this.getHealthCheckTab().then((tab) => tab.select());
+  }
+
+  public healthCheckTabIsVisible(): Promise<boolean> {
+    return this.getHealthCheckTab()
+      .then((_) => true)
+      .catch((_) => false);
   }
 }
