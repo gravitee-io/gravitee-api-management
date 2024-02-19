@@ -37,9 +37,8 @@ import { ApiLoggingComponent } from './api-logging/api-logging.component';
 import { DictionariesComponent } from './dictionaries/dictionaries.component';
 import { DictionaryComponent } from './dictionaries/dictionary.component';
 import { CustomUserFieldsComponent } from './custom-user-fields/custom-user-fields.component';
-import { EnvironmentNotificationSettingsListComponent } from './notifications/notification-settings/notification-settings-list/environment-notification-settings-list.component';
-import { EnvironmentNotificationSettingsDetailsComponent } from './notifications/notification-settings/notification-settings-details/environment-notification-settings-details.component';
 import { ApiQualityRulesNgComponent } from './api-quality-rules-ng/api-quality-rules-ng.component';
+import { EnvironmentNotificationComponent } from './notification/environment-notification.component';
 
 import { DocumentationEditPageComponent } from '../../components/documentation/edit-page.component';
 import { DocumentationImportPagesComponent } from '../../components/documentation/import-pages.component';
@@ -446,22 +445,13 @@ export const settingsRoutes: Routes = [
       },
       {
         path: 'notifications',
-        component: EnvironmentNotificationSettingsListComponent,
+        component: EnvironmentNotificationComponent,
         data: {
           docs: {
             page: 'management-configuration-notifications',
           },
           perms: {
             unauthorizedFallbackTo: 'management.home',
-          },
-        },
-      },
-      {
-        path: 'notifications/:notificationId',
-        component: EnvironmentNotificationSettingsDetailsComponent,
-        data: {
-          docs: {
-            page: 'management-configuration-notifications',
           },
         },
       },
