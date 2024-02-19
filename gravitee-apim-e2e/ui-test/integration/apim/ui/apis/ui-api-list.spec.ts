@@ -150,12 +150,12 @@ describe('API List feature', { defaultCommandTimeout: 10000 }, () => {
         cy.getByDataTestId('api_list_table_row').should('have.length', noOfApis * 2);
       });
 
-      it(`should only display 5 APIs when limited to 5`, function () {
+      it(`should switch view to 50 when 50 items per page selected`, function () {
         cy.getByDataTestId('paginator-header').within(() => {
-          cy.get('.mat-select-arrow-wrapper').click();
+          cy.get('.mat-mdc-select-trigger').click();
         });
-        cy.get('mat-option').contains('5').first().click();
-        cy.url().should('include', 'size=5');
+        cy.get('mat-option').contains('50').first().click();
+        cy.url().should('include', 'size=50');
       });
     });
 
