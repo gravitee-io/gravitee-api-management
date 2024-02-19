@@ -31,13 +31,13 @@ describe('Global metadata screen', () => {
   beforeEach(function () {
     cy.loginInAPIM(ADMIN_USER.username, ADMIN_USER.password);
     cy.visit(`/#!/${envId}/settings/metadata`);
-    cy.get('h2', { timeout: 60000 }).contains('Global metadata').should('be.visible');
+    cy.get('h3', { timeout: 60000 }).contains('Global metadata').should('be.visible');
   });
 
   describe('Verifying page elements', () => {
     it('check if the Global metadata screen is displayed correctly', function () {
       cy.url().should('include', 'metadata');
-      cy.get('h2').contains('Global metadata').should('be.visible');
+      cy.get('h3').contains('Global metadata').should('be.visible');
       cy.getByDataTestId('add_metadata_button').should('be.visible').and('be.enabled');
       cy.getByDataTestId('metadata_key').should('be.visible');
       cy.getByDataTestId('metadata_name').should('be.visible');
