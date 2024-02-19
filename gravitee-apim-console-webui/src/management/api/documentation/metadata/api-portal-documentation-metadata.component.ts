@@ -38,6 +38,6 @@ export class ApiPortalDocumentationMetadataComponent implements OnInit {
       update: (updateMetadata) => this.apiService.updateMetadata(this.activatedRoute.snapshot.params.apiId, updateMetadata),
       delete: (metadataKey) => this.apiService.deleteMetadata(this.activatedRoute.snapshot.params.apiId, metadataKey),
     };
-    this.description = `Create API metadata to retrieve custom information about your API`;
+    this.description = `Set metadata information on the API that can be easily accessed through Markdown templating`;
   }
 }
