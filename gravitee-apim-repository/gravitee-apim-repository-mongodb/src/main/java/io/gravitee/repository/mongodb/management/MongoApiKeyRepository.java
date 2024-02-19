@@ -18,6 +18,7 @@ package io.gravitee.repository.mongodb.management;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
+import com.mongodb.client.result.UpdateResult;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiKeyRepository;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
@@ -86,6 +87,15 @@ public class MongoApiKeyRepository implements ApiKeyRepository {
     @Override
     public List<ApiKey> findByCriteria(ApiKeyCriteria filter) {
         return findByCriteria(filter, null);
+    }
+
+    @Override
+    public Optional<ApiKey> addSubscription(String id, String subscriptionId) throws TechnicalException {
+        UpdateResult result = internalApiKeyRepo.addSubscription(id, subscriptionId);
+        if (result.getMatchedCount() == 0) {
+            return Optional.empty();
+        }
+        return findById(id);
     }
 
     @Override
