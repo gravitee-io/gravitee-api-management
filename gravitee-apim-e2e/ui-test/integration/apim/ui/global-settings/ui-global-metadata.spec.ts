@@ -21,66 +21,34 @@ import { ApiEntity, PlanStatus } from '../../../../../lib/management-webclient-s
 import faker from '@faker-js/faker';
 
 const envId = 'DEFAULT';
+const RELOAD_WAIT_TIME_MS = 1000;
 
 // Component reloads shortly after displaying dialog window
 // wait time makes sure reload has finished and it's safe to resume
-const RELOAD_WAIT_TIME_MS = 700;
+// const RELOAD_WAIT_TIME_MS = 700;
 
-describe('API metadata screen', () => {
-  let api: ApiEntity;
-
-  before(() => {
-    cy.request({
-      method: 'POST',
-      url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/apis/import`,
-      auth: { username: API_PUBLISHER_USER.username, password: API_PUBLISHER_USER.password },
-      body: ApisFaker.apiImport({
-        plans: [PlansFaker.plan({ status: PlanStatus.PUBLISHED })],
-      }),
-    }).then((response) => {
-      expect(response.status).to.eq(200);
-      api = response.body;
-    });
-  });
-
+describe('Global metadata screen', () => {
   beforeEach(function () {
-    cy.loginInAPIM(API_PUBLISHER_USER.username, API_PUBLISHER_USER.password);
-    cy.visit(`/#!/${envId}/apis/${api.id}/metadata`);
-    cy.get('h2', { timeout: 40000 }).contains('API metadata').should('be.visible');
-  });
-
-  after(function () {
-    cy.clearCookie('Auth-Graviteeio-APIM');
-    // delete (close) Plan
-    cy.request({
-      method: 'POST',
-      url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/apis/${api.id}/plans/${api.plans[0].id}/_close`,
-      auth: { username: API_PUBLISHER_USER.username, password: API_PUBLISHER_USER.password },
-    });
-
-    // delete API
-    cy.request({
-      method: 'DELETE',
-      url: `${Cypress.env('managementApi')}${Cypress.env('defaultOrgEnv')}/apis/${api.id}`,
-      auth: { username: API_PUBLISHER_USER.username, password: API_PUBLISHER_USER.password },
-    });
+    cy.loginInAPIM(ADMIN_USER.username, ADMIN_USER.password);
+    cy.visit(`/#!/${envId}/settings/metadata`);
+    cy.get('h2', { timeout: 60000 }).contains('Global metadata').should('be.visible');
   });
 
   describe('Verifying page elements', () => {
-    it('check if the API metadata screen is displayed', function () {
+    it('check if the Global metadata screen is displayed correctly', function () {
       cy.url().should('include', 'metadata');
-      cy.get('h2').contains('API metadata').should('be.visible');
+      cy.get('h2').contains('Global metadata').should('be.visible');
       cy.getByDataTestId('add_metadata_button').should('be.visible').and('be.enabled');
       cy.getByDataTestId('metadata_key').should('be.visible');
       cy.getByDataTestId('metadata_name').should('be.visible');
       cy.getByDataTestId('metadata_format').should('be.visible');
       cy.getByDataTestId('metadata_value').should('be.visible');
-      cy.getByDataTestId('metadata_defaultValue').should('be.visible');
+      cy.getByDataTestId('metadata_defaultValue').should('not.exist');
       cy.getByDataTestId('metadata_actions').should('be.visible');
     });
   });
 
-  describe('Adding API metadata', () => {
+  describe('Adding Global metadata', () => {
     it('should add string metadata', function () {
       cy.getByDataTestId('add_metadata_button').click();
       cy.wait(RELOAD_WAIT_TIME_MS);
@@ -138,7 +106,7 @@ describe('API metadata screen', () => {
     });
   });
 
-  describe('Modifying API metadata', () => {
+  describe('Modifying Global metadata', () => {
     it('should add url metadata', function () {
       cy.getByDataTestId('add_metadata_button').click();
       cy.wait(RELOAD_WAIT_TIME_MS);
@@ -170,7 +138,7 @@ describe('API metadata screen', () => {
     });
   });
 
-  describe('Deleting API metadata', () => {
+  describe('Deleting Global metadata', () => {
     it('should add mail metadata', function () {
       cy.getByDataTestId('add_metadata_button').click();
       cy.wait(RELOAD_WAIT_TIME_MS);
@@ -186,16 +154,15 @@ describe('API metadata screen', () => {
     });
 
     it('should delete metadata', function () {
-      cy.contains('tr', 'mail-metadata-key') // find the row that contains 'string-metadata-key'
-        .within(() => {
-          cy.getByDataTestId('metadata_delete_button').click();
-        });
+      cy.contains('tr', 'mail-metadata-key').within(() => {
+        cy.getByDataTestId('metadata_delete_button').click();
+      });
       cy.getByDataTestId('confirm-dialog').click();
       cy.get('tbody').contains('mail-metadata-key').should('not.exist');
     });
   });
 
-  describe('Sorting API metadata in overview table', () => {
+  describe('Sorting Global metadata in overview table', () => {
     function sortTableByColumnHeader(item: string, sortOrder: 'asc' | 'desc') {
       const columnHeader = `metadata_${item}`;
       cy.getByDataTestId(columnHeader).click();
@@ -213,7 +180,7 @@ describe('API metadata screen', () => {
       });
     }
 
-    ['key', 'name', 'format', 'value', 'defaultValue'].forEach((columnHeader: string) => {
+    ['key', 'name', 'format', 'value'].forEach((columnHeader: string) => {
       it(`should sort by '${columnHeader}' in ascending & descending order`, () => {
         sortTableByColumnHeader(columnHeader, 'asc');
         sortTableByColumnHeader(columnHeader, 'desc');
@@ -221,7 +188,7 @@ describe('API metadata screen', () => {
     });
   });
 
-  describe('Global metadata inside API documentation', () => {
+  describe('Global metadata inside Global documentation', () => {
     const globalMetadataName: string = `${faker.random.word()} ${faker.random.word()}`;
     const globalMetadataValue: string = `${faker.random.word()}`;
     let globalMetadataKey: string;
@@ -240,28 +207,6 @@ describe('API metadata screen', () => {
       }).then((response) => {
         globalMetadataKey = response.body.key;
       });
-    });
-
-    it('should display global metadata in API metadata overview', function () {
-      cy.contains('tr', globalMetadataName).within((globalMetadataRow) => {
-        cy.getByDataTestId('metadata_globalIcon').should('be.visible');
-        expect(globalMetadataRow).to.contain(globalMetadataName);
-        expect(globalMetadataRow).to.contain(globalMetadataValue);
-        cy.wrap(globalMetadataRow).find('[matTooltip="Inherited global metadata"]').should('exist');
-        cy.getByDataTestId('metadata_edit_button').should('be.visible');
-        cy.getByDataTestId('metadata_delete_button').should('not.exist');
-      });
-    });
-
-    it('should modify global metadata in API metadata details', function () {
-      cy.contains('tr', globalMetadataName).within(() => {
-        cy.getByDataTestId('metadata_edit_button').click();
-      });
-      cy.wait(RELOAD_WAIT_TIME_MS);
-      cy.getByDataTestId('metadata_dialog_string_value').type('new value for global metadata');
-      cy.getByDataTestId('metadata_dialog_save').click();
-      cy.get('tbody').contains(globalMetadataName);
-      cy.get('tbody').contains('new value for global metadata');
     });
 
     it('should have delete button after global metadata has been modified', function () {
