@@ -22,6 +22,7 @@ import { MetadataSaveServices } from '../../../../components/gio-metadata/gio-me
 @Component({
   selector: 'application-metadata',
   templateUrl: './application-metadata.component.html',
+  styleUrls: ['./application-metadata.component.scss'],
 })
 export class ApplicationMetadataComponent implements OnInit {
   metadataSaveServices: MetadataSaveServices;
