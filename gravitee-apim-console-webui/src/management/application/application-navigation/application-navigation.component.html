@@ -15,43 +15,47 @@
     limitations under the License.
 
 -->
-<div class="application-navigation" *ngIf="application">
-  <div class="application-navigation__menu">
-    <gio-submenu class="application-navigation__submenu">
-      <div gioSubmenuTitle class="application-navigation__submenu__title">{{ application.name }}</div>
-      <ng-container *ngFor="let item of this.subMenuItems">
-        <ng-container *ngIf="!item.tabs?.length">
-          <a *ngIf="item.routerLink" [routerLink]="item.routerLink">
-            <gio-submenu-item tabIndex="1" [active]="isActive(item)">{{ item.displayName }}</gio-submenu-item>
-          </a>
+<ng-container *ngIf="application">
+  <div class="application-navigation">
+    <div class="application-navigation__menu">
+      <gio-submenu class="application-navigation__submenu">
+        <div gioSubmenuTitle class="application-navigation__submenu__title">{{ application.name }}</div>
+        <ng-container *ngFor="let item of this.subMenuItems">
+          <ng-container *ngIf="!item.tabs?.length">
+            <a *ngIf="item.routerLink" [routerLink]="item.routerLink">
+              <gio-submenu-item tabIndex="1" [active]="isActive(item)">{{ item.displayName }}</gio-submenu-item>
+            </a>
+          </ng-container>
+          <ng-container *ngIf="item.tabs?.length">
+            <a [routerLink]="item.tabs[0].routerLink">
+              <gio-submenu-item tabIndex="1" [active]="isTabActive(item.tabs)">{{ item.displayName }}</gio-submenu-item>
+            </a>
+          </ng-container>
         </ng-container>
-        <ng-container *ngIf="item.tabs?.length">
-          <a [routerLink]="item.tabs[0].routerLink">
-            <gio-submenu-item tabIndex="1" [active]="isTabActive(item.tabs)">{{ item.displayName }}</gio-submenu-item>
-          </a>
-        </ng-container>
-      </ng-container>
-    </gio-submenu>
-  </div>
-  <div class="application-navigation__content">
-    <gio-breadcrumb *ngIf="hasBreadcrumb" class="application-navigation__breadcrumb">
-      <span *gioBreadcrumbItem class="application-navigation__breadcrumb__item">Applications</span>
-      <div *gioBreadcrumbItem gioSubmenuTitle class="application-navigation__menu__title">{{ application.name }}</div>
-      <ng-template ngFor let-item [ngForOf]="this.computeBreadcrumbItems()">
-        <span *gioBreadcrumbItem class="application-navigation__breadcrumb__item">{{ item }}</span>
-      </ng-template>
-    </gio-breadcrumb>
+      </gio-submenu>
+    </div>
+    <div class="application-navigation__content">
+      <div class="application-navigation__content__view">
+        <gio-breadcrumb *ngIf="hasBreadcrumb" class="application-navigation__breadcrumb">
+          <span *gioBreadcrumbItem class="application-navigation__breadcrumb__item">Applications</span>
+          <div *gioBreadcrumbItem gioSubmenuTitle class="application-navigation__menu__title">{{ application.name }}</div>
+          <ng-template ngFor let-item [ngForOf]="this.computeBreadcrumbItems()">
+            <span *gioBreadcrumbItem class="application-navigation__breadcrumb__item">{{ item }}</span>
+          </ng-template>
+        </gio-breadcrumb>
 
-    <application-navigation-tabs
-      *ngIf="selectedItemWithTabs"
-      class="application-navigation__content__tabs"
-      [tabMenuItems]="this.selectedItemWithTabs.tabs"
-      [menuItemHeader]="this.selectedItemWithTabs?.header"
-    >
-      <router-outlet></router-outlet>
-    </application-navigation-tabs>
-    <ng-container *ngIf="!selectedItemWithTabs">
-      <router-outlet></router-outlet>
-    </ng-container>
+        <application-navigation-tabs
+          *ngIf="selectedItemWithTabs"
+          class="application-navigation__content__tabs"
+          [tabMenuItems]="this.selectedItemWithTabs.tabs"
+          [menuItemHeader]="this.selectedItemWithTabs?.header"
+        >
+          <router-outlet></router-outlet>
+        </application-navigation-tabs>
+        <ng-container *ngIf="!selectedItemWithTabs">
+          <router-outlet></router-outlet>
+        </ng-container>
+      </div>
+    </div>
   </div>
-</div>
+</ng-container>
