@@ -126,17 +126,13 @@ export class ApiV1V2MenuService implements ApiMenuService {
     }
 
     // Users
-    const userAndGroupAccessMenuItems: MenuItem = {
-      displayName: 'User and group access',
-      tabs: [],
-    };
     if (this.permissionService.hasAnyMatching(['api-member-r'])) {
-      userAndGroupAccessMenuItems.tabs.push({
-        displayName: 'Members',
+      const userAndGroupAccessMenuItems: MenuItem = {
+        displayName: 'User and group access',
         routerLink: 'members',
-      });
-    }
-    if (userAndGroupAccessMenuItems.tabs.length > 0) {
+        tabs: [],
+      };
+
       portalGroup.items.push(userAndGroupAccessMenuItems);
     }
 
