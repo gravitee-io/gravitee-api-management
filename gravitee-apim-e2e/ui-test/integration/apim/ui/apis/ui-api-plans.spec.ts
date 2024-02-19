@@ -99,7 +99,7 @@ describe('API Plans Feature', () => {
     cy.getByDataTestId('api_plans_description_field').type(`${planDescription} OAuth2`);
     cy.getByDataTestId('api_plans_nextstep').click();
     cy.contains('h2', 'OAuth2 authentication configuration').scrollIntoView().should('be.visible');
-    cy.contains('OAuth2 resource').closest('div').find('input').type('Dummy OAuth2 resource');
+    cy.contains('OAuth2 resource').type('Dummy OAuth2 resource');
     cy.getByDataTestId('api_plans_nextstep').click();
 
     cy.contains('Rate Limiting').scrollIntoView().should('be.visible');
