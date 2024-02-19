@@ -136,6 +136,7 @@ public class ApiKeyServiceTest {
 
     @Test
     public void shouldGenerateReusingSharedKey() throws TechnicalException {
+        // Existing api key
         String sharedApiKeyValue = "shared-api-key-value";
         String sharedApiKeyId = "shared-api-key-id";
         String sharedSubscriptionId = "shared-subscription-id";
@@ -143,23 +144,39 @@ public class ApiKeyServiceTest {
         ApiKey sharedKey = new ApiKey();
         sharedKey.setId(sharedApiKeyId);
         sharedKey.setKey(sharedApiKeyValue);
-        sharedKey.setSubscriptions(List.of(SUBSCRIPTION_ID));
+        sharedKey.setSubscriptions(List.of(sharedSubscriptionId));
+        when(apiKeyRepository.findByApplication(APPLICATION_ID)).thenReturn(List.of(sharedKey));
 
+        // Existing subscription
+        SubscriptionEntity sharedSubscription = new SubscriptionEntity();
+        sharedSubscription.setId(sharedSubscriptionId);
+        when(subscriptionService.findByIdIn(List.of(sharedSubscriptionId))).thenReturn(Set.of(sharedSubscription));
+
+        // Existing application
         ApplicationEntity application = new ApplicationEntity();
         application.setId(APPLICATION_ID);
         application.setApiKeyMode(ApiKeyMode.SHARED);
 
-        SubscriptionEntity firstSubscription = new SubscriptionEntity();
-        firstSubscription.setId(sharedSubscriptionId);
+        // Subscription to add
+        when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
+        when(subscription.getApplication()).thenReturn(APPLICATION_ID);
 
-        when(apiKeyRepository.findById(sharedApiKeyId)).thenReturn(Optional.of(sharedKey));
-        when(apiKeyRepository.findByApplication(APPLICATION_ID)).thenReturn(List.of(sharedKey));
-        when(subscriptionService.findByIdIn(any())).thenReturn(Set.of(firstSubscription, subscription));
-        when(apiKeyRepository.update(any())).then(returnsFirstArg());
+        // Updated api key
+        ApiKey updatedSharedKey = new ApiKey();
+        updatedSharedKey.setId(sharedApiKeyId);
+        updatedSharedKey.setKey(sharedApiKeyValue);
+        updatedSharedKey.setSubscriptions(List.of(sharedSubscriptionId, SUBSCRIPTION_ID));
+        when(apiKeyRepository.addSubscription(sharedApiKeyId, SUBSCRIPTION_ID)).thenReturn(Optional.of(updatedSharedKey));
+        when(subscriptionService.findByIdIn(List.of(sharedSubscriptionId, SUBSCRIPTION_ID)))
+            .thenReturn(Set.of(sharedSubscription, subscription));
+
+        // Call
         ApiKeyEntity newKey = apiKeyService.generate(GraviteeContext.getExecutionContext(), application, subscription, null);
+
+        // Verify
         assertEquals(sharedApiKeyValue, newKey.getKey());
         assertEquals(sharedApiKeyId, newKey.getId());
-        assertEquals(Set.of(firstSubscription, subscription), newKey.getSubscriptions());
+        assertEquals(Set.of(sharedSubscription, subscription), newKey.getSubscriptions());
     }
 
     @Test

@@ -193,6 +193,17 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
         }
     }
 
+    @Override
+    public Optional<ApiKey> addSubscription(String id, String subscriptionId) throws TechnicalException {
+        LOGGER.debug("JdbcApiKeyRepository.addSubscription({}, {})", id, subscriptionId);
+        Optional<ApiKey> apiKey = findById(id);
+        if (apiKey.isEmpty()) {
+            return apiKey;
+        }
+        jdbcTemplate.update("insert into " + keySubscriptions + " ( key_id, subscription_id ) values ( ?, ? )", id, subscriptionId);
+        return findById(id);
+    }
+
     private boolean addClause(boolean first, StringBuilder query) {
         if (first) {
             query.append(" where ");

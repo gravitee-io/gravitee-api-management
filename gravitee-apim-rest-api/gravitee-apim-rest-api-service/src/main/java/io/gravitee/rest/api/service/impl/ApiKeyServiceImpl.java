@@ -248,19 +248,17 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
     ) {
         return findByApplication(executionContext, application.getId())
             .stream()
-            .peek(apiKey -> addSubscription(apiKey, subscription))
+            .map(apiKey -> addSubscription(executionContext, apiKey, subscription))
             .max(comparing(ApiKeyEntity::isRevoked, reverseOrder()).thenComparing(ApiKeyEntity::getExpireAt, nullsLast(naturalOrder())))
             .orElseGet(() -> generate(executionContext, subscription, customApiKey));
     }
 
-    private void addSubscription(ApiKeyEntity apiKeyEntity, SubscriptionEntity subscription) {
+    private ApiKeyEntity addSubscription(ExecutionContext executionContext, ApiKeyEntity apiKeyEntity, SubscriptionEntity subscription) {
         try {
-            ApiKey apiKey = apiKeyRepository.findById(apiKeyEntity.getId()).orElseThrow(ApiKeyNotFoundException::new);
-            ArrayList<String> subscriptions = new ArrayList<>(apiKey.getSubscriptions());
-            subscriptions.add(subscription.getId());
-            apiKey.setSubscriptions(subscriptions);
-            apiKey.setUpdatedAt(new Date());
-            apiKeyRepository.update(apiKey);
+            return convert(
+                executionContext,
+                apiKeyRepository.addSubscription(apiKeyEntity.getId(), subscription.getId()).orElseThrow(ApiKeyNotFoundException::new)
+            );
         } catch (TechnicalException e) {
             LOGGER.error("An error occurred while trying to add subscription to API Key", e);
             throw new TechnicalManagementException("An error occurred while trying to a add subscription to API Key");

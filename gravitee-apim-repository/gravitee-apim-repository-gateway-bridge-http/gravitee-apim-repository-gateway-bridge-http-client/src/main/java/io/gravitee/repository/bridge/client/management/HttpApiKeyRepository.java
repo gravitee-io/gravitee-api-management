@@ -80,6 +80,11 @@ public class HttpApiKeyRepository extends AbstractRepository implements ApiKeyRe
     }
 
     @Override
+    public Optional<ApiKey> addSubscription(String id, String subscriptionId) throws TechnicalException {
+        throw new IllegalStateException();
+    }
+
+    @Override
     @ExcludeMethodFromGeneratedCoverage
     public Set<ApiKey> findAll() throws TechnicalException {
         throw new IllegalStateException();

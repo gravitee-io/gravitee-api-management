@@ -19,9 +19,11 @@ import static com.mongodb.client.model.Aggregates.*;
 import static com.mongodb.client.model.Filters.*;
 import static com.mongodb.client.model.Projections.exclude;
 import static com.mongodb.client.model.Projections.fields;
+import static com.mongodb.client.model.Updates.push;
 
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.model.Sorts;
+import com.mongodb.client.result.UpdateResult;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.mongodb.management.internal.model.ApiKeyMongo;
 import io.gravitee.repository.mongodb.management.internal.model.SubscriptionMongo;
@@ -151,6 +153,13 @@ public class ApiKeyMongoRepositoryImpl implements ApiKeyMongoRepositoryCustom {
             .aggregate(pipeline);
 
         return getListFromAggregate(aggregate);
+    }
+
+    @Override
+    public UpdateResult addSubscription(String id, String subscriptionId) {
+        return mongoTemplate
+            .getCollection(mongoTemplate.getCollectionName(ApiKeyMongo.class))
+            .updateOne(eq("_id", id), push("subscriptions", subscriptionId));
     }
 
     private List<ApiKeyMongo> getListFromAggregate(AggregateIterable<Document> aggregate) {
