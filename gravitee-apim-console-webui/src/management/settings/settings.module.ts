@@ -39,7 +39,7 @@ import { ApiLoggingModule } from './api-logging/api-logging.module';
 import { DictionariesComponent } from './dictionaries/dictionaries.component';
 import { DictionaryComponent } from './dictionaries/dictionary.component';
 import { CustomUserFieldsComponent } from './custom-user-fields/custom-user-fields.component';
-import { EnvironmentNotificationSettingsModule } from './notifications/notification-settings/environment-notification-settings.module';
+import { EnvironmentNotificationModule } from './notification/environment-notification.module';
 import { ApiQualityRulesNgModule } from './api-quality-rules-ng/api-quality-rules-ng.module';
 
 import { DocumentationModule } from '../../components/documentation/documentation.module';
@@ -56,7 +56,7 @@ import { DocumentationModule } from '../../components/documentation/documentatio
     EnvironmentMetadataModule,
     ClientRegistrationProvidersModule,
     ApiLoggingModule,
-    EnvironmentNotificationSettingsModule,
+    EnvironmentNotificationModule,
   ],
   declarations: [
     SettingsNavigationComponent,
