@@ -46,7 +46,7 @@ describe('API metadata screen', () => {
   beforeEach(function () {
     cy.loginInAPIM(API_PUBLISHER_USER.username, API_PUBLISHER_USER.password);
     cy.visit(`/#!/${envId}/apis/${api.id}/metadata`);
-    cy.get('h2', { timeout: 40000 }).contains('API metadata').should('be.visible');
+    cy.get('h3', { timeout: 40000 }).contains('API metadata').should('be.visible');
   });
 
   after(function () {
@@ -69,13 +69,11 @@ describe('API metadata screen', () => {
   describe('Verifying page elements', () => {
     it('check if the API metadata screen is displayed', function () {
       cy.url().should('include', 'metadata');
-      cy.get('h2').contains('API metadata').should('be.visible');
       cy.getByDataTestId('add_metadata_button').should('be.visible').and('be.enabled');
       cy.getByDataTestId('metadata_key').should('be.visible');
       cy.getByDataTestId('metadata_name').should('be.visible');
       cy.getByDataTestId('metadata_format').should('be.visible');
       cy.getByDataTestId('metadata_value').should('be.visible');
-      cy.getByDataTestId('metadata_defaultValue').should('be.visible');
       cy.getByDataTestId('metadata_actions').should('be.visible');
     });
   });
@@ -213,7 +211,7 @@ describe('API metadata screen', () => {
       });
     }
 
-    ['key', 'name', 'format', 'value', 'defaultValue'].forEach((columnHeader: string) => {
+    ['key', 'name', 'format', 'value'].forEach((columnHeader: string) => {
       it(`should sort by '${columnHeader}' in ascending & descending order`, () => {
         sortTableByColumnHeader(columnHeader, 'asc');
         sortTableByColumnHeader(columnHeader, 'desc');
@@ -244,7 +242,7 @@ describe('API metadata screen', () => {
 
     it('should display global metadata in API metadata overview', function () {
       cy.contains('tr', globalMetadataName).within((globalMetadataRow) => {
-        cy.getByDataTestId('metadata_globalIcon').should('be.visible');
+        cy.getByDataTestId('metadata_globalBadge').should('be.visible');
         expect(globalMetadataRow).to.contain(globalMetadataName);
         expect(globalMetadataRow).to.contain(globalMetadataValue);
         cy.wrap(globalMetadataRow).find('[matTooltip="Inherited global metadata"]').should('exist');
