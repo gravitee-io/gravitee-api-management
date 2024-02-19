@@ -10,6 +10,14 @@ $typography: map.get(gio.$mat-theme, typography);
   @include gio-layout.gio-responsive-margin-container;
 }
 
+.application-general {
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+}
+
 .details-card {
   &__header {
     display: flex;

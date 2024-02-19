@@ -15,7 +15,7 @@
     limitations under the License.
 
 -->
-<form *ngIf="applicationForm" [formGroup]="applicationForm" autocomplete="off" gioFormFocusInvalid>
+<form class="application-general__content" *ngIf="applicationForm" [formGroup]="applicationForm" autocomplete="off" gioFormFocusInvalid>
   <mat-card class="details-card">
     <mat-card-content>
       <div class="details-card__header">
@@ -93,21 +93,21 @@
   </mat-card>
 
   <ng-container *ngIf="initialApplication.type === 'SIMPLE'">
-    <h2 class="details-title-oauth">OAuth2 Integration</h2>
     <mat-card class="details-card" formGroupName="OAuth2Form">
       <mat-card-content>
         <div class="details-card__header">
-          <div class="details-card__header__info-inputs">
-            <div class="details-card__header__info-inputs__client_id-row">
-              <mat-form-field>
-                <mat-label>Client ID</mat-label>
-                <input formControlName="client_id" matInput type="text" maxlength="300" minlength="1" gioClipboardCopyWrapper />
-                <mat-hint align="start"
-                  >The <code>Client_id</code> of the application. This field is required to subscribe to certain type of API Plan (OAuth2,
-                  JWT).
-                </mat-hint>
-              </mat-form-field>
-            </div>
+          <h3>OAuth2 Integration</h3>
+        </div>
+        <div class="details-card__header__info-inputs">
+          <div class="details-card__header__info-inputs__client_id-row">
+            <mat-form-field>
+              <mat-label>Client ID</mat-label>
+              <input formControlName="client_id" matInput type="text" maxlength="300" minlength="1" gioClipboardCopyWrapper />
+              <mat-hint align="start"
+                >The <code>Client_id</code> of the application. This field is required to subscribe to certain type of API Plan (OAuth2,
+                JWT).
+              </mat-hint>
+            </mat-form-field>
           </div>
         </div>
       </mat-card-content>
@@ -117,7 +117,10 @@
   <ng-container *ngIf="initialApplication.type !== 'SIMPLE'">
     <h2 class="details-title-openid">OpenID Connect Integration</h2>
     <mat-card class="details-card-openid" formGroupName="OpenIDForm">
-      <div class="details-card__header">
+      <mat-card-content>
+        <div class="details-card__header">
+          <h3>OpenID Connect Integration</h3>
+        </div>
         <div class="details-card__header__info-inputs">
           <div class="details-card__header__right-coll__media coll-oauth">
             <mat-form-field class="oauth">
@@ -146,7 +149,7 @@
             </mat-form-field>
           </div>
         </div>
-      </div>
+      </mat-card-content>
     </mat-card>
   </ng-container>
 
