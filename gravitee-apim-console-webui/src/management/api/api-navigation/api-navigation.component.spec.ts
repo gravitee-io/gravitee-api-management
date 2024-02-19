@@ -250,7 +250,6 @@ describe('ApiNavigationComponent', () => {
             'Pages',
             'Metadata',
             'User and group access',
-            'Members',
             'Entrypoints',
             'CORS',
             'Deployments',

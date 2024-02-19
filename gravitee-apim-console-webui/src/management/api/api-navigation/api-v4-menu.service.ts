@@ -43,10 +43,10 @@ export class ApiV4MenuService implements ApiMenuService {
       this.addConfigurationMenuEntry(),
       this.addEntrypointsMenuEntry(hasTcpListeners),
       this.addEndpointsMenuEntry(isHttpProxyApi),
+      this.addPoliciesMenuEntry(hasTcpListeners),
       this.addConsumersMenuEntry(hasTcpListeners),
       this.addDocumentationMenuEntry(),
       this.addDeploymentMenuEntry(),
-      this.addPoliciesMenuEntry(hasTcpListeners),
       this.addApiTrafficMenuEntry(hasTcpListeners),
       this.addApiRuntimeAlertsMenuEntry(),
     ].filter((entry) => entry != null && !entry.tabs?.every((tab) => tab.routerLink === 'DISABLED'));
@@ -170,13 +170,13 @@ export class ApiV4MenuService implements ApiMenuService {
     return {
       displayName: 'Endpoints',
       icon: 'endpoints',
-      routerLink: '',
+      routerLink: tabs.length === 1 ? tabs[0].routerLink : '',
       header: {
         title: 'Endpoints',
         subtitle:
           'Define the protocol and configuration settings by which the Gateway API will fetch data from, or post data to, the backend API',
       },
-      tabs: tabs,
+      tabs: tabs.length === 1 ? undefined : tabs,
     };
   }
 
@@ -251,7 +251,7 @@ export class ApiV4MenuService implements ApiMenuService {
 
     if (this.permissionService.hasAnyMatching(['api-event-r'])) {
       tabs.push({
-        displayName: 'History',
+        displayName: 'Version History',
         routerLink: 'DISABLED',
       });
     }
