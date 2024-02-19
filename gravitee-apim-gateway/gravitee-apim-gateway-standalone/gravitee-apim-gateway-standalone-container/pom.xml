@@ -30,10 +30,6 @@
     <artifactId>gravitee-apim-gateway-standalone-container</artifactId>
     <name>Gravitee.io APIM - Gateway - Standalone - Container</name>
 
-    <properties>
-        <gravitee-connector-http.version>3.0.1</gravitee-connector-http.version>
-    </properties>
-
     <dependencies>
         <!-- Gravitee.io -->
         <dependency>
