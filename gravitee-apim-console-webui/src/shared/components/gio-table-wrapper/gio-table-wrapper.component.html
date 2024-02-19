@@ -20,8 +20,8 @@
   <div>
     <mat-form-field *ngIf="!disableSearchInput" class="gio-table-wrapper__header-bar__search-field">
       <mat-icon matIconPrefix svgIcon="gio:search"></mat-icon>
-      <mat-label>{{ searchLabel }}</mat-label>
-      <input class="search-input" [formControl]="inputSearch" type="search" matInput data-testid="search" />
+      <mat-label data-testid="search">{{ searchLabel }}</mat-label>
+      <input class="search-input" [formControl]="inputSearch" type="search" matInput />
     </mat-form-field>
   </div>
 
