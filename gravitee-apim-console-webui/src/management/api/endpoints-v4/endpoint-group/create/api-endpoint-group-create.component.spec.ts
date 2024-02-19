@@ -24,7 +24,7 @@ import { MatStepHarness } from '@angular/material/stepper/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { fakeKafkaMessageEndpoint } from '@gravitee/ui-policy-studio-angular/testing';
 import { cloneDeep } from 'lodash';
-import { MatLegacySnackBarHarness as MatSnackBarHarness } from '@angular/material/legacy-snack-bar/testing';
+import { MatSnackBarHarness } from '@angular/material/snack-bar/testing';
 
 import { ApiEndpointGroupCreateComponent } from './api-endpoint-group-create.component';
 import { ApiEndpointGroupCreateHarness } from './api-endpoint-group-create.harness';
