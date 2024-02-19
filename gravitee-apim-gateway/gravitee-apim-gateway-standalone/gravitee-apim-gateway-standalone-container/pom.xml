@@ -31,7 +31,7 @@
     <name>Gravitee.io APIM - Gateway - Standalone - Container</name>
 
     <properties>
-        <gravitee-connector-http.version>3.0.1</gravitee-connector-http.version>
+        <gravitee-connector-http.version>3.0.3</gravitee-connector-http.version>
     </properties>
 
     <dependencies>
