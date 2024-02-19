@@ -33,6 +33,7 @@ import { GioMetadataDialogComponent } from './dialog/gio-metadata-dialog.compone
 import { GioMetadataComponent } from './gio-metadata.component';
 
 import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
+import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 @NgModule({
   declarations: [GioMetadataComponent, GioMetadataDialogComponent],
   exports: [GioMetadataComponent, GioMetadataDialogComponent],
@@ -54,6 +55,7 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
     MatTooltipModule,
 
     GioPermissionModule,
+    GioTableWrapperModule,
   ],
   providers: [{ provide: MAT_MOMENT_DATE_ADAPTER_OPTIONS, useValue: { useUtc: true } }],
 })

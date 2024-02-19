@@ -69,10 +69,8 @@ export class GioMetadataComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.referenceType = this.metadataSaveServices.type;
     this.permissionPrefix = this.referenceType === 'Global' ? 'environment' : this.referenceType.toLowerCase();
-    this.displayedColumns = ['global', 'key', 'name', 'format', 'value', 'actions'];
-    if (this.referenceType === 'API') {
-      this.displayedColumns.splice(-1, 0, 'defaultValue');
-    }
+    this.displayedColumns = ['key', 'name', 'format', 'value', 'actions'];
+
     this.metadataSaveServices
       .list()
       .pipe(
@@ -82,7 +80,7 @@ export class GioMetadataComponent implements OnInit, OnDestroy {
             defaultValue: m.defaultValue,
             format: m.format,
             key: m.key,
-            value: m.value,
+            value: !!m.defaultValue && !m.value ? m.defaultValue : m.value,
             isDeletable: !this.referenceType || (this.referenceType && m.value !== undefined),
           })),
         ),
@@ -133,11 +131,11 @@ export class GioMetadataComponent implements OnInit, OnDestroy {
   }
 
   deleteMetadata(element: MetadataVM): void {
-    const title = element.defaultValue ? 'Remove global metadata override' : `Delete ${this.referenceType} metadata`;
+    const title = element.defaultValue ? 'Reset global metadata' : `Delete ${this.referenceType} metadata`;
     const content = element.defaultValue
-      ? `Are you sure you want to remove the metadata override '${element.name}'?`
+      ? `Are you sure you want to reset '${element.name}' to its original value '${element.defaultValue}'?`
       : `Are you sure you want to delete ${this.referenceType} metadata '${element.name}'?`;
-    const confirmButton = element.defaultValue ? 'Remove' : 'Delete';
+    const confirmButton = element.defaultValue ? 'Reset' : 'Delete';
     this.matDialog
       .open<GioConfirmDialogComponent, GioConfirmDialogData, boolean>(GioConfirmDialogComponent, {
         data: {
