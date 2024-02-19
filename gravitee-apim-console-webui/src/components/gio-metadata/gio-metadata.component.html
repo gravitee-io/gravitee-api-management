@@ -15,22 +15,26 @@
     limitations under the License.
 
 -->
-<mat-card appearance="outlined">
-  <div class="gio-metadata">
+<mat-card class="gio-metadata">
+  <mat-card-content>
     <div class="gio-metadata__header">
-      <h2>{{ referenceType }} metadata</h2>
-      <button
-        *gioPermission="{ anyOf: [permissionPrefix + '-metadata-c'] }"
-        (click)="onAddMetadataClick()"
-        mat-raised-button
-        color="primary"
-        aria-label="add-metadata"
-        data-testid="add_metadata_button"
-      >
-        <mat-icon>add</mat-icon> Add {{ referenceType }} Metadata
-      </button>
+      <div class="gio-metadata__header__title">
+        <h3>{{ referenceType }} metadata</h3>
+        <p>{{ description }}</p>
+      </div>
+      <div class="gio-metadata__header__action">
+        <button
+          *gioPermission="{ anyOf: [permissionPrefix + '-metadata-c'] }"
+          (click)="onAddMetadataClick()"
+          mat-raised-button
+          color="primary"
+          aria-label="add-metadata"
+          data-testid="add_metadata_button"
+        >
+          <mat-icon>add</mat-icon> Add {{ referenceType }} Metadata
+        </button>
+      </div>
     </div>
-    <div class="mat-body gio-metadata__description">{{ description }}</div>
     <div class="gio-metadata__table">
       <table mat-table [dataSource]="dataSource" matSort class="gio-metadata__table">
         <caption style="display: none">
@@ -126,5 +130,5 @@
         <tr mat-row *matRowDef="let row; columns: displayedColumns" data-testid="metadata_table_row"></tr>
       </table>
     </div>
-  </div>
+  </mat-card-content>
 </mat-card>
