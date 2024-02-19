@@ -308,7 +308,7 @@ const GroupComponent: ng.IComponentOptions = {
     this.deleteMember = (member: Member): IPromise<void> => {
       return GroupService.deleteMember(this.group.id, member.id).then(() => {
         NotificationService.show('Member ' + member.displayName + ' has been successfully removed');
-        if (this.members.length === 1 && this.membersPageQuery.page > 0) {
+        if (this.members.length === 1 && this.membersPageQuery.page > 1) {
           --this.membersPageQuery.page;
         }
         return this.getMembersPage().then(() => {
