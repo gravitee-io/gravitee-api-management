@@ -16,6 +16,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
+
+import { EnvironmentSettingsService } from './environment-settings.service';
 
 import { Constants } from '../entities/Constants';
 import { PortalSettings } from '../entities/portal/portalSettings';
@@ -31,13 +34,21 @@ export class PortalSettingsService {
     return false;
   }
 
-  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject('Constants') private readonly constants: Constants,
+    private readonly environmentSettingsService: EnvironmentSettingsService,
+  ) {}
 
   get(): Observable<PortalSettings> {
     return this.http.get<PortalSettings>(`${this.constants.env.baseURL}/settings`);
   }
 
   save(portalSettings: PortalSettings): Observable<void> {
-    return this.http.post<void>(`${this.constants.env.baseURL}/settings`, portalSettings);
+    return this.http.post<void>(`${this.constants.env.baseURL}/settings`, portalSettings).pipe(
+      tap(() => {
+        this.environmentSettingsService.load();
+      }),
+    );
   }
 }

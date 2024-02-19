@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { PortalSettings } from 'src/entities/portal/portalSettings';
+
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpTestingController } from '@angular/common/http/testing';
@@ -39,6 +41,23 @@ describe('ApiQualityRulesNgComponent', () => {
   let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
+  const portalSettingsMock: PortalSettings = {
+    apiQualityMetrics: {
+      enabled: true,
+      descriptionWeight: 100,
+      descriptionMinLength: 100,
+      logoWeight: 100,
+      categoriesWeight: 100,
+      labelsWeight: 100,
+      functionalDocumentationWeight: 100,
+      technicalDocumentationWeight: 100,
+      healthcheckWeight: 100,
+    },
+    apiReview: {
+      enabled: false,
+    },
+  };
+
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioHttpTestingModule, ApiQualityRulesNgModule, MatIconTestingModule],
@@ -51,32 +70,6 @@ describe('ApiQualityRulesNgComponent', () => {
             'environment-quality_rule-c',
             'environment-quality_rule-r',
           ],
-        },
-        {
-          provide: 'Constants',
-          useValue: {
-            ...CONSTANTS_TESTING,
-            env: {
-              ...CONSTANTS_TESTING.env,
-              settings: {
-                ...CONSTANTS_TESTING.env.settings,
-                apiReview: {
-                  enabled: false,
-                },
-                apiQualityMetrics: {
-                  enabled: true,
-                },
-                descriptionWeight: 100,
-                descriptionMinLength: 100,
-                logoWeight: 100,
-                categoriesWeight: 100,
-                labelsWeight: 100,
-                functionalDocumentationWeight: 100,
-                technicalDocumentationWeight: 100,
-                healthcheckWeight: 100,
-              },
-            },
-          },
         },
       ],
     }).overrideProvider(InteractivityChecker, {
@@ -107,6 +100,7 @@ describe('ApiQualityRulesNgComponent', () => {
         { id: 'test_id1', name: 'test_name2', description: 'description2', weight: 2 },
       ];
       expectListQualityRulesRequest(qualityRules);
+      expectGetPortalSettingsRequest(portalSettingsMock);
 
       const saveBar = await loader.getHarness(GioSaveBarHarness);
       expect(await saveBar.isVisible()).toBe(false);
@@ -118,31 +112,27 @@ describe('ApiQualityRulesNgComponent', () => {
       const technicalDocumentationWeightInput = await loader.getHarness(
         MatInputHarness.with({ selector: '[formControlName=technicalDocumentationWeight]' }),
       );
-      await technicalDocumentationWeightInput.setValue('testValue');
+      await technicalDocumentationWeightInput.setValue('500');
       expect(await saveBar.isSubmitButtonInvalid()).toEqual(false);
       await saveBar.clickSubmit();
 
       const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/settings`);
       expect(req.request.method).toEqual('POST');
       expect(req.request.body).toEqual({
-        analytics: {
-          clientTimeout: 50,
-        },
         apiQualityMetrics: {
           enabled: true,
-          technicalDocumentationWeight: null,
+          categoriesWeight: 100,
+          descriptionMinLength: 100,
+          descriptionWeight: 100,
+          functionalDocumentationWeight: 100,
+          healthcheckWeight: 100,
+          labelsWeight: 100,
+          logoWeight: 100,
+          technicalDocumentationWeight: 500,
         },
         apiReview: {
           enabled: true,
         },
-        categoriesWeight: 100,
-        descriptionMinLength: 100,
-        descriptionWeight: 100,
-        functionalDocumentationWeight: 100,
-        healthcheckWeight: 100,
-        labelsWeight: 100,
-        logoWeight: 100,
-        technicalDocumentationWeight: 100,
       });
     });
   });
@@ -154,6 +144,7 @@ describe('ApiQualityRulesNgComponent', () => {
         { id: 'test_id1', name: 'test_name2', description: 'description2', weight: 2 },
       ];
       expectListQualityRulesRequest(qualityRules);
+      expectGetPortalSettingsRequest(portalSettingsMock);
 
       const table = await loader.getHarness(MatTableHarness.with({ selector: '#apiQualityRulesTable' }));
       expect(await table.getCellTextByIndex()).toEqual([
@@ -168,7 +159,7 @@ describe('ApiQualityRulesNgComponent', () => {
         { id: 'test_id1', name: 'test_name2', description: 'description2', weight: 2 },
       ];
       expectListQualityRulesRequest(qualityRules);
-      fixture.detectChanges();
+      expectGetPortalSettingsRequest(portalSettingsMock);
 
       const button = await loader.getHarness(MatButtonHarness.with({ selector: `[aria-label="Delete manual rule"]` }));
       await button.click();
@@ -177,6 +168,7 @@ describe('ApiQualityRulesNgComponent', () => {
       await confirmDialog.confirm();
       expectDeleteManualRuleRequest('test_id1');
       expectListQualityRulesRequest(qualityRules);
+      expectGetPortalSettingsRequest(portalSettingsMock);
     });
 
     it('should update rule', async () => {
@@ -185,6 +177,7 @@ describe('ApiQualityRulesNgComponent', () => {
         { id: 'test_id1', name: 'test_name2', description: 'description2', weight: 2 },
       ];
       expectListQualityRulesRequest(qualityRules);
+      expectGetPortalSettingsRequest(portalSettingsMock);
 
       const table = await loader.getHarness(MatTableHarness.with({ selector: '#apiQualityRulesTable' }));
       expect((await table.getRows()).length).toEqual(2);
@@ -202,6 +195,7 @@ describe('ApiQualityRulesNgComponent', () => {
       expect(qualityRules[1].name).toEqual('test_name2');
       expectUpdateManualRuleRequest('test_id1');
       expectListQualityRulesRequest(qualityRules);
+      expectGetPortalSettingsRequest(portalSettingsMock);
     });
 
     it('should add new quality rule', async () => {
@@ -210,6 +204,7 @@ describe('ApiQualityRulesNgComponent', () => {
         { id: 'test_id1', name: 'test_name2', description: 'description2', weight: 2 },
       ];
       expectListQualityRulesRequest(qualityRules);
+      expectGetPortalSettingsRequest(portalSettingsMock);
 
       const table = await loader.getHarness(MatTableHarness.with({ selector: '#apiQualityRulesTable' }));
       expect((await table.getRows()).length).toEqual(2);
@@ -232,8 +227,18 @@ describe('ApiQualityRulesNgComponent', () => {
       await submitButton.click();
       expectCreateManualRuleRequest({ id: 'test_id1', name: 'test_name1', description: 'description1', weight: 1 });
       expectListQualityRulesRequest(qualityRules);
+      expectGetPortalSettingsRequest(portalSettingsMock);
     });
   });
+
+  function expectGetPortalSettingsRequest(portalSettings: PortalSettings) {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/settings`,
+        method: 'GET',
+      })
+      .flush(portalSettings);
+  }
 
   function expectListQualityRulesRequest(qualityRuleList: QualityRule[]) {
     httpTestingController

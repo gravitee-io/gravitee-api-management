@@ -20,6 +20,8 @@ export interface PortalSettings {
   portal?: PortalSettingsPortal;
   metadata?: PortalSettingsMetadata;
   application?: PortalSettingsApplication;
+  apiQualityMetrics?: PortalApiQualityMetrics;
+  apiReview?: PortalApiReview;
 }
 
 export type PortalSettingsMetadata = Record<string, string[]>;
@@ -87,4 +89,20 @@ export interface PortalSettingsPortal {
       enabled: boolean;
     };
   };
+}
+
+export interface PortalApiQualityMetrics {
+  enabled: boolean;
+  functionalDocumentationWeight: number;
+  technicalDocumentationWeight: number;
+  descriptionWeight: number;
+  descriptionMinLength: number;
+  logoWeight: number;
+  categoriesWeight: number;
+  labelsWeight: number;
+  healthcheckWeight: number;
+}
+
+export interface PortalApiReview {
+  enabled: boolean;
 }
