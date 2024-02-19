@@ -78,6 +78,7 @@ import { ApiDynamicPropertiesComponent } from './properties/components/dynamic-p
 import { ApiPropertiesComponent } from './properties/properties/api-properties.component';
 import { ApiNotificationComponent } from './api-notification/api-notification.component';
 import { ApiRuntimeAlertsComponent } from './runtime-alerts';
+import { ApiDocumentationV4MetadataComponent } from './documentation-v4/documentation-metadata/api-documentation-v4-metadata.component';
 
 import { DocumentationManagementComponent } from '../../components/documentation/documentation-management.component';
 import { DocumentationNewPageComponent } from '../../components/documentation/new-page.component';
@@ -797,6 +798,16 @@ const apisRoutes: Routes = [
           },
         },
         component: ApiDocumentationV4EditPageComponent,
+      },
+      {
+        path: 'v4/documentation/metadata',
+        data: {
+          docs: null,
+          apiPermissions: {
+            only: ['api-metadata-r'],
+          },
+        },
+        component: ApiDocumentationV4MetadataComponent,
       },
       {
         path: 'v4/documentation/:pageId',

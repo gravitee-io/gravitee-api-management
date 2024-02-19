@@ -217,13 +217,15 @@ export class ApiV4MenuService implements ApiMenuService {
       tabs.push({
         displayName: 'Pages',
         routerLink: 'v4/documentation',
+        routerLinkActiveOptions: { exact: true },
       });
     }
 
     if (this.permissionService.hasAnyMatching(['api-metadata-r'])) {
       tabs.push({
         displayName: 'Metadata',
-        routerLink: 'DISABLED',
+        routerLink: 'v4/documentation/metadata',
+        routerLinkActiveOptions: { exact: true },
       });
     }
 
@@ -233,7 +235,7 @@ export class ApiV4MenuService implements ApiMenuService {
       routerLink: '',
       header: {
         title: 'Documentation',
-        subtitle: 'Documentation pages appear in the portal and inform API consumers how to use your API',
+        subtitle: 'Documentation pages appear in the Developer Portal and inform API consumers how to use your API',
       },
       tabs: tabs,
     };

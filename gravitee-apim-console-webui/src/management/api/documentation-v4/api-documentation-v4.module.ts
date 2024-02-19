@@ -42,10 +42,12 @@ import { ApiDocumentationV4ContentEditorComponent } from './components/api-docum
 import { ApiDocumentationV4PageTitleComponent } from './components/api-documentation-v4-page-title/api-documentation-v4-page-title.component';
 import { ApiDocumentationV4BreadcrumbComponent } from './components/api-documentation-v4-breadcrumb/api-documentation-v4-breadcrumb.component';
 import { ApiDocumentationV4FileUploadComponent } from './components/api-documentation-v4-file-upload/api-documentation-v4-file-upload.component';
+import { ApiDocumentationV4MetadataComponent } from './documentation-metadata/api-documentation-v4-metadata.component';
 
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { GioTooltipOnEllipsisModule } from '../../../shared/components/gio-tooltip-on-ellipsis/gio-tooltip-on-ellipsis.module';
 import { GioSwaggerUiModule } from '../../../components/documentation/gio-swagger-ui/gio-swagger-ui.module';
+import { GioMetadataModule } from '../../../components/gio-metadata/gio-metadata.module';
 
 @NgModule({
   declarations: [
@@ -61,6 +63,7 @@ import { GioSwaggerUiModule } from '../../../components/documentation/gio-swagge
     ApiDocumentationV4PagesListComponent,
     ApiDocumentationV4BreadcrumbComponent,
     ApiDocumentationV4FileUploadComponent,
+    ApiDocumentationV4MetadataComponent,
   ],
   exports: [ApiDocumentationV4Component],
   imports: [
@@ -91,6 +94,7 @@ import { GioSwaggerUiModule } from '../../../components/documentation/gio-swagge
     NgOptimizedImage,
     MatMenuModule,
     GioSwaggerUiModule,
+    GioMetadataModule,
   ],
 })
 export class ApiDocumentationV4Module {}
