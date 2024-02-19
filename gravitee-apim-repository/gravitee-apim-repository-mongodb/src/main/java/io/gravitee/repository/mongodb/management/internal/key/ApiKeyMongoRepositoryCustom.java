@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.mongodb.management.internal.key;
 
+import com.mongodb.client.result.UpdateResult;
 import io.gravitee.repository.management.api.search.ApiKeyCriteria;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.mongodb.management.internal.model.ApiKeyMongo;
@@ -32,4 +33,6 @@ public interface ApiKeyMongoRepositoryCustom {
     List<ApiKeyMongo> findByKeyAndApi(String key, String api);
 
     List<ApiKeyMongo> findByPlan(String plan);
+
+    UpdateResult addSubscription(String id, String subscriptionId);
 }
