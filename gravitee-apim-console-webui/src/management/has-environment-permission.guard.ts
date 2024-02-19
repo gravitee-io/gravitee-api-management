@@ -15,7 +15,7 @@
  */
 import { Inject, Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivate, CanActivateChild, CanDeactivate, Router, RouterStateSnapshot } from '@angular/router';
-import { map, switchMap, tap } from 'rxjs/operators';
+import { map, switchMap } from 'rxjs/operators';
 import { Observable, of } from 'rxjs';
 import { GioMenuSearchService } from '@gravitee/ui-particles-angular';
 
@@ -63,11 +63,7 @@ export class HasEnvironmentPermissionGuard implements CanActivate, CanActivateCh
 
         return this.gioPermissionService.loadEnvironmentPermissions(paramEnv);
       }),
-      switchMap(() => this.environmentSettingsService.get()),
-      tap((settings) => {
-        // FIXME: this is a hack to make the environment settings available in the constants. Try to remove it.
-        this.constants.env.settings = settings;
-      }),
+      switchMap(() => this.environmentSettingsService.load()),
       switchMap(() => this.canActivateChild(route, state)),
       map((canActivateChild) => {
         if (canActivateChild) {

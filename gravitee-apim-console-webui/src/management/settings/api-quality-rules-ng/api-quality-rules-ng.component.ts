@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { EMPTY, Subject } from 'rxjs';
-import { FormControl, FormGroup, UntypedFormGroup } from '@angular/forms';
+import { FormControl, FormGroup } from '@angular/forms';
 import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
@@ -26,14 +26,13 @@ import {
   ApiQualityRulesNgAddDialogComponent,
 } from './api-quality-rules-ng-add-dialog/api-quality-rules-ng-add-dialog.component';
 
-import { Constants, EnvSettings } from '../../../entities/Constants';
 import { PortalSettingsService } from '../../../services-ngx/portal-settings.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
-import { EnvironmentSettingsService } from '../../../services-ngx/environment-settings.service';
 import { QualityRuleService } from '../../../services-ngx/quality-rule.service';
 import { QualityRule } from '../../../entities/qualityRule';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { gioTableFilterCollection } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
+import { PortalSettings } from '../../../entities/portal/portalSettings';
 
 interface ApiQualityRulesForm {
   apiReview: FormGroup<{
@@ -59,8 +58,8 @@ interface ApiQualityRulesForm {
 })
 export class ApiQualityRulesNgComponent implements OnInit {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
-  settings: EnvSettings;
-  apiQualityRulesForm: UntypedFormGroup;
+  settings?: PortalSettings;
+  apiQualityRulesForm: FormGroup<ApiQualityRulesForm>;
   public formInitialValues: unknown;
   public qualityRulesListTable: QualityRule[] = [];
   public displayedColumns = ['quality', 'description', 'weight', 'actions'];
@@ -76,17 +75,14 @@ export class ApiQualityRulesNgComponent implements OnInit {
   };
 
   constructor(
-    @Inject('Constants') private readonly constants: Constants,
     private readonly portalSettingsService: PortalSettingsService,
     private readonly snackBarService: SnackBarService,
-    private readonly environmentSettingsService: EnvironmentSettingsService,
     private readonly qualityRuleService: QualityRuleService,
     private readonly matDialog: MatDialog,
   ) {}
 
   public ngOnInit() {
     this.isLoadingData = true;
-    this.settings = this.constants.env.settings;
     this.qualityRuleService
       .list()
       .pipe(
@@ -100,54 +96,64 @@ export class ApiQualityRulesNgComponent implements OnInit {
         this.isLoadingData = false;
       });
 
-    this.apiQualityRulesForm = new FormGroup<ApiQualityRulesForm>({
-      apiReview: new FormGroup({
-        enabled: new FormControl({
-          value: this.settings.apiReview.enabled,
-          disabled: this.isReadonly('api.review.enabled'),
-        }),
-      }),
-      apiQualityMetrics: new FormGroup({
-        enabled: new FormControl({
-          value: this.settings.apiQualityMetrics.enabled,
-          disabled: this.isReadonly('api.quality.metrics.enabled'),
-        }),
-        descriptionWeight: new FormControl({
-          value: this.settings.apiQualityMetrics.descriptionWeight,
-          disabled: this.isReadonly('api.quality.metrics.description.weight'),
-        }),
-        descriptionMinLength: new FormControl({
-          value: this.settings.apiQualityMetrics.descriptionMinLength,
-          disabled: this.isReadonly('api.quality.metrics.description.min.length'),
-        }),
-        logoWeight: new FormControl({
-          value: this.settings.apiQualityMetrics.logoWeight,
-          disabled: this.isReadonly('api.quality.metrics.logo.weight'),
-        }),
-        categoriesWeight: new FormControl({
-          value: this.settings.apiQualityMetrics.categoriesWeight,
-          disabled: this.isReadonly('api.quality.metrics.categories.weight'),
-        }),
-        labelsWeight: new FormControl({
-          value: this.settings.apiQualityMetrics.labelsWeight,
-          disabled: this.isReadonly('api.quality.metrics.labels.weight'),
-        }),
-        functionalDocumentationWeight: new FormControl({
-          value: this.settings.apiQualityMetrics.functionalDocumentationWeight,
-          disabled: this.isReadonly('api.quality.metrics.functional.documentation.weight'),
-        }),
-        technicalDocumentationWeight: new FormControl({
-          value: this.settings.apiQualityMetrics.technicalDocumentationWeight,
-          disabled: this.isReadonly('api.quality.metrics.technical.documentation.weight'),
-        }),
-        healthcheckWeight: new FormControl({
-          value: this.settings.apiQualityMetrics.healthcheckWeight,
-          disabled: this.isReadonly('api.quality.metrics.healthcheck.weight'),
-        }),
-      }),
-    });
+    this.portalSettingsService
+      .get()
+      .pipe(
+        tap((settings) => {
+          this.settings = settings;
 
-    this.formInitialValues = this.apiQualityRulesForm.getRawValue();
+          this.apiQualityRulesForm = new FormGroup<ApiQualityRulesForm>({
+            apiReview: new FormGroup({
+              enabled: new FormControl({
+                value: this.settings.apiReview.enabled,
+                disabled: this.isReadonly('api.review.enabled'),
+              }),
+            }),
+            apiQualityMetrics: new FormGroup({
+              enabled: new FormControl({
+                value: this.settings.apiQualityMetrics.enabled,
+                disabled: this.isReadonly('api.quality.metrics.enabled'),
+              }),
+              descriptionWeight: new FormControl({
+                value: this.settings.apiQualityMetrics.descriptionWeight,
+                disabled: this.isReadonly('api.quality.metrics.description.weight'),
+              }),
+              descriptionMinLength: new FormControl({
+                value: this.settings.apiQualityMetrics.descriptionMinLength,
+                disabled: this.isReadonly('api.quality.metrics.description.min.length'),
+              }),
+              logoWeight: new FormControl({
+                value: this.settings.apiQualityMetrics.logoWeight,
+                disabled: this.isReadonly('api.quality.metrics.logo.weight'),
+              }),
+              categoriesWeight: new FormControl({
+                value: this.settings.apiQualityMetrics.categoriesWeight,
+                disabled: this.isReadonly('api.quality.metrics.categories.weight'),
+              }),
+              labelsWeight: new FormControl({
+                value: this.settings.apiQualityMetrics.labelsWeight,
+                disabled: this.isReadonly('api.quality.metrics.labels.weight'),
+              }),
+              functionalDocumentationWeight: new FormControl({
+                value: this.settings.apiQualityMetrics.functionalDocumentationWeight,
+                disabled: this.isReadonly('api.quality.metrics.functional.documentation.weight'),
+              }),
+              technicalDocumentationWeight: new FormControl({
+                value: this.settings.apiQualityMetrics.technicalDocumentationWeight,
+                disabled: this.isReadonly('api.quality.metrics.technical.documentation.weight'),
+              }),
+              healthcheckWeight: new FormControl({
+                value: this.settings.apiQualityMetrics.healthcheckWeight,
+                disabled: this.isReadonly('api.quality.metrics.healthcheck.weight'),
+              }),
+            }),
+          });
+
+          this.formInitialValues = this.apiQualityRulesForm.getRawValue();
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
   }
 
   ngOnDestroy() {
@@ -160,15 +166,19 @@ export class ApiQualityRulesNgComponent implements OnInit {
   }
 
   onSubmit() {
-    const updatedSettings = {
-      ...this.settings,
-      ...this.apiQualityRulesForm.getRawValue(),
-    };
-
     this.portalSettingsService
-      .save(updatedSettings)
+      .save({
+        ...this.settings,
+        apiReview: {
+          ...this.settings.apiReview,
+          enabled: this.apiQualityRulesForm.get('apiReview.enabled').value,
+        },
+        apiQualityMetrics: {
+          ...this.settings.apiQualityMetrics,
+          ...this.apiQualityRulesForm.get('apiQualityMetrics').value,
+        },
+      })
       .pipe(
-        switchMap(() => this.environmentSettingsService.get()),
         tap(() => this.snackBarService.success('API Quality details successfully updated!')),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);

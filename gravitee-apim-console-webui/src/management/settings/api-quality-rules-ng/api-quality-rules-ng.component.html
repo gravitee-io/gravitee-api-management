@@ -19,7 +19,7 @@
   <h1>API Quality</h1>
 </div>
 
-<form [formGroup]="apiQualityRulesForm" autocomplete="off">
+<form *ngIf="apiQualityRulesForm" [formGroup]="apiQualityRulesForm" autocomplete="off">
   <mat-card class="api-quality-rules__form__card">
     <mat-card-content>
       <gio-form-slide-toggle formGroupName="apiReview" class="api-quality-rules__form__card__form-field">

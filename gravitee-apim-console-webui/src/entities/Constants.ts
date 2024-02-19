@@ -23,6 +23,9 @@ export interface Constants {
   env?: {
     baseURL?: string;
     v2BaseURL?: string;
+    /**
+     * @deprecated Use EnvironmentSettingsService instead with `.get()` or `.getSnapshot()`
+     */
     settings?: EnvSettings;
   };
   org?: {

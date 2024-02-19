@@ -15,7 +15,8 @@
  */
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { filter, map, shareReplay, tap } from 'rxjs/operators';
 
 import { Constants, EnvSettings } from '../entities/Constants';
 
@@ -23,9 +24,30 @@ import { Constants, EnvSettings } from '../entities/Constants';
   providedIn: 'root',
 })
 export class EnvironmentSettingsService {
-  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
+  private currentSettings: BehaviorSubject<EnvSettings> = new BehaviorSubject<EnvSettings>(null);
+
+  constructor(private readonly http: HttpClient, @Inject('Constants') private constants: Constants) {}
+
+  load(): Observable<void> {
+    return this.http.get<EnvSettings>(`${this.constants.env.baseURL}/portal`).pipe(
+      tap((settings) => {
+        this.constants.env.settings = settings;
+        this.currentSettings.next(settings);
+      }),
+      map(() => {
+        return;
+      }),
+    );
+  }
 
   get(): Observable<EnvSettings> {
-    return this.http.get<EnvSettings>(`${this.constants.env.baseURL}/portal`);
+    return this.currentSettings.asObservable().pipe(
+      filter((settings) => settings !== null),
+      shareReplay(1),
+    );
+  }
+
+  getSnapshot(): EnvSettings {
+    return this.currentSettings.getValue();
   }
 }

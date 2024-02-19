@@ -17,11 +17,13 @@ import { Component, EventEmitter, Inject, Input, OnDestroy, OnInit, Output } fro
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { GioLicenseService } from '@gravitee/ui-particles-angular';
+import { isEmpty } from 'lodash';
 
 import { Constants } from '../../entities/Constants';
 import { User } from '../../entities/user/user';
 import { TaskService } from '../../services-ngx/task.service';
 import { UiCustomizationService } from '../../services-ngx/ui-customization.service';
+import { EnvironmentSettingsService } from '../../services-ngx/environment-settings.service';
 
 @Component({
   selector: 'gio-top-nav',
@@ -44,13 +46,14 @@ export class GioTopNavComponent implements OnInit, OnDestroy {
   public newsletterProposed: boolean;
   public customLogo: string;
   public isOEM: boolean;
-  public portalUrl: string;
+  public portalUrl?: string;
 
   constructor(
     @Inject('Constants') public readonly constants: Constants,
     public readonly taskService: TaskService,
     private readonly uiCustomizationService: UiCustomizationService,
     private readonly licenseService: GioLicenseService,
+    private readonly environmentSettingsService: EnvironmentSettingsService,
   ) {}
 
   ngOnInit(): void {
@@ -83,9 +86,14 @@ export class GioTopNavComponent implements OnInit, OnDestroy {
         }
       });
 
-    if (this.constants?.env?.settings?.portal?.url) {
-      this.portalUrl = this.constants.env.baseURL.replace('{:envId}', this.constants.org.currentEnv.id) + '/portal/redirect';
-    }
+    this.environmentSettingsService
+      .get()
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe((settings) => {
+        this.portalUrl = isEmpty(settings?.portal?.url)
+          ? undefined
+          : this.constants.env.baseURL.replace('{:envId}', this.constants.org.currentEnv.id) + '/portal/redirect';
+      });
   }
 
   openContextualDocumentationClick = () => {
