@@ -40,7 +40,6 @@ import io.gravitee.rest.api.service.v4.exception.EndpointTypeInvalidException;
 import io.gravitee.rest.api.service.v4.validation.EndpointGroupsValidationService;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -164,7 +163,7 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
         }
     }
 
-    private void validateHealthCheck(Service healthCheck) {
+    private void validateAndSetHealthCheckConfiguration(Service healthCheck) {
         if (isBlank(healthCheck.getType())) {
             logger.debug("HealthCheck requires a type");
             throw new HealthcheckInvalidException(healthCheck.getType());
@@ -207,7 +206,7 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
                 validateDiscovery(services.getDiscovery());
             }
             if (services.getHealthCheck() != null) {
-                validateHealthCheck(services.getHealthCheck());
+                validateAndSetHealthCheckConfiguration(services.getHealthCheck());
             }
         }
     }
@@ -217,7 +216,9 @@ public class EndpointGroupsValidationServiceImpl extends TransactionalService im
             if (services.getHealthCheck() != null) {
                 final var serviceHealthCheck = services.getHealthCheck();
 
-                validateHealthCheck(serviceHealthCheck);
+                if (serviceHealthCheck.isEnabled()) {
+                    validateAndSetHealthCheckConfiguration(serviceHealthCheck);
+                }
 
                 final var hcGroupWithoutConfig =
                     (

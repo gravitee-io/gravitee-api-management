@@ -33,6 +33,7 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { ApiEndpointComponent } from './api-endpoint.component';
 
 import { GioGoBackButtonModule } from '../../../../shared/components/gio-go-back-button/gio-go-back-button.module';
+import { ApiHealthCheckV4FormModule } from '../../component/health-check-v4-form/api-health-check-v4-form.module';
 
 @NgModule({
   declarations: [ApiEndpointComponent],
@@ -56,6 +57,7 @@ import { GioGoBackButtonModule } from '../../../../shared/components/gio-go-back
     GioFormSlideToggleModule,
     GioGoBackButtonModule,
     MatTabsModule,
+    ApiHealthCheckV4FormModule,
   ],
 })
 export class ApiEndpointModule {}

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { catchError, filter, map, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { combineLatest, EMPTY, Observable, Subject } from 'rxjs';
 import { GioConfirmDialogComponent, GioConfirmDialogData, GioFormJsonSchemaComponent, GioJsonSchema } from '@gravitee/ui-particles-angular';
-import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { FormControl, FormGroup, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 
@@ -28,6 +28,15 @@ import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { IconService } from '../../../../services-ngx/icon.service';
 import { isEndpointNameUnique, isEndpointNameUniqueAndDoesNotMatchDefaultValue } from '../api-endpoint-v4-unique-name';
 import { getMatchingDlqEntrypoints, updateDlqEntrypoint } from '../api-endpoint-v4-matching-dlq';
+import { ApiServicePluginsV2Service } from '../../../../services-ngx/apiservice-plugins-v2.service';
+import { ApiHealthCheckV4FormComponent } from '../../component/health-check-v4-form/api-health-check-v4-form.component';
+import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
+
+export type EndpointHealthCheckFormType = FormGroup<{
+  enabled: FormControl<boolean>;
+  inherit: FormControl<boolean>;
+  configuration: FormControl<unknown>;
+}>;
 
 @Component({
   selector: 'api-endpoint',
@@ -39,6 +48,7 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
   private groupIndex: number;
   private endpointIndex: number;
   public endpointGroup: EndpointGroupV4;
+  public isReadOnly: boolean;
   public formGroup: UntypedFormGroup;
   public endpointSchema: { config: GioJsonSchema; sharedConfig: GioJsonSchema };
   public connectorPlugin: ConnectorPlugin;
@@ -46,6 +56,9 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
   private api: ApiV4;
   private endpoint: EndpointV4;
   private mode: 'edit' | 'create';
+  public healthCheckSchema: unknown;
+  public isHttpProxyApi: boolean;
+  public healthCheckForm: EndpointHealthCheckFormType;
 
   constructor(
     private readonly router: Router,
@@ -55,6 +68,8 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
     private readonly snackBarService: SnackBarService,
     private readonly iconService: IconService,
     private readonly matDialog: MatDialog,
+    private readonly permissionService: GioPermissionService,
+    private readonly apiServicePluginsV2Service: ApiServicePluginsV2Service,
   ) {}
 
   public ngOnInit(): void {
@@ -68,6 +83,10 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
       .pipe(
         switchMap((api: ApiV4) => {
           this.api = api;
+
+          this.isHttpProxyApi = api.type === 'PROXY' && !(api.listeners.find((listener) => listener.type === 'TCP') != null);
+          this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-r']) || api.definitionContext?.origin === 'KUBERNETES';
+
           this.endpointGroup = api.endpointGroups[this.groupIndex];
 
           if (!this.endpointGroup) {
@@ -80,14 +99,16 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
             this.connectorPluginsV2Service.getEndpointPluginSchema(this.endpointGroup.type),
             this.connectorPluginsV2Service.getEndpointPluginSharedConfigurationSchema(this.endpointGroup.type),
             this.connectorPluginsV2Service.getEndpointPlugin(this.endpointGroup.type),
+            this.apiServicePluginsV2Service.getApiServicePluginSchema(ApiHealthCheckV4FormComponent.HTTP_HEALTH_CHECK),
           ]);
         }),
-        tap(([config, sharedConfig, connectorPlugin]) => {
+        tap(([config, sharedConfig, connectorPlugin, healthCheckSchema]) => {
           this.endpointSchema = {
             config: GioFormJsonSchemaComponent.isDisplayable(config) ? config : null,
             sharedConfig: GioFormJsonSchemaComponent.isDisplayable(sharedConfig) ? sharedConfig : null,
           };
           this.connectorPlugin = { ...connectorPlugin, icon: this.iconService.registerSvg(connectorPlugin.id, connectorPlugin.icon) };
+          this.healthCheckSchema = healthCheckSchema;
           this.initForm();
         }),
         takeUntil(this.unsubscribe$),
@@ -111,6 +132,21 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
       sharedConfigurationOverride: inheritConfiguration ? {} : this.formGroup.get('sharedConfigurationOverride').value,
       inheritConfiguration,
     };
+
+    if (this.isHttpProxyApi) {
+      const isHealthCheckEnabled = this.healthCheckForm.controls.enabled.value;
+      const inheritHealthCheck = this.healthCheckForm.controls.inherit.value;
+      updatedEndpoint.services = {
+        healthCheck: !inheritHealthCheck
+          ? {
+              enabled: isHealthCheckEnabled,
+              type: ApiHealthCheckV4FormComponent.HTTP_HEALTH_CHECK,
+              configuration: this.healthCheckForm.getRawValue().configuration,
+              overrideConfiguration: true,
+            }
+          : undefined,
+      };
+    }
 
     let apiUpdate$: Observable<Api>;
     if (this.mode === 'edit') {
@@ -193,6 +229,9 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
 
   private initForm() {
     let name = null;
+    let isHealthCheckEnabled = false;
+    let isHealthCheckInherited = true;
+    let healthCheckConfiguration = this.endpointGroup.services?.healthCheck?.configuration;
     let configuration = null;
     let sharedConfigurationOverride = this.endpointGroup.sharedConfiguration;
     // Inherit configuration only if there is a sharedConfiguration (that is not the case of mock endppoint)
@@ -216,6 +255,53 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
       if (!inheritConfiguration) {
         sharedConfigurationOverride = this.endpoint.sharedConfigurationOverride;
       }
+      isHealthCheckInherited = !this.endpoint.services?.healthCheck?.overrideConfiguration;
+      isHealthCheckEnabled = this.endpointGroup.services?.healthCheck?.enabled;
+      if (!isHealthCheckInherited) {
+        isHealthCheckEnabled = this.endpoint.services?.healthCheck?.enabled;
+        healthCheckConfiguration = this.endpoint.services?.healthCheck?.configuration;
+      }
+    }
+    this.healthCheckForm = new FormGroup({
+      enabled: new FormControl({
+        value: isHealthCheckEnabled ?? false,
+        disabled: this.isReadOnly,
+      }),
+      inherit: new FormControl({
+        value: isHealthCheckInherited ?? false,
+        disabled: this.isReadOnly,
+      }),
+      configuration: new FormControl(
+        {
+          value: healthCheckConfiguration ?? {},
+          disabled: this.isReadOnly,
+        } ?? {},
+      ),
+    });
+    if (this.isHttpProxyApi) {
+      this.healthCheckForm.controls.enabled.valueChanges
+        .pipe(startWith(this.healthCheckForm.controls.enabled.value), takeUntil(this.unsubscribe$))
+        .subscribe((enabled) => {
+          if (enabled) {
+            this.healthCheckForm.controls.configuration.enable({ emitEvent: false });
+          } else {
+            this.healthCheckForm.controls.configuration.disable({ emitEvent: false });
+          }
+        });
+      this.healthCheckForm.controls.inherit.valueChanges
+        .pipe(startWith(this.healthCheckForm.controls.inherit.value), takeUntil(this.unsubscribe$))
+        .subscribe((inherit) => {
+          if (inherit) {
+            this.resetHealthCheckToGroup();
+            this.healthCheckForm.controls.configuration.disable({ emitEvent: false });
+            this.healthCheckForm.controls.enabled.disable({ emitEvent: false });
+          } else {
+            this.healthCheckForm.controls.enabled.enable({ emitEvent: false });
+            if (this.healthCheckForm.controls.enabled.value) {
+              this.healthCheckForm.controls.configuration.enable({ emitEvent: false });
+            }
+          }
+        });
     }
 
     this.formGroup = new UntypedFormGroup({
@@ -229,6 +315,11 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
       inheritConfiguration: new UntypedFormControl(inheritConfiguration),
       configuration: new UntypedFormControl(configuration),
       sharedConfigurationOverride: new UntypedFormControl({ value: sharedConfigurationOverride, disabled: inheritConfiguration }),
+      healthCheck: this.healthCheckForm,
     });
+  }
+  private resetHealthCheckToGroup() {
+    this.healthCheckForm.controls.enabled.patchValue(this.endpointGroup.services?.healthCheck?.enabled ?? false);
+    this.healthCheckForm.controls.configuration.patchValue(this.endpointGroup.services?.healthCheck?.configuration ?? {});
   }
 }

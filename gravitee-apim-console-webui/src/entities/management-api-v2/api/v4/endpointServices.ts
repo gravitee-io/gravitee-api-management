@@ -17,5 +17,5 @@
 import { ServiceV4 } from './serviceV4';
 
 export interface EndpointServices {
-  healthcheck?: ServiceV4;
+  healthCheck?: ServiceV4;
 }

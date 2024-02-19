@@ -30,8 +30,29 @@ import { ApiEndpointModule } from './api-endpoint.module';
 import { ApiEndpointHarness } from './api-endpoint.harness';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
-import { ApiV4, fakeApiV4, fakeConnectorPlugin } from '../../../../entities/management-api-v2';
-import { fakeEndpointGroupV4 } from '../../../../entities/management-api-v2/api/v4/endpointGroupV4.fixture';
+import { ApiV4, fakeApiV4, fakeConnectorPlugin, fakeProxyApiV4 } from '../../../../entities/management-api-v2';
+import { fakeEndpointGroupV4, fakeHTTPProxyEndpointGroupV4 } from '../../../../entities/management-api-v2/api/v4/endpointGroupV4.fixture';
+
+const healthCheckSchema = {
+  $schema: 'http://json-schema.org/draft-07/schema#',
+  type: 'object',
+  properties: {
+    dummy: {
+      title: 'dummy',
+      type: 'string',
+      description: 'A dummy string',
+      readOnly: true,
+    },
+  },
+  required: ['dummy'],
+};
+
+function expectHealthCheckSchemaGet(fixture: ComponentFixture<any>, httpTestingController: HttpTestingController): void {
+  httpTestingController
+    .expectOne({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/api-services/http-health-check/schema`, method: 'GET' })
+    .flush(healthCheckSchema);
+  fixture.detectChanges();
+}
 
 @Component({
   template: `<api-endpoint #apiEndpoint></api-endpoint>`,
@@ -74,6 +95,7 @@ describe('ApiEndpointComponent', () => {
     expectEndpointSchemaGetRequest(api.endpointGroups[0].type);
     expectEndpointsSharedConfigurationSchemaGetRequest(api.endpointGroups[0].type);
     expectEndpointPluginGetRequest(api.endpointGroups[0].type);
+    expectHealthCheckSchemaGet(fixture, httpTestingController);
   };
 
   afterEach(() => {
@@ -105,6 +127,8 @@ describe('ApiEndpointComponent', () => {
         ],
       };
       afterEach(async () => {
+        expect(await componentHarness.healthCheckTabIsVisible()).toEqual(false);
+
         expect(await componentHarness.isSaveButtonDisabled()).toBeFalsy();
         await componentHarness.clickSaveButton();
 
@@ -174,6 +198,8 @@ describe('ApiEndpointComponent', () => {
         });
 
         await initComponent(apiV4, { apiId: API_ID, groupIndex: 0, endpointIndex: 0 });
+
+        expect(await componentHarness.healthCheckTabIsVisible()).toEqual(false);
 
         fixture.detectChanges();
         expect(await componentHarness.getEndpointName()).toStrictEqual('default');
@@ -409,6 +435,8 @@ describe('ApiEndpointComponent', () => {
         });
         await initComponent(apiV4, { apiId: API_ID, groupIndex: 0, endpointIndex: 0 });
 
+        expect(await componentHarness.healthCheckTabIsVisible()).toEqual(false);
+
         await componentHarness.fillInputName(apiV4.endpointGroups[0].endpoints[1].name + ' ');
         expect(await componentHarness.isSaveButtonDisabled()).toEqual(true);
 
@@ -447,6 +475,8 @@ describe('ApiEndpointComponent', () => {
 
         await initComponent(apiV4, { apiId: API_ID, groupIndex: 0, endpointIndex: 0 });
 
+        expect(await componentHarness.healthCheckTabIsVisible()).toEqual(false);
+
         await componentHarness.fillInputName('a spacey name');
         expect(await componentHarness.isSaveButtonDisabled()).toEqual(true);
 
@@ -481,6 +511,8 @@ describe('ApiEndpointComponent', () => {
       });
       await initComponent(anApi, { apiId: API_ID, groupIndex: 0, endpointIndex: 0 });
 
+      expect(await componentHarness.healthCheckTabIsVisible()).toEqual(false);
+
       await componentHarness.clickConfigurationTab();
 
       expect(await componentHarness.isConfigurationButtonToggled()).toBeTruthy();
@@ -491,6 +523,27 @@ describe('ApiEndpointComponent', () => {
       expect(await inputHarness.getValue()).toStrictEqual('test');
 
       await componentHarness.toggleConfigurationButton();
+      fixture.detectChanges();
+    });
+
+    it('should inherit health-check from parent', async () => {
+      const anApi = fakeProxyApiV4({
+        id: API_ID,
+        endpointGroups: [fakeHTTPProxyEndpointGroupV4()],
+      });
+      await initComponent(anApi, { apiId: API_ID, groupIndex: 0, endpointIndex: 0 });
+
+      expect(await componentHarness.healthCheckTabIsVisible()).toEqual(true);
+
+      await componentHarness.clickHealthCheckTab();
+
+      expect(await componentHarness.isHealthCheckInheritButtonToggled()).toBeTruthy();
+      fixture.detectChanges();
+
+      const inputHarness = await loader.getHarness(MatInputHarness.with({ selector: '[id*="dummy"]' }));
+      expect(await inputHarness.isDisabled()).toBeTruthy();
+
+      await componentHarness.toggleHealthCheckInheritButton();
       fixture.detectChanges();
     });
   });
