@@ -4,7 +4,7 @@
 
 @use '../../../../scss/gio-layout' as gio-layout;
 
-$typography: map.get(gio.$mat-legacy-theme, typography);
+$typography: map.get(gio.$mat-theme, typography);
 
 :host {
   @include gio-layout.gio-responsive-margin-container;
@@ -25,7 +25,7 @@ $typography: map.get(gio.$mat-legacy-theme, typography);
 
     &__subtitle {
       color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
-      @include mat.typography-level($typography, 'body-1');
+      @include mat.typography-level($typography, 'body-2');
     }
   }
 }
@@ -54,7 +54,7 @@ $typography: map.get(gio.$mat-legacy-theme, typography);
 
       &__subtitle {
         color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
-        @include mat.typography-level($typography, 'body-1');
+        @include mat.typography-level($typography, 'body-2');
         display: flex;
         justify-content: center;
         width: 60%;

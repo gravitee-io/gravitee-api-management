@@ -18,7 +18,7 @@
 @use '@angular/material' as mat;
 @use '@gravitee/ui-particles-angular' as gio;
 
-$background: map.get(gio.$mat-legacy-theme, background);
+$background: map.get(gio.$mat-theme, background);
 
 .form-color-input {
   display: flex;

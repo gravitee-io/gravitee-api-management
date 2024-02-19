@@ -2,14 +2,14 @@
 @use '@angular/material' as mat;
 @use '@gravitee/ui-particles-angular' as gio;
 
-$typography: map.get(gio.$mat-legacy-theme, typography);
+$typography: map.get(gio.$mat-theme, typography);
 
 .accordion {
   display: block;
   padding: 0 12px;
   border-radius: 4px;
   border: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker20');
-  @include mat.typography-level($typography, body-1);
+  @include mat.typography-level($typography, body-2);
 
   &__header {
     display: flex;

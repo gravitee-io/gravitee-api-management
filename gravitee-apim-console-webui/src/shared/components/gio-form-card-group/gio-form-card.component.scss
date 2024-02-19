@@ -17,8 +17,8 @@
 @use '@angular/material' as mat;
 @use '@gravitee/ui-particles-angular' as gio;
 
-$foreground: map.get(gio.$mat-legacy-theme, foreground);
-$accent: map.get(gio.$mat-legacy-theme, accent);
+$foreground: map.get(gio.$mat-theme, foreground);
+$accent: map.get(gio.$mat-theme, accent);
 
 :host {
   display: flex;

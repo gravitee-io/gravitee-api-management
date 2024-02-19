@@ -1,7 +1,7 @@
 @use 'sass:map';
 @use '@angular/material/index' as mat;
 @use '@gravitee/ui-particles-angular/index' as gio;
-$typography: map.get(gio.$mat-legacy-theme, typography);
+$typography: map.get(gio.$mat-theme, typography);
 
 .breadcrumb {
   display: flex;
@@ -13,7 +13,7 @@ $typography: map.get(gio.$mat-legacy-theme, typography);
   }
 
   &__item {
-    @include mat.typography-level($typography, 'body-2');
+    @include mat.typography-level($typography, 'subtitle-2');
     color: mat.get-color-from-palette(gio.$mat-space-palette, 'default');
     max-width: 250px;
     overflow: hidden;
@@ -22,7 +22,7 @@ $typography: map.get(gio.$mat-legacy-theme, typography);
   }
 
   &__item:last-of-type:not(:only-of-type) {
-    @include mat.typography-level($typography, 'body-2');
+    @include mat.typography-level($typography, 'subtitle-2');
     color: mat.get-color-from-palette(gio.$mat-space-palette, 'default');
     background-color: mat.get-color-from-palette(gio.$mat-dove-palette, 'default');
     max-width: 450px;

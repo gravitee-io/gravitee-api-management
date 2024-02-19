@@ -73,7 +73,7 @@ body {
 // Allows you to disable it on some routes
 :where(.mat) {
   // Material theme config from Gravitee ui particles
-  @include gio.mat-theme(true);
+  @include gio.mat-theme();
 
   // Scss component from Gravitee ui particles
   @include gio.all-components();
