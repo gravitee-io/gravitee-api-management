@@ -234,8 +234,8 @@ describe('GioTableWrapperComponent', () => {
             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
             <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
 
-            <tr class="mat-row" *matNoDataRow>
-              <td class="mat-cell" [attr.colspan]="displayedColumns.length">No Data</td>
+            <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+              <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">No Data</td>
             </tr>
           </table>
         </gio-table-wrapper>

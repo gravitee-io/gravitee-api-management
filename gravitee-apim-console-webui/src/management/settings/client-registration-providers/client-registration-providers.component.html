@@ -226,11 +226,15 @@
       <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
 
       <!-- Row shown when there is no data -->
-      <tr class="mat-row" *matNoDataRow>
-        <td *ngIf="!isLoadingData && providersTableDS.length === 0" class="mat-cell" [attr.colspan]="displayedColumns.length">
+      <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+        <td
+          *ngIf="!isLoadingData && providersTableDS.length === 0"
+          class="mat-mdc-cell mdc-data-table__cell"
+          [attr.colspan]="displayedColumns.length"
+        >
           {{ 'No DCR provider configured.' }}
         </td>
-        <td *ngIf="isLoadingData" class="mat-cell" [attr.colspan]="displayedColumns.length">
+        <td *ngIf="isLoadingData" class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">
           {{ 'Loading...' }}
         </td>
       </tr>

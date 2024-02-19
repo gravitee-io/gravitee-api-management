@@ -61,8 +61,8 @@
           <tr mat-header-row *matHeaderRowDef="informationTableDisplayedColumns"></tr>
           <tr mat-row *matRowDef="let row; columns: informationTableDisplayedColumns"></tr>
 
-          <tr class="mat-row" *matNoDataRow>
-            <td class="mat-cell" [attr.colspan]="informationTableDisplayedColumns.length">No information</td>
+          <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+            <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="informationTableDisplayedColumns.length">No information</td>
           </tr>
         </table>
       </gio-table-wrapper>
@@ -110,8 +110,8 @@
           <tr mat-header-row *matHeaderRowDef="pluginsTableDisplayedColumns"></tr>
           <tr mat-row *matRowDef="let row; columns: pluginsTableDisplayedColumns"></tr>
 
-          <tr class="mat-row" *matNoDataRow>
-            <td class="mat-cell" [attr.colspan]="pluginsTableDisplayedColumns.length">No plugin</td>
+          <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+            <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="pluginsTableDisplayedColumns.length">No plugin</td>
           </tr>
         </table>
       </gio-table-wrapper>
@@ -152,8 +152,8 @@
           <tr mat-header-row *matHeaderRowDef="propertiesTableDisplayedColumns"></tr>
           <tr mat-row *matRowDef="let row; columns: propertiesTableDisplayedColumns"></tr>
 
-          <tr class="mat-row" *matNoDataRow>
-            <td class="mat-cell" [attr.colspan]="propertiesTableDisplayedColumns.length">No property</td>
+          <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+            <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="propertiesTableDisplayedColumns.length">No property</td>
           </tr>
         </table>
       </gio-table-wrapper>
