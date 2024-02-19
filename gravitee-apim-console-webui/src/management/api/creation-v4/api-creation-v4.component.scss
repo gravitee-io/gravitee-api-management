@@ -12,7 +12,7 @@
   }
 }
 
-$typography: map.get(gio.$mat-legacy-theme, typography);
+$typography: map.get(gio.$mat-theme, typography);
 
 .api-creation-v4 {
   display: flex;

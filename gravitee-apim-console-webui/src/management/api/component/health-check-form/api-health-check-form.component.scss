@@ -2,8 +2,8 @@
 @use '@angular/material' as mat;
 @use '@gravitee/ui-particles-angular' as gio;
 
-$foreground: map.get(gio.$mat-legacy-theme, foreground);
-$typography: map.get(gio.$mat-legacy-theme, typography);
+$foreground: map.get(gio.$mat-theme, foreground);
+$typography: map.get(gio.$mat-theme, typography);
 
 .health-check-card {
   &__enable-toggle,
@@ -41,7 +41,7 @@ $typography: map.get(gio.$mat-legacy-theme, typography);
       padding-left: 8px;
 
       &__label {
-        @include mat.typography-level($typography, 'body-2');
+        @include mat.typography-level($typography, 'subtitle-2');
         margin-bottom: 12px;
       }
 

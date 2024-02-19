@@ -2,7 +2,7 @@
 @use '@angular/material' as mat;
 @use '@gravitee/ui-particles-angular' as gio;
 
-$typography: map.get(gio.$mat-legacy-theme, typography);
+$typography: map.get(gio.$mat-theme, typography);
 
 .api-creation-v4 {
   &__step {
@@ -13,18 +13,18 @@ $typography: map.get(gio.$mat-legacy-theme, typography);
       padding-bottom: 24px;
 
       &__step-number {
-        @include mat.typography-level($typography, 'subheading-1');
+        @include mat.typography-level($typography, 'body-1');
         color: mat.get-color-from-palette(gio.$mat-accent-palette, 'default');
         padding-bottom: 20px;
       }
 
       &__subtitle {
-        @include mat.typography-level($typography, 'title');
+        @include mat.typography-level($typography, 'headline-6');
         margin-bottom: 8px;
       }
 
       &__paragraph-light {
-        @include mat.typography-level($typography, body-1);
+        @include mat.typography-level($typography, body-2);
         color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
         margin-bottom: 8px;
       }

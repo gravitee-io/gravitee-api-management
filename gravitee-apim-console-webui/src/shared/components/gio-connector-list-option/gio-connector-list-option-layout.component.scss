@@ -2,7 +2,7 @@
 @use '@angular/material' as mat;
 @use '@gravitee/ui-particles-angular' as gio;
 
-$typography: map.get(gio.$mat-legacy-theme, typography);
+$typography: map.get(gio.$mat-theme, typography);
 
 ::ng-deep {
   // ⚠️ Complete mat-selection-list & mat-radio-group styles to have custom style
@@ -73,13 +73,13 @@ $typography: map.get(gio.$mat-legacy-theme, typography);
     flex: 1 1 auto;
 
     &__title {
-      @include mat.typography-level($typography, subheading-1);
+      @include mat.typography-level($typography, body-1);
       margin-bottom: 8px;
       text-transform: capitalize;
     }
 
     &__body {
-      @include mat.typography-level($typography, body-1);
+      @include mat.typography-level($typography, body-2);
       // TODO: make available to module components + integrate in step 1, stepper html
       color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
       margin: 0;

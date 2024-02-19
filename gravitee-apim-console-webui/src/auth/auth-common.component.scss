@@ -3,7 +3,7 @@
 @use '@gravitee/ui-particles-angular' as gio;
 @use 'src/scss/gio-layout' as gio-layout;
 
-$typography: map.get(gio.$mat-legacy-theme, typography);
+$typography: map.get(gio.$mat-theme, typography);
 
 :host {
   @include gio-layout.gio-full-width-content-container;
@@ -25,7 +25,7 @@ $typography: map.get(gio.$mat-legacy-theme, typography);
     }
 
     &__title {
-      @include mat.typography-level($typography, 'title');
+      @include mat.typography-level($typography, 'headline-6');
     }
 
     &__subtitle {

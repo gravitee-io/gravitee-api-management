@@ -4,9 +4,9 @@
 @use '@angular/material' as mat;
 @use '@gravitee/ui-particles-angular' as gio;
 
-$background: map-get(gio.$mat-legacy-theme, background);
-$primary: map.get(gio.$mat-legacy-theme, primary);
-$accent: map.get(gio.$mat-legacy-theme, accent);
+$background: map-get(gio.$mat-theme, background);
+$primary: map.get(gio.$mat-theme, primary);
+$accent: map.get(gio.$mat-theme, accent);
 
 :host {
   @include gio-layout.gio-responsive-margin-container;

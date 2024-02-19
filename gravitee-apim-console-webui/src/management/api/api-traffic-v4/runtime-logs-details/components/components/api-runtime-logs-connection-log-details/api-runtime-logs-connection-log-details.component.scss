@@ -2,7 +2,7 @@
 @use '@angular/material' as mat;
 @use '@gravitee/ui-particles-angular' as gio;
 
-$typography: map.get(gio.$mat-legacy-theme, typography);
+$typography: map.get(gio.$mat-theme, typography);
 
 .log {
   background-color: mat.get-color-from-palette(gio.$mat-basic-palette, white);
@@ -19,7 +19,7 @@ $typography: map.get(gio.$mat-legacy-theme, typography);
     padding: 16px 24px;
 
     &__title {
-      @include mat.typography-level($typography, subheading-1);
+      @include mat.typography-level($typography, body-1);
     }
   }
 
@@ -52,12 +52,12 @@ $typography: map.get(gio.$mat-legacy-theme, typography);
       margin-right: 4px;
       white-space: nowrap;
       color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
-      @include mat.typography-level($typography, body-1);
+      @include mat.typography-level($typography, body-2);
     }
 
     &__value {
       word-break: break-all;
-      @include mat.typography-level($typography, body-1);
+      @include mat.typography-level($typography, body-2);
     }
 
     &__accordion {

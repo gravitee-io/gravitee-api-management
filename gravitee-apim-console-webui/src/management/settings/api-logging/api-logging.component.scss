@@ -18,8 +18,8 @@
 @use '@gravitee/ui-particles-angular/index' as gio;
 @use '../../../scss/gio-layout' as gio-layout;
 
-$foreground: map.get(gio.$mat-legacy-theme, foreground);
-$typography: map.get(gio.$mat-legacy-theme, typography);
+$foreground: map.get(gio.$mat-theme, foreground);
+$typography: map.get(gio.$mat-theme, typography);
 $textColor: map.get(gio.$mat-dove-palette, default);
 
 :host {
@@ -63,7 +63,7 @@ $textColor: map.get(gio.$mat-dove-palette, default);
       }
 
       &__label {
-        @include mat.typography-level($typography, body-2);
+        @include mat.typography-level($typography, subtitle-2);
 
         & ~ & {
           padding-top: 8px;

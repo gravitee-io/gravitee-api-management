@@ -3,7 +3,7 @@
 @use '@gravitee/ui-particles-angular' as gio;
 @use 'sass:map';
 
-$typography: map.get(gio.$mat-legacy-theme, typography);
+$typography: map.get(gio.$mat-theme, typography);
 
 .transfer-ownership {
   margin: 20px;
@@ -12,12 +12,12 @@ $typography: map.get(gio.$mat-legacy-theme, typography);
     margin-bottom: 24px;
 
     &__title {
-      @include mat.typography-level($typography, title);
+      @include mat.typography-level($typography, headline-6);
     }
 
     &__subtitle {
       color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
-      @include mat.typography-level($typography, body-1);
+      @include mat.typography-level($typography, body-2);
     }
   }
 

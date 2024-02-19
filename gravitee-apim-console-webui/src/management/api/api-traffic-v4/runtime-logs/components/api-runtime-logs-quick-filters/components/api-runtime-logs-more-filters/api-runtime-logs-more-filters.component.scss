@@ -2,7 +2,7 @@
 @use '@angular/material' as mat;
 @use '@gravitee/ui-particles-angular' as gio;
 
-$typography: map.get(gio.$mat-legacy-theme, typography);
+$typography: map.get(gio.$mat-theme, typography);
 
 .more-filters {
   position: fixed;
@@ -29,7 +29,7 @@ $typography: map.get(gio.$mat-legacy-theme, typography);
     border-bottom: 1px solid map.get(gio.$mat-dove-palette, darker20);
 
     &__title {
-      @include mat.typography-level($typography, subheading-2);
+      @include mat.typography-level($typography, subtitle-1);
     }
   }
 

@@ -8,7 +8,7 @@
   @include gio-layout.gio-responsive-content-container;
 }
 
-$typography: map.get(gio.$mat-legacy-theme, typography);
+$typography: map.get(gio.$mat-theme, typography);
 
 .card {
   &__template-key,
@@ -19,7 +19,7 @@ $typography: map.get(gio.$mat-legacy-theme, typography);
     padding-bottom: 12px;
 
     &__label {
-      @include mat.typography-level($typography, body-2);
+      @include mat.typography-level($typography, subtitle-2);
     }
 
     &__label,

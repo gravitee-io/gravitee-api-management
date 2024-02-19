@@ -2,13 +2,13 @@
 @use '@angular/material' as mat;
 @use '@gravitee/ui-particles-angular' as gio;
 
-$primary: map.get(gio.$mat-legacy-theme, primary);
-$accent: map.get(gio.$mat-legacy-theme, accent);
-$warn: map.get(gio.$mat-legacy-theme, warn);
-$background: map.get(gio.$mat-legacy-theme, background);
-$foreground: map.get(gio.$mat-legacy-theme, foreground);
-$is-dark-theme: map.get(gio.$mat-legacy-theme, is-dark);
-$typography: map.get(gio.$mat-legacy-theme, typography);
+$primary: map.get(gio.$mat-theme, primary);
+$accent: map.get(gio.$mat-theme, accent);
+$warn: map.get(gio.$mat-theme, warn);
+$background: map.get(gio.$mat-theme, background);
+$foreground: map.get(gio.$mat-theme, foreground);
+$is-dark-theme: map.get(gio.$mat-theme, is-dark);
+$typography: map.get(gio.$mat-theme, typography);
 
 :host {
   font-size: 13px;
@@ -39,7 +39,7 @@ $typography: map.get(gio.$mat-legacy-theme, typography);
   }
 
   &__link {
-    @include mat.typography-level($typography, body-1);
+    @include mat.typography-level($typography, body-2);
 
     color: mat.get-color-from-palette($foreground, secondary-text);
     transition: color 300ms;
@@ -78,14 +78,14 @@ $typography: map.get(gio.$mat-legacy-theme, typography);
   border-left: solid 4px mat.get-color-from-palette($accent);
 
   .docs-link {
-    @include mat.typography-level($typography, body-1);
+    @include mat.typography-level($typography, body-2);
     color: mat.get-color-from-palette($foreground, secondary-text);
     transition: color 100ms;
     line-height: 16px;
 
     &:hover,
     &.docs-active {
-      @include mat.typography-level($typography, body-2);
+      @include mat.typography-level($typography, subtitle-2);
       line-height: 16px;
 
       color: mat.get-color-from-palette($accent, if($is-dark-theme, lighter, darker));

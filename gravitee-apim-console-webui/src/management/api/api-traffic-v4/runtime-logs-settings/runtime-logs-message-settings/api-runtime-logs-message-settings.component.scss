@@ -3,7 +3,7 @@
 @use '@gravitee/ui-particles-angular' as gio;
 @use '../../../../../scss/gio-layout' as gio-layout;
 
-$typography: map.get(gio.$mat-legacy-theme, typography);
+$typography: map.get(gio.$mat-theme, typography);
 
 :host {
   @include gio-layout.gio-responsive-content-container;
@@ -17,7 +17,7 @@ $typography: map.get(gio.$mat-legacy-theme, typography);
   &__subtitle {
     margin-bottom: 24px;
     color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
-    @include mat.typography-level($typography, 'body-1');
+    @include mat.typography-level($typography, 'body-2');
   }
 
   &__form-control {
@@ -34,13 +34,13 @@ $typography: map.get(gio.$mat-legacy-theme, typography);
       justify-items: center;
       margin-bottom: 0;
       color: mat.get-color-from-palette(gio.$mat-space-palette, 'default');
-      @include mat.typography-level($typography, 'body-2');
+      @include mat.typography-level($typography, 'subtitle-2');
     }
 
     &__subtitle {
       margin-bottom: 16px;
       color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
-      @include mat.typography-level($typography, 'body-1');
+      @include mat.typography-level($typography, 'body-2');
     }
 
     &__form-field {

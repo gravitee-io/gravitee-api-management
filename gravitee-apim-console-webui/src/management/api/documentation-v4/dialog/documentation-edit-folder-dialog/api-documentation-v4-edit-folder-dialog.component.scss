@@ -2,7 +2,7 @@
 @use '@angular/material/index' as mat;
 @use '@gravitee/ui-particles-angular/index' as gio;
 
-$typography: map.get(gio.$mat-legacy-theme, typography);
+$typography: map.get(gio.$mat-theme, typography);
 
 .dialog-close {
   right: 0;
