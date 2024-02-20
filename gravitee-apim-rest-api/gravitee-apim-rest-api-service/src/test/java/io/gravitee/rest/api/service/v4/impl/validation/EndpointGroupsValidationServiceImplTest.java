@@ -31,7 +31,9 @@ import io.gravitee.definition.model.v4.endpointgroup.loadbalancer.LoadBalancerTy
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServices;
 import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.rest.api.service.exceptions.EndpointConfigurationValidationException;
+import io.gravitee.rest.api.service.exceptions.EndpointGroupNameAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.EndpointMissingException;
+import io.gravitee.rest.api.service.exceptions.EndpointNameAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.EndpointNameInvalidException;
 import io.gravitee.rest.api.service.exceptions.HealthcheckInheritanceException;
 import io.gravitee.rest.api.service.exceptions.HealthcheckInvalidException;
