@@ -277,7 +277,7 @@
         <gravitee-policy-graphql-rate-limit.version>1.0.1</gravitee-policy-graphql-rate-limit.version>
         <gravitee-resource-schema-registry-confluent.version>2.0.0</gravitee-resource-schema-registry-confluent.version>
         <gravitee-reactor-message.version>2.0.0</gravitee-reactor-message.version>
-        <gravitee-repository-bridge.version>4.3.0-alpha.4</gravitee-repository-bridge.version>
+        <gravitee-repository-bridge.version>4.3.0-alpha.5</gravitee-repository-bridge.version>
         <gravitee-secretprovider-hc-vault.version>1.0.0</gravitee-secretprovider-hc-vault.version>
 
         <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
