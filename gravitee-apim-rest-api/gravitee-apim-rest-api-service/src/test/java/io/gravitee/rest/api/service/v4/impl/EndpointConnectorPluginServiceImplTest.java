@@ -46,6 +46,7 @@ public class EndpointConnectorPluginServiceImplTest {
     private static final String PLUGIN_ID = "my-test-plugin";
     private static final String CONFIGURATION = "my-test-configuration";
     private static final String SCHEMA = "my-test-schema";
+    private static final String FEATURE = "my-test-feature";
 
     private EndpointConnectorPluginService cut;
 
@@ -67,6 +68,7 @@ public class EndpointConnectorPluginServiceImplTest {
     @Before
     public void setup() {
         cut = new EndpointConnectorPluginServiceImpl(jsonSchemaService, pluginManager);
+        when(mockPluginManifest.feature()).thenReturn(FEATURE);
         when(mockPlugin.manifest()).thenReturn(mockPluginManifest);
         when(mockPlugin.id()).thenReturn(PLUGIN_ID);
         when(pluginManager.getFactoryById(PLUGIN_ID, true)).thenReturn(mockFactory);
@@ -112,6 +114,7 @@ public class EndpointConnectorPluginServiceImplTest {
 
         assertNotNull(result);
         assertEquals(PLUGIN_ID, result.getId());
+        assertEquals(FEATURE, result.getFeature());
     }
 
     @Test(expected = PluginNotFoundException.class)

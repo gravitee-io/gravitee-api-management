@@ -75,6 +75,7 @@ public abstract class AbstractConnectorPluginService<T extends ConfigurablePlugi
         entity.setIcon(getIcon(plugin.id()));
         entity.setVersion(plugin.manifest().version());
         entity.setDeployed(plugin.deployed());
+        entity.setFeature(plugin.manifest().feature());
         ConnectorFactory<?> connectorFactory = getConnectorFactory(plugin.id());
 
         if (connectorFactory.supportedApi() != null) {
