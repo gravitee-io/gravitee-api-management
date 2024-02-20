@@ -58,8 +58,9 @@
       </div>
       <mat-form-field>
         <mat-label>Text</mat-label>
-        <textarea matInput formControlName="text" rows="10" required></textarea>
+        <textarea matInput formControlName="text" required maxlength="250" #textarea></textarea>
         <mat-error *ngIf="form.controls['text'].hasError('required')">Text is required</mat-error>
+        <mat-hint align="end">{{ 250 - textarea.value.length }} / 250</mat-hint>
       </mat-form-field>
     </mat-card-content>
 
