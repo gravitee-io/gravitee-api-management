@@ -18,9 +18,10 @@ import { Inject, Injectable } from '@angular/core';
 import { GioJsonSchema } from '@gravitee/ui-particles-angular';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { isEmpty } from 'lodash';
 
 import { Constants } from '../entities/Constants';
-import { ApiType, ConnectorPlugin, MoreInformation } from '../entities/management-api-v2';
+import { ApiType, ConnectorPlugin, ConnectorVM, MoreInformation } from '../entities/management-api-v2';
 
 @Injectable({
   providedIn: 'root',
@@ -92,5 +93,14 @@ export class ConnectorPluginsV2Service {
 
   getEntrypointPluginMoreInformation(entrypointId: string): Observable<MoreInformation> {
     return this.http.get<MoreInformation>(`${this.constants.org.v2BaseURL}/plugins/entrypoints/${entrypointId}/more-information`);
+  }
+
+  selectedPluginsNotAvailable(selectedIds: string[], connectorPlugins: ConnectorVM[]): boolean {
+    if (!selectedIds || isEmpty(selectedIds)) {
+      return false;
+    }
+    return selectedIds
+      .map((id) => connectorPlugins.find((connectorPlugin) => connectorPlugin.id === id))
+      .some((connectorPlugin) => !connectorPlugin.deployed);
   }
 }
