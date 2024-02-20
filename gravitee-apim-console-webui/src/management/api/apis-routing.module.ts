@@ -92,6 +92,7 @@ import { MessagesComponent } from '../messages/messages.component';
 import { ApimFeature } from '../../shared/components/gio-license/gio-license-data';
 import { HasLicenseGuard } from '../../shared/components/gio-license/has-license.guard';
 import { PermissionGuard } from '../../shared/components/gio-permission/gio-permission.guard';
+import { RuntimeAlertCreateComponent } from '../../components/runtime-alerts';
 
 const apisRoutes: Routes = [
   {
@@ -466,6 +467,20 @@ const apisRoutes: Routes = [
           permissions: {
             anyOf: ['api-alert-r'],
           },
+        },
+      },
+      {
+        path: 'ng/alerts/new',
+        component: RuntimeAlertCreateComponent,
+        data: {
+          requireLicense: {
+            license: { feature: ApimFeature.ALERT_ENGINE },
+            redirect: '/',
+          },
+          apiPermissions: {
+            only: ['api-alert-c'],
+          },
+          referenceType: 'API',
         },
       },
       {

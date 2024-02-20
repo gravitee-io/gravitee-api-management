@@ -19,7 +19,8 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
 import { ApiRuntimeAlertsComponent } from './api-runtime-alerts.component';
 import { ApiRuntimeAlertsModule } from './api-runtime-alerts.module';
@@ -28,40 +29,43 @@ import { RuntimeAlertListHarness } from '../../../components/runtime-alerts/runt
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { fakeAlertTriggerEntity } from '../../../entities/alerts/alertTriggerEntity.fixtures';
 import { RuntimeAlertListEmptyStateHarness } from '../../../components/runtime-alerts/runtime-alert-list-empty-state/runtime-alert-list-empty-state.harness';
+import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiRuntimeAlertsComponent', () => {
   const API_ID = 'apiId';
   const ENVIRONMENT_ID = 'envId';
   const ALERT = fakeAlertTriggerEntity();
+  const ACTIVATED_ROUTE = {
+    snapshot: { params: { apiId: API_ID, envId: ENVIRONMENT_ID } },
+  };
   let fixture: ComponentFixture<ApiRuntimeAlertsComponent>;
   let httpTestingController: HttpTestingController;
   let loader: HarnessLoader;
+  let router: Router;
 
-  beforeEach(async () => {
+  async function createComponent(hasAnyMatching = true) {
     await TestBed.configureTestingModule({
       declarations: [ApiRuntimeAlertsComponent],
       imports: [NoopAnimationsModule, GioTestingModule, MatIconTestingModule, ApiRuntimeAlertsModule],
       providers: [
-        {
-          provide: ActivatedRoute,
-          useValue: {
-            snapshot: { params: { apiId: API_ID, envId: ENVIRONMENT_ID } },
-          },
-        },
+        { provide: ActivatedRoute, useValue: ACTIVATED_ROUTE },
+        { provide: GioPermissionService, useValue: { hasAnyMatching: () => hasAnyMatching } },
       ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ApiRuntimeAlertsComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
+    router = TestBed.inject(Router);
     loader = TestbedHarnessEnvironment.loader(fixture);
     fixture.detectChanges();
-  });
+  }
 
   afterEach(() => {
     httpTestingController.verify();
   });
 
   it('should get alerts and display the table list', async () => {
+    await createComponent();
     expectAlertsGetRequest();
     const listComponentHarness = await loader.getHarness(RuntimeAlertListHarness);
     expect(listComponentHarness).toBeTruthy();
@@ -71,8 +75,29 @@ describe('ApiRuntimeAlertsComponent', () => {
   });
 
   it('should get alerts and display empty state page', async () => {
+    await createComponent();
     expectAlertsGetRequest([]);
     expect(await loader.getHarness(RuntimeAlertListEmptyStateHarness)).toBeTruthy();
+  });
+
+  it('should navigate to alert creation page', async () => {
+    await createComponent();
+    expectAlertsGetRequest();
+    const routerSpy = jest.spyOn(router, 'navigate');
+
+    const createAlertButton = loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Add alert"]' }));
+    await createAlertButton.then((btn) => btn.click());
+
+    expect(routerSpy).toHaveBeenCalledWith(['./new'], { relativeTo: ACTIVATED_ROUTE });
+  });
+
+  it('should not not have permission to navigate to alert creation page', async () => {
+    await createComponent(false);
+    expectAlertsGetRequest();
+
+    const createAlertButton = loader.getHarnessOrNull(MatButtonHarness.with({ selector: '[aria-label="Add alert"]' }));
+
+    expect(await createAlertButton.then((btn) => btn.isDisabled())).toBeTruthy();
   });
 
   function expectAlertsGetRequest(response = [ALERT]) {
