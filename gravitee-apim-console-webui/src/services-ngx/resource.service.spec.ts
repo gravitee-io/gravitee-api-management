@@ -18,7 +18,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { ResourceService } from './resource.service';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { fakeResourceListItem } from '../entities/resource/resourceListItem.fixture';
 import { fakeResourceDocumentation } from '../entities/resource/resourceDocumentation.fixture';
 
@@ -28,7 +28,7 @@ describe('ResourceService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);

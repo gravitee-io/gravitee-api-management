@@ -19,7 +19,7 @@ import { GioJsonSchema } from '@gravitee/ui-particles-angular';
 
 import { ConnectorPluginsV2Service } from './connector-plugins-v2.service';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { fakeConnectorPlugin } from '../entities/management-api-v2';
 
 describe('Installation Plugins Service', () => {
@@ -28,7 +28,7 @@ describe('Installation Plugins Service', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);

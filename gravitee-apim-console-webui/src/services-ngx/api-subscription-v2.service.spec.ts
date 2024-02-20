@@ -18,7 +18,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { ApiSubscriptionV2Service } from './api-subscription-v2.service';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import {
   AcceptSubscription,
   ApiSubscriptionsResponse,
@@ -38,7 +38,7 @@ describe('ApiSubscriptionV2Service', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);

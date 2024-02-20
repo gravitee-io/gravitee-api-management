@@ -19,7 +19,7 @@ import { TestBed } from '@angular/core/testing';
 import { DebugApiService } from './debug-api.service';
 
 import { fakeEvent } from '../entities/event/event.fixture';
-import { GioHttpTestingModule } from '../shared/testing';
+import { GioTestingModule } from '../shared/testing';
 import { fakeApi } from '../entities/api/Api.fixture';
 
 describe('DebugApiService', () => {
@@ -28,7 +28,7 @@ describe('DebugApiService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);

@@ -18,7 +18,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { UiCustomizationService } from './ui-customization.service';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { ConsoleCustomization } from '../entities/management-api-v2/consoleCustomization';
 
 describe('UiCustomizationService', () => {
@@ -27,7 +27,7 @@ describe('UiCustomizationService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);

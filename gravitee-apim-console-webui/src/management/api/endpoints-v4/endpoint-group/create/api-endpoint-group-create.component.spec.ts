@@ -30,7 +30,7 @@ import { ApiEndpointGroupCreateComponent } from './api-endpoint-group-create.com
 import { ApiEndpointGroupCreateHarness } from './api-endpoint-group-create.harness';
 
 import { ApiEndpointGroupModule } from '../api-endpoint-group.module';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
 import { ApiV4, ConnectorPlugin, EndpointGroupV4, EndpointV4Default, fakeApiV4 } from '../../../../../entities/management-api-v2';
 import { fakeEndpointGroupV4 } from '../../../../../entities/management-api-v2/api/v4/endpointGroupV4.fixture';
 
@@ -137,7 +137,7 @@ describe('ApiEndpointGroupCreateComponent', () => {
     api = testApi;
 
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiEndpointGroupModule, MatIconTestingModule, FormsModule],
+      imports: [NoopAnimationsModule, GioTestingModule, ApiEndpointGroupModule, MatIconTestingModule, FormsModule],
       providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: routerParams, queryParams } } }],
     }).overrideProvider(InteractivityChecker, {
       useValue: {

@@ -34,7 +34,7 @@ import { of } from 'rxjs';
 import { OrgSettingsIdentityProviderComponent } from './org-settings-identity-provider.component';
 
 import { OrganizationSettingsModule } from '../organization-settings.module';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { GioFormCardGroupHarness } from '../../../shared/components/gio-form-card-group/gio-form-card-group.harness';
 import { GioFormColorInputHarness } from '../../../shared/components/gio-form-color-input/gio-form-color-input.harness';
 import { NewIdentityProvider } from '../../../entities/identity-provider/newIdentityProvider';
@@ -61,7 +61,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
   describe('new', () => {
     beforeEach(() => {
       TestBed.configureTestingModule({
-        imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule, MatIconTestingModule, GioLicenseTestingModule],
+        imports: [NoopAnimationsModule, GioTestingModule, OrganizationSettingsModule, MatIconTestingModule, GioLicenseTestingModule],
       });
 
       fixture = TestBed.createComponent(OrgSettingsIdentityProviderComponent);
@@ -338,7 +338,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
   describe('new (with license)', () => {
     beforeEach(() => {
       TestBed.configureTestingModule({
-        imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule, GioLicenseTestingModule.with(true)],
+        imports: [NoopAnimationsModule, GioTestingModule, OrganizationSettingsModule, GioLicenseTestingModule.with(true)],
       });
 
       fixture = TestBed.createComponent(OrgSettingsIdentityProviderComponent);
@@ -465,7 +465,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
   describe('edit', () => {
     beforeEach(() => {
       TestBed.configureTestingModule({
-        imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule, GioLicenseTestingModule, MatIconTestingModule],
+        imports: [NoopAnimationsModule, GioTestingModule, OrganizationSettingsModule, GioLicenseTestingModule, MatIconTestingModule],
         providers: [
           {
             provide: ActivatedRoute,

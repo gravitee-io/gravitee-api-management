@@ -18,7 +18,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { ApplicationMetadataService } from './application-metadata.service';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { fakeMetadata, fakeNewMetadata, fakeUpdateMetadata } from '../entities/metadata/metadata.fixture';
 
 describe('ApplicationMetadataService', () => {
@@ -27,7 +27,7 @@ describe('ApplicationMetadataService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);

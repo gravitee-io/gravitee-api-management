@@ -19,7 +19,7 @@ import { TestBed } from '@angular/core/testing';
 import { EnvironmentService } from './environment.service';
 
 import { fakeEnvironment } from '../entities/environment/environment.fixture';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 
 describe('EnvironmentService', () => {
   let httpTestingController: HttpTestingController;
@@ -27,7 +27,7 @@ describe('EnvironmentService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);

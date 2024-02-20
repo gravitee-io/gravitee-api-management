@@ -23,7 +23,7 @@ import { ActivatedRoute } from '@angular/router';
 
 import { ApiDocumentationV4MetadataComponent } from './api-documentation-v4-metadata.component';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { Metadata } from '../../../../entities/metadata/metadata';
 import { fakeMetadata } from '../../../../entities/metadata/metadata.fixture';
 import { GioMetadataHarness } from '../../../../components/gio-metadata/gio-metadata.harness';
@@ -43,7 +43,7 @@ describe('ApiDocumentationV4MetadataComponent', () => {
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
         { provide: GioTestingPermissionProvider, useValue: ['api-metadata-r', 'api-metadata-u', 'api-metadata-d', 'api-metadata-c'] },
       ],
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiDocumentationV4Module, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, ApiDocumentationV4Module, MatIconTestingModule],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ApiDocumentationV4MetadataComponent);

@@ -27,7 +27,7 @@ import { ActivatedRoute } from '@angular/router';
 import { ApplicationGeneralComponent } from './application-general.component';
 import { ApplicationGeneralModule } from './application-general.module';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { fakeApplication, fakeApplicationType } from '../../../../entities/application/Application.fixture';
 import { Application, ApplicationType } from '../../../../entities/application/application';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
@@ -41,7 +41,7 @@ describe('ApplicationGeneralInfoComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApplicationGeneralModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, ApplicationGeneralModule, MatIconTestingModule],
       providers: [
         {
           provide: GioTestingPermissionProvider,

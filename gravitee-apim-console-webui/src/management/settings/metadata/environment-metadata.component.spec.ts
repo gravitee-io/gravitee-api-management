@@ -25,7 +25,7 @@ import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 import { EnvironmentMetadataComponent } from './environment-metadata.component';
 import { EnvironmentMetadataModule } from './environment-metadata.module';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { GioMetadataHarness } from '../../../components/gio-metadata/gio-metadata.harness';
 import { GioMetadataDialogHarness } from '../../../components/gio-metadata/dialog/gio-metadata-dialog.harness';
 import { fakeMetadata } from '../../../entities/metadata/metadata.fixture';
@@ -47,7 +47,7 @@ describe('EnvironmentMetadataComponent', () => {
           useValue: ['environment-metadata-u', 'environment-metadata-d', 'environment-metadata-c'],
         },
       ],
-      imports: [NoopAnimationsModule, GioHttpTestingModule, EnvironmentMetadataModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, EnvironmentMetadataModule, MatIconTestingModule],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {

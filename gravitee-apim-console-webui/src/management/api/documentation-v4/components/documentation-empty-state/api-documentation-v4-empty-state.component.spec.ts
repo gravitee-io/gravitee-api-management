@@ -25,7 +25,7 @@ import { MatMenuHarness } from '@angular/material/menu/testing';
 import { ApiDocumentationV4EmptyStateComponent } from './api-documentation-v4-empty-state.component';
 
 import { ApiDocumentationV4Module } from '../../api-documentation-v4.module';
-import { GioHttpTestingModule } from '../../../../../shared/testing';
+import { GioTestingModule } from '../../../../../shared/testing';
 import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiDocumentationV4EmptyStateComponent', () => {
@@ -36,7 +36,7 @@ describe('ApiDocumentationV4EmptyStateComponent', () => {
   const init = async () => {
     await TestBed.configureTestingModule({
       declarations: [ApiDocumentationV4EmptyStateComponent],
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiDocumentationV4Module, GioHttpTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, ApiDocumentationV4Module, GioTestingModule],
       providers: [
         {
           provide: GioTestingPermissionProvider,

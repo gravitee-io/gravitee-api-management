@@ -22,7 +22,7 @@ import { MatTableHarness } from '@angular/material/table/testing';
 
 import { TicketsComponent } from './tickets.component';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { TicketsModule } from '../tickets.module';
 import { Ticket } from '../../../entities/ticket/ticket';
 import { TicketSearchResult } from '../../../entities/ticket/ticketSearchResult';
@@ -35,7 +35,7 @@ describe('TicketsComponent', () => {
 
   beforeEach(async () => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, TicketsModule],
+      imports: [NoopAnimationsModule, GioTestingModule, TicketsModule],
     });
 
     fixture = TestBed.createComponent(TicketsComponent);

@@ -25,7 +25,7 @@ import { ApiDocumentationV4ListNavigationHeaderComponent } from './api-documenta
 
 import { ApiDocumentationV4Module } from '../../api-documentation-v4.module';
 import { ApiDocumentationV4BreadcrumbHarness } from '../api-documentation-v4-breadcrumb/api-documentation-v4-breadcrumb.harness';
-import { GioHttpTestingModule } from '../../../../../shared/testing';
+import { GioTestingModule } from '../../../../../shared/testing';
 import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiDocumentationV4NavigationHeaderComponent', () => {
@@ -36,7 +36,7 @@ describe('ApiDocumentationV4NavigationHeaderComponent', () => {
   const init = async (apiPermissions = ['api-documentation-u', 'api-documentation-c', 'api-documentation-r']) => {
     await TestBed.configureTestingModule({
       declarations: [ApiDocumentationV4ListNavigationHeaderComponent],
-      imports: [NoopAnimationsModule, ApiDocumentationV4Module, MatIconTestingModule, GioHttpTestingModule],
+      imports: [NoopAnimationsModule, ApiDocumentationV4Module, MatIconTestingModule, GioTestingModule],
       providers: [{ provide: GioTestingPermissionProvider, useValue: apiPermissions }],
     })
       .overrideProvider(InteractivityChecker, {

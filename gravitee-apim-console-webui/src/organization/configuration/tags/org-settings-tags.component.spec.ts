@@ -30,7 +30,7 @@ import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { OrgSettingsTagsComponent } from './org-settings-tags.component';
 
 import { OrganizationSettingsModule } from '../organization-settings.module';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { Tag } from '../../../entities/tag/tag';
 import { fakeTag } from '../../../entities/tag/tag.fixture';
 import { Group } from '../../../entities/group/group';
@@ -51,7 +51,7 @@ describe('OrgSettingsTagsComponent', () => {
     TestBed.configureTestingModule({
       imports: [
         NoopAnimationsModule,
-        GioHttpTestingModule,
+        GioTestingModule,
         OrganizationSettingsModule,
         MatIconTestingModule,
         GioLicenseTestingModule.with(withLicense),

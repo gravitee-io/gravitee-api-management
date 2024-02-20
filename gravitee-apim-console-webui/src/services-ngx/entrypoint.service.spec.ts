@@ -18,7 +18,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { EntrypointService } from './entrypoint.service';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { fakeEntrypoint } from '../entities/entrypoint/entrypoint.fixture';
 
 describe('EntrypointService', () => {
@@ -27,7 +27,7 @@ describe('EntrypointService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);

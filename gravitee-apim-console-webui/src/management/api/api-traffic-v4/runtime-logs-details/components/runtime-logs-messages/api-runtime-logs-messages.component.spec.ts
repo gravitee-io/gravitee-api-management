@@ -33,7 +33,7 @@ import {
   fakeMessage,
   fakePagedResult,
 } from '../../../../../../entities/management-api-v2';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../../shared/testing';
 import { IconService } from '../../../../../../services-ngx/icon.service';
 
 describe('ApiRuntimeLogsMessagesComponent', () => {
@@ -46,7 +46,7 @@ describe('ApiRuntimeLogsMessagesComponent', () => {
 
   const initComponent = async () => {
     TestBed.configureTestingModule({
-      imports: [ApiRuntimeLogsMessagesModule, GioHttpTestingModule, MatIconTestingModule, NoopAnimationsModule],
+      imports: [ApiRuntimeLogsMessagesModule, GioTestingModule, MatIconTestingModule, NoopAnimationsModule],
       providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID, requestId: REQUEST_ID } } } }],
     });
 

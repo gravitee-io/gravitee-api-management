@@ -26,7 +26,7 @@ import { GioLicenseTestingModule } from '@gravitee/ui-particles-angular';
 import { OrgSettingsRolesComponent } from './org-settings-roles.component';
 
 import { OrganizationSettingsModule } from '../organization-settings.module';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { fakeRole } from '../../../entities/role/role.fixture';
 import { Role } from '../../../entities/role/role';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
@@ -41,7 +41,7 @@ describe('OrgSettingsRolesComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule, MatIconTestingModule, GioLicenseTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, OrganizationSettingsModule, MatIconTestingModule, GioLicenseTestingModule],
     }).overrideProvider(InteractivityChecker, {
       useValue: {
         isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with

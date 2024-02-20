@@ -30,7 +30,7 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 import { ApiAuditListComponent } from './api-audit-list.component';
 import { ApiAuditListModule } from './api-audit-list.module';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { GioTableWrapperHarness } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
 import { fakeMetadataPageAudit } from '../../../entities/audit/Audit.fixture';
 
@@ -42,7 +42,7 @@ describe('EnvAuditComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, MatIconTestingModule, GioHttpTestingModule, ApiAuditListModule],
+      imports: [NoopAnimationsModule, MatIconTestingModule, GioTestingModule, ApiAuditListModule],
       providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { API_ID } } } }],
       schemas: [NO_ERRORS_SCHEMA],
     }).overrideProvider(InteractivityChecker, {

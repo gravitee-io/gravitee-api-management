@@ -21,7 +21,7 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 import { OrgSettingsPlatformPoliciesConfigComponent } from './org-settings-platform-policies-config.component';
 
 import { OrganizationSettingsModule } from '../../organization-settings.module';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { fakeOrganization } from '../../../../entities/organization/organization.fixture';
 import { fakeFlow } from '../../../../entities/flow/flow.fixture';
 import { fakeFlowConfigurationSchema } from '../../../../entities/flow/configurationSchema.fixture';
@@ -53,7 +53,7 @@ describe('OrgSettingsPlatformPoliciesConfigComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule],
+      imports: [NoopAnimationsModule, GioTestingModule, OrganizationSettingsModule],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {

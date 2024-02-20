@@ -29,7 +29,7 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { ApiHealthCheckFormComponent } from './api-health-check-form.component';
 import { ApiHealthCheckFormModule } from './api-health-check-form.module';
 
-import { GioHttpTestingModule } from '../../../../shared/testing';
+import { GioTestingModule } from '../../../../shared/testing';
 import { HealthCheck } from '../../../../entities/health-check';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 
@@ -41,7 +41,7 @@ describe('ApiProxyHealthCheckFormComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiHealthCheckFormModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, ApiHealthCheckFormModule, MatIconTestingModule],
       providers: [{ provide: GioTestingPermissionProvider, useValue: ['api-definition-u'] }],
     }).overrideProvider(InteractivityChecker, {
       useValue: {

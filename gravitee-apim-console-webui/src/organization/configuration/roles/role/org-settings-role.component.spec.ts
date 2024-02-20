@@ -29,7 +29,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { OrgSettingsRoleComponent } from './org-settings-role.component';
 
 import { OrganizationSettingsModule } from '../../organization-settings.module';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { fakeRole } from '../../../../entities/role/role.fixture';
 import { Role } from '../../../../entities/role/role';
 import { fakePermissionsByScopes } from '../../../../entities/role/permission.fixtures';
@@ -234,7 +234,7 @@ describe('OrgSettingsRoleComponent', () => {
 
     beforeEach(() => {
       TestBed.configureTestingModule({
-        imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule],
+        imports: [NoopAnimationsModule, GioTestingModule, OrganizationSettingsModule],
         providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { roleScope: 'ORGANIZATION' } } } }],
       });
       httpTestingController = TestBed.inject(HttpTestingController);
@@ -312,7 +312,7 @@ describe('OrgSettingsRoleComponent', () => {
 
   function configureModule(role: Role) {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, OrganizationSettingsModule, MatIconTestingModule],
       providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { roleScope: role.scope, role: role.name } } } }],
     });
     httpTestingController = TestBed.inject(HttpTestingController);

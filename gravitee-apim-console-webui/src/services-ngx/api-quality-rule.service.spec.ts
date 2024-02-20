@@ -18,7 +18,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { ApiQualityRuleService } from './api-quality-rule.service';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 
 describe('ApiQualityRuleService', () => {
   let httpTestingController: HttpTestingController;
@@ -26,7 +26,7 @@ describe('ApiQualityRuleService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);

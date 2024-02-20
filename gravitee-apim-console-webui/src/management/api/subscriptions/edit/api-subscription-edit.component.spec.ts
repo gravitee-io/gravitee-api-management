@@ -31,7 +31,7 @@ import { ActivatedRoute } from '@angular/router';
 import { ApiSubscriptionEditComponent } from './api-subscription-edit.component';
 import { ApiSubscriptionEditHarness } from './api-subscription-edit.harness';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { ApiSubscriptionsModule } from '../api-subscriptions.module';
 import {
   AcceptSubscription,
@@ -80,7 +80,7 @@ describe('ApiSubscriptionEditComponent', () => {
 
   const init = async () => {
     await TestBed.configureTestingModule({
-      imports: [ApiSubscriptionsModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
+      imports: [ApiSubscriptionsModule, NoopAnimationsModule, GioTestingModule, MatIconTestingModule],
       providers: [
         { provide: GioTestingPermissionProvider, useValue: ['api-subscription-u', 'api-subscription-r', 'api-subscription-d'] },
         { provide: Constants, useValue: CONSTANTS_TESTING },

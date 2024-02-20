@@ -23,13 +23,12 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 import { InteractivityChecker } from '@angular/cdk/a11y';
-import { ProviderToken } from '@angular/core';
 
 import { EnvironmentNotificationComponent } from './environment-notification.component';
 import { EnvironmentNotificationModule } from './environment-notification.module';
 
 import { NotificationAddDialogHarness, NotificationEditDialogHarness, NotificationListHarness } from '../../../components/notification';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { fakeNotifier } from '../../../entities/notification/notifier.fixture';
 import { fakeNotificationSettings, fakePortalNotificationSettings } from '../../../entities/notification/notificationSettings.fixture';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
@@ -80,7 +79,7 @@ describe('AppNotificationComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, MatIconTestingModule, GioHttpTestingModule, EnvironmentNotificationModule],
+      imports: [NoopAnimationsModule, MatIconTestingModule, GioTestingModule, EnvironmentNotificationModule],
       providers: [{ provide: SnackBarService, useValue: fakeSnackBarService }],
     })
       .overrideProvider(InteractivityChecker, {
@@ -91,7 +90,7 @@ describe('AppNotificationComponent', () => {
       })
       .compileComponents();
 
-    const constant = TestBed.inject('Constants' as unknown as ProviderToken<Constants>);
+    const constant = TestBed.inject(Constants);
     constant.org.currentEnv = {
       id: ENVIRONMENT_ID,
       organizationId: constant.org.id,

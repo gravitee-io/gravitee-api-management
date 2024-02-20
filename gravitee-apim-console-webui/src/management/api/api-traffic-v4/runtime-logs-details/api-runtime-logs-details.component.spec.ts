@@ -25,7 +25,7 @@ import { ApiRuntimeLogsDetailsModule } from './api-runtime-logs-details.module';
 import { ApiRuntimeLogsProxyHarness } from './components/runtime-logs-proxy/api-runtime-logs-proxy.harness';
 import { ApiRuntimeLogsMessagesHarness } from './components/runtime-logs-messages/api-runtime-logs-messages.harness';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { ApiV4, fakeApiV4 } from '../../../../entities/management-api-v2';
 
 describe('ApiRuntimeLogsDetailsComponent', () => {
@@ -36,7 +36,7 @@ describe('ApiRuntimeLogsDetailsComponent', () => {
 
   const initComponent = async () => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, ApiRuntimeLogsDetailsModule, GioHttpTestingModule],
+      imports: [NoopAnimationsModule, ApiRuntimeLogsDetailsModule, GioTestingModule],
       providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } }],
     });
 

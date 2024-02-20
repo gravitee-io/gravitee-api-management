@@ -59,5 +59,4 @@ export const CONSTANTS_TESTING: Constants = {
     },
   ],
 })
-// Todo rename to GioTestingModule
-export class GioHttpTestingModule {}
+export class GioTestingModule {}

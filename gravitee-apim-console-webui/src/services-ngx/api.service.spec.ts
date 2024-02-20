@@ -21,7 +21,7 @@ import { from } from 'rxjs';
 
 import { ApiService } from './api.service';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { fakeApi } from '../entities/api/Api.fixture';
 import { fakeFlowSchema } from '../entities/flow/flowSchema.fixture';
 import { fakeUpdateApi } from '../entities/api/UpdateApi.fixture';
@@ -35,7 +35,7 @@ describe('ApiService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);

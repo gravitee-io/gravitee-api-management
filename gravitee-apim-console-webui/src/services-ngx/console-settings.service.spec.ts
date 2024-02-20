@@ -18,7 +18,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { ConsoleSettingsService } from './console-settings.service';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { ConsoleSettings } from '../entities/consoleSettings';
 import { Constants } from '../entities/Constants';
 
@@ -28,7 +28,7 @@ describe('ConsoleSettingsService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);

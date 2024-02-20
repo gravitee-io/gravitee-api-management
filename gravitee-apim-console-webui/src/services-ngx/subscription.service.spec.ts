@@ -18,7 +18,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { SubscriptionService } from './subscription.service';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { fakeApi } from '../entities/api/Api.fixture';
 import { fakeSubscription } from '../entities/subscription/subscription.fixture';
 import { fakePlan } from '../entities/plan/plan.fixture';
@@ -30,7 +30,7 @@ describe('SubscriptionService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);

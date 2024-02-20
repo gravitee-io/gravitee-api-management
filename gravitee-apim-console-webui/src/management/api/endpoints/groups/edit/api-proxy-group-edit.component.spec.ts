@@ -28,7 +28,7 @@ import { ActivatedRoute } from '@angular/router';
 
 import { ApiProxyGroupEditComponent } from './api-proxy-group-edit.component';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
 import { ApiProxyGroupsModule } from '../api-proxy-groups.module';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { ResourceListItem } from '../../../../../entities/resource/resourceListItem';
@@ -48,7 +48,7 @@ describe('ApiProxyGroupEditComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiProxyGroupsModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, ApiProxyGroupsModule, MatIconTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID, groupName: DEFAULT_GROUP_NAME } } } },
         { provide: GioTestingPermissionProvider, useValue: ['api-definition-u'] },

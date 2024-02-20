@@ -27,7 +27,7 @@ import { InstanceDetailsEnvironmentModule } from './instance-details-environment
 import { InstanceDetailsEnvironmentComponent } from './instance-details-environment.component';
 
 import { fakeInstance } from '../../../../entities/instance/instance.fixture';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 
 describe('InstanceDetailsEnvironmentComponent', () => {
   let fixture: ComponentFixture<InstanceDetailsEnvironmentComponent>;
@@ -38,7 +38,7 @@ describe('InstanceDetailsEnvironmentComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, InstanceDetailsEnvironmentModule],
+      imports: [NoopAnimationsModule, GioTestingModule, InstanceDetailsEnvironmentModule],
       providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { instanceId } }, fragment: of('') } }],
     }).compileComponents();
     httpTestingController = TestBed.inject(HttpTestingController);

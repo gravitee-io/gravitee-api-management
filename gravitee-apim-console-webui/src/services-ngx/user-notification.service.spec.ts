@@ -18,7 +18,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { UserNotificationService } from './user-notification.service';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { fakeUserNotification } from '../entities/user-notification/userNotification.fixture';
 
 describe('UserNotification', () => {
@@ -27,7 +27,7 @@ describe('UserNotification', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);

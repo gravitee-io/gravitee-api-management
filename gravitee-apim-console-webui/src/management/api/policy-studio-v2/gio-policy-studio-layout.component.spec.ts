@@ -28,7 +28,7 @@ import { GioPolicyStudioLayoutComponent } from './gio-policy-studio-layout.compo
 import { toApiDefinition, toApiPlansDefinition } from './models/ApiDefinition';
 import { PolicyStudioService } from './policy-studio.service';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { fakeApiV2, fakePlanV2 } from '../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 
@@ -46,7 +46,7 @@ describe('GioPolicyStudioLayoutComponent', () => {
       imports: [
         RouterTestingModule,
         NoopAnimationsModule,
-        GioHttpTestingModule,
+        GioTestingModule,
         MatSnackBarModule,
         MatTabsModule,
         GioSaveBarModule,

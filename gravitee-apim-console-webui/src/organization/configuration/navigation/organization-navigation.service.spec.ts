@@ -19,14 +19,14 @@ import { GioLicenseTestingModule } from '@gravitee/ui-particles-angular';
 import { OrganizationNavigationService } from './organization-navigation.service';
 
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
-import { GioHttpTestingModule } from '../../../shared/testing';
+import { GioTestingModule } from '../../../shared/testing';
 
 describe('OrganizationNavigationService', () => {
   let service: OrganizationNavigationService;
 
   const init = (hasAnyMatching = true) => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule, GioLicenseTestingModule],
+      imports: [GioTestingModule, GioLicenseTestingModule],
       providers: [
         {
           provide: GioPermissionService,

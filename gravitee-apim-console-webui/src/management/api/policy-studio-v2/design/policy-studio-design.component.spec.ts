@@ -23,7 +23,7 @@ import { ActivatedRoute } from '@angular/router';
 import { PolicyStudioDesignComponent } from './policy-studio-design.component';
 import { PolicyStudioDesignModule } from './policy-studio-design.module';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { fakePolicyListItem } from '../../../../entities/policy';
 import { fakeResourceListItem } from '../../../../entities/resource/resourceListItem.fixture';
 import { fakeFlowSchema } from '../../../../entities/flow/flowSchema.fixture';
@@ -48,7 +48,7 @@ describe('PolicyStudioDesignComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, PolicyStudioDesignModule, GioLicenseTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, PolicyStudioDesignModule, GioLicenseTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: api.id } } } },
         {

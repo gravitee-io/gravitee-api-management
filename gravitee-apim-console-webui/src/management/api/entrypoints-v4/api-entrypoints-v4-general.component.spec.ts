@@ -31,7 +31,7 @@ import { ApiEntrypointsV4Module } from './api-entrypoints-v4.module';
 import { ApiEntrypointsV4GeneralHarness } from './api-entrypoints-v4-general.harness';
 import { ApiEntrypointsV4AddDialogHarness } from './edit/api-entrypoints-v4-add-dialog.harness';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { Api, ApiV4, ConnectorPlugin, fakeApiV4, UpdateApiV4 } from '../../../entities/management-api-v2';
 import { GioFormListenersContextPathHarness } from '../component/gio-form-listeners/gio-form-listeners-context-path/gio-form-listeners-context-path.harness';
 import { PortalSettings } from '../../../entities/portal/portalSettings';
@@ -82,7 +82,7 @@ describe('ApiProxyV4EntrypointsComponent', () => {
 
   const init = async (permissions: string[] = ['api-definition-u', 'api-definition-r']) => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiEntrypointsV4Module, MatIconTestingModule, MatAutocompleteModule],
+      imports: [NoopAnimationsModule, GioTestingModule, ApiEntrypointsV4Module, MatIconTestingModule, MatAutocompleteModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
         { provide: GioTestingPermissionProvider, useValue: permissions },

@@ -18,7 +18,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { PlanService } from './plan.service';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { fakePlan } from '../entities/plan/plan.fixture';
 import { fakeApi } from '../entities/api/Api.fixture';
 import { NewPlan, PlanSecurityType } from '../entities/plan';
@@ -29,7 +29,7 @@ describe('PlanService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);

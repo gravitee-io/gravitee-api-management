@@ -22,7 +22,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 
 import { HomeOverviewComponent } from './home-overview.component';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { HomeModule } from '../home.module';
 import { GioQuickTimeRangeHarness } from '../components/gio-quick-time-range/gio-quick-time-range.harness';
 import { GioRequestStatsHarness } from '../components/gio-request-stats/gio-request-stats.harness';
@@ -34,7 +34,7 @@ describe('HomeOverviewComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, HomeModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, HomeModule, MatIconTestingModule],
     });
   });
 

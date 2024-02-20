@@ -24,7 +24,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { InstanceListComponent } from './instance-list.component';
 import { InstanceListModule } from './instance-list.module';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { InstanceListItem } from '../../../entities/instance/instanceListItem';
 import { fakeInstanceListItem } from '../../../entities/instance/instanceListItem.fixture';
 
@@ -35,7 +35,7 @@ describe('InstanceListComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, MatIconTestingModule, GioHttpTestingModule, InstanceListModule],
+      imports: [NoopAnimationsModule, MatIconTestingModule, GioTestingModule, InstanceListModule],
     });
   });
 

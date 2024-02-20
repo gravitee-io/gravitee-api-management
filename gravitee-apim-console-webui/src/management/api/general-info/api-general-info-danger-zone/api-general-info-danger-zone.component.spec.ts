@@ -30,7 +30,7 @@ import { Router } from '@angular/router';
 import { ApiGeneralInfoDangerZoneComponent } from './api-general-info-danger-zone.component';
 
 import { ApiGeneralInfoModule } from '../api-general-info.module';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { Api, fakeApiV2, fakeApiV4 } from '../../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { Constants } from '../../../../entities/Constants';
@@ -47,7 +47,7 @@ describe('ApiGeneralInfoDangerZoneComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiGeneralInfoModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, ApiGeneralInfoModule, MatIconTestingModule],
       providers: [
         { provide: GioTestingPermissionProvider, useValue: ['api-definition-u', 'api-definition-d'] },
         {

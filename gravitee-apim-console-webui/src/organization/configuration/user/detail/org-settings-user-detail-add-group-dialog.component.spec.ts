@@ -29,7 +29,7 @@ import {
 
 import { Group } from '../../../../entities/group/group';
 import { fakeGroup } from '../../../../entities/group/group.fixture';
-import { GioHttpTestingModule, CONSTANTS_TESTING } from '../../../../shared/testing';
+import { GioTestingModule, CONSTANTS_TESTING } from '../../../../shared/testing';
 import { OrganizationSettingsModule } from '../../organization-settings.module';
 import { Role } from '../../../../entities/role/role';
 import { fakeRole } from '../../../../entities/role/role.fixture';
@@ -52,7 +52,7 @@ describe('OrgSettingsUserDetailAddGroupDialogComponent', () => {
       groupIdAlreadyAdded: [],
     };
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, OrganizationSettingsModule, GioHttpTestingModule],
+      imports: [NoopAnimationsModule, OrganizationSettingsModule, GioTestingModule],
       providers: [
         {
           provide: MAT_DIALOG_DATA,

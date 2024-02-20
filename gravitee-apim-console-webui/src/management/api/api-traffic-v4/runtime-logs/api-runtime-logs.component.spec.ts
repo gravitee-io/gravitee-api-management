@@ -28,7 +28,7 @@ import { ApiRuntimeLogsComponent } from './api-runtime-logs.component';
 import { ApiRuntimeLogsHarness } from './api-runtime-logs.component.harness';
 import { QuickFiltersStoreService } from './services';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import {
   ApiLogsParam,
   ApiV4,
@@ -75,7 +75,7 @@ describe('ApiRuntimeLogsComponent', () => {
         NoopAnimationsModule,
         HttpClientTestingModule,
         MatIconTestingModule,
-        GioHttpTestingModule,
+        GioTestingModule,
         OwlDateTimeModule,
         OwlMomentDateTimeModule,
       ],

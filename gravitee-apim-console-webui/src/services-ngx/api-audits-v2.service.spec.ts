@@ -18,7 +18,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { ApiAuditsV2Service } from './api-audits-v2.service';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { AuditEventsResponse, fakeAudit, fakePagedResult } from '../entities/management-api-v2';
 
 describe('ApiAuditsV2Service', () => {
@@ -28,7 +28,7 @@ describe('ApiAuditsV2Service', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);

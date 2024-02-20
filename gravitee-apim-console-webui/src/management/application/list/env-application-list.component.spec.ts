@@ -27,7 +27,7 @@ import { ActivatedRoute } from '@angular/router';
 import { EnvApplicationListComponent } from './env-application-list.component';
 
 import { ApplicationsModule } from '../applications.module';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { fakePagedResult } from '../../../entities/pagedResult';
 import { GioTableWrapperHarness } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
 import { Application } from '../../../entities/application/application';
@@ -43,7 +43,7 @@ describe('EnvApplicationListComponent', () => {
   describe('with ACTIVE status', () => {
     beforeEach(() => {
       TestBed.configureTestingModule({
-        imports: [NoopAnimationsModule, ApplicationsModule, GioHttpTestingModule],
+        imports: [NoopAnimationsModule, ApplicationsModule, GioTestingModule],
         providers: [{ provide: GioTestingRoleProvider, useValue: [{ scope: 'ORGANIZATION', name: 'ADMIN' }] }],
       }).overrideProvider(InteractivityChecker, {
         useValue: {
@@ -148,7 +148,7 @@ describe('EnvApplicationListComponent', () => {
   describe('with ARCHIVED status', () => {
     beforeEach(() => {
       TestBed.configureTestingModule({
-        imports: [NoopAnimationsModule, ApplicationsModule, GioHttpTestingModule],
+        imports: [NoopAnimationsModule, ApplicationsModule, GioTestingModule],
         providers: [{ provide: GioTestingRoleProvider, useValue: [{ scope: 'ORGANIZATION', name: 'ADMIN' }] }],
       }).overrideProvider(InteractivityChecker, {
         useValue: {

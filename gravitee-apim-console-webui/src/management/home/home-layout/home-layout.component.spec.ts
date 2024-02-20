@@ -23,7 +23,7 @@ import { MatTabNavBarHarness } from '@angular/material/tabs/testing';
 
 import { HomeLayoutComponent } from './home-layout.component';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { HomeModule } from '../home.module';
 
 describe('HomeLayoutComponent', () => {
@@ -34,7 +34,7 @@ describe('HomeLayoutComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       declarations: [HomeLayoutComponent],
-      imports: [NoopAnimationsModule, GioHttpTestingModule, HomeModule, MatTabsModule],
+      imports: [NoopAnimationsModule, GioTestingModule, HomeModule, MatTabsModule],
     });
   });
 

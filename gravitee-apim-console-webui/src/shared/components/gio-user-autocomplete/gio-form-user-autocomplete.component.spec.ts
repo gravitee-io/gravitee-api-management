@@ -24,7 +24,7 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { GioFormUserAutocompleteModule } from './gio-form-user-autocomplete.module';
 import { GioFormUserAutocompleteHarness } from './gio-form-user-autocomplete.harness';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../testing';
 import { fakeSearchableUser } from '../../../entities/user/searchableUser.fixture';
 import { SearchableUser } from '../../../entities/user/searchableUser';
 
@@ -49,7 +49,7 @@ describe('GioFormUserAutocompleteComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       declarations: [TestComponent],
-      imports: [NoopAnimationsModule, ReactiveFormsModule, GioHttpTestingModule, GioFormUserAutocompleteModule],
+      imports: [NoopAnimationsModule, ReactiveFormsModule, GioTestingModule, GioFormUserAutocompleteModule],
     });
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(TestComponent);

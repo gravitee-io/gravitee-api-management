@@ -26,7 +26,7 @@ import { SpanHarness } from '@gravitee/ui-particles-angular/testing';
 import { GioFormListenersTcpHostsModule } from './gio-form-listeners-tcp-hosts.module';
 import { GioFormListenersTcpHostsHarness } from './gio-form-listeners-tcp-hosts.harness';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
 import { Constants } from '../../../../../entities/Constants';
 
 @Component({
@@ -63,7 +63,7 @@ describe('GioFormListenersTcpHostsModule', () => {
     beforeEach(() => {
       TestBed.configureTestingModule({
         declarations: [TestComponent],
-        imports: [NoopAnimationsModule, GioFormListenersTcpHostsModule, MatIconTestingModule, ReactiveFormsModule, GioHttpTestingModule],
+        imports: [NoopAnimationsModule, GioFormListenersTcpHostsModule, MatIconTestingModule, ReactiveFormsModule, GioTestingModule],
         providers: [
           {
             provide: Constants,
@@ -248,7 +248,7 @@ describe('GioFormListenersTcpHostsModule', () => {
     beforeEach(() => {
       TestBed.configureTestingModule({
         declarations: [TestComponentWithApiId],
-        imports: [NoopAnimationsModule, GioFormListenersTcpHostsModule, MatIconTestingModule, ReactiveFormsModule, GioHttpTestingModule],
+        imports: [NoopAnimationsModule, GioFormListenersTcpHostsModule, MatIconTestingModule, ReactiveFormsModule, GioTestingModule],
         providers: [
           {
             provide: Constants,

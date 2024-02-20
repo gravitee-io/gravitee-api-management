@@ -28,7 +28,7 @@ import { GioMetadataModule } from './gio-metadata.module';
 import { GioMetadataComponent } from './gio-metadata.component';
 import { GioMetadataDialogHarness } from './dialog/gio-metadata-dialog.harness';
 
-import { GioHttpTestingModule } from '../../shared/testing';
+import { GioTestingModule } from '../../shared/testing';
 import { fakeMetadata } from '../../entities/metadata/metadata.fixture';
 import { NewMetadata, UpdateMetadata } from '../../entities/metadata/metadata';
 import { GioTestingPermission, GioTestingPermissionProvider } from '../../shared/components/gio-permission/gio-permission.service';
@@ -41,7 +41,7 @@ describe('GioMetadataComponent', () => {
 
   const init = async (permissions: GioTestingPermission) => {
     await TestBed.configureTestingModule({
-      imports: [GioMetadataModule, MatIconTestingModule, NoopAnimationsModule, GioHttpTestingModule],
+      imports: [GioMetadataModule, MatIconTestingModule, NoopAnimationsModule, GioTestingModule],
       providers: [{ provide: GioTestingPermissionProvider, useValue: permissions }],
     })
       .overrideProvider(InteractivityChecker, {
