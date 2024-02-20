@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.v4.exception;
+package io.gravitee.rest.api.service.exceptions;
 
 import static java.util.Collections.singletonMap;
 
@@ -25,11 +25,11 @@ import java.util.Map;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class EndpointGroupNameAlreadyExistsException extends AbstractManagementException {
+public class EndpointNameAlreadyExistsException extends AbstractManagementException {
 
     private final String name;
 
-    public EndpointGroupNameAlreadyExistsException(String name) {
+    public EndpointNameAlreadyExistsException(String name) {
         this.name = name;
     }
 
@@ -40,16 +40,16 @@ public class EndpointGroupNameAlreadyExistsException extends AbstractManagementE
 
     @Override
     public String getMessage() {
-        return "The endpoint group name [" + name + "] is already used by another endpoint or endpoint group.";
+        return "The endpoint name [" + name + "] is already used by another endpoint or endpoint group.";
     }
 
     @Override
     public String getTechnicalCode() {
-        return "api.endpointsGroup.name.exists";
+        return "api.endpointsGroup.endpoint.name.exists";
     }
 
     @Override
     public Map<String, String> getParameters() {
-        return singletonMap("api.endpointsGroup[].name", name);
+        return singletonMap("api.endpointsGroup[].endpoint.name", name);
     }
 }
