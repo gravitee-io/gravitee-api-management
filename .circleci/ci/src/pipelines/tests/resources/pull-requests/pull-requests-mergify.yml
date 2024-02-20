@@ -745,7 +745,7 @@ workflows:
           context:
             - cicd-orchestrator
           apim-ui-project: gravitee-apim-console-webui
-          resource_class: large
+          resource_class: xlarge
       - job-webui-build:
           name: Build APIM Console and publish image
           context:

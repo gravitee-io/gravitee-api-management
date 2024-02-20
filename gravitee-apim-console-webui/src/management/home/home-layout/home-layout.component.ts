@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import { catchError, map, startWith } from 'rxjs/operators';
+import { catchError, map, shareReplay, startWith } from 'rxjs/operators';
 
 import { TaskService } from '../../../services-ngx/task.service';
 
@@ -23,6 +23,7 @@ import { TaskService } from '../../../services-ngx/task.service';
   selector: 'home-layout',
   templateUrl: './home-layout.component.html',
   styleUrls: ['./home-layout.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomeLayoutComponent {
   public taskLabel = this.taskService.getTasks().pipe(
@@ -30,6 +31,7 @@ export class HomeLayoutComponent {
     startWith('Tasks'),
     // If thrown, keep the label as is
     catchError(() => of('Tasks')),
+    shareReplay(1),
   );
 
   public tabs: { label: Observable<string>; routerLink: string }[] = [

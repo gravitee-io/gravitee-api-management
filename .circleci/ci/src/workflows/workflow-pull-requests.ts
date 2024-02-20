@@ -223,7 +223,7 @@ export class PullRequestsWorkflow {
           name: 'Lint & test APIM Console',
           context: config.jobContext,
           'apim-ui-project': config.dockerImages.console.project,
-          resource_class: 'large',
+          resource_class: 'xlarge',
         }),
         new workflow.WorkflowJob(webuiBuildJob, {
           name: 'Build APIM Console and publish image',

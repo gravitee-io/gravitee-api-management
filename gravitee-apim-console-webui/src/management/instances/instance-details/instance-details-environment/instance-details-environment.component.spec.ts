@@ -36,8 +36,8 @@ describe('InstanceDetailsEnvironmentComponent', () => {
   let httpTestingController: HttpTestingController;
   const instanceId = '5bc17c57-b350-460d-817c-57b350060db3';
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
+  beforeEach(() => {
+    TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioTestingModule, InstanceDetailsEnvironmentModule],
       providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { instanceId } }, fragment: of('') } }],
     }).compileComponents();
