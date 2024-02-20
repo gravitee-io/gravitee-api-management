@@ -13,15 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { MatCardModule } from '@angular/material/card';
+import { NgModule } from '@angular/core';
+import { GioCardEmptyStateModule, GioIconsModule } from '@gravitee/ui-particles-angular';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 
-import { ApiRuntimeAlertsComponent } from './api-runtime-alerts.component';
-
-import { RuntimeAlertListEmptyStateModule, RuntimeAlertListModule } from '../../../components/runtime-alerts';
+import { RuntimeAlertListEmptyStateComponent } from './runtime-alert-list-empty-state.component';
 
 @NgModule({
-  declarations: [ApiRuntimeAlertsComponent],
-  imports: [CommonModule, RuntimeAlertListModule, RuntimeAlertListEmptyStateModule],
+  declarations: [RuntimeAlertListEmptyStateComponent],
+  exports: [RuntimeAlertListEmptyStateComponent],
+  imports: [CommonModule, MatButtonModule, MatCardModule, MatIconModule, GioIconsModule, GioCardEmptyStateModule],
 })
-export class ApiRuntimeAlertsModule {}
+export class RuntimeAlertListEmptyStateModule {}

@@ -3,10 +3,8 @@
 @use '@gravitee/ui-particles-angular' as gio;
 @use '../../../scss/gio-layout' as gio-layout;
 
-$foreground: map.get(gio.$mat-theme, foreground);
-
 :host {
-  @include gio-layout.gio-responsive-margin-container;
+  @include gio-layout.gio-responsive-content-container;
 }
 
 .runtime-alerts {
@@ -16,5 +14,10 @@ $foreground: map.get(gio.$mat-theme, foreground);
     align-items: center;
     justify-content: space-between;
     margin-bottom: 20px;
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: row;
   }
 }

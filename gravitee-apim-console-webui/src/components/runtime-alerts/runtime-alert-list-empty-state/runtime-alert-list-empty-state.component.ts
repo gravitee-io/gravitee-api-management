@@ -14,16 +14,10 @@
  * limitations under the License.
  */
 import { Component } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-
-import { ApiAlertsService } from '../../../services-ngx/api-alerts.service';
 
 @Component({
-  selector: 'api-runtime-alerts',
-  templateUrl: './api-runtime-alerts.component.html',
+  selector: 'runtime-alert-list-empty-state',
+  templateUrl: './runtime-alert-list-empty-state.component.html',
+  styleUrls: ['./runtime-alert-list-empty-state.component.scss'],
 })
-export class ApiRuntimeAlertsComponent {
-  public alerts$ = this.apiAlertsService.listAlerts(this.activatedRoute.snapshot.params.apiId, true);
-
-  constructor(private readonly activatedRoute: ActivatedRoute, private readonly apiAlertsService: ApiAlertsService) {}
-}
+export class RuntimeAlertListEmptyStateComponent {}
