@@ -25,7 +25,7 @@ import { MatDateRangeInputHarness } from '@angular/material/datepicker/testing';
 
 import { OrgSettingsAuditComponent } from './org-settings-audit.component';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { OrganizationSettingsModule } from '../organization-settings.module';
 import { fakeMetadataPageAudit } from '../../../entities/audit/Audit.fixture';
 import { fakeEnvironment } from '../../../entities/environment/environment.fixture';
@@ -41,7 +41,7 @@ describe('OrgSettingsAuditComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, MatIconTestingModule, GioHttpTestingModule, OrganizationSettingsModule],
+      imports: [NoopAnimationsModule, MatIconTestingModule, GioTestingModule, OrganizationSettingsModule],
     });
   });
 

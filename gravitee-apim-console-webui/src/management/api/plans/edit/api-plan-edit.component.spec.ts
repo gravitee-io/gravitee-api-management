@@ -26,7 +26,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApiPlanEditComponent } from './api-plan-edit.component';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { ApiPlansModule } from '../api-plans.module';
 import { fakeTag } from '../../../../entities/tag/tag.fixture';
 import { fakeGroup } from '../../../../entities/group/group.fixture';
@@ -56,7 +56,7 @@ describe('ApiPlanEditComponent', () => {
 
   const configureTestingModule = (planId: string = undefined) => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiPlansModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, ApiPlansModule, MatIconTestingModule],
       providers: [
         { provide: GioTestingPermissionProvider, useValue: ['api-plan-u'] },
         {

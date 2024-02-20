@@ -20,7 +20,7 @@ import { GioPermissionModule } from './gio-permission.module';
 import { GioPermissionCheckOptions } from './gio-permission.directive';
 import { GioTestingPermissionProvider } from './gio-permission.service';
 
-import { GioHttpTestingModule } from '../../testing';
+import { GioTestingModule } from '../../testing';
 
 @Component({ template: `<div *gioPermission="permissions">A Content</div>` })
 class TestPermissionComponent {
@@ -34,7 +34,7 @@ describe('GioPermissionDirective', () => {
   function prepareTestPermissionComponent(permission: GioPermissionCheckOptions) {
     fixture = TestBed.configureTestingModule({
       declarations: [TestPermissionComponent],
-      imports: [GioHttpTestingModule, GioPermissionModule],
+      imports: [GioTestingModule, GioPermissionModule],
       providers: [
         {
           provide: GioTestingPermissionProvider,

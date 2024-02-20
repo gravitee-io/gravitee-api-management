@@ -27,7 +27,7 @@ import { ActivatedRoute } from '@angular/router';
 import { OrgSettingsUsersComponent } from './org-settings-users.component';
 
 import { OrganizationSettingsModule } from '../organization-settings.module';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { User } from '../../../entities/user/user';
 import { fakePagedResult } from '../../../entities/pagedResult';
 import { fakeAdminUser } from '../../../entities/user/user.fixture';
@@ -41,7 +41,7 @@ describe('OrgSettingsUsersComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, OrganizationSettingsModule, GioHttpTestingModule],
+      imports: [NoopAnimationsModule, OrganizationSettingsModule, GioTestingModule],
     }).overrideProvider(InteractivityChecker, {
       useValue: {
         isFocusable: () => true, // This checks focus trap, set it to true to  avoid the warning

@@ -26,7 +26,7 @@ import { MatSnackBarHarness } from '@angular/material/snack-bar/testing';
 import { ApiDeploymentConfigurationComponent } from './api-deployment-configuration.component';
 import { ApiDeploymentConfigurationModule } from './api-deployment-configuration.module';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 import { Api, fakeApiV1, fakeApiV2, fakeApiV4 } from '../../../entities/management-api-v2';
 import { fakeTag } from '../../../entities/tag/tag.fixture';
@@ -45,7 +45,7 @@ describe('ApiDeploymentConfigurationComponent', () => {
     ({ api }) => {
       beforeEach(() => {
         TestBed.configureTestingModule({
-          imports: [NoopAnimationsModule, GioHttpTestingModule, ApiDeploymentConfigurationModule],
+          imports: [NoopAnimationsModule, GioTestingModule, ApiDeploymentConfigurationModule],
           providers: [
             { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
             { provide: GioTestingPermissionProvider, useValue: ['api-definition-u'] },
@@ -127,7 +127,7 @@ describe('ApiDeploymentConfigurationComponent', () => {
   `('With API $api.definitionVersion and $permission permission', ({ api, permission }) => {
     beforeEach(() => {
       TestBed.configureTestingModule({
-        imports: [NoopAnimationsModule, GioHttpTestingModule, ApiDeploymentConfigurationModule],
+        imports: [NoopAnimationsModule, GioTestingModule, ApiDeploymentConfigurationModule],
         providers: [
           { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
           { provide: GioTestingPermissionProvider, useValue: [permission] },

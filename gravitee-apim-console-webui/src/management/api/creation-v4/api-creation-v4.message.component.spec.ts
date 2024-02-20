@@ -31,7 +31,7 @@ import { Step5SummaryHarness } from './steps/step-5-summary/step-5-summary.harne
 import { ApiCreationV4SpecStepperHelper } from './api-creation-v4-spec-stepper-helper';
 import { ApiCreationV4SpecHttpExpects } from './api-creation-v4-spec-http-expects';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { fakeRestrictedDomains } from '../../../entities/restricted-domain/restrictedDomain.fixture';
 import { Constants } from '../../../entities/Constants';
 
@@ -90,7 +90,7 @@ describe('ApiCreationV4Component - Message', () => {
           useValue: LICENSE_CONFIGURATION_TESTING,
         },
       ],
-      imports: [NoopAnimationsModule, ApiCreationV4Module, GioHttpTestingModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, ApiCreationV4Module, GioTestingModule, MatIconTestingModule],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {

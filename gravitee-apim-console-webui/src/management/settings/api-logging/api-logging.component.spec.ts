@@ -23,7 +23,7 @@ import { ApiLoggingComponent } from './api-logging.component';
 import { ApiLoggingModule } from './api-logging.module';
 import { ApiLoggingHarness } from './api-logging.harness';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { ConsoleSettings } from '../../../entities/consoleSettings';
 import { Constants } from '../../../entities/Constants';
 
@@ -67,7 +67,7 @@ describe('ApiLogging', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule, ApiLoggingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, MatIconTestingModule, ApiLoggingModule],
       providers: [
         {
           provide: Constants,

@@ -41,7 +41,7 @@ import {
   Listener,
   UpdateApiV4,
 } from '../../../../entities/management-api-v2';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { ApiEntrypointsV4Module } from '../api-entrypoints-v4.module';
 import { fakeSubscriptionListener } from '../../../../entities/management-api-v2/api/v4/listener.fixture';
 import { GioFormQosHarness } from '../../component/gio-form-qos/gio-form-qos.harness';
@@ -118,7 +118,7 @@ describe('ApiEntrypointsV4EditComponent', () => {
   describe('With HTTP GET entrypoint', () => {
     beforeEach(() => {
       TestBed.configureTestingModule({
-        imports: [NoopAnimationsModule, GioHttpTestingModule, ApiEntrypointsV4Module, MatIconTestingModule, MatAutocompleteModule],
+        imports: [NoopAnimationsModule, GioTestingModule, ApiEntrypointsV4Module, MatIconTestingModule, MatAutocompleteModule],
         providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID, entrypointId: 'http-get' } } } }],
       });
       httpTestingController = TestBed.inject(HttpTestingController);
@@ -194,7 +194,7 @@ describe('ApiEntrypointsV4EditComponent', () => {
   describe('With Webhook entrypoint and two endpoint groups', () => {
     beforeEach(() => {
       TestBed.configureTestingModule({
-        imports: [NoopAnimationsModule, GioHttpTestingModule, ApiEntrypointsV4Module, MatIconTestingModule, MatAutocompleteModule],
+        imports: [NoopAnimationsModule, GioTestingModule, ApiEntrypointsV4Module, MatIconTestingModule, MatAutocompleteModule],
         providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID, entrypointId: 'webhook' } } } }],
       });
       httpTestingController = TestBed.inject(HttpTestingController);
@@ -319,7 +319,7 @@ describe('ApiEntrypointsV4EditComponent', () => {
   describe('With Webhook entrypoint and only one endpoint group', () => {
     beforeEach(() => {
       TestBed.configureTestingModule({
-        imports: [NoopAnimationsModule, GioHttpTestingModule, ApiEntrypointsV4Module, MatIconTestingModule, MatAutocompleteModule],
+        imports: [NoopAnimationsModule, GioTestingModule, ApiEntrypointsV4Module, MatIconTestingModule, MatAutocompleteModule],
         providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID, entrypointId: 'webhook' } } } }],
       });
       httpTestingController = TestBed.inject(HttpTestingController);
@@ -376,7 +376,7 @@ describe('ApiEntrypointsV4EditComponent', () => {
   describe('With already configured Webhook entrypoint', () => {
     beforeEach(() => {
       TestBed.configureTestingModule({
-        imports: [NoopAnimationsModule, GioHttpTestingModule, ApiEntrypointsV4Module, MatIconTestingModule, MatAutocompleteModule],
+        imports: [NoopAnimationsModule, GioTestingModule, ApiEntrypointsV4Module, MatIconTestingModule, MatAutocompleteModule],
         providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID, entrypointId: 'webhook' } } } }],
       });
       httpTestingController = TestBed.inject(HttpTestingController);

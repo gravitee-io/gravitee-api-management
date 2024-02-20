@@ -18,7 +18,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { FlowService } from './flow.service';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { fakeFlowConfigurationSchema } from '../entities/flow/configurationSchema.fixture';
 import { fakePlatformFlowSchema } from '../entities/flow/platformFlowSchema.fixture';
 import { fakeOrganizationFlowConfiguration } from '../entities/flow/organizationFlowConfiguration.fixture';
@@ -29,7 +29,7 @@ describe('FlowService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);

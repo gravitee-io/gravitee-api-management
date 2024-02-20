@@ -18,7 +18,7 @@ import { HttpTestingController } from '@angular/common/http/testing';
 
 import { ClientRegistrationProvidersService } from './client-registration-providers.service';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { ClientRegistrationProvider } from '../entities/client-registration-provider/clientRegistrationProvider';
 import { fakeClientRegistrationProvider } from '../entities/client-registration-provider/clientRegistrationProvider.fixture';
 
@@ -28,7 +28,7 @@ describe('ClientRegistrationProviderService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);

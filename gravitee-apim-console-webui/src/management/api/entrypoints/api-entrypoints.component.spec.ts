@@ -27,7 +27,7 @@ import { ActivatedRoute } from '@angular/router';
 import { ApiEntrypointsModule } from './api-entrypoints.module';
 import { ApiEntrypointsComponent } from './api-entrypoints.component';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { PortalSettings } from '../../../entities/portal/portalSettings';
 import { ApiV1, ApiV2, fakeApiV1, fakeApiV2 } from '../../../entities/management-api-v2';
 import { GioFormListenersContextPathHarness } from '../component/gio-form-listeners/gio-form-listeners-context-path/gio-form-listeners-context-path.harness';
@@ -46,7 +46,7 @@ describe('ApiProxyEntrypointsComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiEntrypointsModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, ApiEntrypointsModule, MatIconTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
         { provide: GioTestingPermissionProvider, useValue: ['api-definition-u', 'api-gateway_definition-u'] },

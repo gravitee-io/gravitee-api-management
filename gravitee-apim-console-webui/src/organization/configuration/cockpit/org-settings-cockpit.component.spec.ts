@@ -19,7 +19,7 @@ import { HttpTestingController } from '@angular/common/http/testing';
 
 import { OrgSettingsCockpitComponent } from './org-settings-cockpit.component';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { OrganizationSettingsModule } from '../organization-settings.module';
 import { fakeInstallation } from '../../../entities/installation/installation.fixture';
 
@@ -30,7 +30,7 @@ describe('OrgSettingsCockpitComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule],
+      imports: [NoopAnimationsModule, GioTestingModule, OrganizationSettingsModule],
     });
   });
 

@@ -26,7 +26,7 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatButtonToggleGroupHarness } from '@angular/material/button-toggle/testing';
 import { ActivatedRoute } from '@angular/router';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { ApiUserGroupModule } from '../api-user-group.module';
 import { Role } from '../../../../entities/role/role';
 import { fakeRole } from '../../../../entities/role/role.fixture';
@@ -55,7 +55,7 @@ describe('ApiGeneralTransferOwnershipComponent', () => {
   describe('Hybrid mode', () => {
     beforeEach(async () => {
       TestBed.configureTestingModule({
-        imports: [NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule, ApiUserGroupModule],
+        imports: [NoopAnimationsModule, GioTestingModule, MatIconTestingModule, ApiUserGroupModule],
         providers: [
           { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId } } } },
           {
@@ -235,7 +235,7 @@ describe('ApiGeneralTransferOwnershipComponent', () => {
   describe('Group mode', () => {
     beforeEach(async () => {
       TestBed.configureTestingModule({
-        imports: [NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule, ApiUserGroupModule],
+        imports: [NoopAnimationsModule, GioTestingModule, MatIconTestingModule, ApiUserGroupModule],
         providers: [
           { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId } } } },
           {

@@ -19,7 +19,7 @@ import { take } from 'rxjs/operators';
 
 import { ApplicationService } from './application.service';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { fakeApplication, fakeApplicationType } from '../entities/application/Application.fixture';
 
 describe('ApplicationService', () => {
@@ -28,7 +28,7 @@ describe('ApplicationService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);

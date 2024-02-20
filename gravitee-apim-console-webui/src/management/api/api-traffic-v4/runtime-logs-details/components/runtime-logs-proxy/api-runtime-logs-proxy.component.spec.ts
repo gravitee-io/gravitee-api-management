@@ -29,7 +29,7 @@ import {
   fakeConnectionLogDetailRequest,
   fakeConnectionLogDetailResponse,
 } from '../../../../../../entities/management-api-v2';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../../shared/testing';
 
 describe('ApiRuntimeLogsProxyComponent', () => {
   const API_ID = 'an-api-id';
@@ -42,7 +42,7 @@ describe('ApiRuntimeLogsProxyComponent', () => {
 
   const initComponent = async () => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, ApiRuntimeLogsProxyModule, GioHttpTestingModule],
+      imports: [NoopAnimationsModule, ApiRuntimeLogsProxyModule, GioTestingModule],
       providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID, requestId: REQUEST_ID } } } }],
     });
 

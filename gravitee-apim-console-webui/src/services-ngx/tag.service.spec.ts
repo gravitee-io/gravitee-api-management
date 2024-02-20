@@ -18,7 +18,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { TagService } from './tag.service';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { fakeTag } from '../entities/tag/tag.fixture';
 import { fakeNewTag } from '../entities/tag/newTag.fixture';
 
@@ -28,7 +28,7 @@ describe('TagService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);

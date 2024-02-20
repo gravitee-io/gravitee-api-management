@@ -26,7 +26,7 @@ import { ActivatedRoute } from '@angular/router';
 import { ResetPasswordComponent } from './reset-password.component';
 import { ResetPasswordModule } from './reset-password.module';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../shared/testing';
 
 describe('ResetPasswordComponent', () => {
   let fixture: ComponentFixture<ResetPasswordComponent>;
@@ -39,7 +39,7 @@ describe('ResetPasswordComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule, ResetPasswordModule],
+      imports: [NoopAnimationsModule, GioTestingModule, MatIconTestingModule, ResetPasswordModule],
       providers: [
         {
           provide: ActivatedRoute,

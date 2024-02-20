@@ -27,7 +27,7 @@ import { ApplicationGeneralGroupsComponent } from './application-general-groups.
 
 import { ApplicationGeneralUserGroupModule } from '../application-general-user-group.module';
 import { fakeApplication } from '../../../../../entities/application/Application.fixture';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
 import { fakeGroup, Group } from '../../../../../entities/management-api-v2';
 import { Application } from '../../../../../entities/application/application';
 
@@ -39,7 +39,7 @@ describe('ApplicationGeneralGroupsComponent', () => {
 
   beforeEach(async () => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, ApplicationGeneralUserGroupModule, GioHttpTestingModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, ApplicationGeneralUserGroupModule, GioTestingModule, MatIconTestingModule],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {

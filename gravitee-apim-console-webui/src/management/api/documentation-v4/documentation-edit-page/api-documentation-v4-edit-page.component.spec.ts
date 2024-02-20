@@ -32,7 +32,7 @@ import { ApiDocumentationV4EditPageHarness } from './api-documentation-v4-edit-p
 import { ApiDocumentationV4EditPageComponent } from './api-documentation-v4-edit-page.component';
 
 import { ApiDocumentationV4Module } from '../api-documentation-v4.module';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { Breadcrumb, Page } from '../../../../entities/management-api-v2/documentation/page';
 import { ApiDocumentationV4ContentEditorHarness } from '../components/api-documentation-v4-content-editor/api-documentation-v4-content-editor.harness';
 import { ApiDocumentationV4BreadcrumbHarness } from '../components/api-documentation-v4-breadcrumb/api-documentation-v4-breadcrumb.harness';
@@ -65,7 +65,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
   ) => {
     await TestBed.configureTestingModule({
       declarations: [ApiDocumentationV4EditPageComponent],
-      imports: [NoopAnimationsModule, ApiDocumentationV4Module, MatIconTestingModule, FormsModule, GioHttpTestingModule],
+      imports: [NoopAnimationsModule, ApiDocumentationV4Module, MatIconTestingModule, FormsModule, GioTestingModule],
       providers: [
         {
           provide: ActivatedRoute,

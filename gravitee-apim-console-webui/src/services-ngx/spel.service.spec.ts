@@ -18,7 +18,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { SpelService } from './spel.service';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { fakeGrammar } from '../entities/spel/grammar.fixture';
 
 describe('SpelService', () => {
@@ -27,7 +27,7 @@ describe('SpelService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);

@@ -23,7 +23,7 @@ import { SimpleChange } from '@angular/core';
 import { ApiGeneralInfoQualityComponent } from './api-general-info-quality.component';
 
 import { ApiGeneralInfoModule } from '../api-general-info.module';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { ApiQualityMetrics } from '../../../../entities/api';
 import { QualityRule } from '../../../../entities/qualityRule';
 
@@ -35,7 +35,7 @@ describe('ApiGeneralInfoQualityComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiGeneralInfoModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, ApiGeneralInfoModule, MatIconTestingModule],
     }).overrideProvider(InteractivityChecker, {
       useValue: {
         isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with

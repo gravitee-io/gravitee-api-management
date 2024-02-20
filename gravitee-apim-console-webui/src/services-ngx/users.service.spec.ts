@@ -18,7 +18,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { UsersService } from './users.service';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { fakeAdminUser, fakeUser } from '../entities/user/user.fixture';
 import { fakePagedResult } from '../entities/pagedResult';
 import { fakeNewPreregisterUser } from '../entities/user/newPreRegisterUser.fixture';
@@ -32,7 +32,7 @@ describe('UsersService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);

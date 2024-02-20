@@ -32,7 +32,7 @@ import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 import { ApiCorsComponent } from './api-cors.component';
 import { ApiCorsModule } from './api-cors.module';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { ApiV2, ApiV4, ConnectorPlugin, fakeApiV2, fakeApiV4, fakeConnectorPlugin } from '../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 
@@ -54,7 +54,7 @@ describe('ApiCorsComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiCorsModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, ApiCorsModule, MatIconTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
         { provide: GioTestingPermissionProvider, useValue: ['api-definition-u'] },

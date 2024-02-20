@@ -18,7 +18,7 @@ import { TestBed } from '@angular/core/testing';
 import { SettingsNavigationService } from './settings-navigation.service';
 
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
-import { GioHttpTestingModule } from '../../../shared/testing';
+import { GioTestingModule } from '../../../shared/testing';
 
 describe('SettingsNavigationService', () => {
   let service: SettingsNavigationService;
@@ -26,7 +26,7 @@ describe('SettingsNavigationService', () => {
 
   const init = (hasAnyMatching = true) => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
       providers: [
         {
           provide: GioPermissionService,

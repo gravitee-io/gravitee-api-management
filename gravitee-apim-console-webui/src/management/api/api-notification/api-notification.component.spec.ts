@@ -29,7 +29,7 @@ import { ApiNotificationComponent } from './api-notification.component';
 import { ApiNotificationModule } from './api-notification.module';
 
 import { NotificationAddDialogHarness, NotificationEditDialogHarness, NotificationListHarness } from '../../../components/notification';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { fakeNotifier } from '../../../entities/notification/notifier.fixture';
 import { fakeNotificationSettings, fakePortalNotificationSettings } from '../../../entities/notification/notificationSettings.fixture';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
@@ -74,7 +74,7 @@ describe('ApiNotificationComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, MatIconTestingModule, GioHttpTestingModule, ApiNotificationModule],
+      imports: [NoopAnimationsModule, MatIconTestingModule, GioTestingModule, ApiNotificationModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
         { provide: SnackBarService, useValue: fakeSnackBarService },

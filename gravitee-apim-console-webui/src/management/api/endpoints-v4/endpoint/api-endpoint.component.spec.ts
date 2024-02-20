@@ -28,7 +28,7 @@ import { ApiEndpointComponent } from './api-endpoint.component';
 import { ApiEndpointModule } from './api-endpoint.module';
 import { ApiEndpointHarness } from './api-endpoint.harness';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { ApiV4, fakeApiV4, fakeConnectorPlugin } from '../../../../entities/management-api-v2';
 import { fakeEndpointGroupV4 } from '../../../../entities/management-api-v2/api/v4/endpointGroupV4.fixture';
 
@@ -52,7 +52,7 @@ describe('ApiEndpointComponent', () => {
   const initComponent = async (api: ApiV4, routerParams: unknown = { apiId: API_ID, groupIndex: 0 }) => {
     TestBed.configureTestingModule({
       declarations: [TestComponent],
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiEndpointModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, ApiEndpointModule, MatIconTestingModule],
       providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: routerParams } } }],
     });
 

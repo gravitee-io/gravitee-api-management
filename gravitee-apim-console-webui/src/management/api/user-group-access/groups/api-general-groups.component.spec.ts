@@ -23,7 +23,7 @@ import { HarnessLoader } from '@angular/cdk/testing';
 
 import { ApiGeneralGroupsHarness } from './api-general-groups.harness';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { ApiUserGroupModule } from '../api-user-group.module';
 import { Api, fakeApiV1, fakeApiV4, fakeGroup, fakeGroupsResponse, Group, MembersResponse } from '../../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
@@ -49,7 +49,7 @@ describe('ApiPortalGroupsComponent', () => {
 
   const init = async (permissions: string[]) => {
     await TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiUserGroupModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, ApiUserGroupModule, MatIconTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: apiId } } } },
         { provide: GioTestingPermissionProvider, useValue: permissions },

@@ -20,7 +20,7 @@ import { ActivatedRoute } from '@angular/router';
 
 import { TicketComponent } from './ticket.component';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { TicketsModule } from '../tickets.module';
 import { Ticket } from '../../../entities/ticket/ticket';
 import { fakeTicket } from '../../../entities/ticket/ticket.fixture';
@@ -32,7 +32,7 @@ describe('TicketComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule, TicketsModule],
+      imports: [GioTestingModule, TicketsModule],
       providers: [
         {
           provide: ActivatedRoute,

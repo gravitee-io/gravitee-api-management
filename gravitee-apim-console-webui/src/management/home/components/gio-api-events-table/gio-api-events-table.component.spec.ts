@@ -26,7 +26,7 @@ import { GioApiEventsTableModule } from './gio-api-events-table.module';
 import { GioApiEventsTableComponent } from './gio-api-events-table.component';
 import { SEARCH_RESPONSE } from './gio-api-events-table.stories';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 
 describe('GioApiEventsTableComponent', () => {
   let fixture: ComponentFixture<GioApiEventsTableComponent>;
@@ -35,7 +35,7 @@ describe('GioApiEventsTableComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, GioApiEventsTableModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, GioApiEventsTableModule, MatIconTestingModule],
       providers: [],
     });
   });

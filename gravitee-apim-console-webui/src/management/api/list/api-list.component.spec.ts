@@ -26,7 +26,7 @@ import { By } from '@angular/platform-browser';
 import { ApiListModule } from './api-list.module';
 import { ApiListComponent } from './api-list.component';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { GioTableWrapperHarness } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
 import { Api, ApiV4, fakeApiV2, fakeApiV4, fakePagedResult, fakeProxyApiV4 } from '../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
@@ -46,7 +46,7 @@ describe('ApisListComponent', () => {
     describe('without quality score', () => {
       beforeEach(async () => {
         await TestBed.configureTestingModule({
-          imports: [ApiListModule, MatIconTestingModule, NoopAnimationsModule, GioHttpTestingModule],
+          imports: [ApiListModule, MatIconTestingModule, NoopAnimationsModule, GioTestingModule],
           providers: [
             { provide: GioTestingPermissionProvider, useValue: ['environment-api-c'] },
             { provide: Constants, useValue: fakeConstants },
@@ -304,7 +304,7 @@ describe('ApisListComponent', () => {
         withQualityEnabled.env.settings.apiQualityMetrics.enabled = true;
 
         await TestBed.configureTestingModule({
-          imports: [ApiListModule, MatIconTestingModule, NoopAnimationsModule, GioHttpTestingModule],
+          imports: [ApiListModule, MatIconTestingModule, NoopAnimationsModule, GioTestingModule],
           providers: [
             { provide: GioTestingPermissionProvider, useValue: ['environment-api-c'] },
             { provide: Constants, useValue: withQualityEnabled },
@@ -370,7 +370,7 @@ describe('ApisListComponent', () => {
     });
     beforeEach(async () => {
       await TestBed.configureTestingModule({
-        imports: [ApiListModule, MatIconTestingModule, NoopAnimationsModule, GioHttpTestingModule],
+        imports: [ApiListModule, MatIconTestingModule, NoopAnimationsModule, GioTestingModule],
         providers: [
           { provide: GioTestingPermissionProvider, useValue: ['environment-api-c'] },
           { provide: Constants, useValue: fakeConstants },

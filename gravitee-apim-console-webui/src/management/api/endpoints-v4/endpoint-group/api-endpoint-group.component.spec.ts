@@ -27,7 +27,7 @@ import { ApiEndpointGroupComponent } from './api-endpoint-group.component';
 import { ApiEndpointGroupHarness } from './api-endpoint-group.harness';
 import { ApiEndpointGroupModule } from './api-endpoint-group.module';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { ApiV4, EndpointGroupV4, fakeApiV4, fakeProxyApiV4, fakeProxyTcpApiV4 } from '../../../../entities/management-api-v2';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { fakeEndpointGroupV4, fakeHTTPProxyEndpointGroupV4 } from '../../../../entities/management-api-v2/api/v4/endpointGroupV4.fixture';
@@ -134,7 +134,7 @@ describe('ApiEndpointGroupComponent', () => {
     api = testApi;
 
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiEndpointGroupModule, MatIconTestingModule, FormsModule],
+      imports: [NoopAnimationsModule, GioTestingModule, ApiEndpointGroupModule, MatIconTestingModule, FormsModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: routerParams } } },
         { provide: GioTestingPermissionProvider, useValue: ['api-definition-u', 'api-definition-c', 'api-definition-r'] },

@@ -25,7 +25,7 @@ import { ApiRuntimeAlertsComponent } from './api-runtime-alerts.component';
 import { ApiRuntimeAlertsModule } from './api-runtime-alerts.module';
 
 import { RuntimeAlertListHarness } from '../../../components/runtime-alerts/runtime-alert-list/runtime-alert-list.harness';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { fakeAlertTriggerEntity } from '../../../entities/alerts/alertTriggerEntity.fixtures';
 import { RuntimeAlertListEmptyStateHarness } from '../../../components/runtime-alerts/runtime-alert-list-empty-state/runtime-alert-list-empty-state.harness';
 
@@ -40,7 +40,7 @@ describe('ApiRuntimeAlertsComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [ApiRuntimeAlertsComponent],
-      imports: [NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule, ApiRuntimeAlertsModule],
+      imports: [NoopAnimationsModule, GioTestingModule, MatIconTestingModule, ApiRuntimeAlertsModule],
       providers: [
         {
           provide: ActivatedRoute,

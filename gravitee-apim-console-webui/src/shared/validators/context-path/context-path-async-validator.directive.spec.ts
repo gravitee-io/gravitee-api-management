@@ -20,7 +20,7 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { contextPathAsyncValidator } from './context-path-async-validator.directive';
 
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../testing';
 import { Constants } from '../../../entities/Constants';
 
 describe('ContextPathAsyncValidator', () => {
@@ -30,7 +30,7 @@ describe('ContextPathAsyncValidator', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
       providers: [
         {
           provide: Constants,

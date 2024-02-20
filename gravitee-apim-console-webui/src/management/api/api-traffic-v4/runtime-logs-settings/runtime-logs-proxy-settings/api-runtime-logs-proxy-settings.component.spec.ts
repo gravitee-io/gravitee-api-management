@@ -25,7 +25,7 @@ import { ApiRuntimeLogsProxySettingsModule } from './api-runtime-logs-proxy-sett
 import { ApiRuntimeLogsProxySettingsComponent } from './api-runtime-logs-proxy-settings.component';
 import { ApiRuntimeLogsProxySettingsHarness } from './api-runtime-logs-proxy-settings.harness';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
 import { ApiV4, fakeApiV4, fakeProxyApiV4 } from '../../../../../entities/management-api-v2';
 
 describe('ApiRuntimeLogsProxySettingsComponent', () => {
@@ -36,7 +36,7 @@ describe('ApiRuntimeLogsProxySettingsComponent', () => {
 
   const initComponent = async () => {
     await TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiRuntimeLogsProxySettingsModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, ApiRuntimeLogsProxySettingsModule, MatIconTestingModule],
       providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } }],
     }).compileComponents();
 

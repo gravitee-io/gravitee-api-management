@@ -22,7 +22,7 @@ import { GioLicenseTestingModule } from '@gravitee/ui-particles-angular';
 import { OrgSettingsPlatformPoliciesStudioComponent } from './org-settings-platform-policies-studio.component';
 
 import { OrganizationSettingsModule } from '../../organization-settings.module';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { fakePolicyListItem } from '../../../../entities/policy';
 import { fakeOrganization } from '../../../../entities/organization/organization.fixture';
 import { fakePlatformFlowSchema } from '../../../../entities/flow/platformFlowSchema.fixture';
@@ -56,7 +56,7 @@ describe('OrgSettingsPlatformPoliciesStudioComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule, GioLicenseTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, OrganizationSettingsModule, GioLicenseTestingModule],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {

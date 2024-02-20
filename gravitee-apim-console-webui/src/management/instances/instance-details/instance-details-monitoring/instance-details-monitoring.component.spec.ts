@@ -20,7 +20,7 @@ import { ActivatedRoute } from '@angular/router';
 import { InstanceDetailsMonitoringComponent } from './instance-details-monitoring.component';
 import { InstanceDetailsMonitoringModule } from './instance-details-monitoring.module';
 
-import { GioHttpTestingModule } from '../../../../shared/testing';
+import { GioTestingModule } from '../../../../shared/testing';
 
 describe('InstanceMonitoringComponent', () => {
   let fixture: ComponentFixture<InstanceDetailsMonitoringComponent>;
@@ -28,7 +28,7 @@ describe('InstanceMonitoringComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, InstanceDetailsMonitoringModule],
+      imports: [NoopAnimationsModule, GioTestingModule, InstanceDetailsMonitoringModule],
       providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { instanceId } } } }],
     });
     fixture = TestBed.createComponent(InstanceDetailsMonitoringComponent);

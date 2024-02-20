@@ -34,7 +34,7 @@ import { ApiPropertiesModule } from './api-properties.module';
 import { PropertiesAddDialogHarness } from './properties-add-dialog/properties-add-dialog.harness';
 import { PropertiesImportDialogHarness } from './properties-import-dialog/properties-import-dialog.harness';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { Api, fakeApiV2, fakeApiV4 } from '../../../../entities/management-api-v2/api';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 
@@ -50,7 +50,7 @@ describe('ApiPropertiesComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiPropertiesModule, MatIconTestingModule, RouterTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, ApiPropertiesModule, MatIconTestingModule, RouterTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
         {

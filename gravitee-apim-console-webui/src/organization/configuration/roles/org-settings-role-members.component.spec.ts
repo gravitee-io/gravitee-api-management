@@ -26,7 +26,7 @@ import { ActivatedRoute } from '@angular/router';
 import { OrgSettingsRoleMembersComponent } from './org-settings-role-members.component';
 
 import { OrganizationSettingsModule } from '../organization-settings.module';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { MembershipListItem } from '../../../entities/role/membershipListItem';
 import { fakeMembershipListItem } from '../../../entities/role/membershipListItem.fixture';
 import { GioTableWrapperHarness } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
@@ -47,7 +47,7 @@ describe('OrgSettingsRoleMembersComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule],
+      imports: [NoopAnimationsModule, GioTestingModule, OrganizationSettingsModule],
       providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { roleScope, role } } } }],
     }).overrideProvider(InteractivityChecker, {
       useValue: {

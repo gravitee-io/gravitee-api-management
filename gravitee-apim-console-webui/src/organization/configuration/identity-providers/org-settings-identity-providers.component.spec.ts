@@ -25,7 +25,7 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { OrgSettingsIdentityProvidersComponent } from './org-settings-identity-providers.component';
 
 import { OrganizationSettingsModule } from '../organization-settings.module';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { ConsoleSettings } from '../../../entities/consoleSettings';
 import {
   fakeIdentityProviderActivation,
@@ -45,7 +45,7 @@ describe('OrgSettingsIdentityProvidersComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, OrganizationSettingsModule, GioHttpTestingModule],
+      imports: [NoopAnimationsModule, OrganizationSettingsModule, GioTestingModule],
     }).overrideProvider(InteractivityChecker, {
       useValue: {
         isFocusable: () => true, // This checks focus trap, set it to true to  avoid the warning

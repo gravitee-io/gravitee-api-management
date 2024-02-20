@@ -23,7 +23,7 @@ import { License } from '@gravitee/ui-particles-angular';
 import { GioLicenseBannerModule } from './gio-license-banner.module';
 import { GioLicenseBannerHarness } from './gio-license-banner.harness';
 
-import { GioHttpTestingModule } from '../../testing';
+import { GioTestingModule } from '../../testing';
 
 const onRequestUpgrade = jest.fn();
 
@@ -42,7 +42,7 @@ describe('GioLicenseBannerModule', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       declarations: [TestComponent],
-      imports: [NoopAnimationsModule, GioHttpTestingModule, GioLicenseBannerModule],
+      imports: [NoopAnimationsModule, GioTestingModule, GioLicenseBannerModule],
     });
     fixture = TestBed.createComponent(TestComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);

@@ -32,7 +32,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ApiPlanListComponent } from './api-plan-list.component';
 
 import { ApiPlansModule } from '../api-plans.module';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { Subscription } from '../../../../entities/subscription/subscription';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import {
@@ -62,7 +62,7 @@ describe('ApiPlanListComponent', () => {
 
   const init = async () => {
     await TestBed.configureTestingModule({
-      imports: [ApiPlansModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
+      imports: [ApiPlansModule, NoopAnimationsModule, GioTestingModule, MatIconTestingModule],
       providers: [
         { provide: GioTestingPermissionProvider, useValue: ['api-plan-u', 'api-plan-r', 'api-plan-d'] },
         {

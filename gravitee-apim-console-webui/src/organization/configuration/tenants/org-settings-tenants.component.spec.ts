@@ -26,7 +26,7 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 import { OrgSettingsTenantsComponent } from './org-settings-tenants.component';
 
 import { OrganizationSettingsModule } from '../organization-settings.module';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { fakeTenant } from '../../../entities/tenant/tenant.fixture';
 import { GioTableWrapperHarness } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
 import { Tenant } from '../../../entities/tenant/tenant';
@@ -41,7 +41,7 @@ describe('OrgSettingsTenantsComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule],
+      imports: [NoopAnimationsModule, GioTestingModule, OrganizationSettingsModule],
     }).overrideProvider(InteractivityChecker, {
       useValue: {
         isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with

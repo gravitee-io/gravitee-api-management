@@ -30,7 +30,7 @@ import { ClientRegistrationProvidersComponent } from './client-registration-prov
 import { ClientRegistrationProvidersModule } from './client-registration-providers.module';
 
 import { fakeClientRegistrationProvider } from '../../../entities/client-registration-provider/clientRegistrationProvider.fixture';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { PortalSettings } from '../../../entities/portal/portalSettings';
 import { Constants } from '../../../entities/Constants';
@@ -75,7 +75,7 @@ describe('ClientRegistrationProviders', () => {
     TestBed.configureTestingModule({
       imports: [
         NoopAnimationsModule,
-        GioHttpTestingModule,
+        GioTestingModule,
         MatIconTestingModule,
         GioLicenseTestingModule.with(true),
         MatDialogModule,

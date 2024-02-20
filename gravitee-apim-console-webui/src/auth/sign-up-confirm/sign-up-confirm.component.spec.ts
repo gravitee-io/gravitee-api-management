@@ -26,7 +26,7 @@ import { ActivatedRoute } from '@angular/router';
 import { SignUpConfirmComponent } from './sign-up-confirm.component';
 import { SignUpConfirmModule } from './sign-up-confirm.module';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../shared/testing';
 
 describe('SignUpConfirmComponent', () => {
   let fixture: ComponentFixture<SignUpConfirmComponent>;
@@ -40,7 +40,7 @@ describe('SignUpConfirmComponent', () => {
   describe('token with firstName / lastName', () => {
     beforeEach(() => {
       TestBed.configureTestingModule({
-        imports: [NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule, SignUpConfirmModule],
+        imports: [NoopAnimationsModule, GioTestingModule, MatIconTestingModule, SignUpConfirmModule],
         providers: [
           {
             provide: ActivatedRoute,
@@ -97,7 +97,7 @@ describe('SignUpConfirmComponent', () => {
   describe('token without firstName / lastName', () => {
     beforeEach(() => {
       TestBed.configureTestingModule({
-        imports: [NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule, SignUpConfirmModule],
+        imports: [NoopAnimationsModule, GioTestingModule, MatIconTestingModule, SignUpConfirmModule],
         providers: [
           {
             provide: ActivatedRoute,

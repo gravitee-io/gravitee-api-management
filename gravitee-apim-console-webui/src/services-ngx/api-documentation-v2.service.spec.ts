@@ -18,7 +18,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { ApiDocumentationV2Service } from './api-documentation-v2.service';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { CreateDocumentation, CreateDocumentationFolder } from '../entities/management-api-v2/documentation/createDocumentation';
 import { Page } from '../entities/management-api-v2/documentation/page';
 import { EditDocumentationMarkdown } from '../entities/management-api-v2/documentation/editDocumentation';
@@ -31,7 +31,7 @@ describe('ApiDocumentationV2Service', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);

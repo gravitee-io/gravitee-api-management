@@ -29,7 +29,7 @@ import { ActivatedRoute } from '@angular/router';
 import { ApplicationGeneralMembersComponent } from './application-general-members.component';
 
 import { ApplicationGeneralUserGroupModule } from '../application-general-user-group.module';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
 import { Role } from '../../../../../entities/role/role';
 import { fakeRole } from '../../../../../entities/role/role.fixture';
 import { RoleService } from '../../../../../services-ngx/role.service';
@@ -56,7 +56,7 @@ describe('ApplicationGeneralMembersComponent', () => {
 
   beforeEach(async () => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, ApplicationGeneralUserGroupModule, GioHttpTestingModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, ApplicationGeneralUserGroupModule, GioTestingModule, MatIconTestingModule],
       providers: [
         { provide: RoleService, useValue: { list: () => of(roles) } },
         { provide: ActivatedRoute, useValue: { applicationId: APPLICATION_ID } },

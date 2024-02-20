@@ -29,7 +29,7 @@ import { MessagesModule } from './messages.module';
 import { RoleService } from '../../services-ngx/role.service';
 import { fakeRole } from '../../entities/role/role.fixture';
 import { HttpMessagePayload, TextMessagePayload } from '../../entities/message/messagePayload';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../shared/testing';
 import { GioTestingPermissionProvider } from '../../shared/components/gio-permission/gio-permission.service';
 
 describe('MigratedMessagesComponent', () => {
@@ -41,7 +41,7 @@ describe('MigratedMessagesComponent', () => {
   const init = async (apiId?: string) => {
     await TestBed.configureTestingModule({
       declarations: [MessagesComponent],
-      imports: [NoopAnimationsModule, GioHttpTestingModule, MessagesModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, MessagesModule, MatIconTestingModule],
       providers: [
         {
           provide: ActivatedRoute,

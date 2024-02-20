@@ -25,7 +25,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { LoginModule } from './login.module';
 import { LoginComponent } from './login.component';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../shared/testing';
 
 describe('LoginComponent', () => {
   let fixture: ComponentFixture<LoginComponent>;
@@ -34,7 +34,7 @@ describe('LoginComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule, LoginModule],
+      imports: [NoopAnimationsModule, GioTestingModule, MatIconTestingModule, LoginModule],
     });
   });
 

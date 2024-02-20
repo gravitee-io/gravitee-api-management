@@ -21,7 +21,7 @@ import { GioTableOfContentsComponent } from './gio-table-of-contents.component';
 import { GioTableOfContentsModule } from './gio-table-of-contents.module';
 import { GioTableOfContentsService } from './gio-table-of-contents.service';
 
-import { GioHttpTestingModule } from '../../testing';
+import { GioTestingModule } from '../../testing';
 
 describe('GioTableOfContentsComponent', () => {
   let component: GioTableOfContentsComponent;
@@ -30,7 +30,7 @@ describe('GioTableOfContentsComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioTableOfContentsModule, GioHttpTestingModule],
+      imports: [GioTableOfContentsModule, GioTestingModule],
     });
     fixture = TestBed.createComponent(GioTableOfContentsComponent);
     component = fixture.componentInstance;

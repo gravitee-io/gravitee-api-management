@@ -25,7 +25,7 @@ import { MatInputHarness } from '@angular/material/input/testing';
 import { ApiPathMappingsEditDialogComponent } from './api-path-mappings-edit-dialog.component';
 
 import { ApiPathMappingsModule } from '../api-path-mappings.module';
-import { GioHttpTestingModule } from '../../../../../shared/testing';
+import { GioTestingModule } from '../../../../../shared/testing';
 import { fakeApiV2 } from '../../../../../entities/management-api-v2';
 
 describe('ApiPathMappingsEditDialogComponent', () => {
@@ -38,7 +38,7 @@ describe('ApiPathMappingsEditDialogComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiPathMappingsModule],
+      imports: [NoopAnimationsModule, GioTestingModule, ApiPathMappingsModule],
       providers: [
         { provide: MAT_DIALOG_DATA, useValue: { api, path: '/test' } },
         { provide: MatDialogRef, useValue: {} },

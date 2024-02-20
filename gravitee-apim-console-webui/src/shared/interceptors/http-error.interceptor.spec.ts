@@ -20,7 +20,7 @@ import { HttpClient, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { HttpErrorInterceptor } from './http-error.interceptor';
 
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
-import { GioHttpTestingModule } from '../testing';
+import { GioTestingModule } from '../testing';
 
 describe('HttpErrorInterceptor', () => {
   const testUrl = 'https://test.com/config';
@@ -34,7 +34,7 @@ describe('HttpErrorInterceptor', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule, GioHttpTestingModule],
+      imports: [HttpClientTestingModule, GioTestingModule],
       providers: [
         { provide: HTTP_INTERCEPTORS, useClass: HttpErrorInterceptor, multi: true },
         {

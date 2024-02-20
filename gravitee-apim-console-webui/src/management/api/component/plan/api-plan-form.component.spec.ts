@@ -30,7 +30,7 @@ import { ApiPlanFormModule } from './api-plan-form.module';
 import { ApiPlanFormHarness } from './api-plan-form.harness';
 import { ApiPlanFormComponent } from './api-plan-form.component';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { fakeGroup } from '../../../../entities/group/group.fixture';
 import { fakeTag } from '../../../../entities/tag/tag.fixture';
 import {
@@ -93,7 +93,7 @@ describe('ApiPlanFormComponent', () => {
   const configureTestingModule = (mode: 'create' | 'edit', planFormType: PlanFormType, api?: Api, apiType?: ApiType) => {
     TestBed.configureTestingModule({
       declarations: [TestComponent],
-      imports: [ReactiveFormsModule, NoopAnimationsModule, GioHttpTestingModule, ApiPlanFormModule, MatIconTestingModule],
+      imports: [ReactiveFormsModule, NoopAnimationsModule, GioTestingModule, ApiPlanFormModule, MatIconTestingModule],
       providers: [
         { provide: GioTestingPermissionProvider, useValue: ['api-plan-u'] },
         {

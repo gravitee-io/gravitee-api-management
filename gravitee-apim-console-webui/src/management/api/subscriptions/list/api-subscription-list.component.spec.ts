@@ -31,7 +31,7 @@ import { ApiSubscriptionListComponent } from './api-subscription-list.component'
 import { ApiSubscriptionListHarness } from './api-subscription-list.harness';
 
 import { ApiSubscriptionsModule } from '../api-subscriptions.module';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import {
   Api,
   ApiKeyMode,
@@ -78,7 +78,7 @@ describe('ApiSubscriptionListComponent', () => {
   const init = async (planSecurity?: any) => {
     await TestBed.configureTestingModule({
       declarations: [TestComponent],
-      imports: [ApiSubscriptionsModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
+      imports: [ApiSubscriptionsModule, NoopAnimationsModule, GioTestingModule, MatIconTestingModule],
       providers: [
         {
           provide: InteractivityChecker,

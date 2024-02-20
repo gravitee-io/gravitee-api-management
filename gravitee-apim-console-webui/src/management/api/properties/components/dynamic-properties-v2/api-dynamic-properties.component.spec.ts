@@ -31,7 +31,7 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { ApiDynamicPropertiesComponent } from './api-dynamic-properties.component';
 import { ApiDynamicPropertiesV2Module } from './api-dynamic-properties-v2.module';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
 import { Api, fakeApiV2 } from '../../../../../entities/management-api-v2';
 
 describe('ApiDynamicPropertiesComponent', () => {
@@ -42,7 +42,7 @@ describe('ApiDynamicPropertiesComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiDynamicPropertiesV2Module, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, ApiDynamicPropertiesV2Module, MatIconTestingModule],
       providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } }],
     }).overrideProvider(InteractivityChecker, {
       useValue: {

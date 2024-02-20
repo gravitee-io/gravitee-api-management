@@ -18,7 +18,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { InstanceService } from './instance.service';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { fakeInstance, fakeMonitoringData } from '../entities/instance/instance.fixture';
 import { fakeSearchResult } from '../entities/instance/instanceListItem.fixture';
 
@@ -28,7 +28,7 @@ describe('InstanceService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);

@@ -31,7 +31,7 @@ import { ApiCreationV4SpecHttpExpects } from './api-creation-v4-spec-http-expect
 import { Step2Entrypoints0ArchitectureHarness } from './steps/step-2-entrypoints/step-2-entrypoints-0-architecture.harness';
 import { Step2Entrypoints1ListHarness } from './steps/step-2-entrypoints/step-2-entrypoints-1-list.harness';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { ConnectorPlugin } from '../../../entities/management-api-v2';
 import { Constants } from '../../../entities/Constants';
 
@@ -99,7 +99,7 @@ describe('ApiCreationV4Component - OEM', () => {
           useValue: LICENSE_CONFIGURATION_TESTING,
         },
       ],
-      imports: [NoopAnimationsModule, ApiCreationV4Module, GioHttpTestingModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, ApiCreationV4Module, GioTestingModule, MatIconTestingModule],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {

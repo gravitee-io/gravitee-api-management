@@ -25,7 +25,7 @@ import { SslTrustStoreFormComponent } from './ssl-truststore-form.component';
 import { SslTrustStoreFormModule } from './ssl-truststore-form.module';
 import { SslTrustStoreFormHarness } from './ssl-truststore-form.harness';
 
-import { GioHttpTestingModule } from '../../../../../shared/testing';
+import { GioTestingModule } from '../../../../../shared/testing';
 
 describe('SslTrustStoreFormComponent', () => {
   let fixture: ComponentFixture<SslTrustStoreFormComponent>;
@@ -35,7 +35,7 @@ describe('SslTrustStoreFormComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ReactiveFormsModule, NoopAnimationsModule, GioHttpTestingModule, SslTrustStoreFormModule, MatIconTestingModule],
+      imports: [ReactiveFormsModule, NoopAnimationsModule, GioTestingModule, SslTrustStoreFormModule, MatIconTestingModule],
       providers: [
         {
           provide: ControlContainer,

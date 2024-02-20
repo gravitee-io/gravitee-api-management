@@ -18,7 +18,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { ApiLogsV2Service } from './api-logs-v2.service';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { ApiLogsResponse, fakeAggregatedMessageLog, fakeConnectionLog, fakePagedResult } from '../entities/management-api-v2';
 
 describe('ApiLogsV2Service', () => {
@@ -28,7 +28,7 @@ describe('ApiLogsV2Service', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);

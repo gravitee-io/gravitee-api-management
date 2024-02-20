@@ -29,7 +29,7 @@ import { ActivatedRoute } from '@angular/router';
 
 import { ApiProxyGroupEndpointEditComponent } from './api-proxy-group-endpoint-edit.component';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../../shared/testing';
 import { ApiProxyGroupEndpointModule } from '../api-proxy-group-endpoint.module';
 import { ConnectorListItem } from '../../../../../../entities/connector/connector-list-item';
 import { fakeConnectorListItem } from '../../../../../../entities/connector/connector-list-item.fixture';
@@ -53,7 +53,7 @@ describe('ApiProxyGroupEndpointEditComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiProxyGroupEndpointModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, ApiProxyGroupEndpointModule, MatIconTestingModule],
       providers: [
         {
           provide: ActivatedRoute,

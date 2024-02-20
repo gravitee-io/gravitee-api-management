@@ -26,7 +26,7 @@ import { ApiDynamicPropertiesV4Harness } from './api-dynamic-properties-v4.harne
 
 import { Api, ApiV4, fakeApiV4 } from '../../../../../entities/management-api-v2';
 import { ApiPropertiesModule } from '../../properties/api-properties.module';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
 
 describe('ApiDynamicPropertiesV4Component', () => {
   const API_ID = 'apiId';
@@ -51,7 +51,7 @@ describe('ApiDynamicPropertiesV4Component', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiPropertiesModule, MatIconTestingModule, RouterTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, ApiPropertiesModule, MatIconTestingModule, RouterTestingModule],
       providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } }],
     }).compileComponents();
 

@@ -30,7 +30,7 @@ import { IdentityProvidersNgModule } from './identity-providers-ng.module';
 
 import { PortalSettings } from '../../../entities/portal/portalSettings';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import {
   fakeIdentityProviderActivation,
   fakeIdentityProviderListItem,
@@ -56,7 +56,7 @@ describe('IdentityProvidersNgComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, IdentityProvidersNgModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, IdentityProvidersNgModule, MatIconTestingModule],
       providers: [
         {
           provide: GioTestingPermissionProvider,

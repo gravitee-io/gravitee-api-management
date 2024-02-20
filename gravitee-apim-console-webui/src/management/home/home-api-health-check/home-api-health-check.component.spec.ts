@@ -25,7 +25,7 @@ import { HighchartsChartModule } from 'highcharts-angular';
 
 import { HomeApiHealthCheckComponent } from './home-api-health-check.component';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { HomeModule } from '../home.module';
 import { Api } from '../../../entities/api';
 import { fakePagedResult } from '../../../entities/pagedResult';
@@ -39,7 +39,7 @@ describe('HomeApiHealthCheckComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, HomeModule, MatIconTestingModule, HighchartsChartModule],
+      imports: [NoopAnimationsModule, GioTestingModule, HomeModule, MatIconTestingModule, HighchartsChartModule],
     });
   });
 

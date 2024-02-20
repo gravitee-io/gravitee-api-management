@@ -26,7 +26,7 @@ import { ActivatedRoute } from '@angular/router';
 import { ApiCreationV4ConfirmationComponent } from './api-creation-v4-confirmation.component';
 import { ApiCreationV4Module } from './api-creation-v4.module';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { Api, fakeApiV4 } from '../../../entities/management-api-v2';
 
 describe('ApiCreationV4ConfirmationComponent', () => {
@@ -38,7 +38,7 @@ describe('ApiCreationV4ConfirmationComponent', () => {
 
   const init = async () => {
     await TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiCreationV4Module, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, ApiCreationV4Module, MatIconTestingModule],
       providers: [
         {
           provide: ActivatedRoute,
