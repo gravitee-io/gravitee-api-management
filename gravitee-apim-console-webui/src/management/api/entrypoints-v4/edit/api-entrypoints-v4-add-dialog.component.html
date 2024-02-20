@@ -38,15 +38,17 @@
   </form>
 </ng-container>
 <ng-template #contextPathForm>
-  <div class="header">
-    <div class="header__title">Configure your context-paths</div>
-    <p class="header__subtitle">Configure at least one context-path for your API before adding this entrypoint</p>
-  </div>
-  <form *ngIf="contextPathFormGroup" [formGroup]="contextPathFormGroup" (ngSubmit)="saveWithContextPath()">
-    <gio-form-listeners-context-path formControlName="contextPath"></gio-form-listeners-context-path>
-    <mat-dialog-actions class="actions">
-      <button mat-stroked-button type="button" (click)="cancel()">Cancel</button>
-      <button mat-flat-button color="primary" type="submit" [disabled]="contextPathFormGroup.invalid">Validate my entrypoints</button>
-    </mat-dialog-actions>
-  </form>
+  <mat-dialog-content>
+    <div class="header">
+      <h3>Configure your context-paths</h3>
+      <p>Configure at least one context-path for your API before adding this entrypoint</p>
+    </div>
+    <form *ngIf="contextPathFormGroup" [formGroup]="contextPathFormGroup" (ngSubmit)="saveWithContextPath()">
+      <gio-form-listeners-context-path formControlName="contextPath"></gio-form-listeners-context-path>
+      <mat-dialog-actions class="actions">
+        <button mat-stroked-button type="button" (click)="cancel()">Cancel</button>
+        <button mat-flat-button color="primary" type="submit" [disabled]="contextPathFormGroup.invalid">Validate my entrypoints</button>
+      </mat-dialog-actions>
+    </form>
+  </mat-dialog-content>
 </ng-template>
