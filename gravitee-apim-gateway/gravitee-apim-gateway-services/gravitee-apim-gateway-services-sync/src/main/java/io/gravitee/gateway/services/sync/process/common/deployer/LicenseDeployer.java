@@ -41,12 +41,9 @@ public class LicenseDeployer implements Deployer<LicenseDeployable> {
                 licenseManager.registerOrganizationLicense(deployable.id(), license);
                 log.debug("License for organization [{}] deployed ", deployable.id());
             } catch (Exception e) {
-                licenseManager.registerOrganizationLicense(deployable.id(), DefaultLicenseManager.OSS_LICENSE);
+                log.warn("Organization license cannot be registered for [{}].", deployable.id(), e);
                 throw new SyncException(
-                    String.format(
-                        "An error occurred when trying to deploy license for organization %s. Fallback to OSS license",
-                        deployable.id()
-                    ),
+                    String.format("An error occurred when trying to deploy license for organization %s.", deployable.id()),
                     e
                 );
             }

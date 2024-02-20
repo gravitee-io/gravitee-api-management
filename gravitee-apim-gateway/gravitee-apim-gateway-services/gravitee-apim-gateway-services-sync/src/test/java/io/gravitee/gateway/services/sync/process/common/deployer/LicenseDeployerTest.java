@@ -70,7 +70,6 @@ public class LicenseDeployerTest {
             var license = licenseFactory.create("ORGANIZATION", "id", "license");
             doThrow(new SyncException("test")).when(licenseManager).registerOrganizationLicense("id", license);
             cut.deploy(licenseDeployable).test().assertFailure(SyncException.class);
-            verify(licenseManager).registerOrganizationLicense("id", DefaultLicenseManager.OSS_LICENSE);
         }
     }
 }

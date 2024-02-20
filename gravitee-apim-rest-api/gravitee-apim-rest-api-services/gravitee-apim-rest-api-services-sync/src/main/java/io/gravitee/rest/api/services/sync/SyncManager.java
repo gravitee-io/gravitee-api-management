@@ -173,9 +173,8 @@ public class SyncManager {
                 try {
                     var orgLicense = licenseFactory.create("ORGANIZATION", license.getReferenceId(), license.getLicense());
                     licenseManager.registerOrganizationLicense(license.getReferenceId(), orgLicense);
-                } catch (InvalidLicenseException | MalformedLicenseException e) {
-                    log.warn("License for organization {} is invalid. Fallback to OSS license", license.getReferenceId());
-                    licenseManager.registerOrganizationLicense(license.getReferenceId(), DefaultLicenseManager.OSS_LICENSE);
+                } catch (Exception e) {
+                    log.warn("Organization license cannot be registered for [{}].", license.getReferenceId(), e);
                 }
             });
     }
