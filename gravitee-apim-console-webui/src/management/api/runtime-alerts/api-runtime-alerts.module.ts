@@ -18,10 +18,10 @@ import { CommonModule } from '@angular/common';
 
 import { ApiRuntimeAlertsComponent } from './api-runtime-alerts.component';
 
-import { RuntimeAlertListEmptyStateModule, RuntimeAlertListModule } from '../../../components/runtime-alerts';
+import { RuntimeAlertCreateModule, RuntimeAlertListEmptyStateModule, RuntimeAlertListModule } from '../../../components/runtime-alerts';
 
 @NgModule({
   declarations: [ApiRuntimeAlertsComponent],
-  imports: [CommonModule, RuntimeAlertListModule, RuntimeAlertListEmptyStateModule],
+  imports: [CommonModule, RuntimeAlertListModule, RuntimeAlertListEmptyStateModule, RuntimeAlertCreateModule],
 })
 export class ApiRuntimeAlertsModule {}

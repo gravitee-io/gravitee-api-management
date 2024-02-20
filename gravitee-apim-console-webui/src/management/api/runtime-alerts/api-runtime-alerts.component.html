@@ -17,9 +17,9 @@
 -->
 <ng-container *ngIf="alerts$ | async as alerts">
   <ng-container *ngIf="alerts?.length > 0; else emptyBlock">
-    <runtime-alert-list [alerts]="alerts"></runtime-alert-list>
+    <runtime-alert-list [alerts]="alerts" [canCreateAlert]="canCreateAlert" (createAlert)="createAlert()"></runtime-alert-list>
   </ng-container>
   <ng-template #emptyBlock>
-    <runtime-alert-list-empty-state></runtime-alert-list-empty-state>
+    <runtime-alert-list-empty-state [canCreateAlert]="canCreateAlert" (createAlert)="createAlert()"></runtime-alert-list-empty-state>
   </ng-template>
 </ng-container>

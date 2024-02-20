@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 import { Component } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApiAlertsService } from '../../../services-ngx/api-alerts.service';
+import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 
 @Component({
   selector: 'api-runtime-alerts',
@@ -24,9 +25,16 @@ import { ApiAlertsService } from '../../../services-ngx/api-alerts.service';
 })
 export class ApiRuntimeAlertsComponent {
   public alerts$ = this.apiAlertsService.listAlerts(this.activatedRoute.snapshot.params.apiId, true);
+  protected canCreateAlert = this.permissionService.hasAnyMatching(['api-alert-c']);
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
     private readonly apiAlertsService: ApiAlertsService,
+    private readonly permissionService: GioPermissionService,
+    private readonly router: Router,
   ) {}
+
+  createAlert() {
+    return this.router.navigate(['./new'], { relativeTo: this.activatedRoute });
+  }
 }

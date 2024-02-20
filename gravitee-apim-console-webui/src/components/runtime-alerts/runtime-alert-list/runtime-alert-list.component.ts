@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 
 import { AlertTriggerEntity } from '../../../entities/alerts/alertTriggerEntity';
 
@@ -24,5 +24,7 @@ import { AlertTriggerEntity } from '../../../entities/alerts/alertTriggerEntity'
 })
 export class RuntimeAlertListComponent {
   @Input() public alerts: AlertTriggerEntity[];
+  @Input() canCreateAlert: boolean;
+  @Output() public createAlert: EventEmitter<void> = new EventEmitter();
   public displayedColumns = ['name', 'severity', 'description', 'counters', 'lastAlert', 'lastMessage', 'actions'];
 }

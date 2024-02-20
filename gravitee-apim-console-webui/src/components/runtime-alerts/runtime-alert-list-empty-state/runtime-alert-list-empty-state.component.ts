@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 
 @Component({
   selector: 'runtime-alert-list-empty-state',
   templateUrl: './runtime-alert-list-empty-state.component.html',
   styleUrls: ['./runtime-alert-list-empty-state.component.scss'],
 })
-export class RuntimeAlertListEmptyStateComponent {}
+export class RuntimeAlertListEmptyStateComponent {
+  @Input() canCreateAlert: boolean;
+  @Output() public createAlert: EventEmitter<void> = new EventEmitter();
+}
