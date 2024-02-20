@@ -15,23 +15,11 @@
     limitations under the License.
 
 -->
-<mat-card class="runtime-alerts">
-  <mat-card-header>
-    <div class="runtime-alerts__header">
-      <div class="runtime-alerts__header__titles">
-        <mat-card-title>Custom alerts</mat-card-title>
-        <mat-card-subtitle>Set up alerting conditions for the Gateway</mat-card-subtitle>
-      </div>
-      <div>
-        <button color="primary" aria-label="Add alert" mat-raised-button><mat-icon svgIcon="gio:plus"></mat-icon>Add alert</button>
-      </div>
-    </div>
-  </mat-card-header>
-  <mat-card-content>
-    <gio-card-empty-state
-      icon="search"
-      title="No alerts found"
-      subtitle="No runtime alert found. Please try again or create a custom alert."
-    ></gio-card-empty-state>
-  </mat-card-content>
-</mat-card>
+<ng-container *ngIf="alerts$ | async as alerts">
+  <ng-container *ngIf="alerts?.length > 0; else emptyBlock">
+    <runtime-alert-list [alerts]="alerts"></runtime-alert-list>
+  </ng-container>
+  <ng-template #emptyBlock>
+    <runtime-alert-list-empty-state></runtime-alert-list-empty-state>
+  </ng-template>
+</ng-container>

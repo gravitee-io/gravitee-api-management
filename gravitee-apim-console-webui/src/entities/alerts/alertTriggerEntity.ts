@@ -13,17 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+export type AlertReferenceType = 'API' | 'APPLICATION' | 'ENVIRONMENT';
 
-import { ApiAlertsService } from '../../../services-ngx/api-alerts.service';
+export type AlertSeverity = 'INFO' | 'WARNING' | 'CRITICAL';
 
-@Component({
-  selector: 'api-runtime-alerts',
-  templateUrl: './api-runtime-alerts.component.html',
-})
-export class ApiRuntimeAlertsComponent {
-  public alerts$ = this.apiAlertsService.listAlerts(this.activatedRoute.snapshot.params.apiId, true);
+export interface AlertEventRuleEntity {
+  event: string;
+}
 
-  constructor(private readonly activatedRoute: ActivatedRoute, private readonly apiAlertsService: ApiAlertsService) {}
+export interface AlertTriggerEntity {
+  description: string;
+  reference_type: AlertReferenceType;
+  referenceId: string;
+  created_at: Date;
+  updated_at: Date;
+  type: string;
+  last_alert_at: Date;
+  last_alert_message: string;
+  counters: Record<string, number>;
+  template: boolean;
+  event_rules: AlertEventRuleEntity[];
+  parent_id: string;
+  environment_id: string;
+  severity: AlertSeverity;
 }

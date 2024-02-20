@@ -13,17 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ComponentHarness } from '@angular/cdk/testing';
 
-import { ApiAlertsService } from '../../../services-ngx/api-alerts.service';
-
-@Component({
-  selector: 'api-runtime-alerts',
-  templateUrl: './api-runtime-alerts.component.html',
-})
-export class ApiRuntimeAlertsComponent {
-  public alerts$ = this.apiAlertsService.listAlerts(this.activatedRoute.snapshot.params.apiId, true);
-
-  constructor(private readonly activatedRoute: ActivatedRoute, private readonly apiAlertsService: ApiAlertsService) {}
+export class RuntimeAlertListEmptyStateHarness extends ComponentHarness {
+  static hostSelector = 'runtime-alert-list-empty-state';
 }
