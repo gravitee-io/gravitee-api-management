@@ -14,9 +14,10 @@ $typography: map.get(gio.$mat-theme, typography);
   @include mat.elevation(3); // default elevation
 }
 
-// default elevation when table is inside a card
+// when table is inside a card
 :host-context(.mat-mdc-card) {
   @include mat.elevation(0);
+  margin-top: 16px;
 }
 
 .gio-table-wrapper {
