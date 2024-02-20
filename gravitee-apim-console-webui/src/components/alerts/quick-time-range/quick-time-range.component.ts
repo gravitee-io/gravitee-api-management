@@ -57,7 +57,7 @@ export interface ITimeframe {
 }
 
 const QuickTimeRangeComponent: ng.IComponentOptions = {
-  template: require('html-loader!./quick-time-range.html'),
+  template: require('html-loader!./quick-time-range.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: 'QuickTimeRangeController',
   bindings: {
     onTimeframeChange: '&',

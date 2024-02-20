@@ -21,7 +21,7 @@ const ApiKeysComponent: ng.IComponentOptions = {
     api: '<',
     listEvent: '<',
   },
-  template: require('html-loader!./api-keys.html'),
+  template: require('html-loader!./api-keys.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: 'ApiKeysController',
 };
 

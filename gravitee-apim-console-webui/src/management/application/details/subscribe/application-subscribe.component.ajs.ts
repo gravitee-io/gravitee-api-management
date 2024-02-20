@@ -21,7 +21,7 @@ const ApplicationSubscribeComponentAjs: ng.IComponentOptions = {
     subscriptions: '<',
     activatedRoute: '<',
   },
-  template: require('html-loader!./application-subscribe.html'),
+  template: require('html-loader!./application-subscribe.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: 'ApplicationSubscribeController',
 };
 

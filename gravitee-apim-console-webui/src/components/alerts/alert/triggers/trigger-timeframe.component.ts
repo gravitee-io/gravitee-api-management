@@ -26,7 +26,7 @@ const AlertTriggerTimeframeComponent: ng.IComponentOptions = {
     alert: '<',
     form: '<',
   },
-  template: require('html-loader!./trigger-timeframe.html'),
+  template: require('html-loader!./trigger-timeframe.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: [
     '$scope',
     function ($scope) {

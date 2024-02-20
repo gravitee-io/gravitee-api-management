@@ -27,7 +27,7 @@ const ApiQualityRulesComponentAjs: ng.IComponentOptions = {
   bindings: {
     activatedRoute: '<',
   },
-  template: require('html-loader!./api-quality-rules.html'),
+  template: require('html-loader!./api-quality-rules.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: [
     'Constants',
     '$rootScope',
@@ -79,7 +79,7 @@ const ApiQualityRulesComponentAjs: ng.IComponentOptions = {
           .show({
             controller: 'DeleteApiQualityRuleDialogController',
             controllerAs: '$ctrl',
-            template: require('html-loader!./api-quality-rule/delete-api-quality-rule.dialog.html'),
+            template: require('html-loader!./api-quality-rule/delete-api-quality-rule.dialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
             locals: {
               qualityRule: qualityRule,
             },

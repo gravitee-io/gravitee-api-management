@@ -21,7 +21,7 @@ const AlertNotificationsComponent: ng.IComponentOptions = {
   require: {
     parent: '^alertComponentAjs',
   },
-  template: require('html-loader!./alert-notifications.html'),
+  template: require('html-loader!./alert-notifications.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: function () {
     this.addNotification = () => {
       if (this.alert.notifications === undefined) {

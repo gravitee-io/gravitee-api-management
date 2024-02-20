@@ -118,7 +118,7 @@ class PageSwaggerComponentController implements IController {
 PageSwaggerComponentController.$inject = ['Constants', 'UserService', '$window'];
 
 export const PageSwaggerComponent: ng.IComponentOptions = {
-  template: require('html-loader!./page-swagger.html'),
+  template: require('html-loader!./page-swagger.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   bindings: {
     pageConfiguration: '<',
     pageContent: '<',

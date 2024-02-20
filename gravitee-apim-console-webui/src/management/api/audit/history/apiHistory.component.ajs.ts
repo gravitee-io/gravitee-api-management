@@ -17,7 +17,7 @@
 import ApiHistoryControllerAjs from './apiHistory.controller.ajs';
 
 export const ApiHistoryComponentAjs = {
-  template: require('html-loader!./apiHistory.html'),
+  template: require('html-loader!./apiHistory.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: ApiHistoryControllerAjs,
   bindings: {
     activatedRoute: '<',

@@ -25,7 +25,7 @@ const ApplicationSubscriptionsListComponent: ng.IComponentOptions = {
     activatedRoute: '<',
   },
   controller: 'ApplicationSubscriptionsListController',
-  template: require('html-loader!./application-subscriptions-list.component.html'),
+  template: require('html-loader!./application-subscriptions-list.component.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
 };
 
 export default ApplicationSubscriptionsListComponent;

@@ -49,7 +49,7 @@ const ApplicationLogComponentAjs: ng.IComponentOptions = {
       }
     },
   ],
-  template: require('html-loader!./application-log.html'),
+  template: require('html-loader!./application-log.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
 };
 
 export default ApplicationLogComponentAjs;

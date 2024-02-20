@@ -17,7 +17,7 @@
 import ApiAnalyticsLogsControllerAjs from './analytics-logs.controller.ajs';
 
 export const ApiAnalyticsLogsComponentAjs = {
-  template: require('html-loader!./analytics-logs.html'),
+  template: require('html-loader!./analytics-logs.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: ApiAnalyticsLogsControllerAjs,
   bindings: {
     activatedRoute: '<',

@@ -23,7 +23,7 @@ const AlertTriggerApplicationQuotaComponent: ng.IComponentOptions = {
   require: {
     parent: '^alertComponentAjs',
   },
-  template: require('html-loader!./trigger-application-quota.html'),
+  template: require('html-loader!./trigger-application-quota.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: function () {
     this.$onInit = () => {
       this.metrics = [ApiMetrics.QUOTA_COUNTER];

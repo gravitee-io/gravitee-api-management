@@ -21,7 +21,7 @@ import { ApiService } from '../../../services/api.service';
 import { EventService } from '../../../services/event.service';
 
 const WidgetComponent: ng.IComponentOptions = {
-  template: require('html-loader!./widget.html'),
+  template: require('html-loader!./widget.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   bindings: {
     widget: '<',
     updateMode: '<',

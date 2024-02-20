@@ -20,7 +20,7 @@ import AnalyticsService from '../../../../services/analytics.service';
 import { Constants } from '../../../../entities/Constants';
 
 const WidgetDataTableComponent: ng.IComponentOptions = {
-  template: require('html-loader!./widget-data-table.html'),
+  template: require('html-loader!./widget-data-table.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   bindings: {
     data: '<',
     activatedRoute: '<',

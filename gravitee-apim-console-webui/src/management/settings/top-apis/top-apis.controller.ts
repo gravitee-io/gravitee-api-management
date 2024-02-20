@@ -46,7 +46,7 @@ class TopApisController {
       .show({
         controller: 'AddTopApiDialogController',
         controllerAs: '$ctrl',
-        template: require('html-loader!./dialog/add.top-api.dialog.html'),
+        template: require('html-loader!./dialog/add.top-api.dialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
         locals: {
           topApis: this.topApis,
         },
@@ -62,7 +62,7 @@ class TopApisController {
     this.$mdDialog
       .show({
         controller: 'DeleteTopApiDialogController',
-        template: require('html-loader!./dialog/delete.top-api.dialog.html'),
+        template: require('html-loader!./dialog/delete.top-api.dialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
         locals: {
           topApi: topApi,
         },

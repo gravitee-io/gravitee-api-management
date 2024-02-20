@@ -289,6 +289,6 @@ export const DocumentationEditPageComponentAjs: ng.IComponentOptions = {
     categoryResources: '<',
     attachedResources: '<',
   },
-  template: require('html-loader!./edit-page.html'),
+  template: require('html-loader!./edit-page.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: EditPageComponentController,
 };

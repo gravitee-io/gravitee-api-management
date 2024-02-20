@@ -18,7 +18,7 @@ const ApiQualityRuleComponentAjs: ng.IComponentOptions = {
     activatedRoute: '<',
   },
   controller: 'ApiQualityRuleController',
-  template: require('html-loader!./api-quality-rule.html'),
+  template: require('html-loader!./api-quality-rule.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
 };
 
 export default ApiQualityRuleComponentAjs;

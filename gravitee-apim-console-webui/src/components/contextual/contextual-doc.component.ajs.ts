@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 const ContextualDocComponentAjs: ng.IComponentOptions = {
-  template: require('html-loader!./contextual-doc.component.html'),
+  template: require('html-loader!./contextual-doc.component.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: 'ContextualDocController',
   bindings: {
     contextualDocumentationPage: '<',

@@ -261,7 +261,7 @@ class ApiV1PoliciesControllerAjs {
       .show({
         controller: 'DialogConfirmController',
         controllerAs: 'ctrl',
-        template: require('html-loader!../../../../components/dialog/confirmWarning.dialog.html'),
+        template: require('html-loader!../../../../components/dialog/confirmWarning.dialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
         clickOutsideToClose: true,
         locals: {
           title: 'Are you sure you want to remove this policy?',
@@ -291,7 +291,7 @@ class ApiV1PoliciesControllerAjs {
       .show({
         controller: 'DialogEditPolicyController',
         controllerAs: 'editPolicyDialogCtrl',
-        template: require('html-loader!./dialog/policy.dialog.html'),
+        template: require('html-loader!./dialog/policy.dialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
         clickOutsideToClose: true,
         locals: {
           description: policy.description,
@@ -355,7 +355,7 @@ class ApiV1PoliciesControllerAjs {
       .show({
         controller: 'AddPoliciesPathController',
         controllerAs: 'addPoliciesPathCtrl',
-        template: require('html-loader!./addPoliciesPath.html'),
+        template: require('html-loader!./addPoliciesPath.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
         parent: angular.element(document.body),
         targetEvent: event,
         clickOutsideToClose: true,
@@ -375,7 +375,7 @@ class ApiV1PoliciesControllerAjs {
       .show({
         controller: 'DialogConfirmController',
         controllerAs: 'ctrl',
-        template: require('html-loader!../../../../components/dialog/confirmWarning.dialog.html'),
+        template: require('html-loader!../../../../components/dialog/confirmWarning.dialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
         clickOutsideToClose: true,
         locals: {
           title: 'Are you sure you want to migrate to Policy Studio?',
@@ -398,7 +398,7 @@ class ApiV1PoliciesControllerAjs {
       .show({
         controller: 'DialogConfirmController',
         controllerAs: 'ctrl',
-        template: require('html-loader!../../../../components/dialog/confirmWarning.dialog.html'),
+        template: require('html-loader!../../../../components/dialog/confirmWarning.dialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
         clickOutsideToClose: true,
         locals: {
           title: 'Are you sure you want to remove this path?',

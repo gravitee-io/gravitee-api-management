@@ -18,7 +18,7 @@ import { forEach, map, mapValues } from 'lodash';
 import { AuditQuery, default as AuditService } from '../../services/audit.service';
 
 const AuditComponent: ng.IComponentOptions = {
-  template: require('html-loader!./audit.html'),
+  template: require('html-loader!./audit.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   bindings: {
     api: '<',
     apis: '<',

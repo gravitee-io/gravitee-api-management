@@ -111,7 +111,7 @@ class ApiV1PropertiesControllerAjs {
       .show({
         controller: 'DialogConfirmController',
         controllerAs: 'ctrl',
-        template: require('html-loader!../../../components/dialog/confirmWarning.dialog.html'),
+        template: require('html-loader!../../../components/dialog/confirmWarning.dialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
         clickOutsideToClose: true,
         locals: {
           title: 'Are you sure you want to remove property [' + key + ']?',
@@ -135,7 +135,7 @@ class ApiV1PropertiesControllerAjs {
       .show({
         controller: 'DialogAddPropertyController',
         controllerAs: 'dialogAddPropertyCtrl',
-        template: require('html-loader!./add-property.dialog.html'),
+        template: require('html-loader!./add-property.dialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
         clickOutsideToClose: true,
       })
       .then((property) => {
@@ -223,7 +223,7 @@ class ApiV1PropertiesControllerAjs {
     this.$mdDialog.show({
       controller: 'DialogDynamicProviderHttpController',
       controllerAs: 'ctrl',
-      template: require('html-loader!./dynamic-provider-http.dialog.html'),
+      template: require('html-loader!./dynamic-provider-http.dialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
       parent: angular.element(document.body),
       clickOutsideToClose: true,
     });
@@ -234,7 +234,7 @@ class ApiV1PropertiesControllerAjs {
       .show({
         controller: 'DialogConfirmController',
         controllerAs: 'ctrl',
-        template: require('html-loader!../../../components/dialog/confirmWarning.dialog.html'),
+        template: require('html-loader!../../../components/dialog/confirmWarning.dialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
         clickOutsideToClose: true,
         locals: {
           title: 'Are you sure you want to remove selected properties?',

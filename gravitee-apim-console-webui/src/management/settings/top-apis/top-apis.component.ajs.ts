@@ -16,7 +16,7 @@
 const TopApisComponentAjs: ng.IComponentOptions = {
   bindings: {},
   controller: 'TopApisController',
-  template: require('html-loader!./top-apis.html'),
+  template: require('html-loader!./top-apis.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
 };
 
 export default TopApisComponentAjs;

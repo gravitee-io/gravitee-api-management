@@ -21,7 +21,7 @@ const AlertTriggerFiltersComponent: ng.IComponentOptions = {
     referenceType: '<',
     referenceId: '<',
   },
-  template: require('html-loader!./trigger-filters.html'),
+  template: require('html-loader!./trigger-filters.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: function () {
     this.addFilter = () => {
       if (this.alert.filters === undefined) {

@@ -17,6 +17,7 @@ import { inject } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivateChildFn, Router, RouterStateSnapshot } from '@angular/router';
 import { map } from 'rxjs/operators';
 import { GioLicenseService } from '@gravitee/ui-particles-angular';
+import { of } from 'rxjs';
 
 export interface GioRequireLicenseRouterData {
   license: {
