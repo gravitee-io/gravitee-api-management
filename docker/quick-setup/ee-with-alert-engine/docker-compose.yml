@@ -70,7 +70,7 @@ services:
       - storage
 
   alert_engine:
-    image: graviteeio/ae-engine:${AE_VERSION:-1.4.0}
+    image: graviteeio/ae-engine:${AE_VERSION:-2.1.5}
     container_name: gio_ae_engine
     restart: always
     ports:
