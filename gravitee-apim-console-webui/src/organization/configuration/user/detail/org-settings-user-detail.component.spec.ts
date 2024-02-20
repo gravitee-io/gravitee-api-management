@@ -57,8 +57,8 @@ describe('OrgSettingsUserDetailComponent', () => {
   let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
+  beforeEach(() => {
+    TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioTestingModule, OrganizationSettingsModule, MatIconTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { userId: 'userId' } }, fragment: of('') } },

@@ -103,8 +103,8 @@ describe('ApiCreationV4Component - Navigation', () => {
   let httpExpects: ApiCreationV4SpecHttpExpects;
   let stepperHelper: ApiCreationV4SpecStepperHelper;
 
-  const init = async () => {
-    await TestBed.configureTestingModule({
+  const init = () => {
+    TestBed.configureTestingModule({
       declarations: [ApiCreationV4Component],
       providers: [
         {
@@ -163,12 +163,12 @@ describe('ApiCreationV4Component - Navigation', () => {
     const router = TestBed.inject(Router);
     routerNavigateSpy = jest.spyOn(router, 'navigate');
     component = fixture.componentInstance;
-    harnessLoader = await TestbedHarnessEnvironment.loader(fixture);
+    harnessLoader = TestbedHarnessEnvironment.loader(fixture);
     httpExpects = new ApiCreationV4SpecHttpExpects(httpTestingController);
     stepperHelper = new ApiCreationV4SpecStepperHelper(harnessLoader, httpExpects, httpTestingController);
   };
 
-  beforeEach(async () => await init());
+  beforeEach(() => init());
 
   afterEach(() => {
     jest.clearAllMocks();

@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { NgModule } from '@angular/core';
+import { NgModule, NgZone } from '@angular/core';
 import { RouterTestingModule } from '@angular/router/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
+import { Router } from '@angular/router';
 
 import { Constants } from '../../entities/Constants';
 
@@ -59,4 +60,10 @@ export const CONSTANTS_TESTING: Constants = {
     },
   ],
 })
-export class GioTestingModule {}
+export class GioTestingModule {
+  constructor(private readonly ngZone: NgZone, private readonly router: Router) {
+    ngZone.run(() => {
+      router.initialNavigation();
+    });
+  }
+}

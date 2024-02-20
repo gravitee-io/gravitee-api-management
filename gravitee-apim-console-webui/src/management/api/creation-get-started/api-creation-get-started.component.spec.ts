@@ -59,7 +59,7 @@ describe('ApiCreationGetStartedComponent', () => {
     httpTestingController.verify();
   });
 
-  describe('as Admin', function () {
+  describe('as Admin', () => {
     beforeEach(() => {
       initConfigureTestingModule(['organization-installation-r']);
     });
@@ -101,7 +101,7 @@ describe('ApiCreationGetStartedComponent', () => {
     });
   });
 
-  describe('as ApiUser', function () {
+  describe('as ApiUser', () => {
     beforeEach(() => {
       initConfigureTestingModule([]);
     });

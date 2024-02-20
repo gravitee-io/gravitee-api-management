@@ -39,8 +39,8 @@ describe('OrgSettingsNewUserComponent', () => {
   let httpTestingController: HttpTestingController;
   let component: OrgSettingsNewUserComponent;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
+  beforeEach(() => {
+    TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioTestingModule, OrganizationSettingsModule],
     })
       .overrideProvider(InteractivityChecker, {

@@ -18,3 +18,45 @@ import 'jest-preset-angular/setup-jest';
 // mocking swagger-ui for tests as it contains some JS incompatible with Jest
 // This means we will not be able to test Swagger in our components tests
 jest.mock('swagger-ui', () => jest.fn());
+
+// Mocking the Range object to avoid errors in tests (policy-studio-debug.component.spec.ts)
+document.createRange = () => {
+  const range = new Range();
+  range.getBoundingClientRect = jest.fn();
+  range.getClientRects = () => {
+    return {
+      item: () => null,
+      length: 0,
+      [Symbol.iterator]: jest.fn(),
+    };
+  };
+  return range;
+};
+
+Object.defineProperty(window, 'CSS', { value: null });
+Object.defineProperty(document, 'doctype', {
+  value: '<!DOCTYPE html>',
+});
+Object.defineProperty(window, 'getComputedStyle', {
+  value: () => {
+    return {
+      display: 'none',
+      appearance: ['-webkit-appearance'],
+      getPropertyValue: () => {
+        return '';
+      },
+    };
+  },
+});
+/**
+ * ISSUE: https://github.com/angular/material2/issues/7101
+ * Workaround for JSDOM missing transform property
+ */
+Object.defineProperty(document.body.style, 'transform', {
+  value: () => {
+    return {
+      enumerable: true,
+      configurable: true,
+    };
+  },
+});

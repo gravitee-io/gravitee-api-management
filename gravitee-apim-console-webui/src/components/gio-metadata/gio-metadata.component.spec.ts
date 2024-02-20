@@ -39,8 +39,8 @@ describe('GioMetadataComponent', () => {
   let loader: HarnessLoader;
   let rootLoader: HarnessLoader;
 
-  const init = async (permissions: GioTestingPermission) => {
-    await TestBed.configureTestingModule({
+  const init = (permissions: GioTestingPermission) => {
+    TestBed.configureTestingModule({
       imports: [GioMetadataModule, MatIconTestingModule, NoopAnimationsModule, GioTestingModule],
       providers: [{ provide: GioTestingPermissionProvider, useValue: permissions }],
     })
@@ -53,7 +53,7 @@ describe('GioMetadataComponent', () => {
       .compileComponents();
 
     fixture = TestBed.createComponent(GioMetadataComponent);
-    component = await fixture.componentInstance;
+    component = fixture.componentInstance;
     loader = TestbedHarnessEnvironment.loader(fixture);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
 
@@ -70,8 +70,8 @@ describe('GioMetadataComponent', () => {
   };
 
   describe('with full permissions', () => {
-    beforeEach(async () => {
-      await init(['api-metadata-u', 'api-metadata-d', 'api-metadata-c']);
+    beforeEach(() => {
+      init(['api-metadata-u', 'api-metadata-d', 'api-metadata-c']);
     });
 
     it('should load', async () => {

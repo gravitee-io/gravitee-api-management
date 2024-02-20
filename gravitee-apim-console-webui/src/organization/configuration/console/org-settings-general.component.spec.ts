@@ -41,8 +41,8 @@ describe('ConsoleSettingsComponent', () => {
 
   let httpTestingController: HttpTestingController;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
+  beforeEach(() => {
+    TestBed.configureTestingModule({
       imports: [NoopAnimationsModule, GioTestingModule, OrganizationSettingsModule, MatIconTestingModule],
     })
       .overrideProvider(InteractivityChecker, {

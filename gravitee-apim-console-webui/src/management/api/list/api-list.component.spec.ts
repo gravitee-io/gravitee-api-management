@@ -44,8 +44,8 @@ describe('ApisListComponent', () => {
 
   describe('with HTTP proxy API', () => {
     describe('without quality score', () => {
-      beforeEach(async () => {
-        await TestBed.configureTestingModule({
+      beforeEach(() => {
+        TestBed.configureTestingModule({
           imports: [ApiListModule, MatIconTestingModule, NoopAnimationsModule, GioTestingModule],
           providers: [
             { provide: GioTestingPermissionProvider, useValue: ['environment-api-c'] },
@@ -299,11 +299,11 @@ describe('ApisListComponent', () => {
     });
 
     describe('with quality score', () => {
-      beforeEach(async () => {
+      beforeEach(() => {
         const withQualityEnabled = CONSTANTS_TESTING;
         withQualityEnabled.env.settings.apiQualityMetrics.enabled = true;
 
-        await TestBed.configureTestingModule({
+        TestBed.configureTestingModule({
           imports: [ApiListModule, MatIconTestingModule, NoopAnimationsModule, GioTestingModule],
           providers: [
             { provide: GioTestingPermissionProvider, useValue: ['environment-api-c'] },
@@ -368,8 +368,8 @@ describe('ApisListComponent', () => {
         },
       ],
     });
-    beforeEach(async () => {
-      await TestBed.configureTestingModule({
+    beforeEach(() => {
+      TestBed.configureTestingModule({
         imports: [ApiListModule, MatIconTestingModule, NoopAnimationsModule, GioTestingModule],
         providers: [
           { provide: GioTestingPermissionProvider, useValue: ['environment-api-c'] },
