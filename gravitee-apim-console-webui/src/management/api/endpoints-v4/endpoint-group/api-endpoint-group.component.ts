@@ -83,9 +83,10 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
     this.updateApi()
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe({
-        next: (api) => {
-          this.initializeComponent(api as ApiV4);
+        next: () => {
           this.snackBarService.success(this.SUCCESSFUL_ENDPOINT_CONFIGURATION_SAVE_MESSAGE);
+          this.groupForm.markAsPristine();
+          this.initialGroupFormValue = this.groupForm.getRawValue();
         },
         error: (error) => {
           this.snackBarService.error(error.message);
@@ -159,20 +160,20 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
         .pipe(
           tap((schema) => {
             this.healthCheckSchema = schema;
-
-            this.healthCheckForm.controls.enabled.valueChanges
-              .pipe(startWith(this.healthCheckForm.controls.enabled.value), takeUntil(this.unsubscribe$))
-              .subscribe((enabled) => {
-                if (enabled) {
-                  this.healthCheckForm.controls.configuration.enable({ emitEvent: false });
-                } else {
-                  this.healthCheckForm.controls.configuration.disable({ emitEvent: false });
-                }
-              });
           }),
           takeUntil(this.unsubscribe$),
         )
         .subscribe();
+
+      this.healthCheckForm.controls.enabled.valueChanges
+        .pipe(startWith(this.healthCheckForm.controls.enabled.value), takeUntil(this.unsubscribe$))
+        .subscribe((enabled) => {
+          if (enabled) {
+            this.healthCheckForm.controls.configuration.enable({ emitEvent: false });
+          } else {
+            this.healthCheckForm.controls.configuration.disable({ emitEvent: false });
+          }
+        });
     }
 
     this.groupForm = new UntypedFormGroup({
@@ -200,15 +201,18 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
       },
       sharedConfiguration: this.configurationForm.getRawValue().groupConfiguration,
     };
-    if (this.isHttpProxyApi && this.healthCheckForm.controls.enabled.value) {
+    if (this.isHttpProxyApi) {
+      const isHealthCheckEnabled = this.healthCheckForm.controls.enabled.value;
       updatedEndpointGroups[this.activatedRoute.snapshot.params.groupIndex].services = {
         ...this.endpointGroup.services,
-        healthCheck: {
-          enabled: this.healthCheckForm.getRawValue().enabled,
-          type: ApiHealthCheckV4FormComponent.HTTP_HEALTH_CHECK,
-          configuration: this.healthCheckForm.getRawValue().configuration,
-          overrideConfiguration: false,
-        },
+        healthCheck: isHealthCheckEnabled
+          ? {
+              enabled: isHealthCheckEnabled,
+              type: ApiHealthCheckV4FormComponent.HTTP_HEALTH_CHECK,
+              configuration: this.healthCheckForm.getRawValue().configuration,
+              overrideConfiguration: false,
+            }
+          : undefined,
       };
     }
 
