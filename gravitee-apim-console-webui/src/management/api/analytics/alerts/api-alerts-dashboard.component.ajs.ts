@@ -17,7 +17,7 @@
 import ApiAlertsDashboardControllerAjs from './api-alerts-dashboard.controller.ajs';
 
 export const ApiAlertsDashboardComponentAjs = {
-  template: require('html-loader!./api-alerts-dashboard.html'),
+  template: require('html-loader!./api-alerts-dashboard.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: ApiAlertsDashboardControllerAjs,
   bindings: {
     activatedRoute: '<',

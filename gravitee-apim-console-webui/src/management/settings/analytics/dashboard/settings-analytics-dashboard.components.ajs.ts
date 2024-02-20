@@ -21,7 +21,7 @@ import { cloneDeep, every, forEach, isEqual, merge } from 'lodash';
 import DashboardService from '../../../../services/dashboard.service';
 import NotificationService from '../../../../services/notification.service';
 const SettingsAnalyticsDashboardComponentAjs: ng.IComponentOptions = {
-  template: require('html-loader!./settings-analytics-dashboard.html'),
+  template: require('html-loader!./settings-analytics-dashboard.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: [
     'DashboardService',
     'NotificationService',
@@ -126,7 +126,7 @@ const SettingsAnalyticsDashboardComponentAjs: ng.IComponentOptions = {
         $mdDialog.show({
           controller: 'DialogQueryFilterInformationController',
           controllerAs: 'ctrl',
-          template: require('html-loader!./query-filter-information.dialog.html'),
+          template: require('html-loader!./query-filter-information.dialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
           parent: angular.element(document.body),
           clickOutsideToClose: true,
         });

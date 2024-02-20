@@ -193,6 +193,6 @@ export const DocumentationNewPageComponentAjs: ng.IComponentOptions = {
     params: '<',
     activatedRoute: '<',
   },
-  template: require('html-loader!./new-page.html'),
+  template: require('html-loader!./new-page.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: NewPageComponentController,
 };

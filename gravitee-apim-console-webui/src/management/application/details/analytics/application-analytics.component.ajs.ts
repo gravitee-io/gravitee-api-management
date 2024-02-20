@@ -20,7 +20,7 @@ const ApplicationAnalyticsComponentAjs: ng.IComponentOptions = {
     activatedRoute: '<',
   },
   controller: 'ApplicationAnalyticsController',
-  template: require('html-loader!./application-analytics.html'),
+  template: require('html-loader!./application-analytics.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
 };
 
 export default ApplicationAnalyticsComponentAjs;

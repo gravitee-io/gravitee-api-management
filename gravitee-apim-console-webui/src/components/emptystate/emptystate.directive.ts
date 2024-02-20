@@ -26,7 +26,7 @@ class EmptyStateDirective {
         fill: '@fill',
       },
       transclude: true,
-      template: require('html-loader!./emptystate.html'),
+      template: require('html-loader!./emptystate.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
     };
 
     return directive;

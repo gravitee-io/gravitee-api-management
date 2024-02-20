@@ -20,7 +20,7 @@ class PageAsciiDocComponentController implements ng.IComponentController {
 }
 
 export const PageAsciiDocComponent: ng.IComponentOptions = {
-  template: require('html-loader!./page-asciidoc.html'),
+  template: require('html-loader!./page-asciidoc.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   bindings: {
     pageContent: '<',
   },

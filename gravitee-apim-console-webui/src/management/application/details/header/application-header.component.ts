@@ -17,7 +17,7 @@ const ApplicationHeaderComponent: ng.IComponentOptions = {
   bindings: {
     application: '<',
   },
-  template: require('html-loader!./application-header.html'),
+  template: require('html-loader!./application-header.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
 };
 
 export default ApplicationHeaderComponent;

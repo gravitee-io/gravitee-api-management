@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 const UserAutocompleteComponent: ng.IComponentOptions = {
-  template: require('html-loader!./user-autocomplete.html'),
+  template: require('html-loader!./user-autocomplete.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: 'UserAutocompleteController',
   bindings: {
     usersSelected: '<',

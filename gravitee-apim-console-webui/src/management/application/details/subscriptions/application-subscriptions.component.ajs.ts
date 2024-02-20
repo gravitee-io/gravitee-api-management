@@ -20,7 +20,7 @@ const ApplicationSubscriptionsComponentAjs: ng.IComponentOptions = {
     activatedRoute: '<',
   },
   controller: 'ApplicationSubscriptionsController',
-  template: require('html-loader!./application-subscriptions.html'),
+  template: require('html-loader!./application-subscriptions.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
 };
 
 export default ApplicationSubscriptionsComponentAjs;

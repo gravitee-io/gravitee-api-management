@@ -24,7 +24,7 @@ const ApiPlanComponent: ng.IComponentOptions = {
     onSubscribe: '&',
     onUnsubscribe: '&',
   },
-  template: require('html-loader!./api-plan.html'),
+  template: require('html-loader!./api-plan.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: [
     'UserService',
     function (UserService: UserService) {

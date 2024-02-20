@@ -27,7 +27,7 @@ const AlertTriggerFilterComponent: ng.IComponentOptions = {
     referenceType: '<',
     referenceId: '<',
   },
-  template: require('html-loader!./trigger-filter.html'),
+  template: require('html-loader!./trigger-filter.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: function () {
     this.$onInit = () => {
       // Metrics are depending on the source of the trigger

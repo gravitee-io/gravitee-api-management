@@ -18,7 +18,7 @@ import { concat, find, merge } from 'lodash';
 import DashboardService from '../../../../services/dashboard.service';
 
 const WidgetDataTableConfigurationComponent: ng.IComponentOptions = {
-  template: require('html-loader!./widget-data-table-configuration.html'),
+  template: require('html-loader!./widget-data-table-configuration.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   bindings: {
     chart: '<',
   },

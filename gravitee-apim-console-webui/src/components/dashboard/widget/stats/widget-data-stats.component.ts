@@ -17,7 +17,7 @@ import { cloneDeep } from 'lodash';
 // eslint:disable-next-line:no-var-requires
 require('@gravitee/ui-components/wc/gv-stats');
 const WidgetDataStatsComponent: ng.IComponentOptions = {
-  template: require('html-loader!./widget-data-stats.html'),
+  template: require('html-loader!./widget-data-stats.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   bindings: {
     data: '<',
   },

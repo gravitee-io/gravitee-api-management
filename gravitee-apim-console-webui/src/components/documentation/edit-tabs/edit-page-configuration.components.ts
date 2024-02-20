@@ -73,6 +73,6 @@ export const EditPageConfigurationComponent: ng.IComponentOptions = {
   bindings: {
     page: '=',
   },
-  template: require('html-loader!./edit-page-configuration.html'),
+  template: require('html-loader!./edit-page-configuration.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: EditPageConfigurationComponentController,
 };

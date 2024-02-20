@@ -17,7 +17,7 @@
 import ApiAnalyticsOverviewControllerAjs from './analytics-overview.controller.ajs';
 
 export const ApiAnalyticsOverviewComponentAjs = {
-  template: require('html-loader!./analytics-overview.html'),
+  template: require('html-loader!./analytics-overview.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: ApiAnalyticsOverviewControllerAjs,
   bindings: {
     activatedRoute: '<',

@@ -60,7 +60,7 @@ export const EditPageFetchersComponent: ng.IComponentOptions = {
     title: '<',
     withPublishOption: '<',
   },
-  template: require('html-loader!./edit-page-fetchers.html'),
+  template: require('html-loader!./edit-page-fetchers.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: EditPageFetchersComponentController,
 };
 

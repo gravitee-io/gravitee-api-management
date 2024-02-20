@@ -46,7 +46,7 @@ const GroupComponentAjs: ng.IComponentOptions = {
   bindings: {
     activatedRoute: '<',
   },
-  template: require('html-loader!./group.html'),
+  template: require('html-loader!./group.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: [
     'GroupService',
     'RoleService',
@@ -216,7 +216,7 @@ const GroupComponentAjs: ng.IComponentOptions = {
             .show({
               controller: 'DialogConfirmController',
               controllerAs: 'ctrl',
-              template: require('html-loader!../../../../components/dialog/confirmWarning.dialog.html'),
+              template: require('html-loader!../../../../components/dialog/confirmWarning.dialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
               clickOutsideToClose: true,
               locals: {
                 msg: '',
@@ -237,7 +237,7 @@ const GroupComponentAjs: ng.IComponentOptions = {
           .show({
             controller: 'DialogAddGroupMemberController',
             controllerAs: '$ctrl',
-            template: require('html-loader!./addMember.dialog.html'),
+            template: require('html-loader!./addMember.dialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
             clickOutsideToClose: true,
             locals: {
               defaultApiRole: this.selectedApiRole,
@@ -279,7 +279,7 @@ const GroupComponentAjs: ng.IComponentOptions = {
         return $mdDialog.show({
           controller: 'DialogTransferOwnershipController',
           controllerAs: '$ctrl',
-          template: require('html-loader!./transferOwnershipDialog.html'),
+          template: require('html-loader!./transferOwnershipDialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
           clickOutsideToClose: true,
           locals: {
             transferType,
@@ -438,7 +438,7 @@ const GroupComponentAjs: ng.IComponentOptions = {
               },
             ],
             controllerAs: '$ctrl',
-            template: require('html-loader!./inviteMember.dialog.html'),
+            template: require('html-loader!./inviteMember.dialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
             clickOutsideToClose: true,
             locals: {
               defaultApiRole: this.selectedApiRole,
@@ -471,7 +471,7 @@ const GroupComponentAjs: ng.IComponentOptions = {
           .show({
             controller: 'DialogConfirmController',
             controllerAs: 'ctrl',
-            template: require('html-loader!../../../../components/dialog/confirmWarning.dialog.html'),
+            template: require('html-loader!../../../../components/dialog/confirmWarning.dialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
             clickOutsideToClose: true,
             locals: {
               msg: '',

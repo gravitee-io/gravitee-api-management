@@ -15,7 +15,7 @@
  */
 import { each, remove } from 'lodash';
 const DashboardComponent: ng.IComponentOptions = {
-  template: require('html-loader!./dashboard.html'),
+  template: require('html-loader!./dashboard.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   bindings: {
     model: '<',
     accessLogs: '<',

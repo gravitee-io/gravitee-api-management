@@ -17,7 +17,7 @@
 import ApiV1ResourcesControllerAjs from './resources.controller.ajs';
 
 export const ApiV1ResourcesComponentAjs = {
-  template: require('html-loader!./resources.html'),
+  template: require('html-loader!./resources.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: ApiV1ResourcesControllerAjs,
   bindings: {
     resolvedApi: '<',

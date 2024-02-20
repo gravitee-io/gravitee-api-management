@@ -160,7 +160,7 @@ class CategoryController {
     this.$mdDialog
       .show({
         controller: 'DeleteAPICategoryDialogController',
-        template: require('html-loader!./delete-api-category.dialog.html'),
+        template: require('html-loader!./delete-api-category.dialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
         locals: {
           api: api,
         },

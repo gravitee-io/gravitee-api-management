@@ -27,7 +27,7 @@ const ApplicationSubscriptionComponentAjs: ng.IComponentOptions = {
     subscription: '<',
     activatedRoute: '<',
   },
-  template: require('html-loader!./application-subscription.html'),
+  template: require('html-loader!./application-subscription.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: [
     '$mdDialog',
     'NotificationService',
@@ -62,7 +62,7 @@ const ApplicationSubscriptionComponentAjs: ng.IComponentOptions = {
           .show({
             controller: 'DialogConfirmController',
             controllerAs: 'ctrl',
-            template: require('html-loader!../../../../components/dialog/confirmWarning.dialog.html'),
+            template: require('html-loader!../../../../components/dialog/confirmWarning.dialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
             clickOutsideToClose: true,
             locals: {
               title: 'Are you sure you want to close this subscription?',

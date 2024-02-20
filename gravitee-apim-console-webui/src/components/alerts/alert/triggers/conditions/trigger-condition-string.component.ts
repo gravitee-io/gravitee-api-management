@@ -26,7 +26,7 @@ const AlertTriggerConditionStringComponent: ng.IComponentOptions = {
     referenceType: '<',
     referenceId: '<',
   },
-  template: require('html-loader!./trigger-condition-string.html'),
+  template: require('html-loader!./trigger-condition-string.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: [
     '$injector',
     function ($injector) {

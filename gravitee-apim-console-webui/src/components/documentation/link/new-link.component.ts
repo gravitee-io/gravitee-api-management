@@ -72,6 +72,6 @@ export const DocumentationNewLinkComponent: ng.IComponentOptions = {
     onSave: '&',
     systemFoldersById: '<',
   },
-  template: require('html-loader!./new-link.html'),
+  template: require('html-loader!./new-link.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: DocumentationNewLinkComponentController,
 };

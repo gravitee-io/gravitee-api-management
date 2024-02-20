@@ -26,7 +26,7 @@ const AlertTriggerConditionComponent: ng.IComponentOptions = {
     referenceType: '<',
     referenceId: '<',
   },
-  template: require('html-loader!./trigger-condition.html'),
+  template: require('html-loader!./trigger-condition.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: function () {
     this.$onInit = () => {
       this.onMetricsChange(false);

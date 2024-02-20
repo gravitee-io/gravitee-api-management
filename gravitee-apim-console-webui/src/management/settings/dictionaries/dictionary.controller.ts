@@ -165,7 +165,7 @@ class DictionaryController {
       .show({
         controller: 'DialogConfirmController',
         controllerAs: 'ctrl',
-        template: require('html-loader!../../../components/dialog/confirmWarning.dialog.html'),
+        template: require('html-loader!../../../components/dialog/confirmWarning.dialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
         clickOutsideToClose: true,
         locals: {
           title: 'Are you sure you want to delete this dictionary?',
@@ -215,7 +215,7 @@ class DictionaryController {
       .show({
         controller: 'DialogAddPropertyController',
         controllerAs: 'dialogDictionaryAddPropertyCtrl',
-        template: require('html-loader!./add-property.dialog.html'),
+        template: require('html-loader!./add-property.dialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
         clickOutsideToClose: true,
       })
       .then((property) => {

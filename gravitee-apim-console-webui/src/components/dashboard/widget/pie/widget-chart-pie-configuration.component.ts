@@ -19,7 +19,7 @@ import { forEach, merge, last, remove } from 'lodash';
 import DashboardService from '../../../../services/dashboard.service';
 
 const WidgetChartPieConfigurationComponent: ng.IComponentOptions = {
-  template: require('html-loader!./widget-chart-pie-configuration.html'),
+  template: require('html-loader!./widget-chart-pie-configuration.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   bindings: {
     chart: '<',
   },

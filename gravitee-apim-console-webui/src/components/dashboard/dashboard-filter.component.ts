@@ -19,7 +19,7 @@ const DashboardFilterComponent: ng.IComponentOptions = {
     onFilterChange: '&',
     activatedRoute: '<',
   },
-  template: require('html-loader!./dashboard-filter.html'),
+  template: require('html-loader!./dashboard-filter.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: 'DashboardFilterController',
   require: {
     parent: '^gvDashboard',

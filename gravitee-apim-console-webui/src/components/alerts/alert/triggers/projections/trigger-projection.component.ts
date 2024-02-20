@@ -27,7 +27,7 @@ const AlertTriggerProjectionComponent: ng.IComponentOptions = {
     onProjectionRemove: '&',
     isReadonly: '<',
   },
-  template: require('html-loader!./trigger-projection.html'),
+  template: require('html-loader!./trigger-projection.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: function () {
     this.$onInit = () => {
       // Metrics are depending on the source of the trigger
