@@ -197,7 +197,7 @@ export class ApiV4MenuService implements ApiMenuService {
       });
     }
 
-    tabs.push({ displayName: 'Broadcasts', routerLink: 'DISABLED' });
+    tabs.push({ displayName: 'Broadcasts', routerLink: 'messages' });
     return {
       displayName: 'Consumers',
       icon: 'cloud-consumers',
