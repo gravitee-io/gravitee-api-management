@@ -495,6 +495,46 @@ public class ApiService_UpdateTest {
         fail("should throw EndpointNameInvalidException");
     }
 
+    @Test(expected = EndpointNameAlreadyExistsException.class)
+    public void shouldNotCreateApiBecauseOfEndpointGroupAndInnerEndpointHaveSameName() throws TechnicalException {
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+
+        Endpoint endpoint = Endpoint.builder().name("endpointGroupName").build();
+        EndpointGroup endpointGroup = EndpointGroup.builder().name("endpointGroupName").endpoints(singleton(endpoint)).build();
+        Proxy proxy = Proxy.builder().groups(singleton(endpointGroup)).virtualHosts(singletonList(new VirtualHost("/context"))).build();
+
+        UpdateApiEntity api = new UpdateApiEntity();
+        api.setProxy(proxy);
+        api.setVersion("1.0");
+        api.setName("tag test basic");
+        api.setDescription("tag test basic example");
+
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, api);
+    }
+
+    @Test(expected = EndpointGroupNameAlreadyExistsException.class)
+    public void shouldNotCreateApiBecauseOfEndpointGroupAndEndpointOfAnotherGroupHaveSameName() throws TechnicalException {
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+
+        Endpoint endpoint = Endpoint.builder().name("endpointName").build();
+        EndpointGroup endpointGroup = EndpointGroup.builder().name("endpointGroupName").endpoints(singleton(endpoint)).build();
+        Endpoint endpoint2 = Endpoint.builder().name("endpointGroupName").build();
+        EndpointGroup endpointGroup2 = EndpointGroup.builder().name("endpointName").endpoints(singleton(endpoint2)).build();
+        Proxy proxy = Proxy
+            .builder()
+            .groups(Set.of(endpointGroup, endpointGroup2))
+            .virtualHosts(singletonList(new VirtualHost("/context")))
+            .build();
+
+        UpdateApiEntity api = new UpdateApiEntity();
+        api.setProxy(proxy);
+        api.setVersion("1.0");
+        api.setName("tag test basic");
+        api.setDescription("tag test basic example");
+
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, api);
+    }
+
     @Test(expected = InvalidDataException.class)
     public void shouldNotUpdateWithInvalidPolicyConfiguration() throws TechnicalException {
         prepareUpdate();
