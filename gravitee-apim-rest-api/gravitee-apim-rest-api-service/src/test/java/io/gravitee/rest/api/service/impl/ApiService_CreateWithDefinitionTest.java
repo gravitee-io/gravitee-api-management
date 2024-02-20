@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singleton;
+import static java.util.Collections.singletonList;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -26,6 +27,7 @@ import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.*;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
@@ -41,6 +43,8 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
+import io.gravitee.rest.api.service.exceptions.EndpointGroupNameAlreadyExistsException;
+import io.gravitee.rest.api.service.exceptions.EndpointNameAlreadyExistsException;
 import io.gravitee.rest.api.service.exceptions.TagNotAllowedException;
 import io.gravitee.rest.api.service.exceptions.TagNotFoundException;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
@@ -50,6 +54,8 @@ import io.gravitee.rest.api.service.v4.validation.AnalyticsValidationService;
 import io.gravitee.rest.api.service.v4.validation.CorsValidationService;
 import java.io.InputStream;
 import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -176,7 +182,7 @@ public class ApiService_CreateWithDefinitionTest {
         Endpoint endpoint = Endpoint.builder().name("endpointName").build();
         endpointGroup.setEndpoints(singleton(endpoint));
         proxy.setGroups(singleton(endpointGroup));
-        proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/context")));
+        proxy.setVirtualHosts(singletonList(new VirtualHost("/context")));
         api.setProxy(proxy);
         api.setVersion("1.0");
         api.setName("k8s basic");
@@ -217,7 +223,7 @@ public class ApiService_CreateWithDefinitionTest {
         Endpoint endpoint = Endpoint.builder().name("endpointName").build();
         endpointGroup.setEndpoints(singleton(endpoint));
         proxy.setGroups(singleton(endpointGroup));
-        proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/context")));
+        proxy.setVirtualHosts(singletonList(new VirtualHost("/context")));
         api.setProxy(proxy);
         api.setVersion("1.0");
         api.setName("k8s basic");
@@ -251,7 +257,7 @@ public class ApiService_CreateWithDefinitionTest {
         Endpoint endpoint = Endpoint.builder().name("endpointName").build();
         endpointGroup.setEndpoints(singleton(endpoint));
         proxy.setGroups(singleton(endpointGroup));
-        proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/context")));
+        proxy.setVirtualHosts(singletonList(new VirtualHost("/context")));
         api.setProxy(proxy);
         api.setVersion("1.0");
         api.setName("k8s basic");
@@ -284,7 +290,7 @@ public class ApiService_CreateWithDefinitionTest {
         Endpoint endpoint = Endpoint.builder().name("endpointName").build();
         endpointGroup.setEndpoints(singleton(endpoint));
         proxy.setGroups(singleton(endpointGroup));
-        proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/context")));
+        proxy.setVirtualHosts(singletonList(new VirtualHost("/context")));
         api.setProxy(proxy);
         api.setVersion("1.0");
         api.setName("tag test");
@@ -310,7 +316,7 @@ public class ApiService_CreateWithDefinitionTest {
         Endpoint endpoint = Endpoint.builder().name("endpointName").build();
         endpointGroup.setEndpoints(singleton(endpoint));
         proxy.setGroups(singleton(endpointGroup));
-        proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/context")));
+        proxy.setVirtualHosts(singletonList(new VirtualHost("/context")));
         api.setProxy(proxy);
         api.setVersion("1.0");
         api.setName("tag test basic");
@@ -350,7 +356,7 @@ public class ApiService_CreateWithDefinitionTest {
         Endpoint endpoint = Endpoint.builder().name("endpointName").build();
         endpointGroup.setEndpoints(singleton(endpoint));
         proxy.setGroups(singleton(endpointGroup));
-        proxy.setVirtualHosts(Collections.singletonList(new VirtualHost("/context")));
+        proxy.setVirtualHosts(singletonList(new VirtualHost("/context")));
         api.setProxy(proxy);
         api.setVersion("1.0");
         api.setName("tag test basic");
@@ -368,5 +374,41 @@ public class ApiService_CreateWithDefinitionTest {
     private JsonNode readDefinition(String resourcePath) throws Exception {
         InputStream resourceAsStream = getClass().getResourceAsStream(resourcePath);
         return MAPPER.readTree(resourceAsStream);
+    }
+
+    @Test(expected = EndpointNameAlreadyExistsException.class)
+    public void shouldNotCreateApiBecauseOfEndpointGroupAndInnerEndpointHaveSameName() throws TechnicalException {
+        Endpoint endpoint = Endpoint.builder().name("endpointGroupName").build();
+        EndpointGroup endpointGroup = EndpointGroup.builder().name("endpointGroupName").endpoints(singleton(endpoint)).build();
+        Proxy proxy = Proxy.builder().groups(singleton(endpointGroup)).virtualHosts(singletonList(new VirtualHost("/context"))).build();
+
+        UpdateApiEntity api = new UpdateApiEntity();
+        api.setProxy(proxy);
+        api.setVersion("1.0");
+        api.setName("tag test basic");
+        api.setDescription("tag test basic example");
+
+        apiService.createWithApiDefinition(GraviteeContext.getExecutionContext(), api, USERNAME, null);
+    }
+
+    @Test(expected = EndpointGroupNameAlreadyExistsException.class)
+    public void shouldNotCreateApiBecauseOfEndpointGroupAndEndpointOfAnotherGroupHaveSameName() throws TechnicalException {
+        Endpoint endpoint = Endpoint.builder().name("endpointName").build();
+        EndpointGroup endpointGroup = EndpointGroup.builder().name("endpointGroupName").endpoints(singleton(endpoint)).build();
+        Endpoint endpoint2 = Endpoint.builder().name("endpointGroupName").build();
+        EndpointGroup endpointGroup2 = EndpointGroup.builder().name("endpointName").endpoints(singleton(endpoint2)).build();
+        Proxy proxy = Proxy
+            .builder()
+            .groups(Set.of(endpointGroup, endpointGroup2))
+            .virtualHosts(singletonList(new VirtualHost("/context")))
+            .build();
+
+        UpdateApiEntity api = new UpdateApiEntity();
+        api.setProxy(proxy);
+        api.setVersion("1.0");
+        api.setName("tag test basic");
+        api.setDescription("tag test basic example");
+
+        apiService.createWithApiDefinition(GraviteeContext.getExecutionContext(), api, USERNAME, null);
     }
 }
