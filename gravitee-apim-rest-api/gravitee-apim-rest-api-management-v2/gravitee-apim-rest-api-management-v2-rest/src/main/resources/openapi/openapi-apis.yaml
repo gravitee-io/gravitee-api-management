@@ -435,6 +435,31 @@ paths:
                     description: API picture successfully deleted.
                 default:
                     $ref: "#/components/responses/Error"
+
+    /environments/{envId}/apis/{apiId}/metadata:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        get:
+            parameters:
+                - $ref: "#/components/parameters/pageParam"
+                - $ref: "#/components/parameters/perPageParam"
+                - $ref: "#/components/parameters/apiMetadataSourceParam"
+                - $ref: "#/components/parameters/apiMetadataSortByParam"
+            tags:
+                - APIs
+            summary: Get metadata pertaining to API
+            description: |-
+                Get the metadata that pertains to an API. Can be global and API metadata.
+
+                User must have the API_METADATA[READ] permission.
+            operationId: getApiMetadata
+            responses:
+                "200":
+                    $ref: "#/components/responses/MetadataResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+
     /environments/{envId}/apis/{apiId}/_export/definition:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -3027,7 +3052,7 @@ components:
                     type: boolean
                 response:
                     type: boolean
-        MetadataResponse:
+        ResponseMetadata:
             description: Generic object to handle additional information about an entity. Can also be used for pagination data.
             type: object
         MoreInformation:
@@ -5849,6 +5874,26 @@ components:
                     - -name
                     - paths
                     - -paths
+        apiMetadataSortByParam:
+            name: sortBy
+            in: query
+            required: false
+            description: |-
+                Possibility to sort API Metadata results by field.
+                Can be ascending or descending with minus '-' prefix.
+                By default, 'key' is applied.
+            schema:
+                type: string
+                example: key
+                enum:
+                    - key
+                    - -key
+                    - name
+                    - -name
+                    - format
+                    - -format
+                    - value
+                    - -value
         pageParam:
             name: page
             in: query
@@ -5879,6 +5924,17 @@ components:
                     type: string
                     enum:
                         - deploymentState
+        apiMetadataSourceParam:
+            name: source
+            in: query
+            description: Determines source of API Metadata (GLOBAL or API).
+            schema:
+                type: array
+                items:
+                    type: string
+                    enum:
+                        - GLOBAL
+                        - API
         from:
             name: from
             in: query
@@ -5996,7 +6052,7 @@ components:
                             links:
                                 $ref: "#/components/schemas/Links"
                             metadata:
-                                $ref: "#/components/schemas/MetadataResponse"
+                                $ref: "#/components/schemas/ResponseMetadata"
                             pagination:
                                 $ref: "#/components/schemas/Pagination"
         ImageResponse:
@@ -6006,6 +6062,24 @@ components:
                     schema:
                         type: string
                         format: binary
+
+        MetadataResponse:
+            description: Page of metadata
+            content:
+                application/json:
+                    schema:
+                        title: "MetadataResponse"
+                        properties:
+                            data:
+                                description: List of metadata.
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/Metadata"
+                            pagination:
+                                $ref: "#/components/schemas/Pagination"
+                            links:
+                                $ref: "#/components/schemas/Links"
+
         PlansResponse:
             description: Page of API plans
             content:
@@ -6088,7 +6162,7 @@ components:
                             links:
                                 $ref: "#/components/schemas/Links"
                             metadata:
-                                $ref: "#/components/schemas/MetadataResponse"
+                                $ref: "#/components/schemas/ResponseMetadata"
                             pagination:
                                 $ref: "#/components/schemas/Pagination"
         SchemaFormResponse:
