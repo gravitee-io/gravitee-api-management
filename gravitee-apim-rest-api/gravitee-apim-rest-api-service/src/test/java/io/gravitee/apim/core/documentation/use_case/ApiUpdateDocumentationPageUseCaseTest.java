@@ -29,6 +29,7 @@ import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomain
 import io.gravitee.apim.core.documentation.domain_service.DocumentationValidationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.HomepageDomainService;
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
+import io.gravitee.apim.core.documentation.exception.InvalidPageContentException;
 import io.gravitee.apim.core.documentation.exception.InvalidPageNameException;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.exception.ValidationDomainException;
@@ -84,6 +85,41 @@ class ApiUpdateDocumentationPageUseCaseTest {
         .visibility(Page.Visibility.PUBLIC)
         .build();
 
+    private static final Page OLD_SWAGGER_PAGE = Page
+        .builder()
+        .id(PAGE_ID)
+        .referenceType(Page.ReferenceType.API)
+        .referenceId(API_ID)
+        .parentId(PARENT_ID)
+        .name("old page")
+        .type(Page.Type.SWAGGER)
+        .order(2)
+        .createdAt(DATE)
+        .updatedAt(DATE)
+        .content("openapi: 3.0.0")
+        .crossId("cross id")
+        .published(true)
+        .homepage(true)
+        .visibility(Page.Visibility.PUBLIC)
+        .build();
+    private static final Page OLD_ASYNC_API_PAGE = Page
+        .builder()
+        .id(PAGE_ID)
+        .referenceType(Page.ReferenceType.API)
+        .referenceId(API_ID)
+        .parentId(PARENT_ID)
+        .name("old page")
+        .type(Page.Type.ASYNCAPI)
+        .order(2)
+        .createdAt(DATE)
+        .updatedAt(DATE)
+        .content("old content")
+        .crossId("cross id")
+        .published(true)
+        .homepage(true)
+        .visibility(Page.Visibility.PUBLIC)
+        .build();
+
     private static final Page OLD_FOLDER_PAGE = Page
         .builder()
         .id(PAGE_ID)
@@ -111,7 +147,8 @@ class ApiUpdateDocumentationPageUseCaseTest {
     private final DocumentationValidationDomainService documentationValidationDomainService = new DocumentationValidationDomainService(
         new HtmlSanitizerImpl(),
         new NoopTemplateResolverDomainService(),
-        apiCrudService
+        apiCrudService,
+        new NoopSwaggerOpenApiResolver()
     );
     AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
@@ -432,6 +469,562 @@ class ApiUpdateDocumentationPageUseCaseTest {
                             .content("new content")
                             .name(name)
                             .homepage(OLD_MARKDOWN_PAGE.isHomepage())
+                            .auditInfo(AUDIT_INFO)
+                            .build()
+                    )
+                )
+                .isInstanceOf(InvalidPageNameException.class);
+        }
+    }
+
+    @Nested
+    class UpdateSwaggerTests {
+
+        String newContent = "openapi: 3.0.0\n" + "info:\n" + "  title: Sample API";
+
+        @Test
+        void should_update_markdown() {
+            initApiServices(List.of(Api.builder().id(API_ID).build()));
+            initPageServices(List.of(PARENT_FOLDER, OLD_SWAGGER_PAGE));
+
+            var res = apiUpdateDocumentationPageUsecase.execute(
+                ApiUpdateDocumentationPageUseCase.Input
+                    .builder()
+                    .apiId(API_ID)
+                    .pageId(PAGE_ID)
+                    .order(24)
+                    .visibility(Page.Visibility.PRIVATE)
+                    .content(newContent)
+                    .name("new name")
+                    .auditInfo(AUDIT_INFO)
+                    .build()
+            );
+
+            assertThat(res.page())
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", PAGE_ID)
+                .hasFieldOrPropertyWithValue("name", "new name")
+                .hasFieldOrPropertyWithValue("type", Page.Type.SWAGGER)
+                .hasFieldOrPropertyWithValue("content", newContent)
+                .hasFieldOrPropertyWithValue("homepage", false)
+                .hasFieldOrPropertyWithValue("visibility", Page.Visibility.PRIVATE)
+                .hasFieldOrPropertyWithValue("parentId", "parent-id")
+                .hasFieldOrPropertyWithValue("order", 24)
+                .hasFieldOrPropertyWithValue("crossId", "cross id")
+                .hasFieldOrPropertyWithValue("parentId", PARENT_ID)
+                .hasFieldOrPropertyWithValue("published", true)
+                .hasFieldOrPropertyWithValue("createdAt", DATE);
+
+            assertThat(res.page().getUpdatedAt()).isNotEqualTo(DATE);
+        }
+
+        @Test
+        void should_create_audit() {
+            initApiServices(List.of(Api.builder().id(API_ID).build()));
+            initPageServices(List.of(PARENT_FOLDER, OLD_SWAGGER_PAGE));
+
+            apiUpdateDocumentationPageUsecase.execute(
+                ApiUpdateDocumentationPageUseCase.Input
+                    .builder()
+                    .apiId(API_ID)
+                    .pageId(PAGE_ID)
+                    .order(24)
+                    .visibility(Page.Visibility.PRIVATE)
+                    .content(newContent)
+                    .name("new name")
+                    .auditInfo(AUDIT_INFO)
+                    .build()
+            );
+
+            var audit = auditCrudService.storage().get(0);
+            assertThat(audit)
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("referenceId", API_ID)
+                .hasFieldOrPropertyWithValue("event", "PAGE_UPDATED");
+        }
+
+        @Test
+        void should_create_a_page_revision_if_name_different() {
+            initApiServices(List.of(Api.builder().id(API_ID).build()));
+            initPageServices(List.of(PARENT_FOLDER, OLD_SWAGGER_PAGE));
+
+            apiUpdateDocumentationPageUsecase.execute(
+                ApiUpdateDocumentationPageUseCase.Input
+                    .builder()
+                    .apiId(API_ID)
+                    .pageId(PAGE_ID)
+                    .order(OLD_SWAGGER_PAGE.getOrder())
+                    .visibility(OLD_SWAGGER_PAGE.getVisibility())
+                    .content(OLD_SWAGGER_PAGE.getContent())
+                    .name("new name")
+                    .auditInfo(AUDIT_INFO)
+                    .build()
+            );
+
+            var pageRevision = pageRevisionCrudService.storage().get(0);
+            assertThat(pageRevision)
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("pageId", PAGE_ID)
+                .hasFieldOrPropertyWithValue("contributor", null)
+                .hasFieldOrPropertyWithValue("name", "new name")
+                .hasFieldOrPropertyWithValue("content", "openapi: 3.0.0");
+        }
+
+        @Test
+        void should_create_a_page_revision_if_content_different() {
+            initApiServices(List.of(Api.builder().id(API_ID).build()));
+            initPageServices(List.of(PARENT_FOLDER, OLD_SWAGGER_PAGE));
+
+            apiUpdateDocumentationPageUsecase.execute(
+                ApiUpdateDocumentationPageUseCase.Input
+                    .builder()
+                    .apiId(API_ID)
+                    .pageId(PAGE_ID)
+                    .order(OLD_SWAGGER_PAGE.getOrder())
+                    .visibility(OLD_SWAGGER_PAGE.getVisibility())
+                    .content(newContent)
+                    .name(OLD_SWAGGER_PAGE.getName())
+                    .auditInfo(AUDIT_INFO)
+                    .build()
+            );
+
+            var pageRevision = pageRevisionCrudService.storage().get(0);
+            assertThat(pageRevision)
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("pageId", PAGE_ID)
+                .hasFieldOrPropertyWithValue("contributor", null)
+                .hasFieldOrPropertyWithValue("name", "old page")
+                .hasFieldOrPropertyWithValue("content", newContent);
+        }
+
+        @Test
+        void should_not_create_a_page_revision_if_content_and_name_the_same() {
+            initApiServices(List.of(Api.builder().id(API_ID).build()));
+            initPageServices(List.of(PARENT_FOLDER, OLD_SWAGGER_PAGE));
+
+            apiUpdateDocumentationPageUsecase.execute(
+                ApiUpdateDocumentationPageUseCase.Input
+                    .builder()
+                    .apiId(API_ID)
+                    .pageId(PAGE_ID)
+                    .order(24)
+                    .visibility(OLD_SWAGGER_PAGE.getVisibility())
+                    .content(OLD_SWAGGER_PAGE.getContent())
+                    .name(OLD_SWAGGER_PAGE.getName())
+                    .auditInfo(AUDIT_INFO)
+                    .build()
+            );
+
+            assertThat(pageRevisionCrudService.storage()).hasSize(0);
+        }
+
+        @Test
+        void should_change_homepage_to_new_page() {
+            initApiServices(List.of(Api.builder().id(API_ID).build()));
+
+            final String EXISTING_PAGE_ID = "existing-homepage-id";
+            var existingHomepage = Page
+                .builder()
+                .id(EXISTING_PAGE_ID)
+                .referenceType(Page.ReferenceType.API)
+                .referenceId(API_ID)
+                .name("existing homepage")
+                .homepage(true)
+                .build();
+
+            initPageServices(List.of(OLD_SWAGGER_PAGE.toBuilder().homepage(false).build(), existingHomepage));
+
+            var res = apiUpdateDocumentationPageUsecase.execute(
+                ApiUpdateDocumentationPageUseCase.Input
+                    .builder()
+                    .apiId(API_ID)
+                    .pageId(PAGE_ID)
+                    .order(OLD_SWAGGER_PAGE.getOrder())
+                    .visibility(OLD_SWAGGER_PAGE.getVisibility())
+                    .content(OLD_SWAGGER_PAGE.getContent())
+                    .name(OLD_SWAGGER_PAGE.getName())
+                    .homepage(true)
+                    .auditInfo(AUDIT_INFO)
+                    .build()
+            );
+
+            assertThat(res.page()).isNotNull().hasFieldOrPropertyWithValue("homepage", true);
+
+            var formerHomepage = pageCrudService.storage().stream().filter(p -> p.getId().equals(EXISTING_PAGE_ID)).toList().get(0);
+            assertThat(formerHomepage).isNotNull().hasFieldOrPropertyWithValue("homepage", false);
+        }
+
+        @Test
+        void should_throw_error_if_content_invalid() {
+            initApiServices(List.of(Api.builder().id(API_ID).build()));
+            initPageServices(List.of(PARENT_FOLDER, OLD_SWAGGER_PAGE));
+            assertThatThrownBy(() ->
+                    apiUpdateDocumentationPageUsecase.execute(
+                        ApiUpdateDocumentationPageUseCase.Input
+                            .builder()
+                            .apiId(API_ID)
+                            .pageId(PAGE_ID)
+                            .order(OLD_SWAGGER_PAGE.getOrder())
+                            .visibility(OLD_SWAGGER_PAGE.getVisibility())
+                            .content(getNotSafe())
+                            .name(OLD_SWAGGER_PAGE.getName())
+                            .homepage(OLD_SWAGGER_PAGE.isHomepage())
+                            .auditInfo(AUDIT_INFO)
+                            .build()
+                    )
+                )
+                .isInstanceOf(InvalidPageContentException.class);
+        }
+
+        @Test
+        void should_throw_error_if_duplicate_name() {
+            initApiServices(List.of(Api.builder().id(API_ID).build()));
+            var duplicateName = Page
+                .builder()
+                .id(PAGE_ID)
+                .referenceType(Page.ReferenceType.API)
+                .referenceId(API_ID)
+                .name("new page")
+                .type(Page.Type.SWAGGER)
+                .build();
+            initPageServices(List.of(OLD_SWAGGER_PAGE.toBuilder().parentId(null).build(), duplicateName));
+            assertThatThrownBy(() ->
+                    apiUpdateDocumentationPageUsecase.execute(
+                        ApiUpdateDocumentationPageUseCase.Input
+                            .builder()
+                            .apiId(API_ID)
+                            .pageId(PAGE_ID)
+                            .order(OLD_SWAGGER_PAGE.getOrder())
+                            .visibility(OLD_SWAGGER_PAGE.getVisibility())
+                            .content(newContent)
+                            .name("new page")
+                            .homepage(OLD_SWAGGER_PAGE.isHomepage())
+                            .auditInfo(AUDIT_INFO)
+                            .build()
+                    )
+                )
+                .isInstanceOf(ValidationDomainException.class);
+        }
+
+        @Test
+        void should_throw_error_if_api_not_found() {
+            assertThatThrownBy(() ->
+                    apiUpdateDocumentationPageUsecase.execute(
+                        ApiUpdateDocumentationPageUseCase.Input
+                            .builder()
+                            .apiId("unknown-api-id")
+                            .pageId(PAGE_ID)
+                            .auditInfo(AUDIT_INFO)
+                            .build()
+                    )
+                )
+                .isInstanceOf(ApiNotFoundException.class);
+        }
+
+        @Test
+        void should_throw_error_if_page_not_found() {
+            initApiServices(List.of(Api.builder().id(API_ID).build()));
+
+            assertThatThrownBy(() ->
+                    apiUpdateDocumentationPageUsecase.execute(
+                        ApiUpdateDocumentationPageUseCase.Input.builder().apiId(API_ID).pageId(PAGE_ID).auditInfo(AUDIT_INFO).build()
+                    )
+                )
+                .isInstanceOf(PageNotFoundException.class);
+        }
+
+        @Test
+        void should_throw_error_if_page_not_associated_to_api() {
+            initApiServices(List.of(Api.builder().id(API_ID).build()));
+            initPageServices(List.of(OLD_SWAGGER_PAGE.toBuilder().referenceId("other api").build()));
+
+            assertThatThrownBy(() ->
+                    apiUpdateDocumentationPageUsecase.execute(
+                        ApiUpdateDocumentationPageUseCase.Input.builder().apiId(API_ID).pageId(PAGE_ID).auditInfo(AUDIT_INFO).build()
+                    )
+                )
+                .isInstanceOf(ValidationDomainException.class);
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "  " })
+        @NullAndEmptySource
+        void should_throw_error_if_page_name_is_null_or_empty(String name) {
+            initApiServices(List.of(Api.builder().id(API_ID).build()));
+            initPageServices(List.of(PARENT_FOLDER, OLD_SWAGGER_PAGE));
+
+            assertThatThrownBy(() ->
+                    apiUpdateDocumentationPageUsecase.execute(
+                        ApiUpdateDocumentationPageUseCase.Input
+                            .builder()
+                            .apiId(API_ID)
+                            .pageId(PAGE_ID)
+                            .order(OLD_SWAGGER_PAGE.getOrder())
+                            .visibility(OLD_SWAGGER_PAGE.getVisibility())
+                            .content(newContent)
+                            .name(name)
+                            .homepage(OLD_SWAGGER_PAGE.isHomepage())
+                            .auditInfo(AUDIT_INFO)
+                            .build()
+                    )
+                )
+                .isInstanceOf(InvalidPageNameException.class);
+        }
+    }
+
+    @Nested
+    class UpdateAsyncApiTests {
+
+        @Test
+        void should_update_markdown() {
+            initApiServices(List.of(Api.builder().id(API_ID).build()));
+            initPageServices(List.of(PARENT_FOLDER, OLD_ASYNC_API_PAGE));
+
+            var res = apiUpdateDocumentationPageUsecase.execute(
+                ApiUpdateDocumentationPageUseCase.Input
+                    .builder()
+                    .apiId(API_ID)
+                    .pageId(PAGE_ID)
+                    .order(24)
+                    .visibility(Page.Visibility.PRIVATE)
+                    .content("new content")
+                    .name("new name   ")
+                    .auditInfo(AUDIT_INFO)
+                    .build()
+            );
+
+            assertThat(res.page())
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", PAGE_ID)
+                .hasFieldOrPropertyWithValue("name", "new name")
+                .hasFieldOrPropertyWithValue("type", Page.Type.ASYNCAPI)
+                .hasFieldOrPropertyWithValue("content", "new content")
+                .hasFieldOrPropertyWithValue("homepage", false)
+                .hasFieldOrPropertyWithValue("visibility", Page.Visibility.PRIVATE)
+                .hasFieldOrPropertyWithValue("parentId", "parent-id")
+                .hasFieldOrPropertyWithValue("order", 24)
+                .hasFieldOrPropertyWithValue("crossId", "cross id")
+                .hasFieldOrPropertyWithValue("parentId", PARENT_ID)
+                .hasFieldOrPropertyWithValue("published", true)
+                .hasFieldOrPropertyWithValue("createdAt", DATE);
+
+            assertThat(res.page().getUpdatedAt()).isNotEqualTo(DATE);
+        }
+
+        @Test
+        void should_create_audit() {
+            initApiServices(List.of(Api.builder().id(API_ID).build()));
+            initPageServices(List.of(PARENT_FOLDER, OLD_ASYNC_API_PAGE));
+
+            apiUpdateDocumentationPageUsecase.execute(
+                ApiUpdateDocumentationPageUseCase.Input
+                    .builder()
+                    .apiId(API_ID)
+                    .pageId(PAGE_ID)
+                    .order(24)
+                    .visibility(Page.Visibility.PRIVATE)
+                    .content("new content")
+                    .name("new name")
+                    .auditInfo(AUDIT_INFO)
+                    .build()
+            );
+
+            var audit = auditCrudService.storage().get(0);
+            assertThat(audit)
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("referenceId", API_ID)
+                .hasFieldOrPropertyWithValue("event", "PAGE_UPDATED");
+        }
+
+        @Test
+        void should_not_create_a_page_revision_if_name_different() {
+            initApiServices(List.of(Api.builder().id(API_ID).build()));
+            initPageServices(List.of(PARENT_FOLDER, OLD_ASYNC_API_PAGE));
+
+            apiUpdateDocumentationPageUsecase.execute(
+                ApiUpdateDocumentationPageUseCase.Input
+                    .builder()
+                    .apiId(API_ID)
+                    .pageId(PAGE_ID)
+                    .order(OLD_ASYNC_API_PAGE.getOrder())
+                    .visibility(OLD_ASYNC_API_PAGE.getVisibility())
+                    .content(OLD_ASYNC_API_PAGE.getContent())
+                    .name("new name")
+                    .auditInfo(AUDIT_INFO)
+                    .build()
+            );
+
+            var pageRevision = pageRevisionCrudService.storage();
+            assertThat(pageRevision).isEmpty();
+        }
+
+        @Test
+        void should_not_create_a_page_revision_if_content_different() {
+            initApiServices(List.of(Api.builder().id(API_ID).build()));
+            initPageServices(List.of(PARENT_FOLDER, OLD_ASYNC_API_PAGE));
+
+            apiUpdateDocumentationPageUsecase.execute(
+                ApiUpdateDocumentationPageUseCase.Input
+                    .builder()
+                    .apiId(API_ID)
+                    .pageId(PAGE_ID)
+                    .order(OLD_ASYNC_API_PAGE.getOrder())
+                    .visibility(OLD_ASYNC_API_PAGE.getVisibility())
+                    .content("new content")
+                    .name(OLD_ASYNC_API_PAGE.getName())
+                    .auditInfo(AUDIT_INFO)
+                    .build()
+            );
+
+            var pageRevision = pageRevisionCrudService.storage();
+            assertThat(pageRevision).isEmpty();
+        }
+
+        @Test
+        void should_not_create_a_page_revision_if_content_and_name_the_same() {
+            initApiServices(List.of(Api.builder().id(API_ID).build()));
+            initPageServices(List.of(PARENT_FOLDER, OLD_ASYNC_API_PAGE));
+
+            apiUpdateDocumentationPageUsecase.execute(
+                ApiUpdateDocumentationPageUseCase.Input
+                    .builder()
+                    .apiId(API_ID)
+                    .pageId(PAGE_ID)
+                    .order(24)
+                    .visibility(OLD_ASYNC_API_PAGE.getVisibility())
+                    .content(OLD_ASYNC_API_PAGE.getContent())
+                    .name(OLD_ASYNC_API_PAGE.getName())
+                    .auditInfo(AUDIT_INFO)
+                    .build()
+            );
+
+            assertThat(pageRevisionCrudService.storage()).hasSize(0);
+        }
+
+        @Test
+        void should_change_homepage_to_new_page() {
+            initApiServices(List.of(Api.builder().id(API_ID).build()));
+
+            final String EXISTING_PAGE_ID = "existing-homepage-id";
+            var existingHomepage = Page
+                .builder()
+                .id(EXISTING_PAGE_ID)
+                .referenceType(Page.ReferenceType.API)
+                .referenceId(API_ID)
+                .name("existing homepage")
+                .homepage(true)
+                .build();
+
+            initPageServices(List.of(OLD_ASYNC_API_PAGE.toBuilder().homepage(false).build(), existingHomepage));
+
+            var res = apiUpdateDocumentationPageUsecase.execute(
+                ApiUpdateDocumentationPageUseCase.Input
+                    .builder()
+                    .apiId(API_ID)
+                    .pageId(PAGE_ID)
+                    .order(OLD_ASYNC_API_PAGE.getOrder())
+                    .visibility(OLD_ASYNC_API_PAGE.getVisibility())
+                    .content(OLD_ASYNC_API_PAGE.getContent())
+                    .name(OLD_ASYNC_API_PAGE.getName())
+                    .homepage(true)
+                    .auditInfo(AUDIT_INFO)
+                    .build()
+            );
+
+            assertThat(res.page()).isNotNull().hasFieldOrPropertyWithValue("homepage", true);
+
+            var formerHomepage = pageCrudService.storage().stream().filter(p -> p.getId().equals(EXISTING_PAGE_ID)).toList().get(0);
+            assertThat(formerHomepage).isNotNull().hasFieldOrPropertyWithValue("homepage", false);
+        }
+
+        @Test
+        void should_throw_error_if_duplicate_name() {
+            initApiServices(List.of(Api.builder().id(API_ID).build()));
+            var duplicateName = Page
+                .builder()
+                .id(PAGE_ID)
+                .referenceType(Page.ReferenceType.API)
+                .referenceId(API_ID)
+                .name("new page")
+                .type(Page.Type.ASYNCAPI)
+                .build();
+            initPageServices(List.of(OLD_ASYNC_API_PAGE.toBuilder().parentId(null).build(), duplicateName));
+            assertThatThrownBy(() ->
+                    apiUpdateDocumentationPageUsecase.execute(
+                        ApiUpdateDocumentationPageUseCase.Input
+                            .builder()
+                            .apiId(API_ID)
+                            .pageId(PAGE_ID)
+                            .order(OLD_ASYNC_API_PAGE.getOrder())
+                            .visibility(OLD_ASYNC_API_PAGE.getVisibility())
+                            .content("new content")
+                            .name("new page")
+                            .homepage(OLD_ASYNC_API_PAGE.isHomepage())
+                            .auditInfo(AUDIT_INFO)
+                            .build()
+                    )
+                )
+                .isInstanceOf(ValidationDomainException.class);
+        }
+
+        @Test
+        void should_throw_error_if_api_not_found() {
+            assertThatThrownBy(() ->
+                    apiUpdateDocumentationPageUsecase.execute(
+                        ApiUpdateDocumentationPageUseCase.Input
+                            .builder()
+                            .apiId("unknown-api-id")
+                            .pageId(PAGE_ID)
+                            .auditInfo(AUDIT_INFO)
+                            .build()
+                    )
+                )
+                .isInstanceOf(ApiNotFoundException.class);
+        }
+
+        @Test
+        void should_throw_error_if_page_not_found() {
+            initApiServices(List.of(Api.builder().id(API_ID).build()));
+
+            assertThatThrownBy(() ->
+                    apiUpdateDocumentationPageUsecase.execute(
+                        ApiUpdateDocumentationPageUseCase.Input.builder().apiId(API_ID).pageId(PAGE_ID).auditInfo(AUDIT_INFO).build()
+                    )
+                )
+                .isInstanceOf(PageNotFoundException.class);
+        }
+
+        @Test
+        void should_throw_error_if_page_not_associated_to_api() {
+            initApiServices(List.of(Api.builder().id(API_ID).build()));
+            initPageServices(List.of(OLD_ASYNC_API_PAGE.toBuilder().referenceId("other api").build()));
+
+            assertThatThrownBy(() ->
+                    apiUpdateDocumentationPageUsecase.execute(
+                        ApiUpdateDocumentationPageUseCase.Input.builder().apiId(API_ID).pageId(PAGE_ID).auditInfo(AUDIT_INFO).build()
+                    )
+                )
+                .isInstanceOf(ValidationDomainException.class);
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "  " })
+        @NullAndEmptySource
+        void should_throw_error_if_page_name_is_null_or_empty(String name) {
+            initApiServices(List.of(Api.builder().id(API_ID).build()));
+            initPageServices(List.of(PARENT_FOLDER, OLD_ASYNC_API_PAGE));
+
+            assertThatThrownBy(() ->
+                    apiUpdateDocumentationPageUsecase.execute(
+                        ApiUpdateDocumentationPageUseCase.Input
+                            .builder()
+                            .apiId(API_ID)
+                            .pageId(PAGE_ID)
+                            .order(OLD_ASYNC_API_PAGE.getOrder())
+                            .visibility(OLD_ASYNC_API_PAGE.getVisibility())
+                            .content("new content")
+                            .name(name)
+                            .homepage(OLD_ASYNC_API_PAGE.isHomepage())
                             .auditInfo(AUDIT_INFO)
                             .build()
                     )

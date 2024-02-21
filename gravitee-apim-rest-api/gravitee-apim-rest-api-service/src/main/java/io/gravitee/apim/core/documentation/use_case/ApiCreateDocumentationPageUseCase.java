@@ -42,7 +42,7 @@ public class ApiCreateDocumentationPageUseCase {
     private final DocumentationValidationDomainService documentationValidationDomainService;
 
     public Output execute(Input input) {
-        var pageToCreate = input.page;
+        Page pageToCreate = input.page;
         pageToCreate.setId(UuidString.generateRandom());
         pageToCreate.setCreatedAt(new Date());
         pageToCreate.setUpdatedAt(pageToCreate.getCreatedAt());
@@ -50,6 +50,8 @@ public class ApiCreateDocumentationPageUseCase {
 
         if (pageToCreate.isMarkdown()) {
             this.documentationValidationDomainService.validateContent(pageToCreate.getContent(), pageToCreate.getReferenceId());
+        } else if (pageToCreate.isSwagger()) {
+            this.documentationValidationDomainService.parseOpenApiContent(pageToCreate.getContent());
         }
 
         this.validateParentId(pageToCreate);
@@ -57,7 +59,7 @@ public class ApiCreateDocumentationPageUseCase {
 
         this.calculateOrder(pageToCreate);
 
-        var createdPage = createApiDocumentationDomainService.createPage(pageToCreate, input.auditInfo());
+        Page createdPage = createApiDocumentationDomainService.createPage(pageToCreate, input.auditInfo());
 
         if (createdPage.isHomepage()) {
             this.homepageDomainService.setPreviousHomepageToFalse(createdPage.getReferenceId(), createdPage.getId());

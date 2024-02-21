@@ -52,7 +52,7 @@ public class UpdateApiDocumentationDomainService {
     public Page updatePage(Page page, Page oldPage, AuditInfo auditInfo) {
         var updatedPage = pageCrudService.updateDocumentationPage(page);
 
-        if (updatedPage.isMarkdown()) {
+        if (updatedPage.isSwaggerOrMarkdown()) {
             if (
                 !Objects.equals(updatedPage.getName(), oldPage.getName()) || !Objects.equals(updatedPage.getContent(), oldPage.getContent())
             ) {

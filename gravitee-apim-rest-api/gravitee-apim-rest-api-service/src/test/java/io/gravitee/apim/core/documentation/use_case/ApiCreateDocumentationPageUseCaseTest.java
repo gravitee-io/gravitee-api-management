@@ -28,6 +28,7 @@ import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomain
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.DocumentationValidationDomainService;
 import io.gravitee.apim.core.documentation.domain_service.HomepageDomainService;
+import io.gravitee.apim.core.documentation.exception.InvalidPageContentException;
 import io.gravitee.apim.core.documentation.exception.InvalidPageNameException;
 import io.gravitee.apim.core.documentation.exception.InvalidPageParentException;
 import io.gravitee.apim.core.documentation.model.Page;
@@ -64,7 +65,8 @@ class ApiCreateDocumentationPageUseCaseTest {
     private final DocumentationValidationDomainService documentationValidationDomainService = new DocumentationValidationDomainService(
         new HtmlSanitizerImpl(),
         new NoopTemplateResolverDomainService(),
-        apiCrudService
+        apiCrudService,
+        new NoopSwaggerOpenApiResolver()
     );
     AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
@@ -503,6 +505,793 @@ class ApiCreateDocumentationPageUseCaseTest {
                                     .referenceType(Page.ReferenceType.API)
                                     .referenceId("api-id")
                                     .type(Page.Type.MARKDOWN)
+                                    .parentId(PARENT_ID)
+                                    .name("sub-page")
+                                    .visibility(Page.Visibility.PRIVATE)
+                                    .build()
+                            )
+                            .auditInfo(AUDIT_INFO)
+                            .build()
+                    )
+                )
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessage("Name already exists with the same parent and type: sub-page");
+        }
+    }
+
+    @Nested
+    class CreateSwaggerTests {
+
+        @Test
+        void should_create_swagger() {
+            var parentPage = Page
+                .builder()
+                .id(PARENT_ID)
+                .referenceType(Page.ReferenceType.API)
+                .referenceId("api-id")
+                .parentId("")
+                .name("parent")
+                .type(Page.Type.FOLDER)
+                .build();
+            pageCrudService.initWith(List.of(parentPage));
+
+            var res = apiCreateDocumentationPageUsecase.execute(
+                ApiCreateDocumentationPageUseCase.Input
+                    .builder()
+                    .page(
+                        Page
+                            .builder()
+                            .type(Page.Type.SWAGGER)
+                            .name("new page ")
+                            .content("openapi: 3.0.0")
+                            .homepage(false)
+                            .visibility(Page.Visibility.PRIVATE)
+                            .parentId(PARENT_ID)
+                            .order(1)
+                            .referenceType(Page.ReferenceType.API)
+                            .referenceId(API_ID)
+                            .build()
+                    )
+                    .auditInfo(AUDIT_INFO)
+                    .build()
+            );
+
+            assertThat(res.createdPage())
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", PAGE_ID)
+                .hasFieldOrPropertyWithValue("name", "new page")
+                .hasFieldOrPropertyWithValue("type", Page.Type.SWAGGER)
+                .hasFieldOrPropertyWithValue("content", "openapi: 3.0.0")
+                .hasFieldOrPropertyWithValue("homepage", false)
+                .hasFieldOrPropertyWithValue("visibility", Page.Visibility.PRIVATE)
+                .hasFieldOrPropertyWithValue("parentId", "parent-id")
+                .hasFieldOrPropertyWithValue("order", 0);
+
+            var savedPage = pageCrudService
+                .storage()
+                .stream()
+                .filter(page -> page.getId().equals(res.createdPage().getId()))
+                .toList()
+                .get(0);
+            assertThat(savedPage).isEqualTo(res.createdPage());
+        }
+
+        @Test
+        void should_create_audit() {
+            apiCreateDocumentationPageUsecase.execute(
+                ApiCreateDocumentationPageUseCase.Input
+                    .builder()
+                    .page(
+                        Page
+                            .builder()
+                            .type(Page.Type.SWAGGER)
+                            .name("new page")
+                            .content("openapi: 3.0.0")
+                            .homepage(false)
+                            .visibility(Page.Visibility.PRIVATE)
+                            .parentId(PARENT_ID)
+                            .order(1)
+                            .referenceType(Page.ReferenceType.API)
+                            .referenceId(API_ID)
+                            .build()
+                    )
+                    .auditInfo(AUDIT_INFO)
+                    .build()
+            );
+
+            var audit = auditCrudService.storage().get(0);
+            assertThat(audit)
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("referenceId", "api-id")
+                .hasFieldOrPropertyWithValue("event", "PAGE_CREATED");
+        }
+
+        @Test
+        void should_create_a_page_revision() {
+            apiCreateDocumentationPageUsecase.execute(
+                ApiCreateDocumentationPageUseCase.Input
+                    .builder()
+                    .page(
+                        Page
+                            .builder()
+                            .type(Page.Type.SWAGGER)
+                            .name("new page")
+                            .content("openapi: 3.0.0")
+                            .homepage(false)
+                            .visibility(Page.Visibility.PRIVATE)
+                            .parentId(PARENT_ID)
+                            .order(1)
+                            .referenceType(Page.ReferenceType.API)
+                            .referenceId(API_ID)
+                            .build()
+                    )
+                    .auditInfo(AUDIT_INFO)
+                    .build()
+            );
+
+            var pageRevision = pageRevisionCrudService.storage().get(0);
+            assertThat(pageRevision)
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("pageId", PAGE_ID)
+                .hasFieldOrPropertyWithValue("contributor", null)
+                .hasFieldOrPropertyWithValue("name", "new page")
+                .hasFieldOrPropertyWithValue("content", "openapi: 3.0.0");
+        }
+
+        @Test
+        void should_change_homepage_to_new_page() {
+            final String EXISTING_PAGE_ID = "existing-homepage-id";
+            var existingHomepage = Page
+                .builder()
+                .id(EXISTING_PAGE_ID)
+                .referenceType(Page.ReferenceType.API)
+                .referenceId(API_ID)
+                .parentId("")
+                .name("existing homepage")
+                .homepage(true)
+                .build();
+            pageCrudService.initWith(List.of(existingHomepage));
+            pageQueryService.initWith(List.of(existingHomepage));
+
+            var res = apiCreateDocumentationPageUsecase.execute(
+                ApiCreateDocumentationPageUseCase.Input
+                    .builder()
+                    .page(
+                        Page
+                            .builder()
+                            .type(Page.Type.SWAGGER)
+                            .name("new page")
+                            .content("openapi: 3.0.0")
+                            .homepage(true)
+                            .visibility(Page.Visibility.PRIVATE)
+                            .parentId("")
+                            .order(1)
+                            .referenceType(Page.ReferenceType.API)
+                            .referenceId(API_ID)
+                            .build()
+                    )
+                    .auditInfo(AUDIT_INFO)
+                    .build()
+            );
+
+            assertThat(res.createdPage()).isNotNull().hasFieldOrPropertyWithValue("homepage", true);
+
+            var formerHomepage = pageCrudService.storage().stream().filter(p -> p.getId().equals(EXISTING_PAGE_ID)).toList().get(0);
+            assertThat(formerHomepage).isNotNull().hasFieldOrPropertyWithValue("homepage", false);
+        }
+
+        @Test
+        void should_give_new_markdown_highest_count() {
+            final String EXISTING_PAGE_ID = "existing-page-id";
+            final String PARENT_ID = "123";
+            var existingParent = Page
+                .builder()
+                .id(PARENT_ID)
+                .type(Page.Type.FOLDER)
+                .referenceType(Page.ReferenceType.API)
+                .referenceId(API_ID)
+                .name("existing parent")
+                .order(1)
+                .build();
+
+            var existingPage = Page
+                .builder()
+                .id(EXISTING_PAGE_ID)
+                .referenceType(Page.ReferenceType.API)
+                .referenceId(API_ID)
+                .parentId(PARENT_ID)
+                .name("existing page")
+                .homepage(true)
+                .order(99)
+                .build();
+            pageCrudService.initWith(List.of(existingPage, existingParent));
+            pageQueryService.initWith(List.of(existingPage, existingParent));
+
+            var res = apiCreateDocumentationPageUsecase.execute(
+                ApiCreateDocumentationPageUseCase.Input
+                    .builder()
+                    .page(
+                        Page
+                            .builder()
+                            .type(Page.Type.SWAGGER)
+                            .name("new page")
+                            .content("openapi: 3.0.0")
+                            .visibility(Page.Visibility.PRIVATE)
+                            .parentId(PARENT_ID)
+                            .referenceType(Page.ReferenceType.API)
+                            .referenceId(API_ID)
+                            .build()
+                    )
+                    .auditInfo(AUDIT_INFO)
+                    .build()
+            );
+
+            assertThat(res.createdPage()).isNotNull().hasFieldOrPropertyWithValue("order", 100);
+        }
+
+        @Test
+        void should_not_add_missing_parent() {
+            var res = apiCreateDocumentationPageUsecase.execute(
+                ApiCreateDocumentationPageUseCase.Input
+                    .builder()
+                    .page(
+                        Page
+                            .builder()
+                            .type(Page.Type.SWAGGER)
+                            .name("new page")
+                            .content("openapi: 3.0.0")
+                            .homepage(false)
+                            .visibility(Page.Visibility.PRIVATE)
+                            .parentId(PARENT_ID)
+                            .order(1)
+                            .referenceType(Page.ReferenceType.API)
+                            .referenceId(API_ID)
+                            .build()
+                    )
+                    .auditInfo(AUDIT_INFO)
+                    .build()
+            );
+
+            assertThat(res.createdPage()).isNotNull().hasFieldOrPropertyWithValue("parentId", null);
+        }
+
+        @Test
+        void should_ignore_empty_parent_id() {
+            var res = apiCreateDocumentationPageUsecase.execute(
+                ApiCreateDocumentationPageUseCase.Input
+                    .builder()
+                    .page(
+                        Page
+                            .builder()
+                            .type(Page.Type.SWAGGER)
+                            .name("new page")
+                            .content("openapi: 3.0.0")
+                            .homepage(false)
+                            .visibility(Page.Visibility.PRIVATE)
+                            .parentId("")
+                            .order(1)
+                            .referenceType(Page.ReferenceType.API)
+                            .referenceId(API_ID)
+                            .build()
+                    )
+                    .auditInfo(AUDIT_INFO)
+                    .build()
+            );
+
+            assertThat(res.createdPage().getParentId()).isNull();
+        }
+
+        @Test
+        void should_throw_error_if_content_invalid() {
+            assertThatThrownBy(() ->
+                    apiCreateDocumentationPageUsecase.execute(
+                        ApiCreateDocumentationPageUseCase.Input
+                            .builder()
+                            .page(
+                                Page
+                                    .builder()
+                                    .type(Page.Type.SWAGGER)
+                                    .name("new page")
+                                    .content(getNotSafe())
+                                    .homepage(false)
+                                    .visibility(Page.Visibility.PRIVATE)
+                                    .parentId(PARENT_ID)
+                                    .order(1)
+                                    .referenceType(Page.ReferenceType.API)
+                                    .referenceId(API_ID)
+                                    .build()
+                            )
+                            .auditInfo(AUDIT_INFO)
+                            .build()
+                    )
+                )
+                .isInstanceOf(InvalidPageContentException.class);
+        }
+
+        @Test
+        void should_throw_error_if_parent_is_not_folder() {
+            var parentPage = Page
+                .builder()
+                .id(PARENT_ID)
+                .referenceType(Page.ReferenceType.API)
+                .referenceId("api-id")
+                .parentId("")
+                .name("parent")
+                .build();
+            pageCrudService.initWith(List.of(parentPage));
+
+            assertThatThrownBy(() ->
+                    apiCreateDocumentationPageUsecase.execute(
+                        ApiCreateDocumentationPageUseCase.Input
+                            .builder()
+                            .page(
+                                Page
+                                    .builder()
+                                    .type(Page.Type.SWAGGER)
+                                    .name("new page")
+                                    .visibility(Page.Visibility.PRIVATE)
+                                    .parentId(PARENT_ID)
+                                    .order(1)
+                                    .referenceType(Page.ReferenceType.API)
+                                    .referenceId(API_ID)
+                                    .build()
+                            )
+                            .auditInfo(AUDIT_INFO)
+                            .build()
+                    )
+                )
+                .isInstanceOf(InvalidPageParentException.class);
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "  " })
+        @NullAndEmptySource
+        void should_throw_error_if_page_name_is_null_or_empty(String name) {
+            var parentPage = Page
+                .builder()
+                .id(PARENT_ID)
+                .referenceType(Page.ReferenceType.API)
+                .referenceId("api-id")
+                .parentId("")
+                .name("parent")
+                .type(Page.Type.FOLDER)
+                .build();
+            pageCrudService.initWith(List.of(parentPage));
+
+            assertThatThrownBy(() ->
+                    apiCreateDocumentationPageUsecase.execute(
+                        ApiCreateDocumentationPageUseCase.Input
+                            .builder()
+                            .page(
+                                Page
+                                    .builder()
+                                    .type(Page.Type.SWAGGER)
+                                    .name(name)
+                                    .visibility(Page.Visibility.PRIVATE)
+                                    .parentId(PARENT_ID)
+                                    .order(1)
+                                    .referenceType(Page.ReferenceType.API)
+                                    .referenceId(API_ID)
+                                    .build()
+                            )
+                            .auditInfo(AUDIT_INFO)
+                            .build()
+                    )
+                )
+                .isInstanceOf(InvalidPageNameException.class);
+        }
+
+        @Test
+        void should_throw_error_if_name_not_unique() {
+            var parentFolder = Page
+                .builder()
+                .id(PARENT_ID)
+                .referenceType(Page.ReferenceType.API)
+                .referenceId("api-id")
+                .type(Page.Type.FOLDER)
+                .parentId("")
+                .name("parent")
+                .build();
+            var subPage = Page
+                .builder()
+                .id("sub-page-id")
+                .referenceType(Page.ReferenceType.API)
+                .referenceId("api-id")
+                .type(Page.Type.SWAGGER)
+                .parentId(PARENT_ID)
+                .name("sub-page")
+                .build();
+            pageCrudService.initWith(List.of(parentFolder, subPage));
+            pageQueryService.initWith(List.of(parentFolder, subPage));
+
+            assertThatThrownBy(() ->
+                    apiCreateDocumentationPageUsecase.execute(
+                        ApiCreateDocumentationPageUseCase.Input
+                            .builder()
+                            .page(
+                                Page
+                                    .builder()
+                                    .id("sub-page-id")
+                                    .referenceType(Page.ReferenceType.API)
+                                    .referenceId("api-id")
+                                    .type(Page.Type.SWAGGER)
+                                    .parentId(PARENT_ID)
+                                    .name("sub-page")
+                                    .visibility(Page.Visibility.PRIVATE)
+                                    .build()
+                            )
+                            .auditInfo(AUDIT_INFO)
+                            .build()
+                    )
+                )
+                .isInstanceOf(ValidationDomainException.class)
+                .hasMessage("Name already exists with the same parent and type: sub-page");
+        }
+    }
+
+    @Nested
+    class CreateAsyncApiTests {
+
+        @Test
+        void should_create_markdown() {
+            var parentPage = Page
+                .builder()
+                .id(PARENT_ID)
+                .referenceType(Page.ReferenceType.API)
+                .referenceId("api-id")
+                .parentId("")
+                .name("parent")
+                .type(Page.Type.FOLDER)
+                .build();
+            pageCrudService.initWith(List.of(parentPage));
+
+            var res = apiCreateDocumentationPageUsecase.execute(
+                ApiCreateDocumentationPageUseCase.Input
+                    .builder()
+                    .page(
+                        Page
+                            .builder()
+                            .type(Page.Type.ASYNCAPI)
+                            .name("new page ")
+                            .content("nice content")
+                            .homepage(false)
+                            .visibility(Page.Visibility.PRIVATE)
+                            .parentId(PARENT_ID)
+                            .order(1)
+                            .referenceType(Page.ReferenceType.API)
+                            .referenceId(API_ID)
+                            .build()
+                    )
+                    .auditInfo(AUDIT_INFO)
+                    .build()
+            );
+
+            assertThat(res.createdPage())
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", PAGE_ID)
+                .hasFieldOrPropertyWithValue("name", "new page")
+                .hasFieldOrPropertyWithValue("type", Page.Type.ASYNCAPI)
+                .hasFieldOrPropertyWithValue("content", "nice content")
+                .hasFieldOrPropertyWithValue("homepage", false)
+                .hasFieldOrPropertyWithValue("visibility", Page.Visibility.PRIVATE)
+                .hasFieldOrPropertyWithValue("parentId", "parent-id")
+                .hasFieldOrPropertyWithValue("order", 0);
+
+            var savedPage = pageCrudService
+                .storage()
+                .stream()
+                .filter(page -> page.getId().equals(res.createdPage().getId()))
+                .toList()
+                .get(0);
+            assertThat(savedPage).isEqualTo(res.createdPage());
+        }
+
+        @Test
+        void should_create_audit() {
+            apiCreateDocumentationPageUsecase.execute(
+                ApiCreateDocumentationPageUseCase.Input
+                    .builder()
+                    .page(
+                        Page
+                            .builder()
+                            .type(Page.Type.ASYNCAPI)
+                            .name("new page")
+                            .content("nice content")
+                            .homepage(false)
+                            .visibility(Page.Visibility.PRIVATE)
+                            .parentId(PARENT_ID)
+                            .order(1)
+                            .referenceType(Page.ReferenceType.API)
+                            .referenceId(API_ID)
+                            .build()
+                    )
+                    .auditInfo(AUDIT_INFO)
+                    .build()
+            );
+
+            var audit = auditCrudService.storage().get(0);
+            assertThat(audit)
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("referenceId", "api-id")
+                .hasFieldOrPropertyWithValue("event", "PAGE_CREATED");
+        }
+
+        @Test
+        void should_not_create_a_page_revision() {
+            apiCreateDocumentationPageUsecase.execute(
+                ApiCreateDocumentationPageUseCase.Input
+                    .builder()
+                    .page(
+                        Page
+                            .builder()
+                            .type(Page.Type.ASYNCAPI)
+                            .name("new page")
+                            .content("nice content")
+                            .homepage(false)
+                            .visibility(Page.Visibility.PRIVATE)
+                            .parentId(PARENT_ID)
+                            .order(1)
+                            .referenceType(Page.ReferenceType.API)
+                            .referenceId(API_ID)
+                            .build()
+                    )
+                    .auditInfo(AUDIT_INFO)
+                    .build()
+            );
+
+            assertThat(pageRevisionCrudService.storage()).isEmpty();
+        }
+
+        @Test
+        void should_change_homepage_to_new_page() {
+            final String EXISTING_PAGE_ID = "existing-homepage-id";
+            var existingHomepage = Page
+                .builder()
+                .id(EXISTING_PAGE_ID)
+                .referenceType(Page.ReferenceType.API)
+                .referenceId(API_ID)
+                .parentId("")
+                .name("existing homepage")
+                .homepage(true)
+                .build();
+            pageCrudService.initWith(List.of(existingHomepage));
+            pageQueryService.initWith(List.of(existingHomepage));
+
+            var res = apiCreateDocumentationPageUsecase.execute(
+                ApiCreateDocumentationPageUseCase.Input
+                    .builder()
+                    .page(
+                        Page
+                            .builder()
+                            .type(Page.Type.ASYNCAPI)
+                            .name("new page")
+                            .content("nice content")
+                            .homepage(true)
+                            .visibility(Page.Visibility.PRIVATE)
+                            .parentId("")
+                            .order(1)
+                            .referenceType(Page.ReferenceType.API)
+                            .referenceId(API_ID)
+                            .build()
+                    )
+                    .auditInfo(AUDIT_INFO)
+                    .build()
+            );
+
+            assertThat(res.createdPage()).isNotNull().hasFieldOrPropertyWithValue("homepage", true);
+
+            var formerHomepage = pageCrudService.storage().stream().filter(p -> p.getId().equals(EXISTING_PAGE_ID)).toList().get(0);
+            assertThat(formerHomepage).isNotNull().hasFieldOrPropertyWithValue("homepage", false);
+        }
+
+        @Test
+        void should_give_new_markdown_highest_count() {
+            final String EXISTING_PAGE_ID = "existing-page-id";
+            final String PARENT_ID = "123";
+            var existingParent = Page
+                .builder()
+                .id(PARENT_ID)
+                .type(Page.Type.FOLDER)
+                .referenceType(Page.ReferenceType.API)
+                .referenceId(API_ID)
+                .name("existing parent")
+                .order(1)
+                .build();
+
+            var existingPage = Page
+                .builder()
+                .id(EXISTING_PAGE_ID)
+                .referenceType(Page.ReferenceType.API)
+                .referenceId(API_ID)
+                .parentId(PARENT_ID)
+                .name("existing page")
+                .homepage(true)
+                .order(99)
+                .build();
+            pageCrudService.initWith(List.of(existingPage, existingParent));
+            pageQueryService.initWith(List.of(existingPage, existingParent));
+
+            var res = apiCreateDocumentationPageUsecase.execute(
+                ApiCreateDocumentationPageUseCase.Input
+                    .builder()
+                    .page(
+                        Page
+                            .builder()
+                            .type(Page.Type.ASYNCAPI)
+                            .name("new page")
+                            .content("nice content")
+                            .visibility(Page.Visibility.PRIVATE)
+                            .parentId(PARENT_ID)
+                            .referenceType(Page.ReferenceType.API)
+                            .referenceId(API_ID)
+                            .build()
+                    )
+                    .auditInfo(AUDIT_INFO)
+                    .build()
+            );
+
+            assertThat(res.createdPage()).isNotNull().hasFieldOrPropertyWithValue("order", 100);
+        }
+
+        @Test
+        void should_not_add_missing_parent() {
+            var res = apiCreateDocumentationPageUsecase.execute(
+                ApiCreateDocumentationPageUseCase.Input
+                    .builder()
+                    .page(
+                        Page
+                            .builder()
+                            .type(Page.Type.ASYNCAPI)
+                            .name("new page")
+                            .content("nice content")
+                            .homepage(false)
+                            .visibility(Page.Visibility.PRIVATE)
+                            .parentId(PARENT_ID)
+                            .order(1)
+                            .referenceType(Page.ReferenceType.API)
+                            .referenceId(API_ID)
+                            .build()
+                    )
+                    .auditInfo(AUDIT_INFO)
+                    .build()
+            );
+
+            assertThat(res.createdPage()).isNotNull().hasFieldOrPropertyWithValue("parentId", null);
+        }
+
+        @Test
+        void should_ignore_empty_parent_id() {
+            var res = apiCreateDocumentationPageUsecase.execute(
+                ApiCreateDocumentationPageUseCase.Input
+                    .builder()
+                    .page(
+                        Page
+                            .builder()
+                            .type(Page.Type.ASYNCAPI)
+                            .name("new page")
+                            .content("nice content")
+                            .homepage(false)
+                            .visibility(Page.Visibility.PRIVATE)
+                            .parentId("")
+                            .order(1)
+                            .referenceType(Page.ReferenceType.API)
+                            .referenceId(API_ID)
+                            .build()
+                    )
+                    .auditInfo(AUDIT_INFO)
+                    .build()
+            );
+
+            assertThat(res.createdPage().getParentId()).isNull();
+        }
+
+        @Test
+        void should_throw_error_if_parent_is_not_folder() {
+            var parentPage = Page
+                .builder()
+                .id(PARENT_ID)
+                .referenceType(Page.ReferenceType.API)
+                .referenceId("api-id")
+                .parentId("")
+                .name("parent")
+                .build();
+            pageCrudService.initWith(List.of(parentPage));
+
+            assertThatThrownBy(() ->
+                    apiCreateDocumentationPageUsecase.execute(
+                        ApiCreateDocumentationPageUseCase.Input
+                            .builder()
+                            .page(
+                                Page
+                                    .builder()
+                                    .type(Page.Type.ASYNCAPI)
+                                    .name("new page")
+                                    .visibility(Page.Visibility.PRIVATE)
+                                    .parentId(PARENT_ID)
+                                    .order(1)
+                                    .referenceType(Page.ReferenceType.API)
+                                    .referenceId(API_ID)
+                                    .build()
+                            )
+                            .auditInfo(AUDIT_INFO)
+                            .build()
+                    )
+                )
+                .isInstanceOf(InvalidPageParentException.class);
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = { "  " })
+        @NullAndEmptySource
+        void should_throw_error_if_page_name_is_null_or_empty(String name) {
+            var parentPage = Page
+                .builder()
+                .id(PARENT_ID)
+                .referenceType(Page.ReferenceType.API)
+                .referenceId("api-id")
+                .parentId("")
+                .name("parent")
+                .type(Page.Type.FOLDER)
+                .build();
+            pageCrudService.initWith(List.of(parentPage));
+
+            assertThatThrownBy(() ->
+                    apiCreateDocumentationPageUsecase.execute(
+                        ApiCreateDocumentationPageUseCase.Input
+                            .builder()
+                            .page(
+                                Page
+                                    .builder()
+                                    .type(Page.Type.ASYNCAPI)
+                                    .name(name)
+                                    .visibility(Page.Visibility.PRIVATE)
+                                    .parentId(PARENT_ID)
+                                    .order(1)
+                                    .referenceType(Page.ReferenceType.API)
+                                    .referenceId(API_ID)
+                                    .build()
+                            )
+                            .auditInfo(AUDIT_INFO)
+                            .build()
+                    )
+                )
+                .isInstanceOf(InvalidPageNameException.class);
+        }
+
+        @Test
+        void should_throw_error_if_name_not_unique() {
+            var parentFolder = Page
+                .builder()
+                .id(PARENT_ID)
+                .referenceType(Page.ReferenceType.API)
+                .referenceId("api-id")
+                .type(Page.Type.FOLDER)
+                .parentId("")
+                .name("parent")
+                .build();
+            var subPage = Page
+                .builder()
+                .id("sub-page-id")
+                .referenceType(Page.ReferenceType.API)
+                .referenceId("api-id")
+                .type(Page.Type.ASYNCAPI)
+                .parentId(PARENT_ID)
+                .name("sub-page")
+                .build();
+            pageCrudService.initWith(List.of(parentFolder, subPage));
+            pageQueryService.initWith(List.of(parentFolder, subPage));
+
+            assertThatThrownBy(() ->
+                    apiCreateDocumentationPageUsecase.execute(
+                        ApiCreateDocumentationPageUseCase.Input
+                            .builder()
+                            .page(
+                                Page
+                                    .builder()
+                                    .id("sub-page-id")
+                                    .referenceType(Page.ReferenceType.API)
+                                    .referenceId("api-id")
+                                    .type(Page.Type.ASYNCAPI)
                                     .parentId(PARENT_ID)
                                     .name("sub-page")
                                     .visibility(Page.Visibility.PRIVATE)

@@ -28,7 +28,9 @@ import io.gravitee.apim.core.search.Indexer.IndexationContext;
 import io.gravitee.apim.core.search.model.IndexablePage;
 import java.time.ZoneId;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class CreateApiDocumentationDomainService {
 
     private final PageCrudService pageCrudService;
@@ -52,7 +54,7 @@ public class CreateApiDocumentationDomainService {
     public Page createPage(Page page, AuditInfo auditInfo) {
         var createdPage = pageCrudService.createDocumentationPage(page);
 
-        if (page.isMarkdown()) {
+        if (page.isSwaggerOrMarkdown()) {
             pageRevisionCrudService.create(createdPage);
             indexer.index(new IndexationContext(auditInfo.organizationId(), auditInfo.environmentId()), new IndexablePage(createdPage));
         }

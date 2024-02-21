@@ -19,6 +19,7 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.use_case.*;
+import io.gravitee.apim.core.documentation.use_case.ApiUpdateDocumentationPageUseCase.Input;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.PageMapper;
 import io.gravitee.rest.api.management.v2.rest.model.*;
@@ -78,21 +79,30 @@ public class ApiPagesResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = { RolePermissionAction.CREATE }) })
     public Response createDocumentationPage(@PathParam("apiId") String apiId, @Valid @NotNull CreateDocumentation createDocumentation) {
-        Page pageToCreate = createDocumentation instanceof CreateDocumentationMarkdown
-            ? Mappers.getMapper(PageMapper.class).map((CreateDocumentationMarkdown) createDocumentation)
-            : Mappers.getMapper(PageMapper.class).map((CreateDocumentationFolder) createDocumentation);
+        Page pageToCreate = null;
+        PageMapper mapper = Mappers.getMapper(PageMapper.class);
+        if (createDocumentation instanceof CreateDocumentationMarkdown markdown) {
+            pageToCreate = mapper.map(markdown);
+        } else if (createDocumentation instanceof CreateDocumentationFolder folder) {
+            pageToCreate = mapper.map(folder);
+        } else if (createDocumentation instanceof CreateDocumentationSwagger swagger) {
+            pageToCreate = mapper.map(swagger);
+        } else if (createDocumentation instanceof CreateDocumentationAsyncApi asyncApi) {
+            pageToCreate = mapper.map(asyncApi);
+        }
 
-        pageToCreate.setReferenceId(apiId);
-        pageToCreate.setReferenceType(Page.ReferenceType.API);
+        if (pageToCreate != null) {
+            pageToCreate.setReferenceId(apiId);
+            pageToCreate.setReferenceType(Page.ReferenceType.API);
 
-        var createdPage = apiCreateDocumentationPageUsecase
-            .execute(ApiCreateDocumentationPageUseCase.Input.builder().page(pageToCreate).auditInfo(getAuditInfo()).build())
-            .createdPage();
+            Page createdPage = apiCreateDocumentationPageUsecase
+                .execute(ApiCreateDocumentationPageUseCase.Input.builder().page(pageToCreate).auditInfo(getAuditInfo()).build())
+                .createdPage();
 
-        return Response
-            .created(this.getLocationHeader(createdPage.getId()))
-            .entity(Mappers.getMapper(PageMapper.class).mapPage(createdPage))
-            .build();
+            return Response.created(this.getLocationHeader(createdPage.getId())).entity(mapper.mapPage(createdPage)).build();
+        } else {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
     }
 
     @GET
@@ -116,12 +126,24 @@ public class ApiPagesResource extends AbstractResource {
     ) {
         var mapper = Mappers.getMapper(PageMapper.class);
         var auditInfo = getAuditInfo();
-        var input = updateDocumentation instanceof UpdateDocumentationMarkdown
-            ? mapper.map((UpdateDocumentationMarkdown) updateDocumentation, apiId, pageId, auditInfo)
-            : mapper.map((UpdateDocumentationFolder) updateDocumentation, apiId, pageId, auditInfo);
+        Input input = null;
 
-        var page = updateDocumentationPageUsecase.execute(input).page();
-        return Response.ok(mapper.mapPage(page)).build();
+        if (updateDocumentation instanceof UpdateDocumentationMarkdown markdown) {
+            input = mapper.map(markdown, apiId, pageId, auditInfo);
+        } else if (updateDocumentation instanceof UpdateDocumentationFolder folder) {
+            input = mapper.map(folder, apiId, pageId, auditInfo);
+        } else if (updateDocumentation instanceof UpdateDocumentationSwagger swagger) {
+            input = mapper.map(swagger, apiId, pageId, auditInfo);
+        } else if (updateDocumentation instanceof UpdateDocumentationAsyncApi asyncApi) {
+            input = mapper.map(asyncApi, apiId, pageId, auditInfo);
+        }
+
+        if (input != null) {
+            var page = updateDocumentationPageUsecase.execute(input).page();
+            return Response.ok(mapper.mapPage(page)).build();
+        } else {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
     }
 
     @POST

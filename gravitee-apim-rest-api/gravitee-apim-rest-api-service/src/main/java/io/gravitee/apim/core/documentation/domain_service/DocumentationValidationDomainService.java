@@ -29,6 +29,7 @@ public class DocumentationValidationDomainService {
     private final HtmlSanitizer htmlSanitizer;
     private final TemplateResolverDomainService templateResolverDomainService;
     private final ApiCrudService apiCrudService;
+    private final OpenApiDomainService openApiDomainService;
 
     public String sanitizeDocumentationName(String name) {
         if (null == name || name.trim().isEmpty()) {
@@ -51,5 +52,11 @@ public class DocumentationValidationDomainService {
 
     public void validateTemplate(String pageContent, String apiId) {
         this.templateResolverDomainService.resolveTemplate(pageContent, Map.of("api", this.apiCrudService.get(apiId)));
+    }
+
+    public void parseOpenApiContent(String content) {
+        if (content != null) {
+            openApiDomainService.parseOpenApiContent(content);
+        }
     }
 }

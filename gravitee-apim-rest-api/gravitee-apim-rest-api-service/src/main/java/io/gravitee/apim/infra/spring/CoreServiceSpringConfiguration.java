@@ -71,6 +71,7 @@ import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService
 import io.gravitee.apim.core.template.TemplateProcessor;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.apim.infra.domain_service.documentation.FreemarkerTemplateResolver;
+import io.gravitee.apim.infra.domain_service.documentation.SwaggerOpenApiParser;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.search.DistributedLuceneIndexer;
 import io.gravitee.node.api.license.LicenseManager;
@@ -220,12 +221,18 @@ public class CoreServiceSpringConfiguration {
     }
 
     @Bean
+    public OpenApiDomainService openApiDomainService() {
+        return new SwaggerOpenApiParser();
+    }
+
+    @Bean
     DocumentationValidationDomainService documentationValidationDomainService(
         HtmlSanitizer htmlSanitizer,
         TemplateResolverDomainService templateResolverDomainService,
-        ApiCrudService apiCrudService
+        ApiCrudService apiCrudService,
+        OpenApiDomainService openApiDomainService
     ) {
-        return new DocumentationValidationDomainService(htmlSanitizer, templateResolverDomainService, apiCrudService);
+        return new DocumentationValidationDomainService(htmlSanitizer, templateResolverDomainService, apiCrudService, openApiDomainService);
     }
 
     @Bean

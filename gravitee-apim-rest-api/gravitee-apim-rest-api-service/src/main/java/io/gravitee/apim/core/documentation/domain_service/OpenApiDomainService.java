@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.documentation.crud_service;
+package io.gravitee.apim.core.documentation.domain_service;
 
-import io.gravitee.apim.core.documentation.model.Page;
-import io.gravitee.apim.core.documentation.model.PageRevision;
+import io.gravitee.apim.core.documentation.exception.InvalidPageContentException;
 
-public interface PageRevisionCrudService {
-    PageRevision create(Page page);
+/**
+ * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
+ * @author GraviteeSource Team
+ */
+public interface OpenApiDomainService {
+    void parseOpenApiContent(String content) throws InvalidPageContentException;
 }
