@@ -15,9 +15,11 @@
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl, FormGroup, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
-import { startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { filter, map, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { Observable, Subject } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
+import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 
 import { Api, ApiV4, EndpointGroupV4, UpdateApiV4 } from '../../../../entities/management-api-v2';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
@@ -26,6 +28,7 @@ import { GioPermissionService } from '../../../../shared/components/gio-permissi
 import { isEndpointNameUniqueAndDoesNotMatchDefaultValue } from '../api-endpoint-v4-unique-name';
 import { ApiHealthCheckV4FormComponent } from '../../component/health-check-v4-form/api-health-check-v4-form.component';
 import { ApiServicePluginsV2Service } from '../../../../services-ngx/apiservice-plugins-v2.service';
+import { getMatchingDlqEntrypoints, updateDlqEntrypoint } from '../api-endpoint-v4-matching-dlq';
 
 export type EndpointGroupHealthCheckFormType = FormGroup<{
   enabled: FormControl<boolean>;
@@ -61,6 +64,7 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
     private readonly snackBarService: SnackBarService,
     private readonly permissionService: GioPermissionService,
     private readonly apiServicePluginsV2Service: ApiServicePluginsV2Service,
+    private readonly matDialog: MatDialog,
   ) {}
 
   public ngOnInit(): void {
@@ -223,8 +227,34 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
   }
 
   private updateApi(): Observable<Api> {
-    return this.apiService
-      .get(this.api.id)
-      .pipe(switchMap((api: ApiV4) => this.apiService.update(this.api.id, this.updateApiObjectWithFormData(api))));
+    const newGroupName = this.generalForm.getRawValue().name.trim();
+    const matchingDlqEntrypoint = getMatchingDlqEntrypoints(this.api, this.endpointGroup.name);
+    if (this.endpointGroup.name !== newGroupName && matchingDlqEntrypoint.length > 0) {
+      return this.matDialog
+        .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+          width: '500px',
+          data: {
+            title: 'Rename Endpoint Group',
+            content: `Some entrypoints use this group as Dead letter queue. They will be modified to reference the new name.`,
+            confirmButton: 'Update',
+          },
+          role: 'alertdialog',
+          id: 'updateEndpointGroupNameDlqConfirmDialog',
+        })
+        .afterClosed()
+        .pipe(
+          filter((confirm) => confirm === true),
+          switchMap(() => this.apiService.get(this.api.id)),
+          map((api: ApiV4) => {
+            updateDlqEntrypoint(api, matchingDlqEntrypoint, newGroupName);
+            return api;
+          }),
+          switchMap((api: ApiV4) => this.apiService.update(this.api.id, this.updateApiObjectWithFormData(api))),
+        );
+    } else {
+      return this.apiService
+        .get(this.api.id)
+        .pipe(switchMap((api: ApiV4) => this.apiService.update(this.api.id, this.updateApiObjectWithFormData(api))));
+    }
   }
 }
