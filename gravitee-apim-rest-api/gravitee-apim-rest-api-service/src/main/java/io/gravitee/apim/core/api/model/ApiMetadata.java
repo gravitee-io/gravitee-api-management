@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.api.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.gravitee.rest.api.model.MetadataFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -37,4 +38,11 @@ public class ApiMetadata {
     String value;
 
     String defaultValue;
+
+    public String getFormatToString() {
+        if (this.format == null) {
+            return null;
+        }
+        return this.format.toString();
+    }
 }

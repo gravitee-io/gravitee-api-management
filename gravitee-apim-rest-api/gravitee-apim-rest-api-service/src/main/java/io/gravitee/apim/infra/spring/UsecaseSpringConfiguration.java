@@ -25,7 +25,9 @@ import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiHostsDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.query_service.ApiEventQueryService;
+import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
+import io.gravitee.apim.core.api.use_case.GetApiMetadataUseCase;
 import io.gravitee.apim.core.api.use_case.ImportCRDUseCase;
 import io.gravitee.apim.core.api.use_case.UpdateDynamicPropertiesUseCase;
 import io.gravitee.apim.core.api.use_case.VerifyApiHostsUseCase;
@@ -404,5 +406,10 @@ public class UsecaseSpringConfiguration {
             auditDomainService,
             apiEventQueryService
         );
+    }
+
+    @Bean
+    public GetApiMetadataUseCase getApiMetadataUseCase(ApiCrudService apiCrudService, ApiMetadataQueryService apiMetadataQueryService) {
+        return new GetApiMetadataUseCase(apiCrudService, apiMetadataQueryService);
     }
 }
