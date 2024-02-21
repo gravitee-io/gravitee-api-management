@@ -29,6 +29,7 @@ import { ApiV4, ConnectorPlugin, UpdateApi } from '../../../../entities/manageme
 import { ConnectorPluginsV2Service } from '../../../../services-ngx/connector-plugins-v2.service';
 import { IconService } from '../../../../services-ngx/icon.service';
 import { ApimFeature, UTMTags } from '../../../../shared/components/gio-license/gio-license-data';
+import { disableDlqEntrypoint, getMatchingDlqEntrypoints, getMatchingDlqEntrypointsForGroup } from '../api-endpoint-v4-matching-dlq';
 
 @Component({
   selector: 'api-endpoint-groups',
@@ -44,6 +45,7 @@ export class ApiEndpointGroupsComponent implements OnInit, OnDestroy {
   public shouldUpgrade = false;
   public license$: Observable<License>;
   public isOEM$: Observable<boolean>;
+  public api: ApiV4;
 
   private licenseOptions = {
     feature: ApimFeature.APIM_EN_MESSAGE_REACTOR,
@@ -65,6 +67,7 @@ export class ApiEndpointGroupsComponent implements OnInit, OnDestroy {
     combineLatest([this.apiService.get(this.activatedRoute.snapshot.params.apiId), this.connectorPluginsV2Service.listEndpointPlugins()])
       .pipe(
         tap(([apiV4, plugins]: [ApiV4, ConnectorPlugin[]]) => {
+          this.api = apiV4;
           this.groupsTableData = toEndpoints(apiV4);
 
           this.plugins = new Map(
@@ -93,12 +96,17 @@ export class ApiEndpointGroupsComponent implements OnInit, OnDestroy {
   }
 
   public deleteGroup(groupName: string): void {
+    const matchingDlqEntrypoint = getMatchingDlqEntrypointsForGroup(this.api, groupName);
+    const dlqDeleteMessage =
+      matchingDlqEntrypoint.length > 0
+        ? '<br> This endpoint group is used as dead letter queue. Deleting it will disable dead letter queue for related entrypoints.'
+        : '';
     this.matDialog
       .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
         width: '500px',
         data: {
           title: 'Delete Endpoint Group',
-          content: `Are you sure you want to delete the Group <strong>${groupName}</strong>?`,
+          content: `Are you sure you want to delete the Group <strong>${groupName}</strong>?${dlqDeleteMessage}`,
           confirmButton: 'Delete',
         },
         role: 'alertdialog',
@@ -110,6 +118,7 @@ export class ApiEndpointGroupsComponent implements OnInit, OnDestroy {
         switchMap(() => this.apiService.get(this.activatedRoute.snapshot.params.apiId)),
         switchMap((api: ApiV4) => {
           remove(api.endpointGroups, (g) => g.name === groupName);
+          disableDlqEntrypoint(api, matchingDlqEntrypoint);
           return this.apiService.update(api.id, { ...api } as UpdateApi);
         }),
         catchError(({ error }) => {
@@ -126,12 +135,17 @@ export class ApiEndpointGroupsComponent implements OnInit, OnDestroy {
   }
 
   public deleteEndpoint(groupName: string, endpointName: string): void {
+    const matchingDlqEntrypoint = getMatchingDlqEntrypoints(this.api, endpointName);
+    const dlqDeleteMessage =
+      matchingDlqEntrypoint.length > 0
+        ? '<br> This endpoint is used as dead letter queue. Deleting it will disable dead letter queue for related entrypoints.'
+        : '';
     this.matDialog
       .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
         width: '500px',
         data: {
           title: 'Delete Endpoint',
-          content: `Are you sure you want to delete the Endpoint <strong>${endpointName}</strong>?`,
+          content: `Are you sure you want to delete the Endpoint <strong>${endpointName}</strong>?${dlqDeleteMessage}`,
           confirmButton: 'Delete',
         },
         role: 'alertdialog',
@@ -143,6 +157,7 @@ export class ApiEndpointGroupsComponent implements OnInit, OnDestroy {
         switchMap(() => this.apiService.get(this.activatedRoute.snapshot.params.apiId)),
         switchMap((api: ApiV4) => {
           remove(find(api.endpointGroups, (g) => g.name === groupName).endpoints, (e) => e.name === endpointName);
+          disableDlqEntrypoint(api, matchingDlqEntrypoint);
           return this.apiService.update(api.id, { ...api } as UpdateApi);
         }),
         catchError(({ error }) => {
