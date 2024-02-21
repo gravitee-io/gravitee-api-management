@@ -21,13 +21,12 @@ import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.metadata.model.Metadata;
 import io.gravitee.apim.infra.adapter.MetadataAdapter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import io.gravitee.repository.management.model.MetadataReferenceType;
+import io.gravitee.rest.api.model.MetadataFormat;
+import java.util.*;
 import java.util.function.Function;
 
-public class ApiMetadataQueryServiceInMemory implements ApiMetadataQueryService, InMemoryAlternative<ApiMetadata> {
+public class ApiMetadataQueryServiceInMemory implements ApiMetadataQueryService, InMemoryAlternative<Metadata> {
 
     final List<Metadata> storage;
 
@@ -48,7 +47,12 @@ public class ApiMetadataQueryServiceInMemory implements ApiMetadataQueryService,
     }
 
     @Override
-    public void initWith(List<ApiMetadata> items) {
+    public void initWith(List<Metadata> items) {
+        storage.clear();
+        storage.addAll(items);
+    }
+
+    public void initWithApiMetadata(List<ApiMetadata> items) {
         storage.clear();
         storage.addAll(items.stream().map(MetadataAdapter.INSTANCE::toMetadata).toList());
     }
@@ -59,7 +63,7 @@ public class ApiMetadataQueryServiceInMemory implements ApiMetadataQueryService,
     }
 
     @Override
-    public List<ApiMetadata> storage() {
-        return storage.stream().map(MetadataAdapter.INSTANCE::toApiMetadata).toList();
+    public List<Metadata> storage() {
+        return storage;
     }
 }

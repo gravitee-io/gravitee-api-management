@@ -151,6 +151,6 @@ class ApiMetadataDecoderDomainServiceTest {
     }
 
     private void givenExistingApiMetadata(List<ApiMetadata> metadata) {
-        apiMetadataQueryService.initWith(metadata);
+        apiMetadataQueryService.initWithApiMetadata(metadata);
     }
 }
