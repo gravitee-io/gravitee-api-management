@@ -23,7 +23,7 @@ import lombok.NoArgsConstructor;
 import lombok.With;
 
 @Data
-@Builder
+@Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 public class ApiMetadata {

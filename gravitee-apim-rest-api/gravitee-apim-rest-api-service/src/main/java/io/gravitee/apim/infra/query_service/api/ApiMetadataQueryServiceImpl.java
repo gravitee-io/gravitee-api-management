@@ -24,8 +24,7 @@ import io.gravitee.repository.management.api.MetadataRepository;
 import io.gravitee.repository.management.model.MetadataReferenceType;
 import io.gravitee.rest.api.model.MetadataFormat;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -52,6 +51,7 @@ public class ApiMetadataQueryServiceImpl implements ApiMetadataQueryService {
                         .builder()
                         .key(m.getKey())
                         .defaultValue(m.getValue())
+                        .name(m.getName())
                         .format(MetadataFormat.valueOf(m.getFormat().name()))
                         .build()
                 )
@@ -65,13 +65,14 @@ public class ApiMetadataQueryServiceImpl implements ApiMetadataQueryService {
                         (key, existing) ->
                             Optional
                                 .ofNullable(existing)
-                                .map(value -> value.withValue(m.getValue()))
+                                .map(value -> value.toBuilder().apiId(apiId).name(m.getName()).value(m.getValue()).build())
                                 .orElse(
                                     ApiMetadata
                                         .builder()
                                         .apiId(m.getReferenceId())
                                         .key(m.getKey())
                                         .value(m.getValue())
+                                        .name(m.getName())
                                         .format(MetadataFormat.valueOf(m.getFormat().name()))
                                         .build()
                                 )

@@ -40,10 +40,48 @@ public class ApiMetadataQueryServiceInMemory implements ApiMetadataQueryService,
 
     @Override
     public Map<String, ApiMetadata> findApiMetadata(String apiId) {
-        return storage
+        Map<String, ApiMetadata> apiMetadata = storage
             .stream()
-            .filter(metadata -> metadata.getReferenceId().equals(apiId))
-            .collect(toMap(Metadata::getKey, MetadataAdapter.INSTANCE::toApiMetadata));
+            .filter(metadata ->
+                Objects.equals(metadata.getReferenceId(), "_") && Metadata.ReferenceType.DEFAULT.equals(metadata.getReferenceType())
+            )
+            .map(m ->
+                ApiMetadata
+                    .builder()
+                    .key(m.getKey())
+                    .name(m.getName())
+                    .defaultValue(m.getValue())
+                    .format(MetadataFormat.valueOf(m.getFormat().name()))
+                    .build()
+            )
+            .collect(toMap(ApiMetadata::getKey, Function.identity()));
+
+        storage
+            .stream()
+            .filter(metadata ->
+                Objects.equals(metadata.getReferenceId(), apiId) && Metadata.ReferenceType.API.equals(metadata.getReferenceType())
+            )
+            .forEach(m ->
+                apiMetadata.compute(
+                    m.getKey(),
+                    (key, existing) ->
+                        Optional
+                            .ofNullable(existing)
+                            .map(value -> value.toBuilder().apiId(apiId).name(m.getName()).value(m.getValue()).build())
+                            .orElse(
+                                ApiMetadata
+                                    .builder()
+                                    .apiId(m.getReferenceId())
+                                    .key(m.getKey())
+                                    .name(m.getName())
+                                    .value(m.getValue())
+                                    .format(MetadataFormat.valueOf(m.getFormat().name()))
+                                    .build()
+                            )
+                )
+            );
+
+        return apiMetadata;
     }
 
     @Override
