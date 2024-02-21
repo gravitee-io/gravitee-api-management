@@ -23,6 +23,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { UIRouterModule } from '@uirouter/angular';
+import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 
 import { ApiEndpointComponent } from './api-endpoint.component';
 import { ApiEndpointModule } from './api-endpoint.module';
@@ -50,6 +51,7 @@ describe('ApiEndpointComponent', () => {
   let fixture: ComponentFixture<TestComponent>;
   let httpTestingController: HttpTestingController;
   let loader: HarnessLoader;
+  let rootLoader: HarnessLoader;
   let componentHarness: ApiEndpointHarness;
 
   const initComponent = async (api: ApiV4, routerParams: unknown = { apiId: API_ID, groupIndex: 0 }) => {
@@ -75,6 +77,7 @@ describe('ApiEndpointComponent', () => {
     fixture.componentInstance.api = api;
 
     loader = TestbedHarnessEnvironment.loader(fixture);
+    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
 
@@ -227,6 +230,177 @@ describe('ApiEndpointComponent', () => {
 
       await componentHarness.toggleConfigurationButton();
       fixture.detectChanges();
+    });
+
+    it('should edit and save an existing endpoint used by dead letter queue', async () => {
+      const apiV4 = fakeApiV4({
+        id: API_ID,
+        listeners: [
+          {
+            type: 'SUBSCRIPTION',
+            entrypoints: [
+              {
+                type: 'webhook',
+                dlq: {
+                  endpoint: 'dlq-endpoint',
+                },
+              },
+            ],
+          },
+        ],
+        endpointGroups: [
+          {
+            name: 'default-group',
+            type: 'kafka',
+            loadBalancer: {
+              type: 'ROUND_ROBIN',
+            },
+            endpoints: [
+              {
+                name: 'default',
+                type: 'kafka',
+                weight: 1,
+                inheritConfiguration: false,
+                configuration: {
+                  bootstrapServers: 'localhost:9092',
+                },
+              },
+            ],
+          },
+          {
+            name: 'dlq-group',
+            type: 'kafka',
+            loadBalancer: {
+              type: 'ROUND_ROBIN',
+            },
+            endpoints: [
+              {
+                name: 'dlq-endpoint',
+                type: 'kafka',
+                weight: 1,
+                inheritConfiguration: false,
+                configuration: {
+                  bootstrapServers: 'localhost:9092',
+                },
+              },
+            ],
+          },
+        ],
+      });
+
+      await initComponent(apiV4, { apiId: API_ID, groupIndex: 1, endpointIndex: 0 });
+
+      fixture.detectChanges();
+      expect(await componentHarness.getEndpointName()).toStrictEqual('dlq-endpoint');
+
+      await componentHarness.fillInputName('dlq-endpoint updated');
+      fixture.detectChanges();
+
+      expect(await componentHarness.getEndpointName()).toStrictEqual('dlq-endpoint updated');
+
+      await componentHarness.clickSaveButton();
+
+      const dialog = await rootLoader.getHarness(GioConfirmDialogHarness);
+      await dialog.confirm();
+
+      expectApiGetRequest(apiV4);
+
+      const updatedApi: ApiV4 = {
+        ...apiV4,
+        endpointGroups: [
+          {
+            ...apiV4.endpointGroups[0],
+          },
+          {
+            ...apiV4.endpointGroups[1],
+            endpoints: [
+              {
+                ...apiV4.endpointGroups[1].endpoints[0],
+                name: 'dlq-endpoint updated',
+                sharedConfigurationOverride: {
+                  test: undefined,
+                },
+              },
+            ],
+          },
+        ],
+      };
+      expectApiPutRequest(updatedApi);
+      expect(fakeAjsState.go).toHaveBeenCalledWith('management.apis.ng.endpoint-groups');
+    });
+
+    it('should edit and not save an existing endpoint used by dead letter queue', async () => {
+      const apiV4 = fakeApiV4({
+        id: API_ID,
+        listeners: [
+          {
+            type: 'SUBSCRIPTION',
+            entrypoints: [
+              {
+                type: 'webhook',
+                dlq: {
+                  endpoint: 'dlq-endpoint',
+                },
+              },
+            ],
+          },
+        ],
+        endpointGroups: [
+          {
+            name: 'default-group',
+            type: 'kafka',
+            loadBalancer: {
+              type: 'ROUND_ROBIN',
+            },
+            endpoints: [
+              {
+                name: 'default',
+                type: 'kafka',
+                weight: 1,
+                inheritConfiguration: false,
+                configuration: {
+                  bootstrapServers: 'localhost:9092',
+                },
+              },
+            ],
+          },
+          {
+            name: 'dlq-group',
+            type: 'kafka',
+            loadBalancer: {
+              type: 'ROUND_ROBIN',
+            },
+            endpoints: [
+              {
+                name: 'dlq-endpoint',
+                type: 'kafka',
+                weight: 1,
+                inheritConfiguration: false,
+                configuration: {
+                  bootstrapServers: 'localhost:9092',
+                },
+              },
+            ],
+          },
+        ],
+      });
+
+      await initComponent(apiV4, { apiId: API_ID, groupIndex: 1, endpointIndex: 0 });
+
+      fixture.detectChanges();
+      expect(await componentHarness.getEndpointName()).toStrictEqual('dlq-endpoint');
+
+      await componentHarness.fillInputName('dlq-endpoint updated');
+      fixture.detectChanges();
+
+      expect(await componentHarness.getEndpointName()).toStrictEqual('dlq-endpoint updated');
+
+      await componentHarness.clickSaveButton();
+
+      const dialog = await rootLoader.getHarness(GioConfirmDialogHarness);
+      await dialog.cancel();
+
+      expect(fakeAjsState.go).not.toHaveBeenCalledWith('management.apis.ng.endpoint-groups');
     });
   });
 

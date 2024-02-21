@@ -15,17 +15,19 @@
  */
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { StateService } from '@uirouter/core';
-import { catchError, map, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { combineLatest, EMPTY, Subject } from 'rxjs';
-import { GioFormJsonSchemaComponent, GioJsonSchema } from '@gravitee/ui-particles-angular';
+import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { combineLatest, EMPTY, Observable, Subject } from 'rxjs';
+import { GioConfirmDialogComponent, GioConfirmDialogData, GioFormJsonSchemaComponent, GioJsonSchema } from '@gravitee/ui-particles-angular';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
 
 import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
-import { ApiV4, ConnectorPlugin, EndpointGroupV4, EndpointV4 } from '../../../../entities/management-api-v2';
+import { Api, ApiV4, ConnectorPlugin, EndpointGroupV4, EndpointV4, Entrypoint } from '../../../../entities/management-api-v2';
 import { ConnectorPluginsV2Service } from '../../../../services-ngx/connector-plugins-v2.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { IconService } from '../../../../services-ngx/icon.service';
+import { getMatchingDlqEntrypoints, updateDlqEntrypoint } from '../api-endpoint-v4-matching-dlq';
 
 @Component({
   selector: 'api-endpoint',
@@ -41,6 +43,8 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
   public endpointSchema: { config: GioJsonSchema; sharedConfig: GioJsonSchema };
   public connectorPlugin: ConnectorPlugin;
   public isLoading = false;
+  private api: ApiV4;
+  private endpoint: EndpointV4;
 
   constructor(
     @Inject(UIRouterState) private readonly ajsState: StateService,
@@ -49,6 +53,7 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
     private readonly snackBarService: SnackBarService,
     private readonly iconService: IconService,
+    private readonly matDialog: MatDialog,
   ) {}
 
   public ngOnInit(): void {
@@ -60,6 +65,7 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
       .get(apiId)
       .pipe(
         switchMap((api: ApiV4) => {
+          this.api = api;
           this.endpointGroup = api.endpointGroups[this.groupIndex];
           return combineLatest([
             this.connectorPluginsV2Service.getEndpointPluginSchema(this.endpointGroup.type),
@@ -97,24 +103,20 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
       inheritConfiguration,
     };
 
-    this.apiService
-      .get(this.ajsStateParams.apiId)
+    let apiUpdate$: Observable<Api>;
+    if (this.isEditing()) {
+      const matchingDlqEntrypoint = getMatchingDlqEntrypoints(this.api, this.endpoint.name);
+      if (updatedEndpoint.name !== this.endpoint.name && matchingDlqEntrypoint.length > 0) {
+        apiUpdate$ = this.updateApiWithDlq(matchingDlqEntrypoint, updatedEndpoint);
+      } else {
+        apiUpdate$ = this.apiService.get(this.ajsStateParams.apiId).pipe(switchMap((api: ApiV4) => this.updateApi(api, updatedEndpoint)));
+      }
+    } else {
+      apiUpdate$ = this.apiService.get(this.ajsStateParams.apiId).pipe(switchMap((api: ApiV4) => this.updateApi(api, updatedEndpoint)));
+    }
+
+    apiUpdate$
       .pipe(
-        switchMap((api: ApiV4) => {
-          const endpointGroups = api.endpointGroups.map((group, i) => {
-            if (i === this.groupIndex) {
-              return {
-                ...group,
-                endpoints:
-                  this.endpointIndex !== undefined
-                    ? group.endpoints.map((endpoint, j) => (j === this.endpointIndex ? updatedEndpoint : endpoint))
-                    : [...group.endpoints, updatedEndpoint],
-              };
-            }
-            return group;
-          });
-          return this.apiService.update(api.id, { ...api, endpointGroups });
-        }),
         catchError(({ error }) => {
           this.snackBarService.error(error.message);
           return EMPTY;
@@ -126,6 +128,46 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
         takeUntil(this.unsubscribe$),
       )
       .subscribe();
+  }
+
+  private updateApiWithDlq(matchingDlqEntrypoint: Entrypoint[], updatedEndpoint: EndpointV4): Observable<Api> {
+    return this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+        width: '500px',
+        data: {
+          title: 'Rename Endpoint',
+          content: `Some entrypoints use this endpoint as Dead letter queue. They will be modified to reference the new name.`,
+          confirmButton: 'Update',
+        },
+        role: 'alertdialog',
+        id: 'updateEndpointNameDlqConfirmDialog',
+      })
+      .afterClosed()
+      .pipe(
+        filter((confirm) => confirm === true),
+        switchMap(() => this.apiService.get(this.api.id)),
+        map((api: ApiV4) => {
+          updateDlqEntrypoint(api, matchingDlqEntrypoint, updatedEndpoint.name);
+          return api;
+        }),
+        switchMap((api: ApiV4) => this.updateApi(api, updatedEndpoint)),
+      );
+  }
+
+  private updateApi(api: ApiV4, updatedEndpoint: EndpointV4): Observable<Api> {
+    const endpointGroups = api.endpointGroups.map((group, i) => {
+      if (i === this.groupIndex) {
+        return {
+          ...group,
+          endpoints:
+            this.endpointIndex !== undefined
+              ? group.endpoints.map((endpoint, j) => (j === this.endpointIndex ? updatedEndpoint : endpoint))
+              : [...group.endpoints, updatedEndpoint],
+        };
+      }
+      return group;
+    });
+    return this.apiService.update(api.id, { ...api, endpointGroups });
   }
 
   public onInheritConfigurationChange() {
@@ -145,13 +187,13 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
 
     if (this.isEditing()) {
       this.endpointIndex = +this.ajsStateParams.endpointIndex;
-      const endpoint = this.endpointGroup.endpoints[this.endpointIndex];
-      name = endpoint.name;
-      weight = endpoint.weight;
-      inheritConfiguration = endpoint.inheritConfiguration;
-      configuration = endpoint.configuration;
+      this.endpoint = this.endpointGroup.endpoints[this.endpointIndex];
+      name = this.endpoint.name;
+      weight = this.endpoint.weight;
+      inheritConfiguration = this.endpoint.inheritConfiguration;
+      configuration = this.endpoint.configuration;
       if (!inheritConfiguration) {
-        sharedConfigurationOverride = endpoint.sharedConfigurationOverride;
+        sharedConfigurationOverride = this.endpoint.sharedConfigurationOverride;
       }
     }
 

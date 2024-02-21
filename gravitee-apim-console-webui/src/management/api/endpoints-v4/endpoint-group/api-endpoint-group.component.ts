@@ -16,15 +16,18 @@
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { StateService } from '@uirouter/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { switchMap, takeUntil } from 'rxjs/operators';
+import { filter, map, switchMap, takeUntil } from 'rxjs/operators';
 import { Observable, Subject } from 'rxjs';
+import { MatDialog } from '@angular/material/dialog';
+import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 
-import { Api, ApiV4, UpdateApiV4 } from '../../../../entities/management-api-v2';
+import { Api, ApiV4, EndpointGroupV4, UpdateApiV4 } from '../../../../entities/management-api-v2';
 import { UIRouterState, UIRouterStateParams } from '../../../../ajs-upgraded-providers';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { isUniqueAndDoesNotMatchDefaultValue } from '../../../../shared/utils';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { getMatchingDlqEntrypoints, updateDlqEntrypoint } from '../api-endpoint-v4-matching-dlq';
 
 @Component({
   selector: 'api-endpoint-group',
@@ -43,7 +46,7 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
   public configurationForm: FormGroup;
 
   public initialGroupFormValue: any;
-  public endpointGroupType: string;
+  public endpointGroup: EndpointGroupV4;
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
@@ -51,6 +54,7 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
     private readonly apiService: ApiV2Service,
     private readonly snackBarService: SnackBarService,
     private readonly permissionService: GioPermissionService,
+    private readonly matDialog: MatDialog,
   ) {}
 
   public ngOnInit(): void {
@@ -92,7 +96,7 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
   private initializeComponent(api: ApiV4): void {
     this.api = api;
     this.initialApi = this.api;
-    this.endpointGroupType = this.api.endpointGroups[this.ajsStateParams.groupIndex].type;
+    this.endpointGroup = this.api.endpointGroups[this.ajsStateParams.groupIndex];
 
     this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-r']) || api.definitionContext?.origin === 'KUBERNETES';
 
@@ -155,8 +159,34 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
   }
 
   private updateApi(): Observable<Api> {
-    return this.apiService
-      .get(this.api.id)
-      .pipe(switchMap((api: ApiV4) => this.apiService.update(this.api.id, this.updateApiObjectWithFormData(api))));
+    const newGroupName = this.generalForm.getRawValue().name.trim();
+    const matchingDlqEntrypoint = getMatchingDlqEntrypoints(this.api, this.endpointGroup.name);
+    if (this.endpointGroup.name !== newGroupName && matchingDlqEntrypoint.length > 0) {
+      return this.matDialog
+        .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+          width: '500px',
+          data: {
+            title: 'Rename Endpoint Group',
+            content: `Some entrypoints use this group as Dead letter queue. They will be modified to reference the new name.`,
+            confirmButton: 'Update',
+          },
+          role: 'alertdialog',
+          id: 'updateEndpointGroupNameDlqConfirmDialog',
+        })
+        .afterClosed()
+        .pipe(
+          filter((confirm) => confirm === true),
+          switchMap(() => this.apiService.get(this.api.id)),
+          map((api: ApiV4) => {
+            updateDlqEntrypoint(api, matchingDlqEntrypoint, newGroupName);
+            return api;
+          }),
+          switchMap((api: ApiV4) => this.apiService.update(this.api.id, this.updateApiObjectWithFormData(api))),
+        );
+    } else {
+      return this.apiService
+        .get(this.api.id)
+        .pipe(switchMap((api: ApiV4) => this.apiService.update(this.api.id, this.updateApiObjectWithFormData(api))));
+    }
   }
 }
