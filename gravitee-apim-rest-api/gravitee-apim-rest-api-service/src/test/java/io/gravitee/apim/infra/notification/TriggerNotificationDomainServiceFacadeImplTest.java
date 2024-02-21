@@ -920,7 +920,7 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
 
         membershipCrudService.initWith(List.of(anApiPrimaryOwnerUserMembership(API_ID, primaryOwnerEntity.id(), ORGANIZATION_ID)));
 
-        apiMetadataQueryService.initWith(metadata);
+        apiMetadataQueryService.initWithApiMetadata(metadata);
     }
 
     @SneakyThrows
