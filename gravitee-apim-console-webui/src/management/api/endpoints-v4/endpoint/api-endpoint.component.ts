@@ -180,9 +180,10 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
 
   private initForm() {
     let name = null;
-    let inheritConfiguration = true;
     let configuration = null;
     let sharedConfigurationOverride = this.endpointGroup.sharedConfiguration;
+    // Inherit configuration only if there is a sharedConfiguration (that is not the case of mock endppoint)
+    let inheritConfiguration = !!sharedConfigurationOverride;
     let weight = null;
 
     if (this.isEditing()) {
