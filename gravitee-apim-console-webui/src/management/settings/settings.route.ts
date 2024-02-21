@@ -39,6 +39,7 @@ import { DictionaryComponent } from './dictionaries/dictionary.component';
 import { CustomUserFieldsComponent } from './custom-user-fields/custom-user-fields.component';
 import { ApiQualityRulesNgComponent } from './api-quality-rules-ng/api-quality-rules-ng.component';
 import { EnvironmentNotificationComponent } from './notification/environment-notification.component';
+import { IdentityProvidersNgComponent } from './identity-providers-ng/identity-providers-ng.component';
 
 import { DocumentationEditPageComponent } from '../../components/documentation/edit-page.component';
 import { DocumentationImportPagesComponent } from '../../components/documentation/import-pages.component';
@@ -163,6 +164,20 @@ export const settingsRoutes: Routes = [
           },
         },
       },
+      {
+        path: 'identity-providers-ng',
+        component: IdentityProvidersNgComponent,
+        data: {
+          docs: {
+            page: 'management-configuration-identityproviders',
+          },
+          perms: {
+            only: ['environment-identity_provider_activation-r'],
+            unauthorizedFallbackTo: 'management.settings.categories.list',
+          },
+        },
+      },
+
       {
         path: 'categories',
         component: CategoriesComponent,
