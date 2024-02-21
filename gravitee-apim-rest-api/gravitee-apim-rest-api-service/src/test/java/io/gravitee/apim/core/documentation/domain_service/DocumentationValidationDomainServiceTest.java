@@ -20,6 +20,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 import inmemory.ApiCrudServiceInMemory;
+import inmemory.NoopSwaggerOpenApiResolver;
 import inmemory.NoopTemplateResolverDomainService;
 import io.gravitee.apim.core.documentation.exception.InvalidPageNameException;
 import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
@@ -41,7 +42,8 @@ public class DocumentationValidationDomainServiceTest {
             new DocumentationValidationDomainService(
                 new HtmlSanitizerImpl(),
                 new NoopTemplateResolverDomainService(),
-                new ApiCrudServiceInMemory()
+                new ApiCrudServiceInMemory(),
+                new NoopSwaggerOpenApiResolver()
             );
     }
 

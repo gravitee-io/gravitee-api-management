@@ -86,13 +86,17 @@ public interface PageMapper {
         io.gravitee.rest.api.management.v2.rest.model.CreateDocumentationFolder createDocumentationFolder
     );
 
+    io.gravitee.apim.core.documentation.model.Page map(
+        io.gravitee.rest.api.management.v2.rest.model.CreateDocumentationSwagger createDocumentationSwagger
+    );
+    io.gravitee.apim.core.documentation.model.Page map(
+        io.gravitee.rest.api.management.v2.rest.model.CreateDocumentationAsyncApi createDocumentationAsyncApi
+    );
+
     Breadcrumb map(io.gravitee.apim.core.documentation.model.Breadcrumb breadcrumb);
     List<Breadcrumb> map(List<io.gravitee.apim.core.documentation.model.Breadcrumb> breadcrumbList);
 
     // UPDATE
-    @Mapping(target = "apiId", source = "apiId")
-    @Mapping(target = "pageId", source = "pageId")
-    @Mapping(target = "auditInfo", source = "auditInfo")
     ApiUpdateDocumentationPageUseCase.Input map(
         UpdateDocumentationMarkdown updateDocumentationMarkdown,
         String apiId,
@@ -100,9 +104,20 @@ public interface PageMapper {
         AuditInfo auditInfo
     );
 
-    @Mapping(target = "apiId", source = "apiId")
-    @Mapping(target = "pageId", source = "pageId")
-    @Mapping(target = "auditInfo", source = "auditInfo")
+    ApiUpdateDocumentationPageUseCase.Input map(
+        UpdateDocumentationSwagger updateDocumentationSwagger,
+        String apiId,
+        String pageId,
+        AuditInfo auditInfo
+    );
+
+    ApiUpdateDocumentationPageUseCase.Input map(
+        UpdateDocumentationAsyncApi updateDocumentationAsyncApi,
+        String apiId,
+        String pageId,
+        AuditInfo auditInfo
+    );
+
     ApiUpdateDocumentationPageUseCase.Input map(
         UpdateDocumentationFolder updateDocumentationFolder,
         String apiId,
