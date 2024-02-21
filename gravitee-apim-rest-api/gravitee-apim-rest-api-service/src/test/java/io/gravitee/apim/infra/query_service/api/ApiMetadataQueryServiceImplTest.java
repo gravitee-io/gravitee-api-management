@@ -133,6 +133,7 @@ public class ApiMetadataQueryServiceImplTest {
                     "team-contact",
                     ApiMetadata
                         .builder()
+                        .apiId(API_ID)
                         .key("team-contact")
                         .value("team@gravitee.io")
                         .defaultValue("admin@gravitee.io")
