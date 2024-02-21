@@ -209,6 +209,11 @@ public class ApiResource extends AbstractResource {
         return resourceContext.getResource(ApiPagesResource.class);
     }
 
+    @Path("/metadata")
+    public ApiMetadataResource getApiMetadataResource() {
+        return resourceContext.getResource(ApiMetadataResource.class);
+    }
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getApiById(@PathParam("apiId") String apiId) {
