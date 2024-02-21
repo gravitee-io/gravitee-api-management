@@ -21,6 +21,9 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { FormsModule } from '@angular/forms';
 import { fakeKafkaMessageEndpoint } from '@gravitee/ui-policy-studio-angular/testing';
+import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
+import { HarnessLoader } from '@angular/cdk/testing';
+import { cloneDeep } from 'lodash';
 
 import { ApiEndpointGroupComponent } from './api-endpoint-group.component';
 import { ApiEndpointGroupHarness } from './api-endpoint-group.harness';
@@ -75,6 +78,7 @@ describe('ApiEndpointGroupComponent', () => {
   let httpTestingController: HttpTestingController;
   let componentHarness: ApiEndpointGroupHarness;
   let api: ApiV4;
+  let rootLoader: HarnessLoader;
 
   const initComponent = async (api: ApiV4, routerParams: unknown = { apiId: API_ID, groupIndex: 0 }) => {
     const currentUser = new DeprecatedUser();
@@ -100,6 +104,7 @@ describe('ApiEndpointGroupComponent', () => {
     fixture.componentInstance.api = api;
     httpTestingController = TestBed.inject(HttpTestingController);
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiEndpointGroupHarness);
+    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
 
     expectApiGetRequest(api, fixture, httpTestingController);
 
@@ -168,6 +173,106 @@ describe('ApiEndpointGroupComponent', () => {
       const endpointsGroup = expectApiPutRequest(api, fixture, httpTestingController).request.body.endpointGroups;
       expect(endpointsGroup[0].name).toEqual('default-group');
       expect(endpointsGroup[0].loadBalancer.type).toEqual('RANDOM');
+      expect(await componentHarness.configurationTabIsVisible()).toEqual(true);
+    });
+  });
+  describe('endpoint group update - used as dead letter queue', () => {
+    const DLQ_PARTIAL_API: Partial<ApiV4> = {
+      id: API_ID,
+      listeners: [
+        {
+          type: 'SUBSCRIPTION',
+          entrypoints: [
+            {
+              type: 'webhook',
+              dlq: {
+                endpoint: 'dlq-group',
+              },
+            },
+          ],
+        },
+      ],
+      endpointGroups: [
+        {
+          name: 'default-group',
+          type: 'kafka',
+          loadBalancer: {
+            type: 'ROUND_ROBIN',
+          },
+          endpoints: [
+            {
+              name: 'default',
+              type: 'kafka',
+              weight: 1,
+              inheritConfiguration: false,
+              configuration: {
+                bootstrapServers: 'localhost:9092',
+              },
+            },
+          ],
+        },
+        {
+          name: 'dlq-group',
+          type: 'kafka',
+          loadBalancer: {
+            type: 'ROUND_ROBIN',
+          },
+          endpoints: [
+            {
+              name: 'dlq-endpoint',
+              type: 'kafka',
+              weight: 1,
+              inheritConfiguration: false,
+              configuration: {
+                bootstrapServers: 'localhost:9092',
+              },
+            },
+          ],
+        },
+      ],
+    };
+    it('should update endpoint group used as dlq and its reference in entrypoint', async () => {
+      api = fakeApiV4(cloneDeep(DLQ_PARTIAL_API));
+      // select the second group, which is the dead letter queue one
+      await initComponent(api, { apiId: API_ID, groupIndex: 1 });
+      await componentHarness.clickGeneralTab();
+      expectApiSchemaGetRequests(api, fixture, httpTestingController);
+      expect(await componentHarness.readEndpointGroupNameInput()).toEqual('dlq-group');
+
+      // update value
+      await componentHarness.writeToEndpointGroupNameInput('dlq-group updated');
+      expect(await componentHarness.isGeneralTabSaveButtonInvalid()).toBeFalsy();
+
+      // saving should display a validation dialog
+      await componentHarness.clickEndpointGroupSaveButton();
+      const dialog = await rootLoader.getHarness(GioConfirmDialogHarness);
+      await dialog.confirm();
+
+      expectApiGetRequest(api, fixture, httpTestingController);
+      const response = expectApiPutRequest(api, fixture, httpTestingController).request.body;
+      const endpointsGroup = response.endpointGroups;
+      expect(endpointsGroup[1].name).toEqual('dlq-group updated');
+      const webhookDlq = response.listeners[0].entrypoints[0].dlq;
+      expect(webhookDlq.endpoint).toEqual('dlq-group updated');
+      expect(await componentHarness.configurationTabIsVisible()).toEqual(true);
+    });
+    it('should not update endpoint group used as dlq when canceling dialog', async () => {
+      api = fakeApiV4(cloneDeep(DLQ_PARTIAL_API));
+      // select the second group, which is the dead letter queue one
+      await initComponent(api, { apiId: API_ID, groupIndex: 1 });
+      await componentHarness.clickGeneralTab();
+      expectApiSchemaGetRequests(api, fixture, httpTestingController);
+      expect(await componentHarness.readEndpointGroupNameInput()).toEqual('dlq-group');
+
+      // update value
+      await componentHarness.writeToEndpointGroupNameInput('dlq-group updated');
+      expect(await componentHarness.isGeneralTabSaveButtonInvalid()).toBeFalsy();
+
+      // saving should display a validation dialog
+      await componentHarness.clickEndpointGroupSaveButton();
+      const dialog = await rootLoader.getHarness(GioConfirmDialogHarness);
+      await dialog.cancel();
+
       expect(await componentHarness.configurationTabIsVisible()).toEqual(true);
     });
   });

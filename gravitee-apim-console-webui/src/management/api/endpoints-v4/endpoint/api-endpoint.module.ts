@@ -28,6 +28,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { UIRouterModule } from '@uirouter/angular';
 import { MatTabsModule } from '@angular/material/tabs';
+import { MatDialogModule } from '@angular/material/dialog';
 
 import { ApiEndpointComponent } from './api-endpoint.component';
 
@@ -42,6 +43,7 @@ import { GioGoBackButtonModule } from '../../../../shared/components/gio-go-back
 
     MatButtonModule,
     MatCardModule,
+    MatDialogModule,
     MatFormFieldModule,
     MatInputModule,
     MatProgressBarModule,

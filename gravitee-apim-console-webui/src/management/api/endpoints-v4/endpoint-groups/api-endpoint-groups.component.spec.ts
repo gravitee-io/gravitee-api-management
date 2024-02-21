@@ -21,6 +21,7 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { GioLicenseTestingModule } from '@gravitee/ui-particles-angular';
+import { deepClone } from '@gravitee/ui-components/src/lib/utils';
 
 import { ApiEndpointGroupsComponent } from './api-endpoint-groups.component';
 import { ApiEndpointGroupsHarness } from './api-endpoint-groups.harness';
@@ -69,6 +70,31 @@ describe('ApiEndpointGroupsComponent', () => {
         weight: 1,
         inheritConfiguration: true,
         secondary: false,
+      },
+    ],
+  };
+  const dlqGroup: EndpointGroupV4 = {
+    name: 'dlq-group',
+    type: 'kafka',
+    loadBalancer: { type: 'WEIGHTED_RANDOM' },
+    endpoints: [
+      {
+        name: 'dlq-endpoint-one',
+        type: 'kafka',
+        weight: 1,
+        inheritConfiguration: false,
+        configuration: {
+          bootstrapServers: 'localhost:9092',
+        },
+      },
+      {
+        name: 'dlq-endpoint-two',
+        type: 'kafka',
+        weight: 5,
+        inheritConfiguration: false,
+        configuration: {
+          bootstrapServers: 'localhost:9093',
+        },
       },
     ],
   };
@@ -131,7 +157,7 @@ describe('ApiEndpointGroupsComponent', () => {
     it('should delete the endpoint', async () => {
       const apiV4 = fakeApiV4({
         id: API_ID,
-        endpointGroups: [group1, group2],
+        endpointGroups: [deepClone(group1), deepClone(group2)],
       });
       await initComponent(apiV4);
       expect(await componentHarness.isEndpointDeleteButtonVisible()).toEqual(true);
@@ -142,6 +168,52 @@ describe('ApiEndpointGroupsComponent', () => {
       expectApiPutRequest({
         ...apiV4,
         endpointGroups: [{ ...group1, endpoints: [{ ...group1.endpoints[0] }] }, { ...group2 }],
+      });
+      expectApiGetRequest(apiV4);
+      expectEndpointsGetRequest();
+    });
+
+    it('should delete the endpoint if used as dead letter queue', async () => {
+      const apiV4 = deepClone(
+        fakeApiV4({
+          id: API_ID,
+          endpointGroups: [deepClone(group1), deepClone(dlqGroup)],
+          listeners: [
+            {
+              type: 'SUBSCRIPTION',
+              entrypoints: [
+                {
+                  type: 'webhook',
+                  dlq: {
+                    endpoint: 'dlq-endpoint-one',
+                  },
+                },
+              ],
+            },
+          ],
+        }),
+      );
+      await initComponent(apiV4);
+      expect(await componentHarness.isEndpointDeleteButtonVisible()).toEqual(true);
+
+      // deleting the third endpoint of the flatten list of buttons: dlq-endpoint-one
+      await componentHarness.deleteEndpoint(2, rootLoader);
+
+      expectApiGetRequest(apiV4);
+      expectApiPutRequest({
+        ...apiV4,
+        endpointGroups: [{ ...group1 }, { ...dlqGroup, endpoints: [{ ...dlqGroup.endpoints[1] }] }],
+        listeners: [
+          {
+            type: 'SUBSCRIPTION',
+            entrypoints: [
+              {
+                type: 'webhook',
+                dlq: null,
+              },
+            ],
+          },
+        ],
       });
       expectApiGetRequest(apiV4);
       expectEndpointsGetRequest();
@@ -168,6 +240,92 @@ describe('ApiEndpointGroupsComponent', () => {
 
       expectApiGetRequest(apiV4);
       expectApiPutRequest({ ...apiV4, endpointGroups: [group2] });
+      expectApiGetRequest(apiV4);
+      expectEndpointsGetRequest();
+    });
+
+    it('should delete the endpoint group if used as dead letter queue', async () => {
+      const apiV4 = deepClone(
+        fakeApiV4({
+          id: API_ID,
+          endpointGroups: [group1, dlqGroup],
+          listeners: [
+            {
+              type: 'SUBSCRIPTION',
+              entrypoints: [
+                {
+                  type: 'webhook',
+                  dlq: {
+                    endpoint: 'dlq-group',
+                  },
+                },
+              ],
+            },
+          ],
+        }),
+      );
+      await initComponent(apiV4);
+      await componentHarness.deleteEndpointGroup(1, rootLoader);
+
+      expectApiGetRequest(apiV4);
+      expectApiPutRequest({
+        ...apiV4,
+        endpointGroups: [group1],
+        listeners: [
+          {
+            type: 'SUBSCRIPTION',
+            entrypoints: [
+              {
+                type: 'webhook',
+                dlq: null,
+              },
+            ],
+          },
+        ],
+      });
+      expectApiGetRequest(apiV4);
+      expectEndpointsGetRequest();
+    });
+
+    it('should delete the endpoint group if one of its item is used as dead letter queue', async () => {
+      const apiV4 = deepClone(
+        fakeApiV4({
+          id: API_ID,
+          endpointGroups: [group1, dlqGroup],
+          listeners: [
+            {
+              type: 'SUBSCRIPTION',
+              entrypoints: [
+                {
+                  type: 'webhook',
+                  dlq: {
+                    endpoint: 'dlq-endpoint-one',
+                  },
+                },
+              ],
+            },
+          ],
+        }),
+      );
+      await initComponent(apiV4);
+      await componentHarness.deleteEndpointGroup(1, rootLoader);
+
+      expectApiGetRequest(apiV4);
+      expectApiPutRequest({
+        ...apiV4,
+        endpointGroups: [group1],
+        listeners: [
+          {
+            type: 'SUBSCRIPTION',
+            entrypoints: [
+              {
+                type: 'webhook',
+                dlq: null,
+              },
+            ],
+          },
+        ],
+      });
       expectApiGetRequest(apiV4);
       expectEndpointsGetRequest();
     });
