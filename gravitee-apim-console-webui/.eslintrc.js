@@ -15,7 +15,7 @@ module.exports = {
     },
   },
   ignorePatterns: ['**/*.js', '**/*.json', '**/*.html'],
-  plugins: ['eslint-plugin-jsdoc', '@typescript-eslint', 'eslint-plugin-import', 'rxjs'],
+  plugins: ['@typescript-eslint', 'eslint-plugin-import', 'rxjs'],
   extends: [
     'angular',
     'eslint:recommended',
@@ -67,9 +67,6 @@ module.exports = {
     'guard-for-in': 'warn',
     'id-blacklist': 'off',
     'id-match': 'off',
-    'jsdoc/check-alignment': 'error',
-    'jsdoc/check-indentation': 'off',
-    'jsdoc/newline-after-description': 'error',
     'no-caller': 'error',
     'no-console': [
       'warn',
