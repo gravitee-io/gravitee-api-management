@@ -52,7 +52,10 @@ export class ApiHistoryV4DeploymentInfoComponent implements OnDestroy {
     takeUntil(this.unsubscribe$),
   );
 
-  constructor(private readonly eventsService: ApiEventsV2Service, private readonly activatedRoute: ActivatedRoute) {}
+  constructor(
+    private readonly eventsService: ApiEventsV2Service,
+    private readonly activatedRoute: ActivatedRoute,
+  ) {}
 
   ngOnDestroy(): void {
     this.unsubscribe$.next();

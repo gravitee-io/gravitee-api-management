@@ -40,7 +40,10 @@ interface IMembership {
 export type ApplicationExcludeFilter = 'owner' | 'picture';
 
 class ApplicationService {
-  constructor(private $http: ng.IHttpService, private Constants) {}
+  constructor(
+    private $http: ng.IHttpService,
+    private Constants,
+  ) {}
 
   getAnalyticsHttpTimeout() {
     return this.Constants.env.settings.analytics.clientTimeout as number;

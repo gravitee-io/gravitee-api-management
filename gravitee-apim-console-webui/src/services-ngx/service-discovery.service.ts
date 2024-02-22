@@ -24,7 +24,10 @@ import { ResourceListItem } from '../entities/resource/resourceListItem';
   providedIn: 'root',
 })
 export class ServiceDiscoveryService {
-  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject(Constants) private readonly constants: Constants,
+  ) {}
 
   public list(): Observable<ResourceListItem[]> {
     return this.http.get<ResourceListItem[]>(`${this.constants.env.baseURL}/services-discovery`);

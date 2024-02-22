@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 class DictionaryService {
-  constructor(private $http: ng.IHttpService, private Constants) {}
+  constructor(
+    private $http: ng.IHttpService,
+    private Constants,
+  ) {}
 
   list(): ng.IPromise<any> {
     return this.$http.get(`${this.Constants.env.baseURL}/configuration/dictionaries`);

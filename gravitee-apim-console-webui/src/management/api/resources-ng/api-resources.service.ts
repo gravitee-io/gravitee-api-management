@@ -26,7 +26,10 @@ import { ListParams } from '../policy-studio-v2/models/ListParams';
   providedIn: 'root',
 })
 export class ApiResourcesService {
-  constructor(readonly http: HttpClient, @Inject(Constants) readonly constants: Constants) {}
+  constructor(
+    readonly http: HttpClient,
+    @Inject(Constants) readonly constants: Constants,
+  ) {}
 
   listResources(params: ListParams): Observable<ResourceListItem[]> {
     let httpParams = new HttpParams();

@@ -22,7 +22,11 @@ class ApiHealthcheckLogControllerAjs {
   private activatedRoute: ActivatedRoute;
   private log: any;
 
-  constructor(private ngRouter: Router, private $window, private ApiService: ApiService) {}
+  constructor(
+    private ngRouter: Router,
+    private $window,
+    private ApiService: ApiService,
+  ) {}
 
   $onInit() {
     this.ApiService.getHealthLog(this.activatedRoute.snapshot.params.apiId, this.activatedRoute.snapshot.params.logId).then((response) => {

@@ -132,8 +132,8 @@ describe('PolicyStudioDebugComponent', () => {
         state: card.querySelector('.policy-studio-debug-timeline-card__right').innerHTML.includes('gio:alert-circle')
           ? 'ERROR'
           : card.querySelector('.policy-studio-debug-timeline-card__right').innerHTML.includes('gio:alert-circle')
-          ? 'SKIPPED'
-          : undefined,
+            ? 'SKIPPED'
+            : undefined,
       }));
       expect(timeLineCards).toEqual([
         {

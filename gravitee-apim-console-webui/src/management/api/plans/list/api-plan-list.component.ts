@@ -252,11 +252,14 @@ export class ApiPlanListComponent implements OnInit, OnDestroy {
       ? this.plansService.list(this.activatedRoute.snapshot.params.apiId, undefined, [...PLAN_STATUS], undefined, 1, 9999).pipe(
           map((plans) => {
             // Update the number of plans for each status
-            const plansNumber = plans.data.reduce((acc, plan) => {
-              const status = plan.status.toUpperCase();
-              acc[status] = acc[status] ? acc[status] + 1 : 1;
-              return acc;
-            }, {} as Record<PlanStatus, number>);
+            const plansNumber = plans.data.reduce(
+              (acc, plan) => {
+                const status = plan.status.toUpperCase();
+                acc[status] = acc[status] ? acc[status] + 1 : 1;
+                return acc;
+              },
+              {} as Record<PlanStatus, number>,
+            );
 
             this.apiPlanStatus.forEach((plan) => {
               plan.number = plansNumber[plan.name.toUpperCase()] ?? 0;

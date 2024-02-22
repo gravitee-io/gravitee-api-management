@@ -33,7 +33,10 @@ export interface IAlertTriggerAnalytics {
 }
 
 class AlertService {
-  constructor(private $http: ng.IHttpService, private Constants) {}
+  constructor(
+    private $http: ng.IHttpService,
+    private Constants,
+  ) {}
 
   listMetrics(): IHttpPromise<any> {
     return this.$http.get(`${this.Constants.env.baseURL}/alerts/` + 'metrics');

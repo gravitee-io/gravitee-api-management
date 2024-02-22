@@ -60,7 +60,10 @@ export class GioEntrypointsSelectionListComponent implements OnDestroy, ControlV
 
   protected _onTouched: () => void = () => ({});
 
-  constructor(private readonly connectorPluginsV2Service: ConnectorPluginsV2Service, private readonly matDialog: MatDialog) {}
+  constructor(
+    private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
+    private readonly matDialog: MatDialog,
+  ) {}
   onMoreInfoClick(event, entrypoint: ConnectorVM) {
     event.stopPropagation();
 

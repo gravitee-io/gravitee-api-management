@@ -33,7 +33,10 @@ import { ApiKey, SubscriptionApiKeysResponse } from '../entities/management-api-
   providedIn: 'root',
 })
 export class ApiSubscriptionV2Service {
-  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject(Constants) private readonly constants: Constants,
+  ) {}
 
   list(
     apiId: string,

@@ -24,7 +24,10 @@ import { NewToken, Token } from '../entities/user/userTokens';
   providedIn: 'root',
 })
 export class UsersTokenService {
-  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject(Constants) private readonly constants: Constants,
+  ) {}
 
   getTokens(userId: string): Observable<Token[]> {
     return this.http.get<Token[]>(`${this.constants.org.baseURL}/users/${userId}/tokens`);

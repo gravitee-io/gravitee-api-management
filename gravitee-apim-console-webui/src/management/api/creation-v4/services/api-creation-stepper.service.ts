@@ -64,7 +64,10 @@ export class ApiCreationStepperService {
    */
   public finished$ = new Subject<ApiCreationPayload>();
 
-  constructor(@Inject('isFactory') public readonly groups: ApiCreationGroup[], @Inject('isFactory') initialPayload?: ApiCreationPayload) {
+  constructor(
+    @Inject('isFactory') public readonly groups: ApiCreationGroup[],
+    @Inject('isFactory') initialPayload?: ApiCreationPayload,
+  ) {
     this.initialPayload = initialPayload ?? {};
     this.groups = groups ?? [];
   }

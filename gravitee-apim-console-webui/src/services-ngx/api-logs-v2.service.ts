@@ -24,7 +24,10 @@ import { AggregatedMessageLog, ApiLogsParam, ApiLogsResponse, ConnectionLogDetai
   providedIn: 'root',
 })
 export class ApiLogsV2Service {
-  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject(Constants) private readonly constants: Constants,
+  ) {}
 
   searchConnectionLogs(apiId: string, queryParam?: ApiLogsParam): Observable<ApiLogsResponse> {
     let params = new HttpParams();

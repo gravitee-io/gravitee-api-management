@@ -46,16 +46,19 @@ export const toResponseTemplates = (responseTemplates: (ApiV1 | ApiV2)['response
 };
 
 export const fromResponseTemplates = (responseTemplates: ResponseTemplate[]): (ApiV1 | ApiV2)['responseTemplates'] => {
-  return responseTemplates.reduce((acc, responseTemplate) => {
-    const { key, contentType, statusCode, body, headers } = responseTemplate;
-    if (!acc[key]) {
-      acc[key] = {};
-    }
-    acc[key][contentType] = {
-      statusCode,
-      body,
-      headers,
-    };
-    return acc;
-  }, {} as (ApiV1 | ApiV2)['responseTemplates']);
+  return responseTemplates.reduce(
+    (acc, responseTemplate) => {
+      const { key, contentType, statusCode, body, headers } = responseTemplate;
+      if (!acc[key]) {
+        acc[key] = {};
+      }
+      acc[key][contentType] = {
+        statusCode,
+        body,
+        headers,
+      };
+      return acc;
+    },
+    {} as (ApiV1 | ApiV2)['responseTemplates'],
+  );
 };

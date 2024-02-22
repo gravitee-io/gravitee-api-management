@@ -25,7 +25,11 @@ import { ActivatedRoute } from '@angular/router';
   },
 })
 export class ApiAnalyticsOverviewComponent extends UpgradeComponent {
-  constructor(elementRef: ElementRef, injector: Injector, private readonly activatedRoute: ActivatedRoute) {
+  constructor(
+    elementRef: ElementRef,
+    injector: Injector,
+    private readonly activatedRoute: ActivatedRoute,
+  ) {
     super('apiAnalyticsOverviewComponentAjs', elementRef, injector);
   }
 

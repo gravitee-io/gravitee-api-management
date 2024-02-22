@@ -24,7 +24,10 @@ import { CreateApiMember, Member, MembersResponse, UpdateApiMember } from '../en
   providedIn: 'root',
 })
 export class ApiMemberV2Service {
-  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject(Constants) private readonly constants: Constants,
+  ) {}
 
   getMembers(api: string): Observable<MembersResponse> {
     return this.http.get<MembersResponse>(`${this.constants.env.v2BaseURL}/apis/${api}/members`);

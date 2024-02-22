@@ -22,7 +22,11 @@ import DictionaryService from '../../../services/dictionary.service';
 class DictionariesController {
   private dictionaries: any;
   private activatedRoute: ActivatedRoute;
-  constructor(private DictionaryService: DictionaryService, private $rootScope: IScope, private ngRouter: Router) {
+  constructor(
+    private DictionaryService: DictionaryService,
+    private $rootScope: IScope,
+    private ngRouter: Router,
+  ) {
     this.$rootScope = $rootScope;
   }
 

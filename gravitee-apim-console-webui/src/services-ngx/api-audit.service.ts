@@ -31,7 +31,10 @@ export type ApiAuditFilters = {
   providedIn: 'root',
 })
 export class ApiAuditService {
-  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject(Constants) private readonly constants: Constants,
+  ) {}
 
   getEvents(apiId: string): Observable<string[]> {
     return this.http.get<string[]>(`${this.constants.env.baseURL}/apis/${apiId}/audit/events`);

@@ -24,7 +24,10 @@ import { PagedResult, Event, SearchApiEventParam } from '../entities/management-
   providedIn: 'root',
 })
 export class ApiEventsV2Service {
-  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject(Constants) private readonly constants: Constants,
+  ) {}
 
   searchApiEvents(apiId: string, queryParam?: SearchApiEventParam): Observable<PagedResult<Event>> {
     let params = new HttpParams();

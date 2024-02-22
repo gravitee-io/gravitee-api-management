@@ -33,7 +33,10 @@ export class ConsoleSettingsService {
     return false;
   }
 
-  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject(Constants) private readonly constants: Constants,
+  ) {}
 
   save(consoleSettings: ConsoleSettings): Observable<ConsoleSettings> {
     // FIXME: Rule kept after Angular migration

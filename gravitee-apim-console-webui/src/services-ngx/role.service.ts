@@ -27,7 +27,10 @@ import { PermissionsByScopes } from '../entities/role/permission';
   providedIn: 'root',
 })
 export class RoleService {
-  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject(Constants) private readonly constants: Constants,
+  ) {}
 
   list(scope: string): Observable<Role[]> {
     return this.http

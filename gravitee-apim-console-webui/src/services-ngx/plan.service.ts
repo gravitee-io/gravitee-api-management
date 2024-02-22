@@ -26,7 +26,10 @@ import { NewPlan, Plan, PlanStatus } from '../entities/plan';
   providedIn: 'root',
 })
 export class PlanService {
-  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject(Constants) private readonly constants: Constants,
+  ) {}
 
   public getApiPlans(apiId: string, status?: PlanStatus | PlanStatus[], security?: string): Observable<Plan[]> {
     let params = new HttpParams();

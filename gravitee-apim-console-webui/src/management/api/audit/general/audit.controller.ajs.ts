@@ -20,7 +20,10 @@ import AuditService from '../../../../services/audit.service';
 
 class ApiAuditControllerAjs {
   activatedRoute: ActivatedRoute;
-  constructor(private AuditService: AuditService, private $scope) {}
+  constructor(
+    private AuditService: AuditService,
+    private $scope,
+  ) {}
 
   $onInit() {
     this.$scope.api = this.activatedRoute.snapshot.params.apiId;

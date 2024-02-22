@@ -45,7 +45,10 @@ export class ApiHistoryV4Component {
     }),
   );
 
-  constructor(private readonly eventsService: ApiEventsV2Service, private readonly activatedRoute: ActivatedRoute) {}
+  constructor(
+    private readonly eventsService: ApiEventsV2Service,
+    private readonly activatedRoute: ActivatedRoute,
+  ) {}
 
   protected paginationChange(searchParam: SearchApiEventParam) {
     this.filter$.next({ ...this.filter$.getValue(), page: searchParam.page, perPage: searchParam.perPage });

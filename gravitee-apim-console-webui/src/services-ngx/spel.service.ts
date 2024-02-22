@@ -24,7 +24,10 @@ import { Grammar } from '../entities/spel/grammar';
   providedIn: 'root',
 })
 export class SpelService {
-  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject(Constants) private readonly constants: Constants,
+  ) {}
 
   getGrammar(): Observable<Grammar> {
     return this.http.get<Grammar>(`${this.constants.env.baseURL}/configuration/spel/grammar`);
