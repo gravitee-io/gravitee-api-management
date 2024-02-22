@@ -44,11 +44,13 @@ import { DocumentationEditPageComponent } from '../../components/documentation/e
 import { DocumentationImportPagesComponent } from '../../components/documentation/import-pages.component';
 import { DocumentationNewPageComponent } from '../../components/documentation/new-page.component';
 import { DocumentationManagementComponent } from '../../components/documentation/documentation-management.component';
+import { PermissionGuard } from '../../shared/components/gio-permission/gio-permission.guard';
 
 export const settingsRoutes: Routes = [
   {
     path: '',
     component: SettingsNavigationComponent,
+    canActivateChild: [PermissionGuard.checkRouteDataPermissions],
     children: [
       {
         path: 'analytics',
@@ -57,9 +59,9 @@ export const settingsRoutes: Routes = [
           docs: {
             page: 'management-configuration-analytics',
           },
-          perms: {
-            only: ['environment-dashboard-r'],
-            unauthorizedFallbackTo: 'management.settings.apiPortalHeader',
+          permissions: {
+            anyOf: ['environment-dashboard-r'],
+            unauthorizedFallbackTo: '../api-portal-header',
           },
         },
       },
@@ -70,8 +72,8 @@ export const settingsRoutes: Routes = [
           docs: {
             page: 'management-configuration-dashboard',
           },
-          perms: {
-            only: ['environment-dashboard-c'],
+          permissions: {
+            anyOf: ['environment-dashboard-c'],
           },
         },
       },
@@ -82,8 +84,8 @@ export const settingsRoutes: Routes = [
           docs: {
             page: 'management-configuration-dashboard',
           },
-          perms: {
-            only: ['environment-dashboard-u'],
+          permissions: {
+            anyOf: ['environment-dashboard-u'],
           },
         },
       },
@@ -94,9 +96,9 @@ export const settingsRoutes: Routes = [
           docs: {
             page: 'management-configuration-apiportalheader',
           },
-          perms: {
-            only: ['environment-api_header-r'],
-            unauthorizedFallbackTo: 'management.settings.apiQuality.list',
+          permissions: {
+            anyOf: ['environment-api_header-r'],
+            unauthorizedFallbackTo: '../api-quality-rules',
           },
         },
       },
@@ -107,9 +109,9 @@ export const settingsRoutes: Routes = [
           docs: {
             page: 'management-configuration-apiquality',
           },
-          perms: {
-            only: ['environment-quality_rule-r'],
-            unauthorizedFallbackTo: 'management.settings.environment.identityproviders',
+          permissions: {
+            anyOf: ['environment-quality_rule-r'],
+            unauthorizedFallbackTo: '../identity-providers',
           },
         },
       },
@@ -120,9 +122,9 @@ export const settingsRoutes: Routes = [
           docs: {
             page: 'management-configuration-apiquality',
           },
-          perms: {
-            only: ['environment-quality_rule-r'],
-            unauthorizedFallbackTo: 'management.settings.environment.identityproviders',
+          permissions: {
+            anyOf: ['environment-quality_rule-r'],
+            unauthorizedFallbackTo: '../identity-providers',
           },
         },
       },
@@ -133,8 +135,8 @@ export const settingsRoutes: Routes = [
           docs: {
             page: 'management-configuration-apiquality',
           },
-          perms: {
-            only: ['environment-quality_rule-c'],
+          permissions: {
+            anyOf: ['environment-quality_rule-c'],
           },
         },
       },
@@ -145,8 +147,8 @@ export const settingsRoutes: Routes = [
           docs: {
             page: 'management-configuration-apiquality',
           },
-          perms: {
-            only: ['environment-quality_rule-u'],
+          permissions: {
+            anyOf: ['environment-quality_rule-u'],
           },
         },
       },
@@ -157,9 +159,9 @@ export const settingsRoutes: Routes = [
           docs: {
             page: 'management-configuration-identityproviders',
           },
-          perms: {
-            only: ['environment-identity_provider_activation-r'],
-            unauthorizedFallbackTo: 'management.settings.categories.list',
+          permissions: {
+            anyOf: ['environment-identity_provider_activation-r'],
+            unauthorizedFallbackTo: '../categories',
           },
         },
       },
@@ -171,9 +173,9 @@ export const settingsRoutes: Routes = [
           docs: {
             page: 'management-configuration-categories',
           },
-          perms: {
-            only: ['environment-category-r'],
-            unauthorizedFallbackTo: 'management.settings.clientregistrationproviders.list',
+          permissions: {
+            anyOf: ['environment-category-r'],
+            unauthorizedFallbackTo: '../client-registration-providers',
           },
         },
       },
@@ -184,8 +186,8 @@ export const settingsRoutes: Routes = [
           docs: {
             page: 'management-configuration-categories',
           },
-          perms: {
-            only: ['environment-category-c'],
+          permissions: {
+            anyOf: ['environment-category-c'],
           },
         },
       },
@@ -196,8 +198,8 @@ export const settingsRoutes: Routes = [
           docs: {
             page: 'management-configuration-categories',
           },
-          perms: {
-            only: ['environment-category-u', 'environment-category-d'],
+          permissions: {
+            anyOf: ['environment-category-u', 'environment-category-d'],
           },
         },
       },
@@ -208,9 +210,9 @@ export const settingsRoutes: Routes = [
           docs: {
             page: 'management-configuration-client-registration-providers',
           },
-          perms: {
-            only: ['environment-client_registration_provider-r'],
-            unauthorizedFallbackTo: 'management.settings.documentation.list',
+          permissions: {
+            anyOf: ['environment-client_registration_provider-r'],
+            unauthorizedFallbackTo: '../documentation',
           },
         },
       },
@@ -221,8 +223,8 @@ export const settingsRoutes: Routes = [
           docs: {
             page: 'management-configuration-client-registration-provider',
           },
-          perms: {
-            only: ['environment-client_registration_provider-c'],
+          permissions: {
+            anyOf: ['environment-client_registration_provider-c'],
           },
         },
       },
@@ -233,8 +235,8 @@ export const settingsRoutes: Routes = [
           docs: {
             page: 'management-configuration-client-registration-provider',
           },
-          perms: {
-            only: [
+          permissions: {
+            anyOf: [
               'environment-client_registration_provider-r',
               'environment-client_registration_provider-u',
               'environment-client_registration_provider-d',
@@ -249,8 +251,8 @@ export const settingsRoutes: Routes = [
           docs: {
             page: 'management-configuration-portal-pages',
           },
-          perms: {
-            only: ['environment-documentation-c'],
+          permissions: {
+            anyOf: ['environment-documentation-c'],
           },
         },
       },
@@ -261,8 +263,8 @@ export const settingsRoutes: Routes = [
           docs: {
             page: 'management-configuration-portal-pages',
           },
-          perms: {
-            only: ['environment-documentation-u'],
+          permissions: {
+            anyOf: ['environment-documentation-u'],
           },
         },
       },
@@ -273,8 +275,8 @@ export const settingsRoutes: Routes = [
           docs: {
             page: 'management-configuration-portal-pages',
           },
-          perms: {
-            only: ['environment-documentation-u'],
+          permissions: {
+            anyOf: ['environment-documentation-u'],
           },
         },
       },
@@ -285,9 +287,9 @@ export const settingsRoutes: Routes = [
           docs: {
             page: 'management-configuration-portal-pages',
           },
-          perms: {
-            only: ['environment-documentation-c', 'environment-documentation-u', 'environment-documentation-d'],
-            unauthorizedFallbackTo: 'management.settings.metadata',
+          permissions: {
+            anyOf: ['environment-documentation-c', 'environment-documentation-u', 'environment-documentation-d'],
+            unauthorizedFallbackTo: '../metadata',
           },
         },
       },
@@ -298,9 +300,9 @@ export const settingsRoutes: Routes = [
           docs: {
             page: 'management-configuration-metadata',
           },
-          perms: {
-            only: ['environment-metadata-r'],
-            unauthorizedFallbackTo: 'management.settings.portal',
+          permissions: {
+            anyOf: ['environment-metadata-r'],
+            unauthorizedFallbackTo: '../portal',
           },
         },
       },
@@ -311,9 +313,9 @@ export const settingsRoutes: Routes = [
           docs: {
             page: 'management-configuration-portal',
           },
-          perms: {
-            only: ['environment-settings-r'],
-            unauthorizedFallbackTo: 'management.settings.theme',
+          permissions: {
+            anyOf: ['environment-settings-r'],
+            unauthorizedFallbackTo: '../theme',
           },
         },
       },
@@ -324,9 +326,9 @@ export const settingsRoutes: Routes = [
           docs: {
             page: 'management-configuration-portal-theme',
           },
-          perms: {
-            only: ['environment-theme-r'],
-            unauthorizedFallbackTo: 'management.settings.top-apis',
+          permissions: {
+            anyOf: ['environment-theme-r'],
+            unauthorizedFallbackTo: '../top-apis',
           },
         },
       },
@@ -337,9 +339,9 @@ export const settingsRoutes: Routes = [
           docs: {
             page: 'management-configuration-top_apis',
           },
-          perms: {
-            only: ['environment-top_apis-r'],
-            unauthorizedFallbackTo: 'management.settings.api_logging',
+          permissions: {
+            anyOf: ['environment-top_apis-r'],
+            unauthorizedFallbackTo: '../api-logging',
           },
         },
       },
@@ -350,9 +352,9 @@ export const settingsRoutes: Routes = [
           docs: {
             page: 'management-configuration-apilogging',
           },
-          perms: {
-            only: ['organization-settings-r'],
-            unauthorizedFallbackTo: 'management.settings.dictionaries.list',
+          permissions: {
+            anyOf: ['organization-settings-r'],
+            unauthorizedFallbackTo: '../dictionaries',
           },
         },
       },
@@ -363,9 +365,9 @@ export const settingsRoutes: Routes = [
           docs: {
             page: 'management-configuration-dictionaries',
           },
-          perms: {
-            only: ['environment-dictionary-r'],
-            unauthorizedFallbackTo: 'management.settings.customUserFields',
+          permissions: {
+            anyOf: ['environment-dictionary-r'],
+            unauthorizedFallbackTo: '../custom-user-fields',
           },
         },
       },
@@ -376,8 +378,8 @@ export const settingsRoutes: Routes = [
           docs: {
             page: 'management-configuration-dictionary',
           },
-          perms: {
-            only: ['environment-dictionary-c'],
+          permissions: {
+            anyOf: ['environment-dictionary-c'],
           },
         },
       },
@@ -389,8 +391,8 @@ export const settingsRoutes: Routes = [
           docs: {
             page: 'management-configuration-dictionary',
           },
-          perms: {
-            only: ['environment-dictionary-c', 'environment-dictionary-r', 'environment-dictionary-u', 'environment-dictionary-d'],
+          permissions: {
+            anyOf: ['environment-dictionary-c', 'environment-dictionary-r', 'environment-dictionary-u', 'environment-dictionary-d'],
           },
         },
       },
@@ -401,9 +403,9 @@ export const settingsRoutes: Routes = [
           docs: {
             page: 'management-configuration-custom-user-fields',
           },
-          perms: {
-            only: ['organization-custom_user_fields-r'],
-            unauthorizedFallbackTo: 'management.settings.groups.list',
+          permissions: {
+            anyOf: ['organization-custom_user_fields-r'],
+            unauthorizedFallbackTo: '../groups',
           },
         },
       },
@@ -414,9 +416,9 @@ export const settingsRoutes: Routes = [
           docs: {
             page: 'management-configuration-groups',
           },
-          perms: {
-            only: ['environment-group-r'],
-            unauthorizedFallbackTo: 'management.settings.notification-settings',
+          permissions: {
+            anyOf: ['environment-group-r'],
+            unauthorizedFallbackTo: '../notifications',
           },
         },
       },
@@ -427,8 +429,8 @@ export const settingsRoutes: Routes = [
           docs: {
             page: 'management-configuration-group',
           },
-          perms: {
-            only: ['environment-group-r'],
+          permissions: {
+            anyOf: ['environment-group-r'],
           },
         },
       },
@@ -439,8 +441,8 @@ export const settingsRoutes: Routes = [
           docs: {
             page: 'management-configuration-group',
           },
-          perms: {
-            only: ['environment-group-r'],
+          permissions: {
+            anyOf: ['environment-group-r'],
           },
         },
       },
@@ -451,8 +453,9 @@ export const settingsRoutes: Routes = [
           docs: {
             page: 'management-configuration-notifications',
           },
-          perms: {
-            unauthorizedFallbackTo: 'management.home',
+          permissions: {
+            anyOf: ['environment-notification-r'],
+            unauthorizedFallbackTo: '../../',
           },
         },
       },

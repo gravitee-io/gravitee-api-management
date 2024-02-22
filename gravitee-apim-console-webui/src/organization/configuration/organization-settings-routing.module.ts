@@ -33,17 +33,16 @@ import { OrgSettingsRoleMembersComponent } from './roles/org-settings-role-membe
 import { OrgSettingsRoleComponent } from './roles/role/org-settings-role.component';
 import { OrgSettingsAuditComponent } from './audit/org-settings-audit.component';
 import { OrgNavigationComponent } from './navigation/org-navigation.component';
-import { HasOrganizationPermissionGuard } from './has-organization-permission.guard';
 import { OrganizationSettingsModule } from './organization-settings.module';
 
 import { HasLicenseGuard } from '../../shared/components/gio-license/has-license.guard';
+import { PermissionGuard } from '../../shared/components/gio-permission/gio-permission.guard';
 
 const organizationRoutes: Routes = [
   {
     path: '',
     component: OrgNavigationComponent,
-    canActivate: [HasOrganizationPermissionGuard],
-    canActivateChild: [HasOrganizationPermissionGuard, HasLicenseGuard],
+    canActivateChild: [PermissionGuard.checkRouteDataPermissions, HasLicenseGuard],
     children: [
       {
         path: 'settings',
@@ -52,8 +51,8 @@ const organizationRoutes: Routes = [
           docs: {
             page: 'organization-configuration-console',
           },
-          perms: {
-            only: ['organization-settings-r'],
+          permissions: {
+            anyOf: ['organization-settings-r'],
           },
         },
       },
@@ -64,8 +63,8 @@ const organizationRoutes: Routes = [
           docs: {
             page: 'organization-configuration-identityproviders',
           },
-          perms: {
-            only: ['organization-identity_provider-c'],
+          permissions: {
+            anyOf: ['organization-identity_provider-c'],
           },
         },
       },
@@ -76,8 +75,8 @@ const organizationRoutes: Routes = [
           docs: {
             page: 'organization-configuration-identityproviders',
           },
-          perms: {
-            only: ['organization-identity_provider-r', 'organization-identity_provider-u', 'organization-identity_provider-d'],
+          permissions: {
+            anyOf: ['organization-identity_provider-r', 'organization-identity_provider-u', 'organization-identity_provider-d'],
           },
         },
       },
@@ -88,8 +87,8 @@ const organizationRoutes: Routes = [
           docs: {
             page: 'organization-configuration-identityproviders',
           },
-          perms: {
-            only: ['organization-identity_provider-r'],
+          permissions: {
+            anyOf: ['organization-identity_provider-r'],
           },
         },
       },
@@ -100,8 +99,8 @@ const organizationRoutes: Routes = [
           docs: {
             page: 'organization-configuration-create-user',
           },
-          perms: {
-            only: ['organization-user-c'],
+          permissions: {
+            anyOf: ['organization-user-c'],
           },
         },
       },
@@ -112,8 +111,8 @@ const organizationRoutes: Routes = [
           docs: {
             page: 'organization-configuration-user',
           },
-          perms: {
-            only: ['organization-user-c', 'organization-user-r', 'organization-user-u', 'organization-user-d'],
+          permissions: {
+            anyOf: ['organization-user-c', 'organization-user-r', 'organization-user-u', 'organization-user-d'],
           },
         },
       },
@@ -124,8 +123,8 @@ const organizationRoutes: Routes = [
           docs: {
             page: 'organization-configuration-users',
           },
-          perms: {
-            only: ['organization-user-c', 'organization-user-r', 'organization-user-u', 'organization-user-d'],
+          permissions: {
+            anyOf: ['organization-user-c', 'organization-user-r', 'organization-user-u', 'organization-user-d'],
           },
         },
       },
@@ -136,8 +135,8 @@ const organizationRoutes: Routes = [
           docs: {
             page: 'organization-configuration-roles',
           },
-          perms: {
-            only: ['organization-role-u'],
+          permissions: {
+            anyOf: ['organization-role-u'],
           },
         },
       },
@@ -148,8 +147,8 @@ const organizationRoutes: Routes = [
           docs: {
             page: 'organization-configuration-roles',
           },
-          perms: {
-            only: ['organization-role-u'],
+          permissions: {
+            anyOf: ['organization-role-u'],
           },
         },
       },
@@ -164,8 +163,8 @@ const organizationRoutes: Routes = [
           docs: {
             page: 'organization-configuration-roles',
           },
-          perms: {
-            only: ['organization-role-u'],
+          permissions: {
+            anyOf: ['organization-role-u'],
           },
         },
       },
@@ -176,8 +175,8 @@ const organizationRoutes: Routes = [
           docs: {
             page: 'organization-configuration-roles',
           },
-          perms: {
-            only: ['organization-role-r'],
+          permissions: {
+            anyOf: ['organization-role-r'],
           },
         },
       },
@@ -188,8 +187,8 @@ const organizationRoutes: Routes = [
           docs: {
             page: 'management-configuration-sharding-tags',
           },
-          perms: {
-            only: ['organization-tag-r'],
+          permissions: {
+            anyOf: ['organization-tag-r'],
           },
         },
       },
@@ -200,8 +199,8 @@ const organizationRoutes: Routes = [
           docs: {
             page: 'management-configuration-tenants',
           },
-          perms: {
-            only: ['organization-tenant-r'],
+          permissions: {
+            anyOf: ['organization-tenant-r'],
           },
         },
       },
@@ -212,8 +211,8 @@ const organizationRoutes: Routes = [
           docs: {
             page: 'management-configuration-policies',
           },
-          perms: {
-            only: ['organization-policies-r'],
+          permissions: {
+            anyOf: ['organization-policies-r'],
           },
         },
       },
@@ -224,8 +223,8 @@ const organizationRoutes: Routes = [
           docs: {
             page: 'organization-configuration-notification-template',
           },
-          perms: {
-            only: ['organization-notification_templates-r'],
+          permissions: {
+            anyOf: ['organization-notification_templates-r'],
           },
         },
       },
@@ -236,8 +235,8 @@ const organizationRoutes: Routes = [
           docs: {
             page: 'organization-configuration-notification-templates',
           },
-          perms: {
-            only: ['organization-notification_templates-r'],
+          permissions: {
+            anyOf: ['organization-notification_templates-r'],
           },
         },
       },
@@ -252,8 +251,8 @@ const organizationRoutes: Routes = [
           docs: {
             page: 'management-audit',
           },
-          perms: {
-            only: ['organization-audit-r'],
+          permissions: {
+            anyOf: ['organization-audit-r'],
           },
         },
       },
@@ -264,8 +263,8 @@ const organizationRoutes: Routes = [
           docs: {
             page: 'organization-configuration-cockpit',
           },
-          perms: {
-            only: ['organization-installation-r'],
+          permissions: {
+            anyOf: ['organization-installation-r'],
           },
         },
       },

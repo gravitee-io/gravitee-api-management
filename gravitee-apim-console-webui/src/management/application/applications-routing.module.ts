@@ -16,10 +16,9 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
-import { ApplicationsModule } from './applications.module';
 import { ApplicationNavigationComponent } from './application-navigation/application-navigation.component';
 import { EnvApplicationListComponent } from './list/env-application-list.component';
-import { HasApplicationPermissionGuard } from './has-application-permission.guard';
+import { ApplicationGuard } from './application.guard';
 import { ApplicationMetadataComponent } from './details/metadata/application-metadata.component';
 import { ApplicationSubscriptionsComponent } from './details/subscriptions/application-subscriptions.component';
 import { ApplicationSubscriptionComponent } from './details/subscriptions/application-subscription.component';
@@ -34,18 +33,17 @@ import { ApplicationGeneralTransferOwnershipComponent } from './details/user-gro
 import { ApplicationGeneralComponent } from './details/general/application-general.component';
 import { ApplicationNotificationComponent } from './details/notification/application-notification.component';
 
-import { HasEnvironmentPermissionGuard } from '../has-environment-permission.guard';
+import { PermissionGuard } from '../../shared/components/gio-permission/gio-permission.guard';
 
 const applicationRoutes: Routes = [
   {
     path: '',
     component: EnvApplicationListComponent,
-    canActivate: [HasEnvironmentPermissionGuard],
-    canActivateChild: [HasEnvironmentPermissionGuard],
+    canActivate: [PermissionGuard.checkRouteDataPermissions],
     data: {
       useAngularMaterial: true,
-      perms: {
-        only: ['environment-application-r'],
+      permissions: {
+        anyOf: ['environment-application-r'],
       },
       docs: {
         page: 'management-applications',
@@ -55,10 +53,10 @@ const applicationRoutes: Routes = [
   {
     path: 'create',
     component: ApplicationCreationComponent,
-    canActivate: [HasEnvironmentPermissionGuard],
+    canActivate: [PermissionGuard.checkRouteDataPermissions],
     data: {
-      perms: {
-        only: ['environment-application-c'],
+      permissions: {
+        anyOf: ['environment-application-c'],
       },
       docs: {
         page: 'management-create-application',
@@ -68,8 +66,9 @@ const applicationRoutes: Routes = [
   {
     path: ':applicationId',
     component: ApplicationNavigationComponent,
-    canActivate: [HasApplicationPermissionGuard],
-    canActivateChild: [HasApplicationPermissionGuard],
+    canActivate: [ApplicationGuard.loadPermissions],
+    canActivateChild: [PermissionGuard.checkRouteDataPermissions],
+    canDeactivate: [ApplicationGuard.clearPermissions],
     children: [
       {
         path: '',
@@ -80,8 +79,8 @@ const applicationRoutes: Routes = [
         path: 'metadata',
         component: ApplicationMetadataComponent,
         data: {
-          perms: {
-            only: ['application-metadata-r'],
+          permissions: {
+            anyOf: ['application-metadata-r'],
           },
           docs: {
             page: 'management-application-metadata',
@@ -92,8 +91,8 @@ const applicationRoutes: Routes = [
         path: 'subscriptions',
         component: ApplicationSubscriptionsComponent,
         data: {
-          perms: {
-            only: ['application-subscription-r'],
+          permissions: {
+            anyOf: ['application-subscription-r'],
           },
           docs: {
             page: 'management-application-subscriptions',
@@ -104,8 +103,8 @@ const applicationRoutes: Routes = [
         path: 'subscriptions/subscribe',
         component: ApplicationSubscribeComponent,
         data: {
-          perms: {
-            only: ['application-subscription-r'],
+          permissions: {
+            anyOf: ['application-subscription-r'],
           },
         },
       },
@@ -113,8 +112,8 @@ const applicationRoutes: Routes = [
         path: 'subscriptions/:subscriptionId',
         component: ApplicationSubscriptionComponent,
         data: {
-          perms: {
-            only: ['application-subscription-r'],
+          permissions: {
+            anyOf: ['application-subscription-r'],
           },
           docs: {
             page: 'management-application-subscriptions',
@@ -125,8 +124,8 @@ const applicationRoutes: Routes = [
         path: 'analytics',
         component: ApplicationAnalyticsComponent,
         data: {
-          perms: {
-            only: ['application-analytics-r'],
+          permissions: {
+            anyOf: ['application-analytics-r'],
           },
           docs: {
             page: 'management-application-analytics',
@@ -137,8 +136,8 @@ const applicationRoutes: Routes = [
         path: 'logs',
         component: ApplicationLogsComponent,
         data: {
-          perms: {
-            only: ['application-log-r'],
+          permissions: {
+            anyOf: ['application-log-r'],
           },
           docs: {
             page: 'management-application-logs',
@@ -149,8 +148,8 @@ const applicationRoutes: Routes = [
         path: 'logs/:logId',
         component: ApplicationLogComponent,
         data: {
-          perms: {
-            only: ['application-log-r'],
+          permissions: {
+            anyOf: ['application-log-r'],
           },
         },
       },
@@ -158,8 +157,8 @@ const applicationRoutes: Routes = [
         path: 'notifications',
         component: ApplicationNotificationComponent,
         data: {
-          perms: {
-            only: ['application-notification-r', 'application-alert-r'],
+          permissions: {
+            anyOf: ['application-notification-r', 'application-alert-r'],
           },
           docs: {
             page: 'management-application-notifications',
@@ -170,8 +169,8 @@ const applicationRoutes: Routes = [
         path: 'members',
         component: ApplicationGeneralMembersComponent,
         data: {
-          perms: {
-            only: ['application-member-r'],
+          permissions: {
+            anyOf: ['application-member-r'],
           },
           docs: {
             page: 'management-application-members',
@@ -182,8 +181,8 @@ const applicationRoutes: Routes = [
         path: 'members-ng',
         component: ApplicationGeneralMembersComponent,
         data: {
-          perms: {
-            only: ['application-member-r'],
+          permissions: {
+            anyOf: ['application-member-r'],
           },
           docs: {
             page: 'management-application-members',
@@ -194,8 +193,8 @@ const applicationRoutes: Routes = [
         path: 'groups',
         component: ApplicationGeneralGroupsComponent,
         data: {
-          perms: {
-            only: ['application-member-r'],
+          permissions: {
+            anyOf: ['application-member-r'],
           },
         },
       },
@@ -203,8 +202,8 @@ const applicationRoutes: Routes = [
         path: 'transfer-ownership',
         component: ApplicationGeneralTransferOwnershipComponent,
         data: {
-          perms: {
-            only: ['application-member-r'],
+          permissions: {
+            anyOf: ['application-member-r'],
           },
         },
       },
@@ -212,8 +211,8 @@ const applicationRoutes: Routes = [
         path: 'general',
         component: ApplicationGeneralComponent,
         data: {
-          perms: {
-            only: ['application-definition-r'],
+          permissions: {
+            anyOf: ['application-definition-r'],
           },
           docs: {
             page: 'management-application',
@@ -225,7 +224,7 @@ const applicationRoutes: Routes = [
 ];
 
 @NgModule({
-  imports: [ApplicationsModule, RouterModule.forChild(applicationRoutes)],
+  imports: [RouterModule.forChild(applicationRoutes)],
   exports: [RouterModule],
 })
-export class ApplicationsRouteModule {}
+export class ApplicationsRoutingModule {}

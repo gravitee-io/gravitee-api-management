@@ -18,7 +18,7 @@ import { RouterModule } from '@angular/router';
 import { GioBreadcrumbModule, GioSubmenuModule } from '@gravitee/ui-particles-angular';
 import { CommonModule } from '@angular/common';
 
-import { SettingsRoutingModule } from './settings.route';
+import { SettingsRoutingModule } from './settings-routing.module';
 import { SettingsAnalyticsComponent } from './analytics/settings-analytics.component';
 import { SettingsNavigationComponent } from './settings-navigation/settings-navigation.component';
 import { SettingsAnalyticsDashboardComponent } from './analytics/dashboard/settings-analytics-dashboard.component';

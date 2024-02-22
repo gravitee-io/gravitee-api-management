@@ -24,18 +24,20 @@ import { AlertsActivityComponent } from './activity/alerts-activity.component';
 import { AlertComponent } from '../../components/alerts/alert/alert.component';
 import { AlertsComponent } from '../../components/alerts/alerts.component';
 import { AlertsModule } from '../../components/alerts/alerts.module';
+import { PermissionGuard } from '../../shared/components/gio-permission/gio-permission.guard';
 
 const routes: Routes = [
   {
     path: '',
     component: EnvAlertsLayoutComponent,
+    canActivateChild: [PermissionGuard.checkRouteDataPermissions],
     children: [
       {
         path: 'list/new',
         component: AlertComponent,
         data: {
-          perms: {
-            only: ['environment-alert-c'],
+          permissions: {
+            anyOf: ['environment-alert-c'],
           },
           docs: {
             page: 'management-alerts',
