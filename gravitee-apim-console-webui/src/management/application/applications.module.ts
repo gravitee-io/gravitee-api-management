@@ -42,6 +42,7 @@ import { ApplicationLogComponent } from './details/logs/application-log.componen
 import { ApplicationCreationComponent } from './creation/steps/application-creation.component';
 import { ApplicationSubscribeComponent } from './details/subscribe/application-subscribe.component';
 import { ApplicationNotificationModule } from './details/notification/application-notification.module';
+import { ApplicationsRoutingModule } from './applications-routing.module';
 
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioRoleModule } from '../../shared/components/gio-role/gio-role.module';
@@ -49,6 +50,7 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
 
 @NgModule({
   imports: [
+    ApplicationsRoutingModule,
     CommonModule,
     FormsModule,
     RouterModule,

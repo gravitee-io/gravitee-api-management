@@ -17,7 +17,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
 import { ManagementComponent } from './management.component';
-import { HasEnvironmentPermissionGuard } from './has-environment-permission.guard';
+import { EnvironmentGuard } from './environment.guard';
 import { InstanceListComponent } from './instances/instance-list/instance-list.component';
 import { InstanceDetailsComponent } from './instances/instance-details/instance-details.component';
 import { InstanceDetailsEnvironmentComponent } from './instances/instance-details/instance-details-environment/instance-details-environment.component';
@@ -29,14 +29,15 @@ import { TasksComponent } from '../user/tasks/tasks.component';
 import { UserComponent } from '../user/my-accout/user.component';
 import { ApimFeature } from '../shared/components/gio-license/gio-license-data';
 import { HasLicenseGuard } from '../shared/components/gio-license/has-license.guard';
+import { PermissionGuard } from '../shared/components/gio-permission/gio-permission.guard';
 
 const managementRoutes: Routes = [
   {
     path: '',
     component: ManagementComponent,
-    canActivate: [HasEnvironmentPermissionGuard.canActivate],
-    canActivateChild: [HasEnvironmentPermissionGuard.canActivateChild, HasLicenseGuard],
-    canDeactivate: [HasEnvironmentPermissionGuard.canDeactivate],
+    canActivate: [EnvironmentGuard.initEnvConfigAndLoadPermissions, PermissionGuard.checkRouteDataPermissions],
+    canActivateChild: [PermissionGuard.checkRouteDataPermissions, HasLicenseGuard],
+    canDeactivate: [EnvironmentGuard.clearPermissions],
     children: [
       {
         path: 'home',
@@ -69,14 +70,14 @@ const managementRoutes: Routes = [
       },
       {
         path: 'applications',
-        loadChildren: () => import('./application/applications.route').then((m) => m.ApplicationsRouteModule),
+        loadChildren: () => import('./application/applications.module').then((m) => m.ApplicationsModule),
       },
       {
         path: 'gateways',
         component: InstanceListComponent,
         data: {
-          perms: {
-            only: ['environment-instance-r'],
+          permissions: {
+            anyOf: ['environment-instance-r'],
           },
           docs: {
             page: 'management-gateways',
@@ -87,8 +88,8 @@ const managementRoutes: Routes = [
         path: 'gateways/:instanceId',
         component: InstanceDetailsComponent,
         data: {
-          perms: {
-            only: ['environment-instance-r'],
+          permissions: {
+            anyOf: ['environment-instance-r'],
           },
         },
         children: [
@@ -127,8 +128,8 @@ const managementRoutes: Routes = [
             license: { feature: ApimFeature.APIM_AUDIT_TRAIL },
             redirect: '/',
           },
-          perms: {
-            only: ['environment-audit-r'],
+          permissions: {
+            anyOf: ['environment-audit-r'],
           },
           docs: {
             page: 'management-audit',
@@ -148,8 +149,8 @@ const managementRoutes: Routes = [
         path: 'analytics',
         loadChildren: () => import('./analytics/env-analytics.module').then((m) => m.EnvAnalyticsModule),
         data: {
-          perms: {
-            only: ['environment-platform-r'],
+          permissions: {
+            anyOf: ['environment-platform-r'],
           },
         },
       },
@@ -161,8 +162,8 @@ const managementRoutes: Routes = [
             license: { feature: ApimFeature.ALERT_ENGINE },
             redirect: '/',
           },
-          perms: {
-            only: ['environment-alert-r'],
+          permissions: {
+            anyOf: ['environment-alert-r'],
           },
         },
       },
