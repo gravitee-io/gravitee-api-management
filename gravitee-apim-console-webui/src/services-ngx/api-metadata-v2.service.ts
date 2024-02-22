@@ -24,7 +24,10 @@ import { MetadataResponse, SearchApiMetadataParam } from '../entities/management
   providedIn: 'root',
 })
 export class ApiMetadataV2Service {
-  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject(Constants) private readonly constants: Constants,
+  ) {}
 
   search(apiId: string, queryParam?: SearchApiMetadataParam): Observable<MetadataResponse> {
     let params = new HttpParams();

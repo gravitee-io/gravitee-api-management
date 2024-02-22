@@ -24,7 +24,10 @@ import { ClientRegistrationProvider } from '../entities/client-registration-prov
   providedIn: 'root',
 })
 export class ClientRegistrationProvidersService {
-  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject(Constants) private readonly constants: Constants,
+  ) {}
 
   list(): Observable<ClientRegistrationProvider[]> {
     return this.http.get<ClientRegistrationProvider[]>(`${this.constants.env.baseURL}/configuration/applications/registration/providers`);

@@ -31,7 +31,11 @@ class ApplicationLogsController {
   private init: boolean;
   private activatedRoute: ActivatedRoute;
 
-  constructor(private ApplicationService: ApplicationService, private $scope: IScope, private ngRouter: Router) {
+  constructor(
+    private ApplicationService: ApplicationService,
+    private $scope: IScope,
+    private ngRouter: Router,
+  ) {
     this.ApplicationService = ApplicationService;
 
     this.onPaginate = this.onPaginate.bind(this);

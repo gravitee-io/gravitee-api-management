@@ -26,7 +26,10 @@ import { Task } from '../entities/task/task';
   providedIn: 'root',
 })
 export class TaskService {
-  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject(Constants) private readonly constants: Constants,
+  ) {}
 
   private getTaskSchedulerInSeconds(): number {
     if (this.constants.org.settings.scheduler && this.constants.org.settings.scheduler.tasks) {

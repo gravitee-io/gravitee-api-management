@@ -45,7 +45,10 @@ class ApplicationSubscriptionsListController {
 
   private isFirstFilter = true;
 
-  constructor(private ApplicationService: ApplicationService, private ngRouter: Router) {
+  constructor(
+    private ApplicationService: ApplicationService,
+    private ngRouter: Router,
+  ) {
     this.onPaginate = this.onPaginate.bind(this);
   }
 

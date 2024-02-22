@@ -33,7 +33,7 @@
           <mat-icon [owlDateTimeTrigger]="dateTimeRange" matSuffix svgIcon="gio:calendar"></mat-icon>
           <owl-date-time #dateTimeRange></owl-date-time>
           <mat-error *ngIf="form.get('dateTimeRange').hasError('owlDateTimeMin')">
-            Date Time value must be after {{ minDate | date : 'medium' }}
+            Date Time value must be after {{ minDate | date: 'medium' }}
           </mat-error>
         </mat-form-field>
       </div>

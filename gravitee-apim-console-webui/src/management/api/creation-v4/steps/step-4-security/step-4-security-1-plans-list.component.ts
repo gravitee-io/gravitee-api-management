@@ -45,7 +45,10 @@ export class Step4Security1PlansListComponent implements OnInit {
   public form = new UntypedFormGroup({});
   displayedColumns: string[] = ['name', 'mode', 'security', 'actions'];
 
-  constructor(private readonly stepService: ApiCreationStepService, private readonly constantsService: ConstantsService) {}
+  constructor(
+    private readonly stepService: ApiCreationStepService,
+    private readonly constantsService: ConstantsService,
+  ) {}
 
   ngOnInit(): void {
     const entrypoints = this.stepService.payload?.selectedEntrypoints;

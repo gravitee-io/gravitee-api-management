@@ -34,7 +34,10 @@ export class GioNotificationMenuComponent implements OnInit, OnDestroy {
   public userNotifications: UserNotification[];
   public isOpen: boolean;
 
-  constructor(public readonly userNotificationService: UserNotificationService, private readonly snackBarService: SnackBarService) {}
+  constructor(
+    public readonly userNotificationService: UserNotificationService,
+    private readonly snackBarService: SnackBarService,
+  ) {}
 
   public ngOnInit(): void {
     this.startNotificationFetch$

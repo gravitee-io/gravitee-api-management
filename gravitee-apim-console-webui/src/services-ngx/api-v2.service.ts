@@ -46,7 +46,10 @@ export interface HostValidatorParams {
 export class ApiV2Service {
   private lastApiFetch$: BehaviorSubject<Api | null> = new BehaviorSubject<Api | null>(null);
 
-  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject(Constants) private readonly constants: Constants,
+  ) {}
 
   create(newApi: CreateApi): Observable<Api> {
     return this.http.post<Api>(`${this.constants.env.v2BaseURL}/apis`, newApi);

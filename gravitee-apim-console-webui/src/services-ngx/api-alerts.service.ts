@@ -25,7 +25,10 @@ import { AlertTriggerEntity } from '../entities/alerts/alertTriggerEntity';
   providedIn: 'root',
 })
 export class ApiAlertsService {
-  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject(Constants) private readonly constants: Constants,
+  ) {}
 
   listAlerts(apiId: string, withEventCounts: boolean): Observable<AlertTriggerEntity[]> {
     return this.http.get<AlertTriggerEntity[]>(`${this.constants.env.baseURL}/apis/${apiId}/alerts?event_counts=${withEventCounts}`);

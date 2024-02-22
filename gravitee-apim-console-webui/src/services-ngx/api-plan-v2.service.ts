@@ -24,7 +24,10 @@ import { ApiPlansResponse, CreatePlan, Plan, PlanMode, PlanStatus, UpdatePlan } 
   providedIn: 'root',
 })
 export class ApiPlanV2Service {
-  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject(Constants) private readonly constants: Constants,
+  ) {}
   list(
     apiId: string,
     securities?: string[],

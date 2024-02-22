@@ -28,7 +28,11 @@ export interface AverageableField {
 class DashboardService {
   private AnalyticsService: AnalyticsService;
 
-  constructor(private $http, private Constants, AnalyticsService: AnalyticsService) {
+  constructor(
+    private $http,
+    private Constants,
+    AnalyticsService: AnalyticsService,
+  ) {
     this.AnalyticsService = AnalyticsService;
   }
 

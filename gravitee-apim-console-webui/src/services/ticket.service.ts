@@ -22,7 +22,10 @@ export class TicketsQuery {
 }
 
 class TicketService {
-  constructor(private $http, private Constants) {}
+  constructor(
+    private $http,
+    private Constants,
+  ) {}
 
   create(ticket) {
     if (ticket) {

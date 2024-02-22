@@ -29,5 +29,8 @@ import { onlyApiV4Filter } from '../../../../util/apiFilter.operator';
 export class ApiRuntimeLogsSettingsComponent {
   api$: Observable<ApiV4> = this.apiService.get(this.activatedRoute.snapshot.params.apiId).pipe(onlyApiV4Filter());
 
-  constructor(private readonly activatedRoute: ActivatedRoute, private readonly apiService: ApiV2Service) {}
+  constructor(
+    private readonly activatedRoute: ActivatedRoute,
+    private readonly apiService: ApiV2Service,
+  ) {}
 }

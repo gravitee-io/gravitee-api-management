@@ -35,7 +35,7 @@
         </div>
         <mat-divider></mat-divider>
         <div class="card__details">
-          <p id="date"><b>Date:</b> {{ eventWithFormControl.deploymentEvent.createdAt | date : 'medium' }}</p>
+          <p id="date"><b>Date:</b> {{ eventWithFormControl.deploymentEvent.createdAt | date: 'medium' }}</p>
           <p id="user"><b>User:</b> {{ eventWithFormControl.deploymentEvent.initiator.displayName }}</p>
           <p id="label"><b>Label:</b> {{ eventWithFormControl.deploymentEvent.properties[LABEL_PROPERTY] }}</p>
         </div>

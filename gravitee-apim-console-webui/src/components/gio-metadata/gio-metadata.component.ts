@@ -105,7 +105,10 @@ export class GioMetadataComponent implements OnInit, OnDestroy {
   @Input()
   description: string;
 
-  constructor(private matDialog: MatDialog, private readonly snackBarService: SnackBarService) {}
+  constructor(
+    private matDialog: MatDialog,
+    private readonly snackBarService: SnackBarService,
+  ) {}
 
   ngOnInit(): void {
     this.referenceType = this.metadataSaveServices.type;

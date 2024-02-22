@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 class ResourceService {
-  constructor(private $http, private Constants) {}
+  constructor(
+    private $http,
+    private Constants,
+  ) {}
 
   list(expandSchema = false, expandIcon = false) {
     const expandParams = [];

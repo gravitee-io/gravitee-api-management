@@ -42,7 +42,10 @@ export const ORGANIZATION_MENU_GROUP_ID = 'organization-menu';
   providedIn: 'root',
 })
 export class OrganizationNavigationService {
-  constructor(private readonly permissionService: GioPermissionService, private readonly gioLicenseService: GioLicenseService) {}
+  constructor(
+    private readonly permissionService: GioPermissionService,
+    private readonly gioLicenseService: GioLicenseService,
+  ) {}
 
   public getOrganizationNavigationRoutes(): GroupItem[] {
     let groupItems: GroupItem[] = [];

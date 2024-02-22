@@ -36,7 +36,10 @@ export class Step4Security1PlansComponent implements OnInit {
   selectedPlanMenuItem: PlanMenuItemVM;
   public apiType: ApiType;
 
-  constructor(private readonly stepService: ApiCreationStepService, private readonly constantsService: ConstantsService) {}
+  constructor(
+    private readonly stepService: ApiCreationStepService,
+    private readonly constantsService: ConstantsService,
+  ) {}
 
   ngOnInit(): void {
     const currentStepPayload = this.stepService.payload;

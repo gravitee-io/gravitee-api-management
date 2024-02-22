@@ -24,7 +24,10 @@ export const BASE_64_PREFIX = 'data:image/svg+xml;base64,';
   providedIn: 'root',
 })
 export class IconService {
-  constructor(private readonly matIconRegistry: MatIconRegistry, private _sanitizer: DomSanitizer) {}
+  constructor(
+    private readonly matIconRegistry: MatIconRegistry,
+    private _sanitizer: DomSanitizer,
+  ) {}
 
   registerSvg(id: string, icon: string): string {
     if (icon && icon.startsWith(BASE_64_PREFIX)) {

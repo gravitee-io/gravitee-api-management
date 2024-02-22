@@ -46,7 +46,10 @@ export class ApiGeneralInfoQualityComponent implements OnChanges, OnDestroy {
   };
   public qualityMetrics: ApiQualityMetrics;
 
-  constructor(private readonly apiService: ApiService, private readonly qualityRuleService: QualityRuleService) {}
+  constructor(
+    private readonly apiService: ApiService,
+    private readonly qualityRuleService: QualityRuleService,
+  ) {}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.apiId) {

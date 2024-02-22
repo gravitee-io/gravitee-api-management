@@ -29,7 +29,10 @@ export class InstanceDetailsComponent implements OnInit, OnDestroy {
   public instance: Instance;
   private unsubscribe$ = new Subject<void>();
 
-  constructor(private readonly activatedRoute: ActivatedRoute, private readonly instanceService: InstanceService) {}
+  constructor(
+    private readonly activatedRoute: ActivatedRoute,
+    private readonly instanceService: InstanceService,
+  ) {}
 
   ngOnInit(): void {
     this.instanceService

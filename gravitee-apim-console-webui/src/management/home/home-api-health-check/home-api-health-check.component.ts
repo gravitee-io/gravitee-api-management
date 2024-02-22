@@ -89,7 +89,11 @@ export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
   private filters$ = new BehaviorSubject<GioTableWrapperFilters>(this.filters);
   private refreshAvailability$ = new BehaviorSubject<void>(undefined);
 
-  constructor(private readonly router: Router, private readonly activatedRoute: ActivatedRoute, private readonly apiService: ApiService) {}
+  constructor(
+    private readonly router: Router,
+    private readonly activatedRoute: ActivatedRoute,
+    private readonly apiService: ApiService,
+  ) {}
 
   ngOnInit(): void {
     this.filters$
@@ -256,7 +260,7 @@ export class HomeApiHealthCheckComponent implements OnInit, OnDestroy {
           healthcheck_enabled: api.healthcheck_enabled,
           origin: api.definition_context.origin,
           availability$: this.getAvailability$(api),
-        } as ApisTableDS),
+        }) as ApisTableDS,
     );
   }
 

@@ -24,7 +24,10 @@ import { QualityRule } from '../entities/qualityRule';
   providedIn: 'root',
 })
 export class QualityRuleService {
-  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject(Constants) private readonly constants: Constants,
+  ) {}
 
   list(): Observable<QualityRule[]> {
     return this.http.get<QualityRule[]>(`${this.constants.env.baseURL}/configuration/quality-rules`);

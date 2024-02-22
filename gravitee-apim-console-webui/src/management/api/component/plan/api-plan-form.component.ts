@@ -167,7 +167,10 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
     }
     return isApiV2FromMAPIV2(this.api);
   }
-  constructor(private readonly changeDetectorRef: ChangeDetectorRef, @Host() @Optional() public readonly ngControl?: NgControl) {
+  constructor(
+    private readonly changeDetectorRef: ChangeDetectorRef,
+    @Host() @Optional() public readonly ngControl?: NgControl,
+  ) {
     if (ngControl) {
       // Setting the value accessor directly (instead of using
       // the providers `NG_VALUE_ACCESSOR`) to avoid running into a circular import.

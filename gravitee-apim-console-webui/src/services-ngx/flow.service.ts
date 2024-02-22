@@ -26,7 +26,10 @@ import { OrganizationFlowConfiguration } from '../entities/flow/organizationFlow
   providedIn: 'root',
 })
 export class FlowService {
-  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject(Constants) private readonly constants: Constants,
+  ) {}
 
   getConfigurationSchemaForm(): Observable<FlowConfigurationSchema> {
     return this.http.get<FlowConfigurationSchema>(`${this.constants.org.baseURL}/configuration/flows/configuration-schema`);

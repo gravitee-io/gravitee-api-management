@@ -44,7 +44,7 @@ export class GioApiMetadataListComponent implements OnInit {
       list: (searchMetadata) =>
         this.apiMetadataV2Service.search(this.activatedRoute.snapshot.params.apiId, searchMetadata).pipe(
           map((resp) => ({
-            data: resp.data?.map((metadata) => ({ ...metadata } as Metadata)),
+            data: resp.data?.map((metadata) => ({ ...metadata }) as Metadata),
             totalResults: resp.pagination?.totalCount ?? 0,
           })),
         ),

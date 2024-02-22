@@ -27,7 +27,10 @@ import { TicketsParam } from '../entities/ticket/ticketsParam';
   providedIn: 'root',
 })
 export class TicketService {
-  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject(Constants) private readonly constants: Constants,
+  ) {}
 
   create(newTicket: NewTicket): Observable<void> {
     return this.http.post<void>(`${this.constants.env.baseURL}/platform/tickets`, newTicket);

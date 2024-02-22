@@ -37,7 +37,10 @@ export class PolicyStudioDebugComponent implements OnInit {
   private unsubscribe$ = new Subject<boolean>();
   private cancelRequest$ = new Subject<void>();
 
-  constructor(private readonly policyStudioDebugService: PolicyStudioDebugService, private readonly snackBarService: SnackBarService) {}
+  constructor(
+    private readonly policyStudioDebugService: PolicyStudioDebugService,
+    private readonly snackBarService: SnackBarService,
+  ) {}
 
   ngOnInit() {
     this.policyStudioDebugService

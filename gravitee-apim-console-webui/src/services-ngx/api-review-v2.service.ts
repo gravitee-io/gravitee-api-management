@@ -23,7 +23,10 @@ import { Constants } from '../entities/Constants';
   providedIn: 'root',
 })
 export class ApiReviewV2Service {
-  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject(Constants) private readonly constants: Constants,
+  ) {}
 
   ask(apiId: string, message?: string): Observable<void> {
     return this.http.post<void>(`${this.constants.env.v2BaseURL}/apis/${apiId}/reviews/_ask`, { message });

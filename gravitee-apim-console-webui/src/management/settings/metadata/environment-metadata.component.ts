@@ -29,7 +29,10 @@ export class EnvironmentMetadataComponent implements OnInit {
   metadataSaveServices: MetadataSaveServices;
   description: string;
 
-  constructor(private readonly environmentMetadataService: EnvironmentMetadataService, private readonly activatedRoute: ActivatedRoute) {}
+  constructor(
+    private readonly environmentMetadataService: EnvironmentMetadataService,
+    private readonly activatedRoute: ActivatedRoute,
+  ) {}
 
   ngOnInit() {
     this.metadataSaveServices = {

@@ -17,7 +17,10 @@
 import { Injector } from '@angular/core';
 
 class CategoryService {
-  constructor(private $http, private Constants) {}
+  constructor(
+    private $http,
+    private Constants,
+  ) {}
 
   list(include?: string[]) {
     const queryParam = include ? `?include=${include.join(',')}` : '';

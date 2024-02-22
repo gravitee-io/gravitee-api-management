@@ -24,7 +24,10 @@ import { MessagePayload } from '../entities/message/messagePayload';
   providedIn: 'root',
 })
 export class MessageService {
-  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject(Constants) private readonly constants: Constants,
+  ) {}
 
   sendFromPortal(payload: MessagePayload): Observable<number> {
     return this.http.post<number>(`${this.constants.env.baseURL}/messages`, payload);

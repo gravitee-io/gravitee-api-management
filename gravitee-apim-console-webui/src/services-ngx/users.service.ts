@@ -30,7 +30,10 @@ import { SearchableUser } from '../entities/user/searchableUser';
   providedIn: 'root',
 })
 export class UsersService {
-  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject(Constants) private readonly constants: Constants,
+  ) {}
 
   list(query?: string, page = 1, size = 10): Observable<PagedResult<User>> {
     return this.http.get<PagedResult<User>>(`${this.constants.org.baseURL}/users`, {

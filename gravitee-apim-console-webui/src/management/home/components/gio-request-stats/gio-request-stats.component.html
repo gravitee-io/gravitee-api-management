@@ -22,7 +22,7 @@
     </div>
     <div class="gio-request-stats__body__rows">
       <div class="gio-request-stats__body__row">
-        <span *ngIf="data.rps; else emptyNumber" class="gio-request-stats__body__row__value">{{ data.rps | number : '.1-1' }}</span>
+        <span *ngIf="data.rps; else emptyNumber" class="gio-request-stats__body__row__value">{{ data.rps | number: '.1-1' }}</span>
         <span class="gio-request-stats__body__row__label">Per second</span>
       </div>
       <div class="gio-request-stats__body__row">
@@ -31,7 +31,7 @@
           class="gio-request-stats__body__row__value"
           [matTooltip]="data.count | number"
           [matTooltipDisabled]="data.count < 999"
-          >{{ data.count | shortNumber : 2 }}</span
+          >{{ data.count | shortNumber: 2 }}</span
         >
         <span class="gio-request-stats__body__row__label">Total</span>
       </div>
@@ -44,15 +44,15 @@
     </div>
     <div class="gio-request-stats__body__rows">
       <div class="gio-request-stats__body__row">
-        <span *ngIf="data.min; else emptyNumber" class="gio-request-stats__body__row__value">{{ data.min | number : '.1-2' }} ms</span>
+        <span *ngIf="data.min; else emptyNumber" class="gio-request-stats__body__row__value">{{ data.min | number: '.1-2' }} ms</span>
         <span class="gio-request-stats__body__row__label">Min</span>
       </div>
       <div class="gio-request-stats__body__row">
-        <span *ngIf="data.max; else emptyNumber" class="gio-request-stats__body__row__value">{{ data.max | number : '.1-2' }} ms</span>
+        <span *ngIf="data.max; else emptyNumber" class="gio-request-stats__body__row__value">{{ data.max | number: '.1-2' }} ms</span>
         <span class="gio-request-stats__body__row__label">Max</span>
       </div>
       <div class="gio-request-stats__body__row">
-        <span *ngIf="data.avg; else emptyNumber" class="gio-request-stats__body__row__value">{{ data.avg | number : '.1-2' }} ms</span>
+        <span *ngIf="data.avg; else emptyNumber" class="gio-request-stats__body__row__value">{{ data.avg | number: '.1-2' }} ms</span>
         <span class="gio-request-stats__body__row__label">Average</span>
       </div>
     </div>

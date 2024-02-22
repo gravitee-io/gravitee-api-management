@@ -29,7 +29,11 @@ const ApplicationLogComponentAjs: ng.IComponentOptions = {
     class {
       private activatedRoute: ActivatedRoute;
 
-      constructor(private NotificationService: NotificationService, private Constants: any, private ngRouter: Router) {}
+      constructor(
+        private NotificationService: NotificationService,
+        private Constants: any,
+        private ngRouter: Router,
+      ) {}
 
       getMimeType(log: any) {
         if (log.headers['Content-Type'] !== undefined) {

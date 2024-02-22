@@ -31,7 +31,10 @@ export class TicketComponent implements OnInit, OnDestroy {
 
   ticket: Ticket;
 
-  constructor(private readonly ticketService: TicketService, private readonly activatedRoute: ActivatedRoute) {}
+  constructor(
+    private readonly ticketService: TicketService,
+    private readonly activatedRoute: ActivatedRoute,
+  ) {}
 
   ngOnInit(): void {
     this.ticketService

@@ -37,7 +37,10 @@ export interface Member {
 }
 
 export class MemberState {
-  constructor(private member, private previousMemberState) {}
+  constructor(
+    private member,
+    private previousMemberState,
+  ) {}
 
   wasPrimaryOwner(): boolean {
     return !this.isNewMember() && this.previousMemberState.roles[RoleScope.API] === RoleName.PRIMARY_OWNER;

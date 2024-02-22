@@ -229,7 +229,7 @@ export class GioFormColorInputComponent implements MatFormFieldControl<Color>, C
   }
 
   // From ControlValueAccessor interface
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
+
   onContainerClick(_event: MouseEvent): void {}
 
   // From ControlValueAccessor interface
