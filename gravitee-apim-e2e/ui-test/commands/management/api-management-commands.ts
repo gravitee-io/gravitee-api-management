@@ -115,7 +115,7 @@ export function stopV4Api(auth: BasicAuthentication, apiId: string, failOnStatus
   });
 }
 
-export function importCreateApi(auth: BasicAuthentication, body: ApiImportEntity) {
+export function importCreateApi(auth: BasicAuthentication, body: ApiImport) {
   cy.log(`Creating API with name: ${body.name}`);
   return cy.request({
     method: 'POST',
