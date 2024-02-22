@@ -28,6 +28,7 @@ import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wra
 import { gioTableFilterCollection } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 import { PortalSettings } from '../../../entities/portal/portalSettings';
 import { EnvironmentIdentityProviderService } from '../../../services-ngx/environment-identity-provider.service';
+import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 
 interface IdentityProviderForm {
   forceLogin: FormGroup<{
@@ -68,6 +69,7 @@ export class IdentityProvidersNgComponent implements OnInit {
     private readonly identityProviderService: IdentityProviderService,
     private readonly environmentIdentityProviderService: EnvironmentIdentityProviderService,
     private readonly matDialog: MatDialog,
+    private readonly permissionService: GioPermissionService,
   ) {}
 
   public ngOnInit() {
@@ -181,12 +183,32 @@ export class IdentityProvidersNgComponent implements OnInit {
   initIdentityProvidersForm() {
     this.identityProvidersForm = new FormGroup<IdentityProviderForm>({
       forceLogin: new FormGroup({
-        enabled: new FormControl(this.settings.authentication.forceLogin.enabled),
+        enabled: new FormControl({
+          value: this.settings.authentication.forceLogin.enabled,
+          disabled:
+            this.isReadonly('portal.authentication.forceLogin.enabled') ||
+            !this.permissionService.hasAnyMatching(['environment-settings-c', 'environment-settings-u', 'environment-settings-d']),
+        }),
       }),
       localLogin: new FormGroup({
-        enabled: new FormControl(this.settings.authentication.localLogin.enabled),
+        enabled: new FormControl({
+          value: this.settings.authentication.localLogin.enabled,
+          disabled:
+            this.isReadonly('portal.authentication.localLogin.enabled') ||
+            !this.permissionService.hasAnyMatching(['environment-settings-c', 'environment-settings-u', 'environment-settings-d']) ||
+            this.activatedIdentityProvider.length === 0,
+        }),
       }),
     });
     this.formInitialValues = this.identityProvidersForm.getRawValue();
+
+    if (this.activatedIdentityProvider.length === 0 && !this.identityProvidersForm.get('localLogin.enabled').value) {
+      this.identityProvidersForm.get('localLogin.enabled').setValue(true);
+      this.onSubmit();
+    }
+  }
+
+  isReadonly(property: string): boolean {
+    return PortalSettingsService.isReadonly(this.settings, property);
   }
 }

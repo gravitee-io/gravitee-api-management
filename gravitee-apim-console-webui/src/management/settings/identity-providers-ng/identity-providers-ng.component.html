@@ -25,7 +25,13 @@
   </div>
   <form *ngIf="identityProvidersForm" [formGroup]="identityProvidersForm" autocomplete="off">
     <mat-card-content>
-      <gio-form-slide-toggle formGroupName="forceLogin" class="identity-providers__form__card__form-field">
+      <gio-form-slide-toggle
+        [matTooltip]="'Configuration provided by the system'"
+        [matTooltipDisabled]="!isReadonly('portal.authentication.forceLogin.enabled')"
+        formGroupName="forceLogin"
+        class="identity-providers__form__card__form-field"
+      >
+        <mat-icon *ngIf="isReadonly('portal.authentication.forceLogin.enabled')" gioFormPrefix>lock</mat-icon>
         <gio-form-label>Force authentication to access portal</gio-form-label>
         <mat-slide-toggle
           formControlName="enabled"
@@ -33,7 +39,13 @@
           aria-label="Force authentication to access portal"
         ></mat-slide-toggle>
       </gio-form-slide-toggle>
-      <gio-form-slide-toggle formGroupName="localLogin" class="identity-providers__form__card__form-field">
+      <gio-form-slide-toggle
+        [matTooltip]="'Configuration provided by the system'"
+        [matTooltipDisabled]="!isReadonly('portal.authentication.localLogin.enabled')"
+        formGroupName="localLogin"
+        class="identity-providers__form__card__form-field"
+      >
+        <mat-icon *ngIf="isReadonly('portal.authentication.localLogin.enabled')" gioFormPrefix>lock</mat-icon>
         <gio-form-label>Show login form on portal</gio-form-label>
         <mat-slide-toggle formControlName="enabled" gioFormSlideToggle aria-label="Show login form on portal"></mat-slide-toggle>
       </gio-form-slide-toggle>

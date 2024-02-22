@@ -22,7 +22,6 @@ import { SettingsAnalyticsDashboardComponent } from './analytics/dashboard/setti
 import { ApiPortalHeaderComponent } from './api-portal-header/api-portal-header.component';
 import { ApiQualityRulesComponent } from './api-quality-rules/api-quality-rules.component';
 import { ApiQualityRuleComponent } from './api-quality-rules/api-quality-rule/api-quality-rule.component';
-import { IdentityProvidersComponent } from './identityProviders/identity-providers.component';
 import { CategoriesComponent } from './categories/categories.component';
 import { CategoryComponent } from './categories/category/category.component';
 import { GroupsComponent } from './groups/groups.component';
@@ -153,19 +152,6 @@ export const settingsRoutes: Routes = [
       },
       {
         path: 'identity-providers',
-        component: IdentityProvidersComponent,
-        data: {
-          docs: {
-            page: 'management-configuration-identityproviders',
-          },
-          perms: {
-            only: ['environment-identity_provider_activation-r'],
-            unauthorizedFallbackTo: 'management.settings.categories.list',
-          },
-        },
-      },
-      {
-        path: 'identity-providers-ng',
         component: IdentityProvidersNgComponent,
         data: {
           docs: {
