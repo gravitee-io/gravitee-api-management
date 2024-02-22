@@ -24,7 +24,10 @@ import { GroupsResponse, MembersResponse } from '../entities/management-api-v2';
   providedIn: 'root',
 })
 export class GroupV2Service {
-  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject(Constants) private readonly constants: Constants,
+  ) {}
 
   getMembers(groupId: string, page = 1, perPage = 10): Observable<MembersResponse> {
     return this.http.get<MembersResponse>(`${this.constants.env.v2BaseURL}/groups/${groupId}/members`, {

@@ -35,7 +35,10 @@ export class OrgSettingsCockpitComponent implements OnInit, OnDestroy {
 
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
-  constructor(private readonly installationService: InstallationService, private readonly cockpitService: CockpitService) {}
+  constructor(
+    private readonly installationService: InstallationService,
+    private readonly cockpitService: CockpitService,
+  ) {}
 
   ngOnInit(): void {
     this.installationService

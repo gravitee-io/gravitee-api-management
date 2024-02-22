@@ -24,7 +24,10 @@ import { Metadata, NewMetadata, UpdateMetadata } from '../entities/metadata/meta
   providedIn: 'root',
 })
 export class EnvironmentMetadataService {
-  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject(Constants) private readonly constants: Constants,
+  ) {}
 
   listMetadata(): Observable<Metadata[]> {
     return this.http.get<Metadata[]>(`${this.constants.env.baseURL}/configuration/metadata/`);

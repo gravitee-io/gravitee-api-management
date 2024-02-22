@@ -25,7 +25,11 @@ class ApplicationAnalyticsController {
   private dashboards: any;
   private activatedRoute: ActivatedRoute;
 
-  constructor(private ApplicationService: ApplicationService, private DashboardService: DashboardService, private ngRouter: Router) {}
+  constructor(
+    private ApplicationService: ApplicationService,
+    private DashboardService: DashboardService,
+    private ngRouter: Router,
+  ) {}
 
   $onInit() {
     this.DashboardService.list('APPLICATION', true).then((response) => {

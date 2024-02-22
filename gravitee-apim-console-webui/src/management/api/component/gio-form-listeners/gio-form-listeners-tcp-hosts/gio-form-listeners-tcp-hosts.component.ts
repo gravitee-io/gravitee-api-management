@@ -66,7 +66,11 @@ export class GioFormListenersTcpHostsComponent implements OnInit, OnDestroy, Con
 
   protected _onTouched: () => void = () => ({});
 
-  constructor(private readonly fm: FocusMonitor, private readonly elRef: ElementRef, private readonly apiV2Service: ApiV2Service) {}
+  constructor(
+    private readonly fm: FocusMonitor,
+    private readonly elRef: ElementRef,
+    private readonly apiV2Service: ApiV2Service,
+  ) {}
 
   ngOnInit(): void {
     this.listenerFormArray = new FormArray([this.newListenerFormGroup({})], { validators: [this.listenersValidator()] });

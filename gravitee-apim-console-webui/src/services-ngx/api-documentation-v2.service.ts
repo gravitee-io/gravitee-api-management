@@ -31,7 +31,10 @@ export interface ApiDocumentationPageResult {
   providedIn: 'root',
 })
 export class ApiDocumentationV2Service {
-  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject(Constants) private readonly constants: Constants,
+  ) {}
   createDocumentationPage(apiId: string, createDocumentation: CreateDocumentation): Observable<Page> {
     return this.http.post<Page>(`${this.constants.env.v2BaseURL}/apis/${apiId}/pages`, createDocumentation);
   }

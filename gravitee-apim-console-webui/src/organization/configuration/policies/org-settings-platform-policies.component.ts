@@ -116,7 +116,7 @@ export class OrgSettingsPlatformPoliciesComponent implements OnInit, OnDestroy {
                   ...flow,
                   consumers: (flow.consumers ?? []).map((consumer) => ({ consumerType: 'TAG', consumerId: consumer })),
                 })) ?? organization.flows,
-            } as Organization),
+            }) as Organization,
         ),
         switchMap((organizationToSave) => this.organizationService.update(organizationToSave)),
         tap(() => {

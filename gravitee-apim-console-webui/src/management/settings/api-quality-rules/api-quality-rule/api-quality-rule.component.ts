@@ -25,7 +25,11 @@ import { ActivatedRoute } from '@angular/router';
   },
 })
 export class ApiQualityRuleComponent extends UpgradeComponent {
-  constructor(elementRef: ElementRef, injector: Injector, private readonly activatedRoute: ActivatedRoute) {
+  constructor(
+    elementRef: ElementRef,
+    injector: Injector,
+    private readonly activatedRoute: ActivatedRoute,
+  ) {
     super('settingsApiQualityRuleEditAjs', elementRef, injector);
   }
 

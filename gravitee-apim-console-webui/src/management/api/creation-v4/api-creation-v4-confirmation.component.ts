@@ -29,7 +29,10 @@ import { Api } from '../../../entities/management-api-v2';
 export class ApiCreationV4ConfirmationComponent implements OnInit {
   private unsubscribe$: Subject<void> = new Subject<void>();
   public api: Api;
-  constructor(private readonly activatedRoute: ActivatedRoute, private readonly apiV2Service: ApiV2Service) {}
+  constructor(
+    private readonly activatedRoute: ActivatedRoute,
+    private readonly apiV2Service: ApiV2Service,
+  ) {}
 
   ngOnInit(): void {
     this.apiV2Service

@@ -47,7 +47,10 @@ export class GioFormUserAutocompleteComponent implements OnInit, ControlValueAcc
 
   private errors$ = new BehaviorSubject<ValidationErrors>(null);
 
-  constructor(private readonly usersService: UsersService, @Optional() @Self() public readonly ngControl: NgControl) {
+  constructor(
+    private readonly usersService: UsersService,
+    @Optional() @Self() public readonly ngControl: NgControl,
+  ) {
     // Replace the provider from above with this.
     if (this.ngControl != null) {
       // Setting the value accessor directly (instead of using

@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 class FlowService {
-  constructor(private $http, private Constants) {}
+  constructor(
+    private $http,
+    private Constants,
+  ) {}
 
   getConfigurationSchema() {
     return this.$http.get(`${this.Constants.org.baseURL}/configuration/flows/configuration-schema`);

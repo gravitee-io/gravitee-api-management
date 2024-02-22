@@ -38,7 +38,10 @@ export class ApiEventsComponent implements OnInit, OnDestroy {
   public eventsTableDS: EventsTableDS[] = [];
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   public isLoadingData = true;
-  constructor(public readonly activatedRoute: ActivatedRoute, private readonly apiService: ApiService) {}
+  constructor(
+    public readonly activatedRoute: ActivatedRoute,
+    private readonly apiService: ApiService,
+  ) {}
 
   public ngOnInit(): void {
     this.apiService

@@ -24,7 +24,10 @@ import { ConnectorListItem } from '../entities/connector/connector-list-item';
   providedIn: 'root',
 })
 export class ConnectorService {
-  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject(Constants) private readonly constants: Constants,
+  ) {}
 
   public list(expandSchema = false, expandIcon = false): Observable<ConnectorListItem[]> {
     let queryParams = new HttpParams();

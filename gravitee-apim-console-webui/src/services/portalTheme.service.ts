@@ -17,7 +17,10 @@
 import { Theme } from '../entities/theme';
 
 class PortalThemeService {
-  constructor(private $http, private Constants) {}
+  constructor(
+    private $http,
+    private Constants,
+  ) {}
 
   getCurrent() {
     return this.$http.get(`${this.Constants.env.baseURL}/configuration/themes/current`);

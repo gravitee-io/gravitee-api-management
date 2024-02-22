@@ -83,7 +83,10 @@ export class PolicyStudioDebugTimelineCardComponent implements OnChanges {
     selection: 'none',
   };
 
-  constructor(private readonly sanitizer: DomSanitizer, private titleCasePipe: TitleCasePipe) {}
+  constructor(
+    private readonly sanitizer: DomSanitizer,
+    private titleCasePipe: TitleCasePipe,
+  ) {}
 
   ngOnChanges(): void {
     if (!this.timelineStep) {
@@ -142,8 +145,8 @@ export class PolicyStudioDebugTimelineCardComponent implements OnChanges {
             timelineStep.executionStatus === 'ERROR'
               ? 'gio:alert-circle'
               : timelineStep.executionStatus === 'SKIPPED'
-              ? 'gio:prohibition'
-              : undefined,
+                ? 'gio:prohibition'
+                : undefined,
           id: timelineStep.id,
           clickable: true,
           selection: timelineStep.selection,

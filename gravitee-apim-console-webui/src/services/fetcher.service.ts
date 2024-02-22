@@ -16,7 +16,10 @@
 import { Injector } from '@angular/core';
 
 class FetcherService {
-  constructor(private $http, private Constants) {}
+  constructor(
+    private $http,
+    private Constants,
+  ) {}
 
   list(onlyImportFromDirectory?: boolean) {
     const url = `${this.Constants.env.baseURL}/fetchers/?expand=schema` + (onlyImportFromDirectory ? '&import=true' : '');

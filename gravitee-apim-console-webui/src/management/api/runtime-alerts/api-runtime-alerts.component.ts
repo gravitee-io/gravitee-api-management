@@ -25,5 +25,8 @@ import { ApiAlertsService } from '../../../services-ngx/api-alerts.service';
 export class ApiRuntimeAlertsComponent {
   public alerts$ = this.apiAlertsService.listAlerts(this.activatedRoute.snapshot.params.apiId, true);
 
-  constructor(private readonly activatedRoute: ActivatedRoute, private readonly apiAlertsService: ApiAlertsService) {}
+  constructor(
+    private readonly activatedRoute: ActivatedRoute,
+    private readonly apiAlertsService: ApiAlertsService,
+  ) {}
 }

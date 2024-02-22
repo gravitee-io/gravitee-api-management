@@ -25,7 +25,10 @@ import { ApplicationType } from '../entities/application';
   providedIn: 'root',
 })
 export class ApplicationTypesService {
-  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject(Constants) private readonly constants: Constants,
+  ) {}
 
   getEnabledApplicationTypes(): Observable<ApplicationType[]> {
     return this.http

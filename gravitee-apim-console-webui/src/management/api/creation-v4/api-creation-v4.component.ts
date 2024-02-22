@@ -193,9 +193,9 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
         ...(listenersType === 'HTTP'
           ? { paths: apiCreationPayload.paths }
           : listenersType === 'TCP'
-          ? // api is expecting hosts as a list of strings
-            { hosts: apiCreationPayload.hosts.map((host) => host.host) }
-          : {}),
+            ? // api is expecting hosts as a list of strings
+              { hosts: apiCreationPayload.hosts.map((host) => host.host) }
+            : {}),
         entrypoints,
       };
       return [...listeners, listenerConfig];
@@ -223,7 +223,7 @@ export class ApiCreationV4Component implements OnInit, OnDestroy {
                 configuration: endpoint.configuration,
               },
             ],
-          } as EndpointGroupV4),
+          }) as EndpointGroupV4,
       ),
     };
 

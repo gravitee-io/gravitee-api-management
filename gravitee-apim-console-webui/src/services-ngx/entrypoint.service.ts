@@ -24,7 +24,10 @@ import { Entrypoint } from '../entities/entrypoint/entrypoint';
   providedIn: 'root',
 })
 export class EntrypointService {
-  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject(Constants) private readonly constants: Constants,
+  ) {}
 
   list(): Observable<Entrypoint[]> {
     return this.http.get<Entrypoint[]>(`${this.constants.org.baseURL}/configuration/entrypoints`);

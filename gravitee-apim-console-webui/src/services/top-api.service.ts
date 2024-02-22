@@ -16,7 +16,10 @@
 import { map } from 'lodash';
 
 class TopApiService {
-  constructor(private $http, private Constants) {}
+  constructor(
+    private $http,
+    private Constants,
+  ) {}
 
   list() {
     return this.$http.get(`${this.Constants.env.baseURL}/configuration/top-apis/`);

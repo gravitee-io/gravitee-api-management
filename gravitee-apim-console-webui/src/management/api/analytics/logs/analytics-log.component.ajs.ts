@@ -222,11 +222,14 @@ class ApiAnalyticsLogControllerAjs {
       //   type: ['monthly'],
       //   bucket: ['status_repartition', 'status_repartition-2'],
       // }
-      .reduce((acc, [key, value]) => {
-        const currentValues = acc[key] || [];
-        acc[key] = [...currentValues, value];
-        return acc;
-      }, {} as { [key in string]: string[] });
+      .reduce(
+        (acc, [key, value]) => {
+          const currentValues = acc[key] || [];
+          acc[key] = [...currentValues, value];
+          return acc;
+        },
+        {} as { [key in string]: string[] },
+      );
 
     // Convert the map to an array and join the header values if needed
     return toPairs(queryParamsMap).map(([key, values]) => ({

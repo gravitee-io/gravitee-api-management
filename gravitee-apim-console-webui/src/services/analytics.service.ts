@@ -32,7 +32,10 @@ class AnalyticsService {
   private analyticsURL: string;
   private logs: [any];
 
-  constructor(private $http, private Constants) {}
+  constructor(
+    private $http,
+    private Constants,
+  ) {}
 
   /*
    * Analytics

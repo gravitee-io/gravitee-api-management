@@ -19,7 +19,10 @@ import { IHttpPromise } from 'angular';
 import { ApiPortalHeader } from '../entities/apiPortalHeader';
 
 class ApiHeaderService {
-  constructor(private $http, private Constants) {}
+  constructor(
+    private $http,
+    private Constants,
+  ) {}
 
   list(): IHttpPromise<ApiPortalHeader[]> {
     return this.$http.get(`${this.Constants.env.baseURL}/configuration/apiheaders/`);

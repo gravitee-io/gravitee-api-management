@@ -24,7 +24,10 @@ import { IdentityProviderActivation } from '../entities/identity-provider';
   providedIn: 'root',
 })
 export class EnvironmentIdentityProviderService {
-  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject(Constants) private readonly constants: Constants,
+  ) {}
 
   list(): Observable<IdentityProviderActivation[]> {
     return this.http.get<IdentityProviderActivation[]>(`${this.constants.env.baseURL}/identities`);

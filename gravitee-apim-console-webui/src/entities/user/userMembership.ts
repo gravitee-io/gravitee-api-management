@@ -19,8 +19,8 @@ export interface UserMembership<T extends 'application' | 'api' | string = strin
   metadata: T extends 'application'
     ? UserMembershipMetadataApplication
     : T extends 'api'
-    ? UserMembershipMetadataApi
-    : UserMembershipMetadata;
+      ? UserMembershipMetadataApi
+      : UserMembershipMetadata;
 }
 export interface UserMembershipMemberships {
   reference: string;

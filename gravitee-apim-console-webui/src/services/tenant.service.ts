@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 class TenantService {
-  constructor(private $http, private Constants) {}
+  constructor(
+    private $http,
+    private Constants,
+  ) {}
 
   list() {
     return this.$http.get(`${this.Constants.org.baseURL}/configuration/tenants/`);

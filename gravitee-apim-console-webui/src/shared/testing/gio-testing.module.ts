@@ -61,7 +61,10 @@ export const CONSTANTS_TESTING: Constants = {
   ],
 })
 export class GioTestingModule {
-  constructor(private readonly ngZone: NgZone, private readonly router: Router) {
+  constructor(
+    private readonly ngZone: NgZone,
+    private readonly router: Router,
+  ) {
     ngZone.run(() => {
       router.initialNavigation();
     });

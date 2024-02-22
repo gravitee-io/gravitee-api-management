@@ -24,7 +24,10 @@ import { TocSectionLink } from './TocSection';
   selector: 'h2[gioTableOfContents], h3[gioTableOfContents], h4[gioTableOfContents], [mat-subheader][gioTableOfContents]',
 })
 export class GioTableOfContentsDirective implements AfterViewInit, OnDestroy {
-  constructor(private readonly el: ElementRef, private readonly tableOfContentsService: GioTableOfContentsService) {}
+  constructor(
+    private readonly el: ElementRef,
+    private readonly tableOfContentsService: GioTableOfContentsService,
+  ) {}
 
   @Input('gioTableOfContentsSectionId') sectionId = '';
 

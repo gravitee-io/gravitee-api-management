@@ -42,7 +42,10 @@ export class GioUsersSelectorComponent implements OnInit {
   selectedUsers: Array<SearchableUser & { userPicture: string }> = [];
   userSearchTerm: UntypedFormControl = new UntypedFormControl('', []);
 
-  constructor(@Inject(MAT_DIALOG_DATA) dialogData: GioUsersSelectorData, private readonly usersService: UsersService) {
+  constructor(
+    @Inject(MAT_DIALOG_DATA) dialogData: GioUsersSelectorData,
+    private readonly usersService: UsersService,
+  ) {
     this.userFilterPredicate = dialogData.userFilterPredicate ?? (() => true);
   }
 

@@ -35,7 +35,11 @@ class LogsTimeframeController {
   private onTimeframeChange: any;
   private unRegisterTimeframeZoom: () => void;
 
-  constructor(private ngRouter: Router, private $rootScope, private $timeout: ng.ITimeoutService) {
+  constructor(
+    private ngRouter: Router,
+    private $rootScope,
+    private $timeout: ng.ITimeoutService,
+  ) {
     this.timeframes = [
       {
         id: '5m',

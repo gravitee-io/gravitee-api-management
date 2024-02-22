@@ -55,7 +55,10 @@ export class ApiGeneralGroupMembersComponent implements OnInit, OnDestroy {
 
   public canViewGroupMembers: boolean;
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
-  constructor(private readonly groupService: GroupV2Service, private readonly userService: UsersService) {}
+  constructor(
+    private readonly groupService: GroupV2Service,
+    private readonly userService: UsersService,
+  ) {}
 
   ngOnInit(): void {
     if (!this.groupData.id || this.groupData.id.length === 0) {

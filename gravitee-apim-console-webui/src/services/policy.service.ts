@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 class PolicyService {
-  constructor(private $http, private Constants) {}
+  constructor(
+    private $http,
+    private Constants,
+  ) {}
 
   list(expandSchema = false, expandIcon = false, withoutResource = false) {
     const expandParams = [];

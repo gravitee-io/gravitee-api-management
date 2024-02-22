@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 class CustomUserFieldsService {
-  constructor(private $http, private Constants) {}
+  constructor(
+    private $http,
+    private Constants,
+  ) {}
 
   valuesAsList = function (field: any) {
     const transformedField: any = {

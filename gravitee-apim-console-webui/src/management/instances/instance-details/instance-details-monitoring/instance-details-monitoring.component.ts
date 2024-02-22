@@ -38,7 +38,10 @@ export class InstanceDetailsMonitoringComponent implements OnInit, OnDestroy {
   private monitoringPolling;
   private unsubscribe$ = new Subject<void>();
 
-  constructor(private readonly activatedRoute: ActivatedRoute, private readonly instanceService: InstanceService) {}
+  constructor(
+    private readonly activatedRoute: ActivatedRoute,
+    private readonly instanceService: InstanceService,
+  ) {}
 
   ngOnInit(): void {
     this.instanceService

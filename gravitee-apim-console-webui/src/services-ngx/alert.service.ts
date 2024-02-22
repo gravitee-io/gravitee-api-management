@@ -26,7 +26,10 @@ import { AlertStatus } from '../entities/alerts/alertStatus';
   providedIn: 'root',
 })
 export class AlertService {
-  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject(Constants) private readonly constants: Constants,
+  ) {}
 
   get(): Observable<Installation> {
     return this.http.get<Installation>(`${this.constants.org.baseURL}/installation`);

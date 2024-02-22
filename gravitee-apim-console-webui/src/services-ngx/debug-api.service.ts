@@ -25,7 +25,10 @@ import { Event } from '../entities/event/event';
   providedIn: 'root',
 })
 export class DebugApiService {
-  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject(Constants) private readonly constants: Constants,
+  ) {}
 
   public debug(
     api: Api,

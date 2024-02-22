@@ -31,7 +31,10 @@ interface ListParams {
   providedIn: 'root',
 })
 export class ResourceService {
-  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject(Constants) private readonly constants: Constants,
+  ) {}
 
   list(params: ListParams): Observable<ResourceListItem[]> {
     let httpParams = new HttpParams();

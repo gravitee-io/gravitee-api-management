@@ -29,7 +29,10 @@ export class CurrentUserService {
   private updateCurrentUser$ = new Subject<void>();
   private currentUser: Observable<User> | null;
 
-  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject(Constants) private readonly constants: Constants,
+  ) {}
 
   getTags(): Observable<string[]> {
     return this.http.get<string[]>(`${this.constants.org.baseURL}/user/tags`);

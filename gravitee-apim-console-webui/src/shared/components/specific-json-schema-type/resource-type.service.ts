@@ -41,7 +41,10 @@ export class ResourceTypeService extends FieldType<FieldTypeConfig> {
     shareReplay(1),
   );
 
-  constructor(private readonly resourceService: ResourceService, private readonly snackBarService: SnackBarService) {
+  constructor(
+    private readonly resourceService: ResourceService,
+    private readonly snackBarService: SnackBarService,
+  ) {
     super();
   }
 

@@ -75,10 +75,13 @@ export class PolicyStudioDebugService {
   private sendDebugEvent(request: DebugRequest): Observable<{ apiId: string; debugEventId: string }> {
     const headersAsMap = (request.headers ?? [])
       .filter((header) => !!header.value)
-      .reduce((acc, current) => {
-        acc[current.key] = acc[current.key] ? [...acc[current.key], current.value] : [current.value];
-        return acc;
-      }, {} as Record<string, string[]>);
+      .reduce(
+        (acc, current) => {
+          acc[current.key] = acc[current.key] ? [...acc[current.key], current.value] : [current.value];
+          return acc;
+        },
+        {} as Record<string, string[]>,
+      );
 
     return this.policyStudioService.getApiDefinition$().pipe(
       switchMap((apiDefinition) => this.apiService.get(apiDefinition.id).pipe(map((api) => ({ ...api, ...apiDefinition })))),

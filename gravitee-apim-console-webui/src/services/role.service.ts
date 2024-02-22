@@ -18,7 +18,11 @@ import { map, toUpper } from 'lodash';
 class RoleService {
   private permissionsByScope: any;
 
-  constructor(private $http, private Constants, private $q) {}
+  constructor(
+    private $http,
+    private Constants,
+    private $q,
+  ) {}
 
   listRights() {
     return ['c', 'r', 'u', 'd'];

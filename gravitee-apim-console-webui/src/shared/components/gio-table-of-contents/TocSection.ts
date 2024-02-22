@@ -55,5 +55,8 @@ export class TocSectionLink {
     return this.element.getBoundingClientRect().top;
   }
 
-  constructor(private element: HTMLElement, private options?: { name?: string }) {}
+  constructor(
+    private element: HTMLElement,
+    private options?: { name?: string },
+  ) {}
 }

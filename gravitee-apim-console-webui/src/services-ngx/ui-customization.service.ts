@@ -22,7 +22,10 @@ import { Constants } from '../entities/Constants';
 
 @Injectable({ providedIn: 'root' })
 export class UiCustomizationService {
-  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
+  constructor(
+    private readonly http: HttpClient,
+    @Inject(Constants) private readonly constants: Constants,
+  ) {}
 
   getConsoleCustomization(): Observable<ConsoleCustomization> {
     return this.http.get<ConsoleCustomization>(`${this.constants.org.v2BaseURL}/ui/customization`);

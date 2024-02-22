@@ -24,7 +24,10 @@ class ApiAlertsDashboardControllerAjs {
   apiId: string;
   activatedRoute: ActivatedRoute;
 
-  constructor(private readonly AlertService: AlertService, private readonly $q: ng.IQService) {}
+  constructor(
+    private readonly AlertService: AlertService,
+    private readonly $q: ng.IQService,
+  ) {}
 
   $onInit() {
     this.apiId = this.activatedRoute.snapshot.params.apiId;

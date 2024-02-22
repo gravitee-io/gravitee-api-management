@@ -39,7 +39,7 @@
 
 <mat-autocomplete #resourceAutocomplete="matAutocomplete">
   <mat-option *ngFor="let value of filteredResources | async" [value]="value.name">
-    <img *ngIf="value.icon" alt="" class="plan-oauth2-resource-type__option-img" [src]="value.icon | safe : 'url'" height="25" />
+    <img *ngIf="value.icon" alt="" class="plan-oauth2-resource-type__option-img" [src]="value.icon | safe: 'url'" height="25" />
     <span>{{ value.name }}</span>
   </mat-option>
 </mat-autocomplete>

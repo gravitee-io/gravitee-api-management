@@ -197,7 +197,7 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
     this.responseDisplayableVM = {
       ...this.responseDisplayableVM,
       timelineSteps: this.responseDisplayableVM.timelineSteps.map(
-        (step) => ({ ...step, selection: step.id === timelineStep.id ? 'single' : 'none' } as TimelineStep),
+        (step) => ({ ...step, selection: step.id === timelineStep.id ? 'single' : 'none' }) as TimelineStep,
       ),
     };
   }
@@ -216,7 +216,7 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
           ({
             ...step,
             selection: isPolicySkippedStep(step) ? 'none' : modeSelectionResolver[step.mode] ?? 'none',
-          } as TimelineStep),
+          }) as TimelineStep,
       ),
     };
 
@@ -240,7 +240,7 @@ export class PolicyStudioDebugResponseComponent implements OnChanges {
           ({
             ...step,
             selection: isPolicySkippedStep(step) ? 'none' : modeSelectionResolver[step.mode] ?? 'content',
-          } as TimelineStep),
+          }) as TimelineStep,
       ),
     };
 

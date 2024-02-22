@@ -44,7 +44,11 @@ class PageSwaggerComponentController implements IController {
 
   private activatedRoute: ActivatedRoute;
 
-  constructor(private readonly Constants, private readonly UserService: UserService, private $window: ng.IWindowService) {}
+  constructor(
+    private readonly Constants,
+    private readonly UserService: UserService,
+    private $window: ng.IWindowService,
+  ) {}
 
   tryItEnabled() {
     return (

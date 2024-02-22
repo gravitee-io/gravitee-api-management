@@ -49,7 +49,12 @@ class ImageDirective {
 }
 
 class ImageController {
-  constructor(private $rootScope, private $scope, private Upload, private NotificationService: NotificationService) {
+  constructor(
+    private $rootScope,
+    private $scope,
+    private Upload,
+    private NotificationService: NotificationService,
+  ) {
     $scope.maxSize = '1MB';
     if ($scope.accept == null) {
       $scope.accept = 'image/*';

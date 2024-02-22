@@ -21,7 +21,10 @@ import { forEach } from 'lodash';
 import { IdentityProviderActivation } from '../entities/identity-provider';
 
 class EnvironmentService {
-  constructor(private $http, private Constants) {}
+  constructor(
+    private $http,
+    private Constants,
+  ) {}
 
   /*
    * Analytics

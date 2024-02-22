@@ -48,7 +48,10 @@ export class GioTopApisTableComponent implements AfterViewInit, OnChanges {
 
   totalLength: number;
 
-  constructor(private readonly router: Router, private readonly activatedRoute: ActivatedRoute) {}
+  constructor(
+    private readonly router: Router,
+    private readonly activatedRoute: ActivatedRoute,
+  ) {}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.data) this.buildDataSource();

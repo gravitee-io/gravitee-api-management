@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 class TokenService {
-  constructor(private $http, private Constants) {}
+  constructor(
+    private $http,
+    private Constants,
+  ) {}
 
   list() {
     return this.$http.get(`${this.Constants.org.baseURL}/user/tokens/`);
