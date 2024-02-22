@@ -156,16 +156,16 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
             "proxyConfig": "proxy.conf.mjs",
-            "browserTarget": "apim-console:build",
             "disableHostCheck": true,
-            "port": 4000
+            "port": 4000,
+            "buildTarget": "apim-console:build"
           },
           "configurations": {
             "production": {
-              "browserTarget": "apim-console:build:production"
+              "buildTarget": "apim-console:build:production"
             },
             "development": {
-              "browserTarget": "apim-console:build:development"
+              "buildTarget": "apim-console:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -180,7 +180,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "apim-console:build"
+            "buildTarget": "apim-console:build"
           }
         },
         "start-storybook": {
