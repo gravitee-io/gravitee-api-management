@@ -42,11 +42,13 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Maybe;
 import java.util.Date;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Slf4j
 @RequiredArgsConstructor
 public class DefaultDistributedSyncService implements DistributedSyncService {
 
@@ -121,6 +123,7 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     public Completable distributeIfNeeded(final ApiReactorDeployable deployable) {
         return Completable.defer(() -> {
             if (isPrimaryNode()) {
+                log.debug("Node is primary, distributing API reactor event for {}", deployable.id());
                 return apiMapper
                     .to(deployable)
                     .flatMapCompletable(distributedEventRepository::createOrUpdate)
@@ -138,6 +141,7 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
                         })
                     );
             }
+            log.debug("Not a primary node, skipping API reactor event distribution");
             return Completable.complete();
         });
     }
@@ -146,8 +150,10 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     public Completable distributeIfNeeded(final SingleSubscriptionDeployable deployable) {
         return Completable.defer(() -> {
             if (isPrimaryNode()) {
+                log.debug("Node is primary, distributing subscription event for {}", deployable.id());
                 return subscriptionMapper.to(deployable).flatMapCompletable(distributedEventRepository::createOrUpdate);
             }
+            log.debug("Not a primary node, skipping subscription event distribution");
             return Completable.complete();
         });
     }
@@ -156,8 +162,10 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     public Completable distributeIfNeeded(final SingleApiKeyDeployable deployable) {
         return Completable.defer(() -> {
             if (isPrimaryNode()) {
+                log.debug("Node is primary, distributing API key event for {}", deployable.id());
                 return apiKeyMapper.to(deployable).flatMapCompletable(distributedEventRepository::createOrUpdate);
             }
+            log.debug("Not a primary node, skipping API key event distribution");
             return Completable.complete();
         });
     }
@@ -166,8 +174,10 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     public Completable distributeIfNeeded(final OrganizationDeployable deployable) {
         return Completable.defer(() -> {
             if (isPrimaryNode()) {
+                log.debug("Node is primary, distributing organization event for {}", deployable.id());
                 return organizationMapper.to(deployable).flatMapCompletable(distributedEventRepository::createOrUpdate);
             }
+            log.debug("Not a primary node, skipping organization event distribution");
             return Completable.complete();
         });
     }
@@ -176,8 +186,10 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     public Completable distributeIfNeeded(final DictionaryDeployable deployable) {
         return Completable.defer(() -> {
             if (isPrimaryNode()) {
+                log.debug("Node is primary, distributing dictionary event for {}", deployable.id());
                 return dictionaryMapper.to(deployable).flatMapCompletable(distributedEventRepository::createOrUpdate);
             }
+            log.debug("Not a primary node, skipping dictionary event distribution");
             return Completable.complete();
         });
     }
@@ -186,8 +198,10 @@ public class DefaultDistributedSyncService implements DistributedSyncService {
     public Completable distributeIfNeeded(LicenseDeployable deployable) {
         return Completable.defer(() -> {
             if (isPrimaryNode()) {
+                log.debug("Node is primary, distributing license event for organization {}", deployable.id());
                 return licenseMapper.to(deployable).flatMapCompletable(distributedEventRepository::createOrUpdate);
             }
+            log.debug("Not a primary node, skipping license event distribution");
             return Completable.complete();
         });
     }
