@@ -50,7 +50,7 @@ export class ClientRegistrationProvidersComponent implements OnInit, OnDestroy {
   dcrRegistrationLicenseOptions: LicenseOptions = { feature: ApimFeature.APIM_DCR_REGISTRATION };
   hasDcrRegistrationLock$: Observable<boolean>;
   canUpdateSettings: boolean;
-  private unsubscribe$ = new Subject();
+  private unsubscribe$ = new Subject<void>();
   private settings: PortalSettings;
 
   constructor(
