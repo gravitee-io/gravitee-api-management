@@ -13,12 +13,12 @@
     width: 100%;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 20px;
   }
 
   &__forms {
-    .create-alert__general-form {
-      margin-bottom: 20px;
+    .create-alert__general-form,
+    .create-alert__timeframe-form {
+      margin: 20px 0;
     }
   }
 }

@@ -21,6 +21,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { RuntimeAlertCreateComponent } from './runtime-alert-create.component';
 import { RuntimeAlertCreateGeneralModule } from './components/runtime-alert-create-general/runtime-alert-create-general.module';
+import { RuntimeAlertCreateTimeframeModule } from './components/runtime-alert-create-timeframe/runtime-alert-create-timeframe.module';
 
 import { GioGoBackButtonModule } from '../../../shared/components/gio-go-back-button/gio-go-back-button.module';
 
@@ -33,8 +34,10 @@ import { GioGoBackButtonModule } from '../../../shared/components/gio-go-back-bu
     FormsModule,
     ReactiveFormsModule,
     RouterModule,
+
     GioGoBackButtonModule,
     RuntimeAlertCreateGeneralModule,
+    RuntimeAlertCreateTimeframeModule,
   ],
 })
 export class RuntimeAlertCreateModule {}

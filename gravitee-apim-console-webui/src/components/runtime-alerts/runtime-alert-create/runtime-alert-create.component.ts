@@ -45,6 +45,7 @@ export class RuntimeAlertCreateComponent {
 
     this.alertForm = new FormGroup({
       generalForm: new FormControl(),
+      timeframeForm: new FormControl(),
     });
   }
 }
