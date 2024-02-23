@@ -29,22 +29,23 @@ volumes:
 services:
   nginx:
     image: nginx:latest
-    container_name: nginx
     restart: unless-stopped
     depends_on:
       - management_ui
       - portal_ui
     ports:
+      - "80:80"
       - "443:443"
     volumes:
+      - ./.certificates:/etc/nginx/certificates
       - ./conf/nginx.conf:/etc/nginx/nginx.conf
-      - ./.certificate:/etc/nginx/certificate
+      - ./.logs/nginx:/etc/nginx/logs
     networks:
       - frontend
   mongodb:
     image: mongo:${MONGODB_VERSION:-6.0}
-    container_name: gio_apim_mongodb
     restart: always
+    command: [ "--quiet", "--logpath", "/dev/null" ]
     volumes:
       - data-mongo:/data/db
       - ./.logs/apim-mongodb:/var/log/mongodb
@@ -58,7 +59,6 @@ services:
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION:-8.6.2}
-    container_name: gio_apim_elasticsearch
     restart: always
     volumes:
       - data-elasticsearch:/usr/share/elasticsearch/data
@@ -85,7 +85,6 @@ services:
 
   gateway:
     image: ${APIM_REGISTRY:-graviteeio}/apim-gateway:${APIM_VERSION:-latest}
-    container_name: gio_apim_gateway
     restart: always
     depends_on:
       mongodb:
@@ -95,17 +94,28 @@ services:
     volumes:
       - ./.logs/apim-gateway:/opt/graviteeio-gateway/logs
       - ./.license:/opt/graviteeio-gateway/license
+      - ./.certificates:/opt/graviteeio-gateway/certificates
+      - ./.plugins:/opt/graviteeio-gateway/plugins-ext
     environment:
       - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
       - gravitee_ratelimit_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
       - gravitee_reporters_elasticsearch_endpoints_0=http://elasticsearch:9200
+      - gravitee_plugins_path_0=$${gravitee.home}/plugins
+      - gravitee_plugins_path_1=$${gravitee.home}/plugins-ext
+      - gravitee_http_secured=true
+      - gravitee_http_ssl_clientAuth=required
+      - gravitee_http_ssl_keystore_type=pkcs12
+      - gravitee_http_ssl_keystore_path=/opt/graviteeio-gateway/certificates/server.keystore.p12
+      - gravitee_http_ssl_keystore_password=gravitee
+      - gravitee_http_ssl_truststore_type=pkcs12
+      - gravitee_http_ssl_truststore_path=/opt/graviteeio-gateway/certificates/server.truststore.p12
+      - gravitee_http_ssl_truststore_password=gravitee
     networks:
       - storage
       - frontend
 
   management_api:
     image: ${APIM_REGISTRY:-graviteeio}/apim-management-api:${APIM_VERSION:-latest}
-    container_name: gio_apim_management_api
     restart: always
     links:
       - mongodb
@@ -118,9 +128,12 @@ services:
     volumes:
       - ./.logs/apim-management-api:/opt/graviteeio-management-api/logs
       - ./.license:/opt/graviteeio-management-api/license
+      - ./.plugins:/opt/graviteeio-management-api/plugins-ext
     environment:
       - gravitee_management_mongodb_uri=mongodb://mongodb:27017/gravitee?serverSelectionTimeoutMS=5000&connectTimeoutMS=5000&socketTimeoutMS=5000
       - gravitee_analytics_elasticsearch_endpoints_0=http://elasticsearch:9200
+      - gravitee_plugins_path_0=$${gravitee.home}/plugins
+      - gravitee_plugins_path_1=$${gravitee.home}/plugins-ext
       - console_ui_url=http://localhost/console
       - console_api_url=http://localhost/management
       - portal_ui_url=http://localhost/
@@ -130,7 +143,6 @@ services:
 
   management_ui:
     image: ${APIM_REGISTRY:-graviteeio}/apim-management-ui:${APIM_VERSION:-latest}
-    container_name: gio_apim_management_ui
     restart: always
     depends_on:
       - management_api
@@ -144,7 +156,6 @@ services:
 
   portal_ui:
     image: ${APIM_REGISTRY:-graviteeio}/apim-portal-ui:${APIM_VERSION:-latest}
-    container_name: gio_apim_portal_ui
     restart: always
     depends_on:
       - management_api

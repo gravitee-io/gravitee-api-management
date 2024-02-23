@@ -1,0 +1,182 @@
+{
+    "api": {
+        "definitionVersion": "V4",
+        "type": "PROXY",
+        "listeners": [
+            {
+                "type": "HTTP",
+                "paths": [
+                    {
+                        "path": "/echo-v4/",
+                        "overrideAccess": false
+                    }
+                ],
+                "entrypoints": [
+                    {
+                        "type": "http-proxy",
+                        "qos": "AUTO",
+                        "configuration": {}
+                    }
+                ]
+            }
+        ],
+        "endpointGroups": [
+            {
+                "name": "Default HTTP proxy group",
+                "type": "http-proxy",
+                "loadBalancer": {
+                    "type": "ROUND_ROBIN"
+                },
+                "sharedConfiguration": {
+                    "proxy": {
+                        "useSystemProxy": false,
+                        "enabled": false
+                    },
+                    "http": {
+                        "keepAlive": true,
+                        "followRedirects": false,
+                        "readTimeout": 10000,
+                        "idleTimeout": 60000,
+                        "connectTimeout": 3000,
+                        "useCompression": true,
+                        "maxConcurrentConnections": 20,
+                        "version": "HTTP_1_1",
+                        "pipelining": false
+                    },
+                    "ssl": {
+                        "hostnameVerifier": true,
+                        "trustAll": false,
+                        "truststore": {
+                            "type": ""
+                        },
+                        "keystore": {
+                            "type": ""
+                        }
+                    }
+                },
+                "endpoints": [
+                    {
+                        "name": "Default HTTP proxy",
+                        "type": "http-proxy",
+                        "weight": 1,
+                        "inheritConfiguration": true,
+                        "configuration": {
+                            "target": "https://api.gravitee.io/echo"
+                        },
+                        "services": {},
+                        "secondary": false
+                    }
+                ],
+                "services": {}
+            }
+        ],
+        "analytics": {
+            "enabled": true,
+            "logging": {
+                "content": {
+                    "headers": true,
+                    "messageHeaders": false,
+                    "payload": true,
+                    "messagePayload": false,
+                    "messageMetadata": false
+                },
+                "phase": {
+                    "request": true,
+                    "response": true
+                },
+                "mode": {
+                    "endpoint": true,
+                    "entrypoint": true
+                }
+            }
+        },
+        "flowExecution": {
+            "mode": "DEFAULT",
+            "matchRequired": false
+        },
+        "flows": [],
+        "name": "echo-v4",
+        "description": "",
+        "apiVersion": "1.0",
+        "disableMembershipNotifications": true,
+        "groups": [],
+        "state": "STARTED",
+        "visibility": "PRIVATE",
+        "lifecycleState": "CREATED",
+        "tags": [],
+        "definitionContext": {
+            "origin": "MANAGEMENT",
+            "mode": "FULLY_MANAGED",
+            "syncFrom": "MANAGEMENT"
+        },
+        "responseTemplates": {},
+        "properties": []
+    },
+    "members": [],
+    "metadata": [],
+    "pages": [],
+    "plans": [
+        {
+            "definitionVersion": "V4",
+            "flows": [
+                {
+                    "name": "default",
+                    "enabled": true,
+                    "selectors": [
+                        {
+                            "type": "HTTP",
+                            "path": "/",
+                            "pathOperator": "STARTS_WITH",
+                            "methods": []
+                        }
+                    ],
+                    "request": [
+                        {
+                            "name": "SSL Enforcement",
+                            "enabled": true,
+                            "policy": "ssl-enforcement",
+                            "configuration": {
+                                "requiresClientAuthentication": true,
+                                "requiresSsl": true,
+                                "whitelistClientCertificates": [
+                                    "C=FR,ST=France,L=Lille,O=GraviteeSource,OU=Demo,CN=nginx,EMAILADDRESS=nginx@graviteesource.com",
+                                    "C=FR,ST=France,L=Lille,O=GraviteeSource,OU=Demo,CN=localhost,EMAILADDRESS=client@graviteesource.com"
+                                ],
+                                "certificateLocation": "HEADER",
+                                "certificateHeaderName": "X-SSL-CERT"
+                            }
+                        },
+                        {
+                            "name": "Mock",
+                            "enabled": true,
+                            "policy": "mock",
+                            "configuration": {
+                                "headers": [],
+                                "content": "{\n  \"#request.ssl.client.attributes['oU']\": \"{#request.ssl.client.attributes['ou']}\",\n  \"#request.ssl.client.dn\": \"{#request.ssl.client.dn}\",\n  \"#request.ssl.server.attributes['Ou']\": \"{#request.ssl.server.attributes['ou']}\",\n  \"#request.ssl.server.dn\": \"{#request.ssl.server.dn}\"\n}",
+                                "status": "200"
+                            }
+                        }
+                    ],
+                    "response": [],
+                    "subscribe": [],
+                    "publish": [],
+                    "tags": []
+                }
+            ],
+            "mode": "STANDARD",
+            "name": "Default Keyless (UNSECURED)",
+            "description": "Default unsecured plan",
+            "security": {
+                "type": "KEY_LESS",
+                "configuration": {}
+            },
+            "commentRequired": false,
+            "order": 1,
+            "status": "PUBLISHED",
+            "tags": [],
+            "type": "API",
+            "validation": "AUTO"
+        }
+    ],
+    "apiMedia": []
+}
