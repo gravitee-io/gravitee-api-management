@@ -29,8 +29,13 @@ npx @openapitools/openapi-generator-cli@2.7.0 generate \
   --type-mappings=DateTime=Date,object=any \
   --reserved-words-mappings=configuration=configuration
 
+  # Create unique enum entry for descending sort params
   sed -i.bak "s|NAME: '-name'|_NAME: '-name'|" lib/management-v2-webclient-sdk/src/lib/apis/APIsApi.ts
   sed -i.bak "s|PATHS: '-paths'|_PATHS: '-paths'|" lib/management-v2-webclient-sdk/src/lib/apis/APIsApi.ts
+  sed -i.bak "s|KEY: '-key'|_KEY: '-key'|" lib/management-v2-webclient-sdk/src/lib/apis/APIsApi.ts
+  sed -i.bak "s|FORMAT: '-format'|_FORMAT: '-format'|" lib/management-v2-webclient-sdk/src/lib/apis/APIsApi.ts
+  sed -i.bak "s|VALUE: '-value'|_VALUE: '-value'|" lib/management-v2-webclient-sdk/src/lib/apis/APIsApi.ts
+
   # Remove duplicate `HttpEndpointV2FromJSONTyped` import
   sed -i.bak "s|     HttpEndpointV2FromJSONTyped,||" lib/management-v2-webclient-sdk/src/lib/models/BaseEndpointV2.ts
 
