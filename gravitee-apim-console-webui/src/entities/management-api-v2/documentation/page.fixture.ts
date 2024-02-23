@@ -47,6 +47,32 @@ export function fakeMarkdown(modifier?: Partial<Page>): Page {
   };
 }
 
+export function fakeSwagger(modifier?: Partial<Page>): Page {
+  const markdownModifier: Page = {
+    content: 'my swagger content',
+    type: 'SWAGGER',
+  };
+
+  return {
+    ...BASE_PAGE,
+    ...markdownModifier,
+    ...modifier,
+  };
+}
+
+export function fakeAsyncApi(modifier?: Partial<Page>): Page {
+  const markdownModifier: Page = {
+    content: 'my async api content',
+    type: 'ASYNCAPI',
+  };
+
+  return {
+    ...BASE_PAGE,
+    ...markdownModifier,
+    ...modifier,
+  };
+}
+
 export function fakeFolder(modifier?: Partial<Page>): Page {
   const folderModifier: Page = {
     type: 'FOLDER',

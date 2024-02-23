@@ -22,7 +22,7 @@ import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { CreateDocumentation, CreateDocumentationFolder } from '../entities/management-api-v2/documentation/createDocumentation';
 import { Page } from '../entities/management-api-v2/documentation/page';
 import { EditDocumentationMarkdown } from '../entities/management-api-v2/documentation/editDocumentation';
-import { fakeFolder, fakeMarkdown, fakePage } from '../entities/management-api-v2/documentation/page.fixture';
+import { fakeAsyncApi, fakeFolder, fakeMarkdown, fakePage, fakeSwagger } from '../entities/management-api-v2/documentation/page.fixture';
 
 describe('ApiDocumentationV2Service', () => {
   let httpTestingController: HttpTestingController;
@@ -81,15 +81,17 @@ describe('ApiDocumentationV2Service', () => {
     it('should filter the non supported page type', (done) => {
       const markdown = fakeMarkdown();
       const folder = fakeFolder();
+      const swagger = fakeSwagger();
+      const asyncApi = fakeAsyncApi();
       const fakeResponse = {
         pages: [
           markdown,
           folder,
           fakePage({ type: 'ASCIIDOC' }),
-          fakePage({ type: 'ASYNCAPI' }),
+          asyncApi,
           fakePage({ type: 'MARKDOWN_TEMPLATE' }),
           fakePage({ type: 'SYSTEM_FOLDER' }),
-          fakePage({ type: 'SWAGGER' }),
+          swagger,
           fakePage({ type: 'LINK' }),
           fakePage({ type: 'TRANSLATION' }),
         ],
@@ -98,7 +100,7 @@ describe('ApiDocumentationV2Service', () => {
 
       service.getApiPages(API_ID, 'ROOT').subscribe((response) => {
         expect(response).toEqual({
-          pages: [markdown, folder],
+          pages: [markdown, folder, asyncApi, swagger],
           breadcrumb: [],
         });
         done();

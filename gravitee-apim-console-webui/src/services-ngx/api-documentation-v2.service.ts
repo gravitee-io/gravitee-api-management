@@ -40,7 +40,9 @@ export class ApiDocumentationV2Service {
       map((result: ApiDocumentationPageResult) => {
         // TODO: update this filter with new supported types
         const filteredResult: ApiDocumentationPageResult = {
-          pages: result.pages.filter((page) => page.type === 'FOLDER' || page.type === 'MARKDOWN'),
+          pages: result.pages.filter(
+            (page) => page.type === 'FOLDER' || page.type === 'MARKDOWN' || page.type === 'SWAGGER' || page.type === 'ASYNCAPI',
+          ),
           breadcrumb: result.breadcrumb,
         };
         return filteredResult;
