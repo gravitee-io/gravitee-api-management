@@ -1,0 +1,63 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div>
+  <div class="header">
+    <h3 class="header__title">Conditions</h3>
+    <div class="header__subtitle">Field metrics and condition for the rule</div>
+  </div>
+  <ng-container *ngIf="ruleType != null; else defaultBlock">
+    <ng-container *ngIf="ruleType.endsWith('@MISSING_DATA'); else switchBlock">
+      <missing-data-condition [form]="conditionsForm"></missing-data-condition>
+    </ng-container>
+    <ng-template #switchBlock [ngSwitch]="ruleType">
+      <ng-container *ngSwitchCase="'REQUEST@METRICS_SIMPLE_CONDITION'">
+        <!-- add sub component here here -->
+      </ng-container>
+      <ng-container *ngSwitchCase="'NODE_HEARTBEAT@METRICS_SIMPLE_CONDITION'">
+        <!-- add sub component here here -->
+      </ng-container>
+      <ng-container *ngSwitchCase="'REQUEST@METRICS_AGGREGATION'">
+        <!-- add sub component here here -->
+      </ng-container>
+      <ng-container *ngSwitchCase="'NODE_HEARTBEAT@METRICS_AGGREGATION'">
+        <!-- add sub component here here -->
+      </ng-container>
+      <ng-container *ngSwitchCase="'REQUEST@METRICS_RATE'">
+        <!-- add sub component here here -->
+      </ng-container>
+      <ng-container *ngSwitchCase="'NODE_HEARTBEAT@METRICS_RATE'">
+        <!-- add sub component here here -->
+      </ng-container>
+      <ng-container *ngSwitchCase="'ENDPOINT_HEALTH_CHECK@API_HC_ENDPOINT_STATUS_CHANGED'">
+        <!-- add sub component here here -->
+      </ng-container>
+      <ng-container *ngSwitchCase="'NODE_LIFECYCLE@NODE_LIFECYCLE_CHANGED'">
+        <!-- add sub component here here -->
+      </ng-container>
+      <ng-container *ngSwitchCase="'NODE_HEALTHCHECK@NODE_HEALTHCHECK'">
+        <!-- add sub component here here -->
+      </ng-container>
+      <ng-container *ngSwitchCase="'REQUEST@APPLICATION_QUOTA'">
+        <!-- add sub component here here -->
+      </ng-container>
+    </ng-template>
+  </ng-container>
+  <ng-template #defaultBlock>
+    <gio-banner-info>Select a rule before setting the condition.</gio-banner-info>
+  </ng-template>
+</div>

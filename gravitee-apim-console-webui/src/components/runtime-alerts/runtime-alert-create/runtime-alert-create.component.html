@@ -59,7 +59,11 @@
           <runtime-alert-create-timeframe formControlName="timeframeForm"></runtime-alert-create-timeframe>
         </div>
         <div class="create-alert__condition-form">
-          <h3>Condition</h3>
+          <runtime-alert-create-conditions
+            *ngIf="referenceType != null"
+            [rule]="selectedRule"
+            [referenceType]="referenceType"
+          ></runtime-alert-create-conditions>
         </div>
         <div class="create-alert__filters-form">
           <h3>Filters</h3>
@@ -67,6 +71,4 @@
       </div>
     </form>
   </mat-card-content>
-
-  {{ alertForm.getRawValue() | json }}
 </mat-card>
