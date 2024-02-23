@@ -450,8 +450,8 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
                 // get the future role of the current PO
                 if (
-                    currentPo.getSourceId().equals(memberToImport.getSourceId()) &&
-                    currentPo.getSource().equals(memberToImport.getSource()) &&
+                    memberToImport.getSourceId().equals(currentPo.getSourceId()) &&
+                    memberToImport.getSource().equals(currentPo.getSource()) &&
                     !roleIdsToImport.contains(poRoleId)
                 ) {
                     roleUsedInTransfert = roleIdsToImport;
