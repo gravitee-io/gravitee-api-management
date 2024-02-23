@@ -274,10 +274,18 @@ import * as angular from 'angular';
 
 import { ApiAlertsDashboardComponentAjs } from './management/api/analytics/alerts/api-alerts-dashboard.component.ajs';
 
+import { markedHighlight } from 'marked-highlight';
 (<any>window).hljs = hljs;
-marked.setOptions({
-  highlight: (code) => hljs.highlightAuto(code).value,
-});
+
+marked.use(
+  markedHighlight({
+    langPrefix: 'hljs language-',
+    highlight(code, language) {
+      const validLanguage = hljs.getLanguage(language) ? language : 'plaintext';
+      return hljs.highlight(validLanguage, code).value;
+    },
+  }),
+);
 
 (<any>window).CodeMirror = CodeMirror;
 
