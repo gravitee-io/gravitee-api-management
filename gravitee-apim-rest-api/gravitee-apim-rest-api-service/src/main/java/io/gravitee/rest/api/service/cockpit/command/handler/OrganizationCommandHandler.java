@@ -18,12 +18,11 @@ package io.gravitee.rest.api.service.cockpit.command.handler;
 import io.gravitee.apim.core.access_point.crud_service.AccessPointCrudService;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.core.license.model.License;
-import io.gravitee.cockpit.api.command.Command;
-import io.gravitee.cockpit.api.command.CommandHandler;
-import io.gravitee.cockpit.api.command.CommandStatus;
-import io.gravitee.cockpit.api.command.organization.OrganizationCommand;
-import io.gravitee.cockpit.api.command.organization.OrganizationPayload;
-import io.gravitee.cockpit.api.command.organization.OrganizationReply;
+import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
+import io.gravitee.cockpit.api.command.v1.organization.OrganizationCommand;
+import io.gravitee.cockpit.api.command.v1.organization.OrganizationCommandPayload;
+import io.gravitee.cockpit.api.command.v1.organization.OrganizationReply;
+import io.gravitee.exchange.api.command.CommandHandler;
 import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.model.UpdateOrganizationEntity;
 import io.gravitee.rest.api.service.OrganizationService;
@@ -50,39 +49,39 @@ public class OrganizationCommandHandler implements CommandHandler<OrganizationCo
     private final LicenseDomainService organizationLicenseService;
 
     @Override
-    public Command.Type handleType() {
-        return Command.Type.ORGANIZATION_COMMAND;
+    public String supportType() {
+        return CockpitCommandType.ORGANIZATION.name();
     }
 
     @Override
     public Single<OrganizationReply> handle(OrganizationCommand command) {
-        OrganizationPayload organizationPayload = command.getPayload();
+        OrganizationCommandPayload organizationPayload = command.getPayload();
 
         try {
             final OrganizationEntity organization = createOrUpdateOrganization(organizationPayload);
 
-            handleLicense(organization, command.getPayload().getLicense());
+            handleLicense(organization, command.getPayload().license());
 
             handleAccessPoints(organizationPayload, organization);
             log.info("Organization [{}] handled with id [{}].", organization.getName(), organization.getId());
-            return Single.just(new OrganizationReply(command.getId(), CommandStatus.SUCCEEDED));
+            return Single.just(new OrganizationReply(command.getId()));
         } catch (Exception e) {
-            log.error(
-                "Error occurred when handling organization [{}] with id [{}].",
-                organizationPayload.getName(),
-                organizationPayload.getId(),
-                e
-            );
-            return Single.just(new OrganizationReply(command.getId(), CommandStatus.ERROR));
+            String errorDetails =
+                "Error occurred when handling organization [%s] with id [%s].".formatted(
+                        organizationPayload.name(),
+                        organizationPayload.id()
+                    );
+            log.error(errorDetails, e);
+            return Single.just(new OrganizationReply(command.getId(), errorDetails));
         }
     }
 
-    private void handleAccessPoints(OrganizationPayload organizationPayload, OrganizationEntity organization) {
+    private void handleAccessPoints(OrganizationCommandPayload organizationPayload, OrganizationEntity organization) {
         List<io.gravitee.apim.core.access_point.model.AccessPoint> accessPointsToCreate;
-        if (organizationPayload.getAccessPoints() != null) {
+        if (organizationPayload.accessPoints() != null) {
             accessPointsToCreate =
                 organizationPayload
-                    .getAccessPoints()
+                    .accessPoints()
                     .stream()
                     .map(cockpitAccessPoint ->
                         io.gravitee.apim.core.access_point.model.AccessPoint
@@ -112,23 +111,23 @@ public class OrganizationCommandHandler implements CommandHandler<OrganizationCo
         organizationLicenseService.createOrUpdateOrganizationLicense(organization.getId(), license);
     }
 
-    private OrganizationEntity createOrUpdateOrganization(OrganizationPayload organizationPayload) {
+    private OrganizationEntity createOrUpdateOrganization(OrganizationCommandPayload organizationPayload) {
         String organizationId = this.getOrganizationId(organizationPayload);
 
         UpdateOrganizationEntity newOrganization = new UpdateOrganizationEntity();
-        newOrganization.setCockpitId(organizationPayload.getCockpitId());
-        newOrganization.setHrids(organizationPayload.getHrids());
-        newOrganization.setName(organizationPayload.getName());
-        newOrganization.setDescription(organizationPayload.getDescription());
+        newOrganization.setCockpitId(organizationPayload.cockpitId());
+        newOrganization.setHrids(organizationPayload.hrids());
+        newOrganization.setName(organizationPayload.name());
+        newOrganization.setDescription(organizationPayload.description());
         return organizationService.createOrUpdate(organizationId, newOrganization);
     }
 
-    private String getOrganizationId(OrganizationPayload organizationPayload) {
+    private String getOrganizationId(OrganizationCommandPayload organizationPayload) {
         try {
-            OrganizationEntity byCockpitId = this.organizationService.findByCockpitId(organizationPayload.getCockpitId());
+            OrganizationEntity byCockpitId = this.organizationService.findByCockpitId(organizationPayload.cockpitId());
             return byCockpitId.getId();
         } catch (OrganizationNotFoundException ex) {
-            return organizationPayload.getId();
+            return organizationPayload.id();
         }
     }
 }

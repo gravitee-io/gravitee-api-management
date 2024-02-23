@@ -23,12 +23,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.access_point.crud_service.AccessPointCrudService;
-import io.gravitee.cockpit.api.command.Command;
-import io.gravitee.cockpit.api.command.CommandStatus;
-import io.gravitee.cockpit.api.command.accesspoint.AccessPoint;
-import io.gravitee.cockpit.api.command.environment.EnvironmentCommand;
-import io.gravitee.cockpit.api.command.environment.EnvironmentPayload;
-import io.gravitee.cockpit.api.command.environment.EnvironmentReply;
+import io.gravitee.cockpit.api.command.model.accesspoint.AccessPoint;
+import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
+import io.gravitee.cockpit.api.command.v1.environment.EnvironmentCommand;
+import io.gravitee.cockpit.api.command.v1.environment.EnvironmentCommandPayload;
+import io.gravitee.cockpit.api.command.v1.environment.EnvironmentReply;
+import io.gravitee.exchange.api.command.CommandStatus;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.UpdateEnvironmentEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
@@ -63,37 +63,39 @@ public class EnvironmentCommandHandlerTest {
     }
 
     @Test
-    public void handleType() {
-        assertEquals(Command.Type.ENVIRONMENT_COMMAND, cut.handleType());
+    public void supportType() {
+        assertEquals(CockpitCommandType.ENVIRONMENT.name(), cut.supportType());
     }
 
     @Test
     public void handle() throws InterruptedException {
-        EnvironmentPayload environmentPayload = new EnvironmentPayload();
+        EnvironmentCommandPayload environmentPayload = EnvironmentCommandPayload
+            .builder()
+            .id("env#1")
+            .cockpitId("env#cockpit-1")
+            .hrids(Collections.singletonList("env-1"))
+            .organizationId("orga#1")
+            .description("Environment description")
+            .name("Environment name")
+            .accessPoints(
+                List.of(
+                    AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction1.io").build(),
+                    AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction2.io").build()
+                )
+            )
+            .build();
         EnvironmentCommand command = new EnvironmentCommand(environmentPayload);
 
-        environmentPayload.setId("env#1");
-        environmentPayload.setCockpitId("env#cockpit-1");
-        environmentPayload.setHrids(Collections.singletonList("env-1"));
-        environmentPayload.setOrganizationId("orga#1");
-        environmentPayload.setDescription("Environment description");
-        environmentPayload.setName("Environment name");
-        environmentPayload.setAccessPoints(
-            List.of(
-                AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction1.io").build(),
-                AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction2.io").build()
-            )
-        );
         when(environmentService.findByCockpitId(any())).thenThrow(new EnvironmentNotFoundException("Env not found"));
         when(
             environmentService.createOrUpdate(
                 eq("orga#1"),
                 eq("env#1"),
                 argThat(newEnvironment ->
-                    newEnvironment.getCockpitId().equals(environmentPayload.getCockpitId()) &&
-                    newEnvironment.getHrids().equals(environmentPayload.getHrids()) &&
-                    newEnvironment.getDescription().equals(environmentPayload.getDescription()) &&
-                    newEnvironment.getName().equals(environmentPayload.getName())
+                    newEnvironment.getCockpitId().equals(environmentPayload.cockpitId()) &&
+                    newEnvironment.getHrids().equals(environmentPayload.hrids()) &&
+                    newEnvironment.getDescription().equals(environmentPayload.description()) &&
+                    newEnvironment.getName().equals(environmentPayload.name())
                 )
             )
         )
@@ -107,20 +109,22 @@ public class EnvironmentCommandHandlerTest {
 
     @Test
     public void handleWithException() throws InterruptedException {
-        EnvironmentPayload environmentPayload = new EnvironmentPayload();
-        EnvironmentCommand command = new EnvironmentCommand(environmentPayload);
-
-        environmentPayload.setId("env#1");
-        environmentPayload.setCockpitId("env#cockpit-1");
-        environmentPayload.setOrganizationId("orga#1");
-        environmentPayload.setDescription("Environment description");
-        environmentPayload.setName("Environment name");
-        environmentPayload.setAccessPoints(
-            List.of(
-                AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction1.io").build(),
-                AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction2.io").build()
+        EnvironmentCommandPayload environmentPayload = EnvironmentCommandPayload
+            .builder()
+            .id("env#1")
+            .cockpitId("env#cockpit-1")
+            .hrids(Collections.singletonList("env-1"))
+            .organizationId("orga#1")
+            .description("Environment description")
+            .name("Environment name")
+            .accessPoints(
+                List.of(
+                    AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction1.io").build(),
+                    AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction2.io").build()
+                )
             )
-        );
+            .build();
+        EnvironmentCommand command = new EnvironmentCommand(environmentPayload);
 
         when(environmentService.findByCockpitId(any())).thenThrow(new EnvironmentNotFoundException("Env not found"));
         when(environmentService.createOrUpdate(eq("orga#1"), eq("env#1"), any(UpdateEnvironmentEntity.class)))
@@ -135,21 +139,22 @@ public class EnvironmentCommandHandlerTest {
 
     @Test
     public void handleWithExistingCockpitId() throws InterruptedException {
-        EnvironmentPayload environmentPayload = new EnvironmentPayload();
-        EnvironmentCommand command = new EnvironmentCommand(environmentPayload);
-
-        environmentPayload.setId("env#1");
-        environmentPayload.setCockpitId("env#cockpit-1");
-        environmentPayload.setHrids(Collections.singletonList("env-1"));
-        environmentPayload.setOrganizationId("orga#1");
-        environmentPayload.setDescription("Environment description");
-        environmentPayload.setName("Environment name");
-        environmentPayload.setAccessPoints(
-            List.of(
-                AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction1.io").build(),
-                AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction2.io").build()
+        EnvironmentCommandPayload environmentPayload = EnvironmentCommandPayload
+            .builder()
+            .id("env#1")
+            .cockpitId("env#cockpit-1")
+            .hrids(Collections.singletonList("env-1"))
+            .organizationId("orga#1")
+            .description("Environment description")
+            .name("Environment name")
+            .accessPoints(
+                List.of(
+                    AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction1.io").build(),
+                    AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction2.io").build()
+                )
             )
-        );
+            .build();
+        EnvironmentCommand command = new EnvironmentCommand(environmentPayload);
         EnvironmentEntity existingEnvironment = mock(EnvironmentEntity.class);
         when(existingEnvironment.getId()).thenReturn("DEFAULT");
         when(existingEnvironment.getOrganizationId()).thenReturn("DEFAULT");
@@ -159,10 +164,10 @@ public class EnvironmentCommandHandlerTest {
                 eq("DEFAULT"),
                 eq("DEFAULT"),
                 argThat(newEnvironment ->
-                    newEnvironment.getCockpitId().equals(environmentPayload.getCockpitId()) &&
-                    newEnvironment.getHrids().equals(environmentPayload.getHrids()) &&
-                    newEnvironment.getDescription().equals(environmentPayload.getDescription()) &&
-                    newEnvironment.getName().equals(environmentPayload.getName())
+                    newEnvironment.getCockpitId().equals(environmentPayload.cockpitId()) &&
+                    newEnvironment.getHrids().equals(environmentPayload.hrids()) &&
+                    newEnvironment.getDescription().equals(environmentPayload.description()) &&
+                    newEnvironment.getName().equals(environmentPayload.name())
                 )
             )
         )

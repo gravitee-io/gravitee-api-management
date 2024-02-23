@@ -18,14 +18,19 @@ package io.gravitee.rest.api.service.cockpit.command.handler;
 import static io.gravitee.rest.api.service.cockpit.command.handler.UserCommandHandler.COCKPIT_SOURCE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.argThat;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
-import io.gravitee.cockpit.api.command.Command;
-import io.gravitee.cockpit.api.command.CommandStatus;
-import io.gravitee.cockpit.api.command.membership.MembershipCommand;
-import io.gravitee.cockpit.api.command.membership.MembershipPayload;
-import io.gravitee.cockpit.api.command.membership.MembershipReply;
+import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
+import io.gravitee.cockpit.api.command.v1.membership.MembershipCommand;
+import io.gravitee.cockpit.api.command.v1.membership.MembershipCommandPayload;
+import io.gravitee.cockpit.api.command.v1.membership.MembershipReply;
 import io.gravitee.common.utils.UUID;
+import io.gravitee.exchange.api.command.CommandStatus;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.RoleEntity;
@@ -69,18 +74,20 @@ public class MembershipCommandHandlerTest {
     }
 
     @Test
-    public void handleType() {
-        assertEquals(Command.Type.MEMBERSHIP_COMMAND, cut.handleType());
+    public void supportType() {
+        assertEquals(CockpitCommandType.MEMBERSHIP.name(), cut.supportType());
     }
 
     @Test
     public void handleWithAdminRole() throws InterruptedException {
-        MembershipPayload membershipPayload = new MembershipPayload();
-        membershipPayload.setUserId("user#1");
-        membershipPayload.setOrganizationId("orga#1");
-        membershipPayload.setReferenceType(MembershipReferenceType.ENVIRONMENT.name());
-        membershipPayload.setReferenceId("env#1");
-        membershipPayload.setRole("ENVIRONMENT_PRIMARY_OWNER");
+        MembershipCommandPayload membershipPayload = MembershipCommandPayload
+            .builder()
+            .userId("user#1")
+            .organizationId("orga#1")
+            .referenceType(MembershipReferenceType.ENVIRONMENT.name())
+            .referenceId("env#1")
+            .role("ENVIRONMENT_PRIMARY_OWNER")
+            .build();
 
         MembershipCommand command = new MembershipCommand(membershipPayload);
 
@@ -92,7 +99,7 @@ public class MembershipCommandHandlerTest {
         role.setScope(RoleScope.ENVIRONMENT);
         role.setName("ADMIN");
 
-        when(userService.findBySource(any(), eq(COCKPIT_SOURCE), eq(membershipPayload.getUserId()), eq(false))).thenReturn(user);
+        when(userService.findBySource(any(), eq(COCKPIT_SOURCE), eq(membershipPayload.userId()), eq(false))).thenReturn(user);
         when(roleService.findByScopeAndName(RoleScope.ENVIRONMENT, "ADMIN", "orga#1")).thenReturn(Optional.of(role));
 
         TestObserver<MembershipReply> obs = cut.handle(command).test();
@@ -120,7 +127,7 @@ public class MembershipCommandHandlerTest {
             );
 
         assertEquals(MembershipReferenceType.ENVIRONMENT, membershipReference.getValue().getType());
-        assertEquals(membershipPayload.getReferenceId(), membershipReference.getValue().getId());
+        assertEquals(membershipPayload.referenceId(), membershipReference.getValue().getId());
         assertEquals(MembershipMemberType.USER, membershipMember.getValue().getMemberType());
         assertEquals(user.getId(), membershipMember.getValue().getMemberId());
         assertTrue(
@@ -134,12 +141,14 @@ public class MembershipCommandHandlerTest {
 
     @Test
     public void handleWithRole() throws InterruptedException {
-        MembershipPayload membershipPayload = new MembershipPayload();
-        membershipPayload.setUserId("user#1");
-        membershipPayload.setOrganizationId("orga#1");
-        membershipPayload.setReferenceType(MembershipReferenceType.ORGANIZATION.name());
-        membershipPayload.setReferenceId("orga#1");
-        membershipPayload.setRole("ORGANIZATION_OWNER");
+        MembershipCommandPayload membershipPayload = MembershipCommandPayload
+            .builder()
+            .userId("user#1")
+            .organizationId("orga#1")
+            .referenceType(MembershipReferenceType.ORGANIZATION.name())
+            .referenceId("orga#1")
+            .role("ORGANIZATION_OWNER")
+            .build();
 
         MembershipCommand command = new MembershipCommand(membershipPayload);
 
@@ -151,7 +160,7 @@ public class MembershipCommandHandlerTest {
         role.setScope(RoleScope.ORGANIZATION);
         role.setName("ADMIN");
 
-        when(userService.findBySource(any(), eq(COCKPIT_SOURCE), eq(membershipPayload.getUserId()), eq(false))).thenReturn(user);
+        when(userService.findBySource(any(), eq(COCKPIT_SOURCE), eq(membershipPayload.userId()), eq(false))).thenReturn(user);
         when(roleService.findByScopeAndName(RoleScope.ORGANIZATION, "ADMIN", "orga#1")).thenReturn(Optional.of(role));
 
         TestObserver<MembershipReply> obs = cut.handle(command).test();
@@ -179,7 +188,7 @@ public class MembershipCommandHandlerTest {
             );
 
         assertEquals(MembershipReferenceType.ORGANIZATION, membershipReference.getValue().getType());
-        assertEquals(membershipPayload.getReferenceId(), membershipReference.getValue().getId());
+        assertEquals(membershipPayload.referenceId(), membershipReference.getValue().getId());
         assertEquals(MembershipMemberType.USER, membershipMember.getValue().getMemberType());
         assertEquals(user.getId(), membershipMember.getValue().getMemberId());
         assertTrue(
@@ -193,12 +202,14 @@ public class MembershipCommandHandlerTest {
 
     @Test
     public void handleWithUserRole() throws InterruptedException {
-        MembershipPayload membershipPayload = new MembershipPayload();
-        membershipPayload.setUserId("user#1");
-        membershipPayload.setOrganizationId("orga#1");
-        membershipPayload.setReferenceType(MembershipReferenceType.ENVIRONMENT.name());
-        membershipPayload.setReferenceId("env#1");
-        membershipPayload.setRole("ENVIRONMENT_USER");
+        MembershipCommandPayload membershipPayload = MembershipCommandPayload
+            .builder()
+            .userId("user#1")
+            .organizationId("orga#1")
+            .referenceType(MembershipReferenceType.ENVIRONMENT.name())
+            .referenceId("env#1")
+            .role("ENVIRONMENT_USER")
+            .build();
 
         MembershipCommand command = new MembershipCommand(membershipPayload);
 
@@ -210,7 +221,7 @@ public class MembershipCommandHandlerTest {
         role.setScope(RoleScope.ENVIRONMENT);
         role.setName("USER");
 
-        when(userService.findBySource(any(), eq(COCKPIT_SOURCE), eq(membershipPayload.getUserId()), eq(false))).thenReturn(user);
+        when(userService.findBySource(any(), eq(COCKPIT_SOURCE), eq(membershipPayload.userId()), eq(false))).thenReturn(user);
         when(roleService.findByScopeAndName(RoleScope.ENVIRONMENT, "USER", "orga#1")).thenReturn(Optional.of(role));
 
         TestObserver<MembershipReply> obs = cut.handle(command).test();
@@ -238,7 +249,7 @@ public class MembershipCommandHandlerTest {
             );
 
         assertEquals(MembershipReferenceType.ENVIRONMENT, membershipReference.getValue().getType());
-        assertEquals(membershipPayload.getReferenceId(), membershipReference.getValue().getId());
+        assertEquals(membershipPayload.referenceId(), membershipReference.getValue().getId());
         assertEquals(MembershipMemberType.USER, membershipMember.getValue().getMemberType());
         assertEquals(user.getId(), membershipMember.getValue().getMemberId());
         assertTrue(
@@ -252,12 +263,14 @@ public class MembershipCommandHandlerTest {
 
     @Test
     public void handleWithUnknownRole() throws InterruptedException {
-        MembershipPayload membershipPayload = new MembershipPayload();
-        membershipPayload.setUserId("user#1");
-        membershipPayload.setOrganizationId("orga#1");
-        membershipPayload.setReferenceType(MembershipReferenceType.ENVIRONMENT.name());
-        membershipPayload.setReferenceId("env#1");
-        membershipPayload.setRole("UNKNOWN");
+        MembershipCommandPayload membershipPayload = MembershipCommandPayload
+            .builder()
+            .userId("user#1")
+            .organizationId("orga#1")
+            .referenceType(MembershipReferenceType.ENVIRONMENT.name())
+            .referenceId("env#1")
+            .role("UNKNOWN")
+            .build();
 
         MembershipCommand command = new MembershipCommand(membershipPayload);
 
@@ -267,7 +280,7 @@ public class MembershipCommandHandlerTest {
         RoleEntity role = new RoleEntity();
         role.setId(UUID.random().toString());
 
-        when(userService.findBySource(any(), eq(COCKPIT_SOURCE), eq(membershipPayload.getUserId()), eq(false))).thenReturn(user);
+        when(userService.findBySource(any(), eq(COCKPIT_SOURCE), eq(membershipPayload.userId()), eq(false))).thenReturn(user);
 
         TestObserver<MembershipReply> obs = cut.handle(command).test();
 
@@ -280,17 +293,19 @@ public class MembershipCommandHandlerTest {
 
     @Test
     public void handleWithUnknownUser() throws InterruptedException {
-        MembershipPayload membershipPayload = new MembershipPayload();
-        membershipPayload.setUserId("user#1");
-        membershipPayload.setOrganizationId("orga#1");
-        membershipPayload.setReferenceType(MembershipReferenceType.ENVIRONMENT.name());
-        membershipPayload.setReferenceId("env#1");
-        membershipPayload.setRole("UNKNOWN");
+        MembershipCommandPayload membershipPayload = MembershipCommandPayload
+            .builder()
+            .userId("user#1")
+            .organizationId("orga#1")
+            .referenceType(MembershipReferenceType.ENVIRONMENT.name())
+            .referenceId("env#1")
+            .role("UNKNOWN")
+            .build();
 
         MembershipCommand command = new MembershipCommand(membershipPayload);
 
-        when(userService.findBySource(any(), eq(COCKPIT_SOURCE), eq(membershipPayload.getUserId()), eq(false)))
-            .thenThrow(new UserNotFoundException(membershipPayload.getUserId()));
+        when(userService.findBySource(any(), eq(COCKPIT_SOURCE), eq(membershipPayload.userId()), eq(false)))
+            .thenThrow(new UserNotFoundException(membershipPayload.userId()));
 
         TestObserver<MembershipReply> obs = cut.handle(command).test();
 

@@ -15,13 +15,9 @@
  */
 package io.gravitee.rest.api.service.cockpit.command;
 
-import io.gravitee.cockpit.api.command.Command;
-import io.gravitee.cockpit.api.command.Payload;
-import io.gravitee.cockpit.api.command.Reply;
-import io.gravitee.cockpit.api.command.bridge.BridgeCommand;
-import io.gravitee.cockpit.api.command.bridge.BridgeReply;
+import io.gravitee.cockpit.api.command.v1.bridge.BridgeCommand;
+import io.gravitee.cockpit.api.command.v1.bridge.BridgeReply;
 
 public interface CockpitCommandService {
     BridgeReply send(BridgeCommand command);
-    <T extends Payload> Reply send(Command<T> command);
 }

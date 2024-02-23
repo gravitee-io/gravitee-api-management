@@ -17,10 +17,10 @@ package io.gravitee.rest.api.service.cockpit.command.handler;
 
 import io.gravitee.apim.core.access_point.crud_service.AccessPointCrudService;
 import io.gravitee.apim.core.access_point.model.AccessPoint;
-import io.gravitee.cockpit.api.command.Command;
-import io.gravitee.cockpit.api.command.CommandHandler;
-import io.gravitee.cockpit.api.command.CommandStatus;
-import io.gravitee.cockpit.api.command.environment.*;
+import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
+import io.gravitee.cockpit.api.command.v1.environment.DisableEnvironmentCommand;
+import io.gravitee.cockpit.api.command.v1.environment.DisableEnvironmentReply;
+import io.gravitee.exchange.api.command.CommandHandler;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
@@ -31,7 +31,6 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import io.gravitee.rest.api.service.v4.ApiStateService;
 import io.reactivex.rxjava3.core.Single;
-import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -61,8 +60,8 @@ public class DisableEnvironmentCommandHandler implements CommandHandler<DisableE
     }
 
     @Override
-    public Command.Type handleType() {
-        return Command.Type.DISABLE_ENVIRONMENT_COMMAND;
+    public String supportType() {
+        return CockpitCommandType.DISABLE_ENVIRONMENT.name();
     }
 
     @Override
@@ -70,7 +69,7 @@ public class DisableEnvironmentCommandHandler implements CommandHandler<DisableE
         var payload = command.getPayload();
 
         try {
-            var environment = environmentService.findByCockpitId(payload.getCockpitId());
+            var environment = environmentService.findByCockpitId(payload.cockpitId());
             var executionContext = new ExecutionContext(environment);
 
             // Stop all Environment APIs
@@ -79,7 +78,7 @@ public class DisableEnvironmentCommandHandler implements CommandHandler<DisableE
                     new ApiCriteria.Builder().state(LifecycleState.STARTED).environmentId(environment.getId()).build(),
                     new ApiFieldFilter.Builder().excludeDefinition().excludePicture().build()
                 )
-                .forEach(api -> apiStateService.stop(executionContext, api.getId(), payload.getUserId()));
+                .forEach(api -> apiStateService.stop(executionContext, api.getId(), payload.userId()));
 
             // Delete related access points
             this.accessPointService.deleteAccessPoints(AccessPoint.ReferenceType.ENVIRONMENT, environment.getId());
@@ -94,10 +93,11 @@ public class DisableEnvironmentCommandHandler implements CommandHandler<DisableE
                 );
 
             log.info("Environment [{}] with id [{}] has been disabled.", environment.getName(), environment.getId());
-            return Single.just(new DisableEnvironmentReply(command.getId(), CommandStatus.SUCCEEDED));
+            return Single.just(new DisableEnvironmentReply(command.getId()));
         } catch (Exception e) {
-            log.error("Error occurred when disabling environment [{}] with id [{}].", payload.getName(), payload.getId(), e);
-            return Single.just(new DisableEnvironmentReply(command.getId(), CommandStatus.ERROR));
+            String errorDetails = "Error occurred when disabling environment [%s] with id [%s].".formatted(payload.name(), payload.id());
+            log.error(errorDetails, e);
+            return Single.just(new DisableEnvironmentReply(command.getId(), errorDetails));
         }
     }
 }

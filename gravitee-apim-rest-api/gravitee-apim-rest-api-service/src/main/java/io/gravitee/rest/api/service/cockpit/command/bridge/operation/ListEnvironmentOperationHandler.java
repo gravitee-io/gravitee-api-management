@@ -17,41 +17,27 @@ package io.gravitee.rest.api.service.cockpit.command.bridge.operation;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.cockpit.api.command.CommandStatus;
-import io.gravitee.cockpit.api.command.bridge.BridgeCommand;
-import io.gravitee.cockpit.api.command.bridge.BridgeMultiReply;
-import io.gravitee.cockpit.api.command.bridge.BridgeReply;
-import io.gravitee.cockpit.api.command.bridge.BridgeSimpleReply;
-import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.cockpit.api.command.v1.bridge.BridgeCommand;
+import io.gravitee.cockpit.api.command.v1.bridge.BridgeReply;
+import io.gravitee.cockpit.api.command.v1.bridge.BridgeReplyPayload;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.reactivex.rxjava3.core.Single;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+@RequiredArgsConstructor
 @Component
+@Slf4j
 public class ListEnvironmentOperationHandler implements BridgeOperationHandler {
-
-    private final Logger logger = LoggerFactory.getLogger(ListEnvironmentOperationHandler.class);
 
     private final EnvironmentService environmentService;
     private final InstallationService installationService;
     private final ObjectMapper objectMapper;
-
-    public ListEnvironmentOperationHandler(
-        EnvironmentService environmentService,
-        InstallationService installationService,
-        ObjectMapper objectMapper
-    ) {
-        this.environmentService = environmentService;
-        this.installationService = installationService;
-        this.objectMapper = objectMapper;
-    }
 
     @Override
     public boolean canHandle(String bridgeOperation) {
@@ -60,37 +46,29 @@ public class ListEnvironmentOperationHandler implements BridgeOperationHandler {
 
     @Override
     public Single<BridgeReply> handle(BridgeCommand bridgeCommand) {
-        BridgeMultiReply multiReply = new BridgeMultiReply();
-        multiReply.setCommandId(bridgeCommand.getId());
+        String organizationId = bridgeCommand.getPayload().organizationId();
         try {
-            final List<EnvironmentEntity> managedEnvironments =
-                this.environmentService.findByOrganization(bridgeCommand.getOrganizationId());
-            multiReply.setCommandStatus(CommandStatus.SUCCEEDED);
-            multiReply.setReplies(
-                managedEnvironments
+            List<BridgeReplyPayload.BridgeReplyContent> replyContents =
+                this.environmentService.findByOrganization(organizationId)
                     .stream()
                     .map(environmentEntity -> {
-                        BridgeSimpleReply simpleReply = new BridgeSimpleReply();
-                        simpleReply.setCommandId(bridgeCommand.getId());
-                        simpleReply.setCommandStatus(CommandStatus.SUCCEEDED);
-                        simpleReply.setOrganizationId(environmentEntity.getOrganizationId());
-                        simpleReply.setEnvironmentId(environmentEntity.getId());
-                        simpleReply.setInstallationId(installationService.get().getId());
+                        BridgeReplyPayload.BridgeReplyContent.BridgeReplyContentBuilder builder = BridgeReplyPayload.BridgeReplyContent
+                            .builder()
+                            .environmentId(environmentEntity.getId())
+                            .organizationId(environmentEntity.getOrganizationId())
+                            .installationId(installationService.get().getId());
                         try {
-                            simpleReply.setPayload(objectMapper.writeValueAsString(environmentEntity));
+                            return builder.content(objectMapper.writeValueAsString(environmentEntity)).build();
                         } catch (JsonProcessingException e) {
-                            logger.warn("Problem while serializing environment {}", environmentEntity.getId());
-                            simpleReply.setMessage("Problem while serializing environment: " + environmentEntity.getId());
-                            simpleReply.setCommandStatus(CommandStatus.ERROR);
+                            log.warn("Problem while serializing environment {}", environmentEntity.getId());
+                            return builder.error(true).build();
                         }
-                        return simpleReply;
                     })
-                    .collect(Collectors.toList())
-            );
+                    .filter(Objects::nonNull)
+                    .toList();
+            return Single.just(new BridgeReply(bridgeCommand.getId(), new BridgeReplyPayload(replyContents)));
         } catch (TechnicalManagementException ex) {
-            multiReply.setCommandStatus(CommandStatus.ERROR);
-            multiReply.setMessage("No environment available for organization: " + bridgeCommand.getOrganizationId());
+            return Single.just(new BridgeReply(bridgeCommand.getId(), "No environment available for organization: " + organizationId));
         }
-        return Single.just(multiReply);
     }
 }

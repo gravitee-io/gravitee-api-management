@@ -17,17 +17,15 @@ package io.gravitee.rest.api.service.cockpit.command.handler;
 
 import io.gravitee.apim.core.access_point.crud_service.AccessPointCrudService;
 import io.gravitee.apim.core.access_point.model.AccessPoint;
-import io.gravitee.cockpit.api.command.Command;
-import io.gravitee.cockpit.api.command.CommandHandler;
-import io.gravitee.cockpit.api.command.CommandStatus;
-import io.gravitee.cockpit.api.command.organization.DisableOrganizationCommand;
-import io.gravitee.cockpit.api.command.organization.DisableOrganizationReply;
+import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
+import io.gravitee.cockpit.api.command.v1.organization.DisableOrganizationCommand;
+import io.gravitee.cockpit.api.command.v1.organization.DisableOrganizationReply;
+import io.gravitee.exchange.api.command.CommandHandler;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType;
 import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import io.reactivex.rxjava3.core.Single;
-import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -50,15 +48,15 @@ public class DisableOrganizationCommandHandler implements CommandHandler<Disable
     }
 
     @Override
-    public Command.Type handleType() {
-        return Command.Type.DISABLE_ORGANIZATION_COMMAND;
+    public String supportType() {
+        return CockpitCommandType.DISABLE_ORGANIZATION.name();
     }
 
     @Override
     public Single<DisableOrganizationReply> handle(DisableOrganizationCommand command) {
         var organizationPayload = command.getPayload();
         try {
-            var organization = organizationService.findByCockpitId(organizationPayload.getCockpitId());
+            var organization = organizationService.findByCockpitId(organizationPayload.cockpitId());
 
             // Delete related access points
             this.accessPointService.deleteAccessPoints(AccessPoint.ReferenceType.ORGANIZATION, organization.getId());
@@ -75,15 +73,15 @@ public class DisableOrganizationCommandHandler implements CommandHandler<Disable
                 );
 
             log.info("Organization [{}] with id [{}] has been disabled.", organization.getName(), organization.getId());
-            return Single.just(new DisableOrganizationReply(command.getId(), CommandStatus.SUCCEEDED));
+            return Single.just(new DisableOrganizationReply(command.getId()));
         } catch (Exception e) {
-            log.error(
-                "Error occurred when disabling organization [{}] with id [{}].",
-                organizationPayload.getName(),
-                organizationPayload.getId(),
-                e
-            );
-            return Single.just(new DisableOrganizationReply(command.getId(), CommandStatus.ERROR));
+            String errorDetails =
+                "Error occurred when disabling organization [%s] with id [%s].".formatted(
+                        organizationPayload.name(),
+                        organizationPayload.id()
+                    );
+            log.error(errorDetails, e);
+            return Single.just(new DisableOrganizationReply(command.getId(), errorDetails));
         }
     }
 }

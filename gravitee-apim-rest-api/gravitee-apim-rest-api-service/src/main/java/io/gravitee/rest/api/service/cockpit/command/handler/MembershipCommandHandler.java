@@ -17,12 +17,11 @@ package io.gravitee.rest.api.service.cockpit.command.handler;
 
 import static io.gravitee.rest.api.service.cockpit.command.handler.UserCommandHandler.COCKPIT_SOURCE;
 
-import io.gravitee.cockpit.api.command.Command;
-import io.gravitee.cockpit.api.command.CommandHandler;
-import io.gravitee.cockpit.api.command.CommandStatus;
-import io.gravitee.cockpit.api.command.membership.MembershipCommand;
-import io.gravitee.cockpit.api.command.membership.MembershipPayload;
-import io.gravitee.cockpit.api.command.membership.MembershipReply;
+import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
+import io.gravitee.cockpit.api.command.v1.membership.MembershipCommand;
+import io.gravitee.cockpit.api.command.v1.membership.MembershipCommandPayload;
+import io.gravitee.cockpit.api.command.v1.membership.MembershipReply;
+import io.gravitee.exchange.api.command.CommandHandler;
 import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.RoleEntity;
@@ -36,8 +35,8 @@ import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
 import io.reactivex.rxjava3.core.Single;
 import java.util.Collections;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
@@ -45,56 +44,51 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
+@RequiredArgsConstructor
+@Slf4j
 public class MembershipCommandHandler implements CommandHandler<MembershipCommand, MembershipReply> {
-
-    private final Logger logger = LoggerFactory.getLogger(MembershipCommandHandler.class);
 
     private final UserService userService;
     private final RoleService roleService;
     private final MembershipService membershipService;
 
-    public MembershipCommandHandler(UserService userService, RoleService roleService, MembershipService membershipService) {
-        this.userService = userService;
-        this.roleService = roleService;
-        this.membershipService = membershipService;
-    }
-
     @Override
-    public Command.Type handleType() {
-        return Command.Type.MEMBERSHIP_COMMAND;
+    public String supportType() {
+        return CockpitCommandType.MEMBERSHIP.name();
     }
 
     @Override
     public Single<MembershipReply> handle(MembershipCommand command) {
-        MembershipPayload membershipPayload = command.getPayload();
+        MembershipCommandPayload membershipPayload = command.getPayload();
 
         try {
             RoleScope roleScope;
             MembershipReferenceType membershipReferenceType;
 
             try {
-                roleScope = RoleScope.valueOf(membershipPayload.getReferenceType());
-                membershipReferenceType = MembershipReferenceType.valueOf(membershipPayload.getReferenceType());
+                roleScope = RoleScope.valueOf(membershipPayload.referenceType());
+                membershipReferenceType = MembershipReferenceType.valueOf(membershipPayload.referenceType());
             } catch (Exception e) {
-                logger.error("Invalid referenceType [{}].", membershipPayload.getReferenceType());
-                return Single.just(new MembershipReply(command.getId(), CommandStatus.ERROR));
+                String errorDetails = "Invalid referenceType [%s].".formatted(membershipPayload.referenceType());
+                log.error(errorDetails, e);
+                return Single.just(new MembershipReply(command.getId(), errorDetails));
             }
 
             ExecutionContext executionContext = new ExecutionContext(
-                membershipPayload.getOrganizationId(),
-                membershipReferenceType.equals(MembershipReferenceType.ENVIRONMENT) ? membershipPayload.getReferenceId() : null
+                membershipPayload.organizationId(),
+                membershipReferenceType.equals(MembershipReferenceType.ENVIRONMENT) ? membershipPayload.referenceId() : null
             );
 
             final UserEntity userEntity = userService.findBySource(
                 executionContext.getOrganizationId(),
                 COCKPIT_SOURCE,
-                membershipPayload.getUserId(),
+                membershipPayload.userId(),
                 false
             );
-            final RoleEntity roleEntity = findRole(executionContext.getOrganizationId(), roleScope, membershipPayload.getRole());
+            final RoleEntity roleEntity = findRole(executionContext.getOrganizationId(), roleScope, membershipPayload.role());
             final MembershipService.MembershipReference membershipReference = new MembershipService.MembershipReference(
                 membershipReferenceType,
-                membershipPayload.getReferenceId()
+                membershipPayload.referenceId()
             );
             final MembershipService.MembershipMember membershipMember = new MembershipService.MembershipMember(
                 userEntity.getId(),
@@ -115,26 +109,26 @@ public class MembershipCommandHandler implements CommandHandler<MembershipComman
                 false
             );
 
-            logger.info(
+            log.info(
                 "Role [{}] assigned on {} [{}] for user [{}] and organization [{}].",
-                membershipPayload.getRole(),
-                membershipPayload.getReferenceType(),
-                membershipPayload.getReferenceId(),
+                membershipPayload.role(),
+                membershipPayload.referenceType(),
+                membershipPayload.referenceId(),
                 userEntity.getId(),
-                membershipPayload.getOrganizationId()
+                membershipPayload.organizationId()
             );
-            return Single.just(new MembershipReply(command.getId(), CommandStatus.SUCCEEDED));
+            return Single.just(new MembershipReply(command.getId()));
         } catch (Exception e) {
-            logger.error(
-                "Error occurred when trying to assign role [{}] on {} [{}] for cockpit user [{}] and organization [{}].",
-                membershipPayload.getRole(),
-                membershipPayload.getReferenceType(),
-                membershipPayload.getReferenceId(),
-                membershipPayload.getUserId(),
-                membershipPayload.getOrganizationId(),
-                e
-            );
-            return Single.just(new MembershipReply(command.getId(), CommandStatus.ERROR));
+            String errorDetails =
+                "Error occurred when trying to assign role [%s] on %s [%s] for cockpit user [%s] and organization [%s].".formatted(
+                        membershipPayload.role(),
+                        membershipPayload.referenceType(),
+                        membershipPayload.referenceId(),
+                        membershipPayload.userId(),
+                        membershipPayload.organizationId()
+                    );
+            log.error(errorDetails, e);
+            return Single.just(new MembershipReply(command.getId(), errorDetails));
         }
     }
 
@@ -147,7 +141,7 @@ public class MembershipCommandHandler implements CommandHandler<MembershipComman
 
         final Optional<RoleEntity> role = roleService.findByScopeAndName(roleScope, mappedRoleName, organizationId);
 
-        if (!role.isPresent()) {
+        if (role.isEmpty()) {
             throw new RoleNotFoundException(roleScope, mappedRoleName);
         }
 

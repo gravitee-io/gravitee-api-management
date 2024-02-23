@@ -16,13 +16,15 @@
 package io.gravitee.rest.api.service.cockpit.command.handler;
 
 import static org.mockito.ArgumentMatchers.anyMap;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import io.gravitee.cockpit.api.command.Command;
-import io.gravitee.cockpit.api.command.CommandStatus;
-import io.gravitee.cockpit.api.command.installation.InstallationCommand;
-import io.gravitee.cockpit.api.command.installation.InstallationPayload;
-import io.gravitee.cockpit.api.command.installation.InstallationReply;
+import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
+import io.gravitee.cockpit.api.command.v1.installation.InstallationCommand;
+import io.gravitee.cockpit.api.command.v1.installation.InstallationCommandPayload;
+import io.gravitee.cockpit.api.command.v1.installation.InstallationReply;
+import io.gravitee.exchange.api.command.CommandStatus;
 import io.gravitee.rest.api.model.InstallationEntity;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -57,8 +59,8 @@ public class InstallationCommandHandlerTest extends TestCase {
     }
 
     @Test
-    public void handleType() {
-        assertEquals(Command.Type.INSTALLATION_COMMAND, cut.handleType());
+    public void supportType() {
+        assertEquals(CockpitCommandType.INSTALLATION.name(), cut.supportType());
     }
 
     @Test
@@ -67,10 +69,12 @@ public class InstallationCommandHandlerTest extends TestCase {
         installation.setId(INSTALLATION_ID);
         installation.getAdditionalInformation().put(CUSTOM_KEY, CUSTOM_VALUE);
 
-        InstallationPayload installationPayload = new InstallationPayload();
+        InstallationCommandPayload installationPayload = InstallationCommandPayload
+            .builder()
+            .id(INSTALLATION_ID)
+            .status("ACCEPTED")
+            .build();
         InstallationCommand command = new InstallationCommand(installationPayload);
-        installationPayload.setId(INSTALLATION_ID);
-        installationPayload.setStatus("ACCEPTED");
 
         when(installationService.getOrInitialize()).thenReturn(installation);
 
@@ -91,10 +95,12 @@ public class InstallationCommandHandlerTest extends TestCase {
         installation.setId(INSTALLATION_ID);
         installation.getAdditionalInformation().put(CUSTOM_KEY, CUSTOM_VALUE);
 
-        InstallationPayload installationPayload = new InstallationPayload();
+        InstallationCommandPayload installationPayload = InstallationCommandPayload
+            .builder()
+            .id(INSTALLATION_ID)
+            .status("ACCEPTED")
+            .build();
         InstallationCommand command = new InstallationCommand(installationPayload);
-        installationPayload.setId(INSTALLATION_ID);
-        installationPayload.setStatus("ACCEPTED");
 
         when(installationService.getOrInitialize()).thenReturn(installation);
         when(installationService.setAdditionalInformation(anyMap())).thenThrow(new TechnicalManagementException());

@@ -16,13 +16,12 @@
 package io.gravitee.rest.api.service.cockpit.command.handler;
 
 import io.gravitee.apim.core.access_point.crud_service.AccessPointCrudService;
-import io.gravitee.cockpit.api.command.Command;
-import io.gravitee.cockpit.api.command.CommandHandler;
-import io.gravitee.cockpit.api.command.CommandStatus;
-import io.gravitee.cockpit.api.command.environment.EnvironmentCommand;
-import io.gravitee.cockpit.api.command.environment.EnvironmentPayload;
-import io.gravitee.cockpit.api.command.environment.EnvironmentReply;
-import io.gravitee.repository.management.model.Environment;
+import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
+import io.gravitee.cockpit.api.command.v1.environment.EnvironmentCommand;
+import io.gravitee.cockpit.api.command.v1.environment.EnvironmentCommandPayload;
+import io.gravitee.cockpit.api.command.v1.environment.EnvironmentReply;
+import io.gravitee.exchange.api.command.CommandHandler;
+import io.gravitee.exchange.api.command.CommandStatus;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.UpdateEnvironmentEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
@@ -47,33 +46,33 @@ public class EnvironmentCommandHandler implements CommandHandler<EnvironmentComm
     private final AccessPointCrudService accessPointService;
 
     @Override
-    public Command.Type handleType() {
-        return Command.Type.ENVIRONMENT_COMMAND;
+    public String supportType() {
+        return CockpitCommandType.ENVIRONMENT.name();
     }
 
     @Override
     public Single<EnvironmentReply> handle(EnvironmentCommand command) {
-        EnvironmentPayload environmentPayload = command.getPayload();
+        EnvironmentCommandPayload environmentPayload = command.getPayload();
 
         try {
             EnvironmentEntity existingEnvironment = this.getEnvironment(environmentPayload);
 
             UpdateEnvironmentEntity newEnvironment = new UpdateEnvironmentEntity();
-            newEnvironment.setCockpitId(environmentPayload.getCockpitId());
-            newEnvironment.setHrids(environmentPayload.getHrids());
-            newEnvironment.setName(environmentPayload.getName());
-            newEnvironment.setDescription(environmentPayload.getDescription());
+            newEnvironment.setCockpitId(environmentPayload.cockpitId());
+            newEnvironment.setHrids(environmentPayload.hrids());
+            newEnvironment.setName(environmentPayload.name());
+            newEnvironment.setDescription(environmentPayload.description());
 
             final EnvironmentEntity environment = environmentService.createOrUpdate(
-                existingEnvironment != null ? existingEnvironment.getOrganizationId() : environmentPayload.getOrganizationId(),
-                existingEnvironment != null ? existingEnvironment.getId() : environmentPayload.getId(),
+                existingEnvironment != null ? existingEnvironment.getOrganizationId() : environmentPayload.organizationId(),
+                existingEnvironment != null ? existingEnvironment.getId() : environmentPayload.id(),
                 newEnvironment
             );
             List<io.gravitee.apim.core.access_point.model.AccessPoint> accessPointsToCreate;
-            if (environmentPayload.getAccessPoints() != null) {
+            if (environmentPayload.accessPoints() != null) {
                 accessPointsToCreate =
                     environmentPayload
-                        .getAccessPoints()
+                        .accessPoints()
                         .stream()
                         .map(cockpitAccessPoint ->
                             io.gravitee.apim.core.access_point.model.AccessPoint
@@ -100,21 +99,18 @@ public class EnvironmentCommandHandler implements CommandHandler<EnvironmentComm
                 accessPointsToCreate
             );
             log.info("Environment [{}] handled with id [{}].", environment.getName(), environment.getId());
-            return Single.just(new EnvironmentReply(command.getId(), CommandStatus.SUCCEEDED));
+            return Single.just(new EnvironmentReply(command.getId()));
         } catch (Exception e) {
-            log.error(
-                "Error occurred when handling environment [{}] with id [{}].",
-                environmentPayload.getName(),
-                environmentPayload.getId(),
-                e
-            );
-            return Single.just(new EnvironmentReply(command.getId(), CommandStatus.ERROR));
+            String errorDetails =
+                "Error occurred when handling environment [%s] with id [%s]".formatted(environmentPayload.name(), environmentPayload.id());
+            log.error(errorDetails, e);
+            return Single.just(new EnvironmentReply(command.getId(), errorDetails));
         }
     }
 
-    private EnvironmentEntity getEnvironment(EnvironmentPayload environmentPayload) {
+    private EnvironmentEntity getEnvironment(EnvironmentCommandPayload environmentPayload) {
         try {
-            return this.environmentService.findByCockpitId(environmentPayload.getCockpitId());
+            return this.environmentService.findByCockpitId(environmentPayload.cockpitId());
         } catch (EnvironmentNotFoundException ex) {
             return null;
         }

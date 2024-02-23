@@ -15,11 +15,10 @@
  */
 package io.gravitee.rest.api.service.cockpit.command.handler;
 
-import io.gravitee.cockpit.api.command.Command;
-import io.gravitee.cockpit.api.command.CommandHandler;
-import io.gravitee.cockpit.api.command.CommandStatus;
-import io.gravitee.cockpit.api.command.goodbye.GoodbyeCommand;
-import io.gravitee.cockpit.api.command.goodbye.GoodbyeReply;
+import io.gravitee.exchange.api.command.CommandHandler;
+import io.gravitee.exchange.api.command.goodbye.GoodByeCommand;
+import io.gravitee.exchange.api.command.goodbye.GoodByeReply;
+import io.gravitee.exchange.api.command.goodbye.GoodByeReplyPayload;
 import io.gravitee.rest.api.model.promotion.PromotionEntityStatus;
 import io.gravitee.rest.api.model.promotion.PromotionQuery;
 import io.gravitee.rest.api.service.InstallationService;
@@ -27,8 +26,8 @@ import io.gravitee.rest.api.service.promotion.PromotionService;
 import io.reactivex.rxjava3.core.Single;
 import java.util.List;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
@@ -36,26 +35,21 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-public class GoodbyeCommandHandler implements CommandHandler<GoodbyeCommand, GoodbyeReply> {
+@RequiredArgsConstructor
+@Slf4j
+public class GoodByeCommandHandler implements CommandHandler<GoodByeCommand, GoodByeReply> {
 
     static final String DELETED_STATUS = "DELETED";
-    private final Logger logger = LoggerFactory.getLogger(GoodbyeCommandHandler.class);
-
     private final InstallationService installationService;
     private final PromotionService promotionService;
 
-    public GoodbyeCommandHandler(final InstallationService installationService, PromotionService promotionService) {
-        this.installationService = installationService;
-        this.promotionService = promotionService;
+    @Override
+    public String supportType() {
+        return GoodByeCommand.COMMAND_TYPE;
     }
 
     @Override
-    public Command.Type handleType() {
-        return Command.Type.GOODBYE_COMMAND;
-    }
-
-    @Override
-    public Single<GoodbyeReply> handle(GoodbyeCommand command) {
+    public Single<GoodByeReply> handle(GoodByeCommand command) {
         final Map<String, String> additionalInformation = this.installationService.getOrInitialize().getAdditionalInformation();
         additionalInformation.put(InstallationService.COCKPIT_INSTALLATION_STATUS, DELETED_STATUS);
 
@@ -63,11 +57,12 @@ public class GoodbyeCommandHandler implements CommandHandler<GoodbyeCommand, Goo
 
         try {
             this.installationService.setAdditionalInformation(additionalInformation);
-            logger.info("Installation status is [{}].", DELETED_STATUS);
-            return Single.just(new GoodbyeReply(command.getId(), CommandStatus.SUCCEEDED));
+            log.info("Installation status is [{}].", DELETED_STATUS);
+            return Single.just(new GoodByeReply(command.getId(), new GoodByeReplyPayload()));
         } catch (Exception ex) {
-            logger.info("Error occurred when deleting installation.", ex);
-            return Single.just(new GoodbyeReply(command.getId(), CommandStatus.ERROR));
+            String errorDetails = "Error occurred when deleting installation.";
+            log.info(errorDetails, ex);
+            return Single.just(new GoodByeReply(command.getId(), errorDetails));
         }
     }
 

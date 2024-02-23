@@ -17,17 +17,18 @@ package io.gravitee.rest.api.service.cockpit.command.bridge.operation;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.cockpit.api.command.CommandStatus;
-import io.gravitee.cockpit.api.command.bridge.BridgeCommand;
-import io.gravitee.cockpit.api.command.bridge.BridgeReply;
-import io.gravitee.cockpit.api.command.bridge.BridgeSimpleReply;
+import io.gravitee.cockpit.api.command.v1.bridge.BridgeCommand;
+import io.gravitee.cockpit.api.command.v1.bridge.BridgeCommandPayload;
+import io.gravitee.cockpit.api.command.v1.bridge.BridgeReply;
+import io.gravitee.cockpit.api.command.v1.bridge.BridgeReplyPayload;
 import io.gravitee.rest.api.model.promotion.PromotionEntity;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.promotion.PromotionService;
 import io.reactivex.rxjava3.core.Single;
+import java.util.List;
 import java.util.Objects;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
@@ -35,23 +36,13 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
+@Slf4j
+@RequiredArgsConstructor
 public class ProcessPromotionOperationHandler implements BridgeOperationHandler {
-
-    private final Logger logger = LoggerFactory.getLogger(ProcessPromotionOperationHandler.class);
 
     private final PromotionService promotionService;
     private final InstallationService installationService;
     private final ObjectMapper objectMapper;
-
-    public ProcessPromotionOperationHandler(
-        PromotionService promotionService,
-        InstallationService installationService,
-        ObjectMapper objectMapper
-    ) {
-        this.promotionService = promotionService;
-        this.installationService = installationService;
-        this.objectMapper = objectMapper;
-    }
 
     @Override
     public boolean canHandle(String bridgeOperation) {
@@ -60,36 +51,41 @@ public class ProcessPromotionOperationHandler implements BridgeOperationHandler 
 
     @Override
     public Single<BridgeReply> handle(BridgeCommand bridgeCommand) {
-        BridgeSimpleReply reply = new BridgeSimpleReply();
-        reply.setCommandId(bridgeCommand.getId());
-
         final PromotionEntity promotionEntity;
 
         try {
-            promotionEntity = objectMapper.readValue(bridgeCommand.getPayload().getContent(), PromotionEntity.class);
+            promotionEntity = objectMapper.readValue(bridgeCommand.getPayload().content(), PromotionEntity.class);
         } catch (JsonProcessingException e) {
-            logger.warn("Problem while deserializing promotion for environment {}", bridgeCommand.getEnvironmentId());
-            reply.setCommandStatus(CommandStatus.ERROR);
-            reply.setMessage("Problem while deserializing promotion for environment [" + bridgeCommand.getEnvironmentId() + "]");
-            return Single.just(reply);
+            String errorDetails =
+                "Problem while deserializing promotion for environment [%s]".formatted(bridgeCommand.getPayload().environmentId());
+            log.warn(errorDetails, e);
+            return Single.just(new BridgeReply(bridgeCommand.getId(), errorDetails));
         }
-
-        PromotionEntity promotion = promotionService.createOrUpdate(promotionEntity);
-
-        reply.setCommandStatus(CommandStatus.SUCCEEDED);
-        reply.setOrganizationId(bridgeCommand.getOrganizationId());
-        reply.setEnvironmentId(bridgeCommand.getTarget().getEnvironmentId());
-        reply.setInstallationId(installationService.get().getId());
 
         try {
-            reply.setPayload(objectMapper.writeValueAsString(promotion));
+            PromotionEntity promotion = promotionService.createOrUpdate(promotionEntity);
+            BridgeCommandPayload commandPayload = bridgeCommand.getPayload();
+            return Single.just(
+                new BridgeReply(
+                    bridgeCommand.getId(),
+                    new BridgeReplyPayload(
+                        List.of(
+                            BridgeReplyPayload.BridgeReplyContent
+                                .builder()
+                                .environmentId(commandPayload.target().environmentId())
+                                .organizationId(commandPayload.organizationId())
+                                .installationId(installationService.get().getId())
+                                .content(objectMapper.writeValueAsString(promotion))
+                                .build()
+                        )
+                    )
+                )
+            );
         } catch (JsonProcessingException e) {
-            logger.warn("Problem while serializing promotion for environment {}", promotion.getId());
-            reply.setCommandStatus(CommandStatus.ERROR);
-            reply.setMessage("Problem while serializing promotion for environment [" + bridgeCommand.getEnvironmentId() + "]");
-            return Single.just(reply);
+            String errorDetails =
+                "Problem while serializing promotion for environment [%s]".formatted(bridgeCommand.getPayload().environmentId());
+            log.warn(errorDetails);
+            return Single.just(new BridgeReply(bridgeCommand.getId(), errorDetails));
         }
-
-        return Single.just(reply);
     }
 }

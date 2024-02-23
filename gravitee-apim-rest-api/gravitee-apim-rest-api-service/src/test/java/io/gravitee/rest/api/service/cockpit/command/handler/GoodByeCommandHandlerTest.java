@@ -15,20 +15,19 @@
  */
 package io.gravitee.rest.api.service.cockpit.command.handler;
 
-import static io.gravitee.rest.api.service.cockpit.command.handler.GoodbyeCommandHandler.DELETED_STATUS;
+import static io.gravitee.rest.api.service.cockpit.command.handler.GoodByeCommandHandler.DELETED_STATUS;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
-import io.gravitee.cockpit.api.command.Command;
-import io.gravitee.cockpit.api.command.CommandStatus;
-import io.gravitee.cockpit.api.command.goodbye.GoodbyeCommand;
-import io.gravitee.cockpit.api.command.goodbye.GoodbyeReply;
+import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.exchange.api.command.CommandStatus;
+import io.gravitee.exchange.api.command.goodbye.GoodByeCommand;
+import io.gravitee.exchange.api.command.goodbye.GoodByeReply;
 import io.gravitee.rest.api.model.InstallationEntity;
-import io.gravitee.rest.api.model.NewApplicationEntity;
 import io.gravitee.rest.api.model.promotion.PromotionEntity;
 import io.gravitee.rest.api.model.promotion.PromotionEntityAuthor;
 import io.gravitee.rest.api.model.promotion.PromotionEntityStatus;
@@ -50,7 +49,7 @@ import org.mockito.junit.MockitoJUnitRunner;
  * @author GraviteeSource Team
  */
 @RunWith(MockitoJUnitRunner.class)
-public class GoodbyeCommandHandlerTest {
+public class GoodByeCommandHandlerTest {
 
     private static final String CUSTOM_VALUE = "customValue";
     private static final String CUSTOM_KEY = "customKey";
@@ -62,16 +61,16 @@ public class GoodbyeCommandHandlerTest {
     @Mock
     private PromotionService promotionService;
 
-    private GoodbyeCommandHandler cut;
+    private GoodByeCommandHandler cut;
 
     @Before
     public void before() {
-        cut = new GoodbyeCommandHandler(installationService, promotionService);
+        cut = new GoodByeCommandHandler(installationService, promotionService);
     }
 
     @Test
-    public void handleType() {
-        assertEquals(Command.Type.GOODBYE_COMMAND, cut.handleType());
+    public void supportType() {
+        assertEquals(GoodByeCommand.COMMAND_TYPE, cut.supportType());
     }
 
     @Test
@@ -80,12 +79,12 @@ public class GoodbyeCommandHandlerTest {
         installation.setId(INSTALLATION_ID);
         installation.getAdditionalInformation().put(CUSTOM_KEY, CUSTOM_VALUE);
 
-        GoodbyeCommand command = new GoodbyeCommand();
+        GoodByeCommand command = new GoodByeCommand();
 
         when(installationService.getOrInitialize()).thenReturn(installation);
         when(promotionService.search(any(), any(), any())).thenReturn(new Page<>(emptyList(), 0, 0, 0));
 
-        TestObserver<GoodbyeReply> obs = cut.handle(command).test();
+        TestObserver<GoodByeReply> obs = cut.handle(command).test();
 
         obs.await();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
@@ -102,13 +101,13 @@ public class GoodbyeCommandHandlerTest {
         installation.setId(INSTALLATION_ID);
         installation.getAdditionalInformation().put(CUSTOM_KEY, CUSTOM_VALUE);
 
-        GoodbyeCommand command = new GoodbyeCommand();
+        GoodByeCommand command = new GoodByeCommand();
 
         when(installationService.getOrInitialize()).thenReturn(installation);
         when(installationService.setAdditionalInformation(anyMap())).thenThrow(new TechnicalManagementException());
         when(promotionService.search(any(), any(), any())).thenReturn(new Page<>(emptyList(), 0, 0, 0));
 
-        TestObserver<GoodbyeReply> obs = cut.handle(command).test();
+        TestObserver<GoodByeReply> obs = cut.handle(command).test();
 
         obs.await();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.ERROR));
@@ -120,7 +119,7 @@ public class GoodbyeCommandHandlerTest {
         installation.setId(INSTALLATION_ID);
         installation.getAdditionalInformation().put(CUSTOM_KEY, CUSTOM_VALUE);
 
-        GoodbyeCommand command = new GoodbyeCommand();
+        GoodByeCommand command = new GoodByeCommand();
 
         when(installationService.getOrInitialize()).thenReturn(installation);
 
@@ -128,7 +127,7 @@ public class GoodbyeCommandHandlerTest {
         PromotionEntity promotionEntity2 = getAPromotionEntity("promotion#2");
         when(promotionService.search(any(), any(), any())).thenReturn(new Page<>(List.of(promotionEntity1, promotionEntity2), 0, 0, 0));
 
-        TestObserver<GoodbyeReply> obs = cut.handle(command).test();
+        TestObserver<GoodByeReply> obs = cut.handle(command).test();
 
         obs.await();
         obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));

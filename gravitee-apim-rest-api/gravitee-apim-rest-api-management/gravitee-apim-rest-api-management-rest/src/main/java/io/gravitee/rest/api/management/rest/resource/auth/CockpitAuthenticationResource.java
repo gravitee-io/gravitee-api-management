@@ -43,11 +43,15 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.security.Key;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Optional;
 import java.util.Set;
@@ -170,21 +174,37 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
         }
     }
 
-    private Key getPublicKey() throws Exception {
+    private Key getPublicKey() throws CertificateException, KeyStoreException, IOException, NoSuchAlgorithmException {
         final KeyStore trustStore = loadTrustStore();
-        final Certificate cert = trustStore.getCertificate(environment.getProperty("cockpit.keystore.key.alias", "cockpit-client"));
+        final Certificate cert = trustStore.getCertificate(
+            getProperty("cockpit.connector.ws.ssl.keystore.key.alias", "cockpit.keystore.key.alias", "cockpit-client")
+        );
 
         return cert.getPublicKey();
     }
 
-    private KeyStore loadTrustStore() throws Exception {
-        final KeyStore keystore = KeyStore.getInstance(environment.getProperty("cockpit.keystore.type"));
+    private KeyStore loadTrustStore() throws KeyStoreException, IOException, CertificateException, NoSuchAlgorithmException {
+        final KeyStore keystore = KeyStore.getInstance(
+            getProperty("cockpit.connector.ws.ssl.keystore.type", "cockpit.keystore.type", null)
+        );
 
-        try (InputStream is = new File(environment.getProperty("cockpit.keystore.path")).toURI().toURL().openStream()) {
-            final String password = environment.getProperty("cockpit.keystore.password");
+        try (
+            InputStream is = new File(getProperty("cockpit.connector.ws.ssl.keystore.path", "cockpit.keystore.path", null))
+                .toURI()
+                .toURL()
+                .openStream()
+        ) {
+            final String password = getProperty("cockpit.connector.ws.ssl.keystore.password", "cockpit.keystore.password", null);
             keystore.load(is, null == password ? null : password.toCharArray());
         }
-
         return keystore;
+    }
+
+    private String getProperty(final String property, final String fallback, final String defaultValue) {
+        String value = environment.getProperty(property);
+        if (value == null) {
+            value = environment.getProperty(fallback);
+        }
+        return value != null ? value : defaultValue;
     }
 }

@@ -22,10 +22,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import io.gravitee.cockpit.api.command.CommandStatus;
-import io.gravitee.cockpit.api.command.v4api.V4ApiCommand;
-import io.gravitee.cockpit.api.command.v4api.V4ApiPayload;
-import io.gravitee.cockpit.api.command.v4api.V4ApiReply;
+import io.gravitee.cockpit.api.command.v1.v4api.V4ApiCommand;
+import io.gravitee.cockpit.api.command.v1.v4api.V4ApiCommandPayload;
+import io.gravitee.cockpit.api.command.v1.v4api.V4ApiReply;
+import io.gravitee.exchange.api.command.CommandStatus;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.service.UserService;
@@ -60,21 +60,21 @@ public class V4ApiCommandHandlerTest {
 
     @BeforeEach
     public void setUp() throws Exception {
-        command = new V4ApiCommand();
-        command.setId("test-id");
-        final V4ApiPayload payload = new V4ApiPayload();
-        payload.setUserId("123");
-        payload.setApiDefinition("any-definition");
-        payload.setEnvironmentId("environment-id");
-        payload.setOrganizationId("organization-id");
-        command.setPayload(payload);
+        final V4ApiCommandPayload payload = V4ApiCommandPayload
+            .builder()
+            .userId("123")
+            .apiDefinition("any-definition")
+            .environmentId("environment-id")
+            .organizationId("organization-id")
+            .build();
+        command = new V4ApiCommand(payload);
 
         apiEntity = new ApiEntity();
         apiEntity.setId("test-id");
         apiEntity.setName("test-name");
         apiEntity.setApiVersion("V4");
 
-        when(userService.findBySource(eq("organization-id"), eq("cockpit"), eq(payload.getUserId()), eq(true))).thenReturn(userEntity);
+        when(userService.findBySource(eq("organization-id"), eq("cockpit"), eq(payload.userId()), eq(true))).thenReturn(userEntity);
         when(userEntity.getId()).thenReturn("user-id");
 
         commandHandler = new V4ApiCommandHandler(v4ApiServiceCockpit, userService);
@@ -90,9 +90,9 @@ public class V4ApiCommandHandlerTest {
         observer.assertValue(reply ->
             reply.getCommandId().equals(command.getId()) &&
             reply.getCommandStatus().equals(CommandStatus.SUCCEEDED) &&
-            reply.getApiId().equals("test-id") &&
-            reply.getApiName().equals("test-name") &&
-            reply.getApiVersion().equals("V4")
+            reply.getPayload().apiId().equals("test-id") &&
+            reply.getPayload().apiName().equals("test-name") &&
+            reply.getPayload().apiVersion().equals("V4")
         );
         verify(v4ApiServiceCockpit, times(1)).createPublishApi(anyString(), anyString(), anyString(), anyString());
     }
@@ -105,7 +105,6 @@ public class V4ApiCommandHandlerTest {
         TestObserver<V4ApiReply> observer = commandHandler.handle(command).test();
 
         observer.await();
-        observer.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.FAILED)
-        );
+        observer.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.ERROR));
     }
 }
