@@ -24,12 +24,12 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.cockpit.api.command.CommandStatus;
-import io.gravitee.cockpit.api.command.bridge.BridgeCommand;
-import io.gravitee.cockpit.api.command.bridge.BridgePayload;
-import io.gravitee.cockpit.api.command.bridge.BridgeReply;
-import io.gravitee.cockpit.api.command.bridge.BridgeSimpleReply;
-import io.gravitee.cockpit.api.command.bridge.BridgeTarget;
+import io.gravitee.cockpit.api.command.legacy.bridge.BridgePayload;
+import io.gravitee.cockpit.api.command.v1.bridge.BridgeCommand;
+import io.gravitee.cockpit.api.command.v1.bridge.BridgeCommandPayload;
+import io.gravitee.cockpit.api.command.v1.bridge.BridgeReply;
+import io.gravitee.cockpit.api.command.v1.bridge.BridgeReplyPayload;
+import io.gravitee.exchange.api.command.CommandStatus;
 import io.gravitee.rest.api.model.InstallationEntity;
 import io.gravitee.rest.api.model.promotion.PromotionEntity;
 import io.gravitee.rest.api.model.promotion.PromotionEntityStatus;
@@ -80,20 +80,18 @@ public class PromoteApiOperationHandlerTest {
 
     @Test
     public void shouldHandlePromotionRequest() throws JsonProcessingException, InterruptedException {
-        BridgeCommand command = new BridgeCommand();
-        command.setOperation(BridgeOperation.PROMOTE_API.name());
-        command.setId(COMMAND_ID);
-        command.setInstallationId(INSTALLATION_ID);
-        command.setOrganizationId(ORGANIZATION_ID);
-        command.setEnvironmentId(ENVIRONMENT_ID);
-        command.setPayload(new BridgePayload());
-        final BridgeTarget bridgeTarget = new BridgeTarget();
-        bridgeTarget.setEnvironmentId("target");
-        command.setTarget(bridgeTarget);
-
+        BridgeCommandPayload bridgeCommandPayload = BridgeCommandPayload
+            .builder()
+            .operation(BridgeOperation.PROMOTE_API.name())
+            .installationId(INSTALLATION_ID)
+            .organizationId(ORGANIZATION_ID)
+            .environmentId(ENVIRONMENT_ID)
+            .target(new BridgeCommandPayload.BridgeTarget(null, "target"))
+            .build();
+        BridgeCommand command = new BridgeCommand(bridgeCommandPayload);
         ArgumentCaptor<PromotionEntity> argument = ArgumentCaptor.forClass(PromotionEntity.class);
 
-        when(objectMapper.readValue(command.getPayload().getContent(), PromotionEntity.class)).thenReturn(getAPromotionEntity());
+        when(objectMapper.readValue(command.getPayload().content(), PromotionEntity.class)).thenReturn(getAPromotionEntity());
         InstallationEntity installationEntity = new InstallationEntity();
         installationEntity.setId(INSTALLATION_ID);
         when(installationService.get()).thenReturn(installationEntity);
@@ -103,13 +101,13 @@ public class PromoteApiOperationHandlerTest {
 
         obs.await();
         obs.assertValue(reply -> {
-            BridgeSimpleReply simpleReply = (BridgeSimpleReply) reply;
+            BridgeReplyPayload.BridgeReplyContent bridgeReplyContent = reply.getPayload().contents().get(0);
             return (
-                simpleReply.getCommandStatus().equals(CommandStatus.SUCCEEDED) &&
-                simpleReply.getOrganizationId().equals(ORGANIZATION_ID) &&
-                simpleReply.getEnvironmentId().equals("target") &&
-                simpleReply.getInstallationId().equals(INSTALLATION_ID) &&
-                simpleReply.getCommandId().equals(COMMAND_ID)
+                reply.getCommandStatus().equals(CommandStatus.SUCCEEDED) &&
+                bridgeReplyContent.organizationId().equals(ORGANIZATION_ID) &&
+                bridgeReplyContent.environmentId().equals("target") &&
+                bridgeReplyContent.installationId().equals(INSTALLATION_ID) &&
+                reply.getCommandId().equals(command.getId())
             );
         });
 
@@ -119,18 +117,17 @@ public class PromoteApiOperationHandlerTest {
 
     @Test
     public void shouldHandlePromotionRequestIfCannotReadPromotionEntity() throws JsonProcessingException, InterruptedException {
-        BridgeCommand command = new BridgeCommand();
-        command.setOperation(BridgeOperation.PROMOTE_API.name());
-        command.setId(COMMAND_ID);
-        command.setInstallationId(INSTALLATION_ID);
-        command.setOrganizationId(ORGANIZATION_ID);
-        command.setEnvironmentId(ENVIRONMENT_ID);
-        command.setPayload(new BridgePayload());
-        final BridgeTarget bridgeTarget = new BridgeTarget();
-        bridgeTarget.setEnvironmentId("target");
-        command.setTarget(bridgeTarget);
+        BridgeCommandPayload bridgeCommandPayload = BridgeCommandPayload
+            .builder()
+            .operation(BridgeOperation.PROMOTE_API.name())
+            .installationId(INSTALLATION_ID)
+            .organizationId(ORGANIZATION_ID)
+            .environmentId(ENVIRONMENT_ID)
+            .target(new BridgeCommandPayload.BridgeTarget(null, "target"))
+            .build();
+        BridgeCommand command = new BridgeCommand(bridgeCommandPayload);
 
-        when(objectMapper.readValue(command.getPayload().getContent(), PromotionEntity.class)).thenThrow(JsonMappingException.class);
+        when(objectMapper.readValue(command.getPayload().content(), PromotionEntity.class)).thenThrow(JsonMappingException.class);
 
         // When
         TestObserver<BridgeReply> obs = cut.handle(command).test();
@@ -140,24 +137,23 @@ public class PromoteApiOperationHandlerTest {
         obs.assertValue(reply ->
             reply.getCommandId().equals(command.getId()) &&
             reply.getCommandStatus().equals(CommandStatus.ERROR) &&
-            reply.getMessage().equals("Problem while deserializing promotion request for environment [" + ENVIRONMENT_ID + "]")
+            reply.getErrorDetails().equals("Problem while deserializing promotion request for environment [" + ENVIRONMENT_ID + "]")
         );
     }
 
     @Test
     public void shouldHandlePromotionRequestIfCannotWritePayload() throws JsonProcessingException, InterruptedException {
-        BridgeCommand command = new BridgeCommand();
-        command.setOperation(BridgeOperation.PROMOTE_API.name());
-        command.setId(COMMAND_ID);
-        command.setInstallationId(INSTALLATION_ID);
-        command.setOrganizationId(ORGANIZATION_ID);
-        command.setEnvironmentId(ENVIRONMENT_ID);
-        command.setPayload(new BridgePayload());
-        final BridgeTarget bridgeTarget = new BridgeTarget();
-        bridgeTarget.setEnvironmentId("target");
-        command.setTarget(bridgeTarget);
+        BridgeCommandPayload bridgeCommandPayload = BridgeCommandPayload
+            .builder()
+            .operation(BridgeOperation.PROMOTE_API.name())
+            .installationId(INSTALLATION_ID)
+            .organizationId(ORGANIZATION_ID)
+            .environmentId(ENVIRONMENT_ID)
+            .target(new BridgeCommandPayload.BridgeTarget(null, "target"))
+            .build();
+        BridgeCommand command = new BridgeCommand(bridgeCommandPayload);
 
-        when(objectMapper.readValue(command.getPayload().getContent(), PromotionEntity.class)).thenReturn(getAPromotionEntity());
+        when(objectMapper.readValue(command.getPayload().content(), PromotionEntity.class)).thenReturn(getAPromotionEntity());
         InstallationEntity installationEntity = new InstallationEntity();
         installationEntity.setId(INSTALLATION_ID);
         when(installationService.get()).thenReturn(installationEntity);
@@ -172,22 +168,21 @@ public class PromoteApiOperationHandlerTest {
         obs.assertValue(reply ->
             reply.getCommandId().equals(command.getId()) &&
             reply.getCommandStatus().equals(CommandStatus.ERROR) &&
-            reply.getMessage().equals("Problem while serializing promotion request for environment [" + ENVIRONMENT_ID + "]")
+            reply.getErrorDetails().equals("Problem while serializing promotion request for environment [" + ENVIRONMENT_ID + "]")
         );
     }
 
     @Test
     public void shouldReturnErrorCommand() throws JsonProcessingException, InterruptedException {
         when(promotionService.createOrUpdate(any())).thenThrow(new TechnicalManagementException("error"));
-
-        BridgeCommand command = new BridgeCommand();
-        command.setId(COMMAND_ID);
-        command.setPayload(new BridgePayload());
-        command.setInstallationId(INSTALLATION_ID);
-        command.setOrganizationId(ORGANIZATION_ID);
-        command.setEnvironmentId(ENVIRONMENT_ID);
-
-        when(objectMapper.readValue(command.getPayload().getContent(), PromotionEntity.class)).thenReturn(getAPromotionEntity());
+        BridgeCommandPayload bridgeCommandPayload = BridgeCommandPayload
+            .builder()
+            .installationId(INSTALLATION_ID)
+            .organizationId(ORGANIZATION_ID)
+            .environmentId(ENVIRONMENT_ID)
+            .build();
+        BridgeCommand command = new BridgeCommand(bridgeCommandPayload);
+        when(objectMapper.readValue(command.getPayload().content(), PromotionEntity.class)).thenReturn(getAPromotionEntity());
 
         TestObserver<BridgeReply> obs = cut.handle(command).test();
 

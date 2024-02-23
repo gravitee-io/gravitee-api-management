@@ -15,9 +15,8 @@
  */
 package io.gravitee.rest.api.service.cockpit.command.bridge;
 
-import io.gravitee.cockpit.api.command.bridge.BridgeCommand;
-import io.gravitee.cockpit.api.command.bridge.BridgePayload;
-import io.gravitee.cockpit.api.command.bridge.BridgeTarget;
+import io.gravitee.cockpit.api.command.v1.bridge.BridgeCommand;
+import io.gravitee.cockpit.api.command.v1.bridge.BridgeCommandPayload;
 import io.gravitee.rest.api.service.InstallationService;
 import io.gravitee.rest.api.service.cockpit.command.bridge.operation.BridgeOperation;
 import java.util.Collections;
@@ -35,15 +34,20 @@ public class BridgeCommandFactory {
     }
 
     public BridgeCommand createListEnvironmentCommand(String organizationId, String environmentId) {
-        BridgeCommand listEnvironmentCommand = initBridgeCommand(organizationId, environmentId);
-
-        BridgeTarget target = new BridgeTarget();
-        target.setScopes(Collections.singletonList(BRIDGE_SCOPE_APIM));
-        listEnvironmentCommand.setTarget(target);
-
-        listEnvironmentCommand.setOperation(BridgeOperation.LIST_ENVIRONMENT.name());
-
-        return listEnvironmentCommand;
+        BridgeCommandPayload.BridgeTarget target = new BridgeCommandPayload.BridgeTarget(
+            Collections.singletonList(BRIDGE_SCOPE_APIM),
+            null
+        );
+        return new BridgeCommand(
+            BridgeCommandPayload
+                .builder()
+                .environmentId(environmentId)
+                .organizationId(organizationId)
+                .installationId(installationService.get().getId())
+                .operation(BridgeOperation.LIST_ENVIRONMENT.name())
+                .target(target)
+                .build()
+        );
     }
 
     public BridgeCommand createPromoteApiCommand(
@@ -52,19 +56,21 @@ public class BridgeCommandFactory {
         String targetEnvironmentId,
         String serializedPromotion
     ) {
-        BridgeCommand createPromoteApiCommand = initBridgeCommand(organizationId, environmentId);
-        createPromoteApiCommand.setOperation(BridgeOperation.PROMOTE_API.name());
-
-        BridgePayload payload = new BridgePayload();
-        payload.setContent(serializedPromotion);
-        createPromoteApiCommand.setPayload(payload);
-
-        BridgeTarget target = new BridgeTarget();
-        target.setScopes(Collections.singletonList(BRIDGE_SCOPE_APIM));
-        target.setEnvironmentId(targetEnvironmentId);
-        createPromoteApiCommand.setTarget(target);
-
-        return createPromoteApiCommand;
+        BridgeCommandPayload.BridgeTarget target = new BridgeCommandPayload.BridgeTarget(
+            Collections.singletonList(BRIDGE_SCOPE_APIM),
+            targetEnvironmentId
+        );
+        return new BridgeCommand(
+            BridgeCommandPayload
+                .builder()
+                .environmentId(environmentId)
+                .organizationId(organizationId)
+                .installationId(installationService.get().getId())
+                .operation(BridgeOperation.PROMOTE_API.name())
+                .target(target)
+                .content(serializedPromotion)
+                .build()
+        );
     }
 
     public BridgeCommand createProcessPromotionCommand(
@@ -73,26 +79,20 @@ public class BridgeCommandFactory {
         String sourceEnvCockpitId,
         String serializedPromotion
     ) {
-        BridgeCommand processPromotionCommand = initBridgeCommand(organizationId, environmentId);
-        processPromotionCommand.setOperation(BridgeOperation.PROCESS_API_PROMOTION.name());
-
-        BridgePayload payload = new BridgePayload();
-        payload.setContent(serializedPromotion);
-        processPromotionCommand.setPayload(payload);
-
-        BridgeTarget target = new BridgeTarget();
-        target.setScopes(Collections.singletonList(BRIDGE_SCOPE_APIM));
-        target.setEnvironmentId(sourceEnvCockpitId);
-        processPromotionCommand.setTarget(target);
-
-        return processPromotionCommand;
-    }
-
-    private BridgeCommand initBridgeCommand(String organizationId, String environmentId) {
-        BridgeCommand command = new BridgeCommand();
-        command.setEnvironmentId(environmentId);
-        command.setOrganizationId(organizationId);
-        command.setInstallationId(installationService.get().getId());
-        return command;
+        BridgeCommandPayload.BridgeTarget target = new BridgeCommandPayload.BridgeTarget(
+            Collections.singletonList(BRIDGE_SCOPE_APIM),
+            sourceEnvCockpitId
+        );
+        return new BridgeCommand(
+            BridgeCommandPayload
+                .builder()
+                .environmentId(environmentId)
+                .organizationId(organizationId)
+                .installationId(installationService.get().getId())
+                .operation(BridgeOperation.PROCESS_API_PROMOTION.name())
+                .target(target)
+                .content(serializedPromotion)
+                .build()
+        );
     }
 }

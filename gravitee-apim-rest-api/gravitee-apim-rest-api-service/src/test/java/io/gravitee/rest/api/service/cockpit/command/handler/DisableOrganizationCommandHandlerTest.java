@@ -22,10 +22,10 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.access_point.crud_service.AccessPointCrudService;
 import io.gravitee.apim.core.access_point.model.AccessPoint;
-import io.gravitee.cockpit.api.command.Command;
-import io.gravitee.cockpit.api.command.CommandStatus;
-import io.gravitee.cockpit.api.command.organization.DisableOrganizationCommand;
-import io.gravitee.cockpit.api.command.organization.DisableOrganizationPayload;
+import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
+import io.gravitee.cockpit.api.command.v1.organization.DisableOrganizationCommand;
+import io.gravitee.cockpit.api.command.v1.organization.DisableOrganizationCommandPayload;
+import io.gravitee.exchange.api.command.CommandStatus;
 import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType;
 import io.gravitee.rest.api.service.OrganizationService;
@@ -63,8 +63,8 @@ class DisableOrganizationCommandHandlerTest {
     }
 
     @Test
-    void handleType() {
-        assertEquals(Command.Type.DISABLE_ORGANIZATION_COMMAND, cut.handleType());
+    void supportType() {
+        assertEquals(CockpitCommandType.DISABLE_ORGANIZATION.name(), cut.supportType());
     }
 
     @Test
@@ -105,8 +105,6 @@ class DisableOrganizationCommandHandlerTest {
     }
 
     private DisableOrganizationCommand aDisableOrgCommand() {
-        var payload = new DisableOrganizationPayload();
-        payload.setCockpitId(ORG_COCKPIT_ID);
-        return new DisableOrganizationCommand(payload);
+        return new DisableOrganizationCommand(DisableOrganizationCommandPayload.builder().cockpitId(ORG_COCKPIT_ID).build());
     }
 }

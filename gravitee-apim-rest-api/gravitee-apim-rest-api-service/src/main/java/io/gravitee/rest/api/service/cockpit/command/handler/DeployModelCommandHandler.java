@@ -17,12 +17,11 @@ package io.gravitee.rest.api.service.cockpit.command.handler;
 
 import static io.gravitee.rest.api.service.common.SecurityContextHelper.authenticateAs;
 
-import io.gravitee.cockpit.api.command.Command;
-import io.gravitee.cockpit.api.command.CommandHandler;
-import io.gravitee.cockpit.api.command.CommandStatus;
-import io.gravitee.cockpit.api.command.designer.DeployModelCommand;
-import io.gravitee.cockpit.api.command.designer.DeployModelPayload;
-import io.gravitee.cockpit.api.command.designer.DeployModelReply;
+import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
+import io.gravitee.cockpit.api.command.v1.designer.DeployModelCommand;
+import io.gravitee.cockpit.api.command.v1.designer.DeployModelCommandPayload;
+import io.gravitee.cockpit.api.command.v1.designer.DeployModelReply;
+import io.gravitee.exchange.api.command.CommandHandler;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntityResult;
@@ -59,20 +58,20 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
     private final EnvironmentService environmentService;
 
     @Override
-    public Command.Type handleType() {
-        return Command.Type.DEPLOY_MODEL_COMMAND;
+    public String supportType() {
+        return CockpitCommandType.DEPLOY_MODEL.name();
     }
 
     @Override
     public Single<DeployModelReply> handle(DeployModelCommand command) {
-        DeployModelPayload payload = command.getPayload();
+        DeployModelCommandPayload payload = command.getPayload();
 
-        String apiCrossId = payload.getModelId();
-        String userId = payload.getUserId();
-        String swaggerDefinition = payload.getSwaggerDefinition();
-        String environmentId = payload.getEnvironmentId();
+        String apiCrossId = payload.modelId();
+        String userId = payload.userId();
+        String swaggerDefinition = payload.swaggerDefinition();
+        String environmentId = payload.environmentId();
         DeploymentMode mode = DeploymentMode.fromDeployModelPayload(payload);
-        List<String> labels = payload.getLabels();
+        List<String> labels = payload.labels();
 
         try {
             final EnvironmentEntity environment = getEnvironment(environmentId);
@@ -98,9 +97,7 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
                 );
 
                 if (message.isPresent()) {
-                    var reply = new DeployModelReply(command.getId(), CommandStatus.FAILED);
-                    reply.setMessage(message.get());
-                    return Single.just(reply);
+                    return Single.just(new DeployModelReply(command.getId(), message.get()));
                 }
 
                 result =
@@ -122,9 +119,7 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
                 );
 
                 if (message.isPresent()) {
-                    var reply = new DeployModelReply(command.getId(), CommandStatus.FAILED);
-                    reply.setMessage(message.get());
-                    return Single.just(reply);
+                    return Single.just(new DeployModelReply(command.getId(), message.get()));
                 }
 
                 result =
@@ -141,16 +136,15 @@ public class DeployModelCommandHandler implements CommandHandler<DeployModelComm
 
             if (result.isSuccess()) {
                 logger.info("Api imported [{}].", result.getApi().getId());
-
-                return Single.just(new DeployModelReply(command.getId(), CommandStatus.SUCCEEDED));
+                return Single.just(new DeployModelReply(command.getId()));
             }
-            logger.error("Failed to import API [{}].", result.getErrorMessage());
-            var reply = new DeployModelReply(command.getId(), CommandStatus.FAILED);
-            reply.setMessage(result.getErrorMessage());
-            return Single.just(reply);
+            String errorDetails = "Failed to import API [%s].".formatted(result.getErrorMessage());
+            logger.error(errorDetails);
+            return Single.just(new DeployModelReply(command.getId(), errorDetails));
         } catch (Exception e) {
-            logger.error("Error occurred when importing api [{}].", payload.getModelId(), e);
-            return Single.just(new DeployModelReply(command.getId(), CommandStatus.ERROR));
+            String errorDetails = "Error occurred when importing api [%s]".formatted(payload.modelId());
+            logger.error(errorDetails, e);
+            return Single.just(new DeployModelReply(command.getId(), errorDetails));
         }
     }
 

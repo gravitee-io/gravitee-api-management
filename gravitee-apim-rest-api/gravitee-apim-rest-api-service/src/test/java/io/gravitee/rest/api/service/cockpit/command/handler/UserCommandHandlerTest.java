@@ -18,14 +18,16 @@ package io.gravitee.rest.api.service.cockpit.command.handler;
 import static io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity.UserProfile.PICTURE;
 import static io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity.UserProfile.SUB;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.cockpit.api.command.Command;
-import io.gravitee.cockpit.api.command.CommandStatus;
-import io.gravitee.cockpit.api.command.user.UserCommand;
-import io.gravitee.cockpit.api.command.user.UserPayload;
-import io.gravitee.cockpit.api.command.user.UserReply;
+import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
+import io.gravitee.cockpit.api.command.v1.user.UserCommand;
+import io.gravitee.cockpit.api.command.v1.user.UserCommandPayload;
+import io.gravitee.cockpit.api.command.v1.user.UserReply;
+import io.gravitee.exchange.api.command.CommandStatus;
 import io.gravitee.rest.api.model.NewExternalUserEntity;
 import io.gravitee.rest.api.model.UpdateUserEntity;
 import io.gravitee.rest.api.model.UserEntity;
@@ -57,28 +59,29 @@ public class UserCommandHandlerTest {
     }
 
     @Test
-    public void handleType() {
-        assertEquals(Command.Type.USER_COMMAND, cut.handleType());
+    public void supportType() {
+        assertEquals(CockpitCommandType.USER.name(), cut.supportType());
     }
 
     @Test
     public void handleCreation() throws InterruptedException {
-        UserPayload userPayload = new UserPayload();
-        UserCommand command = new UserCommand(userPayload);
-
         final String sourceId = "user#1";
-        userPayload.setId(sourceId);
-        userPayload.setOrganizationId("orga#1");
-        userPayload.setUsername("Username");
-        userPayload.setFirstName("Firstname");
-        userPayload.setLastName("Lastname");
-        userPayload.setPicture("https://gravitee.io/my-picture");
-        userPayload.setEmail("email@gravitee.io");
-
         HashMap<String, Object> additionalInformation = new HashMap<>();
         additionalInformation.put("info1", "value1");
         additionalInformation.put("info2", "value2");
-        userPayload.setAdditionalInformation(additionalInformation);
+        UserCommandPayload userPayload = UserCommandPayload
+            .builder()
+            .id(sourceId)
+            .organizationId("orga#1")
+            .username("Username")
+            .firstName("Firstname")
+            .lastName("Lastname")
+            .picture("https://gravitee.io/my-picture")
+            .email("email@gravitee.io")
+            .additionalInformation(additionalInformation)
+            .build();
+
+        UserCommand command = new UserCommand(userPayload);
 
         when(userService.findBySource(any(), eq("cockpit"), eq(sourceId), eq(false))).thenThrow(new UserNotFoundException(sourceId));
 
@@ -86,16 +89,16 @@ public class UserCommandHandlerTest {
             userService.create(
                 any(),
                 argThat(newUser ->
-                    newUser.getSourceId().equals(userPayload.getId()) &&
+                    newUser.getSourceId().equals(userPayload.id()) &&
                     newUser.getSource().equals("cockpit") &&
-                    newUser.getFirstname().equals(userPayload.getFirstName()) &&
-                    newUser.getLastname().equals(userPayload.getLastName()) &&
-                    newUser.getEmail().equals(userPayload.getEmail()) &&
-                    newUser.getPicture().equals(userPayload.getPicture()) &&
+                    newUser.getFirstname().equals(userPayload.firstName()) &&
+                    newUser.getLastname().equals(userPayload.lastName()) &&
+                    newUser.getEmail().equals(userPayload.email()) &&
+                    newUser.getPicture().equals(userPayload.picture()) &&
                     newUser.getCustomFields().get("info1").equals(additionalInformation.get("info1")) &&
                     newUser.getCustomFields().get("info2").equals(additionalInformation.get("info2")) &&
-                    newUser.getCustomFields().get(PICTURE).equals(userPayload.getPicture()) &&
-                    newUser.getCustomFields().get(SUB).equals(userPayload.getUsername())
+                    newUser.getCustomFields().get(PICTURE).equals(userPayload.picture()) &&
+                    newUser.getCustomFields().get(SUB).equals(userPayload.username())
                 ),
                 eq(false)
             )
@@ -110,22 +113,22 @@ public class UserCommandHandlerTest {
 
     @Test
     public void handleUpdate() throws InterruptedException {
-        UserPayload userPayload = new UserPayload();
-        UserCommand command = new UserCommand(userPayload);
-
         final String sourceId = "user#1";
-        userPayload.setId(sourceId);
-        userPayload.setOrganizationId("orga#1");
-        userPayload.setUsername("New Username");
-        userPayload.setFirstName("New Firstname");
-        userPayload.setLastName("New Lastname");
-        userPayload.setPicture("https://gravitee.io/my-new-picture");
-        userPayload.setEmail("my-new-email@gravitee.io");
-
         HashMap<String, Object> additionalInformation = new HashMap<>();
         additionalInformation.put("info1", "new_value1");
         additionalInformation.put("new_info3", "new_value3");
-        userPayload.setAdditionalInformation(additionalInformation);
+        UserCommandPayload userPayload = UserCommandPayload
+            .builder()
+            .id(sourceId)
+            .organizationId("orga#1")
+            .username("New Username")
+            .firstName("New Firstname")
+            .lastName("New Lastname")
+            .picture("https://gravitee.io/my-new-picture")
+            .email("my-new-email@gravitee.io")
+            .additionalInformation(additionalInformation)
+            .build();
+        UserCommand command = new UserCommand(userPayload);
 
         UserEntity existingCockpitUser = new UserEntity();
         existingCockpitUser.setId("apim_user#1");
@@ -147,14 +150,14 @@ public class UserCommandHandlerTest {
                 any(),
                 eq("apim_user#1"),
                 argThat(updatedUser ->
-                    updatedUser.getFirstname().equals(userPayload.getFirstName()) &&
-                    updatedUser.getLastname().equals(userPayload.getLastName()) &&
-                    updatedUser.getEmail().equals(userPayload.getEmail()) &&
-                    updatedUser.getPicture().equals(userPayload.getPicture()) &&
+                    updatedUser.getFirstname().equals(userPayload.firstName()) &&
+                    updatedUser.getLastname().equals(userPayload.lastName()) &&
+                    updatedUser.getEmail().equals(userPayload.email()) &&
+                    updatedUser.getPicture().equals(userPayload.picture()) &&
                     updatedUser.getCustomFields().get("info1").equals(additionalInformation.get("info1")) &&
                     updatedUser.getCustomFields().get("new_info3").equals(additionalInformation.get("new_info3")) &&
-                    updatedUser.getCustomFields().get(PICTURE).equals(userPayload.getPicture()) &&
-                    updatedUser.getCustomFields().get(SUB).equals(userPayload.getUsername())
+                    updatedUser.getCustomFields().get(PICTURE).equals(userPayload.picture()) &&
+                    updatedUser.getCustomFields().get(SUB).equals(userPayload.username())
                 )
             )
         )
@@ -168,12 +171,9 @@ public class UserCommandHandlerTest {
 
     @Test
     public void handleWithCreateException() throws InterruptedException {
-        UserPayload userPayload = new UserPayload();
-        UserCommand command = new UserCommand(userPayload);
-
         final String sourceId = "user#1";
-        userPayload.setId(sourceId);
-        userPayload.setOrganizationId("orga#1");
+        UserCommandPayload userPayload = UserCommandPayload.builder().id(sourceId).organizationId("orga#1").build();
+        UserCommand command = new UserCommand(userPayload);
 
         when(userService.findBySource(any(), eq("cockpit"), eq(sourceId), eq(false))).thenThrow(new UserNotFoundException(sourceId));
         when(userService.create(any(), any(NewExternalUserEntity.class), eq(false))).thenThrow(new RuntimeException("fake error"));
@@ -186,12 +186,9 @@ public class UserCommandHandlerTest {
 
     @Test
     public void handleWithUpdateException() throws InterruptedException {
-        UserPayload userPayload = new UserPayload();
-        UserCommand command = new UserCommand(userPayload);
-
         final String sourceId = "user#1";
-        userPayload.setId(sourceId);
-        userPayload.setOrganizationId("orga#1");
+        UserCommandPayload userPayload = UserCommandPayload.builder().id(sourceId).organizationId("orga#1").build();
+        UserCommand command = new UserCommand(userPayload);
 
         when(userService.findBySource(any(), eq("cockpit"), eq(sourceId), eq(false))).thenReturn(new UserEntity());
         when(userService.update(any(), any(), any(UpdateUserEntity.class))).thenThrow(new RuntimeException("fake error"));

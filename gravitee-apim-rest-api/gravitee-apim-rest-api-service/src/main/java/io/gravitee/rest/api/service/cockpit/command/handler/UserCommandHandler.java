@@ -18,12 +18,11 @@ package io.gravitee.rest.api.service.cockpit.command.handler;
 import static io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity.UserProfile.PICTURE;
 import static io.gravitee.rest.api.model.configuration.identity.SocialIdentityProviderEntity.UserProfile.SUB;
 
-import io.gravitee.cockpit.api.command.Command;
-import io.gravitee.cockpit.api.command.CommandHandler;
-import io.gravitee.cockpit.api.command.CommandStatus;
-import io.gravitee.cockpit.api.command.user.UserCommand;
-import io.gravitee.cockpit.api.command.user.UserPayload;
-import io.gravitee.cockpit.api.command.user.UserReply;
+import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
+import io.gravitee.cockpit.api.command.v1.user.UserCommand;
+import io.gravitee.cockpit.api.command.v1.user.UserCommandPayload;
+import io.gravitee.cockpit.api.command.v1.user.UserReply;
+import io.gravitee.exchange.api.command.CommandHandler;
 import io.gravitee.rest.api.model.NewExternalUserEntity;
 import io.gravitee.rest.api.model.UpdateUserEntity;
 import io.gravitee.rest.api.model.UserEntity;
@@ -32,8 +31,8 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.reactivex.rxjava3.core.Single;
 import java.util.HashMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
@@ -41,90 +40,82 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
+@Slf4j
+@RequiredArgsConstructor
 public class UserCommandHandler implements CommandHandler<UserCommand, UserReply> {
 
     public static final String COCKPIT_SOURCE = "cockpit";
-    private final Logger logger = LoggerFactory.getLogger(UserCommandHandler.class);
 
     private final UserService userService;
 
-    public UserCommandHandler(UserService userService) {
-        this.userService = userService;
-    }
-
     @Override
-    public Command.Type handleType() {
-        return Command.Type.USER_COMMAND;
+    public String supportType() {
+        return CockpitCommandType.USER.name();
     }
 
     @Override
     public Single<UserReply> handle(UserCommand command) {
-        UserPayload userPayload = command.getPayload();
-        ExecutionContext executionContext = new ExecutionContext(userPayload.getOrganizationId(), null);
+        UserCommandPayload userPayload = command.getPayload();
+        ExecutionContext executionContext = new ExecutionContext(userPayload.organizationId(), null);
         try {
-            final UserEntity existingUser = userService.findBySource(
-                userPayload.getOrganizationId(),
-                COCKPIT_SOURCE,
-                userPayload.getId(),
-                false
-            );
+            final UserEntity existingUser = userService.findBySource(userPayload.organizationId(), COCKPIT_SOURCE, userPayload.id(), false);
 
             UpdateUserEntity updatedUser = new UpdateUserEntity();
-            updatedUser.setFirstname(userPayload.getFirstName());
-            updatedUser.setLastname(userPayload.getLastName());
-            updatedUser.setEmail(userPayload.getEmail());
-            updatedUser.setPicture(userPayload.getPicture());
+            updatedUser.setFirstname(userPayload.firstName());
+            updatedUser.setLastname(userPayload.lastName());
+            updatedUser.setEmail(userPayload.email());
+            updatedUser.setPicture(userPayload.picture());
             updatedUser.setCustomFields(new HashMap<>());
 
-            if (userPayload.getAdditionalInformation() != null) {
-                updatedUser.getCustomFields().putAll(userPayload.getAdditionalInformation());
+            if (userPayload.additionalInformation() != null) {
+                updatedUser.getCustomFields().putAll(userPayload.additionalInformation());
             }
 
-            updatedUser.getCustomFields().computeIfAbsent(PICTURE, k -> userPayload.getPicture());
-            updatedUser.getCustomFields().computeIfAbsent(SUB, k -> userPayload.getUsername());
+            updatedUser.getCustomFields().computeIfAbsent(PICTURE, k -> userPayload.picture());
+            updatedUser.getCustomFields().computeIfAbsent(SUB, k -> userPayload.username());
 
             UserEntity cockpitUserEntity = userService.update(executionContext, existingUser.getId(), updatedUser);
-            logger.info("User [{}] with APIM id [{}] updated.", userPayload.getUsername(), cockpitUserEntity.getId());
+            log.info("User [{}] with APIM id [{}] updated.", userPayload.username(), cockpitUserEntity.getId());
 
-            return Single.just(new UserReply(command.getId(), CommandStatus.SUCCEEDED));
+            return Single.just(new UserReply(command.getId()));
         } catch (UserNotFoundException unfe) {
             NewExternalUserEntity newUser = new NewExternalUserEntity();
-            newUser.setSourceId(userPayload.getId());
-            newUser.setFirstname(userPayload.getFirstName());
-            newUser.setLastname(userPayload.getLastName());
-            newUser.setEmail(userPayload.getEmail());
-            newUser.setPicture(userPayload.getPicture());
+            newUser.setSourceId(userPayload.id());
+            newUser.setFirstname(userPayload.firstName());
+            newUser.setLastname(userPayload.lastName());
+            newUser.setEmail(userPayload.email());
+            newUser.setPicture(userPayload.picture());
             newUser.setSource(COCKPIT_SOURCE);
             newUser.setCustomFields(new HashMap<>());
 
-            if (userPayload.getAdditionalInformation() != null) {
-                newUser.getCustomFields().putAll(userPayload.getAdditionalInformation());
+            if (userPayload.additionalInformation() != null) {
+                newUser.getCustomFields().putAll(userPayload.additionalInformation());
             }
 
-            newUser.getCustomFields().computeIfAbsent(PICTURE, k -> userPayload.getPicture());
-            newUser.getCustomFields().computeIfAbsent(SUB, k -> userPayload.getUsername());
+            newUser.getCustomFields().computeIfAbsent(PICTURE, k -> userPayload.picture());
+            newUser.getCustomFields().computeIfAbsent(SUB, k -> userPayload.username());
 
             try {
                 UserEntity cockpitUserEntity = userService.create(executionContext, newUser, false);
-                logger.info("User [{}] created with APIM id [{}].", userPayload.getUsername(), cockpitUserEntity.getId());
-                return Single.just(new UserReply(command.getId(), CommandStatus.SUCCEEDED));
+                log.info("User [{}] created with APIM id [{}].", userPayload.username(), cockpitUserEntity.getId());
+                return Single.just(new UserReply(command.getId()));
             } catch (Exception e) {
-                logger.info(
-                    "Error occurred when creating user [{}] for organization [{}].",
-                    userPayload.getUsername(),
-                    userPayload.getOrganizationId(),
-                    e
-                );
-                return Single.just(new UserReply(command.getId(), CommandStatus.ERROR));
+                String errorDetails =
+                    "Error occurred when creating user [%s] for organization [%s].".formatted(
+                            userPayload.username(),
+                            userPayload.organizationId()
+                        );
+                log.error(errorDetails, e);
+                return Single.just(new UserReply(command.getId(), errorDetails));
             }
         } catch (Exception e) {
-            logger.info(
-                "Error occurred when updating user [{}] for organization [{}].",
-                userPayload.getUsername(),
-                userPayload.getOrganizationId(),
-                e
-            );
-            return Single.just(new UserReply(command.getId(), CommandStatus.ERROR));
+            String errorDetails =
+                "Error occurred when updating user [%s] for organization [%s].".formatted(
+                        userPayload.username(),
+                        userPayload.organizationId()
+                    );
+            log.error(errorDetails, e);
+            return Single.just(new UserReply(command.getId(), errorDetails));
         }
     }
 }

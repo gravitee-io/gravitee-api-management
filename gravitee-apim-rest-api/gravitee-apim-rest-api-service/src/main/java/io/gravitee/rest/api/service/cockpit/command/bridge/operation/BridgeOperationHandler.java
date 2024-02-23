@@ -15,8 +15,8 @@
  */
 package io.gravitee.rest.api.service.cockpit.command.bridge.operation;
 
-import io.gravitee.cockpit.api.command.bridge.BridgeCommand;
-import io.gravitee.cockpit.api.command.bridge.BridgeReply;
+import io.gravitee.cockpit.api.command.v1.bridge.BridgeCommand;
+import io.gravitee.cockpit.api.command.v1.bridge.BridgeReply;
 import io.reactivex.rxjava3.core.Single;
 
 public interface BridgeOperationHandler {

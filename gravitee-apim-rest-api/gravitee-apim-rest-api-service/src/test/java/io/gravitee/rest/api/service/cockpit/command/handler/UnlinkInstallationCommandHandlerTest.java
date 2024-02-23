@@ -15,13 +15,18 @@
  */
 package io.gravitee.rest.api.service.cockpit.command.handler;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.access_point.crud_service.AccessPointCrudService;
 import io.gravitee.apim.core.access_point.model.AccessPoint;
-import io.gravitee.cockpit.api.command.Command;
-import io.gravitee.cockpit.api.command.CommandStatus;
-import io.gravitee.cockpit.api.command.installation.*;
+import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
+import io.gravitee.cockpit.api.command.v1.installation.UnlinkInstallationCommand;
+import io.gravitee.cockpit.api.command.v1.installation.UnlinkInstallationCommandPayload;
+import io.gravitee.cockpit.api.command.v1.installation.UnlinkInstallationReply;
+import io.gravitee.exchange.api.command.CommandStatus;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
@@ -57,15 +62,17 @@ public class UnlinkInstallationCommandHandlerTest extends TestCase {
     }
 
     @Test
-    public void handleType() {
-        assertEquals(Command.Type.UNLINK_INSTALLATION_COMMAND, cut.handleType());
+    public void supportType() {
+        assertEquals(CockpitCommandType.UNLINK_INSTALLATION.name(), cut.supportType());
     }
 
     @Test
     public void handle() throws InterruptedException {
-        final UnlinkInstallationPayload payload = new UnlinkInstallationPayload();
-        payload.setEnvironmentCockpitId(COCKPIT_ENV_ID);
-        payload.setOrganizationCockpitId(COCKPIT_ORG_ID);
+        final UnlinkInstallationCommandPayload payload = UnlinkInstallationCommandPayload
+            .builder()
+            .environmentCockpitId(COCKPIT_ENV_ID)
+            .organizationCockpitId(COCKPIT_ORG_ID)
+            .build();
 
         EnvironmentEntity environment = mock(EnvironmentEntity.class);
         String envId = "env#1";
@@ -90,8 +97,10 @@ public class UnlinkInstallationCommandHandlerTest extends TestCase {
 
     @Test
     public void handleWithException() throws InterruptedException {
-        final UnlinkInstallationPayload payload = new UnlinkInstallationPayload();
-        payload.setEnvironmentCockpitId(COCKPIT_ENV_ID);
+        final UnlinkInstallationCommandPayload payload = UnlinkInstallationCommandPayload
+            .builder()
+            .environmentCockpitId(COCKPIT_ENV_ID)
+            .build();
 
         UnlinkInstallationCommand command = new UnlinkInstallationCommand(payload);
 

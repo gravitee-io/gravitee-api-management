@@ -15,7 +15,7 @@
  */
 package io.gravitee.rest.api.service.cockpit.model;
 
-import io.gravitee.cockpit.api.command.designer.DeployModelPayload;
+import io.gravitee.cockpit.api.command.v1.designer.DeployModelCommandPayload;
 import java.util.Optional;
 
 public enum DeploymentMode {
@@ -23,16 +23,16 @@ public enum DeploymentMode {
     API_MOCKED,
     API_PUBLISHED;
 
-    public static DeploymentMode fromDeployModelPayload(DeployModelPayload payload) {
-        DeployModelPayload.DeploymentMode mode = Optional
-            .ofNullable(payload.getMode())
-            .orElse(DeployModelPayload.DeploymentMode.API_DOCUMENTED);
+    public static DeploymentMode fromDeployModelPayload(DeployModelCommandPayload payload) {
+        DeployModelCommandPayload.DeploymentMode mode = Optional
+            .ofNullable(payload.mode())
+            .orElse(DeployModelCommandPayload.DeploymentMode.API_DOCUMENTED);
 
-        if (mode == DeployModelPayload.DeploymentMode.API_MOCKED) {
+        if (mode == DeployModelCommandPayload.DeploymentMode.API_MOCKED) {
             return DeploymentMode.API_MOCKED;
         }
 
-        if (mode == DeployModelPayload.DeploymentMode.API_PUBLISHED) {
+        if (mode == DeployModelCommandPayload.DeploymentMode.API_PUBLISHED) {
             return DeploymentMode.API_PUBLISHED;
         }
 

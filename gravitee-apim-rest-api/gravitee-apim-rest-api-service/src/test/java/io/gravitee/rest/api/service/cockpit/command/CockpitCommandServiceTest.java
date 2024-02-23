@@ -16,15 +16,16 @@
 package io.gravitee.rest.api.service.cockpit.command;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.cockpit.api.CockpitConnector;
-import io.gravitee.cockpit.api.command.CommandStatus;
-import io.gravitee.cockpit.api.command.bridge.BridgeCommand;
-import io.gravitee.cockpit.api.command.bridge.BridgePayload;
-import io.gravitee.cockpit.api.command.bridge.BridgeReply;
-import io.gravitee.cockpit.api.command.bridge.BridgeTarget;
+import io.gravitee.cockpit.api.command.legacy.bridge.BridgePayload;
+import io.gravitee.cockpit.api.command.v1.bridge.BridgeCommand;
+import io.gravitee.cockpit.api.command.v1.bridge.BridgeCommandPayload;
+import io.gravitee.cockpit.api.command.v1.bridge.BridgeReply;
 import io.gravitee.common.utils.UUID;
+import io.gravitee.exchange.api.command.CommandStatus;
 import io.reactivex.rxjava3.core.Single;
 import org.junit.Before;
 import org.junit.Test;
@@ -47,16 +48,15 @@ public class CockpitCommandServiceTest {
 
     @Test
     public void shouldSendCommandToCockpitConnector() {
-        BridgePayload payload = new BridgePayload();
-        payload.setContent("a content");
-
-        BridgeCommand command = new BridgeCommand();
-        command.setId(UUID.toString(UUID.random()));
-        command.setInstallationId(UUID.toString(UUID.random()));
-        command.setOrganizationId(UUID.toString(UUID.random()));
-        command.setOperation("an_operation");
-        command.setTarget(new BridgeTarget());
-        command.setPayload(payload);
+        BridgeCommandPayload payload = BridgeCommandPayload
+            .builder()
+            .installationId(UUID.toString(UUID.random()))
+            .organizationId(UUID.toString(UUID.random()))
+            .operation("an_operation")
+            .target(new BridgeCommandPayload.BridgeTarget(null, null))
+            .content("a content")
+            .build();
+        BridgeCommand command = new BridgeCommand(payload);
 
         BridgeReply reply = mock(BridgeReply.class);
         when(cockpitConnector.sendCommand(command)).thenReturn(Single.just(reply));
@@ -68,17 +68,16 @@ public class CockpitCommandServiceTest {
 
     @Test
     public void shouldReturnAnErrorBridgeReplyWhenWebSocketIsThrowing() {
-        BridgePayload payload = new BridgePayload();
-        payload.setContent("a content");
+        BridgeCommandPayload payload = BridgeCommandPayload
+            .builder()
+            .installationId(UUID.toString(UUID.random()))
+            .organizationId(UUID.toString(UUID.random()))
+            .operation("an_operation")
+            .target(new BridgeCommandPayload.BridgeTarget(null, null))
+            .content("a content")
+            .build();
 
-        BridgeCommand command = new BridgeCommand();
-        command.setId(UUID.toString(UUID.random()));
-        command.setInstallationId(UUID.toString(UUID.random()));
-        command.setOrganizationId(UUID.toString(UUID.random()));
-        command.setOperation("an_operation");
-        command.setTarget(new BridgeTarget());
-        command.setPayload(payload);
-
+        BridgeCommand command = new BridgeCommand(payload);
         when(cockpitConnector.sendCommand(command)).thenReturn(Single.error(new RuntimeException()));
 
         BridgeReply bridgeReply = cockpitCommandService.send(command);

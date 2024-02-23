@@ -17,67 +17,58 @@ package io.gravitee.rest.api.service.cockpit.command.handler;
 
 import io.gravitee.apim.core.access_point.crud_service.AccessPointCrudService;
 import io.gravitee.apim.core.access_point.model.AccessPoint;
-import io.gravitee.cockpit.api.command.Command;
-import io.gravitee.cockpit.api.command.CommandHandler;
-import io.gravitee.cockpit.api.command.CommandStatus;
-import io.gravitee.cockpit.api.command.installation.*;
+import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
+import io.gravitee.cockpit.api.command.v1.installation.UnlinkInstallationCommand;
+import io.gravitee.cockpit.api.command.v1.installation.UnlinkInstallationCommandPayload;
+import io.gravitee.cockpit.api.command.v1.installation.UnlinkInstallationReply;
+import io.gravitee.exchange.api.command.CommandHandler;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.OrganizationService;
 import io.reactivex.rxjava3.core.Single;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Component
+@Slf4j
+@RequiredArgsConstructor
 public class UnlinkInstallationCommandHandler implements CommandHandler<UnlinkInstallationCommand, UnlinkInstallationReply> {
-
-    private final Logger logger = LoggerFactory.getLogger(UnlinkInstallationCommandHandler.class);
 
     private final OrganizationService organizationService;
     private final EnvironmentService environmentService;
     private final AccessPointCrudService accessPointService;
 
-    public UnlinkInstallationCommandHandler(
-        OrganizationService organizationService,
-        EnvironmentService environmentService,
-        AccessPointCrudService accessPointService
-    ) {
-        this.organizationService = organizationService;
-        this.environmentService = environmentService;
-        this.accessPointService = accessPointService;
-    }
-
     @Override
-    public Command.Type handleType() {
-        return Command.Type.UNLINK_INSTALLATION_COMMAND;
+    public String supportType() {
+        return CockpitCommandType.UNLINK_INSTALLATION.name();
     }
 
     @Override
     public Single<UnlinkInstallationReply> handle(UnlinkInstallationCommand command) {
-        UnlinkInstallationPayload unlinkInstallationPayload = command.getPayload();
+        UnlinkInstallationCommandPayload unlinkInstallationPayload = command.getPayload();
 
         try {
-            if (unlinkInstallationPayload.getOrganizationCockpitId() != null) {
+            if (unlinkInstallationPayload.organizationCockpitId() != null) {
                 OrganizationEntity organization =
-                    this.organizationService.findByCockpitId(unlinkInstallationPayload.getOrganizationCockpitId());
+                    this.organizationService.findByCockpitId(unlinkInstallationPayload.organizationCockpitId());
                 this.accessPointService.deleteAccessPoints(AccessPoint.ReferenceType.ORGANIZATION, organization.getId());
             }
 
-            if (unlinkInstallationPayload.getEnvironmentCockpitId() != null) {
-                EnvironmentEntity environment =
-                    this.environmentService.findByCockpitId(unlinkInstallationPayload.getEnvironmentCockpitId());
+            if (unlinkInstallationPayload.environmentCockpitId() != null) {
+                EnvironmentEntity environment = this.environmentService.findByCockpitId(unlinkInstallationPayload.environmentCockpitId());
                 this.accessPointService.deleteAccessPoints(
                         io.gravitee.apim.core.access_point.model.AccessPoint.ReferenceType.ENVIRONMENT,
                         environment.getId()
                     );
             }
 
-            return Single.just(new UnlinkInstallationReply(command.getId(), CommandStatus.SUCCEEDED));
+            return Single.just(new UnlinkInstallationReply(command.getId()));
         } catch (Exception ex) {
-            logger.info("Error occurred when unlink installation.", ex);
-            return Single.just(new UnlinkInstallationReply(command.getId(), CommandStatus.ERROR));
+            String errorDetails = "Error occurred when unlink installation.";
+            log.info(errorDetails, ex);
+            return Single.just(new UnlinkInstallationReply(command.getId(), errorDetails));
         }
     }
 }

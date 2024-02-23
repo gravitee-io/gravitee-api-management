@@ -23,16 +23,15 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.access_point.crud_service.AccessPointCrudService;
 import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
-import io.gravitee.cockpit.api.command.Command;
-import io.gravitee.cockpit.api.command.CommandStatus;
-import io.gravitee.cockpit.api.command.accesspoint.AccessPoint;
-import io.gravitee.cockpit.api.command.organization.OrganizationCommand;
-import io.gravitee.cockpit.api.command.organization.OrganizationPayload;
-import io.gravitee.cockpit.api.command.organization.OrganizationReply;
+import io.gravitee.cockpit.api.command.model.accesspoint.AccessPoint;
+import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
+import io.gravitee.cockpit.api.command.v1.organization.OrganizationCommand;
+import io.gravitee.cockpit.api.command.v1.organization.OrganizationCommandPayload;
+import io.gravitee.cockpit.api.command.v1.organization.OrganizationReply;
+import io.gravitee.exchange.api.command.CommandStatus;
 import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.model.UpdateOrganizationEntity;
 import io.gravitee.rest.api.service.OrganizationService;
-import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
 import io.gravitee.rest.api.service.exceptions.OrganizationNotFoundException;
 import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.Collections;
@@ -68,35 +67,37 @@ public class OrganizationCommandHandlerTest {
     }
 
     @Test
-    public void handleType() {
-        assertEquals(Command.Type.ORGANIZATION_COMMAND, cut.handleType());
+    public void supportType() {
+        assertEquals(CockpitCommandType.ORGANIZATION.name(), cut.supportType());
     }
 
     @Test
     public void handle() throws InterruptedException {
-        OrganizationPayload organizationPayload = new OrganizationPayload();
+        OrganizationCommandPayload organizationPayload = OrganizationCommandPayload
+            .builder()
+            .id("orga#1")
+            .cockpitId("org#cockpit-1")
+            .hrids(Collections.singletonList("orga-1"))
+            .description("Organization description")
+            .name("Organization name")
+            .accessPoints(
+                List.of(
+                    AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction1.io").build(),
+                    AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction2.io").build()
+                )
+            )
+            .build();
         OrganizationCommand command = new OrganizationCommand(organizationPayload);
 
-        organizationPayload.setId("orga#1");
-        organizationPayload.setCockpitId("org#cockpit-1");
-        organizationPayload.setHrids(Collections.singletonList("orga-1"));
-        organizationPayload.setDescription("Organization description");
-        organizationPayload.setName("Organization name");
-        organizationPayload.setAccessPoints(
-            List.of(
-                AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction1.io").build(),
-                AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction2.io").build()
-            )
-        );
         when(organizationService.findByCockpitId(any())).thenThrow(new OrganizationNotFoundException("Org not found"));
         when(
             organizationService.createOrUpdate(
                 argThat(orgaId -> orgaId.equals("orga#1")),
                 argThat(newOrganization ->
-                    newOrganization.getCockpitId().equals(organizationPayload.getCockpitId()) &&
-                    newOrganization.getHrids().equals(organizationPayload.getHrids()) &&
-                    newOrganization.getDescription().equals(organizationPayload.getDescription()) &&
-                    newOrganization.getName().equals(organizationPayload.getName())
+                    newOrganization.getCockpitId().equals(organizationPayload.cockpitId()) &&
+                    newOrganization.getHrids().equals(organizationPayload.hrids()) &&
+                    newOrganization.getDescription().equals(organizationPayload.description()) &&
+                    newOrganization.getName().equals(organizationPayload.name())
                 )
             )
         )
@@ -110,18 +111,19 @@ public class OrganizationCommandHandlerTest {
 
     @Test
     public void handleWithException() throws InterruptedException {
-        OrganizationPayload organizationPayload = new OrganizationPayload();
-        OrganizationCommand command = new OrganizationCommand(organizationPayload);
-
-        organizationPayload.setId("orga#1");
-        organizationPayload.setDescription("Organization description");
-        organizationPayload.setName("Organization name");
-        organizationPayload.setAccessPoints(
-            List.of(
-                AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction1.io").build(),
-                AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction2.io").build()
+        OrganizationCommandPayload organizationPayload = OrganizationCommandPayload
+            .builder()
+            .id("orga#1")
+            .description("Organization description")
+            .name("Organization name")
+            .accessPoints(
+                List.of(
+                    AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction1.io").build(),
+                    AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction2.io").build()
+                )
             )
-        );
+            .build();
+        OrganizationCommand command = new OrganizationCommand(organizationPayload);
 
         when(organizationService.findByCockpitId(any())).thenThrow(new OrganizationNotFoundException("Org not found"));
         when(organizationService.createOrUpdate(argThat(orgaId -> orgaId.equals("orga#1")), any(UpdateOrganizationEntity.class)))
@@ -136,20 +138,22 @@ public class OrganizationCommandHandlerTest {
 
     @Test
     public void handleWithExistingCockpitId() throws InterruptedException {
-        OrganizationPayload organizationPayload = new OrganizationPayload();
+        OrganizationCommandPayload organizationPayload = OrganizationCommandPayload
+            .builder()
+            .id("orga#1")
+            .cockpitId("org#cockpit-1")
+            .hrids(Collections.singletonList("orga-1"))
+            .description("Organization description")
+            .name("Organization name")
+            .accessPoints(
+                List.of(
+                    AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction1.io").build(),
+                    AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction2.io").build()
+                )
+            )
+            .build();
         OrganizationCommand command = new OrganizationCommand(organizationPayload);
 
-        organizationPayload.setId("orga#1");
-        organizationPayload.setCockpitId("org#cockpit-1");
-        organizationPayload.setHrids(Collections.singletonList("orga-1"));
-        organizationPayload.setDescription("Organization description");
-        organizationPayload.setName("Organization name");
-        organizationPayload.setAccessPoints(
-            List.of(
-                AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction1.io").build(),
-                AccessPoint.builder().target(AccessPoint.Target.CONSOLE).host("domain.restriction2.io").build()
-            )
-        );
         OrganizationEntity existingOrganization = mock(OrganizationEntity.class);
         when(existingOrganization.getId()).thenReturn("DEFAULT");
         when(organizationService.findByCockpitId(any())).thenReturn(existingOrganization);
@@ -157,10 +161,10 @@ public class OrganizationCommandHandlerTest {
             organizationService.createOrUpdate(
                 argThat(orgaId -> orgaId.equals("DEFAULT")),
                 argThat(newOrganization ->
-                    newOrganization.getCockpitId().equals(organizationPayload.getCockpitId()) &&
-                    newOrganization.getHrids().equals(organizationPayload.getHrids()) &&
-                    newOrganization.getDescription().equals(organizationPayload.getDescription()) &&
-                    newOrganization.getName().equals(organizationPayload.getName())
+                    newOrganization.getCockpitId().equals(organizationPayload.cockpitId()) &&
+                    newOrganization.getHrids().equals(organizationPayload.hrids()) &&
+                    newOrganization.getDescription().equals(organizationPayload.description()) &&
+                    newOrganization.getName().equals(organizationPayload.name())
                 )
             )
         )

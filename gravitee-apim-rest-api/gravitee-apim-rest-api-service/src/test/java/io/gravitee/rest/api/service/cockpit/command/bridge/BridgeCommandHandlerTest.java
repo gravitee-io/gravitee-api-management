@@ -17,17 +17,20 @@ package io.gravitee.rest.api.service.cockpit.command.bridge;
 
 import static org.junit.Assert.assertEquals;
 
-import io.gravitee.cockpit.api.command.Command;
-import io.gravitee.cockpit.api.command.CommandStatus;
-import io.gravitee.cockpit.api.command.bridge.BridgeCommand;
-import io.gravitee.cockpit.api.command.bridge.BridgeMultiReply;
-import io.gravitee.cockpit.api.command.bridge.BridgeReply;
+import io.gravitee.cockpit.api.command.legacy.bridge.BridgeMultiReply;
+import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
+import io.gravitee.cockpit.api.command.v1.bridge.BridgeCommand;
+import io.gravitee.cockpit.api.command.v1.bridge.BridgeCommandPayload;
+import io.gravitee.cockpit.api.command.v1.bridge.BridgeReply;
+import io.gravitee.cockpit.api.command.v1.bridge.BridgeReplyPayload;
+import io.gravitee.exchange.api.command.CommandStatus;
 import io.gravitee.rest.api.service.cockpit.command.bridge.operation.BridgeOperation;
 import io.gravitee.rest.api.service.cockpit.command.bridge.operation.BridgeOperationHandler;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.observers.TestObserver;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,14 +51,13 @@ public class BridgeCommandHandlerTest {
     }
 
     @Test
-    public void handleType() {
-        assertEquals(Command.Type.BRIDGE_COMMAND, cut.handleType());
+    public void supportType() {
+        assertEquals(CockpitCommandType.BRIDGE.name(), cut.supportType());
     }
 
     @Test
     public void shouldNotHandleUnknownOperation() throws InterruptedException {
-        BridgeCommand command = new BridgeCommand();
-        command.setOperation("UNKWOWN_OPERATION");
+        BridgeCommand command = new BridgeCommand(BridgeCommandPayload.builder().operation("UNKWOWN_OPERATION").build());
 
         TestObserver<BridgeReply> obs = cut.handle(command).test();
 
@@ -63,15 +65,15 @@ public class BridgeCommandHandlerTest {
         obs.assertValue(reply ->
             reply.getCommandId().equals(command.getId()) &&
             reply.getCommandStatus().equals(CommandStatus.ERROR) &&
-            reply.getMessage().equals("No handler found for this operation: UNKWOWN_OPERATION")
+            reply.getErrorDetails().equals("No handler found for this operation: UNKWOWN_OPERATION")
         );
     }
 
     @Test
     public void shouldHandleListEnvironmentsOperation() throws InterruptedException {
-        BridgeCommand command = new BridgeCommand();
-        command.setOperation(BridgeOperation.LIST_ENVIRONMENT.name());
-        command.setId("command-id");
+        BridgeCommand command = new BridgeCommand(
+            BridgeCommandPayload.builder().operation(BridgeOperation.LIST_ENVIRONMENT.name()).build()
+        );
 
         cut =
             new BridgeCommandHandler(
@@ -81,11 +83,7 @@ public class BridgeCommandHandlerTest {
         TestObserver<BridgeReply> obs = cut.handle(command).test();
 
         obs.await();
-        obs.assertValue(reply ->
-            reply.getCommandId().equals(command.getId()) &&
-            reply.getCommandStatus().equals(CommandStatus.SUCCEEDED) &&
-            reply.getMessage().equals("Fake operation handler")
-        );
+        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
     }
 
     static class TestingFakeListEnvironmentOperationHandler implements BridgeOperationHandler {
@@ -97,10 +95,7 @@ public class BridgeCommandHandlerTest {
 
         @Override
         public Single<BridgeReply> handle(BridgeCommand bridgeCommand) {
-            final BridgeMultiReply reply = new BridgeMultiReply();
-            reply.setCommandId(bridgeCommand.getId());
-            reply.setCommandStatus(CommandStatus.SUCCEEDED);
-            reply.setMessage("Fake operation handler");
+            final BridgeReply reply = new BridgeReply(bridgeCommand.getId(), new BridgeReplyPayload(List.of()));
             return Single.just(reply);
         }
     }
@@ -114,10 +109,7 @@ public class BridgeCommandHandlerTest {
 
         @Override
         public Single<BridgeReply> handle(BridgeCommand bridgeCommand) {
-            final BridgeMultiReply reply = new BridgeMultiReply();
-            reply.setCommandId(bridgeCommand.getId());
-            reply.setCommandStatus(CommandStatus.SUCCEEDED);
-            reply.setMessage("Another fake operation handler");
+            final BridgeReply reply = new BridgeReply(bridgeCommand.getId(), new BridgeReplyPayload(List.of()));
             return Single.just(reply);
         }
     }

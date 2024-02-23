@@ -16,14 +16,8 @@
 package io.gravitee.rest.api.service.cockpit.command;
 
 import io.gravitee.cockpit.api.CockpitConnector;
-import io.gravitee.cockpit.api.command.Command;
-import io.gravitee.cockpit.api.command.CommandStatus;
-import io.gravitee.cockpit.api.command.Payload;
-import io.gravitee.cockpit.api.command.Reply;
-import io.gravitee.cockpit.api.command.bridge.BridgeCommand;
-import io.gravitee.cockpit.api.command.bridge.BridgePayload;
-import io.gravitee.cockpit.api.command.bridge.BridgeReply;
-import io.gravitee.cockpit.api.command.bridge.BridgeSimpleReply;
+import io.gravitee.cockpit.api.command.v1.bridge.BridgeCommand;
+import io.gravitee.cockpit.api.command.v1.bridge.BridgeReply;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -41,20 +35,10 @@ public class CockpitCommandServiceImpl implements CockpitCommandService {
 
     @Override
     public BridgeReply send(BridgeCommand command) {
-        return (BridgeReply) send((Command<BridgePayload>) command);
-    }
-
-    @Override
-    public <T extends Payload> Reply send(Command<T> command) {
         return cockpitConnector
             .sendCommand(command)
-            .onErrorReturn(error ->
-                new BridgeSimpleReply(
-                    command.getId(),
-                    CommandStatus.ERROR,
-                    error.getMessage() != null ? error.getMessage() : error.toString()
-                )
-            )
+            .onErrorReturn(error -> new BridgeReply(command.getId(), error.getMessage() != null ? error.getMessage() : error.toString()))
+            .cast(BridgeReply.class)
             .blockingGet();
     }
 }

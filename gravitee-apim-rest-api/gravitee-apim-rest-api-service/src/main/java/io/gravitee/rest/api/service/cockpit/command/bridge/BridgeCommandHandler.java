@@ -15,17 +15,15 @@
  */
 package io.gravitee.rest.api.service.cockpit.command.bridge;
 
-import io.gravitee.cockpit.api.command.Command;
-import io.gravitee.cockpit.api.command.CommandHandler;
-import io.gravitee.cockpit.api.command.CommandStatus;
-import io.gravitee.cockpit.api.command.bridge.BridgeCommand;
-import io.gravitee.cockpit.api.command.bridge.BridgeReply;
-import io.gravitee.cockpit.api.command.bridge.BridgeSimpleReply;
+import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
+import io.gravitee.cockpit.api.command.v1.bridge.BridgeCommand;
+import io.gravitee.cockpit.api.command.v1.bridge.BridgeReply;
+import io.gravitee.exchange.api.command.CommandHandler;
 import io.gravitee.rest.api.service.cockpit.command.bridge.operation.BridgeOperationHandler;
 import io.reactivex.rxjava3.core.Single;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
@@ -33,9 +31,9 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
+@RequiredArgsConstructor
+@Slf4j
 public class BridgeCommandHandler implements CommandHandler<BridgeCommand, BridgeReply> {
-
-    private final Logger logger = LoggerFactory.getLogger(BridgeCommandHandler.class);
 
     private List<BridgeOperationHandler> operationHandlers;
 
@@ -44,15 +42,15 @@ public class BridgeCommandHandler implements CommandHandler<BridgeCommand, Bridg
     }
 
     @Override
-    public Command.Type handleType() {
-        return Command.Type.BRIDGE_COMMAND;
+    public String supportType() {
+        return CockpitCommandType.BRIDGE.name();
     }
 
     @Override
     public Single<BridgeReply> handle(BridgeCommand command) {
         return operationHandlers
             .stream()
-            .filter(handle -> handle.canHandle(command.getOperation()))
+            .filter(handle -> handle.canHandle(command.getPayload().operation()))
             .findFirst()
             .orElse(noOperationHandler)
             .handle(command);
@@ -66,13 +64,9 @@ public class BridgeCommandHandler implements CommandHandler<BridgeCommand, Bridg
 
         @Override
         public Single<BridgeReply> handle(BridgeCommand command) {
-            logger.warn("No handler found for this operation {} ", command.getOperation());
+            log.warn("No handler found for this operation {} ", command.getPayload().operation());
             return Single.just(
-                new BridgeSimpleReply(
-                    command.getId(),
-                    CommandStatus.ERROR,
-                    "No handler found for this operation: " + command.getOperation()
-                )
+                new BridgeReply(command.getId(), "No handler found for this operation: " + command.getPayload().operation())
             );
         }
     };

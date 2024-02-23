@@ -21,10 +21,10 @@ import static org.mockito.Mockito.*;
 
 import io.gravitee.apim.core.access_point.crud_service.AccessPointCrudService;
 import io.gravitee.apim.core.access_point.model.AccessPoint;
-import io.gravitee.cockpit.api.command.Command;
-import io.gravitee.cockpit.api.command.CommandStatus;
-import io.gravitee.cockpit.api.command.environment.DisableEnvironmentCommand;
-import io.gravitee.cockpit.api.command.environment.DisableEnvironmentPayload;
+import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
+import io.gravitee.cockpit.api.command.v1.environment.DisableEnvironmentCommand;
+import io.gravitee.cockpit.api.command.v1.environment.DisableEnvironmentCommandPayload;
+import io.gravitee.exchange.api.command.CommandStatus;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
@@ -83,8 +83,8 @@ class DisableEnvironmentCommandHandlerTest {
     }
 
     @Test
-    void handleType() {
-        assertEquals(Command.Type.DISABLE_ENVIRONMENT_COMMAND, cut.handleType());
+    void supportType() {
+        assertEquals(CockpitCommandType.DISABLE_ENVIRONMENT.name(), cut.supportType());
     }
 
     @Test
@@ -127,9 +127,6 @@ class DisableEnvironmentCommandHandlerTest {
     }
 
     private DisableEnvironmentCommand aDisableEnvCommand() {
-        var payload = new DisableEnvironmentPayload();
-        payload.setCockpitId(ENV_COCKPIT_ID);
-        payload.setUserId(USER_ID);
-        return new DisableEnvironmentCommand(payload);
+        return new DisableEnvironmentCommand(DisableEnvironmentCommandPayload.builder().cockpitId(ENV_COCKPIT_ID).userId(USER_ID).build());
     }
 }

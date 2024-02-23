@@ -21,11 +21,12 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.cockpit.api.command.CommandStatus;
-import io.gravitee.cockpit.api.command.bridge.BridgeMultiReply;
-import io.gravitee.cockpit.api.command.bridge.BridgeReply;
-import io.gravitee.cockpit.api.command.bridge.BridgeSimpleReply;
+import io.gravitee.cockpit.api.command.legacy.bridge.BridgeMultiReply;
+import io.gravitee.cockpit.api.command.legacy.bridge.BridgeSimpleReply;
+import io.gravitee.cockpit.api.command.v1.bridge.BridgeReply;
+import io.gravitee.cockpit.api.command.v1.bridge.BridgeReplyPayload;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.exchange.api.command.CommandStatus;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.promotion.PromotionEntity;
 import io.gravitee.rest.api.model.promotion.PromotionTargetEntity;
@@ -64,10 +65,9 @@ public class CockpitPromotionServiceTest {
     @Test
     public void shouldNotListEnvironments() {
         // Given
-        BridgeMultiReply environmentsMultiReply = new BridgeMultiReply();
-        environmentsMultiReply.setCommandStatus(CommandStatus.ERROR);
+        BridgeReply bridgeReply = new BridgeReply("commandId", "error");
 
-        when(cockpitCommandService.send(any())).thenReturn(environmentsMultiReply);
+        when(cockpitCommandService.send(any())).thenReturn(bridgeReply);
 
         // When
         final CockpitReply<List<PromotionTargetEntity>> listCockpitReply = cockpitPromotionService.listPromotionTargets(
@@ -91,40 +91,28 @@ public class CockpitPromotionServiceTest {
         envA.setOrganizationId(ORGANIZATION_ID);
         envA.setName("ENV A");
 
-        BridgeSimpleReply envASimpleReply = new BridgeSimpleReply();
-        envASimpleReply.setCommandStatus(CommandStatus.SUCCEEDED);
-        envASimpleReply.setInstallationId(INSTALLATION_ID);
-        envASimpleReply.setOrganizationId(ORGANIZATION_ID);
-        envASimpleReply.setEnvironmentId(envA.getId());
-        envASimpleReply.setPayload(objectMapper.writeValueAsString(envA));
+        BridgeReplyPayload.BridgeReplyContent envAContent = BridgeReplyPayload.BridgeReplyContent
+            .builder()
+            .environmentId(envA.getId())
+            .installationId(INSTALLATION_ID)
+            .organizationId(ORGANIZATION_ID)
+            .content(objectMapper.writeValueAsString(envA))
+            .build();
 
         EnvironmentEntity envB = new EnvironmentEntity();
         envB.setId("my-env-B");
         envB.setOrganizationId(ORGANIZATION_ID);
         envB.setName("ENV B");
 
-        BridgeSimpleReply envBSimpleReply = new BridgeSimpleReply();
-        envBSimpleReply.setCommandStatus(CommandStatus.SUCCEEDED);
-        envBSimpleReply.setInstallationId(INSTALLATION_ID);
-        envBSimpleReply.setOrganizationId(ORGANIZATION_ID);
-        envBSimpleReply.setEnvironmentId(envB.getId());
-        envBSimpleReply.setPayload(objectMapper.writeValueAsString(envB));
+        BridgeReplyPayload.BridgeReplyContent envBContent = BridgeReplyPayload.BridgeReplyContent
+            .builder()
+            .environmentId(envB.getId())
+            .installationId(INSTALLATION_ID)
+            .organizationId(ORGANIZATION_ID)
+            .content(objectMapper.writeValueAsString(envB))
+            .build();
 
-        EnvironmentEntity envC_ERROR = new EnvironmentEntity();
-        envC_ERROR.setId("my-env-C");
-        envC_ERROR.setOrganizationId(ORGANIZATION_ID);
-        envC_ERROR.setName("ENV C");
-
-        BridgeSimpleReply envCSimpleReply = new BridgeSimpleReply();
-        envCSimpleReply.setCommandStatus(CommandStatus.ERROR);
-        envCSimpleReply.setInstallationId(INSTALLATION_ID);
-        envCSimpleReply.setOrganizationId(ORGANIZATION_ID);
-        envCSimpleReply.setEnvironmentId(envC_ERROR.getId());
-        envCSimpleReply.setMessage("Problem while serializing environment: " + envC_ERROR.getId());
-
-        BridgeMultiReply environmentsMultiReply = new BridgeMultiReply();
-        environmentsMultiReply.setCommandStatus(CommandStatus.SUCCEEDED);
-        environmentsMultiReply.setReplies(Arrays.asList(envASimpleReply, envBSimpleReply, envCSimpleReply));
+        BridgeReply environmentsMultiReply = new BridgeReply("commandId", new BridgeReplyPayload(List.of(envAContent, envBContent)));
 
         when(cockpitCommandService.send(any())).thenReturn(environmentsMultiReply);
 
@@ -145,9 +133,7 @@ public class CockpitPromotionServiceTest {
 
     @Test
     public void shouldNotProcessPromotionCommandError() {
-        BridgeReply reply = new BridgeSimpleReply();
-        reply.setCommandStatus(CommandStatus.ERROR);
-
+        BridgeReply reply = new BridgeReply("commandId", "error");
         when(cockpitCommandService.send(any())).thenReturn(reply);
 
         final CockpitReply<PromotionEntity> result = cockpitPromotionService.processPromotion(
@@ -163,9 +149,7 @@ public class CockpitPromotionServiceTest {
 
     @Test
     public void shouldProcessPromotion() {
-        BridgeReply reply = new BridgeSimpleReply();
-        reply.setCommandStatus(CommandStatus.SUCCEEDED);
-
+        BridgeReply reply = new BridgeReply("commandid", new BridgeReplyPayload(List.of()));
         when(cockpitCommandService.send(any())).thenReturn(reply);
 
         final PromotionEntity promotionEntity = new PromotionEntity();
