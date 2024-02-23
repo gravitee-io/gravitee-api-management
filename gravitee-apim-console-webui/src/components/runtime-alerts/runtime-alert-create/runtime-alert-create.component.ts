@@ -13,24 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { FormControl, FormGroup } from '@angular/forms';
+import { FormBuilder, FormGroup } from '@angular/forms';
+import { takeUntil, tap } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 
-import { Scope } from '../../../entities/alert';
+import { GeneralFormValue } from './components/runtime-alert-create-general';
+
 import { Constants } from '../../../entities/Constants';
+import { Scope } from '../../../entities/alert';
+import { Rule } from '../../../entities/alerts/rule.metrics';
 
 @Component({
   selector: 'runtime-alert-create',
   templateUrl: './runtime-alert-create.component.html',
   styleUrls: ['./runtime-alert-create.component.scss'],
 })
-export class RuntimeAlertCreateComponent {
+export class RuntimeAlertCreateComponent implements OnInit {
+  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   public referenceType: Scope = this.activatedRoute.snapshot.data.referenceType;
   public referenceId: string;
   public alertForm: FormGroup;
+  public selectedRule: Rule;
 
-  constructor(private readonly activatedRoute: ActivatedRoute, @Inject(Constants) public readonly constants: Constants) {
+  constructor(
+    private readonly activatedRoute: ActivatedRoute,
+    @Inject(Constants) public readonly constants: Constants,
+    private readonly formBuilder: FormBuilder,
+  ) {
     switch (this.referenceType) {
       case Scope.API:
         this.referenceId = this.activatedRoute.snapshot.params.apiId;
@@ -43,9 +54,18 @@ export class RuntimeAlertCreateComponent {
         break;
     }
 
-    this.alertForm = new FormGroup({
-      generalForm: new FormControl(),
-      timeframeForm: new FormControl(),
+    this.alertForm = this.formBuilder.group({
+      generalForm: [],
+      timeframeForm: [],
     });
+  }
+
+  ngOnInit(): void {
+    this.alertForm.controls.generalForm.valueChanges
+      .pipe(
+        tap((value: GeneralFormValue) => (this.selectedRule = value.rule)),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
   }
 }
