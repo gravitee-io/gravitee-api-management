@@ -23,7 +23,9 @@ export class PageMarkdownController implements ng.IComponentController, ng.IOnIn
   htmlContent: string;
 
   $onInit(): void {
-    this.htmlContent = this.$sanitize(marked.parse(this.page?.content ?? ''));
+    Promise.resolve(marked.parse(this.page?.content ?? '')).then((html) => {
+      this.htmlContent = this.$sanitize(html);
+    });
   }
 }
 PageMarkdownController.$inject = ['$sanitize'];
