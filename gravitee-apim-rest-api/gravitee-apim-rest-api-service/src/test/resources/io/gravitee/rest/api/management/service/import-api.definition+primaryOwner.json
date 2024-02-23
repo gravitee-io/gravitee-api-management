@@ -10,6 +10,15 @@
     "displayName": "johndoe-sourceId",
     "type": "USER"
   },
+  "members": [
+    {
+      "source": "source",
+      "sourceId": "id-api",
+      "roles": [
+        "API_PRIMARY_OWNER"
+      ]
+    }
+  ],
   "proxy": {
     "context_path": "/test",
     "endpoints": [
