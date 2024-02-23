@@ -589,7 +589,7 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     ) {
         if (
             futurePo != null &&
-            !(currentPo.getSource().equals(futurePo.getSource()) && currentPo.getSourceId().equals(futurePo.getSourceId()))
+            !(futurePo.getSource().equals(currentPo.getSource()) && futurePo.getSourceId().equals(currentPo.getSourceId()))
         ) {
             try {
                 UserEntity userEntity = userService.findBySource(
