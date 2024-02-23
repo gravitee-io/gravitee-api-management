@@ -17,6 +17,8 @@ import { Visibility } from './visibility';
 
 const CreateDocumentationTypeEnum = {
   MARKDOWN: 'MARKDOWN',
+  SWAGGER: 'SWAGGER',
+  ASYNCAPI: 'ASYNCAPI',
   FOLDER: 'FOLDER',
 } as const;
 export type CreateDocumentationType = (typeof CreateDocumentationTypeEnum)[keyof typeof CreateDocumentationTypeEnum];
@@ -36,4 +38,18 @@ export interface CreateDocumentationMarkdown extends BaseCreateDocumentation {
   homepage?: boolean;
 }
 
-export type CreateDocumentation = ({ type: 'FOLDER' } & CreateDocumentationFolder) | ({ type: 'MARKDOWN' } & CreateDocumentationMarkdown);
+export interface CreateDocumentationSwagger extends BaseCreateDocumentation {
+  content?: string;
+  homepage?: boolean;
+}
+
+export interface CreateDocumentationAsyncApi extends BaseCreateDocumentation {
+  content?: string;
+  homepage?: boolean;
+}
+
+export type CreateDocumentation =
+  | ({ type: 'FOLDER' } & CreateDocumentationFolder)
+  | ({ type: 'MARKDOWN' } & CreateDocumentationMarkdown)
+  | ({ type: 'SWAGGER' } & CreateDocumentationSwagger)
+  | ({ type: 'ASYNCAPI' } & CreateDocumentationAsyncApi);
