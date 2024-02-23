@@ -1,0 +1,119 @@
+{
+    "name": "echo-v2",
+    "version": "1.0",
+    "execution_mode": "v4-emulation-engine",
+    "description": "Echo API to test access to SSL attributes",
+    "visibility": "PRIVATE",
+    "flows": [],
+    "gravitee": "2.0.0",
+    "flow_mode": "DEFAULT",
+    "resources": [],
+    "properties": [],
+    "plans": [
+        {
+            "name": "Free",
+            "description": "free",
+            "validation": "AUTO",
+            "security": "KEY_LESS",
+            "type": "API",
+            "status": "PUBLISHED",
+            "order": 0,
+            "characteristics": [],
+            "tags": [],
+            "paths": {},
+            "comment_required": false,
+            "flows": [
+                {
+                    "id": "122fec58-946a-4049-afec-58946ab049d6",
+                    "name": "",
+                    "path-operator": {
+                        "path": "/",
+                        "operator": "STARTS_WITH"
+                    },
+                    "condition": "",
+                    "consumers": [],
+                    "methods": [],
+                    "pre": [
+                        {
+                            "name": "SSL Enforcement",
+                            "description": "",
+                            "enabled": true,
+                            "policy": "ssl-enforcement",
+                            "configuration": {
+                                "requiresClientAuthentication": true,
+                                "requiresSsl": true,
+                                "whitelistClientCertificates": [
+                                    "C=FR,ST=France,L=Lille,O=GraviteeSource,OU=Demo,CN=nginx,EMAILADDRESS=nginx@graviteesource.com",
+                                    "C=FR,ST=France,L=Lille,O=GraviteeSource,OU=Demo,CN=localhost,EMAILADDRESS=client@graviteesource.com"
+                                ],
+                                "certificateLocation": "HEADER",
+                                "certificateHeaderName": "X-SSL-CERT"
+                            }
+                        },
+                        {
+                            "name": "Mock",
+                            "description": "",
+                            "enabled": true,
+                            "policy": "mock",
+                            "configuration": {
+                                "content": "{\n  \"#request.ssl.client.attributes['oU']\": \"{#request.ssl.client.attributes['ou']}\",\n  \"#request.ssl.client.dn\": \"{#request.ssl.client.dn}\",\n  \"#request.ssl.server.attributes['Ou']\": \"{#request.ssl.server.attributes['ou']}\",\n  \"#request.ssl.server.dn\": \"{#request.ssl.server.dn}\"\n}",
+                                "status": "200"
+                            }
+                        }
+                    ],
+                    "post": [],
+                    "enabled": true
+                }
+            ]
+        }
+    ],
+    "path_mappings": [],
+    "proxy": {
+        "virtual_hosts": [
+            {
+                "path": "/echo-v2"
+            }
+        ],
+        "strip_context_path": false,
+        "preserve_host": false,
+        "logging": {
+            "mode": "CLIENT_PROXY",
+            "content": "HEADERS_PAYLOADS",
+            "scope": "REQUEST_RESPONSE"
+        },
+        "groups": [
+            {
+                "name": "default-group",
+                "endpoints": [
+                    {
+                        "name": "default",
+                        "target": "https://api.gravitee.io/echo",
+                        "weight": 1,
+                        "backup": false,
+                        "status": "UP",
+                        "type": "HTTP",
+                        "inherit": true,
+                        "proxy": null,
+                        "http": null,
+                        "ssl": null
+                    }
+                ],
+                "load_balancing": {
+                    "type": "ROUND_ROBIN"
+                },
+                "http": {
+                    "connectTimeout": 5000,
+                    "idleTimeout": 60000,
+                    "keepAlive": true,
+                    "readTimeout": 10000,
+                    "pipelining": false,
+                    "maxConcurrentConnections": 100,
+                    "useCompression": true,
+                    "followRedirects": false
+                }
+            }
+        ]
+    },
+    "response_templates": {},
+    "primaryOwner": {}
+}

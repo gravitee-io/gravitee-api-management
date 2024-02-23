@@ -32,6 +32,7 @@ gravitee-**-webui/node/
 .working/
 # used in makefile for docker-compose quick setups
 docker/quick-setup/**/.data
+docker/quick-setup/**/.certificates
 docker/quick-setup/**/.plugins
 docker/quick-setup/**/.license
 docker/quick-setup/**/.driver
