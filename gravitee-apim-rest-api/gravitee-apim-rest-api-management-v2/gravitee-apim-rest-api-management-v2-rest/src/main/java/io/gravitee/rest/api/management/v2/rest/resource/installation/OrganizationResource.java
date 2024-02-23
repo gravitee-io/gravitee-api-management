@@ -76,6 +76,7 @@ public class OrganizationResource extends AbstractResource {
                 .packs(license.getPacks())
                 .features(license.getFeatures())
                 .expiresAt(license.getExpirationDate())
+                .isExpired(license.isExpired())
                 .scope(license.getReferenceType())
                 .build()
         );

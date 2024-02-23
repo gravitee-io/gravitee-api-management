@@ -18,5 +18,6 @@ export type License = {
   packs: Array<string>;
   features: Array<string>;
   expiresAt?: Date;
+  isExpired?: boolean;
   scope?: string;
 };

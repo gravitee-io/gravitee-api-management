@@ -122,6 +122,10 @@ components:
                     format: date-time
                     description: The date (as timestamp) when the license will expire.
                     example: 1581256457163
+                isExpired:
+                    type: boolean
+                    description: If the license is expired.
+                    example: false
                 scope:
                     type: string
                     description: The scope of the license.
