@@ -27,11 +27,11 @@ export class RuntimeAlertCreateGeneralHarness extends ComponentHarness {
   private getSeveritySelect = this.locatorFor(MatSelectHarness.with({ selector: '[formControlName="severity"]' }));
   private getDescriptionInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="description"]' }));
 
-  public setName(name: string) {
+  public async setName(name: string) {
     return this.getNameInput().then((input) => input.setValue(name));
   }
 
-  public getRulesOptions(): Promise<string[]> {
+  public async getRulesOptions(): Promise<string[]> {
     return this.getRuleSelect().then(async (select) => {
       await select.open();
 
@@ -40,11 +40,11 @@ export class RuntimeAlertCreateGeneralHarness extends ComponentHarness {
     });
   }
 
-  public selectRule(rule: string) {
+  public async selectRule(rule: string) {
     return this.getRuleSelect().then((select) => select.clickOptions({ text: rule }));
   }
 
-  public getSeverityOptions(): Promise<string[]> {
+  public async getSeverityOptions(): Promise<string[]> {
     return this.getSeveritySelect().then(async (select) => {
       await select.open();
 
@@ -53,15 +53,15 @@ export class RuntimeAlertCreateGeneralHarness extends ComponentHarness {
     });
   }
 
-  public selectSeverity(severity: string) {
+  public async selectSeverity(severity: string) {
     return this.getSeveritySelect().then((select) => select.clickOptions({ text: severity }));
   }
 
-  public setDescription(name: string) {
+  public async setDescription(name: string) {
     return this.getDescriptionInput().then((input) => input.setValue(name));
   }
 
-  public toggleEnabled() {
+  public async toggleEnabled() {
     return this.getEnabledSlide().then((slide) => slide.toggle());
   }
 }

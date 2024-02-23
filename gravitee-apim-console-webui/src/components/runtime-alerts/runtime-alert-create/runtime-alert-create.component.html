@@ -56,7 +56,7 @@
           ></runtime-alert-create-general>
         </div>
         <div class="create-alert__timeframe-form">
-          <h3>Timeframe</h3>
+          <runtime-alert-create-timeframe formControlName="timeframeForm"></runtime-alert-create-timeframe>
         </div>
         <div class="create-alert__condition-form">
           <h3>Condition</h3>
@@ -67,4 +67,6 @@
       </div>
     </form>
   </mat-card-content>
+
+  {{ alertForm.getRawValue() | json }}
 </mat-card>
