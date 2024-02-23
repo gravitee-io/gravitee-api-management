@@ -16,7 +16,7 @@
     "@angular/router": "17.2.2",
     "@angular/upgrade": "17.2.2",
     "@asciidoctor/core": "3.0.4",
-    "@asyncapi/web-component": "1.2.23",
+    "@asyncapi/web-component": "1.2.26",
     "@danielmoncada/angular-datetime-picker": "17.0.0",
     "@danielmoncada/angular-datetime-picker-moment-adapter": "4.0.0",
     "@fontsource/libre-franklin": "4.4.5",
@@ -77,6 +77,8 @@
     "oidc-client-ts": "2.4.0",
     "prismjs": "1.29.0",
     "rxjs": "6.6.7",
+    "react": "17.0.2",
+    "react-dom": "17.0.2",
     "swagger-ui": "5.11.7",
     "tinycolor2": "1.4.2",
     "unicode": "11.0.1",
@@ -124,10 +126,15 @@
     "jest-preset-angular": "14.0.3",
     "license-check-and-add": "4.0.5",
     "prettier": "3.2.5",
-    "react": "17.0.2",
-    "react-dom": "17.0.2",
     "storybook": "7.6.17",
     "typescript": "5.3.3"
+  },
+  "overrides": {
+    "swagger-ui": {
+      "react": "$react",
+      "react": "$react-dom",
+      "react-redux": "^8"
+    }
   },
   "engines": {
     "node": "^18.10",
