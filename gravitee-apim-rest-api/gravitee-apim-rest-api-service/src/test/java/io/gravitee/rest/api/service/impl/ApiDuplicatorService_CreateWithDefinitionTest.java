@@ -387,6 +387,41 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         user.setId("user");
         user.setSource(SOURCE);
         user.setSourceId(API_ID);
+        when(userService.findBySource(GraviteeContext.getExecutionContext(), user.getSource(), user.getSourceId(), false)).thenReturn(user);
+
+        RoleEntity poRoleEntity = new RoleEntity();
+        poRoleEntity.setId("API_PRIMARY_OWNER");
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), eq(RoleScope.API))).thenReturn(poRoleEntity);
+
+        apiDuplicatorService.createWithImportedDefinition(GraviteeContext.getExecutionContext(), toBeImport);
+
+        verify(apiService, times(1)).createWithApiDefinition(eq(GraviteeContext.getExecutionContext()), any(), eq("admin"), any());
+        verify(pageService, times(1)).createAsideFolder(eq(GraviteeContext.getExecutionContext()), eq(API_ID));
+    }
+
+    @Test
+    public void shouldCreateImportApiWithOnlyDefinitionWithPrimaryOwnerGroup() throws IOException {
+        URL url = Resources.getResource("io/gravitee/rest/api/management/service/import-api.definition+primaryOwnerGroup.json");
+        String toBeImport = Resources.toString(url, Charsets.UTF_8);
+        ApiEntity apiEntity = new ApiEntity();
+        Api api = new Api();
+        api.setId(API_ID);
+        apiEntity.setId(API_ID);
+        when(apiService.createWithApiDefinition(eq(GraviteeContext.getExecutionContext()), any(), any(), any())).thenReturn(apiEntity);
+
+        UserEntity admin = new UserEntity();
+        admin.setId("admin");
+        admin.setSource(SOURCE);
+        admin.setSourceId(API_ID);
+        UserEntity user = new UserEntity();
+        user.setId("user");
+        user.setSource(SOURCE);
+        user.setSourceId(API_ID);
+        when(userService.findBySource(GraviteeContext.getExecutionContext(), user.getSource(), user.getSourceId(), false)).thenReturn(user);
+
+        RoleEntity poRoleEntity = new RoleEntity();
+        poRoleEntity.setId("API_PRIMARY_OWNER");
+        when(roleService.findPrimaryOwnerRoleByOrganization(any(), eq(RoleScope.API))).thenReturn(poRoleEntity);
 
         apiDuplicatorService.createWithImportedDefinition(GraviteeContext.getExecutionContext(), toBeImport);
 
