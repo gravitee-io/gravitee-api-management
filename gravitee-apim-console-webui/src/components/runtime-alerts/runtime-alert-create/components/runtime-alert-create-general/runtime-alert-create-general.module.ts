@@ -14,27 +14,28 @@
  * limitations under the License.
  */
 import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
-import { RouterModule } from '@angular/router';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { GioFormSlideToggleModule } from '@gravitee/ui-particles-angular';
+import { MatSelectModule } from '@angular/material/select';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatInputModule } from '@angular/material/input';
 
-import { RuntimeAlertCreateComponent } from './runtime-alert-create.component';
-import { RuntimeAlertCreateGeneralModule } from './components/runtime-alert-create-general/runtime-alert-create-general.module';
-
-import { GioGoBackButtonModule } from '../../../shared/components/gio-go-back-button/gio-go-back-button.module';
+import { RuntimeAlertCreateGeneralComponent } from './runtime-alert-create-general.component';
 
 @NgModule({
-  declarations: [RuntimeAlertCreateComponent],
-  exports: [RuntimeAlertCreateComponent],
+  declarations: [RuntimeAlertCreateGeneralComponent],
+  exports: [RuntimeAlertCreateGeneralComponent],
   imports: [
     CommonModule,
-    MatCardModule,
     FormsModule,
     ReactiveFormsModule,
-    RouterModule,
-    GioGoBackButtonModule,
-    RuntimeAlertCreateGeneralModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatSlideToggleModule,
+    GioFormSlideToggleModule,
   ],
 })
-export class RuntimeAlertCreateModule {}
+export class RuntimeAlertCreateGeneralModule {}

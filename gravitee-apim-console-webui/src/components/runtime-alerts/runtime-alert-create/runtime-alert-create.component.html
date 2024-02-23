@@ -1,1 +1,70 @@
-<p>Runtime alert create works</p>
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<mat-card>
+  <mat-card-header>
+    <div class="create-alert__header">
+      <div>
+        <mat-card-title>Create a new alert</mat-card-title>
+        <mat-card-subtitle>
+          Configure your own alerts. Be alerted by email when the HC status changed or when the quota reached a percent rate. You can find
+          examples in the Gravitee documentation to configure
+          <a
+            href="https://documentation.gravitee.io/apim/getting-started/configuration/configure-alerts-and-notifications#configure-notifications-for-your-apis"
+            aria-label="learn more"
+            rel="noopener"
+            target="_blank"
+            >notifications</a
+          >
+          or
+          <a
+            href="https://documentation.gravitee.io/apim/getting-started/configuration/configure-alerts-and-notifications#configure-alerts"
+            aria-label="learn more"
+            rel="noopener"
+            target="_blank"
+            >alerts</a
+          >
+        </mat-card-subtitle>
+      </div>
+      <div>
+        <gio-go-back-button routerLink="../"></gio-go-back-button>
+      </div>
+    </div>
+  </mat-card-header>
+  <mat-card-content>
+    <form [formGroup]="alertForm">
+      <div class="create-alert__forms">
+        <div class="create-alert__general-form">
+          <runtime-alert-create-general
+            *ngIf="referenceType != null"
+            [referenceType]="referenceType"
+            formControlName="generalForm"
+          ></runtime-alert-create-general>
+        </div>
+        <div class="create-alert__timeframe-form">
+          <h3>Timeframe</h3>
+        </div>
+        <div class="create-alert__condition-form">
+          <h3>Condition</h3>
+        </div>
+        <div class="create-alert__filters-form">
+          <h3>Filters</h3>
+        </div>
+      </div>
+    </form>
+  </mat-card-content>
+</mat-card>

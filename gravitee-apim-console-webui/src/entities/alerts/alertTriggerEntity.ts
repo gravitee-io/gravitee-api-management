@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export type AlertReferenceType = 'API' | 'APPLICATION' | 'ENVIRONMENT';
 
-export type AlertSeverity = 'INFO' | 'WARNING' | 'CRITICAL';
+import { Scope } from '../alert';
+
+export const ALERT_SEVERITIES = ['INFO', 'WARNING', 'CRITICAL'] as const;
+export type AlertSeverity = (typeof ALERT_SEVERITIES)[number];
 
 export interface AlertEventRuleEntity {
   event: string;
@@ -23,7 +25,7 @@ export interface AlertEventRuleEntity {
 
 export interface AlertTriggerEntity {
   description: string;
-  reference_type: AlertReferenceType;
+  reference_type: Scope;
   referenceId: string;
   created_at: Date;
   updated_at: Date;

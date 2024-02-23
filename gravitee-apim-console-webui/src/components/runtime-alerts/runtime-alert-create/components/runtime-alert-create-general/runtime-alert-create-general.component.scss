@@ -1,0 +1,22 @@
+.form {
+  &__row {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    gap: 2%;
+  }
+
+  &__enabled-form-field {
+    margin: 0 auto;
+  }
+
+  &__name-form-field,
+  &__rules-form-field,
+  &__severity-form-field {
+    width: 49%;
+  }
+
+  &__description-form-field {
+    width: 100%;
+  }
+}

@@ -13,6 +13,4 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './runtime-alert-list';
-export * from './runtime-alert-list-empty-state';
-export * from './runtime-alert-create';
+export * from './runtime-alert-create-general.component';
