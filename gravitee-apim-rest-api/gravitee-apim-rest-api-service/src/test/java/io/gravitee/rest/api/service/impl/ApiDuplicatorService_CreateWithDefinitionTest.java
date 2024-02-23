@@ -468,7 +468,13 @@ public class ApiDuplicatorService_CreateWithDefinitionTest {
         RoleEntity poRoleEntity = new RoleEntity();
         poRoleEntity.setId(PO_ROLE_ID);
         poRoleEntity.setScope(RoleScope.API);
+
         when(roleService.findPrimaryOwnerRoleByOrganization(any(), eq(RoleScope.API))).thenReturn(poRoleEntity);
+
+        when(roleService.findByScopeAndName(eq(RoleScope.API), eq("USER"), eq(GraviteeContext.getExecutionContext().getOrganizationId())))
+            .thenReturn(Optional.of(poRoleEntity));
+
+        when(userService.findBySource(any(), any(), any(), eq(false))).thenReturn(admin);
 
         when(apiIdsCalculatorService.recalculateApiDefinitionIds(any(), any())).then(AdditionalAnswers.returnsSecondArg());
 
