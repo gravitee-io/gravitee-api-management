@@ -142,7 +142,7 @@ export class GioTableWrapperComponent implements AfterViewInit, OnChanges {
       this.inputSearch.valueChanges,
       this.paginatorBottom.page,
       this.paginatorTop.page,
-      this.sort?.sortChange ?? of(),
+      this.sort?.sortChange ?? of({}),
     )
       .pipe(
         map(() => {

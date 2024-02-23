@@ -31,7 +31,7 @@ import { EnvironmentSettingsService } from '../../services-ngx/environment-setti
   styleUrls: ['./gio-top-nav.component.scss'],
 })
 export class GioTopNavComponent implements OnInit, OnDestroy {
-  private unsubscribe$ = new Subject();
+  private unsubscribe$ = new Subject<void>();
 
   @Input()
   displayContextualDocumentationButton = false;

@@ -49,7 +49,7 @@ class TaskData {
   styleUrls: ['./tasks.component.scss'],
 })
 export class TasksComponent implements OnInit, OnDestroy {
-  private unsubscribe$ = new Subject();
+  private unsubscribe$ = new Subject<void>();
   tasks: PagedResult<Task>;
   data: TaskData[];
   loading = false;

@@ -27,7 +27,7 @@ export class PolicyStudioDebugTimelineHoverComponent implements OnInit, OnDestro
   @Input()
   public timelineHover: string;
 
-  private unsubscribe$ = new Subject();
+  private unsubscribe$ = new Subject<void>();
 
   constructor(
     private readonly renderer: Renderer2,

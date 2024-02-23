@@ -50,7 +50,7 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
   public subMenuItems: MenuItem[] = [];
   public hasBreadcrumb = false;
   public selectedItemWithTabs: MenuItem = undefined;
-  private unsubscribe$ = new Subject();
+  private unsubscribe$ = new Subject<void>();
 
   constructor(
     private readonly router: Router,

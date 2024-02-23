@@ -29,7 +29,7 @@ import { ClientRegistrationProvider } from '../../../../entities/client-registra
   styleUrls: ['./client-registration-provider.component.scss'],
 })
 export class ClientRegistrationProviderComponent implements OnInit, OnDestroy {
-  private unsubscribe$ = new Subject();
+  private unsubscribe$ = new Subject<void>();
   public updateMode: boolean;
   public providerForm: UntypedFormGroup;
   public initialAccessTokenTypes: { name: string; value: ClientRegistrationProvider['initial_access_token_type'] }[] = [
