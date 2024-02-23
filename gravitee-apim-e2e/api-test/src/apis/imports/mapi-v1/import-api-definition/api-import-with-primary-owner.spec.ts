@@ -15,14 +15,18 @@
  */
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
 import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
-import { forManagementAsAdminUser, forManagementAsSimpleUser } from '@gravitee/utils/configuration';
+import { forManagementAsAdminUser, forManagementAsApiUser, forManagementAsSimpleUser } from '@gravitee/utils/configuration';
 import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 import { CurrentUserApi } from '@gravitee/management-webclient-sdk/src/lib/apis/CurrentUserApi';
 import { UserDetails } from '@gravitee/management-webclient-sdk/src/lib/models/UserDetails';
 import { created, succeed } from '@lib/jest-utils';
 import { GroupsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/GroupsApi';
+import { GroupMembershipsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/GroupMembershipsApi';
 import { GroupsFaker } from '@gravitee/fixtures/management/GroupsFaker';
 import { GroupEntity } from '@gravitee/management-webclient-sdk/src/lib/models/GroupEntity';
+import { MemberRoleEntityFromJSON, SearchableUser } from '../../../lib/management-webclient-sdk/src/lib/models';
+import { UsersApi } from '../../../lib/management-webclient-sdk/src/lib/apis/UsersApi';
+import { find } from 'lodash';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
@@ -30,6 +34,8 @@ const envId = 'DEFAULT';
 const apisResourceAsAdminUser = new APIsApi(forManagementAsAdminUser());
 const groupsResourceAsAdminUser = new GroupsApi(forManagementAsAdminUser());
 const currentUserResourceAsSimpleUser = new CurrentUserApi(forManagementAsSimpleUser());
+const groupMembershipsApi = new GroupMembershipsApi(forManagementAsAdminUser());
+const usersResourceAsApiUser = new UsersApi(forManagementAsApiUser());
 
 describe('API - Imports with primary owner', () => {
   describe('Create API with primary owner of type "USER", already existing with same id', () => {
@@ -122,6 +128,33 @@ describe('API - Imports with primary owner', () => {
       expect(createdGroup).toBeTruthy();
       expect(createdGroup.name).toStrictEqual('R&D');
       expect(createdGroup.id).toBeDefined();
+    });
+
+    test('should add a primary owner in the group', async () => {
+      // get user member
+      const users: SearchableUser[] = await usersResourceAsApiUser.searchUsers({
+        envId,
+        orgId,
+        q: process.env.ADMIN_USERNAME,
+      });
+      const userMember = find(users, (user) => user.displayName === process.env.ADMIN_USERNAME);
+
+      // add member user to the group
+      await groupMembershipsApi.addOrUpdateGroupMember({
+        envId,
+        orgId,
+        group: createdGroup.id,
+        groupMembership: [
+          {
+            id: userMember.id,
+            reference: userMember.reference,
+            roles: [
+              { scope: 'API', name: 'PRIMARY_OWNER' },
+              { scope: 'APPLICATION', name: 'USER' },
+            ].map(MemberRoleEntityFromJSON),
+          },
+        ],
+      });
     });
 
     test('should create an API with the "R&D" group as a primary owner, omitting to use the display name', async () => {
