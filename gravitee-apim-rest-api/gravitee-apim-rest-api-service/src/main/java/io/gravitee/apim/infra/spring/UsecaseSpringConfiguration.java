@@ -22,11 +22,13 @@ import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.DeployApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
+import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiHostsDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.query_service.ApiEventQueryService;
 import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
+import io.gravitee.apim.core.api.use_case.CreateV4ApiUseCase;
 import io.gravitee.apim.core.api.use_case.GetApiMetadataUseCase;
 import io.gravitee.apim.core.api.use_case.ImportCRDUseCase;
 import io.gravitee.apim.core.api.use_case.UpdateDynamicPropertiesUseCase;
@@ -71,6 +73,7 @@ import io.gravitee.apim.core.log.crud_service.MessageLogCrudService;
 import io.gravitee.apim.core.log.use_case.SearchConnectionLogUseCase;
 import io.gravitee.apim.core.log.use_case.SearchConnectionLogsUseCase;
 import io.gravitee.apim.core.log.use_case.SearchMessageLogsUseCase;
+import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
 import io.gravitee.apim.core.parameters.domain_service.ParametersDomainService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
@@ -417,5 +420,14 @@ public class UsecaseSpringConfiguration {
     @Bean
     public GetApiMetadataUseCase getApiMetadataUseCase(ApiCrudService apiCrudService, ApiMetadataQueryService apiMetadataQueryService) {
         return new GetApiMetadataUseCase(apiCrudService, apiMetadataQueryService);
+    }
+
+    @Bean
+    CreateV4ApiUseCase createV4ApiUseCase(
+        ValidateApiDomainService validateApiDomainService,
+        ApiPrimaryOwnerFactory apiPrimaryOwnerFactory,
+        CreateApiDomainService createApiDomainService
+    ) {
+        return new CreateV4ApiUseCase(validateApiDomainService, apiPrimaryOwnerFactory, createApiDomainService);
     }
 }

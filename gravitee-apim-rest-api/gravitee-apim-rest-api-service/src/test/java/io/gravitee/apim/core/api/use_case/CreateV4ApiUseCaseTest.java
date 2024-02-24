@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.api.domain_service;
+package io.gravitee.apim.core.api.use_case;
 
 import static fixtures.core.model.RoleFixtures.apiPrimaryOwnerRoleId;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -22,9 +22,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.AuditInfoFixtures;
-import fixtures.definition.ApiDefinitionFixtures;
+import fixtures.core.model.NewApiFixtures;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiMetadataQueryServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
@@ -40,6 +39,14 @@ import inmemory.ParametersQueryServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import inmemory.WorkflowCrudServiceInMemory;
+import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
+import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
+import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
+import io.gravitee.apim.core.api.domain_service.CreateApiDomainServiceImpl;
+import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
+import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api.model.ApiWithFlows;
+import io.gravitee.apim.core.api.use_case.CreateV4ApiUseCase.Input;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -59,7 +66,6 @@ import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.core.workflow.model.Workflow;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
-import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;
 import io.gravitee.repository.management.model.Parameter;
@@ -85,10 +91,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
-class CreateApiDomainServiceTest {
+class CreateV4ApiUseCaseTest {
 
     private static final Instant INSTANT_NOW = Instant.parse("2023-10-22T10:15:30Z");
-    private static final String API_ID = "my-api";
     private static final String ORGANIZATION_ID = "organization-id";
     private static final String ENVIRONMENT_ID = "environment-id";
     private static final String USER_ID = "user-id";
@@ -111,7 +116,7 @@ class CreateApiDomainServiceTest {
     WorkflowCrudServiceInMemory workflowCrudService = new WorkflowCrudServiceInMemory();
     IndexerInMemory indexer = new IndexerInMemory();
 
-    CreateApiDomainServiceImpl service;
+    CreateV4ApiUseCase useCase;
 
     @BeforeAll
     static void beforeAll() {
@@ -132,37 +137,38 @@ class CreateApiDomainServiceTest {
         var metadataQueryService = new ApiMetadataQueryServiceInMemory(metadataCrudService);
         var membershipQueryService = new MembershipQueryServiceInMemory(membershipCrudService);
         var auditService = new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor());
+        var apiPrimaryOwnerFactory = new ApiPrimaryOwnerFactory(
+            groupQueryService,
+            membershipQueryService,
+            parametersQueryService,
+            roleQueryService,
+            userCrudService
+        );
 
-        service =
-            new CreateApiDomainServiceImpl(
-                validateApiDomainService,
-                apiCrudService,
+        var createApiDomainService = new CreateApiDomainServiceImpl(
+            validateApiDomainService,
+            apiCrudService,
+            auditService,
+            new ApiIndexerDomainService(
+                new ApiMetadataDecoderDomainService(metadataQueryService, new FreemarkerTemplateProcessor()),
+                indexer
+            ),
+            new ApiMetadataDomainService(metadataCrudService, auditService),
+            apiPrimaryOwnerFactory,
+            new ApiPrimaryOwnerDomainService(
                 auditService,
-                new ApiIndexerDomainService(
-                    new ApiMetadataDecoderDomainService(metadataQueryService, new FreemarkerTemplateProcessor()),
-                    indexer
-                ),
-                new ApiMetadataDomainService(metadataCrudService, auditService),
-                new ApiPrimaryOwnerFactory(
-                    groupQueryService,
-                    membershipQueryService,
-                    parametersQueryService,
-                    roleQueryService,
-                    userCrudService
-                ),
-                new ApiPrimaryOwnerDomainService(
-                    auditService,
-                    groupQueryService,
-                    membershipCrudService,
-                    membershipQueryService,
-                    roleQueryService,
-                    userCrudService
-                ),
-                flowCrudService,
-                notificationConfigCrudService,
-                parametersQueryService,
-                workflowCrudService
-            );
+                groupQueryService,
+                membershipCrudService,
+                membershipQueryService,
+                roleQueryService,
+                userCrudService
+            ),
+            flowCrudService,
+            notificationConfigCrudService,
+            parametersQueryService,
+            workflowCrudService
+        );
+        useCase = new CreateV4ApiUseCase(validateApiDomainService, apiPrimaryOwnerFactory, createApiDomainService);
 
         when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any()))
             .thenAnswer(invocation -> invocation.getArgument(0));
@@ -197,34 +203,58 @@ class CreateApiDomainServiceTest {
         // Given
         when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any()))
             .thenThrow(new ValidationDomainException("Definition version is unsupported, should be V4 or higher"));
-        var api = ApiFixtures.aProxyApiV4().toBuilder().definitionVersion(DefinitionVersion.V2).build();
+        var newApi = NewApiFixtures.aProxyApiV4();
 
         // When
-        var throwable = catchThrowable(() -> service.create(api, AUDIT_INFO));
+        var throwable = catchThrowable(() -> useCase.execute(new Input(newApi, AUDIT_INFO)));
 
         // Then
         assertThat(throwable).isInstanceOf(ValidationDomainException.class);
     }
 
     @Test
-    void should_create_api() {
+    void should_create_and_index_a_new_api() {
         // Given
-        var api = ApiFixtures.aProxyApiV4();
+        var newApi = NewApiFixtures.aProxyApiV4();
 
         // When
-        var createdApi = service.create(api, AUDIT_INFO);
+        var output = useCase.execute(new Input(newApi, AUDIT_INFO));
 
         // Then
-        assertThat(apiCrudService.storage()).contains(createdApi.toApi());
+        var expectedApi = newApi
+            .toApi()
+            .toBuilder()
+            .id("generated-id")
+            .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+            .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+            .environmentId(ENVIRONMENT_ID)
+            .apiLifecycleState(Api.ApiLifecycleState.CREATED)
+            .lifecycleState(Api.LifecycleState.STOPPED)
+            .visibility(Api.Visibility.PRIVATE)
+            .apiDefinitionV4(newApi.toApiDefinition().toBuilder().id("generated-id").build())
+            .build();
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(output.api()).isEqualTo(new ApiWithFlows(expectedApi, newApi.getFlows()));
+            soft.assertThat(apiCrudService.storage()).contains(expectedApi);
+            soft
+                .assertThat(indexer.storage())
+                .containsExactly(
+                    new IndexableApi(
+                        expectedApi,
+                        new PrimaryOwnerEntity(USER_ID, "jane.doe@gravitee.io", "Jane Doe", PrimaryOwnerEntity.Type.USER),
+                        Map.ofEntries(Map.entry("email-support", "jane.doe@gravitee.io"))
+                    )
+                );
+        });
     }
 
     @Test
     void should_create_an_audit() {
         // Given
-        var api = ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault())).build();
+        var newApi = NewApiFixtures.aProxyApiV4();
 
         // When
-        service.create(api, AUDIT_INFO);
+        useCase.execute(new Input(newApi, AUDIT_INFO));
 
         // Then
         assertThat(auditCrudService.storage())
@@ -237,7 +267,7 @@ class CreateApiDomainServiceTest {
                     .organizationId(ORGANIZATION_ID)
                     .environmentId(ENVIRONMENT_ID)
                     .referenceType(AuditEntity.AuditReferenceType.API)
-                    .referenceId(API_ID)
+                    .referenceId("generated-id")
                     .user(USER_ID)
                     .properties(Collections.emptyMap())
                     .event(ApiAuditEvent.API_CREATED.name())
@@ -250,7 +280,7 @@ class CreateApiDomainServiceTest {
                     .organizationId(ORGANIZATION_ID)
                     .environmentId(ENVIRONMENT_ID)
                     .referenceType(AuditEntity.AuditReferenceType.API)
-                    .referenceId(API_ID)
+                    .referenceId("generated-id")
                     .user(USER_ID)
                     .properties(Map.of("USER", USER_ID))
                     .event(MembershipAuditEvent.MEMBERSHIP_CREATED.name())
@@ -263,7 +293,7 @@ class CreateApiDomainServiceTest {
                     .organizationId(ORGANIZATION_ID)
                     .environmentId(ENVIRONMENT_ID)
                     .referenceType(AuditEntity.AuditReferenceType.API)
-                    .referenceId(API_ID)
+                    .referenceId("generated-id")
                     .user(USER_ID)
                     .properties(Map.of("METADATA", "email-support"))
                     .event(ApiAuditEvent.METADATA_CREATED.name())
@@ -277,10 +307,10 @@ class CreateApiDomainServiceTest {
     void should_create_primary_owner_membership_when_user_or_hybrid_mode_is_enabled(ApiPrimaryOwnerMode mode) {
         // Given
         enableApiPrimaryOwnerMode(mode);
-        var api = ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault())).build();
+        var newApi = NewApiFixtures.aProxyApiV4();
 
         // When
-        service.create(api, AUDIT_INFO);
+        useCase.execute(new Input(newApi, AUDIT_INFO));
 
         // Then
         assertThat(membershipCrudService.storage())
@@ -291,7 +321,7 @@ class CreateApiDomainServiceTest {
                     .roleId(apiPrimaryOwnerRoleId(ORGANIZATION_ID))
                     .memberId(USER_ID)
                     .memberType(Membership.Type.USER)
-                    .referenceId(API_ID)
+                    .referenceId("generated-id")
                     .referenceType(Membership.ReferenceType.API)
                     .source("system")
                     .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
@@ -317,11 +347,10 @@ class CreateApiDomainServiceTest {
                     .build()
             )
         );
-
-        var api = ApiFixtures.aProxyApiV4().toBuilder().id(API_ID).createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault())).build();
+        var newApi = NewApiFixtures.aProxyApiV4();
 
         // When
-        service.create(api, AUDIT_INFO);
+        useCase.execute(new Input(newApi, AUDIT_INFO));
 
         // Then
         assertThat(membershipCrudService.storage())
@@ -332,7 +361,7 @@ class CreateApiDomainServiceTest {
                     .roleId(apiPrimaryOwnerRoleId(ORGANIZATION_ID))
                     .memberId(GROUP_ID)
                     .memberType(Membership.Type.GROUP)
-                    .referenceId(API_ID)
+                    .referenceId("generated-id")
                     .referenceType(Membership.ReferenceType.API)
                     .source("system")
                     .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
@@ -344,10 +373,10 @@ class CreateApiDomainServiceTest {
     @Test
     void should_create_default_email_notification_configuration() {
         // Given
-        var api = ApiFixtures.aProxyApiV4();
+        var newApi = NewApiFixtures.aProxyApiV4();
 
         // When
-        service.create(api, AUDIT_INFO);
+        useCase.execute(new Input(newApi, AUDIT_INFO));
 
         // Then
         assertThat(notificationConfigCrudService.storage())
@@ -358,7 +387,7 @@ class CreateApiDomainServiceTest {
                     .type(NotificationConfig.Type.GENERIC)
                     .name("Default Mail Notifications")
                     .referenceType("API")
-                    .referenceId(API_ID)
+                    .referenceId("generated-id")
                     .hooks(
                         List.of(
                             "APIKEY_EXPIRED",
@@ -396,10 +425,10 @@ class CreateApiDomainServiceTest {
     @Test
     void should_create_default_api_metadata() {
         // Given
-        var api = ApiFixtures.aProxyApiV4();
+        var newApi = NewApiFixtures.aProxyApiV4();
 
         // When
-        service.create(api, AUDIT_INFO);
+        useCase.execute(new Input(newApi, AUDIT_INFO));
 
         // Then
         assertThat(metadataCrudService.storage())
@@ -411,7 +440,7 @@ class CreateApiDomainServiceTest {
                     .name(DefaultMetadataInitializer.METADATA_EMAIL_SUPPORT_KEY)
                     .value("${(api.primaryOwner.email)!''}")
                     .referenceType(Metadata.ReferenceType.API)
-                    .referenceId(API_ID)
+                    .referenceId("generated-id")
                     .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
                     .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
                     .build()
@@ -422,66 +451,23 @@ class CreateApiDomainServiceTest {
     void should_save_all_flows() {
         // Given
         var flows = List.of(Flow.builder().name("flow").selectors(List.of(new HttpSelector())).build());
-        var api = ApiFixtures
-            .aProxyApiV4()
-            .toBuilder()
-            .apiDefinitionV4(ApiDefinitionFixtures.aHttpProxyApiV4(API_ID).toBuilder().flows(flows).build())
-            .build();
+        var newApi = NewApiFixtures.aProxyApiV4().toBuilder().flows(flows).build();
 
         // When
-        service.create(api, AUDIT_INFO);
+        useCase.execute(new Input(newApi, AUDIT_INFO));
 
         // Then
         assertThat(flowCrudService.storage()).containsExactlyElementsOf(flows);
     }
 
     @Test
-    void should_index_the_created_api() {
-        // Given
-        var api = ApiFixtures.aProxyApiV4();
-
-        // When
-        service.create(api, AUDIT_INFO);
-
-        // Then
-        assertThat(indexer.storage())
-            .containsExactly(
-                new IndexableApi(
-                    api,
-                    new PrimaryOwnerEntity(USER_ID, "jane.doe@gravitee.io", "Jane Doe", PrimaryOwnerEntity.Type.USER),
-                    Map.ofEntries(Map.entry("email-support", "jane.doe@gravitee.io"))
-                )
-            );
-    }
-
-    @Test
-    void should_return_the_api_with_it_flows() {
-        // Given
-        var flows = List.of(Flow.builder().name("a flow").selectors(List.of(new HttpSelector())).build());
-        var api = ApiFixtures
-            .aProxyApiV4()
-            .toBuilder()
-            .apiDefinitionV4(ApiDefinitionFixtures.aHttpProxyApiV4(API_ID).toBuilder().flows(flows).build())
-            .build();
-
-        // When
-        var result = service.create(api, AUDIT_INFO);
-
-        // Then
-        SoftAssertions.assertSoftly(soft -> {
-            soft.assertThat(result.toApi()).isEqualTo(api);
-            soft.assertThat(result.getFlows()).isEqualTo(flows);
-        });
-    }
-
-    @Test
     void should_create_an_api_review_workflow_when_api_review_is_enabled() {
         // Given
         enableApiReview();
-        var api = ApiFixtures.aProxyApiV4();
+        var newApi = NewApiFixtures.aProxyApiV4();
 
         // When
-        service.create(api, AUDIT_INFO);
+        useCase.execute(new Input(newApi, AUDIT_INFO));
 
         // Then
         assertThat(workflowCrudService.storage())
@@ -490,7 +476,7 @@ class CreateApiDomainServiceTest {
                     .builder()
                     .id("generated-id")
                     .referenceType(Workflow.ReferenceType.API)
-                    .referenceId(API_ID)
+                    .referenceId("generated-id")
                     .type(Workflow.Type.REVIEW)
                     .state(Workflow.State.DRAFT)
                     .user(USER_ID)

@@ -27,12 +27,15 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 import lombok.experimental.SuperBuilder;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder(toBuilder = true)
+@Accessors(chain = true)
 public class Api {
 
     /**
@@ -163,6 +166,17 @@ public class Api {
         } else {
             return apiDefinition.getTags();
         }
+    }
+
+    public Api setId(String id) {
+        this.id = id;
+        if (apiDefinitionV4 != null) {
+            apiDefinitionV4.setId(id);
+        }
+        if (apiDefinition != null) {
+            apiDefinition.setId(id);
+        }
+        return this;
     }
 
     public Api setApiDefinitionV4(io.gravitee.definition.model.v4.Api apiDefinitionV4) {

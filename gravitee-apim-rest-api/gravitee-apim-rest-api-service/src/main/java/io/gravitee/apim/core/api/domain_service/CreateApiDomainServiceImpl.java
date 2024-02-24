@@ -25,6 +25,7 @@ import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.ApiAuditEvent;
+import io.gravitee.apim.core.datetime.TimeProvider;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
@@ -36,6 +37,7 @@ import io.gravitee.apim.core.search.Indexer;
 import io.gravitee.apim.core.workflow.crud_service.WorkflowCrudService;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.service.common.UuidString;
 import java.util.Collections;
 
 public class CreateApiDomainServiceImpl implements CreateApiDomainService {
@@ -93,7 +95,13 @@ public class CreateApiDomainServiceImpl implements CreateApiDomainService {
             auditInfo.organizationId()
         );
 
-        var created = apiCrudService.create(sanitized);
+        var created = apiCrudService.create(
+            sanitized
+                .setId(UuidString.generateRandom())
+                .setEnvironmentId(auditInfo.environmentId())
+                .setCreatedAt(TimeProvider.now())
+                .setUpdatedAt(TimeProvider.now())
+        );
 
         createAuditLog(created, auditInfo);
 
