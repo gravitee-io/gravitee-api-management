@@ -64,6 +64,7 @@ public class NewApi {
             .builder()
             .name(name)
             .version(apiVersion)
+            .type(type)
             .definitionVersion(definitionVersion)
             .description(description)
             .groups(groups)
@@ -75,6 +76,7 @@ public class NewApi {
         return io.gravitee.definition.model.v4.Api
             .builder()
             .name(name)
+            .type(type)
             .apiVersion(apiVersion)
             .definitionVersion(definitionVersion)
             .analytics(analytics)

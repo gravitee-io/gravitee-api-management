@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import static java.util.stream.Collectors.toMap;
 
+import io.gravitee.apim.core.api.model.NewApi;
 import io.gravitee.apim.core.api.model.crd.ApiCRD;
 import io.gravitee.rest.api.management.v2.rest.model.Api;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLinks;
@@ -34,7 +35,6 @@ import io.gravitee.rest.api.management.v2.rest.utils.ManagementApiLinkHelper;
 import io.gravitee.rest.api.model.ReviewEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
-import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import jakarta.ws.rs.core.UriInfo;
 import java.util.ArrayList;
@@ -72,6 +72,19 @@ public interface ApiMapper {
     ApiMapper INSTANCE = Mappers.getMapper(ApiMapper.class);
 
     // Api
+    default Api map(io.gravitee.apim.core.api.model.Api api, UriInfo uriInfo, Boolean isSynchronized) {
+        GenericApi.DeploymentStateEnum state = null;
+
+        if (isSynchronized != null) {
+            state = isSynchronized ? GenericApi.DeploymentStateEnum.DEPLOYED : GenericApi.DeploymentStateEnum.NEED_REDEPLOY;
+        }
+
+        if (api != null && api.getDefinitionVersion() == io.gravitee.definition.model.DefinitionVersion.V4) {
+            return new io.gravitee.rest.api.management.v2.rest.model.Api(this.mapToV4(api, uriInfo, state));
+        }
+        return null;
+    }
+
     default Api map(GenericApiEntity apiEntity, UriInfo uriInfo, Boolean isSynchronized) {
         GenericApi.DeploymentStateEnum state = null;
 
@@ -116,6 +129,17 @@ public interface ApiMapper {
     @Mapping(target = "links", expression = "java(computeApiLinks(apiEntity, uriInfo))")
     ApiV4 mapToV4(ApiEntity apiEntity, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
 
+    @Mapping(target = "apiVersion", source = "source.version")
+    @Mapping(target = "analytics", source = "source.apiDefinitionV4.analytics")
+    @Mapping(target = "endpointGroups", source = "source.apiDefinitionV4.endpointGroups")
+    @Mapping(target = "flowExecution", source = "source.apiDefinitionV4.flowExecution")
+    @Mapping(target = "flows", source = "source.apiDefinitionV4.flows")
+    @Mapping(target = "lifecycleState", source = "source.apiLifecycleState")
+    @Mapping(target = "links", expression = "java(computeCoreApiLinks(source, uriInfo))")
+    @Mapping(target = "listeners", source = "source.apiDefinitionV4.listeners", qualifiedByName = "fromListeners")
+    @Mapping(target = "state", source = "source.lifecycleState")
+    ApiV4 mapToV4(io.gravitee.apim.core.api.model.Api source, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
+
     @Mapping(target = "links", expression = "java(computeApiLinks(apiEntity, uriInfo))")
     ApiV2 mapToV2(io.gravitee.rest.api.model.api.ApiEntity apiEntity, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
 
@@ -134,7 +158,7 @@ public interface ApiMapper {
     ApiEntity map(ApiV4 api);
 
     @Mapping(target = "listeners", qualifiedByName = "toListeners")
-    NewApiEntity map(CreateApiV4 api);
+    NewApi map(CreateApiV4 api);
 
     @Mapping(target = "listeners", qualifiedByName = "toListeners")
     @Mapping(target = "plans", qualifiedByName = "mapPlanCRD")
@@ -162,6 +186,13 @@ public interface ApiMapper {
 
     @Named("computeApiLinks")
     default ApiLinks computeApiLinks(GenericApiEntity api, UriInfo uriInfo) {
+        return new ApiLinks()
+            .pictureUrl(ManagementApiLinkHelper.apiPictureURL(uriInfo.getBaseUriBuilder(), api))
+            .backgroundUrl(ManagementApiLinkHelper.apiBackgroundURL(uriInfo.getBaseUriBuilder(), api));
+    }
+
+    @Named("computeCoreApiLinks")
+    default ApiLinks computeCoreApiLinks(io.gravitee.apim.core.api.model.Api api, UriInfo uriInfo) {
         return new ApiLinks()
             .pictureUrl(ManagementApiLinkHelper.apiPictureURL(uriInfo.getBaseUriBuilder(), api))
             .backgroundUrl(ManagementApiLinkHelper.apiBackgroundURL(uriInfo.getBaseUriBuilder(), api));
