@@ -17,8 +17,12 @@ package io.gravitee.apim.infra.spring;
 
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiHostValidatorDomainService;
+import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
+import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiPolicyValidatorDomainService;
+import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
+import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiHostsDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
@@ -49,6 +53,7 @@ import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
 import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.query_service.MembershipQueryService;
 import io.gravitee.apim.core.membership.query_service.RoleQueryService;
+import io.gravitee.apim.core.notification.crud_service.NotificationConfigCrudService;
 import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
 import io.gravitee.apim.core.parameters.query_service.ParametersQueryService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
@@ -70,6 +75,7 @@ import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomai
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.apim.core.template.TemplateProcessor;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
+import io.gravitee.apim.core.workflow.crud_service.WorkflowCrudService;
 import io.gravitee.apim.infra.domain_service.documentation.FreemarkerTemplateResolver;
 import io.gravitee.apim.infra.domain_service.documentation.SwaggerOpenApiParser;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
@@ -395,5 +401,42 @@ public class CoreServiceSpringConfiguration {
         TemplateProcessor templateProcessor
     ) {
         return new ApiMetadataDecoderDomainService(metadataQueryService, templateProcessor);
+    }
+
+    @Bean
+    public ApiIndexerDomainService apiIndexerDomainService(
+        ApiMetadataDecoderDomainService apiMetadataDecoderDomainService,
+        Indexer indexer
+    ) {
+        return new ApiIndexerDomainService(apiMetadataDecoderDomainService, indexer);
+    }
+
+    @Bean
+    public CreateApiDomainService createApiDomainService(
+        ValidateApiDomainService validateApiDomainService,
+        ApiCrudService apiCrudService,
+        AuditDomainService auditService,
+        ApiIndexerDomainService apiIndexerDomainService,
+        ApiMetadataDomainService apiMetadataDomainService,
+        ApiPrimaryOwnerFactory apiPrimaryOwnerFactory,
+        ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService,
+        FlowCrudService flowCrudService,
+        NotificationConfigCrudService notificationConfigCrudService,
+        ParametersQueryService parametersQueryService,
+        WorkflowCrudService workflowCrudService
+    ) {
+        return new CreateApiDomainService(
+            validateApiDomainService,
+            apiCrudService,
+            auditService,
+            apiIndexerDomainService,
+            apiMetadataDomainService,
+            apiPrimaryOwnerFactory,
+            apiPrimaryOwnerDomainService,
+            flowCrudService,
+            notificationConfigCrudService,
+            parametersQueryService,
+            workflowCrudService
+        );
     }
 }

@@ -42,7 +42,7 @@ import inmemory.WorkflowCrudServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
-import io.gravitee.apim.core.api.domain_service.CreateApiDomainServiceImpl;
+import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiWithFlows;
@@ -145,7 +145,7 @@ class CreateV4ApiUseCaseTest {
             userCrudService
         );
 
-        var createApiDomainService = new CreateApiDomainServiceImpl(
+        var createApiDomainService = new CreateApiDomainService(
             validateApiDomainService,
             apiCrudService,
             auditService,
