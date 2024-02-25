@@ -99,6 +99,7 @@ public class Api implements Serializable {
     @NotNull
     private Map<@NotEmpty String, @NotNull Plan> plans;
 
+    @Builder.Default
     private FlowExecution flowExecution = new FlowExecution();
 
     private List<Flow> flows;
