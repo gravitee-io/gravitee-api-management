@@ -58,7 +58,7 @@ const executor = {
     image: 'cimg/node',
     version: '16.13',
     console: {
-      version: '18.13',
+      version: '20.11',
     },
   },
   sonar: {
