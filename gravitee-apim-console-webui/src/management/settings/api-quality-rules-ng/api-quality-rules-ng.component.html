@@ -22,47 +22,100 @@
 <form *ngIf="apiQualityRulesForm" [formGroup]="apiQualityRulesForm" autocomplete="off">
   <mat-card class="api-quality-rules__form__card">
     <mat-card-content>
-      <gio-form-slide-toggle formGroupName="apiReview" class="api-quality-rules__form__card__form-field">
+      <gio-form-slide-toggle
+        [matTooltip]="'Configuration provided by the system'"
+        [matTooltipDisabled]="!isReadonly('api.review.enabled')"
+        formGroupName="apiReview"
+        class="api-quality-rules__form__card__form-field"
+      >
+        <mat-icon *ngIf="isReadonly('api.review.enabled')" gioFormPrefix>lock</mat-icon>
         <gio-form-label>Enable API review</gio-form-label>
         <mat-slide-toggle formControlName="enabled" gioFormSlideToggle aria-label="Enable API review"></mat-slide-toggle>
       </gio-form-slide-toggle>
-      <gio-form-slide-toggle formGroupName="apiQualityMetrics" class="api-quality-rules__form__card__form-field">
+      <gio-form-slide-toggle
+        [matTooltip]="'Configuration provided by the system'"
+        [matTooltipDisabled]="!isReadonly('api.quality.metrics.enabled')"
+        formGroupName="apiQualityMetrics"
+        class="api-quality-rules__form__card__form-field"
+      >
+        <mat-icon *ngIf="isReadonly('api.quality.metrics.enabled')" gioFormPrefix>lock</mat-icon>
         <gio-form-label>Enable API Quality Metrics</gio-form-label>
         <mat-slide-toggle formControlName="enabled" gioFormSlideToggle aria-label="Enable API Quality Metrics"></mat-slide-toggle>
       </gio-form-slide-toggle>
+
       <div formGroupName="apiQualityMetrics">
         <h3>General</h3>
-        <mat-form-field class="api-quality-rules__form__card__form-field">
+        <mat-form-field
+          class="api-quality-rules__form__card__form-field"
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isReadonly('api.quality.metrics.description.weight')"
+        >
+          <mat-icon *ngIf="isReadonly('api.quality.metrics.description.weight')" gioFormPrefix>lock</mat-icon>
           <mat-label>Description weight</mat-label>
           <input formControlName="descriptionWeight" matInput type="number" min="0" max="9999" />
         </mat-form-field>
-        <mat-form-field class="api-quality-rules__form__card__form-field">
+        <mat-form-field
+          class="api-quality-rules__form__card__form-field"
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isReadonly('api.quality.metrics.description.min.length')"
+        >
+          <mat-icon *ngIf="isReadonly('api.quality.metrics.description.min.length')" gioFormPrefix>lock</mat-icon>
           <mat-label>Description minimum length</mat-label>
           <input formControlName="descriptionMinLength" matInput type="number" min="0" max="99999" />
         </mat-form-field>
-        <mat-form-field class="api-quality-rules__form__card__form-field">
+        <mat-form-field
+          class="api-quality-rules__form__card__form-field"
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isReadonly('api.quality.metrics.logo.weight')"
+        >
+          <mat-icon *ngIf="isReadonly('api.quality.metrics.logo.weight')" gioFormPrefix>lock</mat-icon>
           <mat-label>Logo weight</mat-label>
           <input formControlName="logoWeight" matInput type="number" min="0" max="99999" />
         </mat-form-field>
-        <mat-form-field class="api-quality-rules__form__card__form-field">
+        <mat-form-field
+          class="api-quality-rules__form__card__form-field"
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isReadonly('api.quality.metrics.categories.weight')"
+        >
+          <mat-icon *ngIf="isReadonly('api.quality.metrics.categories.weight')" gioFormPrefix>lock</mat-icon>
           <mat-label>Categories weight</mat-label>
           <input formControlName="categoriesWeight" matInput type="number" min="0" max="99999" />
         </mat-form-field>
-        <mat-form-field class="api-quality-rules__form__card__form-field">
+        <mat-form-field
+          class="api-quality-rules__form__card__form-field"
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isReadonly('api.quality.metrics.labels.weight')"
+        >
+          <mat-icon *ngIf="isReadonly('api.quality.metrics.labels.weight')" gioFormPrefix>lock</mat-icon>
           <mat-label>Labels weight</mat-label>
           <input formControlName="labelsWeight" matInput type="number" min="0" max="99999" />
         </mat-form-field>
         <h3>Documentation</h3>
-        <mat-form-field class="api-quality-rules__form__card__form-field">
+        <mat-form-field
+          class="api-quality-rules__form__card__form-field"
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isReadonly('api.quality.metrics.functional.documentation.weight')"
+        >
+          <mat-icon *ngIf="isReadonly('api.quality.metrics.functional.documentation.weight')" gioFormPrefix>lock</mat-icon>
           <mat-label>Functional documentation weight</mat-label>
           <input formControlName="functionalDocumentationWeight" matInput type="number" min="0" max="99999" />
         </mat-form-field>
-        <mat-form-field class="api-quality-rules__form__card__form-field">
+        <mat-form-field
+          class="api-quality-rules__form__card__form-field"
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isReadonly('api.quality.metrics.technical.documentation.weight')"
+        >
+          <mat-icon *ngIf="isReadonly('api.quality.metrics.technical.documentation.weight')" gioFormPrefix>lock</mat-icon>
           <mat-label>Technical documentation weight</mat-label>
           <input formControlName="technicalDocumentationWeight" matInput type="number" min="0" max="99999" />
         </mat-form-field>
         <h3>Endpoint</h3>
-        <mat-form-field class="api-quality-rules__form__card__form-field">
+        <mat-form-field
+          class="api-quality-rules__form__card__form-field"
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isReadonly('api.quality.metrics.healthcheck.weight')"
+        >
+          <mat-icon *ngIf="isReadonly('api.quality.metrics.healthcheck.weight')" gioFormPrefix>lock</mat-icon>
           <mat-label>Healthcheck weight</mat-label>
           <input formControlName="healthcheckWeight" matInput type="number" min="0" max="99999" />
         </mat-form-field>
@@ -156,7 +209,7 @@
       <!-- Row shown when there is no data -->
       <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
         <td *ngIf="!isLoadingData" class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">
-          {{ 'No notifications to display.' }}
+          {{ 'No manual rules to display.' }}
         </td>
         <td *ngIf="isLoadingData" class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">
           {{ 'Loading...' }}
