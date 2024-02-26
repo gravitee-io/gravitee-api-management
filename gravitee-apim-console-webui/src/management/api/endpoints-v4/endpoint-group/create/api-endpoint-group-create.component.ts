@@ -15,10 +15,10 @@
  */
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, OnInit, ViewChild } from '@angular/core';
 import { STEPPER_GLOBAL_OPTIONS } from '@angular/cdk/stepper';
-import { of, Subject } from 'rxjs';
+import { combineLatest, of, Subject } from 'rxjs';
 import { GioJsonSchema } from '@gravitee/ui-particles-angular';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { distinctUntilChanged, switchMap, takeUntil } from 'rxjs/operators';
+import { distinctUntilChanged, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { StateService } from '@uirouter/angular';
 
 import { ApiEndpointGroupSelectionComponent } from '../selection/api-endpoint-group-selection.component';
@@ -59,6 +59,8 @@ export class ApiEndpointGroupCreateComponent implements OnInit {
   public endpointGroupTypeForm: FormGroup;
   public generalForm: FormGroup;
   public configuration: FormControl;
+  public sharedConfiguration: FormControl;
+  public configurationSchema: GioJsonSchema;
   public sharedConfigurationSchema: GioJsonSchema;
   public apiType: ApiType;
 
@@ -95,34 +97,41 @@ export class ApiEndpointGroupCreateComponent implements OnInit {
         distinctUntilChanged(),
         switchMap((type) => {
           // Hide GioJsonSchemaForm to reset
+          this.configurationSchema = undefined;
           this.sharedConfigurationSchema = undefined;
+
+          this.createForm.setControl('configuration', new FormControl({}, Validators.required));
+          this.createForm.setControl('sharedConfiguration', new FormControl({}, Validators.required));
 
           if (!type || type === 'mock') {
             this.createForm.removeControl('configuration');
-            return of(undefined);
+            return of([undefined, undefined]);
           }
 
-          this.createForm.setControl('configuration', new FormControl({}, Validators.required));
-          return this.connectorPluginsV2Service.getEndpointPluginSharedConfigurationSchema(type);
+          return combineLatest([
+            this.connectorPluginsV2Service.getEndpointPluginSchema(type),
+            this.connectorPluginsV2Service.getEndpointPluginSharedConfigurationSchema(type),
+          ]);
+        }),
+        tap(([schema, sharedSchema]) => {
+          this.configurationSchema = schema;
+          this.sharedConfigurationSchema = sharedSchema;
         }),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe({
-        next: (schema) => {
-          this.sharedConfigurationSchema = schema;
-        },
-      });
+      .subscribe();
   }
 
   createEndpointGroup() {
     const formValue = this.createForm.getRawValue();
-    const sharedConfiguration = formValue.configuration;
+    const configuration = formValue.configuration;
+    const sharedConfiguration = formValue.sharedConfiguration;
 
     const newEndpointGroup: EndpointGroupV4 = {
       name: formValue.general.name,
       loadBalancer: { type: formValue.general.loadBalancerType },
       type: formValue.type.endpointGroupType,
-      endpoints: [EndpointV4Default.byType(formValue.type.endpointGroupType)],
+      endpoints: [{ ...EndpointV4Default.byType(formValue.type.endpointGroupType), ...(configuration ? { configuration } : {}) }],
       ...(sharedConfiguration ? { sharedConfiguration } : {}),
     };
 
@@ -160,11 +169,13 @@ export class ApiEndpointGroupCreateComponent implements OnInit {
     });
 
     this.configuration = new FormControl({}, Validators.required);
+    this.sharedConfiguration = new FormControl({}, Validators.required);
 
     this.createForm = new FormGroup({
       type: this.endpointGroupTypeForm,
       general: this.generalForm,
       configuration: this.configuration,
+      sharedConfiguration: this.sharedConfiguration,
     });
   }
 }
