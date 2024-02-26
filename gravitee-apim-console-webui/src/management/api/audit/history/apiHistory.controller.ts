@@ -210,7 +210,7 @@ class ApiHistoryController {
         this.events = [...(this.events ?? []), ...response.data.content];
         this.hasNextEventPageToLoad =
           response.data.totalElements > response.data.pageNumber * this.eventPageSize + response.data.pageElements;
-        this.initTimeline(this.events);
+        this.reloadEventsTimeline(this.events);
       },
     );
   }
