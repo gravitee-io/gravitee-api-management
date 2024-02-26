@@ -19,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.common.http.HttpMethod;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.ExecutionPhase;
@@ -158,6 +159,40 @@ class LoggingHookTest {
         obs.assertComplete();
 
         assertNotNull(log.getEndpointRequest().getHeaders());
+    }
+
+    @Test
+    void shouldSetEndpointRequestMethodWhenEndpointRequest() {
+        Log log = Log.builder().timestamp(System.currentTimeMillis()).build();
+        Request endpointRequest = new Request();
+        endpointRequest.setMethod(HttpMethod.GET);
+        log.setEndpointRequest(endpointRequest);
+
+        when(metrics.getLog()).thenReturn(log);
+        when(loggingContext.endpointRequest()).thenReturn(true);
+        when(request.method()).thenReturn(HttpMethod.CONNECT);
+
+        final TestObserver<Void> obs = cut.post("test", ctx, ExecutionPhase.REQUEST).test();
+        obs.assertComplete();
+
+        assertEquals(HttpMethod.CONNECT, log.getEndpointRequest().getMethod());
+    }
+
+    @Test
+    void shouldSetEndpointRequestMethodWhenEndpointRequestAndInterrupt() {
+        Log log = Log.builder().timestamp(System.currentTimeMillis()).build();
+        Request endpointRequest = new Request();
+        endpointRequest.setMethod(HttpMethod.GET);
+        log.setEndpointRequest(endpointRequest);
+
+        when(metrics.getLog()).thenReturn(log);
+        when(loggingContext.endpointRequest()).thenReturn(true);
+        when(request.method()).thenReturn(HttpMethod.CONNECT);
+
+        final TestObserver<Void> obs = cut.interruptWith("test", ctx, ExecutionPhase.REQUEST, new ExecutionFailure(500)).test();
+        obs.assertComplete();
+
+        assertEquals(HttpMethod.CONNECT, log.getEndpointRequest().getMethod());
     }
 
     @Test
