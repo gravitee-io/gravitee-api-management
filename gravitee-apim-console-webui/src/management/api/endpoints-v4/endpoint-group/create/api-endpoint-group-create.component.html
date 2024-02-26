@@ -63,8 +63,13 @@
           <span gioBannerBody>Configuration is disabled for Mock endpoint groups.</span>
         </gio-banner-info>
         <gio-form-json-schema
-          *ngIf="sharedConfigurationSchema"
+          *ngIf="configurationSchema"
           formControlName="configuration"
+          [jsonSchema]="configurationSchema"
+        ></gio-form-json-schema>
+        <gio-form-json-schema
+          *ngIf="sharedConfigurationSchema"
+          formControlName="sharedConfiguration"
           [jsonSchema]="sharedConfigurationSchema"
         ></gio-form-json-schema>
         <div class="api-endpoint-group-create__footer">
