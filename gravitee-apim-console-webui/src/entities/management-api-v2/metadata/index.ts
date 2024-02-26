@@ -13,9 +13,5 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-/**
- * Generic object to handle additional information about an entity. Can also be used for pagination data.
- */
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface MetadataResponse {}
+export * from './metadataResponse';
+export * from './metadata';
