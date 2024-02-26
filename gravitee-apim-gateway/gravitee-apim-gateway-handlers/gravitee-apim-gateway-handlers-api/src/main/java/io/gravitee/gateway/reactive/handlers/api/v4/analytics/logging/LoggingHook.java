@@ -65,6 +65,7 @@ public class LoggingHook implements InvokerHook {
 
             if (log != null && loggingContext != null && loggingContext.endpointRequest()) {
                 log.getEndpointRequest().setHeaders(ctx.request().headers());
+                log.getEndpointRequest().setMethod(ctx.request().method());
             }
 
             if (log != null && loggingContext != null && loggingContext.endpointResponse()) {
