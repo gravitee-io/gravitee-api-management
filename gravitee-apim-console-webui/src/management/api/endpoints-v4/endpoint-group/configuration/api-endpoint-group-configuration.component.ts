@@ -33,6 +33,7 @@ export class ApiEndpointGroupConfigurationComponent implements OnInit, OnDestroy
   @Input() endpointGroupType: string;
 
   public sharedConfigurationSchema: GioJsonSchema;
+  private initialValues: unknown;
 
   constructor(private readonly connectorPluginsV2Service: ConnectorPluginsV2Service) {}
 
@@ -43,6 +44,7 @@ export class ApiEndpointGroupConfigurationComponent implements OnInit, OnDestroy
       .subscribe({
         next: (sharedConfigSchema) => {
           this.sharedConfigurationSchema = sharedConfigSchema;
+          this.initialValues = this.configurationForm.getRawValue();
         },
       });
   }
@@ -50,5 +52,11 @@ export class ApiEndpointGroupConfigurationComponent implements OnInit, OnDestroy
   ngOnDestroy(): void {
     this.unsubscribe$.next(true);
     this.unsubscribe$.complete();
+  }
+
+  onSchemaFormReady() {
+    // schema-form component is overriding the form with all the fields from the schema.
+    // We set back the initial value to avoid sending invalid data to the backend
+    this.configurationForm.setValue(this.initialValues, { emitEvent: false });
   }
 }

@@ -17,6 +17,10 @@
 -->
 <form *ngIf="!!configurationForm" [formGroup]="configurationForm">
   <ng-container *ngIf="sharedConfigurationSchema">
-    <gio-form-json-schema formControlName="groupConfiguration" [jsonSchema]="sharedConfigurationSchema"></gio-form-json-schema>
+    <gio-form-json-schema
+      formControlName="groupConfiguration"
+      [jsonSchema]="sharedConfigurationSchema"
+      (ready)="onSchemaFormReady()"
+    ></gio-form-json-schema>
   </ng-container>
 </form>
