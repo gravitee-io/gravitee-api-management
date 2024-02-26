@@ -173,9 +173,9 @@ public class GetApiMetadataUseCaseTest {
             var lastName = aMetadata(API_ID, "last-name", "zzz-first-name", "last-name", Metadata.MetadataFormat.STRING);
             var firstKey = aMetadata(API_ID, "aaa-first-key", "first-key", "first-key", Metadata.MetadataFormat.STRING);
             var lastKey = aMetadata(API_ID, "zzz-last-key", "last-key", "last-key", Metadata.MetadataFormat.STRING);
-            var firstValue = aMetadata(API_ID, "first-value", "first-value", "aaa-first-value", Metadata.MetadataFormat.STRING);
+            var firstValue = aMetadata(null, "first-value", "first-value", "aaa-first-value", Metadata.MetadataFormat.STRING);
             var lastValue = aMetadata(API_ID, "last-value", "last-value", "zzz-last-value", Metadata.MetadataFormat.STRING);
-            var firstFormat = aMetadata(API_ID, "first-format", "first-format", "first-format", Metadata.MetadataFormat.BOOLEAN);
+            var firstFormat = aMetadata(null, "first-format", "first-format", "first-format", Metadata.MetadataFormat.BOOLEAN);
             var lastFormat = aMetadata(API_ID, "last-format", "last-format", "last-format", Metadata.MetadataFormat.URL);
             apiMetadataQueryService.initWith(
                 List.of(firstName, lastName, firstKey, lastKey, firstValue, lastValue, firstFormat, lastFormat)
@@ -188,20 +188,20 @@ public class GetApiMetadataUseCaseTest {
             var output = getApiMetadataUseCase.execute(new GetApiMetadataUseCase.Input(API_ID, ENV_ID, null, sortBy));
             var metadata = output.metadata();
 
-            assertThat(metadata.get(0)).hasFieldOrPropertyWithValue("value", expectedApiMetadataValue);
+            assertThat(metadata.get(0)).hasFieldOrPropertyWithValue("key", expectedApiMetadataValue);
         }
 
         public static Stream<Arguments> provideParameters() {
             return Stream.of(
                 Arguments.of("name", "first-name"),
                 Arguments.of("-name", "last-name"),
-                Arguments.of("key", "first-key"),
-                Arguments.of("-key", "last-key"),
-                Arguments.of("value", "aaa-first-value"),
-                Arguments.of("-value", "zzz-last-value"),
+                Arguments.of("key", "aaa-first-key"),
+                Arguments.of("-key", "zzz-last-key"),
+                Arguments.of("value", "first-value"),
+                Arguments.of("-value", "last-value"),
                 Arguments.of("format", "first-format"),
                 Arguments.of("-format", "last-format"),
-                Arguments.of("something-else", "first-key")
+                Arguments.of("something-else", "aaa-first-key")
             );
         }
     }

@@ -67,8 +67,8 @@ public class GetApiMetadataUseCase {
         }
 
         return switch (sortBy) {
-            case ("value") -> stream.sorted(Comparator.comparing(ApiMetadata::getValue)).toList();
-            case ("-value") -> stream.sorted(Collections.reverseOrder(Comparator.comparing(ApiMetadata::getValue))).toList();
+            case ("value") -> stream.sorted(new ApiMetadataValueComparator()).toList();
+            case ("-value") -> stream.sorted(Collections.reverseOrder(new ApiMetadataValueComparator())).toList();
             case ("name") -> stream.sorted(Comparator.comparing(ApiMetadata::getName)).toList();
             case ("-name") -> stream.sorted(Collections.reverseOrder(Comparator.comparing(ApiMetadata::getName))).toList();
             case ("format") -> stream.sorted(Comparator.comparing(ApiMetadata::getFormatToString)).toList();
@@ -76,6 +76,16 @@ public class GetApiMetadataUseCase {
             case ("-key") -> stream.sorted(Collections.reverseOrder(Comparator.comparing(ApiMetadata::getKey))).toList();
             default -> stream.sorted(Comparator.comparing(ApiMetadata::getKey)).toList();
         };
+    }
+
+    static class ApiMetadataValueComparator implements Comparator<ApiMetadata> {
+
+        @Override
+        public int compare(ApiMetadata o1, ApiMetadata o2) {
+            var value1 = o1.getValue() != null ? o1.getValue() : o1.getDefaultValue();
+            var value2 = o2.getValue() != null ? o2.getValue() : o2.getDefaultValue();
+            return value1.compareTo(value2);
+        }
     }
 
     public record Input(String apiId, String envId, String filterBy, String sortBy) {}
