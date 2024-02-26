@@ -16,6 +16,7 @@
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatSortHeaderHarness } from '@angular/material/sort/testing';
 
 interface GioMetadataHarnessData {
   key: string;
@@ -28,6 +29,7 @@ export class GioMetadataHarness extends ComponentHarness {
 
   protected getTable = this.locatorFor(MatTableHarness);
   protected getAddMetadataButtonHarness = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="add-metadata"]' }));
+  protected getHeader = (dataTestId: string) => this.locatorFor(MatSortHeaderHarness.with({ selector: `[data-testid=${dataTestId}]` }))();
 
   async getAddMetadataButton(): Promise<MatButtonHarness> {
     return this.getAddMetadataButtonHarness().catch((_) => undefined);
@@ -69,5 +71,10 @@ export class GioMetadataHarness extends ComponentHarness {
         updateButton,
         deleteButton,
       }));
+  }
+
+  public async sortBy(columnName: string): Promise<void> {
+    const header = await this.getHeader(`metadata_${columnName}`);
+    return await header.click();
   }
 }

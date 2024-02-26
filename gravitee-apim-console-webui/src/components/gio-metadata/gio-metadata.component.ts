@@ -20,13 +20,14 @@ import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
+import { isEmpty } from 'lodash';
 
 import { GioMetadataDialogComponent, GioMetadataDialogData } from './dialog/gio-metadata-dialog.component';
 
 import { Metadata, MetadataFormat, NewMetadata, UpdateMetadata } from '../../entities/metadata/metadata';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
 import { SearchApiMetadataParam } from '../../entities/management-api-v2';
-import { GioTableWrapperFilters } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
+import { GioTableWrapperFilters, Sort } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 
 export interface MetadataVM {
   key: string;
@@ -67,6 +68,7 @@ export class GioMetadataComponent implements OnInit, OnDestroy {
   totalResults: number;
   currentPage = 1;
   currentPerPage = 10;
+  currentSort: Sort;
 
   @Input()
   metadataSaveServices: MetadataSaveServices;
@@ -195,17 +197,24 @@ export class GioMetadataComponent implements OnInit, OnDestroy {
   }
 
   onFiltersChange($event: GioTableWrapperFilters) {
-    const hasChanges = this.currentPerPage !== $event.pagination.size || this.currentPage !== $event.pagination.index;
+    const hasChanges =
+      this.currentPerPage !== $event.pagination.size || this.currentPage !== $event.pagination.index || this.currentSort !== $event.sort;
     if (this.paginationDisabled || !hasChanges) {
       // do nothing
       return;
     }
+    const sortBy = this.serializeSortByParam($event.sort);
     this.metadataSaveServices
-      .list({ page: $event.pagination.index, perPage: $event.pagination.size })
+      .list({ page: $event.pagination.index, perPage: $event.pagination.size, sortBy })
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe((metadata) => {
         this.initializeTable(metadata);
       });
+  }
+
+  private serializeSortByParam(sort: Sort) {
+    const sortDirection = sort.direction === 'desc' ? '-' : '';
+    return sort && !isEmpty(sort.direction) ? `${sortDirection}${sort.active}` : undefined;
   }
 
   private initializeTable(metadata: MetadataSaveServicesList) {

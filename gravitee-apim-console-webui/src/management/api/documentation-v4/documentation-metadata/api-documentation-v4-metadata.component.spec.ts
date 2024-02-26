@@ -51,6 +51,7 @@ describe('ApiDocumentationV4MetadataComponent', () => {
     httpTestingController = TestBed.inject(HttpTestingController);
     loader = TestbedHarnessEnvironment.loader(fixture);
     fixture.detectChanges();
+    expectMetadataList();
   };
 
   beforeEach(async () => await init());
@@ -60,9 +61,18 @@ describe('ApiDocumentationV4MetadataComponent', () => {
   });
 
   it('should load metadata list', async () => {
-    expectMetadataList();
     const gioMetadata = await loader.getHarnessOrNull(GioMetadataHarness);
     expect(gioMetadata).toBeTruthy();
+  });
+
+  it('should sort metadata', async () => {
+    const gioMetadata = await loader.getHarness(GioMetadataHarness);
+    await gioMetadata.sortBy('name');
+    expectMetadataList(undefined, { sortBy: 'name' });
+
+    // Reverse direction on second click
+    await gioMetadata.sortBy('name');
+    expectMetadataList(undefined, { sortBy: '-name' });
   });
 
   function expectMetadataList(
