@@ -15,6 +15,7 @@
  */
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { map } from 'rxjs/operators';
 
 import { MetadataSaveServices } from '../../../../components/gio-metadata/gio-metadata.component';
 import { ApiService } from '../../../../services-ngx/api.service';
@@ -33,7 +34,10 @@ export class ApiPortalDocumentationMetadataComponent implements OnInit {
   ngOnInit() {
     this.metadataSaveServices = {
       type: 'API',
-      list: () => this.apiService.listMetadata(this.activatedRoute.snapshot.params.apiId),
+      list: () =>
+        this.apiService
+          .listMetadata(this.activatedRoute.snapshot.params.apiId)
+          .pipe(map((metadata) => ({ data: metadata, totalResults: metadata?.length ?? 0 }))),
       create: (newMetadata) => this.apiService.createMetadata(this.activatedRoute.snapshot.params.apiId, newMetadata),
       update: (updateMetadata) => this.apiService.updateMetadata(this.activatedRoute.snapshot.params.apiId, updateMetadata),
       delete: (metadataKey) => this.apiService.deleteMetadata(this.activatedRoute.snapshot.params.apiId, metadataKey),

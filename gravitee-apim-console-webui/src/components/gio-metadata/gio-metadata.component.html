@@ -36,7 +36,12 @@
       </div>
     </div>
   </mat-card-content>
-  <gio-table-wrapper [disableSearchInput]="true" [length]="dataSource?.data?.length" [disablePageSize]="true">
+  <gio-table-wrapper
+    [disableSearchInput]="true"
+    [length]="totalResults"
+    [disablePageSize]="paginationDisabled"
+    (filtersChange)="onFiltersChange($event)"
+  >
     <table mat-table [dataSource]="dataSource" matSort>
       <caption style="display: none">
         {{

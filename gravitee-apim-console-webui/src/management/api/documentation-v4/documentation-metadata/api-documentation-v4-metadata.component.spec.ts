@@ -29,6 +29,7 @@ import { fakeMetadata } from '../../../../entities/metadata/metadata.fixture';
 import { GioMetadataHarness } from '../../../../components/gio-metadata/gio-metadata.harness';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { ApiDocumentationV4Module } from '../api-documentation-v4.module';
+import { SearchApiMetadataParam } from '../../../../entities/management-api-v2';
 
 describe('ApiDocumentationV4MetadataComponent', () => {
   let fixture: ComponentFixture<ApiDocumentationV4MetadataComponent>;
@@ -64,7 +65,30 @@ describe('ApiDocumentationV4MetadataComponent', () => {
     expect(gioMetadata).toBeTruthy();
   });
 
-  function expectMetadataList(list: Metadata[] = [fakeMetadata({ key: 'key1' }), fakeMetadata({ key: 'key2' })]) {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/metadata/`, method: 'GET' }).flush(list);
+  function expectMetadataList(
+    list: Metadata[] = [fakeMetadata({ key: 'key1' }), fakeMetadata({ key: 'key2' })],
+    searchParams?: SearchApiMetadataParam,
+  ) {
+    let page = 1;
+    let perPage = 10;
+    let additionalParams = '';
+    if (searchParams) {
+      page = searchParams.page ?? page;
+      perPage = searchParams.perPage ?? perPage;
+
+      if (searchParams.source) {
+        additionalParams += `&source=${searchParams.source}`;
+      }
+
+      if (searchParams.sortBy) {
+        additionalParams += `&sortBy=${searchParams.sortBy}`;
+      }
+    }
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/metadata?page=${page}&perPage=${perPage}${additionalParams}`,
+        method: 'GET',
+      })
+      .flush(list);
   }
 });

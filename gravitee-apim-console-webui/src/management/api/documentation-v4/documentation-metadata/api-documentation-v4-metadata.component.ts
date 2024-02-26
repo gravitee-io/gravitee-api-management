@@ -15,9 +15,12 @@
  */
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { map } from 'rxjs/operators';
 
 import { MetadataSaveServices } from '../../../../components/gio-metadata/gio-metadata.component';
 import { ApiService } from '../../../../services-ngx/api.service';
+import { ApiMetadataV2Service } from '../../../../services-ngx/api-metadata-v2.service';
+import { Metadata } from '../../../../entities/metadata/metadata';
 
 @Component({
   selector: 'api-documentation-v4-metadata',
@@ -28,12 +31,23 @@ export class ApiDocumentationV4MetadataComponent implements OnInit {
   metadataSaveServices: MetadataSaveServices;
   description: string;
 
-  constructor(private readonly apiService: ApiService, private readonly activatedRoute: ActivatedRoute) {}
+  constructor(
+    private readonly apiService: ApiService,
+    private readonly apiMetadataV2Service: ApiMetadataV2Service,
+    private readonly activatedRoute: ActivatedRoute,
+  ) {}
 
   ngOnInit() {
     this.metadataSaveServices = {
       type: 'API',
-      list: () => this.apiService.listMetadata(this.activatedRoute.snapshot.params.apiId),
+      paginate: true,
+      list: (searchMetadata) =>
+        this.apiMetadataV2Service.search(this.activatedRoute.snapshot.params.apiId, searchMetadata).pipe(
+          map((resp) => ({
+            data: resp.data?.map((metadata) => ({ ...metadata } as Metadata)),
+            totalResults: resp.pagination?.totalCount ?? 0,
+          })),
+        ),
       create: (newMetadata) => this.apiService.createMetadata(this.activatedRoute.snapshot.params.apiId, newMetadata),
       update: (updateMetadata) => this.apiService.updateMetadata(this.activatedRoute.snapshot.params.apiId, updateMetadata),
       delete: (metadataKey) => this.apiService.deleteMetadata(this.activatedRoute.snapshot.params.apiId, metadataKey),

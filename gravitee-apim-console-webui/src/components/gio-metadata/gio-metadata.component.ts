@@ -15,7 +15,7 @@
  */
 import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { EMPTY, Observable, Subject } from 'rxjs';
-import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { MatSort } from '@angular/material/sort';
@@ -25,6 +25,8 @@ import { GioMetadataDialogComponent, GioMetadataDialogData } from './dialog/gio-
 
 import { Metadata, MetadataFormat, NewMetadata, UpdateMetadata } from '../../entities/metadata/metadata';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
+import { SearchApiMetadataParam } from '../../entities/management-api-v2';
+import { GioTableWrapperFilters } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 
 export interface MetadataVM {
   key: string;
@@ -35,12 +37,18 @@ export interface MetadataVM {
   isDeletable: boolean;
 }
 
+export interface MetadataSaveServicesList {
+  data: Metadata[];
+  totalResults: number;
+}
+
 export interface MetadataSaveServices {
   type: 'API' | 'Application' | 'Global';
-  list: () => Observable<Metadata[]>;
+  list: (searchMetadata?: SearchApiMetadataParam) => Observable<MetadataSaveServicesList>;
   create: (newMetadata: NewMetadata) => Observable<Metadata>;
   update: (updateMetadata: UpdateMetadata) => Observable<Metadata>;
   delete: (metadataKey: string) => Observable<void>;
+  paginate?: boolean;
 }
 
 @Component({
@@ -55,6 +63,10 @@ export class GioMetadataComponent implements OnInit, OnDestroy {
   displayedColumns: string[];
   permissionPrefix: string;
   referenceType: 'API' | 'Application' | 'Global';
+  paginationDisabled = true;
+  totalResults: number;
+  currentPage = 1;
+  currentPerPage = 10;
 
   @Input()
   metadataSaveServices: MetadataSaveServices;
@@ -70,25 +82,13 @@ export class GioMetadataComponent implements OnInit, OnDestroy {
     this.referenceType = this.metadataSaveServices.type;
     this.permissionPrefix = this.referenceType === 'Global' ? 'environment' : this.referenceType.toLowerCase();
     this.displayedColumns = ['key', 'name', 'format', 'value', 'actions'];
+    this.paginationDisabled = this.metadataSaveServices.paginate !== true;
 
     this.metadataSaveServices
       .list()
-      .pipe(
-        map((metadata) =>
-          metadata.map((m) => ({
-            name: m.name,
-            defaultValue: m.defaultValue,
-            format: m.format,
-            key: m.key,
-            value: !!m.defaultValue && !m.value ? m.defaultValue : m.value,
-            isDeletable: !this.referenceType || (this.referenceType && m.value !== undefined),
-          })),
-        ),
-        takeUntil(this.unsubscribe$),
-      )
+      .pipe(takeUntil(this.unsubscribe$))
       .subscribe((metadata) => {
-        this.dataSource = new MatTableDataSource(metadata);
-        this.dataSource.sort = this.sort;
+        this.initializeTable(metadata);
       });
   }
 
@@ -192,5 +192,33 @@ export class GioMetadataComponent implements OnInit, OnDestroy {
       .subscribe(() => {
         this.ngOnInit();
       });
+  }
+
+  onFiltersChange($event: GioTableWrapperFilters) {
+    const hasChanges = this.currentPerPage !== $event.pagination.size || this.currentPage !== $event.pagination.index;
+    if (this.paginationDisabled || !hasChanges) {
+      // do nothing
+      return;
+    }
+    this.metadataSaveServices
+      .list({ page: $event.pagination.index, perPage: $event.pagination.size })
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe((metadata) => {
+        this.initializeTable(metadata);
+      });
+  }
+
+  private initializeTable(metadata: MetadataSaveServicesList) {
+    const data = metadata.data?.map((m) => ({
+      name: m.name,
+      defaultValue: m.defaultValue,
+      format: m.format,
+      key: m.key,
+      value: !!m.defaultValue && !m.value ? m.defaultValue : m.value,
+      isDeletable: !this.referenceType || (this.referenceType && m.value !== undefined),
+    }));
+    this.totalResults = metadata.totalResults;
+    this.dataSource = new MatTableDataSource<MetadataVM>(data);
+    this.dataSource.sort = this.sort;
   }
 }

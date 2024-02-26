@@ -15,6 +15,7 @@
  */
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { map } from 'rxjs/operators';
 
 import { MetadataSaveServices } from '../../../components/gio-metadata/gio-metadata.component';
 import { EnvironmentMetadataService } from '../../../services-ngx/environment-metadata.service';
@@ -33,7 +34,8 @@ export class EnvironmentMetadataComponent implements OnInit {
   ngOnInit() {
     this.metadataSaveServices = {
       type: 'Global',
-      list: () => this.environmentMetadataService.listMetadata(),
+      list: () =>
+        this.environmentMetadataService.listMetadata().pipe(map((metadata) => ({ data: metadata, totalResults: metadata?.length ?? 0 }))),
       create: (newMetadata) => this.environmentMetadataService.createMetadata(newMetadata),
       update: (updateMetadata) => this.environmentMetadataService.updateMetadata(updateMetadata),
       delete: (metadataKey) => this.environmentMetadataService.deleteMetadata(metadataKey),
