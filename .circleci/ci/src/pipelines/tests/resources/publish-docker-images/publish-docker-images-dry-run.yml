@@ -217,7 +217,7 @@ jobs:
         description: the name of the image
       node_version:
         type: string
-        default: "18.13"
+        default: "20.11"
         description: Node version to use for executor
     docker:
       - image: cimg/node:<< parameters.node_version >>

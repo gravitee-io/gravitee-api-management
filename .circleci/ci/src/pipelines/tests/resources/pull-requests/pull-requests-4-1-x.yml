@@ -513,7 +513,7 @@ jobs:
         description: Resource class to use for executor
       node_version:
         type: string
-        default: "18.13"
+        default: "20.11"
         description: Node version to use for executor
     docker:
       - image: cimg/node:<< parameters.node_version >>
@@ -557,7 +557,7 @@ jobs:
         description: the name of the image
       node_version:
         type: string
-        default: "18.13"
+        default: "20.11"
         description: Node version to use for executor
     docker:
       - image: cimg/node:<< parameters.node_version >>
@@ -591,7 +591,7 @@ jobs:
     parameters:
       node_version:
         type: string
-        default: "18.13"
+        default: "20.11"
         description: Node version to use for executor
     docker:
       - image: cimg/node:<< parameters.node_version >>
@@ -615,7 +615,7 @@ jobs:
     parameters:
       node_version:
         type: string
-        default: "18.13"
+        default: "20.11"
         description: Node version to use for executor
     docker:
       - image: cimg/node:<< parameters.node_version >>
@@ -1114,14 +1114,14 @@ workflows:
           name: Build Console Storybook
           context:
             - cicd-orchestrator
-          node_version: "18.13"
+          node_version: "20.11"
       - job-console-webui-chromatic-deployment:
           name: Deploy console in chromatic
           context:
             - cicd-orchestrator
           requires:
             - Build Console Storybook
-          node_version: "18.13"
+          node_version: "20.11"
       - job-sonarcloud-analysis:
           name: Sonar - gravitee-apim-console-webui
           context:
