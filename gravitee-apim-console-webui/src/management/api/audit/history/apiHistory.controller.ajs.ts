@@ -189,23 +189,50 @@ class ApiHistoryControllerAjs {
       });
     }
 
-    this.ApiService.get(this.$state.params.apiId).then((api) => {
-      this.api = api.data;
+    Promise.all([this.ApiService.get(this.$state.params.apiId), this.ApiService.isAPISynchronized(this.$state.params.apiId)]).then(
+      ([api, apiIsSynchronizedResult]) => {
+        this.api = api.data;
 
-      this.eventPage = -1;
-      this.events = [];
-      this.appendNextPage();
-    });
+        this.eventPage = -1;
+        this.events = [];
+        const toDeployEventTimeline = !apiIsSynchronizedResult.data.is_synchronized
+          ? {
+              event: {
+                payload: this.stringifyCurrentApi(),
+              },
+              badgeClass: 'warning',
+              badgeIconClass: 'notification:sync',
+              title: 'TO_DEPLOY',
+              isCurrentAPI: true,
+            }
+          : undefined;
+        this.appendNextPage(toDeployEventTimeline);
+      },
+    );
   }
 
-  appendNextPage() {
+  appendNextPage(toDeployEventTimeline?: any) {
     this.eventPage++;
     this.ApiService.searchApiEvents(this.eventTypes, this.api.id, undefined, undefined, this.eventPage, this.eventPageSize, true).then(
       (response) => {
         this.events = [...(this.events ?? []), ...response.data.content];
         this.hasNextEventPageToLoad =
           response.data.totalElements > response.data.pageNumber * this.eventPageSize + response.data.pageElements;
-        this.initTimeline(this.events);
+
+        this.eventsTimeline = this.events.map((event) => ({
+          event: event,
+          badgeClass: 'info',
+          badgeIconClass: 'action:check_circle',
+          title: event.type,
+          when: event.created_at,
+          user: event.user,
+          deploymentLabel: event.properties.deployment_label,
+          deploymentNumber: event.properties.deployment_number,
+        }));
+
+        if (toDeployEventTimeline) {
+          this.eventsTimeline.unshift(toDeployEventTimeline);
+        }
       },
     );
   }
@@ -220,19 +247,6 @@ class ApiHistoryControllerAjs {
       flow_mode: api.flow_mode,
     };
     this.studio.services = api.services || {};
-  }
-
-  initTimeline(events) {
-    this.eventsTimeline = events.map((event) => ({
-      event: event,
-      badgeClass: 'info',
-      badgeIconClass: 'action:check_circle',
-      title: event.type,
-      when: event.created_at,
-      user: event.user,
-      deploymentLabel: event.properties.deployment_label,
-      deploymentNumber: event.properties.deployment_number,
-    }));
   }
 
   selectEvent(_eventTimeline) {
