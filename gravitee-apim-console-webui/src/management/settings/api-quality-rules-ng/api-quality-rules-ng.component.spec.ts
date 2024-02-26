@@ -131,7 +131,7 @@ describe('ApiQualityRulesNgComponent', () => {
           technicalDocumentationWeight: 500,
         },
         apiReview: {
-          enabled: true,
+          enabled: false,
         },
       });
     });

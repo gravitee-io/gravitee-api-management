@@ -20,8 +20,6 @@ import { SettingsNavigationComponent } from './settings-navigation/settings-navi
 import { SettingsAnalyticsComponent } from './analytics/settings-analytics.component';
 import { SettingsAnalyticsDashboardComponent } from './analytics/dashboard/settings-analytics-dashboard.component';
 import { ApiPortalHeaderComponent } from './api-portal-header/api-portal-header.component';
-import { ApiQualityRulesComponent } from './api-quality-rules/api-quality-rules.component';
-import { ApiQualityRuleComponent } from './api-quality-rules/api-quality-rule/api-quality-rule.component';
 import { CategoriesComponent } from './categories/categories.component';
 import { CategoryComponent } from './categories/category/category.component';
 import { GroupsComponent } from './groups/groups.component';
@@ -104,19 +102,6 @@ export const settingsRoutes: Routes = [
       },
       {
         path: 'api-quality-rules',
-        component: ApiQualityRulesComponent,
-        data: {
-          docs: {
-            page: 'management-configuration-apiquality',
-          },
-          permissions: {
-            anyOf: ['environment-quality_rule-r'],
-            unauthorizedFallbackTo: '../identity-providers',
-          },
-        },
-      },
-      {
-        path: 'api-quality-rules-ng',
         component: ApiQualityRulesNgComponent,
         data: {
           docs: {
@@ -125,30 +110,6 @@ export const settingsRoutes: Routes = [
           permissions: {
             anyOf: ['environment-quality_rule-r'],
             unauthorizedFallbackTo: '../identity-providers',
-          },
-        },
-      },
-      {
-        path: 'api-quality-rules/new',
-        component: ApiQualityRuleComponent,
-        data: {
-          docs: {
-            page: 'management-configuration-apiquality',
-          },
-          permissions: {
-            anyOf: ['environment-quality_rule-c'],
-          },
-        },
-      },
-      {
-        path: 'api-quality-rules/:qualityRuleId',
-        component: ApiQualityRuleComponent,
-        data: {
-          docs: {
-            page: 'management-configuration-apiquality',
-          },
-          permissions: {
-            anyOf: ['environment-quality_rule-u'],
           },
         },
       },
