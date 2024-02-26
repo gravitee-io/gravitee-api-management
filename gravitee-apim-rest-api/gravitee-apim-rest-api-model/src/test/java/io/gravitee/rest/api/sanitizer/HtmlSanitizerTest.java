@@ -35,8 +35,8 @@ class HtmlSanitizerTest {
         sanitized = HtmlSanitizer.sanitize("A <a href=\"https://www.gravitee.io\">Test</a> Text");
         assertEquals("A Test Text", sanitized);
 
-        sanitized = HtmlSanitizer.sanitize("Allowed chars: (&lt; &gt; &amp; &quot; &apos;) (< > & \" ' + = `)");
-        assertEquals("Allowed chars: (< > & \" ') (< > & \" ' + = `)", sanitized);
+        sanitized = HtmlSanitizer.sanitize("Allowed chars: (&lt; &gt; &amp; &quot; &apos; &commat;) (< > & \" ' + = ` @)");
+        assertEquals("Allowed chars: (< > & \" ' @) (< > & \" ' + = ` @)", sanitized);
 
         sanitized = HtmlSanitizer.sanitize("&lt;a data-bind=&#39;style: alert(1)&#39;&gt;&lt;/a&gt;"); // <a data-bind='style: alert(1)'></a>
         assertEquals("", sanitized);
