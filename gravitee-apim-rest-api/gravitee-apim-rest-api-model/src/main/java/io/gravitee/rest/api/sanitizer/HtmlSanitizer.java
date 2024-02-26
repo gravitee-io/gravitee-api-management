@@ -38,7 +38,8 @@ public final class HtmlSanitizer {
             .replaceAll("&#39;", "'")
             .replaceAll("&#43;", "+")
             .replaceAll("&#61;", "=")
-            .replaceAll("&#96;", "`");
+            .replaceAll("&#96;", "`")
+            .replaceAll("&#64;", "@");
     }
 
     public static String sanitize(String content) {
