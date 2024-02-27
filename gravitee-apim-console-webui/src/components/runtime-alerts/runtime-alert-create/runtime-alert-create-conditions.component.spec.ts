@@ -260,4 +260,72 @@ describe('RuntimeAlertCreateComponent condition tests', () => {
       });
     });
   });
+
+  describe('request metrics aggregation', () => {
+    beforeEach(async () => {
+      const expectedRules = [
+        'Alert when a metric of the request validates a condition',
+        'Alert when there is no request matching filters received for a period of time',
+        'Alert when the aggregated value of a request metric rises a threshold',
+        'Alert when the rate of a given condition rises a threshold',
+        'Alert when the health status of an endpoint has changed',
+      ];
+      const expectedSeverities = ['info', 'warning', 'critical'];
+      const generalForm = await componentHarness.getGeneralFormHarness();
+      await generalForm.setName('alert');
+      await generalForm.toggleEnabled();
+      await generalForm.selectSeverity(expectedSeverities[1]);
+      await generalForm.selectRule(expectedRules[2]);
+    });
+
+    it('should add time duration condition', async () => {
+      const conditionForm = await componentHarness.getConditionFormHarness();
+      const requestMetricsAggregationForm = await conditionForm.requestMetricsAggregationConditionForm();
+
+      expect(await requestMetricsAggregationForm.getFunctionOptions()).toStrictEqual([
+        'count',
+        'average',
+        'min',
+        'max',
+        '50th percentile',
+        '90th percentile',
+        '95th percentile',
+        '99th percentile',
+      ]);
+      expect(await requestMetricsAggregationForm.getMetricOptions()).toStrictEqual([
+        'Response Time (ms)',
+        'Upstream Response Time (ms)',
+        'Request Content-Length',
+        'Response Content-Length',
+      ]);
+
+      await requestMetricsAggregationForm.selectFunction('50th percentile');
+      await requestMetricsAggregationForm.selectMetric('Request Content-Length');
+
+      const thresholdSubform = await requestMetricsAggregationForm.getThresholdHarness();
+      expect(await thresholdSubform.getOperatorOptions()).toStrictEqual([
+        'less than',
+        'less than or equals to',
+        'greater than or equals to',
+        'greater than',
+      ]);
+
+      await thresholdSubform.selectOperator('greater than');
+      await thresholdSubform.setThresholdValue('42');
+
+      const durationSubform = await requestMetricsAggregationForm.durationHarness();
+      expect(await durationSubform.getTimeUnitOptions()).toStrictEqual(['Seconds', 'Minutes', 'Hours']);
+
+      await durationSubform.setDurationValue('24');
+      await durationSubform.selectTimeUnit('Hours');
+
+      expect(await requestMetricsAggregationForm.getSelectedFunction()).toStrictEqual('50th percentile');
+      expect(await requestMetricsAggregationForm.getSelectedMetric()).toStrictEqual('Request Content-Length');
+      expect(await thresholdSubform.getSelectedOperator()).toStrictEqual('greater than');
+      expect(await thresholdSubform.getThresholdValue()).toStrictEqual('42');
+      expect(await durationSubform.getDurationValue()).toStrictEqual('24');
+      expect(await durationSubform.getSelectedTimeUnit()).toStrictEqual('Hours');
+      // TODO test save bar when save is implemented in next commits
+    });
+  });
 });
