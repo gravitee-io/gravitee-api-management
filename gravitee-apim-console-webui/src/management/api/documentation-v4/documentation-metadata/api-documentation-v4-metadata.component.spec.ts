@@ -19,7 +19,8 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { of } from 'rxjs';
 
 import { ApiDocumentationV4MetadataComponent } from './api-documentation-v4-metadata.component';
 
@@ -29,19 +30,35 @@ import { fakeMetadata } from '../../../../entities/metadata/metadata.fixture';
 import { GioMetadataHarness } from '../../../../components/gio-metadata/gio-metadata.harness';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { ApiDocumentationV4Module } from '../api-documentation-v4.module';
-import { SearchApiMetadataParam } from '../../../../entities/management-api-v2';
+
+interface TestQueryParams {
+  page?: number;
+  size?: number;
+  order?: string;
+  source?: string;
+}
 
 describe('ApiDocumentationV4MetadataComponent', () => {
   let fixture: ComponentFixture<ApiDocumentationV4MetadataComponent>;
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
+  let routerNavigateSpy: jest.SpyInstance;
   const API_ID = 'my-api';
 
-  const init = async () => {
+  const init = async (params: TestQueryParams = {}) => {
+    const cleanQueryParams = {
+      page: params.page ?? 1,
+      size: params.size ?? 10,
+      order: params.order,
+      source: params.source,
+    };
     await TestBed.configureTestingModule({
       declarations: [ApiDocumentationV4MetadataComponent],
       providers: [
-        { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { params: { apiId: API_ID }, queryParams: cleanQueryParams }, queryParams: of(cleanQueryParams) },
+        },
         { provide: GioTestingPermissionProvider, useValue: ['api-metadata-r', 'api-metadata-u', 'api-metadata-d', 'api-metadata-c'] },
       ],
       imports: [NoopAnimationsModule, GioTestingModule, ApiDocumentationV4Module, MatIconTestingModule],
@@ -50,42 +67,231 @@ describe('ApiDocumentationV4MetadataComponent', () => {
     fixture = TestBed.createComponent(ApiDocumentationV4MetadataComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     loader = TestbedHarnessEnvironment.loader(fixture);
-    fixture.detectChanges();
-    expectMetadataList();
-  };
 
-  beforeEach(async () => await init());
+    const router = TestBed.inject(Router);
+    routerNavigateSpy = jest.spyOn(router, 'navigate');
+    fixture.detectChanges();
+
+    expectMetadataList({
+      page: cleanQueryParams.page,
+      perPage: cleanQueryParams.size,
+      sortBy: cleanQueryParams.order,
+      source: cleanQueryParams.source,
+    });
+  };
 
   afterEach(() => {
     httpTestingController.verify();
   });
 
-  it('should load metadata list', async () => {
-    const gioMetadata = await loader.getHarnessOrNull(GioMetadataHarness);
-    expect(gioMetadata).toBeTruthy();
+  describe('default initialization', () => {
+    beforeEach(async () => await init());
+
+    it('should load metadata list', async () => {
+      const gioMetadata = await loader.getHarnessOrNull(GioMetadataHarness);
+      expect(gioMetadata).toBeTruthy();
+    });
+
+    it('should sort metadata', async () => {
+      const gioMetadata = await loader.getHarness(GioMetadataHarness);
+      await gioMetadata.sortBy('name');
+      expectRouterCall({
+        order: 'name',
+        page: 1,
+        size: 10,
+      });
+
+      // Reverse direction on second click
+      await gioMetadata.sortBy('name');
+      expectRouterCall({
+        order: '-name',
+        page: 1,
+        size: 10,
+      });
+    });
+
+    it('should filter metadata', async () => {
+      const gioMetadata = await loader.getHarness(GioMetadataHarness);
+      await gioMetadata.selectSource('API');
+      expectRouterCall({
+        source: 'API',
+        page: 1,
+        size: 10,
+      });
+    });
+
+    it('should reset filter metadata', async () => {
+      const gioMetadata = await loader.getHarness(GioMetadataHarness);
+      await gioMetadata.selectSource('API');
+      expectRouterCall({
+        source: 'API',
+        page: 1,
+        size: 10,
+      });
+
+      await gioMetadata.resetFilters();
+      expectRouterCall({
+        page: 1,
+        size: 10,
+      });
+    });
   });
 
-  it('should sort metadata', async () => {
-    const gioMetadata = await loader.getHarness(GioMetadataHarness);
-    await gioMetadata.sortBy('name');
-    expectMetadataList(undefined, { sortBy: 'name' });
+  describe('after sort', () => {
+    beforeEach(async () => await init({ order: '-format' }));
 
-    // Reverse direction on second click
-    await gioMetadata.sortBy('name');
-    expectMetadataList(undefined, { sortBy: '-name' });
+    it('should sort metadata', async () => {
+      const gioMetadata = await loader.getHarness(GioMetadataHarness);
+      await gioMetadata.sortBy('name');
+      expectRouterCall({
+        order: 'name',
+        page: 1,
+        size: 10,
+      });
+
+      // Reverse direction on second click
+      await gioMetadata.sortBy('name');
+      expectRouterCall({
+        order: '-name',
+        page: 1,
+        size: 10,
+      });
+    });
+
+    it('should keep sort after filtering metadata', async () => {
+      const gioMetadata = await loader.getHarness(GioMetadataHarness);
+      await gioMetadata.selectSource('API');
+      expectRouterCall({
+        source: 'API',
+        page: 1,
+        size: 10,
+        order: '-format',
+      });
+    });
+
+    it('should reset sort when resetting filter metadata', async () => {
+      const gioMetadata = await loader.getHarness(GioMetadataHarness);
+      await gioMetadata.selectSource('API');
+      expectRouterCall({
+        source: 'API',
+        page: 1,
+        size: 10,
+        order: '-format',
+      });
+
+      await gioMetadata.resetFilters();
+      expectRouterCall({
+        page: 1,
+        size: 10,
+      });
+    });
   });
 
-  function expectMetadataList(
-    list: Metadata[] = [fakeMetadata({ key: 'key1' }), fakeMetadata({ key: 'key2' })],
-    searchParams?: SearchApiMetadataParam,
-  ) {
-    let page = 1;
-    let perPage = 10;
+  describe('after filter', () => {
+    beforeEach(async () => await init({ source: 'GLOBAL' }));
+
+    it('should sort metadata and keep filter', async () => {
+      const gioMetadata = await loader.getHarness(GioMetadataHarness);
+      await gioMetadata.sortBy('name');
+      expectRouterCall({
+        order: 'name',
+        page: 1,
+        size: 10,
+        source: 'GLOBAL',
+      });
+
+      // Reverse direction on second click
+      await gioMetadata.sortBy('name');
+      expectRouterCall({
+        order: '-name',
+        page: 1,
+        size: 10,
+        source: 'GLOBAL',
+      });
+    });
+
+    it('should load value to filter select', async () => {
+      const gioMetadata = await loader.getHarness(GioMetadataHarness);
+      expect(await gioMetadata.sourceSelectedText()).toEqual('Global');
+    });
+
+    it('should filter metadata with new value', async () => {
+      const gioMetadata = await loader.getHarness(GioMetadataHarness);
+      await gioMetadata.selectSource('API');
+      expectRouterCall({
+        source: 'API',
+        page: 1,
+        size: 10,
+      });
+    });
+
+    it('should reset filter metadata', async () => {
+      const gioMetadata = await loader.getHarness(GioMetadataHarness);
+      expect(await gioMetadata.sourceSelectedText()).toEqual('Global');
+
+      await gioMetadata.resetFilters();
+      expectRouterCall({
+        page: 1,
+        size: 10,
+      });
+    });
+  });
+
+  describe('after page change', () => {
+    beforeEach(async () => await init({ page: 2, size: 1 }));
+
+    it('should sort metadata and stay on same page', async () => {
+      const gioMetadata = await loader.getHarness(GioMetadataHarness);
+      await gioMetadata.sortBy('name');
+      expectRouterCall({
+        order: 'name',
+        page: 2,
+        size: 1,
+      });
+
+      // Reverse direction on second click
+      await gioMetadata.sortBy('name');
+      expectRouterCall({
+        order: '-name',
+        page: 2,
+        size: 1,
+      });
+    });
+
+    it('should filter metadata, go back to page 1 and keep page size', async () => {
+      const gioMetadata = await loader.getHarness(GioMetadataHarness);
+      await gioMetadata.selectSource('API');
+      expectRouterCall({
+        source: 'API',
+        page: 1,
+        size: 1,
+      });
+    });
+
+    it('should reset filter metadata, go back to page 1 and keep page size', async () => {
+      const gioMetadata = await loader.getHarness(GioMetadataHarness);
+      await gioMetadata.selectSource('API');
+      expectRouterCall({
+        source: 'API',
+        page: 1,
+        size: 1,
+      });
+
+      await gioMetadata.resetFilters();
+      expectRouterCall({
+        page: 1,
+        size: 1,
+      });
+    });
+  });
+
+  function expectMetadataList(searchParams?: { page?: number; perPage?: number; source?: string; sortBy?: string }) {
+    const page = searchParams?.page ?? 1;
+    const perPage = searchParams?.perPage ?? 10;
+    const list: Metadata[] = [fakeMetadata({ key: 'key1' }), fakeMetadata({ key: 'key2' })];
+
     let additionalParams = '';
     if (searchParams) {
-      page = searchParams.page ?? page;
-      perPage = searchParams.perPage ?? perPage;
-
       if (searchParams.source) {
         additionalParams += `&source=${searchParams.source}`;
       }
@@ -100,5 +306,9 @@ describe('ApiDocumentationV4MetadataComponent', () => {
         method: 'GET',
       })
       .flush(list);
+  }
+
+  function expectRouterCall(queryParams: TestQueryParams) {
+    expect(routerNavigateSpy).toHaveBeenCalledWith(['.'], { relativeTo: expect.anything(), queryParams });
   }
 });

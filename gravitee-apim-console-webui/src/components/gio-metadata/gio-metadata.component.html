@@ -35,13 +35,23 @@
         </button>
       </div>
     </div>
+    <ng-container *ngIf="form && !filterLocally">
+      <form [formGroup]="form">
+        <div class="gio-metadata__form__filters">
+          <mat-form-field>
+            <mat-label>Filter by source</mat-label>
+            <mat-select formControlName="source">
+              <mat-option *ngFor="let filter of apiSourceFilters" [value]="filter.value">{{ filter.label }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <button mat-raised-button type="button" (click)="resetFilters()" aria-label="reset-filters">
+            <mat-icon svgIcon="gio:refresh-cw"></mat-icon>Reset filters
+          </button>
+        </div>
+      </form>
+    </ng-container>
   </mat-card-content>
-  <gio-table-wrapper
-    [disableSearchInput]="true"
-    [length]="totalResults"
-    [disablePageSize]="paginationDisabled"
-    (filtersChange)="onFiltersChange($event)"
-  >
+  <gio-table-wrapper [disableSearchInput]="true" [filters]="filters" [length]="totalResults" (filtersChange)="onFiltersChange($event)">
     <table mat-table [dataSource]="dataSource" matSort>
       <caption style="display: none">
         {{

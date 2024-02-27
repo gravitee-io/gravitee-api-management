@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { EMPTY, Observable, Subject } from 'rxjs';
-import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { catchError, distinctUntilChanged, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
-import { MatSort } from '@angular/material/sort';
-import { MatTableDataSource } from '@angular/material/table';
-import { isEmpty } from 'lodash';
+import { isEmpty, isEqual } from 'lodash';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { ActivatedRoute, Params, Router } from '@angular/router';
 
 import { GioMetadataDialogComponent, GioMetadataDialogData } from './dialog/gio-metadata-dialog.component';
 
@@ -28,6 +28,7 @@ import { Metadata, MetadataFormat, NewMetadata, UpdateMetadata } from '../../ent
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
 import { SearchApiMetadataParam } from '../../entities/management-api-v2';
 import { GioTableWrapperFilters, Sort } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
+import { gioTableFilterCollection } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 
 export interface MetadataVM {
   key: string;
@@ -60,15 +61,33 @@ export interface MetadataSaveServices {
 export class GioMetadataComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
 
-  dataSource: MatTableDataSource<MetadataVM>;
+  dataSource: MetadataVM[];
+  filters: GioTableWrapperFilters = {
+    sort: {
+      active: undefined,
+      direction: '',
+    },
+    pagination: {
+      index: 1,
+      size: 10,
+    },
+    searchTerm: '',
+  };
   displayedColumns: string[];
   permissionPrefix: string;
   referenceType: 'API' | 'Application' | 'Global';
-  paginationDisabled = true;
   totalResults: number;
-  currentPage = 1;
-  currentPerPage = 10;
-  currentSort: Sort;
+  form: UntypedFormGroup;
+
+  // For pages not using pagination in the services
+  filterLocally = true;
+  private dataSourceAllResults: MetadataVM[];
+
+  // API filter
+  apiSourceFilters: { label: string; value: string }[] = [
+    { label: 'Global', value: 'GLOBAL' },
+    { label: 'API', value: 'API' },
+  ];
 
   @Input()
   metadataSaveServices: MetadataSaveServices;
@@ -76,22 +95,65 @@ export class GioMetadataComponent implements OnInit, OnDestroy {
   @Input()
   description: string;
 
-  @ViewChild(MatSort) sort: MatSort;
-
-  constructor(private matDialog: MatDialog, private readonly snackBarService: SnackBarService) {}
+  constructor(
+    private readonly router: Router,
+    private readonly activatedRoute: ActivatedRoute,
+    private matDialog: MatDialog,
+    private readonly snackBarService: SnackBarService,
+  ) {}
 
   ngOnInit(): void {
+    // Initialize router if query params not present
+    if (isEmpty(this.activatedRoute.snapshot.queryParams?.size) && isEmpty(this.activatedRoute.snapshot.queryParams?.page)) {
+      this.router.navigate(['.'], {
+        relativeTo: this.activatedRoute,
+        queryParams: {
+          page: 1,
+          size: 10,
+        },
+      });
+    }
+
     this.referenceType = this.metadataSaveServices.type;
     this.permissionPrefix = this.referenceType === 'Global' ? 'environment' : this.referenceType.toLowerCase();
     this.displayedColumns = ['key', 'name', 'format', 'value', 'actions'];
-    this.paginationDisabled = this.metadataSaveServices.paginate !== true;
+    this.filterLocally = this.metadataSaveServices.paginate !== true;
 
-    this.metadataSaveServices
-      .list()
-      .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((metadata) => {
-        this.initializeTable(metadata);
+    if (this.filterLocally) {
+      // Simple initialization if front-end pagination
+      this.initializeTable(undefined).subscribe();
+      return;
+    }
+
+    this.form = new UntypedFormGroup({
+      source: new UntypedFormControl(),
+    });
+
+    this.form
+      .get('source')
+      .valueChanges.pipe(
+        distinctUntilChanged(isEqual),
+        filter((source) => source !== this.activatedRoute.snapshot.queryParams?.source),
+      )
+      .subscribe((source) => {
+        this.router.navigate(['.'], {
+          relativeTo: this.activatedRoute,
+          queryParams: {
+            ...this.activatedRoute.snapshot.queryParams,
+            page: 1,
+            source,
+          },
+        });
       });
+
+    this.activatedRoute.queryParams
+      .pipe(
+        tap((queryParams) => {
+          this.form.get('source').setValue(queryParams?.source);
+        }),
+        switchMap((queryParams) => this.initializeTable(queryParams)),
+      )
+      .subscribe();
   }
 
   ngOnDestroy() {
@@ -120,16 +182,15 @@ export class GioMetadataComponent implements OnInit, OnDestroy {
             value: metadata.value,
           }),
         ),
+        tap((_) => this.snackBarService.success(`'${element.name}' updated successfully`)),
+        catchError(({ error }) => {
+          this.snackBarService.error(error?.message ?? 'Error during update');
+          return EMPTY;
+        }),
+        switchMap((_) => this.initializeTable(this.activatedRoute.snapshot.queryParams)),
+        takeUntil(this.unsubscribe$),
       )
-      .subscribe(
-        (metadata: Metadata) => {
-          this.snackBarService.success(`'${metadata.name}' updated successfully`);
-        },
-        (response) => {
-          this.snackBarService.error(response?.error?.message ? response.error.message : 'Error during update');
-        },
-        () => this.ngOnInit(),
-      );
+      .subscribe();
   }
 
   deleteMetadata(element: MetadataVM): void {
@@ -152,16 +213,15 @@ export class GioMetadataComponent implements OnInit, OnDestroy {
       .pipe(
         filter((confirmed) => confirmed),
         switchMap((_) => this.metadataSaveServices.delete(element.key)),
+        tap((_) => this.snackBarService.success(`'${element.name}' deleted successfully`)),
+        catchError(({ error }) => {
+          this.snackBarService.error(error?.message ?? 'Error during deletion');
+          return EMPTY;
+        }),
+        switchMap((_) => this.initializeTable(this.activatedRoute.snapshot.queryParams)),
+        takeUntil(this.unsubscribe$),
       )
-      .subscribe(
-        () => {
-          this.snackBarService.success(`'${element.name}' deleted successfully`);
-        },
-        (response) => {
-          this.snackBarService.error(response?.error?.message ? response.error.message : 'Error during deletion');
-        },
-        () => this.ngOnInit(),
-      );
+      .subscribe();
   }
 
   onAddMetadataClick(): void {
@@ -189,45 +249,106 @@ export class GioMetadataComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error?.message ? error.message : 'Error during creation');
           return EMPTY;
         }),
+        switchMap((_) => this.initializeTable(this.activatedRoute.snapshot.queryParams)),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe(() => {
-        this.ngOnInit();
-      });
+      .subscribe();
   }
 
-  onFiltersChange($event: GioTableWrapperFilters) {
-    const hasChanges =
-      this.currentPerPage !== $event.pagination.size || this.currentPage !== $event.pagination.index || this.currentSort !== $event.sort;
-    if (this.paginationDisabled || !hasChanges) {
-      // do nothing
+  onFiltersChange(filters: GioTableWrapperFilters) {
+    if (this.filterLocally) {
+      // Use gio-table filter mechanism for front-end filtering
+      const filtered = gioTableFilterCollection(this.dataSourceAllResults, filters);
+      this.dataSource = filtered.filteredCollection;
+      this.totalResults = filtered.unpaginatedLength;
       return;
     }
-    const sortBy = this.serializeSortByParam($event.sort);
-    this.metadataSaveServices
-      .list({ page: $event.pagination.index, perPage: $event.pagination.size, sortBy })
-      .pipe(takeUntil(this.unsubscribe$))
-      .subscribe((metadata) => {
-        this.initializeTable(metadata);
+
+    if (
+      this.filters.sort.active !== filters.sort.active ||
+      this.filters.sort.direction !== filters.sort.direction ||
+      this.filters.pagination.index !== filters.pagination.index ||
+      this.filters.pagination.size !== filters.pagination.size
+    ) {
+      // Only navigate if there are changes
+      this.router.navigate(['.'], {
+        relativeTo: this.activatedRoute,
+        queryParams: {
+          ...this.activatedRoute.snapshot.queryParams,
+          page: filters.pagination.index,
+          size: filters.pagination.size,
+          order: this.serializeSortByParam(filters.sort),
+        },
       });
+    }
+  }
+
+  resetFilters() {
+    this.router.navigate(['.'], {
+      relativeTo: this.activatedRoute,
+      queryParams: {
+        ...this.activatedRoute.snapshot.queryParams,
+        page: 1,
+        source: undefined,
+        order: undefined,
+      },
+    });
   }
 
   private serializeSortByParam(sort: Sort) {
-    const sortDirection = sort.direction === 'desc' ? '-' : '';
-    return sort && !isEmpty(sort.direction) ? `${sortDirection}${sort.active}` : undefined;
+    if (!sort || sort.direction === '') {
+      return undefined;
+    }
+    const sortDirection = sort?.direction === 'desc' ? '-' : '';
+    return `${sortDirection}${sort.active}`;
   }
 
-  private initializeTable(metadata: MetadataSaveServicesList) {
-    const data = metadata.data?.map((m) => ({
-      name: m.name,
-      defaultValue: m.defaultValue,
-      format: m.format,
-      key: m.key,
-      value: !!m.defaultValue && !m.value ? m.defaultValue : m.value,
-      isDeletable: !this.referenceType || (this.referenceType && m.value !== undefined),
-    }));
-    this.totalResults = metadata.totalResults;
-    this.dataSource = new MatTableDataSource<MetadataVM>(data);
-    this.dataSource.sort = this.sort;
+  private initializeTable(queryParams: Params): Observable<MetadataSaveServicesList> {
+    const page = queryParams?.page ? Number(queryParams.page) : 1;
+    const perPage = queryParams?.size ? Number(queryParams.size) : 10;
+    return this.metadataSaveServices
+      .list({
+        page,
+        perPage,
+        source: queryParams?.source,
+        sortBy: queryParams?.order,
+      })
+      .pipe(
+        tap((metadata) => {
+          this.totalResults = metadata.totalResults;
+          const data = metadata.data?.map((m) => ({
+            name: m.name,
+            defaultValue: m.defaultValue,
+            format: m.format,
+            key: m.key,
+            value: !!m.defaultValue && !m.value ? m.defaultValue : m.value,
+            isDeletable: !this.referenceType || (this.referenceType && m.value !== undefined),
+          }));
+          if (this.filterLocally) {
+            this.dataSourceAllResults = data;
+          }
+          this.filters = {
+            sort: this.deserializeSortByParam(queryParams?.order),
+            pagination: {
+              size: perPage,
+              index: page,
+            },
+            searchTerm: '',
+          };
+          this.dataSource = data;
+        }),
+      );
+  }
+
+  private deserializeSortByParam(order: string): Sort {
+    if (isEmpty(order)) {
+      return { active: undefined, direction: '' };
+    }
+
+    if (!order.startsWith('-')) {
+      return { active: order, direction: 'asc' };
+    }
+    const active = order.substring(1, order.length - 1);
+    return { active, direction: 'desc' };
   }
 }
