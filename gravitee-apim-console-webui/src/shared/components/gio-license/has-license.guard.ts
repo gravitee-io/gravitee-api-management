@@ -36,7 +36,7 @@ export const HasLicenseGuard: CanActivateChildFn = (route: ActivatedRouteSnapsho
     return of(true);
   }
 
-  return gioLicenseService.isMissingFeature$(licenseRouterData.license).pipe(
+  return gioLicenseService.isMissingFeature$(licenseRouterData.license.feature).pipe(
     map((notAllowed) => {
       if (notAllowed) {
         router.navigate([licenseRouterData.redirect]);

@@ -219,7 +219,7 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
   }
 
   private getMenuItemIconRight$(licenseOptions: LicenseOptions) {
-    return this.gioLicenseService.isMissingFeature$(licenseOptions).pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : null)));
+    return this.gioLicenseService.isMissingFeature$(licenseOptions.feature).pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : null)));
   }
 
   private buildFooterMenuItems(): MenuItem[] {
