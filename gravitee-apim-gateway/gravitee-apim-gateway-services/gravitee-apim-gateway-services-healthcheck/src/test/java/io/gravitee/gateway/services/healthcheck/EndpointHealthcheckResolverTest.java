@@ -82,6 +82,7 @@ public class EndpointHealthcheckResolverTest {
                 "  \"http\": {\n" +
                 "    \"connectTimeout\": 5000,\n" +
                 "    \"idleTimeout\": 60000,\n" +
+                "    \"keepAliveTimeout\": 30000,\n" +
                 "    \"keepAlive\": true,\n" +
                 "    \"readTimeout\": 10000,\n" +
                 "    \"pipelining\": false,\n" +
@@ -148,6 +149,7 @@ public class EndpointHealthcheckResolverTest {
                 "  \"http\": {\n" +
                 "    \"connectTimeout\": 5000,\n" +
                 "    \"idleTimeout\": 60000,\n" +
+                "    \"keepAliveTimeout\": 30000,\n" +
                 "    \"keepAlive\": true,\n" +
                 "    \"readTimeout\": 10000,\n" +
                 "    \"pipelining\": false,\n" +
@@ -181,6 +183,7 @@ public class EndpointHealthcheckResolverTest {
                 "  \"http\": {\n" +
                 "    \"connectTimeout\": 5000,\n" +
                 "    \"idleTimeout\": 60000,\n" +
+                "    \"keepAliveTimeout\": 30000,\n" +
                 "    \"keepAlive\": true,\n" +
                 "    \"readTimeout\": 10000,\n" +
                 "    \"pipelining\": false,\n" +
@@ -217,6 +220,7 @@ public class EndpointHealthcheckResolverTest {
                 "  \"http\": {\n" +
                 "    \"connectTimeout\": 5000,\n" +
                 "    \"idleTimeout\": 60000,\n" +
+                "    \"keepAliveTimeout\": 30000,\n" +
                 "    \"keepAlive\": true,\n" +
                 "    \"readTimeout\": 10000,\n" +
                 "    \"pipelining\": false,\n" +
@@ -281,6 +285,7 @@ public class EndpointHealthcheckResolverTest {
                 "  \"http\": {\n" +
                 "    \"connectTimeout\": 5000,\n" +
                 "    \"idleTimeout\": 60000,\n" +
+                "    \"keepAliveTimeout\": 30000,\n" +
                 "    \"keepAlive\": true,\n" +
                 "    \"readTimeout\": 10000,\n" +
                 "    \"pipelining\": false,\n" +
@@ -324,6 +329,7 @@ public class EndpointHealthcheckResolverTest {
                 "  \"http\": {\n" +
                 "    \"connectTimeout\": 5000,\n" +
                 "    \"idleTimeout\": 60000,\n" +
+                "    \"keepAliveTimeout\": 30000,\n" +
                 "    \"keepAlive\": true,\n" +
                 "    \"readTimeout\": 10000,\n" +
                 "    \"pipelining\": false,\n" +
@@ -365,6 +371,7 @@ public class EndpointHealthcheckResolverTest {
                 "  \"http\": {\n" +
                 "    \"connectTimeout\": 5000,\n" +
                 "    \"idleTimeout\": 60000,\n" +
+                "    \"keepAliveTimeout\": 30000,\n" +
                 "    \"keepAlive\": true,\n" +
                 "    \"readTimeout\": 10000,\n" +
                 "    \"pipelining\": false,\n" +
