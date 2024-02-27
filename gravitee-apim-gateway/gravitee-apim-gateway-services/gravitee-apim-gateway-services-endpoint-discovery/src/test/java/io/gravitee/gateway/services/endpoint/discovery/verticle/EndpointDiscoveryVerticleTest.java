@@ -223,6 +223,7 @@ public class EndpointDiscoveryVerticleTest {
             ) +
             "\"http\":{" +
             "\"idleTimeout\":60000," +
+            "\"keepAliveTimeout\":30000," +
             "\"connectTimeout\":5000," +
             "\"keepAlive\":true," +
             "\"readTimeout\":10000," +
