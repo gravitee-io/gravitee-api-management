@@ -26,7 +26,12 @@
     </ng-container>
     <ng-template #switchBlock [ngSwitch]="ruleType">
       <ng-container *ngSwitchCase="'REQUEST@METRICS_SIMPLE_CONDITION'">
-        <!-- add sub component here here -->
+        <metrics-simple-condition
+          [form]="conditionsForm"
+          [metrics]="metrics"
+          [referenceType]="referenceType"
+          [referenceId]="referenceId"
+        ></metrics-simple-condition>
       </ng-container>
       <ng-container *ngSwitchCase="'NODE_HEARTBEAT@METRICS_SIMPLE_CONDITION'">
         <!-- add sub component here here -->

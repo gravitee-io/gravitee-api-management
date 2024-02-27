@@ -20,13 +20,38 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { GioBannerModule } from '@gravitee/ui-particles-angular';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
-import { MissingDataConditionComponent } from './components';
+import {
+  CompareConditionComponent,
+  MetricsSimpleConditionComponent,
+  MissingDataConditionComponent,
+  StringConditionComponent,
+  ThresholdConditionComponent,
+  ThresholdRangeConditionComponent,
+} from './components';
 import { RuntimeAlertCreateConditionsComponent } from './runtime-alert-create-conditions.component';
 
 @NgModule({
-  declarations: [RuntimeAlertCreateConditionsComponent, MissingDataConditionComponent],
+  declarations: [
+    RuntimeAlertCreateConditionsComponent,
+    MissingDataConditionComponent,
+    MetricsSimpleConditionComponent,
+    CompareConditionComponent,
+    ThresholdConditionComponent,
+    ThresholdRangeConditionComponent,
+    StringConditionComponent,
+  ],
   exports: [RuntimeAlertCreateConditionsComponent],
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, MatInputModule, MatSelectModule, MatFormFieldModule, GioBannerModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    MatInputModule,
+    MatSelectModule,
+    MatFormFieldModule,
+    GioBannerModule,
+    MatTooltipModule,
+  ],
 })
 export class RuntimeAlertCreateConditionsModule {}

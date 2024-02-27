@@ -16,9 +16,9 @@
 import { deepEqual } from '@gravitee/ui-components/src/lib/utils';
 
 export enum Scope {
-  API = 'API',
-  APPLICATION = 'APPLICATION',
-  ENVIRONMENT = 'ENVIRONMENT',
+  API,
+  APPLICATION,
+  ENVIRONMENT,
 }
 
 export enum ConditionType {
@@ -32,7 +32,7 @@ export enum ConditionType {
   STRING_COMPARE = 'STRING_COMPARE',
 }
 
-class Operator {
+export class Operator {
   key: string;
   name: string;
 

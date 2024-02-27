@@ -32,7 +32,7 @@ import { Rule } from '../../../entities/alerts/rule.metrics';
 })
 export class RuntimeAlertCreateComponent implements OnInit {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
-  public referenceType: Scope = this.activatedRoute.snapshot.data.referenceType;
+  public referenceType: Scope = Scope[this.activatedRoute.snapshot.data.referenceType as keyof typeof Scope];
   public referenceId: string;
   public alertForm: FormGroup;
   public selectedRule: Rule;

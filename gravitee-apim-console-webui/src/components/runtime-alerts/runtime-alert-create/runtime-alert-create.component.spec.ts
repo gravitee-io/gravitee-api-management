@@ -27,7 +27,6 @@ import { RuntimeAlertCreateModule } from './runtime-alert-create.module';
 import { RuntimeAlertCreateHarness } from './runtime-alert-create.harness';
 import { RuntimeAlertCreateTimeframeHarness } from './components/runtime-alert-create-timeframe/runtime-alert-create-timeframe.harness';
 
-import { Scope } from '../../../entities/alert';
 import { GioTestingModule } from '../../../shared/testing';
 import { Days } from '../../../entities/alerts/period';
 
@@ -49,7 +48,7 @@ describe('RuntimeAlertCreateComponent', () => {
           useValue: {
             snapshot: {
               params: { apiId: API_ID, envId: ENVIRONMENT_ID },
-              data: { referenceType: Scope.API },
+              data: { referenceType: 'API' },
             },
           },
         },

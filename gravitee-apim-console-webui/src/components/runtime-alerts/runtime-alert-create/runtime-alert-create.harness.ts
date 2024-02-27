@@ -18,10 +18,12 @@ import { ComponentHarness } from '@angular/cdk/testing';
 
 import { RuntimeAlertCreateGeneralHarness } from './components/runtime-alert-create-general/runtime-alert-create-general.harness';
 import { RuntimeAlertCreateTimeframeHarness } from './components/runtime-alert-create-timeframe/runtime-alert-create-timeframe.harness';
+import { RuntimeAlertCreateConditionsHarness } from './components/runtime-alert-create-conditions/runtime-alert-create-conditions.harness';
 
 export class RuntimeAlertCreateHarness extends ComponentHarness {
   static readonly hostSelector = 'runtime-alert-create';
 
   public getGeneralFormHarness = this.locatorFor(RuntimeAlertCreateGeneralHarness);
   public getTimeframeFormHarness = this.locatorFor(RuntimeAlertCreateTimeframeHarness);
+  public getConditionFormHarness = this.locatorFor(RuntimeAlertCreateConditionsHarness);
 }
