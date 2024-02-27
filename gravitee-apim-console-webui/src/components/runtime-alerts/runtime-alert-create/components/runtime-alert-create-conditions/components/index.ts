@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+export * from './components';
 export * from './missing-data-condition/missing-data-condition.component';
 export * from './metrics-simple-condition';
-export * from './components';
+export * from './request-metrics-aggregation-condition/request-metrics-aggregation-condition.component';

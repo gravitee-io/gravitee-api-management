@@ -33,6 +33,15 @@ export class RuntimeAlertCreateConditionsFactory {
           metric: new FormControl<Metrics>(null, [Validators.required]),
           type: new FormControl<string>({ value: null, disabled: true }, [Validators.required]),
         });
+      case 'REQUEST@METRICS_AGGREGATION':
+        return new FormGroup({
+          metric: new FormControl<Metrics>(null, [Validators.required]),
+          function: new FormControl<string>(null, [Validators.required]),
+          operator: new FormControl<string>(null, [Validators.required]),
+          threshold: new FormControl<number>(null, [Validators.required]),
+          duration: new FormControl<number>(null, [Validators.required, Validators.min(1)]),
+          timeUnit: new FormControl<string>(null, [Validators.required]),
+        });
       default:
         return null;
     }

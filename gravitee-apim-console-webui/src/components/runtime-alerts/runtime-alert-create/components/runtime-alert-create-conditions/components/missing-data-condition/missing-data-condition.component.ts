@@ -22,7 +22,7 @@ import { FormGroup } from '@angular/forms';
   template: `
     <form *ngIf="form" [formGroup]="form" class="condition-row">
       <div class="condition-row__label">
-        <span class="mat-body-2">No event for</span>
+        <span class="mat-body-2">{{ label }}</span>
       </div>
       <mat-form-field class="condition-row__form-field">
         <mat-label>Duration</mat-label>
@@ -42,5 +42,6 @@ import { FormGroup } from '@angular/forms';
 })
 export class MissingDataConditionComponent {
   @Input({ required: true }) form: FormGroup;
+  @Input() label = 'No event for';
   protected timeUnits = ['Seconds', 'Minutes', 'Hours'];
 }

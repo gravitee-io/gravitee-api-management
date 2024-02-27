@@ -26,6 +26,7 @@ import {
   CompareConditionComponent,
   MetricsSimpleConditionComponent,
   MissingDataConditionComponent,
+  RequestMetricsAggregationConditionComponent,
   StringConditionComponent,
   ThresholdConditionComponent,
   ThresholdRangeConditionComponent,
@@ -41,6 +42,7 @@ import { RuntimeAlertCreateConditionsComponent } from './runtime-alert-create-co
     ThresholdConditionComponent,
     ThresholdRangeConditionComponent,
     StringConditionComponent,
+    RequestMetricsAggregationConditionComponent,
   ],
   exports: [RuntimeAlertCreateConditionsComponent],
   imports: [
