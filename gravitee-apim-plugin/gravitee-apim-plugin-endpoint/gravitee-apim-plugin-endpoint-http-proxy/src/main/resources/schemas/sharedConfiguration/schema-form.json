@@ -24,6 +24,12 @@
                 }
             }
         },
+        "keepAliveTimeout": {
+            "type": "integer",
+            "title": "Keep-alive timeout (ms)",
+            "description": "Maximum time a connection will remain unused in the pool in milliseconds. Once the timeout has elapsed, the unused connection will be evicted.",
+            "default": 30000
+        },
         "connectTimeout":{
             "type":"integer",
             "title":"Connect timeout (ms)",
@@ -76,7 +82,7 @@
             "gioConfig": {
                 "banner": {
                     "title": "Idle timeout",
-                    "text": "Maximum time a connection will stay in the pool without being used in milliseconds. Once the timeout has elapsed, the unused connection will be closed, allowing to free the associated resources."
+                    "text": "Maximum time a connection will be opened if no data is received nor sent. Once the timeout has elapsed, the unused connection will be closed, allowing to free the associated resources."
                 }
             }
         },
@@ -110,6 +116,9 @@
                         "keepAlive":{
                             "$ref":"#/definitions/keepAlive"
                         },
+                        "keepAliveTimeout":{
+                            "$ref":"#/definitions/keepAliveTimeout"
+                        },
                         "connectTimeout":{
                             "$ref":"#/definitions/connectTimeout"
                         },
@@ -136,6 +145,7 @@
                         }
                     },
                     "required":[
+                        "keepAliveTimeout",
                         "connectTimeout",
                         "readTimeout",
                         "idleTimeout",
@@ -155,6 +165,9 @@
                         "keepAlive":{
                             "$ref":"#/definitions/keepAlive"
                         },
+                        "keepAliveTimeout":{
+                            "$ref":"#/definitions/keepAliveTimeout"
+                        },
                         "connectTimeout":{
                             "$ref":"#/definitions/connectTimeout"
                         },
@@ -181,6 +194,7 @@
                         }
                     },
                     "required":[
+                        "keepAliveTimeout",
                         "connectTimeout",
                         "readTimeout",
                         "idleTimeout",

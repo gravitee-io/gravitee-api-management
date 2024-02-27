@@ -108,6 +108,7 @@ public class VertxHttpClient extends AbstractBaseClient {
             .setPipelining(httpOptions.isPipelining())
             .setKeepAlive(httpOptions.isKeepAlive())
             .setIdleTimeout((int) (httpOptions.getIdleTimeout() / 1000))
+            .setKeepAliveTimeout((int) (httpOptions.getKeepAliveTimeout() / 1000))
             .setConnectTimeout((int) httpOptions.getConnectTimeout())
             .setMaxPoolSize(httpOptions.getMaxConcurrentConnections())
             .setTryUseCompression(httpOptions.isUseCompression())

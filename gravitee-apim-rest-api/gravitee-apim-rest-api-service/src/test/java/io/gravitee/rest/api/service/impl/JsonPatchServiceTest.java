@@ -72,6 +72,7 @@ class JsonPatchServiceTest {
                                 "http": {
                                   "connectTimeout": 5000,
                                   "idleTimeout": 60000,
+                                  "keepAliveTimeout": 30000,
                                   "keepAlive": true,
                                   "readTimeout": 10000,
                                   "pipelining": false,

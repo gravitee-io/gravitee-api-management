@@ -43,6 +43,9 @@ public class HttpClientOptions implements Serializable {
     private long idleTimeout = DEFAULT_IDLE_TIMEOUT;
 
     @Builder.Default
+    private long keepAliveTimeout = DEFAULT_KEEP_ALIVE_TIMEOUT;
+
+    @Builder.Default
     private long connectTimeout = DEFAULT_CONNECT_TIMEOUT;
 
     @Builder.Default
