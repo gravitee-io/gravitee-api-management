@@ -81,6 +81,7 @@ public class HttpEndpointRuleHandler<T extends HttpEndpoint> extends EndpointRul
                 .setKeepAlive(endpoint.getHttpClientOptions().isKeepAlive())
                 .setTcpKeepAlive(endpoint.getHttpClientOptions().isKeepAlive())
                 .setIdleTimeout((int) (endpoint.getHttpClientOptions().getIdleTimeout() / 1000))
+                .setKeepAliveTimeout((int) (endpoint.getHttpClientOptions().getKeepAliveTimeout() / 1000))
                 .setConnectTimeout((int) endpoint.getHttpClientOptions().getConnectTimeout())
                 .setTryUseCompression(endpoint.getHttpClientOptions().isUseCompression());
 

@@ -58,7 +58,8 @@ The http proxy connector comes with default values regarding the connection pool
 |keepAlive | true     | Yes | Use an HTTP persistent connection to send and receive multiple HTTP requests / responses.
 |followRedirects | false     | Yes | When the connector receives a status code in the range 3xx from the backend, it follows the redirection provided by the Location response header.
 |readTimeout | 10000     | Yes | Maximum time given to the backend to complete the request (including response) in milliseconds.
-|idleTimeout | 60000     | Yes | Maximum time a connection will stay in the pool without being used in milliseconds. Once the timeout has elapsed, the unused connection will be closed, allowing to free the eventual associated resources.
+|idleTimeout | 60000     | Yes | Maximum time a connection will be opened if no data is received nor sent. Once the timeout has elapsed, the unused connection will be closed, allowing to free the associated resources.
+|keepAliveTimeout | 30000     | Yes | Maximum time a connection will remains unused in the pool in milliseconds. Once the timeout has elapsed, the unused connection will be evicted.
 |connectTimeout | 5000     | Yes | Maximum time to connect to the backend in milliseconds.
 |propagateClientAcceptEncoding | false     | Yes | Propagate client Accept-Encoding header (no decompression if any). The gateway will propagate the Accept-Encoding header's value specified by the client's request to the backend (if any). The gateway will <b>NEVER attempt to decompress the content</b> if the backend response is compressed (gzip, deflate). It is then not possible to apply transformation policy if the body is compressed. Also, body will appear compressed if logging is enabled for the API. <b>DO NOT</b> activate this option if you plan to play with body responses.
 |useCompression | true     | Yes | Enable compression (gzip, deflate). The gateway can let the remote http server know that it supports compression. In case the remote http server returns a compressed response, the gateway will decompress it. Leave that option off if you don't want compression between the gateway and the remote server.
@@ -163,6 +164,7 @@ Bellow you will find a full `http-proxy` endpoint configuration example:
             "followRedirects": false,
             "readTimeout": 10000,
             "idleTimeout": 60000,
+            "keepAliveTimeout": 30000,
             "connectTimeout": 5000,
             "propagateClientAcceptEncoding": false,
             "useCompression": true,

@@ -124,6 +124,7 @@ public class ApiService_UpdateTest {
         "            \"http\": {\n" +
         "              \"connectTimeout\": 5000,\n" +
         "              \"idleTimeout\": 60000,\n" +
+        "              \"keepAliveTimeout\": 30000,\n" +
         "              \"keepAlive\": true,\n" +
         "              \"readTimeout\": 10000,\n" +
         "              \"pipelining\": false,\n" +
@@ -140,6 +141,7 @@ public class ApiService_UpdateTest {
         "        \"http\": {\n" +
         "          \"connectTimeout\": 5000,\n" +
         "          \"idleTimeout\": 60000,\n" +
+        "          \"keepAliveTimeout\": 30000,\n" +
         "          \"keepAlive\": true,\n" +
         "          \"readTimeout\": 10000,\n" +
         "          \"pipelining\": false,\n" +
