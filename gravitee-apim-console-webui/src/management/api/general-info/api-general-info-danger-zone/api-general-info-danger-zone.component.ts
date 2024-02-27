@@ -79,7 +79,7 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy, 
     if (api.type === 'PROXY') {
       return of(false);
     }
-    return this.licenseService?.isMissingFeature$(this.licenseOptions);
+    return this.licenseService?.isMissingFeature$(this.licenseOptions.feature);
   }
 
   public get canStart$(): Observable<boolean> {

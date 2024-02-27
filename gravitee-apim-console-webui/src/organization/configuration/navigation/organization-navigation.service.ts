@@ -138,7 +138,9 @@ export class OrganizationNavigationService {
 
   private appendAuditItems() {
     const licenseOptions = { feature: ApimFeature.APIM_AUDIT_TRAIL, context: UTMTags.CONTEXT_ORGANIZATION };
-    const iconRight$ = this.gioLicenseService.isMissingFeature$(licenseOptions).pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : null)));
+    const iconRight$ = this.gioLicenseService
+      .isMissingFeature$(licenseOptions.feature)
+      .pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : null)));
     const items = this.filterMenuByPermission([
       {
         displayName: 'Audit',

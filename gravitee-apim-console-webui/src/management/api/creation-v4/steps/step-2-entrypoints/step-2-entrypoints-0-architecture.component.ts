@@ -58,7 +58,7 @@ export class Step2Entrypoints0ArchitectureComponent implements OnInit, OnDestroy
 
     this.initialValue = this.form.getRawValue();
 
-    this.shouldUpgrade$ = this.licenseService.isMissingFeature$(this.licenseOptions);
+    this.shouldUpgrade$ = this.licenseService.isMissingFeature$(this.licenseOptions.feature);
     this.license$ = this.licenseService.getLicense$();
     this.isOEM$ = this.licenseService.isOEM$();
   }

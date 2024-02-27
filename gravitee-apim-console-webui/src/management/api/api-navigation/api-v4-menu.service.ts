@@ -56,7 +56,9 @@ export class ApiV4MenuService implements ApiMenuService {
 
   private addConfigurationMenuEntry(): MenuItem {
     const license = { feature: ApimFeature.APIM_AUDIT_TRAIL, context: UTMTags.CONTEXT_API };
-    const iconRight$ = this.gioLicenseService.isMissingFeature$(license).pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : null)));
+    const iconRight$ = this.gioLicenseService
+      .isMissingFeature$(license.feature)
+      .pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : null)));
 
     const tabs: MenuItem[] = [
       {
