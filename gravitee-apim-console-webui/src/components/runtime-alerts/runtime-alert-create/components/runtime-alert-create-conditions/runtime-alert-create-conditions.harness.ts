@@ -13,3 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ComponentHarness } from '@angular/cdk/testing';
+
+import { MissingDataConditionHarness } from './components/missing-data-condition/missing-data-condition.harness';
+import { MetricsSimpleConditionHarness } from './components/metrics-simple-condition/metrics-simple-condition.harness';
+
+export class RuntimeAlertCreateConditionsHarness extends ComponentHarness {
+  static readonly hostSelector = 'runtime-alert-create-conditions';
+  public missingDataConditionForm = this.locatorFor(MissingDataConditionHarness);
+  public metricsSimpleConditionForm = this.locatorFor(MetricsSimpleConditionHarness);
+}

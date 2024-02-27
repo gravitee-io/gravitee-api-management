@@ -15,7 +15,7 @@
  */
 import { isFunction } from 'lodash';
 
-import { Subscription } from './subscription';
+import { ApplicationSubscription, Subscription } from './subscription';
 
 import { fakeApi } from '../api/Api.fixture';
 import { fakeApplication } from '../application/Application.fixture';
@@ -37,6 +37,35 @@ export function fakeSubscription(modifier?: Partial<Subscription> | ((baseApi: S
     created_at: date,
     updated_at: date,
     client_id: 'client_id',
+  };
+
+  if (isFunction(modifier)) {
+    return modifier(base);
+  }
+
+  return {
+    ...base,
+    ...modifier,
+  };
+}
+
+export function fakeApplicationSubscription(
+  modifier?: Partial<ApplicationSubscription> | ((baseApi: ApplicationSubscription) => ApplicationSubscription),
+): ApplicationSubscription {
+  const date = new Date();
+  const base: ApplicationSubscription = {
+    id: '45ff00ef-8256-3218-bf0d-b289735d84bb',
+    api: fakeApi().id,
+    plan: fakePlan().id,
+    application: fakeApplication().id,
+    security: 'API_KEY',
+    status: 'ACCEPTED',
+    processed_at: date,
+    processed_by: 'me',
+    subscribed_by: fakeUser(),
+    starting_at: date,
+    created_at: date,
+    updated_at: date,
   };
 
   if (isFunction(modifier)) {

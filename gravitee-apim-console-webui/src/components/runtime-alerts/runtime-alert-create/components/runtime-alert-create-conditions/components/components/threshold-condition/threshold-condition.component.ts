@@ -16,31 +16,30 @@
 import { Component, Input } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 
+import { AggregationCondition } from '../../../../../../../../entities/alert';
+
 @Component({
-  selector: 'missing-data-condition',
-  styleUrls: ['../scss/conditions.component.scss'],
+  selector: 'threshold-condition',
+  styleUrls: ['../../scss/conditions.component.scss'],
   template: `
     <form *ngIf="form" [formGroup]="form" class="condition-row">
-      <div class="condition-row__label">
-        <span class="mat-body-2">No event for</span>
-      </div>
       <mat-form-field class="condition-row__form-field">
-        <mat-label>Duration</mat-label>
-        <input matInput formControlName="duration" type="number" min="1" required />
-        <mat-error *ngIf="form.controls.duration.hasError('required')">Duration is required</mat-error>
-        <mat-error *ngIf="form.controls.duration.hasError('min')">Duration must be greater than 0.</mat-error>
+        <mat-label>Operator</mat-label>
+        <mat-select formControlName="operator" required>
+          <mat-option *ngFor="let operator of operators" [value]="operator">{{ operator.name }}</mat-option>
+        </mat-select>
+        <mat-error *ngIf="form.controls.operator.hasError('required')">Operator is required.</mat-error>
       </mat-form-field>
       <mat-form-field class="condition-row__form-field">
-        <mat-label>Time unit</mat-label>
-        <mat-select formControlName="timeUnit" required>
-          <mat-option *ngFor="let unit of timeUnits" [value]="unit">{{ unit }}</mat-option>
-        </mat-select>
-        <mat-error *ngIf="form.controls.timeUnit.hasError('required')">Time unit is required</mat-error>
+        <mat-label>Threshold</mat-label>
+        <input matInput formControlName="threshold" type="number" min="1" required />
+        <mat-error *ngIf="form.controls.threshold.hasError('required')">Threshold is required.</mat-error>
+        <mat-error *ngIf="form.controls.threshold.hasError('min')">The threshold value should be greater or equals to 1</mat-error>
       </mat-form-field>
     </form>
   `,
 })
-export class MissingDataConditionComponent {
+export class ThresholdConditionComponent {
   @Input({ required: true }) form: FormGroup;
-  protected timeUnits = ['Seconds', 'Minutes', 'Hours'];
+  protected operators = AggregationCondition.OPERATORS;
 }

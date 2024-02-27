@@ -28,11 +28,12 @@ import { Rule } from '../../../../../entities/alerts/rule.metrics';
 })
 export class RuntimeAlertCreateConditionsComponent {
   @Input({ required: true }) referenceType: Scope;
+  @Input({ required: true }) referenceId: string;
   @Input({ required: true }) set rule(value: Rule) {
     if (value) {
       this.ruleType = `${value.source}@${value.type}`;
       this.conditionsForm = RuntimeAlertCreateConditionsFactory.create(this.ruleType);
-      this.metrics = Metrics.filterByScope(Rule.findByScopeAndType(this.referenceType, this.ruleType).metrics, this.referenceType);
+      this.metrics = Metrics.filterByScope(Rule.findByScopeAndType(this.referenceType, this.ruleType)?.metrics ?? [], this.referenceType);
     }
   }
 

@@ -16,6 +16,8 @@
 
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 
+import { Metrics } from '../../../../../entities/alert';
+
 export class RuntimeAlertCreateConditionsFactory {
   static create(rule: string) {
     if (rule.endsWith('@MISSING_DATA')) {
@@ -28,8 +30,8 @@ export class RuntimeAlertCreateConditionsFactory {
     switch (rule) {
       case 'REQUEST@METRICS_SIMPLE_CONDITION':
         return new FormGroup({
-          metrics: new FormControl<string>(null, [Validators.required]),
-          type: new FormControl<string>(null, [Validators.required]),
+          metric: new FormControl<Metrics>(null, [Validators.required]),
+          type: new FormControl<string>({ value: null, disabled: true }, [Validators.required]),
         });
       default:
         return null;

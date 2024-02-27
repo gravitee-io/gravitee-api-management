@@ -1,0 +1,13 @@
+.condition-row {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+
+  &__label {
+    margin-top: 20px;
+  }
+
+  &__form-field {
+    height: fit-content;
+  }
+}

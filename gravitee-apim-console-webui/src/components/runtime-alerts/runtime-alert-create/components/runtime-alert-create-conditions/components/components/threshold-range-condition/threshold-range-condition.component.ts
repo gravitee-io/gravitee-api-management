@@ -17,30 +17,24 @@ import { Component, Input } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 
 @Component({
-  selector: 'missing-data-condition',
-  styleUrls: ['../scss/conditions.component.scss'],
+  selector: 'threshold-range-condition',
+  styleUrls: ['../../scss/conditions.component.scss'],
   template: `
     <form *ngIf="form" [formGroup]="form" class="condition-row">
-      <div class="condition-row__label">
-        <span class="mat-body-2">No event for</span>
-      </div>
       <mat-form-field class="condition-row__form-field">
-        <mat-label>Duration</mat-label>
-        <input matInput formControlName="duration" type="number" min="1" required />
-        <mat-error *ngIf="form.controls.duration.hasError('required')">Duration is required</mat-error>
-        <mat-error *ngIf="form.controls.duration.hasError('min')">Duration must be greater than 0.</mat-error>
+        <mat-label>Low threshold</mat-label>
+        <input matInput formControlName="lowThreshold" type="number" min="1" required />
+        <mat-error *ngIf="form.controls.lowThreshold.hasError('required')">Low threshold is required.</mat-error>
       </mat-form-field>
       <mat-form-field class="condition-row__form-field">
-        <mat-label>Time unit</mat-label>
-        <mat-select formControlName="timeUnit" required>
-          <mat-option *ngFor="let unit of timeUnits" [value]="unit">{{ unit }}</mat-option>
-        </mat-select>
-        <mat-error *ngIf="form.controls.timeUnit.hasError('required')">Time unit is required</mat-error>
+        <mat-label>High threshold</mat-label>
+        <input matInput formControlName="highThreshold" type="number" [min]="form.controls.lowThreshold.getRawValue()" required />
+        <mat-error *ngIf="form.controls.highThreshold.hasError('required')">High threshold is required.</mat-error>
+        <mat-error *ngIf="form.controls.highThreshold.hasError('min')">High threshold must be higher than low threshold.</mat-error>
       </mat-form-field>
     </form>
   `,
 })
-export class MissingDataConditionComponent {
+export class ThresholdRangeConditionComponent {
   @Input({ required: true }) form: FormGroup;
-  protected timeUnits = ['Seconds', 'Minutes', 'Hours'];
 }
