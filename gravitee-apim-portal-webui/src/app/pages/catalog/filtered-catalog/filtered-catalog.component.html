@@ -31,7 +31,7 @@
     <section class="catalog__section__promoted">
       <gv-promote
         *ngIf="hasPromotedApiMode()"
-        [item]="promotedApi"
+        [item]="promotedApi | async | markdownDescription"
         [metrics]="promotedMetrics"
         [href]="this.promotedApiPath"
         (:gv-promote:click)="goToApi(promotedApi)"

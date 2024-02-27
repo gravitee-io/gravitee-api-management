@@ -23,6 +23,7 @@ import { ApiStatesPipe } from '../../../pipes/api-states.pipe';
 import { ApiLabelsPipe } from '../../../pipes/api-labels.pipe';
 import { Api, ApiService, ApisResponse, User } from '../../../../../projects/portal-webclient-sdk/src/lib';
 import { ConfigurationService } from '../../../services/configuration.service';
+import { MarkdownDescriptionPipe } from '../../../pipes/markdown-description.pipe';
 
 import { FilteredCatalogComponent } from './filtered-catalog.component';
 
@@ -37,10 +38,11 @@ describe('FilteredCatalogComponent', () => {
     component: FilteredCatalogComponent,
     schemas: [CUSTOM_ELEMENTS_SCHEMA],
     imports: [HttpClientTestingModule, RouterTestingModule],
-    declarations: [ApiStatesPipe, ApiLabelsPipe],
+    declarations: [ApiStatesPipe, ApiLabelsPipe, MarkdownDescriptionPipe],
     providers: [
       ApiStatesPipe,
       ApiLabelsPipe,
+      MarkdownDescriptionPipe,
       mockProvider(ConfigurationService, {
         hasFeature: () => true,
       }),

@@ -33,6 +33,7 @@ import { GvPageRedocComponent } from '../components/gv-page-redoc/gv-page-redoc.
 import { GvPageSwaggerUIComponent } from '../components/gv-page-swaggerui/gv-page-swaggerui.component';
 import { GvMarkdownTocComponent } from '../components/gv-markdown-toc/gv-markdown-toc.component';
 import { GvPageAsyncApiComponent } from '../components/gv-page-asyncapi/gv-page-asyncapi.component';
+import { MarkdownDescriptionPipe } from '../pipes/markdown-description.pipe';
 
 import { ApiStatesPipe } from './../pipes/api-states.pipe';
 import { SafePipe } from './../pipes/safe.pipe';
@@ -42,6 +43,7 @@ import { ApiLabelsPipe } from './../pipes/api-labels.pipe';
   declarations: [
     ApiLabelsPipe,
     ApiStatesPipe,
+    MarkdownDescriptionPipe,
     LocalizedDatePipe,
     SafePipe,
     GvFormControlDirective,
@@ -78,11 +80,12 @@ import { ApiLabelsPipe } from './../pipes/api-labels.pipe';
     OAuthModule,
     GvFormControlDirective,
     SafePipe,
+    MarkdownDescriptionPipe,
     LocalizedDatePipe,
     GvCheckboxControlValueAccessorDirective,
     GvPageComponent,
   ],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
-  providers: [ApiLabelsPipe, ApiStatesPipe, LocalizedDatePipe],
+  providers: [ApiLabelsPipe, ApiStatesPipe, MarkdownDescriptionPipe, LocalizedDatePipe],
 })
 export class SharedModule {}

@@ -29,6 +29,7 @@ import {
 import { SearchQueryParam } from '../../../utils/search-query-param.enum';
 import { ApiStatesPipe } from '../../../pipes/api-states.pipe';
 import { ApiLabelsPipe } from '../../../pipes/api-labels.pipe';
+import { MarkdownDescriptionPipe } from '../../../pipes/markdown-description.pipe';
 import { ConfigurationService } from '../../../services/configuration.service';
 import { FeatureEnum } from '../../../model/feature.enum';
 import { createPromiseList } from '../../../utils/utils';
@@ -81,6 +82,7 @@ export class FilteredCatalogComponent implements OnInit {
     private router: Router,
     private apiStates: ApiStatesPipe,
     private apiLabels: ApiLabelsPipe,
+    private markdownDescription: MarkdownDescriptionPipe,
     private config: ConfigurationService,
     private portalService: PortalService,
   ) {
@@ -220,7 +222,6 @@ export class FilteredCatalogComponent implements OnInit {
 
   async _loadCards() {
     const fetchPromoted = this.hasPromotedApiMode() ? false : undefined;
-
     return this.apiService
       .getApis({
         page: this.page,
@@ -233,14 +234,15 @@ export class FilteredCatalogComponent implements OnInit {
       .then(async ({ data, metadata }) => {
         this.paginationData = metadata.pagination;
 
-        this.allApis = data.map(api => {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          api.states = this.apiStates.transform(api);
-          api.labels = this.apiLabels.transform(api);
-
-          return { item: Promise.resolve(api), metrics: this.apiService.getApiMetricsByApiId({ apiId: api.id }).toPromise() };
-        });
+        this.allApis = data
+          .map(api => this.markdownDescription.transform(api))
+          .map(api => {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            api.states = this.apiStates.transform(api);
+            api.labels = this.apiLabels.transform(api);
+            return { item: Promise.resolve(api), metrics: this.apiService.getApiMetricsByApiId({ apiId: api.id }).toPromise() };
+          });
 
         if (this.hasCategoryMode() && this.categories == null) {
           this.apiService.listCategories({ filter: this.filterApiQuery }).subscribe(categoriesResponse => {
