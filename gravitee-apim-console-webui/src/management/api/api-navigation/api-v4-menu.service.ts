@@ -225,7 +225,6 @@ export class ApiV4MenuService implements ApiMenuService {
       tabs.push({
         displayName: 'Metadata',
         routerLink: 'v4/documentation/metadata',
-        routerLinkActiveOptions: { exact: true },
       });
     }
 

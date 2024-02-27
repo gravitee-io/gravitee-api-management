@@ -22,14 +22,14 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs';
 
-import { ApiDocumentationV4MetadataComponent } from './api-documentation-v4-metadata.component';
+import { GioApiMetadataListComponent } from './gio-api-metadata-list.component';
+import { GioApiMetadataListModule } from './gio-api-metadata-list.module';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { Metadata } from '../../../../entities/metadata/metadata';
 import { fakeMetadata } from '../../../../entities/metadata/metadata.fixture';
 import { GioMetadataHarness } from '../../../../components/gio-metadata/gio-metadata.harness';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
-import { ApiDocumentationV4Module } from '../api-documentation-v4.module';
 
 interface TestQueryParams {
   page?: number;
@@ -39,7 +39,7 @@ interface TestQueryParams {
 }
 
 describe('ApiDocumentationV4MetadataComponent', () => {
-  let fixture: ComponentFixture<ApiDocumentationV4MetadataComponent>;
+  let fixture: ComponentFixture<GioApiMetadataListComponent>;
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
   let routerNavigateSpy: jest.SpyInstance;
@@ -53,7 +53,7 @@ describe('ApiDocumentationV4MetadataComponent', () => {
       source: params.source,
     };
     await TestBed.configureTestingModule({
-      declarations: [ApiDocumentationV4MetadataComponent],
+      declarations: [GioApiMetadataListComponent],
       providers: [
         {
           provide: ActivatedRoute,
@@ -61,10 +61,10 @@ describe('ApiDocumentationV4MetadataComponent', () => {
         },
         { provide: GioTestingPermissionProvider, useValue: ['api-metadata-r', 'api-metadata-u', 'api-metadata-d', 'api-metadata-c'] },
       ],
-      imports: [NoopAnimationsModule, GioTestingModule, ApiDocumentationV4Module, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, GioApiMetadataListModule, MatIconTestingModule],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(ApiDocumentationV4MetadataComponent);
+    fixture = TestBed.createComponent(GioApiMetadataListComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     loader = TestbedHarnessEnvironment.loader(fixture);
 
