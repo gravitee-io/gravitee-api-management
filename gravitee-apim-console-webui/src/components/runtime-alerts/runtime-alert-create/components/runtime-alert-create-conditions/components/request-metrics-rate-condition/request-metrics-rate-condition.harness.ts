@@ -19,11 +19,13 @@ import { ComponentHarness } from '@angular/cdk/testing';
 import { ThresholdConditionHarness } from '../components/threshold-condition/threshold-condition.harness';
 import { MetricsSimpleConditionHarness } from '../metrics-simple-condition/metrics-simple-condition.harness';
 import { MissingDataConditionHarness } from '../missing-data-condition/missing-data-condition.harness';
+import { AggregationConditionHarness } from '../components/aggegation-condition/aggregation-condition.harness';
 
 export class RequestMetricsRateConditionHarness extends ComponentHarness {
   static readonly hostSelector = 'request-metrics-rate-condition';
 
   public metricsSimpleConditionForm = this.locatorFor(MetricsSimpleConditionHarness);
-  public getThresholdHarness = this.locatorFor(ThresholdConditionHarness);
-  public durationHarness = this.locatorFor(MissingDataConditionHarness);
+  public getThresholdForm = this.locatorFor(ThresholdConditionHarness);
+  public durationForm = this.locatorFor(MissingDataConditionHarness);
+  public aggregationForm = this.locatorFor(AggregationConditionHarness);
 }
