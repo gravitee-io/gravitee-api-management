@@ -29,7 +29,7 @@ import { UntypedFormControl } from '@angular/forms';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { isEqual } from 'lodash';
-import { merge, of, Subject } from 'rxjs';
+import { merge, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, map, scan, startWith, takeUntil } from 'rxjs/operators';
 
 export interface Sort {
@@ -137,13 +137,15 @@ export class GioTableWrapperComponent implements AfterViewInit, OnChanges {
     });
 
     // Merge : stateChange, paginator, sort, inputSearch into single observable
-    merge(
+    const observableToMerge = [
       this.stateChanges,
       this.inputSearch.valueChanges,
       this.paginatorBottom.page,
       this.paginatorTop.page,
-      this.sort?.sortChange ?? of({}),
-    )
+      this.sort?.sortChange,
+    ];
+
+    merge(...observableToMerge.filter((observable) => !!observable))
       .pipe(
         map(() => {
           // In each event get all values

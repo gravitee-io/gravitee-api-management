@@ -21,6 +21,7 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 
 import { OrgSettingsIdentityProvidersComponent } from './org-settings-identity-providers.component';
 
@@ -58,7 +59,7 @@ describe('OrgSettingsIdentityProvidersComponent', () => {
     loader = TestbedHarnessEnvironment.loader(fixture);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
 
-    fixture.detectChanges();
+    fixture.autoDetectChanges(true);
   });
 
   afterEach(() => {
@@ -207,8 +208,8 @@ describe('OrgSettingsIdentityProvidersComponent', () => {
       const activateLoginSlideToggle = await getActionButtonWithAriaLabel(`Switch to toggle an identity provider activation`);
       await activateLoginSlideToggle.click();
 
-      const confirmDialogButton = await rootLoader.getHarness(MatButtonHarness.with({ text: 'Ok' }));
-      await confirmDialogButton.click();
+      const confirmDialogButton = await rootLoader.getHarness(GioConfirmDialogHarness);
+      await confirmDialogButton.confirm();
 
       const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/identities`);
       expect(req.request.method).toEqual('PUT');

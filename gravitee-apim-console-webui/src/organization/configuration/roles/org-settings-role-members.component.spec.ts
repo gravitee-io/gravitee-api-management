@@ -61,7 +61,7 @@ describe('OrgSettingsRoleMembersComponent', () => {
     loader = TestbedHarnessEnvironment.loader(fixture);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     component = fixture.componentInstance;
-    fixture.detectChanges();
+    fixture.autoDetectChanges();
   });
 
   it('should init table with data', async () => {
@@ -184,7 +184,5 @@ describe('OrgSettingsRoleMembersComponent', () => {
         url: `${CONSTANTS_TESTING.org.baseURL}/configuration/rolescopes/${roleScope}/roles/${role}/users`,
       })
       .flush(items);
-
-    fixture.detectChanges();
   }
 });
