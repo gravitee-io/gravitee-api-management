@@ -16,6 +16,8 @@
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatSortHeaderHarness } from '@angular/material/sort/testing';
+import { MatSelectHarness } from '@angular/material/select/testing';
 
 interface GioMetadataHarnessData {
   key: string;
@@ -28,7 +30,10 @@ export class GioMetadataHarness extends ComponentHarness {
 
   protected getTable = this.locatorFor(MatTableHarness);
   protected getAddMetadataButtonHarness = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="add-metadata"]' }));
-
+  protected getTableHeader = (dataTestId: string) =>
+    this.locatorFor(MatSortHeaderHarness.with({ selector: `[data-testid=${dataTestId}]` }))();
+  protected getSourceFilter = this.locatorFor(MatSelectHarness);
+  protected getResetFiltersButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="reset-filters"]' }));
   async getAddMetadataButton(): Promise<MatButtonHarness> {
     return this.getAddMetadataButtonHarness().catch((_) => undefined);
   }
@@ -69,5 +74,28 @@ export class GioMetadataHarness extends ComponentHarness {
         updateButton,
         deleteButton,
       }));
+  }
+
+  public async sortBy(columnName: string): Promise<void> {
+    const header = await this.getTableHeader(`metadata_${columnName}`);
+    return await header.click();
+  }
+
+  public async selectSource(source: string): Promise<void> {
+    await this.getSourceFilter().then((select) => select.open());
+    await this.getSourceFilter()
+      .then((select) => select.getOptions({ text: source }))
+      .then((option) => option[0].click());
+    return await this.getSourceFilter().then((select) => select.close());
+  }
+
+  public async sourceSelectedText(): Promise<string> {
+    const select = await this.getSourceFilter();
+    return await select.getValueText();
+  }
+
+  public async resetFilters(): Promise<void> {
+    const btn = await this.getResetFiltersButton();
+    return await btn.click();
   }
 }

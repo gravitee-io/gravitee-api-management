@@ -13,18 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { EMPTY, Observable, Subject } from 'rxjs';
-import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { BehaviorSubject, EMPTY, Observable, Subject } from 'rxjs';
+import { catchError, distinctUntilChanged, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
-import { MatSort } from '@angular/material/sort';
-import { MatTableDataSource } from '@angular/material/table';
+import { isEqual } from 'lodash';
+import { FormControl, FormGroup } from '@angular/forms';
 
 import { GioMetadataDialogComponent, GioMetadataDialogData } from './dialog/gio-metadata-dialog.component';
 
 import { Metadata, MetadataFormat, NewMetadata, UpdateMetadata } from '../../entities/metadata/metadata';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
+import { SearchApiMetadataParam } from '../../entities/management-api-v2';
+import { GioTableWrapperFilters, Sort } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
+import { gioTableFilterCollection } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 
 export interface MetadataVM {
   key: string;
@@ -35,12 +38,18 @@ export interface MetadataVM {
   isDeletable: boolean;
 }
 
+export interface MetadataSaveServicesList {
+  data: Metadata[];
+  totalResults: number;
+}
+
 export interface MetadataSaveServices {
   type: 'API' | 'Application' | 'Global';
-  list: () => Observable<Metadata[]>;
+  list: (searchMetadata?: SearchApiMetadataParam) => Observable<MetadataSaveServicesList>;
   create: (newMetadata: NewMetadata) => Observable<Metadata>;
   update: (updateMetadata: UpdateMetadata) => Observable<Metadata>;
   delete: (metadataKey: string) => Observable<void>;
+  paginate?: boolean;
 }
 
 @Component({
@@ -51,10 +60,44 @@ export interface MetadataSaveServices {
 export class GioMetadataComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<void> = new Subject<void>();
 
-  dataSource: MatTableDataSource<MetadataVM>;
+  dataSource: MetadataVM[];
+
+  filtersStream = new BehaviorSubject<{
+    tableWrapper: GioTableWrapperFilters;
+    metadataFilters: {
+      source?: 'API' | 'GLOBAL';
+    };
+  }>({
+    tableWrapper: {
+      sort: {
+        active: undefined,
+        direction: '',
+      },
+      pagination: {
+        index: 1,
+        size: 10,
+      },
+      searchTerm: '',
+    },
+    metadataFilters: {
+      source: undefined,
+    },
+  });
   displayedColumns: string[];
   permissionPrefix: string;
   referenceType: 'API' | 'Application' | 'Global';
+  totalResults: number;
+  form: FormGroup;
+
+  // For pages not using pagination in the services
+  filterLocally = true;
+  private dataSourceAllResults: MetadataVM[];
+
+  // API filter
+  apiSourceFilters: { label: string; value: string }[] = [
+    { label: 'Global', value: 'GLOBAL' },
+    { label: 'API', value: 'API' },
+  ];
 
   @Input()
   metadataSaveServices: MetadataSaveServices;
@@ -62,34 +105,48 @@ export class GioMetadataComponent implements OnInit, OnDestroy {
   @Input()
   description: string;
 
-  @ViewChild(MatSort) sort: MatSort;
-
   constructor(private matDialog: MatDialog, private readonly snackBarService: SnackBarService) {}
 
   ngOnInit(): void {
     this.referenceType = this.metadataSaveServices.type;
     this.permissionPrefix = this.referenceType === 'Global' ? 'environment' : this.referenceType.toLowerCase();
     this.displayedColumns = ['key', 'name', 'format', 'value', 'actions'];
+    this.filterLocally = this.metadataSaveServices.paginate !== true;
 
-    this.metadataSaveServices
-      .list()
-      .pipe(
-        map((metadata) =>
-          metadata.map((m) => ({
-            name: m.name,
-            defaultValue: m.defaultValue,
-            format: m.format,
-            key: m.key,
-            value: !!m.defaultValue && !m.value ? m.defaultValue : m.value,
-            isDeletable: !this.referenceType || (this.referenceType && m.value !== undefined),
-          })),
-        ),
-        takeUntil(this.unsubscribe$),
+    this.form = new FormGroup({
+      source: new FormControl(this.filtersStream.value.metadataFilters.source),
+    });
+
+    this.form
+      .get('source')
+      .valueChanges.pipe(
+        distinctUntilChanged(isEqual),
+        filter((source) => this.filtersStream.value.metadataFilters.source !== source),
       )
-      .subscribe((metadata) => {
-        this.dataSource = new MatTableDataSource(metadata);
-        this.dataSource.sort = this.sort;
+      .subscribe((source) => {
+        this.filtersStream.next({
+          tableWrapper: {
+            ...this.filtersStream.value.tableWrapper,
+            pagination: {
+              index: 1,
+              size: this.filtersStream.value.tableWrapper.pagination.size,
+            },
+          },
+          metadataFilters: {
+            source,
+          },
+        });
       });
+
+    this.filtersStream
+      .pipe(
+        distinctUntilChanged(isEqual),
+        tap((_) => {
+          this.form.get('source').setValue(this.filtersStream.value.metadataFilters.source);
+        }),
+        switchMap((_) => this.initializeTable()),
+      )
+      .subscribe();
   }
 
   ngOnDestroy() {
@@ -118,16 +175,15 @@ export class GioMetadataComponent implements OnInit, OnDestroy {
             value: metadata.value,
           }),
         ),
+        tap((_) => this.snackBarService.success(`'${element.name}' updated successfully`)),
+        catchError(({ error }) => {
+          this.snackBarService.error(error?.message ?? 'Error during update');
+          return EMPTY;
+        }),
+        switchMap((_) => this.initializeTable()),
+        takeUntil(this.unsubscribe$),
       )
-      .subscribe(
-        (metadata: Metadata) => {
-          this.snackBarService.success(`'${metadata.name}' updated successfully`);
-        },
-        (response) => {
-          this.snackBarService.error(response?.error?.message ? response.error.message : 'Error during update');
-        },
-        () => this.ngOnInit(),
-      );
+      .subscribe();
   }
 
   deleteMetadata(element: MetadataVM): void {
@@ -150,16 +206,15 @@ export class GioMetadataComponent implements OnInit, OnDestroy {
       .pipe(
         filter((confirmed) => confirmed),
         switchMap((_) => this.metadataSaveServices.delete(element.key)),
+        tap((_) => this.snackBarService.success(`'${element.name}' deleted successfully`)),
+        catchError(({ error }) => {
+          this.snackBarService.error(error?.message ?? 'Error during deletion');
+          return EMPTY;
+        }),
+        switchMap((_) => this.initializeTable()),
+        takeUntil(this.unsubscribe$),
       )
-      .subscribe(
-        () => {
-          this.snackBarService.success(`'${element.name}' deleted successfully`);
-        },
-        (response) => {
-          this.snackBarService.error(response?.error?.message ? response.error.message : 'Error during deletion');
-        },
-        () => this.ngOnInit(),
-      );
+      .subscribe();
   }
 
   onAddMetadataClick(): void {
@@ -187,10 +242,75 @@ export class GioMetadataComponent implements OnInit, OnDestroy {
           this.snackBarService.error(error?.message ? error.message : 'Error during creation');
           return EMPTY;
         }),
+        switchMap((_) => this.initializeTable()),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe(() => {
-        this.ngOnInit();
-      });
+      .subscribe();
+  }
+
+  onFiltersChange(filters: GioTableWrapperFilters) {
+    if (this.filterLocally) {
+      // Use gio-table filter mechanism for front-end filtering
+      const filtered = gioTableFilterCollection(this.dataSourceAllResults, filters);
+      this.dataSource = filtered.filteredCollection;
+      this.totalResults = filtered.unpaginatedLength;
+      return;
+    }
+
+    this.filtersStream.next({
+      ...this.filtersStream.value,
+      tableWrapper: filters,
+    });
+  }
+
+  resetFilters() {
+    this.filtersStream.next({
+      tableWrapper: {
+        ...this.filtersStream.value.tableWrapper,
+        sort: { active: undefined, direction: '' },
+        pagination: {
+          index: 1,
+          size: this.filtersStream.value.tableWrapper.pagination.size,
+        },
+      },
+      metadataFilters: {
+        source: undefined,
+      },
+    });
+  }
+
+  private serializeSortByParam(sort: Sort) {
+    if (!sort || sort.direction === '') {
+      return undefined;
+    }
+    const sortDirection = sort?.direction === 'desc' ? '-' : '';
+    return `${sortDirection}${sort.active}`;
+  }
+
+  private initializeTable(): Observable<MetadataSaveServicesList> {
+    return this.metadataSaveServices
+      .list({
+        page: this.filtersStream.value.tableWrapper.pagination.index,
+        perPage: this.filtersStream.value.tableWrapper.pagination.size,
+        source: this.filtersStream.value.metadataFilters.source,
+        sortBy: this.serializeSortByParam(this.filtersStream.value.tableWrapper.sort),
+      })
+      .pipe(
+        tap((metadata) => {
+          this.totalResults = metadata.totalResults;
+          const data = metadata.data?.map((m) => ({
+            name: m.name,
+            defaultValue: m.defaultValue,
+            format: m.format,
+            key: m.key,
+            value: !!m.defaultValue && !m.value ? m.defaultValue : m.value,
+            isDeletable: !this.referenceType || (this.referenceType && m.value !== undefined),
+          }));
+          if (this.filterLocally) {
+            this.dataSourceAllResults = data;
+          }
+          this.dataSource = data;
+        }),
+      );
   }
 }

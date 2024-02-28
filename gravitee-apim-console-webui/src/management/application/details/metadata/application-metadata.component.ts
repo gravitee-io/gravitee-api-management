@@ -15,6 +15,7 @@
  */
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { map } from 'rxjs/operators';
 
 import { ApplicationMetadataService } from '../../../../services-ngx/application-metadata.service';
 import { MetadataSaveServices } from '../../../../components/gio-metadata/gio-metadata.component';
@@ -38,7 +39,10 @@ export class ApplicationMetadataComponent implements OnInit {
     const applicationId = this.activatedRoute.snapshot.params.applicationId;
     this.metadataSaveServices = {
       type: 'Application',
-      list: () => this.applicationMetadataService.listMetadata(applicationId),
+      list: () =>
+        this.applicationMetadataService
+          .listMetadata(applicationId)
+          .pipe(map((metadata) => ({ data: metadata, totalResults: metadata?.length ?? 0 }))),
       create: (newMetadata) => this.applicationMetadataService.createMetadata(applicationId, newMetadata),
       update: (updateMetadata) => this.applicationMetadataService.updateMetadata(applicationId, updateMetadata),
       delete: (metadataKey) => this.applicationMetadataService.deleteMetadata(applicationId, metadataKey),

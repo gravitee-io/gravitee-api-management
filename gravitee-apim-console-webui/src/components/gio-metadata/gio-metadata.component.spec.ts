@@ -61,7 +61,7 @@ describe('GioMetadataComponent', () => {
 
     component.metadataSaveServices = {
       type: 'API',
-      list: () => of(metadataList),
+      list: () => of({ data: metadataList, totalResults: metadataList.length }),
       create: (m: NewMetadata) => of(m).pipe(map((_) => fakeMetadata({ key: 'new-key' }))),
       update: (m: UpdateMetadata) => of(m).pipe(map((_) => fakeMetadata({ key: 'key1' }))),
       delete: (metadataKey: string) => of([metadataKey]).pipe(map((_) => void 0)),
