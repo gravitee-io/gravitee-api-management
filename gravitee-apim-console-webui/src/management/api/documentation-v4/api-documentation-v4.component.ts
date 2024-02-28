@@ -27,13 +27,9 @@ import {
 } from './dialog/documentation-edit-folder-dialog/api-documentation-v4-edit-folder-dialog.component';
 
 import { ApiDocumentationV2Service } from '../../../services-ngx/api-documentation-v2.service';
-import { CreateDocumentationFolder } from '../../../entities/management-api-v2/documentation/createDocumentation';
-import { Breadcrumb, Page } from '../../../entities/management-api-v2/documentation/page';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
-import { EditDocumentationFolder } from '../../../entities/management-api-v2/documentation/editDocumentation';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
-import { Api } from '../../../entities/management-api-v2';
-import { PageType } from '../../../entities/page';
+import { Api, PageType, EditDocumentationFolder, Breadcrumb, Page, CreateDocumentationFolder } from '../../../entities/management-api-v2';
 
 @Component({
   selector: 'api-documentation-v4',

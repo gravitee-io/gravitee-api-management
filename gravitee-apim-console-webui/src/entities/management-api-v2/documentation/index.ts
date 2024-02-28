@@ -13,21 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export class Page {
-  id: string;
-  content?: string;
-  name?: string;
-  parentId?: string;
-  type?: PageType;
-  published?: boolean;
-}
-
-export enum PageType {
-  ASCIIDOC = 'ASCIIDOC',
-  ASYNCAPI = 'ASYNCAPI',
-  FOLDER = 'FOLDER',
-  LINK = 'LINK',
-  SWAGGER = 'SWAGGER',
-  MARKDOWN = 'MARKDOWN',
-  MARKDOWN_TEMPLATE = 'MARKDOWN_TEMPLATE',
-}
+export * from './createDocumentation';
+export * from './editDocumentation';
+export * from './page.fixture';
+export * from './page';
+export * from './pageSource';
+export * from './pageType';
+export * from './visibility';

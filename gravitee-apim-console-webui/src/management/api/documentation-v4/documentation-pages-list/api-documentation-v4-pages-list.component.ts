@@ -17,8 +17,7 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 
-import { Page } from '../../../../entities/management-api-v2/documentation/page';
-import { getLogoForPageType, PageType } from '../../../../entities/page';
+import { getLogoForPageType, Page, getTooltipForPageType } from '../../../../entities/management-api-v2';
 
 @Component({
   selector: 'api-documentation-v4-pages-list',
@@ -69,17 +68,5 @@ export class ApiDocumentationV4PagesListComponent implements OnInit, OnChanges {
   }
 
   readonly getLogoForPageType = getLogoForPageType;
-
-  getTooltipForPageType(pageType: PageType) {
-    switch (pageType) {
-      case PageType.ASCIIDOC:
-        return 'AsciiDoc';
-      case PageType.ASYNCAPI:
-        return 'AsyncAPI';
-      case PageType.SWAGGER:
-        return 'Swagger';
-      case PageType.MARKDOWN:
-        return 'Markdown';
-    }
-  }
+  readonly getTooltipForPageType = getTooltipForPageType;
 }
