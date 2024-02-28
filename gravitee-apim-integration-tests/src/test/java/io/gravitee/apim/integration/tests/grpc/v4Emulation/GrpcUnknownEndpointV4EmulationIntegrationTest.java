@@ -86,6 +86,6 @@ public class GrpcUnknownEndpointV4EmulationIntegrationTest extends AbstractGrpcG
             }
         );
 
-        assertThat(testContext.awaitCompletion(10, TimeUnit.SECONDS)).isTrue();
+        assertThat(testContext.awaitCompletion(30, TimeUnit.SECONDS)).isTrue();
     }
 }

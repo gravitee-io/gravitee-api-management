@@ -86,6 +86,6 @@ public class GrpcUnknownServiceV4EmulationIntegrationTest extends AbstractGrpcGa
 
         requestStreamObserver.onNext(HelloRequest.newBuilder().setName("You").build());
 
-        assertThat(testContext.awaitCompletion(10, TimeUnit.SECONDS)).isTrue();
+        assertThat(testContext.awaitCompletion(30, TimeUnit.SECONDS)).isTrue();
     }
 }

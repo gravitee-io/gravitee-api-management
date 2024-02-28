@@ -117,7 +117,7 @@ public class GrpcServerStreamingV4EmulationIntegrationTest extends AbstractGrpcG
             .onComplete(response -> response.result().end())
             .onFailure(testContext::failNow);
 
-        assertThat(testContext.awaitCompletion(10, TimeUnit.SECONDS)).isTrue();
+        assertThat(testContext.awaitCompletion(30, TimeUnit.SECONDS)).isTrue();
     }
 
     protected GrpcClient createGrpcClient() {

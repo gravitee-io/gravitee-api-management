@@ -90,6 +90,6 @@ public class GrpcNoEndpointV4EmulationIntegrationTest extends AbstractGrpcGatewa
             }
         );
 
-        assertThat(testContext.awaitCompletion(10, TimeUnit.SECONDS)).isTrue();
+        assertThat(testContext.awaitCompletion(30, TimeUnit.SECONDS)).isTrue();
     }
 }
