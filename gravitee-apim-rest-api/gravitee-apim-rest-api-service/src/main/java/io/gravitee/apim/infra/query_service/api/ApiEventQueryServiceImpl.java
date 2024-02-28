@@ -20,40 +20,36 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.query_service.ApiEventQueryService;
 import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
-import io.gravitee.rest.api.model.EventEntity;
-import io.gravitee.rest.api.model.EventQuery;
-import io.gravitee.rest.api.model.EventType;
-import io.gravitee.rest.api.service.EventService;
-import io.gravitee.rest.api.service.common.ExecutionContext;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
+import io.gravitee.repository.management.api.EventLatestRepository;
+import io.gravitee.repository.management.api.search.EventCriteria;
+import io.gravitee.repository.management.model.Event;
 import java.util.Optional;
-import lombok.RequiredArgsConstructor;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@RequiredArgsConstructor
 @Service
 @Slf4j
-public class ApiEventQueryServiceLegacyWrapper implements ApiEventQueryService {
+public class ApiEventQueryServiceImpl implements ApiEventQueryService {
 
-    private final EventService eventService;
+    private final EventLatestRepository eventLatestRepository;
     private static final ApiAdapter apiAdapter = ApiAdapter.INSTANCE;
+
+    public ApiEventQueryServiceImpl(@Lazy EventLatestRepository eventLatestRepository) {
+        this.eventLatestRepository = eventLatestRepository;
+    }
 
     @Override
     public Optional<Api> findLastPublishedApi(String organizationId, String environmentId, String apiId) {
-        final EventQuery eventQuery = new EventQuery();
-        eventQuery.setApi(apiId);
-        eventQuery.setTypes(List.of(EventType.PUBLISH_API));
-        final Optional<EventEntity> latestEvent = eventService
-            .search(new ExecutionContext(organizationId, environmentId), eventQuery)
+        final Optional<Event> latestEvent = eventLatestRepository
+            .search(buildCriteria(environmentId, apiId), Event.EventProperties.API_ID, 0L, 1L)
             .stream()
-            .max(Comparator.comparing(EventEntity::getUpdatedAt));
+            .findFirst();
 
         if (latestEvent.isEmpty()) {
             return Optional.empty();
@@ -70,5 +66,14 @@ public class ApiEventQueryServiceLegacyWrapper implements ApiEventQueryService {
                 return Optional.empty();
             }
         });
+    }
+
+    private static EventCriteria buildCriteria(String environmentId, String apiId) {
+        return EventCriteria
+            .builder()
+            .environment(environmentId)
+            .types(Set.of(io.gravitee.repository.management.model.EventType.PUBLISH_API))
+            .property(Event.EventProperties.API_ID.getValue(), apiId)
+            .build();
     }
 }
