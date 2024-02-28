@@ -254,7 +254,7 @@ describe('RuntimeAlertCreateComponent condition tests', () => {
   describe('with request metrics aggregation condition', () => {
     beforeEach(async () => await selectRule(2));
 
-    it('should add time duration condition', async () => {
+    it('should add condition', async () => {
       const conditionForm = await componentHarness.getConditionFormHarness();
       const requestMetricsAggregationForm = await conditionForm.requestMetricsAggregationConditionForm();
 
@@ -301,6 +301,41 @@ describe('RuntimeAlertCreateComponent condition tests', () => {
       expect(await thresholdSubform.getThresholdValue()).toStrictEqual('42');
       expect(await durationSubform.getDurationValue()).toStrictEqual('24');
       expect(await durationSubform.getSelectedTimeUnit()).toStrictEqual('Hours');
+      // TODO test save bar when save is implemented in next commits
+    });
+
+    it('should add condition with aggregation', async () => {
+      const conditionForm = await componentHarness.getConditionFormHarness();
+      const requestMetricsAggregationForm = await conditionForm.requestMetricsAggregationConditionForm();
+      await requestMetricsAggregationForm.selectFunction('50th percentile');
+      await requestMetricsAggregationForm.selectMetric('Request Content-Length');
+
+      const thresholdSubform = await requestMetricsAggregationForm.getThresholdHarness();
+      await thresholdSubform.selectOperator('greater than');
+      await thresholdSubform.setThresholdValue('42');
+
+      const durationSubform = await requestMetricsAggregationForm.durationHarness();
+      await durationSubform.setDurationValue('24');
+      await durationSubform.selectTimeUnit('Hours');
+
+      const aggregationSubform = await requestMetricsAggregationForm.aggregationForm();
+      await aggregationSubform.accordionClick();
+
+      expect(await aggregationSubform.getPropertyOptions()).toStrictEqual([
+        'None',
+        'Status Code',
+        'Error Key',
+        'Tenant',
+        'Application',
+        'Plan',
+      ]);
+      await aggregationSubform.selectProperty('Application');
+      expect(await aggregationSubform.getSelectedProperty()).toStrictEqual('Application');
+
+      await aggregationSubform.selectProperty('None');
+      expect(await aggregationSubform.getSelectedProperty()).toStrictEqual('');
+
+      await aggregationSubform.selectProperty('Plan');
       // TODO test save bar when save is implemented in next commits
     });
   });

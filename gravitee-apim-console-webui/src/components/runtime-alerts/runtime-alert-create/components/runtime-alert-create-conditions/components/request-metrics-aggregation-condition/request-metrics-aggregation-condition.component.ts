@@ -14,9 +14,21 @@
  * limitations under the License.
  */
 import { Component, Input } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { FormControl, FormGroup } from '@angular/forms';
 
-import { AggregationCondition, Metrics } from '../../../../../../../entities/alert';
+import { AggregationCondition, Metrics, Scope } from '../../../../../../../entities/alert';
+import { AggregationFormGroup } from '../components';
+import { ApiMetrics } from '../../../../../../../entities/alerts/api.metrics';
+
+type RequestMetricsAggregationFormGroup = FormGroup<{
+  metric: FormControl<Metrics>;
+  function: FormControl<string>;
+  operator: FormControl<string>;
+  threshold: FormControl<number>;
+  duration: FormControl<number>;
+  timeUnit: FormControl<string>;
+  projections: AggregationFormGroup;
+}>;
 
 @Component({
   selector: 'request-metrics-aggregation-condition',
@@ -55,13 +67,20 @@ import { AggregationCondition, Metrics } from '../../../../../../../entities/ale
       <div class="condition-row">
         <missing-data-condition [form]="form" [label]="'For'"></missing-data-condition>
       </div>
+
+      <aggregation-condition [form]="form.controls.projections" [properties]="properties"></aggregation-condition>
     </form>
   `,
 })
 export class RequestMetricsAggregationConditionComponent {
-  @Input({ required: true }) form: FormGroup;
+  @Input({ required: true }) form: RequestMetricsAggregationFormGroup;
   @Input({ required: true }) metrics: Metrics[];
+  @Input({ required: true }) set referenceType(scope: Scope) {
+    this.properties = Metrics.filterByScope(ApiMetrics.METRICS, scope)?.filter((property) => property.supportPropertyProjection);
+  }
+
   protected functions = AggregationCondition.FUNCTIONS;
   protected operators = AggregationCondition.OPERATORS;
   protected timeUnits = ['Seconds', 'Minutes', 'Hours'];
+  protected properties: Metrics[];
 }

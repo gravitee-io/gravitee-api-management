@@ -41,6 +41,9 @@ export class RuntimeAlertCreateConditionsFactory {
           threshold: new FormControl<number>(null, [Validators.required]),
           duration: new FormControl<number>(null, [Validators.required, Validators.min(1)]),
           timeUnit: new FormControl<string>(null, [Validators.required]),
+          projections: new FormGroup({
+            property: new FormControl<string>(null),
+          }),
         });
       case 'REQUEST@METRICS_RATE':
         return new FormGroup({

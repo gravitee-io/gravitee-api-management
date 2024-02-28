@@ -37,7 +37,11 @@
         <!-- add sub component here here -->
       </ng-container>
       <ng-container *ngSwitchCase="'REQUEST@METRICS_AGGREGATION'">
-        <request-metrics-aggregation-condition [form]="conditionsForm" [metrics]="metrics"></request-metrics-aggregation-condition>
+        <request-metrics-aggregation-condition
+          [form]="conditionsForm"
+          [metrics]="metrics"
+          [referenceType]="referenceType"
+        ></request-metrics-aggregation-condition>
       </ng-container>
       <ng-container *ngSwitchCase="'NODE_HEARTBEAT@METRICS_AGGREGATION'">
         <!-- add sub component here here -->
