@@ -150,7 +150,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
         it('should set name and visibility', async () => {
           const harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiDocumentationV4EditPageHarness);
 
-          expect(getPageTitle()).toEqual('Add new page');
+          expect(getPageTitle().includes('Add new page')).toBeTruthy();
 
           const nextBtn = await harness.getNextButton();
           expect(await nextBtn.isDisabled()).toEqual(true);
@@ -172,7 +172,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
             source: 'FILL',
           });
 
-          expect(getPageTitle()).toEqual('New page');
+          expect(getPageTitle().includes('New page')).toBeTruthy();
         });
 
         it('should not allow duplicate name', async () => {
@@ -826,7 +826,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
     req.flush(page);
   };
 
-  const getPageTitle = () => {
+  const getPageTitle = (): string => {
     return fixture.nativeElement.querySelector('h3').innerHTML;
   };
 });

@@ -55,6 +55,8 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
   api: Api;
   formUnchanged: boolean;
   page: Page;
+  iconUrl: string;
+  iconTooltip: string;
 
   private existingNames: string[] = [];
   private unsubscribe$: Subject<void> = new Subject<void>();
@@ -80,8 +82,6 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
       source: this.formBuilder.control(this.source, [Validators.required]),
       content: this.formBuilder.control('', [Validators.required]),
     });
-
-    this.pageType = this.activatedRoute.snapshot.queryParams.pageType;
 
     if (this.activatedRoute.snapshot.params.pageId) {
       this.mode = 'edit';
@@ -109,6 +109,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
     } else {
       this.mode = 'create';
       this.step3Title = this.source === 'IMPORT' ? 'Upload a file' : 'Add content';
+      this.pageType = this.activatedRoute.snapshot.queryParams.pageType;
     }
 
     this.apiV2Service
@@ -123,6 +124,9 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: (pagesResponse) => {
+          this.iconUrl = getLogoForPageType(this.pageType);
+          this.iconTooltip = getTooltipForPageType(this.pageType);
+
           this.breadcrumbs = pagesResponse.breadcrumb;
           this.existingNames = pagesResponse.pages
             .filter((page) => page.id !== this.page?.id && page.type === this.pageType)

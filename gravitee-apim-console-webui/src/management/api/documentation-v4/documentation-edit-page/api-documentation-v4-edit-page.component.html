@@ -18,7 +18,11 @@
 <api-documentation-page-title [api]="api"></api-documentation-page-title>
 <mat-card>
   <div class="header">
-    <h3 class="header__title">{{ pageTitle }}</h3>
+    <h3 class="header__title">
+      {{ pageTitle }}
+      <img *ngIf="iconUrl" [ngSrc]="iconUrl" height="24" width="24" alt="{{ iconTooltip }} logo" [matTooltip]="iconTooltip" />
+    </h3>
+
     <div class="header__location">
       In
       <api-documentation-breadcrumb [breadcrumbs]="breadcrumbs" [canNavigate]="false"></api-documentation-breadcrumb>
