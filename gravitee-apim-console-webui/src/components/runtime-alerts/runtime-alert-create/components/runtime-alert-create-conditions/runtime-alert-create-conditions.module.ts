@@ -24,6 +24,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 
 import {
   CompareConditionComponent,
+  EndpointHealthCheckConditionComponent,
   MetricsSimpleConditionComponent,
   MissingDataConditionComponent,
   RequestMetricsAggregationConditionComponent,
@@ -45,6 +46,7 @@ import { RuntimeAlertCreateConditionsComponent } from './runtime-alert-create-co
     StringConditionComponent,
     RequestMetricsAggregationConditionComponent,
     RequestMetricsRateConditionComponent,
+    EndpointHealthCheckConditionComponent,
   ],
   exports: [RuntimeAlertCreateConditionsComponent],
   imports: [

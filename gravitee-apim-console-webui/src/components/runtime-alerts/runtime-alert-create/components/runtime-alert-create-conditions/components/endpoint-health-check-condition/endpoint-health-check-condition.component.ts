@@ -13,9 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './components';
-export * from './missing-data-condition/missing-data-condition.component';
-export * from './metrics-simple-condition';
-export * from './request-metrics-aggregation-condition/request-metrics-aggregation-condition.component';
-export * from './request-metrics-rate-condition/request-metrics-rate-condition.component';
-export * from './endpoint-health-check-condition/endpoint-health-check-condition.component';
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'endpoint-health-check-condition',
+  template: `
+    <div>
+      <p>
+        This rule does not require any configuration. However, it is possible to define an aggregation to receive an alert per api endpoint
+        instead of an unique alert in case multiple endpoints are concerned
+      </p>
+    </div>
+  `,
+})
+export class EndpointHealthCheckConditionComponent {}
