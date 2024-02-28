@@ -13,31 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-
-import { MetadataSaveServices } from '../../../../components/gio-metadata/gio-metadata.component';
-import { ApiService } from '../../../../services-ngx/api.service';
+import { Component } from '@angular/core';
 
 @Component({
   selector: 'api-documentation-v4-metadata',
   templateUrl: './api-documentation-v4-metadata.component.html',
-  styleUrls: ['./api-documentation-v4-metadata.component.scss'],
 })
-export class ApiDocumentationV4MetadataComponent implements OnInit {
-  metadataSaveServices: MetadataSaveServices;
-  description: string;
-
-  constructor(private readonly apiService: ApiService, private readonly activatedRoute: ActivatedRoute) {}
-
-  ngOnInit() {
-    this.metadataSaveServices = {
-      type: 'API',
-      list: () => this.apiService.listMetadata(this.activatedRoute.snapshot.params.apiId),
-      create: (newMetadata) => this.apiService.createMetadata(this.activatedRoute.snapshot.params.apiId, newMetadata),
-      update: (updateMetadata) => this.apiService.updateMetadata(this.activatedRoute.snapshot.params.apiId, updateMetadata),
-      delete: (metadataKey) => this.apiService.deleteMetadata(this.activatedRoute.snapshot.params.apiId, metadataKey),
-    };
-    this.description = `Set metadata information on the API that can be easily accessed through Markdown templating`;
-  }
-}
+export class ApiDocumentationV4MetadataComponent {}
