@@ -31,6 +31,7 @@ import { EnvironmentMetadataComponent } from './metadata/environment-metadata.co
 import { PortalComponent } from './portal/portal.component';
 import { PortalThemeComponent } from './portal-theme/portalTheme.component';
 import { TopApisComponent } from './top-apis/top-apis.component';
+import { TopApisComponent as TopApisComponentMigrated } from './top-apis/migrated/top-apis.component';
 import { ApiLoggingComponent } from './api-logging/api-logging.component';
 import { DictionariesComponent } from './dictionaries/dictionaries.component';
 import { DictionaryComponent } from './dictionaries/dictionary.component';
@@ -307,6 +308,19 @@ export const settingsRoutes: Routes = [
       {
         path: 'top-apis',
         component: TopApisComponent,
+        data: {
+          docs: {
+            page: 'management-configuration-top_apis',
+          },
+          permissions: {
+            anyOf: ['environment-top_apis-r'],
+            unauthorizedFallbackTo: '../api-logging',
+          },
+        },
+      },
+      {
+        path: 'top-apis-ng',
+        component: TopApisComponentMigrated,
         data: {
           docs: {
             page: 'management-configuration-top_apis',

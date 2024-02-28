@@ -43,11 +43,13 @@ import { EnvironmentNotificationModule } from './notification/environment-notifi
 import { ApiQualityRulesNgModule } from './api-quality-rules-ng/api-quality-rules-ng.module';
 import { ApiPortalHeaderModule } from './api-portal-header/migrated/api-portal-header.module';
 import { IdentityProvidersNgModule } from './identity-providers-ng/identity-providers-ng.module';
+import { TopApisModule } from './top-apis/migrated/top-apis.module';
 
 import { DocumentationModule } from '../../components/documentation/documentation.module';
 
 @NgModule({
   imports: [
+    TopApisModule,
     ApiQualityRulesNgModule,
     SettingsRoutingModule,
     RouterModule,
