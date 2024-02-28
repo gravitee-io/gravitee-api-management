@@ -24,8 +24,8 @@ import { GroupsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/Group
 import { GroupMembershipsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/GroupMembershipsApi';
 import { GroupsFaker } from '@gravitee/fixtures/management/GroupsFaker';
 import { GroupEntity } from '@gravitee/management-webclient-sdk/src/lib/models/GroupEntity';
-import { MemberRoleEntityFromJSON, SearchableUser } from '../../../lib/management-webclient-sdk/src/lib/models';
-import { UsersApi } from '../../../lib/management-webclient-sdk/src/lib/apis/UsersApi';
+import { MemberRoleEntityFromJSON, SearchableUser } from '@gravitee/management-webclient-sdk/src/lib/models';
+import { UsersApi } from '@gravitee/management-webclient-sdk/src/lib/apis/UsersApi';
 import { find } from 'lodash';
 
 const orgId = 'DEFAULT';
