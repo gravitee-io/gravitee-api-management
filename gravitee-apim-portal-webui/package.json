@@ -17,7 +17,7 @@
     "serve:apim-master": "NODE_OPTIONS=--max_old_space_size=8192 BACKEND_ENV=apim-master-api.team-apim.gravitee.dev ng serve --port=4100 --disable-host-check",
     "serve:prod": "node scripts/serve.js",
     "test": "NODE_OPTIONS=--max-old-space-size=6144 ng test",
-    "test:coverage": "JEST_JUNIT_ADD_FILE_ATTRIBUTE=true JEST_JUNIT_OUTPUT_DIR=\"coverage\" NODE_OPTIONS=--max-old-space-size=6144 ng test --collect-coverage --run-in-band --reporters=\"default\" --reporters=\"jest-junit\"",
+    "test:coverage": "JEST_JUNIT_ADD_FILE_ATTRIBUTE=true JEST_JUNIT_OUTPUT_DIR=\"coverage\" NODE_OPTIONS=--max-old-space-size=6144 ng test --ci --reporters=default --reporters=jest-junit --max-workers=3 --collect-coverage",
     "test:watch": "NODE_OPTIONS=--max-old-space-size=6144 ng test --watch -w 8",
     "update:sdk": "sh ./scripts/update-sdk.sh"
   },
