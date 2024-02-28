@@ -1,0 +1,130 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+<mat-card>
+  <mat-card-content>
+    <div class="header">
+      <div class="header__title">
+        <h3>Top APIs</h3>
+        <p>Showcase your APIs on the Developer Portal homepage</p>
+      </div>
+
+      <div class="header__actions">
+        <button
+          class="add-button"
+          (click)="addTopApi()"
+          mat-raised-button
+          color="primary"
+          *gioPermission="{ anyOf: ['environment-top_apis-c'] }"
+          [disabled]="isLoading"
+          data-testid="add-top-api-button"
+        >
+          <mat-icon>add</mat-icon>
+          Add API
+        </button>
+      </div>
+    </div>
+  </mat-card-content>
+
+  <table mat-table [dataSource]="topApisList">
+    <caption style="display: none">
+      Table with Top Apis list.
+    </caption>
+    <!-- Picture Column     -->
+    <ng-container matColumnDef="picture">
+      <th mat-header-cell *matHeaderCellDef id="picture"></th>
+      <td class="picture-cell" mat-cell *matCellDef="let element">
+        <div class="avatar">
+          <gio-avatar
+            [src]="element.picture_url"
+            [name]="element.name + ' ' + element.version"
+            [size]="32"
+            [roundedBorder]="true"
+          ></gio-avatar>
+        </div>
+      </td>
+    </ng-container>
+
+    <!-- Name Column -->
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef>Name</th>
+      <td mat-cell *matCellDef="let element">{{ element.name }}</td>
+    </ng-container>
+
+    <!-- Version Column -->
+    <ng-container matColumnDef="version">
+      <th mat-header-cell *matHeaderCellDef>Version</th>
+      <td mat-cell *matCellDef="let element">{{ element.version }}</td>
+    </ng-container>
+
+    <!-- Description Column -->
+    <ng-container matColumnDef="description">
+      <th mat-header-cell *matHeaderCellDef>Description</th>
+      <td mat-cell *matCellDef="let element">{{ element.description }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="actions" class="actions">
+      <th mat-header-cell *matHeaderCellDef id="actions"></th>
+      <td mat-cell *matCellDef="let element">
+        <div class="actions__edit">
+          <ng-container *ngIf="topApisList.length > 1">
+            <div class="order-buttons" *gioPermission="{ anyOf: ['environment-top_apis-u'] }">
+              <button
+                [disabled]="isLoading || isFirst(element.order)"
+                (click)="moveUp(element)"
+                mat-icon-button
+                aria-label="Move Top API up"
+                data-testid="move-up-top-api-button"
+              >
+                <mat-icon>arrow_upward</mat-icon>
+              </button>
+              <button
+                [disabled]="isLoading || isLast(element.order)"
+                (click)="moveDown(element)"
+                mat-icon-button
+                aria-label="Move Top API down"
+                data-testid="move-down-top-api-button"
+              >
+                <mat-icon>arrow_downward</mat-icon>
+              </button>
+            </div>
+          </ng-container>
+
+          <button
+            (click)="deleteTopApi(element)"
+            mat-icon-button
+            aria-label="Delete this Top API"
+            *gioPermission="{ anyOf: ['environment-top_apis-d'] }"
+            data-testid="delete-top-api-button"
+            [disabled]="isLoading"
+          >
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+
+    <!-- Row shown when there is no data -->
+    <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+      <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">No Top APIs to display.</td>
+    </tr>
+  </table>
+</mat-card>
