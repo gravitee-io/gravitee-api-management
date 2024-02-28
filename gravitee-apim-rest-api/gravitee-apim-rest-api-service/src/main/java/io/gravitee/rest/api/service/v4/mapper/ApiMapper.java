@@ -204,7 +204,9 @@ public class ApiMapper {
 
         repoApi.setName(newApiEntity.getName().trim());
         repoApi.setVersion(newApiEntity.getApiVersion().trim());
-        repoApi.setDescription(newApiEntity.getDescription().trim());
+        if (newApiEntity.getDescription() != null) {
+            repoApi.setDescription(newApiEntity.getDescription().trim());
+        }
 
         repoApi.setDefinitionVersion(newApiEntity.getDefinitionVersion());
         repoApi.setDefinition(toApiDefinition(generatedApiId, newApiEntity));
