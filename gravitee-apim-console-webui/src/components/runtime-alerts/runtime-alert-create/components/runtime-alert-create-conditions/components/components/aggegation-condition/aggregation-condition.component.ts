@@ -13,8 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './threshold-condition/threshold-condition.component';
-export * from './threshold-range-condition/threshold-range-condition.component';
-export * from './compare-condition/compare-condition.component';
-export * from './string-condition/string-condition.component';
-export * from './aggegation-condition/aggregation-condition.component';
+import { Component, Input } from '@angular/core';
+import { FormControl, FormGroup } from '@angular/forms';
+
+import { Metrics } from '../../../../../../../../entities/alert';
+
+export type AggregationFormGroup = FormGroup<{
+  projections: FormGroup<{
+    property: FormControl<string>;
+  }>;
+}>;
+
+@Component({
+  selector: 'aggregation-condition',
+  templateUrl: './aggregation-condition.component.html',
+  styleUrls: ['./aggregation-condition.component.scss'],
+})
+export class AggregationConditionComponent {
+  @Input({ required: true }) form: AggregationFormGroup;
+  @Input({ required: true }) properties: Metrics[];
+}

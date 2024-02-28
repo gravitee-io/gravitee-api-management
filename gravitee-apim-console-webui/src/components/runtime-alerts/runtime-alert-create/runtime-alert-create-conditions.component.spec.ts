@@ -340,4 +340,26 @@ describe('RuntimeAlertCreateComponent condition tests', () => {
       // TODO test save bar when save is implemented in next commits
     });
   });
+
+  describe('with endpoint health check condition', () => {
+    beforeEach(async () => await selectRule(4));
+
+    it('should add property aggregation', async () => {
+      const conditionForm = await componentHarness.getConditionFormHarness();
+      const endpointHealthCheckConditionForm = await conditionForm.endpointHealthCheckConditionForm();
+      const aggregationSubform = await endpointHealthCheckConditionForm.getAggregationForm();
+
+      await aggregationSubform.accordionClick();
+      expect(await aggregationSubform.getPropertyOptions()).toStrictEqual(['None', 'Endpoint name']);
+
+      await aggregationSubform.selectProperty('Endpoint name');
+      expect(await aggregationSubform.getSelectedProperty()).toStrictEqual('Endpoint name');
+
+      await aggregationSubform.selectProperty('None');
+      expect(await aggregationSubform.getSelectedProperty()).toStrictEqual('');
+
+      await aggregationSubform.selectProperty('Endpoint name');
+      // TODO test save bar when save is implemented in next commits
+    });
+  });
 });

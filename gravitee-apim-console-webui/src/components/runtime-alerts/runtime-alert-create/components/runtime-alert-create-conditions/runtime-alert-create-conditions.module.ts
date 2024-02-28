@@ -19,10 +19,12 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { GioBannerModule } from '@gravitee/ui-particles-angular';
+import { GioBannerModule, GioIconsModule } from '@gravitee/ui-particles-angular';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { CdkAccordionModule } from '@angular/cdk/accordion';
 
 import {
+  AggregationConditionComponent,
   CompareConditionComponent,
   EndpointHealthCheckConditionComponent,
   MetricsSimpleConditionComponent,
@@ -47,11 +49,14 @@ import { RuntimeAlertCreateConditionsComponent } from './runtime-alert-create-co
     RequestMetricsAggregationConditionComponent,
     RequestMetricsRateConditionComponent,
     EndpointHealthCheckConditionComponent,
+    AggregationConditionComponent,
   ],
   exports: [RuntimeAlertCreateConditionsComponent],
   imports: [
     CommonModule,
+    CdkAccordionModule,
     FormsModule,
+    GioIconsModule,
     ReactiveFormsModule,
     MatInputModule,
     MatSelectModule,
