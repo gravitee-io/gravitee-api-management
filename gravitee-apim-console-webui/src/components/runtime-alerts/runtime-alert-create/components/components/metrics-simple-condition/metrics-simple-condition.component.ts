@@ -20,7 +20,7 @@ import { Subject } from 'rxjs';
 
 import { OPTIONAL_CONTROLS_NAMES, SimpleMetricsForm } from './metrics-simple-condition.models';
 
-import { ConditionType, Metrics, Scope } from '../../../../../../../entities/alert';
+import { ConditionType, Metrics, Scope } from '../../../../../../entities/alert';
 
 @Component({
   selector: 'metrics-simple-condition',

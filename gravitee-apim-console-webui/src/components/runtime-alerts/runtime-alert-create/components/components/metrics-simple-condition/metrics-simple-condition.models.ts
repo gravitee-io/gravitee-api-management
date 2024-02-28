@@ -15,7 +15,7 @@
  */
 import { FormControl, FormGroup } from '@angular/forms';
 
-import { Metrics } from '../../../../../../../entities/alert';
+import { Metrics } from '../../../../../../entities/alert';
 
 export type SimpleMetricsForm = FormGroup<{
   metric: FormControl<Metrics>;

@@ -16,7 +16,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 
-import { AggregationCondition, Conditions, ConditionType, Metrics } from '../../../../../../../../entities/alert';
+import { AggregationCondition, Conditions, ConditionType, Metrics } from '../../../../../../../entities/alert';
 
 @Component({
   selector: 'compare-condition',

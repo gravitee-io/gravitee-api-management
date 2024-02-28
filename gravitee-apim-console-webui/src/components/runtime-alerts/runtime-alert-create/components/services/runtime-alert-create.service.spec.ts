@@ -17,20 +17,20 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 
-import { RuntimeAlertCreateConditionsService } from './runtime-alert-create-conditions.service';
+import { RuntimeAlertCreateService } from './runtime-alert-create.service';
 
-import { Scope, Tuple } from '../../../../../../entities/alert';
-import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../../shared/testing';
-import { fakeTenant } from '../../../../../../entities/tenant/tenant.fixture';
-import { fakePlan } from '../../../../../../entities/plan/plan.fixture';
-import { fakeApplicationSubscription } from '../../../../../../entities/subscription/subscription.fixture';
-import { fakePagedResult } from '../../../../../../entities/pagedResult';
-import { gatewayErrorKeys } from '../../../../../../entities/gateway-error-keys/GatewayErrorKeys';
+import { Scope, Tuple } from '../../../../../entities/alert';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
+import { fakeTenant } from '../../../../../entities/tenant/tenant.fixture';
+import { fakePlan } from '../../../../../entities/plan/plan.fixture';
+import { fakeApplicationSubscription } from '../../../../../entities/subscription/subscription.fixture';
+import { fakePagedResult } from '../../../../../entities/pagedResult';
+import { gatewayErrorKeys } from '../../../../../entities/gateway-error-keys/GatewayErrorKeys';
 
-describe('RuntimeAlertCreateConditionsService', () => {
+describe('RuntimeAlertCreateService', () => {
   const API_ID = 'api-id';
   const APP_ID = 'app-id';
-  let service: RuntimeAlertCreateConditionsService;
+  let service: RuntimeAlertCreateService;
   let httpTestingController: HttpTestingController;
 
   beforeEach(() => {
@@ -39,7 +39,7 @@ describe('RuntimeAlertCreateConditionsService', () => {
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);
-    service = TestBed.inject<RuntimeAlertCreateConditionsService>(RuntimeAlertCreateConditionsService);
+    service = TestBed.inject<RuntimeAlertCreateService>(RuntimeAlertCreateService);
   });
 
   afterEach(() => {

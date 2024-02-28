@@ -17,17 +17,17 @@ import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-import { Scope, Tuple } from '../../../../../../entities/alert';
-import { TenantService } from '../../../../../../services-ngx/tenant.service';
-import { ApiV2Service } from '../../../../../../services-ngx/api-v2.service';
-import { PlanService } from '../../../../../../services-ngx/plan.service';
-import { SubscriptionService } from '../../../../../../services-ngx/subscription.service';
-import { gatewayErrorKeys } from '../../../../../../entities/gateway-error-keys/GatewayErrorKeys';
+import { Scope, Tuple } from '../../../../../entities/alert';
+import { TenantService } from '../../../../../services-ngx/tenant.service';
+import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
+import { PlanService } from '../../../../../services-ngx/plan.service';
+import { SubscriptionService } from '../../../../../services-ngx/subscription.service';
+import { gatewayErrorKeys } from '../../../../../entities/gateway-error-keys/GatewayErrorKeys';
 
 @Injectable({
   providedIn: 'root',
 })
-export class RuntimeAlertCreateConditionsService {
+export class RuntimeAlertCreateService {
   constructor(
     private readonly tenantService: TenantService,
     private readonly apiService: ApiV2Service,

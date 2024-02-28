@@ -15,54 +15,15 @@
  */
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { GioBannerModule, GioIconsModule } from '@gravitee/ui-particles-angular';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { CdkAccordionModule } from '@angular/cdk/accordion';
+import { GioBannerModule } from '@gravitee/ui-particles-angular';
 
-import {
-  AggregationConditionComponent,
-  CompareConditionComponent,
-  EndpointHealthCheckConditionComponent,
-  MetricsSimpleConditionComponent,
-  MissingDataConditionComponent,
-  RequestMetricsAggregationConditionComponent,
-  RequestMetricsRateConditionComponent,
-  StringConditionComponent,
-  ThresholdConditionComponent,
-  ThresholdRangeConditionComponent,
-} from './components';
 import { RuntimeAlertCreateConditionsComponent } from './runtime-alert-create-conditions.component';
 
+import { RuntimeAlertCreateConditionModule } from '../components/runtime-alert-create-condition.module';
+
 @NgModule({
-  declarations: [
-    RuntimeAlertCreateConditionsComponent,
-    MissingDataConditionComponent,
-    MetricsSimpleConditionComponent,
-    CompareConditionComponent,
-    ThresholdConditionComponent,
-    ThresholdRangeConditionComponent,
-    StringConditionComponent,
-    RequestMetricsAggregationConditionComponent,
-    RequestMetricsRateConditionComponent,
-    EndpointHealthCheckConditionComponent,
-    AggregationConditionComponent,
-  ],
+  declarations: [RuntimeAlertCreateConditionsComponent],
   exports: [RuntimeAlertCreateConditionsComponent],
-  imports: [
-    CommonModule,
-    CdkAccordionModule,
-    FormsModule,
-    GioIconsModule,
-    ReactiveFormsModule,
-    MatInputModule,
-    MatSelectModule,
-    MatFormFieldModule,
-    GioBannerModule,
-    MatTooltipModule,
-  ],
+  imports: [CommonModule, GioBannerModule, RuntimeAlertCreateConditionModule],
 })
 export class RuntimeAlertCreateConditionsModule {}

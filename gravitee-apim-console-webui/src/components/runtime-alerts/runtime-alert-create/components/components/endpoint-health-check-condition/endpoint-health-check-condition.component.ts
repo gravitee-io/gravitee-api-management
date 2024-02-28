@@ -16,9 +16,9 @@
 import { Component, Input } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 
-import { Metrics, Scope } from '../../../../../../../entities/alert';
+import { Metrics, Scope } from '../../../../../../entities/alert';
 import { AggregationFormGroup } from '../components';
-import { HealthcheckMetrics } from '../../../../../../../entities/alerts/healthcheck.metrics';
+import { HealthcheckMetrics } from '../../../../../../entities/alerts/healthcheck.metrics';
 
 type EndpointHealthCheckFormGroup = FormGroup<{
   projections: AggregationFormGroup;
