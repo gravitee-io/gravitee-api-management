@@ -918,7 +918,10 @@ public class GroupServiceImpl extends AbstractService implements GroupService {
         GroupEntity entity = new GroupEntity();
         entity.setId(group.getId());
         entity.setName(group.getName());
-        entity.setApiPrimaryOwner(group.getApiPrimaryOwner());
+        if (group.getApiPrimaryOwner() != null && !group.getApiPrimaryOwner().isEmpty()) {
+            entity.setApiPrimaryOwner(group.getApiPrimaryOwner());
+            entity.setPrimaryOwner(true);
+        }
 
         if (group.getEventRules() != null && !group.getEventRules().isEmpty()) {
             List<GroupEventRuleEntity> groupEventRules = new ArrayList<>();
