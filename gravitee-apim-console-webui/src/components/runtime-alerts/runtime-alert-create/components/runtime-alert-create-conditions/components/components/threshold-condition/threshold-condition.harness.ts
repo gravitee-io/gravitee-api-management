@@ -47,4 +47,10 @@ export class ThresholdConditionHarness extends ComponentHarness {
   public async getThresholdValue() {
     return this.getThresholdInput().then((input) => input.getValue());
   }
+
+  public async isThresholdInvalid() {
+    return this.getThresholdInput()
+      .then((input) => input.host())
+      .then((host) => host.hasClass('ng-invalid'));
+  }
 }

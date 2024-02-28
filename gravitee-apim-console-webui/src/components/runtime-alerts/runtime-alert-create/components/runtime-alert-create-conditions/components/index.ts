@@ -17,3 +17,4 @@ export * from './components';
 export * from './missing-data-condition/missing-data-condition.component';
 export * from './metrics-simple-condition';
 export * from './request-metrics-aggregation-condition/request-metrics-aggregation-condition.component';
+export * from './request-metrics-rate-condition/request-metrics-rate-condition.component';

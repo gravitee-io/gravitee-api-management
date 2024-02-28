@@ -37,6 +37,22 @@ describe('RuntimeAlertCreateComponent condition tests', () => {
   let httpTestingController: HttpTestingController;
   let componentHarness: RuntimeAlertCreateHarness;
 
+  const selectRule = async (index: number) => {
+    const expectedRules = [
+      'Alert when a metric of the request validates a condition',
+      'Alert when there is no request matching filters received for a period of time',
+      'Alert when the aggregated value of a request metric rises a threshold',
+      'Alert when the rate of a given condition rises a threshold',
+      'Alert when the health status of an endpoint has changed',
+    ];
+    const expectedSeverities = ['info', 'warning', 'critical'];
+    const generalForm = await componentHarness.getGeneralFormHarness();
+    await generalForm.setName('alert');
+    await generalForm.toggleEnabled();
+    await generalForm.selectSeverity(expectedSeverities[1]);
+    await generalForm.selectRule(expectedRules[index]);
+  };
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [RuntimeAlertCreateComponent],
@@ -65,22 +81,8 @@ describe('RuntimeAlertCreateComponent condition tests', () => {
     httpTestingController.verify();
   });
 
-  describe('missing data condition', () => {
-    beforeEach(async () => {
-      const expectedRules = [
-        'Alert when a metric of the request validates a condition',
-        'Alert when there is no request matching filters received for a period of time',
-        'Alert when the aggregated value of a request metric rises a threshold',
-        'Alert when the rate of a given condition rises a threshold',
-        'Alert when the health status of an endpoint has changed',
-      ];
-      const expectedSeverities = ['info', 'warning', 'critical'];
-      const generalForm = await componentHarness.getGeneralFormHarness();
-      await generalForm.setName('alert');
-      await generalForm.toggleEnabled();
-      await generalForm.selectSeverity(expectedSeverities[1]);
-      await generalForm.selectRule(expectedRules[1]);
-    });
+  describe('with missing data condition', () => {
+    beforeEach(async () => await selectRule(1));
 
     it('should add time duration condition', async () => {
       const conditionForm = await componentHarness.getConditionFormHarness();
@@ -98,22 +100,10 @@ describe('RuntimeAlertCreateComponent condition tests', () => {
     });
   });
 
-  describe('request metrics simple condition', () => {
+  describe('with request metrics simple condition', () => {
     let metricSimpleConditionForm: MetricsSimpleConditionHarness;
     beforeEach(async () => {
-      const expectedRules = [
-        'Alert when a metric of the request validates a condition',
-        'Alert when there is no request matching filters received for a period of time',
-        'Alert when the aggregated value of a request metric rises a threshold',
-        'Alert when the rate of a given condition rises a threshold',
-        'Alert when the health status of an endpoint has changed',
-      ];
-      const expectedSeverities = ['info', 'warning', 'critical'];
-      const generalForm = await componentHarness.getGeneralFormHarness();
-      await generalForm.setName('alert');
-      await generalForm.toggleEnabled();
-      await generalForm.selectSeverity(expectedSeverities[1]);
-      await generalForm.selectRule(expectedRules[0]);
+      await selectRule(0);
 
       const conditionForm = await componentHarness.getConditionFormHarness();
       metricSimpleConditionForm = await conditionForm.metricsSimpleConditionForm();
@@ -261,22 +251,8 @@ describe('RuntimeAlertCreateComponent condition tests', () => {
     });
   });
 
-  describe('request metrics aggregation', () => {
-    beforeEach(async () => {
-      const expectedRules = [
-        'Alert when a metric of the request validates a condition',
-        'Alert when there is no request matching filters received for a period of time',
-        'Alert when the aggregated value of a request metric rises a threshold',
-        'Alert when the rate of a given condition rises a threshold',
-        'Alert when the health status of an endpoint has changed',
-      ];
-      const expectedSeverities = ['info', 'warning', 'critical'];
-      const generalForm = await componentHarness.getGeneralFormHarness();
-      await generalForm.setName('alert');
-      await generalForm.toggleEnabled();
-      await generalForm.selectSeverity(expectedSeverities[1]);
-      await generalForm.selectRule(expectedRules[2]);
-    });
+  describe('with request metrics aggregation condition', () => {
+    beforeEach(async () => await selectRule(2));
 
     it('should add time duration condition', async () => {
       const conditionForm = await componentHarness.getConditionFormHarness();
@@ -325,6 +301,42 @@ describe('RuntimeAlertCreateComponent condition tests', () => {
       expect(await thresholdSubform.getThresholdValue()).toStrictEqual('42');
       expect(await durationSubform.getDurationValue()).toStrictEqual('24');
       expect(await durationSubform.getSelectedTimeUnit()).toStrictEqual('Hours');
+      // TODO test save bar when save is implemented in next commits
+    });
+  });
+
+  describe('with request metrics rate condition', () => {
+    beforeEach(async () => await selectRule(3));
+
+    it('should fill rate condition', async () => {
+      const conditionForm = await componentHarness.getConditionFormHarness();
+      const requestMetricsRateConditionForm = await conditionForm.requestMetricsRateConditionForm();
+
+      const metricsSubform = await requestMetricsRateConditionForm.metricsSimpleConditionForm();
+      await metricsSubform.selectMetric('Response Content-Length');
+      await metricsSubform.selectType('THRESHOLD_RANGE');
+      await metricsSubform.setLowThresholdValue('1000');
+      await metricsSubform.setHighThresholdValue('2000');
+
+      const thresholdSubform = await requestMetricsRateConditionForm.getThresholdHarness();
+      await thresholdSubform.selectOperator('less than');
+      await thresholdSubform.setThresholdValue('1000');
+      expect(await thresholdSubform.isThresholdInvalid()).toBeTruthy();
+      await thresholdSubform.setThresholdValue('50');
+      expect(await thresholdSubform.isThresholdInvalid()).toBeFalsy();
+
+      const durationSubform = await requestMetricsRateConditionForm.durationHarness();
+      await durationSubform.setDurationValue('1');
+      await durationSubform.selectTimeUnit('Minutes');
+
+      expect(await metricsSubform.getSelectedMetric()).toStrictEqual('Response Content-Length');
+      expect(await metricsSubform.getSelectedType()).toStrictEqual('THRESHOLD_RANGE');
+      expect(await metricsSubform.getLowThresholdValue()).toStrictEqual('1000');
+      expect(await metricsSubform.getHighThresholdValue()).toStrictEqual('2000');
+      expect(await thresholdSubform.getSelectedOperator()).toStrictEqual('less than');
+      expect(await thresholdSubform.getThresholdValue()).toStrictEqual('50');
+      expect(await durationSubform.getDurationValue()).toStrictEqual('1');
+      expect(await durationSubform.getSelectedTimeUnit()).toStrictEqual('Minutes');
       // TODO test save bar when save is implemented in next commits
     });
   });
