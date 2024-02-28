@@ -16,13 +16,13 @@
 import { Component, Input } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 
-import { SimpleMetricsForm } from '../metrics-simple-condition/metrics-simple-condition.models';
-import { Metrics, Scope } from '../../../../../../../entities/alert';
-import { ApiMetrics } from '../../../../../../../entities/alerts/api.metrics';
+import { AggregationCondition, Metrics, Scope } from '../../../../../../entities/alert';
 import { AggregationFormGroup } from '../components';
+import { ApiMetrics } from '../../../../../../entities/alerts/api.metrics';
 
-type MetricsRateFormGroup = FormGroup<{
-  comparison: SimpleMetricsForm;
+type RequestMetricsAggregationFormGroup = FormGroup<{
+  metric: FormControl<Metrics>;
+  function: FormControl<string>;
   operator: FormControl<string>;
   threshold: FormControl<number>;
   duration: FormControl<number>;
@@ -31,24 +31,39 @@ type MetricsRateFormGroup = FormGroup<{
 }>;
 
 @Component({
-  selector: 'request-metrics-rate-condition',
+  selector: 'request-metrics-aggregation-condition',
   styleUrls: ['../scss/conditions.component.scss'],
   template: `
     <form *ngIf="form" [formGroup]="form">
       <div class="condition-row">
-        <metrics-simple-condition
-          [form]="form.controls.comparison"
-          [metrics]="metrics"
-          [referenceId]="referenceId"
-          [referenceType]="referenceType"
-        ></metrics-simple-condition>
+        <div class="condition-row__label">
+          <span class="mat-body-2">Calculate</span>
+        </div>
+
+        <mat-form-field class="condition-row__form-field">
+          <mat-label>Function</mat-label>
+          <mat-select formControlName="function" required>
+            <mat-option *ngFor="let func of functions" [value]="func">{{ func.name }}</mat-option>
+          </mat-select>
+          <mat-error *ngIf="form.controls.function.hasError('required')">Function is required.</mat-error>
+        </mat-form-field>
+
+        <mat-form-field class="condition-row__form-field">
+          <mat-label>Metric</mat-label>
+          <mat-select formControlName="metric" required>
+            <mat-option *ngFor="let metric of metrics" [value]="metric">{{ metric.name }}</mat-option>
+          </mat-select>
+          <mat-error *ngIf="form.controls.metric.hasError('required')">Metric is required.</mat-error>
+        </mat-form-field>
       </div>
+
       <div class="condition-row">
         <div class="condition-row__label">
-          <span class="mat-body-2">If rate is</span>
+          <span class="mat-body-2">If result is</span>
         </div>
-        <threshold-condition [form]="form" thresholdType="percentage"></threshold-condition>
+        <threshold-condition [form]="form"></threshold-condition>
       </div>
+
       <div class="condition-row">
         <missing-data-condition [form]="form" [label]="'For'"></missing-data-condition>
       </div>
@@ -57,18 +72,15 @@ type MetricsRateFormGroup = FormGroup<{
     </form>
   `,
 })
-export class RequestMetricsRateConditionComponent {
-  @Input({ required: true }) form: MetricsRateFormGroup;
+export class RequestMetricsAggregationConditionComponent {
+  @Input({ required: true }) form: RequestMetricsAggregationFormGroup;
   @Input({ required: true }) metrics: Metrics[];
-  @Input({ required: true }) referenceId: string;
   @Input({ required: true }) set referenceType(scope: Scope) {
-    this._referenceType = scope;
     this.properties = Metrics.filterByScope(ApiMetrics.METRICS, scope)?.filter((property) => property.supportPropertyProjection);
   }
-  get referenceType() {
-    return this._referenceType;
-  }
 
+  protected functions = AggregationCondition.FUNCTIONS;
+  protected operators = AggregationCondition.OPERATORS;
+  protected timeUnits = ['Seconds', 'Minutes', 'Hours'];
   protected properties: Metrics[];
-  private _referenceType: Scope;
 }

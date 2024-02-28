@@ -18,8 +18,8 @@ import { FormGroup } from '@angular/forms';
 import { Observable, Subject } from 'rxjs';
 import { takeUntil, tap } from 'rxjs/operators';
 
-import { Conditions, Operator, Scope, Tuple } from '../../../../../../../../entities/alert';
-import { RuntimeAlertCreateConditionsService } from '../../../services/runtime-alert-create-conditions.service';
+import { Conditions, Operator, Scope, Tuple } from '../../../../../../../entities/alert';
+import { RuntimeAlertCreateService } from '../../../services/runtime-alert-create.service';
 
 @Component({
   selector: 'string-condition',
@@ -67,7 +67,7 @@ export class StringConditionComponent implements OnInit, OnDestroy {
   protected references$: Observable<Tuple[]>;
   protected operators: Operator[];
 
-  constructor(private readonly createConditionsService: RuntimeAlertCreateConditionsService) {}
+  constructor(private readonly createConditionsService: RuntimeAlertCreateService) {}
 
   ngOnDestroy(): void {
     this.unsubscribe$.next(true);

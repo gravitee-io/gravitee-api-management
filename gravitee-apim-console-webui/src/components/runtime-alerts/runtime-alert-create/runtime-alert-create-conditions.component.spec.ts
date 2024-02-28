@@ -25,7 +25,7 @@ import { LOCALE_ID } from '@angular/core';
 import { RuntimeAlertCreateComponent } from './runtime-alert-create.component';
 import { RuntimeAlertCreateModule } from './runtime-alert-create.module';
 import { RuntimeAlertCreateHarness } from './runtime-alert-create.harness';
-import { MetricsSimpleConditionHarness } from './components/runtime-alert-create-conditions/components/metrics-simple-condition/metrics-simple-condition.harness';
+import { MetricsSimpleConditionHarness } from './components/components/metrics-simple-condition/metrics-simple-condition.harness';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { fakeTenant } from '../../../entities/tenant/tenant.fixture';

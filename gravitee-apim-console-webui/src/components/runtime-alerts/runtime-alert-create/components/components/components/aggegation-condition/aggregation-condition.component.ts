@@ -16,7 +16,7 @@
 import { Component, Input } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 
-import { Metrics } from '../../../../../../../../entities/alert';
+import { Metrics } from '../../../../../../../entities/alert';
 
 export type AggregationFormGroup = FormGroup<{
   projections: FormGroup<{
