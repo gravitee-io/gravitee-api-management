@@ -43,7 +43,12 @@
         <!-- add sub component here here -->
       </ng-container>
       <ng-container *ngSwitchCase="'REQUEST@METRICS_RATE'">
-        <!-- add sub component here here -->
+        <request-metrics-rate-condition
+          [form]="conditionsForm"
+          [metrics]="metrics"
+          [referenceType]="referenceType"
+          [referenceId]="referenceId"
+        ></request-metrics-rate-condition>
       </ng-container>
       <ng-container *ngSwitchCase="'NODE_HEARTBEAT@METRICS_RATE'">
         <!-- add sub component here here -->

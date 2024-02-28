@@ -30,16 +30,28 @@ import { AggregationCondition } from '../../../../../../../../entities/alert';
         </mat-select>
         <mat-error *ngIf="form.controls.operator.hasError('required')">Operator is required.</mat-error>
       </mat-form-field>
-      <mat-form-field class="condition-row__form-field">
+
+      <mat-form-field *ngIf="thresholdType === 'number'; else percentageBlock" class="condition-row__form-field">
         <mat-label>Threshold</mat-label>
         <input matInput formControlName="threshold" type="number" min="1" required />
         <mat-error *ngIf="form.controls.threshold.hasError('required')">Threshold is required.</mat-error>
         <mat-error *ngIf="form.controls.threshold.hasError('min')">The threshold value should be greater or equals to 1</mat-error>
       </mat-form-field>
+
+      <ng-template #percentageBlock>
+        <mat-form-field class="condition-row__form-field">
+          <mat-label>Threshold (%)</mat-label>
+          <input matInput formControlName="threshold" type="number" min="1" max="100" required />
+          <mat-error *ngIf="form.controls.threshold.hasError('required')">Threshold is required.</mat-error>
+          <mat-error *ngIf="form.controls.threshold.hasError('min')">The threshold value should be greater or equals to 1</mat-error>
+          <mat-error *ngIf="form.controls.threshold.hasError('max')">The threshold value should be not greater than 100</mat-error>
+        </mat-form-field>
+      </ng-template>
     </form>
   `,
 })
 export class ThresholdConditionComponent {
   @Input({ required: true }) form: FormGroup;
+  @Input() thresholdType: 'number' | 'percentage' = 'number';
   protected operators = AggregationCondition.OPERATORS;
 }
