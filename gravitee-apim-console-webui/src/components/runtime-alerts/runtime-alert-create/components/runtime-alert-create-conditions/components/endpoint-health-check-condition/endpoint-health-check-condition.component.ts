@@ -13,7 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
+import { Component, Input } from '@angular/core';
+import { FormGroup } from '@angular/forms';
+
+import { Metrics, Scope } from '../../../../../../../entities/alert';
+import { AggregationFormGroup } from '../components';
+import { HealthcheckMetrics } from '../../../../../../../entities/alerts/healthcheck.metrics';
+
+type EndpointHealthCheckFormGroup = FormGroup<{
+  projections: AggregationFormGroup;
+}>;
 
 @Component({
   selector: 'endpoint-health-check-condition',
@@ -24,6 +33,13 @@ import { Component } from '@angular/core';
         instead of an unique alert in case multiple endpoints are concerned
       </p>
     </div>
+    <aggregation-condition [form]="form.controls.projections" [properties]="properties"></aggregation-condition>
   `,
 })
-export class EndpointHealthCheckConditionComponent {}
+export class EndpointHealthCheckConditionComponent {
+  @Input({ required: true }) form: EndpointHealthCheckFormGroup;
+  @Input({ required: true }) set referenceType(scope: Scope) {
+    this.properties = Metrics.filterByScope(HealthcheckMetrics.METRICS, scope)?.filter((property) => property.supportPropertyProjection);
+  }
+  protected properties: Metrics[];
+}

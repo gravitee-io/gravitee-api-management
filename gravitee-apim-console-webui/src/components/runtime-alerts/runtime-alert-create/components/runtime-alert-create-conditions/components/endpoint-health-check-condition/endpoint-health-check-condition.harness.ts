@@ -13,8 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export * from './threshold-condition/threshold-condition.component';
-export * from './threshold-range-condition/threshold-range-condition.component';
-export * from './compare-condition/compare-condition.component';
-export * from './string-condition/string-condition.component';
-export * from './aggegation-condition/aggregation-condition.component';
+import { ComponentHarness } from '@angular/cdk/testing';
+
+import { AggregationConditionHarness } from '../components/aggegation-condition/aggregation-condition.harness';
+
+export class EndpointHealthCheckConditionHarness extends ComponentHarness {
+  static readonly hostSelector = 'endpoint-health-check-condition';
+
+  public getAggregationForm = this.locatorFor(AggregationConditionHarness);
+}
