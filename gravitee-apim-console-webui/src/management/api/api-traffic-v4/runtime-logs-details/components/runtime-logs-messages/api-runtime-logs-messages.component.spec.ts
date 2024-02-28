@@ -19,6 +19,7 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ActivatedRoute } from '@angular/router';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ApiRuntimeLogsMessagesComponent } from './api-runtime-logs-messages.component';
 import { ApiRuntimeLogsMessagesModule } from './api-runtime-logs-messages.module';
@@ -46,7 +47,7 @@ describe('ApiRuntimeLogsMessagesComponent', () => {
 
   const initComponent = async () => {
     TestBed.configureTestingModule({
-      imports: [ApiRuntimeLogsMessagesModule, GioTestingModule, MatIconTestingModule, NoopAnimationsModule],
+      imports: [ApiRuntimeLogsMessagesModule, GioTestingModule, MatIconTestingModule, NoopAnimationsModule, MatSnackBarModule],
       providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID, requestId: REQUEST_ID } } } }],
     });
 

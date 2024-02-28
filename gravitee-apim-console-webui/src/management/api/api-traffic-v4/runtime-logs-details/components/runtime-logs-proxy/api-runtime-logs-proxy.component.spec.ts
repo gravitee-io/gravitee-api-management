@@ -18,6 +18,7 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ActivatedRoute, Router } from '@angular/router';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ApiRuntimeLogsProxyComponent } from './api-runtime-logs-proxy.component';
 import { ApiRuntimeLogsProxyHarness } from './api-runtime-logs-proxy.harness';
@@ -42,7 +43,7 @@ describe('ApiRuntimeLogsProxyComponent', () => {
 
   const initComponent = async () => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, ApiRuntimeLogsProxyModule, GioTestingModule],
+      imports: [NoopAnimationsModule, ApiRuntimeLogsProxyModule, GioTestingModule, MatSnackBarModule],
       providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID, requestId: REQUEST_ID } } } }],
     });
 
