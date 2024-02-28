@@ -18,6 +18,8 @@ import { FormControl, FormGroup } from '@angular/forms';
 
 import { SimpleMetricsForm } from '../metrics-simple-condition/metrics-simple-condition.models';
 import { Metrics, Scope } from '../../../../../../../entities/alert';
+import { ApiMetrics } from '../../../../../../../entities/alerts/api.metrics';
+import { AggregationFormGroup } from '../components';
 
 type MetricsRateFormGroup = FormGroup<{
   comparison: SimpleMetricsForm;
@@ -25,6 +27,7 @@ type MetricsRateFormGroup = FormGroup<{
   threshold: FormControl<number>;
   duration: FormControl<number>;
   timeUnit: FormControl<string>;
+  projections: AggregationFormGroup;
 }>;
 
 @Component({
@@ -49,6 +52,8 @@ type MetricsRateFormGroup = FormGroup<{
       <div class="condition-row">
         <missing-data-condition [form]="form" [label]="'For'"></missing-data-condition>
       </div>
+
+      <aggregation-condition [form]="form.controls.projections" [properties]="properties"></aggregation-condition>
     </form>
   `,
 })
@@ -56,5 +61,14 @@ export class RequestMetricsRateConditionComponent {
   @Input({ required: true }) form: MetricsRateFormGroup;
   @Input({ required: true }) metrics: Metrics[];
   @Input({ required: true }) referenceId: string;
-  @Input({ required: true }) referenceType: Scope;
+  @Input({ required: true }) set referenceType(scope: Scope) {
+    this._referenceType = scope;
+    this.properties = Metrics.filterByScope(ApiMetrics.METRICS, scope)?.filter((property) => property.supportPropertyProjection);
+  }
+  get referenceType() {
+    return this._referenceType;
+  }
+
+  protected properties: Metrics[];
+  private _referenceType: Scope;
 }

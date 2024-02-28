@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
+import { DivHarness } from '@gravitee/ui-particles-angular/testing';
 
 import { MissingDataConditionHarness } from './components/missing-data-condition/missing-data-condition.harness';
 import { MetricsSimpleConditionHarness } from './components/metrics-simple-condition/metrics-simple-condition.harness';
@@ -28,4 +29,9 @@ export class RuntimeAlertCreateConditionsHarness extends ComponentHarness {
   public requestMetricsAggregationConditionForm = this.locatorFor(RequestMetricsAggregationConditionHarness);
   public requestMetricsRateConditionForm = this.locatorFor(RequestMetricsRateConditionHarness);
   public endpointHealthCheckConditionForm = this.locatorFor(EndpointHealthCheckConditionHarness);
+  private getBanner = this.locatorForOptional(DivHarness.with({ selector: '.banner' }));
+
+  async isImpactBannerDisplayed(): Promise<boolean> {
+    return (await this.getBanner()) !== null;
+  }
 }

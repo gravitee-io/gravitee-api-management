@@ -25,5 +25,5 @@ export class RuntimeAlertCreateHarness extends ComponentHarness {
 
   public getGeneralFormHarness = this.locatorFor(RuntimeAlertCreateGeneralHarness);
   public getTimeframeFormHarness = this.locatorFor(RuntimeAlertCreateTimeframeHarness);
-  public getConditionFormHarness = this.locatorFor(RuntimeAlertCreateConditionsHarness);
+  public getConditionsFormHarness = this.locatorFor(RuntimeAlertCreateConditionsHarness);
 }

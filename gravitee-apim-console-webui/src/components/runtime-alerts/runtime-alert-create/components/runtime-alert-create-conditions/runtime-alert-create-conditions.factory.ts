@@ -55,6 +55,9 @@ export class RuntimeAlertCreateConditionsFactory {
           threshold: new FormControl<number>(null, [Validators.required]),
           duration: new FormControl<number>(null, [Validators.required, Validators.min(1), Validators.max(100)]),
           timeUnit: new FormControl<string>(null, [Validators.required]),
+          projections: new FormGroup({
+            property: new FormControl<string>(null),
+          }),
         });
       case 'ENDPOINT_HEALTH_CHECK@API_HC_ENDPOINT_STATUS_CHANGED':
         return new FormGroup({
