@@ -18,6 +18,7 @@ import { MatSelectHarness } from '@angular/material/select/testing';
 
 import { MissingDataConditionHarness } from '../missing-data-condition/missing-data-condition.harness';
 import { ThresholdConditionHarness } from '../components/threshold-condition/threshold-condition.harness';
+import { AggregationConditionHarness } from '../components/aggegation-condition/aggregation-condition.harness';
 
 export class RequestMetricsAggregationConditionHarness extends ComponentHarness {
   static readonly hostSelector = 'request-metrics-aggregation-condition';
@@ -25,6 +26,7 @@ export class RequestMetricsAggregationConditionHarness extends ComponentHarness 
   private getMetricSelect = this.locatorFor(MatSelectHarness.with({ selector: '[formControlName="metric"]' }));
   public getThresholdHarness = this.locatorFor(ThresholdConditionHarness);
   public durationHarness = this.locatorFor(MissingDataConditionHarness);
+  public aggregationForm = this.locatorFor(AggregationConditionHarness);
 
   public async getFunctionOptions() {
     return this.getFunctionSelect().then(async (select) => {
