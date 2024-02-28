@@ -17,6 +17,7 @@ import { Component, OnDestroy } from '@angular/core';
 import { catchError, takeUntil } from 'rxjs/operators';
 import { of, Subject } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { ApiLogsV2Service } from '../../../../../../services-ngx/api-logs-v2.service';
 
@@ -30,7 +31,11 @@ export class ApiRuntimeLogsProxyComponent implements OnDestroy {
   public connectionLog$ = this.apiLogsService
     .searchConnectionLogDetail(this.activatedRoute.snapshot.params.apiId, this.activatedRoute.snapshot.params.requestId)
     .pipe(
-      catchError(() => {
+      catchError((err) => {
+        // normally 404 is intercepted by the HttpErrorInterceptor and displayed as a snack error, but on this page, it should be dismissed.
+        if (err.status === 404) {
+          this.matSnackBar.dismiss();
+        }
         return of(undefined);
       }),
       takeUntil(this.unsubscribe$),
@@ -40,6 +45,7 @@ export class ApiRuntimeLogsProxyComponent implements OnDestroy {
     private readonly activatedRoute: ActivatedRoute,
     private readonly router: Router,
     private readonly apiLogsService: ApiLogsV2Service,
+    private readonly matSnackBar: MatSnackBar,
   ) {}
 
   ngOnDestroy(): void {
