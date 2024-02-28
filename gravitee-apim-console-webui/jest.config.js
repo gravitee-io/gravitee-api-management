@@ -1,7 +1,6 @@
 process.env.TZ = 'UTC';
 
 module.exports = {
-  workerIdleMemoryLimit: '637MB',
   preset: 'jest-preset-angular',
   setupFilesAfterEnv: [__dirname + '/src/setup-jest.ts'],
   transformIgnorePatterns: [
