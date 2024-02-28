@@ -17,7 +17,7 @@ import { IComponentControllerService } from 'angular';
 
 import { PageMarkdownController } from './page-markdown.component';
 
-import { setupAngularJsTesting } from '../../../../jest.setup.js';
+import { setupAngularJsTesting } from '../../../../old-jest.setup.js';
 
 setupAngularJsTesting();
 

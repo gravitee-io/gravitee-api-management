@@ -15,7 +15,7 @@
  */
 import { IComponentControllerService } from 'angular';
 
-import { setupAngularJsTesting } from '../../../../../jest.setup.js';
+import { setupAngularJsTesting } from '../../../../../old-jest.setup.js';
 
 setupAngularJsTesting();
 
