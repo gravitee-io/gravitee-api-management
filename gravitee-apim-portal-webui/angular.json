@@ -49,7 +49,7 @@
               },
               {
                 "glob": "oauth2-redirect.html",
-                "input": "node_modules/swagger-ui-dist",
+                "input": "node_modules/swagger-ui/dist",
                 "output": "/"
               },
               {
@@ -62,7 +62,7 @@
               "src/styles.scss",
               "node_modules/highlight.js/styles/a11y-light.css",
               {
-                "input": "node_modules/swagger-ui-dist/swagger-ui.css",
+                "input": "node_modules/swagger-ui/dist/swagger-ui.css",
                 "inject": true,
                 "bundleName": "swagger-ui"
               }

@@ -28,3 +28,5 @@ defineGlobalsInjections({
   providers: [mockProvider(OAuthService)],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
 });
+
+jest.mock('swagger-ui', () => jest.fn());

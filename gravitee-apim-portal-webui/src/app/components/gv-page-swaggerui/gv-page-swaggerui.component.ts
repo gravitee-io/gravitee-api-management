@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 import { Component, OnInit } from '@angular/core';
-import { SwaggerUIBundle } from 'swagger-ui-dist';
 import { PlatformLocation } from '@angular/common';
+import SwaggerUI, { SwaggerUIOptions, SwaggerUIPlugin } from 'swagger-ui';
 
 import { Page, User } from '../../../../projects/portal-webclient-sdk/src/lib';
 import { CurrentUserService } from '../../services/current-user.service';
 import { PageService } from '../../services/page.service';
 import { readYaml } from '../../utils/yaml-parser';
+
+type docExpansion = 'list' | 'full' | 'none';
 
 @Component({
   selector: 'app-gv-page-swaggerui',
@@ -28,36 +30,84 @@ import { readYaml } from '../../utils/yaml-parser';
   styleUrls: ['./gv-page-swaggerui.component.css'],
 })
 export class GvPageSwaggerUIComponent implements OnInit {
+  currentUser: User;
+
   constructor(
     private currentUserService: CurrentUserService,
     private pageService: PageService,
     private platformLocation: PlatformLocation,
   ) {}
 
-  currentUser: User;
-
   ngOnInit() {
     this.currentUserService.get().subscribe(newCurrentUser => {
       this.currentUser = newCurrentUser;
     });
-    const page = this.pageService.getCurrentPage();
-    this.refresh(page);
-    this.loadStyle();
+    this.refresh(this.pageService.getCurrentPage());
   }
 
-  loadStyle() {
-    const swaggerUi = document.getElementById('swagger-ui');
-    if (!swaggerUi) {
-      const style = document.createElement('link');
-      style.id = 'swagger-ui';
-      style.rel = 'stylesheet';
-      style.href = 'swagger-ui.css';
-      const head = document.getElementsByTagName('head')[0];
-      head.appendChild(style);
+  private refresh(page: Page) {
+    if (page) {
+      const ui = SwaggerUI({
+        dom_id: '#swagger',
+        ...this.buildConfig(page),
+      });
+      ui.initOAuth({ usePkceWithAuthorizationCodeGrant: page.configuration?.use_pkce });
     }
   }
 
-  DisableTryItOutPlugin() {
+  private buildConfig(page: Page): SwaggerUIOptions {
+    const spec = this.readSpec(page);
+    const plugins = this.buildPlugins(page);
+
+    const config: SwaggerUIOptions = {
+      dom_id: '#swagger',
+      defaultModelsExpandDepth: 0,
+      layout: 'BaseLayout',
+      plugins,
+      requestInterceptor: req => {
+        if (req.loadSpec) {
+          req.credentials = 'include';
+        }
+        return req;
+      },
+      spec,
+      oauth2RedirectUrl: window.location.origin + this.platformLocation.getBaseHrefFromDOM() + 'oauth2-redirect.html',
+    };
+
+    if (page.configuration) {
+      if (page.configuration.show_url) {
+        config.url = page._links.content;
+        config.spec = undefined;
+      }
+      config.docExpansion = this.getDocExpansion(page);
+      config.displayOperationId = page.configuration.display_operation_id || false;
+      config.filter = page.configuration.enable_filtering || false;
+      config.showExtensions = page.configuration.show_extensions || false;
+      config.showCommonExtensions = page.configuration.show_common_extensions || false;
+      config.maxDisplayedTags = page.configuration.max_displayed_tags < 0 ? undefined : page.configuration.max_displayed_tags;
+    }
+
+    return config;
+  }
+
+  private readSpec(page: Page): { [propName: string]: any } | undefined {
+    try {
+      return JSON.parse(page.content);
+    } catch (_) {
+      return readYaml(page.content);
+    }
+  }
+
+  buildPlugins(page: Page): SwaggerUIPlugin[] {
+    const plugins: SwaggerUIPlugin[] = [];
+    if (!this.isTryItEnabled(page)) {
+      plugins.push(this.disabledTryItOutPlugin);
+      plugins.push(this.disabledAuthorizationPlugin);
+    }
+    return plugins;
+  }
+
+  disabledTryItOutPlugin() {
     return {
       statePlugins: {
         spec: {
@@ -69,7 +119,7 @@ export class GvPageSwaggerUIComponent implements OnInit {
     };
   }
 
-  DisableAuthorizePlugin() {
+  disabledAuthorizationPlugin() {
     return {
       wrapComponents: {
         authorizeBtn: () => () => null,
@@ -77,61 +127,18 @@ export class GvPageSwaggerUIComponent implements OnInit {
     };
   }
 
-  refresh(page: Page) {
-    if (page) {
-      const cfg: any = this._prepareConfig(page);
-      const ui = SwaggerUIBundle(cfg);
-      ui.initOAuth({ usePkceWithAuthorizationCodeGrant: page.configuration.use_pkce });
-    }
+  private isTryItEnabled(page: Page) {
+    return page.configuration?.try_it && this.isTryItGranted(page);
   }
 
-  _tryItEnabled(page: Page) {
-    return page.configuration && page.configuration.try_it && (this.currentUser || page.configuration.try_it_anonymous);
+  private isTryItGranted(page: Page) {
+    return !!this.currentUser || page.configuration?.try_it_anonymous;
   }
 
-  _prepareConfig(page: Page) {
-    const customPlugins = [];
-    if (!this._tryItEnabled(page)) {
-      customPlugins.push(this.DisableTryItOutPlugin);
-      customPlugins.push(this.DisableAuthorizePlugin);
+  private getDocExpansion(page: Page): docExpansion {
+    if (page.configuration?.doc_expansion) {
+      return page.configuration.doc_expansion.toLocaleLowerCase() as docExpansion;
     }
-
-    let contentAsJson = {};
-    try {
-      contentAsJson = JSON.parse(page.content);
-    } catch (e) {
-      contentAsJson = readYaml(page.content);
-    }
-
-    const cfg: any = {
-      dom_id: '#swagger',
-      defaultModelsExpandDepth: 0,
-      presets: [SwaggerUIBundle.presets.apis],
-      layout: 'BaseLayout',
-      plugins: customPlugins,
-      requestInterceptor: req => {
-        if (req.loadSpec) {
-          req.credentials = 'include';
-        }
-        return req;
-      },
-      spec: contentAsJson,
-      oauth2RedirectUrl: window.location.origin + this.platformLocation.getBaseHrefFromDOM() + 'oauth2-redirect.html',
-    };
-
-    if (page.configuration) {
-      if (page.configuration.show_url) {
-        cfg.url = page._links.content;
-        cfg.spec = undefined;
-      }
-      cfg.docExpansion = page.configuration.doc_expansion ? page.configuration.doc_expansion.toLocaleLowerCase() : 'none';
-      cfg.displayOperationId = page.configuration.display_operation_id || false;
-      cfg.filter = page.configuration.enable_filtering || false;
-      cfg.showExtensions = page.configuration.show_extensions || false;
-      cfg.showCommonExtensions = page.configuration.show_common_extensions || false;
-      cfg.maxDisplayedTags = page.configuration.max_displayed_tags < 0 ? undefined : page.configuration.max_displayed_tags;
-    }
-
-    return cfg;
+    return 'none';
   }
 }
