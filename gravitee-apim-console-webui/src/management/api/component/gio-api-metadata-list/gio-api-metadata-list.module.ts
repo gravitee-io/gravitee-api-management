@@ -17,14 +17,13 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDialogModule } from '@angular/material/dialog';
 
-import { ApiPortalDocumentationMetadataComponent } from './metadata/api-portal-documentation-metadata.component';
+import { GioApiMetadataListComponent } from './gio-api-metadata-list.component';
 
-import { GioMetadataModule } from '../../../components/gio-metadata/gio-metadata.module';
-import { GioApiMetadataListModule } from '../component/gio-api-metadata-list/gio-api-metadata-list.module';
+import { GioMetadataModule } from '../../../../components/gio-metadata/gio-metadata.module';
 
 @NgModule({
-  declarations: [ApiPortalDocumentationMetadataComponent],
-  exports: [ApiPortalDocumentationMetadataComponent],
-  imports: [CommonModule, GioMetadataModule, MatDialogModule, GioApiMetadataListModule],
+  declarations: [GioApiMetadataListComponent],
+  exports: [GioApiMetadataListComponent],
+  imports: [CommonModule, GioMetadataModule, MatDialogModule],
 })
-export class ApiDocumentationModule {}
+export class GioApiMetadataListModule {}
