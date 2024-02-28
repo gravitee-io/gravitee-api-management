@@ -20,7 +20,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
+import { GioConfirmDialogHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
@@ -85,7 +85,7 @@ describe('IdentityProvidersNgComponent', () => {
     loader = TestbedHarnessEnvironment.loader(fixture);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     httpTestingController = TestBed.inject(HttpTestingController);
-    fixture.detectChanges();
+    fixture.autoDetectChanges(true);
   });
 
   afterEach(() => {
@@ -187,8 +187,8 @@ describe('IdentityProvidersNgComponent', () => {
       );
       await activateIdentityProviderToggle.click();
 
-      const confirmDialogButton = await rootLoader.getHarness(MatButtonHarness.with({ text: 'Ok' }));
-      await confirmDialogButton.click();
+      const confirmDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
+      await confirmDialog.confirm();
 
       expectIdentityProviderPutRequest([]);
       expectListIdentityProviderRequest(identityProvider);

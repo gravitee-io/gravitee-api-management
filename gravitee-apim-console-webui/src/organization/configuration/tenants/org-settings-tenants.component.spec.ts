@@ -99,6 +99,7 @@ describe('OrgSettingsTenantsComponent', () => {
     fixture.detectChanges();
 
     respondToGetTenants([fakeTenant()]);
+    fixture.detectChanges();
 
     const addButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to add a tenant"]' }));
     await addButton.click();

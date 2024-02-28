@@ -89,7 +89,7 @@ describe('GioTableWrapperComponent', () => {
       expect(await tableWrapper.getSearchValue()).toBe('');
     });
 
-    it('should emit default initial filtersChange', async () => {
+    it('should emit default initial filtersChange with initial filters value', async () => {
       component.filters = {
         pagination: {
           index: 2,

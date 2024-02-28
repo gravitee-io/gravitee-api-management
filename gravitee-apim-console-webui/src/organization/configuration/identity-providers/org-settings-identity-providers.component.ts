@@ -129,7 +129,9 @@ export class OrgSettingsIdentityProvidersComponent implements OnInit, OnDestroy 
       .pipe(
         filter((confirm) => confirm === true),
         switchMap(() => {
-          identityProvider.activated = !identityProvider.activated;
+          const idp = this.tableData.find((idp) => idp.id === identityProvider.id);
+          idp.activated = !idp.activated;
+
           const activatedIdps = this.tableData.filter((idp) => idp.activated === true).map((idp) => ({ identityProvider: idp.id }));
           return this.organizationService.updateActivatedIdentityProviders(activatedIdps);
         }),
