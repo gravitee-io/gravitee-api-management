@@ -106,14 +106,12 @@ const WidgetDataTableComponent: ng.IComponentOptions = {
             apiId: key,
             from: this.widget.chart.request.from,
             to: this.widget.chart.request.to,
-            q: this.widget.chart.request.query,
           });
         } else if (this.widget.chart.request.field === 'application') {
           this.$state.go('management.applications.application.analytics', {
             applicationId: key,
             from: this.widget.chart.request.from,
             to: this.widget.chart.request.to,
-            q: this.widget.chart.request.query,
           });
         }
       }
