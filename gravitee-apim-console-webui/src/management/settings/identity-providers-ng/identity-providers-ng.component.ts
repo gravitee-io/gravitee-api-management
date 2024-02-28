@@ -144,13 +144,6 @@ export class IdentityProvidersNgComponent implements OnInit {
   }
 
   onActivationToggleActionClicked(element) {
-    if (element.isActivated) {
-      this.activatedIdentityProvider = this.activatedIdentityProvider.filter((obj) => obj.identityProvider !== element.id);
-    } else {
-      this.activatedIdentityProvider.push({
-        identityProvider: element.id,
-      });
-    }
     this.matDialog
       .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
         width: '500px',
@@ -167,6 +160,15 @@ export class IdentityProvidersNgComponent implements OnInit {
       .afterClosed()
       .pipe(
         filter((confirm) => confirm === true),
+        tap(() => {
+          if (element.isActivated) {
+            this.activatedIdentityProvider = this.activatedIdentityProvider.filter((obj) => obj.identityProvider !== element.id);
+          } else {
+            this.activatedIdentityProvider.push({
+              identityProvider: element.id,
+            });
+          }
+        }),
         switchMap(() => {
           return this.environmentIdentityProviderService.update(this.activatedIdentityProvider);
         }),
