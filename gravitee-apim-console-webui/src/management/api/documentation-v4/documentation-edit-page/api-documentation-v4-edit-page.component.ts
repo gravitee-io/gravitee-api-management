@@ -21,14 +21,20 @@ import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-pa
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { CreateDocumentation, CreateDocumentationType } from '../../../../entities/management-api-v2/documentation/createDocumentation';
 import { ApiDocumentationV2Service } from '../../../../services-ngx/api-documentation-v2.service';
-import { Breadcrumb, Page } from '../../../../entities/management-api-v2/documentation/page';
+import {
+  Breadcrumb,
+  getLogoForPageType,
+  Page,
+  CreateDocumentation,
+  CreateDocumentationType,
+  PageType,
+  Api,
+  getTooltipForPageType,
+} from '../../../../entities/management-api-v2';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
-import { Api } from '../../../../entities/management-api-v2';
 import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
-import { PageType } from '../../../../entities/management-api-v2/documentation/pageType';
 
 @Component({
   selector: 'api-documentation-edit-page',

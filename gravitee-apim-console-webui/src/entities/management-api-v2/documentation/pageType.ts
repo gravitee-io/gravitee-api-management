@@ -26,3 +26,23 @@ const PageTypeEnum = {
   TRANSLATION: 'TRANSLATION',
 } as const;
 export type PageType = (typeof PageTypeEnum)[keyof typeof PageTypeEnum];
+
+export function getTooltipForPageType(pageType: PageType) {
+  switch (pageType) {
+    case 'ASCIIDOC':
+      return 'AsciiDoc';
+    case 'ASYNCAPI':
+      return 'AsyncAPI';
+    case 'SWAGGER':
+      return 'Swagger';
+    case 'MARKDOWN':
+      return 'Markdown';
+  }
+}
+
+export const getLogoForPageType = (pageType: PageType) => {
+  if (!pageType) {
+    return undefined;
+  }
+  return `assets/logo_${pageType.toLowerCase()}.svg`;
+};

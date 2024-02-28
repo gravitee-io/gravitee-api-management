@@ -33,12 +33,10 @@ import { ApiDocumentationV4EditPageComponent } from './api-documentation-v4-edit
 
 import { ApiDocumentationV4Module } from '../api-documentation-v4.module';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
-import { Breadcrumb, Page } from '../../../../entities/management-api-v2/documentation/page';
+import { Breadcrumb, Page, fakeFolder, fakeMarkdown, fakeApiV4 } from '../../../../entities/management-api-v2';
 import { ApiDocumentationV4ContentEditorHarness } from '../components/api-documentation-v4-content-editor/api-documentation-v4-content-editor.harness';
 import { ApiDocumentationV4BreadcrumbHarness } from '../components/api-documentation-v4-breadcrumb/api-documentation-v4-breadcrumb.harness';
-import { fakeFolder, fakeMarkdown } from '../../../../entities/management-api-v2/documentation/page.fixture';
 import { ApiDocumentationV4PageTitleHarness } from '../components/api-documentation-v4-page-title/api-documentation-v4-page-title.harness';
-import { fakeApiV4 } from '../../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { ApiDocumentationV4FileUploadHarness } from '../components/api-documentation-v4-file-upload/api-documentation-v4-file-upload.harness';
 import { Constants } from '../../../../entities/Constants';
