@@ -57,6 +57,7 @@ export class RuntimeAlertCreateComponent implements OnInit {
     this.alertForm = this.formBuilder.group({
       generalForm: [],
       timeframeForm: [],
+      conditionsForm: [],
     });
   }
 

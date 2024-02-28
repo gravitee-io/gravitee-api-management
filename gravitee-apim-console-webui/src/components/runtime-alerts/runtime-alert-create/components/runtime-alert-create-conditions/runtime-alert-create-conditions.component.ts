@@ -13,8 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { Component, forwardRef, Input, OnDestroy } from '@angular/core';
+import {
+  AbstractControl,
+  ControlValueAccessor,
+  FormGroup,
+  NG_VALIDATORS,
+  NG_VALUE_ACCESSOR,
+  ValidationErrors,
+  Validator,
+} from '@angular/forms';
+import { takeUntil, tap } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 
 import { RuntimeAlertCreateConditionsFactory } from './runtime-alert-create-conditions.factory';
 
@@ -25,8 +35,24 @@ import { Rule } from '../../../../../entities/alerts/rule.metrics';
   selector: 'runtime-alert-create-conditions',
   templateUrl: './runtime-alert-create-conditions.component.html',
   styleUrls: ['./runtime-alert-create-conditions.component.scss'],
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => RuntimeAlertCreateConditionsComponent),
+      multi: true,
+    },
+    {
+      provide: NG_VALIDATORS,
+      useExisting: forwardRef(() => RuntimeAlertCreateConditionsComponent),
+      multi: true,
+    },
+  ],
 })
-export class RuntimeAlertCreateConditionsComponent {
+export class RuntimeAlertCreateConditionsComponent implements OnDestroy, ControlValueAccessor, Validator {
+  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+  private _onChange: (value: unknown) => void;
+  private _onTouched: () => void;
+
   @Input({ required: true }) referenceType: Scope;
   @Input({ required: true }) referenceId: string;
   @Input({ required: true }) set rule(value: Rule) {
@@ -34,11 +60,44 @@ export class RuntimeAlertCreateConditionsComponent {
       this.ruleType = `${value.source}@${value.type}`;
       this.conditionsForm = RuntimeAlertCreateConditionsFactory.create(this.ruleType);
       this.metrics = Metrics.filterByScope(Rule.findByScopeAndType(this.referenceType, this.ruleType)?.metrics ?? [], this.referenceType);
+      this.conditionsForm.valueChanges
+        .pipe(
+          tap((value) => {
+            this._onChange(value);
+            this._onTouched();
+          }),
+          takeUntil(this.unsubscribe$),
+        )
+        .subscribe();
     }
   }
-
   protected ruleType: string;
   protected metrics: Metrics[];
   protected types: string[];
   protected conditionsForm: FormGroup;
+
+  ngOnDestroy(): void {
+    this.unsubscribe$.next(true);
+    this.unsubscribe$.unsubscribe();
+  }
+
+  writeValue(value: unknown): void {
+    this.conditionsForm?.setValue(value, { emitEvent: false });
+  }
+
+  registerOnChange(fn: (value: unknown) => void): void {
+    this._onChange = fn;
+  }
+
+  registerOnTouched(fn: () => void): void {
+    this._onTouched = fn;
+  }
+
+  setDisabledState(isDisabled: boolean): void {
+    isDisabled ? this.conditionsForm?.disable() : this.conditionsForm?.enable();
+  }
+
+  validate(_: AbstractControl): ValidationErrors | null {
+    return this.conditionsForm?.valid ? null : { invalidForm: { valid: false, message: 'Conditions form is invalid' } };
+  }
 }

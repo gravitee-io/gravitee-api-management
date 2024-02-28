@@ -16,6 +16,7 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { GioBannerModule } from '@gravitee/ui-particles-angular';
+import { ReactiveFormsModule } from '@angular/forms';
 
 import { RuntimeAlertCreateConditionsComponent } from './runtime-alert-create-conditions.component';
 
@@ -24,6 +25,6 @@ import { RuntimeAlertCreateConditionModule } from '../components/runtime-alert-c
 @NgModule({
   declarations: [RuntimeAlertCreateConditionsComponent],
   exports: [RuntimeAlertCreateConditionsComponent],
-  imports: [CommonModule, GioBannerModule, RuntimeAlertCreateConditionModule],
+  imports: [CommonModule, GioBannerModule, RuntimeAlertCreateConditionModule, ReactiveFormsModule],
 })
 export class RuntimeAlertCreateConditionsModule {}
