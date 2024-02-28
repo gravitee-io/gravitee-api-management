@@ -43,7 +43,7 @@
           <button
             mat-button
             color="warn"
-            [disabled]="canStart$ | async"
+            [disabled]="isReadOnly || shouldUpgrade"
             data-testid="api_info_dangerzone_start_api"
             (click)="changeLifecycle('START')"
           >
@@ -51,7 +51,7 @@
           </button>
         </div>
 
-        <div *ngIf="shouldUpgrade$ | async">
+        <div *ngIf="shouldUpgrade">
           <gio-license-banner [license]="license$ | async" [isOEM]="isOEM$ | async" (onRequestUpgrade)="onRequestUpgrade()">
           </gio-license-banner>
         </div>

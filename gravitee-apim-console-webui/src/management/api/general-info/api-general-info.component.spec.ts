@@ -162,8 +162,6 @@ describe('ApiGeneralInfoComponent', () => {
       const categoriesInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="categories"]' }));
       expect(await categoriesInput.isDisabled()).toEqual(true);
 
-      expectLicenseGetRequest();
-
       await Promise.all(
         [/Import/, /Duplicate/, /Promote/].map(async (btnText) => {
           const button = await loader.getHarness(MatButtonHarness.with({ text: btnText }));
@@ -493,7 +491,7 @@ describe('ApiGeneralInfoComponent', () => {
 
       // Expect fetch api and update
       expectApiGetRequest(api);
-      expectLicenseGetRequest();
+      expectApiVerifyDeployment(api, true);
 
       // Wait image to be covert to base64
       await new Promise((resolve) => setTimeout(resolve, 10));
@@ -572,7 +570,7 @@ describe('ApiGeneralInfoComponent', () => {
       const categoriesInput = await loader.getHarness(MatSelectHarness.with({ selector: '[formControlName="categories"]' }));
       expect(await categoriesInput.isDisabled()).toEqual(true);
 
-      expectLicenseGetRequest();
+      expectApiVerifyDeployment(api, true);
 
       await Promise.all(
         [/Import/, /Duplicate/, /Promote/].map(async (btnText) => {
@@ -603,7 +601,7 @@ describe('ApiGeneralInfoComponent', () => {
       await button.click();
 
       await waitImageCheck();
-      expectLicenseGetRequest();
+      expectApiVerifyDeployment(api, true);
 
       await expectExportV4GetRequest(API_ID);
     });
@@ -622,7 +620,7 @@ describe('ApiGeneralInfoComponent', () => {
       const button = await loader.getHarness(MatButtonHarness.with({ text: /Duplicate/ }));
       expect(await button.isDisabled()).toBeFalsy();
       await button.click();
-      expectLicenseGetRequest();
+      expectApiVerifyDeployment(api, true);
 
       const confirmDialog = await rootLoader.getHarness(MatDialogHarness.with({ selector: '#duplicateApiDialog' }));
 
@@ -725,8 +723,10 @@ describe('ApiGeneralInfoComponent', () => {
     fixture.detectChanges();
   }
 
-  function expectLicenseGetRequest() {
-    httpTestingController.expectOne({ url: LICENSE_CONFIGURATION_TESTING.resourceURL, method: 'GET' }).flush({ features: [], packs: [] });
+  function expectApiVerifyDeployment(api: Api, ok: boolean) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}/deployments/_verify`, method: 'GET' }).flush({
+      ok,
+    });
   }
 });
 
