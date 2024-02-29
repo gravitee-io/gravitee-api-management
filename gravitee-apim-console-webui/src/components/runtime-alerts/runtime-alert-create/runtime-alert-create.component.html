@@ -68,7 +68,13 @@
           ></runtime-alert-create-conditions>
         </div>
         <div class="create-alert__filters-form">
-          <h3>Filters</h3>
+          <runtime-alert-create-filters
+            *ngIf="referenceType != null"
+            [rule]="selectedRule"
+            [referenceType]="referenceType"
+            [referenceId]="referenceId"
+            formControlName="filtersForm"
+          ></runtime-alert-create-filters>
         </div>
       </div>
     </form>

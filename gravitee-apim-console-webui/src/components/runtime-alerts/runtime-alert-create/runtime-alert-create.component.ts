@@ -58,6 +58,7 @@ export class RuntimeAlertCreateComponent implements OnInit {
       generalForm: [],
       timeframeForm: [],
       conditionsForm: [],
+      filtersForm: [],
     });
   }
 

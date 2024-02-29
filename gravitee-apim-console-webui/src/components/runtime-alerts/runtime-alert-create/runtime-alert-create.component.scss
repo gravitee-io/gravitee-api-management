@@ -18,8 +18,12 @@
   &__forms {
     .create-alert__general-form,
     .create-alert__timeframe-form,
-    .create-alert__condition-form {
+    .create-alert__filters-form {
       margin: 20px 0;
+    }
+
+    .create-alert__condition-form {
+      margin: 20px 0 40px 0;
     }
   }
 }

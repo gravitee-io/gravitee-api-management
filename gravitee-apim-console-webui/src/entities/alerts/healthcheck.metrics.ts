@@ -17,7 +17,7 @@
 import TenantService from '../../services/tenant.service';
 import { CompareCondition, Metrics, StringCondition, ThresholdCondition, ThresholdRangeCondition, Tuple } from '../alert';
 
-const statusloader = () => {
+export const statusLoader = () => {
   const events: Tuple[] = [];
   events.push(new Tuple('DOWN', 'Down'));
   events.push(new Tuple('TRANSITIONALLY_DOWN', 'Transitionally down'));
@@ -33,7 +33,7 @@ export class HealthcheckMetrics extends Metrics {
     [StringCondition.TYPE],
     false,
     undefined,
-    statusloader,
+    statusLoader,
   );
 
   static NEW_STATUS_NAME: HealthcheckMetrics = new HealthcheckMetrics(
@@ -42,7 +42,7 @@ export class HealthcheckMetrics extends Metrics {
     [StringCondition.TYPE],
     false,
     undefined,
-    statusloader,
+    statusLoader,
   );
 
   static ENDPOINT_NAME: HealthcheckMetrics = new HealthcheckMetrics('endpoint.name', 'Endpoint name', [StringCondition.TYPE], true);

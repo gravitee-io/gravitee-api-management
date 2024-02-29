@@ -23,6 +23,7 @@ import { RuntimeAlertCreateComponent } from './runtime-alert-create.component';
 import { RuntimeAlertCreateGeneralModule } from './components/runtime-alert-create-general/runtime-alert-create-general.module';
 import { RuntimeAlertCreateTimeframeModule } from './components/runtime-alert-create-timeframe/runtime-alert-create-timeframe.module';
 import { RuntimeAlertCreateConditionsModule } from './components/runtime-alert-create-conditions/runtime-alert-create-conditions.module';
+import { RuntimeAlertCreateFiltersModule } from './components/runtime-alert-create-filters';
 
 import { GioGoBackButtonModule } from '../../../shared/components/gio-go-back-button/gio-go-back-button.module';
 
@@ -40,6 +41,7 @@ import { GioGoBackButtonModule } from '../../../shared/components/gio-go-back-bu
     RuntimeAlertCreateGeneralModule,
     RuntimeAlertCreateTimeframeModule,
     RuntimeAlertCreateConditionsModule,
+    RuntimeAlertCreateFiltersModule,
   ],
 })
 export class RuntimeAlertCreateModule {}
