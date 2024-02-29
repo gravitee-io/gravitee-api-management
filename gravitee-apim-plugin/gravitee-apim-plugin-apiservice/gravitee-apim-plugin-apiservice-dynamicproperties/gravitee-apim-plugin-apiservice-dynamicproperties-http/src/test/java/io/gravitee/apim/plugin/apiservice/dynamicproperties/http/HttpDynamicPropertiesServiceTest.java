@@ -62,6 +62,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -344,7 +345,7 @@ class HttpDynamicPropertiesServiceTest {
             ScheduledJobAssertions.assertScheduledJobIsDisposed(cut.scheduledJob);
         }
 
-        @Test
+        @RepeatedTest(100)
         void should_publish_dynamic_properties_multiple_times() {
             Api api = Fixtures.apiWithDynamicPropertiesEnabled();
             final HttpDynamicPropertiesServiceConfiguration configuration = HttpDynamicPropertiesServiceConfiguration
@@ -416,10 +417,8 @@ class HttpDynamicPropertiesServiceTest {
             // Wait for the first http call
             advanceTimeBy(5_000, cut, configuration);
 
-            final TestObserver<Event<ManagementApiServiceEvent, DynamicPropertiesEvent>> eventObs = TestEventListener
-                .with(eventManager)
-                .completeAfter(4)
-                .test();
+            final TestEventListener testEventListener = TestEventListener.with(eventManager);
+            final TestObserver<Event<ManagementApiServiceEvent, DynamicPropertiesEvent>> eventObs = testEventListener.test();
 
             // Ensure first event has been published
             eventObs.awaitCount(1);
@@ -439,10 +438,13 @@ class HttpDynamicPropertiesServiceTest {
             // Ensure third event has been published
             eventObs.awaitCount(4);
 
+            // Manually complete when we are sure we awaited for the correct number of events
+            testEventListener.completeImmediatly();
+
             ScheduledJobAssertions.assertScheduledJobIsRunning(cut.scheduledJob);
 
             eventObs
-                .awaitDone(10, TimeUnit.SECONDS)
+                .awaitDone(30, TimeUnit.SECONDS)
                 .assertValueCount(4)
                 .assertValueAt(
                     0,

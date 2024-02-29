@@ -22,6 +22,7 @@ import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
 import io.reactivex.rxjava3.observers.TestObserver;
 import io.reactivex.rxjava3.subjects.ReplaySubject;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -32,6 +33,7 @@ public class TestEventListener implements EventListener<ManagementApiServiceEven
 
     private final ReplaySubject<Event<ManagementApiServiceEvent, DynamicPropertiesEvent>> events = ReplaySubject.create();
     private final AtomicInteger counter = new AtomicInteger();
+    private boolean shouldAutomaticallyComplete = false;
 
     private TestEventListener(EventManager eventManager) {
         eventManager.subscribeForEvents(this, ManagementApiServiceEvent.class);
@@ -47,6 +49,7 @@ public class TestEventListener implements EventListener<ManagementApiServiceEven
      * @return this instance
      */
     public TestEventListener completeAfter(int numberOfEventsExpected) {
+        this.shouldAutomaticallyComplete = true;
         counter.set(numberOfEventsExpected);
         return this;
     }
@@ -59,8 +62,8 @@ public class TestEventListener implements EventListener<ManagementApiServiceEven
     @Override
     public void onEvent(Event<ManagementApiServiceEvent, DynamicPropertiesEvent> event) {
         events.onNext(event);
-        // if counter is not set thanks to completeAfter(int) method, then we can decrement under 0
-        if (counter.decrementAndGet() <= 0) {
+        // Automatically complete is counter reach 0
+        if (shouldAutomaticallyComplete && counter.decrementAndGet() <= 0) {
             events.onComplete();
         }
     }
