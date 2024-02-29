@@ -41,7 +41,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author GraviteeSource Team
  */
 @ExtendWith(MockitoExtension.class)
-@Disabled
 class HealthCheckManagedEndpointTest {
 
     public static final String API_ID = "apiId";

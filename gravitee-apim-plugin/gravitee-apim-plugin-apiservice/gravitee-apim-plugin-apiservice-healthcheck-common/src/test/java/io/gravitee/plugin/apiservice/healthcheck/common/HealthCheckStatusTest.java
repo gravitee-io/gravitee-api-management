@@ -25,7 +25,6 @@ import org.junit.jupiter.api.Test;
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Disabled
 class HealthCheckStatusTest {
 
     @Test
