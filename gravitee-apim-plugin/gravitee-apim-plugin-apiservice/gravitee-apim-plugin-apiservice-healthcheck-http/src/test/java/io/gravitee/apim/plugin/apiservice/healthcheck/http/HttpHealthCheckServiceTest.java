@@ -21,13 +21,11 @@ import static io.gravitee.apim.plugin.apiservice.healthcheck.http.HttpHealthChec
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import io.gravitee.common.http.HttpMethod;
@@ -76,7 +74,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 @ExtendWith(MockitoExtension.class)
-@Disabled
 public class HttpHealthCheckServiceTest {
 
     public static final String ENDPOINT_NAME = "ENDPOINT_NAME";

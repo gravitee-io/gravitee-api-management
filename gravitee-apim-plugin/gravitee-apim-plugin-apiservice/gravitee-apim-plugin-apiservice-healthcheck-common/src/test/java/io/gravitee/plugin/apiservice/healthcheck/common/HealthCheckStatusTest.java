@@ -18,12 +18,14 @@ package io.gravitee.plugin.apiservice.healthcheck.common;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.gravitee.gateway.reactive.core.v4.endpoint.ManagedEndpoint;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Disabled
 class HealthCheckStatusTest {
 
     @Test

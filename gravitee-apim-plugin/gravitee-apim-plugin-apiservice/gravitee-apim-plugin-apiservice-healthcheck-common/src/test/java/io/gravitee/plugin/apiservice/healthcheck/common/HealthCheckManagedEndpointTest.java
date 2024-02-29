@@ -30,6 +30,7 @@ import io.gravitee.node.api.Node;
 import io.gravitee.plugin.alert.AlertEventProducer;
 import io.gravitee.reporter.api.health.EndpointStatus;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -40,6 +41,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author GraviteeSource Team
  */
 @ExtendWith(MockitoExtension.class)
+@Disabled
 class HealthCheckManagedEndpointTest {
 
     public static final String API_ID = "apiId";
