@@ -39,7 +39,7 @@
               [ngSrc]="getLogoForPageType(page.type)"
               height="24"
               width="24"
-              alt="{{ page.type }} logo"
+              [alt]="getTitleForPageType(page.type).toLowerCase() + ' logo'"
               [matTooltip]="getTooltipForPageType(page.type)"
             />
           </ng-template>

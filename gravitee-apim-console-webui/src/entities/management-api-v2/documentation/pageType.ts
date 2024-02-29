@@ -34,7 +34,20 @@ export function getTooltipForPageType(pageType: PageType) {
     case 'ASYNCAPI':
       return 'AsyncAPI';
     case 'SWAGGER':
-      return 'Swagger';
+      return 'OpenAPI';
+    case 'MARKDOWN':
+      return 'Markdown';
+  }
+}
+
+export function getTitleForPageType(pageType: PageType) {
+  switch (pageType) {
+    case 'ASCIIDOC':
+      return 'AsciiDoc';
+    case 'ASYNCAPI':
+      return 'AsyncAPI';
+    case 'SWAGGER':
+      return 'OpenAPI';
     case 'MARKDOWN':
       return 'Markdown';
   }
@@ -43,6 +56,9 @@ export function getTooltipForPageType(pageType: PageType) {
 export const getLogoForPageType = (pageType: PageType) => {
   if (!pageType) {
     return undefined;
+  }
+  if (pageType === 'SWAGGER') {
+    return `assets/logo_openapi.svg`;
   }
   return `assets/logo_${pageType.toLowerCase()}.svg`;
 };
