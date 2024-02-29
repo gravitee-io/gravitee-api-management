@@ -18,6 +18,51 @@
 
 <form [formGroup]="form" (ngSubmit)="onAddOAuth2()">
   <api-plan-form #apiPlanForm formControlName="plan" mode="create" [apiType]="apiType" [planMenuItem]="planMenuItem"></api-plan-form>
+  <h1>Create an OAuth2 resource</h1>
+  <mat-tab-group>
+    <mat-tab label="Configure with AM">
+
+      <mat-form-field>
+        <input matInput placeholder="Name" formControlName="name">
+        <mat-hint class="hint-description">Enter a descriptive name, it will be used to identify your security level for your API connection.</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field>
+        <input matInput placeholder="AM version" formControlName="am_version">
+        <mat-hint class="hint-description">The version of the Access Management server.</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field>
+        <input matInput placeholder="Server URL" formControlName="server_url">
+      </mat-form-field>
+
+    </mat-tab>
+    <mat-tab label="Configure with external provider">
+      <mat-form-field>
+        <input matInput placeholder="Resource name" formControlName="resourceName">
+        <mat-hint class="hint-description">Enter a descriptive name, it will be used to identify your security level for your API connection.</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field>
+        <input matInput placeholder="Authorization server URL" formControlName="authServerUrl">
+        <mat-hint class="hint-description">The URL of the Authorization server.</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field>
+        <input matInput placeholder="Token introspection endpoint" formControlName="tokenEndpoint">
+        <mat-hint class="hint-description">Path which is used to introspect an incoming access token (must start with ‘/’).</mat-hint>
+      </mat-form-field>
+
+      <div>
+        <mat-slide-toggle formControlName="useSystemProxy" color="primary" [checked]="false">Use System Proxy</mat-slide-toggle>
+      </div>
+
+      <mat-form-field>
+        <input matInput placeholder="Token introspection method" formControlName="tokenMethod">
+        <mat-hint class="hint-description">HTTP method used to introspect the access token.</mat-hint>
+      </mat-form-field>
+    </mat-tab>
+  </mat-tab-group>
 
   <div class="api-creation-v4__step__footer">
     <button

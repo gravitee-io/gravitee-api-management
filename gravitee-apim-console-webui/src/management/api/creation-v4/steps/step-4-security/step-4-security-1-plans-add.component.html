@@ -16,7 +16,8 @@
 
 -->
 
-<form [formGroup]="form" (ngSubmit)="onAddPlan()">
+<form [formGroup]="form" (ngSubmit)=
+  "onAddPlan()">
   <api-plan-form #apiPlanForm formControlName="plan" mode="create" [apiType]="apiType" [planMenuItem]="planMenuItem"></api-plan-form>
 
   <div class="api-creation-v4__step__footer">
