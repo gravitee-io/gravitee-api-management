@@ -15,9 +15,10 @@
  */
 import { Component, Input, OnInit } from '@angular/core';
 import { catchError, switchMap, takeUntil } from 'rxjs/operators';
-import { of, Subject } from 'rxjs';
+import { Observable, of, Subject } from 'rxjs';
 import { UntypedFormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
+import { GioLicenseService, License } from '@gravitee/ui-particles-angular';
 
 import { ApiType, ConnectorVM, fromConnector } from '../../../../../entities/management-api-v2';
 import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
@@ -26,6 +27,7 @@ import {
   GioConnectorDialogComponent,
   GioConnectorDialogData,
 } from '../../../component/gio-connector-dialog/gio-connector-dialog.component';
+import { ApimFeature, UTMTags } from '../../../../../shared/components/gio-license/gio-license-data';
 
 @Component({
   selector: 'api-endpoints-group-selection',
@@ -37,18 +39,26 @@ export class ApiEndpointGroupSelectionComponent implements OnInit {
 
   @Input()
   public endpointGroupTypeForm: UntypedFormGroup;
+
   @Input()
   public apiType: ApiType;
 
   public endpoints: ConnectorVM[];
 
+  public shouldUpgrade = false;
+  public license$: Observable<License>;
+  public isOEM$: Observable<boolean>;
+
   constructor(
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
+    private readonly licenseService: GioLicenseService,
     private readonly iconService: IconService,
     private readonly matDialog: MatDialog,
   ) {}
 
   ngOnInit() {
+    this.license$ = this.licenseService.getLicense$();
+    this.isOEM$ = this.licenseService.isOEM$();
     this.connectorPluginsV2Service
       .listEndpointPluginsByApiType(this.apiType)
       .pipe(takeUntil(this.unsubscribe$))
@@ -78,5 +88,16 @@ export class ApiEndpointGroupSelectionComponent implements OnInit {
         takeUntil(this.unsubscribe$),
       )
       .subscribe();
+  }
+
+  public checkLicense(endpoint: ConnectorVM) {
+    this.shouldUpgrade = !endpoint.deployed;
+  }
+
+  public onRequestUpgrade() {
+    this.licenseService.openDialog({
+      feature: ApimFeature.APIM_EN_MESSAGE_REACTOR,
+      context: UTMTags.GENERAL_ENDPOINT_CONFIG,
+    });
   }
 }
