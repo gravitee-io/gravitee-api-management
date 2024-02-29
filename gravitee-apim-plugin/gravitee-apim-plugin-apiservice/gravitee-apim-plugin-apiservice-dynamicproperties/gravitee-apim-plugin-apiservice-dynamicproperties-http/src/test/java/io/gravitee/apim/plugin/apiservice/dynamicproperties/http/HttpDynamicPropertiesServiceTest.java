@@ -267,12 +267,10 @@ class HttpDynamicPropertiesServiceTest {
 
             ScheduledJobAssertions.assertScheduledJobIsRunning(cut.scheduledJob);
 
-            TestEventListener
-                .with(eventManager)
-                .completeAfter(1)
+            final TestEventListener testEventListener = TestEventListener.with(eventManager);
+            testEventListener
                 .test()
-                .awaitDone(10, TimeUnit.SECONDS)
-                .assertValueCount(1)
+                .awaitCount(1)
                 .assertValue(propertyEvent -> {
                     Assertions.PropertyEventAssertions
                         .assertThatEvent(propertyEvent)
@@ -283,14 +281,14 @@ class HttpDynamicPropertiesServiceTest {
                             )
                         );
                     return true;
-                })
-                .assertComplete();
+                });
 
             wiremock.verify(getRequestedFor(urlPathEqualTo("/propertiesBackend")).withHeader(X_HEADER, equalTo(HEADER_VALUE)));
 
             cut.stop().test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
 
             ScheduledJobAssertions.assertScheduledJobIsDisposed(cut.scheduledJob);
+            testEventListener.completeImmediatly();
         }
 
         @Test
@@ -438,13 +436,9 @@ class HttpDynamicPropertiesServiceTest {
             // Ensure third event has been published
             eventObs.awaitCount(4);
 
-            // Manually complete when we are sure we awaited for the correct number of events
-            testEventListener.completeImmediatly();
-
             ScheduledJobAssertions.assertScheduledJobIsRunning(cut.scheduledJob);
 
             eventObs
-                .awaitDone(30, TimeUnit.SECONDS)
                 .assertValueCount(4)
                 .assertValueAt(
                     0,
@@ -490,14 +484,15 @@ class HttpDynamicPropertiesServiceTest {
                         Assertions.PropertyEventAssertions.assertThatEvent(propertyEvent).contains(List.of());
                         return true;
                     }
-                )
-                .assertComplete();
+                );
 
             wiremock.verify(getRequestedFor(urlPathEqualTo("/propertiesBackend")).withHeader(X_HEADER, equalTo(HEADER_VALUE)));
 
             cut.stop().test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
 
             ScheduledJobAssertions.assertScheduledJobIsDisposed(cut.scheduledJob);
+            // Manually complete when we are sure we awaited for the correct number of events
+            testEventListener.completeImmediatly();
         }
     }
 
@@ -541,12 +536,11 @@ class HttpDynamicPropertiesServiceTest {
 
             ScheduledJobAssertions.assertScheduledJobIsRunning(cut.scheduledJob);
 
-            TestEventListener
-                .with(eventManager)
-                .completeAfter(1)
+            final TestEventListener testEventListener = TestEventListener.with(eventManager);
+
+            testEventListener
                 .test()
-                .awaitDone(10, TimeUnit.SECONDS)
-                .assertValueCount(1)
+                .awaitCount(1)
                 .assertValue(propertyEvent -> {
                     Assertions.PropertyEventAssertions
                         .assertThatEvent(propertyEvent)
@@ -557,14 +551,16 @@ class HttpDynamicPropertiesServiceTest {
                             )
                         );
                     return true;
-                })
-                .assertComplete();
+                });
 
             wiremock.verify(getRequestedFor(urlPathEqualTo("/propertiesBackend")).withHeader(X_HEADER, equalTo(HEADER_VALUE)));
 
             cut.stop().test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
 
             ScheduledJobAssertions.assertScheduledJobIsDisposed(cut.scheduledJob);
+
+            // Manually complete when we are sure we awaited for the correct number of events
+            testEventListener.completeImmediatly();
         }
 
         @Test
@@ -622,10 +618,8 @@ class HttpDynamicPropertiesServiceTest {
             // Wait for the first http call
             advanceTimeBy(5_000, cut, configuration);
 
-            final TestObserver<Event<ManagementApiServiceEvent, DynamicPropertiesEvent>> eventObs = TestEventListener
-                .with(eventManager)
-                .completeAfter(2)
-                .test();
+            final TestEventListener testEventListener = TestEventListener.with(eventManager);
+            final TestObserver<Event<ManagementApiServiceEvent, DynamicPropertiesEvent>> eventObs = testEventListener.test();
 
             // Ensure first event has been published
             eventObs.awaitCount(1);
@@ -647,7 +641,6 @@ class HttpDynamicPropertiesServiceTest {
             ScheduledJobAssertions.assertScheduledJobIsRunning(cut.scheduledJob);
 
             eventObs
-                .awaitDone(10, TimeUnit.SECONDS)
                 .assertValueCount(2)
                 .assertValueAt(
                     0,
@@ -676,8 +669,7 @@ class HttpDynamicPropertiesServiceTest {
                             );
                         return true;
                     }
-                )
-                .assertComplete();
+                );
 
             wiremock.verify(getRequestedFor(urlPathEqualTo("/propertiesBackend")).withHeader(X_HEADER, equalTo(HEADER_VALUE)));
             wiremock.verify(getRequestedFor(urlPathEqualTo("/propertiesOtherBackend")).withHeader(X_HEADER, equalTo(HEADER_VALUE)));
@@ -685,6 +677,9 @@ class HttpDynamicPropertiesServiceTest {
             cut.stop().test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
 
             ScheduledJobAssertions.assertScheduledJobIsDisposed(cut.scheduledJob);
+
+            // Manually complete when we are sure we awaited for the correct number of events
+            testEventListener.completeImmediatly();
         }
 
         @Test
@@ -725,10 +720,8 @@ class HttpDynamicPropertiesServiceTest {
             // Wait for the first http call
             advanceTimeBy(5_000, cut, configuration);
 
-            final TestObserver<Event<ManagementApiServiceEvent, DynamicPropertiesEvent>> eventObs = TestEventListener
-                .with(eventManager)
-                .completeAfter(1)
-                .test();
+            final TestEventListener testEventListener = TestEventListener.with(eventManager);
+            final TestObserver<Event<ManagementApiServiceEvent, DynamicPropertiesEvent>> eventObs = testEventListener.test();
 
             // Ensure first event has been published
             eventObs.awaitCount(1);
@@ -742,7 +735,6 @@ class HttpDynamicPropertiesServiceTest {
             ScheduledJobAssertions.assertScheduledJobIsDisposed(cut.scheduledJob);
 
             eventObs
-                .awaitDone(10, TimeUnit.SECONDS)
                 .assertValueCount(1)
                 .assertValue(propertyEvent -> {
                     Assertions.PropertyEventAssertions
@@ -754,10 +746,12 @@ class HttpDynamicPropertiesServiceTest {
                             )
                         );
                     return true;
-                })
-                .assertComplete();
+                });
 
             wiremock.verify(getRequestedFor(urlPathEqualTo("/propertiesBackend")).withHeader(X_HEADER, equalTo(HEADER_VALUE)));
+
+            // Manually complete when we are sure we awaited for the correct number of events
+            testEventListener.completeImmediatly();
         }
     }
 
