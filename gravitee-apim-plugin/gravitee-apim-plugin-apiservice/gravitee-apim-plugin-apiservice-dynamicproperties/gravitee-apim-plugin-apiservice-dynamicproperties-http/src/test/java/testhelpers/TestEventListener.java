@@ -21,7 +21,9 @@ import io.gravitee.common.event.Event;
 import io.gravitee.common.event.EventListener;
 import io.gravitee.common.event.EventManager;
 import io.reactivex.rxjava3.observers.TestObserver;
+import io.reactivex.rxjava3.schedulers.TestScheduler;
 import io.reactivex.rxjava3.subjects.ReplaySubject;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -29,14 +31,15 @@ import io.reactivex.rxjava3.subjects.ReplaySubject;
  */
 public class TestEventListener implements EventListener<ManagementApiServiceEvent, DynamicPropertiesEvent> {
 
-    private final ReplaySubject<Event<ManagementApiServiceEvent, DynamicPropertiesEvent>> events = ReplaySubject.create();
+    private final ReplaySubject<Event<ManagementApiServiceEvent, DynamicPropertiesEvent>> events;
 
-    private TestEventListener(EventManager eventManager) {
+    private TestEventListener(EventManager eventManager, TestScheduler testScheduler) {
         eventManager.subscribeForEvents(this, ManagementApiServiceEvent.class);
+        events = ReplaySubject.createWithTime(30, TimeUnit.SECONDS, testScheduler);
     }
 
-    public static TestEventListener with(EventManager eventManager) {
-        return new TestEventListener(eventManager);
+    public static TestEventListener with(EventManager eventManager, TestScheduler testScheduler) {
+        return new TestEventListener(eventManager, testScheduler);
     }
 
     public TestEventListener completeImmediatly() {

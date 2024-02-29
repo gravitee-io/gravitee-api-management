@@ -189,7 +189,7 @@ class HttpDynamicPropertiesServiceTest {
                     wiremock.verify(0, getRequestedFor(urlPathEqualTo("/propertiesBackend")).withHeader(X_HEADER, equalTo(HEADER_VALUE)));
                 });
 
-            TestEventListener.with(eventManager).completeImmediatly().test().assertNoValues().assertComplete();
+            TestEventListener.with(eventManager, testScheduler).completeImmediatly().test().assertNoValues().assertComplete();
 
             List<ILoggingEvent> logList = listAppender.list.stream().filter(log -> log.getLevel().equals(Level.WARN)).toList();
             assertThat(logList)
@@ -267,7 +267,7 @@ class HttpDynamicPropertiesServiceTest {
 
             ScheduledJobAssertions.assertScheduledJobIsRunning(cut.scheduledJob);
 
-            final TestEventListener testEventListener = TestEventListener.with(eventManager);
+            final TestEventListener testEventListener = TestEventListener.with(eventManager, testScheduler);
             testEventListener
                 .test()
                 .awaitCount(1)
@@ -336,7 +336,7 @@ class HttpDynamicPropertiesServiceTest {
                     wiremock.verify(1, getRequestedFor(urlPathEqualTo("/propertiesBackend")).withHeader(X_HEADER, equalTo(HEADER_VALUE)));
                 });
 
-            TestEventListener.with(eventManager).completeImmediatly().test().assertNoValues().assertComplete();
+            TestEventListener.with(eventManager, testScheduler).completeImmediatly().test().assertNoValues().assertComplete();
 
             cut.stop().test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
 
@@ -415,7 +415,7 @@ class HttpDynamicPropertiesServiceTest {
             // Wait for the first http call
             advanceTimeBy(5_000, cut, configuration);
 
-            final TestEventListener testEventListener = TestEventListener.with(eventManager);
+            final TestEventListener testEventListener = TestEventListener.with(eventManager, testScheduler);
             final TestObserver<Event<ManagementApiServiceEvent, DynamicPropertiesEvent>> eventObs = testEventListener.test();
 
             // Ensure first event has been published
@@ -544,7 +544,7 @@ class HttpDynamicPropertiesServiceTest {
 
             ScheduledJobAssertions.assertScheduledJobIsRunning(cut.scheduledJob);
 
-            final TestEventListener testEventListener = TestEventListener.with(eventManager);
+            final TestEventListener testEventListener = TestEventListener.with(eventManager, testScheduler);
 
             testEventListener
                 .test()
@@ -626,7 +626,7 @@ class HttpDynamicPropertiesServiceTest {
             // Wait for the first http call
             advanceTimeBy(5_000, cut, configuration);
 
-            final TestEventListener testEventListener = TestEventListener.with(eventManager);
+            final TestEventListener testEventListener = TestEventListener.with(eventManager, testScheduler);
             final TestObserver<Event<ManagementApiServiceEvent, DynamicPropertiesEvent>> eventObs = testEventListener.test();
 
             // Ensure first event has been published
@@ -728,7 +728,7 @@ class HttpDynamicPropertiesServiceTest {
             // Wait for the first http call
             advanceTimeBy(5_000, cut, configuration);
 
-            final TestEventListener testEventListener = TestEventListener.with(eventManager);
+            final TestEventListener testEventListener = TestEventListener.with(eventManager, testScheduler);
             final TestObserver<Event<ManagementApiServiceEvent, DynamicPropertiesEvent>> eventObs = testEventListener.test();
 
             // Ensure first event has been published
