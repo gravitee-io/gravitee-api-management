@@ -590,7 +590,6 @@ public class PageServiceImpl extends AbstractService implements PageService, App
             } else {
                 pageEntity.setContent(descriptor.toYaml());
             }
-            pageEntity.setContent(descriptor.toJson());
         } catch (JsonProcessingException e) {
             logger.error("Unexpected error", e);
         }
