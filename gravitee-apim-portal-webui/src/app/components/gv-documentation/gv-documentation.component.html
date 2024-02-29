@@ -24,7 +24,7 @@
 
 <div *ngIf="isLoaded && !isEmpty()" class="gv-documentation">
   <div #treeMenu class="gv-documentation__menu" [ngClass]="{ show: isLoaded }">
-    <gv-tree [items]="menu" [selectedItem]="currentMenuItem"></gv-tree>
+    <gv-tree [items]="menu" [selectedItem]="currentMenuItem" [closed]="false"></gv-tree>
   </div>
   <app-gv-page
     *ngIf="currentPage"
