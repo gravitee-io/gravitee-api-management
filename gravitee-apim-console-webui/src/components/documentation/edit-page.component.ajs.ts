@@ -249,16 +249,17 @@ class EditPageComponentController implements IController {
   }
 
   selectTab(idx: number) {
-    this.changeTab(idx);
-    this.ngRouter.navigate(['../', this.page.id], {
-      queryParams: { tab: this.currentTab, type: this.page.type },
-      relativeTo: this.activatedRoute,
-    });
-  }
+    const selectedTab = this.tabs.findIndex((tab) => tab.id === idx);
 
-  changeTab(idx: number) {
-    this.selectedTab = this.tabs.findIndex((tab) => tab.id === idx);
-    this.currentTab = this.tabs[this.selectedTab].name;
+    // Change tabs + query params if there is a change
+    if (this.tabs[selectedTab].name !== this.currentTab) {
+      this.selectedTab = selectedTab;
+      this.currentTab = this.tabs[this.selectedTab].name;
+      this.ngRouter.navigate(['../', this.page.id], {
+        queryParams: { tab: this.currentTab, type: this.page.type },
+        relativeTo: this.activatedRoute,
+      });
+    }
   }
 
   fetch() {
