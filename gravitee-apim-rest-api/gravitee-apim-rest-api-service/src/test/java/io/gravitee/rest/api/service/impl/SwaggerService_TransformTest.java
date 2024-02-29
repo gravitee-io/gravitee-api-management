@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -36,6 +37,7 @@ import io.swagger.v3.core.util.Yaml;
 import java.io.IOException;
 import java.net.URL;
 import java.util.*;
+import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -102,6 +104,34 @@ public class SwaggerService_TransformTest {
         assertNotNull(descriptor.toJson());
         final JsonNode node = Json.mapper().readTree(descriptor.toJson());
         assertEquals("https://apis.gravitee.io", node.get("servers").get(0).get("url").asText());
+    }
+
+    @Test
+    public void shouldTransformJSONAPIWithWebhook() throws IOException {
+        PageEntity pageEntity = getPage("io/gravitee/rest/api/management/service/openapi-webhook.json", MediaType.APPLICATION_JSON);
+        Map<String, String> pageConfigurationEntity = new HashMap<>();
+
+        OAIDescriptor descriptor = (OAIDescriptor) swaggerService.parse(pageEntity.getContent(), false);
+
+        swaggerService.transform(descriptor, List.of());
+
+        assertNotNull(descriptor.toJson());
+        final JsonNode node = Json.mapper().readTree(descriptor.toJson());
+        assertThat(node.get("webhooks")).isNotEmpty();
+    }
+
+    @Test
+    public void shouldTransformYAMLAPIWithWebhook() throws IOException {
+        PageEntity pageEntity = getPage("io/gravitee/rest/api/management/service/openapi-webhook.yaml", MediaType.APPLICATION_JSON);
+        Map<String, String> pageConfigurationEntity = new HashMap<>();
+
+        OAIDescriptor descriptor = (OAIDescriptor) swaggerService.parse(pageEntity.getContent(), false);
+
+        swaggerService.transform(descriptor, List.of());
+
+        assertNotNull(descriptor.toJson());
+        final JsonNode node = Yaml.mapper().readTree(descriptor.toYaml());
+        assertThat(node.get("webhooks")).isNotEmpty();
     }
 
     @Test
