@@ -16,10 +16,7 @@
 package io.gravitee.rest.api.model;
 
 import io.gravitee.common.component.Lifecycle;
-import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.ExecutionMode;
-import io.gravitee.definition.model.Properties;
-import io.gravitee.definition.model.Rule;
+import io.gravitee.definition.model.*;
 import io.gravitee.definition.model.plugins.resources.Resource;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
@@ -46,7 +43,7 @@ public class ApiModel implements GenericApiModel {
     private DefinitionVersion definitionVersion;
     private ExecutionMode executionMode;
     private Set<String> groups;
-    private ProxyModelEntity proxy;
+    private Proxy proxy;
     private Map<String, List<Rule>> paths = new HashMap<>();
     private Date deployedAt;
     private Date createdAt;
@@ -142,11 +139,11 @@ public class ApiModel implements GenericApiModel {
         this.state = state;
     }
 
-    public ProxyModelEntity getProxy() {
+    public Proxy getProxy() {
         return proxy;
     }
 
-    public void setProxy(ProxyModelEntity proxy) {
+    public void setProxy(Proxy proxy) {
         this.proxy = proxy;
     }
 

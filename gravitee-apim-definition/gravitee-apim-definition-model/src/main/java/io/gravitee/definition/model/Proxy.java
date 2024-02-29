@@ -127,6 +127,14 @@ public class Proxy implements Serializable {
     }
 
     @JsonIgnore
+    public String getContextPath() {
+        if (this.virtualHosts == null || this.virtualHosts.isEmpty()) {
+            return null;
+        }
+        return this.virtualHosts.get(0).getPath();
+    }
+
+    @JsonIgnore
     public List<Plugin> getPlugins() {
         return Optional
             .ofNullable(this.groups)

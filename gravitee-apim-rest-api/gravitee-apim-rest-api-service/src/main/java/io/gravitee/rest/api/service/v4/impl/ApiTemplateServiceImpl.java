@@ -21,7 +21,6 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.rest.api.model.ApiMetadataEntity;
 import io.gravitee.rest.api.model.ApiModel;
-import io.gravitee.rest.api.model.ProxyModelEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiModel;
@@ -96,7 +95,7 @@ public class ApiTemplateServiceImpl implements ApiTemplateService {
             apiModelEntity.setServices(apiEntity.getServices());
             apiModelEntity.setExecutionMode(apiEntity.getExecutionMode());
             apiModelEntity.setPaths(apiEntity.getPaths());
-            apiModelEntity.setProxy(convert(apiEntity.getProxy()));
+            apiModelEntity.setProxy(apiEntity.getProxy());
 
             apiModelEntity.setMetadata(getApiMetadata(executionContext, apiId, decodeTemplate, apiModelEntity));
             return apiModelEntity;
@@ -187,25 +186,5 @@ public class ApiTemplateServiceImpl implements ApiTemplateService {
         } catch (Exception ex) {
             throw new TechnicalManagementException("An error occurs while evaluating API metadata", ex);
         }
-    }
-
-    private ProxyModelEntity convert(Proxy proxy) {
-        ProxyModelEntity proxyModelEntity = new ProxyModelEntity();
-        if (proxy != null) {
-            proxyModelEntity.setCors(proxy.getCors());
-            proxyModelEntity.setFailover(proxy.getFailover());
-            proxyModelEntity.setGroups(proxy.getGroups());
-            proxyModelEntity.setLogging(proxy.getLogging());
-            proxyModelEntity.setPreserveHost(proxy.isPreserveHost());
-            proxyModelEntity.setStripContextPath(proxy.isStripContextPath());
-            proxyModelEntity.setVirtualHosts(proxy.getVirtualHosts());
-
-            //add a default context-path to preserve compatibility on old templates
-            if (proxy.getVirtualHosts() != null && !proxy.getVirtualHosts().isEmpty()) {
-                proxyModelEntity.setContextPath(proxy.getVirtualHosts().get(0).getPath());
-            }
-        }
-
-        return proxyModelEntity;
     }
 }
