@@ -23,6 +23,8 @@ import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
 import { PlanService } from '../../../../../services-ngx/plan.service';
 import { SubscriptionService } from '../../../../../services-ngx/subscription.service';
 import { gatewayErrorKeys } from '../../../../../entities/gateway-error-keys/GatewayErrorKeys';
+import { statusLoader } from '../../../../../entities/alerts/healthcheck.metrics';
+import { EndpointGroupV2, EndpointGroupV4, EndpointV4, HttpEndpointV2 } from '../../../../../entities/management-api-v2';
 
 @Injectable({
   providedIn: 'root',
@@ -45,6 +47,11 @@ export class RuntimeAlertCreateService {
         return this.loadPlans(referenceType, referenceId);
       case 'error.key':
         return this.loadErrorKeys();
+      case 'status.old':
+      case 'status.new':
+        return this.loadHealthCheckStatus();
+      case 'endpoint.name':
+        return this.loadEndpointsNames(referenceId);
       default:
         return null;
     }
@@ -81,5 +88,24 @@ export class RuntimeAlertCreateService {
 
   private loadErrorKeys() {
     return of(gatewayErrorKeys.map((key) => new Tuple(key, key)));
+  }
+
+  private loadHealthCheckStatus() {
+    return of(statusLoader());
+  }
+
+  private loadEndpointsNames(apiId: string) {
+    return this.apiService
+      .get(apiId)
+      .pipe(map((api) => (api.definitionVersion === 'V4' ? this.mapGroups(api.endpointGroups) : this.mapGroups(api.proxy.groups))));
+  }
+
+  private mapGroups(groups: (EndpointGroupV4 | EndpointGroupV2)[]) {
+    return groups.reduce((acc: Tuple[], group: EndpointGroupV4 | EndpointGroupV2) => this.groupToTuples(acc, group), []);
+  }
+
+  private groupToTuples(acc: Tuple[], group: EndpointGroupV4 | EndpointGroupV2) {
+    acc.push(...group.endpoints.map((endpoint: EndpointV4 | HttpEndpointV2) => new Tuple(endpoint.name, endpoint.name)));
+    return acc;
   }
 }

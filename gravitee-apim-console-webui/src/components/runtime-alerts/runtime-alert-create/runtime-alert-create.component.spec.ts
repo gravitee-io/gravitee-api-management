@@ -33,6 +33,23 @@ import { Days } from '../../../entities/alerts/period';
 describe('RuntimeAlertCreateComponent', () => {
   const API_ID = 'apiId';
   const ENVIRONMENT_ID = 'envId';
+
+  const fillGeneralForm = async (index: number) => {
+    const expectedRules = [
+      'Alert when a metric of the request validates a condition',
+      'Alert when there is no request matching filters received for a period of time',
+      'Alert when the aggregated value of a request metric rises a threshold',
+      'Alert when the rate of a given condition rises a threshold',
+      'Alert when the health status of an endpoint has changed',
+    ];
+    const expectedSeverities = ['info', 'warning', 'critical'];
+    const generalForm = await componentHarness.getGeneralFormHarness();
+    await generalForm.setName('alert');
+    await generalForm.toggleEnabled();
+    await generalForm.selectSeverity(expectedSeverities[1]);
+    await generalForm.selectRule(expectedRules[index]);
+  };
+
   let fixture: ComponentFixture<RuntimeAlertCreateComponent>;
   let httpTestingController: HttpTestingController;
   let componentHarness: RuntimeAlertCreateHarness;
@@ -140,5 +157,91 @@ describe('RuntimeAlertCreateComponent', () => {
     });
 
     // TODO test save bar when save is implemented in next commits
+  });
+
+  describe('filters tests', () => {
+    const API_METRICS = [
+      'Response Time (ms)',
+      'Upstream Response Time (ms)',
+      'Status Code',
+      'Request Content-Length',
+      'Response Content-Length',
+      'Error Key',
+      'Tenant',
+      'Application',
+      'Plan',
+    ];
+    const HEALTH_CHECK_METRICS = ['Old Status', 'New Status', 'Endpoint name', 'Response Time (ms)', 'Tenant'];
+
+    it('should display rule selection banner', async () => {
+      const filtersForm = await componentHarness.getFiltersFormHarness();
+      expect(await filtersForm.isImpactBannerDisplayed()).toBeTruthy();
+
+      await fillGeneralForm(1);
+      expect(await filtersForm.isImpactBannerDisplayed()).toBeFalsy();
+    });
+
+    it.each`
+      ruleIndex | metrics
+      ${0}      | ${API_METRICS}
+      ${1}      | ${API_METRICS}
+      ${2}      | ${API_METRICS}
+      ${3}      | ${API_METRICS}
+      ${4}      | ${HEALTH_CHECK_METRICS}
+    `('should calculate metrics according to selected rule', async ({ ruleIndex, metrics }) => {
+      await fillGeneralForm(ruleIndex);
+
+      const filtersForm = await componentHarness.getFiltersFormHarness();
+      await filtersForm.addFilter();
+
+      const metricsSimpleCondition = await filtersForm.getMetricsCondition(0);
+      expect(await metricsSimpleCondition.getMetricOptions()).toStrictEqual(metrics);
+    });
+
+    it('should be able to add and remove metrics conditions', async () => {
+      await fillGeneralForm(2);
+      const filtersForm = await componentHarness.getFiltersFormHarness();
+
+      expect(await filtersForm.getMetricsConditionsLength()).toStrictEqual(0);
+
+      await filtersForm.addFilter();
+      expect(await filtersForm.getMetricsConditionsLength()).toStrictEqual(1);
+
+      await filtersForm.addFilter();
+      expect(await filtersForm.getMetricsConditionsLength()).toStrictEqual(2);
+
+      await filtersForm.deleteFilter();
+      expect(await filtersForm.getMetricsConditionsLength()).toStrictEqual(1);
+    });
+
+    it('should add filter', async () => {
+      await fillGeneralForm(4);
+      const filtersForm = await componentHarness.getFiltersFormHarness();
+      await filtersForm.addFilter();
+
+      const metricsSimpleCondition = await filtersForm.getMetricsCondition(0);
+      await metricsSimpleCondition.selectMetric('Old Status');
+      await metricsSimpleCondition.selectType('STRING');
+      await metricsSimpleCondition.selectOperator('equals to');
+
+      const expectedStatus = ['Down', 'Transitionally down', 'Transitionally up', 'Up'];
+      expect(await metricsSimpleCondition.getReferenceOptions()).toStrictEqual(expectedStatus);
+
+      await metricsSimpleCondition.selectMetric('New Status');
+      await metricsSimpleCondition.selectType('STRING');
+      await metricsSimpleCondition.selectOperator('equals to');
+      expect(await metricsSimpleCondition.getReferenceOptions()).toStrictEqual(expectedStatus);
+
+      await metricsSimpleCondition.selectMetric('Endpoint name');
+      await metricsSimpleCondition.selectType('STRING');
+      await metricsSimpleCondition.selectOperator('starts with');
+      await metricsSimpleCondition.setReferenceValue('endpoint-pattern');
+
+      expect(await metricsSimpleCondition.getSelectedMetric()).toStrictEqual('Endpoint name');
+      expect(await metricsSimpleCondition.getSelectedType()).toStrictEqual('STRING');
+      expect(await metricsSimpleCondition.getSelectedOperator()).toStrictEqual('starts with');
+      expect(await metricsSimpleCondition.getReferenceValue()).toStrictEqual('endpoint-pattern');
+      // TODO test save bar when save is implemented in next commits
+    });
   });
 });

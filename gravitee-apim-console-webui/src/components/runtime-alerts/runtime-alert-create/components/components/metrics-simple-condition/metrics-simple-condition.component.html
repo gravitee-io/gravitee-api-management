@@ -15,37 +15,42 @@
     limitations under the License.
 
 -->
-<form *ngIf="form" [formGroup]="form" class="condition-row">
-  <div class="condition-row__label">
-    <span class="mat-body-2">When</span>
+<form *ngIf="form" [formGroup]="form">
+  <div class="condition-row">
+    <div class="condition-row__label">
+      <span class="mat-body-2">When</span>
+    </div>
+    <mat-form-field class="condition-row__form-field">
+      <mat-label>Metric</mat-label>
+      <mat-select formControlName="metric" required>
+        <mat-option *ngFor="let metric of metrics" [value]="metric">{{ metric.name }}</mat-option>
+      </mat-select>
+      <mat-error *ngIf="form.controls.metric.hasError('required')">Metric is required.</mat-error>
+    </mat-form-field>
+    <mat-form-field class="condition-row__form-field">
+      <mat-label>Type</mat-label>
+      <mat-select formControlName="type" required>
+        <mat-option *ngFor="let type of types" [value]="type">{{ type }}</mat-option>
+      </mat-select>
+      <mat-error *ngIf="form.controls.type.hasError('required')">Type is required.</mat-error>
+    </mat-form-field>
+    <ng-container [ngSwitch]="form.controls.type.value">
+      <threshold-condition *ngSwitchCase="conditionType.THRESHOLD" [form]="form"></threshold-condition>
+      <threshold-range-condition *ngSwitchCase="conditionType.THRESHOLD_RANGE" [form]="form"></threshold-range-condition>
+      <string-condition
+        *ngSwitchCase="conditionType.STRING"
+        [form]="form"
+        [metric]="metric.key"
+        [referenceType]="referenceType"
+        [referenceId]="referenceId"
+      ></string-condition>
+    </ng-container>
   </div>
 
-  <mat-form-field class="condition-row__form-field">
-    <mat-label>Metric</mat-label>
-    <mat-select formControlName="metric" required>
-      <mat-option *ngFor="let metric of metrics" [value]="metric">{{ metric.name }}</mat-option>
-    </mat-select>
-    <mat-error *ngIf="form.controls.metric.hasError('required')">Metric is required.</mat-error>
-  </mat-form-field>
-
-  <mat-form-field class="condition-row__form-field">
-    <mat-label>Type</mat-label>
-    <mat-select formControlName="type" required>
-      <mat-option *ngFor="let type of types" [value]="type">{{ type }}</mat-option>
-    </mat-select>
-    <mat-error *ngIf="form.controls.type.hasError('required')">Type is required.</mat-error>
-  </mat-form-field>
-
-  <ng-container [ngSwitch]="form.controls.type.value">
-    <threshold-condition *ngSwitchCase="conditionType.THRESHOLD" [form]="form"></threshold-condition>
-    <threshold-range-condition *ngSwitchCase="conditionType.THRESHOLD_RANGE" [form]="form"></threshold-range-condition>
-    <compare-condition *ngSwitchCase="conditionType.COMPARE" [form]="form" [metrics]="metrics"></compare-condition>
-    <string-condition
-      *ngSwitchCase="conditionType.STRING"
-      [form]="form"
-      [metric]="metric.key"
-      [referenceType]="referenceType"
-      [referenceId]="referenceId"
-    ></string-condition>
-  </ng-container>
+  <div class="condition-row" *ngIf="form.controls.type.value === conditionType.COMPARE">
+    <div class="condition-row__label">
+      <span class="mat-body-2">Is</span>
+    </div>
+    <compare-condition [form]="form" [metrics]="metrics"></compare-condition>
+  </div>
 </form>
