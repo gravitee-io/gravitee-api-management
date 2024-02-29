@@ -420,24 +420,29 @@ class HttpDynamicPropertiesServiceTest {
 
             // Ensure first event has been published
             eventObs.awaitCount(1);
+            System.err.println("--> awaited 1");
 
             // Wait for the second http call
             advanceTimeBy(5_000, cut, configuration);
             // Ensure second event has been published
             eventObs.awaitCount(2);
+            System.err.println("--> awaited 2");
 
             // Wait for the third http call
             advanceTimeBy(5_000, cut, configuration);
             // Ensure third event has been published
             eventObs.awaitCount(3);
+            System.err.println("--> awaited 3");
 
             // Wait for the fourth http call
             advanceTimeBy(5_000, cut, configuration);
             // Ensure third event has been published
             eventObs.awaitCount(4);
+            System.err.println("--> awaited 4");
 
             // Manually complete when we are sure we awaited for the correct number of events
             testEventListener.completeImmediatly();
+            System.err.println("✅ Completed!!");
 
             ScheduledJobAssertions.assertScheduledJobIsRunning(cut.scheduledJob);
 
@@ -495,6 +500,7 @@ class HttpDynamicPropertiesServiceTest {
             cut.stop().test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
 
             ScheduledJobAssertions.assertScheduledJobIsDisposed(cut.scheduledJob);
+            System.err.println("-----------------------------------------");
         }
     }
 
@@ -770,6 +776,7 @@ class HttpDynamicPropertiesServiceTest {
     private void advanceTimeBy(final int delay, HttpDynamicPropertiesService cut, HttpDynamicPropertiesServiceConfiguration configuration) {
         testScheduler.advanceTimeBy(delay, TimeUnit.MILLISECONDS);
         TimeProvider.overrideClock(Clock.fixed(Instant.ofEpochMilli(testScheduler.now(TimeUnit.MILLISECONDS)), ZoneId.systemDefault()));
+        System.err.println("⏰: " + Instant.ofEpochMilli(testScheduler.now(TimeUnit.MILLISECONDS)));
         cut.cronTrigger = new CronTrigger(configuration.getSchedule());
     }
 
