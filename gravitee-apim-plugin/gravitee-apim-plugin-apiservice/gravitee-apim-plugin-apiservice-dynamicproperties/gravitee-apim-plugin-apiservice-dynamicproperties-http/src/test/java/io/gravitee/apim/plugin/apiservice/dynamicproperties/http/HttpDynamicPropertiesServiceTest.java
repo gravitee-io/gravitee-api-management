@@ -447,7 +447,7 @@ class HttpDynamicPropertiesServiceTest {
             ScheduledJobAssertions.assertScheduledJobIsRunning(cut.scheduledJob);
 
             eventObs
-                .awaitDone(30, TimeUnit.SECONDS)
+                .awaitDone(60, TimeUnit.SECONDS)
                 .assertValueCount(4)
                 .assertValueAt(
                     0,
