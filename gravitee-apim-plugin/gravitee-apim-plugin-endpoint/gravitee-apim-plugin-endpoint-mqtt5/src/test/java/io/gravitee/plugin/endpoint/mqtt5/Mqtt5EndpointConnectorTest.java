@@ -75,7 +75,7 @@ import org.testcontainers.utility.DockerImageName;
 class Mqtt5EndpointConnectorTest {
 
     @Container
-    private static final HiveMQContainer mqtt = new HiveMQContainer(DockerImageName.parse("hivemq/hivemq-ce:latest"));
+    private static final HiveMQContainer mqtt = new HiveMQContainer(DockerImageName.parse("hivemq/hivemq-ce").withTag("2024.2"));
 
     private final Mqtt5EndpointConnectorConfiguration configuration = new Mqtt5EndpointConnectorConfiguration();
 
