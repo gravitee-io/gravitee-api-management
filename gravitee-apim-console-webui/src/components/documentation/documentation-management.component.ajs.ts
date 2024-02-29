@@ -53,8 +53,6 @@ class DocumentationManagementComponentController implements IController {
   ) {}
 
   $onInit() {
-    this.ngRouter.routeReuseStrategy.shouldReuseRoute = () => false;
-
     // remove the ROOT page
     this.pages = this.filterROOTAndSystemPages(this.pages);
 
@@ -73,6 +71,14 @@ class DocumentationManagementComponentController implements IController {
     this.breadcrumb = this.generateBreadcrumb();
     this.$scope.renameFolder = false;
     this.$scope.translateFolder = false;
+  }
+
+  $onChanges(onChangesObj: angular.IOnChangesObject) {
+    this.pages = onChangesObj.pages.currentValue;
+    this.parent = onChangesObj.parent.currentValue;
+
+    // Reload component with new input
+    this.$onInit();
   }
 
   isFolder(type: string): boolean {
