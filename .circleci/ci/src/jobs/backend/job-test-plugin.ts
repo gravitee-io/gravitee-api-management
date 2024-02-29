@@ -25,7 +25,7 @@ export class TestPluginJob extends AbstractTestJob {
       'job-test-plugin',
       new commands.Run({
         name: `Run plugin tests`,
-        command: `mvn --fail-fast -s ${config.maven.settingsFile} test --no-transfer-progress -Dplugin-modules -Dskip.validation=true`,
+        command: `mvn --fail-fast -s ${config.maven.settingsFile} test --no-transfer-progress -Dplugin-modules -Dskip.validation=true -T 4`,
       }),
       UbuntuExecutor.create(),
       ['gravitee-apim-plugin/gravitee-apim-plugin-coverage/target/site/jacoco-aggregate/'],
