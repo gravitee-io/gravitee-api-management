@@ -17,9 +17,9 @@ import angular from 'angular';
 
 import { AfterViewInit, Component, ElementRef, Input, OnChanges, ViewChild } from '@angular/core';
 import SwaggerUI from 'swagger-ui';
-import * as jsyaml from 'js-yaml';
+import * as YAML from 'js-yaml';
 
-const yamlSchema = jsyaml.Schema.create(jsyaml.JSON_SCHEMA, []);
+const yamlSchema = YAML.Schema.create(YAML.JSON_SCHEMA, []);
 
 const loadContent = (spec: string) => {
   let contentAsJson = {};
@@ -27,7 +27,7 @@ const loadContent = (spec: string) => {
     try {
       contentAsJson = angular.fromJson(spec);
     } catch (e) {
-      contentAsJson = jsyaml.safeLoad(spec, { schema: yamlSchema });
+      contentAsJson = YAML.safeLoad(spec, { schema: yamlSchema });
     }
   }
   return contentAsJson;
@@ -45,7 +45,7 @@ const loadOauth2RedirectUrl = () => {
 @Component({
   selector: 'gio-swagger-ui',
   templateUrl: './gio-swagger-ui.component.html',
-  styleUrls: [],
+  styleUrls: ['./gio-swagger-ui.component.scss'],
 })
 export class GioSwaggerUiComponent implements AfterViewInit, OnChanges {
   @Input()
@@ -55,7 +55,7 @@ export class GioSwaggerUiComponent implements AfterViewInit, OnChanges {
   docExpansion: 'none' | 'list' | 'full' = 'none';
 
   @Input()
-  displayOperationId = true;
+  displayOperationId = false;
 
   @Input()
   filter: string | boolean = true;

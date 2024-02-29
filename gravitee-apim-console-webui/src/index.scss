@@ -81,6 +81,18 @@ body {
   @include material-layout-compatibility();
 
   @import './scss/gio-global-style';
+
+  /**
+     * Allows to revert all the styles that have been applied in this block.
+     *
+     * Useful when integrating an external component which comes with its
+     * own style definition (e.g. swagger-ui)
+     *
+     * Note: this does not affect fonts as they are imported before this block
+     */
+  & .revert-all-gravitee-styles * {
+    all: revert-layer;
+  }
 }
 
 :where(.bootstrap) {
@@ -622,6 +634,7 @@ body {
       right: 320px !important;
     }
   }
+
   .gv-info {
     fill: #45aed6;
   }
