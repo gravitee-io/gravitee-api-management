@@ -1447,6 +1447,13 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
             SubscriptionEntity subscriptionEntity = convert(subscription);
 
+            apiKeyService
+                .findBySubscription(executionContext, subscriptionEntity.getId())
+                .forEach(apiKeyEntity -> {
+                    apiKeyEntity.getSubscriptions().add(subscriptionEntity);
+                    apiKeyService.update(executionContext, apiKeyEntity);
+                });
+
             final Map<String, Object> params = new NotificationParamsBuilder()
                 .owner(owner)
                 .application(application)

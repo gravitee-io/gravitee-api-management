@@ -92,6 +92,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -1283,10 +1284,12 @@ public class SubscriptionServiceTest {
 
     @Test
     public void shouldTransferSubscription() throws Exception {
+        String newPlanId = "my-new-plan";
         final TransferSubscriptionEntity transferSubscription = new TransferSubscriptionEntity();
         transferSubscription.setId(SUBSCRIPTION_ID);
-        transferSubscription.setPlan(PLAN_ID);
+        transferSubscription.setPlan(newPlanId);
 
+        when(subscription.getId()).thenReturn(SUBSCRIPTION_ID);
         when(subscription.getApplication()).thenReturn(APPLICATION_ID);
         when(subscription.getPlan()).thenReturn(PLAN_ID);
         when(subscription.getStatus()).thenReturn(ACCEPTED);
@@ -1295,8 +1298,23 @@ public class SubscriptionServiceTest {
         planEntity.setStatus(PlanStatus.PUBLISHED);
         planEntity.setSecurity(PlanSecurityType.API_KEY);
         when(planSearchService.findById(GraviteeContext.getExecutionContext(), PLAN_ID)).thenReturn(planEntity);
+
+        PlanEntity newPlanEntity = new PlanEntity();
+        newPlanEntity.setId(newPlanId);
+        newPlanEntity.setStatus(PlanStatus.PUBLISHED);
+        newPlanEntity.setSecurity(PlanSecurityType.API_KEY);
+        when(planSearchService.findById(GraviteeContext.getExecutionContext(), newPlanId)).thenReturn(newPlanEntity);
+
         when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
 
+        SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
+        subscriptionEntity.setId(SUBSCRIPTION_ID);
+        subscriptionEntity.setApplication(APPLICATION_ID);
+        subscriptionEntity.setPlan(newPlanId);
+        ApiKeyEntity apiKeyEntity = new ApiKeyEntity();
+        apiKeyEntity.setId("my-apikey-id");
+        apiKeyEntity.setSubscriptions(new HashSet<>(Set.of(subscriptionEntity)));
+        when(apiKeyService.findBySubscription(GraviteeContext.getExecutionContext(), SUBSCRIPTION_ID)).thenReturn(List.of(apiKeyEntity));
         subscriptionService.transfer(GraviteeContext.getExecutionContext(), transferSubscription, USER_ID);
 
         verify(notifierService)
@@ -1309,6 +1327,11 @@ public class SubscriptionServiceTest {
                 anyMap()
             );
         verify(subscription).setUpdatedAt(any());
+        verify(apiKeyService)
+            .update(
+                eq(GraviteeContext.getExecutionContext()),
+                argThat(ake -> ake.getSubscriptions().iterator().next().getPlan().equalsIgnoreCase(newPlanId))
+            );
     }
 
     @Test(expected = TransferNotAllowedException.class)
