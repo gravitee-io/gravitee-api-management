@@ -15,15 +15,12 @@
  */
 package io.gravitee.rest.api.service.impl.swagger.transformer.page;
 
-import io.gravitee.definition.model.Api;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.service.impl.swagger.SwaggerProperties;
 import io.gravitee.rest.api.service.impl.swagger.transformer.OAITransformer;
 import io.gravitee.rest.api.service.swagger.OAIDescriptor;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.stream.Collectors;
 
 /**
