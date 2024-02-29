@@ -436,9 +436,13 @@ class HttpDynamicPropertiesServiceTest {
             // Ensure third event has been published
             eventObs.awaitCount(4);
 
+            // Manually complete when we are sure we awaited for the correct number of events
+            testEventListener.completeImmediatly();
+
             ScheduledJobAssertions.assertScheduledJobIsRunning(cut.scheduledJob);
 
             eventObs
+                .awaitDone(30, TimeUnit.SECONDS)
                 .assertValueCount(4)
                 .assertValueAt(
                     0,
@@ -491,8 +495,6 @@ class HttpDynamicPropertiesServiceTest {
             cut.stop().test().awaitDone(10, TimeUnit.SECONDS).assertComplete();
 
             ScheduledJobAssertions.assertScheduledJobIsDisposed(cut.scheduledJob);
-            // Manually complete when we are sure we awaited for the correct number of events
-            testEventListener.completeImmediatly();
         }
     }
 
