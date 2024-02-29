@@ -25,6 +25,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { fakeKafkaMessageEndpoint } from '@gravitee/ui-policy-studio-angular/testing';
 import { cloneDeep } from 'lodash';
 import { MatSnackBarHarness } from '@angular/material/snack-bar/testing';
+import { LICENSE_CONFIGURATION_TESTING } from '@gravitee/ui-particles-angular';
 
 import { ApiEndpointGroupCreateComponent } from './api-endpoint-group-create.component';
 import { ApiEndpointGroupCreateHarness } from './api-endpoint-group-create.harness';
@@ -33,6 +34,7 @@ import { ApiEndpointGroupModule } from '../api-endpoint-group.module';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
 import { ApiV4, ConnectorPlugin, EndpointGroupV4, EndpointV4Default, fakeApiV4 } from '../../../../../entities/management-api-v2';
 import { fakeEndpointGroupV4 } from '../../../../../entities/management-api-v2/api/v4/endpointGroupV4.fixture';
+import { GioLicenseBannerModule } from '../../../../../shared/components/gio-license-banner/gio-license-banner.module';
 
 const API_ID = 'api-id';
 const ENDPOINT_GROUP_NAME = 'My Endpoint Group';
@@ -179,8 +181,17 @@ describe('ApiEndpointGroupCreateComponent', () => {
     api = testApi;
 
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioTestingModule, ApiEndpointGroupModule, MatIconTestingModule, FormsModule],
-      providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: routerParams, queryParams } } }],
+      imports: [NoopAnimationsModule, GioTestingModule, ApiEndpointGroupModule, MatIconTestingModule, FormsModule, GioLicenseBannerModule],
+      providers: [
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { params: routerParams, queryParams } },
+        },
+        {
+          provide: 'LicenseConfiguration',
+          useValue: LICENSE_CONFIGURATION_TESTING,
+        },
+      ],
     }).overrideProvider(InteractivityChecker, {
       useValue: {
         isFocusable: () => true,

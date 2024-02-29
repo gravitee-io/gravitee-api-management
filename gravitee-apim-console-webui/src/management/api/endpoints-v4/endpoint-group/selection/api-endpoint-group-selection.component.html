@@ -29,6 +29,7 @@
       *ngFor="let endpoint of endpoints"
       [value]="endpoint.id"
       [class.gio-connector__selected]="endpointGroupTypeForm.get('endpointGroupType').value === endpoint.id"
+      (change)="checkLicense(endpoint)"
       labelPosition="after"
     >
       <gio-connector-list-option-layout>
@@ -54,5 +55,8 @@
       </gio-connector-list-option-layout>
     </mat-radio-button>
   </mat-radio-group>
+  <div *ngIf="shouldUpgrade">
+    <gio-license-banner [license]="license$ | async" [isOEM]="isOEM$ | async" (onRequestUpgrade)="onRequestUpgrade()"></gio-license-banner>
+  </div>
 </form>
 <ng-template #loadingTpl><mat-progress-bar mode="indeterminate"></mat-progress-bar></ng-template>

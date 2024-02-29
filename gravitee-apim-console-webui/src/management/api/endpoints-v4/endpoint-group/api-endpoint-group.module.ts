@@ -50,6 +50,7 @@ import { GioGoBackButtonModule } from '../../../../shared/components/gio-go-back
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
 import { GioConnectorListModule } from '../../../../shared/components/gio-connector-list-option/gio-connector-list.module';
 import { ApiHealthCheckV4FormModule } from '../../component/health-check-v4-form/api-health-check-v4-form.module';
+import { GioLicenseBannerModule } from '../../../../shared/components/gio-license-banner/gio-license-banner.module';
 
 @NgModule({
   declarations: [
@@ -89,6 +90,7 @@ import { ApiHealthCheckV4FormModule } from '../../component/health-check-v4-form
     GioGoBackButtonModule,
     GioPermissionModule,
     GioSaveBarModule,
+    GioLicenseBannerModule,
   ],
 })
 export class ApiEndpointGroupModule {}
