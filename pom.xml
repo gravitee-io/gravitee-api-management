@@ -272,6 +272,7 @@
         <gravitee-resource-schema-registry-confluent.version>2.0.0</gravitee-resource-schema-registry-confluent.version>
         <gravitee-reactor-message.version>1.0.2</gravitee-reactor-message.version>
         <gravitee-repository-bridge.version>4.1.2</gravitee-repository-bridge.version>
+        <gravitee-policy-interops.version>1.0.0</gravitee-policy-interops.version>
         <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
     </properties>
 
