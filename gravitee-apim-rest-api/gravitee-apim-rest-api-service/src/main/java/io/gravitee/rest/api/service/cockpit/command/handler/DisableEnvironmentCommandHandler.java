@@ -25,10 +25,13 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.LifecycleState;
+import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import io.gravitee.rest.api.service.v4.ApiStateService;
 import io.reactivex.rxjava3.core.Single;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -41,17 +44,20 @@ public class DisableEnvironmentCommandHandler implements CommandHandler<DisableE
     private final ApiRepository apiRepository;
     private final ApiStateService apiStateService;
     private final AccessPointCrudService accessPointService;
+    private final IdentityProviderActivationService identityProviderActivationService;
 
     public DisableEnvironmentCommandHandler(
         EnvironmentService environmentService,
         ApiStateService apiStateService,
         @Lazy ApiRepository apiRepository,
-        AccessPointCrudService accessPointService
+        AccessPointCrudService accessPointService,
+        IdentityProviderActivationService identityProviderActivationService
     ) {
         this.environmentService = environmentService;
         this.apiStateService = apiStateService;
         this.apiRepository = apiRepository;
         this.accessPointService = accessPointService;
+        this.identityProviderActivationService = identityProviderActivationService;
     }
 
     @Override
@@ -77,6 +83,15 @@ public class DisableEnvironmentCommandHandler implements CommandHandler<DisableE
 
             // Delete related access points
             this.accessPointService.deleteAccessPoints(AccessPoint.ReferenceType.ENVIRONMENT, environment.getId());
+
+            // Deactivate all identity providers
+            this.identityProviderActivationService.removeAllIdpsFromTarget(
+                    executionContext,
+                    new IdentityProviderActivationService.ActivationTarget(
+                        environment.getId(),
+                        IdentityProviderActivationReferenceType.ENVIRONMENT
+                    )
+                );
 
             log.info("Environment [{}] with id [{}] has been disabled.", environment.getName(), environment.getId());
             return Single.just(new DisableEnvironmentReply(command.getId(), CommandStatus.SUCCEEDED));

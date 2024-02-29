@@ -31,8 +31,10 @@ import io.gravitee.repository.management.api.search.ApiFieldFilter;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType;
 import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import io.gravitee.rest.api.service.exceptions.EnvironmentNotFoundException;
 import io.gravitee.rest.api.service.v4.ApiStateService;
 import java.util.List;
@@ -63,11 +65,21 @@ class DisableEnvironmentCommandHandlerTest {
     @Mock
     private AccessPointCrudService accessPointService;
 
+    @Mock
+    private IdentityProviderActivationService idpActivationService;
+
     private DisableEnvironmentCommandHandler cut;
 
     @BeforeEach
     void setUp() {
-        cut = new DisableEnvironmentCommandHandler(environmentService, apiStateService, apiRepository, accessPointService);
+        cut =
+            new DisableEnvironmentCommandHandler(
+                environmentService,
+                apiStateService,
+                apiRepository,
+                accessPointService,
+                idpActivationService
+            );
     }
 
     @Test
@@ -77,7 +89,9 @@ class DisableEnvironmentCommandHandlerTest {
 
     @Test
     void handleSuccessfulCommand() {
-        when(environmentService.findByCockpitId(ENV_COCKPIT_ID)).thenReturn(EnvironmentEntity.builder().id(ENV_APIM_ID).build());
+        var apimEnvironment = EnvironmentEntity.builder().id(ENV_APIM_ID).build();
+        var context = new ExecutionContext(apimEnvironment);
+        when(environmentService.findByCockpitId(ENV_COCKPIT_ID)).thenReturn(apimEnvironment);
         when(
             apiRepository.search(
                 eq(new ApiCriteria.Builder().environmentId(ENV_APIM_ID).state(LifecycleState.STARTED).build()),
@@ -92,8 +106,13 @@ class DisableEnvironmentCommandHandlerTest {
             .awaitDone(1, TimeUnit.SECONDS)
             .assertValue(reply -> reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
 
-        verify(apiStateService).stop(any(ExecutionContext.class), eq(API_ID), eq(USER_ID));
+        verify(apiStateService).stop(eq(context), eq(API_ID), eq(USER_ID));
         verify(accessPointService).deleteAccessPoints(AccessPoint.ReferenceType.ENVIRONMENT, ENV_APIM_ID);
+        verify(idpActivationService)
+            .removeAllIdpsFromTarget(
+                eq(context),
+                eq(new IdentityProviderActivationService.ActivationTarget(ENV_APIM_ID, IdentityProviderActivationReferenceType.ENVIRONMENT))
+            );
     }
 
     @Test

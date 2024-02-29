@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.cockpit.command.handler;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -26,8 +27,12 @@ import io.gravitee.cockpit.api.command.CommandStatus;
 import io.gravitee.cockpit.api.command.organization.DisableOrganizationCommand;
 import io.gravitee.cockpit.api.command.organization.DisableOrganizationPayload;
 import io.gravitee.rest.api.model.OrganizationEntity;
+import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType;
 import io.gravitee.rest.api.service.OrganizationService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import io.gravitee.rest.api.service.exceptions.OrganizationNotFoundException;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -47,11 +52,14 @@ class DisableOrganizationCommandHandlerTest {
     @Mock
     private AccessPointCrudService accessPointService;
 
+    @Mock
+    private IdentityProviderActivationService idpActivationService;
+
     private DisableOrganizationCommandHandler cut;
 
     @BeforeEach
     void setUp() {
-        cut = new DisableOrganizationCommandHandler(organizationService, accessPointService);
+        cut = new DisableOrganizationCommandHandler(organizationService, accessPointService, idpActivationService);
     }
 
     @Test
@@ -73,6 +81,16 @@ class DisableOrganizationCommandHandlerTest {
             .assertValue(reply -> reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
 
         verify(accessPointService).deleteAccessPoints(AccessPoint.ReferenceType.ORGANIZATION, ORG_APIM_ID);
+        verify(idpActivationService)
+            .removeAllIdpsFromTarget(
+                eq(new ExecutionContext(ORG_APIM_ID)),
+                eq(
+                    new IdentityProviderActivationService.ActivationTarget(
+                        ORG_APIM_ID,
+                        IdentityProviderActivationReferenceType.ORGANIZATION
+                    )
+                )
+            );
     }
 
     @Test

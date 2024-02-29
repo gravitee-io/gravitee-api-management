@@ -22,8 +22,12 @@ import io.gravitee.cockpit.api.command.CommandHandler;
 import io.gravitee.cockpit.api.command.CommandStatus;
 import io.gravitee.cockpit.api.command.organization.DisableOrganizationCommand;
 import io.gravitee.cockpit.api.command.organization.DisableOrganizationReply;
+import io.gravitee.rest.api.model.configuration.identity.IdentityProviderActivationReferenceType;
 import io.gravitee.rest.api.service.OrganizationService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.configuration.identity.IdentityProviderActivationService;
 import io.reactivex.rxjava3.core.Single;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -33,10 +37,16 @@ public class DisableOrganizationCommandHandler implements CommandHandler<Disable
 
     private final OrganizationService organizationService;
     private final AccessPointCrudService accessPointService;
+    private final IdentityProviderActivationService identityProviderActivationService;
 
-    public DisableOrganizationCommandHandler(OrganizationService organizationService, AccessPointCrudService accessPointService) {
+    public DisableOrganizationCommandHandler(
+        OrganizationService organizationService,
+        AccessPointCrudService accessPointService,
+        IdentityProviderActivationService identityProviderActivationService
+    ) {
         this.organizationService = organizationService;
         this.accessPointService = accessPointService;
+        this.identityProviderActivationService = identityProviderActivationService;
     }
 
     @Override
@@ -52,6 +62,17 @@ public class DisableOrganizationCommandHandler implements CommandHandler<Disable
 
             // Delete related access points
             this.accessPointService.deleteAccessPoints(AccessPoint.ReferenceType.ORGANIZATION, organization.getId());
+
+            var context = new ExecutionContext(organization.getId());
+
+            // Deactivate all identity providers
+            this.identityProviderActivationService.removeAllIdpsFromTarget(
+                    context,
+                    new IdentityProviderActivationService.ActivationTarget(
+                        organization.getId(),
+                        IdentityProviderActivationReferenceType.ORGANIZATION
+                    )
+                );
 
             log.info("Organization [{}] with id [{}] has been disabled.", organization.getName(), organization.getId());
             return Single.just(new DisableOrganizationReply(command.getId(), CommandStatus.SUCCEEDED));
