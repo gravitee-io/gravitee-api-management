@@ -52,6 +52,7 @@
         padding: 16px;
         border: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker20');
         border-radius: 8px;
+        align-items: center;
 
         &__text {
           display: flex;
@@ -66,13 +67,6 @@
             padding-right: 30px;
             color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
           }
-        }
-
-        a,
-        button {
-          height: 100%;
-          align-self: center;
-          flex-shrink: 0;
         }
       }
     }
