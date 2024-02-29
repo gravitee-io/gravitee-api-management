@@ -81,8 +81,6 @@ import testhelpers.TestEventListener;
  * @author GraviteeSource Team
  */
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-@ExtendWith(VertxExtension.class)
-@Disabled
 class HttpDynamicPropertiesServiceTest {
 
     /**
@@ -345,7 +343,7 @@ class HttpDynamicPropertiesServiceTest {
             ScheduledJobAssertions.assertScheduledJobIsDisposed(cut.scheduledJob);
         }
 
-        @RepeatedTest(100)
+        @Test
         void should_publish_dynamic_properties_multiple_times() {
             Api api = Fixtures.apiWithDynamicPropertiesEnabled();
             final HttpDynamicPropertiesServiceConfiguration configuration = HttpDynamicPropertiesServiceConfiguration
