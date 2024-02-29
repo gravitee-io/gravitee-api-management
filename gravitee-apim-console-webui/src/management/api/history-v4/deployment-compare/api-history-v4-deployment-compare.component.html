@@ -1,0 +1,15 @@
+<h3 mat-dialog-title>Comparing version {{ this.data.left.version }} with version {{ this.data.right.version }}</h3>
+<div class="diff">
+    <gio-diff [left]="this.data.left.apiDefinition" [right]="this.data.right.apiDefinition"></gio-diff>
+</div>
+<mat-dialog-actions align="end">
+    <button
+            mat-raised-button
+            mat-dialog-close
+            color="primary"
+            type="button"
+            aria-label="Close"
+    >
+        Close
+    </button>
+</mat-dialog-actions>

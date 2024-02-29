@@ -100,6 +100,7 @@ import { AlertsModule } from '../../components/alerts/alerts.module';
     DocumentationModule,
     GioPolicyStudioRoutingModule,
     SpecificJsonSchemaTypeModule,
+    ApiHistoryV4Module,
   ],
 })
 export class ApisModule {}

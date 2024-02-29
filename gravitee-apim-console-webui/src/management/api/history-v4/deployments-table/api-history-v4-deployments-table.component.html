@@ -63,6 +63,17 @@
               <mat-icon svgIcon="gio:eye-empty"></mat-icon>
             </button>
           </div>
+          <div *ngIf="currentApi.deploymentState === 'NEED_REDEPLOY'">
+            <button
+              mat-icon-button
+              aria-label="Button to compare with current"
+              matTooltip="Compare with current"
+              id="compareCurrentButton"
+              (click)="compareWithCurrent(element)"
+            >
+              <mat-icon svgIcon="gio:git-pull-request"></mat-icon>
+            </button>
+          </div>
         </div>
       </td>
     </ng-container>

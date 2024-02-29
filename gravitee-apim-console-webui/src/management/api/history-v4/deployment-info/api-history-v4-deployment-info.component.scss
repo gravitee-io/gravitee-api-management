@@ -25,7 +25,20 @@ $typography: map.get(gio.$mat-theme, typography);
     margin-top: 16px;
   }
 
-  &__codeblock {
-    width: 100%;
+  &__codeblock{
+    position: relative;
+
+    &__form {
+      width: 100%;
+    }
+    &__copy-to-clipboard {
+      position: absolute;
+      right: 40px;
+      top: 20px
+    }
   }
+
+
+
+
 }

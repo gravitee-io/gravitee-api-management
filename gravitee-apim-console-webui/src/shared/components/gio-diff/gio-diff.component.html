@@ -33,13 +33,15 @@
     <div *ngIf="outputFormat !== 'raw'" [innerHtml]="diffHTML"></div>
 
     <div *ngIf="outputFormat === 'raw'" class="gio-diff__content__row">
-      <div class="gio-diff__content__row__gv-code">
-        <gv-code [class.single]="!hasChanges" [value]="left" [options]="gvCodeOptions" readonly></gv-code>
+      <div class="gio-diff__content__row__gv-code" [formGroup]="diffGroup">
+        <gio-monaco-editor gioMonacoEditorFormField [languageConfig]="languageConfig" formControlName="leftDiff" [disableMiniMap]="true">
+        </gio-monaco-editor>
         <gio-clipboard-copy-icon class="gio-diff__content__row__gv-code__copy-icon" [contentToCopy]="right"></gio-clipboard-copy-icon>
       </div>
-      <div *ngIf="hasChanges" class="gio-diff__content__row__gv-code">
-        <gv-code [value]="right" [options]="gvCodeOptions" readonly></gv-code>
-        <gio-clipboard-copy-icon class="gio-diff__content__row__gv-code__copy-icon" [contentToCopy]="right"></gio-clipboard-copy-icon>
+      <div *ngIf="hasChanges" class="gio-diff__content__row__gv-code" [formGroup]="diffGroup">
+          <gio-monaco-editor gioMonacoEditorFormField [languageConfig]="languageConfig" formControlName="rightDiff" [disableMiniMap]="true">
+          </gio-monaco-editor>
+          <gio-clipboard-copy-icon class="gio-diff__content__row__gv-code__copy-icon" [contentToCopy]="right"></gio-clipboard-copy-icon>
       </div>
     </div>
   </div>
