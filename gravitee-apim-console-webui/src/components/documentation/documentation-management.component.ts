@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-import { Component, ElementRef, Inject, Injector, Input, SimpleChange } from '@angular/core';
+import { Component, ElementRef, Inject, Injector, SimpleChange } from '@angular/core';
 import { UpgradeComponent } from '@angular/upgrade/static';
 import { ActivatedRoute } from '@angular/router';
-import { isEmpty } from 'lodash';
+import { isEmpty, isEqual } from 'lodash';
+import { distinctUntilChanged, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { combineLatest, from, Subject } from 'rxjs';
 
-import { DocumentationService } from '../../services/documentation.service';
+import { DocumentationService, Page } from '../../services/documentation.service';
 
 @Component({
   template: '',
@@ -29,11 +31,14 @@ import { DocumentationService } from '../../services/documentation.service';
   },
 })
 export class DocumentationManagementComponent extends UpgradeComponent {
-  @Input() pages;
-  @Input() folders;
-  @Input() systemFolders;
+  private unsubscribe$ = new Subject<void>();
+
+  pages: Page[];
+  folders: Page[];
+  systemFolders: Page[];
   apiId: string;
   parent: string;
+  firstChange: boolean = true;
   constructor(
     elementRef: ElementRef,
     injector: Injector,
@@ -44,49 +49,56 @@ export class DocumentationManagementComponent extends UpgradeComponent {
   }
 
   override ngOnInit() {
-    const apiId = this.activatedRoute.snapshot.params.apiId;
-    const parent = this.activatedRoute.snapshot.queryParams.parent ?? '';
+    this.activatedRoute.params
+      .pipe(
+        distinctUntilChanged(isEqual),
+        switchMap((params) => {
+          this.firstChange = true;
+          this.apiId = params.apiId;
 
-    Promise.all([
-      this.ajsDocumentationService.search(isEmpty(parent) ? { root: true } : { parent: parent }, apiId).then((response) => {
-        return response.data;
-      }),
-      this.ajsDocumentationService
-        .search(
-          {
-            type: 'FOLDER',
-          },
-          apiId,
-        )
-        .then((response) => response.data),
-      this.ajsDocumentationService
-        .search(
-          {
-            type: 'SYSTEM_FOLDER',
-          },
-          apiId,
-        )
-        .then((response) => response.data),
-    ])
-      .then(([pages, folders, systemFolders]) => {
-        this.pages = pages;
-        this.folders = folders;
-        this.systemFolders = systemFolders;
-        this.parent = parent;
-        this.apiId = apiId;
-      })
-      .then(() => {
-        // Hack to Force the binding between Angular and AngularJS
-        this.ngOnChanges({
-          parent: new SimpleChange(null, this.parent, true),
-          apiId: new SimpleChange(null, this.apiId, true),
-          pages: new SimpleChange(null, this.pages, true),
-          folders: new SimpleChange(null, this.folders, true),
-          systemFolders: new SimpleChange(null, this.systemFolders, true),
-          activatedRoute: new SimpleChange(null, this.activatedRoute, true),
-        });
+          return combineLatest([
+            from(this.ajsDocumentationService.search({ type: 'FOLDER' }, this.apiId).then((response) => response.data)),
+            from(this.ajsDocumentationService.search({ type: 'SYSTEM_FOLDER' }, this.apiId).then((response) => response.data)),
+          ]);
+        }),
+        switchMap(([folders, systemFolders]) => {
+          this.folders = folders;
+          this.systemFolders = systemFolders;
 
-        super.ngOnInit();
-      });
+          return this.activatedRoute.queryParams;
+        }),
+        distinctUntilChanged(isEqual),
+        switchMap((queryParams) => {
+          this.parent = queryParams.parent;
+
+          return from(
+            this.ajsDocumentationService
+              .search(isEmpty(this.parent) ? { root: true } : { parent: this.parent }, this.apiId)
+              .then((response) => {
+                return response.data;
+              }),
+          );
+        }),
+        tap((pages) => {
+          this.pages = pages;
+
+          // Hack to Force the binding between Angular and AngularJS
+          this.ngOnChanges({
+            parent: new SimpleChange(null, this.parent, this.firstChange),
+            apiId: new SimpleChange(null, this.apiId, this.firstChange),
+            pages: new SimpleChange(null, this.pages, this.firstChange),
+            folders: new SimpleChange(null, this.folders, this.firstChange),
+            systemFolders: new SimpleChange(null, this.systemFolders, this.firstChange),
+            activatedRoute: new SimpleChange(null, this.activatedRoute, this.firstChange),
+          });
+
+          if (this.firstChange) {
+            super.ngOnInit();
+            this.firstChange = false;
+          }
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
   }
 }
