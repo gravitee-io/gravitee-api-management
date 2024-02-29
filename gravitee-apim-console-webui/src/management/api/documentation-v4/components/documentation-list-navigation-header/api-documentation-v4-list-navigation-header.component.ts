@@ -16,7 +16,7 @@
 
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 
-import { Breadcrumb, getLogoForPageType, PageType } from '../../../../../entities/management-api-v2';
+import { Breadcrumb, getLogoForPageType, PageType, getTitleForPageType } from '../../../../../entities/management-api-v2';
 
 @Component({
   selector: 'api-documentation-list-navigation-header',
@@ -37,5 +37,6 @@ export class ApiDocumentationV4ListNavigationHeaderComponent {
 
   // expose constants
   readonly getLogoForPageType = getLogoForPageType;
+  readonly getTitleForPageType = getTitleForPageType;
   pageTypes: PageType[] = ['MARKDOWN', 'SWAGGER', 'ASYNCAPI'];
 }
