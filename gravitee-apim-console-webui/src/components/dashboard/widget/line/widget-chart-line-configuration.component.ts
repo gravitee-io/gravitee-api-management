@@ -19,7 +19,7 @@ import { find, forEach, merge, last } from 'lodash';
 import DashboardService from '../../../../services/dashboard.service';
 
 const WidgetChartLineConfigurationComponent: ng.IComponentOptions = {
-  template: require('html-loader!./widget-chart-line-configuration.html'),
+  template: require('html-loader!./widget-chart-line-configuration.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   bindings: {
     chart: '<',
   },

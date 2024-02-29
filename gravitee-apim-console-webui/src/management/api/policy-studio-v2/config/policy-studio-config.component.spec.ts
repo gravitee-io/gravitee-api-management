@@ -25,11 +25,12 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { PolicyStudioConfigComponent } from './policy-studio-config.component';
 import { PolicyStudioConfigModule } from './policy-studio-config.module';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { fakeFlowConfigurationSchema } from '../../../../entities/flow/configurationSchema.fixture';
 import { PolicyStudioService } from '../policy-studio.service';
 import { toApiDefinition } from '../models/ApiDefinition';
 import { fakeApiV2 } from '../../../../entities/management-api-v2';
+import { Constants } from '../../../../entities/Constants';
 
 describe('PolicyStudioConfigComponent', () => {
   let fixture: ComponentFixture<PolicyStudioConfigComponent>;
@@ -43,10 +44,10 @@ describe('PolicyStudioConfigComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, PolicyStudioConfigModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, PolicyStudioConfigModule, MatIconTestingModule],
       providers: [
         {
-          provide: 'Constants',
+          provide: Constants,
           useValue: {
             ...CONSTANTS_TESTING,
             org: {

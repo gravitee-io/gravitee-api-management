@@ -24,7 +24,7 @@ import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { ApiCreationGetStartedComponent } from './api-creation-get-started.component';
 import { ApiCreationGetStartedModule } from './api-creation-get-started.module';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { fakeInstallation } from '../../../entities/installation/installation.fixture';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { GioTestingPermission, GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
@@ -37,7 +37,7 @@ describe('ApiCreationGetStartedComponent', () => {
 
   const initConfigureTestingModule = (permissions: GioTestingPermission) => {
     TestBed.configureTestingModule({
-      imports: [GioPermissionModule, GioHttpTestingModule, ApiCreationGetStartedModule, MatIconTestingModule, NoopAnimationsModule],
+      imports: [GioPermissionModule, GioTestingModule, ApiCreationGetStartedModule, MatIconTestingModule, NoopAnimationsModule],
       providers: [
         {
           provide: GioTestingPermissionProvider,
@@ -59,7 +59,7 @@ describe('ApiCreationGetStartedComponent', () => {
     httpTestingController.verify();
   });
 
-  describe('as Admin', function () {
+  describe('as Admin', () => {
     beforeEach(() => {
       initConfigureTestingModule(['organization-installation-r']);
     });
@@ -101,7 +101,7 @@ describe('ApiCreationGetStartedComponent', () => {
     });
   });
 
-  describe('as ApiUser', function () {
+  describe('as ApiUser', () => {
     beforeEach(() => {
       initConfigureTestingModule([]);
     });

@@ -92,7 +92,7 @@ export class OrgSettingsIdentityProviderComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    this.hasOpenidConnectSsoLock$ = this.licenseService.isMissingFeature$(this.openidConnectSsoLicenseOptions);
+    this.hasOpenidConnectSsoLock$ = this.licenseService.isMissingFeature$(this.openidConnectSsoLicenseOptions.feature);
     this.identityProviderFormGroup = new UntypedFormGroup({
       type: new UntypedFormControl(),
       enabled: new UntypedFormControl(true),

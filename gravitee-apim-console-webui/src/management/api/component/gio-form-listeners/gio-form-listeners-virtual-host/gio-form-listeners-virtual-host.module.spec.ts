@@ -25,7 +25,8 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { GioFormListenersVirtualHostModule } from './gio-form-listeners-virtual-host.module';
 import { GioFormListenersVirtualHostHarness } from './gio-form-listeners-virtual-host.harness';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
+import { Constants } from '../../../../../entities/Constants';
 
 @Component({
   template: `
@@ -62,10 +63,10 @@ describe('GioFormListenersVirtualHostModule', () => {
   beforeEach(async () => {
     TestBed.configureTestingModule({
       declarations: [TestComponent],
-      imports: [NoopAnimationsModule, GioFormListenersVirtualHostModule, MatIconTestingModule, ReactiveFormsModule, GioHttpTestingModule],
+      imports: [NoopAnimationsModule, GioFormListenersVirtualHostModule, MatIconTestingModule, ReactiveFormsModule, GioTestingModule],
       providers: [
         {
-          provide: 'Constants',
+          provide: Constants,
           useValue: fakeConstants,
         },
       ],

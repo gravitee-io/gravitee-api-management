@@ -21,18 +21,18 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
-import { GioConfirmAndValidateDialogHarness, GioLicenseService, LICENSE_CONFIGURATION_TESTING } from '@gravitee/ui-particles-angular';
+import { GioConfirmAndValidateDialogHarness, LICENSE_CONFIGURATION_TESTING } from '@gravitee/ui-particles-angular';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { SimpleChange } from '@angular/core';
-import { of } from 'rxjs';
 import { Router } from '@angular/router';
 
 import { ApiGeneralInfoDangerZoneComponent } from './api-general-info-danger-zone.component';
 
 import { ApiGeneralInfoModule } from '../api-general-info.module';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { Api, fakeApiV2, fakeApiV4 } from '../../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { Constants } from '../../../../entities/Constants';
 
 describe('ApiGeneralInfoDangerZoneComponent', () => {
   const API_ID = 'apiId';
@@ -46,7 +46,7 @@ describe('ApiGeneralInfoDangerZoneComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiGeneralInfoModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, ApiGeneralInfoModule, MatIconTestingModule],
       providers: [
         { provide: GioTestingPermissionProvider, useValue: ['api-definition-u', 'api-definition-d'] },
         {
@@ -54,7 +54,7 @@ describe('ApiGeneralInfoDangerZoneComponent', () => {
           useValue: LICENSE_CONFIGURATION_TESTING,
         },
         {
-          provide: 'Constants',
+          provide: Constants,
           useValue: {
             ...CONSTANTS_TESTING,
             env: {
@@ -219,10 +219,7 @@ describe('ApiGeneralInfoDangerZoneComponent', () => {
     });
 
     createComponent(api);
-
-    const licenseService = fixture.debugElement.injector.get(GioLicenseService);
-    jest.spyOn(licenseService, 'isMissingFeature$').mockReturnValue(of(true));
-    fixture.detectChanges();
+    expectApiVerifyDeployment(api, false);
 
     const upgradeButton = fixture.debugElement.query(
       (elem) => elem.name === 'button' && elem.nativeElement.textContent === 'Request upgrade',
@@ -276,6 +273,13 @@ describe('ApiGeneralInfoDangerZoneComponent', () => {
 
   function expectApiGetRequest(api: Api) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
+    fixture.detectChanges();
+  }
+
+  function expectApiVerifyDeployment(api: Api, ok: boolean) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}/deployments/_verify`, method: 'GET' }).flush({
+      ok,
+    });
     fixture.detectChanges();
   }
 

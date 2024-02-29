@@ -33,6 +33,7 @@ import { QualityRule } from '../../../entities/qualityRule';
 import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { gioTableFilterCollection } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 import { PortalSettings } from '../../../entities/portal/portalSettings';
+import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 
 interface ApiQualityRulesForm {
   apiReview: FormGroup<{
@@ -79,6 +80,7 @@ export class ApiQualityRulesNgComponent implements OnInit {
     private readonly snackBarService: SnackBarService,
     private readonly qualityRuleService: QualityRuleService,
     private readonly matDialog: MatDialog,
+    private readonly permissionService: GioPermissionService,
   ) {}
 
   public ngOnInit() {
@@ -102,49 +104,55 @@ export class ApiQualityRulesNgComponent implements OnInit {
         tap((settings) => {
           this.settings = settings;
 
+          const settingsPermission = !this.permissionService.hasAnyMatching([
+            'environment-settings-c',
+            'environment-settings-u',
+            'environment-settings-d',
+          ]);
+
           this.apiQualityRulesForm = new FormGroup<ApiQualityRulesForm>({
             apiReview: new FormGroup({
               enabled: new FormControl({
                 value: this.settings.apiReview.enabled,
-                disabled: this.isReadonly('api.review.enabled'),
+                disabled: this.isReadonly('api.review.enabled') || settingsPermission,
               }),
             }),
             apiQualityMetrics: new FormGroup({
               enabled: new FormControl({
                 value: this.settings.apiQualityMetrics.enabled,
-                disabled: this.isReadonly('api.quality.metrics.enabled'),
+                disabled: this.isReadonly('api.quality.metrics.enabled') || settingsPermission,
               }),
               descriptionWeight: new FormControl({
                 value: this.settings.apiQualityMetrics.descriptionWeight,
-                disabled: this.isReadonly('api.quality.metrics.description.weight'),
+                disabled: this.isReadonly('api.quality.metrics.description.weight') || settingsPermission,
               }),
               descriptionMinLength: new FormControl({
                 value: this.settings.apiQualityMetrics.descriptionMinLength,
-                disabled: this.isReadonly('api.quality.metrics.description.min.length'),
+                disabled: this.isReadonly('api.quality.metrics.description.min.length') || settingsPermission,
               }),
               logoWeight: new FormControl({
                 value: this.settings.apiQualityMetrics.logoWeight,
-                disabled: this.isReadonly('api.quality.metrics.logo.weight'),
+                disabled: this.isReadonly('api.quality.metrics.logo.weight') || settingsPermission,
               }),
               categoriesWeight: new FormControl({
                 value: this.settings.apiQualityMetrics.categoriesWeight,
-                disabled: this.isReadonly('api.quality.metrics.categories.weight'),
+                disabled: this.isReadonly('api.quality.metrics.categories.weight') || settingsPermission,
               }),
               labelsWeight: new FormControl({
                 value: this.settings.apiQualityMetrics.labelsWeight,
-                disabled: this.isReadonly('api.quality.metrics.labels.weight'),
+                disabled: this.isReadonly('api.quality.metrics.labels.weight') || settingsPermission,
               }),
               functionalDocumentationWeight: new FormControl({
                 value: this.settings.apiQualityMetrics.functionalDocumentationWeight,
-                disabled: this.isReadonly('api.quality.metrics.functional.documentation.weight'),
+                disabled: this.isReadonly('api.quality.metrics.functional.documentation.weight') || settingsPermission,
               }),
               technicalDocumentationWeight: new FormControl({
                 value: this.settings.apiQualityMetrics.technicalDocumentationWeight,
-                disabled: this.isReadonly('api.quality.metrics.technical.documentation.weight'),
+                disabled: this.isReadonly('api.quality.metrics.technical.documentation.weight') || settingsPermission,
               }),
               healthcheckWeight: new FormControl({
                 value: this.settings.apiQualityMetrics.healthcheckWeight,
-                disabled: this.isReadonly('api.quality.metrics.healthcheck.weight'),
+                disabled: this.isReadonly('api.quality.metrics.healthcheck.weight') || settingsPermission,
               }),
             }),
           });

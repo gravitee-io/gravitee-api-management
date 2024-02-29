@@ -20,11 +20,11 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTabNavBarHarness } from '@angular/material/tabs/testing';
+import { RouterModule } from '@angular/router';
 
 import { HomeLayoutComponent } from './home-layout.component';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
-import { HomeModule } from '../home.module';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 
 describe('HomeLayoutComponent', () => {
   let fixture: ComponentFixture<HomeLayoutComponent>;
@@ -34,11 +34,11 @@ describe('HomeLayoutComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       declarations: [HomeLayoutComponent],
-      imports: [NoopAnimationsModule, GioHttpTestingModule, HomeModule, MatTabsModule],
+      imports: [NoopAnimationsModule, GioTestingModule, RouterModule, MatTabsModule],
     });
   });
 
-  beforeEach(async () => {
+  beforeEach(() => {
     fixture = TestBed.createComponent(HomeLayoutComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
 
@@ -50,8 +50,6 @@ describe('HomeLayoutComponent', () => {
   });
 
   it('should display tabs', async () => {
-    fixture.detectChanges();
-
     const tabs = await loader.getHarness(MatTabNavBarHarness);
     const links = await tabs.getLinks();
     expect(await links[0].getLabel()).toEqual('Overview');

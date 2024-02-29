@@ -18,7 +18,7 @@ const CustomUserFieldsComponentAjs: ng.IComponentOptions = {
     activatedRoute: '<',
   },
   controller: 'CustomUserFieldsController',
-  template: require('html-loader!./custom-user-fields.html'),
+  template: require('html-loader!./custom-user-fields.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
 };
 
 export default CustomUserFieldsComponentAjs;

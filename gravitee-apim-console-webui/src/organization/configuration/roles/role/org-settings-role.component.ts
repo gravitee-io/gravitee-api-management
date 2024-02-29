@@ -65,7 +65,7 @@ export class OrgSettingsRoleComponent implements OnInit, OnDestroy {
   constructor(
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
-    @Inject('Constants') private readonly constants: Constants,
+    @Inject(Constants) private readonly constants: Constants,
     private readonly roleService: RoleService,
     private readonly snackBarService: SnackBarService,
   ) {}

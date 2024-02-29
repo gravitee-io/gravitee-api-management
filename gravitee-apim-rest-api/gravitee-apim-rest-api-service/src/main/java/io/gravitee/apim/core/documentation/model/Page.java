@@ -95,6 +95,18 @@ public class Page {
         return Type.MARKDOWN.equals(this.type);
     }
 
+    public boolean isSwagger() {
+        return Type.SWAGGER.equals(this.type);
+    }
+
+    public boolean isAsyncApi() {
+        return Type.ASYNCAPI.equals(this.type);
+    }
+
+    public boolean isSwaggerOrMarkdown() {
+        return Page.Type.SWAGGER.equals(this.type) || Page.Type.MARKDOWN.equals(this.type);
+    }
+
     public boolean isFolder() {
         return Type.FOLDER.equals(this.type);
     }

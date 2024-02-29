@@ -18,16 +18,17 @@ import { set } from 'lodash';
 
 import { AVAILABLE_PLANS_FOR_MENU, ConstantsService, PlanMenuItemVM } from './constants.service';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
+import { Constants } from '../entities/Constants';
 
 describe('ConstantsService', () => {
   let constantsService: ConstantsService;
   const init = async (securityValue: any) => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
       providers: [
         {
-          provide: 'Constants',
+          provide: Constants,
           useFactory: () => {
             const constants = CONSTANTS_TESTING;
             set(constants, 'env.settings.plan.security', securityValue);

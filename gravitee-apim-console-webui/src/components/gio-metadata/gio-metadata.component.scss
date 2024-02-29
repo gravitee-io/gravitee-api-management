@@ -16,6 +16,14 @@
   &__actions {
     display: flex;
   }
+
+  &__form {
+    &__filters {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+  }
 }
 
 .mat-column-actions {

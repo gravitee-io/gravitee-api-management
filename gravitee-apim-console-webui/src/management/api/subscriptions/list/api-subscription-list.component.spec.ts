@@ -31,7 +31,7 @@ import { ApiSubscriptionListComponent } from './api-subscription-list.component'
 import { ApiSubscriptionListHarness } from './api-subscription-list.harness';
 
 import { ApiSubscriptionsModule } from '../api-subscriptions.module';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import {
   Api,
   ApiKeyMode,
@@ -52,6 +52,7 @@ import { ApiPortalSubscriptionCreationDialogHarness } from '../components/dialog
 import { PlanSecurityType } from '../../../../entities/plan';
 import { ApplicationSubscription } from '../../../../entities/subscription/subscription';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { Constants } from '../../../../entities/Constants';
 
 @Component({
   template: ` <api-subscription-list #apiSubscriptionList></api-subscription-list> `,
@@ -77,7 +78,7 @@ describe('ApiSubscriptionListComponent', () => {
   const init = async (planSecurity?: any) => {
     await TestBed.configureTestingModule({
       declarations: [TestComponent],
-      imports: [ApiSubscriptionsModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
+      imports: [ApiSubscriptionsModule, NoopAnimationsModule, GioTestingModule, MatIconTestingModule],
       providers: [
         {
           provide: InteractivityChecker,
@@ -87,7 +88,7 @@ describe('ApiSubscriptionListComponent', () => {
           },
         },
         {
-          provide: 'Constants',
+          provide: Constants,
           useFactory: () => {
             const constants = CONSTANTS_TESTING;
             set(

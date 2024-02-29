@@ -19,7 +19,7 @@ const ApplicationCreationComponentAjs: ng.IComponentOptions = {
     groups: '<',
     activatedRoute: '<',
   },
-  template: require('html-loader!./application-creation.html'),
+  template: require('html-loader!./application-creation.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: 'ApplicationCreationController',
 };
 

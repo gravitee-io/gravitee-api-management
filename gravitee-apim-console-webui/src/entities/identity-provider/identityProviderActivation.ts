@@ -15,7 +15,7 @@
  */
 export interface IdentityProviderActivation {
   identityProvider: string;
-  referenceId: string;
-  referenceType: 'ENVIRONMENT' | 'ORGANIZATION';
-  created_at: number;
+  referenceId?: string;
+  referenceType?: 'ENVIRONMENT' | 'ORGANIZATION';
+  created_at?: number;
 }

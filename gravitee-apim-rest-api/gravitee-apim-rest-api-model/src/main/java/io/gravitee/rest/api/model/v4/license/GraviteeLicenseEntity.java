@@ -42,5 +42,7 @@ public class GraviteeLicenseEntity {
 
     private Date expiresAt;
 
+    private Boolean isExpired;
+
     private String scope;
 }

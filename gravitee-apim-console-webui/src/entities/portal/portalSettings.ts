@@ -22,6 +22,7 @@ export interface PortalSettings {
   application?: PortalSettingsApplication;
   apiQualityMetrics?: PortalApiQualityMetrics;
   apiReview?: PortalApiReview;
+  authentication?: PortalSettingsAuthentication;
 }
 
 export type PortalSettingsMetadata = Record<string, string[]>;
@@ -105,4 +106,13 @@ export interface PortalApiQualityMetrics {
 
 export interface PortalApiReview {
   enabled: boolean;
+}
+
+export interface PortalSettingsAuthentication {
+  forceLogin?: {
+    enabled: boolean;
+  };
+  localLogin?: {
+    enabled: boolean;
+  };
 }

@@ -52,14 +52,14 @@ export class OrgSettingsRolesComponent implements OnInit, OnDestroy {
     private readonly roleService: RoleService,
     private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,
-    @Inject('Constants') private readonly constants: Constants,
+    @Inject(Constants) private readonly constants: Constants,
     private readonly licenseService: GioLicenseService,
   ) {}
 
   private readonly unsubscribe$ = new Subject<boolean>();
 
   ngOnInit(): void {
-    this.hasCustomRolesLock$ = this.licenseService.isMissingFeature$(this.customRolesLicenseOptions);
+    this.hasCustomRolesLock$ = this.licenseService.isMissingFeature$(this.customRolesLicenseOptions.feature);
     combineLatest([
       this.roleService.list('ORGANIZATION'),
       this.roleService.list('ENVIRONMENT'),

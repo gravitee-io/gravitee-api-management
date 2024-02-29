@@ -40,8 +40,9 @@ import { Step5SummaryHarness } from './steps/step-5-summary/step-5-summary.harne
 import { ApiCreationV4SpecStepperHelper } from './api-creation-v4-spec-stepper-helper';
 import { ApiCreationV4SpecHttpExpects } from './api-creation-v4-spec-http-expects';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { ConnectorPlugin } from '../../../entities/management-api-v2';
+import { Constants } from '../../../entities/Constants';
 
 describe('ApiCreationV4Component - Navigation', () => {
   const httpProxyEntrypoint: Partial<ConnectorPlugin> = {
@@ -102,12 +103,12 @@ describe('ApiCreationV4Component - Navigation', () => {
   let httpExpects: ApiCreationV4SpecHttpExpects;
   let stepperHelper: ApiCreationV4SpecStepperHelper;
 
-  const init = async () => {
-    await TestBed.configureTestingModule({
+  const init = () => {
+    TestBed.configureTestingModule({
       declarations: [ApiCreationV4Component],
       providers: [
         {
-          provide: 'Constants',
+          provide: Constants,
           useFactory: () => {
             const constants = CONSTANTS_TESTING;
             set(constants, 'env.settings.plan.security', {
@@ -147,7 +148,7 @@ describe('ApiCreationV4Component - Navigation', () => {
           useValue: LICENSE_CONFIGURATION_TESTING,
         },
       ],
-      imports: [NoopAnimationsModule, ApiCreationV4Module, GioHttpTestingModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, ApiCreationV4Module, GioTestingModule, MatIconTestingModule],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {
@@ -162,12 +163,12 @@ describe('ApiCreationV4Component - Navigation', () => {
     const router = TestBed.inject(Router);
     routerNavigateSpy = jest.spyOn(router, 'navigate');
     component = fixture.componentInstance;
-    harnessLoader = await TestbedHarnessEnvironment.loader(fixture);
+    harnessLoader = TestbedHarnessEnvironment.loader(fixture);
     httpExpects = new ApiCreationV4SpecHttpExpects(httpTestingController);
     stepperHelper = new ApiCreationV4SpecStepperHelper(harnessLoader, httpExpects, httpTestingController);
   };
 
-  beforeEach(async () => await init());
+  beforeEach(() => init());
 
   afterEach(() => {
     jest.clearAllMocks();

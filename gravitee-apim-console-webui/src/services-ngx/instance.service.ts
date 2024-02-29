@@ -26,7 +26,7 @@ import { SearchResult } from '../entities/instance/searchResult';
   providedIn: 'root',
 })
 export class InstanceService {
-  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
+  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
 
   search(includeStopped?: boolean, from?: number, to?: number, page?: number, size?: number): Observable<SearchResult> {
     if (includeStopped === undefined) {

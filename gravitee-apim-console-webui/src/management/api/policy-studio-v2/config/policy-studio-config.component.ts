@@ -53,7 +53,7 @@ export class PolicyStudioConfigComponent implements OnInit, OnDestroy {
   constructor(
     private readonly policyStudioService: PolicyStudioService,
     private readonly policyStudioSettingsService: PolicyStudioConfigService,
-    @Inject('Constants') private readonly constants: Constants,
+    @Inject(Constants) private readonly constants: Constants,
   ) {}
 
   ngOnInit(): void {

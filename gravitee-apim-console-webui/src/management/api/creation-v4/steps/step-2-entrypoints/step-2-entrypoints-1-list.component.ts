@@ -25,7 +25,7 @@ import { isEqual } from 'lodash';
 import { Step2Entrypoints2ConfigComponent } from './step-2-entrypoints-2-config.component';
 
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
-import { ApiType, ConnectorVM, fromConnector } from '../../../../../entities/management-api-v2';
+import { ApiType, ConnectorPlugin, ConnectorVM, fromConnector } from '../../../../../entities/management-api-v2';
 import { IconService } from '../../../../../services-ngx/icon.service';
 import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
 import { ApimFeature, UTMTags } from '../../../../../shared/components/gio-license/gio-license-data';
@@ -59,55 +59,38 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     const currentStepPayload = this.stepService.payload;
+    const currentSelectedEntrypointIds = (currentStepPayload.selectedEntrypoints ?? []).map((p) => p.id);
     this.apiType = currentStepPayload.type;
+    this.license$ = this.licenseService.getLicense$();
+    this.isOEM$ = this.licenseService.isOEM$();
 
     this.formGroup = this.formBuilder.group({
-      selectedEntrypointsIds: this.formBuilder.control(
-        (currentStepPayload.selectedEntrypoints ?? []).map((p) => p.id),
-        [Validators.required],
-      ),
+      selectedEntrypointsIds: this.formBuilder.control(currentSelectedEntrypointIds, [Validators.required]),
     });
 
-    if (currentStepPayload.type === 'MESSAGE') {
-      this.connectorPluginsV2Service
-        .listAsyncEntrypointPlugins()
-        .pipe(takeUntil(this.unsubscribe$))
-        .subscribe((entrypointPlugins) => {
-          this.entrypoints = entrypointPlugins
-            .map((entrypoint) => fromConnector(this.iconService, entrypoint))
-            .sort((entrypoint1, entrypoint2) => {
-              const name1 = entrypoint1.name.toUpperCase();
-              const name2 = entrypoint2.name.toUpperCase();
-              return name1 < name2 ? -1 : name1 > name2 ? 1 : 0;
-            });
-          this.checkShouldUpgrade(currentStepPayload.selectedEntrypoints?.map((e) => e.id) || []);
-          this.changeDetectorRef.detectChanges();
-        });
-    } else {
-      this.connectorPluginsV2Service
-        .listSyncEntrypointPlugins()
-        .pipe(takeUntil(this.unsubscribe$))
-        .subscribe((entrypointPlugins) => {
-          this.entrypoints = entrypointPlugins
-            .map((entrypoint) => fromConnector(this.iconService, entrypoint))
-            .sort((entrypoint1, entrypoint2) => {
-              const name1 = entrypoint1.name.toUpperCase();
-              const name2 = entrypoint2.name.toUpperCase();
-              return name1 < name2 ? -1 : name1 > name2 ? 1 : 0;
-            });
-          this.checkShouldUpgrade(currentStepPayload.selectedEntrypoints?.map((e) => e.id) || []);
-          this.license$ = this.licenseService.getLicense$();
-          this.isOEM$ = this.licenseService.isOEM$();
+    const connectorPlugins$: Observable<ConnectorPlugin[]> =
+      currentStepPayload.type === 'MESSAGE'
+        ? this.connectorPluginsV2Service.listAsyncEntrypointPlugins()
+        : this.connectorPluginsV2Service.listSyncEntrypointPlugins();
 
-          this.changeDetectorRef.detectChanges();
+    connectorPlugins$.pipe(takeUntil(this.unsubscribe$)).subscribe((entrypointPlugins) => {
+      this.entrypoints = entrypointPlugins
+        .map((entrypoint) => fromConnector(this.iconService, entrypoint))
+        .sort((entrypoint1, entrypoint2) => {
+          const name1 = entrypoint1.name.toUpperCase();
+          const name2 = entrypoint2.name.toUpperCase();
+          return name1 < name2 ? -1 : name1 > name2 ? 1 : 0;
         });
-    }
+      this.shouldUpgrade = this.connectorPluginsV2Service.selectedPluginsNotAvailable(currentSelectedEntrypointIds, this.entrypoints);
+
+      this.changeDetectorRef.detectChanges();
+    });
 
     this.formGroup
       .get('selectedEntrypointsIds')
       .valueChanges.pipe(
         tap((selectedEntrypointsIds) => {
-          this.checkShouldUpgrade(selectedEntrypointsIds);
+          this.shouldUpgrade = this.connectorPluginsV2Service.selectedPluginsNotAvailable(selectedEntrypointsIds, this.entrypoints);
         }),
         takeUntil(this.unsubscribe$),
       )
@@ -222,11 +205,5 @@ export class Step2Entrypoints1ListComponent implements OnInit, OnDestroy {
 
   public onRequestUpgrade() {
     this.licenseService.openDialog({ feature: ApimFeature.APIM_EN_MESSAGE_REACTOR, context: UTMTags.API_CREATION_MESSAGE_ENTRYPOINT });
-  }
-
-  private checkShouldUpgrade(selectedEntrypointIds: string[]) {
-    this.shouldUpgrade = selectedEntrypointIds
-      .map((id) => this.entrypoints.find((entrypoint) => entrypoint.id === id))
-      .some((entrypoint) => !entrypoint.deployed);
   }
 }

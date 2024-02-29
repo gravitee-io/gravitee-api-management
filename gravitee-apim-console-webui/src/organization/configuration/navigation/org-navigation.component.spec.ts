@@ -20,7 +20,7 @@ import { GioLicenseTestingModule } from '@gravitee/ui-particles-angular';
 import { OrgNavigationComponent } from './org-navigation.component';
 
 import { OrganizationSettingsModule } from '../organization-settings.module';
-import { GioHttpTestingModule } from '../../../shared/testing';
+import { GioTestingModule } from '../../../shared/testing';
 import { GioPermissionService, GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 
 describe('OrgNavigationComponent', () => {
@@ -29,7 +29,7 @@ describe('OrgNavigationComponent', () => {
 
   function createComponent(hasAnyMatching: boolean) {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule, GioLicenseTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, OrganizationSettingsModule, GioLicenseTestingModule],
       providers: [
         {
           provide: GioPermissionService,
@@ -47,7 +47,7 @@ describe('OrgNavigationComponent', () => {
 
   function createComponentWithPermissions(permissions: string[]) {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule, GioLicenseTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, OrganizationSettingsModule, GioLicenseTestingModule],
       providers: [
         {
           provide: GioTestingPermissionProvider,

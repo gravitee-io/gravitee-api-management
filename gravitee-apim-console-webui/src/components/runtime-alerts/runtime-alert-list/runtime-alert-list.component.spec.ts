@@ -26,7 +26,7 @@ import { RuntimeAlertListHarness } from './runtime-alert-list.harness';
 
 import { AlertTriggerEntity } from '../../../entities/alerts/alertTriggerEntity';
 import { fakeAlertTriggerEntity } from '../../../entities/alerts/alertTriggerEntity.fixtures';
-import { GioHttpTestingModule } from '../../../shared/testing';
+import { GioTestingModule } from '../../../shared/testing';
 
 @Component({
   selector: 'test-component',
@@ -47,7 +47,7 @@ describe('RuntimeAlertListComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [TestComponent],
-      imports: [NoopAnimationsModule, GioHttpTestingModule, RuntimeAlertListModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, RuntimeAlertListModule, MatIconTestingModule],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TestComponent);

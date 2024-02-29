@@ -36,7 +36,7 @@ export * from './apiSubscribersResponse';
 export * from './apiSubscriptionsResponse';
 export * from './environment';
 export * from './links';
-export * from './metadataResponse';
+export * from './metadata';
 export * from './modelError';
 export * from './organization';
 export * from './pagedResult';

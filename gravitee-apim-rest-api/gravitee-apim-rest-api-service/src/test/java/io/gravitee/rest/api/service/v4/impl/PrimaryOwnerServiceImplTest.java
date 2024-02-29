@@ -31,14 +31,18 @@ import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
+import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.exceptions.NonPoGroupException;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import java.util.Arrays;
 import java.util.Collections;
@@ -137,6 +141,23 @@ public class PrimaryOwnerServiceImplTest {
         assertEquals(3, primaryOwners.size());
     }
 
+    @Test(expected = NonPoGroupException.class)
+    public void shouldFailIfPrimaryOwnerIsAGroupWithNoPrimaryOwnerMember() {
+        PrimaryOwnerEntity currentPoGroup = primaryOwner("GROUP");
+        when(groupService.findById(EXECUTION_CONTEXT, currentPoGroup.getId())).thenReturn(group());
+        when(this.parameterService.find(EXECUTION_CONTEXT, Key.API_PRIMARY_OWNER_MODE, ParameterReferenceType.ENVIRONMENT))
+            .thenReturn(ApiPrimaryOwnerMode.GROUP.name());
+        primaryOwnerService.getPrimaryOwner(EXECUTION_CONTEXT, "admin", currentPoGroup);
+    }
+
+    private static PrimaryOwnerEntity primaryOwner(String type) {
+        PrimaryOwnerEntity primaryOwner = new PrimaryOwnerEntity();
+        primaryOwner.setId("primary-owner-id");
+        primaryOwner.setEmail("primary@owner.com");
+        primaryOwner.setType(type);
+        return primaryOwner;
+    }
+
     private static MembershipEntity primaryOwnerUserMembership() {
         MembershipEntity membership = new MembershipEntity();
         membership.setMemberType(MembershipMemberType.USER);
@@ -158,7 +179,7 @@ public class PrimaryOwnerServiceImplTest {
         return membership;
     }
 
-    private static GroupEntity primaryOwnerGroup() {
+    private static GroupEntity group() {
         GroupEntity group = new GroupEntity();
         group.setId("some-group");
         return group;

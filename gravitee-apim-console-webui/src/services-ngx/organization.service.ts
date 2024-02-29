@@ -25,7 +25,7 @@ import { Organization } from '../entities/organization/organization';
   providedIn: 'root',
 })
 export class OrganizationService {
-  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
+  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
 
   listActivatedIdentityProviders(): Observable<IdentityProviderActivation[]> {
     return this.http.get<IdentityProviderActivation[]>(`${this.constants.org.baseURL}/identities`);

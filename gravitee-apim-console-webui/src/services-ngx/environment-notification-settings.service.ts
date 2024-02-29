@@ -28,7 +28,7 @@ import { Hooks } from '../entities/notification/hooks';
   providedIn: 'root',
 })
 export class EnvironmentNotificationSettingsService {
-  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
+  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
 
   getAll(): Observable<NotificationSettings[]> {
     return this.http.get<NotificationSettings[]>(`${this.constants.env.baseURL}/configuration/notificationsettings`);

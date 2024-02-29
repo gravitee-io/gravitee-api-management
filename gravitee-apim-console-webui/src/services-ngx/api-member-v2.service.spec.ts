@@ -18,7 +18,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { ApiMemberV2Service } from './api-member-v2.service';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { CreateApiMember, Member, MembersResponse, UpdateApiMember } from '../entities/management-api-v2';
 
 describe('ApiMemberV2Service', () => {
@@ -27,7 +27,7 @@ describe('ApiMemberV2Service', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);

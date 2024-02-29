@@ -19,7 +19,7 @@ import { TestBed } from '@angular/core/testing';
 import { EventService } from './event.service';
 
 import { fakeEvent } from '../entities/event/event.fixture';
-import { GioHttpTestingModule } from '../shared/testing';
+import { GioTestingModule } from '../shared/testing';
 
 describe('EventService', () => {
   let httpTestingController: HttpTestingController;
@@ -27,7 +27,7 @@ describe('EventService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);

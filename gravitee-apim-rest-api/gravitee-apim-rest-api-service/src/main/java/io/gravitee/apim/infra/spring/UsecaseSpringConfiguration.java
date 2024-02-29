@@ -25,7 +25,9 @@ import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiHostsDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.query_service.ApiEventQueryService;
+import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
+import io.gravitee.apim.core.api.use_case.GetApiMetadataUseCase;
 import io.gravitee.apim.core.api.use_case.ImportCRDUseCase;
 import io.gravitee.apim.core.api.use_case.UpdateDynamicPropertiesUseCase;
 import io.gravitee.apim.core.api.use_case.VerifyApiHostsUseCase;
@@ -61,6 +63,7 @@ import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
 import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.event.query_service.EventQueryService;
 import io.gravitee.apim.core.event.use_case.SearchEventUseCase;
+import io.gravitee.apim.core.event.use_case.SearchEventsUseCase;
 import io.gravitee.apim.core.gateway.query_service.InstanceQueryService;
 import io.gravitee.apim.core.license.domain_service.GraviteeLicenseDomainService;
 import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
@@ -385,6 +388,11 @@ public class UsecaseSpringConfiguration {
     }
 
     @Bean
+    public SearchEventsUseCase searchEventsUseCase(EventQueryService eventQueryService, UserCrudService userCrudService) {
+        return new SearchEventsUseCase(eventQueryService, userCrudService);
+    }
+
+    @Bean
     public SearchEventUseCase searchEventUseCase(EventQueryService eventQueryService, UserCrudService userCrudService) {
         return new SearchEventUseCase(eventQueryService, userCrudService);
     }
@@ -404,5 +412,10 @@ public class UsecaseSpringConfiguration {
             auditDomainService,
             apiEventQueryService
         );
+    }
+
+    @Bean
+    public GetApiMetadataUseCase getApiMetadataUseCase(ApiCrudService apiCrudService, ApiMetadataQueryService apiMetadataQueryService) {
+        return new GetApiMetadataUseCase(apiCrudService, apiMetadataQueryService);
     }
 }

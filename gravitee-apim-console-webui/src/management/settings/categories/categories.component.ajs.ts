@@ -18,7 +18,7 @@ const CategoriesComponentAjs: ng.IComponentOptions = {
     activatedRoute: '<',
   },
   controller: 'CategoriesController',
-  template: require('html-loader!./categories.html'),
+  template: require('html-loader!./categories.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
 };
 
 export default CategoriesComponentAjs;

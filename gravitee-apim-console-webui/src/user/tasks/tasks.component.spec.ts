@@ -27,7 +27,7 @@ import { TasksHarness } from './tasks.harness';
 
 import { PagedResult } from '../../entities/pagedResult';
 import { Task } from '../../entities/task/task';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../shared/testing';
 
 describe('TasksComponent', () => {
   const responseData = {
@@ -152,7 +152,7 @@ describe('TasksComponent', () => {
   const init = async () => {
     await TestBed.configureTestingModule({
       declarations: [TasksComponent],
-      imports: [NoopAnimationsModule, TasksModule, MatIconTestingModule, GioHttpTestingModule],
+      imports: [NoopAnimationsModule, TasksModule, MatIconTestingModule, GioTestingModule],
       providers: [
         {
           provide: ActivatedRoute,

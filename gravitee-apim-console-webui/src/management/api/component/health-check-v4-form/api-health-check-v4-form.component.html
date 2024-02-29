@@ -22,6 +22,16 @@
   </div>
 
   <form *ngIf="healthCheckForm" [formGroup]="healthCheckForm" autocomplete="off">
+    <gio-form-slide-toggle *ngIf="healthCheckForm.controls['inherit'] != undefined" class="health-check__inherit-field">
+      <gio-form-label>Inherit configuration</gio-form-label>
+      Inherit health check service configuration from the endpoint group.
+      <mat-slide-toggle
+        gioFormSlideToggle
+        formControlName="inherit"
+        aria-label="Inherit health check service configuration from the endpoint group"
+        name="inherit"
+      ></mat-slide-toggle>
+    </gio-form-slide-toggle>
     <gio-form-slide-toggle class="health-check__enable-field">
       <gio-form-label>Enabled</gio-form-label>
       This service is requiring an API deployment. Do not forget to deploy API to start health-check service.

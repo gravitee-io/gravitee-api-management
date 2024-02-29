@@ -19,13 +19,14 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ActivatedRoute } from '@angular/router';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ApiRuntimeLogsDetailsComponent } from './api-runtime-logs-details.component';
 import { ApiRuntimeLogsDetailsModule } from './api-runtime-logs-details.module';
 import { ApiRuntimeLogsProxyHarness } from './components/runtime-logs-proxy/api-runtime-logs-proxy.harness';
 import { ApiRuntimeLogsMessagesHarness } from './components/runtime-logs-messages/api-runtime-logs-messages.harness';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { ApiV4, fakeApiV4 } from '../../../../entities/management-api-v2';
 
 describe('ApiRuntimeLogsDetailsComponent', () => {
@@ -36,7 +37,7 @@ describe('ApiRuntimeLogsDetailsComponent', () => {
 
   const initComponent = async () => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, ApiRuntimeLogsDetailsModule, GioHttpTestingModule],
+      imports: [NoopAnimationsModule, ApiRuntimeLogsDetailsModule, GioTestingModule, MatSnackBarModule],
       providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } }],
     });
 
@@ -50,7 +51,7 @@ describe('ApiRuntimeLogsDetailsComponent', () => {
     jest.clearAllMocks();
   });
 
-  it('should display proxy logs details component', async () => {
+  it('should not display proxy logs details component', async () => {
     await initComponent();
     expectApi(fakeApiV4({ id: API_ID, type: 'PROXY' }));
 

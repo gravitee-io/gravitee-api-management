@@ -18,7 +18,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { OrganizationService } from './organization.service';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { fakeIdentityProviderActivation, IdentityProviderActivation } from '../entities/identity-provider';
 import { fakeOrganization } from '../entities/organization/organization.fixture';
 
@@ -28,7 +28,7 @@ describe('OrganizationService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);

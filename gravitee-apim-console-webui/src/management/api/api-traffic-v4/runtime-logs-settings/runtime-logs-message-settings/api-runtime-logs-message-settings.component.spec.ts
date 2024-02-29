@@ -24,10 +24,11 @@ import { ApiRuntimeLogsMessageSettingsModule } from './api-runtime-logs-message-
 import { ApiRuntimeLogsMessageSettingsComponent } from './api-runtime-logs-message-settings.component';
 import { ApiRuntimeLogsMessageSettingsHarness } from './api-runtime-logs-message-settings.harness';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
 import { ApiV4, fakeApiV4 } from '../../../../../entities/management-api-v2';
 import { ConsoleSettings } from '../../../../../entities/consoleSettings';
 import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
+import { Constants } from '../../../../../entities/Constants';
 
 describe('ApiRuntimeLogsSettingsComponent', () => {
   const API_ID = 'apiId';
@@ -76,12 +77,12 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
 
   const initComponent = async (api: ApiV4 = testApi, settings: ConsoleSettings = testSettings) => {
     await TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiRuntimeLogsMessageSettingsModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, ApiRuntimeLogsMessageSettingsModule, MatIconTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
         { provide: GioTestingPermissionProvider, useValue: ['api-definition-u'] },
         {
-          provide: 'Constants',
+          provide: Constants,
           useValue: CONSTANTS_TESTING,
         },
       ],

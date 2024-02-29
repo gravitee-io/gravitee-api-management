@@ -27,7 +27,7 @@ import { ActivatedRoute } from '@angular/router';
 import { ApiFailoverComponent } from './api-failover.component';
 import { ApiFailoverModule } from './api-failover.module';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { ApiV2, fakeApiV2 } from '../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 
@@ -40,7 +40,7 @@ describe('ApiProxyFailoverComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiFailoverModule],
+      imports: [NoopAnimationsModule, GioTestingModule, ApiFailoverModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
         { provide: GioTestingPermissionProvider, useValue: ['api-definition-u'] },

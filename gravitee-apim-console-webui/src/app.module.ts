@@ -69,7 +69,7 @@ import { AuthModule } from './auth/auth.module';
           apiKey: constants.org?.settings?.analyticsPendo?.apiKey,
         };
       },
-      deps: ['Constants'],
+      deps: [Constants],
     },
     {
       provide: 'isFactory',

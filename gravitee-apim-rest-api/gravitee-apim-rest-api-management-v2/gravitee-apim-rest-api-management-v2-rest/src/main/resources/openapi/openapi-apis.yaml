@@ -435,6 +435,31 @@ paths:
                     description: API picture successfully deleted.
                 default:
                     $ref: "#/components/responses/Error"
+
+    /environments/{envId}/apis/{apiId}/metadata:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        get:
+            parameters:
+                - $ref: "#/components/parameters/pageParam"
+                - $ref: "#/components/parameters/perPageParam"
+                - $ref: "#/components/parameters/apiMetadataSourceParam"
+                - $ref: "#/components/parameters/apiMetadataSortByParam"
+            tags:
+                - APIs
+            summary: Get metadata pertaining to API
+            description: |-
+                Get the metadata that pertains to an API. Can be global and API metadata.
+
+                User must have the API_METADATA[READ] permission.
+            operationId: getApiMetadata
+            responses:
+                "200":
+                    $ref: "#/components/responses/MetadataResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+
     /environments/{envId}/apis/{apiId}/_export/definition:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -1695,7 +1720,25 @@ paths:
                     $ref: "#/components/responses/EventsResponse"
                 default:
                     $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/events/{eventId}:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+            - $ref: "#/components/parameters/eventIdParam"
+        get:
+            tags:
+                - API Events
+            summary: Get single API Event by it's ID
+            description: |-
+                Get specific single API Event.
 
+                User must have the API_EVENT[READ] permission.
+            operationId: getApiEventById
+            responses:
+                "200":
+                    $ref: "#/components/responses/EventResponse"
+                default:
+                    $ref: "#/components/responses/Error"
     # API Documentation
     /environments/{envId}/apis/{apiId}/pages:
         parameters:
@@ -3027,7 +3070,7 @@ components:
                     type: boolean
                 response:
                     type: boolean
-        MetadataResponse:
+        ResponseMetadata:
             description: Generic object to handle additional information about an entity. Can also be used for pagination data.
             type: object
         MoreInformation:
@@ -5469,11 +5512,13 @@ components:
                     minLength: 1
                 type:
                     type: string
-                    description: The type of the page. Only MARKDOWN and FOLDER types can be created.
+                    description: The type of the page.
                     example: MARKDOWN
                     enum:
                         - MARKDOWN
                         - FOLDER
+                        - SWAGGER
+                        - ASYNCAPI
                 visibility:
                     $ref: "#/components/schemas/Visibility"
                 parentId:
@@ -5488,6 +5533,8 @@ components:
                 mapping:
                     FOLDER: CreateDocumentationFolder
                     MARKDOWN: CreateDocumentationMarkdown
+                    SWAGGER: CreateDocumentationSwagger
+                    ASYNCAPI: CreateDocumentationAsyncApi
 
         CreateDocumentationFolder:
             title: "CreateDocumentationFolder"
@@ -5518,6 +5565,44 @@ components:
                 - name
                 - type
 
+        CreateDocumentationSwagger:
+            title: "CreateDocumentationSwagger"
+            description: Create documentation Swagger.
+            type: object
+            allOf:
+                - $ref: "#/components/schemas/CreateDocumentation"
+                - properties:
+                      content:
+                          type: string
+                          description: Page's content.
+                          example: My Page content
+                      homepage:
+                          type: boolean
+                          description: Page's homepage status.
+                          example: true
+            required:
+                - name
+                - type
+
+        CreateDocumentationAsyncApi:
+            title: "CreateDocumentationAsyncApi"
+            description: Create documentation Async API.
+            type: object
+            allOf:
+                - $ref: "#/components/schemas/CreateDocumentation"
+                - properties:
+                      content:
+                          type: string
+                          description: Page's content.
+                          example: My Page content
+                      homepage:
+                          type: boolean
+                          description: Page's homepage status.
+                          example: true
+            required:
+                - name
+                - type
+
         UpdateDocumentation:
             type: object
             properties:
@@ -5527,6 +5612,8 @@ components:
                     enum:
                         - FOLDER
                         - MARKDOWN
+                        - SWAGGER
+                        - ASYNCAPI
                 name:
                     type: string
                     description: Page's name.
@@ -5548,6 +5635,8 @@ components:
                 mapping:
                     FOLDER: UpdateDocumentationFolder
                     MARKDOWN: UpdateDocumentationMarkdown
+                    SWAGGER: UpdateDocumentationSwagger
+                    ASYNCAPI: UpdateDocumentationAsyncApi
 
         UpdateDocumentationFolder:
             title: "UpdateDocumentationFolder"
@@ -5559,6 +5648,38 @@ components:
         UpdateDocumentationMarkdown:
             title: "UpdateDocumentationMarkdown"
             description: Update documentation markdown page.
+            type: object
+            allOf:
+                - $ref: "#/components/schemas/UpdateDocumentation"
+                - properties:
+                      content:
+                          type: string
+                          description: Page's content.
+                          example: My Page content
+                      homepage:
+                          type: boolean
+                          description: Page's homepage status.
+                          example: true
+
+        UpdateDocumentationSwagger:
+            title: "UpdateDocumentationSwagger"
+            description: Update documentation Swagger.
+            type: object
+            allOf:
+                - $ref: "#/components/schemas/UpdateDocumentation"
+                - properties:
+                      content:
+                          type: string
+                          description: Page's content.
+                          example: My Page content
+                      homepage:
+                          type: boolean
+                          description: Page's homepage status.
+                          example: true
+
+        UpdateDocumentationAsyncApi:
+            title: "UpdateDocumentationAsyncApi"
+            description: Update documentation Async API.
             type: object
             allOf:
                 - $ref: "#/components/schemas/UpdateDocumentation"
@@ -5771,6 +5892,26 @@ components:
                     - -name
                     - paths
                     - -paths
+        apiMetadataSortByParam:
+            name: sortBy
+            in: query
+            required: false
+            description: |-
+                Possibility to sort API Metadata results by field.
+                Can be ascending or descending with minus '-' prefix.
+                By default, 'key' is applied.
+            schema:
+                type: string
+                example: key
+                enum:
+                    - key
+                    - -key
+                    - name
+                    - -name
+                    - format
+                    - -format
+                    - value
+                    - -value
         pageParam:
             name: page
             in: query
@@ -5801,6 +5942,17 @@ components:
                     type: string
                     enum:
                         - deploymentState
+        apiMetadataSourceParam:
+            name: source
+            in: query
+            description: Determines source of API Metadata (GLOBAL or API).
+            schema:
+                type: array
+                items:
+                    type: string
+                    enum:
+                        - GLOBAL
+                        - API
         from:
             name: from
             in: query
@@ -5885,6 +6037,13 @@ components:
                 type: array
                 items:
                     type: integer
+        eventIdParam:
+            name: eventId
+            in: path
+            required: true
+            description: Id of an API Event.
+            schema:
+                type: string
     responses:
         ApisResponse:
             description: Page of apis
@@ -5918,7 +6077,7 @@ components:
                             links:
                                 $ref: "#/components/schemas/Links"
                             metadata:
-                                $ref: "#/components/schemas/MetadataResponse"
+                                $ref: "#/components/schemas/ResponseMetadata"
                             pagination:
                                 $ref: "#/components/schemas/Pagination"
         ImageResponse:
@@ -5928,6 +6087,24 @@ components:
                     schema:
                         type: string
                         format: binary
+
+        MetadataResponse:
+            description: Page of metadata
+            content:
+                application/json:
+                    schema:
+                        title: "MetadataResponse"
+                        properties:
+                            data:
+                                description: List of metadata.
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/Metadata"
+                            pagination:
+                                $ref: "#/components/schemas/Pagination"
+                            links:
+                                $ref: "#/components/schemas/Links"
+
         PlansResponse:
             description: Page of API plans
             content:
@@ -6010,7 +6187,7 @@ components:
                             links:
                                 $ref: "#/components/schemas/Links"
                             metadata:
-                                $ref: "#/components/schemas/MetadataResponse"
+                                $ref: "#/components/schemas/ResponseMetadata"
                             pagination:
                                 $ref: "#/components/schemas/Pagination"
         SchemaFormResponse:
@@ -6176,6 +6353,12 @@ components:
                                 $ref: "#/components/schemas/Pagination"
                             links:
                                 $ref: "#/components/schemas/Links"
+        EventResponse:
+            description: Single Event
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/Event"
 
         # API Documentation
         ApiDocumentationPagesResponse:

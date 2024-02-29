@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.Api.AuditEvent.*;
-import static io.gravitee.repository.management.model.Event.EventProperties.API_ID;
 import static io.gravitee.repository.management.model.Workflow.AuditEvent.*;
 import static io.gravitee.rest.api.model.EventType.PUBLISH_API;
 import static io.gravitee.rest.api.model.PageType.SWAGGER;
@@ -635,11 +634,22 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     private void checkEndpointsConfiguration(UpdateApiEntity api) {
         if (api.getProxy() != null && api.getProxy().getGroups() != null) {
+            Set<String> names = new HashSet<>();
             for (EndpointGroup group : api.getProxy().getGroups()) {
-                assertEndpointNameNotContainsInvalidCharacters(group.getName());
+                String endpointGroupName = group.getName();
+                assertEndpointNameNotContainsInvalidCharacters(endpointGroupName);
+                if (names.contains(endpointGroupName)) {
+                    throw new EndpointGroupNameAlreadyExistsException(endpointGroupName);
+                }
+                names.add(endpointGroupName);
                 if (group.getEndpoints() != null) {
                     for (Endpoint endpoint : group.getEndpoints()) {
-                        assertEndpointNameNotContainsInvalidCharacters(endpoint.getName());
+                        String endpointName = endpoint.getName();
+                        assertEndpointNameNotContainsInvalidCharacters(endpointName);
+                        if (names.contains(endpointName)) {
+                            throw new EndpointNameAlreadyExistsException(endpointName);
+                        }
+                        names.add(endpointName);
                     }
                 }
             }

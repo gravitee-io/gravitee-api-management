@@ -30,13 +30,13 @@ import { ApiEndpointGroupCreateComponent } from './api-endpoint-group-create.com
 import { ApiEndpointGroupCreateHarness } from './api-endpoint-group-create.harness';
 
 import { ApiEndpointGroupModule } from '../api-endpoint-group.module';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
 import { ApiV4, ConnectorPlugin, EndpointGroupV4, EndpointV4Default, fakeApiV4 } from '../../../../../entities/management-api-v2';
 import { fakeEndpointGroupV4 } from '../../../../../entities/management-api-v2/api/v4/endpointGroupV4.fixture';
 
 const API_ID = 'api-id';
 const ENDPOINT_GROUP_NAME = 'My Endpoint Group';
-const fakeKafkaSchema = {
+const fakeKafkaSharedSchema = {
   $schema: 'http://json-schema.org/draft-07/schema#',
   type: 'object',
   properties: {
@@ -54,6 +54,20 @@ const fakeRabbitMqSchema = {
   $schema: 'http://json-schema.org/draft-07/schema#',
   type: 'object',
   properties: {
+    server: {
+      title: 'Server',
+      type: 'string',
+      description: 'Server',
+    },
+  },
+  additionalProperties: false,
+  required: ['server'],
+};
+
+const fakeRabbitMqSharedSchema = {
+  $schema: 'http://json-schema.org/draft-07/schema#',
+  type: 'object',
+  properties: {
     rabbitFood: {
       title: 'Rabbit food',
       type: 'string',
@@ -64,7 +78,35 @@ const fakeRabbitMqSchema = {
   required: ['rabbitFood'],
 };
 
+const fakeKafkaSchema = {
+  $schema: 'http://json-schema.org/draft-07/schema#',
+  type: 'object',
+  properties: {
+    bootstrapServers: {
+      title: 'bootstrapServers',
+      type: 'string',
+      description: 'bootstrap servers',
+    },
+  },
+  additionalProperties: false,
+  required: ['bootstrapServers'],
+};
+
 const fakeHttpProxySchema = {
+  $schema: 'http://json-schema.org/draft-07/schema#',
+  type: 'object',
+  properties: {
+    target: {
+      title: 'Target',
+      type: 'string',
+      description: 'Target',
+    },
+  },
+  additionalProperties: false,
+  required: ['target'],
+};
+
+const fakeHttpProxySharedSchema = {
   $schema: 'http://json-schema.org/draft-07/schema#',
   type: 'object',
   properties: {
@@ -137,7 +179,7 @@ describe('ApiEndpointGroupCreateComponent', () => {
     api = testApi;
 
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiEndpointGroupModule, MatIconTestingModule, FormsModule],
+      imports: [NoopAnimationsModule, GioTestingModule, ApiEndpointGroupModule, MatIconTestingModule, FormsModule],
       providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: routerParams, queryParams } } }],
     }).overrideProvider(InteractivityChecker, {
       useValue: {
@@ -220,7 +262,7 @@ describe('ApiEndpointGroupCreateComponent', () => {
         expect(await harness.getConfigurationInputValue('topic')).toEqual('my-kafka-topic');
 
         expect(await harness.isConfigurationStepValid()).toEqual(true);
-        expect(await harness.canCreateEndpointGroup()).toEqual(true);
+        expect(await harness.canCreateEndpointGroup()).toEqual(false);
       });
     });
 
@@ -229,6 +271,7 @@ describe('ApiEndpointGroupCreateComponent', () => {
         await initComponent(fakeApiV4({ id: API_ID }));
         await fillOutAndValidateEndpointSelection();
         await fillOutAndValidateGeneralInformation();
+        await harness.setConfigurationInputValue('bootstrapServers', 'a new server');
         await harness.setConfigurationInputValue('topic', 'my-kafka-topic');
         expect(await harness.isConfigurationStepValid()).toEqual(true);
       });
@@ -238,7 +281,9 @@ describe('ApiEndpointGroupCreateComponent', () => {
           name: ENDPOINT_GROUP_NAME,
           type: 'kafka',
           loadBalancer: { type: 'ROUND_ROBIN' },
-          endpoints: [EndpointV4Default.byTypeAndGroupName('kafka', ENDPOINT_GROUP_NAME)],
+          endpoints: [
+            { ...EndpointV4Default.byTypeAndGroupName('kafka', ENDPOINT_GROUP_NAME), configuration: { bootstrapServers: 'a new server' } },
+          ],
           sharedConfiguration: {
             topic: 'my-kafka-topic',
           },
@@ -246,14 +291,17 @@ describe('ApiEndpointGroupCreateComponent', () => {
       });
 
       it('should show error in configuration after changing endpoint type to RabbitMQ', async () => {
-        await chooseEndpointTypeAndGoToConfiguration('rabbitmq', fakeRabbitMqSchema);
+        await chooseEndpointTypeAndGoToConfiguration('rabbitmq', fakeRabbitMqSchema, fakeRabbitMqSharedSchema);
+        await harness.setConfigurationInputValue('server', 'lettuce-server:8888');
         await harness.setConfigurationInputValue('rabbitFood', 'lettuce');
 
         await createEndpointGroup({
           name: ENDPOINT_GROUP_NAME,
           type: 'rabbitmq',
           loadBalancer: { type: 'ROUND_ROBIN' },
-          endpoints: [EndpointV4Default.byTypeAndGroupName('rabbitmq', ENDPOINT_GROUP_NAME)],
+          endpoints: [
+            { ...EndpointV4Default.byTypeAndGroupName('rabbitmq', ENDPOINT_GROUP_NAME), configuration: { server: 'lettuce-server:8888' } },
+          ],
           sharedConfiguration: {
             rabbitFood: 'lettuce',
           },
@@ -267,6 +315,7 @@ describe('ApiEndpointGroupCreateComponent', () => {
           type: 'mock',
           loadBalancer: { type: 'ROUND_ROBIN' },
           endpoints: [EndpointV4Default.byTypeAndGroupName('mock', ENDPOINT_GROUP_NAME)],
+          sharedConfiguration: {},
         });
       });
     });
@@ -286,12 +335,14 @@ describe('ApiEndpointGroupCreateComponent', () => {
           type: 'mock',
           loadBalancer: { type: 'ROUND_ROBIN' },
           endpoints: [EndpointV4Default.byTypeAndGroupName('mock', ENDPOINT_GROUP_NAME)],
+          sharedConfiguration: {},
         });
       });
 
       it('should invalidate configuration if user switches to Kafka endpoint type', async () => {
         await chooseEndpointTypeAndGoToConfiguration();
 
+        await harness.setConfigurationInputValue('bootstrapServers', 'bootstrap');
         await harness.setConfigurationInputValue('topic', 'my-kafka-topic');
         expect(await harness.isConfigurationStepValid()).toEqual(true);
 
@@ -299,7 +350,9 @@ describe('ApiEndpointGroupCreateComponent', () => {
           name: ENDPOINT_GROUP_NAME,
           type: 'kafka',
           loadBalancer: { type: 'ROUND_ROBIN' },
-          endpoints: [EndpointV4Default.byTypeAndGroupName('kafka', ENDPOINT_GROUP_NAME)],
+          endpoints: [
+            { ...EndpointV4Default.byTypeAndGroupName('kafka', ENDPOINT_GROUP_NAME), configuration: { bootstrapServers: 'bootstrap' } },
+          ],
           sharedConfiguration: {
             topic: 'my-kafka-topic',
           },
@@ -345,6 +398,7 @@ describe('ApiEndpointGroupCreateComponent', () => {
         await fillOutAndValidateEndpointSelection('kafka');
         await fillOutAndValidateGeneralInformation(endpointGroupName);
         await harness.setConfigurationInputValue('topic', 'my-kafka-topic');
+        await harness.setConfigurationInputValue('bootstrapServers', 'bootstrap');
         expect(await harness.isConfigurationStepValid()).toEqual(true);
       }
 
@@ -355,7 +409,10 @@ describe('ApiEndpointGroupCreateComponent', () => {
             name: 'dlq group',
             type: 'kafka',
             loadBalancer: { type: 'ROUND_ROBIN' },
-            endpoints: [EndpointV4Default.byTypeAndGroupName('kafka', 'dlq group')],
+
+            endpoints: [
+              { ...EndpointV4Default.byTypeAndGroupName('kafka', 'dlq group'), configuration: { bootstrapServers: 'bootstrap' } },
+            ],
             sharedConfiguration: {
               topic: 'my-kafka-topic',
             },
@@ -374,7 +431,9 @@ describe('ApiEndpointGroupCreateComponent', () => {
           name: ENDPOINT_GROUP_NAME,
           type: 'kafka',
           loadBalancer: { type: 'ROUND_ROBIN' },
-          endpoints: [EndpointV4Default.byTypeAndGroupName('kafka', ENDPOINT_GROUP_NAME)],
+          endpoints: [
+            { ...EndpointV4Default.byTypeAndGroupName('kafka', ENDPOINT_GROUP_NAME), configuration: { bootstrapServers: 'bootstrap' } },
+          ],
           sharedConfiguration: {
             topic: 'my-kafka-topic',
           },
@@ -386,7 +445,8 @@ describe('ApiEndpointGroupCreateComponent', () => {
   describe('V4 API - Proxy', () => {
     beforeEach(async () => {
       await initComponent(fakeApiV4({ id: API_ID, type: 'PROXY' }));
-      expectSchemaGet('http-proxy', fakeHttpProxySchema);
+      expectConfigurationSchemaGet('http-proxy', fakeHttpProxySchema);
+      expectSharedConfigurationSchemaGet('http-proxy', fakeHttpProxySharedSchema);
     });
 
     describe('Stepper', () => {
@@ -402,13 +462,16 @@ describe('ApiEndpointGroupCreateComponent', () => {
         await fillOutAndValidateGeneralInformation();
         expect(await harness.canCreateEndpointGroup()).toEqual(false);
         await harness.setConfigurationInputValue('proxyParam', 'my-proxy-param');
+        await harness.setConfigurationInputValue('target', 'http://target.gio');
         expect(await harness.isConfigurationStepValid()).toEqual(true);
 
         await createEndpointGroup({
           name: ENDPOINT_GROUP_NAME,
           type: 'http-proxy',
           loadBalancer: { type: 'ROUND_ROBIN' },
-          endpoints: [EndpointV4Default.byTypeAndGroupName('http-proxy', ENDPOINT_GROUP_NAME)],
+          endpoints: [
+            { ...EndpointV4Default.byTypeAndGroupName('http-proxy', ENDPOINT_GROUP_NAME), configuration: { target: 'http://target.gio' } },
+          ],
           sharedConfiguration: {
             proxyParam: 'my-proxy-param',
           },
@@ -424,7 +487,13 @@ describe('ApiEndpointGroupCreateComponent', () => {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
   }
 
-  function expectSchemaGet(endpointId = 'kafka', schema: any = fakeKafkaSchema): void {
+  function expectConfigurationSchemaGet(endpointId = 'kafka', schema: any = fakeKafkaSchema): void {
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/endpoints/${endpointId}/schema`, method: 'GET' })
+      .flush(schema);
+  }
+
+  function expectSharedConfigurationSchemaGet(endpointId = 'kafka', schema: any = fakeKafkaSharedSchema): void {
     httpTestingController
       .expectOne({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/endpoints/${endpointId}/shared-configuration-schema`, method: 'GET' })
       .flush(schema);
@@ -458,7 +527,8 @@ describe('ApiEndpointGroupCreateComponent', () => {
     expect(await harness.isEndpointGroupTypeStepSelected()).toEqual(true);
     await harness.selectEndpointGroup(type);
     if (type !== 'mock') {
-      expectSchemaGet(type);
+      expectConfigurationSchemaGet(type);
+      expectSharedConfigurationSchemaGet(type);
     }
     await harness.validateEndpointGroupSelection();
     expect(await harness.isEndpointGroupTypeStepSelected()).toEqual(false);
@@ -474,13 +544,18 @@ describe('ApiEndpointGroupCreateComponent', () => {
     expect(await isStepActive(harness.getConfigurationStep())).toEqual(true);
   }
 
-  async function chooseEndpointTypeAndGoToConfiguration(type = 'kafka', schema: any = fakeKafkaSchema): Promise<void> {
+  async function chooseEndpointTypeAndGoToConfiguration(
+    type = 'kafka',
+    schema: any = fakeKafkaSchema,
+    sharedSchema: any = fakeKafkaSharedSchema,
+  ): Promise<void> {
     // Choose endpoint type
     await harness.getEndpointGroupTypeStep().then((step) => step.select());
     await harness.selectEndpointGroup(type);
 
     if (type !== 'mock') {
-      expectSchemaGet(type, schema);
+      expectConfigurationSchemaGet(type, schema);
+      expectSharedConfigurationSchemaGet(type, sharedSchema);
     }
 
     // Go to configuration page

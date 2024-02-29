@@ -17,7 +17,6 @@ package io.gravitee.apim.core.documentation.crud_service;
 
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.model.PageRevision;
-import io.gravitee.repository.exceptions.TechnicalException;
 
 public interface PageRevisionCrudService {
     PageRevision create(Page page);

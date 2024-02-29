@@ -37,5 +37,5 @@ export class ApiDocumentationV4EmptyStateComponent implements OnDestroy {
 
   // expose constants
   readonly getLogoForPageType = getLogoForPageType;
-  pageTypes = [PageType.MARKDOWN, PageType.SWAGGER];
+  pageTypes = [PageType.MARKDOWN, PageType.SWAGGER, PageType.ASYNCAPI];
 }

@@ -17,7 +17,7 @@ const ApiCreationStep5Component: ng.IComponentOptions = {
   require: {
     parent: '^apiCreationV2ComponentAjs',
   },
-  template: require('html-loader!./api-creation-step5.html'),
+  template: require('html-loader!./api-creation-step5.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: [
     'Constants',
     function (Constants) {

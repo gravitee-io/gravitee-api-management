@@ -25,7 +25,7 @@ import { Constants } from '../entities/Constants';
   providedIn: 'root',
 })
 export class CategoryService {
-  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
+  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
 
   public list(): Observable<Category[]> {
     return this.http.get<Category[]>(`${this.constants.env.baseURL}/configuration/categories`);

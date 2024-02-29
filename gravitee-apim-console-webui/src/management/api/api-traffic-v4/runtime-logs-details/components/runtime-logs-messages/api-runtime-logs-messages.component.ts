@@ -20,6 +20,7 @@ import { BehaviorSubject, Observable, of, Subject } from 'rxjs';
 import { uniqBy } from 'lodash';
 import { MatTabChangeEvent } from '@angular/material/tabs';
 import { ActivatedRoute, Router } from '@angular/router';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { ApiLogsV2Service } from '../../../../../../services-ngx/api-logs-v2.service';
 import { AggregatedMessageLog, ConnectionLogDetail, ConnectorPlugin, ConnectorType } from '../../../../../../entities/management-api-v2';
@@ -47,6 +48,7 @@ export class ApiRuntimeLogsMessagesComponent implements OnInit, OnDestroy {
     private readonly apiLogsService: ApiLogsV2Service,
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
     private readonly iconService: IconService,
+    private readonly matSnackBar: MatSnackBar,
   ) {}
 
   public ngOnInit(): void {
@@ -66,7 +68,11 @@ export class ApiRuntimeLogsMessagesComponent implements OnInit, OnDestroy {
     return this.apiLogsService
       .searchConnectionLogDetail(this.activatedRoute.snapshot.params.apiId, this.activatedRoute.snapshot.params.requestId)
       .pipe(
-        catchError(() => {
+        catchError((err) => {
+          // normally 404 is intercepted by the HttpErrorInterceptor and displayed as a snack error, but on this page, it should be dismissed.
+          if (err.status === 404) {
+            this.matSnackBar.dismiss();
+          }
           return of(undefined);
         }),
         takeUntil(this.unsubscribe$),

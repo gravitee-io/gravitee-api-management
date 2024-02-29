@@ -20,9 +20,6 @@ import io.gravitee.apim.core.event.model.EventWithInitiator;
 import io.gravitee.apim.core.event.query_service.EventQueryService;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
-import io.gravitee.rest.api.model.common.Pageable;
-import io.gravitee.rest.api.model.common.PageableImpl;
-import java.util.List;
 import java.util.Optional;
 
 public class SearchEventUseCase {
@@ -36,34 +33,25 @@ public class SearchEventUseCase {
     }
 
     public Output execute(Input input) {
-        var query = input.query;
-        var pageable = input.pageable.orElse(new PageableImpl(1, 10));
-
-        var result = eventQueryService.search(query, pageable);
-        return new Output(toEventWithInitiator(result.events()), result.total());
+        return eventQueryService.findById(input.eventId).map(event -> new Output(toEventWithInitiator(event))).orElse(new Output());
     }
 
-    private List<EventWithInitiator> toEventWithInitiator(List<Event> events) {
-        return events
-            .stream()
-            .map(event -> {
-                var initiator = Optional
-                    .ofNullable(event.getProperties().get(Event.EventProperties.USER))
-                    .map(userId -> userCrudService.findBaseUserById(userId).orElse(BaseUserEntity.builder().id(userId).build()));
-                return new EventWithInitiator(event, initiator.orElse(null));
-            })
-            .toList();
+    private EventWithInitiator toEventWithInitiator(Event event) {
+        var initiator = Optional
+            .ofNullable(event.getProperties().get(Event.EventProperties.USER))
+            .map(userId -> userCrudService.findBaseUserById(userId).orElse(BaseUserEntity.builder().id(userId).build()));
+        return new EventWithInitiator(event, initiator.orElse(null));
     }
 
-    public record Input(EventQueryService.SearchQuery query, Optional<Pageable> pageable) {
-        public Input(EventQueryService.SearchQuery query) {
-            this(query, Optional.empty());
+    public record Input(String eventId) {}
+
+    public record Output(Optional<EventWithInitiator> apiEvent) {
+        Output(EventWithInitiator apiEvent) {
+            this(Optional.of(apiEvent));
         }
 
-        public Input(EventQueryService.SearchQuery query, Pageable pageable) {
-            this(query, Optional.of(pageable));
+        Output() {
+            this(Optional.empty());
         }
     }
-
-    public record Output(List<EventWithInitiator> data, long total) {}
 }

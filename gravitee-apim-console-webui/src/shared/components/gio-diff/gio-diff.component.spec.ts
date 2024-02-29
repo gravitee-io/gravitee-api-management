@@ -34,7 +34,7 @@ describe('GioDiffComponent', () => {
   let fixture: ComponentFixture<TestComponent>;
   let loader: HarnessLoader;
 
-  beforeEach(async () => {
+  beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [GioDiffModule],
       declarations: [TestComponent],

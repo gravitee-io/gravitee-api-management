@@ -26,7 +26,7 @@ export class WebuiLintTestJob {
   private static customParametersList = new parameters.CustomParametersList<CommandParameterLiteral>([
     new parameters.CustomParameter('apim-ui-project', 'string', '', 'the name of the UI project to build'),
     new parameters.CustomParameter('resource_class', 'string', 'medium', 'Resource class to use for executor'),
-    new parameters.CustomParameter('node_version', 'string', config.executor.node.version, 'Node version to use for executor'),
+    new parameters.CustomParameter('node_version', 'string', config.executor.node.console.version, 'Node version to use for executor'),
   ]);
 
   public static create(dynamicConfig: Config): Job {

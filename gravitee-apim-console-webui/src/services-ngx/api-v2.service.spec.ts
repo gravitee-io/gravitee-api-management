@@ -19,7 +19,7 @@ import { take } from 'rxjs/operators';
 
 import { ApiV2Service } from './api-v2.service';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import {
   ApiTransferOwnership,
   DuplicateApiOptions,
@@ -36,7 +36,7 @@ describe('ApiV2Service', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);

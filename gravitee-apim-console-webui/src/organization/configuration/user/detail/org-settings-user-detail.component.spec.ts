@@ -32,7 +32,7 @@ import { of } from 'rxjs';
 
 import { OrgSettingsUserDetailComponent } from './org-settings-user-detail.component';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { OrganizationSettingsModule } from '../../organization-settings.module';
 import { fakeUser } from '../../../../entities/user/user.fixture';
 import { Role } from '../../../../entities/role/role';
@@ -57,9 +57,9 @@ describe('OrgSettingsUserDetailComponent', () => {
   let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule, MatIconTestingModule],
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [NoopAnimationsModule, GioTestingModule, OrganizationSettingsModule, MatIconTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { userId: 'userId' } }, fragment: of('') } },
         {

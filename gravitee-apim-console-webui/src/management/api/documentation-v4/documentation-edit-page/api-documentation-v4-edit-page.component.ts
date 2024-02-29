@@ -21,7 +21,7 @@ import { GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-pa
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { CreateDocumentationMarkdown } from '../../../../entities/management-api-v2/documentation/createDocumentation';
+import { CreateDocumentation, CreateDocumentationType } from '../../../../entities/management-api-v2/documentation/createDocumentation';
 import { ApiDocumentationV2Service } from '../../../../services-ngx/api-documentation-v2.service';
 import { Breadcrumb, Page } from '../../../../entities/management-api-v2/documentation/page';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
@@ -119,7 +119,7 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
         next: (pagesResponse) => {
           this.breadcrumbs = pagesResponse.breadcrumb;
           this.existingNames = pagesResponse.pages
-            .filter((page) => page.id !== this.page?.id && page.type === 'MARKDOWN')
+            .filter((page) => page.id !== this.page?.id && page.type === this.pageType)
             .map((page) => page.name.toLowerCase().trim());
         },
       });
@@ -234,8 +234,13 @@ export class ApiDocumentationV4EditPageComponent implements OnInit, OnDestroy {
   }
 
   private createPage(): Observable<Page> {
-    const createPage: CreateDocumentationMarkdown = {
-      type: 'MARKDOWN',
+    // Only Markdown, Swagger, and AsyncAPI pages can be created
+    if (this.pageType !== 'MARKDOWN' && this.pageType !== 'SWAGGER' && this.pageType !== 'ASYNCAPI') {
+      this.snackBarService.error(`Cannot create page with type [${this.pageType}]`);
+      return;
+    }
+    const createPage: CreateDocumentation = {
+      type: this.pageType as CreateDocumentationType,
       name: this.form.getRawValue().stepOne.name,
       visibility: this.form.getRawValue().stepOne.visibility,
       content: this.form.getRawValue().content,

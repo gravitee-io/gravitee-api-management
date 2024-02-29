@@ -28,9 +28,10 @@ import { of } from 'rxjs';
 import { OrgSettingsNotificationTemplateComponent } from './org-settings-notification-template.component';
 
 import { OrganizationSettingsModule } from '../organization-settings.module';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { fakeAlertStatus } from '../../../entities/alerts/alertStatus.fixture';
 import { fakeNotificationTemplate } from '../../../entities/notification/notificationTemplate.fixture';
+import { Constants } from '../../../entities/Constants';
 
 describe('OrgSettingsNotificationTemplateComponent', () => {
   let fixture: ComponentFixture<OrgSettingsNotificationTemplateComponent>;
@@ -40,10 +41,10 @@ describe('OrgSettingsNotificationTemplateComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule],
+      imports: [NoopAnimationsModule, GioTestingModule, OrganizationSettingsModule],
       providers: [
         {
-          provide: 'Constants',
+          provide: Constants,
           useValue: CONSTANTS_TESTING,
         },
         {

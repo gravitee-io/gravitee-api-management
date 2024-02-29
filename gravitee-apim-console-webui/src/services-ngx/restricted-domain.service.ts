@@ -24,7 +24,7 @@ import { RestrictedDomain } from '../entities/restricted-domain/restrictedDomain
   providedIn: 'root',
 })
 export class RestrictedDomainService {
-  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
+  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
 
   get(): Observable<RestrictedDomain[]> {
     return this.http.get<RestrictedDomain[]>(`${this.constants.env.baseURL}/restrictedDomains`);

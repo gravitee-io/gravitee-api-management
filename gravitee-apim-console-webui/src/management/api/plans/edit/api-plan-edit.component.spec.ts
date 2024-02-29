@@ -26,7 +26,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApiPlanEditComponent } from './api-plan-edit.component';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { ApiPlansModule } from '../api-plans.module';
 import { fakeTag } from '../../../../entities/tag/tag.fixture';
 import { fakeGroup } from '../../../../entities/group/group.fixture';
@@ -44,6 +44,7 @@ import {
   PlanV2,
 } from '../../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
+import { Constants } from '../../../../entities/Constants';
 
 describe('ApiPlanEditComponent', () => {
   const API_ID = 'my-api';
@@ -55,7 +56,7 @@ describe('ApiPlanEditComponent', () => {
 
   const configureTestingModule = (planId: string = undefined) => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiPlansModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, ApiPlansModule, MatIconTestingModule],
       providers: [
         { provide: GioTestingPermissionProvider, useValue: ['api-plan-u'] },
         {
@@ -65,7 +66,7 @@ describe('ApiPlanEditComponent', () => {
           },
         },
         {
-          provide: 'Constants',
+          provide: Constants,
           useFactory: () => {
             const constants = CONSTANTS_TESTING;
             set(constants, 'env.settings.plan.security', {

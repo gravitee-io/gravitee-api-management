@@ -30,7 +30,7 @@ interface SearchParams {
   providedIn: 'root',
 })
 export class NotificationTemplateService {
-  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
+  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
 
   search(params?: SearchParams): Observable<NotificationTemplate[]> {
     const requestParams: { hook?: string; scope?: string } = {};

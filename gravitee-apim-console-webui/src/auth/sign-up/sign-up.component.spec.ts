@@ -26,7 +26,7 @@ import { MatSelectHarness } from '@angular/material/select/testing';
 import { SignUpModule } from './sign-up.module';
 import { SignUpComponent } from './sign-up.component';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../shared/testing';
 
 describe('SignUpComponent', () => {
   let fixture: ComponentFixture<SignUpComponent>;
@@ -35,7 +35,7 @@ describe('SignUpComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule, SignUpModule],
+      imports: [NoopAnimationsModule, GioTestingModule, MatIconTestingModule, SignUpModule],
     });
   });
 

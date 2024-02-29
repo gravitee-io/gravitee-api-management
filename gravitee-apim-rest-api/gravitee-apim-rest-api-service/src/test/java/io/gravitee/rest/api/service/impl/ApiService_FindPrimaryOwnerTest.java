@@ -478,6 +478,7 @@ public class ApiService_FindPrimaryOwnerTest {
     private void defineGroup(String groupId) {
         GroupEntity groupEntity = new GroupEntity();
         groupEntity.setId(groupId);
+        groupEntity.setPrimaryOwner(true);
         when(groupService.findById(GraviteeContext.getExecutionContext(), groupId)).thenReturn(groupEntity);
     }
 

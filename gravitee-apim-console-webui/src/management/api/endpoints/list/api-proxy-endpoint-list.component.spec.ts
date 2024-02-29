@@ -25,7 +25,7 @@ import { ActivatedRoute } from '@angular/router';
 import { ApiProxyEndpointListComponent } from './api-proxy-endpoint-list.component';
 import { ApiProxyEndpointListHarness } from './api-proxy-endpoint-list.harness';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { ApiEndpointsModule } from '../api-endpoints.module';
 import { ApiV2, fakeApiV2 } from '../../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
@@ -41,7 +41,7 @@ describe('ApiProxyEndpointListComponent', () => {
   const initComponent = async (api: ApiV2) => {
     TestBed.configureTestingModule({
       declarations: [ApiProxyEndpointListComponent],
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiEndpointsModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, ApiEndpointsModule, MatIconTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
         { provide: GioTestingPermissionProvider, useValue: ['api-definition-u', 'api-definition-r'] },
@@ -192,7 +192,7 @@ describe('ApiProxyEndpointListComponent', () => {
         .catch((error) =>
           expect(error.message).toEqual(
             'Failed to find element matching one of the following queries:\n' +
-              '(MatIconHarness with host element matching selector: ".mat-icon" satisfying the constraints: host matches selector "[mattooltip="Health check is enabled"]")',
+              '(_MatIconHarness with host element matching selector: ".mat-icon" satisfying the constraints: host matches selector "[mattooltip="Health check is enabled"]")',
           ),
         );
     });

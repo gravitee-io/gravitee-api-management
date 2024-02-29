@@ -29,7 +29,7 @@ import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { ApplicationGeneralTransferOwnershipComponent } from './application-general-transfer-ownership.component';
 
 import { ApplicationGeneralUserGroupModule } from '../application-general-user-group.module';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
 import { fakeMembers } from '../../../../../entities/members/Members.fixture';
 import { Role } from '../../../../../entities/role/role';
 import { fakeRole } from '../../../../../entities/role/role.fixture';
@@ -50,7 +50,7 @@ describe('ApplicationGeneralTransferOwnershipComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, ApplicationGeneralUserGroupModule, GioHttpTestingModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, ApplicationGeneralUserGroupModule, GioTestingModule, MatIconTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: { applicationId: APPLICATION_ID } },
         {

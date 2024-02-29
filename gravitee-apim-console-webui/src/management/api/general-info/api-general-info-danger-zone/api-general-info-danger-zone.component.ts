@@ -24,7 +24,7 @@ import {
   GioLicenseService,
   License,
 } from '@gravitee/ui-particles-angular';
-import { EMPTY, Observable, of, Subject } from 'rxjs';
+import { EMPTY, Observable, Subject } from 'rxjs';
 import { catchError, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -70,24 +70,7 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy, 
   public isReadOnly = false;
   public license$: Observable<License>;
   public isOEM$: Observable<boolean>;
-
-  public get shouldUpgrade$(): Observable<boolean> {
-    if (this.api.definitionVersion === 'V2') {
-      return of(false);
-    }
-    const api = this.api as ApiV4;
-    if (api.type === 'PROXY') {
-      return of(false);
-    }
-    return this.licenseService?.isMissingFeature$(this.licenseOptions);
-  }
-
-  public get canStart$(): Observable<boolean> {
-    if (this.isReadOnly) {
-      return of(false);
-    }
-    return this.shouldUpgrade$;
-  }
+  public shouldUpgrade: boolean;
 
   constructor(
     private readonly router: Router,
@@ -96,19 +79,27 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy, 
     private readonly apiService: ApiV2Service,
     private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,
-    @Inject('Constants') private readonly constants: Constants,
+    @Inject(Constants) private readonly constants: Constants,
     private readonly licenseService: GioLicenseService,
   ) {}
 
   ngOnInit(): void {
+    this.isReadOnly = this.api.definitionVersion === 'V1' || this.api.definitionContext?.origin === 'KUBERNETES';
+
     this.license$ = this.licenseService.getLicense$();
     this.isOEM$ = this.licenseService.isOEM$();
+
+    if (this.api.definitionVersion !== 'V4' || (this.api as ApiV4).type === 'PROXY') {
+      this.shouldUpgrade = false;
+    } else {
+      this.apiService.verifyDeploy(this.api.id).subscribe((resp) => {
+        this.shouldUpgrade = resp?.ok !== true;
+      });
+    }
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.api) {
-      this.isReadOnly = this.api.definitionVersion === 'V1' || this.api.definitionContext?.origin === 'KUBERNETES';
-
       this.dangerActions = {
         canAskForReview:
           this.constants.env?.settings?.apiReview?.enabled &&

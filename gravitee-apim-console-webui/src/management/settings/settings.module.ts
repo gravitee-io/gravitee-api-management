@@ -18,7 +18,7 @@ import { RouterModule } from '@angular/router';
 import { GioBreadcrumbModule, GioSubmenuModule } from '@gravitee/ui-particles-angular';
 import { CommonModule } from '@angular/common';
 
-import { SettingsRoutingModule } from './settings.route';
+import { SettingsRoutingModule } from './settings-routing.module';
 import { SettingsAnalyticsComponent } from './analytics/settings-analytics.component';
 import { SettingsNavigationComponent } from './settings-navigation/settings-navigation.component';
 import { SettingsAnalyticsDashboardComponent } from './analytics/dashboard/settings-analytics-dashboard.component';
@@ -41,6 +41,7 @@ import { DictionaryComponent } from './dictionaries/dictionary.component';
 import { CustomUserFieldsComponent } from './custom-user-fields/custom-user-fields.component';
 import { EnvironmentNotificationModule } from './notification/environment-notification.module';
 import { ApiQualityRulesNgModule } from './api-quality-rules-ng/api-quality-rules-ng.module';
+import { IdentityProvidersNgModule } from './identity-providers-ng/identity-providers-ng.module';
 
 import { DocumentationModule } from '../../components/documentation/documentation.module';
 
@@ -56,6 +57,7 @@ import { DocumentationModule } from '../../components/documentation/documentatio
     EnvironmentMetadataModule,
     ClientRegistrationProvidersModule,
     ApiLoggingModule,
+    IdentityProvidersNgModule,
     EnvironmentNotificationModule,
   ],
   declarations: [

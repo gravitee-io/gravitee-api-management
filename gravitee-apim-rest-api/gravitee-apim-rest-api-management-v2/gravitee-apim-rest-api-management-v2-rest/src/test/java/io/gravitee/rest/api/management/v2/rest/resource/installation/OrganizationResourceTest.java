@@ -100,6 +100,7 @@ public class OrganizationResourceTest extends AbstractResourceTest {
             when(license.getFeatures()).thenReturn(Set.of("apim-reporter-datadog"));
             when(license.getExpirationDate()).thenReturn(nowDate);
             when(license.getReferenceType()).thenReturn("PLATFORM");
+            when(license.isExpired()).thenReturn(true);
 
             var response = rootTarget(ORGANIZATION).path("license").request().get();
             assertThat(response.getStatus()).isEqualTo(HttpStatusCode.OK_200);
@@ -111,6 +112,7 @@ public class OrganizationResourceTest extends AbstractResourceTest {
             assertThat(graviteeLicense.getFeatures()).containsExactly("apim-reporter-datadog");
             assertThat(graviteeLicense.getExpiresAt().toInstant().toEpochMilli()).isEqualTo(now.toEpochMilli());
             assertThat(graviteeLicense.getScope()).isEqualTo("PLATFORM");
+            assertThat(graviteeLicense.getIsExpired()).isEqualTo(true);
         }
 
         @Test

@@ -15,11 +15,10 @@
  */
 import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { ProviderToken } from '@angular/core';
 
 import { ConsoleSettingsService } from './console-settings.service';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { ConsoleSettings } from '../entities/consoleSettings';
 import { Constants } from '../entities/Constants';
 
@@ -29,7 +28,7 @@ describe('ConsoleSettingsService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);
@@ -61,7 +60,7 @@ describe('ConsoleSettingsService', () => {
           css: 'hello.css',
         },
       };
-      const constants = TestBed.inject('Constants' as unknown as ProviderToken<Constants>);
+      const constants = TestBed.inject(Constants);
 
       consoleSettingsService.save(consoleSettingsPayload).subscribe(() => {
         expect(constants.org.settings).toEqual(newConsoleSettings());

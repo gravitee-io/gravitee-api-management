@@ -24,7 +24,7 @@ import { Installation } from '../entities/installation/installation';
   providedIn: 'root',
 })
 export class InstallationService {
-  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
+  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
 
   get(): Observable<Installation> {
     return this.http.get<Installation>(`${this.constants.org.baseURL}/installation`);

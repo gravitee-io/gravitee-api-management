@@ -30,7 +30,7 @@ export class ApiV4MenuService implements ApiMenuService {
   constructor(
     private readonly permissionService: GioPermissionService,
     private readonly gioLicenseService: GioLicenseService,
-    @Inject('Constants') private readonly constants: Constants,
+    @Inject(Constants) private readonly constants: Constants,
   ) {}
   public getMenu(api: ApiV4): {
     subMenuItems: MenuItem[];
@@ -56,7 +56,9 @@ export class ApiV4MenuService implements ApiMenuService {
 
   private addConfigurationMenuEntry(): MenuItem {
     const license = { feature: ApimFeature.APIM_AUDIT_TRAIL, context: UTMTags.CONTEXT_API };
-    const iconRight$ = this.gioLicenseService.isMissingFeature$(license).pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : null)));
+    const iconRight$ = this.gioLicenseService
+      .isMissingFeature$(license.feature)
+      .pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : null)));
 
     const tabs: MenuItem[] = [
       {
@@ -92,6 +94,13 @@ export class ApiV4MenuService implements ApiMenuService {
         displayName: 'Notifications',
         routerLink: 'notifications',
         routerLinkActiveOptions: { exact: true },
+      });
+    }
+
+    if (this.permissionService.hasAnyMatching(['api-event-r'])) {
+      tabs.push({
+        displayName: 'Version History',
+        routerLink: 'v4/history',
       });
     }
 
@@ -197,7 +206,7 @@ export class ApiV4MenuService implements ApiMenuService {
       });
     }
 
-    tabs.push({ displayName: 'Broadcasts', routerLink: 'DISABLED' });
+    tabs.push({ displayName: 'Broadcasts', routerLink: 'messages' });
     return {
       displayName: 'Consumers',
       icon: 'cloud-consumers',
@@ -248,13 +257,6 @@ export class ApiV4MenuService implements ApiMenuService {
       tabs.push({
         displayName: 'Configuration',
         routerLink: 'deployments',
-      });
-    }
-
-    if (this.permissionService.hasAnyMatching(['api-event-r'])) {
-      tabs.push({
-        displayName: 'Version History',
-        routerLink: 'DISABLED',
       });
     }
 

@@ -17,7 +17,7 @@
 import ApiV1PoliciesControllerAjs from './policies.controller.ajs';
 
 export const ApiV1PoliciesComponentAjs = {
-  template: require('html-loader!./apiPolicies.html'),
+  template: require('html-loader!./apiPolicies.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: ApiV1PoliciesControllerAjs,
   bindings: {
     api: '<',

@@ -25,7 +25,7 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { GioUsersSelectorModule } from './gio-users-selector.module';
 import { GioUsersSelectorComponent } from './gio-users-selector.component';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../testing';
 import { fakeSearchableUser } from '../../../entities/user/searchableUser.fixture';
 import { SearchableUser } from '../../../entities/user/searchableUser';
 
@@ -44,7 +44,7 @@ describe('GioUsersSelectorComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, GioUsersSelectorModule],
+      imports: [NoopAnimationsModule, GioTestingModule, GioUsersSelectorModule],
       providers: [
         {
           provide: MAT_DIALOG_DATA,

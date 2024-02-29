@@ -29,7 +29,7 @@ import { ActivatedRoute } from '@angular/router';
 
 import { ApiV4PolicyStudioDesignComponent } from './api-v4-policy-studio-design.component';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { ApiV4PolicyStudioModule } from '../api-v4-policy-studio.module';
 import {
   Api,
@@ -55,7 +55,7 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiV4PolicyStudioModule, MatIconTestingModule, GioLicenseTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, ApiV4PolicyStudioModule, MatIconTestingModule, GioLicenseTestingModule],
       providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } }],
     })
       .overrideProvider(InteractivityChecker, {

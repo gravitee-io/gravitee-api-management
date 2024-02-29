@@ -9,6 +9,29 @@
     "id": "group",
     "type": "GROUP"
   },
+  "members": [
+    {
+      "source": "source",
+      "sourceId": "ref-admin",
+      "roles": [
+        "API_PRIMARY_OWNER"
+      ]
+    },
+    {
+      "source": "source",
+      "sourceId": "ref-user",
+      "roles": [
+        "API_OWNER"
+      ]
+    },
+    {
+      "source": "source",
+      "sourceId": "ref-user",
+      "roles": [
+        "UNEXISTING_ROLE"
+      ]
+    }
+  ],
   "proxy": {
     "context_path": "/test",
     "endpoints": [

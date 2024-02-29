@@ -37,7 +37,7 @@ export interface ContextPathValidatorParams {
   providedIn: 'root',
 })
 export class ApiService {
-  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
+  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
 
   get(apiId: string): Observable<Api> {
     return this.http.get<Api>(`${this.constants.env.baseURL}/apis/${apiId}`);

@@ -27,7 +27,7 @@ import { ApplicationMetadataComponent } from './application-metadata.component';
 import { ApplicationMetadataModule } from './application-metadata.module';
 
 import { GioMetadataHarness } from '../../../../components/gio-metadata/gio-metadata.harness';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { fakeMetadata } from '../../../../entities/metadata/metadata.fixture';
 import { Metadata } from '../../../../entities/metadata/metadata';
 import { GioMetadataDialogHarness } from '../../../../components/gio-metadata/dialog/gio-metadata-dialog.harness';
@@ -50,7 +50,7 @@ describe('ApplicationMetadataComponent', () => {
           useValue: ['application-metadata-u', 'application-metadata-d', 'application-metadata-c'],
         },
       ],
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApplicationMetadataModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, ApplicationMetadataModule, MatIconTestingModule],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {

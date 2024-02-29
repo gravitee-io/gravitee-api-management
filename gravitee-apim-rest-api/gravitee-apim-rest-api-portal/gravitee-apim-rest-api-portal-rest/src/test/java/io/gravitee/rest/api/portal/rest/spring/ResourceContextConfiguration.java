@@ -28,6 +28,7 @@ import io.gravitee.apim.core.api.domain_service.DeployApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.query_service.ApiEventQueryService;
+import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
 import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
@@ -534,5 +535,10 @@ public class ResourceContextConfiguration {
     @Bean
     public ApiMetadataDecoderDomainService apiMetadataDecoderDomainService() {
         return mock(ApiMetadataDecoderDomainService.class);
+    }
+
+    @Bean
+    public ApiMetadataQueryService apiMetadataQueryService() {
+        return mock(ApiMetadataQueryService.class);
     }
 }

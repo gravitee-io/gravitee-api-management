@@ -17,7 +17,7 @@
 import ApiV1PropertiesControllerAjs from './properties.controller.ajs';
 
 export const ApiV1PropertiesComponentAjs = {
-  template: require('html-loader!./properties.html'),
+  template: require('html-loader!./properties.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: ApiV1PropertiesControllerAjs,
   bindings: {
     resolvedApi: '<',

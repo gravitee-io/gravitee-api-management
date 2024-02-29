@@ -17,6 +17,7 @@
 import { Component, Input } from '@angular/core';
 
 import { EndpointGroupHealthCheckFormType } from '../../endpoints-v4/endpoint-group/api-endpoint-group.component';
+import { EndpointHealthCheckFormType } from '../../endpoints-v4/endpoint/api-endpoint.component';
 
 @Component({
   selector: 'api-health-check-v4-form',
@@ -24,7 +25,7 @@ import { EndpointGroupHealthCheckFormType } from '../../endpoints-v4/endpoint-gr
   styleUrls: ['./api-health-check-v4-form.component.scss'],
 })
 export class ApiHealthCheckV4FormComponent {
-  @Input() healthCheckForm: EndpointGroupHealthCheckFormType;
+  @Input() healthCheckForm: EndpointGroupHealthCheckFormType | EndpointHealthCheckFormType;
   @Input() healthCheckSchema: unknown;
 
   public static readonly HTTP_HEALTH_CHECK = 'http-health-check';

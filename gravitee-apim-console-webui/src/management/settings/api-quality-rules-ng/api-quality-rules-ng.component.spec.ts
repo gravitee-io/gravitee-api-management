@@ -31,7 +31,7 @@ import { MatTableHarness } from '@angular/material/table/testing';
 import { ApiQualityRulesNgComponent } from './api-quality-rules-ng.component';
 import { ApiQualityRulesNgModule } from './api-quality-rules-ng.module';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 import { QualityRule } from '../../../entities/qualityRule';
 
@@ -60,7 +60,7 @@ describe('ApiQualityRulesNgComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiQualityRulesNgModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, ApiQualityRulesNgModule, MatIconTestingModule],
       providers: [
         {
           provide: GioTestingPermissionProvider,
@@ -131,7 +131,7 @@ describe('ApiQualityRulesNgComponent', () => {
           technicalDocumentationWeight: 500,
         },
         apiReview: {
-          enabled: true,
+          enabled: false,
         },
       });
     });

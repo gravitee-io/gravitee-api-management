@@ -17,12 +17,15 @@ package io.gravitee.apim.infra.query_service.event;
 
 import io.gravitee.apim.core.event.query_service.EventQueryService;
 import io.gravitee.apim.infra.adapter.EventAdapter;
+import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
 import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Event;
 import io.gravitee.repository.management.model.EventType;
 import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.Optional;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -51,5 +54,14 @@ public class EventQueryServiceImpl implements EventQueryService {
         );
 
         return new SearchResponse(result.getTotalElements(), result.getContent().stream().map(EventAdapter.INSTANCE::map).toList());
+    }
+
+    @Override
+    public Optional<io.gravitee.apim.core.event.model.Event> findById(String eventId) {
+        try {
+            return eventRepository.findById(eventId).map(EventAdapter.INSTANCE::map);
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException("An error occurs while trying to find API event by id: " + eventId, e);
+        }
     }
 }

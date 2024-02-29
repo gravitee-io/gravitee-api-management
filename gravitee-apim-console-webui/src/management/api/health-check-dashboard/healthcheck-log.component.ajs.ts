@@ -17,7 +17,7 @@
 import ApiHealthcheckLogControllerAjs from './healthcheck-log.controller.ajs';
 
 export const ApiHealthcheckLogComponentAjs = {
-  template: require('html-loader!./healthcheck-log.html'),
+  template: require('html-loader!./healthcheck-log.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: ApiHealthcheckLogControllerAjs,
   bindings: {
     activatedRoute: '<',

@@ -18,6 +18,7 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ActivatedRoute, Router } from '@angular/router';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ApiRuntimeLogsProxyComponent } from './api-runtime-logs-proxy.component';
 import { ApiRuntimeLogsProxyHarness } from './api-runtime-logs-proxy.harness';
@@ -29,7 +30,7 @@ import {
   fakeConnectionLogDetailRequest,
   fakeConnectionLogDetailResponse,
 } from '../../../../../../entities/management-api-v2';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../../shared/testing';
 
 describe('ApiRuntimeLogsProxyComponent', () => {
   const API_ID = 'an-api-id';
@@ -42,7 +43,7 @@ describe('ApiRuntimeLogsProxyComponent', () => {
 
   const initComponent = async () => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, ApiRuntimeLogsProxyModule, GioHttpTestingModule],
+      imports: [NoopAnimationsModule, ApiRuntimeLogsProxyModule, GioTestingModule, MatSnackBarModule],
       providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID, requestId: REQUEST_ID } } } }],
     });
 

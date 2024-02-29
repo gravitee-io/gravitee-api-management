@@ -85,6 +85,6 @@ export const EditLinkContentComponent: ng.IComponentOptions = {
     pageList: '<',
     systemFoldersById: '<',
   },
-  template: require('html-loader!./edit-link-content.html'),
+  template: require('html-loader!./edit-link-content.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: EditLinkContentComponentController,
 };

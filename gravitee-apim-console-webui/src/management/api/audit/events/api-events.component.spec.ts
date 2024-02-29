@@ -25,7 +25,7 @@ import { ActivatedRoute } from '@angular/router';
 import { ApiEventsComponent } from './api-events.component';
 import { ApiEventsModule } from './api-events.module';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { fakeEvent } from '../../../../entities/event/event.fixture';
 import { Event } from '../../../../entities/event/event';
 
@@ -38,7 +38,7 @@ describe('ApiNgEventsComponent', () => {
 
   const init = async () => {
     await TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule, ApiEventsModule],
+      imports: [NoopAnimationsModule, GioTestingModule, MatIconTestingModule, ApiEventsModule],
       providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } }],
     }).compileComponents();
   };

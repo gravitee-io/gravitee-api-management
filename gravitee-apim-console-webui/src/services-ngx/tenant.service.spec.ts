@@ -18,7 +18,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { TenantService } from './tenant.service';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { fakeTenant } from '../entities/tenant/tenant.fixture';
 import { fakeNewTenant } from '../entities/tenant/newTenant.fixture';
 
@@ -28,7 +28,7 @@ describe('TenantService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);

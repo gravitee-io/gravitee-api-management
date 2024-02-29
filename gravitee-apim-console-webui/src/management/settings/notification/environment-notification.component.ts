@@ -75,7 +75,7 @@ export class EnvironmentNotificationComponent implements OnInit, OnDestroy {
   );
 
   constructor(
-    @Inject('Constants') private constants: Constants,
+    @Inject(Constants) private constants: Constants,
     private readonly notificationService: EnvironmentNotificationSettingsService,
     private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,

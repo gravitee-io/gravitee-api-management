@@ -28,7 +28,7 @@ import { ActivatedRoute } from '@angular/router';
 import { ApiGeneralMembersComponent } from './api-general-members.component';
 import { ApiGeneralMembersHarness } from './api-general-members.harness';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { ApiUserGroupModule } from '../api-user-group.module';
 import { RoleService } from '../../../../services-ngx/role.service';
 import { Role } from '../../../../entities/role/role';
@@ -51,7 +51,7 @@ describe('ApiGeneralMembersComponent', () => {
 
   beforeEach(async () => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule, ApiUserGroupModule],
+      imports: [NoopAnimationsModule, GioTestingModule, MatIconTestingModule, ApiUserGroupModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId } } } },
         { provide: RoleService, useValue: { list: () => of(roles) } },

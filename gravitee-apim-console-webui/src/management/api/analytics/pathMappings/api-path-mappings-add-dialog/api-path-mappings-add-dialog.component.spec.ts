@@ -27,7 +27,7 @@ import { MatRadioGroupHarness } from '@angular/material/radio/testing';
 import { ApiPathMappingsAddDialogComponent } from './api-path-mappings-add-dialog.component';
 
 import { ApiPathMappingsModule } from '../api-path-mappings.module';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
 import { ApiV2, fakeApiV2 } from '../../../../../entities/management-api-v2';
 
 describe('ApiPathMappingsEditDialogComponent', () => {
@@ -43,7 +43,7 @@ describe('ApiPathMappingsEditDialogComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiPathMappingsModule],
+      imports: [NoopAnimationsModule, GioTestingModule, ApiPathMappingsModule],
       providers: [
         {
           provide: MAT_DIALOG_DATA,

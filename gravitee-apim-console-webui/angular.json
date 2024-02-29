@@ -125,7 +125,7 @@
                 {
                   "type": "initial",
                   "maximumWarning": "500kb",
-                  "maximumError": "14mb"
+                  "maximumError": "15mb"
                 },
                 {
                   "type": "anyComponentStyle",
@@ -157,7 +157,8 @@
           "options": {
             "proxyConfig": "proxy.conf.mjs",
             "browserTarget": "apim-console:build",
-            "disableHostCheck": true
+            "disableHostCheck": true,
+            "port": 4000
           },
           "configurations": {
             "production": {

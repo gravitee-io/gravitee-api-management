@@ -26,7 +26,7 @@ import { ActivatedRoute } from '@angular/router';
 import { ApiResourcesComponent } from './api-resources.component';
 import { ApiResourcesModule } from './api-resources.module';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { fakeResourceListItem } from '../../../entities/resource/resourceListItem.fixture';
 import { ApiV4, fakeApiV4 } from '../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
@@ -45,7 +45,7 @@ describe('PolicyStudioResourcesComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiResourcesModule, MatDialogModule, GioLicenseTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, ApiResourcesModule, MatDialogModule, GioLicenseTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
         {

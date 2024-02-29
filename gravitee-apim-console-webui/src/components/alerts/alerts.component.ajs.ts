@@ -26,7 +26,7 @@ const AlertsComponentAjs: ng.IComponentOptions = {
     alerts: '<',
     reload: '&',
   },
-  template: require('html-loader!./alerts.html'),
+  template: require('html-loader!./alerts.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: [
     'ngRouter',
     'AlertService',
@@ -45,7 +45,7 @@ const AlertsComponentAjs: ng.IComponentOptions = {
           .show({
             controller: 'DialogConfirmController',
             controllerAs: 'ctrl',
-            template: require('html-loader!../../components/dialog/confirmWarning.dialog.html'),
+            template: require('html-loader!../../components/dialog/confirmWarning.dialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
             clickOutsideToClose: true,
             locals: {
               title: `Are you sure you want to delete the alert '${alert.name}'?`,

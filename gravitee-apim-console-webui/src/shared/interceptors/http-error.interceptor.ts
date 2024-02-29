@@ -23,7 +23,7 @@ import { Constants } from '../../entities/Constants';
 
 @Injectable()
 export class HttpErrorInterceptor implements HttpInterceptor {
-  constructor(private readonly snackBarService: SnackBarService, @Inject('Constants') private readonly constants: Constants) {}
+  constructor(private readonly snackBarService: SnackBarService, @Inject(Constants) private readonly constants: Constants) {}
   intercept(req: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
     if (this.constants.org?.baseURL && req.url.startsWith(`${this.constants.org.baseURL}/user`)) {
       return next.handle(req);

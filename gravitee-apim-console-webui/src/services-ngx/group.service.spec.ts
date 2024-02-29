@@ -18,7 +18,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { GroupService } from './group.service';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { fakeGroup } from '../entities/group/group.fixture';
 import { GroupMembership } from '../entities/group/groupMember';
 import { fakeGroupMembership } from '../entities/group/groupMember.fixture';
@@ -29,7 +29,7 @@ describe('GroupService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);

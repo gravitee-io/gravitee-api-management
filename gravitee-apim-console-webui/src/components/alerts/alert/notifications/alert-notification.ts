@@ -25,7 +25,7 @@ const AlertNotificationComponent: ng.IComponentOptions = {
   require: {
     parent: '^gvAlertNotifications',
   },
-  template: require('html-loader!./alert-notification.html'),
+  template: require('html-loader!./alert-notification.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: [
     'NotificationService',
     'NotifierService',

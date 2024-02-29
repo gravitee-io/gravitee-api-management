@@ -31,7 +31,7 @@ const IdentityProvidersComponentAjs: ng.IComponentOptions = {
     activatedRoute: '<',
     ngRouter: '<',
   },
-  template: require('html-loader!./identity-providers.html'),
+  template: require('html-loader!./identity-providers.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: [
     'IdentityProviderService',
     'EnvironmentService',

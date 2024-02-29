@@ -29,7 +29,7 @@ import { ActivatedRoute } from '@angular/router';
 import { ApiHealthCheckComponent } from './api-health-check.component';
 import { ApiHealthCheckModule } from './api-health-check.module';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { ApiV2, fakeApiV2 } from '../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 
@@ -42,7 +42,7 @@ describe('ApiProxyHealthCheckComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiHealthCheckModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, ApiHealthCheckModule, MatIconTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
         { provide: GioTestingPermissionProvider, useValue: ['api-health-c'] },

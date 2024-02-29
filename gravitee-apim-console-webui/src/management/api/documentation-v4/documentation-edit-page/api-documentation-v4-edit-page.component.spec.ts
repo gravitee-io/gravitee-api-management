@@ -32,7 +32,7 @@ import { ApiDocumentationV4EditPageHarness } from './api-documentation-v4-edit-p
 import { ApiDocumentationV4EditPageComponent } from './api-documentation-v4-edit-page.component';
 
 import { ApiDocumentationV4Module } from '../api-documentation-v4.module';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { Breadcrumb, Page } from '../../../../entities/management-api-v2/documentation/page';
 import { ApiDocumentationV4ContentEditorHarness } from '../components/api-documentation-v4-content-editor/api-documentation-v4-content-editor.harness';
 import { ApiDocumentationV4BreadcrumbHarness } from '../components/api-documentation-v4-breadcrumb/api-documentation-v4-breadcrumb.harness';
@@ -41,6 +41,7 @@ import { ApiDocumentationV4PageTitleHarness } from '../components/api-documentat
 import { fakeApiV4 } from '../../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { ApiDocumentationV4FileUploadHarness } from '../components/api-documentation-v4-file-upload/api-documentation-v4-file-upload.harness';
+import { Constants } from '../../../../entities/Constants';
 
 interface InitInput {
   pages?: Page[];
@@ -64,7 +65,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
   ) => {
     await TestBed.configureTestingModule({
       declarations: [ApiDocumentationV4EditPageComponent],
-      imports: [NoopAnimationsModule, ApiDocumentationV4Module, MatIconTestingModule, FormsModule, GioHttpTestingModule],
+      imports: [NoopAnimationsModule, ApiDocumentationV4Module, MatIconTestingModule, FormsModule, GioTestingModule],
       providers: [
         {
           provide: ActivatedRoute,
@@ -72,7 +73,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
         },
         { provide: GioTestingPermissionProvider, useValue: apiPermissions },
         {
-          provide: 'Constants',
+          provide: Constants,
           useFactory: () => {
             const constants = CONSTANTS_TESTING;
             set(constants, 'env.settings.portal', {

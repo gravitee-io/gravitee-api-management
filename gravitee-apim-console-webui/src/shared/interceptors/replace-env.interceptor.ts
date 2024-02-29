@@ -21,7 +21,7 @@ import { Constants } from '../../entities/Constants';
 
 @Injectable()
 export class ReplaceEnvInterceptor implements HttpInterceptor {
-  constructor(@Inject('Constants') private readonly constants: Constants) {}
+  constructor(@Inject(Constants) private readonly constants: Constants) {}
 
   intercept(req: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
     if (req.url.indexOf('{:envId}') === -1) {

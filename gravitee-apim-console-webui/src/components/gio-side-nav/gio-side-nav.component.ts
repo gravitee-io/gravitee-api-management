@@ -57,7 +57,7 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
 
   constructor(
     private readonly permissionService: GioPermissionService,
-    @Inject('Constants') private readonly constants: Constants,
+    @Inject(Constants) private readonly constants: Constants,
     private readonly gioLicenseService: GioLicenseService,
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
@@ -219,7 +219,7 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
   }
 
   private getMenuItemIconRight$(licenseOptions: LicenseOptions) {
-    return this.gioLicenseService.isMissingFeature$(licenseOptions).pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : null)));
+    return this.gioLicenseService.isMissingFeature$(licenseOptions.feature).pipe(map((notAllowed) => (notAllowed ? 'gio:lock' : null)));
   }
 
   private buildFooterMenuItems(): MenuItem[] {

@@ -31,7 +31,7 @@ import { ActivatedRoute } from '@angular/router';
 import { ApiSubscriptionEditComponent } from './api-subscription-edit.component';
 import { ApiSubscriptionEditHarness } from './api-subscription-edit.harness';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { ApiSubscriptionsModule } from '../api-subscriptions.module';
 import {
   AcceptSubscription,
@@ -49,6 +49,7 @@ import { ApiKeyValidationHarness } from '../components/api-key-validation/api-ke
 import { ApiKey, fakeApiKey } from '../../../../entities/management-api-v2/api-key';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { ApiPortalSubscriptionValidateDialogHarness } from '../components/dialogs/validate/api-portal-subscription-validate-dialog.harness';
+import { Constants } from '../../../../entities/Constants';
 
 const SUBSCRIPTION_ID = 'my-nice-subscription';
 const API_ID = 'api_1';
@@ -79,10 +80,10 @@ describe('ApiSubscriptionEditComponent', () => {
 
   const init = async () => {
     await TestBed.configureTestingModule({
-      imports: [ApiSubscriptionsModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
+      imports: [ApiSubscriptionsModule, NoopAnimationsModule, GioTestingModule, MatIconTestingModule],
       providers: [
         { provide: GioTestingPermissionProvider, useValue: ['api-subscription-u', 'api-subscription-r', 'api-subscription-d'] },
-        { provide: 'Constants', useValue: CONSTANTS_TESTING },
+        { provide: Constants, useValue: CONSTANTS_TESTING },
         {
           provide: InteractivityChecker,
           useValue: {
@@ -1048,7 +1049,7 @@ describe('ApiSubscriptionEditComponent', () => {
       useValue: { snapshot: { params: { apiId: API_ID, subscriptionId: SUBSCRIPTION_ID } } },
     })
       .overrideProvider(GioTestingPermissionProvider, { useValue: permissions })
-      .overrideProvider('Constants', {
+      .overrideProvider(Constants, {
         useFactory: () => {
           const constants = { ...CONSTANTS_TESTING };
           set(constants, 'env.settings.plan.security', {

@@ -17,7 +17,7 @@ const ApplicationCreationStep2Component: ng.IComponentOptions = {
   require: {
     parent: '^createApplication',
   },
-  template: require('html-loader!./application-creation-step2.html'),
+  template: require('html-loader!./application-creation-step2.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: 'ApplicationCreationStep2Controller',
 };
 

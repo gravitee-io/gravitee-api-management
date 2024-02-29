@@ -30,7 +30,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 
 import { OrgSettingsGeneralComponent } from './org-settings-general.component';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { OrganizationSettingsModule } from '../organization-settings.module';
 import { ConsoleSettings } from '../../../entities/consoleSettings';
 
@@ -41,9 +41,9 @@ describe('ConsoleSettingsComponent', () => {
 
   let httpTestingController: HttpTestingController;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule, MatIconTestingModule],
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [NoopAnimationsModule, GioTestingModule, OrganizationSettingsModule, MatIconTestingModule],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {

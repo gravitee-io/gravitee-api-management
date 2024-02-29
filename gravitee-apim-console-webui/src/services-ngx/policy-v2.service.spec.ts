@@ -18,7 +18,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { PolicyV2Service } from './policy-v2.service';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { fakePoliciesPlugin } from '../entities/management-api-v2';
 
 describe('PolicyV2Service', () => {
@@ -27,7 +27,7 @@ describe('PolicyV2Service', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);

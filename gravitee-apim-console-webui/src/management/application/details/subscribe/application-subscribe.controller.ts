@@ -169,7 +169,7 @@ class ApplicationSubscribeController {
     const dialog = {
       controller: 'ApiKeyModeChoiceDialogController',
       controllerAs: '$ctrl',
-      template: require('html-loader!/src/components/dialog/apiKeyMode/api-key-mode-choice.dialog.html'),
+      template: require('html-loader!/src/components/dialog/apiKeyMode/api-key-mode-choice.dialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
       clickOutsideToClose: true,
     };
 

@@ -29,7 +29,7 @@ import { ActivatedRoute } from '@angular/router';
 import { ApiPathMappingsComponent } from './api-path-mappings.component';
 import { ApiPathMappingsModule } from './api-path-mappings.module';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { Page } from '../../../../entities/page';
 import { ApiV2, fakeApiV2 } from '../../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
@@ -44,7 +44,7 @@ describe('ApiPathMappingsComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiPathMappingsModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, ApiPathMappingsModule, MatIconTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
         {

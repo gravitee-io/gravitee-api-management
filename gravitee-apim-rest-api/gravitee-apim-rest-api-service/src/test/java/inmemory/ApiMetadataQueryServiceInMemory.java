@@ -21,13 +21,12 @@ import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.metadata.model.Metadata;
 import io.gravitee.apim.infra.adapter.MetadataAdapter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import io.gravitee.repository.management.model.MetadataReferenceType;
+import io.gravitee.rest.api.model.MetadataFormat;
+import java.util.*;
 import java.util.function.Function;
 
-public class ApiMetadataQueryServiceInMemory implements ApiMetadataQueryService, InMemoryAlternative<ApiMetadata> {
+public class ApiMetadataQueryServiceInMemory implements ApiMetadataQueryService, InMemoryAlternative<Metadata> {
 
     final List<Metadata> storage;
 
@@ -41,14 +40,57 @@ public class ApiMetadataQueryServiceInMemory implements ApiMetadataQueryService,
 
     @Override
     public Map<String, ApiMetadata> findApiMetadata(String apiId) {
-        return storage
+        Map<String, ApiMetadata> apiMetadata = storage
             .stream()
-            .filter(metadata -> metadata.getReferenceId().equals(apiId))
-            .collect(toMap(Metadata::getKey, MetadataAdapter.INSTANCE::toApiMetadata));
+            .filter(metadata ->
+                Objects.equals(metadata.getReferenceId(), "_") && Metadata.ReferenceType.DEFAULT.equals(metadata.getReferenceType())
+            )
+            .map(m ->
+                ApiMetadata
+                    .builder()
+                    .key(m.getKey())
+                    .name(m.getName())
+                    .defaultValue(m.getValue())
+                    .format(MetadataFormat.valueOf(m.getFormat().name()))
+                    .build()
+            )
+            .collect(toMap(ApiMetadata::getKey, Function.identity()));
+
+        storage
+            .stream()
+            .filter(metadata ->
+                Objects.equals(metadata.getReferenceId(), apiId) && Metadata.ReferenceType.API.equals(metadata.getReferenceType())
+            )
+            .forEach(m ->
+                apiMetadata.compute(
+                    m.getKey(),
+                    (key, existing) ->
+                        Optional
+                            .ofNullable(existing)
+                            .map(value -> value.toBuilder().apiId(apiId).name(m.getName()).value(m.getValue()).build())
+                            .orElse(
+                                ApiMetadata
+                                    .builder()
+                                    .apiId(m.getReferenceId())
+                                    .key(m.getKey())
+                                    .name(m.getName())
+                                    .value(m.getValue())
+                                    .format(MetadataFormat.valueOf(m.getFormat().name()))
+                                    .build()
+                            )
+                )
+            );
+
+        return apiMetadata;
     }
 
     @Override
-    public void initWith(List<ApiMetadata> items) {
+    public void initWith(List<Metadata> items) {
+        storage.clear();
+        storage.addAll(items);
+    }
+
+    public void initWithApiMetadata(List<ApiMetadata> items) {
         storage.clear();
         storage.addAll(items.stream().map(MetadataAdapter.INSTANCE::toMetadata).toList());
     }
@@ -59,7 +101,7 @@ public class ApiMetadataQueryServiceInMemory implements ApiMetadataQueryService,
     }
 
     @Override
-    public List<ApiMetadata> storage() {
-        return storage.stream().map(MetadataAdapter.INSTANCE::toApiMetadata).toList();
+    public List<Metadata> storage() {
+        return storage;
     }
 }

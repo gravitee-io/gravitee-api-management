@@ -20,7 +20,7 @@ import { PolicyStudioDebugService } from './policy-studio-debug.service';
 import { fakeDebugEvent } from './models/DebugEvent.fixture';
 import { RequestPolicyDebugStep, ResponsePolicyDebugStep } from './models/DebugStep';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { PolicyStudioService } from '../policy-studio.service';
 import { toApiDefinition } from '../models/ApiDefinition';
 import { fakeApiV2 } from '../../../../entities/management-api-v2';
@@ -33,7 +33,7 @@ describe('PolicyStudioDebugService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);

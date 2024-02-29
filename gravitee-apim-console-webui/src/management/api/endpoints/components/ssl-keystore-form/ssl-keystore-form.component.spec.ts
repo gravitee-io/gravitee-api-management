@@ -25,7 +25,7 @@ import { SslKeyStoreFormComponent } from './ssl-keystore-form.component';
 import { SslKeyStoreFormModule } from './ssl-keystore-form.module';
 import { SslKeyStoreFormHarness } from './ssl-keystore-form.harness';
 
-import { GioHttpTestingModule } from '../../../../../shared/testing';
+import { GioTestingModule } from '../../../../../shared/testing';
 
 describe('SslKeyStoreFormComponent', () => {
   let fixture: ComponentFixture<SslKeyStoreFormComponent>;
@@ -35,7 +35,7 @@ describe('SslKeyStoreFormComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ReactiveFormsModule, NoopAnimationsModule, GioHttpTestingModule, SslKeyStoreFormModule, MatIconTestingModule],
+      imports: [ReactiveFormsModule, NoopAnimationsModule, GioTestingModule, SslKeyStoreFormModule, MatIconTestingModule],
       providers: [
         {
           provide: ControlContainer,

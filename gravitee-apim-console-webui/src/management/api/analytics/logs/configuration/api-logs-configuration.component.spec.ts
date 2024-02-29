@@ -27,7 +27,7 @@ import { ActivatedRoute } from '@angular/router';
 import { ApiLogsConfigurationComponent } from './api-logs-configuration.component';
 
 import { ApiLogsModule } from '../api-logs.module';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
 import { GioFormCardGroupHarness } from '../../../../../shared/components/gio-form-card-group/gio-form-card-group.harness';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { ApiV2, fakeApiV2 } from '../../../../../entities/management-api-v2';
@@ -42,7 +42,7 @@ describe('ApiLogsConfigurationComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, MatIconTestingModule, ApiLogsModule, GioHttpTestingModule],
+      imports: [NoopAnimationsModule, MatIconTestingModule, ApiLogsModule, GioTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
         {

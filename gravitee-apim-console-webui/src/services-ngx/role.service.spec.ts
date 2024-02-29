@@ -18,7 +18,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { RoleService } from './role.service';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { fakeRole } from '../entities/role/role.fixture';
 import { fakeMembershipListItem } from '../entities/role/membershipListItem.fixture';
 import { fakePermissionsByScopes } from '../entities/role/permission.fixtures';
@@ -29,7 +29,7 @@ describe('RoleService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);

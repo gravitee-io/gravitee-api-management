@@ -32,8 +32,9 @@ import { ApiCreationV4SpecStepperHelper } from './api-creation-v4-spec-stepper-h
 import { ApiCreationV4SpecHttpExpects } from './api-creation-v4-spec-http-expects';
 import { Step4Security1PlansHarness } from './steps/step-4-security/step-4-security-1-plans.harness';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { ConnectorPlugin } from '../../../entities/management-api-v2';
+import { Constants } from '../../../entities/Constants';
 
 describe('ApiCreationV4Component - TCP Proxy', () => {
   const tcpProxyEntrypoint: Partial<ConnectorPlugin>[] = [
@@ -53,7 +54,7 @@ describe('ApiCreationV4Component - TCP Proxy', () => {
       declarations: [ApiCreationV4Component],
       providers: [
         {
-          provide: 'Constants',
+          provide: Constants,
           useFactory: () => {
             const constants = CONSTANTS_TESTING;
             set(constants, 'env.settings.plan.security', {
@@ -93,7 +94,7 @@ describe('ApiCreationV4Component - TCP Proxy', () => {
           useValue: LICENSE_CONFIGURATION_TESTING,
         },
       ],
-      imports: [NoopAnimationsModule, ApiCreationV4Module, GioHttpTestingModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, ApiCreationV4Module, GioTestingModule, MatIconTestingModule],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {

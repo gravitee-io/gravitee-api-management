@@ -18,7 +18,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { CurrentUserService } from './current-user.service';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 
 describe('CurrentUserService', () => {
   let httpTestingController: HttpTestingController;
@@ -26,7 +26,7 @@ describe('CurrentUserService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);

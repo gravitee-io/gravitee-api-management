@@ -18,14 +18,13 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
-import { PagedResult } from '../entities/management-api-v2';
-import { Event, SearchApiEventParam } from '../entities/management-api-v2/event';
+import { PagedResult, Event, SearchApiEventParam } from '../entities/management-api-v2';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ApiEventsV2Service {
-  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
+  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
 
   searchApiEvents(apiId: string, queryParam?: SearchApiEventParam): Observable<PagedResult<Event>> {
     let params = new HttpParams();
@@ -37,5 +36,9 @@ export class ApiEventsV2Service {
     if (queryParam?.types) params = params.append('types', queryParam.types);
 
     return this.http.get<PagedResult<Event>>(`${this.constants.env.v2BaseURL}/apis/${apiId}/events`, { params });
+  }
+
+  findById(apiId: string, eventId: string): Observable<Event> {
+    return this.http.get<Event>(`${this.constants.env.v2BaseURL}/apis/${apiId}/events/${eventId}`);
   }
 }

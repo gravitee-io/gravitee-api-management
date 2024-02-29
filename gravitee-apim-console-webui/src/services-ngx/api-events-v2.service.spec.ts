@@ -18,7 +18,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { ApiEventsV2Service } from './api-events-v2.service';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { fakePagedResult } from '../entities/management-api-v2';
 import { fakeEvent } from '../entities/management-api-v2/event';
 
@@ -29,7 +29,7 @@ describe('ApiEventsV2Service', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);

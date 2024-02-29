@@ -26,7 +26,7 @@ const ApiPortalHeaderComponentAjs: ng.IComponentOptions = {
     apiPortalHeaders: '<',
     settings: '<',
   },
-  template: require('html-loader!./api-portal-header.html'),
+  template: require('html-loader!./api-portal-header.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: [
     'ApiHeaderService',
     'NotificationService',
@@ -80,7 +80,7 @@ const ApiPortalHeaderComponentAjs: ng.IComponentOptions = {
           .show({
             controller: 'NewApiPortalHeaderDialogController',
             controllerAs: '$ctrl',
-            template: require('html-loader!./save.api-portal-header.dialog.html'),
+            template: require('html-loader!./save.api-portal-header.dialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
             locals: {},
           })
           .then((newHeader) => {
@@ -94,7 +94,7 @@ const ApiPortalHeaderComponentAjs: ng.IComponentOptions = {
           .show({
             controller: 'UpdateApiPortalHeaderDialogController',
             controllerAs: '$ctrl',
-            template: require('html-loader!./save.api-portal-header.dialog.html'),
+            template: require('html-loader!./save.api-portal-header.dialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
             locals: {
               header: Object.assign({}, header),
             },
@@ -110,7 +110,7 @@ const ApiPortalHeaderComponentAjs: ng.IComponentOptions = {
           .show({
             controller: 'DialogConfirmController',
             controllerAs: 'ctrl',
-            template: require('html-loader!../../../components/dialog/confirmWarning.dialog.html'),
+            template: require('html-loader!../../../components/dialog/confirmWarning.dialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
             clickOutsideToClose: true,
             locals: {
               title: 'Are you sure you want to delete this header?',

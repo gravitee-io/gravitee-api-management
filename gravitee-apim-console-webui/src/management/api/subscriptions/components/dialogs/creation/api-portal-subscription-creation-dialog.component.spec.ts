@@ -34,7 +34,7 @@ import {
   ApiPortalSubscriptionCreationDialogResult,
 } from './api-portal-subscription-creation-dialog.component';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../../shared/testing';
 import { ApiSubscriptionsModule } from '../../../api-subscriptions.module';
 import {
   ConnectorPlugin,
@@ -52,6 +52,7 @@ import { fakeApplication } from '../../../../../../entities/application/Applicat
 import { SubscriptionService } from '../../../../../../services-ngx/subscription.service';
 import { PlanSecurityType } from '../../../../../../entities/plan';
 import { ApplicationSubscription } from '../../../../../../entities/subscription/subscription';
+import { Constants } from '../../../../../../entities/Constants';
 
 @Component({
   selector: 'gio-dialog-test',
@@ -96,7 +97,7 @@ describe('Subscription creation dialog', () => {
     beforeEach(() => {
       TestBed.configureTestingModule({
         declarations: [TestComponent],
-        imports: [ApiSubscriptionsModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
+        imports: [ApiSubscriptionsModule, NoopAnimationsModule, GioTestingModule, MatIconTestingModule],
         providers: [
           {
             provide: InteractivityChecker,
@@ -106,7 +107,7 @@ describe('Subscription creation dialog', () => {
             },
           },
           {
-            provide: 'Constants',
+            provide: Constants,
             useFactory: () => {
               const constants = CONSTANTS_TESTING;
               set(constants, 'env.settings.plan.security', {
@@ -202,7 +203,7 @@ describe('Subscription creation dialog', () => {
       beforeEach(() => {
         TestBed.configureTestingModule({
           declarations: [TestComponent],
-          imports: [ApiSubscriptionsModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
+          imports: [ApiSubscriptionsModule, NoopAnimationsModule, GioTestingModule, MatIconTestingModule],
           providers: [
             {
               provide: InteractivityChecker,
@@ -212,7 +213,7 @@ describe('Subscription creation dialog', () => {
               },
             },
             {
-              provide: 'Constants',
+              provide: Constants,
               useFactory: () => {
                 const constants = CONSTANTS_TESTING;
                 set(constants, 'env.settings.plan.security', {
@@ -327,7 +328,7 @@ describe('Subscription creation dialog', () => {
       beforeEach(() => {
         TestBed.configureTestingModule({
           declarations: [TestComponent],
-          imports: [ApiSubscriptionsModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
+          imports: [ApiSubscriptionsModule, NoopAnimationsModule, GioTestingModule, MatIconTestingModule],
           providers: [
             { provide: SubscriptionService },
             {
@@ -338,7 +339,7 @@ describe('Subscription creation dialog', () => {
               },
             },
             {
-              provide: 'Constants',
+              provide: Constants,
               useFactory: () => {
                 const constants = CONSTANTS_TESTING;
                 set(constants, 'env.settings.plan.security', {
@@ -503,7 +504,7 @@ describe('Subscription creation dialog', () => {
       beforeEach(() => {
         TestBed.configureTestingModule({
           declarations: [TestComponent],
-          imports: [ApiSubscriptionsModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
+          imports: [ApiSubscriptionsModule, NoopAnimationsModule, GioTestingModule, MatIconTestingModule],
           providers: [
             {
               provide: InteractivityChecker,
@@ -513,7 +514,7 @@ describe('Subscription creation dialog', () => {
               },
             },
             {
-              provide: 'Constants',
+              provide: Constants,
               useFactory: () => {
                 const constants = CONSTANTS_TESTING;
                 set(constants, 'env.settings.plan.security', {
@@ -562,7 +563,7 @@ describe('Subscription creation dialog', () => {
     beforeEach(() => {
       TestBed.configureTestingModule({
         declarations: [TestComponent],
-        imports: [ApiSubscriptionsModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
+        imports: [ApiSubscriptionsModule, NoopAnimationsModule, GioTestingModule, MatIconTestingModule],
         providers: [
           {
             provide: InteractivityChecker,
@@ -652,7 +653,7 @@ describe('Subscription creation dialog', () => {
       beforeEach(() => {
         TestBed.configureTestingModule({
           declarations: [TestComponent],
-          imports: [ApiSubscriptionsModule, NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule],
+          imports: [ApiSubscriptionsModule, NoopAnimationsModule, GioTestingModule, MatIconTestingModule],
           providers: [
             {
               provide: InteractivityChecker,

@@ -20,7 +20,7 @@ import AnalyticsService from '../../../../services/analytics.service';
 import { Constants } from '../../../../entities/Constants';
 
 const WidgetDataTableComponent: ng.IComponentOptions = {
-  template: require('html-loader!./widget-data-table.html'),
+  template: require('html-loader!./widget-data-table.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   bindings: {
     data: '<',
     activatedRoute: '<',
@@ -110,11 +110,11 @@ const WidgetDataTableComponent: ng.IComponentOptions = {
         if (this.ngRouter.url.includes('/dashboard')) {
           if (this.widget.chart.request.field === 'api') {
             this.ngRouter.navigate([this.constants.org.currentEnv.id, 'apis', key, 'v2', 'analytics-overview'], {
-              queryParams: { from: this.widget.chart.request.from, to: this.widget.chart.request.to, q: this.widget.chart.request.query },
+              queryParams: { from: this.widget.chart.request.from, to: this.widget.chart.request.to },
             });
           } else if (this.widget.chart.request.field === 'application') {
             this.ngRouter.navigate([this.constants.org.currentEnv.id, 'applications', key, 'analytics'], {
-              queryParams: { from: this.widget.chart.request.from, to: this.widget.chart.request.to, q: this.widget.chart.request.query },
+              queryParams: { from: this.widget.chart.request.from, to: this.widget.chart.request.to },
             });
           }
         }

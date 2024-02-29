@@ -61,7 +61,7 @@ import { ApiCreationV2Component } from './creation-v2/steps/api-creation-v2.comp
 import { ApiDocumentationV4Component } from './documentation-v4/api-documentation-v4.component';
 import { ApiDocumentationV4EditPageComponent } from './documentation-v4/documentation-edit-page/api-documentation-v4-edit-page.component';
 import { ApiRuntimeLogsDetailsComponent } from './api-traffic-v4/runtime-logs-details/api-runtime-logs-details.component';
-import { HasApiPermissionGuard } from './has-api-permission.guard';
+import { ApisGuard } from './apis.guard';
 import { GioPolicyStudioLayoutComponent } from './policy-studio-v2/gio-policy-studio-layout.component';
 import { PolicyStudioDesignComponent } from './policy-studio-v2/design/policy-studio-design.component';
 import { PolicyStudioConfigComponent } from './policy-studio-v2/config/policy-studio-config.component';
@@ -79,6 +79,8 @@ import { ApiPropertiesComponent } from './properties/properties/api-properties.c
 import { ApiNotificationComponent } from './api-notification/api-notification.component';
 import { ApiRuntimeAlertsComponent } from './runtime-alerts';
 import { ApiDocumentationV4MetadataComponent } from './documentation-v4/documentation-metadata/api-documentation-v4-metadata.component';
+import { ApiHistoryV4Component } from './history-v4/api-history-v4.component';
+import { ApiHistoryV4DeploymentInfoComponent } from './history-v4/deployment-info/api-history-v4-deployment-info.component';
 
 import { DocumentationManagementComponent } from '../../components/documentation/documentation-management.component';
 import { DocumentationNewPageComponent } from '../../components/documentation/new-page.component';
@@ -89,6 +91,7 @@ import { AlertComponent } from '../../components/alerts/alert/alert.component';
 import { MessagesComponent } from '../messages/messages.component';
 import { ApimFeature } from '../../shared/components/gio-license/gio-license-data';
 import { HasLicenseGuard } from '../../shared/components/gio-license/has-license.guard';
+import { PermissionGuard } from '../../shared/components/gio-permission/gio-permission.guard';
 
 const apisRoutes: Routes = [
   {
@@ -108,36 +111,40 @@ const apisRoutes: Routes = [
   {
     path: 'new/v4/:apiId',
     component: ApiCreationV4ConfirmationComponent,
+    canActivate: [PermissionGuard.checkRouteDataPermissions],
     data: {
-      perms: {
-        only: ['environment-api-c'],
+      permissions: {
+        anyOf: ['environment-api-c'],
       },
     },
   },
   {
     path: 'new/v4',
     component: ApiCreationV4Component,
+    canActivate: [PermissionGuard.checkRouteDataPermissions],
     data: {
-      perms: {
-        only: ['environment-api-c'],
+      permissions: {
+        anyOf: ['environment-api-c'],
       },
     },
   },
   {
     path: 'new/v2',
     component: ApiCreationV2Component,
+    canActivate: [PermissionGuard.checkRouteDataPermissions],
     data: {
-      perms: {
-        only: ['environment-api-c'],
+      permissions: {
+        anyOf: ['environment-api-c'],
       },
     },
   },
   {
     path: 'new',
     component: ApiCreationGetStartedComponent,
+    canActivate: [PermissionGuard.checkRouteDataPermissions],
     data: {
-      perms: {
-        only: ['environment-api-c'],
+      permissions: {
+        anyOf: ['environment-api-c'],
       },
       docs: {
         page: 'management-apis-create',
@@ -151,9 +158,9 @@ const apisRoutes: Routes = [
   {
     path: ':apiId',
     component: ApiNavigationComponent,
-    canActivate: [HasApiPermissionGuard],
-    canActivateChild: [HasApiPermissionGuard, HasLicenseGuard],
-    canDeactivate: [HasApiPermissionGuard],
+    canActivate: [ApisGuard.loadPermissions],
+    canActivateChild: [PermissionGuard.checkRouteDataPermissions, HasLicenseGuard],
+    canDeactivate: [ApisGuard.clearPermissions],
     children: [
       {
         path: '',
@@ -176,8 +183,8 @@ const apisRoutes: Routes = [
         path: 'plans',
         data: {
           docs: null,
-          apiPermissions: {
-            only: ['api-plan-r'],
+          permissions: {
+            anyOf: ['api-plan-r'],
           },
         },
         component: ApiPlanListComponent,
@@ -187,8 +194,8 @@ const apisRoutes: Routes = [
         component: ApiPlanEditComponent,
         data: {
           docs: null,
-          apiPermissions: {
-            only: ['api-plan-c'],
+          permissions: {
+            anyOf: ['api-plan-c'],
           },
         },
       },
@@ -197,8 +204,8 @@ const apisRoutes: Routes = [
         component: ApiPlanEditComponent,
         data: {
           docs: null,
-          apiPermissions: {
-            only: ['api-plan-r'],
+          permissions: {
+            anyOf: ['api-plan-r'],
           },
         },
       },
@@ -207,8 +214,8 @@ const apisRoutes: Routes = [
         component: ApiSubscriptionListComponent,
         data: {
           docs: null,
-          apiPermissions: {
-            only: ['api-subscription-r'],
+          permissions: {
+            anyOf: ['api-subscription-r'],
           },
         },
       },
@@ -217,8 +224,8 @@ const apisRoutes: Routes = [
         component: ApiSubscriptionEditComponent,
         data: {
           docs: null,
-          apiPermissions: {
-            only: ['api-subscription-r', 'api-subscription-u'],
+          permissions: {
+            anyOf: ['api-subscription-r', 'api-subscription-u'],
           },
         },
       },
@@ -229,8 +236,8 @@ const apisRoutes: Routes = [
           docs: {
             page: 'management-api-documentation',
           },
-          apiPermissions: {
-            only: ['api-documentation-r'],
+          permissions: {
+            anyOf: ['api-documentation-r'],
           },
         },
       },
@@ -241,8 +248,8 @@ const apisRoutes: Routes = [
           docs: {
             page: 'management-api-documentation',
           },
-          apiPermissions: {
-            only: ['api-documentation-c'],
+          permissions: {
+            anyOf: ['api-documentation-c'],
           },
         },
       },
@@ -253,8 +260,8 @@ const apisRoutes: Routes = [
           docs: {
             page: 'management-api-documentation',
           },
-          apiPermissions: {
-            only: ['api-documentation-c'],
+          permissions: {
+            anyOf: ['api-documentation-c'],
           },
         },
       },
@@ -265,8 +272,8 @@ const apisRoutes: Routes = [
           docs: {
             page: 'management-api-documentation',
           },
-          apiPermissions: {
-            only: ['api-documentation-r'],
+          permissions: {
+            anyOf: ['api-documentation-r'],
           },
         },
       },
@@ -274,8 +281,8 @@ const apisRoutes: Routes = [
         path: 'metadata',
         component: ApiPortalDocumentationMetadataComponent,
         data: {
-          apiPermissions: {
-            only: ['api-metadata-r'],
+          permissions: {
+            anyOf: ['api-metadata-r'],
           },
         },
       },
@@ -283,8 +290,8 @@ const apisRoutes: Routes = [
         path: 'members',
         component: ApiGeneralMembersComponent,
         data: {
-          apiPermissions: {
-            only: ['api-member-r'],
+          permissions: {
+            anyOf: ['api-member-r'],
           },
           docs: {
             page: 'management-api-members',
@@ -295,8 +302,8 @@ const apisRoutes: Routes = [
         path: 'cors',
         component: ApiCorsComponent,
         data: {
-          apiPermissions: {
-            only: ['api-definition-r'],
+          permissions: {
+            anyOf: ['api-definition-r'],
           },
           docs: {
             page: 'management-api-proxy',
@@ -307,8 +314,8 @@ const apisRoutes: Routes = [
         path: 'deployments',
         component: ApiDeploymentConfigurationComponent,
         data: {
-          apiPermissions: {
-            only: ['api-definition-r'],
+          permissions: {
+            anyOf: ['api-definition-r'],
           },
           docs: {
             page: 'management-api-proxy',
@@ -319,11 +326,11 @@ const apisRoutes: Routes = [
         path: 'response-templates/new',
         component: ApiResponseTemplatesEditComponent,
         data: {
-          apiPermissions: {
-            only: ['api-definition-r'],
+          permissions: {
+            anyOf: ['api-definition-r'],
           },
           docs: {
-            only: ['api-response_templates-c', 'api-response_templates-r', 'api-response_templates-u'],
+            anyOf: ['api-response_templates-c', 'api-response_templates-r', 'api-response_templates-u'],
           },
         },
       },
@@ -331,8 +338,8 @@ const apisRoutes: Routes = [
         path: 'response-templates/:responseTemplateId',
         component: ApiResponseTemplatesEditComponent,
         data: {
-          apiPermissions: {
-            only: ['api-response_templates-c', 'api-response_templates-r', 'api-response_templates-u'],
+          permissions: {
+            anyOf: ['api-response_templates-c', 'api-response_templates-r', 'api-response_templates-u'],
           },
           docs: {
             page: 'management-api-proxy-response-templates',
@@ -343,8 +350,8 @@ const apisRoutes: Routes = [
         path: 'response-templates',
         component: ApiResponseTemplatesListComponent,
         data: {
-          apiPermissions: {
-            only: ['api-response_templates-r'],
+          permissions: {
+            anyOf: ['api-response_templates-r'],
           },
           docs: {
             page: 'management-api-proxy-response-templates',
@@ -359,8 +366,8 @@ const apisRoutes: Routes = [
             license: { feature: ApimFeature.APIM_AUDIT_TRAIL },
             redirect: '/',
           },
-          apiPermissions: {
-            only: ['api-audit-r'],
+          permissions: {
+            anyOf: ['api-audit-r'],
           },
           docs: {
             page: 'management-api-audit',
@@ -371,8 +378,8 @@ const apisRoutes: Routes = [
         path: 'history',
         component: ApiHistoryComponent,
         data: {
-          apiPermissions: {
-            only: ['api-event-r'],
+          permissions: {
+            anyOf: ['api-event-r'],
           },
           docs: {
             page: 'management-api-history',
@@ -383,8 +390,8 @@ const apisRoutes: Routes = [
         path: 'events',
         component: ApiEventsComponent,
         data: {
-          apiPermissions: {
-            only: ['api-event-r'],
+          permissions: {
+            anyOf: ['api-event-r'],
           },
           docs: {
             page: 'management-api-events',
@@ -395,8 +402,8 @@ const apisRoutes: Routes = [
         path: 'notifications',
         component: ApiNotificationComponent,
         data: {
-          apiPermissions: {
-            only: ['api-notification-r'],
+          permissions: {
+            anyOf: ['api-notification-r'],
           },
         },
       },
@@ -408,8 +415,8 @@ const apisRoutes: Routes = [
             license: { feature: ApimFeature.ALERT_ENGINE },
             redirect: '/',
           },
-          apiPermissions: {
-            only: ['api-alert-c'],
+          permissions: {
+            anyOf: ['api-alert-c'],
           },
           docs: {
             page: 'management-alerts',
@@ -424,8 +431,8 @@ const apisRoutes: Routes = [
             license: { feature: ApimFeature.ALERT_ENGINE },
             redirect: '/',
           },
-          apiPermissions: {
-            only: ['api-alert-r'],
+          permissions: {
+            anyOf: ['api-alert-r'],
           },
           docs: {
             page: 'management-alerts',
@@ -440,8 +447,8 @@ const apisRoutes: Routes = [
             license: { feature: ApimFeature.ALERT_ENGINE },
             redirect: '/',
           },
-          apiPermissions: {
-            only: ['api-alert-r'],
+          permissions: {
+            anyOf: ['api-alert-r'],
           },
           docs: {
             page: 'management-alerts',
@@ -456,8 +463,8 @@ const apisRoutes: Routes = [
             license: { feature: ApimFeature.ALERT_ENGINE },
             redirect: '/',
           },
-          apiPermissions: {
-            only: ['api-alert-r'],
+          permissions: {
+            anyOf: ['api-alert-r'],
           },
         },
       },
@@ -469,8 +476,8 @@ const apisRoutes: Routes = [
             license: { feature: ApimFeature.ALERT_ENGINE },
             redirect: '/',
           },
-          apiPermissions: {
-            only: ['api-alert-r'],
+          permissions: {
+            anyOf: ['api-alert-r'],
           },
           docs: {
             page: 'management-api-alerts',
@@ -485,8 +492,8 @@ const apisRoutes: Routes = [
         path: 'v1/policies',
         component: ApiV1PoliciesComponent,
         data: {
-          apiPermissions: {
-            only: ['api-definition-r'],
+          permissions: {
+            anyOf: ['api-definition-r'],
           },
           docs: {
             page: 'management-api-policies',
@@ -497,8 +504,8 @@ const apisRoutes: Routes = [
         path: 'v1/properties',
         component: ApiV1PropertiesComponent,
         data: {
-          apiPermissions: {
-            only: ['api-definition-r'],
+          permissions: {
+            anyOf: ['api-definition-r'],
           },
           docs: {
             page: 'management-api-properties',
@@ -509,8 +516,8 @@ const apisRoutes: Routes = [
         path: 'v1/resources',
         component: ApiV1ResourcesComponent,
         data: {
-          apiPermissions: {
-            only: ['api-definition-r'],
+          permissions: {
+            anyOf: ['api-definition-r'],
           },
           docs: {
             page: 'management-api-resources',
@@ -525,8 +532,8 @@ const apisRoutes: Routes = [
         path: 'v2/entrypoints',
         component: ApiEntrypointsComponent,
         data: {
-          apiPermissions: {
-            only: ['api-definition-r', 'api-health-r'],
+          permissions: {
+            anyOf: ['api-definition-r', 'api-health-r'],
           },
           docs: {
             page: 'management-api-proxy',
@@ -537,8 +544,8 @@ const apisRoutes: Routes = [
         path: 'v2/endpoints/:groupName/:endpointName',
         component: ApiProxyGroupEndpointEditComponent,
         data: {
-          apiPermissions: {
-            only: ['api-definition-r'],
+          permissions: {
+            anyOf: ['api-definition-r'],
           },
           docs: {
             page: 'management-api-proxy-endpoints',
@@ -549,8 +556,8 @@ const apisRoutes: Routes = [
         path: 'v2/endpoints/:groupName',
         component: ApiProxyGroupEditComponent,
         data: {
-          apiPermissions: {
-            only: ['api-definition-r'],
+          permissions: {
+            anyOf: ['api-definition-r'],
           },
           docs: {
             page: 'management-api-proxy-group',
@@ -561,8 +568,8 @@ const apisRoutes: Routes = [
         path: 'v2/endpoints',
         component: ApiProxyEndpointListComponent,
         data: {
-          apiPermissions: {
-            only: ['api-definition-r'],
+          permissions: {
+            anyOf: ['api-definition-r'],
           },
           docs: {
             page: 'management-api-proxy-endpoints',
@@ -573,8 +580,8 @@ const apisRoutes: Routes = [
         path: 'v2/failover',
         component: ApiFailoverComponent,
         data: {
-          apiPermissions: {
-            only: ['api-definition-r'],
+          permissions: {
+            anyOf: ['api-definition-r'],
           },
           docs: {
             page: 'management-api-proxy',
@@ -585,8 +592,8 @@ const apisRoutes: Routes = [
         path: 'v2/healthcheck',
         component: ApiHealthCheckComponent,
         data: {
-          apiPermissions: {
-            only: ['api-health-c'],
+          permissions: {
+            anyOf: ['api-health-c'],
           },
           docs: {
             page: 'management-api-health-check-configure',
@@ -597,8 +604,8 @@ const apisRoutes: Routes = [
         path: 'v2/healthcheck-dashboard/:logId',
         component: ApiHealthCheckLogComponent,
         data: {
-          apiPermissions: {
-            only: ['api-health-r'],
+          permissions: {
+            anyOf: ['api-health-r'],
           },
         },
       },
@@ -606,8 +613,8 @@ const apisRoutes: Routes = [
         path: 'v2/healthcheck-dashboard',
         component: ApiHealthCheckDashboardComponent,
         data: {
-          apiPermissions: {
-            only: ['api-health-r'],
+          permissions: {
+            anyOf: ['api-health-r'],
           },
           docs: {
             page: 'management-api-health-check',
@@ -618,8 +625,8 @@ const apisRoutes: Routes = [
         path: 'v2/analytics-overview',
         component: ApiAnalyticsOverviewComponent,
         data: {
-          apiPermissions: {
-            only: ['api-analytics-r'],
+          permissions: {
+            anyOf: ['api-analytics-r'],
           },
           docs: {
             page: 'management-api-analytics',
@@ -630,8 +637,8 @@ const apisRoutes: Routes = [
         path: 'v2/analytics-logs/configuration',
         component: ApiLogsConfigurationComponent,
         data: {
-          apiPermissions: {
-            only: ['api-log-u'],
+          permissions: {
+            anyOf: ['api-log-u'],
           },
           docs: {
             page: 'management-api-logging-configuration',
@@ -642,8 +649,8 @@ const apisRoutes: Routes = [
         path: 'v2/analytics-logs/:logId',
         component: ApiAnalyticsLogComponent,
         data: {
-          apiPermissions: {
-            only: ['api-log-r'],
+          permissions: {
+            anyOf: ['api-log-r'],
           },
           docs: {
             page: 'management-api-log',
@@ -654,8 +661,8 @@ const apisRoutes: Routes = [
         path: 'v2/analytics-logs',
         component: ApiAnalyticsLogsComponent,
         data: {
-          apiPermissions: {
-            only: ['api-log-r'],
+          permissions: {
+            anyOf: ['api-log-r'],
           },
           docs: {
             page: 'management-api-logs',
@@ -688,8 +695,8 @@ const apisRoutes: Routes = [
         path: 'v2/path-mappings',
         component: ApiPathMappingsComponent,
         data: {
-          apiPermissions: {
-            only: ['api-definition-r'],
+          permissions: {
+            anyOf: ['api-definition-r'],
           },
           docs: {
             page: 'management-api-pathMappings',
@@ -749,8 +756,8 @@ const apisRoutes: Routes = [
         path: 'properties',
         component: ApiPropertiesComponent,
         data: {
-          apiPermissions: {
-            only: ['api-definition-r'],
+          permissions: {
+            anyOf: ['api-definition-r'],
           },
           docs: {
             page: 'management-api-policy-studio-properties',
@@ -761,8 +768,8 @@ const apisRoutes: Routes = [
         path: 'properties/dynamic-properties',
         component: ApiDynamicPropertiesComponent,
         data: {
-          apiPermissions: {
-            only: ['api-definition-r'],
+          permissions: {
+            anyOf: ['api-definition-r'],
           },
         },
       },
@@ -770,8 +777,8 @@ const apisRoutes: Routes = [
         path: 'resources',
         component: ApiResourcesComponent,
         data: {
-          apiPermissions: {
-            only: ['api-definition-r'],
+          permissions: {
+            anyOf: ['api-definition-r'],
           },
           docs: {
             page: 'management-api-policy-studio-resources',
@@ -793,8 +800,8 @@ const apisRoutes: Routes = [
         path: 'v4/documentation/new',
         data: {
           docs: null,
-          apiPermissions: {
-            only: ['api-documentation-c'],
+          permissions: {
+            anyOf: ['api-documentation-c'],
           },
         },
         component: ApiDocumentationV4EditPageComponent,
@@ -803,8 +810,8 @@ const apisRoutes: Routes = [
         path: 'v4/documentation/metadata',
         data: {
           docs: null,
-          apiPermissions: {
-            only: ['api-metadata-r'],
+          permissions: {
+            anyOf: ['api-metadata-r'],
           },
         },
         component: ApiDocumentationV4MetadataComponent,
@@ -813,8 +820,8 @@ const apisRoutes: Routes = [
         path: 'v4/documentation/:pageId',
         data: {
           docs: null,
-          apiPermissions: {
-            only: ['api-documentation-u', 'api-documentation-r'],
+          permissions: {
+            anyOf: ['api-documentation-u', 'api-documentation-r'],
           },
         },
         component: ApiDocumentationV4EditPageComponent,
@@ -829,8 +836,8 @@ const apisRoutes: Routes = [
       {
         path: 'v4/runtime-logs',
         data: {
-          apiPermissions: {
-            only: ['api-log-r'],
+          permissions: {
+            anyOf: ['api-log-r'],
           },
           docs: {
             page: 'management-api-logs',
@@ -841,8 +848,8 @@ const apisRoutes: Routes = [
       {
         path: 'v4/runtime-logs/:requestId',
         data: {
-          apiPermissions: {
-            only: ['api-log-r'],
+          permissions: {
+            anyOf: ['api-log-r'],
           },
           docs: {
             page: 'management-api-logs',
@@ -853,8 +860,8 @@ const apisRoutes: Routes = [
       {
         path: 'v4/runtime-logs-settings',
         data: {
-          apiPermissions: {
-            only: ['api-log-u'],
+          permissions: {
+            anyOf: ['api-log-u'],
           },
           docs: {
             page: 'management-api-logs',
@@ -867,8 +874,8 @@ const apisRoutes: Routes = [
         component: ApiEntrypointsV4GeneralComponent,
         data: {
           docs: null,
-          apiPermissions: {
-            only: ['api-definition-r'],
+          permissions: {
+            anyOf: ['api-definition-r'],
           },
         },
       },
@@ -877,8 +884,8 @@ const apisRoutes: Routes = [
         component: ApiCorsComponent,
         data: {
           docs: null,
-          apiPermissions: {
-            only: ['api-definition-r'],
+          permissions: {
+            anyOf: ['api-definition-r'],
           },
         },
       },
@@ -887,8 +894,8 @@ const apisRoutes: Routes = [
         component: ApiEntrypointsV4EditComponent,
         data: {
           docs: null,
-          apiPermissions: {
-            only: ['api-definition-u'],
+          permissions: {
+            anyOf: ['api-definition-u'],
           },
         },
       },
@@ -896,8 +903,8 @@ const apisRoutes: Routes = [
         path: 'v4/endpoints',
         component: ApiEndpointGroupsComponent,
         data: {
-          apiPermissions: {
-            only: ['api-definition-r'],
+          permissions: {
+            anyOf: ['api-definition-r'],
           },
           docs: {
             page: 'management-api-proxy-endpoints',
@@ -908,8 +915,8 @@ const apisRoutes: Routes = [
         path: 'v4/endpoints/new',
         component: ApiEndpointGroupCreateComponent,
         data: {
-          apiPermissions: {
-            only: ['api-definition-u'],
+          permissions: {
+            anyOf: ['api-definition-u'],
           },
           docs: {
             page: 'management-api-proxy-endpoints',
@@ -920,8 +927,8 @@ const apisRoutes: Routes = [
         path: 'v4/endpoints/:groupIndex',
         component: ApiEndpointGroupComponent,
         data: {
-          apiPermissions: {
-            only: ['api-definition-r'],
+          permissions: {
+            anyOf: ['api-definition-r'],
           },
           docs: {
             page: 'management-api-proxy-endpoints',
@@ -932,8 +939,8 @@ const apisRoutes: Routes = [
         path: 'v4/endpoints/:groupIndex/new',
         component: ApiEndpointComponent,
         data: {
-          apiPermissions: {
-            only: ['api-definition-u'],
+          permissions: {
+            anyOf: ['api-definition-u'],
           },
           docs: {
             page: 'management-api-proxy-endpoints',
@@ -944,8 +951,8 @@ const apisRoutes: Routes = [
         path: 'v4/endpoints/:groupIndex/:endpointIndex',
         component: ApiEndpointComponent,
         data: {
-          apiPermissions: {
-            only: ['api-definition-u'],
+          permissions: {
+            anyOf: ['api-definition-u'],
           },
           docs: {
             page: 'management-api-proxy-endpoints',
@@ -956,8 +963,8 @@ const apisRoutes: Routes = [
         path: 'properties/v4/dynamic-properties',
         component: ApiDynamicPropertiesV4Component,
         data: {
-          apiPermissions: {
-            only: ['api-definition-r'],
+          permissions: {
+            anyOf: ['api-definition-r'],
           },
         },
       },
@@ -969,8 +976,32 @@ const apisRoutes: Routes = [
             license: { feature: ApimFeature.APIM_AUDIT_TRAIL },
             redirect: '/',
           },
-          apiPermissions: {
-            only: ['api-audit-r'],
+          permissions: {
+            anyOf: ['api-audit-r'],
+          },
+        },
+      },
+      {
+        path: 'v4/history',
+        component: ApiHistoryV4Component,
+        data: {
+          permissions: {
+            anyOf: ['api-event-r'],
+          },
+          docs: {
+            page: 'management-api-history',
+          },
+        },
+      },
+      {
+        path: 'v4/history/:apiVersionId',
+        component: ApiHistoryV4DeploymentInfoComponent,
+        data: {
+          permissions: {
+            anyOf: ['api-event-r'],
+          },
+          docs: {
+            page: 'management-api-history',
           },
         },
       },

@@ -20,7 +20,7 @@ import { ActivatedRoute } from '@angular/router';
 
 import { ApplicationNavigationComponent } from './application-navigation.component';
 
-import { GioHttpTestingModule } from '../../../shared/testing';
+import { GioTestingModule } from '../../../shared/testing';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { ApiNavigationModule } from '../../api/api-navigation/api-navigation.module';
 
@@ -33,7 +33,7 @@ describe('ApplicationNavigationComponent', () => {
 
   function createComponent(hasAnyMatching: boolean) {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiNavigationModule, GioLicenseTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, ApiNavigationModule, GioLicenseTestingModule],
       providers: [
         {
           provide: GioPermissionService,

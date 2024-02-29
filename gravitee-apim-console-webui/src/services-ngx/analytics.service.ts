@@ -26,7 +26,7 @@ import { AnalyticsCountResponse, AnalyticsGroupByResponse, AnalyticsStatsRespons
   providedIn: 'root',
 })
 export class AnalyticsService {
-  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
+  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
 
   getStats(params: AnalyticsRequestParam): Observable<AnalyticsStatsResponse> {
     const url =

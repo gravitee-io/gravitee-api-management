@@ -16,7 +16,7 @@
 // eslint:disable-next-line:no-var-requires
 require('@gravitee/ui-components/wc/gv-chart-pie');
 const WidgetChartPieComponent: ng.IComponentOptions = {
-  template: require('html-loader!./widget-chart-pie.html'),
+  template: require('html-loader!./widget-chart-pie.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   bindings: {
     data: '<',
   },

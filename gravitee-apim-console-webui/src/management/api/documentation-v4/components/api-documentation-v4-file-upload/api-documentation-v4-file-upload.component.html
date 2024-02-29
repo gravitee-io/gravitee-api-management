@@ -41,5 +41,6 @@
   <div class="content__preview">
     <markdown *ngIf="pageType === 'MARKDOWN'" [data]="importFileContent"> </markdown>
     <gio-swagger-ui *ngIf="pageType === 'SWAGGER'" [spec]="importFileContent"> </gio-swagger-ui>
+    <gio-async-api *ngIf="pageType === 'ASYNCAPI'" [schema]="importFileContent"></gio-async-api>
   </div>
 </div>

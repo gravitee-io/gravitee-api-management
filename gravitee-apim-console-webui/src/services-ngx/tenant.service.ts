@@ -25,7 +25,7 @@ import { NewTenant } from '../entities/tenant/newTenant';
   providedIn: 'root',
 })
 export class TenantService {
-  constructor(private readonly http: HttpClient, @Inject('Constants') private readonly constants: Constants) {}
+  constructor(private readonly http: HttpClient, @Inject(Constants) private readonly constants: Constants) {}
 
   list(): Observable<Tenant[]> {
     return this.http.get<Tenant[]>(`${this.constants.org.baseURL}/configuration/tenants`);

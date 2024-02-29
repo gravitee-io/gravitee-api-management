@@ -17,7 +17,7 @@ const ApplicationCreationStep4Component: ng.IComponentOptions = {
   require: {
     parent: '^createApplication',
   },
-  template: require('html-loader!./application-creation-step4.html'),
+  template: require('html-loader!./application-creation-step4.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: [
     'Constants',
     function (Constants) {

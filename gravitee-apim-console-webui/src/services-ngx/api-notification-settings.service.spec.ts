@@ -18,7 +18,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { ApiNotificationSettingsService } from './api-notification-settings.service';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { fakeNotifier } from '../entities/notification/notifier.fixture';
 import { fakeNotificationSettings } from '../entities/notification/notificationSettings.fixture';
 
@@ -28,7 +28,7 @@ describe('ApiNotificationSettings', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);

@@ -18,7 +18,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { PortalSettingsService } from './portal-settings.service';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { fakePortalSettings } from '../entities/portal/portalSettings.fixture';
 
 describe('PortalSettingsService', () => {
@@ -27,7 +27,7 @@ describe('PortalSettingsService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);

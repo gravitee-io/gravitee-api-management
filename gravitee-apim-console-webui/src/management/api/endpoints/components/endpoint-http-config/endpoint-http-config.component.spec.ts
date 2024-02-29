@@ -25,7 +25,7 @@ import { EndpointHttpConfigComponent } from './endpoint-http-config.component';
 import { EndpointHttpConfigModule } from './endpoint-http-config.module';
 import { EndpointHttpConfigHarness } from './endpoint-http-config.harness';
 
-import { GioHttpTestingModule } from '../../../../../shared/testing';
+import { GioTestingModule } from '../../../../../shared/testing';
 import { EndpointGroupV2 } from '../../../../../entities/management-api-v2';
 
 describe('ApiPropertiesComponent', () => {
@@ -38,7 +38,7 @@ describe('ApiPropertiesComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, EndpointHttpConfigModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, EndpointHttpConfigModule, MatIconTestingModule],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {

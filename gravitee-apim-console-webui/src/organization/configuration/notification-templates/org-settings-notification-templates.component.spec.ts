@@ -20,9 +20,10 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { OrgSettingsNotificationTemplatesComponent } from './org-settings-notification-templates.component';
 
 import { OrganizationSettingsModule } from '../organization-settings.module';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { fakeNotificationTemplate } from '../../../entities/notification/notificationTemplate.fixture';
 import { NotificationTemplate } from '../../../entities/notification/notificationTemplate';
+import { Constants } from '../../../entities/Constants';
 
 describe('OrgSettingsNotificationTemplatesComponent', () => {
   let fixture: ComponentFixture<OrgSettingsNotificationTemplatesComponent>;
@@ -32,10 +33,10 @@ describe('OrgSettingsNotificationTemplatesComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule, OrganizationSettingsModule],
+      imports: [GioTestingModule, OrganizationSettingsModule],
       providers: [
         {
-          provide: 'Constants',
+          provide: Constants,
           useValue: fakeConstants,
         },
       ],

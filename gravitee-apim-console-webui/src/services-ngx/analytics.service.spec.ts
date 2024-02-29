@@ -18,7 +18,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { AnalyticsService } from './analytics.service';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { AnalyticsCountResponse, AnalyticsGroupByResponse, AnalyticsStatsResponse } from '../entities/analytics/analyticsResponse';
 import { AnalyticsRequestParam } from '../entities/analytics/analyticsRequestParam';
 
@@ -28,7 +28,7 @@ describe('AnalyticsService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);

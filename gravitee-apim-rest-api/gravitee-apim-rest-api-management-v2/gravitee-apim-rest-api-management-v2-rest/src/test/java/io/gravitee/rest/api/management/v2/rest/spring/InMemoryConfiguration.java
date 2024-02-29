@@ -15,43 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.spring;
 
-import inmemory.AccessPointQueryServiceInMemory;
-import inmemory.ApiCrudServiceInMemory;
-import inmemory.ApiKeyCrudServiceInMemory;
-import inmemory.ApiKeyQueryServiceInMemory;
-import inmemory.ApiQueryServiceInMemory;
-import inmemory.ApplicationCrudServiceInMemory;
-import inmemory.AuditCrudServiceInMemory;
-import inmemory.AuditMetadataQueryServiceInMemory;
-import inmemory.AuditQueryServiceInMemory;
-import inmemory.ConnectionLogsCrudServiceInMemory;
-import inmemory.EndpointPluginQueryServiceInMemory;
-import inmemory.EntrypointPluginQueryServiceInMemory;
-import inmemory.EnvironmentCrudServiceInMemory;
-import inmemory.EventCrudInMemory;
-import inmemory.EventQueryServiceInMemory;
-import inmemory.FlowCrudServiceInMemory;
-import inmemory.GroupQueryServiceInMemory;
-import inmemory.IndexerInMemory;
-import inmemory.InstallationAccessQueryServiceInMemory;
-import inmemory.InstanceQueryServiceInMemory;
-import inmemory.LicenseCrudServiceInMemory;
-import inmemory.MembershipCrudServiceInMemory;
-import inmemory.MembershipQueryServiceInMemory;
-import inmemory.MessageLogCrudServiceInMemory;
-import inmemory.PageCrudServiceInMemory;
-import inmemory.PageQueryServiceInMemory;
-import inmemory.PageRevisionCrudServiceInMemory;
-import inmemory.ParametersDomainServiceInMemory;
-import inmemory.ParametersQueryServiceInMemory;
-import inmemory.PlanCrudServiceInMemory;
-import inmemory.PlanQueryServiceInMemory;
-import inmemory.PolicyPluginQueryServiceInMemory;
-import inmemory.RoleQueryServiceInMemory;
-import inmemory.SubscriptionCrudServiceInMemory;
-import inmemory.SubscriptionQueryServiceInMemory;
-import inmemory.TriggerNotificationDomainServiceInMemory;
-import inmemory.UserCrudServiceInMemory;
+import inmemory.*;
 import io.gravitee.apim.core.audit.query_service.AuditEventQueryService;
 import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.event.query_service.EventQueryService;
@@ -74,6 +38,11 @@ public class InMemoryConfiguration {
     @Bean
     public ApiCrudServiceInMemory apiCrudServiceInMemory() {
         return new ApiCrudServiceInMemory();
+    }
+
+    @Bean
+    public ApiMetadataQueryServiceInMemory apiMetadataQueryServiceInMemory() {
+        return new ApiMetadataQueryServiceInMemory();
     }
 
     @Bean

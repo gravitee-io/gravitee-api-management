@@ -25,7 +25,7 @@ import { ApiAuditLogsComponent } from './api-audit-logs.component';
 import { ApiAuditLogsModule } from './api-audit-logs.module';
 import { ApiAuditsFilterFormHarness, ApiAuditsTableHarness, ApiEventsTableHarness } from './components';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import {
   fakeAuditResponse,
   fakeEvent,
@@ -44,7 +44,7 @@ describe('AuditLogsComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, MatIconTestingModule, GioHttpTestingModule, ApiAuditLogsModule],
+      imports: [NoopAnimationsModule, MatIconTestingModule, GioTestingModule, ApiAuditLogsModule],
       providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } }],
     });
 

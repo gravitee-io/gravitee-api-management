@@ -30,7 +30,7 @@ import { GioFormFilePickerInputHarness } from '@gravitee/ui-particles-angular';
 import { GioApiImportDialogComponent } from './gio-api-import-dialog.component';
 import { GioApiImportDialogModule } from './gio-api-import-dialog.module';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 
 describe('GioApiImportDialogComponent', () => {
   let component: GioApiImportDialogComponent;
@@ -55,7 +55,7 @@ describe('GioApiImportDialogComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, GioApiImportDialogModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, GioApiImportDialogModule, MatIconTestingModule],
       providers: [
         {
           provide: MatDialogRef,

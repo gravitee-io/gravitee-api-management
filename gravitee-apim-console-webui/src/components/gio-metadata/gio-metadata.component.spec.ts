@@ -28,7 +28,7 @@ import { GioMetadataModule } from './gio-metadata.module';
 import { GioMetadataComponent } from './gio-metadata.component';
 import { GioMetadataDialogHarness } from './dialog/gio-metadata-dialog.harness';
 
-import { GioHttpTestingModule } from '../../shared/testing';
+import { GioTestingModule } from '../../shared/testing';
 import { fakeMetadata } from '../../entities/metadata/metadata.fixture';
 import { NewMetadata, UpdateMetadata } from '../../entities/metadata/metadata';
 import { GioTestingPermission, GioTestingPermissionProvider } from '../../shared/components/gio-permission/gio-permission.service';
@@ -39,9 +39,9 @@ describe('GioMetadataComponent', () => {
   let loader: HarnessLoader;
   let rootLoader: HarnessLoader;
 
-  const init = async (permissions: GioTestingPermission) => {
-    await TestBed.configureTestingModule({
-      imports: [GioMetadataModule, MatIconTestingModule, NoopAnimationsModule, GioHttpTestingModule],
+  const init = (permissions: GioTestingPermission) => {
+    TestBed.configureTestingModule({
+      imports: [GioMetadataModule, MatIconTestingModule, NoopAnimationsModule, GioTestingModule],
       providers: [{ provide: GioTestingPermissionProvider, useValue: permissions }],
     })
       .overrideProvider(InteractivityChecker, {
@@ -53,7 +53,7 @@ describe('GioMetadataComponent', () => {
       .compileComponents();
 
     fixture = TestBed.createComponent(GioMetadataComponent);
-    component = await fixture.componentInstance;
+    component = fixture.componentInstance;
     loader = TestbedHarnessEnvironment.loader(fixture);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
 
@@ -61,7 +61,7 @@ describe('GioMetadataComponent', () => {
 
     component.metadataSaveServices = {
       type: 'API',
-      list: () => of(metadataList),
+      list: () => of({ data: metadataList, totalResults: metadataList.length }),
       create: (m: NewMetadata) => of(m).pipe(map((_) => fakeMetadata({ key: 'new-key' }))),
       update: (m: UpdateMetadata) => of(m).pipe(map((_) => fakeMetadata({ key: 'key1' }))),
       delete: (metadataKey: string) => of([metadataKey]).pipe(map((_) => void 0)),
@@ -70,8 +70,8 @@ describe('GioMetadataComponent', () => {
   };
 
   describe('with full permissions', () => {
-    beforeEach(async () => {
-      await init(['api-metadata-u', 'api-metadata-d', 'api-metadata-c']);
+    beforeEach(() => {
+      init(['api-metadata-u', 'api-metadata-d', 'api-metadata-c']);
     });
 
     it('should load', async () => {

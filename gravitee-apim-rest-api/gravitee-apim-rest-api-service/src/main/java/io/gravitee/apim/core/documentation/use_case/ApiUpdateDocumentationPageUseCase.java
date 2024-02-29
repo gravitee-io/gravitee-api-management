@@ -24,7 +24,9 @@ import io.gravitee.apim.core.documentation.domain_service.HomepageDomainService;
 import io.gravitee.apim.core.documentation.domain_service.UpdateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
@@ -57,6 +59,11 @@ public class ApiUpdateDocumentationPageUseCase {
         if (oldPage.isMarkdown() && !Objects.equals(oldPage.getContent(), input.content)) {
             this.documentationValidationDomainService.validateContent(input.content, input.apiId);
             newPage.content(input.content);
+        } else if (oldPage.isSwagger() && !Objects.equals(oldPage.getContent(), input.content)) {
+            this.documentationValidationDomainService.parseOpenApiContent(input.content);
+            newPage.content(input.content);
+        } else if (oldPage.isAsyncApi() && !Objects.equals(oldPage.getContent(), input.content)) {
+            newPage.content(input.content);
         }
 
         newPage.updatedAt(new Date());
@@ -66,7 +73,7 @@ public class ApiUpdateDocumentationPageUseCase {
 
         var updatedPage = this.updateApiDocumentationDomainService.updatePage(newPage.build(), oldPage, input.auditInfo);
 
-        if (updatedPage.isMarkdown() && updatedPage.isHomepage() && !oldPage.isHomepage()) {
+        if (!updatedPage.isFolder() && updatedPage.isHomepage() && !oldPage.isHomepage()) {
             this.homepageDomainService.setPreviousHomepageToFalse(input.apiId, updatedPage.getId());
         }
 

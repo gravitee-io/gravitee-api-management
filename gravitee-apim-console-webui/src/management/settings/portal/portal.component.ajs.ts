@@ -25,7 +25,7 @@ import TagService from '../../../services/tag.service';
 
 const PortalSettingsComponentAjs: ng.IComponentOptions = {
   bindings: {},
-  template: require('html-loader!./portal.html'),
+  template: require('html-loader!./portal.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: [
     'NotificationService',
     'PortalSettingsService',

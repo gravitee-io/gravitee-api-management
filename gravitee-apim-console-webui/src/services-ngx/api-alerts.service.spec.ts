@@ -18,7 +18,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { ApiAlertsService } from './api-alerts.service';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { fakeAlertTriggerEntity } from '../entities/alerts/alertTriggerEntity.fixtures';
 
 describe('ApiAlertsService', () => {
@@ -27,7 +27,7 @@ describe('ApiAlertsService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);

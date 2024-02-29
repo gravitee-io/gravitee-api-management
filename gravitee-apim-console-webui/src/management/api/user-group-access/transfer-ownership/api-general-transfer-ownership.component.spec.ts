@@ -26,7 +26,7 @@ import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatButtonToggleGroupHarness } from '@angular/material/button-toggle/testing';
 import { ActivatedRoute } from '@angular/router';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { ApiUserGroupModule } from '../api-user-group.module';
 import { Role } from '../../../../entities/role/role';
 import { fakeRole } from '../../../../entities/role/role.fixture';
@@ -38,6 +38,7 @@ import { Api, fakeApiV2, fakeApiV4, fakeGroup, fakeGroupsResponse, Group, Member
 import { ApiGeneralMembersHarness } from '../members/api-general-members.harness';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { fakeMember } from '../../../../entities/management-api-v2/member/member.fixture';
+import { Constants } from '../../../../entities/Constants';
 
 describe('ApiGeneralTransferOwnershipComponent', () => {
   const apiId = 'apiId';
@@ -54,11 +55,11 @@ describe('ApiGeneralTransferOwnershipComponent', () => {
   describe('Hybrid mode', () => {
     beforeEach(async () => {
       TestBed.configureTestingModule({
-        imports: [NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule, ApiUserGroupModule],
+        imports: [NoopAnimationsModule, GioTestingModule, MatIconTestingModule, ApiUserGroupModule],
         providers: [
           { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId } } } },
           {
-            provide: 'Constants',
+            provide: Constants,
             useFactory: () => {
               const constants = CONSTANTS_TESTING;
               set(constants, 'env.settings.api.primaryOwnerMode', 'HYBRID');
@@ -234,11 +235,11 @@ describe('ApiGeneralTransferOwnershipComponent', () => {
   describe('Group mode', () => {
     beforeEach(async () => {
       TestBed.configureTestingModule({
-        imports: [NoopAnimationsModule, GioHttpTestingModule, MatIconTestingModule, ApiUserGroupModule],
+        imports: [NoopAnimationsModule, GioTestingModule, MatIconTestingModule, ApiUserGroupModule],
         providers: [
           { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId } } } },
           {
-            provide: 'Constants',
+            provide: Constants,
             useFactory: () => {
               const constants = CONSTANTS_TESTING;
               set(constants, 'env.settings.api.primaryOwnerMode', 'GROUP');

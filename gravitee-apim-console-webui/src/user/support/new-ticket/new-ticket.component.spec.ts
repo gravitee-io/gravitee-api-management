@@ -26,7 +26,7 @@ import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 
 import { NewTicketComponent } from './new-ticket.component';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { TicketsModule } from '../tickets.module';
 import { Api, ApisResponse, fakeApiV2, fakeApiV4 } from '../../../entities/management-api-v2';
 import { fakePagedResult, PagedResult } from '../../../entities/pagedResult';
@@ -40,7 +40,7 @@ describe('NewTicketComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, TicketsModule],
+      imports: [NoopAnimationsModule, GioTestingModule, TicketsModule],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {

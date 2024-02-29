@@ -23,7 +23,7 @@ import { ActivatedRoute } from '@angular/router';
 
 import { ClientRegistrationProviderComponent } from './client-registration-provider.component';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { ClientRegistrationProvidersModule } from '../client-registration-providers.module';
 import {
   fakeClientRegistrationProvider,
@@ -40,7 +40,7 @@ describe('ClientRegistrationProvider', () => {
 
   function initComponent(clientProviderId?: string) {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ClientRegistrationProvidersModule, RouterTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, ClientRegistrationProvidersModule, RouterTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { providerId: clientProviderId } } } },
         {

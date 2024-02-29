@@ -29,9 +29,10 @@ import {
 } from './org-settings-user-generate-token.component';
 
 import { OrganizationSettingsModule } from '../../../organization-settings.module';
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
 import { Token } from '../../../../../entities/user/userTokens';
 import { fakeUserToken } from '../../../../../entities/user/userToken.fixture';
+import { Constants } from '../../../../../entities/Constants';
 
 describe('OrgSettingsUserGenerateTokenComponent', () => {
   let component: OrgSettingsUserGenerateTokenComponent;
@@ -47,10 +48,10 @@ describe('OrgSettingsUserGenerateTokenComponent', () => {
       userId: userId,
     };
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, OrganizationSettingsModule, GioHttpTestingModule],
+      imports: [NoopAnimationsModule, OrganizationSettingsModule, GioTestingModule],
       providers: [
         {
-          provide: 'Constants',
+          provide: Constants,
           useValue: fakeConstants,
         },
         {

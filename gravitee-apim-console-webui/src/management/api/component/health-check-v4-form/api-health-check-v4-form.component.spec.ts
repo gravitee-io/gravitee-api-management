@@ -24,7 +24,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { ApiHealthCheckV4FormHarness } from './api-health-check-v4-form.harness';
 import { ApiHealthCheckV4FormModule } from './api-health-check-v4-form.module';
 
-import { GioHttpTestingModule } from '../../../../shared/testing';
+import { GioTestingModule } from '../../../../shared/testing';
 
 @Component({
   template: ` <api-health-check-v4-form [healthCheckForm]="healthCheckForm"></api-health-check-v4-form> `,
@@ -54,7 +54,7 @@ describe('ApiHealthCheckV4FormComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [TestComponent],
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiHealthCheckV4FormModule],
+      imports: [NoopAnimationsModule, GioTestingModule, ApiHealthCheckV4FormModule],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TestComponent);

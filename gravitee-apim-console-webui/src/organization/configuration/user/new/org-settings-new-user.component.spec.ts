@@ -27,7 +27,7 @@ import { Validators } from '@angular/forms';
 
 import { OrgSettingsNewUserComponent, UserType } from './org-settings-new-user.component';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { OrganizationSettingsModule } from '../../organization-settings.module';
 import { fakeIdentityProviderListItem } from '../../../../entities/identity-provider';
 import { fakeUser } from '../../../../entities/user/user.fixture';
@@ -39,9 +39,9 @@ describe('OrgSettingsNewUserComponent', () => {
   let httpTestingController: HttpTestingController;
   let component: OrgSettingsNewUserComponent;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, OrganizationSettingsModule],
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [NoopAnimationsModule, GioTestingModule, OrganizationSettingsModule],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {

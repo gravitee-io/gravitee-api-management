@@ -69,7 +69,7 @@ export class ClientRegistrationProvidersComponent implements OnInit, OnDestroy {
     this.unsubscribe$.unsubscribe();
   }
   ngOnInit(): void {
-    this.hasDcrRegistrationLock$ = this.licenseService.isMissingFeature$(this.dcrRegistrationLicenseOptions);
+    this.hasDcrRegistrationLock$ = this.licenseService.isMissingFeature$(this.dcrRegistrationLicenseOptions.feature);
 
     this.canUpdateSettings = this.permissionService.hasAnyMatching([
       'environment-settings-c',

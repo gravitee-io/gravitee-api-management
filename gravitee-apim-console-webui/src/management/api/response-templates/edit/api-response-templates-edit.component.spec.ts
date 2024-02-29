@@ -26,7 +26,7 @@ import { ActivatedRoute } from '@angular/router';
 
 import { ApiResponseTemplatesEditComponent } from './api-response-templates-edit.component';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { ApiResponseTemplatesModule } from '../api-response-templates.module';
 import { ApiV2, ApiV4, fakeApiV2, fakeApiV4 } from '../../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
@@ -110,7 +110,7 @@ describe('ApiProxyResponseTemplatesComponent', () => {
 
   const initTestingComponent = (responseTemplateId?: string) => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioHttpTestingModule, ApiResponseTemplatesModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, ApiResponseTemplatesModule, MatIconTestingModule],
       providers: [
         { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID, responseTemplateId } } } },
         {

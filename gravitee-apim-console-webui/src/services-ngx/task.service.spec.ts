@@ -18,7 +18,7 @@ import { TestBed } from '@angular/core/testing';
 
 import { TaskService } from './task.service';
 
-import { CONSTANTS_TESTING, GioHttpTestingModule } from '../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { fakeTask } from '../entities/task/task.fixture';
 
 describe('TaskService', () => {
@@ -27,7 +27,7 @@ describe('TaskService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
     });
 
     httpTestingController = TestBed.inject(HttpTestingController);

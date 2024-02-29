@@ -17,14 +17,14 @@ import { TestBed } from '@angular/core/testing';
 
 import { ICON_NAMESPACE, IconService } from './icon.service';
 
-import { GioHttpTestingModule } from '../shared/testing';
+import { GioTestingModule } from '../shared/testing';
 
 describe('IconService', () => {
   let iconService: IconService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [GioHttpTestingModule],
+      imports: [GioTestingModule],
     });
 
     iconService = TestBed.inject<IconService>(IconService);

@@ -33,6 +33,7 @@ import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
 import io.gravitee.rest.api.service.exceptions.NoPrimaryOwnerGroupForUserException;
+import io.gravitee.rest.api.service.exceptions.NonPoGroupException;
 import io.gravitee.rest.api.service.exceptions.PrimaryOwnerNotFoundException;
 import io.gravitee.rest.api.service.exceptions.RoleNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
@@ -131,8 +132,12 @@ public class PrimaryOwnerServiceImpl extends TransactionalService implements Pri
                 }
                 if (ApiPrimaryOwnerMode.GROUP.name().equals(currentPrimaryOwner.getType())) {
                     try {
+                        GroupEntity group = groupService.findById(executionContext, currentPrimaryOwner.getId());
+                        if (!group.isPrimaryOwner()) {
+                            throw new NonPoGroupException(currentPrimaryOwner.getId());
+                        }
                         final String poMail = computePrimaryOwnerMailFromGroup(executionContext, currentPrimaryOwner.getId());
-                        return new PrimaryOwnerEntity(groupService.findById(executionContext, currentPrimaryOwner.getId()), poMail);
+                        return new PrimaryOwnerEntity(group, poMail);
                     } catch (GroupNotFoundException unfe) {
                         return getFirstPoGroupUserBelongsTo(executionContext, userId);
                     }
@@ -164,8 +169,12 @@ public class PrimaryOwnerServiceImpl extends TransactionalService implements Pri
                 }
                 if (ApiPrimaryOwnerMode.GROUP.name().equals(currentPrimaryOwner.getType())) {
                     try {
+                        GroupEntity group = groupService.findById(executionContext, currentPrimaryOwner.getId());
+                        if (!group.isPrimaryOwner()) {
+                            throw new NonPoGroupException(currentPrimaryOwner.getId());
+                        }
                         final String poMail = computePrimaryOwnerMailFromGroup(executionContext, currentPrimaryOwner.getId());
-                        return new PrimaryOwnerEntity(groupService.findById(executionContext, currentPrimaryOwner.getId()), poMail);
+                        return new PrimaryOwnerEntity(group, poMail);
                     } catch (GroupNotFoundException unfe) {
                         try {
                             return getFirstPoGroupUserBelongsTo(executionContext, userId);

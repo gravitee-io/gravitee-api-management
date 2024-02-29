@@ -161,7 +161,7 @@ class DocumentationManagementComponentController implements IController {
       .show({
         controller: 'SelectFolderDialogController',
         controllerAs: 'ctrl',
-        template: require('html-loader!./dialog/selectfolder.dialog.html'),
+        template: require('html-loader!./dialog/selectfolder.dialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
         clickOutsideToClose: true,
         locals: {
           title: 'Create shortcut for "' + page.name + '" in...',
@@ -223,7 +223,7 @@ class DocumentationManagementComponentController implements IController {
       .show({
         controller: 'SelectFolderDialogController',
         controllerAs: 'ctrl',
-        template: require('html-loader!./dialog/selectfolder.dialog.html'),
+        template: require('html-loader!./dialog/selectfolder.dialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
         clickOutsideToClose: true,
         locals: {
           title: 'Move "' + page.name + '" to...',
@@ -377,7 +377,7 @@ class DocumentationManagementComponentController implements IController {
       .show({
         controller: 'DialogConfirmController',
         controllerAs: 'ctrl',
-        template: require('html-loader!../dialog/confirmWarning.dialog.html'),
+        template: require('html-loader!../dialog/confirmWarning.dialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
         clickOutsideToClose: true,
         locals: {
           title: 'Would you like to remove "' + page.name + '"?',
@@ -491,6 +491,6 @@ export const DocumentationManagementComponentAjs: ng.IComponentOptions = {
     parent: '<',
     activatedRoute: '<',
   },
-  template: require('html-loader!./documentation-management.html'),
+  template: require('html-loader!./documentation-management.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: DocumentationManagementComponentController,
 };

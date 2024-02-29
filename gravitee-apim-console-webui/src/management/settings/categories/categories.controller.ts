@@ -93,7 +93,7 @@ class CategoriesController {
     this.$mdDialog
       .show({
         controller: 'DeleteCategoryDialogController',
-        template: require('html-loader!./delete.category.dialog.html'),
+        template: require('html-loader!./delete.category.dialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
         locals: {
           category: category,
         },

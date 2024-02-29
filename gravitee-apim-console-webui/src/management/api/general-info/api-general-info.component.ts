@@ -94,7 +94,7 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
     private readonly permissionService: GioPermissionService,
     private readonly snackBarService: SnackBarService,
     private readonly matDialog: MatDialog,
-    @Inject('Constants') private readonly constants: Constants,
+    @Inject(Constants) private readonly constants: Constants,
   ) {}
 
   ngOnInit(): void {

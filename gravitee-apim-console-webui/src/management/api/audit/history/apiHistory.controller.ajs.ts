@@ -178,23 +178,51 @@ class ApiHistoryControllerAjs {
       });
     }
 
-    this.ApiService.get(this.activatedRoute.snapshot.params.apiId).then((api) => {
+    Promise.all([
+      this.ApiService.get(this.activatedRoute.snapshot.params.apiId),
+      this.ApiService.isAPISynchronized(this.activatedRoute.snapshot.params.apiId),
+    ]).then(([api, apiIsSynchronizedResult]) => {
       this.api = api.data;
 
       this.eventPage = -1;
       this.events = [];
-      this.appendNextPage();
+      const toDeployEventTimeline = !apiIsSynchronizedResult.data.is_synchronized
+        ? {
+            event: {
+              payload: this.stringifyCurrentApi(),
+            },
+            badgeClass: 'warning',
+            badgeIconClass: 'notification:sync',
+            title: 'TO_DEPLOY',
+            isCurrentAPI: true,
+          }
+        : undefined;
+      this.appendNextPage(toDeployEventTimeline);
     });
   }
 
-  appendNextPage() {
+  appendNextPage(toDeployEventTimeline?: any) {
     this.eventPage++;
     this.ApiService.searchApiEvents(this.eventTypes, this.api.id, undefined, undefined, this.eventPage, this.eventPageSize, true).then(
       (response) => {
         this.events = [...(this.events ?? []), ...response.data.content];
         this.hasNextEventPageToLoad =
           response.data.totalElements > response.data.pageNumber * this.eventPageSize + response.data.pageElements;
-        this.initTimeline(this.events);
+
+        this.eventsTimeline = this.events.map((event) => ({
+          event: event,
+          badgeClass: 'info',
+          badgeIconClass: 'action:check_circle',
+          title: event.type,
+          when: event.created_at,
+          user: event.user,
+          deploymentLabel: event.properties.deployment_label,
+          deploymentNumber: event.properties.deployment_number,
+        }));
+
+        if (toDeployEventTimeline) {
+          this.eventsTimeline.unshift(toDeployEventTimeline);
+        }
       },
     );
   }
@@ -209,19 +237,6 @@ class ApiHistoryControllerAjs {
       flow_mode: api.flow_mode,
     };
     this.studio.services = api.services || {};
-  }
-
-  initTimeline(events) {
-    this.eventsTimeline = events.map((event) => ({
-      event: event,
-      badgeClass: 'info',
-      badgeIconClass: 'action:check_circle',
-      title: event.type,
-      when: event.created_at,
-      user: event.user,
-      deploymentLabel: event.properties.deployment_label,
-      deploymentNumber: event.properties.deployment_number,
-    }));
   }
 
   selectEvent(_eventTimeline) {
@@ -413,7 +428,7 @@ class ApiHistoryControllerAjs {
       .show({
         controller: 'DialogConfirmController',
         controllerAs: 'ctrl',
-        template: require('html-loader!../../../../components/dialog/confirm.dialog.html'),
+        template: require('html-loader!../../../../components/dialog/confirm.dialog.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
         clickOutsideToClose: true,
         locals: {
           title: 'Would you like to rollback your API?',
