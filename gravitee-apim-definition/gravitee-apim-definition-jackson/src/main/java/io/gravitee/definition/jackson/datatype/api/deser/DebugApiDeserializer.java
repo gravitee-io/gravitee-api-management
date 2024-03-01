@@ -19,6 +19,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import io.gravitee.definition.model.Api;
@@ -45,7 +46,7 @@ public class DebugApiDeserializer extends StdScalarDeserializer<DebugApi> {
     }
 
     @Override
-    public DebugApi deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+    public DebugApi deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
         JsonNode node = jp.getCodec().readTree(jp);
         DebugApi debugApi = (DebugApi) this.base.deserialize(jp, ctxt, new DebugApi(), node);
         JsonNode requestNode = node.get("request");
@@ -53,7 +54,7 @@ public class DebugApiDeserializer extends StdScalarDeserializer<DebugApi> {
             debugApi.setRequest(requestNode.traverse(jp.getCodec()).readValueAs(HttpRequest.class));
         } else {
             logger.error("A request property is required for {}", debugApi.getName());
-            throw ctxt.mappingException("A request property is required for " + debugApi.getName());
+            throw JsonMappingException.from(ctxt, "A request property is required for " + debugApi.getName());
         }
 
         JsonNode responseNode = node.get("response");

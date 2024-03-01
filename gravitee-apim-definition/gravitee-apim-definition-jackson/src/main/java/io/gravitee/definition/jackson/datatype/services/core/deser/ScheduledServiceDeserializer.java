@@ -18,6 +18,7 @@ package io.gravitee.definition.jackson.datatype.services.core.deser;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.definition.model.services.schedule.ScheduledService;
 import java.io.IOException;
@@ -36,8 +37,7 @@ public abstract class ScheduledServiceDeserializer<T extends ScheduledService> e
     }
 
     @Override
-    protected void deserialize(T service, JsonParser jsonParser, JsonNode node, DeserializationContext ctxt)
-        throws IOException, JsonProcessingException {
+    protected void deserialize(T service, JsonParser jsonParser, JsonNode node, DeserializationContext ctxt) throws IOException {
         super.deserialize(service, jsonParser, node, ctxt);
 
         final JsonNode scheduleNode = node.get("schedule");
@@ -54,14 +54,14 @@ public abstract class ScheduledServiceDeserializer<T extends ScheduledService> e
                 if (rateNode != null) {
                     rate = rateNode.asLong();
                 } else {
-                    throw ctxt.mappingException("[scheduled-service] Rate is required");
+                    throw JsonMappingException.from(ctxt, "[scheduled-service] Rate is required");
                 }
 
                 final JsonNode unitNode = triggerNode.get("unit");
                 if (unitNode != null) {
                     unit = TimeUnit.valueOf(unitNode.asText().toUpperCase());
                 } else {
-                    throw ctxt.mappingException("[scheduled-service] Unit is required");
+                    throw JsonMappingException.from(ctxt, "[scheduled-service] Unit is required");
                 }
             } else if (node.has("interval")) {
                 // Ensure backward compatibility
@@ -74,7 +74,7 @@ public abstract class ScheduledServiceDeserializer<T extends ScheduledService> e
                     if (unitNode != null) {
                         unit = TimeUnit.valueOf(unitNode.asText().toUpperCase());
                     } else {
-                        throw ctxt.mappingException("[scheduled-service] Unit is required");
+                        throw JsonMappingException.from(ctxt, "[scheduled-service] Unit is required");
                     }
                 }
             }

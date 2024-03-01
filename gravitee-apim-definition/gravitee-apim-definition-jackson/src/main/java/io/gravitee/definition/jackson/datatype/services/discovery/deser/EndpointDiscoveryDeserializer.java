@@ -17,6 +17,7 @@ package io.gravitee.definition.jackson.datatype.services.discovery.deser;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.definition.jackson.datatype.services.core.deser.ServiceDeserializer;
 import io.gravitee.definition.jackson.datatype.services.discovery.EndpointDiscoveryProviderMapper;
@@ -45,7 +46,7 @@ public class EndpointDiscoveryDeserializer extends ServiceDeserializer<EndpointD
                 String providerPlugin = EndpointDiscoveryProviderMapper.getProvider(provider);
                 service.setProvider(providerPlugin);
             } else {
-                throw ctxt.mappingException("[endpoint-discovery] Provider is required");
+                throw JsonMappingException.from(ctxt, "[endpoint-discovery] Provider is required");
             }
 
             service.setConfiguration(node.get("configuration").toString());

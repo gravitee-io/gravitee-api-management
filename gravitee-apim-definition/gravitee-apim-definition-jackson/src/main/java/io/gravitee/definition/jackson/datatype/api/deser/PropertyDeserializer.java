@@ -17,6 +17,7 @@ package io.gravitee.definition.jackson.datatype.api.deser;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.definition.model.Property;
 import java.io.IOException;
@@ -40,14 +41,14 @@ public class PropertyDeserializer extends AbstractStdScalarDeserializer<Property
 
         JsonNode keyNode = node.get("key");
         if (keyNode == null) {
-            throw ctxt.mappingException("Key property is required");
+            throw JsonMappingException.from(ctxt, "Key property is required");
         } else {
             key = keyNode.asText();
         }
 
         JsonNode valueNode = node.get("value");
         if (valueNode == null) {
-            throw ctxt.mappingException("Value property is required");
+            throw JsonMappingException.from(ctxt, "Value property is required");
         } else {
             value = valueNode.asText();
         }

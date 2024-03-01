@@ -20,6 +20,7 @@ import static java.util.Comparator.reverseOrder;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import io.gravitee.definition.model.*;
@@ -57,14 +58,14 @@ public class ApiDeserializer<T extends Api> extends StdScalarDeserializer<T> {
     public T deserialize(JsonParser jp, DeserializationContext ctxt, T api, JsonNode node) throws IOException {
         JsonNode idNode = node.get("id");
         if (idNode == null) {
-            throw ctxt.mappingException("ID property is required");
+            throw JsonMappingException.from(ctxt, "ID property is required");
         } else {
             api.setId(idNode.asText());
         }
 
         JsonNode nameNode = node.get("name");
         if (nameNode == null) {
-            throw ctxt.mappingException("Name property is required");
+            throw JsonMappingException.from(ctxt, "Name property is required");
         } else {
             api.setName(nameNode.asText());
         }
@@ -82,7 +83,7 @@ public class ApiDeserializer<T extends Api> extends StdScalarDeserializer<T> {
             api.setProxy(proxyNode.traverse(jp.getCodec()).readValueAs(Proxy.class));
         } else {
             logger.error("A proxy property is required for {}", api.getName());
-            throw ctxt.mappingException("A proxy property is required for " + api.getName());
+            throw JsonMappingException.from(ctxt, "A proxy property is required for " + api.getName());
         }
 
         JsonNode servicesNode = node.get("services");
@@ -114,7 +115,7 @@ public class ApiDeserializer<T extends Api> extends StdScalarDeserializer<T> {
                         if (!api.getResources().contains(resource)) {
                             api.getResources().add(resource);
                         } else {
-                            throw ctxt.mappingException("A resource already exists with name " + resource.getName());
+                            throw JsonMappingException.from(ctxt, "A resource already exists with name " + resource.getName());
                         }
                     } catch (IOException e) {
                         logger.error("An error occurred during api deserialization", e);
@@ -130,7 +131,7 @@ public class ApiDeserializer<T extends Api> extends StdScalarDeserializer<T> {
 
         if (api.getDefinitionVersion() == DefinitionVersion.V1) {
             if (node.get("flows") != null) {
-                throw ctxt.mappingException("Flows are only available for definition >= 2.x.x ");
+                throw JsonMappingException.from(ctxt, "Flows are only available for definition >= 2.x.x ");
             }
 
             JsonNode pathsNode = node.get("paths");
@@ -153,7 +154,7 @@ public class ApiDeserializer<T extends Api> extends StdScalarDeserializer<T> {
 
         if (api.getDefinitionVersion() == DefinitionVersion.V2) {
             if (node.get("paths") != null) {
-                throw ctxt.mappingException("Paths are only available for definition 1.x.x ");
+                throw JsonMappingException.from(ctxt, "Paths are only available for definition 1.x.x ");
             }
 
             JsonNode flowsNode = node.get("flows");
