@@ -431,7 +431,7 @@
           <i>same-origin</i> definition.<br />
           If you choose to enable '*' it means that is allows all requests, regardless of origin. Regular Expressions are also supported.
         </div>
-        <div ng-if="!$ctrl.isRegexValid()" style="color: red">Regex is invalid</div>
+        <div ng-if="!!$ctrl.settings && !$ctrl.isRegexValid()" style="color: red">Regex is invalid</div>
         <md-tooltip ng-if="$ctrl.isReadonlySetting('http.api.portal.cors.allow-origin')">{{$ctrl.providedConfigurationMessage}}</md-tooltip>
       </md-input-container>
       <md-input-container class="md-block" flex-gt-sm>
