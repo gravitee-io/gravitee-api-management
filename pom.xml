@@ -114,7 +114,7 @@
         <jakarta.activation-api.version>2.1.2</jakarta.activation-api.version>
         <jakarta.xml.bind-api.version>4.0.0</jakarta.xml.bind-api.version>
         <javax.annotation-api.version>1.3.2</javax.annotation-api.version>
-        <spring-data-mongodb.version>4.2.2</spring-data-mongodb.version>
+        <spring-data-mongodb.version>4.2.3</spring-data-mongodb.version>
 
         <!-- javax dependencies still required for compatibility or test -->
         <jaxb-impl.version>4.0.2</jaxb-impl.version>
