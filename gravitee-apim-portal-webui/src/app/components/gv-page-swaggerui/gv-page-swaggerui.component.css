@@ -13,7 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 .gv-page-container {
   width: 100%;
   min-height: calc(100vh - var(--gv-theme-page--pt) - var(--gv-theme-page--pb) - var(--gv-theme-layout-header--h));
+}
+
+/* reset models expand control paddings so that the whole zone is clickable */
+::ng-deep app-gv-page-swaggerui .gv-page-container .swagger-ui section.models h4 {
+  padding: 0;
+}
+
+::ng-deep app-gv-page-swaggerui .gv-page-container .swagger-ui section.models h4 button {
+  padding: 10px 20px;
 }
