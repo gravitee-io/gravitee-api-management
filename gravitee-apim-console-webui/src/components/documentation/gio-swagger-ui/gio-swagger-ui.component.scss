@@ -3,5 +3,13 @@
     .swagger-ui .info .title small {
       line-height: 12px;
     }
+
+    // reset models expand control paddings so that the whole zone is clickable
+    .swagger-ui section.models h4 {
+      padding: 0;
+      button {
+        padding: 10px 20px;
+      }
+    }
   }
 }
