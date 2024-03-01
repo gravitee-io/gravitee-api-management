@@ -26,17 +26,11 @@ import static org.mockito.Mockito.when;
 
 import assertions.MAPIAssertions;
 import fixtures.core.model.PlanFixtures;
-import inmemory.ApiCrudServiceInMemory;
-import inmemory.AuditCrudServiceInMemory;
-import inmemory.InMemoryAlternative;
-import inmemory.IndexerInMemory;
-import inmemory.PageCrudServiceInMemory;
-import inmemory.PageQueryServiceInMemory;
-import inmemory.PageRevisionCrudServiceInMemory;
-import inmemory.PlanQueryServiceInMemory;
-import inmemory.UserCrudServiceInMemory;
+import inmemory.*;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.apim.core.membership.model.Membership;
+import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.management.v2.rest.model.*;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
@@ -81,6 +75,12 @@ class ApiPagesResourceTest extends AbstractResourceTest {
     private UserCrudServiceInMemory userCrudService;
 
     @Autowired
+    private RoleQueryServiceInMemory roleQueryService;
+
+    @Autowired
+    private MembershipQueryServiceInMemory membershipQueryService;
+
+    @Autowired
     private IndexerInMemory indexer;
 
     protected static final String ENVIRONMENT = "my-env";
@@ -113,6 +113,8 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 userCrudService,
                 apiCrudServiceInMemory,
                 planQueryServiceInMemory,
+                roleQueryService,
+                membershipQueryService,
                 indexer
             )
             .forEach(InMemoryAlternative::reset);
@@ -918,7 +920,33 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
         @BeforeEach
         void setUp() {
-            apiCrudServiceInMemory.initWith(List.of(Api.builder().id("api-id").build()));
+            apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
+            roleQueryService.initWith(
+                List.of(
+                    io.gravitee.apim.core.membership.model.Role
+                        .builder()
+                        .id("role-id")
+                        .scope(io.gravitee.apim.core.membership.model.Role.Scope.API)
+                        .referenceType(io.gravitee.apim.core.membership.model.Role.ReferenceType.ORGANIZATION)
+                        .referenceId(ORGANIZATION)
+                        .name("PRIMARY_OWNER")
+                        .build()
+                )
+            );
+            membershipQueryService.initWith(
+                List.of(
+                    Membership
+                        .builder()
+                        .id("member-id")
+                        .memberId("my-member-id")
+                        .memberType(Membership.Type.USER)
+                        .referenceType(Membership.ReferenceType.API)
+                        .referenceId(API_ID)
+                        .roleId("role-id")
+                        .build()
+                )
+            );
+            userCrudService.initWith(List.of(BaseUserEntity.builder().id("my-member-id").build()));
         }
 
         @Test
@@ -1196,6 +1224,32 @@ class ApiPagesResourceTest extends AbstractResourceTest {
         @BeforeEach
         void setUp() {
             apiCrudServiceInMemory.initWith(List.of(Api.builder().id(API_ID).build()));
+            roleQueryService.initWith(
+                List.of(
+                    io.gravitee.apim.core.membership.model.Role
+                        .builder()
+                        .id("role-id")
+                        .scope(io.gravitee.apim.core.membership.model.Role.Scope.API)
+                        .referenceType(io.gravitee.apim.core.membership.model.Role.ReferenceType.ORGANIZATION)
+                        .referenceId(ORGANIZATION)
+                        .name("PRIMARY_OWNER")
+                        .build()
+                )
+            );
+            membershipQueryService.initWith(
+                List.of(
+                    Membership
+                        .builder()
+                        .id("member-id")
+                        .memberId("my-member-id")
+                        .memberType(Membership.Type.USER)
+                        .referenceType(Membership.ReferenceType.API)
+                        .referenceId(API_ID)
+                        .roleId("role-id")
+                        .build()
+                )
+            );
+            userCrudService.initWith(List.of(BaseUserEntity.builder().id("my-member-id").build()));
         }
 
         @Test

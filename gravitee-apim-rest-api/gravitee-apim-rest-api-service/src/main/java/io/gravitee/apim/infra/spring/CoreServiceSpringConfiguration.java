@@ -230,9 +230,18 @@ public class CoreServiceSpringConfiguration {
         HtmlSanitizer htmlSanitizer,
         TemplateResolverDomainService templateResolverDomainService,
         ApiCrudService apiCrudService,
-        OpenApiDomainService openApiDomainService
+        OpenApiDomainService openApiDomainService,
+        ApiMetadataQueryService apiMetadataQueryService,
+        ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService
     ) {
-        return new DocumentationValidationDomainService(htmlSanitizer, templateResolverDomainService, apiCrudService, openApiDomainService);
+        return new DocumentationValidationDomainService(
+            htmlSanitizer,
+            templateResolverDomainService,
+            apiCrudService,
+            openApiDomainService,
+            apiMetadataQueryService,
+            apiPrimaryOwnerDomainService
+        );
     }
 
     @Bean
