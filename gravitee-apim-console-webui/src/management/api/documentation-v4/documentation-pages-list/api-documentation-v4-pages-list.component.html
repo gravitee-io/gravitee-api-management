@@ -121,6 +121,9 @@
               </ng-container>
             </ng-container>
 
+            <!-- insert empty slot so that flex keeps everything aligned when publish icon is missing -->
+            <div *ngIf="page.type === 'FOLDER'"></div>
+
             <button
               mat-icon-button
               (click)="onMoveUp.emit(page)"
