@@ -19,12 +19,20 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
-import inmemory.ApiCrudServiceInMemory;
-import inmemory.NoopSwaggerOpenApiResolver;
-import inmemory.NoopTemplateResolverDomainService;
+import inmemory.*;
+import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.documentation.exception.InvalidPageNameException;
+import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
+import io.gravitee.apim.core.membership.model.Membership;
+import io.gravitee.apim.core.membership.model.Role;
+import io.gravitee.apim.core.user.model.BaseUserEntity;
+import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import io.gravitee.rest.api.service.exceptions.PageContentUnsafeException;
+import java.util.List;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -34,6 +42,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 public class DocumentationValidationDomainServiceTest {
 
+    private final String ORGANIZATION_ID = "org-id";
+    private final String API_ID = "api-id";
+
+    ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
+    AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
+    GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
+    MembershipCrudServiceInMemory membershipCrudService = new MembershipCrudServiceInMemory();
+    MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory(membershipCrudService);
+    RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
+    UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     private DocumentationValidationDomainService cut;
 
     @BeforeEach
@@ -42,9 +60,53 @@ public class DocumentationValidationDomainServiceTest {
             new DocumentationValidationDomainService(
                 new HtmlSanitizerImpl(),
                 new NoopTemplateResolverDomainService(),
-                new ApiCrudServiceInMemory(),
-                new NoopSwaggerOpenApiResolver()
+                apiCrudService,
+                new NoopSwaggerOpenApiResolver(),
+                new ApiMetadataQueryServiceInMemory(),
+                new ApiPrimaryOwnerDomainService(
+                    new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
+                    groupQueryService,
+                    membershipCrudService,
+                    membershipQueryService,
+                    roleQueryService,
+                    userCrudService
+                )
             );
+
+        apiCrudService.initWith(List.of(Api.builder().id(API_ID).build()));
+        roleQueryService.initWith(
+            List.of(
+                Role
+                    .builder()
+                    .id("role-id")
+                    .scope(Role.Scope.API)
+                    .referenceType(Role.ReferenceType.ORGANIZATION)
+                    .referenceId(ORGANIZATION_ID)
+                    .name("PRIMARY_OWNER")
+                    .build()
+            )
+        );
+        membershipQueryService.initWith(
+            List.of(
+                Membership
+                    .builder()
+                    .id("member-id")
+                    .memberId("my-member-id")
+                    .memberType(Membership.Type.USER)
+                    .referenceType(Membership.ReferenceType.API)
+                    .referenceId(API_ID)
+                    .roleId("role-id")
+                    .build()
+            )
+        );
+        userCrudService.initWith(List.of(BaseUserEntity.builder().id("my-member-id").build()));
+    }
+
+    @AfterEach
+    void tearDown() {
+        Stream
+            .of(auditCrudService, userCrudService, roleQueryService, membershipCrudService, userCrudService)
+            .forEach(InMemoryAlternative::reset);
     }
 
     @Nested
@@ -80,6 +142,15 @@ public class DocumentationValidationDomainServiceTest {
         @Test
         void should_not_throw_an_exception() {
             assertDoesNotThrow(() -> cut.validateContentIsSafe("content"));
+        }
+    }
+
+    @Nested
+    class ValidateTemplate {
+
+        @Test
+        void should_not_throw_an_exception() {
+            assertDoesNotThrow(() -> cut.validateTemplate("content", API_ID, ORGANIZATION_ID));
         }
     }
 }

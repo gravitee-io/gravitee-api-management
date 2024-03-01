@@ -16,11 +16,15 @@
 package io.gravitee.apim.core.documentation.domain_service;
 
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
+import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.documentation.exception.InvalidPageNameException;
+import io.gravitee.apim.core.documentation.model.ApiFreemarkerTemplate;
+import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.sanitizer.HtmlSanitizer;
 import io.gravitee.apim.core.sanitizer.SanitizeResult;
 import io.gravitee.rest.api.service.exceptions.PageContentUnsafeException;
 import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -30,6 +34,8 @@ public class DocumentationValidationDomainService {
     private final TemplateResolverDomainService templateResolverDomainService;
     private final ApiCrudService apiCrudService;
     private final OpenApiDomainService openApiDomainService;
+    private final ApiMetadataQueryService apiMetadataQueryService;
+    private final ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService;
 
     public String sanitizeDocumentationName(String name) {
         if (null == name || name.trim().isEmpty()) {
@@ -38,9 +44,9 @@ public class DocumentationValidationDomainService {
         return name.trim();
     }
 
-    public void validateContent(String content, String apiId) {
+    public void validateContent(String content, String apiId, String organizationId) {
         this.validateContentIsSafe(content);
-        this.validateTemplate(content, apiId);
+        this.validateTemplate(content, apiId, organizationId);
     }
 
     public void validateContentIsSafe(String content) {
@@ -50,8 +56,25 @@ public class DocumentationValidationDomainService {
         }
     }
 
-    public void validateTemplate(String pageContent, String apiId) {
-        this.templateResolverDomainService.resolveTemplate(pageContent, Map.of("api", this.apiCrudService.get(apiId)));
+    public void validateTemplate(String pageContent, String apiId, String organizationId) {
+        var metadata =
+            this.apiMetadataQueryService.findApiMetadata(apiId)
+                .entrySet()
+                .stream()
+                .collect(
+                    Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> entry.getValue().getValue() != null ? entry.getValue().getValue() : entry.getValue().getDefaultValue()
+                    )
+                );
+
+        var api = new ApiFreemarkerTemplate(
+            this.apiCrudService.get(apiId),
+            metadata,
+            apiPrimaryOwnerDomainService.getApiPrimaryOwner(organizationId, apiId)
+        );
+
+        this.templateResolverDomainService.resolveTemplate(pageContent, Map.of("api", api));
     }
 
     public void parseOpenApiContent(String content) {

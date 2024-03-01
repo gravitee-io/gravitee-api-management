@@ -49,7 +49,11 @@ public class ApiCreateDocumentationPageUseCase {
         pageToCreate.setName(documentationValidationDomainService.sanitizeDocumentationName(pageToCreate.getName()));
 
         if (pageToCreate.isMarkdown()) {
-            this.documentationValidationDomainService.validateContent(pageToCreate.getContent(), pageToCreate.getReferenceId());
+            this.documentationValidationDomainService.validateContent(
+                    pageToCreate.getContent(),
+                    pageToCreate.getReferenceId(),
+                    input.auditInfo().organizationId()
+                );
         } else if (pageToCreate.isSwagger()) {
             this.documentationValidationDomainService.parseOpenApiContent(pageToCreate.getContent());
         }

@@ -33,6 +33,10 @@ import io.gravitee.apim.core.documentation.exception.InvalidPageNameException;
 import io.gravitee.apim.core.documentation.exception.InvalidPageParentException;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
+import io.gravitee.apim.core.membership.model.Membership;
+import io.gravitee.apim.core.membership.model.Role;
+import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.sanitizer.HtmlSanitizerImpl;
 import io.gravitee.rest.api.service.common.UuidString;
@@ -62,14 +66,14 @@ class ApiCreateDocumentationPageUseCaseTest {
     private final PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory();
 
     private final ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
-    private final DocumentationValidationDomainService documentationValidationDomainService = new DocumentationValidationDomainService(
-        new HtmlSanitizerImpl(),
-        new NoopTemplateResolverDomainService(),
-        apiCrudService,
-        new NoopSwaggerOpenApiResolver()
-    );
+
     AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
+    GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
+    MembershipCrudServiceInMemory membershipCrudService = new MembershipCrudServiceInMemory();
+    MembershipQueryServiceInMemory membershipQueryService = new MembershipQueryServiceInMemory(membershipCrudService);
+    RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
+    DocumentationValidationDomainService documentationValidationDomainService;
     CreateApiDocumentationDomainService createApiDocumentationDomainService;
     ApiCreateDocumentationPageUseCase apiCreateDocumentationPageUsecase;
     IndexerInMemory indexer = new IndexerInMemory();
@@ -77,6 +81,23 @@ class ApiCreateDocumentationPageUseCaseTest {
     @BeforeEach
     void setUp() {
         UuidString.overrideGenerator(() -> PAGE_ID);
+
+        documentationValidationDomainService =
+            new DocumentationValidationDomainService(
+                new HtmlSanitizerImpl(),
+                new NoopTemplateResolverDomainService(),
+                apiCrudService,
+                new NoopSwaggerOpenApiResolver(),
+                new ApiMetadataQueryServiceInMemory(),
+                new ApiPrimaryOwnerDomainService(
+                    new AuditDomainService(auditCrudService, userCrudService, new JacksonJsonDiffProcessor()),
+                    groupQueryService,
+                    membershipCrudService,
+                    membershipQueryService,
+                    roleQueryService,
+                    userCrudService
+                )
+            );
 
         createApiDocumentationDomainService =
             new CreateApiDocumentationDomainService(
@@ -95,12 +116,47 @@ class ApiCreateDocumentationPageUseCaseTest {
                 documentationValidationDomainService
             );
         apiCrudService.initWith(List.of(API_MESSAGE_V4));
+        roleQueryService.initWith(
+            List.of(
+                Role
+                    .builder()
+                    .id("role-id")
+                    .scope(Role.Scope.API)
+                    .referenceType(Role.ReferenceType.ORGANIZATION)
+                    .referenceId(ORGANIZATION_ID)
+                    .name("PRIMARY_OWNER")
+                    .build()
+            )
+        );
+        membershipQueryService.initWith(
+            List.of(
+                Membership
+                    .builder()
+                    .id("member-id")
+                    .memberId("my-member-id")
+                    .memberType(Membership.Type.USER)
+                    .referenceType(Membership.ReferenceType.API)
+                    .referenceId(API_ID)
+                    .roleId("role-id")
+                    .build()
+            )
+        );
+        userCrudService.initWith(List.of(BaseUserEntity.builder().id("my-member-id").build()));
     }
 
     @AfterEach
     void tearDown() {
         Stream
-            .of(pageQueryService, pageCrudService, pageRevisionCrudService, auditCrudService, userCrudService)
+            .of(
+                pageQueryService,
+                pageCrudService,
+                pageRevisionCrudService,
+                auditCrudService,
+                userCrudService,
+                roleQueryService,
+                membershipCrudService,
+                userCrudService
+            )
             .forEach(InMemoryAlternative::reset);
     }
 

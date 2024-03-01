@@ -57,7 +57,7 @@ public class ApiUpdateDocumentationPageUseCase {
         }
 
         if (oldPage.isMarkdown() && !Objects.equals(oldPage.getContent(), input.content)) {
-            this.documentationValidationDomainService.validateContent(input.content, input.apiId);
+            this.documentationValidationDomainService.validateContent(input.content, input.apiId, input.auditInfo().organizationId());
             newPage.content(input.content);
         } else if (oldPage.isSwagger() && !Objects.equals(oldPage.getContent(), input.content)) {
             this.documentationValidationDomainService.parseOpenApiContent(input.content);
