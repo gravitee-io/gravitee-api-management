@@ -67,6 +67,7 @@ $typography: map.get(gio.$mat-theme, typography);
   margin: 16px 0;
   gap: 16px;
   justify-content: space-between;
+  align-items: center;
 }
 .gio-connector {
   &__description {
@@ -84,6 +85,7 @@ $typography: map.get(gio.$mat-theme, typography);
       color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
       margin: 0;
       white-space: pre-line;
+      max-width: 600px;
     }
   }
 }
