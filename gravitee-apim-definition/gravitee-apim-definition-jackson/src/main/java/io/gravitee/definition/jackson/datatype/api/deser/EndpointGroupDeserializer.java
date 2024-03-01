@@ -16,17 +16,29 @@
 package io.gravitee.definition.jackson.datatype.api.deser;
 
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import io.gravitee.common.http.HttpHeader;
 import io.gravitee.common.http.HttpHeaders;
-import io.gravitee.definition.model.*;
+import io.gravitee.definition.model.Endpoint;
+import io.gravitee.definition.model.EndpointGroup;
+import io.gravitee.definition.model.HttpClientOptions;
+import io.gravitee.definition.model.HttpClientSslOptions;
+import io.gravitee.definition.model.HttpProxy;
+import io.gravitee.definition.model.LoadBalancer;
 import io.gravitee.definition.model.services.Services;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -42,7 +54,7 @@ public class EndpointGroupDeserializer extends StdScalarDeserializer<EndpointGro
     }
 
     @Override
-    public EndpointGroup deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+    public EndpointGroup deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
         JsonNode node = jp.getCodec().readTree(jp);
 
         final EndpointGroup group = new EndpointGroup();
@@ -61,7 +73,7 @@ public class EndpointGroupDeserializer extends StdScalarDeserializer<EndpointGro
                 if (endpoint != null) {
                     boolean added = endpoints.add(endpoint);
                     if (!added) {
-                        throw ctxt.mappingException("[api] API endpoint names must be unique");
+                        throw JsonMappingException.from(ctxt, "[api] API endpoint names must be unique");
                     }
                 }
             }

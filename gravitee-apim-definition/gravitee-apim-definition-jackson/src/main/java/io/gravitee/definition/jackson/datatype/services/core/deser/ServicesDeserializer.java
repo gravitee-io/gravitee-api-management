@@ -18,6 +18,7 @@ package io.gravitee.definition.jackson.datatype.services.core.deser;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import io.gravitee.definition.model.Service;
@@ -27,7 +28,11 @@ import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyServ
 import io.gravitee.definition.model.services.healthcheck.HealthCheckService;
 import java.io.IOException;
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -78,7 +83,7 @@ public class ServicesDeserializer extends StdScalarDeserializer<Services> {
                     }
                 }
             } catch (IOException ioe) {
-                throw ctxt.mappingException(ioe.getMessage());
+                throw JsonMappingException.from(ctxt, ioe.getMessage());
             }
         }
 

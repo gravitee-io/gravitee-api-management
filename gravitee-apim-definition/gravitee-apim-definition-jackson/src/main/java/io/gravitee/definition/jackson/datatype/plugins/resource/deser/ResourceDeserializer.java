@@ -17,6 +17,7 @@ package io.gravitee.definition.jackson.datatype.plugins.resource.deser;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import io.gravitee.definition.model.plugins.resources.Resource;
@@ -42,21 +43,21 @@ public class ResourceDeserializer extends StdScalarDeserializer<Resource> {
         if (nameNode != null) {
             resource.setName(nameNode.asText());
         } else {
-            throw ctxt.mappingException("[resource] Name is required");
+            throw JsonMappingException.from(ctxt, "[resource] Name is required");
         }
 
         final JsonNode typeNode = node.get("type");
         if (typeNode != null) {
             resource.setType(typeNode.asText());
         } else {
-            throw ctxt.mappingException("[resource] Type is required");
+            throw JsonMappingException.from(ctxt, "[resource] Type is required");
         }
 
         final JsonNode configurationNode = node.get("configuration");
         if (configurationNode != null) {
             resource.setConfiguration(configurationNode.toString());
         } else {
-            throw ctxt.mappingException("[resource] Configuration is required");
+            throw JsonMappingException.from(ctxt, "[resource] Configuration is required");
         }
 
         final JsonNode enabledNode = node.get("enabled");

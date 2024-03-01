@@ -18,17 +18,20 @@ package io.gravitee.definition.jackson.datatype.api.deser;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import com.fasterxml.jackson.databind.jsontype.TypeDeserializer;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.Endpoint;
-import io.gravitee.definition.model.ssl.pem.PEMTrustStore;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -53,14 +56,14 @@ public class EndpointDeserializer extends StdScalarDeserializer<Endpoint> {
         if (nameNode != null) {
             name = nameNode.asText();
         } else {
-            throw ctxt.mappingException("Endpoint name is required");
+            throw JsonMappingException.from(ctxt, "Endpoint name is required");
         }
 
         JsonNode targetNode = node.get("target");
         if (targetNode != null) {
             target = targetNode.asText();
         } else {
-            throw ctxt.mappingException("Endpoint target is required");
+            throw JsonMappingException.from(ctxt, "Endpoint target is required");
         }
 
         JsonNode typeNode = node.get("type");

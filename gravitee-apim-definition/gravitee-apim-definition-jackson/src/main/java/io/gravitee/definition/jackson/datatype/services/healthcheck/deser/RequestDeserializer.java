@@ -17,6 +17,7 @@ package io.gravitee.definition.jackson.datatype.services.healthcheck.deser;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import io.gravitee.common.http.HttpHeader;
@@ -51,7 +52,7 @@ public class RequestDeserializer extends StdScalarDeserializer<HealthCheckReques
             if (uriNode != null) {
                 request.setPath(uriNode.asText());
             } else {
-                throw ctxt.mappingException("[healthcheck] URI is required");
+                throw JsonMappingException.from(ctxt, "[healthcheck] URI is required");
             }
         }
 
@@ -59,7 +60,7 @@ public class RequestDeserializer extends StdScalarDeserializer<HealthCheckReques
         if (methodNode != null) {
             request.setMethod(HttpMethod.valueOf(methodNode.asText().toUpperCase()));
         } else {
-            throw ctxt.mappingException("[healthcheck] Method is required");
+            throw JsonMappingException.from(ctxt, "[healthcheck] Method is required");
         }
 
         JsonNode bodyNode = node.get("body");

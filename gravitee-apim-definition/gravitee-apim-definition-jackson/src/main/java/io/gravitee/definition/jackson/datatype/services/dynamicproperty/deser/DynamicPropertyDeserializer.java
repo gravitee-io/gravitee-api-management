@@ -16,8 +16,8 @@
 package io.gravitee.definition.jackson.datatype.services.dynamicproperty.deser;
 
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.definition.jackson.datatype.services.core.deser.ScheduledServiceDeserializer;
 import io.gravitee.definition.model.services.dynamicproperty.DynamicPropertyProvider;
@@ -37,14 +37,14 @@ public class DynamicPropertyDeserializer extends ScheduledServiceDeserializer<Dy
 
     @Override
     protected void deserialize(DynamicPropertyService service, JsonParser jsonParser, JsonNode node, DeserializationContext ctxt)
-        throws IOException, JsonProcessingException {
+        throws IOException {
         super.deserialize(service, jsonParser, node, ctxt);
 
         final JsonNode providerNode = node.get("provider");
         if (providerNode != null) {
             service.setProvider(DynamicPropertyProvider.valueOf(providerNode.asText().toUpperCase()));
         } else {
-            throw ctxt.mappingException("[dynamic-property] Provider is required");
+            throw JsonMappingException.from(ctxt, "[dynamic-property] Provider is required");
         }
 
         final JsonNode configurationNode = node.get("configuration");

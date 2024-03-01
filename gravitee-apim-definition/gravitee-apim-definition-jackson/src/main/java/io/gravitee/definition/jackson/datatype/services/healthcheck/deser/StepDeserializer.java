@@ -17,6 +17,7 @@ package io.gravitee.definition.jackson.datatype.services.healthcheck.deser;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import io.gravitee.definition.model.services.healthcheck.HealthCheckRequest;
@@ -45,7 +46,7 @@ public class StepDeserializer extends StdScalarDeserializer<HealthCheckStep> {
         if (requestNode != null) {
             step.setRequest(requestNode.traverse(jsonParser.getCodec()).readValueAs(HealthCheckRequest.class));
         } else {
-            throw ctxt.mappingException("[health-check] Step request is required");
+            throw JsonMappingException.from(ctxt, "[health-check] Step request is required");
         }
 
         final JsonNode responseNode = node.get("response");

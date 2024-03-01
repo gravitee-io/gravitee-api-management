@@ -17,6 +17,7 @@ package io.gravitee.definition.jackson.datatype.services.dynamicproperty.deser.h
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import io.gravitee.common.http.HttpHeader;
@@ -46,14 +47,14 @@ public class HttpDynamicPropertyProviderConfigurationDeserializer extends StdSca
         if (urlNode != null) {
             configuration.setUrl(urlNode.asText());
         } else {
-            throw ctxt.mappingException("[dynamic-property] [HTTP] URL is required");
+            throw JsonMappingException.from(ctxt, "[dynamic-property] [HTTP] URL is required");
         }
 
         final JsonNode specificationNode = node.get("specification");
         if (specificationNode != null) {
             configuration.setSpecification(specificationNode.asText());
         } else {
-            throw ctxt.mappingException("[dynamic-property] [HTTP] Specification is required");
+            throw JsonMappingException.from(ctxt, "[dynamic-property] [HTTP] Specification is required");
         }
 
         final JsonNode useSystemProxy = node.get("useSystemProxy");

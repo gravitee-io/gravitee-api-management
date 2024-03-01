@@ -18,6 +18,7 @@ package io.gravitee.definition.jackson.datatype.services.core.deser;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
 import io.gravitee.definition.model.Service;
@@ -44,7 +45,7 @@ public abstract class ServiceDeserializer<T extends Service> extends StdScalarDe
 
             return service;
         } catch (Exception ex) {
-            throw deserializationContext.mappingException(ex.getMessage());
+            throw JsonMappingException.from(deserializationContext, ex.getMessage());
         }
     }
 
