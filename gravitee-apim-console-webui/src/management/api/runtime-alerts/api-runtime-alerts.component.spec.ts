@@ -21,6 +21,8 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { InteractivityChecker } from '@angular/cdk/a11y';
+import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 
 import { ApiRuntimeAlertsComponent } from './api-runtime-alerts.component';
 import { ApiRuntimeAlertsModule } from './api-runtime-alerts.module';
@@ -41,6 +43,7 @@ describe('ApiRuntimeAlertsComponent', () => {
   let fixture: ComponentFixture<ApiRuntimeAlertsComponent>;
   let httpTestingController: HttpTestingController;
   let loader: HarnessLoader;
+  let rootLoader: HarnessLoader;
   let router: Router;
 
   async function createComponent(hasAnyMatching = true) {
@@ -51,12 +54,15 @@ describe('ApiRuntimeAlertsComponent', () => {
         { provide: ActivatedRoute, useValue: ACTIVATED_ROUTE },
         { provide: GioPermissionService, useValue: { hasAnyMatching: () => hasAnyMatching } },
       ],
-    }).compileComponents();
+    })
+      .overrideProvider(InteractivityChecker, { useValue: { isFocusable: () => true, isTabbable: () => true } })
+      .compileComponents();
 
     fixture = TestBed.createComponent(ApiRuntimeAlertsComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     router = TestBed.inject(Router);
     loader = TestbedHarnessEnvironment.loader(fixture);
+    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     fixture.detectChanges();
   }
 
@@ -100,8 +106,32 @@ describe('ApiRuntimeAlertsComponent', () => {
     expect(await createAlertButton.then((btn) => btn.isDisabled())).toBeTruthy();
   });
 
+  it('should delete an alert', async () => {
+    await createComponent();
+    expectAlertsGetRequest();
+
+    const listComponentHarness = await loader.getHarness(RuntimeAlertListHarness);
+    await listComponentHarness.deleteAlert(0);
+
+    const dialog = await rootLoader.getHarness(GioConfirmDialogHarness);
+    await dialog.confirm();
+
+    expectAlertDeleteRequest(ALERT.id);
+    expectAlertsGetRequest([]);
+  });
+
   function expectAlertsGetRequest(response = [ALERT]) {
     httpTestingController.expectOne(`${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/alerts?event_counts=true`).flush(response);
+    fixture.detectChanges();
+  }
+
+  function expectAlertDeleteRequest(alertId: string) {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/alerts/${alertId}`,
+        method: 'DELETE',
+      })
+      .flush(null);
     fixture.detectChanges();
   }
 });

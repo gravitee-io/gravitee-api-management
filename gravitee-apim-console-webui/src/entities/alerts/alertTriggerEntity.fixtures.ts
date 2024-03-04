@@ -19,6 +19,8 @@ import { Scope } from '../alert';
 
 export function fakeAlertTriggerEntity(attributes?: Partial<AlertTriggerEntity>): AlertTriggerEntity {
   const base: AlertTriggerEntity = {
+    id: 'id',
+    name: 'my alert',
     description: 'description',
     reference_type: Scope.API,
     reference_id: 'api-id',

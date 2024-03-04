@@ -115,6 +115,22 @@ describe('AlertService', () => {
     });
   });
 
+  describe('delete alert for an API', () => {
+    it('should delete API alert', (done) => {
+      const apiId = 'api_id';
+      const alertId = 'alert_id';
+
+      alertService.deleteAlert(apiId, alertId).subscribe(() => done());
+
+      httpTestingController
+        .expectOne({
+          method: 'DELETE',
+          url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/alerts/${alertId}`,
+        })
+        .flush(null);
+    });
+  });
+
   afterEach(() => {
     httpTestingController.verify();
   });

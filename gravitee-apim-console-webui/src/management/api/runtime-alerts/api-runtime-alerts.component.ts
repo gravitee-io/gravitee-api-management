@@ -13,18 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { catchError, filter, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { MatDialog } from '@angular/material/dialog';
+import { EMPTY, ReplaySubject, Subject } from 'rxjs';
 
-import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
+import { AlertTriggerEntity } from '../../../entities/alerts/alertTriggerEntity';
 import { AlertService } from '../../../services-ngx/alert.service';
+import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
 @Component({
   selector: 'api-runtime-alerts',
   templateUrl: './api-runtime-alerts.component.html',
 })
-export class ApiRuntimeAlertsComponent {
-  public alerts$ = this.alertService.listAlerts(this.activatedRoute.snapshot.params.apiId, true);
+export class ApiRuntimeAlertsComponent implements OnDestroy {
+  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+  public alerts$ = new ReplaySubject<AlertTriggerEntity[]>(1);
   protected canCreateAlert = this.permissionService.hasAnyMatching(['api-alert-c']);
 
   constructor(
@@ -32,9 +39,54 @@ export class ApiRuntimeAlertsComponent {
     private readonly alertService: AlertService,
     private readonly permissionService: GioPermissionService,
     private readonly router: Router,
-  ) {}
+    private readonly matDialog: MatDialog,
+    private readonly snackBarService: SnackBarService,
+  ) {
+    this.loadData();
+  }
+
+  ngOnDestroy(): void {
+    this.unsubscribe$.next(true);
+    this.unsubscribe$.unsubscribe();
+  }
 
   createAlert() {
     return this.router.navigate(['./new'], { relativeTo: this.activatedRoute });
+  }
+
+  deleteAlert(alert: AlertTriggerEntity) {
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+        width: GIO_DIALOG_WIDTH.MEDIUM,
+        data: {
+          title: 'Delete alert',
+          content: `Are you sure you want to delete your <strong>${alert.name}</strong> alert?`,
+          confirmButton: 'Delete',
+        },
+        role: 'alertdialog',
+        id: 'deleteAlertConfirmDialog',
+      })
+      .afterClosed()
+      .pipe(
+        filter((confirm) => confirm === true),
+        switchMap(() => this.alertService.deleteAlert(this.activatedRoute.snapshot.params.apiId, alert.id)),
+        catchError(() => {
+          this.snackBarService.error('An error occurred while deleting your alert.');
+          return EMPTY;
+        }),
+        tap(() => this.snackBarService.success(`${alert.name} alert successfully deleted!`)),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe(() => this.loadData());
+  }
+
+  private loadData() {
+    this.alertService
+      .listAlerts(this.activatedRoute.snapshot.params.apiId, true)
+      .pipe(
+        tap((alerts) => this.alerts$.next(alerts)),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
   }
 }

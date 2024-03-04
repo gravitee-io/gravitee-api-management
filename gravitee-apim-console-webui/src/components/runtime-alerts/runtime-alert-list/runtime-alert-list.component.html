@@ -59,7 +59,7 @@
         <th mat-header-cell *matHeaderCellDef id="counters">Last 5m / 1h / 1d / 1M</th>
         <td mat-cell *matCellDef="let alert">
           <ng-container *ngIf="!!alert.counters; else countersEmptyBlock">
-            <span [matTooltip]="alert.counters['5m'] + ' during the last 5 minutes'">{{ alert.counters['5m'] }} </span>
+            <span [matTooltip]="alert.counters['5m'] + ' during the last 5 minutes'">{{ alert.counters['5m'] }}</span>
             /
             <span [matTooltip]="alert.counters['1h'] + ' during the last 1 hour'">{{ alert.counters['1h'] }}</span>
             /
@@ -101,17 +101,17 @@
               mat-icon-button
               aria-label="Button to edit an alert"
               matTooltip="Edit an alert"
-              *gioPermission="{ anyOf: ['api-definition-u'] }"
+              *gioPermission="{ anyOf: ['api-alert-u'] }"
               [disabled]="true"
             >
               <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
             </button>
             <button
-              *gioPermission="{ anyOf: ['api-definition-u'] }"
+              *gioPermission="{ anyOf: ['api-alert-d'] }"
               mat-icon-button
               aria-label="Button to delete an alert"
               matTooltip="Delete an alert"
-              [disabled]="true"
+              (click)="deleteAlert.emit(alert)"
             >
               <mat-icon svgIcon="gio:trash"></mat-icon>
             </button>
