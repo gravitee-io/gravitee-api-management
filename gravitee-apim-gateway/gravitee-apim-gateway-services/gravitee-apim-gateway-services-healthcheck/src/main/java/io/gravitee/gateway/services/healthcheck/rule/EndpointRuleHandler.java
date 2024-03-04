@@ -39,6 +39,7 @@ import io.gravitee.reporter.api.common.Response;
 import io.gravitee.reporter.api.health.EndpointStatus;
 import io.gravitee.reporter.api.health.Step;
 import io.netty.channel.ConnectTimeoutException;
+import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
@@ -62,7 +63,7 @@ import org.springframework.scheduling.support.SimpleTriggerContext;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler<Long> {
+public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler<Handler<AsyncResult<HttpClientResponse>>> {
 
     private final Logger logger = LoggerFactory.getLogger(EndpointRuleHandler.class);
 
@@ -117,16 +118,14 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
     }
 
     @Override
-    public void handle(Long timer) {
+    public void handle(Handler<AsyncResult<HttpClientResponse>> healthCheckResponseHandler) {
         try {
             MDC.put("api", rule.api().getId());
             T endpoint = rule.endpoint();
             logger.debug("Running health-check for endpoint: {} [{}]", endpoint.getName(), endpoint.getTarget());
 
-            // Run request for each step
-            for (HealthCheckStep step : rule.steps()) {
-                runStep(endpoint, step);
-            }
+            // We only allow one step per rule. To support more than one step implement healthCheckResponseHandler accordingly
+            runStep(endpoint, rule.steps().get(0), healthCheckResponseHandler);
         } finally {
             MDC.remove("api");
         }
@@ -199,7 +198,7 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
         return resultURL;
     }
 
-    protected void runStep(T endpoint, HealthCheckStep step) {
+    protected void runStep(T endpoint, HealthCheckStep step, Handler<AsyncResult<HttpClientResponse>> healthCheckResponseHandler) {
         try {
             URL hcRequestUrl = createRequest(endpoint, step);
             Future<HttpClientRequest> healthRequestPromise = createHttpClientRequest(httpClient, hcRequestUrl, step);
@@ -242,6 +241,7 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
                             logger.error("An error has occurred during Health check request", healthRequestEvent.cause());
                             reportThrowable(healthRequestEvent.cause(), step, healthBuilder, startTime, request);
                         }
+                        healthCheckResponseHandler.handle(healthRequestEvent);
                     });
 
                     healthRequest.exceptionHandler(throwable -> {
