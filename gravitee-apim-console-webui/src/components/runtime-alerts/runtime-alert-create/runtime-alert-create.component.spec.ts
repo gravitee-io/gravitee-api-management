@@ -27,8 +27,9 @@ import { RuntimeAlertCreateModule } from './runtime-alert-create.module';
 import { RuntimeAlertCreateHarness } from './runtime-alert-create.harness';
 import { RuntimeAlertCreateTimeframeHarness } from './components/runtime-alert-create-timeframe/runtime-alert-create-timeframe.harness';
 
-import { GioTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { Days } from '../../../entities/alerts/period';
+import { NewAlertTriggerEntity } from '../../../entities/alerts/alertTriggerEntity';
 
 describe('RuntimeAlertCreateComponent', () => {
   const API_ID = 'apiId';
@@ -101,7 +102,7 @@ describe('RuntimeAlertCreateComponent', () => {
     await generalForm.selectRule(expectedRules[4]);
     await generalForm.selectSeverity(expectedSeverities[1]);
 
-    // TODO test save bar when save is implemented in next commits
+    expect(await componentHarness.isSubmitInvalid()).toBeFalsy();
   });
 
   describe('timeframe form tests', () => {
@@ -154,9 +155,52 @@ describe('RuntimeAlertCreateComponent', () => {
 
       await timeframeForm.setTimeRange('09:00 - 12:00');
       expect(await timeframeForm.getOfficeHoursToggleValue()).toBeFalsy();
+
+      expect(await componentHarness.isSubmitInvalid()).toBeTruthy();
     });
 
-    // TODO test save bar when save is implemented in next commits
+    it('should save alert with timeframe', async () => {
+      await fillGeneralForm(1);
+      const conditionForm = await componentHarness.getConditionsFormHarness();
+      const missingDataForm = await conditionForm.missingDataConditionForm();
+
+      await timeframeForm.toggleBusinessDays();
+      await timeframeForm.toggleOfficeHours();
+      await missingDataForm.setDurationValue('3000');
+      await missingDataForm.selectTimeUnit('Seconds');
+
+      expect(await componentHarness.isSubmitInvalid()).toBeFalsy();
+
+      await componentHarness.createClick();
+      expectAlertPostRequest({
+        conditions: [
+          {
+            duration: 3000,
+            timeUnit: 'SECONDS',
+            type: 'MISSING_DATA',
+          },
+        ],
+        description: null,
+        enabled: true,
+        filters: undefined,
+        name: 'alert',
+        notificationPeriods: [
+          {
+            beginHour: 32400,
+            days: [1, 2, 3, 4, 5],
+            endHour: 64800,
+            zoneId: 'UTC',
+          },
+        ],
+        notifications: [],
+        reference_id: 'apiId',
+        reference_type: 'API',
+        severity: 'WARNING',
+        source: 'REQUEST',
+        template: false,
+        type: 'MISSING_DATA',
+      });
+    });
   });
 
   describe('filters tests', () => {
@@ -214,7 +258,7 @@ describe('RuntimeAlertCreateComponent', () => {
       expect(await filtersForm.getMetricsConditionsLength()).toStrictEqual(1);
     });
 
-    it('should add filter', async () => {
+    it('should create alert with filters', async () => {
       await fillGeneralForm(4);
       const filtersForm = await componentHarness.getFiltersFormHarness();
       await filtersForm.addFilter();
@@ -241,7 +285,49 @@ describe('RuntimeAlertCreateComponent', () => {
       expect(await metricsSimpleCondition.getSelectedType()).toStrictEqual('STRING');
       expect(await metricsSimpleCondition.getSelectedOperator()).toStrictEqual('starts with');
       expect(await metricsSimpleCondition.getReferenceValue()).toStrictEqual('endpoint-pattern');
-      // TODO test save bar when save is implemented in next commits
+      expect(await componentHarness.isSubmitInvalid()).toBeFalsy();
+
+      await componentHarness.createClick();
+
+      expectAlertPostRequest({
+        conditions: [
+          {
+            operator: 'NOT_EQUALS',
+            projections: null,
+            property: 'status.old',
+            property2: 'status.new',
+            type: 'STRING_COMPARE',
+          },
+        ],
+        description: null,
+        enabled: true,
+        filters: [
+          {
+            ignoreCase: true,
+            operator: 'STARTS_WITH',
+            pattern: 'endpoint-pattern',
+            property: 'endpoint.name',
+            type: 'STRING',
+          },
+        ],
+        name: 'alert',
+        notificationPeriods: null,
+        notifications: [],
+        reference_id: 'apiId',
+        reference_type: 'API',
+        severity: 'WARNING',
+        source: 'ENDPOINT_HEALTH_CHECK',
+        template: false,
+        type: 'API_HC_ENDPOINT_STATUS_CHANGED',
+      });
     });
   });
+
+  function expectAlertPostRequest(alert: NewAlertTriggerEntity) {
+    const req = httpTestingController.expectOne({ method: 'POST', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/alerts` });
+    expect(req.request.body).toBeTruthy();
+    expect(req.request.body).toEqual(alert);
+    req.flush(alert);
+    fixture.detectChanges();
+  }
 });

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AlertTriggerEntity } from './alertTriggerEntity';
+import { AlertTriggerEntity, NewAlertTriggerEntity } from './alertTriggerEntity';
 
 import { Scope } from '../alert';
 
@@ -21,7 +21,7 @@ export function fakeAlertTriggerEntity(attributes?: Partial<AlertTriggerEntity>)
   const base: AlertTriggerEntity = {
     description: 'description',
     reference_type: Scope.API,
-    referenceId: 'api-id',
+    reference_id: 'api-id',
     created_at: new Date(),
     updated_at: new Date(),
     type: 'alert-type',
@@ -33,6 +33,30 @@ export function fakeAlertTriggerEntity(attributes?: Partial<AlertTriggerEntity>)
     parent_id: 'parent-id',
     environment_id: 'env-id',
     severity: 'INFO',
+  };
+
+  return {
+    ...base,
+    ...attributes,
+  };
+}
+
+export function fakeNewAlertTriggerEntity(attributes?: Partial<NewAlertTriggerEntity>): NewAlertTriggerEntity {
+  const base: NewAlertTriggerEntity = {
+    severity: 'INFO',
+    source: 'REQUEST',
+    name: 'new alert',
+    description: 'description',
+    conditions: [{ type: 'STRING', property: 'Tenant', operator: 'EQUALS', pattern: 'value', ignoreCase: true }],
+    dampening: {
+      mode: 'STRICT_COUNT',
+      duration: 42,
+      timeUnit: 'DAYS',
+      totalEvaluations: 42,
+      trueEvaluations: 42,
+    },
+    enabled: true,
+    filters: [{ type: 'THRESHOLD', property: 'Status code', operator: 'GT', threshold: 200 }],
   };
 
   return {

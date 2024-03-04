@@ -21,6 +21,7 @@ import { AlertService } from './alert.service';
 import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { Scope } from '../entities/alert';
 import { fakeAlertStatus } from '../entities/alerts/alertStatus.fixture';
+import { fakeAlertTriggerEntity, fakeNewAlertTriggerEntity } from '../entities/alerts/alertTriggerEntity.fixtures';
 
 describe('AlertService', () => {
   let httpTestingController: HttpTestingController;
@@ -76,6 +77,41 @@ describe('AlertService', () => {
       expect(req.request.method).toEqual('GET');
 
       req.flush(alertStatus);
+    });
+  });
+
+  describe('list alerts for an API', () => {
+    it('should get API alerts', (done) => {
+      const apiId = 'test_api';
+      const fakeAlerts = [fakeAlertTriggerEntity({ reference_id: apiId })];
+
+      alertService.listAlerts(apiId, false).subscribe((response) => {
+        expect(response).toMatchObject(fakeAlerts);
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'GET',
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/alerts?event_counts=false`,
+      });
+
+      req.flush(fakeAlerts);
+    });
+  });
+
+  describe('create alert for an API', () => {
+    it('should create API alert', (done) => {
+      const apiId = 'test_api';
+      const fakeNewAlerts = fakeNewAlertTriggerEntity();
+
+      alertService.createAlert(apiId, fakeNewAlerts).subscribe(() => done());
+
+      const req = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/alerts`,
+      });
+      expect(req.request.body).toEqual(fakeNewAlerts);
+      req.flush({});
     });
   });
 

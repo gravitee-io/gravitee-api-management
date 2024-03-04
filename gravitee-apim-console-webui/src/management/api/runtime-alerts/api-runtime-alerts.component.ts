@@ -16,20 +16,20 @@
 import { Component } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { ApiAlertsService } from '../../../services-ngx/api-alerts.service';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
+import { AlertService } from '../../../services-ngx/alert.service';
 
 @Component({
   selector: 'api-runtime-alerts',
   templateUrl: './api-runtime-alerts.component.html',
 })
 export class ApiRuntimeAlertsComponent {
-  public alerts$ = this.apiAlertsService.listAlerts(this.activatedRoute.snapshot.params.apiId, true);
+  public alerts$ = this.alertService.listAlerts(this.activatedRoute.snapshot.params.apiId, true);
   protected canCreateAlert = this.permissionService.hasAnyMatching(['api-alert-c']);
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
-    private readonly apiAlertsService: ApiAlertsService,
+    private readonly alertService: AlertService,
     private readonly permissionService: GioPermissionService,
     private readonly router: Router,
   ) {}

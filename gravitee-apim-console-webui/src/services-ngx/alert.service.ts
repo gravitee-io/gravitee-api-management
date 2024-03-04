@@ -21,6 +21,7 @@ import { Constants } from '../entities/Constants';
 import { Installation } from '../entities/installation/installation';
 import { Scope } from '../entities/alert';
 import { AlertStatus } from '../entities/alerts/alertStatus';
+import { AlertTriggerEntity, NewAlertTriggerEntity } from '../entities/alerts/alertTriggerEntity';
 
 @Injectable({
   providedIn: 'root',
@@ -50,5 +51,13 @@ export class AlertService {
       default:
         return `${this.constants.env.baseURL}/platform`;
     }
+  }
+
+  listAlerts(apiId: string, withEventCounts: boolean): Observable<AlertTriggerEntity[]> {
+    return this.http.get<AlertTriggerEntity[]>(`${this.constants.env.baseURL}/apis/${apiId}/alerts?event_counts=${withEventCounts}`);
+  }
+
+  createAlert(apiId: string, newAlert: NewAlertTriggerEntity) {
+    return this.http.post<NewAlertTriggerEntity>(`${this.constants.env.baseURL}/apis/${apiId}/alerts`, { ...newAlert });
   }
 }

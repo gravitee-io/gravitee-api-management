@@ -18,6 +18,7 @@ import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { RouterModule } from '@angular/router';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { GioSaveBarModule } from '@gravitee/ui-particles-angular';
 
 import { RuntimeAlertCreateComponent } from './runtime-alert-create.component';
 import { RuntimeAlertCreateGeneralModule } from './components/runtime-alert-create-general/runtime-alert-create-general.module';
@@ -42,6 +43,7 @@ import { GioGoBackButtonModule } from '../../../shared/components/gio-go-back-bu
     RuntimeAlertCreateTimeframeModule,
     RuntimeAlertCreateConditionsModule,
     RuntimeAlertCreateFiltersModule,
+    GioSaveBarModule,
   ],
 })
 export class RuntimeAlertCreateModule {}

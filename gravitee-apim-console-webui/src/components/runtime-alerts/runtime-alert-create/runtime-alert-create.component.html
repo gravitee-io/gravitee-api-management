@@ -36,7 +36,7 @@
             aria-label="learn more"
             rel="noopener"
             target="_blank"
-            >alerts</a
+            >alerts.</a
           >
         </mat-card-subtitle>
       </div>
@@ -80,3 +80,4 @@
     </form>
   </mat-card-content>
 </mat-card>
+<gio-save-bar *ngIf="alertForm.dirty" [form]="alertForm" (submitted)="save()" [creationMode]="true"></gio-save-bar>
