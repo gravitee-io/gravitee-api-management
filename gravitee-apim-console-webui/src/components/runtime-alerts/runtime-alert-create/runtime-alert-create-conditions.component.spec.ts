@@ -29,10 +29,27 @@ import { MetricsSimpleConditionHarness } from './components/components/metrics-s
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { fakeTenant } from '../../../entities/tenant/tenant.fixture';
+import { NewAlertTriggerEntity } from '../../../entities/alerts/alertTriggerEntity';
+import { ThresholdRangeCondition } from '../../../entities/alerts/conditions';
 
 describe('RuntimeAlertCreateComponent condition tests', () => {
   const API_ID = 'apiId';
   const ENVIRONMENT_ID = 'envId';
+  const expectedAlert: NewAlertTriggerEntity = {
+    conditions: [],
+    description: null,
+    enabled: true,
+    name: 'alert',
+    notificationPeriods: null,
+    notifications: [],
+    reference_id: 'apiId',
+    reference_type: 'API',
+    severity: 'WARNING',
+    source: 'REQUEST',
+    template: false,
+    type: 'METRICS_SIMPLE_CONDITION',
+  };
+
   let fixture: ComponentFixture<RuntimeAlertCreateComponent>;
   let httpTestingController: HttpTestingController;
   let componentHarness: RuntimeAlertCreateHarness;
@@ -105,7 +122,15 @@ describe('RuntimeAlertCreateComponent condition tests', () => {
 
       expect(await missingDataForm.getDurationValue()).toStrictEqual('3000');
       expect(await missingDataForm.getSelectedTimeUnit()).toStrictEqual('Seconds');
-      // TODO test save bar when save is implemented in next commits
+
+      expect(await componentHarness.isSubmitInvalid()).toBeFalsy();
+      await componentHarness.createClick();
+      expectAlertPostRequest({
+        ...expectedAlert,
+        conditions: [{ duration: 3000, timeUnit: 'SECONDS', type: 'MISSING_DATA' }],
+        source: 'REQUEST',
+        type: 'MISSING_DATA',
+      });
     });
   });
 
@@ -151,7 +176,14 @@ describe('RuntimeAlertCreateComponent condition tests', () => {
       expect(await metricSimpleConditionForm.getSelectedOperator()).toStrictEqual('less than or equals to');
       expect(await metricSimpleConditionForm.getThresholdValue()).toStrictEqual('42');
 
-      // TODO test save bar when save is implemented in next commits
+      expect(await componentHarness.isSubmitInvalid()).toBeFalsy();
+      await componentHarness.createClick();
+      expectAlertPostRequest({
+        ...expectedAlert,
+        conditions: [{ operator: 'LTE', property: 'response.status', threshold: 42, type: 'THRESHOLD' }],
+        source: 'REQUEST',
+        type: 'METRICS_SIMPLE_CONDITION',
+      });
     });
 
     it('should add threshold range condition', async () => {
@@ -173,7 +205,23 @@ describe('RuntimeAlertCreateComponent condition tests', () => {
       expect(await metricSimpleConditionForm.isHighThresholdInvalid()).toBeFalsy();
       expect(await metricSimpleConditionForm.getHighThresholdValue()).toStrictEqual('60');
 
-      // TODO test save bar when save is implemented in next commits
+      expect(await componentHarness.isSubmitInvalid()).toBeFalsy();
+      await componentHarness.createClick();
+      expectAlertPostRequest({
+        ...expectedAlert,
+        conditions: [
+          {
+            operatorHigh: 'INCLUSIVE',
+            operatorLow: 'INCLUSIVE',
+            property: 'response.status',
+            thresholdHigh: 60,
+            thresholdLow: 50,
+            type: 'THRESHOLD_RANGE',
+          },
+        ],
+        source: 'REQUEST',
+        type: 'METRICS_SIMPLE_CONDITION',
+      });
     });
 
     it('should add compare condition', async () => {
@@ -204,7 +252,16 @@ describe('RuntimeAlertCreateComponent condition tests', () => {
       expect(await metricSimpleConditionForm.getMultiplierValue()).toStrictEqual('42');
       expect(await metricSimpleConditionForm.getSelectedProperty()).toStrictEqual('Request Content-Length');
 
-      // TODO test save bar when save is implemented in next commits
+      expect(await componentHarness.isSubmitInvalid()).toBeFalsy();
+      await componentHarness.createClick();
+      expectAlertPostRequest({
+        ...expectedAlert,
+        conditions: [
+          { multiplier: 42, operator: 'GT', property: 'response.response_time', property2: 'request.content_length', type: 'COMPARE' },
+        ],
+        source: 'REQUEST',
+        type: 'METRICS_SIMPLE_CONDITION',
+      });
     });
 
     describe('should add string condition', () => {
@@ -243,7 +300,15 @@ describe('RuntimeAlertCreateComponent condition tests', () => {
         expect(await metricSimpleConditionForm.getSelectedType()).toStrictEqual('STRING');
         expect(await metricSimpleConditionForm.getSelectedOperator()).toStrictEqual('not equals to');
         expect(await metricSimpleConditionForm.getSelectedReference()).toStrictEqual('tenant-2');
-        // TODO test save bar when save is implemented in next commits
+
+        expect(await componentHarness.isSubmitInvalid()).toBeFalsy();
+        await componentHarness.createClick();
+        expectAlertPostRequest({
+          ...expectedAlert,
+          conditions: [{ ignoreCase: true, operator: 'NOT_EQUALS', pattern: '2', property: 'tenant', type: 'STRING' }],
+          source: 'REQUEST',
+          type: 'METRICS_SIMPLE_CONDITION',
+        });
       });
 
       it('with pattern value', async () => {
@@ -255,7 +320,15 @@ describe('RuntimeAlertCreateComponent condition tests', () => {
         expect(await metricSimpleConditionForm.getSelectedType()).toStrictEqual('STRING');
         expect(await metricSimpleConditionForm.getSelectedOperator()).toStrictEqual('ends with');
         expect(await metricSimpleConditionForm.getReferenceValue()).toStrictEqual('.*tenant.*');
-        // TODO test save bar when save is implemented in next commits
+
+        expect(await componentHarness.isSubmitInvalid()).toBeFalsy();
+        await componentHarness.createClick();
+        expectAlertPostRequest({
+          ...expectedAlert,
+          conditions: [{ ignoreCase: true, operator: 'ENDS_WITH', pattern: '.*tenant.*', property: 'tenant', type: 'STRING' }],
+          source: 'REQUEST',
+          type: 'METRICS_SIMPLE_CONDITION',
+        });
       });
     });
   });
@@ -310,7 +383,26 @@ describe('RuntimeAlertCreateComponent condition tests', () => {
       expect(await thresholdSubform.getThresholdValue()).toStrictEqual('42');
       expect(await durationSubform.getDurationValue()).toStrictEqual('24');
       expect(await durationSubform.getSelectedTimeUnit()).toStrictEqual('Hours');
-      // TODO test save bar when save is implemented in next commits
+
+      expect(await componentHarness.isSubmitInvalid()).toBeFalsy();
+      await componentHarness.createClick();
+      expectAlertPostRequest({
+        ...expectedAlert,
+        conditions: [
+          {
+            duration: 24,
+            function: 'P50',
+            operator: 'GT',
+            projections: null,
+            property: 'request.content_length',
+            threshold: 42,
+            timeUnit: 'HOURS',
+            type: 'AGGREGATION',
+          },
+        ],
+        source: 'REQUEST',
+        type: 'METRICS_AGGREGATION',
+      });
     });
 
     it('should add condition with aggregation', async () => {
@@ -345,7 +437,31 @@ describe('RuntimeAlertCreateComponent condition tests', () => {
       expect(await aggregationSubform.getSelectedProperty()).toStrictEqual('');
 
       await aggregationSubform.selectProperty('Plan');
-      // TODO test save bar when save is implemented in next commits
+
+      expect(await componentHarness.isSubmitInvalid()).toBeFalsy();
+      await componentHarness.createClick();
+      expectAlertPostRequest({
+        ...expectedAlert,
+        conditions: [
+          {
+            duration: 24,
+            function: 'P50',
+            operator: 'GT',
+            projections: [
+              {
+                property: 'plan',
+                type: 'PROPERTY',
+              },
+            ],
+            property: 'request.content_length',
+            threshold: 42,
+            timeUnit: 'HOURS',
+            type: 'AGGREGATION',
+          },
+        ],
+        source: 'REQUEST',
+        type: 'METRICS_AGGREGATION',
+      });
     });
   });
 
@@ -382,7 +498,34 @@ describe('RuntimeAlertCreateComponent condition tests', () => {
       expect(await thresholdSubform.getThresholdValue()).toStrictEqual('50');
       expect(await durationSubform.getDurationValue()).toStrictEqual('1');
       expect(await durationSubform.getSelectedTimeUnit()).toStrictEqual('Minutes');
-      // TODO test save bar when save is implemented in next commits
+
+      expect(await componentHarness.isSubmitInvalid()).toBeFalsy();
+      await componentHarness.createClick();
+
+      const expectedComparison: ThresholdRangeCondition = {
+        operatorHigh: 'INCLUSIVE',
+        operatorLow: 'INCLUSIVE',
+        property: 'response.content_length',
+        thresholdHigh: 2000,
+        thresholdLow: 1000,
+        type: 'THRESHOLD_RANGE',
+      };
+      expectAlertPostRequest({
+        ...expectedAlert,
+        conditions: [
+          {
+            comparison: { ...expectedComparison },
+            duration: 1,
+            operator: 'LT',
+            projections: null,
+            threshold: 50,
+            timeUnit: 'MINUTES',
+            type: 'RATE',
+          },
+        ],
+        source: 'REQUEST',
+        type: 'METRICS_RATE',
+      });
     });
 
     it('should fill rate condition with aggregation', async () => {
@@ -420,7 +563,39 @@ describe('RuntimeAlertCreateComponent condition tests', () => {
       expect(await aggregationSubform.getSelectedProperty()).toStrictEqual('');
 
       await aggregationSubform.selectProperty('Error Key');
-      // TODO test save bar when save is implemented in next commits
+
+      expect(await componentHarness.isSubmitInvalid()).toBeFalsy();
+      await componentHarness.createClick();
+
+      const expectedComparison: ThresholdRangeCondition = {
+        operatorHigh: 'INCLUSIVE',
+        operatorLow: 'INCLUSIVE',
+        property: 'response.content_length',
+        thresholdHigh: 2000,
+        thresholdLow: 1000,
+        type: 'THRESHOLD_RANGE',
+      };
+      expectAlertPostRequest({
+        ...expectedAlert,
+        conditions: [
+          {
+            comparison: { ...expectedComparison },
+            duration: 1,
+            operator: 'LT',
+            projections: [
+              {
+                property: 'error.key',
+                type: 'PROPERTY',
+              },
+            ],
+            threshold: 50,
+            timeUnit: 'MINUTES',
+            type: 'RATE',
+          },
+        ],
+        source: 'REQUEST',
+        type: 'METRICS_RATE',
+      });
     });
   });
 
@@ -442,7 +617,36 @@ describe('RuntimeAlertCreateComponent condition tests', () => {
       expect(await aggregationSubform.getSelectedProperty()).toStrictEqual('');
 
       await aggregationSubform.selectProperty('Endpoint name');
-      // TODO test save bar when save is implemented in next commits
+
+      expect(await componentHarness.isSubmitInvalid()).toBeFalsy();
+      await componentHarness.createClick();
+      expectAlertPostRequest({
+        ...expectedAlert,
+        conditions: [
+          {
+            operator: 'NOT_EQUALS',
+            projections: [
+              {
+                property: 'endpoint.name',
+                type: 'PROPERTY',
+              },
+            ],
+            property: 'status.old',
+            property2: 'status.new',
+            type: 'STRING_COMPARE',
+          },
+        ],
+        source: 'ENDPOINT_HEALTH_CHECK',
+        type: 'API_HC_ENDPOINT_STATUS_CHANGED',
+      });
     });
   });
+
+  function expectAlertPostRequest(alert: NewAlertTriggerEntity) {
+    const req = httpTestingController.expectOne({ method: 'POST', url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/alerts` });
+    expect(req.request.body).toBeTruthy();
+    expect(req.request.body).toEqual(alert);
+    req.flush(alert);
+    fixture.detectChanges();
+  }
 });

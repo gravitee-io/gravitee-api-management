@@ -59,6 +59,14 @@ export class RuntimeAlertCreateConditionsComponent implements OnDestroy, Control
     if (value) {
       this.ruleType = `${value.source}@${value.type}`;
       this.conditionsForm = RuntimeAlertCreateConditionsFactory.create(this.ruleType);
+
+      // The control value accessor validity is calculated when the component is instantiated.
+      // By default, it's considered as invalid because we want to link the alert to a condition on a metric.
+      // After the selection of the Rule in the general form, the condition form is created.
+      // We trigger the _onChange method to force the check of the form validity a first time.
+      // For example, by default the endpoint health condition form is valid.
+      this._onChange(this.conditionsForm.getRawValue());
+
       this.metrics = Metrics.filterByScope(Rule.findByScopeAndType(this.referenceType, this.ruleType)?.metrics ?? [], this.referenceType);
       this.conditionsForm.valueChanges
         .pipe(

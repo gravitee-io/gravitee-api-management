@@ -17,7 +17,7 @@ export interface Period {
   days: Array<number>;
   beginHour: number;
   endHour: number;
-  zoneId?: string;
+  zoneId: string;
 }
 
 export class Days {
@@ -45,5 +45,9 @@ export class Days {
 
   static getAllDayNames(): string[] {
     return Array.from(Days.daysMap.keys());
+  }
+
+  static dayToNumber(dayName: string): number | undefined {
+    return Days.daysMap.get(dayName);
   }
 }

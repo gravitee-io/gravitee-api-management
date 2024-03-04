@@ -24,6 +24,7 @@ export class RuntimeAlertCreateConditionsFactory {
       return new FormGroup({
         duration: new FormControl<number>(null, [Validators.required, Validators.min(1)]),
         timeUnit: new FormControl<string>(null, [Validators.required]),
+        type: new FormControl<string>('MISSING_DATA', [Validators.required]),
       });
     }
 
@@ -36,6 +37,7 @@ export class RuntimeAlertCreateConditionsFactory {
       case 'REQUEST@METRICS_AGGREGATION':
         return new FormGroup({
           metric: new FormControl<Metrics>(null, [Validators.required]),
+          type: new FormControl<string>('AGGREGATION', [Validators.required]),
           function: new FormControl<string>(null, [Validators.required]),
           operator: new FormControl<string>(null, [Validators.required]),
           threshold: new FormControl<number>(null, [Validators.required]),
@@ -51,6 +53,7 @@ export class RuntimeAlertCreateConditionsFactory {
             metric: new FormControl<Metrics>(null, [Validators.required]),
             type: new FormControl<string>({ value: null, disabled: true }, [Validators.required]),
           }),
+          type: new FormControl<string>('RATE', [Validators.required]),
           operator: new FormControl<string>(null, [Validators.required]),
           threshold: new FormControl<number>(null, [Validators.required]),
           duration: new FormControl<number>(null, [Validators.required, Validators.min(1), Validators.max(100)]),
@@ -64,6 +67,7 @@ export class RuntimeAlertCreateConditionsFactory {
           projections: new FormGroup({
             property: new FormControl<string>(null),
           }),
+          type: new FormControl<string>('API_HC_ENDPOINT_STATUS_CHANGED', [Validators.required]),
         });
       default:
         return null;

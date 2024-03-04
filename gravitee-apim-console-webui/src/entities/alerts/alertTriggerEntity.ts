@@ -14,6 +14,11 @@
  * limitations under the License.
  */
 
+import { Dampening } from './dampening';
+import { AlertCondition } from './conditions';
+import { Period } from './period';
+import { Notification } from './notification';
+
 import { Scope } from '../alert';
 
 export const ALERT_SEVERITIES = ['INFO', 'WARNING', 'CRITICAL'] as const;
@@ -26,7 +31,7 @@ export interface AlertEventRuleEntity {
 export interface AlertTriggerEntity {
   description: string;
   reference_type: Scope;
-  referenceId: string;
+  reference_id: string;
   created_at: Date;
   updated_at: Date;
   type: string;
@@ -38,4 +43,27 @@ export interface AlertTriggerEntity {
   parent_id: string;
   environment_id: string;
   severity: AlertSeverity;
+}
+
+export interface NewAlertTriggerEntity extends Trigger {
+  reference_type?: string;
+  reference_id?: string;
+  type?: string;
+  template?: boolean;
+  eventRules?: AlertEventRuleEntity[];
+}
+
+interface Trigger {
+  id?: string;
+  severity?: AlertSeverity;
+  source?: string;
+  name?: string;
+  description?: string;
+  conditions?: AlertCondition[];
+  notifications?: Notification[];
+  dampening?: Dampening;
+  metadata?: Record<string, Record<string, string>>;
+  enabled?: boolean;
+  filters?: AlertCondition[];
+  notificationPeriods?: Period[];
 }

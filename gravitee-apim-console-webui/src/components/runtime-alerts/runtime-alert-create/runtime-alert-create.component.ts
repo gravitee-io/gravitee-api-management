@@ -13,34 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { Component, Inject, OnDestroy } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup } from '@angular/forms';
-import { takeUntil, tap } from 'rxjs/operators';
-import { Subject } from 'rxjs';
+import { catchError, takeUntil, tap } from 'rxjs/operators';
+import { EMPTY, Subject } from 'rxjs';
 
 import { GeneralFormValue } from './components/runtime-alert-create-general';
+import { toNewAlertTriggerEntity } from './runtime-alert-create.adapter';
 
 import { Constants } from '../../../entities/Constants';
 import { Scope } from '../../../entities/alert';
 import { Rule } from '../../../entities/alerts/rule.metrics';
+import { AlertService } from '../../../services-ngx/alert.service';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
 @Component({
   selector: 'runtime-alert-create',
   templateUrl: './runtime-alert-create.component.html',
   styleUrls: ['./runtime-alert-create.component.scss'],
 })
-export class RuntimeAlertCreateComponent implements OnInit {
+export class RuntimeAlertCreateComponent implements OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
-  public referenceType: Scope = Scope[this.activatedRoute.snapshot.data.referenceType as keyof typeof Scope];
-  public referenceId: string;
+  protected referenceType: Scope = Scope[this.activatedRoute.snapshot.data.referenceType as keyof typeof Scope];
+  protected referenceId: string;
   public alertForm: FormGroup;
-  public selectedRule: Rule;
+  protected selectedRule: Rule;
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
     @Inject(Constants) public readonly constants: Constants,
     private readonly formBuilder: FormBuilder,
+    private readonly alertService: AlertService,
+    private readonly snackBarService: SnackBarService,
+    private readonly router: Router,
   ) {
     switch (this.referenceType) {
       case Scope.API:
@@ -60,14 +66,33 @@ export class RuntimeAlertCreateComponent implements OnInit {
       conditionsForm: [],
       filtersForm: [],
     });
-  }
 
-  ngOnInit(): void {
     this.alertForm.controls.generalForm.valueChanges
       .pipe(
         tap((value: GeneralFormValue) => (this.selectedRule = value.rule)),
         takeUntil(this.unsubscribe$),
       )
       .subscribe();
+  }
+
+  ngOnDestroy() {
+    this.unsubscribe$.next(true);
+    this.unsubscribe$.unsubscribe();
+  }
+
+  save() {
+    return this.alertService
+      .createAlert(this.referenceId, toNewAlertTriggerEntity(this.referenceId, Scope[this.referenceType], this.alertForm.getRawValue()))
+      .pipe(
+        tap(() => {
+          this.snackBarService.success('Alert successfully created!');
+        }),
+        catchError(() => {
+          this.snackBarService.error('Alert creation failed!');
+          return EMPTY;
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe(() => this.router.navigate(['..'], { relativeTo: this.activatedRoute }));
   }
 }

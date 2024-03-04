@@ -15,6 +15,7 @@
  */
 
 import { ComponentHarness } from '@angular/cdk/testing';
+import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 
 import { RuntimeAlertCreateGeneralHarness } from './components/runtime-alert-create-general/runtime-alert-create-general.harness';
 import { RuntimeAlertCreateTimeframeHarness } from './components/runtime-alert-create-timeframe/runtime-alert-create-timeframe.harness';
@@ -28,4 +29,13 @@ export class RuntimeAlertCreateHarness extends ComponentHarness {
   public getTimeframeFormHarness = this.locatorFor(RuntimeAlertCreateTimeframeHarness);
   public getConditionsFormHarness = this.locatorFor(RuntimeAlertCreateConditionsHarness);
   public getFiltersFormHarness = this.locatorFor(RuntimeAlertCreateFiltersHarness);
+  private getSaveBar = this.locatorFor(GioSaveBarHarness);
+
+  public async createClick() {
+    return this.getSaveBar().then((saveBar) => saveBar.clickSubmit());
+  }
+
+  public async isSubmitInvalid() {
+    return this.getSaveBar().then((saveBar) => saveBar.isSubmitButtonInvalid());
+  }
 }
