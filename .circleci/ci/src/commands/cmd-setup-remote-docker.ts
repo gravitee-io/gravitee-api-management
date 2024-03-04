@@ -20,6 +20,6 @@ export class SetupRemoteDockerCommand {
   private static commandName = 'cmd-create-docker-context';
 
   public static get(): SetupRemoteDocker {
-    return new commands.SetupRemoteDocker();
+    return new commands.SetupRemoteDocker({ version: 'default' });
   }
 }
