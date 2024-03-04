@@ -57,6 +57,7 @@ export class GvDocumentationComponent implements OnInit, AfterViewInit {
         }
         if (pageToDisplay) {
           this.selectPage(pageToDisplay.id);
+          this.initMenuDisplay(pages);
           this.menu = this.initTree(pages, pageToDisplay.id);
           this.expandMenu(this.menu);
         } else {
@@ -81,6 +82,7 @@ export class GvDocumentationComponent implements OnInit, AfterViewInit {
   menu: TreeItem[];
   isLoaded = false;
   hasTreeClosed = true;
+  hasOneOrLessPages = true;
 
   @Input() rootDir: string;
   private _pages: Page[];
@@ -125,6 +127,11 @@ export class GvDocumentationComponent implements OnInit, AfterViewInit {
       menuElement.style.position = `fixed`;
       this.updateMenuHeight(menuElement);
     }
+  }
+
+  private initMenuDisplay(pages: Page[]) {
+    this.hasOneOrLessPages = pages.filter(p => !(p.type === 'FOLDER' || p.type === 'ROOT' || p.type === 'LINK')).length <= 1;
+    this.hasTreeClosed = this.hasOneOrLessPages;
   }
 
   private initTree(pages: Page[], selectedPage?: string) {
