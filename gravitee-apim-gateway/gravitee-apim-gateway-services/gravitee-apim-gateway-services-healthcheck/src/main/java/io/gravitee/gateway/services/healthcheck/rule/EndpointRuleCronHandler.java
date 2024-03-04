@@ -48,8 +48,7 @@ public class EndpointRuleCronHandler<T extends Endpoint> implements Handler<Long
 
     @Override
     public void handle(final Long timerId) {
-        this.timerId = vertx.setTimer(handler.getDelayMillis(), this);
-        handler.handle(timerId);
+        handler.handle(hcResponseHandler -> this.timerId = vertx.setTimer(handler.getDelayMillis(), this));
     }
 
     public void cancel() {
