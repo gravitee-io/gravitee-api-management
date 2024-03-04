@@ -21,13 +21,20 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.documentation.exception.InvalidPageContentException;
 import io.gravitee.apim.core.documentation.model.ApiFreemarkerTemplate;
+import io.gravitee.apim.core.documentation.model.PrimaryOwnerApiTemplateData;
+import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 class FreemarkerTemplateResolverTest {
 
@@ -84,12 +91,53 @@ class FreemarkerTemplateResolverTest {
 
     @Test
     void should_throw_exception_if_template_accesses_unknown_property() {
-        Api api = Api.builder().id("id").name("api-name").version("1.0").build();
+        var api = ApiFreemarkerTemplate.builder().id("id").name("api-name").version("1.0").build();
 
         var throwable = catchThrowable(() ->
             resolver.resolveTemplate("Documentation for ${api.name} ${api.vvv} (${api.id})", Map.of("api", api))
         );
         assertThat(throwable).isInstanceOf(InvalidPageContentException.class);
         assertThat(throwable.getCause().getMessage()).contains("api.vvv");
+    }
+
+    @ParameterizedTest
+    @MethodSource("provideParameters")
+    void should_render_api_fields(final String fieldName, final String output) {
+        var po = PrimaryOwnerApiTemplateData.from(
+            new PrimaryOwnerEntity("id", "po email", "po display name", PrimaryOwnerEntity.Type.USER)
+        );
+
+        var api = ApiFreemarkerTemplate
+            .builder()
+            .id("api-id")
+            .name("api-name")
+            .description("api description")
+            .version("v1000")
+            .picture("a lovely picture")
+            .state(Api.LifecycleState.STARTED)
+            .visibility(Api.Visibility.PUBLIC)
+            .tags(Set.of("first tag"))
+            .metadata(Map.of("meta", "data"))
+            .primaryOwner(po)
+            .build();
+
+        assertThat(resolver.resolveTemplate("This is my " + fieldName + ": ${api." + fieldName + "}", Map.of("api", api)))
+            .isEqualTo("This is my " + fieldName + ": " + output);
+    }
+
+    public static Stream<Arguments> provideParameters() {
+        return Stream.of(
+            Arguments.of("id", "api-id"),
+            Arguments.of("name", "api-name"),
+            Arguments.of("description", "api description"),
+            Arguments.of("version", "v1000"),
+            Arguments.of("metadata['meta']", "data"),
+            Arguments.of("picture", "a lovely picture"),
+            Arguments.of("state", "STARTED"),
+            Arguments.of("visibility", "PUBLIC"),
+            Arguments.of("tags[0]", "first tag"),
+            Arguments.of("primaryOwner.displayName", "po display name"),
+            Arguments.of("primaryOwner.email", "po email")
+        );
     }
 }

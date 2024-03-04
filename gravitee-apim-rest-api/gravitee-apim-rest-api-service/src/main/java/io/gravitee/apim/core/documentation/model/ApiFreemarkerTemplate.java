@@ -39,7 +39,7 @@ public class ApiFreemarkerTemplate {
     private ApiType type = ApiType.PROXY;
 
     private String picture;
-    private PrimaryOwnerEntity primaryOwner;
+    private PrimaryOwnerApiTemplateData primaryOwner;
 
     @Builder.Default
     private Api.Visibility visibility = Api.Visibility.PRIVATE;
@@ -97,6 +97,6 @@ public class ApiFreemarkerTemplate {
         }
 
         this.metadata = metadata;
-        this.primaryOwner = primaryOwner;
+        this.primaryOwner = PrimaryOwnerApiTemplateData.from(primaryOwner);
     }
 }
