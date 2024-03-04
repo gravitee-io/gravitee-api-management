@@ -54,7 +54,7 @@ public class ApiFreemarkerTemplateTest {
             soft.assertThat(api.getVisibility().toString()).isEqualTo(Visibility.PUBLIC.toString());
             soft.assertThat(api.getVersion()).isEqualTo("1.0.0");
             soft.assertThat(api.getMetadata()).isEqualTo(metadata);
-            soft.assertThat(api.getPrimaryOwner()).isEqualTo(primaryOwner);
+            soft.assertThat(api.getPrimaryOwner()).isEqualTo(PrimaryOwnerApiTemplateData.from(primaryOwner));
         });
     }
 
@@ -83,7 +83,7 @@ public class ApiFreemarkerTemplateTest {
             soft.assertThat(api.getVisibility().toString()).isEqualTo(Visibility.PUBLIC.toString());
             soft.assertThat(api.getVersion()).isEqualTo("1.0.0");
             soft.assertThat(api.getMetadata()).isEqualTo(metadata);
-            soft.assertThat(api.getPrimaryOwner()).isEqualTo(primaryOwner);
+            soft.assertThat(api.getPrimaryOwner()).isEqualTo(PrimaryOwnerApiTemplateData.from(primaryOwner));
         });
     }
 }
