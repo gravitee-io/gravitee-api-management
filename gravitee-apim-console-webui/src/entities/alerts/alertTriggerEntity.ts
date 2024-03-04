@@ -29,6 +29,8 @@ export interface AlertEventRuleEntity {
 }
 
 export interface AlertTriggerEntity {
+  id: string;
+  name: string;
   description: string;
   reference_type: Scope;
   reference_id: string;

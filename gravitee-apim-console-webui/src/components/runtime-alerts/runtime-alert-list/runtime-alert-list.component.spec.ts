@@ -69,7 +69,7 @@ describe('RuntimeAlertListComponent', () => {
       },
     ]);
     expect(rowCells).toHaveLength(2);
-    expect(rowCells[0]).toStrictEqual(['', 'INFO', 'description', '1  / 2 / 3 / 4', expect.anything(), 'last alert message', '']);
-    expect(rowCells[1]).toStrictEqual(['', 'INFO', 'description', '-', '-', '-', '']);
+    expect(rowCells[0]).toStrictEqual(['my alert', 'INFO', 'description', '1 / 2 / 3 / 4', expect.anything(), 'last alert message', '']);
+    expect(rowCells[1]).toStrictEqual(['my alert', 'INFO', 'description', '-', '-', '-', '']);
   });
 });

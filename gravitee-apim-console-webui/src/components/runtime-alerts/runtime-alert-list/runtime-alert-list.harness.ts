@@ -15,11 +15,13 @@
  */
 import { ComponentHarness, parallel } from '@angular/cdk/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
 export class RuntimeAlertListHarness extends ComponentHarness {
   static hostSelector = 'runtime-alert-list';
 
   private getAlertTable = () => this.locatorFor(MatTableHarness)();
+  private getDeleteButtons = this.locatorForAll(MatButtonHarness.with({ selector: '[aria-label="Button to delete an alert"]' }));
 
   async computeTableCells() {
     const table = await this.getAlertTable();
@@ -30,5 +32,9 @@ export class RuntimeAlertListHarness extends ComponentHarness {
     const rows = await table.getRows();
     const rowCells = await parallel(() => rows.map((row) => row.getCellTextByIndex()));
     return { headerCells, rowCells };
+  }
+
+  async deleteAlert(index: number) {
+    return this.getDeleteButtons().then((btn) => btn[index].click());
   }
 }
