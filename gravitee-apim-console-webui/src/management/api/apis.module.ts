@@ -18,8 +18,6 @@ import { NgModule } from '@angular/core';
 import { UIRouterModule } from '@uirouter/angular';
 import { Transition, TransitionService } from '@uirouter/angularjs';
 import * as angular from 'angular';
-import { switchMap } from 'rxjs/operators';
-import { of } from 'rxjs';
 
 import { ApiAnalyticsModule } from './analytics/api-analytics.module';
 import { ApiListModule } from './list/api-list.module';
@@ -48,30 +46,30 @@ import { DocumentationModule } from '../../components/documentation/documentatio
 const graviteeManagementModule = angular.module('gravitee-management');
 apiPermissionHook.$inject = ['$transitions', 'ngGioPermissionService'];
 function apiPermissionHook($transitions: TransitionService, gioPermissionService: GioPermissionService) {
+  let currentApiId: string;
+
   $transitions.onBefore(
     {
       to: 'management.apis.**',
     },
-    (transition: Transition) => {
+    async (transition: Transition) => {
       const stateService = transition.router.stateService;
 
-      return gioPermissionService
-        .loadApiPermissions(transition.params().apiId)
-        .pipe(
-          switchMap(() => {
-            const permissions = transition.$to().data?.apiPermissions?.only;
-            if (!permissions) {
-              return of(true);
-            }
-            if (gioPermissionService.hasAnyMatching(permissions)) {
-              return of(true);
-            }
-            return of(stateService.target('login'));
-          }),
-        )
-        .toPromise();
+      if (transition.params().apiId !== currentApiId) {
+        await gioPermissionService.loadApiPermissions(transition.params().apiId).toPromise();
+        currentApiId = transition.params().apiId;
+      }
+
+      const permissions = transition.$to().data?.apiPermissions?.only;
+      if (!permissions) {
+        return true;
+      }
+      if (gioPermissionService.hasAnyMatching(permissions)) {
+        return true;
+      }
+      return stateService.target('login');
     },
-    { priority: 7 },
+    { priority: 7, invokeLimit: 1 },
   );
 }
 graviteeManagementModule.run(apiPermissionHook);

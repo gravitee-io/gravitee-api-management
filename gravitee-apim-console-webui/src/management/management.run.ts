@@ -194,8 +194,9 @@ function runBlock(
           }
         }
       }
+      return true;
     },
-    { priority: 10 },
+    { priority: 10, invokeLimit: 1 },
   );
 
   $transitions.onFinish({}, (trans) => {

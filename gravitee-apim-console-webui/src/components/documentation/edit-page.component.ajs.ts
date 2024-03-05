@@ -266,13 +266,14 @@ class EditPageComponentController implements IController {
   selectTab(idx: number) {
     this.changeTab(idx);
     if (this.apiId) {
-      this.$state.transitionTo(
-        'management.apis.documentationEdit',
-        { apiId: this.apiId, type: this.page.type, pageId: this.page.id, tab: this.currentTab },
-        { notify: false },
-      );
+      this.$state.go('management.apis.documentationEdit', {
+        apiId: this.apiId,
+        type: this.page.type,
+        pageId: this.page.id,
+        tab: this.currentTab,
+      });
     } else {
-      this.$state.transitionTo(
+      this.$state.go(
         'management.settings.documentation.edit',
         { pageId: this.page.id, type: this.page.type, tab: this.currentTab },
         { notify: false },
