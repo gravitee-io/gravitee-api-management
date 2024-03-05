@@ -396,7 +396,6 @@ export const states: Ng2StateDeclaration[] = [
       parent: {
         type: 'string',
         value: '',
-        squash: false,
       },
     },
   },

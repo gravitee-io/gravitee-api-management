@@ -271,7 +271,7 @@ export class ApiGeneralPlanListComponent implements OnInit, OnDestroy {
     getApiPlans$
       .pipe(
         tap((plans) => {
-          this.ajsState.go(`management.apis.plans`, { status: this.status }, { notify: false });
+          this.ajsState.go(`management.apis.plans`, { status: this.status });
           this.plansTableDS = orderBy(plans, 'order', 'asc');
           this.isLoadingData = false;
         }),
