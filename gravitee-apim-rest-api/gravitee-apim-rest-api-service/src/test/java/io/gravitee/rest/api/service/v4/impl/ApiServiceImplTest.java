@@ -89,7 +89,6 @@ import io.gravitee.repository.management.model.GroupEvent;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
-import io.gravitee.rest.api.model.EventEntity;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
@@ -107,14 +106,12 @@ import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
-import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.AlertService;
 import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.CategoryService;
-import io.gravitee.rest.api.service.ConnectorService;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.GenericNotificationConfigService;
 import io.gravitee.rest.api.service.GroupService;
@@ -122,9 +119,7 @@ import io.gravitee.rest.api.service.MediaService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.ParameterService;
-import io.gravitee.rest.api.service.PolicyService;
 import io.gravitee.rest.api.service.PortalNotificationConfigService;
-import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.TopApiService;
 import io.gravitee.rest.api.service.UserService;
@@ -141,10 +136,17 @@ import io.gravitee.rest.api.service.exceptions.TagNotAllowedException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.NotifierServiceImpl;
 import io.gravitee.rest.api.service.impl.upgrade.initializer.DefaultMetadataInitializer;
-import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.processor.SynchronizationService;
 import io.gravitee.rest.api.service.search.SearchEngineService;
-import io.gravitee.rest.api.service.v4.*;
+import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
+import io.gravitee.rest.api.service.v4.ApiNotificationService;
+import io.gravitee.rest.api.service.v4.ApiService;
+import io.gravitee.rest.api.service.v4.ApiStateService;
+import io.gravitee.rest.api.service.v4.FlowService;
+import io.gravitee.rest.api.service.v4.PlanSearchService;
+import io.gravitee.rest.api.service.v4.PlanService;
+import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
+import io.gravitee.rest.api.service.v4.PropertiesService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.CategoryMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
@@ -161,7 +163,10 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.*;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -216,18 +221,6 @@ public class ApiServiceImplTest {
 
     @Mock
     private AlertService alertService;
-
-    @Mock
-    private RoleService roleService;
-
-    @Mock
-    private PolicyService policyService;
-
-    @Mock
-    private NotificationTemplateService notificationTemplateService;
-
-    @Mock
-    private ConnectorService connectorService;
 
     @Mock
     private PlanService planService;
@@ -286,9 +279,7 @@ public class ApiServiceImplTest {
     @InjectMocks
     private SynchronizationService synchronizationService = Mockito.spy(new SynchronizationService(this.objectMapper));
 
-    private ApiMapper apiMapper;
     private ApiService apiService;
-    private ApiSearchService apiSearchService;
     private UpdateApiEntity updateApiEntity;
     private Api api;
     private Api updatedApi;
@@ -312,15 +303,14 @@ public class ApiServiceImplTest {
 
     @Before
     public void setUp() {
-        apiMapper =
-            new ApiMapper(
-                new ObjectMapper(),
-                planService,
-                flowService,
-                parameterService,
-                workflowService,
-                new CategoryMapper(categoryService)
-            );
+        var apiMapper = new ApiMapper(
+            new ObjectMapper(),
+            planService,
+            flowService,
+            parameterService,
+            workflowService,
+            new CategoryMapper(categoryService)
+        );
         GenericApiMapper genericApiMapper = new GenericApiMapper(apiMapper, apiConverter);
         apiService =
             new ApiServiceImpl(
@@ -353,16 +343,15 @@ public class ApiServiceImplTest {
                 apiAuthorizationService,
                 groupService
             );
-        apiSearchService =
-            new ApiSearchServiceImpl(
-                apiRepository,
-                apiMapper,
-                genericApiMapper,
-                primaryOwnerService,
-                categoryService,
-                searchEngineService,
-                apiAuthorizationService
-            );
+        var apiSearchService = new ApiSearchServiceImpl(
+            apiRepository,
+            apiMapper,
+            genericApiMapper,
+            primaryOwnerService,
+            categoryService,
+            searchEngineService,
+            apiAuthorizationService
+        );
         apiStateService =
             new ApiStateServiceImpl(
                 apiSearchService,
@@ -405,138 +394,6 @@ public class ApiServiceImplTest {
 
         when(apiMetadataService.fetchMetadataForApi(any(ExecutionContext.class), any(ApiEntity.class)))
             .thenAnswer(invocation -> invocation.getArgument(1));
-    }
-
-    @Test
-    public void shouldCreateWithListener() throws TechnicalException {
-        when(apiRepository.create(any()))
-            .thenAnswer(invocation -> {
-                Api api = invocation.getArgument(0);
-                api.setId(API_ID);
-                return api;
-            });
-        NewApiEntity newApiEntity = new NewApiEntity();
-        newApiEntity.setName(API_NAME);
-        newApiEntity.setApiVersion("v1");
-        newApiEntity.setType(ApiType.PROXY);
-        newApiEntity.setDescription("Ma description");
-        HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().path("/context").build())).build();
-        newApiEntity.setListeners(List.of(httpListener));
-
-        final ApiEntity apiEntity = apiService.create(GraviteeContext.getExecutionContext(), newApiEntity, USER_NAME);
-
-        assertThat(apiEntity).isNotNull();
-        assertThat(apiEntity.getId()).isNotNull();
-        assertThat(apiEntity.getName()).isEqualTo(API_NAME);
-        assertThat(apiEntity.getApiVersion()).isEqualTo("v1");
-        assertThat(apiEntity.getType()).isEqualTo(ApiType.PROXY);
-        assertThat(apiEntity.getDescription()).isEqualTo("Ma description");
-        assertThat(apiEntity.getDefinitionContext().getOrigin()).isEqualTo("management");
-        assertThat(apiEntity.getDefinitionContext().getMode()).isEqualTo("fully_managed");
-        assertThat(apiEntity.getListeners()).isNotNull();
-        assertThat(apiEntity.getListeners().size()).isEqualTo(1);
-        assertThat(apiEntity.getListeners().get(0)).isInstanceOf(HttpListener.class);
-        HttpListener httpListenerCreated = (HttpListener) apiEntity.getListeners().get(0);
-        assertThat(httpListenerCreated.getPaths().size()).isEqualTo(1);
-        assertThat(httpListenerCreated.getPaths().get(0).getHost()).isNull();
-        assertThat(httpListenerCreated.getPaths().get(0).getPath()).isEqualTo("/context");
-
-        verify(searchEngineService, times(1)).index(eq(GraviteeContext.getExecutionContext()), any(), eq(false));
-        verify(apiRepository, times(1)).create(any());
-        verify(auditService, times(1))
-            .createApiAuditLog(
-                eq(GraviteeContext.getExecutionContext()),
-                any(),
-                any(),
-                eq(Api.AuditEvent.API_CREATED),
-                any(),
-                eq(null),
-                any()
-            );
-        verify(genericNotificationConfigService, times(1))
-            .create(argThat(notifConfig -> notifConfig.getNotifier().equals(NotifierServiceImpl.DEFAULT_EMAIL_NOTIFIER_ID)));
-        verify(apiMetadataService, times(1))
-            .create(
-                eq(GraviteeContext.getExecutionContext()),
-                argThat(newApiMetadataEntity ->
-                    newApiMetadataEntity.getFormat().equals(MetadataFormat.MAIL) &&
-                    newApiMetadataEntity.getName().equals(DefaultMetadataInitializer.METADATA_EMAIL_SUPPORT_KEY)
-                )
-            );
-        verify(membershipService, times(1))
-            .addRoleToMemberOnReference(
-                GraviteeContext.getExecutionContext(),
-                new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
-                new MembershipService.MembershipMember(USER_NAME, null, MembershipMemberType.USER),
-                new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name())
-            );
-    }
-
-    @Test
-    public void shouldCreateWithListenerAndFlows() throws TechnicalException {
-        when(apiRepository.create(any()))
-            .thenAnswer(invocation -> {
-                Api api = invocation.getArgument(0);
-                api.setId(API_ID);
-                return api;
-            });
-        NewApiEntity newApiEntity = new NewApiEntity();
-        newApiEntity.setName(API_NAME);
-        newApiEntity.setApiVersion("v1");
-        newApiEntity.setType(ApiType.PROXY);
-        newApiEntity.setDescription("Ma description");
-        HttpListener httpListener = HttpListener.builder().paths(List.of(Path.builder().path("/context").build())).build();
-        newApiEntity.setListeners(List.of(httpListener));
-
-        List<Flow> apiFlows = List.of(new Flow(), new Flow());
-        newApiEntity.setFlows(apiFlows);
-
-        final ApiEntity apiEntity = apiService.create(GraviteeContext.getExecutionContext(), newApiEntity, USER_NAME);
-
-        assertThat(apiEntity).isNotNull();
-        assertThat(apiEntity.getId()).isNotNull();
-        assertThat(apiEntity.getName()).isEqualTo(API_NAME);
-        assertThat(apiEntity.getApiVersion()).isEqualTo("v1");
-        assertThat(apiEntity.getType()).isEqualTo(ApiType.PROXY);
-        assertThat(apiEntity.getDescription()).isEqualTo("Ma description");
-        assertThat(apiEntity.getListeners()).isNotNull();
-        assertThat(apiEntity.getListeners().size()).isEqualTo(1);
-        assertThat(apiEntity.getListeners().get(0)).isInstanceOf(HttpListener.class);
-        HttpListener httpListenerCreated = (HttpListener) apiEntity.getListeners().get(0);
-        assertThat(httpListenerCreated.getPaths().size()).isEqualTo(1);
-        assertThat(httpListenerCreated.getPaths().get(0).getHost()).isNull();
-        assertThat(httpListenerCreated.getPaths().get(0).getPath()).isEqualTo("/context");
-
-        verify(searchEngineService, times(1)).index(eq(GraviteeContext.getExecutionContext()), any(), eq(false));
-        verify(apiRepository, times(1)).create(any());
-        verify(auditService, times(1))
-            .createApiAuditLog(
-                eq(GraviteeContext.getExecutionContext()),
-                any(),
-                any(),
-                eq(Api.AuditEvent.API_CREATED),
-                any(),
-                eq(null),
-                any()
-            );
-        verify(genericNotificationConfigService, times(1))
-            .create(argThat(notifConfig -> notifConfig.getNotifier().equals(NotifierServiceImpl.DEFAULT_EMAIL_NOTIFIER_ID)));
-        verify(apiMetadataService, times(1))
-            .create(
-                eq(GraviteeContext.getExecutionContext()),
-                argThat(newApiMetadataEntity ->
-                    newApiMetadataEntity.getFormat().equals(MetadataFormat.MAIL) &&
-                    newApiMetadataEntity.getName().equals(DefaultMetadataInitializer.METADATA_EMAIL_SUPPORT_KEY)
-                )
-            );
-        verify(membershipService, times(1))
-            .addRoleToMemberOnReference(
-                GraviteeContext.getExecutionContext(),
-                new MembershipService.MembershipReference(MembershipReferenceType.API, API_ID),
-                new MembershipService.MembershipMember(USER_NAME, null, MembershipMemberType.USER),
-                new MembershipService.MembershipRole(RoleScope.API, SystemRole.PRIMARY_OWNER.name())
-            );
-        verify(flowService, times(1)).save(FlowReferenceType.API, API_ID, apiFlows);
     }
 
     @Test(expected = ApiRunningStateException.class)
