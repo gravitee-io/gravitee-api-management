@@ -18,6 +18,11 @@ package io.gravitee.rest.api.service.cockpit.services;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
+import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api.model.NewApi;
+import io.gravitee.apim.core.audit.model.AuditActor;
+import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.rest.api.model.ApiMetadataEntity;
 import io.gravitee.rest.api.model.Visibility;
@@ -47,12 +52,18 @@ public class V4ApiServiceCockpitImpl implements V4ApiServiceCockpit {
     public static final String PLAN_ENTITIES_NODE = "/planEntities";
     public static final String METADATA_NODE = "/metadata";
 
+    private final CreateApiDomainService createApiDomainService;
     private final ApiService apiServiceV4;
     private final ApiStateService apiStateService;
     private final GraviteeMapper graviteeMapper;
     private final ObjectMapper mapper;
 
-    public V4ApiServiceCockpitImpl(ApiService apiServiceV4, ApiStateService apiStateService) {
+    public V4ApiServiceCockpitImpl(
+        CreateApiDomainService createApiDomainService,
+        ApiService apiServiceV4,
+        ApiStateService apiStateService
+    ) {
+        this.createApiDomainService = createApiDomainService;
         this.apiServiceV4 = apiServiceV4;
         this.apiStateService = apiStateService;
         this.graviteeMapper = new GraviteeMapper();
@@ -67,19 +78,24 @@ public class V4ApiServiceCockpitImpl implements V4ApiServiceCockpit {
         final String apiDefinition
     ) throws JsonProcessingException {
         final JsonNode node = mapper.readTree(apiDefinition);
-        final NewApiEntity newApiEntity = getNewApiEntity(node);
         final UpdateApiEntity updateApiEntity = getUpdateApiEntity(node);
         final ExecutionContext executionContext = new ExecutionContext(organizationId, environmentId);
 
         return Single
-            .just(apiServiceV4.create(executionContext, newApiEntity, userId))
-            .flatMap(apiEntity -> publishApi(executionContext, apiEntity, userId, updateApiEntity))
+            .just(
+                createApiDomainService.create(
+                    deserializeApi(node),
+                    new AuditInfo(organizationId, environmentId, AuditActor.builder().userId(userId).build())
+                )
+            )
+            .flatMap(api -> publishApi(executionContext, api, userId, updateApiEntity))
             .flatMap(apiEntity -> syncDeployment(executionContext, apiEntity.getId(), userId));
     }
 
-    private NewApiEntity getNewApiEntity(JsonNode node) throws JsonProcessingException {
+    private Api deserializeApi(JsonNode node) throws JsonProcessingException {
         final String newApiEntityNode = mapper.writeValueAsString(node.at(NEW_API_ENTITY_NODE));
-        return graviteeMapper.readValue(newApiEntityNode, NewApiEntity.class);
+        var newApi = graviteeMapper.readValue(newApiEntityNode, NewApi.class);
+        return newApi.toApi();
     }
 
     private UpdateApiEntity getUpdateApiEntity(JsonNode node) throws JsonProcessingException {
@@ -103,42 +119,35 @@ public class V4ApiServiceCockpitImpl implements V4ApiServiceCockpit {
         return Single.just((ApiEntity) apiStateService.deploy(executionContext, apiId, userId, deploymentEntity));
     }
 
-    private Single<ApiEntity> publishApi(
-        ExecutionContext executionContext,
-        ApiEntity apiEntity,
-        String userId,
-        UpdateApiEntity updateApiEntity
-    ) {
-        final UpdateApiEntity apiToUpdate = createUpdateApiEntity(apiEntity, updateApiEntity);
+    private Single<ApiEntity> publishApi(ExecutionContext executionContext, Api api, String userId, UpdateApiEntity updateApiEntity) {
+        final UpdateApiEntity apiToUpdate = createUpdateApiEntity(api, updateApiEntity);
 
-        final ApiEntity update = apiServiceV4.update(executionContext, apiEntity.getId(), apiToUpdate, userId);
+        final ApiEntity update = apiServiceV4.update(executionContext, api.getId(), apiToUpdate, userId);
         return Single.just((ApiEntity) apiStateService.start(executionContext, update.getId(), userId));
     }
 
-    private UpdateApiEntity createUpdateApiEntity(ApiEntity apiEntity, UpdateApiEntity updateApiEntity) {
+    private UpdateApiEntity createUpdateApiEntity(Api api, UpdateApiEntity updateApiEntity) {
         final UpdateApiEntity entity = new UpdateApiEntity();
-        entity.setId(apiEntity.getId());
-        entity.setName(apiEntity.getName());
-        entity.setApiVersion(apiEntity.getApiVersion());
-        entity.setDefinitionVersion(apiEntity.getDefinitionVersion());
-        entity.setType(apiEntity.getType());
-        entity.setDescription(apiEntity.getDescription());
-        entity.setEndpointGroups(apiEntity.getEndpointGroups());
-        entity.setAnalytics(apiEntity.getAnalytics());
-        entity.setFlows(apiEntity.getFlows());
-        entity.setFlowExecution(apiEntity.getFlowExecution());
-        entity.setResponseTemplates(apiEntity.getResponseTemplates());
-        entity.setServices(apiEntity.getServices());
-        entity.setGroups(apiEntity.getGroups());
+        entity.setId(api.getId());
+        entity.setName(api.getName());
+        entity.setApiVersion(api.getVersion());
+        entity.setDefinitionVersion(api.getDefinitionVersion());
+        entity.setType(api.getType());
+        entity.setDescription(api.getDescription());
+        entity.setEndpointGroups(api.getApiDefinitionV4().getEndpointGroups());
+        entity.setAnalytics(api.getApiDefinitionV4().getAnalytics());
+        entity.setFlows(api.getApiDefinitionV4().getFlows());
+        entity.setFlowExecution(api.getApiDefinitionV4().getFlowExecution());
+        entity.setResponseTemplates(api.getApiDefinitionV4().getResponseTemplates());
+        entity.setServices(api.getApiDefinitionV4().getServices());
+        entity.setGroups(api.getGroups());
         entity.setVisibility(Visibility.PUBLIC);
-        entity.setPicture(apiEntity.getPicture());
-        entity.setPictureUrl(apiEntity.getPictureUrl());
-        entity.setCategories(apiEntity.getCategories());
-        entity.setLabels(apiEntity.getLabels());
+        entity.setPicture(api.getPicture());
+        entity.setCategories(api.getCategories());
+        entity.setLabels(api.getLabels());
         entity.setLifecycleState(ApiLifecycleState.PUBLISHED);
-        entity.setDisableMembershipNotifications(apiEntity.isDisableMembershipNotifications());
-        entity.setBackground(apiEntity.getBackground());
-        entity.setBackgroundUrl(apiEntity.getBackgroundUrl());
+        entity.setDisableMembershipNotifications(api.isDisableMembershipNotifications());
+        entity.setBackground(api.getBackground());
         //setter values received from cockpit payload
         entity.setMetadata(updateApiEntity.getMetadata());
         entity.setProperties(updateApiEntity.getProperties());

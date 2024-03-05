@@ -24,11 +24,15 @@ import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.listener.Listener;
 import java.util.List;
 import java.util.Set;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder(toBuilder = true)
+@NoArgsConstructor
+@AllArgsConstructor
 public class NewApi {
 
     private String name;
