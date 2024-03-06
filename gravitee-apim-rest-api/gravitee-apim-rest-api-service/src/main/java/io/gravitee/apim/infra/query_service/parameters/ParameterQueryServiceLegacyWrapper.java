@@ -34,7 +34,7 @@ public class ParameterQueryServiceLegacyWrapper implements ParametersQueryServic
     @Override
     public boolean findAsBoolean(Key key, ParameterContext context) {
         return parameterService.findAsBoolean(
-            new ExecutionContext(context.environmentId(), context.organizationId()),
+            new ExecutionContext(context.organizationId(), context.environmentId()),
             key,
             context.referenceType()
         );
@@ -42,6 +42,6 @@ public class ParameterQueryServiceLegacyWrapper implements ParametersQueryServic
 
     @Override
     public String findAsString(Key key, ParameterContext context) {
-        return parameterService.find(new ExecutionContext(context.environmentId(), context.organizationId()), key, context.referenceType());
+        return parameterService.find(new ExecutionContext(context.organizationId(), context.environmentId()), key, context.referenceType());
     }
 }
