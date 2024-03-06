@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.core.plan.model;
 
-import io.gravitee.apim.core.datetime.TimeProvider;
+import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;

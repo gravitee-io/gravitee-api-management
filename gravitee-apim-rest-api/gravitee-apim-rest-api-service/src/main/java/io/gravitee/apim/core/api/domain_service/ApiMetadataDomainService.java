@@ -21,11 +21,11 @@ import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.ApiAuditEvent;
-import io.gravitee.apim.core.datetime.TimeProvider;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.metadata.crud_service.MetadataCrudService;
 import io.gravitee.apim.core.metadata.model.Metadata;
 import io.gravitee.common.utils.IdGenerator;
+import io.gravitee.common.utils.TimeProvider;
 import java.util.List;
 import java.util.Map;
 

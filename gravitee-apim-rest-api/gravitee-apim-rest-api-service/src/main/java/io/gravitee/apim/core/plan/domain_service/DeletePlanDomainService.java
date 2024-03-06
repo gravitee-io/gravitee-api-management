@@ -20,12 +20,11 @@ import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.AuditProperties;
 import io.gravitee.apim.core.audit.model.event.PlanAuditEvent;
-import io.gravitee.apim.core.datetime.TimeProvider;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
-import java.sql.Time;
+import io.gravitee.common.utils.TimeProvider;
 import java.util.Map;
 
 public class DeletePlanDomainService {

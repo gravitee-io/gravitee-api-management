@@ -18,7 +18,7 @@ package io.gravitee.apim.core.api.model.factory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.NewApi;
 import io.gravitee.apim.core.api.model.crd.ApiCRD;
-import io.gravitee.apim.core.datetime.TimeProvider;
+import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.service.common.UuidString;
 
 public class ApiModelFactory {

@@ -16,8 +16,8 @@
 package io.gravitee.apim.infra.adapter;
 
 import fixtures.definition.FlowFixtures;
-import io.gravitee.apim.core.datetime.TimeProvider;
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.flow.Consumer;
 import io.gravitee.definition.model.flow.ConsumerType;
 import io.gravitee.definition.model.flow.Operator;
