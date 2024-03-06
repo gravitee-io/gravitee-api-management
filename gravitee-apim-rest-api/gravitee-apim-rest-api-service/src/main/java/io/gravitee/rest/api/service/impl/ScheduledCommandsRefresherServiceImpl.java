@@ -21,9 +21,12 @@ import io.gravitee.node.api.Node;
 import io.gravitee.repository.management.model.MessageRecipient;
 import io.gravitee.rest.api.model.command.CommandEntity;
 import io.gravitee.rest.api.model.command.CommandQuery;
+import io.gravitee.rest.api.model.command.CommandTags;
 import io.gravitee.rest.api.service.CommandService;
 import io.gravitee.rest.api.service.ScheduledCommandService;
 import io.gravitee.rest.api.service.event.CommandEvent;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,6 +42,12 @@ import org.springframework.stereotype.Component;
 public class ScheduledCommandsRefresherServiceImpl
     extends AbstractService<ScheduledCommandsRefresherServiceImpl>
     implements ScheduledCommandService<ScheduledCommandsRefresherServiceImpl>, Runnable {
+
+    // We exclude the DATA_TO_INDEX tag because it is processed by another service
+    public static final List<CommandTags> SUPPORTED_COMMAND_TAGS = Arrays
+        .stream(CommandTags.values())
+        .filter(commandTags -> commandTags != CommandTags.DATA_TO_INDEX)
+        .toList();
 
     private final CommandService commandService;
 
@@ -84,6 +93,7 @@ public class ScheduledCommandsRefresherServiceImpl
         CommandQuery commandQuery = new CommandQuery();
         commandQuery.setTo(MessageRecipient.MANAGEMENT_APIS.name());
         commandQuery.setNotAckBy(node.id());
+        commandQuery.setTags(SUPPORTED_COMMAND_TAGS);
 
         return commandService.search(commandQuery);
     }
