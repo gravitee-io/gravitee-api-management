@@ -50,12 +50,10 @@
             <version>${project.version}</version>
             <scope>provided</scope>
         </dependency>
-        <!-- FIXME: move to gravitee-common as part of https://gravitee.atlassian.net/browse/APIM-3799 -->
         <dependency>
-            <groupId>io.gravitee.apim.gateway</groupId>
-            <artifactId>gravitee-apim-gateway-http</artifactId>
-            <version>${project.version}</version>
-            <scope>compile</scope>
+            <groupId>io.gravitee.node</groupId>
+            <artifactId>gravitee-node-vertx</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.bazaarvoice.jolt</groupId>
@@ -66,6 +64,11 @@
             <groupId>com.bazaarvoice.jolt</groupId>
             <artifactId>json-utils</artifactId>
             <version>${json-utils.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-junit5</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.wiremock</groupId>
