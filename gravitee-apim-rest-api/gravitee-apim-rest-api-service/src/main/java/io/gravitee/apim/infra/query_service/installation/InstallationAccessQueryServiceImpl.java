@@ -52,7 +52,7 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
     private final InstallationTypeDomainService installationTypeDomainService;
     private final AccessPointQueryService accessPointQueryService;
 
-    @Value("${cockpit.enabled:false}")
+    @Value("${cockpit.enabled:${cloud.enabled:false}}")
     private boolean cockpitEnabled;
 
     @Value("${installation.api.url:#{null}}")

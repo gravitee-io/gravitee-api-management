@@ -62,10 +62,10 @@ public class HelloCommandProducer implements CommandProducer<HelloCommand, Hello
     @Value("${installation.api.proxyPath.management:${http.api.management.entrypoint:${http.api.entrypoint:/}management}}")
     private String managementProxyPath;
 
-    @Value("${cockpit.auth.path:/auth/cockpit?token={token}}")
+    @Value("${cockpit.auth.path:${cloud.auth.path:/auth/cockpit?token={token}}}")
     private String authPath;
 
-    @Value("${cockpit.trial:false}")
+    @Value("${cockpit.trial:${cloud.trial:false}}")
     private boolean cockpitTrial;
 
     private final Node node;

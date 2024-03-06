@@ -98,7 +98,7 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
 
     @PostConstruct
     public void afterPropertiesSet() {
-        enabled = environment.getProperty("cockpit.enabled", Boolean.class, false);
+        enabled = environment.getProperty("cockpit.enabled", Boolean.class, environment.getProperty("cloud.enabled", Boolean.class, false));
 
         if (enabled) {
             try {
@@ -172,16 +172,20 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
 
     private Key getPublicKey() throws Exception {
         final KeyStore trustStore = loadTrustStore();
-        final Certificate cert = trustStore.getCertificate(environment.getProperty("cockpit.keystore.key.alias", "cockpit-client"));
+        final Certificate cert =
+                trustStore.getCertificate(environment.getProperty("cockpit.keystore.key.alias", environment.getProperty("cloud.keystore.key.alias", "cockpit-client")));
 
         return cert.getPublicKey();
     }
 
     private KeyStore loadTrustStore() throws Exception {
-        final KeyStore keystore = KeyStore.getInstance(environment.getProperty("cockpit.keystore.type"));
+        final KeyStore keystore = KeyStore.getInstance(environment.getProperty("cockpit.keystore.type", environment.getProperty("cloud.keystore.type")));
 
-        try (InputStream is = new File(environment.getProperty("cockpit.keystore.path")).toURI().toURL().openStream()) {
-            final String password = environment.getProperty("cockpit.keystore.password");
+        try (InputStream is = new File(environment.getProperty("cockpit.keystore.path", environment.getProperty("cloud.keystore.path"))).toURI().toURL().openStream()) {
+            final String cockpitKeystorePassword = environment.getProperty("cockpit.keystore.password");
+            final String cloudKeystorePassword = environment.getProperty("cloud.keystore.password");
+            final String password = cockpitKeystorePassword != null ? cockpitKeystorePassword : cloudKeystorePassword;
+
             keystore.load(is, null == password ? null : password.toCharArray());
         }
 
