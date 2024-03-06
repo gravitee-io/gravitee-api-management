@@ -99,7 +99,9 @@ public class ScheduledCommandsRefresherServiceImplTest {
         when(
             commandService.search(
                 ArgumentMatchers.argThat(query ->
-                    query.getTo().equals(MessageRecipient.MANAGEMENT_APIS.name()) && query.getNotAckBy().equals("node-id")
+                    query.getTo().equals(MessageRecipient.MANAGEMENT_APIS.name()) &&
+                    query.getNotAckBy().equals("node-id") &&
+                    !query.getTags().contains(CommandTags.DATA_TO_INDEX)
                 )
             )
         )
