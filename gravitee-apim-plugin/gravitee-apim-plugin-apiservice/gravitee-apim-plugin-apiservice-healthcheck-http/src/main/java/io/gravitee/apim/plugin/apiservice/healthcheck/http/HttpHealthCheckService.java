@@ -21,6 +21,7 @@ import static java.util.Optional.ofNullable;
 import com.google.common.base.Strings;
 import io.gravitee.apim.plugin.apiservice.healthcheck.http.context.HttpHealthCheckExecutionContext;
 import io.gravitee.apim.plugin.apiservice.healthcheck.http.helper.HttpHealthCheckHelper;
+import io.gravitee.common.cron.CronTrigger;
 import io.gravitee.common.http.HttpHeader;
 import io.gravitee.common.util.URIUtils;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServices;
@@ -72,8 +73,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.TriggerContext;
-import org.springframework.scheduling.support.CronTrigger;
-import org.springframework.scheduling.support.SimpleTriggerContext;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -190,11 +189,10 @@ public class HttpHealthCheckService implements ApiService {
             hcConfiguration.getFailureThreshold()
         );
         final CronTrigger cron = new CronTrigger(hcConfiguration.getSchedule());
-        final SimpleTriggerContext triggerCtx = new SimpleTriggerContext();
         final AtomicLong errorCount = new AtomicLong(0);
 
         return Observable
-            .defer(() -> Observable.timer(nextExecutionTime(cron, triggerCtx), TimeUnit.MILLISECONDS))
+            .defer(() -> Observable.timer(cron.nextExecutionIn(), TimeUnit.MILLISECONDS))
             .switchMapCompletable(aLong -> {
                 final HttpHealthCheckExecutionContext ctx = new HttpHealthCheckExecutionContext(hcConfiguration, deploymentContext);
 
@@ -297,16 +295,6 @@ public class HttpHealthCheckService implements ApiService {
         if (disposable != null && !disposable.isDisposed()) {
             disposable.dispose();
         }
-    }
-
-    private long nextExecutionTime(CronTrigger trigger, TriggerContext triggerContext) {
-        final Date nextExecutionDate = trigger.nextExecutionTime(triggerContext);
-
-        if (nextExecutionDate == null) {
-            return Long.MAX_VALUE;
-        }
-
-        return nextExecutionDate.getTime() - new Date().getTime();
     }
 
     private HttpClient getOrBuildHttpClient(HttpHealthCheckServiceConfiguration hcConfiguration) {

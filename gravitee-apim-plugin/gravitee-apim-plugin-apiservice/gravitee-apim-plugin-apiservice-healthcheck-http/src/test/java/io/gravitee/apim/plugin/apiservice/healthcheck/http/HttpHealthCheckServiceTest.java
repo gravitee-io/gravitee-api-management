@@ -27,7 +27,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import io.gravitee.common.http.HttpMethod;
@@ -53,7 +52,6 @@ import io.gravitee.plugin.alert.AlertEventProducer;
 import io.gravitee.reporter.api.health.EndpointStatus;
 import io.reactivex.rxjava3.core.Completable;
 import io.vertx.rxjava3.core.Vertx;
-import java.net.ConnectException;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.List;
