@@ -15,7 +15,7 @@
  */
 import { BehaviorSubject } from 'rxjs';
 import { Injectable } from '@angular/core';
-import * as moment from 'moment';
+import moment from 'moment';
 
 import DurationConstructor = moment.unitOfTime.DurationConstructor;
 

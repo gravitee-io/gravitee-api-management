@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import * as moment from 'moment/moment';
+import moment from 'moment';
 
 import { NewAlertTriggerEntity } from '../../../entities/alerts/alertTriggerEntity';
 import {

@@ -15,7 +15,7 @@
  */
 import { IQService, IRootScopeService } from 'angular';
 
-import * as moment from 'moment';
+import moment from 'moment';
 import { ActivatedRoute, Router } from '@angular/router';
 import { assign, forEach } from 'lodash';
 

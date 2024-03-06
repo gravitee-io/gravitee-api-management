@@ -24,7 +24,7 @@ import {
   ValidationErrors,
   Validator,
 } from '@angular/forms';
-import * as moment from 'moment';
+import moment from 'moment';
 import { Subject } from 'rxjs';
 import { takeUntil, tap } from 'rxjs/operators';
 import { isEqual } from 'lodash';
