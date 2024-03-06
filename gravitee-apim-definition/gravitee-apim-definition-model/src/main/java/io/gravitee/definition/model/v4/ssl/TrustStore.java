@@ -21,6 +21,7 @@ import io.gravitee.definition.model.v4.ssl.jks.JKSTrustStore;
 import io.gravitee.definition.model.v4.ssl.none.NoneTrustStore;
 import io.gravitee.definition.model.v4.ssl.pem.PEMTrustStore;
 import io.gravitee.definition.model.v4.ssl.pkcs12.PKCS12TrustStore;
+import java.io.Serial;
 import java.io.Serializable;
 import lombok.Getter;
 
@@ -45,6 +46,7 @@ import lombok.Getter;
 @Getter
 public abstract class TrustStore implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = -9209765483153309314L;
 
     private final TrustStoreType type;

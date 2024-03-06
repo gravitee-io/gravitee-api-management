@@ -15,9 +15,12 @@
  */
 package io.gravitee.definition.model.v4.http;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.io.Serial;
 import java.io.Serializable;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
@@ -26,21 +29,21 @@ import lombok.Setter;
  */
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class HttpProxyOptions implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = -1133018497662951240L;
 
     private boolean enabled;
-
     private boolean useSystemProxy;
-
     private String host;
-
     private int port;
-
     private String username;
-
     private String password;
 
+    @Builder.Default
     private HttpProxyType type = HttpProxyType.HTTP;
 }

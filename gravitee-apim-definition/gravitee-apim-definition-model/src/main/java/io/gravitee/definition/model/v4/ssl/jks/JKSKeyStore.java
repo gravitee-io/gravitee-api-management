@@ -17,6 +17,7 @@ package io.gravitee.definition.model.v4.ssl.jks;
 
 import io.gravitee.definition.model.v4.ssl.KeyStore;
 import io.gravitee.definition.model.v4.ssl.KeyStoreType;
+import java.io.Serial;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -30,16 +31,13 @@ import lombok.Setter;
 @Builder
 public class JKSKeyStore extends KeyStore {
 
+    @Serial
     private static final long serialVersionUID = -4687804681763799542L;
 
     private String path;
-
     private String content;
-
     private String password;
-
     private String alias;
-
     private String keyPassword;
 
     public JKSKeyStore() {

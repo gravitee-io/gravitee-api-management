@@ -21,6 +21,7 @@ import io.gravitee.definition.model.v4.ssl.jks.JKSKeyStore;
 import io.gravitee.definition.model.v4.ssl.none.NoneKeyStore;
 import io.gravitee.definition.model.v4.ssl.pem.PEMKeyStore;
 import io.gravitee.definition.model.v4.ssl.pkcs12.PKCS12KeyStore;
+import java.io.Serial;
 import java.io.Serializable;
 import lombok.Getter;
 
@@ -40,11 +41,12 @@ import lombok.Getter;
 @Getter
 public abstract class KeyStore implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = -917896495926741784L;
 
     private final KeyStoreType type;
 
-    public KeyStore(KeyStoreType type) {
+    protected KeyStore(KeyStoreType type) {
         this.type = type;
     }
 }
