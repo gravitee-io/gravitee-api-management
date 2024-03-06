@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.infra.adapter;
 
-import io.gravitee.apim.core.datetime.TimeProvider;
+import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.flow.selector.ChannelSelector;
 import io.gravitee.definition.model.v4.flow.selector.ConditionSelector;
 import io.gravitee.definition.model.v4.flow.selector.HttpSelector;

@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.core.notification.model.config;
 
-import io.gravitee.apim.core.datetime.TimeProvider;
+import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.HookScope;

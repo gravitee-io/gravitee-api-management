@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.core.api.model;
 
-import io.gravitee.apim.core.datetime.TimeProvider;
+import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;

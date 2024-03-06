@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.core.workflow.model;
 
-import io.gravitee.apim.core.datetime.TimeProvider;
+import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.time.ZonedDateTime;
 import lombok.Builder;
