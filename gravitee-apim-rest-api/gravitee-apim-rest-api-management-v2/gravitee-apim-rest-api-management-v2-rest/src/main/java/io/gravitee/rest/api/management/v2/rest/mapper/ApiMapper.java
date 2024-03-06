@@ -131,6 +131,7 @@ public interface ApiMapper {
 
     @Mapping(target = "apiVersion", source = "source.version")
     @Mapping(target = "analytics", source = "source.apiDefinitionV4.analytics")
+    @Mapping(target = "deploymentState", source = "deploymentState")
     @Mapping(target = "endpointGroups", source = "source.apiDefinitionV4.endpointGroups")
     @Mapping(target = "flowExecution", source = "source.apiDefinitionV4.flowExecution")
     @Mapping(target = "flows", source = "source.apiDefinitionV4.flows")
