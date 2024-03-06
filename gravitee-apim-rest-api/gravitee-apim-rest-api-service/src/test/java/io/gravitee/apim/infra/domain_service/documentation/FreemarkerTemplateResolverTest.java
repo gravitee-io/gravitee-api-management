@@ -28,9 +28,12 @@ import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -39,6 +42,19 @@ import org.junit.jupiter.params.provider.MethodSource;
 class FreemarkerTemplateResolverTest {
 
     FreemarkerTemplateResolver resolver = new FreemarkerTemplateResolver();
+
+    private static Locale defaultLocale;
+
+    @BeforeAll
+    static void beforeAll() {
+        defaultLocale = Locale.getDefault();
+        Locale.setDefault(Locale.US);
+    }
+
+    @AfterAll
+    static void afterAll() {
+        Locale.setDefault(defaultLocale);
+    }
 
     @Test
     void should_resolve_valid_template() {
