@@ -17,6 +17,7 @@ package io.gravitee.definition.model.v4.ssl.none;
 
 import io.gravitee.definition.model.v4.ssl.TrustStore;
 import io.gravitee.definition.model.v4.ssl.TrustStoreType;
+import java.io.Serial;
 import lombok.Builder;
 
 /**
@@ -26,6 +27,7 @@ import lombok.Builder;
 @Builder
 public class NoneTrustStore extends TrustStore {
 
+    @Serial
     private static final long serialVersionUID = -6013813999148592319L;
 
     public NoneTrustStore() {

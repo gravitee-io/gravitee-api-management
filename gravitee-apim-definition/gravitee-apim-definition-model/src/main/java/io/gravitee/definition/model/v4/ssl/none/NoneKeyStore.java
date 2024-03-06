@@ -17,6 +17,7 @@ package io.gravitee.definition.model.v4.ssl.none;
 
 import io.gravitee.definition.model.v4.ssl.KeyStore;
 import io.gravitee.definition.model.v4.ssl.KeyStoreType;
+import java.io.Serial;
 import lombok.Builder;
 
 /**
@@ -26,6 +27,7 @@ import lombok.Builder;
 @Builder
 public class NoneKeyStore extends KeyStore {
 
+    @Serial
     private static final long serialVersionUID = -2540354913966457704L;
 
     public NoneKeyStore() {

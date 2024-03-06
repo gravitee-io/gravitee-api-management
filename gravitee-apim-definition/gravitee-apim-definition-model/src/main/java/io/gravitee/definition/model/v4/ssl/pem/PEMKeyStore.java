@@ -17,6 +17,7 @@ package io.gravitee.definition.model.v4.ssl.pem;
 
 import io.gravitee.definition.model.v4.ssl.KeyStore;
 import io.gravitee.definition.model.v4.ssl.KeyStoreType;
+import java.io.Serial;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -30,14 +31,12 @@ import lombok.Setter;
 @Builder
 public class PEMKeyStore extends KeyStore {
 
+    @Serial
     private static final long serialVersionUID = 1051430527272519608L;
 
     private String keyPath;
-
     private String keyContent;
-
     private String certPath;
-
     private String certContent;
 
     public PEMKeyStore() {
