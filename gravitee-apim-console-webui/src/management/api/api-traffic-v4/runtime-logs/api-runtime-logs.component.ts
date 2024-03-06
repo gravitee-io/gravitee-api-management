@@ -18,7 +18,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { PageEvent } from '@angular/material/paginator';
 import { map, shareReplay, skip, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { forkJoin, of, ReplaySubject, Subject } from 'rxjs';
-import * as moment from 'moment';
+import moment from 'moment';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { QuickFiltersStoreService } from './services';
