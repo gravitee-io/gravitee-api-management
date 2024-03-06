@@ -4,7 +4,8 @@
     "outDir": "./out-tsc/spec",
     "module": "CommonJs",
     "types": ["jest", "angular", "node"],
-    "target": "ES2016"
+    "target": "ES2016",
+    "esModuleInterop": true
   },
   "include": ["src/**/*.spec.ts", "src/**/*.d.ts"]
 }
