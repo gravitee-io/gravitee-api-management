@@ -17,9 +17,9 @@ package io.gravitee.apim.plugin.apiservice.dynamicproperties.http.http;
 
 import io.gravitee.apim.plugin.apiservice.dynamicproperties.http.HttpDynamicPropertiesServiceConfiguration;
 import io.gravitee.apim.rest.api.common.apiservices.ManagementDeploymentContext;
-import io.gravitee.definition.model.v4.http.HttpClientOptions;
-import io.gravitee.gateway.reactive.http.vertx.client.VertxHttpClient;
 import io.gravitee.node.api.configuration.Configuration;
+import io.gravitee.node.vertx.client.http.VertxHttpClientFactory;
+import io.gravitee.node.vertx.client.http.VertxHttpClientOptions;
 import io.vertx.rxjava3.core.Vertx;
 import io.vertx.rxjava3.core.http.HttpClient;
 import java.net.MalformedURLException;
@@ -47,14 +47,12 @@ public class HttpClientFactory {
         ManagementDeploymentContext deploymentContext,
         HttpDynamicPropertiesServiceConfiguration configuration
     ) {
-        final HttpClientOptions httpClientOptions = new HttpClientOptions();
-        httpClientOptions.setMaxConcurrentConnections(1);
-        return VertxHttpClient
+        return VertxHttpClientFactory
             .builder()
             .vertx(deploymentContext.getComponent(Vertx.class))
             .nodeConfiguration(deploymentContext.getComponent(Configuration.class))
             .defaultTarget(configuration.getUrl())
-            .httpOptions(httpClientOptions)
+            .httpOptions(VertxHttpClientOptions.builder().maxConcurrentConnections(1).build())
             .build()
             .createHttpClient();
     }
