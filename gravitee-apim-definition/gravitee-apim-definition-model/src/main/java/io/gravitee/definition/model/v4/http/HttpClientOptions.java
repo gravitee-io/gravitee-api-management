@@ -15,8 +15,14 @@
  */
 package io.gravitee.definition.model.v4.http;
 
+import static io.gravitee.node.vertx.client.http.VertxHttpClientOptions.*;
+
+import java.io.Serial;
 import java.io.Serializable;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
@@ -25,50 +31,49 @@ import lombok.Setter;
  */
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class HttpClientOptions implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = -7061411805967594667L;
 
-    public static final long DEFAULT_IDLE_TIMEOUT = 60000;
-    public static final long DEFAULT_CONNECT_TIMEOUT = 5000;
-    public static final long DEFAULT_READ_TIMEOUT = 10000;
-    public static final int DEFAULT_MAX_CONCURRENT_CONNECTIONS = 100;
-    public static final boolean DEFAULT_KEEP_ALIVE = true;
-    public static final boolean DEFAULT_PIPELINING = false;
-    public static final boolean DEFAULT_USE_COMPRESSION = true;
-    public static final boolean DEFAULT_PROPAGATE_CLIENT_ACCEPT_ENCODING = false;
-    public static final boolean DEFAULT_FOLLOW_REDIRECTS = false;
-    public static final boolean DEFAULT_CLEAR_TEXT_UPGRADE = true;
-    public static final ProtocolVersion DEFAULT_PROTOCOL_VERSION = ProtocolVersion.HTTP_1_1;
-
+    @Builder.Default
     private long idleTimeout = DEFAULT_IDLE_TIMEOUT;
 
+    @Builder.Default
     private long connectTimeout = DEFAULT_CONNECT_TIMEOUT;
 
+    @Builder.Default
     private boolean keepAlive = DEFAULT_KEEP_ALIVE;
 
+    @Builder.Default
     private long readTimeout = DEFAULT_READ_TIMEOUT;
 
+    @Builder.Default
     private boolean pipelining = DEFAULT_PIPELINING;
 
+    @Builder.Default
     private int maxConcurrentConnections = DEFAULT_MAX_CONCURRENT_CONNECTIONS;
 
+    @Builder.Default
     private boolean useCompression = DEFAULT_USE_COMPRESSION;
 
+    @Builder.Default
     private boolean propagateClientAcceptEncoding = DEFAULT_PROPAGATE_CLIENT_ACCEPT_ENCODING;
 
+    @Builder.Default
     private boolean followRedirects = DEFAULT_FOLLOW_REDIRECTS;
 
+    @Builder.Default
     private boolean clearTextUpgrade = DEFAULT_CLEAR_TEXT_UPGRADE;
 
-    private ProtocolVersion version = DEFAULT_PROTOCOL_VERSION;
+    @Builder.Default
+    private ProtocolVersion version = ProtocolVersion.valueOf(DEFAULT_PROTOCOL_VERSION.name());
 
     public boolean isPropagateClientAcceptEncoding() {
         // Propagate Accept-Encoding can only be made if useCompression is disabled.
         return !useCompression && propagateClientAcceptEncoding;
-    }
-
-    public void setPropagateClientAcceptEncoding(boolean propagateClientAcceptEncoding) {
-        this.propagateClientAcceptEncoding = propagateClientAcceptEncoding;
     }
 }
