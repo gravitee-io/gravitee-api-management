@@ -17,6 +17,7 @@ package io.gravitee.definition.model.v4.ssl.pkcs12;
 
 import io.gravitee.definition.model.v4.ssl.KeyStore;
 import io.gravitee.definition.model.v4.ssl.KeyStoreType;
+import java.io.Serial;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -30,14 +31,12 @@ import lombok.Setter;
 @Builder
 public class PKCS12KeyStore extends KeyStore {
 
+    @Serial
     private static final long serialVersionUID = 1210626721233767960L;
 
     private String path;
-
     private String content;
-
     private String password;
-
     private String alias;
 
     /**

@@ -17,6 +17,7 @@ package io.gravitee.definition.model.v4.ssl.pkcs12;
 
 import io.gravitee.definition.model.v4.ssl.TrustStore;
 import io.gravitee.definition.model.v4.ssl.TrustStoreType;
+import java.io.Serial;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -30,14 +31,12 @@ import lombok.Setter;
 @Builder
 public class PKCS12TrustStore extends TrustStore {
 
+    @Serial
     private static final long serialVersionUID = 3915578060196536545L;
 
     private String path;
-
     private String content;
-
     private String password;
-
     private String alias;
 
     public PKCS12TrustStore() {
