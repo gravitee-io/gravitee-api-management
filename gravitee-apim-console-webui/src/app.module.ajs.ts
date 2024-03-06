@@ -24,7 +24,7 @@ import { marked } from 'marked';
 import * as hljs from 'highlight.js';
 // Codemirror
 import * as CodeMirror from 'codemirror';
-import * as moment from 'moment';
+import moment from 'moment';
 import * as tinycolor from 'tinycolor2';
 import AutofocusDirective from './components/autofocus/autofocus.directive';
 import GvModelDirective from './libraries/gv-model.directive';
