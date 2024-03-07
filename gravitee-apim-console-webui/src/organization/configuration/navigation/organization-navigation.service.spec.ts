@@ -57,7 +57,7 @@ describe('OrganizationNavigationService', () => {
           'Policies',
           'Templates',
           'Audit',
-          'Discover cockpit',
+          'Discover Gravitee Cloud',
         ].map((name) =>
           expect.objectContaining({
             name,

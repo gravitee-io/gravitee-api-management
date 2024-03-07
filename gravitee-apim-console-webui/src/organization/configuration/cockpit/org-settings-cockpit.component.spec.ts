@@ -52,9 +52,9 @@ describe('OrgSettingsCockpitComponent', () => {
       );
 
       expect(component.icon).toEqual('explore');
-      expect(component.title).toEqual('Meet Cockpit...');
+      expect(component.title).toEqual('Meet Gravitee Cloud...');
       expect(component.message).toEqual(
-        'Create an account on <a href="https://cockpit.gravitee.io?utm_source=apim&utm_medium=InApp&utm_campaign=discover_cockpit&utm_term=not_registered" target="_blank">Cockpit</a>, register your current installation and start creating new organizations and environments!',
+        'Create an account on <a href="https://cockpit.gravitee.io?utm_source=apim&utm_medium=InApp&utm_campaign=discover_cockpit&utm_term=not_registered" target="_blank">Gravitee Cloud</a>, register your current installation and start creating new organizations and environments!',
       );
     });
 
@@ -71,7 +71,7 @@ describe('OrgSettingsCockpitComponent', () => {
       expect(component.icon).toEqual('schedule');
       expect(component.title).toEqual('Almost there!');
       expect(component.message).toEqual(
-        'Your installation is connected but it still has to be accepted on <a href="https://cockpit.gravitee.io?utm_source=apim&utm_medium=InApp&utm_campaign=discover_cockpit&utm_term=pending" target="_blank">Cockpit</a>!',
+        'Your installation is connected but it still has to be accepted on <a href="https://cockpit.gravitee.io?utm_source=apim&utm_medium=InApp&utm_campaign=discover_cockpit&utm_term=pending" target="_blank">Gravitee Cloud</a>!',
       );
     });
 
@@ -86,9 +86,9 @@ describe('OrgSettingsCockpitComponent', () => {
       );
 
       expect(component.icon).toEqual('check_circle');
-      expect(component.title).toEqual('Congratulation!');
+      expect(component.title).toEqual('Congratulations!');
       expect(component.message).toEqual(
-        'Your installation is now connected to <a href="https://cockpit.gravitee.io?utm_source=apim&utm_medium=InApp&utm_campaign=discover_cockpit&utm_term=registered" target="_blank">Cockpit</a>, you can now explore all the possibilities offered by Cockpit!',
+        'Your installation is now connected to <a href="https://cockpit.gravitee.io?utm_source=apim&utm_medium=InApp&utm_campaign=discover_cockpit&utm_term=registered" target="_blank">Gravitee Cloud</a>, you can now explore all the possibilities offered by Gravitee Cloud!',
       );
     });
 
@@ -105,7 +105,7 @@ describe('OrgSettingsCockpitComponent', () => {
       expect(component.icon).toEqual('warning');
       expect(component.title).toEqual('No luck!');
       expect(component.message).toEqual(
-        'Seems that your installation is connected to <a href="https://cockpit.gravitee.io?utm_source=apim&utm_medium=InApp&utm_campaign=discover_cockpit&utm_term=rejected" target="_blank">Cockpit</a>, but has been rejected...',
+        'Seems that your installation is connected to <a href="https://cockpit.gravitee.io?utm_source=apim&utm_medium=InApp&utm_campaign=discover_cockpit&utm_term=rejected" target="_blank">Gravitee Cloud</a>, but has been rejected...',
       );
     });
 
@@ -122,7 +122,7 @@ describe('OrgSettingsCockpitComponent', () => {
       expect(component.icon).toEqual('gps_off');
       expect(component.title).toEqual('Installation unlinked!');
       expect(component.message).toEqual(
-        'Seems that your installation is connected to <a href="https://cockpit.gravitee.io?utm_source=apim&utm_medium=InApp&utm_campaign=discover_cockpit&utm_term=removed" target="_blank">Cockpit</a>, but is not linked anymore...',
+        'Seems that your installation is connected to <a href="https://cockpit.gravitee.io?utm_source=apim&utm_medium=InApp&utm_campaign=discover_cockpit&utm_term=removed" target="_blank">Gravitee Cloud</a>, but is not linked anymore...',
       );
     });
   });
