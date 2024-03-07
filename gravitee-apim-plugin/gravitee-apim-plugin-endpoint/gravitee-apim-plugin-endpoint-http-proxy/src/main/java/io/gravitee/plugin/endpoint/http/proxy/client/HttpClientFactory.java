@@ -15,9 +15,12 @@
  */
 package io.gravitee.plugin.endpoint.http.proxy.client;
 
+import io.gravitee.apim.common.mapper.HttpClientOptionsMapper;
+import io.gravitee.apim.common.mapper.HttpProxyOptionsMapper;
+import io.gravitee.apim.common.mapper.SslOptionsMapper;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
-import io.gravitee.gateway.reactive.http.vertx.client.VertxHttpClient;
 import io.gravitee.node.api.configuration.Configuration;
+import io.gravitee.node.vertx.client.http.VertxHttpClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
 import io.vertx.rxjava3.core.Vertx;
@@ -49,19 +52,19 @@ public class HttpClientFactory {
         return httpClient;
     }
 
-    protected VertxHttpClient.VertxHttpClientBuilder buildHttpClient(
+    protected VertxHttpClientFactory.VertxHttpClientFactoryBuilder buildHttpClient(
         final ExecutionContext ctx,
         final HttpProxyEndpointConnectorConfiguration configuration,
         final HttpProxyEndpointConnectorSharedConfiguration sharedConfiguration
     ) {
-        return VertxHttpClient
+        return VertxHttpClientFactory
             .builder()
             .vertx(ctx.getComponent(Vertx.class))
             .nodeConfiguration(ctx.getComponent(Configuration.class))
             .defaultTarget(configuration.getTarget())
-            .httpOptions(sharedConfiguration.getHttpOptions())
-            .sslOptions(sharedConfiguration.getSslOptions())
-            .proxyOptions(sharedConfiguration.getProxyOptions());
+            .httpOptions(HttpClientOptionsMapper.INSTANCE.map(sharedConfiguration.getHttpOptions()))
+            .sslOptions(SslOptionsMapper.INSTANCE.map(sharedConfiguration.getSslOptions()))
+            .proxyOptions(HttpProxyOptionsMapper.INSTANCE.map(sharedConfiguration.getProxyOptions()));
     }
 
     @SuppressWarnings("ReactiveStreamsUnusedPublisher")

@@ -26,22 +26,19 @@ import static io.gravitee.gateway.api.http.HttpHeaderNames.TRAILER;
 import static io.gravitee.gateway.api.http.HttpHeaderNames.UPGRADE;
 import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_REQUEST_ENDPOINT;
 import static io.gravitee.gateway.reactive.api.context.ContextAttributes.ATTR_REQUEST_ENDPOINT_OVERRIDE;
-import static io.gravitee.gateway.reactive.http.vertx.client.VertxHttpClient.buildUrl;
 import static io.gravitee.plugin.endpoint.http.proxy.client.UriHelper.URI_QUERY_DELIMITER_CHAR;
 import static io.gravitee.plugin.endpoint.http.proxy.client.UriHelper.URI_QUERY_DELIMITER_CHAR_SEQUENCE;
 
 import io.gravitee.common.http.HttpHeader;
-import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.util.MultiValueMap;
 import io.gravitee.common.util.URIUtils;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.http.vertx.VertxHttpHeaders;
-import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
 import io.gravitee.gateway.reactive.api.context.Request;
 import io.gravitee.gateway.reactive.api.context.Response;
 import io.gravitee.gateway.reactive.http.vertx.VertxHttpServerResponse;
-import io.gravitee.gateway.reactive.http.vertx.client.VertxHttpClient;
+import io.gravitee.node.vertx.client.http.VertxHttpClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.client.HttpClientFactory;
 import io.gravitee.plugin.endpoint.http.proxy.client.UriHelper;
 import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorConfiguration;
@@ -96,11 +93,11 @@ public class HttpConnector implements ProxyConnector {
         this.configuration = configuration;
         this.sharedConfiguration = sharedConfiguration;
         this.httpClientFactory = httpClientFactory;
-        final URL targetUrl = buildUrl(configuration.getTarget());
+        final URL targetUrl = VertxHttpClientFactory.buildUrl(configuration.getTarget());
         this.relativeTarget = targetUrl.getPath();
         this.defaultHost = targetUrl.getHost();
         this.defaultPort = targetUrl.getPort() != -1 ? targetUrl.getPort() : targetUrl.getDefaultPort();
-        this.defaultSsl = VertxHttpClient.isSecureProtocol(targetUrl.getProtocol());
+        this.defaultSsl = VertxHttpClientFactory.isSecureProtocol(targetUrl.getProtocol());
         if (targetUrl.getQuery() == null) {
             targetParameters = null;
         } else {
@@ -116,7 +113,7 @@ public class HttpConnector implements ProxyConnector {
 
             final RequestOptions options = buildRequestOptions(ctx);
 
-            ctx.metrics().setEndpoint(VertxHttpClient.toAbsoluteUri(options, defaultHost, defaultPort));
+            ctx.metrics().setEndpoint(VertxHttpClientFactory.toAbsoluteUri(options, defaultHost, defaultPort));
 
             return httpClientFactory
                 .getOrBuildHttpClient(ctx, configuration, sharedConfiguration)
