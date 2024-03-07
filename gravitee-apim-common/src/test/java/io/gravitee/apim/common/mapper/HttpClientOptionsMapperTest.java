@@ -34,9 +34,9 @@ class HttpClientOptionsMapperTest {
 
     @Test
     void should_build_http_client_options_with_default_values() {
-        final HttpClientOptions sslOptions = HttpClientOptions.builder().build();
+        final HttpClientOptions httpClientOptions = HttpClientOptions.builder().build();
 
-        final VertxHttpClientOptions result = HttpClientOptionsMapper.INSTANCE.map(sslOptions);
+        final VertxHttpClientOptions result = HttpClientOptionsMapper.INSTANCE.map(httpClientOptions);
         assertThat(result.getConnectTimeout()).isEqualTo(VertxHttpClientOptions.DEFAULT_CONNECT_TIMEOUT);
         assertThat(result.getIdleTimeout()).isEqualTo(VertxHttpClientOptions.DEFAULT_IDLE_TIMEOUT);
         assertThat(result.isKeepAlive()).isEqualTo(VertxHttpClientOptions.DEFAULT_KEEP_ALIVE);
@@ -52,7 +52,7 @@ class HttpClientOptionsMapperTest {
 
     @Test
     void should_build_http_client_options_with_defined_values() {
-        final HttpClientOptions sslOptions = HttpClientOptions
+        final HttpClientOptions httpClientOptions = HttpClientOptions
             .builder()
             .connectTimeout(1000)
             .idleTimeout(2000)
@@ -67,7 +67,7 @@ class HttpClientOptionsMapperTest {
             .version(ProtocolVersion.HTTP_2)
             .build();
 
-        final VertxHttpClientOptions result = HttpClientOptionsMapper.INSTANCE.map(sslOptions);
+        final VertxHttpClientOptions result = HttpClientOptionsMapper.INSTANCE.map(httpClientOptions);
         assertThat(result.getConnectTimeout()).isEqualTo(1000);
         assertThat(result.getIdleTimeout()).isEqualTo(2000);
         assertThat(result.isKeepAlive()).isFalse();

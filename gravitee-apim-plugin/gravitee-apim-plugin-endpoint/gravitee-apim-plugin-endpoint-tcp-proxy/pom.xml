@@ -56,6 +56,12 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>io.gravitee.apim.common</groupId>
+            <artifactId>gravitee-apim-common</artifactId>
+            <version>${project.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>io.gravitee.apim.gateway.handlers</groupId>
             <artifactId>gravitee-apim-gateway-handlers-api</artifactId>
             <version>${project.version}</version>

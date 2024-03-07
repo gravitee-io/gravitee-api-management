@@ -15,23 +15,43 @@
  */
 package io.gravitee.definition.model.v4.tcp;
 
+import static io.gravitee.node.vertx.client.tcp.VertxTcpClientOptions.DEFAULT_CONNECT_TIMEOUT;
+import static io.gravitee.node.vertx.client.tcp.VertxTcpClientOptions.DEFAULT_IDLE_TIMEOUT;
+import static io.gravitee.node.vertx.client.tcp.VertxTcpClientOptions.DEFAULT_READ_IDLE_TIMEOUT;
+import static io.gravitee.node.vertx.client.tcp.VertxTcpClientOptions.DEFAULT_RECONNECT_ATTEMPTS;
+import static io.gravitee.node.vertx.client.tcp.VertxTcpClientOptions.DEFAULT_RECONNECT_INTERVAL;
+import static io.gravitee.node.vertx.client.tcp.VertxTcpClientOptions.DEFAULT_WRITE_IDLE_TIMEOUT;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class TcpClientOptions {
 
-    public static final int DEFAULT_IDLE_TIMEOUT = 0;
-    public static final int DEFAULT_READ_IDLE_TIMEOUT = 0;
-    public static final int DEFAULT_WRITE_IDLE_TIMEOUT = 0;
+    @Builder.Default
+    int connectTimeout = DEFAULT_CONNECT_TIMEOUT;
 
-    int connectTimeout = 3000;
-    private int reconnectAttempts = 5;
-    private int reconnectInterval = 1000;
+    @Builder.Default
+    private int reconnectAttempts = DEFAULT_RECONNECT_ATTEMPTS;
+
+    @Builder.Default
+    private int reconnectInterval = DEFAULT_RECONNECT_INTERVAL;
+
+    @Builder.Default
     private int idleTimeout = DEFAULT_IDLE_TIMEOUT;
+
+    @Builder.Default
     private int readIdleTimeout = DEFAULT_READ_IDLE_TIMEOUT;
+
+    @Builder.Default
     private int writeIdleTimeout = DEFAULT_WRITE_IDLE_TIMEOUT;
 }

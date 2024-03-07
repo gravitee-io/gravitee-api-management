@@ -15,9 +15,13 @@
  */
 package io.gravitee.plugin.endpoint.tcp.proxy.client;
 
+import io.gravitee.apim.common.mapper.SslOptionsMapper;
+import io.gravitee.apim.common.mapper.TcpClientOptionsMapper;
+import io.gravitee.apim.common.mapper.TcpProxyOptionsMapper;
+import io.gravitee.apim.common.mapper.TcpTargetMapper;
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
-import io.gravitee.gateway.reactive.tcp.VertxTcpClient;
 import io.gravitee.node.api.configuration.Configuration;
+import io.gravitee.node.vertx.client.tcp.VertxTcpClientFactory;
 import io.gravitee.plugin.endpoint.tcp.proxy.configuration.TcpProxyEndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.tcp.proxy.configuration.TcpProxyEndpointConnectorSharedConfiguration;
 import io.vertx.rxjava3.core.Vertx;
@@ -49,17 +53,18 @@ public class TcpClientFactory {
         return tcpClient;
     }
 
-    protected VertxTcpClient.VertxTcpClientBuilder buildTcpClient(
+    protected VertxTcpClientFactory.VertxTcpClientFactoryBuilder buildTcpClient(
         final ExecutionContext ctx,
         final TcpProxyEndpointConnectorConfiguration configuration,
         final TcpProxyEndpointConnectorSharedConfiguration sharedConfiguration
     ) {
-        return VertxTcpClient
+        return VertxTcpClientFactory
             .builder()
             .vertx(ctx.getComponent(Vertx.class))
-            .tcpTarget(configuration.getTcpTarget())
-            .sslOptions(sharedConfiguration.getSslOptions())
-            .proxyOptions(sharedConfiguration.getProxyOptions())
+            .tcpTarget(TcpTargetMapper.INSTANCE.map(configuration.getTcpTarget()))
+            .sslOptions(SslOptionsMapper.INSTANCE.map(sharedConfiguration.getSslOptions()))
+            .proxyOptions(TcpProxyOptionsMapper.INSTANCE.map(sharedConfiguration.getProxyOptions()))
+            .tcpOptions(TcpClientOptionsMapper.INSTANCE.map(sharedConfiguration.getTcpClientOptions()))
             .nodeConfiguration(ctx.getComponent(Configuration.class));
     }
 

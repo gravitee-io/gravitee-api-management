@@ -1,5 +1,3 @@
-package io.gravitee.definition.model.v4.tcp;
-
 /*
  * Copyright © 2015 The Gravitee team (http://gravitee.io)
  *
@@ -15,39 +13,20 @@ package io.gravitee.definition.model.v4.tcp;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import java.io.Serial;
-import java.io.Serializable;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+package io.gravitee.apim.common.mapper;
+
+import io.gravitee.definition.model.v4.tcp.TcpProxyOptions;
+import io.gravitee.node.vertx.client.tcp.VertxTcpProxyOptions;
+import org.mapstruct.Mapper;
+import org.mapstruct.factory.Mappers;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Getter
-@Setter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class TcpProxyOptions implements Serializable {
+@Mapper
+public interface TcpProxyOptionsMapper {
+    TcpProxyOptionsMapper INSTANCE = Mappers.getMapper(TcpProxyOptionsMapper.class);
 
-    @Serial
-    private static final long serialVersionUID = 6710746676968205250L;
-
-    private boolean enabled;
-
-    private boolean useSystemProxy;
-
-    private String host;
-
-    private int port;
-
-    private String username;
-
-    private String password;
-
-    private TcpProxyType type = TcpProxyType.SOCKS5;
+    VertxTcpProxyOptions map(TcpProxyOptions tcpProxyOptions);
 }
