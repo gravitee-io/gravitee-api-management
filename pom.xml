@@ -1353,6 +1353,7 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <modules>
+                <module>gravitee-apim-common</module>
                 <module>gravitee-apim-definition</module>
                 <module>gravitee-apim-distribution</module>
                 <module>gravitee-apim-repository</module>
@@ -1370,6 +1371,7 @@
                 </property>
             </activation>
             <modules>
+                <module>gravitee-apim-common</module>
                 <module>gravitee-apim-definition</module>
                 <module>gravitee-apim-rest-api</module>
                 <module>gravitee-apim-gateway</module>
