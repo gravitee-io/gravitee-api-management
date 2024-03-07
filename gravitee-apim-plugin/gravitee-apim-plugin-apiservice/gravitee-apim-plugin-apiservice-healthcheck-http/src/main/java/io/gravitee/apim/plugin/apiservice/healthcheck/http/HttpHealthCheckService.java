@@ -22,12 +22,10 @@ import com.google.common.base.Strings;
 import io.gravitee.apim.plugin.apiservice.healthcheck.http.context.HttpHealthCheckExecutionContext;
 import io.gravitee.apim.plugin.apiservice.healthcheck.http.helper.HttpHealthCheckHelper;
 import io.gravitee.common.cron.CronTrigger;
-import io.gravitee.common.http.HttpHeader;
 import io.gravitee.common.util.URIUtils;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointGroupServices;
 import io.gravitee.definition.model.v4.endpointgroup.service.EndpointServices;
 import io.gravitee.definition.model.v4.service.Service;
-import io.gravitee.el.TemplateEngine;
 import io.gravitee.gateway.api.buffer.Buffer;
 import io.gravitee.gateway.api.http.HttpHeaders;
 import io.gravitee.gateway.env.GatewayConfiguration;
@@ -41,10 +39,10 @@ import io.gravitee.gateway.reactive.api.helper.PluginConfigurationHelper;
 import io.gravitee.gateway.reactive.core.v4.endpoint.EndpointManager;
 import io.gravitee.gateway.reactive.core.v4.endpoint.ManagedEndpoint;
 import io.gravitee.gateway.reactive.handlers.api.v4.Api;
-import io.gravitee.gateway.reactive.http.vertx.client.VertxHttpClient;
 import io.gravitee.gateway.report.ReporterService;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.configuration.Configuration;
+import io.gravitee.node.vertx.client.http.VertxHttpClientFactory;
 import io.gravitee.plugin.alert.AlertEventProducer;
 import io.gravitee.plugin.apiservice.healthcheck.common.HealthCheckManagedEndpoint;
 import io.gravitee.reporter.api.health.EndpointStatus;
@@ -52,7 +50,6 @@ import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.CompletableSource;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.Disposable;
-import io.reactivex.rxjava3.functions.Function;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
@@ -62,7 +59,6 @@ import io.vertx.rxjava3.core.http.HttpClient;
 import java.net.SocketException;
 import java.net.URL;
 import java.net.UnknownHostException;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -72,7 +68,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.TriggerContext;
 
 /**
  * @author Jeoffrey HAEYAERT (jeoffrey.haeyaert at graviteesource.com)
@@ -303,7 +298,7 @@ public class HttpHealthCheckService implements ApiService {
                 // Double-checked locking.
                 if (httpClientCreated.compareAndSet(false, true)) {
                     httpClient =
-                        VertxHttpClient
+                        VertxHttpClientFactory
                             .builder()
                             .vertx(deploymentContext.getComponent(Vertx.class))
                             .nodeConfiguration(deploymentContext.getComponent(Configuration.class))
@@ -331,17 +326,17 @@ public class HttpHealthCheckService implements ApiService {
             requestOptions.setHeaders(headers);
         }
 
-        final URL target = VertxHttpClient.buildUrl(hcConfiguration.getTarget());
+        final URL target = VertxHttpClientFactory.buildUrl(hcConfiguration.getTarget());
 
-        final boolean isSsl = VertxHttpClient.isSecureProtocol(target.getProtocol());
+        final boolean isSsl = VertxHttpClientFactory.isSecureProtocol(target.getProtocol());
         requestOptions
             .setMethod(HttpMethod.valueOf(request.method().name()))
             .setURI(target.getQuery() == null ? target.getPath() : target.getPath() + "?" + target.getQuery())
-            .setPort(VertxHttpClient.getPort(target, isSsl))
+            .setPort(VertxHttpClientFactory.getPort(target, isSsl))
             .setSsl(isSsl)
             .setHost(target.getHost());
 
-        ctx.metrics().setEndpoint(VertxHttpClient.toAbsoluteUri(requestOptions, target.getHost(), target.getDefaultPort()));
+        ctx.metrics().setEndpoint(VertxHttpClientFactory.toAbsoluteUri(requestOptions, target.getHost(), target.getDefaultPort()));
 
         return requestOptions;
     }

@@ -16,13 +16,11 @@
 package io.gravitee.plugin.endpoint.tcp.proxy.client;
 
 import io.gravitee.gateway.reactive.api.context.ExecutionContext;
-import io.gravitee.gateway.reactive.http.vertx.client.VertxHttpClient;
 import io.gravitee.gateway.reactive.tcp.VertxTcpClient;
 import io.gravitee.node.api.configuration.Configuration;
 import io.gravitee.plugin.endpoint.tcp.proxy.configuration.TcpProxyEndpointConnectorConfiguration;
 import io.gravitee.plugin.endpoint.tcp.proxy.configuration.TcpProxyEndpointConnectorSharedConfiguration;
 import io.vertx.rxjava3.core.Vertx;
-import io.vertx.rxjava3.core.http.HttpClient;
 import io.vertx.rxjava3.core.net.NetClient;
 import java.util.concurrent.atomic.AtomicBoolean;
 

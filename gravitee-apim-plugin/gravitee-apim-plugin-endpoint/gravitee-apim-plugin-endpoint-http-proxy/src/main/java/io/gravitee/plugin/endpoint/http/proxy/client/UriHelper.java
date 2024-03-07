@@ -16,9 +16,7 @@
 package io.gravitee.plugin.endpoint.http.proxy.client;
 
 import io.gravitee.common.util.MultiValueMap;
-import io.gravitee.gateway.reactive.http.vertx.client.VertxHttpClient;
-import io.gravitee.node.api.configuration.Configuration;
-import io.gravitee.plugin.endpoint.http.proxy.configuration.HttpProxyEndpointConnectorSharedConfiguration;
+import io.gravitee.node.vertx.client.http.VertxHttpClientFactory;
 import io.vertx.core.http.RequestOptions;
 import java.net.URL;
 import java.util.StringJoiner;
@@ -41,12 +39,12 @@ public class UriHelper {
     public static final CharSequence URI_QUERY_DELIMITER_CHAR_SEQUENCE = "?";
 
     public static RequestOptions configureAbsoluteUri(RequestOptions requestOptions, String uri, MultiValueMap<String, String> parameters) {
-        final URL target = VertxHttpClient.buildUrl(buildFinalUri(uri, parameters));
-        final boolean secureProtocol = VertxHttpClient.isSecureProtocol(target.getProtocol());
+        final URL target = VertxHttpClientFactory.buildUrl(buildFinalUri(uri, parameters));
+        final boolean secureProtocol = VertxHttpClientFactory.isSecureProtocol(target.getProtocol());
 
         return requestOptions
             .setURI(target.getQuery() == null ? target.getPath() : target.getPath() + URI_QUERY_DELIMITER_CHAR + target.getQuery())
-            .setPort(VertxHttpClient.getPort(target, secureProtocol))
+            .setPort(VertxHttpClientFactory.getPort(target, secureProtocol))
             .setSsl(secureProtocol)
             .setHost(target.getHost());
     }
