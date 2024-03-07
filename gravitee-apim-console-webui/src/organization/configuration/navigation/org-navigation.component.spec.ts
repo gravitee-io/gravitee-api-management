@@ -78,7 +78,7 @@ describe('OrgNavigationComponent', () => {
         'Gateway',
         'Notifications',
         'Audit',
-        'Cockpit',
+        'Gravitee Cloud',
       ]);
     });
   });

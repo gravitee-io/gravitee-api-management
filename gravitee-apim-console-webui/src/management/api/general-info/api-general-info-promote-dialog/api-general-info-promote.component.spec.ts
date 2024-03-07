@@ -99,7 +99,7 @@ describe('ApiPortalDetailsPromoteDialogComponent', () => {
 
     const dialogNativeElement = fixture.debugElement.parent.nativeElement;
 
-    expect(dialogNativeElement.querySelector('h2').innerHTML).toEqual('Meet Cockpit');
+    expect(dialogNativeElement.querySelector('h2').innerHTML).toEqual('Meet Gravitee Cloud');
     expect(dialogNativeElement.querySelector('.meet-cockpit__content > p > a').href).toEqual(
       'https://cockpit.gravitee.io/?utm_source=apim&utm_medium=InApp&utm_campaign=api_promotion',
     );

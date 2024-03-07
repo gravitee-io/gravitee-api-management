@@ -159,12 +159,12 @@ export class OrganizationNavigationService {
   private appendCockpitItems(): GroupItem {
     const items = this.filterMenuByPermission([
       {
-        displayName: 'Discover cockpit',
-        routerLink: 'cockpit',
+        displayName: 'Discover Gravitee Cloud',
+        routerLink: 'gravitee-cloud',
         permissions: ['organization-installation-r'],
       },
     ]);
-    return items.length > 0 ? { title: 'Cockpit', items } : null;
+    return items.length > 0 ? { title: 'Gravitee Cloud', items } : null;
   }
 
   private filterMenuByPermission(menuItems: MenuItem[]): MenuItem[] {

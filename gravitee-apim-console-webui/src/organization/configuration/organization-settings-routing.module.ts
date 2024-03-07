@@ -257,11 +257,11 @@ const organizationRoutes: Routes = [
         },
       },
       {
-        path: 'cockpit',
+        path: 'gravitee-cloud',
         component: OrgSettingsCockpitComponent,
         data: {
           docs: {
-            page: 'organization-configuration-cockpit',
+            page: 'organization-configuration-gravitee-cloud',
           },
           permissions: {
             anyOf: ['organization-installation-r'],
