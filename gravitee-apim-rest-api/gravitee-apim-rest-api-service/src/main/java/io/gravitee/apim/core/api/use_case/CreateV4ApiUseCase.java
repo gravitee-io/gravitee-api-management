@@ -21,6 +21,7 @@ import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiWithFlows;
 import io.gravitee.apim.core.api.model.NewApi;
+import io.gravitee.apim.core.api.model.factory.ApiModelFactory;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.datetime.TimeProvider;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
@@ -57,7 +58,7 @@ public class CreateV4ApiUseCase {
         );
 
         var sanitized = validateApiDomainService.validateAndSanitizeForCreation(
-            input.newApi.toApi(),
+            ApiModelFactory.fromNewApi(input.newApi, auditInfo.environmentId()),
             primaryOwner,
             auditInfo.environmentId(),
             auditInfo.organizationId()

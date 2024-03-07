@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.NewApi;
+import io.gravitee.apim.core.api.model.factory.ApiModelFactory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
@@ -29,7 +30,6 @@ import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
-import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -84,7 +84,7 @@ public class V4ApiServiceCockpitImpl implements V4ApiServiceCockpit {
         return Single
             .just(
                 createApiDomainService.create(
-                    deserializeApi(node),
+                    deserializeApi(node, environmentId),
                     new AuditInfo(organizationId, environmentId, AuditActor.builder().userId(userId).build())
                 )
             )
@@ -92,10 +92,10 @@ public class V4ApiServiceCockpitImpl implements V4ApiServiceCockpit {
             .flatMap(apiEntity -> syncDeployment(executionContext, apiEntity.getId(), userId));
     }
 
-    private Api deserializeApi(JsonNode node) throws JsonProcessingException {
+    private Api deserializeApi(JsonNode node, String environmentId) throws JsonProcessingException {
         final String newApiEntityNode = mapper.writeValueAsString(node.at(NEW_API_ENTITY_NODE));
         var newApi = graviteeMapper.readValue(newApiEntityNode, NewApi.class);
-        return newApi.toApi();
+        return ApiModelFactory.fromNewApi(newApi, environmentId);
     }
 
     private UpdateApiEntity getUpdateApiEntity(JsonNode node) throws JsonProcessingException {

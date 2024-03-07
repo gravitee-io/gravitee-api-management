@@ -28,11 +28,13 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Data
 @Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
+@Setter(lombok.AccessLevel.NONE)
 public class NewApi {
 
     private String name;
@@ -63,7 +65,11 @@ public class NewApi {
     @Builder.Default
     private Set<String> groups = Set.of();
 
-    public Api toApi() {
+    /**
+     * @return An instance of {@link Api.ApiBuilder} based on the current state of this NewApi.
+     */
+    public Api.ApiBuilder toApiBuilder() {
+        // Currently we can't use MapStruct in core. We will need to discuss as team if we want to introduce a rule to allow MapStruct in core.
         return Api
             .builder()
             .name(name)
@@ -71,12 +77,14 @@ public class NewApi {
             .type(type)
             .definitionVersion(definitionVersion)
             .description(description)
-            .groups(groups)
-            .apiDefinitionV4(toApiDefinition())
-            .build();
+            .groups(groups);
     }
 
-    public io.gravitee.definition.model.v4.Api toApiDefinition() {
+    /**
+     * @return An instance of {@link io.gravitee.definition.model.v4.Api.ApiBuilder} based on the current state of this NewApi.
+     */
+    public io.gravitee.definition.model.v4.Api.ApiBuilder toApiDefinitionBuilder() {
+        // Currently we can't use MapStruct in core. We will need to discuss as team if we want to introduce a rule to allow MapStruct in core.
         return io.gravitee.definition.model.v4.Api
             .builder()
             .name(name)
@@ -88,7 +96,6 @@ public class NewApi {
             .listeners(listeners)
             .endpointGroups(endpointGroups)
             .flows(flows)
-            .flowExecution(flowExecution)
-            .build();
+            .flowExecution(flowExecution);
     }
 }

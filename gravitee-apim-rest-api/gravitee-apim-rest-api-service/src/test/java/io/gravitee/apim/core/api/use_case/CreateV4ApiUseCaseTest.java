@@ -222,8 +222,7 @@ class CreateV4ApiUseCaseTest {
 
         // Then
         var expectedApi = newApi
-            .toApi()
-            .toBuilder()
+            .toApiBuilder()
             .id("generated-id")
             .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
             .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
@@ -231,7 +230,7 @@ class CreateV4ApiUseCaseTest {
             .apiLifecycleState(Api.ApiLifecycleState.CREATED)
             .lifecycleState(Api.LifecycleState.STOPPED)
             .visibility(Api.Visibility.PRIVATE)
-            .apiDefinitionV4(newApi.toApiDefinition().toBuilder().id("generated-id").build())
+            .apiDefinitionV4(newApi.toApiDefinitionBuilder().id("generated-id").build())
             .build();
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(output.api()).isEqualTo(new ApiWithFlows(expectedApi, newApi.getFlows()));

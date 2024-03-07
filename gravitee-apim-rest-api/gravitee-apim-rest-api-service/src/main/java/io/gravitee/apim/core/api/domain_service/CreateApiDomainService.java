@@ -80,6 +80,20 @@ public class CreateApiDomainService {
         this.workflowCrudService = workflowCrudService;
     }
 
+    /**
+     * Create a new API in the datastore.
+     * <p>
+     * This method will create the API, its primary owner, its default mail notification, its default metadata and its flows.
+     * </p>
+     * <p>
+     * Once created, the API is indexed in the search engine.
+     * </p>
+     * <p>⚠️ There is no validation, callers should ensure the API provided is valid. They can use {@link io.gravitee.apim.core.api.model.factory.ApiModelFactory} to build a valid model.</p>
+     *
+     * @param api       The API to create.
+     * @param auditInfo The audit information.
+     * @return The created API.
+     */
     public ApiWithFlows create(Api api, AuditInfo auditInfo) {
         var primaryOwner = apiPrimaryOwnerFactory.createForNewApi(
             auditInfo.organizationId(),
@@ -94,13 +108,7 @@ public class CreateApiDomainService {
             auditInfo.organizationId()
         );
 
-        if (sanitized.getId() == null) {
-            sanitized.setId(UuidString.generateRandom());
-        }
-
-        var created = apiCrudService.create(
-            sanitized.setEnvironmentId(auditInfo.environmentId()).setCreatedAt(TimeProvider.now()).setUpdatedAt(TimeProvider.now())
-        );
+        var created = apiCrudService.create(sanitized);
 
         createAuditLog(created, auditInfo);
 
@@ -122,10 +130,6 @@ public class CreateApiDomainService {
             primaryOwner
         );
         return new ApiWithFlows(created, api.getApiDefinitionV4().getFlows());
-    }
-
-    public Api create(ApiCRD crd, AuditInfo auditInfo) {
-        return create(crd.toApi(), auditInfo).toApi();
     }
 
     private void createAuditLog(Api created, AuditInfo auditInfo) {
