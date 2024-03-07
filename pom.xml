@@ -117,7 +117,7 @@
         <spring-data-mongodb.version>4.2.3</spring-data-mongodb.version>
 
         <!-- javax dependencies still required for compatibility or test -->
-        <jaxb-impl.version>4.0.2</jaxb-impl.version>
+        <jaxb-impl.version>4.0.4</jaxb-impl.version>
         <jaxb-api.version>2.3.1</jaxb-api.version>
         <javax.servlet-api.version>3.0.1</javax.servlet-api.version>
 
