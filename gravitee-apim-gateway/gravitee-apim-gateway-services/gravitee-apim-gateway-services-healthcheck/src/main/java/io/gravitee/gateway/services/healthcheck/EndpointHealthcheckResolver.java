@@ -15,7 +15,7 @@
  */
 package io.gravitee.gateway.services.healthcheck;
 
-import static io.gravitee.common.util.VertxProxyOptionsUtils.buildProxyOptions;
+import static io.gravitee.node.vertx.proxy.VertxProxyOptionsUtils.buildProxyOptions;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
