@@ -26,6 +26,7 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.crd.ApiCRD;
 import io.gravitee.apim.core.api.model.crd.ApiCRDStatus;
 import io.gravitee.apim.core.api.model.crd.PlanCRD;
+import io.gravitee.apim.core.api.model.factory.ApiModelFactory;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
@@ -107,7 +108,10 @@ public class ImportCRDUseCase {
 
     private ApiCRDStatus create(Input input) {
         try {
-            var api = createApiDomainService.create(input.crd, input.auditInfo);
+            String environmentId = input.auditInfo.environmentId();
+            String organizationId = input.auditInfo.organizationId();
+
+            var api = createApiDomainService.create(ApiModelFactory.fromCrd(input.crd, environmentId), input.auditInfo);
             apiMetadataDomainService.saveApiMetadata(api.getId(), input.crd.getMetadata(), input.auditInfo);
 
             var planNameIdMapping = input.crd
@@ -132,8 +136,8 @@ public class ImportCRDUseCase {
                 .builder()
                 .id(api.getId())
                 .crossId(api.getCrossId())
-                .environmentId(input.auditInfo.environmentId())
-                .organizationId(input.auditInfo.organizationId())
+                .environmentId(environmentId)
+                .organizationId(organizationId)
                 .state(api.getLifecycleState().name())
                 .plans(planNameIdMapping)
                 .build();

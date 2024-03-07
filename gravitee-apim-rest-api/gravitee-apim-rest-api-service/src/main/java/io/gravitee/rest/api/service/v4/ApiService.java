@@ -16,12 +16,9 @@
 package io.gravitee.rest.api.service.v4;
 
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.common.Pageable;
-import io.gravitee.rest.api.model.common.Sortable;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
-import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Optional;
@@ -31,8 +28,6 @@ import java.util.Optional;
  * @author GraviteeSource Team
  */
 public interface ApiService {
-    ApiEntity create(final ExecutionContext executionContext, final NewApiEntity api, final String userId);
-
     ApiEntity createWithImport(final ExecutionContext executionContext, final ApiEntity api, final String userId);
 
     ApiEntity update(final ExecutionContext executionContext, final String apiId, final UpdateApiEntity api, final String userId);

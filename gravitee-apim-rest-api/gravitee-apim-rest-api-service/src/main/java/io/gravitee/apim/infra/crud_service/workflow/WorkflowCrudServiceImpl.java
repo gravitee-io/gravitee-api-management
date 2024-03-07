@@ -22,7 +22,9 @@ import io.gravitee.apim.infra.adapter.WorkflowAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.WorkflowRepository;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Service;
 
+@Service
 public class WorkflowCrudServiceImpl implements WorkflowCrudService {
 
     private final WorkflowRepository workflowRepository;

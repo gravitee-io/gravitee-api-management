@@ -19,7 +19,9 @@ import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDoc
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_TYPE_VALUE;
 
 import com.google.common.base.Strings;
+import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.exception.InvalidPathsException;
+import io.gravitee.apim.core.api.use_case.CreateV4ApiUseCase;
 import io.gravitee.apim.core.api.use_case.ImportCRDUseCase;
 import io.gravitee.apim.core.api.use_case.VerifyApiHostsUseCase;
 import io.gravitee.apim.core.api.use_case.VerifyApiPathsUseCase;
@@ -111,6 +113,12 @@ public class ApisResource extends AbstractResource {
     }
 
     @Inject
+    private ApiStateDomainService apiStateDomainService;
+
+    @Inject
+    private CreateV4ApiUseCase createV4ApiUseCase;
+
+    @Inject
     private ImportCRDUseCase importCRDUseCase;
 
     @POST
@@ -119,13 +127,28 @@ public class ApisResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.CREATE }) })
     public Response createApi(@Valid @NotNull final CreateApiV4 api) {
         // NOTE: Only for V4 API. V2 API is planned to be supported in the future.
-        NewApiEntity newApiEntity = ApiMapper.INSTANCE.map(api);
-        ApiEntity newApi = apiServiceV4.create(GraviteeContext.getExecutionContext(), newApiEntity, getAuthenticatedUser());
+        var executionContext = GraviteeContext.getExecutionContext();
+        var userDetails = getAuthenticatedUserDetails();
 
-        boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), newApi);
+        AuditInfo audit = AuditInfo
+            .builder()
+            .organizationId(executionContext.getOrganizationId())
+            .environmentId(executionContext.getEnvironmentId())
+            .actor(
+                AuditActor
+                    .builder()
+                    .userId(userDetails.getUsername())
+                    .userSource(userDetails.getSource())
+                    .userSourceId(userDetails.getSourceId())
+                    .build()
+            )
+            .build();
+        var output = createV4ApiUseCase.execute(new CreateV4ApiUseCase.Input(ApiMapper.INSTANCE.map(api), audit));
+
+        boolean isSynchronized = apiStateDomainService.isSynchronized(output.api(), audit);
         return Response
-            .created(this.getLocationHeader(newApi.getId()))
-            .entity(ApiMapper.INSTANCE.map(newApi, uriInfo, isSynchronized))
+            .created(this.getLocationHeader(output.api().getId()))
+            .entity(ApiMapper.INSTANCE.map(output.api(), uriInfo, isSynchronized))
             .build();
     }
 

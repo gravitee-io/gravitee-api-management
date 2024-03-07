@@ -62,7 +62,6 @@ import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
-import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
@@ -221,57 +220,6 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         this.tagsValidationService = tagsValidationService;
         this.apiAuthorizationService = apiAuthorizationService;
         this.groupService = groupService;
-    }
-
-    @Override
-    public ApiEntity create(final ExecutionContext executionContext, final NewApiEntity newApiEntity, final String userId) {
-        try {
-            PrimaryOwnerEntity primaryOwner = primaryOwnerService.getPrimaryOwner(executionContext, userId, null);
-
-            apiValidationService.validateAndSanitizeNewApi(executionContext, newApiEntity, primaryOwner);
-
-            Api repositoryApi = apiMapper.toRepository(executionContext, newApiEntity);
-            repositoryApi.setApiLifecycleState(ApiLifecycleState.CREATED);
-            if (parameterService.findAsBoolean(executionContext, Key.API_REVIEW_ENABLED, ParameterReferenceType.ENVIRONMENT)) {
-                workflowService.create(WorkflowReferenceType.API, repositoryApi.getId(), REVIEW, userId, DRAFT, "");
-            }
-
-            Api createdApi = apiRepository.create(repositoryApi);
-
-            // Audit
-            auditService.createApiAuditLog(
-                executionContext,
-                createdApi.getId(),
-                Collections.emptyMap(),
-                API_CREATED,
-                createdApi.getCreatedAt(),
-                null,
-                createdApi
-            );
-
-            // Add the primary owner of the newly created API
-            addPrimaryOwnerToCreatedApi(executionContext, primaryOwner, createdApi);
-
-            // create the default mail notification
-            createDefaultMailNotification(createdApi);
-
-            // create the default mail support metadata
-            createDefaultSupportEmailMetadata(executionContext, createdApi);
-
-            // create the API flows
-            flowService.save(FlowReferenceType.API, createdApi.getId(), newApiEntity.getFlows());
-
-            //TODO add membership log
-            ApiEntity apiEntity = apiMapper.toEntity(executionContext, createdApi, primaryOwner, null, true);
-            GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, apiEntity);
-
-            searchEngineService.index(executionContext, apiWithMetadata, false);
-            return apiEntity;
-        } catch (TechnicalException | IllegalStateException ex) {
-            String errorMsg = String.format("An error occurs while trying to create '%s' for user '%s'", newApiEntity, userId);
-            log.error(errorMsg, ex);
-            throw new TechnicalManagementException(errorMsg, ex);
-        }
     }
 
     @Override

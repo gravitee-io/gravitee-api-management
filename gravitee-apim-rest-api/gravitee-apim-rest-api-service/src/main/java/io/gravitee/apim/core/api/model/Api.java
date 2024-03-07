@@ -165,6 +165,17 @@ public class Api {
         }
     }
 
+    public Api setId(String id) {
+        this.id = id;
+        if (apiDefinitionV4 != null) {
+            apiDefinitionV4.setId(id);
+        }
+        if (apiDefinition != null) {
+            apiDefinition.setId(id);
+        }
+        return this;
+    }
+
     public Api setApiDefinitionV4(io.gravitee.definition.model.v4.Api apiDefinitionV4) {
         this.apiDefinitionV4 = apiDefinitionV4;
         this.definitionVersion = apiDefinitionV4.getDefinitionVersion();

@@ -53,6 +53,12 @@ public interface ApiAdapter {
     Stream<io.gravitee.repository.management.model.Api> toRepositoryStream(Stream<Api> source);
 
     @Mapping(target = "apiVersion", source = "version")
+    @Mapping(target = "tags", source = "apiDefinitionV4.tags")
+    @Mapping(target = "listeners", source = "apiDefinitionV4.listeners")
+    @Mapping(target = "endpointGroups", source = "apiDefinitionV4.endpointGroups")
+    @Mapping(target = "analytics", source = "apiDefinitionV4.analytics")
+    @Mapping(target = "flowExecution", source = "apiDefinitionV4.flowExecution")
+    @Mapping(target = "flows", source = "apiDefinitionV4.flows")
     NewApiEntity toNewApiEntity(Api source);
 
     @Mapping(target = "apiVersion", source = "version")

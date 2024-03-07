@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.utils;
 
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.UriBuilder;
@@ -42,6 +43,28 @@ public final class ManagementApiLinkHelper {
             null,
             "background",
             null != api.getUpdatedAt() ? api.getUpdatedAt().getTime() : null
+        );
+    }
+
+    public static String apiPictureURL(UriBuilder baseUriBuilder, Api api) {
+        return resourcesURL(
+            baseUriBuilder,
+            api.getId(),
+            "apis",
+            null,
+            "picture",
+            null != api.getUpdatedAt() ? api.getUpdatedAt().toInstant().toEpochMilli() : null
+        );
+    }
+
+    public static String apiBackgroundURL(UriBuilder baseUriBuilder, Api api) {
+        return resourcesURL(
+            baseUriBuilder,
+            api.getId(),
+            "apis",
+            null,
+            "background",
+            null != api.getUpdatedAt() ? api.getUpdatedAt().toInstant().toEpochMilli() : null
         );
     }
 
