@@ -162,6 +162,13 @@ describe('MarkdownService', () => {
         expect(renderedLink).toEqual('<a class="internal-link" href="/catalog/api/1234/doc?page=22">text</a>');
       });
 
+      it('should find SWAGGER page by OPENAPI file reference', () => {
+        const renderedLink = renderer.link('/#!/documentation/api/myPage#OPENAPI', 'title', 'text');
+
+        expect(renderedLink).not.toBeNull();
+        expect(renderedLink).toEqual('<a class="internal-link" href="/catalog/api/1234/doc?page=22">text</a>');
+      });
+
       it('should find page by its name with spaces', () => {
         const renderedLink = renderer.link('/#!/documentation/api/my%20Page#MARKDOWN', 'title', 'text');
 
