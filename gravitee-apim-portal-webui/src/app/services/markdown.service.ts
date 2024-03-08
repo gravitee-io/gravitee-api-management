@@ -62,7 +62,7 @@ export class MarkdownService {
       link(href, title, text) {
         const parsedSettingsUrl = /\/#!\/settings\/pages\/([\w-]+)/g.exec(href);
         const parsedApisUrl = /\/#!\/apis\/(?:[\w-]+)\/documentation\/([\w-]+)/g.exec(href);
-        const parsedRelativeDocApiUrl = /\/#!\/documentation\/api\/(.*)#([MARKDOWN|SWAGGER|ASYNCAPI|ASCIIDOC]+)/g.exec(href);
+        const parsedRelativeDocApiUrl = /\/#!\/documentation\/api\/(.*)#([MARKDOWN|SWAGGER|OPENAPI|ASYNCAPI|ASCIIDOC]+)/g.exec(href);
 
         let pageId: string;
 
@@ -109,6 +109,7 @@ const INTERNAL_LINK_CLASSNAME = 'internal-link';
  * If the page is not found, the page name is returned.
  *
  * @param parsedDocApiUrl - ex. ['/#!/documentation/api/my/doc%20page#MARKDOWN', 'my/doc%20page', 'MARKDOWN']
+ * @param pages - pages to search for locating the relative documentation
  */
 const pageIdFromParsedRelativeDocApiUrl = (parsedDocApiUrl: RegExpExecArray, pages: Page[]) => {
   const pagePath = parsedDocApiUrl[1];
@@ -116,7 +117,7 @@ const pageIdFromParsedRelativeDocApiUrl = (parsedDocApiUrl: RegExpExecArray, pag
   const splitPath = pathWithSpaces.split('/');
   const pageName = splitPath[splitPath.length - 1];
 
-  const pageType = parsedDocApiUrl[2];
+  const pageType = parsedDocApiUrl[2] === 'OPENAPI' ? 'SWAGGER' : parsedDocApiUrl[2];
 
   const pageId = findPageId(pageType, undefined, 0, splitPath, pages);
   return pageId ?? pageName;
