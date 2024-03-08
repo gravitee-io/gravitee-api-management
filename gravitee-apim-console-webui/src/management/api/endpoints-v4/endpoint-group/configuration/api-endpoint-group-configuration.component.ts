@@ -53,10 +53,4 @@ export class ApiEndpointGroupConfigurationComponent implements OnInit, OnDestroy
     this.unsubscribe$.next(true);
     this.unsubscribe$.complete();
   }
-
-  onSchemaFormReady() {
-    // schema-form component is overriding the form with all the fields from the schema.
-    // We set back the initial value to avoid sending invalid data to the backend
-    this.configurationForm.setValue(this.initialValues, { emitEvent: false });
-  }
 }
