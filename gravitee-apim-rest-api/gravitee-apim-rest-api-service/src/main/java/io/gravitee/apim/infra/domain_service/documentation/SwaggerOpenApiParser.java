@@ -18,11 +18,13 @@ package io.gravitee.apim.infra.domain_service.documentation;
 import io.gravitee.apim.core.documentation.domain_service.OpenApiDomainService;
 import io.gravitee.apim.core.documentation.exception.InvalidPageContentException;
 import io.gravitee.rest.api.service.impl.swagger.parser.OAIParser;
+import org.springframework.stereotype.Service;
 
 /**
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Service
 public class SwaggerOpenApiParser implements OpenApiDomainService {
 
     @Override
