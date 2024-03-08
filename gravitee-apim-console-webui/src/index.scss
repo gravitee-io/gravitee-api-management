@@ -60,7 +60,7 @@
 
 @import './scss/material-layout-compatibility.scss';
 
-@include gio.import-fonts(true);
+@include gio.import-fonts();
 
 body {
   font-family: 'Golos UI', 'Roboto', 'Helvetica Neue', sans-serif;
