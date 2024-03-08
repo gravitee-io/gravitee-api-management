@@ -15,4 +15,12 @@
     limitations under the License.
 
 -->
+<<<<<<< HEAD:gravitee-apim-console-webui/src/management/api/proxy/health-check-dashboard/healthcheck.html
 <ui-view></ui-view>
+=======
+<form *ngIf="!!configurationForm" [formGroup]="configurationForm">
+  <ng-container *ngIf="sharedConfigurationSchema">
+    <gio-form-json-schema formControlName="groupConfiguration" [jsonSchema]="sharedConfigurationSchema"></gio-form-json-schema>
+  </ng-container>
+</form>
+>>>>>>> 8972e4ceb1 (fix(console): fix the validation of the form with a partial input):gravitee-apim-console-webui/src/management/api/endpoints-v4/endpoint-group/configuration/api-endpoint-group-configuration.component.html
