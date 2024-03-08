@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.documentation.domain_service;
 
+import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
@@ -36,6 +37,7 @@ import java.time.ZoneId;
 import java.util.Map;
 import java.util.Objects;
 
+@DomainService
 public class DeleteApiDocumentationDomainService {
 
     private final PageCrudService pageCrudService;

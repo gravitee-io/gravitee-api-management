@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.api.domain_service;
 
+import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.Plan;
@@ -27,6 +28,7 @@ import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
+@DomainService
 public class ApiPolicyValidatorDomainService {
 
     private final PolicyValidationDomainService policyValidationDomainService;

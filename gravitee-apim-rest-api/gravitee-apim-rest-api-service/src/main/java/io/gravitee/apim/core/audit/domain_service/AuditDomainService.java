@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.audit.domain_service;
 
+import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.crud_service.AuditCrudService;
 import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
 import io.gravitee.apim.core.audit.model.ApplicationAuditLogEntity;
@@ -30,6 +31,7 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@DomainService
 public class AuditDomainService {
 
     private final AuditCrudService auditCrudService;

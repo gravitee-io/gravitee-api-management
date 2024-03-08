@@ -17,6 +17,7 @@ package io.gravitee.apim.core.plan.domain_service;
 
 import static io.gravitee.apim.core.utils.CollectionUtils.isEmpty;
 
+import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.exception.ValidationDomainException;
@@ -38,6 +39,7 @@ import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@DomainService
 public class PlanValidatorDomainService {
 
     private final ParametersQueryService parametersQueryService;

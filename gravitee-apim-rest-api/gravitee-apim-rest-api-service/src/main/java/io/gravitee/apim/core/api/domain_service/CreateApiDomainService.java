@@ -17,6 +17,7 @@ package io.gravitee.apim.core.api.domain_service;
 
 import static io.gravitee.apim.core.workflow.model.Workflow.newApiReviewWorkflow;
 
+import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiWithFlows;
@@ -37,6 +38,7 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import java.util.Collections;
 
+@DomainService
 public class CreateApiDomainService {
 
     private final ValidateApiDomainService validateApiDomainService;

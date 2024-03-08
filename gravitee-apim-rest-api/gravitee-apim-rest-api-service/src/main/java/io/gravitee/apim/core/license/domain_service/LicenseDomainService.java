@@ -15,11 +15,13 @@
  */
 package io.gravitee.apim.core.license.domain_service;
 
+import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.license.crud_service.LicenseCrudService;
 import io.gravitee.apim.core.license.model.License;
 import java.util.Objects;
 import java.util.Optional;
 
+@DomainService
 public class LicenseDomainService {
 
     private final LicenseCrudService licenseCrudService;

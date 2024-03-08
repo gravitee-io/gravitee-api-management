@@ -15,12 +15,14 @@
  */
 package io.gravitee.apim.core.plan.domain_service;
 
+import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.query_service.PlanQueryService;
 import java.util.Comparator;
 import java.util.Objects;
 
+@DomainService
 public class ReorderPlanDomainService {
 
     private final PlanQueryService planQueryService;

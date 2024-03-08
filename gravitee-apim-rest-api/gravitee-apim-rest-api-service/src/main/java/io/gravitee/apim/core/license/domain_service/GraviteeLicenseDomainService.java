@@ -15,8 +15,10 @@
  */
 package io.gravitee.apim.core.license.domain_service;
 
+import io.gravitee.apim.core.DomainService;
 import io.gravitee.node.api.license.LicenseManager;
 
+@DomainService
 public class GraviteeLicenseDomainService {
 
     public static final String OEM_CUSTOMIZATION_FEATURE = "oem-customization";

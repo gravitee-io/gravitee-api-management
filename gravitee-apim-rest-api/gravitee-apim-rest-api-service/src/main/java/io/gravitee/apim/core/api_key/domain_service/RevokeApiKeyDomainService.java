@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.api_key.domain_service;
 
+import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api_key.crud_service.ApiKeyCrudService;
 import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
 import io.gravitee.apim.core.api_key.query_service.ApiKeyQueryService;
@@ -33,6 +34,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@DomainService
 public class RevokeApiKeyDomainService {
 
     private final ApiKeyCrudService apiKeyCrudService;

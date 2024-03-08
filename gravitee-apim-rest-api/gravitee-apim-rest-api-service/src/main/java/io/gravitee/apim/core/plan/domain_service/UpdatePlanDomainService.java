@@ -17,6 +17,7 @@ package io.gravitee.apim.core.plan.domain_service;
 
 import static java.util.stream.Collectors.toMap;
 
+import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
@@ -35,6 +36,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+@DomainService
 public class UpdatePlanDomainService {
 
     private final PlanQueryService planQueryService;

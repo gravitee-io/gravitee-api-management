@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.membership.domain_service;
 
+import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.membership.exception.NoPrimaryOwnerGroupForUserException;
 import io.gravitee.apim.core.membership.model.Membership;
@@ -35,6 +36,7 @@ import java.util.stream.Collectors;
 /**
  * Factory to create a primary owner entity for a new API based on the primary owner mode defined at the environment level.
  */
+@DomainService
 public class ApiPrimaryOwnerFactory {
 
     private final MembershipQueryService membershipQueryService;

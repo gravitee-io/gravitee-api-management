@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.membership.domain_service;
 
+import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.group.query_service.GroupQueryService;
 import io.gravitee.apim.core.membership.exception.ApiPrimaryOwnerNotFoundException;
 import io.gravitee.apim.core.membership.exception.ApplicationPrimaryOwnerNotFoundException;
@@ -29,6 +30,7 @@ import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.common.ReferenceContext;
 import java.util.Optional;
 
+@DomainService
 public class ApplicationPrimaryOwnerDomainService {
 
     private final GroupQueryService groupQueryService;

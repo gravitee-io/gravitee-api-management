@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.api.domain_service;
 
+import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService.ApiMetadataDecodeContext;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService.PrimaryOwnerMetadataDecodeContext;
 import io.gravitee.apim.core.api.model.Api;
@@ -23,6 +24,7 @@ import io.gravitee.apim.core.search.Indexer;
 import io.gravitee.apim.core.search.model.IndexableApi;
 import java.util.Date;
 
+@DomainService
 public class ApiIndexerDomainService {
 
     private final ApiMetadataDecoderDomainService apiMetadataDecoderDomainService;
