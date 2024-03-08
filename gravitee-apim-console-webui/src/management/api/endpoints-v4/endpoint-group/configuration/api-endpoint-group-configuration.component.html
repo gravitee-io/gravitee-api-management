@@ -17,10 +17,6 @@
 -->
 <form *ngIf="!!configurationForm" [formGroup]="configurationForm">
   <mat-card *ngIf="sharedConfigurationSchema">
-    <gio-form-json-schema
-      formControlName="groupConfiguration"
-      [jsonSchema]="sharedConfigurationSchema"
-      (ready)="onSchemaFormReady()"
-    ></gio-form-json-schema>
+    <gio-form-json-schema formControlName="groupConfiguration" [jsonSchema]="sharedConfigurationSchema"></gio-form-json-schema>
   </mat-card>
 </form>
