@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.subscription.domain_service;
 
+import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api_key.domain_service.RevokeApiKeyDomainService;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
@@ -33,6 +34,7 @@ import java.util.Collections;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@DomainService
 public class CloseSubscriptionDomainService {
 
     private final SubscriptionCrudService subscriptionCrudService;

@@ -15,9 +15,11 @@
  */
 package io.gravitee.apim.core.documentation.domain_service;
 
+import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.query_service.PageQueryService;
 
+@DomainService
 public class HomepageDomainService {
 
     private final PageQueryService pageQueryService;

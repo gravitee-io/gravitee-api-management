@@ -15,11 +15,13 @@
  */
 package io.gravitee.apim.core.plugin.domain_service;
 
+import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.plugin.model.PlatformPlugin;
 import io.gravitee.node.api.license.LicenseManager;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@DomainService
 public class PluginFilterByLicenseDomainService {
 
     private final LicenseManager licenseManager;

@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.api.domain_service;
 
+import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
@@ -33,6 +34,7 @@ import java.util.Map;
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
+@DomainService
 public class ApiMetadataDomainService {
 
     private final MetadataCrudService metadataCrudService;

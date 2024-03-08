@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.documentation.domain_service;
 
+import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -31,6 +32,7 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@DomainService
 public class CreateApiDocumentationDomainService {
 
     private final PageCrudService pageCrudService;

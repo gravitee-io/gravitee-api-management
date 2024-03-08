@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.membership.domain_service;
 
+import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -37,6 +38,7 @@ import io.gravitee.rest.api.service.common.UuidString;
 import java.util.Map;
 import java.util.Optional;
 
+@DomainService
 public class ApiPrimaryOwnerDomainService {
 
     private final AuditDomainService auditService;

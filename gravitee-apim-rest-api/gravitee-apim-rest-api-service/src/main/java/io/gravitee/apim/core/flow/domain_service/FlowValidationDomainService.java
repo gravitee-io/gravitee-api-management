@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.flow.domain_service;
 
+import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.exception.InvalidFlowException;
 import io.gravitee.apim.core.plugin.model.PlatformPlugin;
@@ -41,6 +42,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@DomainService
 public class FlowValidationDomainService {
 
     private static final String PATH_PARAM_PREFIX = ":";

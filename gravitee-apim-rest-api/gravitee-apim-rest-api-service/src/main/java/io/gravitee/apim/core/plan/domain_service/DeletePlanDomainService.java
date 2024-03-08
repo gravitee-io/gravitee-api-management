@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.plan.domain_service;
 
+import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -27,6 +28,7 @@ import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService
 import io.gravitee.common.utils.TimeProvider;
 import java.util.Map;
 
+@DomainService
 public class DeletePlanDomainService {
 
     private final PlanCrudService planCrudService;

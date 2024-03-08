@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.api.domain_service;
 
+import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.template.TemplateProcessor;
@@ -30,6 +31,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@DomainService
 public class ApiMetadataDecoderDomainService {
 
     private final ApiMetadataQueryService metadataQueryService;

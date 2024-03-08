@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.api.domain_service;
 
+import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.exception.DuplicatedHostException;
 import io.gravitee.apim.core.api.exception.HostAlreadyExistsException;
 import io.gravitee.apim.core.api.exception.InvalidHostException;
@@ -34,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RequiredArgsConstructor
+@DomainService
 public class VerifyApiHostsDomainService {
 
     /**

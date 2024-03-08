@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.audit.domain_service;
 
+import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.model.ApiAuditQueryFilters;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
@@ -28,6 +29,7 @@ import java.util.StringJoiner;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@DomainService
 public class SearchAuditDomainService {
 
     private final AuditQueryService auditQueryService;
