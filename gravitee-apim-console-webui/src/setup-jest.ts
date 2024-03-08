@@ -19,6 +19,10 @@ import 'jest-preset-angular/setup-jest';
 // This means we will not be able to test Swagger in our components tests
 jest.mock('swagger-ui', () => jest.fn());
 
+// mocking asciidoctor for tests as it contains some JS incompatible with Jest
+// This means we will not be able to test Asciidoctor in our components tests
+jest.mock('@asciidoctor/core', () => jest.fn());
+
 // Mocking the Range object to avoid errors in tests (policy-studio-debug.component.spec.ts)
 document.createRange = () => {
   const range = new Range();
