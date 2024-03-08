@@ -15,11 +15,13 @@
  */
 package io.gravitee.apim.core.plugin.use_case;
 
+import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.plugin.domain_service.PluginFilterByLicenseDomainService;
 import io.gravitee.apim.core.plugin.model.ConnectorPlugin;
 import io.gravitee.apim.core.plugin.query_service.EndpointPluginQueryService;
 import java.util.Set;
 
+@UseCase
 public class GetEndpointPluginsUseCase {
 
     private final EndpointPluginQueryService endpointPluginQueryService;

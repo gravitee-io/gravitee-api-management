@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.log.use_case;
 
+import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
 import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
@@ -34,6 +35,7 @@ import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.List;
 import java.util.Optional;
 
+@UseCase
 public class SearchConnectionLogsUseCase {
 
     static final String UNKNOWN = "Unknown";

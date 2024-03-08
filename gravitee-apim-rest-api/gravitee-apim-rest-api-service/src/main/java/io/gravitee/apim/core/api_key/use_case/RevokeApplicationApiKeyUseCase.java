@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.api_key.use_case;
 
+import io.gravitee.apim.core.TransactionalUseCase;
 import io.gravitee.apim.core.api_key.domain_service.RevokeApiKeyDomainService;
 import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
 import io.gravitee.apim.core.api_key.query_service.ApiKeyQueryService;
@@ -27,6 +28,7 @@ import io.gravitee.rest.api.service.exceptions.InvalidApplicationApiKeyModeExcep
 /**
  * Revoke an Application's API Key.
  */
+@TransactionalUseCase
 public class RevokeApplicationApiKeyUseCase {
 
     private final ApplicationCrudService applicationCrudService;

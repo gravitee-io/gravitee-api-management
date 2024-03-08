@@ -15,12 +15,14 @@
  */
 package io.gravitee.apim.core.api.use_case;
 
+import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.domain_service.VerifyApiHostsDomainService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
+@UseCase
 public class VerifyApiHostsUseCase {
 
     private final VerifyApiHostsDomainService verifyApiHostsDomainService;

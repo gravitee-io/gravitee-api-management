@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.plugin.use_case;
 
+import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.plugin.domain_service.PluginFilterByLicenseDomainService;
 import io.gravitee.apim.core.plugin.model.PolicyPlugin;
 import io.gravitee.apim.core.plugin.query_service.PolicyPluginQueryService;
@@ -23,6 +24,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+@UseCase
 public class GetPolicyPluginsUseCase {
 
     private final PolicyPluginQueryService policyPluginQueryService;

@@ -15,11 +15,13 @@
  */
 package io.gravitee.apim.core.documentation.use_case;
 
+import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.model.Page;
 
+@UseCase
 public class ApiGetDocumentationPageUseCase {
 
     private final ApiDocumentationDomainService apiDocumentationDomainService;

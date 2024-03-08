@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.log.use_case;
 
+import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.log.crud_service.ConnectionLogsCrudService;
 import io.gravitee.rest.api.model.v4.log.connection.ConnectionLogDetail;
 import java.util.Optional;
@@ -23,6 +24,7 @@ import java.util.Optional;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
+@UseCase
 public class SearchConnectionLogUseCase {
 
     private final ConnectionLogsCrudService connectionLogsCrudService;
