@@ -25,8 +25,10 @@ import io.gravitee.apim.core.documentation.exception.InvalidPageContentException
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.Map;
+import org.springframework.stereotype.Service;
 import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 
+@Service
 public class FreemarkerTemplateResolver implements TemplateResolverDomainService {
 
     @Override

@@ -40,6 +40,8 @@ import inmemory.LicenseCrudServiceInMemory;
 import inmemory.MembershipCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.MessageLogCrudServiceInMemory;
+import inmemory.NoopSwaggerOpenApiResolver;
+import inmemory.NoopTemplateResolverDomainService;
 import inmemory.PageCrudServiceInMemory;
 import inmemory.PageQueryServiceInMemory;
 import inmemory.PageRevisionCrudServiceInMemory;
@@ -254,5 +256,15 @@ public class InMemoryConfiguration {
     @Bean
     public IndexerInMemory indexer() {
         return new IndexerInMemory();
+    }
+
+    @Bean
+    public NoopTemplateResolverDomainService noopTemplateResolverDomainService() {
+        return new NoopTemplateResolverDomainService();
+    }
+
+    @Bean
+    public NoopSwaggerOpenApiResolver noopSwaggerOpenApiResolver() {
+        return new NoopSwaggerOpenApiResolver();
     }
 }
