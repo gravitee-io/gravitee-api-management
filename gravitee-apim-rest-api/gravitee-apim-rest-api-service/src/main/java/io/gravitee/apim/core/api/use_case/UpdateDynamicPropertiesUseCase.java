@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.api.use_case;
 
+import io.gravitee.apim.core.TransactionalUseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.model.Api;
@@ -42,6 +43,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author GraviteeSource Team
  */
 @Slf4j
+@TransactionalUseCase
 public class UpdateDynamicPropertiesUseCase {
 
     private final ApiCrudService apiCrudService;

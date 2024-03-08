@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.plan.use_case;
 
+import io.gravitee.apim.core.TransactionalUseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
@@ -26,6 +27,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
+@TransactionalUseCase
 public class CreatePlanUseCase {
 
     private final CreatePlanDomainService createPlanDomainService;

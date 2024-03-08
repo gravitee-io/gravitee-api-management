@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.console.use_case;
 
+import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.console.model.ConsoleCustomization;
 import io.gravitee.apim.core.console.model.ConsoleTheme;
 import io.gravitee.apim.core.console.model.CtaConfiguration;
@@ -24,6 +25,7 @@ import io.gravitee.rest.api.model.parameters.Key;
 import java.util.List;
 import java.util.Map;
 
+@UseCase
 public class GetConsoleCustomizationUseCase {
 
     private final GraviteeLicenseDomainService licenseDomainService;

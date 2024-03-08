@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.log.use_case;
 
+import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.log.crud_service.MessageLogCrudService;
 import io.gravitee.apim.core.log.model.AggregatedMessageLog;
 import io.gravitee.rest.api.model.common.Pageable;
@@ -27,6 +28,7 @@ import java.util.Optional;
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
+@UseCase
 public class SearchMessageLogsUseCase {
 
     private final MessageLogCrudService messageLogCrudService;

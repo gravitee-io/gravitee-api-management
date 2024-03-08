@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.api.use_case;
 
+import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.exception.ApiNotFoundException;
 import io.gravitee.apim.core.api.model.ApiMetadata;
@@ -23,6 +24,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@UseCase
 public class GetApiMetadataUseCase {
 
     private final ApiCrudService apiCrudService;

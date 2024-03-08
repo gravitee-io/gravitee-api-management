@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.event.use_case;
 
+import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.core.event.model.EventWithInitiator;
 import io.gravitee.apim.core.event.query_service.EventQueryService;
@@ -22,6 +23,7 @@ import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import java.util.Optional;
 
+@UseCase
 public class SearchEventUseCase {
 
     private final EventQueryService eventQueryService;

@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.audit.use_case;
 
+import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.model.ApiAuditQueryFilters;
 import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+@UseCase
 public class SearchApiAuditUseCase {
 
     private final SearchAuditDomainService searchAuditDomainService;
