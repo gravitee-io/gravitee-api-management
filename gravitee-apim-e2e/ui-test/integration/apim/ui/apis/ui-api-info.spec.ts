@@ -173,7 +173,7 @@ describe('API Info Page functionality', () => {
   it('Verify Promote pop-up on info page (v2)', () => {
     cy.visit(`/#!/DEFAULT/apis/${api.id}`);
     cy.getByDataTestId('api_info_promote').click();
-    cy.contains('Meet Cockpit').should('be.visible');
+    cy.contains('Meet Gravitee Cloud').should('be.visible');
     cy.getByDataTestId('api_info_promote_ok').click();
   });
 
