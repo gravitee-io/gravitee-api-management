@@ -249,11 +249,11 @@ public class VerifyApiPathDomainService {
         }
         return null;
     }
-}
 
-class PathAlreadyExistsException extends RuntimeException {
+    static class PathAlreadyExistsException extends RuntimeException {
 
-    public PathAlreadyExistsException(String path) {
-        super("Path [" + path + "] already exists");
+        public PathAlreadyExistsException(String path) {
+            super("Path [" + path + "] already exists");
+        }
     }
 }
