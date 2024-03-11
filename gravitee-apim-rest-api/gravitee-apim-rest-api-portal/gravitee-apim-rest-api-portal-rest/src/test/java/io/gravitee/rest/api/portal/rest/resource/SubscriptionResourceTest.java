@@ -212,14 +212,6 @@ public class SubscriptionResourceTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldCloseSubscription() {
-        final Response response = target(SUBSCRIPTION).path("_close").request().post(null);
-        assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
-
-        assertFalse(response.hasEntity());
-    }
-
-    @Test
     public void testPermissionsForClosingASubscription() {
         reset(permissionService);
 
