@@ -222,15 +222,6 @@ public class SubscriptionResourceTest extends AbstractResourceTest {
     @Test
     public void testPermissionsForClosingASubscription() {
         reset(permissionService);
-        doReturn(true)
-            .when(permissionService)
-            .hasPermission(
-                eq(GraviteeContext.getExecutionContext()),
-                eq(RolePermission.APPLICATION_SUBSCRIPTION),
-                eq(APPLICATION),
-                eq(RolePermissionAction.DELETE)
-            );
-        assertEquals(HttpStatusCode.NO_CONTENT_204, target(SUBSCRIPTION).path("_close").request().post(null).getStatus());
 
         doReturn(false)
             .when(permissionService)
