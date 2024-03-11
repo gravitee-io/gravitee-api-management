@@ -17,6 +17,7 @@ package io.gravitee.apim.core.license.domain_service;
 
 import io.gravitee.apim.core.license.crud_service.LicenseCrudService;
 import io.gravitee.apim.core.license.model.License;
+import java.util.Objects;
 import java.util.Optional;
 
 public class LicenseDomainService {
@@ -31,9 +32,15 @@ public class LicenseDomainService {
         return this.licenseCrudService.getOrganizationLicense(organizationId);
     }
 
-    public License createOrUpdateOrganizationLicense(String organizationId, String license) {
-        return this.licenseCrudService.getOrganizationLicense(organizationId)
-            .map(organizationLicense -> this.licenseCrudService.updateOrganizationLicense(organizationId, license))
-            .orElse(this.licenseCrudService.createOrganizationLicense(organizationId, license));
+    public void createOrUpdateOrganizationLicense(String organizationId, String license) {
+        this.licenseCrudService.getOrganizationLicense(organizationId)
+            .ifPresentOrElse(
+                l -> {
+                    if (!Objects.equals(l.getLicense(), license)) {
+                        this.licenseCrudService.updateOrganizationLicense(organizationId, license);
+                    }
+                },
+                () -> this.licenseCrudService.createOrganizationLicense(organizationId, license)
+            );
     }
 }
