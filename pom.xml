@@ -40,7 +40,7 @@
 		<gravitee-common.version>3.4.1</gravitee-common.version>
 		<gravitee-node.version>4.8.3</gravitee-node.version>
 
-		<maven-plugin-assembly.version>3.6.0</maven-plugin-assembly.version>
+		<maven-plugin-assembly.version>3.7.0</maven-plugin-assembly.version>
         <!-- Property used by the publication job in CI-->
         <publish-folder-path>graviteeio-apim/plugins/reporters</publish-folder-path>
 	</properties>
