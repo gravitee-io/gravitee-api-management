@@ -60,7 +60,7 @@
         <gravitee-bom.version>7.0.13</gravitee-bom.version>
         <gravitee-alert-api.version>1.9.1</gravitee-alert-api.version>
         <gravitee-cockpit-api.version>2.6.2</gravitee-cockpit-api.version>
-        <gravitee-common.version>3.4.1</gravitee-common.version>
+        <gravitee-common.version>4.0.0</gravitee-common.version>
         <gravitee-connector-api.version>1.1.4</gravitee-connector-api.version>
         <gravitee-expression-language.version>3.1.0</gravitee-expression-language.version>
         <gravitee-fetcher-api.version>1.4.0</gravitee-fetcher-api.version>
@@ -156,7 +156,7 @@
         <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
         <jacoco-maven-plugin.version>0.8.11</jacoco-maven-plugin.version>
         <os-maven-plugin.version>1.7.0</os-maven-plugin.version>
-        <swagger-maven-plugin.version>>2.2.9</swagger-maven-plugin.version>
+        <swagger-maven-plugin.version>&gt;2.2.9</swagger-maven-plugin.version>
         <maven-plugin-prettier.version>0.19</maven-plugin-prettier.version>
         <maven-plugin-prettier.prettierjava.version>2.1.0</maven-plugin-prettier.prettierjava.version>
         <skip.validation>false</skip.validation>
