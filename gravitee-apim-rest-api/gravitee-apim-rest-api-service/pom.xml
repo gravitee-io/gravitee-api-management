@@ -312,6 +312,11 @@
             <artifactId>commons-text</artifactId>
             <scope>test</scope>
         </dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-email2-jakarta</artifactId>
+			<scope>test</scope>
+		</dependency>
 
 		<!--  -->
 		<dependency>

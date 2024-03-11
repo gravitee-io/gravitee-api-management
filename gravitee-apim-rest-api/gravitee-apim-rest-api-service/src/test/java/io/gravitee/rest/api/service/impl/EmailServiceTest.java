@@ -27,7 +27,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.rest.api.mail.MimeMessageParser;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
@@ -41,6 +40,7 @@ import jakarta.mail.internet.MimeMessage;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.mail2.jakarta.util.MimeMessageParser;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
