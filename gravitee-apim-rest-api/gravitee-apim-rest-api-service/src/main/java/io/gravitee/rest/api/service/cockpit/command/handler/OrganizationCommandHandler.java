@@ -109,12 +109,7 @@ public class OrganizationCommandHandler implements CommandHandler<OrganizationCo
     }
 
     private void handleLicense(OrganizationEntity organization, String license) {
-        final Optional<License> currentLicense = organizationLicenseService.getLicenseByOrganizationId(organization.getId());
-        if (currentLicense.isPresent()) {
-            if (!currentLicense.get().getLicense().equals(license)) {
-                organizationLicenseService.createOrUpdateOrganizationLicense(organization.getId(), license);
-            }
-        }
+        organizationLicenseService.createOrUpdateOrganizationLicense(organization.getId(), license);
     }
 
     private OrganizationEntity createOrUpdateOrganization(OrganizationPayload organizationPayload) {
