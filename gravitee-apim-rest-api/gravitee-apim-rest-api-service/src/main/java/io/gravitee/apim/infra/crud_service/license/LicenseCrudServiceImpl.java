@@ -22,6 +22,7 @@ import io.gravitee.apim.infra.adapter.LicenseAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.LicenseRepository;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.Comparator;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -46,9 +47,7 @@ public class LicenseCrudServiceImpl implements LicenseCrudService {
                     organizationId,
                     io.gravitee.repository.management.model.License.ReferenceType.ORGANIZATION
                 )
-                .stream()
-                .map(LicenseAdapter.INSTANCE::toModel)
-                .findFirst();
+                .map(LicenseAdapter.INSTANCE::toModel);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(e);
         }
