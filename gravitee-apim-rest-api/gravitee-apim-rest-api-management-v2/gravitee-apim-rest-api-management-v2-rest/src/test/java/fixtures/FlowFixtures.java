@@ -64,6 +64,7 @@ public class FlowFixtures {
 
     private static final FlowV4.FlowV4Builder BASE_FLOW_V4 = FlowV4
         .builder()
+        .id("e040c9ce-e42a-454a-8b17-b406755a2e48")
         .name("Flow")
         .enabled(true)
         .selectors(List.of(new Selector(BASE_CHANNEL_SELECTOR_V4.build())))

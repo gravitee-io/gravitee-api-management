@@ -449,7 +449,7 @@ paths:
                 Return a 400 HTTP Error:
                  - when user tries to change reviews state of an ARCHIVED API
                  - when user tries to change reviews state of an API already in review
-                
+
                 User must have the API_DEFINITION[UPDATE] permission.
             operationId: reviewsAsk
             requestBody:
@@ -477,7 +477,7 @@ paths:
                 Return a 400 HTTP Error:
                  - when user tries to change reviews state of an ARCHIVED API
                  - when user tries to change reviews state of an API that is not in review
-                
+
                 User must have the API_REVIEWS[UPDATE] permission.
             operationId: reviewsAccept
             requestBody:
@@ -505,7 +505,7 @@ paths:
                 Return a 400 HTTP Error:
                  - when user tries to change reviews state of an ARCHIVED API
                  - when user tries to change reviews state of an API that is not in review
-                
+
                 User must have the API_REVIEWS[UPDATE] permission.
             operationId: reviewsReject
             requestBody:
@@ -1939,12 +1939,12 @@ components:
                               - STOPPED
                               - STOPPING
                       deploymentState:
-                            type: string
-                            description: The deployment state of the API regarding the gateway(s).
-                            example: DEPLOYED
-                            enum:
-                                - NEED_REDEPLOY
-                                - DEPLOYED
+                          type: string
+                          description: The deployment state of the API regarding the gateway(s).
+                          example: DEPLOYED
+                          enum:
+                              - NEED_REDEPLOY
+                              - DEPLOYED
                       visibility:
                           $ref: "#/components/schemas/Visibility"
                       labels:
@@ -2790,6 +2790,10 @@ components:
         FlowV4:
             type: object
             properties:
+                id:
+                    type: string
+                    description: Flow's uuid.
+                    example: 4e6abbd2-c0c6-462d-be9e-6371209af34b
                 name:
                     type: string
                     description: Flow's name.
@@ -4250,16 +4254,16 @@ components:
         EndpointDiscoveryService:
             type: object
             properties:
-                  provider:
-                      type: string
-                      description: The provider of the service
-                  configuration:
-                      type: object
-                      description: The configuration of the service
-                  enabled:
-                      type: boolean
-                      description: Is the service enabled or not.
-                      default: true
+                provider:
+                    type: string
+                    description: The provider of the service
+                configuration:
+                    type: object
+                    description: The configuration of the service
+                enabled:
+                    type: boolean
+                    description: Is the service enabled or not.
+                    default: true
         EndpointGroupV2:
             type: object
             properties:
@@ -4426,16 +4430,16 @@ components:
         HealthCheckService:
             type: object
             properties:
-                  schedule:
-                      type: string
-                      description: The schedule of the service
-                  steps:
-                      type: array
-                      items:
-                          $ref: "#/components/schemas/HealthCheckStep"
-                  enabled:
-                      type: boolean
-                      description: Is the service enabled or not.
+                schedule:
+                    type: string
+                    description: The schedule of the service
+                steps:
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/HealthCheckStep"
+                enabled:
+                    type: boolean
+                    description: Is the service enabled or not.
         HealthCheckStep:
             type: object
             properties:
@@ -5295,15 +5299,15 @@ components:
         # Other Query Parameters      #
         ###############################
         apiExpandsParam:
-          name: expands
-          in: query
-          description: Expansion of data to return in APIs.
-          schema:
-              type: array
-              items:
-                  type: string
-                  enum:
-                      - deploymentState
+            name: expands
+            in: query
+            description: Expansion of data to return in APIs.
+            schema:
+                type: array
+                items:
+                    type: string
+                    enum:
+                        - deploymentState
     responses:
         EnvironmentsResponse:
             description: Page of environments
