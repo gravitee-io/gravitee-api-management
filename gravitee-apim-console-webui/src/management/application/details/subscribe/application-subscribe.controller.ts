@@ -15,7 +15,7 @@
  */
 import { IHttpPromise } from 'angular';
 
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { filter, find, forEach, groupBy, includes, join, map, merge, noop } from 'lodash';
 
 import { ApiService } from '../../../../services/api.service';
@@ -45,6 +45,7 @@ class ApplicationSubscribeController {
     private ApplicationService: ApplicationService,
     private NotificationService: NotificationService,
     private $mdDialog,
+    private ngRouter: Router,
   ) {}
 
   async $onInit() {
@@ -121,7 +122,7 @@ class ApplicationSubscribeController {
 
     this.ApplicationService.subscribe(this.application.id, plan.id, message, apikeyMode).then(() => {
       this.NotificationService.show('Subscription to application ' + this.application.name + ' has been successfully created');
-      this.$onInit();
+      this.ngRouter.navigate(['../'], { relativeTo: this.activatedRoute, queryParamsHandling: 'preserve' });
     });
   }
 
@@ -200,6 +201,6 @@ class ApplicationSubscribeController {
     );
   }
 }
-ApplicationSubscribeController.$inject = ['ApiService', 'Constants', 'ApplicationService', 'NotificationService', '$mdDialog'];
+ApplicationSubscribeController.$inject = ['ApiService', 'Constants', 'ApplicationService', 'NotificationService', '$mdDialog', 'ngRouter'];
 
 export default ApplicationSubscribeController;
