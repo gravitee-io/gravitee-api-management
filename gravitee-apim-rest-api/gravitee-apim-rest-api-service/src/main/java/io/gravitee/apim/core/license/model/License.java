@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.license.model;
 
+import java.time.ZonedDateTime;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -27,6 +28,8 @@ public class License {
     private String referenceId;
     private ReferenceType referenceType;
     private String license;
+    private ZonedDateTime createdAt;
+    private ZonedDateTime updatedAt;
 
     public enum ReferenceType {
         ORGANIZATION,

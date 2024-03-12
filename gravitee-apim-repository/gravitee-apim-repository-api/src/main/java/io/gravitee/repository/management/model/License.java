@@ -42,12 +42,16 @@ public class License {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        License page = (License) o;
-        return Objects.equals(referenceId, page.referenceId) && Objects.equals(referenceType, page.referenceType);
+        License license1 = (License) o;
+        return (
+            Objects.equals(referenceId, license1.referenceId) &&
+            referenceType == license1.referenceType &&
+            Objects.equals(license, license1.license)
+        );
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(referenceId, referenceType);
+        return Objects.hash(referenceId, referenceType, license);
     }
 }
