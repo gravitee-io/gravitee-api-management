@@ -19,10 +19,12 @@ import io.gravitee.apim.core.license.crud_service.LicenseCrudService;
 import io.gravitee.apim.core.license.exception.LicenseNotFound;
 import io.gravitee.apim.core.license.model.License;
 import io.gravitee.apim.infra.adapter.LicenseAdapter;
+import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.LicenseRepository;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -58,11 +60,15 @@ public class LicenseCrudServiceImpl implements LicenseCrudService {
         try {
             log.debug("Create license for organization id: {}", organizationId);
 
+            var currentTime = TimeProvider.now();
+
             var organizationLicense = License
                 .builder()
                 .referenceType(License.ReferenceType.ORGANIZATION)
                 .referenceId(organizationId)
                 .license(license)
+                .createdAt(currentTime)
+                .updatedAt(currentTime)
                 .build();
             return LicenseAdapter.INSTANCE.toModel(
                 this.licenseRepository.create(LicenseAdapter.INSTANCE.toRepository(organizationLicense))
@@ -81,7 +87,9 @@ public class LicenseCrudServiceImpl implements LicenseCrudService {
                 this.licenseRepository.findById(organizationId, io.gravitee.repository.management.model.License.ReferenceType.ORGANIZATION);
             if (organizationLicense.isPresent()) {
                 return LicenseAdapter.INSTANCE.toModel(
-                    this.licenseRepository.update(organizationLicense.get().toBuilder().license(license).build())
+                    this.licenseRepository.update(
+                            organizationLicense.get().toBuilder().license(license).updatedAt(Date.from(TimeProvider.instantNow())).build()
+                        )
                 );
             } else {
                 throw new LicenseNotFound(License.ReferenceType.ORGANIZATION.name(), organizationId);
