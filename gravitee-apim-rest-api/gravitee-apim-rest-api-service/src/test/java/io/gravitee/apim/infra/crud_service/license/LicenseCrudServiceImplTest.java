@@ -21,18 +21,38 @@ import static org.mockito.Mockito.*;
 import io.gravitee.apim.core.license.crud_service.LicenseCrudService;
 import io.gravitee.apim.core.license.model.License;
 import io.gravitee.apim.infra.adapter.LicenseAdapter;
+import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.LicenseRepository;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.Optional;
 import lombok.SneakyThrows;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 class LicenseCrudServiceImplTest {
+
+    private static final Instant INSTANT_NOW = Instant.parse("2023-10-22T10:15:30Z");
 
     LicenseRepository licenseRepository;
 
     LicenseCrudService service;
+
+    @BeforeAll
+    static void beforeAll() {
+        TimeProvider.overrideClock(Clock.fixed(INSTANT_NOW, ZoneId.systemDefault()));
+    }
+
+    @AfterAll
+    static void afterAll() {
+        TimeProvider.overrideClock(Clock.systemDefaultZone());
+    }
 
     @BeforeEach
     void setUp() {
@@ -59,13 +79,20 @@ class LicenseCrudServiceImplTest {
     void should_create_license() throws TechnicalException {
         assertThat(service.getOrganizationLicense("new")).isEmpty();
         service.createOrganizationLicense("new", "new license");
-        verify(licenseRepository)
-            .create(
+
+        var captor = ArgumentCaptor.forClass(io.gravitee.repository.management.model.License.class);
+        verify(licenseRepository).create(captor.capture());
+
+        assertThat(captor.getValue())
+            .usingRecursiveComparison()
+            .isEqualTo(
                 io.gravitee.repository.management.model.License
                     .builder()
                     .referenceId("new")
                     .referenceType(io.gravitee.repository.management.model.License.ReferenceType.ORGANIZATION)
                     .license("new license")
+                    .createdAt(Date.from(INSTANT_NOW))
+                    .updatedAt(Date.from(INSTANT_NOW))
                     .build()
             );
     }
@@ -77,13 +104,19 @@ class LicenseCrudServiceImplTest {
 
         service.updateOrganizationLicense(license.getReferenceId(), "updated license");
 
-        verify(licenseRepository)
-            .update(
+        var captor = ArgumentCaptor.forClass(io.gravitee.repository.management.model.License.class);
+        verify(licenseRepository).update(captor.capture());
+
+        assertThat(captor.getValue())
+            .usingRecursiveComparison()
+            .isEqualTo(
                 io.gravitee.repository.management.model.License
                     .builder()
                     .referenceId(license.getReferenceId())
                     .referenceType(io.gravitee.repository.management.model.License.ReferenceType.ORGANIZATION)
                     .license("updated license")
+                    .createdAt(Date.from(INSTANT_NOW))
+                    .updatedAt(Date.from(INSTANT_NOW))
                     .build()
             );
     }
@@ -102,6 +135,8 @@ class LicenseCrudServiceImplTest {
             .referenceType(License.ReferenceType.ORGANIZATION)
             .referenceId("organization-id")
             .license("fakeLicenseFileAsBase64")
+            .createdAt(TimeProvider.now())
+            .updatedAt(TimeProvider.now())
             .build();
     }
 }
