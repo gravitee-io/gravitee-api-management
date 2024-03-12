@@ -44,6 +44,7 @@ public class FlowModelFixtures {
 
     private static final Flow.FlowBuilder BASE_MODEL_FLOW_V4 = Flow
         .builder()
+        .id("4d04f454-c116-4125-84bf-248c3755574a")
         .name("Flow")
         .enabled(true)
         .selectors(List.of(BASE_MODEL_CHANNEL_SELECTOR_V4.build()))

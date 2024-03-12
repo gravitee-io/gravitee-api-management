@@ -47,6 +47,7 @@ public class FlowMapper {
             throw new IllegalArgumentException("Flow to map cannot be null");
         }
         Flow definitionFlow = new Flow();
+        definitionFlow.setId(repositoryFlow.getId());
         definitionFlow.setName(repositoryFlow.getName());
         definitionFlow.setEnabled(repositoryFlow.isEnabled());
         definitionFlow.setRequest(repositoryFlow.getRequest().stream().map(this::toDefinition).collect(Collectors.toList()));
@@ -95,6 +96,23 @@ public class FlowMapper {
         repositoryFlow.setTags(definitionFlow.getTags() != null ? definitionFlow.getTags() : Set.of());
 
         return repositoryFlow;
+    }
+
+    public io.gravitee.repository.management.model.flow.Flow toRepositoryUpdate(
+        io.gravitee.repository.management.model.flow.Flow dbFlow,
+        Flow flowDefinition,
+        int order
+    ) {
+        io.gravitee.repository.management.model.flow.Flow flow = toRepository(
+            flowDefinition,
+            dbFlow.getReferenceType(),
+            dbFlow.getReferenceId(),
+            order
+        );
+        flow.setId(dbFlow.getId());
+        flow.setCreatedAt(dbFlow.getCreatedAt());
+        flow.setUpdatedAt(new Date());
+        return flow;
     }
 
     private FlowStep toRepository(final Step definitionStep) {

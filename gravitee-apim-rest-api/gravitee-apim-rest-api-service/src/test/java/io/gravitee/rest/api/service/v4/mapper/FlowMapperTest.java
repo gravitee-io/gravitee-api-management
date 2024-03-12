@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.v4.mapper;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.flow.Flow;
@@ -98,6 +99,50 @@ public class FlowMapperTest {
         assertFalse(model.getTags().isEmpty());
         assertEquals(FlowReferenceType.ORGANIZATION, model.getReferenceType());
         assertEquals("DEFAULT", model.getReferenceId());
+
+        assertEquals(POLICY_CONDITION, model.getPublish().get(0).getCondition());
+        assertEquals(MESSAGE_LEVEL_CONDITION, model.getPublish().get(0).getMessageCondition());
+        assertEquals(POLICY_CONDITION, model.getSubscribe().get(0).getCondition());
+        assertEquals(MESSAGE_LEVEL_CONDITION, model.getSubscribe().get(0).getMessageCondition());
+    }
+
+    @Test
+    public void toRepositoryUpdateShouldUpdateExistingFlow() {
+        Flow flowDefinition = new Flow();
+        flowDefinition.setName("platform");
+        flowDefinition.setSelectors(selectors());
+        flowDefinition.setTags(tags());
+        flowDefinition.setEnabled(true);
+        flowDefinition.setRequest(request());
+        flowDefinition.setResponse(response());
+        flowDefinition.setSubscribe(request());
+        flowDefinition.setPublish(response());
+        var dbFlow = flowMapper.toRepository(flowDefinition, FlowReferenceType.ORGANIZATION, "DEFAULT", 0);
+
+        Flow updatedFlowDefinition = new Flow();
+        updatedFlowDefinition.setName("updated-platform");
+        updatedFlowDefinition.setSelectors(selectors());
+        updatedFlowDefinition.setTags(null);
+        updatedFlowDefinition.setEnabled(false);
+        updatedFlowDefinition.setRequest(request());
+        updatedFlowDefinition.setResponse(response());
+        updatedFlowDefinition.setSubscribe(request());
+        updatedFlowDefinition.setPublish(response());
+        var model = flowMapper.toRepositoryUpdate(dbFlow, updatedFlowDefinition, 1);
+
+        assertNotNull(model.getId());
+        assertNotNull(model.getCreatedAt());
+        assertNotNull(model.getUpdatedAt());
+        assertFalse(model.isEnabled());
+        assertFalse(model.getResponse().isEmpty());
+        assertFalse(model.getRequest().isEmpty());
+        assertFalse(model.getSubscribe().isEmpty());
+        assertFalse(model.getPublish().isEmpty());
+        assertTrue(model.getTags().isEmpty());
+        assertEquals(FlowReferenceType.ORGANIZATION, model.getReferenceType());
+        assertEquals("DEFAULT", model.getReferenceId());
+        assertEquals(1, model.getOrder());
+        assertEquals(dbFlow.getId(), model.getId());
 
         assertEquals(POLICY_CONDITION, model.getPublish().get(0).getCondition());
         assertEquals(MESSAGE_LEVEL_CONDITION, model.getPublish().get(0).getMessageCondition());

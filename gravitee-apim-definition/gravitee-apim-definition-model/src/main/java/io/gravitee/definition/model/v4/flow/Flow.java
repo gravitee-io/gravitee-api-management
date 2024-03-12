@@ -43,6 +43,8 @@ import lombok.*;
 @With
 public class Flow implements Serializable {
 
+    private String id;
+
     private String name;
 
     @Builder.Default
