@@ -1,0 +1,63 @@
+{
+  "ignore": [
+    "*",
+    "**/.*",
+    "**/dist/**",
+    "**/node_modules/**",
+    "**/storybook-static/**",
+    "**/.*/**",
+    "**/*.mdx",
+    "**/*.md",
+    "**/.DS_Store",
+    "**/Thumbs.db",
+    "**/*.adoc",
+    "**/*.svg",
+    "**/*.spec.ts.snap",
+    "**/*.woff",
+    "**/*.ttf",
+    "**/*.woff2",
+    "**/*.eot",
+    "**/*.generated.*",
+    ".*",
+    ".*/**",
+    ".tmp/**",
+    ".vscode/**",
+    "LICENSE.txt",
+    "yarn.lock",
+    ".gitignore",
+    ".prettierignore"
+  ],
+  "license": "LICENSE_TEMPLATE.txt",
+  "licenseFormats": {
+    "js|ts|scss|less|php|as|c|java|cpp|go|cto|acl": {
+      "prepend": "/*",
+      "append": " */",
+      "eachLine": {
+        "prepend": " * "
+      }
+    },
+    "css": {
+      "prepend": "/**",
+      "append": " */",
+      "eachLine": {
+        "prepend": " * "
+      }
+    },
+    "html": {
+      "prepend": "<!--\n",
+      "append": "\n-->",
+      "eachLine": {
+        "prepend": "    "
+      }
+    },
+    "txt": {}
+  },
+  "defaultFormat": {
+    "prepend": "/*",
+    "append": " */",
+    "eachLine": {
+      "prepend": " * "
+    }
+  },
+  "regexIdentifier": "###"
+}
