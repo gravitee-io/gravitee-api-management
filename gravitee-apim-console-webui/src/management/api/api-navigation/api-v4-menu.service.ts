@@ -142,7 +142,7 @@ export class ApiV4MenuService implements ApiMenuService {
 
     if (!hasTcpListeners) {
       tabs.push({
-        displayName: 'Cors',
+        displayName: 'CORS',
         routerLink: 'v4/cors',
       });
     }

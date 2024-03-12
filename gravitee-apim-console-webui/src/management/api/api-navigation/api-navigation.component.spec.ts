@@ -210,7 +210,7 @@ describe('ApiNavigationComponent', () => {
             'Audit Logs',
             'Entrypoints',
             'Response Templates',
-            'Cors',
+            'CORS',
             'Endpoints',
             'Endpoints',
             'Consumers',
