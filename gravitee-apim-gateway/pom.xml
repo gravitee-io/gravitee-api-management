@@ -62,16 +62,13 @@
                 <artifactId>gravitee-apim-repository-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>io.gravitee.apim.common</groupId>
+                <artifactId>gravitee-apim-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
-
-    <dependencies>
-        <dependency>
-            <groupId>io.gravitee.apim.common</groupId>
-            <artifactId>gravitee-apim-common</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-    </dependencies>
 
     <build>
         <pluginManagement>
