@@ -22,6 +22,7 @@ import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.repository.mongodb.management.internal.flow.FlowMongoRepository;
 import io.gravitee.repository.mongodb.management.internal.model.FlowMongo;
 import io.gravitee.repository.mongodb.management.mapper.GraviteeMapper;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -95,6 +96,13 @@ public class MongoFlowRepository implements FlowRepository {
     @Override
     public void deleteByReference(FlowReferenceType referenceType, String referenceId) {
         internalRepository.deleteAll(internalRepository.findAll(referenceType.name(), referenceId));
+    }
+
+    @Override
+    public void deleteAllById(Collection<String> ids) {
+        logger.debug("Delete flows [{}]", ids);
+        internalRepository.deleteAllById(ids);
+        logger.debug("Delete flows [{}] - Done", ids);
     }
 
     @Override

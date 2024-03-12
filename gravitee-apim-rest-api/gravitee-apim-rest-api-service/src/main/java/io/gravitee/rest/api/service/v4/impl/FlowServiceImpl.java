@@ -41,6 +41,10 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -139,19 +143,38 @@ public class FlowServiceImpl extends TransactionalService implements FlowService
     public List<Flow> save(final FlowReferenceType flowReferenceType, final String referenceId, final List<Flow> flows) {
         try {
             log.debug("Save flows for reference {},{}", flowReferenceType, flowReferenceType);
-            flowRepository.deleteByReference(flowReferenceType, referenceId);
-            if (flows == null) {
+            if (flows == null || flows.isEmpty()) {
+                flowRepository.deleteByReference(flowReferenceType, referenceId);
                 return List.of();
-            } else {
-                List<Flow> createdFlows = new ArrayList<>();
-                for (int order = 0; order < flows.size(); ++order) {
-                    io.gravitee.repository.management.model.flow.Flow createdFlow = flowRepository.create(
-                        flowMapper.toRepository(flows.get(order), flowReferenceType, referenceId, order)
-                    );
-                    createdFlows.add(flowMapper.toDefinition(createdFlow));
-                }
-                return createdFlows;
             }
+            Map<String, io.gravitee.repository.management.model.flow.Flow> dbFlowsById = flowRepository
+                .findByReference(flowReferenceType, referenceId)
+                .stream()
+                .collect(Collectors.toMap(io.gravitee.repository.management.model.flow.Flow::getId, Function.identity()));
+
+            Set<String> flowIdsToSave = flows.stream().map(Flow::getId).filter(Objects::nonNull).collect(Collectors.toSet());
+
+            Set<String> flowIdsToDelete = dbFlowsById
+                .keySet()
+                .stream()
+                .filter(Predicate.not(flowIdsToSave::contains))
+                .collect(Collectors.toSet());
+            if (!flowIdsToDelete.isEmpty()) {
+                flowRepository.deleteAllById(flowIdsToDelete);
+            }
+
+            List<Flow> savedFlows = new ArrayList<>();
+            io.gravitee.repository.management.model.flow.Flow dbFlow;
+            for (int order = 0; order < flows.size(); ++order) {
+                Flow flow = flows.get(order);
+                if (flow.getId() == null || !dbFlowsById.containsKey(flow.getId())) {
+                    dbFlow = flowRepository.create(flowMapper.toRepository(flow, flowReferenceType, referenceId, order));
+                } else {
+                    dbFlow = flowRepository.update(flowMapper.toRepositoryUpdate(dbFlowsById.get(flow.getId()), flow, order));
+                }
+                savedFlows.add(flowMapper.toDefinition(dbFlow));
+            }
+            return savedFlows;
         } catch (TechnicalException ex) {
             final String error = "An error occurs while save flows";
             log.error(error, ex);
