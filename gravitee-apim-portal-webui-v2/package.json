@@ -13,8 +13,10 @@
     "lint:eslint:fix": "ng lint --max-warnings=0 --fix",
     "lint:prettier": "prettier --check \"**/*.{js,ts,json,html,scss}\"",
     "lint:prettier:fix": "prettier --write \"**/*.{js,ts,json,html,scss}\"",
-    "lint": "yarn lint:eslint && yarn lint:prettier",
-    "lint:fix": "yarn lint:eslint:fix && yarn lint:prettier:fix"
+    "lint:styles": "stylelint \"**/*.scss\"",
+    "lint:styles:fix": "yarn lint:styles --fix",
+    "lint": "yarn lint:eslint && yarn lint:prettier && yarn lint:styles",
+    "lint:fix": "yarn lint:eslint:fix && yarn lint:prettier:fix && yarn lint:styles:fix"
   },
   "private": true,
   "dependencies": {
@@ -50,6 +52,11 @@
     "jest-preset-angular": "^14.0.3",
     "prettier": "^3.2.5",
     "prettier-eslint": "^16.3.0",
+    "stylelint": "^16.2.1",
+    "stylelint-config-idiomatic-order": "^10.0.0",
+    "stylelint-config-prettier-scss": "^1.0.0",
+    "stylelint-config-standard-scss": "^13.0.0",
+    "stylelint-order": "^6.0.4",
     "typescript": "~5.3.2"
   }
 }
