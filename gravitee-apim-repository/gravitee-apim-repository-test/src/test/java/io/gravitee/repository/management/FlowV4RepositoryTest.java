@@ -31,6 +31,7 @@ import io.gravitee.repository.management.model.flow.selector.FlowOperator;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.junit.Test;
 
 /**
@@ -243,6 +244,17 @@ public class FlowV4RepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(2, flowRepository.findByReference(FlowReferenceType.ORGANIZATION, "orga-v4-deleted").size());
 
         flowRepository.deleteByReference(FlowReferenceType.ORGANIZATION, "orga-v4-deleted");
+
+        assertEquals(0, flowRepository.findByReference(FlowReferenceType.ORGANIZATION, "orga-v4-deleted").size());
+    }
+
+    @Test
+    public void shouldDeleteByIds() throws TechnicalException {
+        List<Flow> flows = flowRepository.findByReference(FlowReferenceType.ORGANIZATION, "orga-v4-deleted");
+        assertEquals(2, flows.size());
+        Set<String> ids = flows.stream().map(Flow::getId).collect(Collectors.toSet());
+
+        flowRepository.deleteAllById(ids);
 
         assertEquals(0, flowRepository.findByReference(FlowReferenceType.ORGANIZATION, "orga-v4-deleted").size());
     }
