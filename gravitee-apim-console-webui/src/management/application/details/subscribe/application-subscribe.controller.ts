@@ -121,7 +121,10 @@ class ApplicationSubscribeController {
 
     this.ApplicationService.subscribe(this.application.id, plan.id, message, apikeyMode).then(() => {
       this.NotificationService.show('Subscription to application ' + this.application.name + ' has been successfully created');
-      this.$state.reload();
+      this.$state.transitionTo('management.applications.application.subscriptions.list', {
+        applicationId: this.application.id,
+        ...this.$state.params,
+      });
     });
   }
 
