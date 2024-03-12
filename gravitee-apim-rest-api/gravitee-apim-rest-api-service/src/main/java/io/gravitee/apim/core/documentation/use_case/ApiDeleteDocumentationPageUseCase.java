@@ -15,13 +15,13 @@
  */
 package io.gravitee.apim.core.documentation.use_case;
 
-import io.gravitee.apim.core.TransactionalUseCase;
+import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.domain_service.DeleteApiDocumentationDomainService;
 
-@TransactionalUseCase
+@UseCase
 public class ApiDeleteDocumentationPageUseCase {
 
     private final DeleteApiDocumentationDomainService deleteApiDocumentationDomainService;

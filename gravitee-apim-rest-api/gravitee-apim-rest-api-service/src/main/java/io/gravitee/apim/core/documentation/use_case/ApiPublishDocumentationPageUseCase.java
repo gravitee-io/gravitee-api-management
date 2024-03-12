@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.core.documentation.use_case;
 
-import io.gravitee.apim.core.TransactionalUseCase;
+import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
@@ -26,7 +26,7 @@ import io.gravitee.apim.core.exception.ValidationDomainException;
 import java.util.Date;
 import java.util.Map;
 
-@TransactionalUseCase
+@UseCase
 public class ApiPublishDocumentationPageUseCase {
 
     private final ApiDocumentationDomainService apiDocumentationDomainService;

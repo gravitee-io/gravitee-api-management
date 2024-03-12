@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.core.subscription.use_case;
 
-import io.gravitee.apim.core.TransactionalUseCase;
+import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiFieldFilter;
 import io.gravitee.apim.core.api.model.ApiSearchCriteria;
@@ -29,7 +29,7 @@ import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService
 import java.util.List;
 import java.util.stream.Collectors;
 
-@TransactionalUseCase
+@UseCase
 public class CloseExpiredSubscriptionsUseCase {
 
     private final SubscriptionQueryService subscriptionQueryService;
