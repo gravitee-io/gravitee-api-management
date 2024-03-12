@@ -17,7 +17,7 @@ package io.gravitee.apim.core.api.use_case;
 
 import static java.util.stream.Collectors.toMap;
 
-import io.gravitee.apim.core.TransactionalUseCase;
+import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
@@ -49,7 +49,7 @@ import java.util.stream.Collectors;
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-@TransactionalUseCase
+@UseCase
 public class ImportCRDUseCase {
 
     private final ApiQueryService apiQueryService;

@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.core.subscription.use_case;
 
-import io.gravitee.apim.core.TransactionalUseCase;
+import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
@@ -23,7 +23,7 @@ import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 import lombok.Builder;
 
-@TransactionalUseCase
+@UseCase
 public class CloseSubscriptionUseCase {
 
     private final SubscriptionCrudService subscriptionCrudService;

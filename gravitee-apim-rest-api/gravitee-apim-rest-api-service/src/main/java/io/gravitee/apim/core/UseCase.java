@@ -15,10 +15,12 @@
  */
 package io.gravitee.apim.core;
 
+import io.gravitee.rest.api.service.exceptions.AbstractManagementException;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * This annotation is used to mark a class as a Use Case.
@@ -34,6 +36,12 @@ import java.lang.annotation.Target;
  *        <li>Other rules are enforced by ArchUnit {@link architecture.UseCaseRulesTest}</li>
  *      <ul>
  * </p>
+ * <p>
+ *      ⚠️ This annotation relies on Spring annotation which is an exception to the rule of not using Framework in core.
+ * </p>
+ * <p>
+ *      ⚠️ Transactions only supported when using JDBC repositories.
+ * </p>
  *
  * @see <a href="https://gravitee.slab.com/posts/%E2%9A%92%EF%B8%8F-better-software-architecture-of-the-management-api-yxtcvazk">https://gravitee.slab.com/posts/%E2%9A%92%EF%B8%8F-better-software-architecture-of-the-management-api-yxtcvazk</a>
  * @see <a href="https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html">https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html</a>
@@ -41,5 +49,6 @@ import java.lang.annotation.Target;
  */
 @Target({ ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)
+@Transactional(value = "graviteeTransactionManager", noRollbackFor = AbstractManagementException.class)
 public @interface UseCase {
 }

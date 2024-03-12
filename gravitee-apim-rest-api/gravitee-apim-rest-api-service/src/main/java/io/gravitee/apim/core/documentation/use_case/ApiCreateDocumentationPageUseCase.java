@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.core.documentation.use_case;
 
-import io.gravitee.apim.core.TransactionalUseCase;
+import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.domain_service.ApiDocumentationDomainService;
@@ -33,7 +33,7 @@ import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-@TransactionalUseCase
+@UseCase
 public class ApiCreateDocumentationPageUseCase {
 
     private final CreateApiDocumentationDomainService createApiDocumentationDomainService;

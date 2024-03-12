@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.core.api_key.use_case;
 
-import io.gravitee.apim.core.TransactionalUseCase;
+import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api_key.domain_service.RevokeApiKeyDomainService;
 import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
 import io.gravitee.apim.core.api_key.query_service.ApiKeyQueryService;
@@ -30,7 +30,7 @@ import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 /**
  * Revoke an API Key of an API's subscription.
  */
-@TransactionalUseCase
+@UseCase
 public class RevokeApplicationSubscriptionApiKeyUseCase {
 
     private final SubscriptionCrudService subscriptionCrudService;

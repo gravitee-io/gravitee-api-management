@@ -15,7 +15,7 @@
  */
 package io.gravitee.apim.core.api.use_case;
 
-import io.gravitee.apim.core.TransactionalUseCase;
+import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.model.ApiWithFlows;
@@ -24,7 +24,7 @@ import io.gravitee.apim.core.api.model.factory.ApiModelFactory;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
 
-@TransactionalUseCase
+@UseCase
 public class CreateV4ApiUseCase {
 
     private final ValidateApiDomainService validateApiDomainService;
