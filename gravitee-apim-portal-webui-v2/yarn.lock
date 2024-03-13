@@ -288,6 +288,16 @@
   dependencies:
     tslib "^2.3.0"
 
+"@angular/localize@~17.2.4":
+  version "17.2.4"
+  resolved "https://registry.yarnpkg.com/@angular/localize/-/localize-17.2.4.tgz#adb03882d1dc0d1bf54c3c04d5be9bc4ddd511a3"
+  integrity sha512-l6qZzP7f0fH6bCufyrhlUD6n7ggfTEaerIZW/jw0mnXFqVsHVfXX2jWHKljaZJWT3vhDp312i8xAukoAPM0uSQ==
+  dependencies:
+    "@babel/core" "7.23.9"
+    "@types/babel__core" "7.20.5"
+    fast-glob "3.3.2"
+    yargs "^17.2.1"
+
 "@angular/platform-browser-dynamic@^17.2.0":
   version "17.2.4"
   resolved "https://registry.yarnpkg.com/@angular/platform-browser-dynamic/-/platform-browser-dynamic-17.2.4.tgz#c28d405c812d39ce885a4cd65909457741ac062d"
@@ -2396,7 +2406,7 @@
     "@tufjs/canonical-json" "2.0.0"
     minimatch "^9.0.3"
 
-"@types/babel__core@^7.1.14":
+"@types/babel__core@7.20.5", "@types/babel__core@^7.1.14":
   version "7.20.5"
   resolved "https://registry.yarnpkg.com/@types/babel__core/-/babel__core-7.20.5.tgz#3df15f27ba85319caa07ba08d0721889bb39c017"
   integrity sha512-qoQprZvz5wQFJwMDqeseRXWv3rqMvhgpbXFfVyWhbx9X47POIA6i/+dXefEmZKoAgOaTdaIgNSMqMIU61yRyzA==

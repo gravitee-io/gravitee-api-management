@@ -1,3 +1,5 @@
+/// <reference types="@angular/localize" />
+
 /*
  * Copyright (C) 2024 The Gravitee team (http://gravitee.io)
  *
