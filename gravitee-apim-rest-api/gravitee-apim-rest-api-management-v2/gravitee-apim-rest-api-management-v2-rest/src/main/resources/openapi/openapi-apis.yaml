@@ -2802,6 +2802,10 @@ components:
         FlowV4:
             type: object
             properties:
+                id:
+                    type: string
+                    description: Flow's uuid.
+                    example: 4e6abbd2-c0c6-462d-be9e-6371209af34b
                 name:
                     type: string
                     description: Flow's name.

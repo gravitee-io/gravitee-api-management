@@ -25,6 +25,7 @@ import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_UPDAT
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -146,6 +147,9 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
     private FlowService flowService;
 
     @Autowired
+    private FlowCrudService flowCrudService;
+
+    @Autowired
     private TagsValidationService tagsValidationService;
 
     @Autowired
@@ -202,7 +206,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             Plan plan = planMapper.toRepository(newPlan);
             plan = planRepository.create(plan);
 
-            flowService.save(FlowReferenceType.PLAN, plan.getId(), newPlan.getFlows());
+            flowCrudService.savePlanFlows(plan.getId(), newPlan.getFlows());
 
             auditService.createApiAuditLog(
                 executionContext,
@@ -350,7 +354,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             } else {
                 PlanEntity oldPlanEntity = mapToEntity(oldPlan);
 
-                flowService.save(FlowReferenceType.PLAN, updatePlan.getId(), updatePlan.getFlows());
+                flowCrudService.savePlanFlows(updatePlan.getId(), updatePlan.getFlows());
                 PlanEntity newPlanEntity = mapToEntity(newPlan);
 
                 if (
@@ -497,7 +501,7 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             }
 
             // Delete plan and his flows
-            flowService.save(FlowReferenceType.PLAN, planId, null);
+            flowCrudService.savePlanFlows(planId, null);
             planRepository.delete(planId);
 
             // Audit

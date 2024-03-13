@@ -22,6 +22,7 @@ import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.repository.management.api.ApiQualityRuleRepository;
@@ -135,6 +136,9 @@ public class ApiServiceImpl_findAllTest {
     private FlowService flowService;
 
     @Mock
+    private FlowCrudService flowCrudService;
+
+    @Mock
     private PortalNotificationConfigService portalNotificationConfigService;
 
     @Mock
@@ -209,7 +213,7 @@ public class ApiServiceImpl_findAllTest {
                 membershipService,
                 genericNotificationConfigService,
                 apiMetadataService,
-                flowService,
+                flowCrudService,
                 searchEngineService,
                 planService,
                 planSearchService,

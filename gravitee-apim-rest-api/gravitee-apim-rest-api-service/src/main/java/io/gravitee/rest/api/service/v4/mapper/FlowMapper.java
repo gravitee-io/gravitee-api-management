@@ -47,6 +47,7 @@ public class FlowMapper {
             throw new IllegalArgumentException("Flow to map cannot be null");
         }
         Flow definitionFlow = new Flow();
+        definitionFlow.setId(repositoryFlow.getId());
         definitionFlow.setName(repositoryFlow.getName());
         definitionFlow.setEnabled(repositoryFlow.isEnabled());
         definitionFlow.setRequest(repositoryFlow.getRequest().stream().map(this::toDefinition).collect(Collectors.toList()));

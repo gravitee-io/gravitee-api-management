@@ -36,7 +36,6 @@ import io.gravitee.rest.api.service.v4.FlowService;
 import io.gravitee.rest.api.service.v4.mapper.FlowMapper;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -130,30 +129,6 @@ public class FlowServiceImpl extends TransactionalService implements FlowService
                 .collect(Collectors.toList());
         } catch (TechnicalException ex) {
             final String error = "An error occurs while find flows by reference";
-            log.error(error, ex);
-            throw new TechnicalManagementException(error, ex);
-        }
-    }
-
-    @Override
-    public List<Flow> save(final FlowReferenceType flowReferenceType, final String referenceId, final List<Flow> flows) {
-        try {
-            log.debug("Save flows for reference {},{}", flowReferenceType, flowReferenceType);
-            flowRepository.deleteByReference(flowReferenceType, referenceId);
-            if (flows == null) {
-                return List.of();
-            } else {
-                List<Flow> createdFlows = new ArrayList<>();
-                for (int order = 0; order < flows.size(); ++order) {
-                    io.gravitee.repository.management.model.flow.Flow createdFlow = flowRepository.create(
-                        flowMapper.toRepository(flows.get(order), flowReferenceType, referenceId, order)
-                    );
-                    createdFlows.add(flowMapper.toDefinition(createdFlow));
-                }
-                return createdFlows;
-            }
-        } catch (TechnicalException ex) {
-            final String error = "An error occurs while save flows";
             log.error(error, ex);
             throw new TechnicalManagementException(error, ex);
         }
