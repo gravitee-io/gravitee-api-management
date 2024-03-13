@@ -25,6 +25,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
+import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.v4.analytics.logging.Logging;
@@ -41,7 +42,6 @@ import io.gravitee.repository.management.model.GroupEvent;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.NotificationReferenceType;
 import io.gravitee.repository.management.model.Visibility;
-import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.GroupEntity;
 import io.gravitee.rest.api.model.MembershipMemberType;
@@ -97,7 +97,6 @@ import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.ApiAuthorizationService;
 import io.gravitee.rest.api.service.v4.ApiNotificationService;
 import io.gravitee.rest.api.service.v4.ApiService;
-import io.gravitee.rest.api.service.v4.FlowService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
@@ -142,7 +141,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     private final MembershipService membershipService;
     private final GenericNotificationConfigService genericNotificationConfigService;
     private final ApiMetadataService apiMetadataService;
-    private final FlowService flowService;
+    private final FlowCrudService flowCrudService;
     private final SearchEngineService searchEngineService;
     private final PlanService planService;
     private final PlanSearchService planSearchService;
@@ -174,7 +173,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         final MembershipService membershipService,
         final GenericNotificationConfigService genericNotificationConfigService,
         @Lazy final ApiMetadataService apiMetadataService,
-        final FlowService flowService,
+        final FlowCrudService flowCrudService,
         @Lazy final SearchEngineService searchEngineService,
         final PlanService planService,
         final PlanSearchService planSearchService,
@@ -203,7 +202,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         this.membershipService = membershipService;
         this.genericNotificationConfigService = genericNotificationConfigService;
         this.apiMetadataService = apiMetadataService;
-        this.flowService = flowService;
+        this.flowCrudService = flowCrudService;
         this.searchEngineService = searchEngineService;
         this.planService = planService;
         this.planSearchService = planSearchService;
@@ -315,7 +314,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         createDefaultSupportEmailMetadata(executionContext, createdApi);
 
         // create the API flows
-        flowService.save(FlowReferenceType.API, createdApi.getId(), apiEntity.getFlows());
+        flowCrudService.saveApiFlows(createdApi.getId(), apiEntity.getFlows());
 
         ApiEntity createdApiEntity = apiMapper.toEntity(executionContext, createdApi, primaryOwner, null, true);
         GenericApiEntity apiWithMetadata = apiMetadataService.fetchMetadataForApi(executionContext, createdApiEntity);
@@ -473,7 +472,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             Api updatedApi = apiRepository.update(api);
 
             // update API flows
-            flowService.save(FlowReferenceType.API, api.getId(), updateApiEntity.getFlows());
+            flowCrudService.saveApiFlows(api.getId(), updateApiEntity.getFlows());
 
             // update API plans
             updateApiEntity
@@ -565,7 +564,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             plans.forEach(plan -> planService.delete(executionContext, plan.getId()));
 
             // Delete flows
-            flowService.save(FlowReferenceType.API, apiId, null);
+            flowCrudService.saveApiFlows(apiId, null);
 
             // Delete events
             eventService.deleteApiEvents(apiId);

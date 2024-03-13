@@ -49,6 +49,7 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionContext;
@@ -241,6 +242,9 @@ public class ApiServiceImplTest {
     private TopApiService topApiService;
 
     @Mock
+    private FlowCrudService flowCrudService;
+
+    @Mock
     private FlowService flowService;
 
     @Mock
@@ -325,7 +329,7 @@ public class ApiServiceImplTest {
                 membershipService,
                 genericNotificationConfigService,
                 apiMetadataService,
-                flowService,
+                flowCrudService,
                 searchEngineService,
                 planService,
                 planSearchService,
@@ -421,7 +425,7 @@ public class ApiServiceImplTest {
         verify(membershipService, times(1)).deleteReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
         verify(mediaService, times(1)).deleteAllByApi(API_ID);
         verify(apiMetadataService, times(1)).deleteAllByApi(eq(GraviteeContext.getExecutionContext()), eq(API_ID));
-        verify(flowService, times(1)).save(FlowReferenceType.API, API_ID, null);
+        verify(flowCrudService, times(1)).saveApiFlows(API_ID, null);
     }
 
     @Test(expected = ApiNotDeletableException.class)
@@ -456,7 +460,7 @@ public class ApiServiceImplTest {
 
         verify(planService, times(1)).delete(GraviteeContext.getExecutionContext(), PLAN_ID);
         verify(membershipService, times(1)).deleteReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
-        verify(flowService, times(1)).save(FlowReferenceType.API, API_ID, null);
+        verify(flowCrudService, times(1)).saveApiFlows(API_ID, null);
     }
 
     @Test
@@ -478,7 +482,7 @@ public class ApiServiceImplTest {
         verify(membershipService, times(1)).deleteReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
         verify(mediaService, times(1)).deleteAllByApi(API_ID);
         verify(apiMetadataService, times(1)).deleteAllByApi(eq(GraviteeContext.getExecutionContext()), eq(API_ID));
-        verify(flowService, times(1)).save(FlowReferenceType.API, API_ID, null);
+        verify(flowCrudService, times(1)).saveApiFlows(API_ID, null);
     }
 
     @Test
@@ -500,7 +504,7 @@ public class ApiServiceImplTest {
         verify(membershipService, times(1)).deleteReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
         verify(mediaService, times(1)).deleteAllByApi(API_ID);
         verify(apiMetadataService, times(1)).deleteAllByApi(eq(GraviteeContext.getExecutionContext()), eq(API_ID));
-        verify(flowService, times(1)).save(FlowReferenceType.API, API_ID, null);
+        verify(flowCrudService, times(1)).saveApiFlows(API_ID, null);
     }
 
     @Test
@@ -620,7 +624,7 @@ public class ApiServiceImplTest {
                     newApiMetadataEntity.getName().equals(DefaultMetadataInitializer.METADATA_EMAIL_SUPPORT_KEY)
                 )
             );
-        verify(flowService).save(FlowReferenceType.API, API_ID, apiEntity.getFlows());
+        verify(flowCrudService).saveApiFlows(API_ID, apiEntity.getFlows());
         verify(apiMetadataService).fetchMetadataForApi(eq(executionContext), any(ApiEntity.class));
         verify(searchEngineService).index(eq(executionContext), any(GenericApiEntity.class), eq(false));
     }
@@ -678,7 +682,7 @@ public class ApiServiceImplTest {
 
         apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, USER_NAME);
 
-        verify(flowService, times(1)).save(FlowReferenceType.API, API_ID, apiFlows);
+        verify(flowCrudService, times(1)).saveApiFlows(API_ID, apiFlows);
     }
 
     @Test(expected = ApiNotFoundException.class)

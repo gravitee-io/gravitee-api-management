@@ -19,6 +19,7 @@ import io.gravitee.definition.model.v4.flow.Flow;
 import java.util.List;
 
 public interface FlowCrudService {
-    List<Flow> saveApiFlows(String apiId, List<Flow> flows);
     List<Flow> savePlanFlows(String planId, List<Flow> flows);
+
+    List<Flow> saveApiFlows(String apiId, List<Flow> flows);
 }
