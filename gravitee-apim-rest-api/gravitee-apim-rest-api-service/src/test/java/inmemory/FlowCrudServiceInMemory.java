@@ -30,14 +30,14 @@ public class FlowCrudServiceInMemory implements FlowCrudService, InMemoryAlterna
     final Map<String, List<Flow>> planFlows = new HashMap<>();
 
     @Override
-    public List<Flow> saveApiFlows(String apiId, List<Flow> flows) {
-        apiFlows.put(apiId, flows);
+    public List<Flow> savePlanFlows(String planId, List<Flow> flows) {
+        planFlows.put(planId, flows);
         return flows;
     }
 
     @Override
-    public List<Flow> savePlanFlows(String planId, List<Flow> flows) {
-        planFlows.put(planId, flows);
+    public List<Flow> saveApiFlows(String apiId, List<Flow> flows) {
+        planFlows.put(apiId, flows);
         return flows;
     }
 
