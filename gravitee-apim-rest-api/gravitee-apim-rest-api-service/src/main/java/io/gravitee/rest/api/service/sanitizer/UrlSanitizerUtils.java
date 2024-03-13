@@ -31,6 +31,7 @@ import java.util.List;
 public class UrlSanitizerUtils {
 
     public static void checkAllowed(String url, List<String> whitelist, boolean allowPrivate) {
+        checkUrlForbiddenCharacters(url);
         checkUriSyntax(url);
         if (whitelist != null && !whitelist.isEmpty()) {
             if (
@@ -70,6 +71,17 @@ public class UrlSanitizerUtils {
         try {
             new URI(url);
         } catch (Exception e) {
+            throw new UrlForbiddenException();
+        }
+    }
+
+    /**
+     * Check if url contains characters that may be used to enforce HTTP header injection attack
+     */
+    public static void checkUrlForbiddenCharacters(String url) {
+        String urlEncodedCarriageReturn = "%0D";
+        String urlEncodedLineFeed = "%0A";
+        if (url.contains(urlEncodedCarriageReturn) || url.contains(urlEncodedLineFeed)) {
             throw new UrlForbiddenException();
         }
     }
