@@ -20,4 +20,6 @@ import java.util.List;
 
 public interface FlowCrudService {
     List<Flow> savePlanFlows(String planId, List<Flow> flows);
+
+    List<Flow> saveApiFlows(String apiId, List<Flow> flows);
 }

@@ -20,13 +20,13 @@ import static io.gravitee.repository.management.model.Plan.AuditEvent.PLAN_CREAT
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Plan;
-import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.model.v4.plan.NewPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanMode;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
@@ -100,6 +100,9 @@ public class PlanService_CreateTest {
 
     @Mock
     private FlowService flowService;
+
+    @Mock
+    private FlowCrudService flowCrudService;
 
     @Mock
     private TagsValidationService tagsValidationService;
@@ -188,7 +191,7 @@ public class PlanService_CreateTest {
 
         planService.create(GraviteeContext.getExecutionContext(), this.newPlanEntity);
 
-        verify(flowService, times(1)).save(FlowReferenceType.PLAN, newPlanEntity.getId(), newPlanEntity.getFlows());
+        verify(flowCrudService, times(1)).savePlanFlows(newPlanEntity.getId(), newPlanEntity.getFlows());
         verify(flowValidationService, times(1)).validateAndSanitize(api.getType(), List.of());
         verify(pathParametersValidationService, times(1)).validate(any(), any(), any());
     }

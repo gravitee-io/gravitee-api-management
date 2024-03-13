@@ -34,6 +34,12 @@ public class FlowCrudServiceInMemory implements FlowCrudService, InMemoryAlterna
     }
 
     @Override
+    public List<Flow> saveApiFlows(String apiId, List<Flow> flows) {
+        planFlows.put(apiId, flows);
+        return flows;
+    }
+
+    @Override
     public void initWith(List<Flow> items) {
         throw new UnsupportedOperationException();
     }

@@ -29,6 +29,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -124,6 +125,9 @@ public class PlanService_CreateOrUpdateTest {
 
     @Mock
     private FlowService flowService;
+
+    @Mock
+    private FlowCrudService flowCrudService;
 
     @Before
     public void setup() throws Exception {

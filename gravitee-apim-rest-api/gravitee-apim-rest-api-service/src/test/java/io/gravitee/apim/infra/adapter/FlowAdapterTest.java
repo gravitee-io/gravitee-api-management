@@ -210,6 +210,152 @@ class FlowAdapterTest {
     }
 
     @Test
+    void should_update_repository_with_v4_flow_to_repository() {
+        var model = FlowFixtures
+            .aProxyFlowV4()
+            .toBuilder()
+            .tags(Set.of("tag1"))
+            .selectors(
+                List.of(
+                    HttpSelector.builder().path("/").pathOperator(Operator.STARTS_WITH).methods(Set.of(HttpMethod.GET)).build(),
+                    ChannelSelector
+                        .builder()
+                        .channel("/")
+                        .channelOperator(Operator.STARTS_WITH)
+                        .entrypoints(Set.of("sse"))
+                        .operations(Set.of(ChannelSelector.Operation.PUBLISH))
+                        .build(),
+                    ConditionSelector.builder().condition("my-condition").build()
+                )
+            )
+            .request(
+                List.of(
+                    Step
+                        .builder()
+                        .name("my-step-name-1")
+                        .policy("a-policy")
+                        .description("my-step-description")
+                        .condition("my-step-condition")
+                        .configuration("{}")
+                        .build()
+                )
+            )
+            .response(
+                List.of(
+                    Step
+                        .builder()
+                        .name("my-step-name-2")
+                        .policy("a-policy")
+                        .description("my-step-description")
+                        .condition("my-step-condition")
+                        .configuration("{}")
+                        .build()
+                )
+            )
+            .publish(
+                List.of(
+                    Step
+                        .builder()
+                        .name("my-step-name-3")
+                        .policy("a-policy")
+                        .description("my-step-description")
+                        .condition("my-step-condition")
+                        .configuration("{}")
+                        .build()
+                )
+            )
+            .subscribe(
+                List.of(
+                    Step
+                        .builder()
+                        .name("my-step-name-4")
+                        .policy("a-policy")
+                        .description("my-step-description")
+                        .condition("my-step-condition")
+                        .configuration("{}")
+                        .build()
+                )
+            )
+            .build();
+
+        var createdResult = FlowAdapter.INSTANCE.toRepository(model, FlowReferenceType.API, "api-id", 12);
+
+        var updatedModel = model
+            .toBuilder()
+            .name("updated-name")
+            .tags(Set.of("updated-tag1"))
+            .enabled(false)
+            .selectors(null)
+            .request(List.of())
+            .response(
+                List.of(
+                    Step
+                        .builder()
+                        .name("my-updated-step-name-2")
+                        .policy("a-updated-policy")
+                        .description("my-updated-step-description")
+                        .condition("my-updated-step-condition")
+                        .configuration("{}")
+                        .build()
+                )
+            )
+            .publish(
+                List.of(
+                    Step
+                        .builder()
+                        .name("my-updated-step-name-3")
+                        .policy("a-updated-policy")
+                        .description("my-updated-step-description")
+                        .condition("my-updated-step-condition")
+                        .configuration("{}")
+                        .build()
+                )
+            )
+            .subscribe(List.of())
+            .build();
+        var updatedResult = FlowAdapter.INSTANCE.toRepositoryUpdate(createdResult, updatedModel, 22);
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(updatedResult.getId()).isEqualTo("generated-id");
+            soft.assertThat(updatedResult.getReferenceType()).isEqualTo(FlowReferenceType.API);
+            soft.assertThat(updatedResult.getReferenceId()).isEqualTo("api-id");
+            soft.assertThat(updatedResult.getName()).isEqualTo("updated-name");
+            soft.assertThat(updatedResult.isEnabled()).isFalse();
+            soft.assertThat(updatedResult.getCreatedAt()).isEqualTo(Date.from(INSTANT_NOW));
+            soft.assertThat(updatedResult.getUpdatedAt()).isEqualTo(Date.from(INSTANT_NOW));
+            soft.assertThat(updatedResult.getOrder()).isEqualTo(22);
+            soft.assertThat(updatedResult.getTags()).containsExactly("updated-tag1");
+            soft.assertThat(updatedResult.getSelectors()).isNull();
+            soft.assertThat(updatedResult.getRequest()).isEmpty();
+            soft
+                .assertThat(updatedResult.getResponse())
+                .containsOnly(
+                    FlowStep
+                        .builder()
+                        .name("my-updated-step-name-2")
+                        .policy("a-updated-policy")
+                        .description("my-updated-step-description")
+                        .condition("my-updated-step-condition")
+                        .configuration("{}")
+                        .build()
+                );
+            soft
+                .assertThat(updatedResult.getPublish())
+                .containsOnly(
+                    FlowStep
+                        .builder()
+                        .name("my-updated-step-name-3")
+                        .policy("a-updated-policy")
+                        .description("my-updated-step-description")
+                        .condition("my-updated-step-condition")
+                        .configuration("{}")
+                        .build()
+                );
+            soft.assertThat(updatedResult.getSubscribe()).isEmpty();
+        });
+    }
+
+    @Test
     void should_convert_from_v2_flow_to_repository() {
         var model = FlowFixtures.aFlowV2();
 
