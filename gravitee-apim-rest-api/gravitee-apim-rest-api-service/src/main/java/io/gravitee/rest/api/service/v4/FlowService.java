@@ -28,6 +28,4 @@ public interface FlowService {
     String getPlatformFlowSchemaForm(final ExecutionContext executionContext);
 
     List<Flow> findByReference(final FlowReferenceType flowReferenceType, final String referenceId);
-
-    List<Flow> save(final FlowReferenceType flowReferenceType, final String referenceId, final List<Flow> flows);
 }

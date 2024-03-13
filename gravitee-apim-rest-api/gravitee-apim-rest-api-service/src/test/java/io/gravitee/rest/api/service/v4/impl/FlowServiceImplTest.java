@@ -18,10 +18,13 @@ package io.gravitee.rest.api.service.v4.impl;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
+import io.gravitee.apim.infra.crud_service.flow.FlowCrudServiceImpl;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.FlowRepository;
 import io.gravitee.repository.management.model.flow.Flow;
@@ -45,6 +48,8 @@ public class FlowServiceImplTest {
 
     private FlowService flowService;
 
+    private FlowCrudService flowCrudService;
+
     @Mock
     private FlowRepository flowRepository;
 
@@ -54,6 +59,7 @@ public class FlowServiceImplTest {
     @Before
     public void before() {
         flowService = new FlowServiceImpl(flowRepository, tagService, new FlowMapper());
+        flowCrudService = new FlowCrudServiceImpl(flowRepository);
     }
 
     @Test
@@ -98,8 +104,7 @@ public class FlowServiceImplTest {
 
         when(flowRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        List<io.gravitee.definition.model.v4.flow.Flow> flowServiceByReference = flowService.save(
-            FlowReferenceType.API,
+        List<io.gravitee.definition.model.v4.flow.Flow> flowServiceByReference = flowCrudService.saveApiFlows(
             "apiId",
             List.of(flow1, flow2)
         );
@@ -108,7 +113,7 @@ public class FlowServiceImplTest {
         assertThat(flowServiceByReference.get(0).getName()).isEqualTo("flow1");
         assertThat(flowServiceByReference.get(1).getName()).isEqualTo("flow2");
 
-        verify(flowRepository).deleteByReference(FlowReferenceType.API, "apiId");
+        verify(flowRepository, never()).deleteByReference(FlowReferenceType.API, "apiId");
         verify(flowRepository, times(2)).create(any());
     }
 }
