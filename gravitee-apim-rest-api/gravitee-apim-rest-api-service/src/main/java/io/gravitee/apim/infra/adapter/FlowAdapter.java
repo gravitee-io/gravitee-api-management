@@ -29,6 +29,7 @@ import io.gravitee.repository.management.model.flow.selector.FlowSelector;
 import io.gravitee.rest.api.service.common.UuidString;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.factory.Mappers;
 
 @Mapper(imports = { UuidString.class, TimeProvider.class })
@@ -39,6 +40,10 @@ public interface FlowAdapter {
     @Mapping(target = "createdAt", expression = "java(java.util.Date.from(TimeProvider.instantNow()))")
     @Mapping(target = "updatedAt", expression = "java(java.util.Date.from(TimeProvider.instantNow()))")
     Flow toRepository(io.gravitee.definition.model.v4.flow.Flow source, FlowReferenceType referenceType, String referenceId, int order);
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "updatedAt", expression = "java(java.util.Date.from(TimeProvider.instantNow()))")
+    Flow toRepositoryUpdate(@MappingTarget Flow repository, io.gravitee.definition.model.v4.flow.Flow source, int order);
 
     @Mapping(target = "id", expression = "java(UuidString.generateRandom())")
     @Mapping(target = "createdAt", expression = "java(java.util.Date.from(TimeProvider.instantNow()))")
@@ -76,11 +81,14 @@ public interface FlowAdapter {
     }
 
     FlowHttpSelector toRepository(HttpSelector source);
+
     HttpSelector toModel(FlowHttpSelector source);
 
     FlowChannelSelector toRepository(ChannelSelector source);
+
     ChannelSelector toModel(FlowChannelSelector source);
 
     FlowConditionSelector toRepository(ConditionSelector source);
+
     ConditionSelector toModel(FlowConditionSelector source);
 }

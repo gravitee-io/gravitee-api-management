@@ -30,6 +30,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
@@ -38,7 +39,6 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Plan;
-import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
@@ -125,6 +125,9 @@ public class PlanService_UpdateTest {
 
     @Mock
     private FlowService flowService;
+
+    @Mock
+    private FlowCrudService flowCrudService;
 
     @Mock
     private TagsValidationService tagsValidationService;
@@ -275,7 +278,7 @@ public class PlanService_UpdateTest {
 
         planService.update(GraviteeContext.getExecutionContext(), updatePlan);
 
-        verify(flowService, times(1)).save(FlowReferenceType.PLAN, updatePlan.getId(), updatePlan.getFlows());
+        verify(flowCrudService, times(1)).savePlanFlows(updatePlan.getId(), updatePlan.getFlows());
         verify(pathParametersValidationService, times(1)).validate(any(), any(), any());
     }
 
@@ -323,7 +326,7 @@ public class PlanService_UpdateTest {
 
         planService.update(GraviteeContext.getExecutionContext(), updatePlan);
 
-        verify(flowService, times(1)).save(FlowReferenceType.PLAN, updatePlan.getId(), updatePlan.getFlows());
+        verify(flowCrudService, times(1)).savePlanFlows(updatePlan.getId(), updatePlan.getFlows());
         verify(pathParametersValidationService, times(1)).validate(any(), any(), any());
     }
 

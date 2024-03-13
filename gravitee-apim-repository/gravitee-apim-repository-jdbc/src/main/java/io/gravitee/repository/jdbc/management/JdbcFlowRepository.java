@@ -36,6 +36,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -454,20 +455,36 @@ public class JdbcFlowRepository extends JdbcAbstractCrudRepository<Flow, String>
                 referenceType.name()
             );
 
-            if (!flows.isEmpty()) {
-                List<String> flowIds = flows.stream().map(Flow::getId).collect(Collectors.toList());
-                String buildInClause = getOrm().buildInClause(flowIds);
-                String[] ids = flowIds.toArray(new String[0]);
-                jdbcTemplate.update("delete from " + tableName + " where id in (" + buildInClause + ")", ids);
-                jdbcTemplate.update("delete from " + FLOW_STEPS + " where flow_id in (" + buildInClause + ")", ids);
-                jdbcTemplate.update("delete from " + FLOW_SELECTORS + " where flow_id in (" + buildInClause + ")", ids);
-                jdbcTemplate.update("delete from " + FLOW_SELECTOR_HTTP_METHODS + " where flow_id in (" + buildInClause + ")", ids);
-                jdbcTemplate.update("delete from " + FLOW_SELECTOR_CHANNEL_OPERATIONS + " where flow_id in (" + buildInClause + ")", ids);
-                jdbcTemplate.update("delete from " + FLOW_SELECTOR_CHANNEL_ENTRYPOINTS + " where flow_id in (" + buildInClause + ")", ids);
-                jdbcTemplate.update("delete from " + FLOW_TAGS + " where flow_id in (" + buildInClause + ")", ids);
+            this.deleteAllById(flows.stream().map(Flow::getId).collect(Collectors.toList()));
+        } catch (final Exception ex) {
+            LOGGER.error("Failed to delete flows by reference:", ex);
+            throw new TechnicalException("Failed to delete flows by reference", ex);
+        }
+    }
+
+    @Override
+    public void deleteAllById(Collection<String> ids) throws TechnicalException {
+        LOGGER.debug("JdbcFlowRepository.deleteByIds({})", ids);
+        try {
+            if (!ids.isEmpty()) {
+                String buildInClause = getOrm().buildInClause(ids);
+                String[] flowIds = ids.toArray(new String[0]);
+                jdbcTemplate.update("delete from " + tableName + " where id in (" + buildInClause + ")", flowIds);
+                jdbcTemplate.update("delete from " + FLOW_STEPS + " where flow_id in (" + buildInClause + ")", flowIds);
+                jdbcTemplate.update("delete from " + FLOW_SELECTORS + " where flow_id in (" + buildInClause + ")", flowIds);
+                jdbcTemplate.update("delete from " + FLOW_SELECTOR_HTTP_METHODS + " where flow_id in (" + buildInClause + ")", flowIds);
+                jdbcTemplate.update(
+                    "delete from " + FLOW_SELECTOR_CHANNEL_OPERATIONS + " where flow_id in (" + buildInClause + ")",
+                    flowIds
+                );
+                jdbcTemplate.update(
+                    "delete from " + FLOW_SELECTOR_CHANNEL_ENTRYPOINTS + " where flow_id in (" + buildInClause + ")",
+                    flowIds
+                );
+                jdbcTemplate.update("delete from " + FLOW_TAGS + " where flow_id in (" + buildInClause + ")", flowIds);
                 // deprecated data
-                jdbcTemplate.update("delete from " + FLOW_METHODS + " where flow_id in (" + buildInClause + ")", ids);
-                jdbcTemplate.update("delete from " + FLOW_CONSUMERS + " where flow_id in (" + buildInClause + ")", ids);
+                jdbcTemplate.update("delete from " + FLOW_METHODS + " where flow_id in (" + buildInClause + ")", flowIds);
+                jdbcTemplate.update("delete from " + FLOW_CONSUMERS + " where flow_id in (" + buildInClause + ")", flowIds);
             }
         } catch (final Exception ex) {
             LOGGER.error("Failed to delete flows by reference:", ex);
