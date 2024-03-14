@@ -42,7 +42,7 @@ public interface ClientRegistrationService {
         UpdateClientRegistrationProviderEntity clientRegistrationProvider
     );
 
-    ClientRegistrationProviderEntity findById(String id);
+    ClientRegistrationProviderEntity findById(String environmentId, String id);
 
     void delete(ExecutionContext executionContext, String id);
 
