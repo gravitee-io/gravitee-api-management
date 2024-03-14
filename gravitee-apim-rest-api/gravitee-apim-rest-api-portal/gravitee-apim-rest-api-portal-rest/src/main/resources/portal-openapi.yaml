@@ -2281,6 +2281,7 @@ paths:
         Modify current user information.
 
         Only the current user can modify his/her information.
+        The user email is not modifiable.
       operationId: updateCurrentUser
       responses:
         200:
@@ -5158,10 +5159,6 @@ components:
           writeOnly: true
         last_name:
           description: Lastname of the user.
-          type: string
-          writeOnly: true
-        email:
-          description: Email of the user.
           type: string
           writeOnly: true
         customFields:
