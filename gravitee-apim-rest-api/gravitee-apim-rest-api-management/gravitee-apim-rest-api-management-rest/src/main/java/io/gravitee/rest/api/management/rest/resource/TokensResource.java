@@ -19,10 +19,12 @@ import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.repository.management.model.Token;
 import io.gravitee.rest.api.model.NewTokenEntity;
 import io.gravitee.rest.api.model.TokenEntity;
 import io.gravitee.rest.api.service.TokenService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.TokenNotFoundException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -94,6 +96,12 @@ public class TokensResource extends AbstractResource {
     @ApiResponse(responseCode = "404", description = "User not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public void revokeToken(@PathParam("token") String tokenId) {
+        // Check that token exists and belongs to user
+        Token tokenToRevoke = tokenService.findByToken(tokenId);
+        if (!tokenToRevoke.getReferenceId().equalsIgnoreCase(getAuthenticatedUserOrNull())) {
+            throw new TokenNotFoundException(tokenId);
+        }
+
         tokenService.revoke(GraviteeContext.getExecutionContext(), tokenId);
     }
 }
