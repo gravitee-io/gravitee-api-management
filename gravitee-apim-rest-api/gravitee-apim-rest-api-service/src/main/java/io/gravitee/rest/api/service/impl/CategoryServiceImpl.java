@@ -107,8 +107,8 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
     public CategoryEntity findById(final String id, final String environmentId) {
         try {
             LOGGER.debug("Find category by id : {}", id);
-            Optional<Category> category = categoryRepository.findById(id);
-            if (!category.isPresent()) {
+            Optional<Category> category = categoryRepository.findById(id).filter(c -> c.getEnvironmentId().equalsIgnoreCase(environmentId));
+            if (category.isEmpty()) {
                 category = categoryRepository.findByKey(id, environmentId);
             }
             if (category.isPresent()) {
@@ -176,12 +176,10 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
         try {
             LOGGER.debug("Update Category {}", categoryId);
 
-            Optional<Category> optCategoryToUpdate = categoryRepository.findById(categoryId);
-            if (!optCategoryToUpdate.isPresent()) {
-                throw new CategoryNotFoundException(categoryId);
-            }
-
-            final Category categoryToUpdate = optCategoryToUpdate.get();
+            final Category categoryToUpdate = categoryRepository
+                .findById(categoryId)
+                .filter(category -> category.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()))
+                .orElseThrow(() -> new CategoryNotFoundException(categoryId));
             Category category = convert(categoryEntity, categoryToUpdate.getEnvironmentId());
 
             // check if picture has been set
@@ -218,7 +216,9 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
         final List<CategoryEntity> savedCategories = new ArrayList<>(categoriesEntities.size());
         categoriesEntities.forEach(categoryEntity -> {
             try {
-                Optional<Category> optCategoryToUpdate = categoryRepository.findById(categoryEntity.getId());
+                Optional<Category> optCategoryToUpdate = categoryRepository
+                    .findById(categoryEntity.getId())
+                    .filter(category -> category.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()));
                 if (optCategoryToUpdate.isPresent()) {
                     final Category categoryToUpdate = optCategoryToUpdate.get();
                     Category category = convert(categoryEntity, categoryToUpdate.getEnvironmentId());
@@ -256,7 +256,9 @@ public class CategoryServiceImpl extends TransactionalService implements Categor
     @Override
     public void delete(ExecutionContext executionContext, final String categoryId) {
         try {
-            Optional<Category> categoryOptional = categoryRepository.findById(categoryId);
+            Optional<Category> categoryOptional = categoryRepository
+                .findById(categoryId)
+                .filter(category -> category.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()));
             if (categoryOptional.isPresent()) {
                 Category categoryToDelete = categoryOptional.get();
                 categoryRepository.delete(categoryToDelete.getId());
