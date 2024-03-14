@@ -275,6 +275,7 @@ public class UserServiceTest {
         when(user.getFirstname()).thenReturn(FIRST_NAME);
         when(user.getLastname()).thenReturn(LAST_NAME);
         when(user.getPassword()).thenReturn(PASSWORD);
+        when(user.getOrganizationId()).thenReturn(ORGANIZATION);
         when(userRepository.findById(USER_NAME)).thenReturn(of(user));
 
         final UserEntity userEntity = userService.findById(EXECUTION_CONTEXT, USER_NAME);
@@ -285,6 +286,14 @@ public class UserServiceTest {
         assertEquals(EMAIL, userEntity.getEmail());
         assertNull(userEntity.getPassword());
         assertNull(userEntity.getRoles());
+    }
+
+    @Test(expected = UserNotFoundException.class)
+    public void shouldNotFindByIdBecauseNotInCurrentOrganization() throws TechnicalException {
+        when(user.getOrganizationId()).thenReturn("ANOTHER_ORGANIZATION");
+        when(userRepository.findById(USER_NAME)).thenReturn(of(user));
+
+        userService.findById(EXECUTION_CONTEXT, USER_NAME);
     }
 
     @Test(expected = UserNotFoundException.class)
@@ -919,6 +928,7 @@ public class UserServiceTest {
         user.setEmail(EMAIL);
         user.setFirstname(FIRST_NAME);
         user.setLastname(LAST_NAME);
+        user.setOrganizationId(ORGANIZATION);
         when(userRepository.findById(USER_NAME)).thenReturn(Optional.of(user));
         when(userRepository.update(any())).thenAnswer(returnsFirstArg());
 
@@ -949,6 +959,7 @@ public class UserServiceTest {
         user.setEmail(EMAIL);
         user.setFirstname(FIRST_NAME);
         user.setLastname(LAST_NAME);
+        user.setOrganizationId(ORGANIZATION);
         when(userRepository.findById(USER_NAME)).thenReturn(Optional.of(user));
 
         ResetPasswordUserEntity userEntity = new ResetPasswordUserEntity();
@@ -1049,6 +1060,7 @@ public class UserServiceTest {
             .thenReturn(1000);
         when(user.getId()).thenReturn(USER_NAME);
         when(user.getSource()).thenReturn("gravitee");
+        when(user.getOrganizationId()).thenReturn(ORGANIZATION);
         when(userRepository.findById(USER_NAME)).thenReturn(of(user));
 
         when(auditService.search(eq(EXECUTION_CONTEXT), argThat(arg -> arg.getEvents().contains(User.AuditEvent.PASSWORD_RESET.name()))))
@@ -1080,6 +1092,7 @@ public class UserServiceTest {
             .thenReturn(1000);
         when(user.getId()).thenReturn(USER_NAME);
         when(user.getSource()).thenReturn("gravitee");
+        when(user.getOrganizationId()).thenReturn(ORGANIZATION);
         when(userRepository.findById(USER_NAME)).thenReturn(of(user));
 
         MetadataPage mdPage = mock(MetadataPage.class);
@@ -1112,6 +1125,7 @@ public class UserServiceTest {
     public void shouldNotResetPassword_AlreadyReset() throws TechnicalException {
         when(user.getId()).thenReturn(USER_NAME);
         when(user.getSource()).thenReturn("gravitee");
+        when(user.getOrganizationId()).thenReturn(ORGANIZATION);
         when(userRepository.findById(USER_NAME)).thenReturn(of(user));
 
         MetadataPage mdPage = mock(MetadataPage.class);
@@ -1169,6 +1183,7 @@ public class UserServiceTest {
         user.setId(USER_NAME);
         user.setSource("not gravitee");
         user.setStatus(UserStatus.ACTIVE);
+        user.setOrganizationId(ORGANIZATION);
         when(userRepository.findBySource(any(), any(), any())).thenReturn(Optional.of(user));
         when(userRepository.findById(any())).thenReturn(Optional.of(user));
 
@@ -1178,6 +1193,7 @@ public class UserServiceTest {
     @Test(expected = UserNotInternallyManagedException.class)
     public void shouldNotResetPasswordCauseUserNotInternallyManaged() throws TechnicalException {
         when(user.getSource()).thenReturn("external");
+        when(user.getOrganizationId()).thenReturn(ORGANIZATION);
         when(userRepository.findById(USER_NAME)).thenReturn(of(user));
 
         userService.resetPassword(EXECUTION_CONTEXT, USER_NAME);
@@ -1273,6 +1289,14 @@ public class UserServiceTest {
 
     @Test
     public void shouldNotDeleteIfAPIPO() throws TechnicalException {
+        User user = new User();
+        user.setId(USER_NAME);
+        user.setEmail(EMAIL);
+        user.setFirstname(FIRST_NAME);
+        user.setLastname(LAST_NAME);
+        user.setOrganizationId(ORGANIZATION);
+        when(userRepository.findById(USER_NAME)).thenReturn(Optional.of(user));
+
         RoleEntity apiPoRole = new RoleEntity();
         apiPoRole.setId("po-role");
         when(roleService.findPrimaryOwnerRoleByOrganization(ORGANIZATION, RoleScope.API)).thenReturn(apiPoRole);
@@ -1312,6 +1336,14 @@ public class UserServiceTest {
 
     @Test
     public void shouldNotDeleteIfApplicationPO() throws TechnicalException {
+        User user = new User();
+        user.setId(USER_NAME);
+        user.setEmail(EMAIL);
+        user.setFirstname(FIRST_NAME);
+        user.setLastname(LAST_NAME);
+        user.setOrganizationId(ORGANIZATION);
+        when(userRepository.findById(USER_NAME)).thenReturn(Optional.of(user));
+
         RoleEntity apiPoRole = new RoleEntity();
         apiPoRole.setId("po-role");
         when(roleService.findPrimaryOwnerRoleByOrganization(ORGANIZATION, RoleScope.API)).thenReturn(apiPoRole);
@@ -1364,6 +1396,7 @@ public class UserServiceTest {
         user.setFirstname(firstName);
         user.setLastname(lastName);
         user.setEmail(email);
+        user.setOrganizationId(ORGANIZATION);
         when(userRepository.findById(userId)).thenReturn(of(user));
 
         RoleEntity apiPoRole = new RoleEntity();
