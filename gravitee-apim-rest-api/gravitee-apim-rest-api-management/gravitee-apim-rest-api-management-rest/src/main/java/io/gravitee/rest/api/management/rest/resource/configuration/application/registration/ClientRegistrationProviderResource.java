@@ -68,7 +68,7 @@ public class ClientRegistrationProviderResource extends AbstractResource {
     public ClientRegistrationProviderEntity getClientRegistrationProvider(
         @PathParam("clientRegistrationProvider") String clientRegistrationProvider
     ) {
-        return clientRegistrationService.findById(clientRegistrationProvider);
+        return clientRegistrationService.findById(GraviteeContext.getCurrentEnvironment(), clientRegistrationProvider);
     }
 
     @PUT
