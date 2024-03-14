@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.service.impl;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static io.gravitee.repository.management.model.ClientRegistrationProvider.AuditEvent.CLIENT_REGISTRATION_PROVIDER_DELETED;
 import static io.gravitee.repository.management.model.ClientRegistrationProvider.AuditEvent.CLIENT_REGISTRATION_PROVIDER_UPDATED;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -32,6 +33,7 @@ import io.gravitee.rest.api.model.configuration.application.registration.Initial
 import io.gravitee.rest.api.model.configuration.application.registration.UpdateClientRegistrationProviderEntity;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.impl.configuration.application.registration.ClientRegistrationProviderNotFoundException;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.ClientRegistrationServiceImpl;
 import io.gravitee.rest.api.service.impl.configuration.application.registration.EmptyInitialAccessTokenException;
 import java.util.Optional;
@@ -79,6 +81,7 @@ public class ClientRegistrationService_UpdateTest {
 
         ClientRegistrationProvider existingPayload = new ClientRegistrationProvider();
         existingPayload.setId("CRP_ID");
+        existingPayload.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
 
         when(mockClientRegistrationProviderRepository.findById(eq(existingPayload.getId()))).thenReturn(Optional.of(existingPayload));
 
@@ -121,6 +124,36 @@ public class ClientRegistrationService_UpdateTest {
         verify(mockClientRegistrationProviderRepository, times(1)).update(any());
     }
 
+    @Test(expected = ClientRegistrationProviderNotFoundException.class)
+    public void shouldNotUpdateProviderBecauseDoesNotBelongToEnvironment() throws TechnicalException {
+        UpdateClientRegistrationProviderEntity providerPayload = new UpdateClientRegistrationProviderEntity();
+        providerPayload.setName("name");
+        providerPayload.setDiscoveryEndpoint("http://localhost:" + wireMockServer.port() + "/am");
+
+        ClientRegistrationProvider existingPayload = new ClientRegistrationProvider();
+        existingPayload.setId("CRP_ID");
+        existingPayload.setEnvironmentId("Another_environment");
+
+        when(mockClientRegistrationProviderRepository.findById(eq(existingPayload.getId()))).thenReturn(Optional.of(existingPayload));
+
+        ClientRegistrationProviderEntity providerUpdated = clientRegistrationService.update(
+            GraviteeContext.getExecutionContext(),
+            existingPayload.getId(),
+            providerPayload
+        );
+
+        verify(mockAuditService, never())
+            .createAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
+                any(),
+                eq(CLIENT_REGISTRATION_PROVIDER_UPDATED),
+                any(),
+                any(),
+                any()
+            );
+        verify(mockClientRegistrationProviderRepository, never()).update(any());
+    }
+
     @Test(expected = EmptyInitialAccessTokenException.class)
     public void shouldThrowWithTypeInitialAccessTokenAndWithoutToken() throws TechnicalException {
         UpdateClientRegistrationProviderEntity providerPayload = new UpdateClientRegistrationProviderEntity();
@@ -128,6 +161,7 @@ public class ClientRegistrationService_UpdateTest {
 
         ClientRegistrationProvider existingPayload = new ClientRegistrationProvider();
         existingPayload.setId("CRP_ID");
+        existingPayload.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
 
         when(mockClientRegistrationProviderRepository.findById(eq(existingPayload.getId()))).thenReturn(Optional.of(existingPayload));
 
