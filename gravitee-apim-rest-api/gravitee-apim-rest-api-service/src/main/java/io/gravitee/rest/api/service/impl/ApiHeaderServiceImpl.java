@@ -88,10 +88,10 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
     @Override
     public void delete(ExecutionContext executionContext, String apiHeaderId) {
         try {
-            Optional<ApiHeader> optionalApiHeader = apiHeaderRepository.findById(apiHeaderId);
-            if (!optionalApiHeader.isPresent()) {
-                throw new ApiHeaderNotFoundException(apiHeaderId);
-            }
+            ApiHeader apiHeader = apiHeaderRepository
+                .findById(apiHeaderId)
+                .filter(header -> header.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()))
+                .orElseThrow(() -> new ApiHeaderNotFoundException(apiHeaderId));
 
             apiHeaderRepository.delete(apiHeaderId);
 
@@ -100,7 +100,7 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
                 Collections.singletonMap(API_HEADER, apiHeaderId),
                 API_HEADER_DELETED,
                 new Date(),
-                optionalApiHeader.get(),
+                apiHeader,
                 null
             );
 
@@ -124,11 +124,12 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
     @Override
     public ApiHeaderEntity update(ExecutionContext executionContext, UpdateApiHeaderEntity updateEntity) {
         try {
-            Optional<ApiHeader> optionalApiHeader = apiHeaderRepository.findById(updateEntity.getId());
-            if (!optionalApiHeader.isPresent()) {
-                throw new ApiHeaderNotFoundException(updateEntity.getId());
-            }
-            ApiHeader updatedHeader = new ApiHeader(optionalApiHeader.get());
+            ApiHeader apiHeader = apiHeaderRepository
+                .findById(updateEntity.getId())
+                .filter(header -> header.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()))
+                .orElseThrow(() -> new ApiHeaderNotFoundException(updateEntity.getId()));
+
+            ApiHeader updatedHeader = new ApiHeader(apiHeader);
             Date updatedAt = new Date();
             updatedHeader.setName(updateEntity.getName());
             updatedHeader.setValue(updateEntity.getValue());
@@ -145,7 +146,7 @@ public class ApiHeaderServiceImpl extends TransactionalService implements ApiHea
                     singletonMap(API_HEADER, header.getId()),
                     API_HEADER_UPDATED,
                     header.getUpdatedAt(),
-                    optionalApiHeader.get(),
+                    apiHeader,
                     header
                 );
                 return convert(header);
