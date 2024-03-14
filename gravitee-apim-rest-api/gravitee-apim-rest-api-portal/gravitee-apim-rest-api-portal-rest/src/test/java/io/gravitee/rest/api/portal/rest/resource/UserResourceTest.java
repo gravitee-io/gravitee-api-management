@@ -16,8 +16,12 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
-import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
@@ -176,10 +180,15 @@ public class UserResourceTest extends AbstractResourceTest {
             "f0uv2Oz+v3/L7/DxgoOEhYaHiImKi4yNjo+AgZKTlJWWl5iZmpucnZ6fkJGio6SlpqeoqaqrrK2ur6ChsrO0tba3uLm6u7y9vr" +
             "+wscLDxMXGx8jJysvMzc7PwMHS09TV1tfY2drb3N3e39DR4uPk5ebn6Onq6+zt7u/g4fLz9PX29/j5+vv8/f7/8PMKDAgQQLGj" +
             "yIMKHChQwbOnwIMaLEiRQrWryIMaPGjQYcO3osUwAAOw==";
+        final String userEmail = "example@gio.com";
 
         userInput.setAvatar(newAvatar);
         userInput.setId(USER_NAME);
         when(userService.update(eq(GraviteeContext.getExecutionContext()), eq(USER_NAME), any())).thenReturn(new UserEntity());
+
+        UserEntity existingUser = new UserEntity();
+        existingUser.setEmail(userEmail);
+        when(userService.findById(eq(GraviteeContext.getExecutionContext()), any())).thenReturn(existingUser);
 
         final Response response = target().request().put(Entity.json(userInput));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -191,6 +200,7 @@ public class UserResourceTest extends AbstractResourceTest {
         assertNotNull(updateUserEntity);
         assertEquals(expectedAvatar, updateUserEntity.getPicture());
         assertNull(updateUserEntity.getStatus());
+        assertEquals(userEmail, updateUserEntity.getEmail());
 
         User updateUser = response.readEntity(User.class);
         assertNotNull(updateUser);
