@@ -54,6 +54,8 @@ public class ClientRegistrationService_DeleteTest {
     public void shouldDeleteProvider() throws TechnicalException {
         ClientRegistrationProvider existingPayload = new ClientRegistrationProvider();
         existingPayload.setId("CRP_ID");
+        existingPayload.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
+
         when(mockClientRegistrationProviderRepository.findById(eq(existingPayload.getId()))).thenReturn(Optional.of(existingPayload));
 
         clientRegistrationService.delete(GraviteeContext.getExecutionContext(), existingPayload.getId());
@@ -68,6 +70,28 @@ public class ClientRegistrationService_DeleteTest {
                 isNull()
             );
         verify(mockClientRegistrationProviderRepository, times(1)).delete(existingPayload.getId());
+    }
+
+    @Test(expected = ClientRegistrationProviderNotFoundException.class)
+    public void shouldNotDeleteProviderBecauseDoesNotBelongToEnvironment() throws TechnicalException {
+        ClientRegistrationProvider existingPayload = new ClientRegistrationProvider();
+        existingPayload.setId("CRP_ID");
+        existingPayload.setEnvironmentId("Another_environment");
+
+        when(mockClientRegistrationProviderRepository.findById(eq(existingPayload.getId()))).thenReturn(Optional.of(existingPayload));
+
+        clientRegistrationService.delete(GraviteeContext.getExecutionContext(), existingPayload.getId());
+
+        verify(mockAuditService, times(1))
+            .createAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
+                any(),
+                eq(CLIENT_REGISTRATION_PROVIDER_DELETED),
+                any(),
+                any(),
+                isNull()
+            );
+        verify(mockClientRegistrationProviderRepository, never()).delete(existingPayload.getId());
     }
 
     @Test(expected = ClientRegistrationProviderNotFoundException.class)
