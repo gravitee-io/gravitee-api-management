@@ -42,13 +42,14 @@ public class EndpointRuleCronHandler<T extends Endpoint> implements Handler<Long
             throw new IllegalArgumentException("Handler is null.");
         }
         this.handler = handler;
+        handler.setRescheduleHandler(v -> this.timerId = vertx.setTimer(handler.getDelayMillis(), this));
         timerId = vertx.setTimer(handler.getDelayMillis(), this);
         return this;
     }
 
     @Override
     public void handle(final Long timerId) {
-        handler.handle(hcResponseHandler -> this.timerId = vertx.setTimer(handler.getDelayMillis(), this));
+        handler.handle(this.timerId);
     }
 
     public void cancel() {
