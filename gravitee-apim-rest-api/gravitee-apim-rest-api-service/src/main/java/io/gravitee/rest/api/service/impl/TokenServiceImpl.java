@@ -32,9 +32,9 @@ import io.gravitee.rest.api.model.TokenReferenceType;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.TokenService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.TokenNameAlreadyExistsException;
+import io.gravitee.rest.api.service.exceptions.TokenNotFoundException;
 import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -142,7 +142,7 @@ public class TokenServiceImpl extends AbstractService implements TokenService {
                 .sorted(comparing(Token::getLastUseAt, nullsLast(reverseOrder())))
                 .filter(t -> passwordEncoder.matches(token, t.getToken()))
                 .findFirst()
-                .orElseThrow(() -> new IllegalStateException("Token not found"));
+                .orElseThrow(() -> new TokenNotFoundException(token));
 
             matchingToken.setLastUseAt(new Date());
             return tokenRepository.update(matchingToken);
