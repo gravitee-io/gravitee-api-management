@@ -307,8 +307,9 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
                     try {
                         LOGGER.debug("Find user by ID: {}", k);
 
-                        Optional<User> optionalUser = userRepository.findById(k);
-
+                        Optional<User> optionalUser = userRepository
+                            .findById(k)
+                            .filter(u -> u.getOrganizationId().equalsIgnoreCase(executionContext.getOrganizationId()));
                         if (optionalUser.isPresent()) {
                             return convert(executionContext, optionalUser.get(), false, userMetadataService.findAllByUserId(k), true);
                         }
@@ -348,6 +349,7 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         try {
             return userRepository
                 .findById(userId)
+                .filter(user -> user.getOrganizationId().equalsIgnoreCase(executionContext.getOrganizationId()))
                 .map(user -> convertWithFlags(executionContext, user))
                 .orElseThrow(() -> new UserNotFoundException(userId)); // should never happen
         } catch (TechnicalException ex) {
@@ -567,8 +569,11 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             } else {
                 final String username = subject.toString();
                 LOGGER.debug("Find user {} to update password", username);
-                Optional<User> checkUser = userRepository.findById(username);
-                user = checkUser.orElseThrow(() -> new UserNotFoundException(username));
+                user =
+                    userRepository
+                        .findById(username)
+                        .filter(u -> u.getOrganizationId().equalsIgnoreCase(executionContext.getOrganizationId()))
+                        .orElseThrow(() -> new UserNotFoundException(username));
             }
 
             // Set date fields
@@ -1258,6 +1263,11 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
     @Override
     public void delete(ExecutionContext executionContext, String id) {
         try {
+            User user = userRepository
+                .findById(id)
+                .filter(u -> u.getOrganizationId().equalsIgnoreCase(executionContext.getOrganizationId()))
+                .orElseThrow(() -> new UserNotFoundException(id));
+
             // If the users is PO of apps or apis, throw an exception
             RoleEntity apiPoRole = roleService.findPrimaryOwnerRoleByOrganization(executionContext.getOrganizationId(), RoleScope.API);
             Set<MembershipEntity> apiPoMemberships = membershipService.getMembershipsByMemberAndReferenceAndRole(
@@ -1283,8 +1293,6 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
             if (apiCount > 0 || applicationCount > 0) {
                 throw new StillPrimaryOwnerException(apiCount, applicationCount);
             }
-
-            User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(id));
 
             membershipService.removeMemberMemberships(executionContext, MembershipMemberType.USER, id);
 
@@ -1357,7 +1365,9 @@ public class UserServiceImpl extends AbstractService implements UserService, Ini
         try {
             LOGGER.debug("Resetting password of user id {}", id);
 
-            Optional<User> optionalUser = userRepository.findById(id);
+            Optional<User> optionalUser = userRepository
+                .findById(id)
+                .filter(user -> user.getOrganizationId().equalsIgnoreCase(executionContext.getOrganizationId()));
 
             if (!optionalUser.isPresent()) {
                 throw new UserNotFoundException(id);

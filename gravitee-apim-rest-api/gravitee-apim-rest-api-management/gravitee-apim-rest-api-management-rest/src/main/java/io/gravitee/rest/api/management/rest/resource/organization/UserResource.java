@@ -120,6 +120,9 @@ public class UserResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.READ))
     public List<UserGroupEntity> getUserGroups() {
+        // Check that user belongs to current organization
+        userService.findById(GraviteeContext.getExecutionContext(), userId);
+
         List<UserGroupEntity> groups = new ArrayList<>();
         groupService
             .findByUser(userId)
@@ -159,6 +162,9 @@ public class UserResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.READ))
     public UserMembershipList getUserMemberships(@QueryParam("type") String sType) {
+        // Check that user belongs to current organization
+        userService.findById(GraviteeContext.getExecutionContext(), userId);
+
         MembershipReferenceType type = null;
         if (sType != null) {
             type = MembershipReferenceType.valueOf(sType.toUpperCase());
@@ -256,6 +262,9 @@ public class UserResource extends AbstractResource {
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response finalizeResetPassword(@Valid ResetPasswordUserEntity resetPwdEntity) {
+        // Check that user belongs to current organization
+        userService.findById(GraviteeContext.getExecutionContext(), userId);
+
         UserEntity newUser = userService.finalizeResetPassword(GraviteeContext.getExecutionContext(), resetPwdEntity);
         if (newUser != null) {
             return Response.ok().entity(newUser).build();

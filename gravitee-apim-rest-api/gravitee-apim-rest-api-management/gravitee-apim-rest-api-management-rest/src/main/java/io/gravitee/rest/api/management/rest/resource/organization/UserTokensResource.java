@@ -19,6 +19,7 @@ import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.repository.management.model.Token;
 import io.gravitee.rest.api.management.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
@@ -27,7 +28,9 @@ import io.gravitee.rest.api.model.TokenEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.TokenService;
+import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.TokenNotFoundException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -58,6 +61,9 @@ public class UserTokensResource extends AbstractResource {
     @Inject
     private TokenService tokenService;
 
+    @Inject
+    private UserService userService;
+
     @PathParam("userId")
     @Parameter(name = "userId", required = true, hidden = true)
     private String userId;
@@ -77,6 +83,9 @@ public class UserTokensResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_USERS, acls = { RolePermissionAction.READ }))
     public List<TokenEntity> getUserTokens() {
+        // Check that user belongs to current organization
+        userService.findById(GraviteeContext.getExecutionContext(), userId);
+
         return tokenService.findByUser(userId).stream().sorted(comparing(TokenEntity::getCreatedAt)).collect(toList());
     }
 
@@ -92,6 +101,9 @@ public class UserTokensResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_USERS, acls = { RolePermissionAction.READ, RolePermissionAction.CREATE }))
     public Response createToken(@Valid @NotNull final NewTokenEntity token) {
+        // Check that user belongs to current organization
+        userService.findById(GraviteeContext.getExecutionContext(), userId);
+
         return Response
             .status(Response.Status.CREATED)
             .entity(tokenService.create(GraviteeContext.getExecutionContext(), token, userId))
@@ -107,6 +119,15 @@ public class UserTokensResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_USERS, acls = { RolePermissionAction.READ, RolePermissionAction.DELETE }))
     public void revokeToken(@PathParam("token") String tokenId) {
+        // Check that user belongs to current organization
+        userService.findById(GraviteeContext.getExecutionContext(), userId);
+
+        // Check that token exists and belongs to user
+        Token tokenToRevoke = tokenService.findByToken(tokenId);
+        if (!userId.equalsIgnoreCase(tokenToRevoke.getReferenceId())) {
+            throw new TokenNotFoundException(tokenId);
+        }
+
         tokenService.revoke(GraviteeContext.getExecutionContext(), tokenId);
     }
 }

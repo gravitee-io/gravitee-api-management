@@ -22,6 +22,7 @@ import io.gravitee.rest.api.portal.rest.model.PortalNotification;
 import io.gravitee.rest.api.portal.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.service.PortalNotificationService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.PortalNotificationNotFoundException;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Response;
 import java.util.Comparator;
@@ -63,8 +64,14 @@ public class UserNotificationsResource extends AbstractResource {
     @Path("{notificationId}")
     @DELETE
     public Response delete(@PathParam("notificationId") String notificationId) {
-        //notification exist ?
-        portalNotificationService.findById(notificationId);
+        // Check that notification exists and belongs to user
+        List<PortalNotificationEntity> userNotifications = portalNotificationService.findByUser(getAuthenticatedUser());
+        userNotifications
+            .stream()
+            .map(PortalNotificationEntity::getId)
+            .filter(id -> id.equalsIgnoreCase(notificationId))
+            .findAny()
+            .orElseThrow(() -> new PortalNotificationNotFoundException(notificationId));
 
         portalNotificationService.delete(notificationId);
         return Response.status(Response.Status.NO_CONTENT).build();
