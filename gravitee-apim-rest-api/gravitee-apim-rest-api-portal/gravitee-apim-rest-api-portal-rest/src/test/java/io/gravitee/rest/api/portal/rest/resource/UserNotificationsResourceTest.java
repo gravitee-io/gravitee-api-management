@@ -19,6 +19,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
 
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.model.notification.PortalNotificationEntity;
@@ -91,8 +92,45 @@ public class UserNotificationsResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldDeleteACurrentUserNotification() {
+        resetAllMocks();
+
+        PortalNotificationEntity portalNotificationEntity = new PortalNotificationEntity();
+        portalNotificationEntity.setCreatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")));
+        portalNotificationEntity.setId("ID");
+
+        doReturn(List.of(portalNotificationEntity)).when(portalNotificationService).findByUser(USER_NAME);
+
         final Response response = target().path("notifications").path("ID").request().delete();
         assertEquals(HttpStatusCode.NO_CONTENT_204, response.getStatus());
+        Mockito.verify(portalNotificationService).findByUser(USER_NAME);
         Mockito.verify(portalNotificationService).delete("ID");
+    }
+
+    @Test
+    public void shouldNotDeleteACurrentUserNotificationBecauseNotificationDoesNotExist() {
+        resetAllMocks();
+
+        doReturn(List.of()).when(portalNotificationService).findByUser(USER_NAME);
+
+        final Response response = target().path("notifications").path("ID").request().delete();
+        assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
+        Mockito.verify(portalNotificationService).findByUser(USER_NAME);
+        Mockito.verify(portalNotificationService, never()).delete("ID");
+    }
+
+    @Test
+    public void shouldNotDeleteACurrentUserNotificationBecauseNotificationDoesNotBelongToUser() {
+        resetAllMocks();
+
+        PortalNotificationEntity portalNotificationEntity = new PortalNotificationEntity();
+        portalNotificationEntity.setCreatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")));
+        portalNotificationEntity.setId("Another_ID");
+
+        doReturn(List.of(portalNotificationEntity)).when(portalNotificationService).findByUser(USER_NAME);
+
+        final Response response = target().path("notifications").path("ID").request().delete();
+        assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
+        Mockito.verify(portalNotificationService).findByUser(USER_NAME);
+        Mockito.verify(portalNotificationService, never()).delete("ID");
     }
 }
