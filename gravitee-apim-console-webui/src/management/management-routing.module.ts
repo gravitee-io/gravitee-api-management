@@ -48,6 +48,10 @@ const managementRoutes: Routes = [
         loadChildren: () => import('./api/apis.module').then((m) => m.ApisModule),
       },
       {
+        path: 'integrations',
+        loadChildren: () => import('./integrations/integrations.module').then((m) => m.IntegrationsModule),
+      },
+      {
         path: 'settings',
         loadChildren: () => import('./settings/settings.module').then((m) => m.SettingsModule),
       },

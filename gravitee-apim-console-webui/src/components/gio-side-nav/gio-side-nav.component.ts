@@ -126,6 +126,12 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
         category: 'Apis',
       },
       {
+        icon: 'gio:box',
+        routerLink: './integrations',
+        displayName: 'Integrations',
+        category: 'Integrations',
+      },
+      {
         icon: 'gio:multi-window',
         routerLink: './applications',
         displayName: 'Applications',
