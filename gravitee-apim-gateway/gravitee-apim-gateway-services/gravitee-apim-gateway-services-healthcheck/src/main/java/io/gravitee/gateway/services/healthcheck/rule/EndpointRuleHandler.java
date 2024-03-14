@@ -34,12 +34,12 @@ import io.gravitee.gateway.services.healthcheck.http.el.EvaluableHttpResponse;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.utils.NodeUtils;
 import io.gravitee.plugin.alert.AlertEventProducer;
+import io.gravitee.reporter.api.Reportable;
 import io.gravitee.reporter.api.common.Request;
 import io.gravitee.reporter.api.common.Response;
 import io.gravitee.reporter.api.health.EndpointStatus;
 import io.gravitee.reporter.api.health.Step;
 import io.netty.channel.ConnectTimeoutException;
-import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
@@ -49,6 +49,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
@@ -63,7 +64,7 @@ import org.springframework.scheduling.support.SimpleTriggerContext;
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler<Handler<AsyncResult<HttpClientResponse>>> {
+public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler<Long> {
 
     private final Logger logger = LoggerFactory.getLogger(EndpointRuleHandler.class);
 
@@ -91,6 +92,7 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
     private final EndpointStatusDecorator endpointStatus;
     private TemplateEngine templateEngine;
     private Handler<EndpointStatus> statusHandler;
+    private Handler<Void> rescheduleHandler;
 
     private AlertEventProducer alertEventProducer;
     private Node node;
@@ -118,14 +120,14 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
     }
 
     @Override
-    public void handle(Handler<AsyncResult<HttpClientResponse>> healthCheckResponseHandler) {
+    public void handle(Long timer) {
         try {
             MDC.put("api", rule.api().getId());
             T endpoint = rule.endpoint();
             logger.debug("Running health-check for endpoint: {} [{}]", endpoint.getName(), endpoint.getTarget());
 
             // We only allow one step per rule. To support more than one step implement healthCheckResponseHandler accordingly
-            runStep(endpoint, rule.steps().get(0), healthCheckResponseHandler);
+            runStep(endpoint, rule.steps().get(0));
         } finally {
             MDC.remove("api");
         }
@@ -198,7 +200,7 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
         return resultURL;
     }
 
-    protected void runStep(T endpoint, HealthCheckStep step, Handler<AsyncResult<HttpClientResponse>> healthCheckResponseHandler) {
+    protected void runStep(T endpoint, HealthCheckStep step) {
         try {
             URL hcRequestUrl = createRequest(endpoint, step);
             Future<HttpClientRequest> healthRequestPromise = createHttpClientRequest(httpClient, hcRequestUrl, step);
@@ -216,6 +218,7 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
                 request.setUri(hcRequestUrl.toString());
 
                 if (requestPreparationEvent.failed()) {
+                    rescheduleHandler.handle(null);
                     reportThrowable(requestPreparationEvent.cause(), step, healthBuilder, startTime, request);
                 } else {
                     healthRequest.response(healthRequestEvent -> {
@@ -232,19 +235,22 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
                                 // Append step stepBuilder
                                 healthBuilder.step(healthCheckStep);
 
+                                rescheduleHandler.handle(null);
                                 report(healthBuilder.build());
                             });
-                            response.exceptionHandler(throwable ->
-                                logger.error("An error has occurred during Health check response handler", throwable)
-                            );
+                            response.exceptionHandler(throwable -> {
+                                logger.error("An error has occurred during Health check response handler", throwable);
+                                rescheduleHandler.handle(null);
+                            });
                         } else {
                             logger.error("An error has occurred during Health check request", healthRequestEvent.cause());
+                            rescheduleHandler.handle(null);
                             reportThrowable(healthRequestEvent.cause(), step, healthBuilder, startTime, request);
                         }
-                        healthCheckResponseHandler.handle(healthRequestEvent);
                     });
 
                     healthRequest.exceptionHandler(throwable -> {
+                        rescheduleHandler.handle(null);
                         reportThrowable(throwable, step, healthBuilder, startTime, request);
                     });
 
@@ -416,6 +422,10 @@ public abstract class EndpointRuleHandler<T extends Endpoint> implements Handler
 
     public void setStatusHandler(Handler<EndpointStatus> statusHandler) {
         this.statusHandler = statusHandler;
+    }
+
+    public void setRescheduleHandler(Handler<Void> rescheduleHandler) {
+        this.rescheduleHandler = rescheduleHandler;
     }
 
     public void setAlertEventProducer(AlertEventProducer alertEventProducer) {
