@@ -39,6 +39,7 @@ import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.TokenService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TokenNameAlreadyExistsException;
+import io.gravitee.rest.api.service.exceptions.TokenNotFoundException;
 import java.util.*;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -296,8 +297,8 @@ public class TokenServiceTest {
         inOrder.verifyNoMoreInteractions();
     }
 
-    @Test(expected = IllegalStateException.class)
-    public void findByToken_should_throw_IllegalStateException_when_no_token_matches() throws TechnicalException {
+    @Test(expected = TokenNotFoundException.class)
+    public void findByToken_should_throw_TokenNotFound_when_no_token_matches() throws TechnicalException {
         Token tokens[] = { mock(Token.class), mock(Token.class), mock(Token.class), mock(Token.class) };
         when(tokenRepository.findAll()).thenReturn(newHashSet(tokens));
         when(passwordEncoder.matches(any(), any())).thenReturn(false);
