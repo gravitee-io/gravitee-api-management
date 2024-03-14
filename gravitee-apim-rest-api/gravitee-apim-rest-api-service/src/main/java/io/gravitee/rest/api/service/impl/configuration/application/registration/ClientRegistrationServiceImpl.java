@@ -177,7 +177,9 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
         try {
             LOGGER.debug("Update client registration provider {}", updateClientRegistrationProvider);
 
-            Optional<ClientRegistrationProvider> optClientRegistrationProvider = clientRegistrationProviderRepository.findById(id);
+            Optional<ClientRegistrationProvider> optClientRegistrationProvider = clientRegistrationProviderRepository
+                .findById(id)
+                .filter(crp -> crp.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()));
 
             if (!optClientRegistrationProvider.isPresent()) {
                 throw new ClientRegistrationProviderNotFoundException(updateClientRegistrationProvider.getName());
@@ -254,11 +256,13 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
     }
 
     @Override
-    public ClientRegistrationProviderEntity findById(String id) {
+    public ClientRegistrationProviderEntity findById(String environmentId, String id) {
         try {
             LOGGER.debug("Find client registration provider by ID: {}", id);
 
-            Optional<ClientRegistrationProvider> clientRegistrationProvider = clientRegistrationProviderRepository.findById(id);
+            Optional<ClientRegistrationProvider> clientRegistrationProvider = clientRegistrationProviderRepository
+                .findById(id)
+                .filter(crp -> crp.getEnvironmentId().equalsIgnoreCase(environmentId));
 
             if (clientRegistrationProvider.isPresent()) {
                 return convert(clientRegistrationProvider.get());
@@ -279,7 +283,9 @@ public class ClientRegistrationServiceImpl extends AbstractService implements Cl
         try {
             LOGGER.debug("Delete client registration provider: {}", id);
 
-            Optional<ClientRegistrationProvider> clientRegistrationProvider = clientRegistrationProviderRepository.findById(id);
+            Optional<ClientRegistrationProvider> clientRegistrationProvider = clientRegistrationProviderRepository
+                .findById(id)
+                .filter(crp -> crp.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()));
 
             if (!clientRegistrationProvider.isPresent()) {
                 throw new ClientRegistrationProviderNotFoundException(id);
