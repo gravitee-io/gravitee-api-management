@@ -20,6 +20,7 @@ import io.gravitee.rest.api.management.rest.model.wrapper.PortalNotificationPage
 import io.gravitee.rest.api.management.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.notification.PortalNotificationEntity;
 import io.gravitee.rest.api.service.PortalNotificationService;
+import io.gravitee.rest.api.service.exceptions.PortalNotificationNotFoundException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -79,6 +80,15 @@ public class UserNotificationsResource extends AbstractResource {
     @ApiResponse(responseCode = "404", description = "User not found")
     @ApiResponse(responseCode = "500", description = "Internal server error")
     public Response deleteUserNotification(@PathParam("notification") String notificationId) {
+        // Check that notification exists and belongs to user
+        List<PortalNotificationEntity> userNotifications = portalNotificationService.findByUser(getAuthenticatedUser());
+        userNotifications
+            .stream()
+            .map(PortalNotificationEntity::getId)
+            .filter(id -> id.equalsIgnoreCase(notificationId))
+            .findAny()
+            .orElseThrow(() -> new PortalNotificationNotFoundException(notificationId));
+
         portalNotificationService.delete(notificationId);
         return Response.status(Response.Status.NO_CONTENT).build();
     }
