@@ -24,13 +24,17 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.repository.management.model.Token;
 import io.gravitee.rest.api.management.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.NewTokenEntity;
 import io.gravitee.rest.api.model.TokenEntity;
+import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.TokenNotFoundException;
+import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.Response;
@@ -55,6 +59,7 @@ public class UserTokensResourceAdminTest extends AbstractResourceTest {
 
     @Before
     public void init() {
+        reset(permissionService, tokenService, userService);
         when(
             permissionService.hasPermission(
                 any(ExecutionContext.class),
@@ -64,7 +69,8 @@ public class UserTokensResourceAdminTest extends AbstractResourceTest {
             )
         )
             .thenReturn(true);
-        reset(tokenService);
+
+        when(userService.findById(GraviteeContext.getExecutionContext(), USER_ID)).thenReturn(new UserEntity());
     }
 
     @Test
@@ -76,6 +82,7 @@ public class UserTokensResourceAdminTest extends AbstractResourceTest {
         assertThat(response.getStatus()).isEqualTo(200);
         final List<TokenEntity> tokenEntities = response.readEntity(new GenericType<List<TokenEntity>>() {});
         assertThat(tokenEntities).hasSize(2);
+        verify(userService, times(1)).findById(GraviteeContext.getExecutionContext(), USER_ID);
     }
 
     @Test
@@ -86,6 +93,7 @@ public class UserTokensResourceAdminTest extends AbstractResourceTest {
         final Response response = envTarget().request().post(Entity.json(newToken));
 
         assertThat(response.getStatus()).isEqualTo(400);
+        verify(userService, never()).findById(GraviteeContext.getExecutionContext(), USER_ID);
         verify(tokenService, never()).create(GraviteeContext.getExecutionContext(), newToken, USER_ID);
     }
 
@@ -98,6 +106,7 @@ public class UserTokensResourceAdminTest extends AbstractResourceTest {
         final Response response = envTarget().request().post(Entity.json(newToken));
 
         assertThat(response.getStatus()).isEqualTo(400);
+        verify(userService, never()).findById(GraviteeContext.getExecutionContext(), USER_ID);
         verify(tokenService, never()).create(GraviteeContext.getExecutionContext(), newToken, USER_ID);
     }
 
@@ -110,6 +119,20 @@ public class UserTokensResourceAdminTest extends AbstractResourceTest {
         final Response response = envTarget().request().post(Entity.json(newToken));
 
         assertThat(response.getStatus()).isEqualTo(400);
+        verify(userService, never()).findById(GraviteeContext.getExecutionContext(), USER_ID);
+        verify(tokenService, never()).create(GraviteeContext.getExecutionContext(), newToken, USER_ID);
+    }
+
+    @Test
+    public void shouldNotCreateTokenWhenUserDoesNotExist() {
+        when(userService.findById(GraviteeContext.getExecutionContext(), USER_ID)).thenThrow(new UserNotFoundException(USER_ID));
+        NewTokenEntity newToken = new NewTokenEntity();
+        newToken.setName("My Token");
+
+        final Response response = envTarget().request().post(Entity.json(newToken));
+
+        assertThat(response.getStatus()).isEqualTo(404);
+        verify(userService, times(1)).findById(GraviteeContext.getExecutionContext(), USER_ID);
         verify(tokenService, never()).create(GraviteeContext.getExecutionContext(), newToken, USER_ID);
     }
 
@@ -122,15 +145,60 @@ public class UserTokensResourceAdminTest extends AbstractResourceTest {
         final Response response = envTarget().request().post(Entity.json(newToken));
 
         assertThat(response.getStatus()).isEqualTo(201);
+        verify(userService, times(1)).findById(GraviteeContext.getExecutionContext(), USER_ID);
         verify(tokenService, times(1)).create(GraviteeContext.getExecutionContext(), newToken, USER_ID);
     }
 
     @Test
     public void shouldRevokeToken() {
+        Token existingToken = new Token();
+        existingToken.setReferenceId(USER_ID);
+        when(tokenService.findByToken(TOKEN_ID)).thenReturn(existingToken);
+
         final Response response = envTarget().path(TOKEN_ID).request().delete();
 
         assertThat(response.getStatus()).isEqualTo(204);
+        verify(tokenService, times(1)).findByToken(TOKEN_ID);
+        verify(userService, times(1)).findById(GraviteeContext.getExecutionContext(), USER_ID);
         verify(tokenService, times(1)).revoke(GraviteeContext.getExecutionContext(), TOKEN_ID);
+    }
+
+    @Test
+    public void shouldNotRevokeTokenBecauseUserDoesNotExist() {
+        when(userService.findById(GraviteeContext.getExecutionContext(), USER_ID)).thenThrow(new UserNotFoundException(USER_ID));
+
+        final Response response = envTarget().path(TOKEN_ID).request().delete();
+
+        assertThat(response.getStatus()).isEqualTo(404);
+        verify(userService, times(1)).findById(GraviteeContext.getExecutionContext(), USER_ID);
+        verify(tokenService, never()).findByToken(TOKEN_ID);
+        verify(tokenService, never()).revoke(GraviteeContext.getExecutionContext(), TOKEN_ID);
+    }
+
+    @Test
+    public void shouldNotRevokeTokenBecauseTokenDoesNotExist() {
+        when(tokenService.findByToken(TOKEN_ID)).thenThrow(new TokenNotFoundException(TOKEN_ID));
+
+        final Response response = envTarget().path(TOKEN_ID).request().delete();
+
+        assertThat(response.getStatus()).isEqualTo(404);
+        verify(userService, times(1)).findById(GraviteeContext.getExecutionContext(), USER_ID);
+        verify(tokenService, times(1)).findByToken(TOKEN_ID);
+        verify(tokenService, never()).revoke(GraviteeContext.getExecutionContext(), TOKEN_ID);
+    }
+
+    @Test
+    public void shouldNotRevokeTokenBecauseTokenDoesBelongToUser() {
+        Token existingToken = new Token();
+        existingToken.setReferenceId("another_user_id");
+        when(tokenService.findByToken(TOKEN_ID)).thenReturn(existingToken);
+
+        final Response response = envTarget().path(TOKEN_ID).request().delete();
+
+        assertThat(response.getStatus()).isEqualTo(404);
+        verify(userService, times(1)).findById(GraviteeContext.getExecutionContext(), USER_ID);
+        verify(tokenService, times(1)).findByToken(TOKEN_ID);
+        verify(tokenService, never()).revoke(GraviteeContext.getExecutionContext(), TOKEN_ID);
     }
 
     private TokenEntity fakeToken(String name) {
