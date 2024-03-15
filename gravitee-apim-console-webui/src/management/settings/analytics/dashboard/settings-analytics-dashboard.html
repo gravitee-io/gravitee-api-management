@@ -17,9 +17,15 @@
 -->
 <div class="gv-forms gv-forms-fluid" layout="column">
   <div class="gv-forms-header">
+<<<<<<< HEAD:gravitee-apim-console-webui/src/management/settings/analytics/dashboard/settings-analytics-dashboard.html
     <h1 ng-if="!$ctrl.editMode">New dashboard [{{$ctrl.dashboard.reference_type}}]</h1>
     <h1 ng-if="$ctrl.editMode">{{::$ctrl.dashboard.name}} [{{$ctrl.dashboard.reference_type}}]</h1>
     <a ng-click="$ctrl.backToDashboards()">Back to dashboards</a>
+=======
+    <h1 ng-if="!$ctrl.editMode">New dashboard [{{$ctrl.dashboard.type}}]</h1>
+    <h1 ng-if="$ctrl.editMode">{{::$ctrl.dashboard.name}} [{{$ctrl.dashboard.type}}]</h1>
+    <a ui-sref="management.settings.analytics.list">Back to dashboards</a>
+>>>>>>> 5d6efb5be4 (fix: migrate dashboard to use "type" instead of "referenceType" field):gravitee-apim-console-webui/src/management/configuration/analytics/dashboard/dashboard.html
   </div>
 
   <form name="$ctrl.formDashboard" ng-submit="$ctrl.save()" novalidate>

@@ -67,8 +67,14 @@ const SettingsAnalyticsDashboardComponentAjs: ng.IComponentOptions = {
           });
         } else {
           this.dashboard = {
+<<<<<<< HEAD:gravitee-apim-console-webui/src/management/settings/analytics/dashboard/settings-analytics-dashboard.components.ajs.ts
             reference_type: this.activatedRoute.snapshot.params.type,
             reference_id: 'DEFAULT',
+=======
+            type: $state.params.type,
+            reference_type: 'ENVIRONMENT',
+            reference_id: $state.params.environmentId,
+>>>>>>> 5d6efb5be4 (fix: migrate dashboard to use "type" instead of "referenceType" field):gravitee-apim-console-webui/src/management/configuration/analytics/dashboard/dashboard.components.ts
             enabled: true,
             definition: [],
           };
