@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ * Copyright © 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *         http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export class Dashboard {
-  public id: string;
-  public reference_type: string;
-  public reference_id: string;
-  public type: string;
-  public name: string;
-  public query_filter: string;
-  public order: number;
-  public enabled: boolean;
-  public definition: string;
-  public created_at: number;
-  public updated_at: number;
+package io.gravitee.repository.management.model;
+
+/**
+ * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
+ * @author GraviteeSource Team
+ */
+public enum DashboardType {
+    PLATFORM,
+    API,
+    APPLICATION,
+    HOME,
 }

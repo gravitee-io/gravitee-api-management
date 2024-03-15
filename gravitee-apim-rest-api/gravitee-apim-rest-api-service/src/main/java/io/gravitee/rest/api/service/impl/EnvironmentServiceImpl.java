@@ -64,6 +64,9 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
     @Autowired
     private MembershipService membershipService;
 
+    @Autowired
+    private DashboardService dashboardService;
+
     @Override
     public EnvironmentEntity findById(String environmentId) {
         try {
@@ -164,6 +167,7 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
                 ExecutionContext executionContext = new ExecutionContext(organizationId, environmentId);
                 apiHeaderService.initialize(executionContext);
                 pageService.initialize(executionContext);
+                dashboardService.initialize(executionContext);
 
                 return createdEnvironment;
             }
@@ -237,6 +241,20 @@ public class EnvironmentServiceImpl extends TransactionalService implements Envi
     public EnvironmentEntity getDefaultOrInitialize() {
         try {
             return environmentRepository.findById(GraviteeContext.getDefaultEnvironment()).map(this::convert).orElseGet(this::initialize);
+        } catch (final Exception ex) {
+            LOGGER.error("Error while getting installation : {}", ex.getMessage());
+            throw new TechnicalManagementException("Error while getting installation", ex);
+        }
+    }
+
+    @Override
+    public Set<EnvironmentEntity> findAllOrInitialize() {
+        try {
+            var environments = environmentRepository.findAll().stream().map(this::convert).collect(Collectors.toSet());
+            if (environments.isEmpty()) {
+                return Set.of(this.initialize());
+            }
+            return environments;
         } catch (final Exception ex) {
             LOGGER.error("Error while getting installation : {}", ex.getMessage());
             throw new TechnicalManagementException("Error while getting installation", ex);
