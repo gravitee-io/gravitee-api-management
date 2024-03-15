@@ -16,69 +16,42 @@
 import { afterAll, beforeAll, describe, expect, test } from '@jest/globals';
 
 import { APP_USER, forManagementAsAdminUser, forPortalAsAnonymous, forPortalAsAppUser } from '@gravitee/utils/configuration';
-import { APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
-import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
-import { fail } from '@lib/jest-utils';
-import { ApiEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
-import { PagesFaker } from '@gravitee/fixtures/management/PagesFaker';
-import { PortalApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/PortalApi';
-import { PortalApi as ManagementPortalApi } from '@gravitee/management-webclient-sdk/src/lib/apis/PortalApi';
-import { PageEntity } from '@gravitee/management-webclient-sdk/src/lib/models/PageEntity';
-import { ConfigurationApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ConfigurationApi';
+import { PortalApi as PortalApi_portal } from '@gravitee/portal-webclient-sdk/src/lib/apis/PortalApi';
+import { PortalApi as ManagementApi_portal } from '@gravitee/management-webclient-sdk/src/lib/apis/PortalApi';
+import { ConfigurationApi as ManagementApi_configuration } from '@gravitee/management-webclient-sdk/src/lib/apis/ConfigurationApi';
+import { UsersApi as ManagementApi_users } from '@gravitee/management-webclient-sdk/src/lib/apis/UsersApi';
 import { GroupEntity } from '@gravitee/management-webclient-sdk/src/lib/models/GroupEntity';
-import { UsersApi } from '@gravitee/management-webclient-sdk/src/lib/apis/UsersApi';
-import { SearchableUser } from '@gravitee/management-webclient-sdk/src/lib/models/SearchableUser';
+import { PageEntity } from '@gravitee/management-webclient-sdk/src/lib/models/PageEntity';
 import { RoleScope } from '@gravitee/management-webclient-sdk/src/lib/models/RoleScope';
+import { SearchableUser } from '@gravitee/management-webclient-sdk/src/lib/models/SearchableUser';
+import { PagesFaker } from '@gravitee/fixtures/management/PagesFaker';
+import { fail } from '@lib/jest-utils';
 import faker from '@faker-js/faker';
 
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
 
-const apisManagementApiAsAdmin = new APIsApi(forManagementAsAdminUser());
-const configurationAsAdmin = new ConfigurationApi(forManagementAsAdminUser());
-const managementPortalApiAsAdmin = new ManagementPortalApi(forManagementAsAdminUser());
-const usersApiAsAdmin = new UsersApi(forManagementAsAdminUser());
-const portalApiAsAnonymous = new PortalApi(forPortalAsAnonymous());
-const portalApiAsAppUser = new PortalApi(forPortalAsAppUser());
+const configurationAsAdmin = new ManagementApi_configuration(forManagementAsAdminUser());
+const portalManagementApiAsAdmin = new ManagementApi_portal(forManagementAsAdminUser());
+const usersApiAsAdmin = new ManagementApi_users(forManagementAsAdminUser());
+
+const portalPortalApiAsAnonymous = new PortalApi_portal(forPortalAsAnonymous());
+const portalPortalApiAsAppUser = new PortalApi_portal(forPortalAsAppUser());
 
 describe('Portal: Business Error - pages', () => {
-  let createdApi: ApiEntity;
-  beforeAll(async () => {
-    createdApi = await apisManagementApiAsAdmin.createApi({
-      orgId,
-      envId,
-      newApiEntity: ApisFaker.newApi(),
-    });
-  });
-
-  describe('400', () => {
-    test('should not create page without type', async () => {
-      await fail(
-        apisManagementApiAsAdmin.createApiPageRaw({
-          envId,
-          orgId,
-          api: createdApi.id,
-          newPageEntity: PagesFaker.newPage({ type: undefined }),
-        }),
-        400,
-      );
-    });
-  });
-
   describe('401 - Authentication tests', () => {
     let createdPage: PageEntity;
     beforeAll(async () => {
-      createdPage = await apisManagementApiAsAdmin.createApiPage({
+      createdPage = await portalManagementApiAsAdmin.createPortalPage({
         envId,
         orgId,
-        api: createdApi.id,
         newPageEntity: PagesFaker.newPage(),
       });
     });
 
     test('should not not be authorized to get the page', async () => {
       await fail(
-        portalApiAsAnonymous.getPageByPageIdRaw({
+        portalPortalApiAsAnonymous.getPageByPageIdRaw({
           pageId: createdPage.id,
         }),
         401,
@@ -91,7 +64,7 @@ describe('Portal: Business Error - pages', () => {
 
     test('should not not be authorized to get the page content', async () => {
       await fail(
-        portalApiAsAnonymous.getPageContentByPageIdRaw({
+        portalPortalApiAsAnonymous.getPageContentByPageIdRaw({
           pageId: createdPage.id,
         }),
         401,
@@ -103,7 +76,7 @@ describe('Portal: Business Error - pages', () => {
     });
 
     afterAll(async () => {
-      await apisManagementApiAsAdmin.deleteApiPage({ orgId, envId, page: createdPage.id, api: createdApi.id });
+      await portalManagementApiAsAdmin.deletePortalPage({ orgId, envId, page: createdPage.id });
     });
   });
 
@@ -113,10 +86,9 @@ describe('Portal: Business Error - pages', () => {
     let appUsers: SearchableUser[];
 
     beforeAll(async () => {
-      createdPage = await apisManagementApiAsAdmin.createApiPage({
+      createdPage = await portalManagementApiAsAdmin.createPortalPage({
         envId,
         orgId,
-        api: createdApi.id,
         newPageEntity: PagesFaker.newPage(),
       });
 
@@ -131,7 +103,7 @@ describe('Portal: Business Error - pages', () => {
       });
 
       // exclude created group
-      await managementPortalApiAsAdmin.updatePortalPageRaw({
+      await portalManagementApiAsAdmin.updatePortalPageRaw({
         orgId,
         envId,
         page: createdPage.id,
@@ -169,7 +141,7 @@ describe('Portal: Business Error - pages', () => {
 
     test('should not not be authorized to get the page', async () => {
       await fail(
-        portalApiAsAppUser.getPageByPageIdRaw({
+        portalPortalApiAsAppUser.getPageByPageIdRaw({
           pageId: createdPage.id,
         }),
         401,
@@ -182,7 +154,7 @@ describe('Portal: Business Error - pages', () => {
 
     test('should not not be authorized to get the page content', async () => {
       await fail(
-        portalApiAsAppUser.getPageContentByPageIdRaw({
+        portalPortalApiAsAppUser.getPageContentByPageIdRaw({
           pageId: createdPage.id,
         }),
         401,
@@ -194,7 +166,7 @@ describe('Portal: Business Error - pages', () => {
     });
 
     afterAll(async () => {
-      await apisManagementApiAsAdmin.deleteApiPage({ orgId, envId, page: createdPage.id, api: createdApi.id });
+      await portalManagementApiAsAdmin.deletePortalPage({ orgId, envId, page: createdPage.id });
       await configurationAsAdmin.deleteGroup({ orgId, envId, group: createdGroup.id });
     });
   });
@@ -203,7 +175,7 @@ describe('Portal: Business Error - pages', () => {
     test('should not find the page', async () => {
       const pageId = faker.datatype.uuid();
       await fail(
-        portalApiAsAnonymous.getPageByPageIdRaw({
+        portalPortalApiAsAnonymous.getPageByPageIdRaw({
           pageId,
         }),
         404,
@@ -216,9 +188,5 @@ describe('Portal: Business Error - pages', () => {
         },
       );
     });
-  });
-
-  afterAll(async () => {
-    await apisManagementApiAsAdmin.deleteApi({ orgId, envId, api: createdApi.id });
   });
 });
