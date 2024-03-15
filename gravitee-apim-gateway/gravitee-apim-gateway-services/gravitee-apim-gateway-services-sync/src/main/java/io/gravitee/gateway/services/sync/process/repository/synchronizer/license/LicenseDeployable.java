@@ -20,7 +20,6 @@ import io.gravitee.gateway.services.sync.process.common.model.SyncAction;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
@@ -33,7 +32,6 @@ import lombok.experimental.Accessors;
 @ToString
 public class LicenseDeployable implements Deployable {
 
-    @NonNull
     private String license;
 
     private String id;
