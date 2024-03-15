@@ -31,7 +31,7 @@ public interface NotificationTemplateService {
 
     NotificationTemplateEntity update(ExecutionContext executionContext, NotificationTemplateEntity updatingNotificationTemplate);
 
-    NotificationTemplateEntity findById(String id);
+    NotificationTemplateEntity findById(String organizationId, String id);
 
     Set<NotificationTemplateEntity> findAll(String organizationId);
 

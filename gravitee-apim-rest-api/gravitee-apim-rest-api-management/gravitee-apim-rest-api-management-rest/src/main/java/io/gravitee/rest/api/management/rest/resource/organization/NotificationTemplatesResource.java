@@ -21,6 +21,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -122,7 +123,10 @@ public class NotificationTemplatesResource extends AbstractResource {
     public Response getNotificationTemplate(
         @Parameter(description = "ID of the notification template") @PathParam("notificationTemplateId") String notificationTemplateId
     ) {
-        final NotificationTemplateEntity notificationTemplateEntity = notificationTemplateService.findById(notificationTemplateId);
+        final NotificationTemplateEntity notificationTemplateEntity = notificationTemplateService.findById(
+            GraviteeContext.getCurrentOrganization(),
+            notificationTemplateId
+        );
         return Response.ok(notificationTemplateEntity).build();
     }
 
