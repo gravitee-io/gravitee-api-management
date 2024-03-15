@@ -160,8 +160,12 @@ databaseChangeLog:
   - include:
       - file: liquibase/changelogs/v4_0_3/schema.yml
   - include:
+<<<<<<< HEAD
       - file: liquibase/changelogs/v4_2_0/schema.yml
   - include:
       - file: liquibase/changelogs/v4_2_0/schema-quality-rules.yml
   - include:
       - file: liquibase/changelogs/v4_3_0/schema.yml
+=======
+      - file: liquibase/changelogs/v4_0_20/schema-dashboards.yml
+>>>>>>> f718201c9e (fix: migrate dashboard to use "type" instead of "referenceType" field)

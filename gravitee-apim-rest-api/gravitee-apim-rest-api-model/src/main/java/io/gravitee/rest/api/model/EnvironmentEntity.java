@@ -21,16 +21,28 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+<<<<<<< HEAD
+=======
+import lombok.EqualsAndHashCode;
+>>>>>>> f718201c9e (fix: migrate dashboard to use "type" instead of "referenceType" field)
 import lombok.NoArgsConstructor;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
+<<<<<<< HEAD
 @Builder(toBuilder = true)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+=======
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@EqualsAndHashCode(of = { "id", "cockpitId", "hrids", "name", "description", "organizationId", "domainRestrictions" })
+>>>>>>> f718201c9e (fix: migrate dashboard to use "type" instead of "referenceType" field)
 public class EnvironmentEntity {
 
     private String id;

@@ -15,8 +15,6 @@
  */
 package io.gravitee.repository.mongodb.management;
 
-import static java.util.stream.Collectors.toList;
-
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.DashboardRepository;
 import io.gravitee.repository.management.model.Dashboard;
@@ -123,8 +121,30 @@ public class MongoDashboardRepository implements DashboardRepository {
     }
 
     @Override
-    public List<Dashboard> findByReferenceType(String referenceType) throws TechnicalException {
-        final List<DashboardMongo> dashboards = internalDashboardRepo.findByReferenceTypeOrderByOrder(referenceType);
-        return dashboards.stream().map(dashboardMongo -> mapper.map(dashboardMongo)).collect(toList());
+    public List<Dashboard> findByReference(String referenceType, String referenceId) throws TechnicalException {
+        final List<DashboardMongo> dashboards = internalDashboardRepo.findByReferenceTypeAndReferenceId(referenceType, referenceId);
+        return dashboards.stream().map(dashboardMongo -> mapper.map(dashboardMongo)).toList();
+    }
+
+    @Override
+    public List<Dashboard> findByReferenceAndType(String referenceType, String referenceId, String type) throws TechnicalException {
+        final List<DashboardMongo> dashboards = internalDashboardRepo.findByReferenceTypeAndReferenceIdAndTypeOrderByOrder(
+            referenceType,
+            referenceId,
+            type
+        );
+        return dashboards.stream().map(dashboardMongo -> mapper.map(dashboardMongo)).toList();
+    }
+
+    @Override
+    public Optional<Dashboard> findByReferenceAndId(String referenceType, String referenceId, String id) throws TechnicalException {
+        LOGGER.debug("Find dashboard by ID [{}-{}-{}]", referenceType, referenceId, id);
+
+        final DashboardMongo dashboard = internalDashboardRepo
+            .findByReferenceTypeAndReferenceIdAndId(referenceType, referenceId, id)
+            .orElse(null);
+
+        LOGGER.debug("Find dashboard by ID [{}-{}-{}] - Done", referenceType, referenceId, id);
+        return Optional.ofNullable(mapper.map(dashboard));
     }
 }
