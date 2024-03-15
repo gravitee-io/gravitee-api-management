@@ -122,7 +122,10 @@ public class NotificationTemplatesResource extends AbstractResource {
     public Response getNotificationTemplate(
         @Parameter(description = "ID of the notification template") @PathParam("notificationTemplateId") String notificationTemplateId
     ) {
-        final NotificationTemplateEntity notificationTemplateEntity = notificationTemplateService.findById(notificationTemplateId);
+        final NotificationTemplateEntity notificationTemplateEntity = notificationTemplateService.findById(
+            GraviteeContext.getCurrentOrganization(),
+            notificationTemplateId
+        );
         return Response.ok(notificationTemplateEntity).build();
     }
 
