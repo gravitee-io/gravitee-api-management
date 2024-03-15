@@ -64,7 +64,7 @@ public class DictionaryResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions(@Permission(value = RolePermission.ENVIRONMENT_DICTIONARY, acls = RolePermissionAction.READ))
     public DictionaryEntity getDictionary(@PathParam("dictionary") String dictionary) {
-        DictionaryEntity dictionaryEntity = dictionaryService.findById(dictionary);
+        DictionaryEntity dictionaryEntity = dictionaryService.findById(GraviteeContext.getExecutionContext(), dictionary);
         // remove provider informations for readonlyUsers
         boolean notReadOnly = hasPermission(
             GraviteeContext.getExecutionContext(),
@@ -114,7 +114,7 @@ public class DictionaryResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions(@Permission(value = RolePermission.ENVIRONMENT_DICTIONARY, acls = RolePermissionAction.UPDATE))
     public Response deployDictionary(@PathParam("dictionary") String dictionary) {
-        DictionaryEntity dictionaryEntity = dictionaryService.findById(dictionary);
+        DictionaryEntity dictionaryEntity = dictionaryService.findById(GraviteeContext.getExecutionContext(), dictionary);
 
         if (dictionaryEntity.getType() == DictionaryType.MANUAL) {
             dictionaryEntity = dictionaryService.deploy(GraviteeContext.getExecutionContext(), dictionary);
@@ -143,7 +143,7 @@ public class DictionaryResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions(@Permission(value = RolePermission.ENVIRONMENT_DICTIONARY, acls = RolePermissionAction.UPDATE))
     public Response undeployDictionary(@PathParam("dictionary") String dictionary) {
-        DictionaryEntity dictionaryEntity = dictionaryService.findById(dictionary);
+        DictionaryEntity dictionaryEntity = dictionaryService.findById(GraviteeContext.getExecutionContext(), dictionary);
 
         if (dictionaryEntity.getType() == DictionaryType.MANUAL) {
             dictionaryEntity = dictionaryService.undeploy(GraviteeContext.getExecutionContext(), dictionary);
@@ -189,7 +189,7 @@ public class DictionaryResource extends AbstractResource {
         @Parameter(required = true) @NotNull @QueryParam("action") LifecycleAction action,
         @PathParam("dictionary") String dictionary
     ) {
-        DictionaryEntity dictionaryEntity = dictionaryService.findById(dictionary);
+        DictionaryEntity dictionaryEntity = dictionaryService.findById(GraviteeContext.getExecutionContext(), dictionary);
 
         if (dictionaryEntity.getType() == DictionaryType.DYNAMIC) {
             switch (action) {
