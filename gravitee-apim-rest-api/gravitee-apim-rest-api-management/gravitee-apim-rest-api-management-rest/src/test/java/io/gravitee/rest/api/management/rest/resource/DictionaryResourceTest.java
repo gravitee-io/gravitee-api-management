@@ -44,9 +44,9 @@ public class DictionaryResourceTest extends AbstractResourceTest {
         dictionary.setUpdatedAt(new Date());
         dictionary.setType(DictionaryType.DYNAMIC);
         dictionary.setState(Lifecycle.State.STOPPED);
-        doReturn(dictionary).when(dictionaryService).findById(eq(DICTIONARY_ID));
+        doReturn(dictionary).when(dictionaryService).findById(GraviteeContext.getExecutionContext(), DICTIONARY_ID);
 
-        doReturn(dictionary).when(dictionaryService).start(eq(GraviteeContext.getExecutionContext()), eq(DICTIONARY_ID));
+        doReturn(dictionary).when(dictionaryService).start(GraviteeContext.getExecutionContext(), DICTIONARY_ID);
 
         final Response response = envTarget().queryParam("action", LifecycleAction.START).request().post(null);
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -59,9 +59,9 @@ public class DictionaryResourceTest extends AbstractResourceTest {
         dictionary.setUpdatedAt(new Date());
         dictionary.setType(DictionaryType.DYNAMIC);
         dictionary.setState(Lifecycle.State.STARTED);
-        doReturn(dictionary).when(dictionaryService).findById(eq(DICTIONARY_ID));
+        doReturn(dictionary).when(dictionaryService).findById(GraviteeContext.getExecutionContext(), DICTIONARY_ID);
 
-        doReturn(dictionary).when(dictionaryService).stop(eq(GraviteeContext.getExecutionContext()), eq(DICTIONARY_ID));
+        doReturn(dictionary).when(dictionaryService).stop(GraviteeContext.getExecutionContext(), DICTIONARY_ID);
 
         final Response response = envTarget().queryParam("action", LifecycleAction.STOP).request().post(null);
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
@@ -74,7 +74,7 @@ public class DictionaryResourceTest extends AbstractResourceTest {
         dictionary.setUpdatedAt(new Date());
         dictionary.setType(DictionaryType.DYNAMIC);
         dictionary.setState(Lifecycle.State.STARTED);
-        doReturn(dictionary).when(dictionaryService).findById(eq(DICTIONARY_ID));
+        doReturn(dictionary).when(dictionaryService).findById(GraviteeContext.getExecutionContext(), DICTIONARY_ID);
 
         final Response response = envTarget().queryParam("action", "Bad action").request().post(null);
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
