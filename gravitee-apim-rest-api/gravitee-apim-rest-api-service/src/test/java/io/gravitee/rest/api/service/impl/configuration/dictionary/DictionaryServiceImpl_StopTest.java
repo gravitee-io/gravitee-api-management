@@ -19,6 +19,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -59,12 +60,13 @@ public class DictionaryServiceImpl_StopTest {
     private AuditService auditService;
 
     @Test
-    public void shouldStartDictionary() throws TechnicalException {
+    public void shouldStopDictionary() throws TechnicalException {
         Dictionary dictionaryInDb = new Dictionary();
         dictionaryInDb.setId("dictionaryId");
         dictionaryInDb.setCreatedAt(new Date(1486771200000L));
         dictionaryInDb.setUpdatedAt(new Date(1486771200000L));
         dictionaryInDb.setState(LifecycleState.STARTED);
+        dictionaryInDb.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
         when(dictionaryRepository.findById(dictionaryInDb.getId())).thenReturn(Optional.of(dictionaryInDb));
 
         Dictionary updatedDictionary = new Dictionary();
@@ -101,7 +103,38 @@ public class DictionaryServiceImpl_StopTest {
     }
 
     @Test(expected = DictionaryNotFoundException.class)
-    public void shouldNotStartBecauseNotFound() throws TechnicalException {
+    public void shouldNotStopDictionaryBecauseDoesNotBelongToEnvironment() throws TechnicalException {
+        Dictionary dictionaryInDb = new Dictionary();
+        dictionaryInDb.setId("dictionaryId");
+        dictionaryInDb.setCreatedAt(new Date(1486771200000L));
+        dictionaryInDb.setUpdatedAt(new Date(1486771200000L));
+        dictionaryInDb.setState(LifecycleState.STARTED);
+        dictionaryInDb.setEnvironmentId("Another_environment");
+        when(dictionaryRepository.findById(dictionaryInDb.getId())).thenReturn(Optional.of(dictionaryInDb));
+
+        dictionaryService.stop(GraviteeContext.getExecutionContext(), dictionaryInDb.getId());
+
+        verify(dictionaryRepository, never()).update(any(Dictionary.class));
+        verify(eventService, never())
+            .createDynamicDictionaryEvent(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(Collections.singleton(ENVIRONMENT_ID)),
+                eq(EventType.STOP_DICTIONARY),
+                eq("dictionaryId")
+            );
+        verify(auditService, never())
+            .createAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
+                any(),
+                eq(Dictionary.AuditEvent.DICTIONARY_UPDATED),
+                any(),
+                any(),
+                any()
+            );
+    }
+
+    @Test(expected = DictionaryNotFoundException.class)
+    public void shouldNotStopBecauseNotFound() throws TechnicalException {
         when(dictionaryRepository.findById("dictionaryId")).thenReturn(Optional.empty());
 
         dictionaryService.stop(GraviteeContext.getExecutionContext(), "dictionaryId");
