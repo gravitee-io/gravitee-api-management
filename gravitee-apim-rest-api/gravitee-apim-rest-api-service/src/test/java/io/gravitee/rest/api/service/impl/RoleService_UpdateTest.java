@@ -78,10 +78,13 @@ public class RoleService_UpdateTest {
         when(roleMock.getScope()).thenReturn(RoleScope.ENVIRONMENT);
         when(roleMock.getPermissions()).thenReturn(new int[] { 3008 });
         when(roleMock.getReferenceType()).thenReturn(RoleReferenceType.ORGANIZATION);
-        when(roleMock.getReferenceId()).thenReturn("orga#1");
+        when(roleMock.getReferenceId()).thenReturn(GraviteeContext.getCurrentOrganization());
         when(
             mockRoleRepository.update(
-                argThat(role -> role.getReferenceId().equals("orga#1") && role.getReferenceType() == RoleReferenceType.ORGANIZATION)
+                argThat(role ->
+                    role.getReferenceId().equals(GraviteeContext.getCurrentOrganization()) &&
+                    role.getReferenceType() == RoleReferenceType.ORGANIZATION
+                )
             )
         )
             .thenReturn(roleMock);
