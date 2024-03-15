@@ -187,6 +187,20 @@ public class DictionaryServiceImpl_UpdateTest {
     }
 
     @Test(expected = DictionaryNotFoundException.class)
+    public void shouldNotUpdateBecauseDoesNotBelongToEnvironment() throws TechnicalException {
+        Dictionary dictionaryInDb = new Dictionary();
+        dictionaryInDb.setId(DICTIONARY_ID);
+        dictionaryInDb.setCreatedAt(new Date());
+        dictionaryInDb.setState(LifecycleState.STARTED);
+        dictionaryInDb.setEnvironmentId("Another_environment");
+        when(dictionaryRepository.findById(dictionaryInDb.getId())).thenReturn(Optional.of(dictionaryInDb));
+
+        UpdateDictionaryEntity updateDictionaryEntity = new UpdateDictionaryEntity();
+        updateDictionaryEntity.setName("UpdatedName");
+        dictionaryService.update(GraviteeContext.getExecutionContext(), DICTIONARY_ID, updateDictionaryEntity);
+    }
+
+    @Test(expected = DictionaryNotFoundException.class)
     public void shouldNotUpdateBecauseNotFound() throws TechnicalException {
         when(dictionaryRepository.findById(DICTIONARY_ID)).thenReturn(Optional.empty());
 
