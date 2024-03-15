@@ -51,6 +51,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.Before;
@@ -93,7 +94,7 @@ public class ThemeServiceTest {
     public void shouldFindById() throws TechnicalException, JsonProcessingException {
         ThemeDefinitionMapper definitionMapper = new ThemeDefinitionMapper();
         ThemeDefinition themeDefinition = new ThemeDefinition();
-        themeDefinition.setData(Collections.EMPTY_LIST);
+        themeDefinition.setData(List.of());
         String definition = definitionMapper.writeValueAsString(themeDefinition);
 
         final Theme theme = mock(Theme.class);
@@ -125,7 +126,7 @@ public class ThemeServiceTest {
     public void shouldThrowThemeNotFoundExceptionWhenThemeIsNotInDefaultEnv() throws TechnicalException, JsonProcessingException {
         ThemeDefinitionMapper definitionMapper = new ThemeDefinitionMapper();
         ThemeDefinition themeDefinition = new ThemeDefinition();
-        themeDefinition.setData(Collections.EMPTY_LIST);
+        themeDefinition.setData(List.of());
         String definition = definitionMapper.writeValueAsString(themeDefinition);
 
         final Theme theme = mock(Theme.class);
@@ -265,7 +266,7 @@ public class ThemeServiceTest {
     public void shouldCreate() throws TechnicalException, IOException {
         ThemeDefinitionMapper definitionMapper = new ThemeDefinitionMapper();
         ThemeDefinition themeDefinition = new ThemeDefinition();
-        themeDefinition.setData(Collections.EMPTY_LIST);
+        themeDefinition.setData(List.of());
         String definition = definitionMapper.writeValueAsString(themeDefinition);
         final NewThemeEntity newThemeEntity = new NewThemeEntity();
         newThemeEntity.setName("NAME");
@@ -337,7 +338,7 @@ public class ThemeServiceTest {
     public void shouldUpdate() throws TechnicalException, JsonProcessingException {
         ThemeDefinitionMapper definitionMapper = new ThemeDefinitionMapper();
         ThemeDefinition themeDefinition = new ThemeDefinition();
-        themeDefinition.setData(Collections.EMPTY_LIST);
+        themeDefinition.setData(List.of());
         String definition = definitionMapper.writeValueAsString(themeDefinition);
 
         final UpdateThemeEntity updateThemeEntity = new UpdateThemeEntity();
@@ -351,6 +352,8 @@ public class ThemeServiceTest {
         updatedTheme.setDefinition(definition);
         updatedTheme.setCreatedAt(new Date());
         updatedTheme.setUpdatedAt(new Date());
+        updatedTheme.setReferenceType(ENVIRONMENT.name());
+        updatedTheme.setReferenceId(GraviteeContext.getCurrentEnvironment());
         when(themeRepository.update(any())).thenReturn(updatedTheme);
         when(themeRepository.findById(THEME_ID)).thenReturn(of(updatedTheme));
 
@@ -391,12 +394,51 @@ public class ThemeServiceTest {
             );
     }
 
+    @Test(expected = ThemeNotFoundException.class)
+    public void shouldNotUpdateBecauseDoesNotBelongToEnvironment() throws TechnicalException, JsonProcessingException {
+        ThemeDefinitionMapper definitionMapper = new ThemeDefinitionMapper();
+        ThemeDefinition themeDefinition = new ThemeDefinition();
+        themeDefinition.setData(List.of());
+        String definition = definitionMapper.writeValueAsString(themeDefinition);
+
+        final UpdateThemeEntity updateThemeEntity = new UpdateThemeEntity();
+        updateThemeEntity.setId(THEME_ID);
+        updateThemeEntity.setName("NAME");
+        updateThemeEntity.setDefinition(themeDefinition);
+
+        final Theme updatedTheme = new Theme();
+        updatedTheme.setId(THEME_ID);
+        updatedTheme.setName("NAME");
+        updatedTheme.setDefinition(definition);
+        updatedTheme.setCreatedAt(new Date());
+        updatedTheme.setUpdatedAt(new Date());
+        updatedTheme.setReferenceType(ENVIRONMENT.name());
+        updatedTheme.setReferenceId("Another_environment");
+        when(themeRepository.findById(THEME_ID)).thenReturn(of(updatedTheme));
+
+        themeService.update(GraviteeContext.getExecutionContext(), updateThemeEntity);
+
+        verify(themeRepository, never()).update(any());
+
+        verify(auditService, never())
+            .createAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(ImmutableMap.of(THEME, THEME_ID)),
+                eq(Theme.AuditEvent.THEME_UPDATED),
+                any(Date.class),
+                any(),
+                any()
+            );
+    }
+
     @Test(expected = DuplicateThemeNameException.class)
     public void shouldThrowDuplicateThemeNameExceptionOnUpdate() throws TechnicalException {
         final Theme theme = mock(Theme.class);
         when(theme.getId()).thenReturn(THEME_ID);
         when(theme.getName()).thenReturn("NAME");
         when(theme.getDefinition()).thenReturn(themeServiceImpl.getDefaultDefinition());
+        when(theme.getReferenceType()).thenReturn(ENVIRONMENT.name());
+        when(theme.getReferenceId()).thenReturn(GraviteeContext.getCurrentEnvironment());
 
         final Theme theme2 = mock(Theme.class);
         when(theme2.getId()).thenReturn("foobar");
@@ -432,7 +474,7 @@ public class ThemeServiceTest {
     @Test
     public void shouldResetToDefaultTheme() throws TechnicalException {
         ThemeDefinition themeDefinition = new ThemeDefinition();
-        themeDefinition.setData(Collections.EMPTY_LIST);
+        themeDefinition.setData(List.of());
 
         final Theme theme = new Theme();
         theme.setId(THEME_ID);
@@ -464,12 +506,35 @@ public class ThemeServiceTest {
     @Test
     public void shouldDelete() throws TechnicalException {
         final Theme theme = mock(Theme.class);
+        when(theme.getReferenceType()).thenReturn(ENVIRONMENT.name());
+        when(theme.getReferenceId()).thenReturn(GraviteeContext.getCurrentEnvironment());
         when(themeRepository.findById(THEME_ID)).thenReturn(of(theme));
 
         themeService.delete(GraviteeContext.getExecutionContext(), THEME_ID);
 
         verify(themeRepository, times(1)).delete(THEME_ID);
         verify(auditService, times(1))
+            .createAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(ImmutableMap.of(THEME, THEME_ID)),
+                eq(Theme.AuditEvent.THEME_DELETED),
+                any(Date.class),
+                isNull(),
+                eq(theme)
+            );
+    }
+
+    @Test
+    public void shouldNotDeleteBecauseDoesNotBelongToEnvironment() throws TechnicalException {
+        final Theme theme = mock(Theme.class);
+        when(theme.getReferenceType()).thenReturn(ENVIRONMENT.name());
+        when(theme.getReferenceId()).thenReturn("Another_environment");
+        when(themeRepository.findById(THEME_ID)).thenReturn(of(theme));
+
+        themeService.delete(GraviteeContext.getExecutionContext(), THEME_ID);
+
+        verify(themeRepository, never()).delete(THEME_ID);
+        verify(auditService, never())
             .createAuditLog(
                 eq(GraviteeContext.getExecutionContext()),
                 eq(ImmutableMap.of(THEME, THEME_ID)),

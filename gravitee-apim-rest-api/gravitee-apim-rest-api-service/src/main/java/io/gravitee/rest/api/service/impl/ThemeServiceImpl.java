@@ -154,6 +154,14 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
             final Optional<Theme> themeOptional = themeRepository.findById(updateThemeEntity.getId());
             if (themeOptional.isPresent()) {
                 final Theme theme = new Theme(themeOptional.get());
+
+                if (!theme.getReferenceId().equals(executionContext.getEnvironmentId())) {
+                    LOGGER.warn(
+                        "Theme is not in current environment " + executionContext.getEnvironmentId() + " actual:" + theme.getReferenceId()
+                    );
+                    throw new ThemeNotFoundException(theme.getId());
+                }
+
                 if (this.findByName(executionContext, theme.getName(), theme.getId()).isPresent()) {
                     throw new DuplicateThemeNameException(theme.getName());
                 }
@@ -221,7 +229,12 @@ public class ThemeServiceImpl extends AbstractService implements ThemeService {
     @Override
     public void delete(final ExecutionContext executionContext, String themeId) {
         try {
-            Optional<Theme> themeOptional = themeRepository.findById(themeId);
+            Optional<Theme> themeOptional = themeRepository
+                .findById(themeId)
+                .filter(t ->
+                    ENVIRONMENT.name().equalsIgnoreCase(t.getReferenceType()) &&
+                    t.getReferenceId().equalsIgnoreCase(executionContext.getEnvironmentId())
+                );
             if (themeOptional.isPresent()) {
                 themeRepository.delete(themeId);
                 auditService.createAuditLog(
