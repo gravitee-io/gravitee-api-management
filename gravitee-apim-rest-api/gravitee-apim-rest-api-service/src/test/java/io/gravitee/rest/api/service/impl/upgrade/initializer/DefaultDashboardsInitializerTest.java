@@ -15,36 +15,92 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.initializer;
 
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import io.gravitee.rest.api.model.DashboardEntity;
+import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.service.DashboardService;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
+import io.gravitee.rest.api.service.EnvironmentService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.util.List;
+import java.util.Set;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
+@DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 public class DefaultDashboardsInitializerTest {
 
     @Mock
     private DashboardService dashboardService;
 
-    @InjectMocks
-    private final DefaultDashboardsInitializer initializer = new DefaultDashboardsInitializer();
+    @Mock
+    private EnvironmentService environmentService;
 
-    @Test
-    public void shouldCreateDashboards() {
-        initializer.initialize();
-        verify(dashboardService, times(9)).create(any(), any());
+    private DefaultDashboardsInitializer cut;
+
+    @BeforeEach
+    void setUp() {
+        cut = new DefaultDashboardsInitializer(dashboardService, environmentService);
     }
 
     @Test
-    public void testOrder() {
-        Assert.assertEquals(InitializerOrder.DEFAULT_DASHBOARDS_INITIALIZER, initializer.getOrder());
+    void should_create_dashboards() {
+        when(environmentService.findAllOrInitialize())
+            .thenReturn(
+                Set.of(
+                    EnvironmentEntity
+                        .builder()
+                        .organizationId("FAKE_ORG_1")
+                        .id("ENV_WITH_DASHBOARDS")
+                        .description("Contains dashboard")
+                        .build(),
+                    EnvironmentEntity
+                        .builder()
+                        .organizationId("FAKE_ORG_1")
+                        .id("ENV_WITHOUT_DASHBOARDS_1")
+                        .description("Must initialize dashboards")
+                        .build(),
+                    EnvironmentEntity
+                        .builder()
+                        .organizationId("FAKE_ORG_1")
+                        .id("ENV_WITHOUT_DASHBOARDS_2")
+                        .description("Must initialize dashboards")
+                        .build(),
+                    EnvironmentEntity
+                        .builder()
+                        .organizationId("FAKE_ORG_2")
+                        .id("ENV_WITHOUT_DASHBOARDS_1")
+                        .description("Must initialize dashboards")
+                        .build()
+                )
+            );
+        when(dashboardService.findAll())
+            .thenReturn(
+                List.of(
+                    DashboardEntity.builder().referenceType("ENVIRONMENT").referenceId("ENV_WITH_DASHBOARDS").build(),
+                    DashboardEntity.builder().referenceType("ORGANIZATION").referenceId("ENV_WITH_DASHBOARDS").build()
+                )
+            );
+        cut.initialize();
+        verify(dashboardService).initialize(eq(new ExecutionContext("FAKE_ORG_1", "ENV_WITHOUT_DASHBOARDS_1")));
+        verify(dashboardService).initialize(eq(new ExecutionContext("FAKE_ORG_1", "ENV_WITHOUT_DASHBOARDS_2")));
+        verify(dashboardService).initialize(eq(new ExecutionContext("FAKE_ORG_2", "ENV_WITHOUT_DASHBOARDS_1")));
+    }
+
+    @Test
+    void should_use_correct_order() {
+        assertThat(cut.getOrder()).isEqualTo(InitializerOrder.DEFAULT_DASHBOARDS_INITIALIZER);
     }
 }

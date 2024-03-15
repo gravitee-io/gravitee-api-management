@@ -15,22 +15,19 @@
  */
 package io.gravitee.rest.api.service.impl.upgrade.initializer;
 
-import static io.gravitee.repository.management.model.DashboardReferenceType.*;
-import static java.lang.String.format;
-import static java.nio.charset.Charset.defaultCharset;
-
 import io.gravitee.node.api.initializer.Initializer;
-import io.gravitee.repository.management.model.DashboardReferenceType;
 import io.gravitee.rest.api.model.DashboardEntity;
-import io.gravitee.rest.api.model.NewDashboardEntity;
+import io.gravitee.rest.api.model.DashboardReferenceType;
+import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.service.DashboardService;
+import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.List;
-import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.Set;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
@@ -38,48 +35,50 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
+@RequiredArgsConstructor
+@Slf4j
 public class DefaultDashboardsInitializer implements Initializer {
 
-    private final Logger LOGGER = LoggerFactory.getLogger(DefaultDashboardsInitializer.class);
+    private final DashboardService dashboardService;
 
-    @Autowired
-    private DashboardService dashboardService;
+    @Lazy
+    private final EnvironmentService environmentService;
 
     @Override
     public boolean initialize() {
-        // FIXME : this upgrader uses the default ExecutionContext, but should handle all environments/organizations
-        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-
         final List<DashboardEntity> dashboards = dashboardService.findAll();
-        if (dashboards == null || dashboards.isEmpty()) {
-            checkAndCreateDashboard(executionContext, PLATFORM);
-            checkAndCreateDashboard(executionContext, API);
-            checkAndCreateDashboard(executionContext, APPLICATION);
-        }
+
+        findAllEnvironments()
+            .stream()
+            .filter(environment -> shouldConfigureDashboardForEnvironment(environment, dashboards))
+            .map(environment -> new ExecutionContext(environment.getOrganizationId(), environment.getId()))
+            .forEach(dashboardService::initialize);
+
         return true;
     }
 
-    private void checkAndCreateDashboard(ExecutionContext executionContext, final DashboardReferenceType referenceType) {
-        LOGGER.info("    No default {}'s dashboards, creating default ones...", referenceType);
-        createDashboard(executionContext, referenceType, "Global");
-        createDashboard(executionContext, referenceType, "Geo");
-        createDashboard(executionContext, referenceType, "User");
-        LOGGER.info("    Added default {}'s dashboards with success", referenceType);
+    private Set<EnvironmentEntity> findAllEnvironments() {
+        try {
+            return environmentService.findAllOrInitialize();
+        } catch (TechnicalManagementException e) {
+            log.warn("An error occurs searching all environments.");
+        }
+        return Set.of();
     }
 
-    private void createDashboard(ExecutionContext executionContext, final DashboardReferenceType referenceType, final String prefixName) {
-        final NewDashboardEntity dashboard = new NewDashboardEntity();
-        dashboard.setName(prefixName + " dashboard");
-        dashboard.setReferenceId("DEFAULT");
-        dashboard.setReferenceType(io.gravitee.rest.api.model.DashboardReferenceType.valueOf(referenceType.name()));
-        dashboard.setEnabled(true);
-        final String filePath = format("/dashboards/%s_%s.json", referenceType.name().toLowerCase(), prefixName.toLowerCase());
-        try {
-            dashboard.setDefinition(IOUtils.toString(this.getClass().getResourceAsStream(filePath), defaultCharset()));
-        } catch (final Exception e) {
-            LOGGER.error("Error while trying to create a dashboard from the definition path: " + filePath, e);
-        }
-        dashboardService.create(executionContext, dashboard);
+    /**
+     * Checks if dashboards have been initialized for the environment
+     * @param environment is the reference to the environment to check if there are configured dashboards
+     * @param dashboards is the list of configured dashboards in database
+     * @return true if dashboards need to be initialized for the environment.
+     */
+    private static boolean shouldConfigureDashboardForEnvironment(EnvironmentEntity environment, List<DashboardEntity> dashboards) {
+        return dashboards
+            .stream()
+            .noneMatch(dashboard ->
+                dashboard.getReferenceType().equals(DashboardReferenceType.ENVIRONMENT.name()) &&
+                dashboard.getReferenceId().equals(environment.getId())
+            );
     }
 
     @Override

@@ -21,6 +21,7 @@ import DashboardService from '../../../../services/dashboard.service';
 import NotificationService from '../../../../services/notification.service';
 const DashboardComponent: ng.IComponentOptions = {
   template: require('./dashboard.html'),
+<<<<<<< HEAD
   controller: [
     'DashboardService',
     'NotificationService',
@@ -52,6 +53,62 @@ const DashboardComponent: ng.IComponentOptions = {
               _.forEach(this.dashboard.definition, (widget) => {
                 _.merge(widget, DashboardService.getChartService());
               });
+=======
+  /* @ngInject */
+  controller: function (
+    DashboardService: DashboardService,
+    NotificationService: NotificationService,
+    $state: StateService,
+    $scope,
+    $rootScope,
+    $mdDialog,
+    $timeout,
+  ) {
+    let previousPristine = true;
+    this.fields = DashboardService.getIndexedFields();
+    this.$rootScope = $rootScope;
+    this.updateMode = true;
+    this.$onInit = () => {
+      this.editMode = !!$state.params.dashboardId;
+      if ($state.params.dashboardId) {
+        DashboardService.get($state.params.dashboardId).then((response) => {
+          this.dashboard = response.data;
+          if (this.dashboard.definition) {
+            this.dashboard.definition = JSON.parse(this.dashboard.definition);
+            _.forEach(this.dashboard.definition, (widget) => {
+              _.merge(widget, DashboardService.getChartService());
+            });
+          }
+          $scope.$watch(
+            '$ctrl.dashboard.definition',
+            (newDefinition, oldDefinition) => {
+              if (!_.isEqual(newDefinition, oldDefinition)) {
+                this.formDashboard.$setDirty();
+              }
+            },
+            true,
+          );
+        });
+      } else {
+        this.dashboard = {
+          type: $state.params.type,
+          reference_type: 'ENVIRONMENT',
+          reference_id: $state.params.environmentId,
+          enabled: true,
+          definition: [],
+        };
+      }
+    };
+
+    this.save = () => {
+      let savePromise;
+      const clonedDashboard = _.cloneDeep(this.dashboard);
+      if (clonedDashboard.definition) {
+        _.forEach(clonedDashboard.definition, (widget) => {
+          if (widget.chart) {
+            if (widget.chart.service) {
+              delete widget.chart.service;
+>>>>>>> f718201c9e (fix: migrate dashboard to use "type" instead of "referenceType" field)
             }
             $scope.$watch(
               '$ctrl.dashboard.definition',
