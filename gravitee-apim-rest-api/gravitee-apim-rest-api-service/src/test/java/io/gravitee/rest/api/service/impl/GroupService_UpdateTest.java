@@ -36,6 +36,7 @@ import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.PermissionService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.GroupNotFoundException;
 import java.util.Collections;
 import java.util.Optional;
 import org.junit.Test;
@@ -86,6 +87,7 @@ public class GroupService_UpdateTest {
 
         final Group group = new Group();
         group.setApiPrimaryOwner("api-primary-owner");
+        group.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
 
         when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(group));
         when(
@@ -140,7 +142,10 @@ public class GroupService_UpdateTest {
             Maps.<RoleScope, String>builder().put(RoleScope.API, "PRIMARY_OWNER").put(RoleScope.APPLICATION, "PRIMARY_OWNER").build()
         );
 
-        when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(new Group()));
+        final Group group = new Group();
+        group.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
+
+        when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(group));
         when(
             permissionService.hasPermission(
                 eq(GraviteeContext.getExecutionContext()),
@@ -153,6 +158,24 @@ public class GroupService_UpdateTest {
         )
             .thenReturn(true);
         when(membershipService.getRoles(any(), any(), any(), any())).thenReturn(Collections.emptySet());
+
+        groupService.update(GraviteeContext.getExecutionContext(), GROUP_ID, updatedGroupEntity);
+
+        verify(membershipService, never()).deleteReferenceMember(eq(GraviteeContext.getExecutionContext()), any(), any(), any(), any());
+        verify(membershipService, never()).addRoleToMemberOnReference(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
+    }
+
+    @Test(expected = GroupNotFoundException.class)
+    public void shouldNotUpdateGroupBecauseDoesNotBelongToEnvironment() throws Exception {
+        UpdateGroupEntity updatedGroupEntity = new UpdateGroupEntity();
+        updatedGroupEntity.setRoles(
+            Maps.<RoleScope, String>builder().put(RoleScope.API, "PRIMARY_OWNER").put(RoleScope.APPLICATION, "PRIMARY_OWNER").build()
+        );
+
+        final Group group = new Group();
+        group.setEnvironmentId("Another_environment");
+
+        when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(group));
 
         groupService.update(GraviteeContext.getExecutionContext(), GROUP_ID, updatedGroupEntity);
 
