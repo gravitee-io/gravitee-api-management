@@ -148,6 +148,9 @@ public class GroupResource extends AbstractResource {
     )
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_GROUP, acls = RolePermissionAction.READ) })
     public Response getGroupMemberships(@QueryParam("type") String type) {
+        // Check that group belongs to current environment
+        groupService.findById(GraviteeContext.getExecutionContext(), group);
+
         if ("api".equalsIgnoreCase(type)) {
             return Response.ok(groupService.getApis(GraviteeContext.getCurrentEnvironment(), group)).build();
         } else if ("application".equalsIgnoreCase(type)) {
