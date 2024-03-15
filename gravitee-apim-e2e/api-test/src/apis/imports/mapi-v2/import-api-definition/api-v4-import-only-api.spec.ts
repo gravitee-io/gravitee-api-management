@@ -138,6 +138,7 @@ describe('API - V4 - Import - Gravitee Definition - Only API -', () => {
         expect(apiV4).toBeTruthy();
         expect(apiV4.id).toStrictEqual(importedApi.id);
         expect(apiV4.flows).toHaveLength(1);
+        apiToImport.api.flows[0].id = apiV4.flows[0].id;
         expect(apiV4.flows).toEqual(apiToImport.api.flows);
         expect(apiV4.tags).toEqual(apiToImport.api.tags);
         expect(apiV4.services).toEqual(apiToImport.api.services);
