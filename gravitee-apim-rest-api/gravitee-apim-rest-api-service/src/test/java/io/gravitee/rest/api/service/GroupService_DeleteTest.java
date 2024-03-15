@@ -95,9 +95,22 @@ public class GroupService_DeleteTest {
         groupService.delete(GraviteeContext.getExecutionContext(), GROUP_ID);
     }
 
+    @Test(expected = GroupNotFoundException.class)
+    public void shouldNotDeleteBecauseDoesNotBelongToEnvironment() throws Exception {
+        final Group group = new Group();
+        group.setId(GROUP_ID);
+        group.setEnvironmentId("Another_environment");
+        when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(group));
+
+        groupService.delete(GraviteeContext.getExecutionContext(), GROUP_ID);
+    }
+
     @Test(expected = StillPrimaryOwnerException.class)
     public void throwStillPrimaryOwnerException() throws Exception {
-        when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(Mockito.mock(Group.class)));
+        final Group group = new Group();
+        group.setId(GROUP_ID);
+        group.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
+        when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(group));
 
         RoleEntity role = new RoleEntity();
         role.setId("API_PRIMARY_OWNER_ID");
@@ -124,7 +137,10 @@ public class GroupService_DeleteTest {
 
     @Test
     public void shouldDeleteGroup() throws Exception {
-        when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(Mockito.mock(Group.class)));
+        final Group group = new Group();
+        group.setId(GROUP_ID);
+        group.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
+        when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(group));
 
         RoleEntity role = new RoleEntity();
         role.setId("API_PRIMARY_OWNER_ID");
@@ -202,7 +218,10 @@ public class GroupService_DeleteTest {
 
     @Test
     public void shouldDeleteGroupWithAccessControl() throws Exception {
-        when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(Mockito.mock(Group.class)));
+        final Group group = new Group();
+        group.setId(GROUP_ID);
+        group.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
+        when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(group));
 
         RoleEntity role = new RoleEntity();
         role.setId("API_PRIMARY_OWNER_ID");
