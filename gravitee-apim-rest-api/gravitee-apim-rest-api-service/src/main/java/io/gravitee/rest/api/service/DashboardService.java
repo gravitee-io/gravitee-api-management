@@ -15,8 +15,9 @@
  */
 package io.gravitee.rest.api.service;
 
-import io.gravitee.repository.management.model.DashboardReferenceType;
+import io.gravitee.repository.management.model.DashboardType;
 import io.gravitee.rest.api.model.DashboardEntity;
+import io.gravitee.rest.api.model.DashboardReferenceType;
 import io.gravitee.rest.api.model.NewDashboardEntity;
 import io.gravitee.rest.api.model.UpdateDashboardEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -28,9 +29,22 @@ import java.util.List;
  */
 public interface DashboardService {
     List<DashboardEntity> findAll();
-    List<DashboardEntity> findByReferenceType(DashboardReferenceType referenceType);
-    DashboardEntity findById(String dashboardId);
+    List<DashboardEntity> findAllByReference(DashboardReferenceType referenceType, String referenceId);
+    List<DashboardEntity> findByReferenceAndType(DashboardReferenceType referenceType, String referenceId, DashboardType type);
+    DashboardEntity findByReferenceAndId(DashboardReferenceType referenceType, String referenceId, String dashboardId);
     DashboardEntity create(ExecutionContext executionContext, NewDashboardEntity dashboard);
-    DashboardEntity update(ExecutionContext executionContext, UpdateDashboardEntity dashboard);
-    void delete(ExecutionContext executionContext, String dashboardId);
+
+    /**
+     * Initializes the default dashboards for an environment.
+     * @param executionContext containing the environment to create dashboards for.
+     */
+    void initialize(ExecutionContext executionContext);
+
+    DashboardEntity update(
+        ExecutionContext executionContext,
+        DashboardReferenceType referenceType,
+        String referenceId,
+        UpdateDashboardEntity dashboard
+    );
+    void delete(ExecutionContext executionContext, DashboardReferenceType referenceType, String referenceId, String dashboardId);
 }
