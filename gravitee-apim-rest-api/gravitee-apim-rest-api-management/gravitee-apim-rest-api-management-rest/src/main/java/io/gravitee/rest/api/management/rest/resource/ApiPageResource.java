@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.rest.resource;
 import static java.util.Collections.singletonList;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.rest.api.management.rest.utils.HttpHeadersUtil;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PageType;
@@ -99,6 +100,13 @@ public class ApiPageResource extends AbstractResource {
         ) {
             PageEntity pageEntity = pageService.findById(page, translated ? acceptedLocale : null);
 
+            if (
+                !pageEntity.getReferenceType().equalsIgnoreCase(PageReferenceType.API.name()) ||
+                !pageEntity.getReferenceId().equalsIgnoreCase(api)
+            ) {
+                throw new PageNotFoundException(page);
+            }
+
             // check if the page is used as GeneralCondition by an active Plan
             // and update the PageEntity to transfer the information to the FrontEnd
             pageEntity.setGeneralConditions(pageService.isPageUsedAsGeneralConditions(executionContext, pageEntity, api));
@@ -151,7 +159,13 @@ public class ApiPageResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
     public String updatePageContent(@Parameter(name = "content", required = true) @Valid @NotNull String content) {
-        pageService.findById(page);
+        PageEntity pageEntity = pageService.findById(page);
+        if (
+            !pageEntity.getReferenceType().equalsIgnoreCase(PageReferenceType.API.name()) ||
+            !pageEntity.getReferenceId().equalsIgnoreCase(api)
+        ) {
+            throw new PageNotFoundException(page);
+        }
 
         UpdatePageEntity updatePageEntity = new UpdatePageEntity();
         updatePageEntity.setContent(content);
@@ -173,6 +187,13 @@ public class ApiPageResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
     public PageEntity updateApiPage(@Parameter(name = "page", required = true) @Valid @NotNull UpdatePageEntity updatePageEntity) {
         PageEntity existingPage = pageService.findById(page);
+        if (
+            !existingPage.getReferenceType().equalsIgnoreCase(PageReferenceType.API.name()) ||
+            !existingPage.getReferenceId().equalsIgnoreCase(api)
+        ) {
+            throw new PageNotFoundException(page);
+        }
+
         if (existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
             throw new PageSystemFolderActionException("Update");
         } else if (existingPage.getType().equals(PageType.MARKDOWN_TEMPLATE.name())) {
@@ -198,7 +219,13 @@ public class ApiPageResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
     public PageEntity fetchApiPage() {
-        pageService.findById(page);
+        PageEntity pageEntity = pageService.findById(page);
+        if (
+            !pageEntity.getReferenceType().equalsIgnoreCase(PageReferenceType.API.name()) ||
+            !pageEntity.getReferenceId().equalsIgnoreCase(api)
+        ) {
+            throw new PageNotFoundException(page);
+        }
         String contributor = getAuthenticatedUser();
 
         return pageService.fetch(GraviteeContext.getExecutionContext(), page, contributor);
@@ -217,6 +244,12 @@ public class ApiPageResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
     public PageEntity partialUpdateApiPage(@Parameter(name = "page") UpdatePageEntity updatePageEntity) {
         PageEntity existingPage = pageService.findById(page);
+        if (
+            !existingPage.getReferenceType().equalsIgnoreCase(PageReferenceType.API.name()) ||
+            !existingPage.getReferenceId().equalsIgnoreCase(api)
+        ) {
+            throw new PageNotFoundException(page);
+        }
         if (existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
             throw new PageSystemFolderActionException("Update");
         } else if (existingPage.getType().equals(PageType.MARKDOWN_TEMPLATE.name())) {
@@ -234,6 +267,12 @@ public class ApiPageResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.DELETE) })
     public void deleteApiPage() {
         PageEntity existingPage = pageService.findById(page);
+        if (
+            !existingPage.getReferenceType().equalsIgnoreCase(PageReferenceType.API.name()) ||
+            !existingPage.getReferenceId().equalsIgnoreCase(api)
+        ) {
+            throw new PageNotFoundException(page);
+        }
         if (existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
             throw new PageSystemFolderActionException("Delete");
         } else if (existingPage.getType().equals(PageType.MARKDOWN_TEMPLATE.name())) {

@@ -16,18 +16,23 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
+import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.rest.api.model.NewPageEntity;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.model.UpdatePageEntity;
 import io.gravitee.rest.api.model.Visibility;
+import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.HttpHeaders;
@@ -48,6 +53,23 @@ public class PortalPagesResourceAdminTest extends AbstractResourceTest {
     }
 
     @Test
+    public void shouldNotGetPortalPageBecauseDoesNotBelongToApi() {
+        reset(pageService);
+
+        final PageEntity pageMock = new PageEntity();
+        pageMock.setPublished(true);
+        pageMock.setVisibility(Visibility.PUBLIC);
+        pageMock.setName(PAGE_NAME);
+        pageMock.setReferenceType(PageReferenceType.ENVIRONMENT.name());
+        pageMock.setReferenceId("Another_environment");
+        doReturn(pageMock).when(pageService).findById(PAGE_NAME, null);
+
+        final Response response = envTarget(PAGE_NAME).request().get();
+
+        assertEquals(NOT_FOUND_404, response.getStatus());
+    }
+
+    @Test
     public void shouldNotCreateSystemFolder() {
         NewPageEntity newPageEntity = new NewPageEntity();
         newPageEntity.setType(PageType.SYSTEM_FOLDER);
@@ -58,10 +80,12 @@ public class PortalPagesResourceAdminTest extends AbstractResourceTest {
 
     @Test
     public void shouldNotDeleteSystemFolder() {
-        reset(apiService, pageService, membershipService);
+        reset(pageService);
 
         final PageEntity pageMock = new PageEntity();
         pageMock.setType("SYSTEM_FOLDER");
+        pageMock.setReferenceType(PageReferenceType.ENVIRONMENT.name());
+        pageMock.setReferenceId(GraviteeContext.getCurrentEnvironment());
         doReturn(pageMock).when(pageService).findById(PAGE_NAME);
 
         final Response response = envTarget(PAGE_NAME).request().delete();
@@ -70,11 +94,28 @@ public class PortalPagesResourceAdminTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldNotUpdateSystemFolder() {
-        reset(apiService, pageService, membershipService);
+    public void shouldNotDeletePageBecauseDoesNotBelongToEnvironment() {
+        reset(pageService);
 
         final PageEntity pageMock = new PageEntity();
         pageMock.setType("SYSTEM_FOLDER");
+        pageMock.setReferenceType(PageReferenceType.ENVIRONMENT.name());
+        pageMock.setReferenceId("Another_environment");
+        doReturn(pageMock).when(pageService).findById(PAGE_NAME);
+
+        final Response response = envTarget(PAGE_NAME).request().delete();
+
+        assertEquals(NOT_FOUND_404, response.getStatus());
+    }
+
+    @Test
+    public void shouldNotUpdateSystemFolder() {
+        reset(pageService);
+
+        final PageEntity pageMock = new PageEntity();
+        pageMock.setType("SYSTEM_FOLDER");
+        pageMock.setReferenceType(PageReferenceType.ENVIRONMENT.name());
+        pageMock.setReferenceId(GraviteeContext.getCurrentEnvironment());
         doReturn(pageMock).when(pageService).findById(PAGE_NAME);
 
         final Response response = envTarget(PAGE_NAME).request().put(Entity.json(new UpdatePageEntity()));
@@ -83,11 +124,28 @@ public class PortalPagesResourceAdminTest extends AbstractResourceTest {
     }
 
     @Test
-    public void shouldNotUpdatePatchSystemFolder() {
-        reset(apiService, pageService, membershipService);
+    public void shouldNotUpdatePageBecauseDoesNotBelongToEnvironment() {
+        reset(pageService);
 
         final PageEntity pageMock = new PageEntity();
         pageMock.setType("SYSTEM_FOLDER");
+        pageMock.setReferenceType(PageReferenceType.ENVIRONMENT.name());
+        pageMock.setReferenceId("Another_environment");
+        doReturn(pageMock).when(pageService).findById(PAGE_NAME);
+
+        final Response response = envTarget(PAGE_NAME).request().put(Entity.json(new UpdatePageEntity()));
+
+        assertEquals(NOT_FOUND_404, response.getStatus());
+    }
+
+    @Test
+    public void shouldNotUpdatePatchSystemFolder() {
+        reset(pageService);
+
+        final PageEntity pageMock = new PageEntity();
+        pageMock.setType("SYSTEM_FOLDER");
+        pageMock.setReferenceType(PageReferenceType.ENVIRONMENT.name());
+        pageMock.setReferenceId(GraviteeContext.getCurrentEnvironment());
         doReturn(pageMock).when(pageService).findById(PAGE_NAME);
 
         final Response response = envTarget(PAGE_NAME)
@@ -95,6 +153,23 @@ public class PortalPagesResourceAdminTest extends AbstractResourceTest {
             .method(jakarta.ws.rs.HttpMethod.PATCH, Entity.json(new UpdatePageEntity()));
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
+    }
+
+    @Test
+    public void shouldNotUpdatePatchPageBecauseDoesNotBelongToEnvironment() {
+        reset(pageService);
+
+        final PageEntity pageMock = new PageEntity();
+        pageMock.setType("SYSTEM_FOLDER");
+        pageMock.setReferenceType(PageReferenceType.ENVIRONMENT.name());
+        pageMock.setReferenceId("Another_environment");
+        doReturn(pageMock).when(pageService).findById(PAGE_NAME);
+
+        final Response response = envTarget(PAGE_NAME)
+            .request()
+            .method(jakarta.ws.rs.HttpMethod.PATCH, Entity.json(new UpdatePageEntity()));
+
+        assertEquals(NOT_FOUND_404, response.getStatus());
     }
 
     @Test
