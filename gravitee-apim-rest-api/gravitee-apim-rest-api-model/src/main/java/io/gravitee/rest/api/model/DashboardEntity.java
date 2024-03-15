@@ -17,12 +17,21 @@ package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Date;
-import java.util.Objects;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@EqualsAndHashCode(of = "id")
+@Builder
 public class DashboardEntity {
 
     private String id;
@@ -41,137 +50,11 @@ public class DashboardEntity {
     private int order;
     private boolean enabled;
     private String definition;
+    private String type;
 
     @JsonProperty("created_at")
     private Date createdAt;
 
     @JsonProperty("updated_at")
     private Date updatedAt;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getReferenceType() {
-        return referenceType;
-    }
-
-    public void setReferenceType(String referenceType) {
-        this.referenceType = referenceType;
-    }
-
-    public String getReferenceId() {
-        return referenceId;
-    }
-
-    public void setReferenceId(String referenceId) {
-        this.referenceId = referenceId;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getQueryFilter() {
-        return queryFilter;
-    }
-
-    public void setQueryFilter(String queryFilter) {
-        this.queryFilter = queryFilter;
-    }
-
-    public int getOrder() {
-        return order;
-    }
-
-    public void setOrder(int order) {
-        this.order = order;
-    }
-
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
-
-    public String getDefinition() {
-        return definition;
-    }
-
-    public void setDefinition(String definition) {
-        this.definition = definition;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Date getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        DashboardEntity that = (DashboardEntity) o;
-        return Objects.equals(id, that.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
-    @Override
-    public String toString() {
-        return (
-            "DashboardEntity{" +
-            "id='" +
-            id +
-            '\'' +
-            ", referenceType='" +
-            referenceType +
-            '\'' +
-            ", referenceId='" +
-            referenceId +
-            '\'' +
-            ", name='" +
-            name +
-            '\'' +
-            ", queryFilter='" +
-            queryFilter +
-            '\'' +
-            ", order=" +
-            order +
-            ", enabled=" +
-            enabled +
-            ", definition='" +
-            definition +
-            '\'' +
-            ", createdAt=" +
-            createdAt +
-            ", updatedAt=" +
-            updatedAt +
-            '}'
-        );
-    }
 }

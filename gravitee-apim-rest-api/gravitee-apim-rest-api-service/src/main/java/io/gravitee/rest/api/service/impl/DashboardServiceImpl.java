@@ -17,18 +17,22 @@ package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.repository.management.model.Audit.AuditProperties.DASHBOARD;
 import static io.gravitee.repository.management.model.Dashboard.AuditEvent.*;
+import static io.gravitee.repository.management.model.DashboardType.API;
+import static io.gravitee.repository.management.model.DashboardType.APPLICATION;
+import static io.gravitee.repository.management.model.DashboardType.PLATFORM;
+import static java.lang.String.format;
 import static java.nio.charset.Charset.defaultCharset;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.comparingInt;
-import static java.util.stream.Collectors.toList;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.DashboardRepository;
 import io.gravitee.repository.management.model.Dashboard;
-import io.gravitee.repository.management.model.DashboardReferenceType;
+import io.gravitee.repository.management.model.DashboardType;
 import io.gravitee.rest.api.model.DashboardEntity;
+import io.gravitee.rest.api.model.DashboardReferenceType;
 import io.gravitee.rest.api.model.NewDashboardEntity;
 import io.gravitee.rest.api.model.UpdateDashboardEntity;
 import io.gravitee.rest.api.service.AuditService;
@@ -41,6 +45,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.*;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,8 +82,8 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
                 .stream()
                 .map(this::convert)
                 .sorted(comparingInt(DashboardEntity::getOrder))
-                .sorted(comparing(DashboardEntity::getReferenceType))
-                .collect(toList());
+                .sorted(comparing(DashboardEntity::getType))
+                .toList();
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to find all dashboards";
             LOGGER.error(error, ex);
@@ -87,19 +92,44 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
     }
 
     @Override
-    public List<DashboardEntity> findByReferenceType(final DashboardReferenceType referenceType) {
+    public List<DashboardEntity> findAllByReference(DashboardReferenceType referenceType, String referenceId) {
+        try {
+            LOGGER.debug("Find all dashboards for {} - {}", referenceType, referenceId);
+            return dashboardRepository
+                .findByReference(referenceType.name(), referenceId)
+                .stream()
+                .map(this::convert)
+                .sorted(comparingInt(DashboardEntity::getOrder))
+                .sorted(comparing(DashboardEntity::getType))
+                .toList();
+        } catch (TechnicalException ex) {
+            final String error = "An error occurs while trying to find all dashboards";
+            LOGGER.error(error, ex);
+            throw new TechnicalManagementException(error, ex);
+        }
+    }
+
+    public List<DashboardEntity> findByReferenceAndType(
+        DashboardReferenceType referenceType,
+        String referenceId,
+        final DashboardType type
+    ) {
         try {
             LOGGER.debug("Find all dashboards by reference type");
-            if (DashboardReferenceType.HOME.equals(referenceType)) {
+            if (DashboardType.HOME.equals(type)) {
                 DashboardEntity dashboard = new DashboardEntity();
                 dashboard.setDefinition(this.getHomeDashboardDefinition());
                 dashboard.setReferenceType(referenceType.name());
                 dashboard.setEnabled(true);
                 dashboard.setName("Home dashboard");
-                dashboard.setReferenceId("DEFAULT");
+                dashboard.setReferenceId(referenceId);
                 return Collections.singletonList(dashboard);
             } else {
-                return dashboardRepository.findByReferenceType(referenceType.name()).stream().map(this::convert).collect(toList());
+                return dashboardRepository
+                    .findByReferenceAndType(referenceType.name(), referenceId, type.name())
+                    .stream()
+                    .map(this::convert)
+                    .toList();
             }
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to find all dashboards by reference type";
@@ -109,14 +139,13 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
     }
 
     @Override
-    public DashboardEntity findById(String dashboardId) {
+    public DashboardEntity findByReferenceAndId(DashboardReferenceType referenceType, String referenceId, String dashboardId) {
         try {
             LOGGER.debug("Find dashboard by ID: {}", dashboardId);
-            Optional<Dashboard> optDashboard = dashboardRepository.findById(dashboardId);
-            if (!optDashboard.isPresent()) {
-                throw new DashboardNotFoundException(dashboardId);
-            }
-            return convert(optDashboard.get());
+            return dashboardRepository
+                .findByReferenceAndId(referenceType.name(), referenceId, dashboardId)
+                .map(this::convert)
+                .orElseThrow(() -> new DashboardNotFoundException(dashboardId));
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to find dashboard by ID";
             LOGGER.error(error, ex);
@@ -127,7 +156,11 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
     @Override
     public DashboardEntity create(ExecutionContext executionContext, final NewDashboardEntity dashboardEntity) {
         try {
-            final List<Dashboard> dashboards = dashboardRepository.findByReferenceType(dashboardEntity.getReferenceType().name());
+            final List<Dashboard> dashboards = dashboardRepository.findByReferenceAndType(
+                dashboardEntity.getReferenceType().name(),
+                executionContext.getEnvironmentId(),
+                dashboardEntity.getType().name()
+            );
             Dashboard dashboard = dashboardRepository.create(convert(dashboardEntity, dashboards));
             auditService.createAuditLog(
                 executionContext,
@@ -146,29 +179,74 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
     }
 
     @Override
-    public DashboardEntity update(ExecutionContext executionContext, UpdateDashboardEntity dashboardEntity) {
+    public void initialize(ExecutionContext executionContext) {
+        createDashboardsOfType(executionContext, PLATFORM);
+        createDashboardsOfType(executionContext, API);
+        createDashboardsOfType(executionContext, APPLICATION);
+    }
+
+    private void createDashboardsOfType(ExecutionContext executionContext, final DashboardType referenceType) {
+        LOGGER.info(
+            "    No default {}'s dashboards for environment {}, creating default ones...",
+            referenceType,
+            executionContext.getEnvironmentId()
+        );
+        createDashboard(executionContext, referenceType, "Global");
+        createDashboard(executionContext, referenceType, "Geo");
+        createDashboard(executionContext, referenceType, "User");
+        LOGGER.info(
+            "    Added default {}'s dashboards with success for environment {}",
+            referenceType,
+            executionContext.getEnvironmentId()
+        );
+    }
+
+    private void createDashboard(ExecutionContext executionContext, DashboardType type, String prefixName) {
+        final NewDashboardEntity dashboard = NewDashboardEntity
+            .builder()
+            .name(prefixName + " dashboard")
+            .referenceType(DashboardReferenceType.ENVIRONMENT)
+            .referenceId(executionContext.getEnvironmentId())
+            .type(io.gravitee.rest.api.model.DashboardType.valueOf(type.name()))
+            .enabled(true)
+            .build();
+        final String filePath = format("/dashboards/%s_%s.json", type.name().toLowerCase(), prefixName.toLowerCase());
         try {
-            final Optional<Dashboard> dashboardOptional = dashboardRepository.findById(dashboardEntity.getId());
-            if (dashboardOptional.isPresent()) {
-                final Dashboard dashboard = convert(dashboardEntity);
-                final DashboardEntity savedDashboard;
-                if (dashboard.getOrder() != dashboardOptional.get().getOrder()) {
-                    savedDashboard = reorderAndSaveDashboards(dashboard, false);
-                } else {
-                    savedDashboard = convert(dashboardRepository.update(dashboard));
-                }
-                auditService.createAuditLog(
-                    executionContext,
-                    Collections.singletonMap(DASHBOARD, dashboard.getId()),
-                    DASHBOARD_UPDATED,
-                    new Date(),
-                    dashboardOptional.get(),
-                    dashboard
-                );
-                return savedDashboard;
+            dashboard.setDefinition(IOUtils.toString(this.getClass().getResourceAsStream(filePath), defaultCharset()));
+        } catch (final Exception e) {
+            LOGGER.error("Error while trying to create a dashboard from the definition path: " + filePath, e);
+        }
+        this.create(executionContext, dashboard);
+    }
+
+    @Override
+    public DashboardEntity update(
+        ExecutionContext executionContext,
+        DashboardReferenceType referenceType,
+        String referenceId,
+        UpdateDashboardEntity dashboardEntity
+    ) {
+        try {
+            final Dashboard existing = dashboardRepository
+                .findByReferenceAndId(referenceType.name(), referenceId, dashboardEntity.getId())
+                .orElseThrow(() -> new DashboardNotFoundException(dashboardEntity.getId()));
+            final Dashboard dashboard = convert(dashboardEntity);
+            final DashboardEntity savedDashboard;
+            if (dashboard.getOrder() != existing.getOrder()) {
+                savedDashboard =
+                    reorderAndSaveDashboards(dashboardEntity.getReferenceType(), dashboardEntity.getReferenceId(), dashboard, false);
             } else {
-                throw new DashboardNotFoundException(dashboardEntity.getId());
+                savedDashboard = convert(dashboardRepository.update(dashboard));
             }
+            auditService.createAuditLog(
+                executionContext,
+                Collections.singletonMap(DASHBOARD, dashboard.getId()),
+                DASHBOARD_UPDATED,
+                new Date(),
+                existing,
+                dashboard
+            );
+            return savedDashboard;
         } catch (TechnicalException ex) {
             final String error = "An error occurred while trying to update dashboard " + dashboardEntity;
             LOGGER.error(error, ex);
@@ -194,8 +272,17 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
         }
     }
 
-    private DashboardEntity reorderAndSaveDashboards(final Dashboard dashboardToReorder, final boolean deleted) throws TechnicalException {
-        final Collection<Dashboard> dashboards = dashboardRepository.findByReferenceType(dashboardToReorder.getReferenceType());
+    private DashboardEntity reorderAndSaveDashboards(
+        final DashboardReferenceType dashboardReferenceType,
+        final String referenceId,
+        final Dashboard dashboardToReorder,
+        final boolean deleted
+    ) throws TechnicalException {
+        final Collection<Dashboard> dashboards = dashboardRepository.findByReferenceAndType(
+            dashboardReferenceType.name(),
+            referenceId,
+            dashboardToReorder.getReferenceType()
+        );
         final Dashboard[] dashboardsToReorder = dashboards
             .stream()
             .filter(d -> !Objects.equals(d.getId(), dashboardToReorder.getId()))
@@ -232,12 +319,21 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
     }
 
     @Override
-    public void delete(ExecutionContext executionContext, final String dashboardId) {
+    public void delete(
+        ExecutionContext executionContext,
+        DashboardReferenceType referenceType,
+        String referenceId,
+        final String dashboardId
+    ) {
         try {
-            Optional<Dashboard> dashboardOptional = dashboardRepository.findById(dashboardId);
+            Optional<Dashboard> dashboardOptional = dashboardRepository.findByReferenceAndId(
+                referenceType.name(),
+                referenceId,
+                dashboardId
+            );
             if (dashboardOptional.isPresent()) {
                 dashboardRepository.delete(dashboardId);
-                reorderAndSaveDashboards(dashboardOptional.get(), true);
+                reorderAndSaveDashboards(referenceType, referenceId, dashboardOptional.get(), true);
                 auditService.createAuditLog(
                     executionContext,
                     Collections.singletonMap(DASHBOARD, dashboardId),
@@ -259,6 +355,7 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
         dashboard.setId(UuidString.generateRandom());
         dashboard.setReferenceId(dashboardEntity.getReferenceId());
         dashboard.setReferenceType(dashboardEntity.getReferenceType().name());
+        dashboard.setType(dashboardEntity.getType().name());
         dashboard.setName(dashboardEntity.getName());
         dashboard.setQueryFilter(dashboardEntity.getQueryFilter());
         dashboard.setEnabled(dashboardEntity.isEnabled());
@@ -279,6 +376,7 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
         dashboard.setId(dashboardEntity.getId());
         dashboard.setReferenceId(dashboardEntity.getReferenceId());
         dashboard.setReferenceType(dashboardEntity.getReferenceType().name());
+        dashboard.setType(dashboardEntity.getType().name());
         dashboard.setName(dashboardEntity.getName());
         dashboard.setQueryFilter(dashboardEntity.getQueryFilter());
         dashboard.setOrder(dashboardEntity.getOrder());
@@ -293,6 +391,7 @@ public class DashboardServiceImpl extends AbstractService implements DashboardSe
         dashboardEntity.setId(dashboard.getId());
         dashboardEntity.setReferenceId(dashboard.getReferenceId());
         dashboardEntity.setReferenceType(dashboard.getReferenceType());
+        dashboardEntity.setType(dashboard.getType());
         dashboardEntity.setName(dashboard.getName());
         dashboardEntity.setQueryFilter(dashboard.getQueryFilter());
         dashboardEntity.setOrder(dashboard.getOrder());
