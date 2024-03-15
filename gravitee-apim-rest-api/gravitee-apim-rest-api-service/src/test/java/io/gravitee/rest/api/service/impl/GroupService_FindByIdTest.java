@@ -66,10 +66,23 @@ public class GroupService_FindByIdTest extends TestCase {
         groupService.findById(null, GROUP_ID);
     }
 
+    @Test(expected = GroupNotFoundException.class)
+    public void shouldNotFindGroupBecauseDoesNotBelongToEnvironment() throws TechnicalException {
+        final Group group = new Group();
+        group.setId(GROUP_ID);
+        group.setEnvironmentId("Another_environment");
+        when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(group));
+
+        ExecutionContext executionContext = new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID);
+
+        groupService.findById(executionContext, GROUP_ID);
+    }
+
     @Test
     public void shouldSetGroupAsManageable() throws TechnicalException {
         final Group group = new Group();
         group.setId(GROUP_ID);
+        group.setEnvironmentId(ENVIRONMENT_ID);
         when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(group));
 
         ExecutionContext executionContext = new ExecutionContext(ORGANIZATION_ID, ENVIRONMENT_ID);
@@ -103,6 +116,7 @@ public class GroupService_FindByIdTest extends TestCase {
     public void shouldCheckAdminSystemRole() throws TechnicalException {
         final Group group = new Group();
         group.setId(GROUP_ID);
+        group.setEnvironmentId(ENVIRONMENT_ID);
         when(groupRepository.findById(GROUP_ID)).thenReturn(Optional.of(group));
 
         ExecutionContext executionContext = new ExecutionContext(ORGANIZATION_ID, null);
