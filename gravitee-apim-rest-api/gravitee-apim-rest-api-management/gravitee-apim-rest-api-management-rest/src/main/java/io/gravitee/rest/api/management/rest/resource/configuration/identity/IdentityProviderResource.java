@@ -25,6 +25,7 @@ import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.identity.IdentityProviderService;
+import io.gravitee.rest.api.service.impl.configuration.identity.IdentityProviderNotFoundException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -64,7 +65,11 @@ public class IdentityProviderResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_IDENTITY_PROVIDER, acls = RolePermissionAction.READ))
     public IdentityProviderEntity getIdentityProvider(@PathParam("identityProvider") String identityProvider) {
-        return identityProviderService.findById(identityProvider);
+        IdentityProviderEntity identityProviderEntity = identityProviderService.findById(identityProvider);
+        if (!identityProviderEntity.getOrganization().equalsIgnoreCase(GraviteeContext.getCurrentOrganization())) {
+            throw new IdentityProviderNotFoundException(identityProvider);
+        }
+        return identityProviderEntity;
     }
 
     @PUT
