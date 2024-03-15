@@ -65,10 +65,17 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
     private AuditService auditService;
 
     @Override
-    public QualityRuleEntity findById(String id) {
+    public QualityRuleEntity findByReferenceAndId(QualityRuleReferenceType referenceType, String referenceId, String id) {
         try {
             LOGGER.debug("Find quality rule by id : {}", id);
-            return qualityRuleRepository.findById(id).map(this::convert).orElseThrow(() -> new QualityRuleNotFoundException(id));
+            return qualityRuleRepository
+                .findById(id)
+                .filter(qr ->
+                    qr.getReferenceType() == QualityRule.ReferenceType.valueOf(referenceType.name()) &&
+                    qr.getReferenceId().equalsIgnoreCase(referenceId)
+                )
+                .map(this::convert)
+                .orElseThrow(() -> new QualityRuleNotFoundException(id));
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to find a quality rule using its ID: " + id;
             LOGGER.error(error, ex);
@@ -135,6 +142,10 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
         try {
             final QualityRule qualityRule = qualityRuleRepository
                 .findById(updateEntity.getId())
+                .filter(qr ->
+                    qr.getReferenceType() == QualityRule.ReferenceType.ENVIRONMENT &&
+                    qr.getReferenceId().equalsIgnoreCase(executionContext.getEnvironmentId())
+                )
                 .orElseThrow(() -> new QualityRuleNotFoundException(updateEntity.getId()));
             final QualityRule updatedQualityRule = qualityRuleRepository.update(convert(updateEntity, qualityRule));
             auditService.createAuditLog(
@@ -155,7 +166,12 @@ public class QualityRuleServiceImpl extends AbstractService implements QualityRu
     @Override
     public void delete(ExecutionContext executionContext, final String qualityRule) {
         try {
-            final Optional<QualityRule> qualityRuleOptional = qualityRuleRepository.findById(qualityRule);
+            final Optional<QualityRule> qualityRuleOptional = qualityRuleRepository
+                .findById(qualityRule)
+                .filter(qr ->
+                    qr.getReferenceType() == QualityRule.ReferenceType.ENVIRONMENT &&
+                    qr.getReferenceId().equalsIgnoreCase(executionContext.getEnvironmentId())
+                );
             if (qualityRuleOptional.isPresent()) {
                 qualityRuleRepository.delete(qualityRule);
                 // delete all reference on api quality rule
