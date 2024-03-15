@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
@@ -28,6 +29,7 @@ import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
@@ -66,6 +68,13 @@ public class ApiPageResource extends AbstractResource {
         if (accessControlService.canAccessApiFromPortal(executionContext, genericApiEntity)) {
             final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
             PageEntity pageEntity = pageService.findById(pageId, acceptedLocale);
+            if (
+                !pageEntity.getReferenceType().equalsIgnoreCase(PageReferenceType.API.name()) ||
+                !pageEntity.getReferenceId().equalsIgnoreCase(apiId)
+            ) {
+                throw new PageNotFoundException(pageId);
+            }
+
             if (accessControlService.canAccessApiPageFromPortal(executionContext, genericApiEntity, pageEntity)) {
                 pageService.transformSwagger(executionContext, pageEntity, genericApiEntity);
                 if (!isAuthenticated() && pageEntity.getMetadata() != null) {
@@ -99,6 +108,13 @@ public class ApiPageResource extends AbstractResource {
         GenericApiEntity genericApiEntity = apiSearchService.findGenericById(GraviteeContext.getExecutionContext(), apiId);
         if (accessControlService.canAccessApiFromPortal(GraviteeContext.getExecutionContext(), genericApiEntity)) {
             PageEntity pageEntity = pageService.findById(pageId, null);
+            if (
+                !pageEntity.getReferenceType().equalsIgnoreCase(PageReferenceType.API.name()) ||
+                !pageEntity.getReferenceId().equalsIgnoreCase(apiId)
+            ) {
+                throw new PageNotFoundException(pageId);
+            }
+
             if (accessControlService.canAccessApiPageFromPortal(GraviteeContext.getExecutionContext(), genericApiEntity, pageEntity)) {
                 pageService.transformSwagger(GraviteeContext.getExecutionContext(), pageEntity, genericApiEntity);
                 return Response.ok(pageEntity.getContent()).build();

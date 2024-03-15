@@ -21,6 +21,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.*;
 
+import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiEntity;
@@ -60,6 +61,9 @@ public class ApiPagesResourceNotAdminTest extends AbstractResourceTest {
         final PageEntity pageMock = new PageEntity();
         pageMock.setPublished(true);
         pageMock.setName(PAGE_NAME);
+        pageMock.setReferenceType(PageReferenceType.API.name());
+        pageMock.setReferenceId(API_NAME);
+
         when(permissionService.hasPermission(any(), any(), any())).thenReturn(true);
         doReturn(pageMock).when(pageService).findById(PAGE_NAME, null);
         doReturn(true).when(accessControlService).canAccessPageFromConsole(GraviteeContext.getExecutionContext(), apiMock, pageMock);
@@ -86,6 +90,9 @@ public class ApiPagesResourceNotAdminTest extends AbstractResourceTest {
         final PageEntity pageMock = new PageEntity();
         pageMock.setPublished(true);
         pageMock.setName(PAGE_NAME);
+        pageMock.setReferenceType(PageReferenceType.API.name());
+        pageMock.setReferenceId(API_NAME);
+
         doReturn(pageMock).when(pageService).findById(PAGE_NAME, null);
         doReturn(true)
             .when(roleService)

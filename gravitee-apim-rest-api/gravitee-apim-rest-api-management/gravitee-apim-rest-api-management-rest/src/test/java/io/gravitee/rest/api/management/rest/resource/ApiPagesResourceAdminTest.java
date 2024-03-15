@@ -16,12 +16,14 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
+import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.*;
 
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -45,6 +47,27 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
     }
 
     @Test
+    public void shouldNotGetApiPageBecauseDoesNotBelongToApi() {
+        reset(apiSearchServiceV4, pageService, membershipService);
+        final ApiEntity apiMock = mock(ApiEntity.class);
+        when(apiMock.getVisibility()).thenReturn(Visibility.PUBLIC);
+        when(apiMock.getName()).thenReturn(API_NAME);
+        doReturn(apiMock).when(apiSearchServiceV4).findGenericById(GraviteeContext.getExecutionContext(), API_NAME);
+
+        final PageEntity pageMock = new PageEntity();
+        pageMock.setPublished(true);
+        pageMock.setVisibility(Visibility.PUBLIC);
+        pageMock.setName(PAGE_NAME);
+        pageMock.setReferenceType(PageReferenceType.API.name());
+        pageMock.setReferenceId("Another_api");
+        doReturn(pageMock).when(pageService).findById(PAGE_NAME, null);
+
+        final Response response = envTarget(PAGE_NAME).request().get();
+
+        assertEquals(NOT_FOUND_404, response.getStatus());
+    }
+
+    @Test
     public void shouldGetPublicApiPublishedPage() {
         reset(apiSearchServiceV4, pageService, membershipService);
         final ApiEntity apiMock = mock(ApiEntity.class);
@@ -55,6 +78,9 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
         pageMock.setPublished(true);
         pageMock.setVisibility(Visibility.PUBLIC);
         pageMock.setName(PAGE_NAME);
+        pageMock.setReferenceType(PageReferenceType.API.name());
+        pageMock.setReferenceId(API_NAME);
+
         doReturn(pageMock).when(pageService).findById(PAGE_NAME, null);
 
         final Response response = envTarget(PAGE_NAME).request().get();
@@ -78,6 +104,8 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
         final PageEntity pageMock = new PageEntity();
         pageMock.setPublished(true);
         pageMock.setName(PAGE_NAME);
+        pageMock.setReferenceType(PageReferenceType.API.name());
+        pageMock.setReferenceId(API_NAME);
         doReturn(pageMock).when(pageService).findById(PAGE_NAME, null);
 
         final Response response = envTarget(PAGE_NAME).request().get();
@@ -101,6 +129,9 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
         final PageEntity pageMock = new PageEntity();
         pageMock.setPublished(false);
         pageMock.setName(PAGE_NAME);
+        pageMock.setReferenceType(PageReferenceType.API.name());
+        pageMock.setReferenceId(API_NAME);
+
         doReturn(pageMock).when(pageService).findById(PAGE_NAME, null);
 
         final Response response = envTarget(PAGE_NAME).request().get();
@@ -138,6 +169,9 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
 
         final PageEntity pageMock = new PageEntity();
         pageMock.setType("SYSTEM_FOLDER");
+        pageMock.setReferenceType(PageReferenceType.API.name());
+        pageMock.setReferenceId(API_NAME);
+
         doReturn(pageMock).when(pageService).findById(PAGE_NAME);
 
         final Response response = envTarget(PAGE_NAME).request().delete();
@@ -146,11 +180,30 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
     }
 
     @Test
+    public void shouldNotDeletePageBecauseDoesNotBelongToApi() {
+        reset(apiSearchServiceV4, pageService, membershipService);
+
+        final PageEntity pageMock = new PageEntity();
+        pageMock.setType("SYSTEM_FOLDER");
+        pageMock.setReferenceType(PageReferenceType.API.name());
+        pageMock.setReferenceId("Another_api");
+
+        doReturn(pageMock).when(pageService).findById(PAGE_NAME);
+
+        final Response response = envTarget(PAGE_NAME).request().delete();
+
+        assertEquals(NOT_FOUND_404, response.getStatus());
+    }
+
+    @Test
     public void shouldNotUpdateSystemFolder() {
         reset(apiSearchServiceV4, pageService, membershipService);
 
         final PageEntity pageMock = new PageEntity();
         pageMock.setType("SYSTEM_FOLDER");
+        pageMock.setReferenceType(PageReferenceType.API.name());
+        pageMock.setReferenceId(API_NAME);
+
         doReturn(pageMock).when(pageService).findById(PAGE_NAME);
 
         final Response response = envTarget(PAGE_NAME).request().put(Entity.json(new UpdatePageEntity()));
@@ -159,11 +212,30 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
     }
 
     @Test
+    public void shouldNotUpdatePageBecauseDoesNotBelongToApi() {
+        reset(apiSearchServiceV4, pageService, membershipService);
+
+        final PageEntity pageMock = new PageEntity();
+        pageMock.setType("SYSTEM_FOLDER");
+        pageMock.setReferenceType(PageReferenceType.API.name());
+        pageMock.setReferenceId("Another_api");
+
+        doReturn(pageMock).when(pageService).findById(PAGE_NAME);
+
+        final Response response = envTarget(PAGE_NAME).request().put(Entity.json(new UpdatePageEntity()));
+
+        assertEquals(NOT_FOUND_404, response.getStatus());
+    }
+
+    @Test
     public void shouldNotUpdatePatchSystemFolder() {
         reset(apiSearchServiceV4, pageService, membershipService);
 
         final PageEntity pageMock = new PageEntity();
         pageMock.setType("SYSTEM_FOLDER");
+        pageMock.setReferenceType(PageReferenceType.API.name());
+        pageMock.setReferenceId(API_NAME);
+
         doReturn(pageMock).when(pageService).findById(PAGE_NAME);
 
         final Response response = envTarget(PAGE_NAME)
@@ -171,6 +243,24 @@ public class ApiPagesResourceAdminTest extends AbstractResourceTest {
             .method(jakarta.ws.rs.HttpMethod.PATCH, Entity.json(new UpdatePageEntity()));
 
         assertEquals(BAD_REQUEST_400, response.getStatus());
+    }
+
+    @Test
+    public void shouldNotUpdatePatchPageBecauseDoesNotBelongToApi() {
+        reset(apiSearchServiceV4, pageService, membershipService);
+
+        final PageEntity pageMock = new PageEntity();
+        pageMock.setType("SYSTEM_FOLDER");
+        pageMock.setReferenceType(PageReferenceType.API.name());
+        pageMock.setReferenceId("Another_api");
+
+        doReturn(pageMock).when(pageService).findById(PAGE_NAME);
+
+        final Response response = envTarget(PAGE_NAME)
+            .request()
+            .method(jakarta.ws.rs.HttpMethod.PATCH, Entity.json(new UpdatePageEntity()));
+
+        assertEquals(NOT_FOUND_404, response.getStatus());
     }
 
     @Test

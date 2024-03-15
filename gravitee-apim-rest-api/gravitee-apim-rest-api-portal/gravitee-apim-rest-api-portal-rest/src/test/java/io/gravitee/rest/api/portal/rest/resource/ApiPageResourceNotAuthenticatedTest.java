@@ -73,6 +73,8 @@ public class ApiPageResourceNotAuthenticatedTest extends AbstractResourceTest {
         mockAnotherPage = new PageEntity();
         mockAnotherPage.setPublished(true);
         mockAnotherPage.setVisibility(Visibility.PUBLIC);
+        mockAnotherPage.setReferenceType("API");
+        mockAnotherPage.setReferenceId(API);
         Map<String, String> metadataMap = new HashMap<>();
         metadataMap.put(ANOTHER_PAGE, ANOTHER_PAGE);
         mockAnotherPage.setMetadata(metadataMap);
