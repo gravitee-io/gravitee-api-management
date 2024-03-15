@@ -56,6 +56,8 @@ tags:
       description: Everything about API subscriptions
     - name: Groups
       description: Everything about groups
+    - name: Integration
+      description: Everything about integration
 
 paths:
     # APIs
@@ -1028,6 +1030,53 @@ paths:
             responses:
                 "200":
                     $ref: "#/components/responses/MembersResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+
+    # Integration
+    /environments/{envId}/integrations:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+        get:
+            parameters:
+                - $ref: "#/components/parameters/pageParam"
+                - $ref: "#/components/parameters/perPageParam"
+            tags:
+                - Integration
+            summary: List Integrations
+            description: |-
+                Get the list of Integration for a specific environment.<br>
+                The results are paginated.
+
+                User must have the ENVIRONMENT_INTEGRATION[READ] permission.
+            operationId: listIntegrations
+            responses:
+                "200":
+                    $ref: "#/components/responses/IntegrationsResponse"
+                default:
+                    $ref: "#/components/responses/Error"
+        post:
+            tags:
+                - Integration
+            summary: Create an Integration
+            description: |-
+                Create a new Integration.
+
+                User must have the ENVIRONMENT_INTEGRATION[CREATE] permission.
+            operationId: createIntegration
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/CreateIntegration"
+                required: true
+            responses:
+                "201":
+                    description: Integration successfully created
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Integration"
                 default:
                     $ref: "#/components/responses/Error"
 
@@ -2958,6 +3007,21 @@ components:
                           items:
                               $ref: "#/components/schemas/HttpMethod"
                           uniqueItems: true
+        Integration:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: Id of the integration
+                name:
+                    type: string
+                    description: Name of the integration
+                description:
+                    type: string
+                    description: Description of the integration
+                provider:
+                    type: string
+                    description: Provider of this integration
         Links:
             description: List of links for pagination
             properties:
@@ -5776,6 +5840,19 @@ components:
             additionalProperties:
                 type: object
 
+        CreateIntegration:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: Name of the integration
+                description:
+                    type: string
+                    description: Description of the integration
+                provider:
+                    type: string
+                    description: Provider of this integration
+
     parameters:
         #############
         # PathParam #
@@ -5871,6 +5948,13 @@ components:
             in: path
             required: true
             description: Id of a policy.
+            schema:
+                type: string
+        integrationIdParam:
+            name: integrationId
+            in: path
+            required: true
+            description: Id of an integration.
             schema:
                 type: string
         ###############################
@@ -6105,6 +6189,22 @@ components:
                             links:
                                 $ref: "#/components/schemas/Links"
 
+        IntegrationsResponse:
+            description: Page of integrations
+            content:
+                application/json:
+                    schema:
+                        title: "IntegrationsResponse"
+                        properties:
+                            data:
+                                description: List of Integrations.
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/Integration"
+                            pagination:
+                                $ref: "#/components/schemas/Pagination"
+                            links:
+                                $ref: "#/components/schemas/Links"
         PlansResponse:
             description: Page of API plans
             content:
