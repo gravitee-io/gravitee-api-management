@@ -40,8 +40,8 @@ class DashboardService {
     return this.$http.get(`${this.Constants.env.baseURL}/configuration/dashboards/` + dashboardId);
   }
 
-  list(referenceType: string, silent = false) {
-    return this.$http.get(`${this.Constants.env.baseURL}/configuration/dashboards/` + '?reference_type=' + referenceType, {
+  list(type: string, silent = false) {
+    return this.$http.get(`${this.Constants.env.baseURL}/configuration/dashboards/` + '?type=' + type, {
       silentCall: silent,
     });
   }
