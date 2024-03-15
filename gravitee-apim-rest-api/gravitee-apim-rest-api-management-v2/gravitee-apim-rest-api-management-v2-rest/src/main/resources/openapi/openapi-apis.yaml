@@ -5856,6 +5856,8 @@ components:
                 provider:
                     type: string
                     description: Provider of this integration
+            required:
+                - name
 
     parameters:
         #############
