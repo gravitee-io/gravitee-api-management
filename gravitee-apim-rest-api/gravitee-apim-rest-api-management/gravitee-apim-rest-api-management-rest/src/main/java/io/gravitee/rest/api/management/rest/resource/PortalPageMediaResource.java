@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.MediaEntity;
@@ -25,6 +26,7 @@ import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.MediaService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 import io.gravitee.rest.api.service.exceptions.UploadUnauthorized;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -83,6 +85,14 @@ public class PortalPageMediaResource extends AbstractResource {
         @FormDataParam("file") final FormDataBodyPart body,
         @FormDataParam("fileName") String fileName
     ) throws IOException {
+        final PageEntity currentPage = pageService.findById(page);
+        if (
+            !currentPage.getReferenceType().equalsIgnoreCase(PageReferenceType.ENVIRONMENT.name()) ||
+            !currentPage.getReferenceId().equalsIgnoreCase(GraviteeContext.getCurrentEnvironment())
+        ) {
+            throw new PageNotFoundException(page);
+        }
+
         final String mediaId;
 
         if (request.getContentLength() > this.mediaService.getMediaMaxSize(GraviteeContext.getExecutionContext())) {
@@ -132,6 +142,13 @@ public class PortalPageMediaResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.READ) })
     public Response getPortalPageMedia() {
         final PageEntity currentPage = pageService.findById(page);
+        if (
+            !currentPage.getReferenceType().equalsIgnoreCase(PageReferenceType.ENVIRONMENT.name()) ||
+            !currentPage.getReferenceId().equalsIgnoreCase(GraviteeContext.getCurrentEnvironment())
+        ) {
+            throw new PageNotFoundException(page);
+        }
+
         List<MediaEntity> pageMedia = mediaService.findAllWithoutContent(currentPage.getAttachedMedia());
 
         if (pageMedia != null && !pageMedia.isEmpty()) {

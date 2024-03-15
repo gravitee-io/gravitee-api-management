@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.management.rest.utils.HttpHeadersUtil;
@@ -28,6 +29,7 @@ import io.gravitee.rest.api.service.ConfigService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 import io.gravitee.rest.api.service.exceptions.PageSystemFolderActionException;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 import io.swagger.v3.oas.annotations.Operation;
@@ -86,6 +88,14 @@ public class PortalPagesResource extends AbstractResource {
         final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
         PageEntity pageEntity = pageService.findById(page, translated ? acceptedLocale : null);
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+
+        if (
+            !pageEntity.getReferenceType().equalsIgnoreCase(PageReferenceType.ENVIRONMENT.name()) ||
+            !pageEntity.getReferenceId().equalsIgnoreCase(executionContext.getEnvironmentId())
+        ) {
+            throw new PageNotFoundException(page);
+        }
+
         if (isDisplayable(executionContext, pageEntity)) {
             if (!isAuthenticated() && pageEntity.getMetadata() != null) {
                 pageEntity.getMetadata().clear();
@@ -112,6 +122,12 @@ public class PortalPagesResource extends AbstractResource {
     public Response getPortalPageContent(@PathParam("page") String page) {
         PageEntity pageEntity = pageService.findById(page);
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        if (
+            !pageEntity.getReferenceType().equalsIgnoreCase(PageReferenceType.ENVIRONMENT.name()) ||
+            !pageEntity.getReferenceId().equalsIgnoreCase(executionContext.getEnvironmentId())
+        ) {
+            throw new PageNotFoundException(page);
+        }
         if (isDisplayable(executionContext, pageEntity)) {
             pageService.transformSwagger(executionContext, pageEntity);
             return Response.ok(pageEntity.getContent(), pageEntity.getContentType()).build();
@@ -212,6 +228,12 @@ public class PortalPagesResource extends AbstractResource {
         @Parameter(name = "page", required = true) @Valid @NotNull UpdatePageEntity updatePageEntity
     ) {
         PageEntity existingPage = pageService.findById(page);
+        if (
+            !existingPage.getReferenceType().equalsIgnoreCase(PageReferenceType.ENVIRONMENT.name()) ||
+            !existingPage.getReferenceId().equalsIgnoreCase(GraviteeContext.getCurrentEnvironment())
+        ) {
+            throw new PageNotFoundException(page);
+        }
         if (existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
             throw new PageSystemFolderActionException("Update");
         }
@@ -238,7 +260,13 @@ public class PortalPagesResource extends AbstractResource {
         @PathParam("page") String page,
         @Parameter(name = "content", required = true) @Valid @NotNull String content
     ) {
-        pageService.findById(page);
+        PageEntity pageEntity = pageService.findById(page);
+        if (
+            !pageEntity.getReferenceType().equalsIgnoreCase(PageReferenceType.ENVIRONMENT.name()) ||
+            !pageEntity.getReferenceId().equalsIgnoreCase(GraviteeContext.getCurrentEnvironment())
+        ) {
+            throw new PageNotFoundException(page);
+        }
 
         UpdatePageEntity updatePageEntity = new UpdatePageEntity();
         updatePageEntity.setContent(content);
@@ -267,6 +295,12 @@ public class PortalPagesResource extends AbstractResource {
         @Parameter(name = "page", required = true) @NotNull UpdatePageEntity updatePageEntity
     ) {
         PageEntity existingPage = pageService.findById(page);
+        if (
+            !existingPage.getReferenceType().equalsIgnoreCase(PageReferenceType.ENVIRONMENT.name()) ||
+            !existingPage.getReferenceId().equalsIgnoreCase(GraviteeContext.getCurrentEnvironment())
+        ) {
+            throw new PageNotFoundException(page);
+        }
         if (existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
             throw new PageSystemFolderActionException("Update");
         }
@@ -289,7 +323,13 @@ public class PortalPagesResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.UPDATE) })
     public PageEntity fetchPortalPage(@PathParam("page") String page) {
-        pageService.findById(page);
+        PageEntity existingPage = pageService.findById(page);
+        if (
+            !existingPage.getReferenceType().equalsIgnoreCase(PageReferenceType.ENVIRONMENT.name()) ||
+            !existingPage.getReferenceId().equalsIgnoreCase(GraviteeContext.getCurrentEnvironment())
+        ) {
+            throw new PageNotFoundException(page);
+        }
         String contributor = getAuthenticatedUser();
 
         return pageService.fetch(GraviteeContext.getExecutionContext(), page, contributor);
@@ -326,6 +366,12 @@ public class PortalPagesResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DOCUMENTATION, acls = RolePermissionAction.DELETE) })
     public void deletePortalPage(@PathParam("page") String page) {
         PageEntity existingPage = pageService.findById(page);
+        if (
+            !existingPage.getReferenceType().equalsIgnoreCase(PageReferenceType.ENVIRONMENT.name()) ||
+            !existingPage.getReferenceId().equalsIgnoreCase(GraviteeContext.getCurrentEnvironment())
+        ) {
+            throw new PageNotFoundException(page);
+        }
         if (existingPage.getType().equals(PageType.SYSTEM_FOLDER.name())) {
             throw new PageSystemFolderActionException("Delete");
         }
