@@ -22,6 +22,7 @@ import io.gravitee.rest.api.management.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.quality.QualityRuleEntity;
+import io.gravitee.rest.api.model.quality.QualityRuleReferenceType;
 import io.gravitee.rest.api.model.quality.UpdateQualityRuleEntity;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
@@ -67,7 +68,7 @@ public class QualityRuleResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_QUALITY_RULE, acls = RolePermissionAction.READ) })
     public QualityRuleEntity getQualityRule() {
-        return qualityRuleService.findById(id);
+        return qualityRuleService.findByReferenceAndId(QualityRuleReferenceType.ENVIRONMENT, GraviteeContext.getCurrentEnvironment(), id);
     }
 
     @PUT
