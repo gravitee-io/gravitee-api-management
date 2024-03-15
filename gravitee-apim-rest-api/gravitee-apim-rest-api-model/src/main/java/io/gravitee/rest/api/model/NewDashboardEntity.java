@@ -19,11 +19,21 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.util.Objects;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@EqualsAndHashCode(of = { "referenceType", "referenceId", "name", "queryFilter", "enabled", "definition", "type" })
 public class NewDashboardEntity {
 
     @NotNull
@@ -44,96 +54,5 @@ public class NewDashboardEntity {
 
     private boolean enabled;
     private String definition;
-
-    public DashboardReferenceType getReferenceType() {
-        return referenceType;
-    }
-
-    public void setReferenceType(DashboardReferenceType referenceType) {
-        this.referenceType = referenceType;
-    }
-
-    public String getReferenceId() {
-        return referenceId;
-    }
-
-    public void setReferenceId(String referenceId) {
-        this.referenceId = referenceId;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getQueryFilter() {
-        return queryFilter;
-    }
-
-    public void setQueryFilter(String queryFilter) {
-        this.queryFilter = queryFilter;
-    }
-
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
-
-    public String getDefinition() {
-        return definition;
-    }
-
-    public void setDefinition(String definition) {
-        this.definition = definition;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        NewDashboardEntity that = (NewDashboardEntity) o;
-        return (
-            enabled == that.enabled &&
-            referenceType == that.referenceType &&
-            Objects.equals(referenceId, that.referenceId) &&
-            Objects.equals(name, that.name) &&
-            Objects.equals(queryFilter, that.queryFilter) &&
-            Objects.equals(definition, that.definition)
-        );
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(referenceType, referenceId, name, queryFilter, enabled, definition);
-    }
-
-    @Override
-    public String toString() {
-        return (
-            "NewDashboardEntity{" +
-            "referenceType=" +
-            referenceType +
-            ", referenceId='" +
-            referenceId +
-            '\'' +
-            ", name='" +
-            name +
-            '\'' +
-            ", queryFilter='" +
-            queryFilter +
-            '\'' +
-            ", enabled=" +
-            enabled +
-            ", definition='" +
-            definition +
-            '\'' +
-            '}'
-        );
-    }
+    private DashboardType type;
 }
