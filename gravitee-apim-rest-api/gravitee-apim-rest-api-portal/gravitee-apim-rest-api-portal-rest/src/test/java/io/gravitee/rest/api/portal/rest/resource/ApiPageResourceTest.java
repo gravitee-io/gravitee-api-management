@@ -67,6 +67,8 @@ public class ApiPageResourceTest extends AbstractResourceTest {
         page1.setPublished(true);
         page1.setVisibility(Visibility.PUBLIC);
         page1.setContent(PAGE_CONTENT);
+        page1.setReferenceType("API");
+        page1.setReferenceId(API);
         doReturn(page1).when(pageService).findById(PAGE, null);
         doReturn(true).when(accessControlService).canAccessApiPageFromPortal(eq(GraviteeContext.getExecutionContext()), any(), eq(page1));
 
@@ -137,6 +139,31 @@ public class ApiPageResourceTest extends AbstractResourceTest {
     }
 
     @Test
+    public void shouldNotGetApiPageBecauseDoesNotBelongToApi() {
+        PageEntity page1 = new PageEntity();
+        page1.setPublished(true);
+        page1.setVisibility(Visibility.PUBLIC);
+        page1.setContent(PAGE_CONTENT);
+        page1.setReferenceType("API");
+        page1.setReferenceId("Another_api");
+        doReturn(page1).when(pageService).findById(PAGE, null);
+
+        when(accessControlService.canAccessApiFromPortal(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class)))
+            .thenReturn(true);
+        when(
+            accessControlService.canAccessApiPageFromPortal(
+                eq(GraviteeContext.getExecutionContext()),
+                any(GenericApiEntity.class),
+                any(PageEntity.class)
+            )
+        )
+            .thenReturn(true);
+
+        final Response response = target(API).path("pages").path(PAGE).request().get();
+        assertEquals(NOT_FOUND_404, response.getStatus());
+    }
+
+    @Test
     public void shouldGetApiPageWithInclude() {
         when(accessControlService.canAccessApiFromPortal(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class)))
             .thenReturn(true);
@@ -196,6 +223,8 @@ public class ApiPageResourceTest extends AbstractResourceTest {
         Map<String, String> metadataMap = new HashMap<>();
         metadataMap.put(ANOTHER_PAGE, ANOTHER_PAGE);
         mockAnotherPage.setMetadata(metadataMap);
+        mockAnotherPage.setReferenceType("API");
+        mockAnotherPage.setReferenceId(API);
         doReturn(mockAnotherPage).when(pageService).findById(ANOTHER_PAGE, null);
 
         Response response = target(API).path("pages").path(ANOTHER_PAGE).request().get();
@@ -294,5 +323,30 @@ public class ApiPageResourceTest extends AbstractResourceTest {
 
         Response response = request.get();
         assertEquals(UNAUTHORIZED_401, response.getStatus());
+    }
+
+    @Test
+    public void shouldNotGetApiPageContentBecauseDoesNotBelongToApi() {
+        PageEntity page1 = new PageEntity();
+        page1.setPublished(true);
+        page1.setVisibility(Visibility.PUBLIC);
+        page1.setContent(PAGE_CONTENT);
+        page1.setReferenceType("API");
+        page1.setReferenceId("Another_api");
+        doReturn(page1).when(pageService).findById(PAGE, null);
+
+        when(accessControlService.canAccessApiFromPortal(eq(GraviteeContext.getExecutionContext()), any(GenericApiEntity.class)))
+            .thenReturn(true);
+        when(
+            accessControlService.canAccessApiPageFromPortal(
+                eq(GraviteeContext.getExecutionContext()),
+                any(GenericApiEntity.class),
+                any(PageEntity.class)
+            )
+        )
+            .thenReturn(true);
+
+        final Response response = target(API).path("pages").path(PAGE).path("content").request().get();
+        assertEquals(NOT_FOUND_404, response.getStatus());
     }
 }

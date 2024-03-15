@@ -63,12 +63,16 @@ public class PageResourceTest extends AbstractResourceTest {
         publishedPage.setPublished(true);
         publishedPage.setVisibility(Visibility.PUBLIC);
         publishedPage.setContent(PAGE_CONTENT);
+        publishedPage.setReferenceType("ENVIRONMENT");
+        publishedPage.setReferenceId(GraviteeContext.getCurrentEnvironment());
         doReturn(publishedPage).when(pageService).findById(PUBLISHED_PAGE, null);
 
         PageEntity unPublishedPage = new PageEntity();
         unPublishedPage.setPublished(false);
-        publishedPage.setVisibility(Visibility.PUBLIC);
+        unPublishedPage.setVisibility(Visibility.PUBLIC);
         unPublishedPage.setContent(PAGE_CONTENT);
+        unPublishedPage.setReferenceType("ENVIRONMENT");
+        unPublishedPage.setReferenceId(GraviteeContext.getCurrentEnvironment());
         doReturn(unPublishedPage).when(pageService).findById(UNPUBLISHED_PAGE, null);
 
         mockAnotherPage = new PageEntity();
@@ -77,6 +81,8 @@ public class PageResourceTest extends AbstractResourceTest {
         Map<String, String> metadataMap = new HashMap<>();
         metadataMap.put(ANOTHER_PAGE, ANOTHER_PAGE);
         mockAnotherPage.setMetadata(metadataMap);
+        mockAnotherPage.setReferenceType("ENVIRONMENT");
+        mockAnotherPage.setReferenceId(GraviteeContext.getCurrentEnvironment());
         doReturn(mockAnotherPage).when(pageService).findById(ANOTHER_PAGE, null);
 
         doThrow(new PageNotFoundException(UNKNOWN_PAGE)).when(pageService).findById(UNKNOWN_PAGE, null);
@@ -113,6 +119,20 @@ public class PageResourceTest extends AbstractResourceTest {
         assertNotNull(pageResponse);
         assertNull(pageResponse.getContent());
         assertNotNull(pageResponse.getLinks());
+    }
+
+    @Test
+    public void shouldNotGetPageBecauseDoesNotBelongToEnvironment() {
+        PageEntity publishedPage = new PageEntity();
+        publishedPage.setPublished(true);
+        publishedPage.setVisibility(Visibility.PUBLIC);
+        publishedPage.setContent(PAGE_CONTENT);
+        publishedPage.setReferenceType("ENVIRONMENT");
+        publishedPage.setReferenceId("Another_environment");
+        doReturn(publishedPage).when(pageService).findById(PUBLISHED_PAGE, null);
+
+        final Response response = target(PUBLISHED_PAGE).request().get();
+        assertEquals(NOT_FOUND_404, response.getStatus());
     }
 
     @Test
@@ -169,6 +189,20 @@ public class PageResourceTest extends AbstractResourceTest {
 
         final String pageContent = response.readEntity(String.class);
         assertEquals(PAGE_CONTENT, pageContent);
+    }
+
+    @Test
+    public void shouldNotGetPageContentBecauseDoesNotBelongToEnvironment() {
+        PageEntity publishedPage = new PageEntity();
+        publishedPage.setPublished(true);
+        publishedPage.setVisibility(Visibility.PUBLIC);
+        publishedPage.setContent(PAGE_CONTENT);
+        publishedPage.setReferenceType("ENVIRONMENT");
+        publishedPage.setReferenceId("Another_environment");
+        doReturn(publishedPage).when(pageService).findById(PUBLISHED_PAGE, null);
+
+        final Response response = target(PUBLISHED_PAGE).path("content").request().get();
+        assertEquals(NOT_FOUND_404, response.getStatus());
     }
 
     @Test
