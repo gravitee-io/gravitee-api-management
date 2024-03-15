@@ -17,6 +17,8 @@ package io.gravitee.rest.api.services.sync;
 
 import io.gravitee.common.event.EventManager;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.dictionary.DictionaryService;
 import io.gravitee.rest.api.service.event.DictionaryEvent;
 import java.util.HashMap;
@@ -49,7 +51,11 @@ public class DictionaryManager {
      */
     public void start(String dictionaryId) {
         try {
-            final DictionaryEntity dictionary = dictionaryService.findById(dictionaryId);
+            // FIXME Adding a fake execution context to match the new signature. It's not ideal but for the moment we have to fix quickly.
+            final DictionaryEntity dictionary = dictionaryService.findById(
+                new ExecutionContext(GraviteeContext.getDefaultOrganization(), null),
+                dictionaryId
+            );
             final DictionaryEntity startedDictionary = dictionaries.get(dictionary.getId());
 
             if (startedDictionary == null) {
