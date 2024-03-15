@@ -28,6 +28,7 @@ import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -54,7 +55,8 @@ class FreemarkerTemplateResolverTest {
     @Test
     void should_resolve_valid_template_with_complex_params() {
         var coreApi = ApiFreemarkerTemplate.builder().id("id").name("api-name").version("1.0").updatedAt(new Date(0)).build();
-
+        Locale current = Locale.getDefault();
+        Locale.setDefault(new Locale("en", "US"));
         assertThat(
             resolver.resolveTemplate(
                 "Documentation for ${api.name} ${api.version} (${api.id}) ${api.updatedAt?datetime}",
@@ -62,6 +64,7 @@ class FreemarkerTemplateResolverTest {
             )
         )
             .startsWith("Documentation for api-name 1.0 (id) Jan 1, 1970, ");
+        Locale.setDefault(current);
     }
 
     @Test
