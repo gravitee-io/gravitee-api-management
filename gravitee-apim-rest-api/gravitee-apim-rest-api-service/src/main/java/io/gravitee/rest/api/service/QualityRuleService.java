@@ -35,7 +35,7 @@ public interface QualityRuleService {
     );
     void delete(ExecutionContext executionContext, String id);
     QualityRuleEntity update(ExecutionContext executionContext, UpdateQualityRuleEntity updateEntity);
-    QualityRuleEntity findById(String id);
+    QualityRuleEntity findByReferenceAndId(QualityRuleReferenceType referenceType, String referenceId, String id);
     List<QualityRuleEntity> findAll();
     List<QualityRuleEntity> findByReference(QualityRuleReferenceType referenceType, String referenceId);
 }
