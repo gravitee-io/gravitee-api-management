@@ -21,16 +21,18 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Builder(toBuilder = true)
 @Data
-@NoArgsConstructor
+@Builder(toBuilder = true)
 @AllArgsConstructor
+@NoArgsConstructor
+@EqualsAndHashCode(of = { "id", "cockpitId", "hrids", "name", "description", "organizationId", "domainRestrictions" })
 public class EnvironmentEntity {
 
     private String id;

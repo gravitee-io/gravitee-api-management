@@ -17,8 +17,8 @@
 -->
 <div class="gv-forms gv-forms-fluid" layout="column">
   <div class="gv-forms-header">
-    <h1 ng-if="!$ctrl.editMode">New dashboard [{{$ctrl.dashboard.reference_type}}]</h1>
-    <h1 ng-if="$ctrl.editMode">{{::$ctrl.dashboard.name}} [{{$ctrl.dashboard.reference_type}}]</h1>
+    <h1 ng-if="!$ctrl.editMode">New dashboard [{{$ctrl.dashboard.type}}]</h1>
+    <h1 ng-if="$ctrl.editMode">{{::$ctrl.dashboard.name}} [{{$ctrl.dashboard.type}}]</h1>
     <a ng-click="$ctrl.backToDashboards()">Back to dashboards</a>
   </div>
 

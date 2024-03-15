@@ -15,14 +15,15 @@
  */
 package io.gravitee.rest.api.portal.rest.resource;
 
-import static io.gravitee.repository.management.model.DashboardReferenceType.APPLICATION;
-import static java.util.stream.Collectors.toList;
+import static io.gravitee.repository.management.model.DashboardType.APPLICATION;
 
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.DashboardEntity;
+import io.gravitee.rest.api.model.DashboardReferenceType;
 import io.gravitee.rest.api.portal.rest.mapper.DashboardMapper;
 import io.gravitee.rest.api.portal.rest.model.Dashboard;
 import io.gravitee.rest.api.service.DashboardService;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Produces;
@@ -45,11 +46,11 @@ public class DashboardsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response list() {
         final List<Dashboard> dashboards = dashboardService
-            .findByReferenceType(APPLICATION)
+            .findByReferenceAndType(DashboardReferenceType.ENVIRONMENT, GraviteeContext.getCurrentEnvironment(), APPLICATION)
             .stream()
             .filter(DashboardEntity::isEnabled)
             .map(dashboardMapper::convert)
-            .collect(toList());
+            .toList();
         return Response.ok(dashboards).build();
     }
 }
