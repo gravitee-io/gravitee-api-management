@@ -63,7 +63,7 @@ import org.springframework.stereotype.Component;
  * @author GraviteeSource Team
  */
 @Component
-public class TicketServiceImpl extends TransactionalService implements TicketService {
+public class TicketServiceImpl extends AbstractService implements TicketService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TicketServiceImpl.class);
 
@@ -223,6 +223,7 @@ public class TicketServiceImpl extends TransactionalService implements TicketSer
         try {
             return ticketRepository
                 .findById(ticketId)
+                .filter(t -> t.getFromUser().equalsIgnoreCase(getAuthenticatedUsername()))
                 .map(ticket -> this.getApiNameAndApplicationName(executionContext, ticket))
                 .map(this::convert)
                 .orElseThrow(() -> new TicketNotFoundException(ticketId));
