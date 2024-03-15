@@ -13,15 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.model;
+package io.gravitee.rest.api.model;
+
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * @author Azize ELAMRANI (azize.elamrani at graviteesource.com)
  * @author GraviteeSource Team
  */
-public enum DashboardReferenceType {
-    PLATFORM,
+@Schema(enumAsRef = true)
+public enum DashboardType {
     API,
     APPLICATION,
+    PLATFORM,
     HOME,
 }

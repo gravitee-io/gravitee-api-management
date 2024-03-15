@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.UpdateEnvironmentEntity;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -43,4 +44,6 @@ public interface EnvironmentService {
     EnvironmentEntity findByCockpitId(String cockpitId);
 
     EnvironmentEntity getDefaultOrInitialize();
+
+    Set<EnvironmentEntity> findAllOrInitialize();
 }
