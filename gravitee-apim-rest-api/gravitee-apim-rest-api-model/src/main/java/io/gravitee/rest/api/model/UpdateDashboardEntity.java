@@ -18,12 +18,21 @@ package io.gravitee.rest.api.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import java.util.Objects;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@EqualsAndHashCode(of = "id")
 public class UpdateDashboardEntity {
 
     private String id;
@@ -50,109 +59,6 @@ public class UpdateDashboardEntity {
     private boolean enabled;
     private String definition;
 
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public DashboardReferenceType getReferenceType() {
-        return referenceType;
-    }
-
-    public void setReferenceType(DashboardReferenceType referenceType) {
-        this.referenceType = referenceType;
-    }
-
-    public String getReferenceId() {
-        return referenceId;
-    }
-
-    public void setReferenceId(String referenceId) {
-        this.referenceId = referenceId;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getQueryFilter() {
-        return queryFilter;
-    }
-
-    public void setQueryFilter(String queryFilter) {
-        this.queryFilter = queryFilter;
-    }
-
-    public int getOrder() {
-        return order;
-    }
-
-    public void setOrder(int order) {
-        this.order = order;
-    }
-
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
-
-    public String getDefinition() {
-        return definition;
-    }
-
-    public void setDefinition(String definition) {
-        this.definition = definition;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        UpdateDashboardEntity that = (UpdateDashboardEntity) o;
-        return Objects.equals(id, that.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
-    @Override
-    public String toString() {
-        return (
-            "UpdateDashboardEntity{" +
-            "id='" +
-            id +
-            '\'' +
-            ", referenceType=" +
-            referenceType +
-            ", referenceId='" +
-            referenceId +
-            '\'' +
-            ", name='" +
-            name +
-            '\'' +
-            ", queryFilter='" +
-            queryFilter +
-            '\'' +
-            ", order=" +
-            order +
-            ", enabled=" +
-            enabled +
-            ", definition='" +
-            definition +
-            '\'' +
-            '}'
-        );
-    }
+    @NotNull
+    private DashboardType type;
 }

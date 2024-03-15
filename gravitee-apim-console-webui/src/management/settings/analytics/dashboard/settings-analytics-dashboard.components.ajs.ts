@@ -67,8 +67,9 @@ const SettingsAnalyticsDashboardComponentAjs: ng.IComponentOptions = {
           });
         } else {
           this.dashboard = {
-            reference_type: this.activatedRoute.snapshot.params.type,
+            type: this.activatedRoute.snapshot.params.type,
             reference_id: 'DEFAULT',
+            reference_type: 'ENVIRONMENT',
             enabled: true,
             definition: [],
           };
