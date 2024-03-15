@@ -65,8 +65,9 @@ const DashboardComponent: ng.IComponentOptions = {
           });
         } else {
           this.dashboard = {
-            reference_type: $state.params.type,
-            reference_id: 'DEFAULT',
+            type: $state.params.type,
+            reference_type: 'ENVIRONMENT',
+            reference_id: $state.params.environmentId,
             enabled: true,
             definition: [],
           };

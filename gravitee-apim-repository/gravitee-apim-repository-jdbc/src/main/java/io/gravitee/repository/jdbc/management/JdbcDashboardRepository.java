@@ -24,6 +24,7 @@ import io.gravitee.repository.management.model.Dashboard;
 import java.sql.Types;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -49,6 +50,7 @@ public class JdbcDashboardRepository extends JdbcAbstractCrudRepository<Dashboar
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("reference_id", Types.NVARCHAR, String.class)
             .addColumn("reference_type", Types.NVARCHAR, String.class)
+            .addColumn("type", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
             .addColumn("query_filter", Types.NVARCHAR, String.class)
             .addColumn("order", Types.INTEGER, int.class)
@@ -65,16 +67,60 @@ public class JdbcDashboardRepository extends JdbcAbstractCrudRepository<Dashboar
     }
 
     @Override
-    public List<Dashboard> findByReferenceType(String referenceType) throws TechnicalException {
-        LOGGER.debug("JdbcDashboardRepository.findByReferenceType({})", referenceType);
+    public List<Dashboard> findByReference(String referenceType, String referenceId) throws TechnicalException {
+        LOGGER.debug("JdbcDashboardRepository.findByReference({},{})", referenceType, referenceId);
         try {
             return jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " where reference_type = ? order by " + escapeReservedWord("order"),
+                getOrm().getSelectAllSql() + " where reference_type = ? and reference_id = ? ",
                 getOrm().getRowMapper(),
-                referenceType
+                referenceType,
+                referenceId
             );
         } catch (final Exception ex) {
-            final String error = "Failed to find dashboards by reference type";
+            final String error = "Failed to find dashboards by reference";
+            LOGGER.error(error, ex);
+            throw new TechnicalException(error, ex);
+        }
+    }
+
+    @Override
+    public List<Dashboard> findByReferenceAndType(String referenceType, String referenceId, String type) throws TechnicalException {
+        LOGGER.debug("JdbcDashboardRepository.findByReferenceAndType({},{},{})", referenceType, referenceId, type);
+        try {
+            return jdbcTemplate.query(
+                getOrm().getSelectAllSql() +
+                " where reference_type = ? and reference_id = ? and " +
+                escapeReservedWord("type") +
+                "= ? order by " +
+                escapeReservedWord("order"),
+                getOrm().getRowMapper(),
+                referenceType,
+                referenceId,
+                type
+            );
+        } catch (final Exception ex) {
+            final String error = "Failed to find dashboards by type";
+            LOGGER.error(error, ex);
+            throw new TechnicalException(error, ex);
+        }
+    }
+
+    @Override
+    public Optional<Dashboard> findByReferenceAndId(String referenceType, String referenceId, String id) throws TechnicalException {
+        LOGGER.debug("JdbcDashboardRepository.findByReferenceAndId({},{},{})", referenceType, referenceId, id);
+        try {
+            return jdbcTemplate
+                .query(
+                    getOrm().getSelectByIdSql() + " and reference_type = ? and reference_id = ?",
+                    getOrm().getRowMapper(),
+                    id,
+                    referenceType,
+                    referenceId
+                )
+                .stream()
+                .findFirst();
+        } catch (final Exception ex) {
+            final String error = "Failed to find dashboards by id";
             LOGGER.error(error, ex);
             throw new TechnicalException(error, ex);
         }

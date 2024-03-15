@@ -16,8 +16,9 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
-import io.gravitee.repository.management.model.DashboardReferenceType;
+import io.gravitee.repository.management.model.DashboardType;
 import io.gravitee.rest.api.model.DashboardEntity;
+import io.gravitee.rest.api.model.DashboardReferenceType;
 import io.gravitee.rest.api.model.NewDashboardEntity;
 import io.gravitee.rest.api.model.UpdateDashboardEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -62,7 +63,7 @@ public class DashboardsResource extends AbstractResource {
         )
     )
     @ApiResponse(responseCode = "500", description = "Internal server error")
-    public List<DashboardEntity> getDashboards(final @QueryParam("reference_type") DashboardReferenceType referenceType) {
+    public List<DashboardEntity> getDashboards(final @QueryParam("type") DashboardType type) {
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         if (
             !hasPermission(
@@ -78,14 +79,14 @@ public class DashboardsResource extends AbstractResource {
                 RolePermissionAction.READ
             ) &&
             !canReadAPIConfiguration() &&
-            !DashboardReferenceType.HOME.equals(referenceType)
+            !DashboardType.HOME.equals(type)
         ) {
             throw new ForbiddenAccessException();
         }
-        if (referenceType == null) {
-            return dashboardService.findAll();
+        if (type == null) {
+            return dashboardService.findAllByReference(DashboardReferenceType.ENVIRONMENT, executionContext.getEnvironmentId());
         } else {
-            return dashboardService.findByReferenceType(referenceType);
+            return dashboardService.findByReferenceAndType(DashboardReferenceType.ENVIRONMENT, executionContext.getEnvironmentId(), type);
         }
     }
 
@@ -104,6 +105,8 @@ public class DashboardsResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DASHBOARD, acls = RolePermissionAction.CREATE) })
     public DashboardEntity createDashboard(@Valid @NotNull final NewDashboardEntity dashboard) {
+        dashboard.setReferenceType(DashboardReferenceType.ENVIRONMENT);
+        dashboard.setReferenceId(GraviteeContext.getCurrentEnvironment());
         return dashboardService.create(GraviteeContext.getExecutionContext(), dashboard);
     }
 
@@ -122,7 +125,11 @@ public class DashboardsResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DASHBOARD, acls = RolePermissionAction.READ) })
     public DashboardEntity getDashboard(final @PathParam("dashboardId") String dashboardId) {
-        return dashboardService.findById(dashboardId);
+        return dashboardService.findByReferenceAndId(
+            DashboardReferenceType.ENVIRONMENT,
+            GraviteeContext.getCurrentEnvironment(),
+            dashboardId
+        );
     }
 
     @Path("{dashboardId}")
@@ -145,7 +152,12 @@ public class DashboardsResource extends AbstractResource {
         @Valid @NotNull final UpdateDashboardEntity dashboard
     ) {
         dashboard.setId(dashboardId);
-        return dashboardService.update(GraviteeContext.getExecutionContext(), dashboard);
+        return dashboardService.update(
+            GraviteeContext.getExecutionContext(),
+            DashboardReferenceType.ENVIRONMENT,
+            GraviteeContext.getCurrentEnvironment(),
+            dashboard
+        );
     }
 
     @Path("{dashboardId}")
@@ -159,6 +171,11 @@ public class DashboardsResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_DASHBOARD, acls = RolePermissionAction.DELETE) })
     public void deleteDashboard(@PathParam("dashboardId") String dashboardId) {
-        dashboardService.delete(GraviteeContext.getExecutionContext(), dashboardId);
+        dashboardService.delete(
+            GraviteeContext.getExecutionContext(),
+            DashboardReferenceType.ENVIRONMENT,
+            GraviteeContext.getExecutionContext().getEnvironmentId(),
+            dashboardId
+        );
     }
 }
