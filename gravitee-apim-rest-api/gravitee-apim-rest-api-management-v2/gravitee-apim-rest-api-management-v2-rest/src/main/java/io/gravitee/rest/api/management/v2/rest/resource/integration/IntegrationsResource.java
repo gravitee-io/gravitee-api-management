@@ -15,20 +15,23 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.integration;
 
+import io.gravitee.apim.core.integration.model.Integration;
+import io.gravitee.apim.core.integration.use_case.CreateIntegrationUseCase;
+import io.gravitee.apim.core.integration.use_case.GetIntegrationsUseCase;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
-import io.gravitee.rest.api.management.v2.rest.model.*;
+import io.gravitee.rest.api.management.v2.rest.mapper.IntegrationMapper;
+import io.gravitee.rest.api.management.v2.rest.model.CreateIntegration;
+import io.gravitee.rest.api.management.v2.rest.model.IntegrationsResponse;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
+import io.gravitee.rest.api.model.common.PageableImpl;
+import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.*;
-import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -39,37 +42,50 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class IntegrationsResource extends AbstractResource {
 
-    private static final List<Integration> integrationsMock = new ArrayList<>();
+    @Inject
+    private CreateIntegrationUseCase createIntegrationUsecase;
+
+    @Inject
+    private GetIntegrationsUseCase getIntegrationsUsecase;
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createIntegration(@Valid @NotNull final CreateIntegration integration) {
-        Integration mockIntegration = Integration
-            .builder()
-            .id(UUID.randomUUID().toString())
-            .name(integration.getName())
-            .description(integration.getDescription())
-            .provider(integration.getProvider())
+    //    TODO enable permission when front will be ready
+    //    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_INTEGRATION, acls = { RolePermissionAction.CREATE }) })
+    public Response createIntegration(@PathParam("envId") String environmentId, @Valid @NotNull final CreateIntegration integration) {
+        var newIntegrationEntity = IntegrationMapper.INSTANCE.map(integration);
+        newIntegrationEntity.setEnvironmentId(environmentId);
+
+        var createdIntegration = createIntegrationUsecase
+            .execute(CreateIntegrationUseCase.Input.builder().integration(newIntegrationEntity).build())
+            .createdIntegration();
+
+        return Response
+            .created(this.getLocationHeader(createdIntegration.getId()))
+            .entity(IntegrationMapper.INSTANCE.map(createdIntegration))
             .build();
-        integrationsMock.add(mockIntegration);
-        return Response.created(this.getLocationHeader(mockIntegration.getId())).entity(mockIntegration).build();
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    //    TODO enable permission when front will be ready
+    //    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_INTEGRATION, acls = { RolePermissionAction.CREATE }) })
     public IntegrationsResponse listIntegrations(
         @PathParam("envId") String environmentId,
         @BeanParam @Valid PaginationParam paginationParam
     ) {
-        Page<Integration> integrationPage = new Page<>(integrationsMock, 0, integrationsMock.size(), integrationsMock.size());
-
-        long totalCount = integrationPage.getTotalElements();
-        Integer pageItemsCount = Math.toIntExact(integrationPage.getPageElements());
-
+        Page<Integration> integrations = getIntegrationsUsecase
+            .execute(
+                new GetIntegrationsUseCase.Input(environmentId, new PageableImpl(paginationParam.getPage(), paginationParam.getPerPage()))
+            )
+            .integrations();
+        var totalElements = integrations.getTotalElements();
         return new IntegrationsResponse()
-            .data(integrationsMock)
-            .pagination(PaginationInfo.computePaginationInfo(totalCount, pageItemsCount, paginationParam))
-            .links(computePaginationLinks(totalCount, paginationParam));
+            .data(integrations.getContent().stream().map(IntegrationMapper.INSTANCE::map).toList())
+            .pagination(
+                PaginationInfo.computePaginationInfo(totalElements, Math.toIntExact(integrations.getPageElements()), paginationParam)
+            )
+            .links(computePaginationLinks(totalElements, paginationParam));
     }
 }

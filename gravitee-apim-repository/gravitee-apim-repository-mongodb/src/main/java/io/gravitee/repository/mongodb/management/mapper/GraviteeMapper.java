@@ -168,6 +168,11 @@ public interface GraviteeMapper {
 
     InstallationMongo map(Installation toMap);
 
+    // Integration mapping
+    Integration map(IntegrationMongo integrationMongo);
+
+    IntegrationMongo map(Integration toMap);
+
     // Invitation mapping
     Invitation map(InvitationMongo toMap);
 
@@ -297,4 +302,6 @@ public interface GraviteeMapper {
     Workflow map(WorkflowMongo toMap);
 
     WorkflowMongo map(Workflow toMap);
+
+    List<Integration> mapIntegrationsList(Collection<IntegrationMongo> toMap);
 }
