@@ -19,6 +19,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -65,6 +66,7 @@ public class DictionaryServiceImpl_StartTest {
         dictionaryInDb.setCreatedAt(new Date(1486771200000L));
         dictionaryInDb.setUpdatedAt(new Date(1486771200000L));
         dictionaryInDb.setState(LifecycleState.STOPPED);
+        dictionaryInDb.setEnvironmentId(GraviteeContext.getCurrentEnvironment());
         when(dictionaryRepository.findById(dictionaryInDb.getId())).thenReturn(Optional.of(dictionaryInDb));
 
         Dictionary updatedDictionary = new Dictionary();
@@ -95,6 +97,37 @@ public class DictionaryServiceImpl_StartTest {
                 any(),
                 eq(Dictionary.AuditEvent.DICTIONARY_UPDATED),
                 eq(updatedDictionary.getUpdatedAt()),
+                any(),
+                any()
+            );
+    }
+
+    @Test(expected = DictionaryNotFoundException.class)
+    public void shouldNotStartDictionaryBecauseDoesNotBelongToEnvironment() throws TechnicalException {
+        Dictionary dictionaryInDb = new Dictionary();
+        dictionaryInDb.setId("dictionaryId");
+        dictionaryInDb.setCreatedAt(new Date(1486771200000L));
+        dictionaryInDb.setUpdatedAt(new Date(1486771200000L));
+        dictionaryInDb.setState(LifecycleState.STOPPED);
+        dictionaryInDb.setEnvironmentId("Another_environment");
+        when(dictionaryRepository.findById(dictionaryInDb.getId())).thenReturn(Optional.of(dictionaryInDb));
+
+        dictionaryService.start(GraviteeContext.getExecutionContext(), dictionaryInDb.getId());
+
+        verify(dictionaryRepository, never()).update(any(Dictionary.class));
+        verify(eventService, never())
+            .createDynamicDictionaryEvent(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(Collections.singleton(ENVIRONMENT_ID)),
+                eq(EventType.START_DICTIONARY),
+                eq("dictionaryId")
+            );
+        verify(auditService, never())
+            .createAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
+                any(),
+                eq(Dictionary.AuditEvent.DICTIONARY_UPDATED),
+                any(),
                 any(),
                 any()
             );
