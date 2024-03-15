@@ -126,21 +126,19 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
         try {
             LOGGER.debug("Update identity provider {}", updateIdentityProvider);
 
-            Optional<IdentityProvider> optIdentityProvider = identityProviderRepository.findById(id);
-
-            if (!optIdentityProvider.isPresent()) {
-                throw new IdentityProviderNotFoundException(updateIdentityProvider.getName());
-            }
+            IdentityProvider identityProviderToUpdate = identityProviderRepository
+                .findById(id)
+                .filter(idp -> idp.getOrganizationId().equalsIgnoreCase(executionContext.getOrganizationId()))
+                .orElseThrow(() -> new IdentityProviderNotFoundException(updateIdentityProvider.getName()));
 
             //TODO: Find a way to validate mapping expression
             IdentityProvider identityProvider = convert(executionContext, updateIdentityProvider);
 
-            final IdentityProvider idpToUpdate = optIdentityProvider.get();
             identityProvider.setId(id);
-            identityProvider.setType(idpToUpdate.getType());
-            identityProvider.setCreatedAt(idpToUpdate.getCreatedAt());
+            identityProvider.setType(identityProviderToUpdate.getType());
+            identityProvider.setCreatedAt(identityProviderToUpdate.getCreatedAt());
             identityProvider.setUpdatedAt(new Date());
-            identityProvider.setOrganizationId(optIdentityProvider.get().getOrganizationId());
+            identityProvider.setOrganizationId(identityProviderToUpdate.getOrganizationId());
             IdentityProvider updatedIdentityProvider = identityProviderRepository.update(identityProvider);
 
             // Audit
@@ -150,7 +148,7 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
                 singletonMap(IDENTITY_PROVIDER, id),
                 IdentityProvider.AuditEvent.IDENTITY_PROVIDER_UPDATED,
                 identityProvider.getUpdatedAt(),
-                idpToUpdate,
+                identityProviderToUpdate,
                 updatedIdentityProvider
             );
 
@@ -184,11 +182,10 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
         try {
             LOGGER.debug("Delete identity provider: {}", id);
 
-            Optional<IdentityProvider> identityProvider = identityProviderRepository.findById(id);
-
-            if (!identityProvider.isPresent()) {
-                throw new IdentityProviderNotFoundException(id);
-            }
+            IdentityProvider identityProvider = identityProviderRepository
+                .findById(id)
+                .filter(idp -> idp.getOrganizationId().equalsIgnoreCase(executionContext.getOrganizationId()))
+                .orElseThrow(() -> new IdentityProviderNotFoundException(id));
 
             identityProviderRepository.delete(id);
 
@@ -198,7 +195,7 @@ public class IdentityProviderServiceImpl extends AbstractService implements Iden
                 Collections.singletonMap(IDENTITY_PROVIDER, id),
                 IdentityProvider.AuditEvent.IDENTITY_PROVIDER_DELETED,
                 new Date(),
-                identityProvider.get(),
+                identityProvider,
                 null
             );
 
