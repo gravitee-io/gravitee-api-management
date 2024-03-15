@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.rest.api.model.MediaEntity;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -25,6 +26,7 @@ import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.MediaService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 import io.gravitee.rest.api.service.exceptions.UploadUnauthorized;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -90,6 +92,14 @@ public class ApiPageMediaResource extends AbstractResource {
         @FormDataParam("file") final FormDataBodyPart body,
         @FormDataParam("fileName") final String fileName
     ) throws IOException {
+        final PageEntity currentPage = pageService.findById(page);
+        if (
+            !currentPage.getReferenceType().equalsIgnoreCase(PageReferenceType.API.name()) ||
+            !currentPage.getReferenceId().equalsIgnoreCase(api)
+        ) {
+            throw new PageNotFoundException(page);
+        }
+
         final String mediaId;
 
         if (request.getContentLength() > this.mediaService.getMediaMaxSize(GraviteeContext.getExecutionContext())) {
@@ -133,6 +143,13 @@ public class ApiPageMediaResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_DOCUMENTATION, acls = RolePermissionAction.READ) })
     public Response getApiPageMedia() {
         final PageEntity currentPage = pageService.findById(page);
+        if (
+            !currentPage.getReferenceType().equalsIgnoreCase(PageReferenceType.API.name()) ||
+            !currentPage.getReferenceId().equalsIgnoreCase(api)
+        ) {
+            throw new PageNotFoundException(page);
+        }
+
         List<MediaEntity> pageMedia = mediaService.findAllWithoutContent(currentPage.getAttachedMedia(), api);
 
         if (pageMedia != null && !pageMedia.isEmpty()) {
