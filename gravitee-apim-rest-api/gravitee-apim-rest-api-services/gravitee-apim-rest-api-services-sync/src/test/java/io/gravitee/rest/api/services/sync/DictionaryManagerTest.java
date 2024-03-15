@@ -23,6 +23,7 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryProviderEntity;
 import io.gravitee.rest.api.model.configuration.dictionary.DictionaryTriggerEntity;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.configuration.dictionary.DictionaryService;
 import io.gravitee.rest.api.service.event.DictionaryEvent;
 import io.gravitee.rest.api.services.sync.DictionaryManager;
@@ -66,7 +67,7 @@ public class DictionaryManagerTest {
         final DictionaryEntity dictionary = new DictionaryEntity();
         dictionary.setId(DICTIONARY_ID);
 
-        when(dictionaryService.findById(DICTIONARY_ID)).thenReturn(dictionary);
+        when(dictionaryService.findById(new ExecutionContext("DEFAULT", null), DICTIONARY_ID)).thenReturn(dictionary);
         cut.start(DICTIONARY_ID);
 
         verify(eventManager, times(1)).publishEvent(eq(DictionaryEvent.START), eq(dictionary));
@@ -82,7 +83,7 @@ public class DictionaryManagerTest {
         dictionary.setProvider(provider);
         dictionary.setId(DICTIONARY_ID);
 
-        when(dictionaryService.findById(DICTIONARY_ID)).thenReturn(dictionary);
+        when(dictionaryService.findById(new ExecutionContext("DEFAULT", null), DICTIONARY_ID)).thenReturn(dictionary);
 
         cut.start(DICTIONARY_ID);
         verify(eventManager, times(1)).publishEvent(eq(DictionaryEvent.START), eq(dictionary));
@@ -116,7 +117,9 @@ public class DictionaryManagerTest {
         dictionaryUpdated.setId(DICTIONARY_ID);
         dictionaryUpdated.setTrigger(triggerUpdated);
 
-        when(dictionaryService.findById(DICTIONARY_ID)).thenReturn(dictionary).thenReturn(dictionaryUpdated);
+        when(dictionaryService.findById(new ExecutionContext("DEFAULT", null), DICTIONARY_ID))
+            .thenReturn(dictionary)
+            .thenReturn(dictionaryUpdated);
 
         cut.start(DICTIONARY_ID);
         cut.start(DICTIONARY_ID);
@@ -150,7 +153,9 @@ public class DictionaryManagerTest {
         dictionaryUpdated.setId(DICTIONARY_ID);
         dictionaryUpdated.setTrigger(trigger);
 
-        when(dictionaryService.findById(DICTIONARY_ID)).thenReturn(dictionary).thenReturn(dictionaryUpdated);
+        when(dictionaryService.findById(new ExecutionContext("DEFAULT", null), DICTIONARY_ID))
+            .thenReturn(dictionary)
+            .thenReturn(dictionaryUpdated);
 
         cut.start(DICTIONARY_ID);
         cut.start(DICTIONARY_ID);

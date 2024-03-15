@@ -32,7 +32,7 @@ public interface DictionaryService {
     DictionaryEntity update(ExecutionContext executionContext, String id, UpdateDictionaryEntity dictionary);
     DictionaryEntity updateProperties(ExecutionContext executionContext, String id, Map<String, String> properties);
 
-    DictionaryEntity findById(String id);
+    DictionaryEntity findById(ExecutionContext executionContext, String id);
 
     void delete(ExecutionContext executionContext, String id);
 
