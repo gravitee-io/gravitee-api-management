@@ -36,6 +36,7 @@ import io.gravitee.rest.api.service.exceptions.TemplateProcessingException;
 import io.gravitee.rest.api.service.notification.HookScope;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import java.util.*;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -51,10 +52,12 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class NotificationTemplateServiceTest {
 
+    private static final String ORGANIZATION_ID = "ORG_ID";
+
     private static final String NOTIFICATION_TEMPLATE_ID = "my-notif-template-id";
     private static final String NOTIFICATION_TEMPLATE_HOOK = "my-notif-template-hook";
     private static final String NOTIFICATION_TEMPLATE_SCOPE = HookScope.TEMPLATES_FOR_ALERT.name();
-    private static final String NOTIFICATION_TEMPLATE_REFERENCE_ID = "DEFAULT";
+    private static final String NOTIFICATION_TEMPLATE_REFERENCE_ID = ORGANIZATION_ID;
     private static final NotificationTemplateReferenceType NOTIFICATION_TEMPLATE_REFERENCE_TYPE =
         NotificationTemplateReferenceType.ORGANIZATION;
     private static final String NOTIFICATION_TEMPLATE_NAME = "my-notif-template-name";
@@ -65,8 +68,6 @@ public class NotificationTemplateServiceTest {
     private static final Date NOTIFICATION_TEMPLATE_CREATED_AT = new Date(100000000L);
     private static final Date NOTIFICATION_TEMPLATE_UPDATED_AT = new Date(110000000L);
     private static final boolean NOTIFICATION_TEMPLATE_ENABLED = true;
-
-    private static final String ORGANIZATION_ID = "ORG_ID";
 
     @InjectMocks
     private NotificationTemplateService notificationTemplateService = new NotificationTemplateServiceImpl();
@@ -98,18 +99,35 @@ public class NotificationTemplateServiceTest {
         notificationTemplate.setCreatedAt(NOTIFICATION_TEMPLATE_CREATED_AT);
         notificationTemplate.setUpdatedAt(NOTIFICATION_TEMPLATE_UPDATED_AT);
         notificationTemplate.setEnabled(NOTIFICATION_TEMPLATE_ENABLED);
+
+        GraviteeContext.setCurrentOrganization(ORGANIZATION_ID);
+    }
+
+    @After
+    public void tearDown() {
+        GraviteeContext.cleanContext();
     }
 
     @Test(expected = NotificationTemplateNotFoundException.class)
     public void shouldNotFindNotificationTemplate() throws TechnicalException {
         when(notificationTemplateRepository.findById(NOTIFICATION_TEMPLATE_ID)).thenReturn(Optional.empty());
-        notificationTemplateService.findById(NOTIFICATION_TEMPLATE_ID);
+        notificationTemplateService.findById(GraviteeContext.getCurrentOrganization(), NOTIFICATION_TEMPLATE_ID);
+    }
+
+    @Test(expected = NotificationTemplateNotFoundException.class)
+    public void shouldNotFindNotificationTemplateBecauseDoesNotBelongToOrganization() throws TechnicalException {
+        notificationTemplate.setReferenceId("Another_organization");
+        when(notificationTemplateRepository.findById(NOTIFICATION_TEMPLATE_ID)).thenReturn(Optional.of(notificationTemplate));
+        notificationTemplateService.findById(GraviteeContext.getCurrentOrganization(), NOTIFICATION_TEMPLATE_ID);
     }
 
     @Test
     public void shouldFindNotificationTemplate() throws TechnicalException {
         when(notificationTemplateRepository.findById(NOTIFICATION_TEMPLATE_ID)).thenReturn(Optional.of(notificationTemplate));
-        final NotificationTemplateEntity foundTemplate = notificationTemplateService.findById(NOTIFICATION_TEMPLATE_ID);
+        final NotificationTemplateEntity foundTemplate = notificationTemplateService.findById(
+            GraviteeContext.getCurrentOrganization(),
+            NOTIFICATION_TEMPLATE_ID
+        );
 
         assertNotNull(foundTemplate);
         assertEquals(notificationTemplate.getId(), foundTemplate.getId());
@@ -203,12 +221,43 @@ public class NotificationTemplateServiceTest {
         updatingNotificationTemplateEntity.setEnabled(NOTIFICATION_TEMPLATE_ENABLED);
 
         final NotificationTemplate toUpdate = mock(NotificationTemplate.class);
+        when(toUpdate.getReferenceType()).thenReturn(NotificationTemplateReferenceType.ORGANIZATION);
+        when(toUpdate.getReferenceId()).thenReturn(ORGANIZATION_ID);
         when(notificationTemplateRepository.findById(NOTIFICATION_TEMPLATE_ID)).thenReturn(Optional.of(toUpdate));
         when(notificationTemplateRepository.update(any())).thenReturn(notificationTemplate);
 
         notificationTemplateService.update(GraviteeContext.getExecutionContext(), updatingNotificationTemplateEntity);
         verify(notificationTemplateRepository, times(1)).update(any());
         verify(auditService, times(1))
+            .createOrganizationAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(GraviteeContext.getCurrentOrganization()),
+                any(),
+                eq(NotificationTemplate.AuditEvent.NOTIFICATION_TEMPLATE_UPDATED),
+                any(),
+                eq(toUpdate),
+                eq(notificationTemplate)
+            );
+    }
+
+    @Test(expected = NotificationTemplateNotFoundException.class)
+    public void shouldNotUpdateNotificationTemplateBecauseDoesNotBelongToOrganization() throws TechnicalException {
+        NotificationTemplateEntity updatingNotificationTemplateEntity = new NotificationTemplateEntity();
+        updatingNotificationTemplateEntity.setId(NOTIFICATION_TEMPLATE_ID);
+        updatingNotificationTemplateEntity.setName("New Name");
+        updatingNotificationTemplateEntity.setType(
+            io.gravitee.rest.api.model.notification.NotificationTemplateType.valueOf(NOTIFICATION_TEMPLATE_TYPE.name())
+        );
+        updatingNotificationTemplateEntity.setEnabled(NOTIFICATION_TEMPLATE_ENABLED);
+
+        final NotificationTemplate toUpdate = mock(NotificationTemplate.class);
+        when(toUpdate.getReferenceType()).thenReturn(NotificationTemplateReferenceType.ORGANIZATION);
+        when(toUpdate.getReferenceId()).thenReturn("Another_organization");
+        when(notificationTemplateRepository.findById(NOTIFICATION_TEMPLATE_ID)).thenReturn(Optional.of(toUpdate));
+
+        notificationTemplateService.update(GraviteeContext.getExecutionContext(), updatingNotificationTemplateEntity);
+        verify(notificationTemplateRepository, never()).update(any());
+        verify(auditService, never())
             .createOrganizationAuditLog(
                 eq(GraviteeContext.getExecutionContext()),
                 eq(GraviteeContext.getCurrentOrganization()),
