@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 import { Component, OnInit } from '@angular/core';
-import { takeUntil, tap } from 'rxjs/operators';
-import { combineLatest, Subject } from 'rxjs';
+import { catchError, filter, map, switchMap, takeUntil, tap } from "rxjs/operators";
+import { combineLatest, EMPTY, Subject } from "rxjs";
 import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from "@angular/router";
 
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { ApplicationService } from '../../../../services-ngx/application.service';
 import { Application, ApplicationType } from '../../../../entities/application/application';
+import { GioConfirmAndValidateDialogComponent, GioConfirmAndValidateDialogData } from "@gravitee/ui-particles-angular";
+import { MatDialog } from "@angular/material/dialog";
 
 @Component({
   selector: 'application-general',
@@ -41,6 +43,8 @@ export class ApplicationGeneralComponent implements OnInit {
     private readonly activatedRoute: ActivatedRoute,
     private readonly applicationService: ApplicationService,
     private readonly snackBarService: SnackBarService,
+    private readonly matDialog: MatDialog,
+    private readonly router: Router,
   ) {}
 
   public ngOnInit() {
@@ -158,5 +162,37 @@ export class ApplicationGeneralComponent implements OnInit {
         takeUntil(this.unsubscribe$),
       )
       .subscribe(() => this.ngOnInit());
+  }
+
+  deleteApplication() {
+    this.matDialog
+      .open<GioConfirmAndValidateDialogComponent, GioConfirmAndValidateDialogData>(GioConfirmAndValidateDialogComponent, {
+        width: '500px',
+        data: {
+          title: `Delete Application`,
+          content: `Are you sure you want to delete the Application?`,
+          confirmButton: `Yes, delete it`,
+          validationMessage: `Please, type in the name of the api <code>${this.initialApplication.name}</code> to confirm.`,
+          validationValue: this.initialApplication.name,
+          warning: `This operation is irreversible.`,
+        },
+        role: 'alertdialog',
+        id: 'applicationDeleteDialog',
+      })
+      .afterClosed()
+      .pipe(
+        filter((confirm) => confirm === true),
+        switchMap(() => this.applicationService.delete(this.activatedRoute.snapshot.params.applicationId)),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+        map(() => this.snackBarService.success(`The Application has been deleted.`)),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe(() => {
+        this.router.navigate(['..'], { relativeTo: this.activatedRoute });
+      });
+
   }
 }

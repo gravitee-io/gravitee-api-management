@@ -40,6 +40,7 @@ import { RouterModule } from '@angular/router';
 import { ApplicationGeneralComponent } from './application-general.component';
 
 import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
+import { GioLicenseBannerModule } from "../../../../shared/components/gio-license-banner/gio-license-banner.module";
 
 @NgModule({
   declarations: [ApplicationGeneralComponent],
@@ -70,6 +71,7 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
 
     ReactiveFormsModule,
     RouterModule,
-  ],
+    GioLicenseBannerModule
+  ]
 })
 export class ApplicationGeneralModule {}

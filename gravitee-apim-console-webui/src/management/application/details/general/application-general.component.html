@@ -153,5 +153,27 @@
     </mat-card>
   </ng-container>
 
+    <mat-card class="danger-card">
+      <mat-card-content>
+        <h3 class="danger-card__title">Danger Zone</h3>
+        <div class="danger-card__actions">
+          <ng-container *gioPermission="{ anyOf: ['application-definition-d'] }">
+            <div class="danger-card__actions__action">
+          <span class="gv-form-danger-text">
+            Delete this Application.
+          </span>
+              <button
+                mat-button
+                color="warn"
+                (click)="deleteApplication()"
+              >
+                Delete
+              </button>
+            </div>
+          </ng-container>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
   <gio-save-bar [form]="applicationForm" [formInitialValues]="initialApplicationGeneralFormsValue" (submitted)="onSubmit()"></gio-save-bar>
 </form>
