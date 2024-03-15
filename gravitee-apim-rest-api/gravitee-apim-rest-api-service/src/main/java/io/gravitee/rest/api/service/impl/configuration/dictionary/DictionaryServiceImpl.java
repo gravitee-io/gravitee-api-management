@@ -94,7 +94,10 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         try {
             LOGGER.debug("Deploy dictionary {}", id);
 
-            Dictionary dictionary = dictionaryRepository.findById(id).orElseThrow(() -> new DictionaryNotFoundException(id));
+            Dictionary dictionary = dictionaryRepository
+                .findById(id)
+                .filter(d -> d.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()))
+                .orElseThrow(() -> new DictionaryNotFoundException(id));
 
             // add deployment date
             dictionary.setUpdatedAt(new Date());
@@ -121,7 +124,10 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         try {
             LOGGER.debug("Undeploy dictionary {}", id);
 
-            Dictionary dictionary = dictionaryRepository.findById(id).orElseThrow(() -> new DictionaryNotFoundException(id));
+            Dictionary dictionary = dictionaryRepository
+                .findById(id)
+                .filter(d -> d.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()))
+                .orElseThrow(() -> new DictionaryNotFoundException(id));
 
             // add deployment date
             dictionary.setUpdatedAt(new Date());
@@ -148,7 +154,10 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         try {
             LOGGER.debug("Start dictionary {}", id);
 
-            Dictionary dictionary = dictionaryRepository.findById(id).orElseThrow(() -> new DictionaryNotFoundException(id));
+            Dictionary dictionary = dictionaryRepository
+                .findById(id)
+                .filter(d -> d.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()))
+                .orElseThrow(() -> new DictionaryNotFoundException(id));
 
             // add deployment date
             dictionary.setUpdatedAt(new Date());
@@ -185,7 +194,10 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         try {
             LOGGER.debug("Stop dictionary {}", id);
 
-            Dictionary dictionary = dictionaryRepository.findById(id).orElseThrow(() -> new DictionaryNotFoundException(id));
+            Dictionary dictionary = dictionaryRepository
+                .findById(id)
+                .filter(d -> d.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()))
+                .orElseThrow(() -> new DictionaryNotFoundException(id));
 
             // add deployment date
             dictionary.setUpdatedAt(new Date());
@@ -251,18 +263,18 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         try {
             LOGGER.debug("Update dictionary {}", updateDictionaryEntity);
 
-            Optional<Dictionary> optDictionary = dictionaryRepository.findById(id);
-            if (!optDictionary.isPresent()) {
-                throw new DictionaryNotFoundException(updateDictionaryEntity.getName());
-            }
+            Dictionary dictionaryToUpdate = dictionaryRepository
+                .findById(id)
+                .filter(d -> d.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()))
+                .orElseThrow(() -> new DictionaryNotFoundException(updateDictionaryEntity.getName()));
 
             Dictionary dictionary = convert(updateDictionaryEntity);
 
             dictionary.setId(id);
-            dictionary.setCreatedAt(optDictionary.get().getCreatedAt());
-            dictionary.setEnvironmentId(optDictionary.get().getEnvironmentId());
+            dictionary.setCreatedAt(dictionaryToUpdate.getCreatedAt());
+            dictionary.setEnvironmentId(dictionaryToUpdate.getEnvironmentId());
             dictionary.setUpdatedAt(new Date());
-            dictionary.setState(optDictionary.get().getState());
+            dictionary.setState(dictionaryToUpdate.getState());
 
             Dictionary updatedDictionary = dictionaryRepository.update(dictionary);
 
@@ -281,7 +293,7 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
                 executionContext,
                 Dictionary.AuditEvent.DICTIONARY_UPDATED,
                 updatedDictionary.getUpdatedAt(),
-                optDictionary.get(),
+                dictionaryToUpdate,
                 updatedDictionary
             );
 
@@ -330,10 +342,15 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
     }
 
     @Override
-    public DictionaryEntity findById(String id) {
+    public DictionaryEntity findById(ExecutionContext executionContext, String id) {
         try {
             LOGGER.debug("Find dictionary by ID: {}", id);
-            return dictionaryRepository.findById(id).map(this::convert).orElseThrow(() -> new DictionaryNotFoundException(id));
+            Optional<Dictionary> byId = dictionaryRepository.findById(id);
+            //FIXME filter should be always applied but DictionaryManager (sync service) does not handle environments for dictionaries
+            if (executionContext.hasEnvironmentId()) {
+                byId = byId.filter(d -> d.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()));
+            }
+            return byId.map(this::convert).orElseThrow(() -> new DictionaryNotFoundException(id));
         } catch (TechnicalException ex) {
             LOGGER.error("An error occurs while trying to delete a dictionary using its ID {}", id, ex);
             throw new TechnicalManagementException("An error occurs while trying to delete a dictionary using its ID " + id, ex);
@@ -345,7 +362,10 @@ public class DictionaryServiceImpl extends AbstractService implements Dictionary
         try {
             LOGGER.debug("Delete dictionary: {}", id);
 
-            Dictionary dictionary = dictionaryRepository.findById(id).orElseThrow(() -> new DictionaryNotFoundException(id));
+            Dictionary dictionary = dictionaryRepository
+                .findById(id)
+                .filter(d -> d.getEnvironmentId().equalsIgnoreCase(executionContext.getEnvironmentId()))
+                .orElseThrow(() -> new DictionaryNotFoundException(id));
 
             if (dictionary.getType() == DictionaryType.DYNAMIC) {
                 this.stop(executionContext, id);
