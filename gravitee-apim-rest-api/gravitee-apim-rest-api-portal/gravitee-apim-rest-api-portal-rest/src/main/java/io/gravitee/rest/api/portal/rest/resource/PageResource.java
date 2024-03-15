@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.portal.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.portal.rest.mapper.PageMapper;
 import io.gravitee.rest.api.portal.rest.model.Page;
@@ -25,6 +26,7 @@ import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.AccessControlService;
 import io.gravitee.rest.api.service.PageService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.PageNotFoundException;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
@@ -58,6 +60,12 @@ public class PageResource extends AbstractResource {
     ) {
         final String acceptedLocale = HttpHeadersUtil.getFirstAcceptedLocaleName(acceptLang);
         PageEntity pageEntity = pageService.findById(pageId, acceptedLocale);
+        if (
+            !pageEntity.getReferenceType().equalsIgnoreCase(PageReferenceType.ENVIRONMENT.name()) ||
+            !pageEntity.getReferenceId().equalsIgnoreCase(GraviteeContext.getCurrentEnvironment())
+        ) {
+            throw new PageNotFoundException(pageId);
+        }
 
         if (accessControlService.canAccessPageFromPortal(GraviteeContext.getExecutionContext(), pageEntity)) {
             if (!isAuthenticated() && pageEntity.getMetadata() != null) {
@@ -89,6 +97,12 @@ public class PageResource extends AbstractResource {
     @RequirePortalAuth
     public Response getPageContentByPageId(@PathParam("pageId") String pageId) {
         PageEntity pageEntity = pageService.findById(pageId, null);
+        if (
+            !pageEntity.getReferenceType().equalsIgnoreCase(PageReferenceType.ENVIRONMENT.name()) ||
+            !pageEntity.getReferenceId().equalsIgnoreCase(GraviteeContext.getCurrentEnvironment())
+        ) {
+            throw new PageNotFoundException(pageId);
+        }
 
         if (accessControlService.canAccessPageFromPortal(GraviteeContext.getExecutionContext(), pageEntity)) {
             pageService.transformWithTemplate(GraviteeContext.getExecutionContext(), pageEntity, null);

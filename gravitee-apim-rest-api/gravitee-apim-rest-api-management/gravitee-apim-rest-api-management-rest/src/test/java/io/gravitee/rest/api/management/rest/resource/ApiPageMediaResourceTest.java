@@ -17,11 +17,14 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
+import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
+import io.gravitee.repository.management.model.PageReferenceType;
 import io.gravitee.rest.api.model.MediaEntity;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PageMediaEntity;
@@ -81,6 +84,13 @@ public class ApiPageMediaResourceTest extends AbstractResourceTest {
         final FormDataBodyPart fileNameBodyPart = new FormDataBodyPart("fileName", "logo.svg");
         multiPart.bodyPart(fileNameBodyPart);
 
+        final PageEntity pageMock = new PageEntity();
+        pageMock.setType("MARKDOWN");
+        pageMock.setReferenceType(PageReferenceType.API.name());
+        pageMock.setReferenceId(API);
+
+        doReturn(pageMock).when(pageService).findById(PAGE);
+
         when(httpServletRequest().getContentLength()).thenReturn(15);
         when(mediaService.getMediaMaxSize(any())).thenReturn(10L);
 
@@ -109,6 +119,13 @@ public class ApiPageMediaResourceTest extends AbstractResourceTest {
         multiPart.bodyPart(filePart);
         final FormDataBodyPart fileNameBodyPart = new FormDataBodyPart("fileName", "logo.svg");
         multiPart.bodyPart(fileNameBodyPart);
+
+        final PageEntity pageMock = new PageEntity();
+        pageMock.setType("MARKDOWN");
+        pageMock.setReferenceType(PageReferenceType.API.name());
+        pageMock.setReferenceId(API);
+
+        doReturn(pageMock).when(pageService).findById(PAGE);
 
         when(httpServletRequest().getContentLength()).thenReturn(5);
         when(mediaService.getMediaMaxSize(any())).thenReturn(10L);
@@ -143,5 +160,36 @@ public class ApiPageMediaResourceTest extends AbstractResourceTest {
         assertThat(result.getType()).isEqualTo("image");
         assertThat(result.getSubType()).isEqualTo("svg+xml");
         assertThat(result.getFileName()).isEqualTo("logo.svg");
+    }
+
+    @Test
+    public void shouldNotAttachMediaToApiPageBecausePageDoesNotBelongToApi() throws IOException {
+        StreamDataBodyPart filePart = new StreamDataBodyPart(
+            "file",
+            this.getClass().getResource("/media/logo.svg").openStream(),
+            "logo.svg",
+            MediaType.valueOf("image/svg+xml")
+        );
+        final MultiPart multiPart = new MultiPart(MediaType.MULTIPART_FORM_DATA_TYPE);
+        multiPart.bodyPart(filePart);
+        final FormDataBodyPart fileNameBodyPart = new FormDataBodyPart("fileName", "logo.svg");
+        multiPart.bodyPart(fileNameBodyPart);
+
+        final PageEntity pageMock = new PageEntity();
+        pageMock.setType("MARKDOWN");
+        pageMock.setReferenceType(PageReferenceType.API.name());
+        pageMock.setReferenceId("Another_api");
+
+        doReturn(pageMock).when(pageService).findById(PAGE);
+
+        final Response response = envTarget()
+            .path(API)
+            .path("pages")
+            .path(PAGE)
+            .path("media")
+            .request()
+            .post(Entity.entity(multiPart, multiPart.getMediaType()));
+
+        assertThat(response.getStatus()).isEqualTo(NOT_FOUND_404);
     }
 }
