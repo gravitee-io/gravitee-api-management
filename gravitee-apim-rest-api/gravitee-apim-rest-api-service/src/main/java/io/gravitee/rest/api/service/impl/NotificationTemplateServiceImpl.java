@@ -438,9 +438,12 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
                 updatingNotificationTemplate.setUpdatedAt(new Date());
             }
 
-            Optional<NotificationTemplate> optNotificationTemplate = notificationTemplateRepository.findById(
-                updatingNotificationTemplate.getId()
-            );
+            Optional<NotificationTemplate> optNotificationTemplate = notificationTemplateRepository
+                .findById(updatingNotificationTemplate.getId())
+                .filter(nt ->
+                    nt.getReferenceType() == NotificationTemplateReferenceType.ORGANIZATION &&
+                    nt.getReferenceId().equalsIgnoreCase(executionContext.getOrganizationId())
+                );
 
             NotificationTemplate notificationTemplateToUpdate = optNotificationTemplate.orElseThrow(() ->
                 new NotificationTemplateNotFoundException(updatingNotificationTemplate.getId())
@@ -508,11 +511,16 @@ public class NotificationTemplateServiceImpl extends AbstractService implements 
     }
 
     @Override
-    public NotificationTemplateEntity findById(String id) {
+    public NotificationTemplateEntity findById(String organizationId, String id) {
         try {
             LOGGER.debug("Find notificationTemplate by ID: {}", id);
 
-            Optional<NotificationTemplate> notificationTemplate = notificationTemplateRepository.findById(id);
+            Optional<NotificationTemplate> notificationTemplate = notificationTemplateRepository
+                .findById(id)
+                .filter(nt ->
+                    nt.getReferenceType() == NotificationTemplateReferenceType.ORGANIZATION &&
+                    nt.getReferenceId().equalsIgnoreCase(organizationId)
+                );
 
             if (notificationTemplate.isPresent()) {
                 return convert(notificationTemplate.get());
