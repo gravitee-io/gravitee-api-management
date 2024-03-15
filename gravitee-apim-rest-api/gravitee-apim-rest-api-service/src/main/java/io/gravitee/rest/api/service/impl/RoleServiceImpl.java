@@ -176,7 +176,19 @@ public class RoleServiceImpl extends AbstractService implements RoleService {
         }
         RoleScope scope = roleEntity.getScope();
         try {
-            Role role = roleRepository.findById(roleEntity.getId()).orElseThrow(() -> new RoleNotFoundException(roleEntity.getId()));
+            Role role = roleRepository
+                .findById(roleEntity.getId())
+                .filter(r ->
+                    (
+                        r.getReferenceType() == RoleReferenceType.ENVIRONMENT &&
+                        r.getReferenceId().equalsIgnoreCase(executionContext.getEnvironmentId())
+                    ) ||
+                    (
+                        r.getReferenceType() == RoleReferenceType.ORGANIZATION &&
+                        r.getReferenceId().equalsIgnoreCase(executionContext.getOrganizationId())
+                    )
+                )
+                .orElseThrow(() -> new RoleNotFoundException(roleEntity.getId()));
             Role updatedRole = convert(executionContext, roleEntity);
             updatedRole.setCreatedAt(role.getCreatedAt());
             updatedRole.setReferenceId(role.getReferenceId());
