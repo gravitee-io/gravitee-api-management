@@ -29,6 +29,7 @@ import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.api.search.Sortable;
 import io.gravitee.repository.management.api.search.TicketCriteria;
 import io.gravitee.repository.management.model.Ticket;
+import io.gravitee.rest.api.idp.api.authentication.UserDetails;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.TicketQuery;
@@ -45,11 +46,17 @@ import io.gravitee.rest.api.service.notification.PortalHook;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.ApiTemplateService;
 import java.util.*;
+import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextImpl;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
@@ -113,6 +120,31 @@ public class TicketServiceTest {
 
     @Mock
     private TicketRepository ticketRepository;
+
+    @Before
+    public void mockAuthenticatedUser() {
+        final Authentication authentication = mock(Authentication.class);
+        final UserDetails userDetails = new UserDetails(USERNAME, "PASSWORD", Collections.emptyList());
+        when(authentication.getPrincipal()).thenReturn(userDetails);
+        SecurityContextHolder.setContext(new SecurityContextImpl(authentication));
+        GraviteeContext.cleanContext();
+    }
+
+    @AfterClass
+    public static void cleanSecurityContextHolder() {
+        // reset authentication to avoid side effect during test executions.
+        SecurityContextHolder.setContext(
+            new SecurityContext() {
+                @Override
+                public Authentication getAuthentication() {
+                    return null;
+                }
+
+                @Override
+                public void setAuthentication(Authentication authentication) {}
+            }
+        );
+    }
 
     @Test(expected = SupportUnavailableException.class)
     public void shouldNotCreateIfSupportDisabled() {
@@ -431,6 +463,27 @@ public class TicketServiceTest {
         assertEquals("ticket1", ticketEntity.getId());
         assertEquals("apiName", ticketEntity.getApi());
         assertEquals("appName", ticketEntity.getApplication());
+    }
+
+    @Test(expected = TicketNotFoundException.class)
+    public void shouldNotFindByIdBecauseDoesNotBelongToCurrentUser() throws TechnicalException {
+        Ticket ticket = new Ticket();
+        ticket.setId("ticket1");
+        ticket.setApi(API_ID);
+        ticket.setApplication(APPLICATION_ID);
+        ticket.setSubject(EMAIL_SUBJECT);
+        ticket.setContent(EMAIL_CONTENT);
+        ticket.setCreatedAt(new Date());
+        ticket.setFromUser("Another_username");
+
+        ApiEntity apiEntity = new ApiEntity();
+        apiEntity.setName("apiName");
+        ApplicationEntity appEntity = new ApplicationEntity();
+        appEntity.setName("appName");
+
+        when(ticketRepository.findById("ticket1")).thenReturn(Optional.of(ticket));
+
+        ticketService.findById(GraviteeContext.getExecutionContext(), "ticket1");
     }
 
     @Test(expected = TechnicalManagementException.class)
