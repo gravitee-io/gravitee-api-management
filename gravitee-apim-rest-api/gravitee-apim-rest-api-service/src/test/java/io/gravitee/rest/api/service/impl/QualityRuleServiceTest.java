@@ -49,7 +49,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class QualityRuleServiceTest {
 
     private static final String QUALITY_RULE_ID = "id-qr";
-    private static final String ENVIRONMENT_ID = "a0057a8d-79b1-4def-b294-cf0baa28459a";
 
     @InjectMocks
     private QualityRuleService qualityRuleService = new QualityRuleServiceImpl();
@@ -64,12 +63,12 @@ public class QualityRuleServiceTest {
     private AuditService auditService;
 
     @Test
-    public void shouldFindById() throws TechnicalException {
+    public void shouldFindByReferenceAndId() throws TechnicalException {
         QualityRule qualityRule = QualityRule
             .builder()
             .id(QUALITY_RULE_ID)
             .referenceType(io.gravitee.repository.management.model.QualityRule.ReferenceType.ENVIRONMENT)
-            .referenceId(ENVIRONMENT_ID)
+            .referenceId(GraviteeContext.getCurrentEnvironment())
             .name("NAME")
             .description("DESC")
             .weight(1)
@@ -79,7 +78,11 @@ public class QualityRuleServiceTest {
 
         when(qualityRuleRepository.findById(QUALITY_RULE_ID)).thenReturn(of(qualityRule));
 
-        final QualityRuleEntity qualityRuleEntity = qualityRuleService.findById(QUALITY_RULE_ID);
+        final QualityRuleEntity qualityRuleEntity = qualityRuleService.findByReferenceAndId(
+            QualityRuleReferenceType.ENVIRONMENT,
+            GraviteeContext.getCurrentEnvironment(),
+            QUALITY_RULE_ID
+        );
         assertEquals(QUALITY_RULE_ID, qualityRuleEntity.getId());
         assertEquals("NAME", qualityRuleEntity.getName());
         assertEquals("DESC", qualityRuleEntity.getDescription());
@@ -87,7 +90,30 @@ public class QualityRuleServiceTest {
         assertEquals(new Date(1), qualityRuleEntity.getCreatedAt());
         assertEquals(new Date(2), qualityRuleEntity.getUpdatedAt());
         assertEquals(QualityRuleReferenceType.ENVIRONMENT, qualityRuleEntity.getReferenceType());
-        assertEquals(ENVIRONMENT_ID, qualityRuleEntity.getReferenceId());
+        assertEquals(GraviteeContext.getCurrentEnvironment(), qualityRuleEntity.getReferenceId());
+    }
+
+    @Test(expected = QualityRuleNotFoundException.class)
+    public void shouldNotFindByIdBecauseDoesNotBelongToEnvironment() throws TechnicalException {
+        QualityRule qualityRule = QualityRule
+            .builder()
+            .id(QUALITY_RULE_ID)
+            .referenceType(io.gravitee.repository.management.model.QualityRule.ReferenceType.ENVIRONMENT)
+            .referenceId("Another_environment")
+            .name("NAME")
+            .description("DESC")
+            .weight(1)
+            .createdAt(new Date(1))
+            .updatedAt(new Date(2))
+            .build();
+
+        when(qualityRuleRepository.findById(QUALITY_RULE_ID)).thenReturn(of(qualityRule));
+
+        qualityRuleService.findByReferenceAndId(
+            QualityRuleReferenceType.ENVIRONMENT,
+            GraviteeContext.getCurrentEnvironment(),
+            QUALITY_RULE_ID
+        );
     }
 
     @Test(expected = QualityRuleNotFoundException.class)
@@ -95,7 +121,11 @@ public class QualityRuleServiceTest {
         final QualityRule qualityRule = mock(QualityRule.class);
         when(qualityRuleRepository.findById(QUALITY_RULE_ID)).thenReturn(empty());
 
-        qualityRuleService.findById(QUALITY_RULE_ID);
+        qualityRuleService.findByReferenceAndId(
+            QualityRuleReferenceType.ENVIRONMENT,
+            GraviteeContext.getCurrentEnvironment(),
+            QUALITY_RULE_ID
+        );
     }
 
     @Test
@@ -104,7 +134,7 @@ public class QualityRuleServiceTest {
             .builder()
             .id(QUALITY_RULE_ID)
             .referenceType(io.gravitee.repository.management.model.QualityRule.ReferenceType.ENVIRONMENT)
-            .referenceId(ENVIRONMENT_ID)
+            .referenceId(GraviteeContext.getCurrentEnvironment())
             .name("NAME")
             .description("DESC")
             .weight(1)
@@ -130,7 +160,7 @@ public class QualityRuleServiceTest {
             .builder()
             .id(QUALITY_RULE_ID)
             .referenceType(io.gravitee.repository.management.model.QualityRule.ReferenceType.ENVIRONMENT)
-            .referenceId(ENVIRONMENT_ID)
+            .referenceId(GraviteeContext.getCurrentEnvironment())
             .name("NAME")
             .description("DESC")
             .weight(1)
@@ -141,14 +171,14 @@ public class QualityRuleServiceTest {
         when(
             qualityRuleRepository.findByReference(
                 io.gravitee.repository.management.model.QualityRule.ReferenceType.ENVIRONMENT,
-                ENVIRONMENT_ID
+                GraviteeContext.getCurrentEnvironment()
             )
         )
             .thenReturn(List.of(qualityRule));
 
         final List<QualityRuleEntity> qualityRules = qualityRuleService.findByReference(
             QualityRuleReferenceType.ENVIRONMENT,
-            ENVIRONMENT_ID
+            GraviteeContext.getCurrentEnvironment()
         );
         final QualityRuleEntity qualityRuleEntity = qualityRules.iterator().next();
         assertEquals(QUALITY_RULE_ID, qualityRuleEntity.getId());
@@ -169,7 +199,7 @@ public class QualityRuleServiceTest {
         final QualityRule createdQualityRule = new QualityRule();
         createdQualityRule.setId(QUALITY_RULE_ID);
         createdQualityRule.setReferenceType(io.gravitee.repository.management.model.QualityRule.ReferenceType.ENVIRONMENT);
-        createdQualityRule.setReferenceId(ENVIRONMENT_ID);
+        createdQualityRule.setReferenceId(GraviteeContext.getCurrentEnvironment());
         createdQualityRule.setName("NAME");
         createdQualityRule.setDescription("DESC");
         createdQualityRule.setWeight(1);
@@ -181,7 +211,7 @@ public class QualityRuleServiceTest {
             GraviteeContext.getExecutionContext(),
             newQualityRuleEntity,
             QualityRuleReferenceType.ENVIRONMENT,
-            ENVIRONMENT_ID
+            GraviteeContext.getCurrentEnvironment()
         );
 
         assertNotNull(qualityRuleEntity.getId());
@@ -202,7 +232,7 @@ public class QualityRuleServiceTest {
                     "NAME".equals(argument.getName()) &&
                     "DESC".equals(argument.getDescription()) &&
                     io.gravitee.repository.management.model.QualityRule.ReferenceType.ENVIRONMENT.equals(argument.getReferenceType()) &&
-                    ENVIRONMENT_ID.equals(argument.getReferenceId()) &&
+                    GraviteeContext.getCurrentEnvironment().equals(argument.getReferenceId()) &&
                     Integer.valueOf(1).equals(argument.getWeight()) &&
                     !argument.getId().isEmpty() &&
                     argument.getCreatedAt() != null &&
@@ -231,7 +261,7 @@ public class QualityRuleServiceTest {
         final QualityRule updatedQualityRule = new QualityRule();
         updatedQualityRule.setId(QUALITY_RULE_ID);
         updatedQualityRule.setReferenceType(io.gravitee.repository.management.model.QualityRule.ReferenceType.ENVIRONMENT);
-        updatedQualityRule.setReferenceId(ENVIRONMENT_ID);
+        updatedQualityRule.setReferenceId(GraviteeContext.getCurrentEnvironment());
         updatedQualityRule.setName("NAME");
         updatedQualityRule.setDescription("DESC");
         updatedQualityRule.setWeight(1);
@@ -263,7 +293,7 @@ public class QualityRuleServiceTest {
                     "NAME".equals(argument.getName()) &&
                     "DESC".equals(argument.getDescription()) &&
                     io.gravitee.repository.management.model.QualityRule.ReferenceType.ENVIRONMENT.equals(argument.getReferenceType()) &&
-                    ENVIRONMENT_ID.equals(argument.getReferenceId()) &&
+                    GraviteeContext.getCurrentEnvironment().equals(argument.getReferenceId()) &&
                     Integer.valueOf(1).equals(argument.getWeight()) &&
                     QUALITY_RULE_ID.equals(argument.getId()) &&
                     argument.getCreatedAt() != null &&
@@ -271,6 +301,42 @@ public class QualityRuleServiceTest {
                 )
             );
         verify(auditService, times(1))
+            .createAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(ImmutableMap.of(QUALITY_RULE, QUALITY_RULE_ID)),
+                eq(QualityRule.AuditEvent.QUALITY_RULE_UPDATED),
+                any(Date.class),
+                any(),
+                any()
+            );
+    }
+
+    @Test(expected = QualityRuleNotFoundException.class)
+    public void shouldNotUpdateBecauseDoesNotBelongToEnvironment() throws TechnicalException {
+        final UpdateQualityRuleEntity updateQualityRuleEntity = new UpdateQualityRuleEntity();
+        updateQualityRuleEntity.setId(QUALITY_RULE_ID);
+        updateQualityRuleEntity.setName("NAME");
+        updateQualityRuleEntity.setDescription("DESC");
+        updateQualityRuleEntity.setWeight(1);
+
+        final QualityRule updatedQualityRule = new QualityRule();
+        updatedQualityRule.setId(QUALITY_RULE_ID);
+        updatedQualityRule.setReferenceType(io.gravitee.repository.management.model.QualityRule.ReferenceType.ENVIRONMENT);
+        updatedQualityRule.setReferenceId("Another_environment");
+        updatedQualityRule.setName("NAME");
+        updatedQualityRule.setDescription("DESC");
+        updatedQualityRule.setWeight(1);
+        updatedQualityRule.setCreatedAt(new Date());
+        updatedQualityRule.setUpdatedAt(new Date());
+        when(qualityRuleRepository.findById(QUALITY_RULE_ID)).thenReturn(of(updatedQualityRule));
+
+        final QualityRuleEntity qualityRuleEntity = qualityRuleService.update(
+            GraviteeContext.getExecutionContext(),
+            updateQualityRuleEntity
+        );
+
+        verify(qualityRuleRepository, never()).update(any());
+        verify(auditService, never())
             .createAuditLog(
                 eq(GraviteeContext.getExecutionContext()),
                 eq(ImmutableMap.of(QUALITY_RULE, QUALITY_RULE_ID)),
@@ -294,6 +360,8 @@ public class QualityRuleServiceTest {
     @Test
     public void shouldDelete() throws TechnicalException {
         final QualityRule qualityRule = mock(QualityRule.class);
+        when(qualityRule.getReferenceType()).thenReturn(QualityRule.ReferenceType.ENVIRONMENT);
+        when(qualityRule.getReferenceId()).thenReturn(GraviteeContext.getCurrentEnvironment());
         when(qualityRuleRepository.findById(QUALITY_RULE_ID)).thenReturn(of(qualityRule));
 
         qualityRuleService.delete(GraviteeContext.getExecutionContext(), QUALITY_RULE_ID);
@@ -309,5 +377,27 @@ public class QualityRuleServiceTest {
                 eq(qualityRule)
             );
         verify(apiQualityRuleRepository, times(1)).deleteByQualityRule(QUALITY_RULE_ID);
+    }
+
+    @Test
+    public void shouldNotDeleteBecauseDoesNotBelongToEnvironment() throws TechnicalException {
+        final QualityRule qualityRule = mock(QualityRule.class);
+        when(qualityRule.getReferenceType()).thenReturn(QualityRule.ReferenceType.ENVIRONMENT);
+        when(qualityRule.getReferenceId()).thenReturn("Another_environment");
+        when(qualityRuleRepository.findById(QUALITY_RULE_ID)).thenReturn(of(qualityRule));
+
+        qualityRuleService.delete(GraviteeContext.getExecutionContext(), QUALITY_RULE_ID);
+
+        verify(qualityRuleRepository, never()).delete(any());
+        verify(auditService, never())
+            .createAuditLog(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(ImmutableMap.of(QUALITY_RULE, QUALITY_RULE_ID)),
+                eq(QualityRule.AuditEvent.QUALITY_RULE_DELETED),
+                any(Date.class),
+                isNull(),
+                eq(qualityRule)
+            );
+        verify(apiQualityRuleRepository, never()).deleteByQualityRule(any());
     }
 }
