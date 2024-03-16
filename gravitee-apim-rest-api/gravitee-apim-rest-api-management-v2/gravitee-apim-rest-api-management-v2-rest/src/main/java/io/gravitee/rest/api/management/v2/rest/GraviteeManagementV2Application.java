@@ -30,6 +30,7 @@ import io.gravitee.rest.api.management.v2.rest.exceptionMapper.domain.Validation
 import io.gravitee.rest.api.management.v2.rest.provider.ByteArrayOutputStreamWriter;
 import io.gravitee.rest.api.management.v2.rest.provider.CommaSeparatedQueryParamConverterProvider;
 import io.gravitee.rest.api.management.v2.rest.provider.ObjectMapperResolver;
+import io.gravitee.rest.api.management.v2.rest.resource.ElResource;
 import io.gravitee.rest.api.management.v2.rest.resource.OpenAPIResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.ApisResource;
 import io.gravitee.rest.api.management.v2.rest.resource.installation.EnvironmentsResource;
@@ -101,6 +102,7 @@ public class GraviteeManagementV2Application extends ResourceConfig {
         register(JacksonFeature.class);
 
         register(OpenAPIResource.class);
+        register(ElResource.class);
 
         property(ServerProperties.BV_SEND_ERROR_IN_RESPONSE, true);
         property(ServerProperties.BV_DISABLE_VALIDATE_ON_EXECUTABLE_OVERRIDE_CHECK, true);

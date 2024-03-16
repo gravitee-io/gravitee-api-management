@@ -13,25 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.reactor.handler.context;
+package io.gravitee.rest.api.management.v2.rest.resource;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.Map;
+import io.gravitee.apim.el.Schema;
+import io.gravitee.common.http.MediaType;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Response;
 
 /**
- * @author David BRASSELY (david.brassely at graviteesource.com)
+ * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class EvaluableExecutionContext {
+@Path("/el")
+public class ElResource {
 
-    private final ReactableExecutionContext executionContext;
-
-    EvaluableExecutionContext(ReactableExecutionContext executionContext) {
-        this.executionContext = executionContext;
-    }
-
-    @JsonProperty
-    public Map<String, Object> getAttributes() {
-        return executionContext.getAttributes();
+    @GET
+    @Path("/schema.json")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getSchema() {
+        return Response.ok(Schema.class.getResourceAsStream(Schema.FILE)).build();
     }
 }

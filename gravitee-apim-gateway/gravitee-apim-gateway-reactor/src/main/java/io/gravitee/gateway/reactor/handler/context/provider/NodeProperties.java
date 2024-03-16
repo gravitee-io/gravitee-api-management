@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.reactor.handler.context.provider;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 /**
@@ -33,6 +34,7 @@ public class NodeProperties {
 
     private String zone;
 
+    @JsonProperty
     public String getTenant() {
         return tenant;
     }
@@ -41,6 +43,7 @@ public class NodeProperties {
         this.tenant = tenant;
     }
 
+    @JsonProperty
     public String getId() {
         return id;
     }
@@ -49,6 +52,7 @@ public class NodeProperties {
         this.id = id;
     }
 
+    @JsonProperty
     public String getVersion() {
         return version;
     }
@@ -57,6 +61,7 @@ public class NodeProperties {
         this.version = version;
     }
 
+    @JsonProperty
     public List<String> getShardingTags() {
         return shardingTags;
     }
@@ -65,6 +70,7 @@ public class NodeProperties {
         this.shardingTags = shardingTags;
     }
 
+    @JsonProperty
     public String getZone() {
         return zone;
     }
