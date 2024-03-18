@@ -13,7 +13,7 @@ databaseChangeLog:
               - column: {name: reference_type, type: nvarchar(64), constraints: { nullable: false } }
               - column: {name: license, type: nvarchar(256), constraints: { nullable: false } }
               - column: {name: created_at, type: timestamp(6), constraints: { nullable: false } }
-              - column: {name: updated_at, type: timestamp(6), constraints: { nullable: false } }
+              - column: {name: updated_at, type: timestamp(6), constraints: { nullable: false }, defaultValueComputed: CURRENT_TIMESTAMP(6) }
 
         - addPrimaryKey:
             constraintName: pk_${gravitee_prefix}licenses
