@@ -807,7 +807,7 @@ describe('ApiGeneralSubscriptionListComponent', () => {
       .match(`${CONSTANTS_TESTING.env.baseURL}/applications/${applicationId}`)
       .find((request) => !request.cancelled);
     if (testRequest) {
-      testRequest.flush(application);
+      testRequest.flush(application ?? {});
       fixture.detectChanges();
     }
   }
