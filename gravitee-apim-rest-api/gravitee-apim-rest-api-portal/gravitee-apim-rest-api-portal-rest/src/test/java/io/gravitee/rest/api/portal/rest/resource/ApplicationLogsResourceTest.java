@@ -153,13 +153,15 @@ public class ApplicationLogsResourceTest extends AbstractResourceTest {
     public void shouldGetLog() {
         final ApplicationRequest toBeReturned = new ApplicationRequest();
         toBeReturned.setId(LOG);
-        doReturn(toBeReturned).when(logsService).findApplicationLog(eq(GraviteeContext.getExecutionContext()), eq(LOG), any());
+        doReturn(toBeReturned)
+            .when(logsService)
+            .findApplicationLog(eq(GraviteeContext.getExecutionContext()), eq(APPLICATION), eq(LOG), any());
 
         final Response response = target(APPLICATION).path("logs").path(LOG).queryParam("timestamp", 1).request().get();
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         Mockito.verify(logMapper).convert(toBeReturned);
-        Mockito.verify(logsService).findApplicationLog(GraviteeContext.getExecutionContext(), LOG, 1L);
+        Mockito.verify(logsService).findApplicationLog(GraviteeContext.getExecutionContext(), APPLICATION, LOG, 1L);
 
         Log Log = response.readEntity(Log.class);
         assertNotNull(Log);

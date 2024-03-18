@@ -28,6 +28,6 @@ public interface LogsService {
     SearchLogResponse<ApplicationRequestItem> findByApplication(ExecutionContext executionContext, String application, LogQuery query);
     SearchLogResponse<PlatformRequestItem> findPlatform(ExecutionContext executionContext, LogQuery query);
     ApiRequest findApiLog(ExecutionContext executionContext, String id, Long timestamp);
-    ApplicationRequest findApplicationLog(ExecutionContext executionContext, String id, Long timestamp);
+    ApplicationRequest findApplicationLog(ExecutionContext executionContext, String applicationId, String id, Long timestamp);
     String exportAsCsv(ExecutionContext executionContext, SearchLogResponse<?> searchLogResponse);
 }
