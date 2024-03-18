@@ -190,6 +190,9 @@ public class LogsServiceImpl implements LogsService {
                 return null;
             }
 
+            // Check that request log belongs to the current environment
+            apiSearchService.findRepositoryApiById(executionContext, log.getApi());
+
             if (parameterService.findAsBoolean(executionContext, Key.LOGGING_AUDIT_ENABLED, ParameterReferenceType.ORGANIZATION)) {
                 auditService.createApiAuditLog(
                     executionContext,
@@ -205,6 +208,9 @@ public class LogsServiceImpl implements LogsService {
         } catch (AnalyticsException ae) {
             logger.error("Unable to retrieve log: " + id, ae);
             throw new TechnicalManagementException("Unable to retrieve log: " + id, ae);
+        } catch (ApiNotFoundException anfe) {
+            logger.warn("Requested log [" + id + "] is not attached to environment [" + executionContext.getEnvironmentId() + "]", anfe);
+            throw new LogNotFoundException(id);
         }
     }
 
@@ -323,11 +329,16 @@ public class LogsServiceImpl implements LogsService {
     }
 
     @Override
-    public ApplicationRequest findApplicationLog(ExecutionContext executionContext, String id, Long timestamp) {
+    public ApplicationRequest findApplicationLog(ExecutionContext executionContext, String applicationId, String id, Long timestamp) {
         try {
             ExtendedLog log = logRepository.findById(id, timestamp);
             if (log == null) {
                 return null;
+            }
+
+            if (!applicationId.equalsIgnoreCase(log.getApplication())) {
+                logger.warn("Requested log [" + id + "] is not attached to application [" + applicationId + "]");
+                throw new LogNotFoundException(id);
             }
 
             return toApplicationRequest(executionContext, log);

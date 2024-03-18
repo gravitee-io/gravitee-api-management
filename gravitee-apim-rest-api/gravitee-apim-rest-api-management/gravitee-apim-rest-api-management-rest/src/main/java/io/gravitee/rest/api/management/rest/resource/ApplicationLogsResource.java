@@ -97,7 +97,7 @@ public class ApplicationLogsResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.APPLICATION_LOG, acls = RolePermissionAction.READ) })
     public ApplicationRequest getApplicationLog(@PathParam("log") String logId, @QueryParam("timestamp") Long timestamp) {
-        return logsService.findApplicationLog(GraviteeContext.getExecutionContext(), logId, timestamp);
+        return logsService.findApplicationLog(GraviteeContext.getExecutionContext(), application, logId, timestamp);
     }
 
     @GET
