@@ -38,7 +38,6 @@ import {
   Api,
   ApiKeyMode,
   ApiPlansResponse,
-  ApiSubscribersResponse,
   ApiSubscriptionsResponse,
   BaseApplication,
   fakeApiV4,
@@ -653,7 +652,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
     subscriptions: Subscription[],
     api: Api = anAPI,
     plans: Plan[] = [aPlan],
-    subscribers: BaseApplication[] = [aBaseApplication],
+    _subscribers: BaseApplication[] = [aBaseApplication],
     applications?: Application[],
     params?: { plan?: string; application?: string; status?: string; apiKey?: string },
     permissions: string[] = ['api-subscription-c', 'api-subscription-r'],
@@ -671,7 +670,6 @@ describe('ApiPortalSubscriptionListComponent', () => {
     tick(800); // wait for debounce
     expectApiGetRequest(api);
     expectApiPlansGetRequest(plans);
-    expectApiSubscribersGetRequest(subscribers);
     if (params?.application) {
       params?.application.split(',').forEach((appId) =>
         expectGetApplication(
@@ -741,22 +739,6 @@ describe('ApiPortalSubscriptionListComponent', () => {
     httpTestingController
       .expectOne({
         url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans?page=1&perPage=9999`,
-        method: 'GET',
-      })
-      .flush(response);
-    fixture.detectChanges();
-  }
-
-  function expectApiSubscribersGetRequest(applications: BaseApplication[]) {
-    const response: ApiSubscribersResponse = {
-      data: applications,
-      pagination: {
-        totalCount: applications.length,
-      },
-    };
-    httpTestingController
-      .expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/subscribers?page=1&perPage=20`,
         method: 'GET',
       })
       .flush(response);
@@ -838,7 +820,7 @@ describe('ApiPortalSubscriptionListComponent', () => {
       .match(`${CONSTANTS_TESTING.env.baseURL}/applications/${applicationId}`)
       .find((request) => !request.cancelled);
     if (testRequest) {
-      testRequest.flush(application);
+      testRequest.flush(application ?? {});
       fixture.detectChanges();
     }
   }

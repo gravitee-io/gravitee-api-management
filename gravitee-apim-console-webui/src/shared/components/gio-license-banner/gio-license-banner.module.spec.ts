@@ -16,6 +16,7 @@
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { MatIconTestingModule } from '@angular/material/icon/testing';
 
 import { GioLicenseBannerModule } from './gio-license-banner.module';
 
@@ -34,7 +35,7 @@ describe('GioLicenseBannerModule', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       declarations: [TestComponent],
-      imports: [NoopAnimationsModule, GioLicenseBannerModule],
+      imports: [NoopAnimationsModule, GioLicenseBannerModule, MatIconTestingModule],
     });
     fixture = TestBed.createComponent(TestComponent);
   });
