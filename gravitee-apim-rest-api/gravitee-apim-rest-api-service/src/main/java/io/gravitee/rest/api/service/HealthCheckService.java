@@ -34,7 +34,7 @@ public interface HealthCheckService {
 
     SearchLogResponse findByApi(ExecutionContext executionContext, String api, LogQuery logQuery, Boolean transition);
 
-    Log findLog(String id);
+    Log findLog(String api, String id);
 
     Analytics query(DateHistogramQuery query);
 }
