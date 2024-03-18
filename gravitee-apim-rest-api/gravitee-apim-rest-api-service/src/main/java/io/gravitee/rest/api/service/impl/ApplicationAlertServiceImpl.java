@@ -40,6 +40,7 @@ import io.gravitee.rest.api.model.notification.NotificationTemplateEntity;
 import io.gravitee.rest.api.model.notification.NotificationTemplateEvent;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.exceptions.AlertNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.AlertHook;
 import io.gravitee.rest.api.service.notification.HookScope;
@@ -146,6 +147,9 @@ public class ApplicationAlertServiceImpl implements ApplicationAlertService {
     @Override
     public AlertTriggerEntity update(ExecutionContext executionContext, String applicationId, UpdateAlertTriggerEntity alert) {
         final AlertTriggerEntity alertTrigger = alertService.findById(alert.getId());
+        if (!alertTrigger.getReferenceId().equalsIgnoreCase(applicationId)) {
+            throw new AlertNotFoundException(alert.getId());
+        }
 
         alert.setName(alertTrigger.getName());
         alert.setReferenceType(AlertReferenceType.APPLICATION);
