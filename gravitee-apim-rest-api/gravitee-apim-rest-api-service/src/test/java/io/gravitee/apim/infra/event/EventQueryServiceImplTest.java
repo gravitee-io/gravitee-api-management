@@ -187,7 +187,7 @@ public class EventQueryServiceImplTest {
         void should_return_event_by_id() {
             when(eventRepository.findById(any())).thenAnswer(invocation -> Optional.of(anEvent().build()));
 
-            var result = service.findById("event-id");
+            var result = service.findByIdForEnvironmentAndApi("event-id", "environment-id", "api-id");
 
             assertThat(result).isNotEmpty();
         }
