@@ -30,6 +30,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.LogsService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.LogNotFoundException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -94,7 +95,11 @@ public class ApiLogsResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_LOG, acls = RolePermissionAction.READ) })
     public ApiRequest getApiLog(@PathParam("log") String logId, @QueryParam("timestamp") Long timestamp) {
-        return logsService.findApiLog(GraviteeContext.getExecutionContext(), logId, timestamp);
+        ApiRequest apiLog = logsService.findApiLog(GraviteeContext.getExecutionContext(), logId, timestamp);
+        if (api.equalsIgnoreCase(apiLog.getApi())) {
+            return apiLog;
+        }
+        throw new LogNotFoundException(logId);
     }
 
     @GET

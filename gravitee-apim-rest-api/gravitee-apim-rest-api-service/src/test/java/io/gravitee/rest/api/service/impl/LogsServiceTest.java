@@ -37,6 +37,8 @@ import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiKeyNotFoundException;
+import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
+import io.gravitee.rest.api.service.exceptions.LogNotFoundException;
 import io.gravitee.rest.api.service.exceptions.PlanNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
@@ -89,6 +91,13 @@ class LogsServiceTest {
 
     @InjectMocks
     private final LogsService logService = new LogsServiceImpl();
+
+    @Test
+    void findApiLogShouldThrowNotFoundExceptionBecause() throws Exception {
+        when(logRepository.findById(LOG_ID, LOG_TIMESTAMP)).thenReturn(newLog(KEY_LESS));
+        when(apiSearchService.findRepositoryApiById(EXECUTION_CONTEXT, LOG_API_ID)).thenThrow(new ApiNotFoundException(LOG_API_ID));
+        assertThrows(LogNotFoundException.class, () -> logService.findApiLog(EXECUTION_CONTEXT, LOG_ID, LOG_TIMESTAMP));
+    }
 
     @Test
     void findApiLogShouldThrowException() throws Exception {
@@ -340,18 +349,42 @@ class LogsServiceTest {
     }
 
     @Test
+    void findApplicationLogShouldThrowNotFoundExceptionBecauseLogDoesNotBelongToApplication() throws Exception {
+        ExtendedLog log = newLog(JWT);
+        log.setClientRequest(newRequest());
+        log.setClientResponse(newResponse());
+        log.setApplication("Another_application");
+        when(logRepository.findById(eq(LOG_ID), anyLong())).thenReturn(log);
+
+        long timestamp = Instant.now().toEpochMilli();
+
+        assertThrows(
+            LogNotFoundException.class,
+            () -> logService.findApplicationLog(EXECUTION_CONTEXT, LOG_APPLICATION_ID, LOG_ID, timestamp)
+        );
+    }
+
+    @Test
     void findApplicationLogShouldThrowException() throws Exception {
         when(logRepository.findById(eq(LOG_ID), anyLong())).thenThrow(new AnalyticsException("test_error"));
         long timestamp = Instant.now().toEpochMilli();
 
-        assertThrows(TechnicalManagementException.class, () -> logService.findApplicationLog(EXECUTION_CONTEXT, LOG_ID, timestamp));
+        assertThrows(
+            TechnicalManagementException.class,
+            () -> logService.findApplicationLog(EXECUTION_CONTEXT, LOG_APPLICATION_ID, LOG_ID, timestamp)
+        );
     }
 
     @Test
     void findApplicationLogShouldReturnNull() throws Exception {
         when(logRepository.findById(eq(LOG_ID), anyLong())).thenReturn(null);
 
-        ApplicationRequest result = logService.findApplicationLog(EXECUTION_CONTEXT, LOG_ID, Instant.now().toEpochMilli());
+        ApplicationRequest result = logService.findApplicationLog(
+            EXECUTION_CONTEXT,
+            LOG_APPLICATION_ID,
+            LOG_ID,
+            Instant.now().toEpochMilli()
+        );
 
         assertThat(result).isNull();
         verify(logRepository, times(1)).findById(eq(LOG_ID), anyLong());
@@ -366,7 +399,12 @@ class LogsServiceTest {
         when(apiSearchService.findGenericById(any(), anyString())).thenReturn(newApiEntity());
         when(planSearchService.findById(any(), anyString())).thenReturn(newPlan(KEY_LESS));
 
-        ApplicationRequest result = logService.findApplicationLog(EXECUTION_CONTEXT, LOG_ID, Instant.now().toEpochMilli());
+        ApplicationRequest result = logService.findApplicationLog(
+            EXECUTION_CONTEXT,
+            LOG_APPLICATION_ID,
+            LOG_ID,
+            Instant.now().toEpochMilli()
+        );
 
         assertThat(result).isNotNull();
         verify(logRepository, times(1)).findById(eq(LOG_ID), anyLong());
