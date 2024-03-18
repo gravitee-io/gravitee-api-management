@@ -52,8 +52,15 @@ public class EventQueryServiceInMemory implements EventQueryService, InMemoryAlt
     }
 
     @Override
-    public Optional<Event> findById(String eventId) {
-        return storage().stream().filter(event -> event.getId().equals(eventId)).findFirst();
+    public Optional<Event> findByIdForEnvironmentAndApi(String eventId, String environmentId, String apiId) {
+        return storage()
+            .stream()
+            .filter(event ->
+                event.getId().equals(eventId) &&
+                event.getEnvironments().contains(environmentId) &&
+                apiId.equalsIgnoreCase(event.getProperties().get(Event.EventProperties.API_ID))
+            )
+            .findFirst();
     }
 
     @Override

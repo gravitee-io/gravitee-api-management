@@ -99,7 +99,8 @@ public class DebugApiUseCase {
             Map.ofEntries(
                 entry(Event.EventProperties.USER, auditInfo.actor().userId()),
                 entry(Event.EventProperties.API_DEBUG_STATUS, ApiDebugStatus.TO_DEBUG.name()),
-                entry(Event.EventProperties.GATEWAY_ID, selectedInstance.getId())
+                entry(Event.EventProperties.GATEWAY_ID, selectedInstance.getId()),
+                entry(Event.EventProperties.API_ID, debugApi.getId())
             )
         );
     }

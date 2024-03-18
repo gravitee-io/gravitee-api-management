@@ -141,6 +141,7 @@ public class ApiResourceDebugTest extends AbstractResourceTest {
                 Entity.entity(
                     DebugApiEntity
                         .builder()
+                        .id(API)
                         .graviteeDefinitionVersion("2.0.0")
                         .proxy(Proxy.builder().virtualHosts(List.of(new VirtualHost("/"))).build())
                         .plans(
