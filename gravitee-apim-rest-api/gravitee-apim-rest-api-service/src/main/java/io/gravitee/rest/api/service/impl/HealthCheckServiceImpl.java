@@ -239,10 +239,10 @@ public class HealthCheckServiceImpl implements HealthCheckService {
     }
 
     @Override
-    public Log findLog(String id) {
+    public Log findLog(String api, String id) {
         try {
             ExtendedLog log = healthCheckRepository.findById(id);
-            return log != null ? toLog(log) : null;
+            return (log != null && api.equalsIgnoreCase(log.getApi())) ? toLog(log) : null;
         } catch (AnalyticsException ae) {
             logger.error("An unexpected error occurs while searching for health data.", ae);
             return null;

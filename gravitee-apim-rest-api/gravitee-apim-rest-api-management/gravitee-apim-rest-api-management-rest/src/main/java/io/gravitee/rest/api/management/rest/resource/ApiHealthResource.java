@@ -169,6 +169,6 @@ public class ApiHealthResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_HEALTH, acls = RolePermissionAction.READ) })
     public Log getApiHealthCheckLog(@PathParam("log") String logId) {
-        return healthCheckService.findLog(logId);
+        return healthCheckService.findLog(api, logId);
     }
 }
