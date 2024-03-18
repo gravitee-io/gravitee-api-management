@@ -153,7 +153,7 @@ public class HealthCheckServiceImplTest {
     @Test
     public void shouldThrowExceptionForFindById() throws Exception {
         when(healthCheckRepository.findById(anyString())).thenThrow(new AnalyticsException());
-        Log result = cut.findLog("test_log");
+        Log result = cut.findLog("test_api", "test_log");
 
         assertNull(result);
         verify(healthCheckRepository, times(1)).findById(anyString());
@@ -162,7 +162,17 @@ public class HealthCheckServiceImplTest {
     @Test
     public void shouldFindNoLogById() throws AnalyticsException {
         when(healthCheckRepository.findById(anyString())).thenReturn(null);
-        Log result = cut.findLog("test_log");
+        Log result = cut.findLog("test_api", "test_log");
+
+        assertNull(result);
+        verify(healthCheckRepository, times(1)).findById(anyString());
+    }
+
+    @Test
+    public void shouldReturnNullBecauseLogDoesNotBelongToApi() throws AnalyticsException {
+        ExtendedLog log = newExtendedLog();
+        when(healthCheckRepository.findById(anyString())).thenReturn(log);
+        Log result = cut.findLog("Another_api", "test_log");
 
         assertNull(result);
         verify(healthCheckRepository, times(1)).findById(anyString());
@@ -173,7 +183,7 @@ public class HealthCheckServiceImplTest {
         ExtendedLog log = newExtendedLog();
 
         when(healthCheckRepository.findById(anyString())).thenReturn(log);
-        Log result = cut.findLog("test_log");
+        Log result = cut.findLog("test_api", "test_log");
 
         assertNotNull(result);
         verify(healthCheckRepository, times(1)).findById(anyString());
@@ -282,7 +292,7 @@ public class HealthCheckServiceImplTest {
         step.setMessage("test_message");
         steps.add(step);
         log.setSteps(steps);
-
+        log.setApi("test_api");
         return log;
     }
 }
