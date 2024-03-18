@@ -116,7 +116,12 @@ public class ApplicationLogsResource extends AbstractResource {
         //Does application exists ?
         applicationService.findById(GraviteeContext.getExecutionContext(), applicationId);
 
-        ApplicationRequest applicationLogs = logsService.findApplicationLog(GraviteeContext.getExecutionContext(), logId, timestamp);
+        ApplicationRequest applicationLogs = logsService.findApplicationLog(
+            GraviteeContext.getExecutionContext(),
+            applicationId,
+            logId,
+            timestamp
+        );
 
         return Response.ok(logMapper.convert(applicationLogs)).build();
     }
