@@ -22,18 +22,21 @@ import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import java.util.Optional;
 
-public class SearchEventUseCase {
+public class SearchApiEventUseCase {
 
     private final EventQueryService eventQueryService;
     private final UserCrudService userCrudService;
 
-    public SearchEventUseCase(EventQueryService eventQueryService, UserCrudService userCrudService) {
+    public SearchApiEventUseCase(EventQueryService eventQueryService, UserCrudService userCrudService) {
         this.eventQueryService = eventQueryService;
         this.userCrudService = userCrudService;
     }
 
     public Output execute(Input input) {
-        return eventQueryService.findById(input.eventId).map(event -> new Output(toEventWithInitiator(event))).orElse(new Output());
+        return eventQueryService
+            .findByIdForEnvironmentAndApi(input.eventId, input.environmentId, input.apiId)
+            .map(event -> new Output(toEventWithInitiator(event)))
+            .orElse(new Output());
     }
 
     private EventWithInitiator toEventWithInitiator(Event event) {
@@ -43,7 +46,7 @@ public class SearchEventUseCase {
         return new EventWithInitiator(event, initiator.orElse(null));
     }
 
-    public record Input(String eventId) {}
+    public record Input(String eventId, String environmentId, String apiId) {}
 
     public record Output(Optional<EventWithInitiator> apiEvent) {
         Output(EventWithInitiator apiEvent) {

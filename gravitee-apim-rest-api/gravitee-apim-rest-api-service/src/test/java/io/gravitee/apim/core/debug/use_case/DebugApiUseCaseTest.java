@@ -175,6 +175,7 @@ class DebugApiUseCaseTest {
             .contains(Set.of(ENVIRONMENT_ID), Index.atIndex(1))
             .contains(
                 Map.ofEntries(
+                    entry(Event.EventProperties.API_ID, API_ID),
                     entry(Event.EventProperties.USER, USER_ID),
                     entry(Event.EventProperties.API_DEBUG_STATUS, ApiDebugStatus.TO_DEBUG.name()),
                     entry(Event.EventProperties.GATEWAY_ID, GATEWAY_ID)

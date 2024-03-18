@@ -18,9 +18,8 @@ package io.gravitee.rest.api.management.v2.rest.resource.api.event;
 import static io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo.computePaginationInfo;
 
 import io.gravitee.apim.core.event.query_service.EventQueryService;
-import io.gravitee.apim.core.event.use_case.SearchEventUseCase;
+import io.gravitee.apim.core.event.use_case.SearchApiEventUseCase;
 import io.gravitee.apim.core.event.use_case.SearchEventsUseCase;
-import io.gravitee.apim.core.log.use_case.SearchConnectionLogUseCase;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiEventMapper;
 import io.gravitee.rest.api.management.v2.rest.model.*;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
@@ -53,7 +52,7 @@ public class ApiEventsResource extends AbstractResource {
     private SearchEventsUseCase searchEventsUseCase;
 
     @Inject
-    private SearchEventUseCase searchEventUseCase;
+    private SearchApiEventUseCase searchApiEventUseCase;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -91,9 +90,9 @@ public class ApiEventsResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_EVENT, acls = { RolePermissionAction.READ }) })
     public Event getApiEvent(@PathParam("eventId") @NotBlank String eventId) {
-        var input = new SearchEventUseCase.Input(eventId);
+        var input = new SearchApiEventUseCase.Input(eventId, GraviteeContext.getCurrentEnvironment(), apiId);
 
-        return searchEventUseCase
+        return searchApiEventUseCase
             .execute(input)
             .apiEvent()
             .map(ApiEventMapper.INSTANCE::map)
