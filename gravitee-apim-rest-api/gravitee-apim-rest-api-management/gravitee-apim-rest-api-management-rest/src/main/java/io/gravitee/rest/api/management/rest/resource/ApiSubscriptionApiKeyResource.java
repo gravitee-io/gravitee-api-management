@@ -82,13 +82,17 @@ public class ApiSubscriptionApiKeyResource extends AbstractApiKeyResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.DELETE) })
     public Response reactivateApiKeyForApiSubscription() {
+        // Check subscription exists and belongs to API
+        checkSubscription(subscription);
+
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         ApiKeyEntity apiKeyEntity = apiKeyService.findById(executionContext, apikey);
-
         if (!apiKeyEntity.hasSubscription(subscription)) {
             return Response.status(Response.Status.BAD_REQUEST).entity("API Key in path does not correspond to the subscription").build();
         }
+
         checkApplicationDoesntUseSharedApiKey(apiKeyEntity.getApplication());
+
         ApiKeyEntity reactivated = apiKeyService.reactivate(executionContext, apiKeyEntity);
         return Response.ok().entity(reactivated).build();
     }
@@ -122,19 +126,32 @@ public class ApiSubscriptionApiKeyResource extends AbstractApiKeyResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.UPDATE) })
     public Response updateApiKeyForApiSubscription(@Valid @NotNull ApiKeyEntity apiKey) {
+        // Check subscription exists and belongs to API
+        SubscriptionEntity subscriptionEntity = checkSubscription(subscription);
+
         if (!apikey.equals(apiKey.getId())) {
             return Response
                 .status(BAD_REQUEST)
                 .entity("'apikey' parameter in path does not correspond to the api-key id to update")
                 .build();
         }
+
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscription);
-        if (subscriptionEntity == null) {
-            throw new SubscriptionNotFoundException(subscription);
+        ApiKeyEntity apiKeyEntity = apiKeyService.findById(executionContext, apikey);
+        if (!apiKeyEntity.hasSubscription(subscription)) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("API Key in path does not correspond to the subscription").build();
         }
+
         checkApplicationDoesntUseSharedApiKey(executionContext, subscriptionEntity.getApplication());
         ApiKeyEntity updatedKeyEntity = apiKeyService.update(executionContext, apiKey);
         return Response.ok(updatedKeyEntity).build();
+    }
+
+    private SubscriptionEntity checkSubscription(String subscription) {
+        SubscriptionEntity searchedSubscription = subscriptionService.findById(subscription);
+        if (api.equalsIgnoreCase(searchedSubscription.getApi())) {
+            return searchedSubscription;
+        }
+        throw new SubscriptionNotFoundException(subscription);
     }
 }

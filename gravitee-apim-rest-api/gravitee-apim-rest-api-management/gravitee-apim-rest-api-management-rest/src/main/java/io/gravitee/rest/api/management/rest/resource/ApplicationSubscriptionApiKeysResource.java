@@ -26,6 +26,7 @@ import io.gravitee.rest.api.service.ApiKeyService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -84,6 +85,9 @@ public class ApplicationSubscriptionApiKeysResource extends AbstractApiKeyResour
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.READ) })
     public List<ApiKeyEntity> getApiKeysForApplicationSubscription() {
+        // Check subscription exists and belongs to application
+        checkSubscription(subscription);
+
         return apiKeyService.findBySubscription(GraviteeContext.getExecutionContext(), subscription);
     }
 
@@ -101,7 +105,7 @@ public class ApplicationSubscriptionApiKeysResource extends AbstractApiKeyResour
     public Response renewApiKeyForApplicationSubscription() {
         ExecutionContext executionContext = GraviteeContext.getExecutionContext();
         checkApplicationDoesntUseSharedApiKey(executionContext, application);
-        SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscription);
+        SubscriptionEntity subscriptionEntity = checkSubscription(subscription);
         ApiKeyEntity apiKeyEntity = apiKeyService.renew(executionContext, subscriptionEntity);
         URI location = URI.create(uriInfo.getPath().replace("_renew", apiKeyEntity.getId()));
         return Response.created(location).entity(apiKeyEntity).build();
@@ -110,5 +114,13 @@ public class ApplicationSubscriptionApiKeysResource extends AbstractApiKeyResour
     @Path("{apikey}")
     public ApplicationSubscriptionApiKeyResource getApplicationSubscriptionApiKeyResource() {
         return resourceContext.getResource(ApplicationSubscriptionApiKeyResource.class);
+    }
+
+    private SubscriptionEntity checkSubscription(String subscription) {
+        SubscriptionEntity searchedSubscription = subscriptionService.findById(subscription);
+        if (application.equalsIgnoreCase(searchedSubscription.getApplication())) {
+            return searchedSubscription;
+        }
+        throw new SubscriptionNotFoundException(subscription);
     }
 }
