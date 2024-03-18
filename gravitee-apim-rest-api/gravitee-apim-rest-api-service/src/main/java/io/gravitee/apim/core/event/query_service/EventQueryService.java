@@ -25,7 +25,7 @@ import java.util.Optional;
 
 public interface EventQueryService {
     SearchResponse search(SearchQuery query, Pageable pageable);
-    Optional<Event> findById(String eventId);
+    Optional<Event> findByIdForEnvironmentAndApi(String eventId, String environmentId, String apiId);
 
     record SearchQuery(
         String environmentId,

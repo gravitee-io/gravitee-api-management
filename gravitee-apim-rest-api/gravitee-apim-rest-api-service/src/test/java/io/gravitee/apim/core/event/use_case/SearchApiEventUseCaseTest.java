@@ -29,7 +29,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class SearchEventUseCaseTest {
+public class SearchApiEventUseCaseTest {
 
     public static final String API_ID = "api-id";
     public static final String ORGANIZATION_ID = "organization-id";
@@ -46,11 +46,11 @@ public class SearchEventUseCaseTest {
     EventQueryServiceInMemory eventQueryService = new EventQueryServiceInMemory();
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
 
-    SearchEventUseCase useCase;
+    SearchApiEventUseCase useCase;
 
     @BeforeEach
     void setUp() {
-        useCase = new SearchEventUseCase(eventQueryService, userCrudService);
+        useCase = new SearchApiEventUseCase(eventQueryService, userCrudService);
     }
 
     @AfterEach
@@ -66,12 +66,22 @@ public class SearchEventUseCaseTest {
         eventQueryService.initWith(
             List.of(
                 expected,
-                Event.builder().id("event2").properties(new EnumMap<>(Map.of(Event.EventProperties.API_ID, "other-api"))).build(),
-                Event.builder().id("event3").properties(new EnumMap<>(Map.of(Event.EventProperties.API_ID, "other-api"))).build()
+                Event
+                    .builder()
+                    .id("event2")
+                    .environments(Set.of(ENVIRONMENT_ID))
+                    .properties(new EnumMap<>(Map.of(Event.EventProperties.API_ID, "other-api")))
+                    .build(),
+                Event
+                    .builder()
+                    .id("event3")
+                    .environments(Set.of(ENVIRONMENT_ID))
+                    .properties(new EnumMap<>(Map.of(Event.EventProperties.API_ID, "other-api")))
+                    .build()
             )
         );
 
-        var result = useCase.execute(new SearchEventUseCase.Input("event-id"));
+        var result = useCase.execute(new SearchApiEventUseCase.Input("event-id", ENVIRONMENT_ID, API_ID));
 
         SoftAssertions.assertSoftly(soft -> {
             soft.assertThat(result.apiEvent()).isNotEmpty();

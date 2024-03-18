@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.repository.management.model.Event;
 import io.gravitee.rest.api.model.EventEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -23,6 +24,7 @@ import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.EventNotFoundException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -58,6 +60,13 @@ public class ApiEventResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_EVENT, acls = RolePermissionAction.READ) })
     public Response getEvent() {
-        return Response.ok(eventService.findById(GraviteeContext.getExecutionContext(), eventId)).build();
+        EventEntity eventById = eventService.findById(GraviteeContext.getExecutionContext(), eventId);
+        if (
+            eventById.getEnvironments().contains(GraviteeContext.getCurrentEnvironment()) &&
+            api.equalsIgnoreCase(eventById.getProperties().get("api_id"))
+        ) {
+            return Response.ok(eventById).build();
+        }
+        throw new EventNotFoundException(eventId);
     }
 }
