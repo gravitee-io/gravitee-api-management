@@ -32,6 +32,13 @@ public class LicenseDomainService {
         return this.licenseCrudService.getOrganizationLicense(organizationId);
     }
 
+    /**
+     * Create or update license by organization ID.
+     * If on create and license is null, no license is saved in the database.
+     * If on update and license is the same, no license is updated.
+     * @param organizationId -- organization identifier
+     * @param license -- license content to be saved
+     */
     public void createOrUpdateOrganizationLicense(String organizationId, String license) {
         this.licenseCrudService.getOrganizationLicense(organizationId)
             .ifPresentOrElse(
@@ -40,7 +47,11 @@ public class LicenseDomainService {
                         this.licenseCrudService.updateOrganizationLicense(organizationId, license);
                     }
                 },
-                () -> this.licenseCrudService.createOrganizationLicense(organizationId, license)
+                () -> {
+                    if (Objects.nonNull(license)) {
+                        this.licenseCrudService.createOrganizationLicense(organizationId, license);
+                    }
+                }
             );
     }
 }
