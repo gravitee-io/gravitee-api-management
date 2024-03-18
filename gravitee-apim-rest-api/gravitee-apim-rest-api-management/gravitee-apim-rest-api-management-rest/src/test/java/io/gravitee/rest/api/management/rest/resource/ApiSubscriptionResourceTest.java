@@ -66,6 +66,7 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
         fakeSubscriptionEntity = new SubscriptionEntity();
         fakeSubscriptionEntity.setId(SUBSCRIPTION_ID);
         fakeSubscriptionEntity.setPlan(PLAN_ID);
+        fakeSubscriptionEntity.setApi(API_NAME);
 
         fakeUserEntity = new UserEntity();
         fakeUserEntity.setFirstname("firstName");
@@ -97,6 +98,8 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
 
         when(subscriptionService.process(eq(GraviteeContext.getExecutionContext()), any(ProcessSubscriptionEntity.class), any()))
             .thenReturn(fakeSubscriptionEntity);
+
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(fakeSubscriptionEntity);
 
         Response response = envTarget(SUBSCRIPTION_ID + "/_process").request().post(Entity.json(processSubscriptionEntity));
 
@@ -177,5 +180,56 @@ public class ApiSubscriptionResourceTest extends AbstractResourceTest {
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
         JsonNode responseBody = response.readEntity(JsonNode.class);
         assertNull(responseBody.get("plan").get("security"));
+    }
+
+    @Test
+    public void getNotGetApiSubscriptionIfSubscriptionDoesNotBelongToApi() {
+        fakeSubscriptionEntity.setApi("Another_api");
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(fakeSubscriptionEntity);
+
+        Response response = envTarget(SUBSCRIPTION_ID).request().get();
+
+        assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
+    }
+
+    @Test
+    public void shouldNotProcessIfSubscriptionDoesNotBelongToApi() {
+        ProcessSubscriptionEntity processSubscriptionEntity = new ProcessSubscriptionEntity();
+        processSubscriptionEntity.setId(SUBSCRIPTION_ID);
+        processSubscriptionEntity.setCustomApiKey("customApiKey");
+
+        fakeSubscriptionEntity.setApi("Another_api");
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(fakeSubscriptionEntity);
+
+        Response response = envTarget(SUBSCRIPTION_ID + "/_process").request().post(Entity.json(processSubscriptionEntity));
+
+        assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
+    }
+
+    @Test
+    public void shouldNotTransferIfSubscriptionDoesNotBelongToApi() {
+        TransferSubscriptionEntity transferSubscriptionEntity = new TransferSubscriptionEntity();
+        transferSubscriptionEntity.setId(SUBSCRIPTION_ID);
+        transferSubscriptionEntity.setPlan(PLAN_ID);
+
+        fakeSubscriptionEntity.setApi("Another_api");
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(fakeSubscriptionEntity);
+
+        Response response = envTarget(SUBSCRIPTION_ID + "/_transfer").request().post(Entity.json(transferSubscriptionEntity));
+
+        assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
+    }
+
+    @Test
+    public void shouldNotTUpdateIfSubscriptionDoesNotBelongToApi() {
+        UpdateSubscriptionEntity updateSubscriptionEntity = new UpdateSubscriptionEntity();
+        updateSubscriptionEntity.setId(SUBSCRIPTION_ID);
+
+        fakeSubscriptionEntity.setApi("Another_api");
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(fakeSubscriptionEntity);
+
+        Response response = envTarget(SUBSCRIPTION_ID).request().put(Entity.json(updateSubscriptionEntity));
+
+        assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
     }
 }
