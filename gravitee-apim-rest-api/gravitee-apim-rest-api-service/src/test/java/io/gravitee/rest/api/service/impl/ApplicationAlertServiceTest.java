@@ -50,6 +50,7 @@ import io.gravitee.rest.api.model.notification.NotificationTemplateEntity;
 import io.gravitee.rest.api.model.notification.NotificationTemplateEvent;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.AlertNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.AlertHook;
 import io.gravitee.rest.api.service.notification.HookScope;
@@ -225,9 +226,24 @@ public class ApplicationAlertServiceTest {
         cut.create(GraviteeContext.getExecutionContext(), APPLICATION_ID, newAlert);
     }
 
+    @Test(expected = AlertNotFoundException.class)
+    public void shouldNotUpdateBecauseDoesNotBelongToApplication() throws Exception {
+        final AlertTriggerEntity alertTrigger = mock(AlertTriggerEntity.class);
+        when(alertTrigger.getReferenceId()).thenReturn("Another_application");
+        when(alertService.findById(ALERT_ID)).thenReturn(alertTrigger);
+
+        UpdateAlertTriggerEntity updating = new UpdateAlertTriggerEntity();
+        updating.setId(ALERT_ID);
+
+        cut.update(GraviteeContext.getExecutionContext(), APPLICATION_ID, updating);
+
+        verify(alertService, never()).update(GraviteeContext.getExecutionContext(), updating);
+    }
+
     @Test
     public void shouldUpdate() throws Exception {
         final AlertTriggerEntity alertTrigger = mock(AlertTriggerEntity.class);
+        when(alertTrigger.getReferenceId()).thenReturn(APPLICATION_ID);
         when(alertService.findById(ALERT_ID)).thenReturn(alertTrigger);
 
         UpdateAlertTriggerEntity updating = new UpdateAlertTriggerEntity();
@@ -241,7 +257,7 @@ public class ApplicationAlertServiceTest {
     @Test
     public void shouldUpdateAlertWithApiFilter() {
         final AlertTriggerEntity alertTrigger = mock(AlertTriggerEntity.class);
-        alertTrigger.setFilters(singletonList(StringCondition.equals("application", APPLICATION_ID).build()));
+        when(alertTrigger.getReferenceId()).thenReturn(APPLICATION_ID);
         when(alertService.findById(ALERT_ID)).thenReturn(alertTrigger);
 
         UpdateAlertTriggerEntity updating = new UpdateAlertTriggerEntity();
@@ -263,6 +279,7 @@ public class ApplicationAlertServiceTest {
     @Test
     public void shouldUpdateAlertAndReplaceOldWebhooksNotifications() {
         final AlertTriggerEntity alertTrigger = mock(AlertTriggerEntity.class);
+        when(alertTrigger.getReferenceId()).thenReturn(APPLICATION_ID);
         Notification existingNotification1 = new Notification();
         existingNotification1.setType("existing-notification-type");
         Notification existingNotification2 = new Notification();
