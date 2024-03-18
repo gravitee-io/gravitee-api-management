@@ -53,6 +53,7 @@ public final class LogBuilder {
     private static final String FIELD_AVAILABLE = "available";
     private static final String FIELD_SUCCESS = "success";
     private static final String FIELD_STATE = "state";
+    private static final String FIELD_API = "api";
 
     private static final String FIELD_STEPS = "steps";
     private static final String FIELD_METHOD = "method";
@@ -129,6 +130,7 @@ public final class LogBuilder {
         log.setAvailable(node.get(FIELD_AVAILABLE).asBoolean());
         log.setState(node.get(FIELD_STATE).asInt());
         log.setSuccess(node.get(FIELD_SUCCESS).asBoolean());
+        log.setApi(node.get(FIELD_API).asText());
 
         JsonNode stepsNode = node.get(FIELD_STEPS);
 
