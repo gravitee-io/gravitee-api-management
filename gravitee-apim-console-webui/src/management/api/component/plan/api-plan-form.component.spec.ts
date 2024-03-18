@@ -462,7 +462,9 @@ describe('ApiPlanFormComponent', () => {
           generalConditions: 'doc-1',
           security: {
             type: 'API_KEY',
-            configuration: {},
+            configuration: {
+              propagateApiKey: true,
+            },
           },
           selectionRule: null,
           tags: [TAG_1_ID],
