@@ -52,6 +52,8 @@ public class ApplicationSubscriptionApikeysResourceTest extends AbstractResource
 
     @Test
     public void get_should_return_apikeys_list_from_service_with_http_200() {
+        mockExistingSubscription();
+
         ApiKeyEntity apiKeyFromService = new ApiKeyEntity();
         apiKeyFromService.setId("test-id");
         List<ApiKeyEntity> apiKeysFromService = List.of(apiKeyFromService);
@@ -64,15 +66,26 @@ public class ApplicationSubscriptionApikeysResourceTest extends AbstractResource
     }
 
     @Test
+    public void get_apikeys_list_should_return_http_404_if_subscription_not_belong_to_application() {
+        SubscriptionEntity subscription = new SubscriptionEntity();
+        subscription.setId("test-subscription-id");
+        subscription.setApplication("Another_application");
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(subscription);
+
+        Response response = envTarget().request().get();
+
+        assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
+    }
+
+    @Test
     public void post_on_renew_should_return_renew_apikeys_and_return_http_201_with_location_header() {
         mockExistingApplication(ApiKeyMode.EXCLUSIVE);
 
         ApiKeyEntity renewedApiKey = new ApiKeyEntity();
         renewedApiKey.setId("test-id");
 
-        SubscriptionEntity subscription = new SubscriptionEntity();
+        SubscriptionEntity subscription = mockExistingSubscription();
 
-        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(subscription);
         when(apiKeyService.renew(GraviteeContext.getExecutionContext(), subscription)).thenReturn(renewedApiKey);
 
         Response response = envTarget("/_renew").request().post(null);
@@ -82,6 +95,18 @@ public class ApplicationSubscriptionApikeysResourceTest extends AbstractResource
         assertTrue(
             response.getLocation().toString().endsWith("/applications/my-application/subscriptions/my-subscription/apikeys/test-id")
         );
+    }
+
+    @Test
+    public void post_on_renew_should_return_404_when_subscription_not_belonging_to_application() {
+        SubscriptionEntity subscription = new SubscriptionEntity();
+        subscription.setId("test-subscription-id");
+        subscription.setApplication("Another_application");
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(subscription);
+
+        Response response = envTarget("/_renew").request().post(null);
+
+        assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
     }
 
     @Test
@@ -106,5 +131,14 @@ public class ApplicationSubscriptionApikeysResourceTest extends AbstractResource
         ApplicationEntity application = new ApplicationEntity();
         application.setApiKeyMode(apiKeyMode);
         when(applicationService.findById(GraviteeContext.getExecutionContext(), APPLICATION_ID)).thenReturn(application);
+    }
+
+    private SubscriptionEntity mockExistingSubscription() {
+        SubscriptionEntity subscription = new SubscriptionEntity();
+        subscription.setId("test-subscription-id");
+        subscription.setApplication(APPLICATION_ID);
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(subscription);
+
+        return subscription;
     }
 }
