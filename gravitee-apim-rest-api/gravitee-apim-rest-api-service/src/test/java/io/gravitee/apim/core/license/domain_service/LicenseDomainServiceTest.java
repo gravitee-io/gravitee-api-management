@@ -54,6 +54,16 @@ class LicenseDomainServiceTest {
     }
 
     @Test
+    void should_not_create_organization_license_if_null_license() {
+        assertThat(service.getLicenseByOrganizationId("new")).isEmpty();
+
+        service.createOrUpdateOrganizationLicense("new", null);
+
+        var result = service.getLicenseByOrganizationId("new");
+        assertThat(result).isEmpty();
+    }
+
+    @Test
     void should_update_organization_license() {
         givenOrganizationLicense("org-to-update", "initialLicense");
         service.createOrUpdateOrganizationLicense("org-to-update", "updatedLicense");
