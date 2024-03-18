@@ -63,6 +63,7 @@ public class ApplicationSubscriptionResourceTest extends AbstractResourceTest {
         fakeSubscriptionEntity.setId(SUBSCRIPTION_ID);
         fakeSubscriptionEntity.setApi(API_ID);
         fakeSubscriptionEntity.setPlan(PLAN_ID);
+        fakeSubscriptionEntity.setApplication(APPLICATION_ID);
 
         fakeApplicationEntity = new ApplicationEntity();
         fakeApplicationEntity.setId(APPLICATION_ID);
@@ -115,6 +116,7 @@ public class ApplicationSubscriptionResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldUpdateSubscriptionConfiguration() {
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(fakeSubscriptionEntity);
         UpdateSubscriptionConfigurationEntity updateSubscriptionConfigurationEntity = new UpdateSubscriptionConfigurationEntity();
 
         when(subscriptionService.update(eq(GraviteeContext.getExecutionContext()), any(UpdateSubscriptionConfigurationEntity.class)))
@@ -123,12 +125,14 @@ public class ApplicationSubscriptionResourceTest extends AbstractResourceTest {
         Response response = envTarget(SUBSCRIPTION_ID).request().put(json(updateSubscriptionConfigurationEntity));
 
         assertEquals(200, response.getStatus());
+        verify(subscriptionService).findById(SUBSCRIPTION_ID);
         verify(subscriptionService).update(eq(GraviteeContext.getExecutionContext()), any(UpdateSubscriptionConfigurationEntity.class));
         verifyNoMoreInteractions(subscriptionService);
     }
 
     @Test
     public void shouldResumeSubscriptionByConsumer() {
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(fakeSubscriptionEntity);
         io.gravitee.rest.api.model.v4.api.ApiEntity apiV4 = new io.gravitee.rest.api.model.v4.api.ApiEntity();
         apiV4.setPrimaryOwner(new PrimaryOwnerEntity());
         when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API_ID))).thenReturn(apiV4);
@@ -153,6 +157,7 @@ public class ApplicationSubscriptionResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldPauseSubscriptionByConsumer() {
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(fakeSubscriptionEntity);
         io.gravitee.rest.api.model.v4.api.ApiEntity apiV4 = new io.gravitee.rest.api.model.v4.api.ApiEntity();
         apiV4.setPrimaryOwner(new PrimaryOwnerEntity());
         when(apiSearchServiceV4.findGenericById(eq(GraviteeContext.getExecutionContext()), eq(API_ID))).thenReturn(apiV4);
@@ -177,8 +182,41 @@ public class ApplicationSubscriptionResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldHaveBadRequestIfTryingAWrongConsumerStatus() {
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(fakeSubscriptionEntity);
+
         Response response = envTarget(SUBSCRIPTION_ID).path("_changeConsumerStatus").queryParam("status", "INVALID").request().post(null);
 
         assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+    }
+
+    @Test
+    public void shouldNotGetApplicationSubscriptionBecauseDoesNotBelongToApplication() {
+        fakeSubscriptionEntity.setApplication("Another_application");
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(fakeSubscriptionEntity);
+
+        Response response = envTarget(SUBSCRIPTION_ID).request().get();
+
+        assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
+    }
+
+    @Test
+    public void shouldNotUpdateApplicationSubscriptionBecauseDoesNotBelongToApplication() {
+        fakeSubscriptionEntity.setApplication("Another_application");
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(fakeSubscriptionEntity);
+        UpdateSubscriptionConfigurationEntity updateSubscriptionConfigurationEntity = new UpdateSubscriptionConfigurationEntity();
+
+        Response response = envTarget(SUBSCRIPTION_ID).request().put(json(updateSubscriptionConfigurationEntity));
+
+        assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
+    }
+
+    @Test
+    public void shouldNotChangeConsumerStatusOfApplicationSubscriptionBecauseDoesNotBelongToApplication() {
+        fakeSubscriptionEntity.setApplication("Another_application");
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(fakeSubscriptionEntity);
+
+        Response response = envTarget(SUBSCRIPTION_ID).path("_changeConsumerStatus").queryParam("status", "STARTED").request().post(null);
+
+        assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
     }
 }
