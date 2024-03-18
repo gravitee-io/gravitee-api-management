@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.rest.model.Subscription;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.ApiKeyEntity;
@@ -97,6 +98,9 @@ public class ApiSubscriptionApiKeysResource extends AbstractApiKeyResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.READ) })
     public List<ApiKeyEntity> getApiKeysForApiSubscription() {
+        // Check subscription exists and belongs to API
+        checkSubscription(subscription);
+
         return apiKeyService.findBySubscription(GraviteeContext.getExecutionContext(), subscription);
     }
 
@@ -123,10 +127,9 @@ public class ApiSubscriptionApiKeysResource extends AbstractApiKeyResource {
             return Response.status(Response.Status.BAD_REQUEST).entity("You are not allowed to provide a custom API Key").build();
         }
 
-        SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscription);
-        if (subscriptionEntity == null) {
-            throw new SubscriptionNotFoundException(subscription);
-        }
+        // Check subscription exists and belongs to API
+        SubscriptionEntity subscriptionEntity = checkSubscription(subscription);
+
         checkApplicationDoesntUseSharedApiKey(executionContext, subscriptionEntity.getApplication());
 
         ApiKeyEntity apiKeyEntity = apiKeyService.renew(executionContext, subscriptionEntity, customApiKey);
@@ -138,5 +141,13 @@ public class ApiSubscriptionApiKeysResource extends AbstractApiKeyResource {
     @Path("{apikey}")
     public ApiSubscriptionApiKeyResource getApiSubscriptionApiKeyResource() {
         return resourceContext.getResource(ApiSubscriptionApiKeyResource.class);
+    }
+
+    private SubscriptionEntity checkSubscription(String subscription) {
+        SubscriptionEntity searchedSubscription = subscriptionService.findById(subscription);
+        if (api.equalsIgnoreCase(searchedSubscription.getApi())) {
+            return searchedSubscription;
+        }
+        throw new SubscriptionNotFoundException(subscription);
     }
 }

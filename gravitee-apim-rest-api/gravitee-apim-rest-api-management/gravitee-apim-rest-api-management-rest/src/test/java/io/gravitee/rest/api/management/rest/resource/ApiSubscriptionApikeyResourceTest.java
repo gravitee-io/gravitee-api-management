@@ -26,6 +26,7 @@ import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
@@ -103,6 +104,7 @@ public class ApiSubscriptionApikeyResourceTest extends AbstractResourceTest {
 
     @Test
     public void put_should_return_http_400_if_entity_id_does_not_match() {
+        mockExistingSubscription();
         ApiKeyEntity apiKey = new ApiKeyEntity();
         apiKey.setId("another-api-key-id");
 
@@ -144,12 +146,54 @@ public class ApiSubscriptionApikeyResourceTest extends AbstractResourceTest {
 
     @Test
     public void put_should_return_http_404_when_subscription_not_found() {
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenThrow(SubscriptionNotFoundException.class);
+
         ApiKeyEntity apiKey = new ApiKeyEntity();
         apiKey.setId(APIKEY_ID);
 
         Response response = envTarget().request().put(Entity.json(apiKey));
 
         assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
+    }
+
+    @Test
+    public void put_should_return_http_404_when_subscription_does_not_belong_to_api() {
+        SubscriptionEntity subscription = new SubscriptionEntity();
+        subscription.setId(SUBSCRIPTION_ID);
+        subscription.setApplication(APPLICATION_ID);
+        subscription.setApi("Another_api");
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(subscription);
+
+        ApiKeyEntity apiKey = new ApiKeyEntity();
+        apiKey.setId(APIKEY_ID);
+
+        Response response = envTarget().request().put(Entity.json(apiKey));
+
+        assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
+    }
+
+    @Test
+    public void put_should_return_http_400_when_apikey_not_used_in_subscription() {
+        mockExistingSubscription();
+
+        ApplicationEntity application = mockExistingApplication(ApiKeyMode.EXCLUSIVE);
+        SubscriptionEntity anotherExistingSubscription = new SubscriptionEntity();
+        anotherExistingSubscription.setId("Another_subscription");
+        anotherExistingSubscription.setApplication(APPLICATION_ID);
+        anotherExistingSubscription.setApi(API_ID);
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(anotherExistingSubscription);
+
+        ApiKeyEntity existingApiKey = new ApiKeyEntity();
+        existingApiKey.setApplication(application);
+        existingApiKey.setSubscriptions(Set.of(anotherExistingSubscription));
+        when(apiKeyService.findById(GraviteeContext.getExecutionContext(), APIKEY_ID)).thenReturn(existingApiKey);
+
+        ApiKeyEntity apiKey = new ApiKeyEntity();
+        apiKey.setId(APIKEY_ID);
+
+        Response response = envTarget().request().put(Entity.json(apiKey));
+
+        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
     }
 
     @Test
@@ -176,6 +220,18 @@ public class ApiSubscriptionApikeyResourceTest extends AbstractResourceTest {
 
         verify(apiKeyService, times(1)).reactivate(GraviteeContext.getExecutionContext(), apiKey);
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
+    }
+
+    @Test
+    public void post_on_reactivate_should_return_404_when_subscription_does_not_belong_to_api() {
+        SubscriptionEntity subscription = new SubscriptionEntity();
+        subscription.setId(SUBSCRIPTION_ID);
+        subscription.setApplication(APPLICATION_ID);
+        subscription.setApi("Another_api");
+        when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(subscription);
+
+        Response response = envTarget("/_reactivate").request().post(null);
+        assertEquals(HttpStatusCode.NOT_FOUND_404, response.getStatus());
     }
 
     @Test
@@ -216,6 +272,7 @@ public class ApiSubscriptionApikeyResourceTest extends AbstractResourceTest {
         SubscriptionEntity subscription = new SubscriptionEntity();
         subscription.setId(SUBSCRIPTION_ID);
         subscription.setApplication(APPLICATION_ID);
+        subscription.setApi(API_ID);
         when(subscriptionService.findById(SUBSCRIPTION_ID)).thenReturn(subscription);
         return subscription;
     }
