@@ -44,6 +44,7 @@ import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -111,7 +112,7 @@ public class ApiSubscriptionResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.API_SUBSCRIPTION, acls = RolePermissionAction.READ) })
     public Subscription getApiSubscription(@PathParam("subscription") String subscription) {
-        return convert(GraviteeContext.getExecutionContext(), subscriptionService.findById(subscription));
+        return convert(GraviteeContext.getExecutionContext(), checkSubscription(subscription));
     }
 
     @POST
@@ -136,6 +137,9 @@ public class ApiSubscriptionResource extends AbstractResource {
                 .entity("'subscription' parameter does not correspond to the subscription to process")
                 .build();
         }
+
+        // Check subscription exists and belongs to API
+        checkSubscription(subscription);
 
         // Force subscription ID
         processSubscriptionEntity.setId(subscription);
@@ -171,6 +175,9 @@ public class ApiSubscriptionResource extends AbstractResource {
                 .entity("'subscription' parameter does not correspond to the subscription to update")
                 .build();
         }
+
+        // Check subscription to update exists and belongs to API
+        checkSubscription(subscription);
 
         // Force ID
         updateSubscriptionEntity.setId(subscription);
@@ -265,6 +272,9 @@ public class ApiSubscriptionResource extends AbstractResource {
                 .entity("'subscription' parameter does not correspond to the subscription to process")
                 .build();
         }
+
+        // Check subscription exists and belongs to API
+        checkSubscription(subscription);
 
         // Force subscription ID
         transferSubscriptionEntity.setId(subscription);
@@ -394,5 +404,13 @@ public class ApiSubscriptionResource extends AbstractResource {
             new Subscription.User(application.getPrimaryOwner().getId(), application.getPrimaryOwner().getDisplayName()),
             application.getApiKeyMode()
         );
+    }
+
+    private SubscriptionEntity checkSubscription(String subscription) {
+        SubscriptionEntity searchedSubscription = subscriptionService.findById(subscription);
+        if (api.equalsIgnoreCase(searchedSubscription.getApi())) {
+            return searchedSubscription;
+        }
+        throw new SubscriptionNotFoundException(subscription);
     }
 }

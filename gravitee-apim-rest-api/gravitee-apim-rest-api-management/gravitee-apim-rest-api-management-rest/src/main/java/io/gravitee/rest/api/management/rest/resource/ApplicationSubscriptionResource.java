@@ -37,6 +37,7 @@ import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -102,7 +103,7 @@ public class ApplicationSubscriptionResource extends AbstractResource {
     @ApiResponse(responseCode = "500", description = "Internal server error")
     @Permissions({ @Permission(value = RolePermission.APPLICATION_SUBSCRIPTION, acls = RolePermissionAction.READ) })
     public Subscription getApplicationSubscription() {
-        return convert(GraviteeContext.getExecutionContext(), subscriptionService.findById(subscription));
+        return convert(GraviteeContext.getExecutionContext(), checkSubscription(subscription));
     }
 
     @DELETE
@@ -177,6 +178,9 @@ public class ApplicationSubscriptionResource extends AbstractResource {
     public Response updateApplicationSubscription(
         @Valid @NotNull UpdateSubscriptionConfigurationEntity updateSubscriptionConfigurationEntity
     ) {
+        // Check subscription exists and belongs to application
+        checkSubscription(subscription);
+
         updateSubscriptionConfigurationEntity.setSubscriptionId(subscription);
         SubscriptionEntity updatedSubscription = subscriptionService.update(
             GraviteeContext.getExecutionContext(),
@@ -206,6 +210,9 @@ public class ApplicationSubscriptionResource extends AbstractResource {
             "status"
         ) SubscriptionConsumerStatus subscriptionConsumerStatus
     ) {
+        // Check subscription exists and belongs to application
+        checkSubscription(subscription);
+
         final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
 
         if (subscriptionConsumerStatus == null) {
@@ -331,5 +338,13 @@ public class ApplicationSubscriptionResource extends AbstractResource {
             genericApiEntity.getApiVersion(),
             new Subscription.User(genericApiEntity.getPrimaryOwner().getId(), genericApiEntity.getPrimaryOwner().getDisplayName())
         );
+    }
+
+    private SubscriptionEntity checkSubscription(String subscription) {
+        SubscriptionEntity searchedSubscription = subscriptionService.findById(subscription);
+        if (application.equalsIgnoreCase(searchedSubscription.getApplication())) {
+            return searchedSubscription;
+        }
+        throw new SubscriptionNotFoundException(subscription);
     }
 }
