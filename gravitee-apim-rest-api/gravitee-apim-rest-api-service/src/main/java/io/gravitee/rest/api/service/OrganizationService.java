@@ -19,6 +19,7 @@ import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.model.UpdateOrganizationEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Collection;
+import java.util.Set;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -51,4 +52,6 @@ public interface OrganizationService {
     Collection<OrganizationEntity> findAll();
 
     OrganizationEntity getDefaultOrInitialize();
+
+    Set<OrganizationEntity> findByHrids(Set<String> hrids);
 }
