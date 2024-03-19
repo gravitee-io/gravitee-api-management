@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.idp.core.plugin.impl;
 
 import io.gravitee.common.util.RelaxedPropertySource;
+import io.gravitee.node.api.secrets.model.Secret;
 import io.gravitee.plugin.core.api.Plugin;
 import io.gravitee.plugin.core.api.PluginContextFactory;
 import io.gravitee.plugin.core.internal.AnnotationBasedPluginContextConfigurer;
@@ -129,6 +130,8 @@ public class IdentityProviderManagerImpl implements IdentityProviderManager {
                             protected void customizePropertySources(MutablePropertySources propertySources) {
                                 propertySources.addFirst(new RelaxedPropertySource(plugin.id(), properties));
                                 super.customizePropertySources(propertySources);
+                                this.getConversionService().addConverter(Secret.class, byte[].class, Secret::asBytes);
+                                this.getConversionService().addConverter(Secret.class, String.class, Secret::asString);
                             }
                         };
                     }
