@@ -22,6 +22,7 @@ import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.NewRatingAnswerEntity;
 import io.gravitee.rest.api.model.NewRatingEntity;
+import io.gravitee.rest.api.model.RatingAnswerEntity;
 import io.gravitee.rest.api.model.RatingEntity;
 import io.gravitee.rest.api.model.RatingSummaryEntity;
 import io.gravitee.rest.api.model.UpdateRatingEntity;
@@ -34,6 +35,8 @@ import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.RatingService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.RatingAnswerNotFoundException;
+import io.gravitee.rest.api.service.exceptions.RatingNotFoundException;
 import io.gravitee.rest.api.service.exceptions.UnauthorizedAccessException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -163,6 +166,9 @@ public class ApiRatingResource extends AbstractResource {
     )
     @Permissions({ @Permission(value = RolePermission.API_RATING, acls = RolePermissionAction.UPDATE) })
     public RatingEntity updateApiRating(@PathParam("rating") String rating, @Valid @NotNull final UpdateRatingEntity ratingEntity) {
+        // Check that rating exists and belong to current API
+        checkRating(rating);
+
         ratingEntity.setId(rating);
         ratingEntity.setApi(api);
         return filterPermission(
@@ -181,6 +187,9 @@ public class ApiRatingResource extends AbstractResource {
     )
     @Permissions({ @Permission(value = RolePermission.API_RATING, acls = RolePermissionAction.DELETE) })
     public void deleteApiRating(@PathParam("rating") String rating) {
+        // Check that rating exists and belong to current API
+        checkRating(rating);
+
         ratingService.delete(GraviteeContext.getExecutionContext(), rating);
     }
 
@@ -194,6 +203,9 @@ public class ApiRatingResource extends AbstractResource {
     )
     @Permissions({ @Permission(value = RolePermission.API_RATING_ANSWER, acls = RolePermissionAction.CREATE) })
     public RatingEntity createApiRatingAnswer(@PathParam("rating") String rating, @Valid @NotNull final NewRatingAnswerEntity answer) {
+        // Check that rating exists and belong to current API
+        checkRating(rating);
+
         answer.setRatingId(rating);
         return filterPermission(
             GraviteeContext.getExecutionContext(),
@@ -211,6 +223,11 @@ public class ApiRatingResource extends AbstractResource {
     )
     @Permissions({ @Permission(value = RolePermission.API_RATING_ANSWER, acls = RolePermissionAction.DELETE) })
     public void deleteApiRatingAnswer(@PathParam("rating") String rating, @PathParam("answer") String answer) {
+        // Check that rating exists and belong to current API
+        checkRating(rating);
+        // Check that rating answer exists and belong to current rating
+        checkRatingAnswer(rating, answer);
+
         ratingService.deleteAnswer(GraviteeContext.getExecutionContext(), rating, answer);
     }
 
@@ -219,5 +236,19 @@ public class ApiRatingResource extends AbstractResource {
             ratingEntity.setAnswers(null);
         }
         return ratingEntity;
+    }
+
+    private void checkRating(String ratingId) {
+        RatingEntity ratingToCheck = ratingService.findById(GraviteeContext.getExecutionContext(), ratingId);
+        if (ratingToCheck != null && !ratingToCheck.getApi().equalsIgnoreCase(api)) {
+            throw new RatingNotFoundException(ratingId);
+        }
+    }
+
+    private void checkRatingAnswer(String ratingId, String ratingAnswerId) {
+        RatingAnswerEntity ratingAnswerToCheck = ratingService.findAnswerById(GraviteeContext.getExecutionContext(), ratingAnswerId);
+        if (ratingAnswerToCheck != null && !ratingAnswerToCheck.getRating().equalsIgnoreCase(ratingId)) {
+            throw new RatingAnswerNotFoundException(ratingAnswerId);
+        }
     }
 }
