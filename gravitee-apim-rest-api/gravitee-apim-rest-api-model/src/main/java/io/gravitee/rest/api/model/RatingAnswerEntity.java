@@ -16,78 +16,23 @@
 package io.gravitee.rest.api.model;
 
 import java.util.Date;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author Azize ELAMRANI (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Getter
+@Setter
+@ToString
 public class RatingAnswerEntity {
 
     private String id;
+    private String rating;
     private String user;
     private String userDisplayName;
     private String comment;
     private Date createdAt;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getUser() {
-        return user;
-    }
-
-    public void setUser(String user) {
-        this.user = user;
-    }
-
-    public String getUserDisplayName() {
-        return userDisplayName;
-    }
-
-    public void setUserDisplayName(String userDisplayName) {
-        this.userDisplayName = userDisplayName;
-    }
-
-    public String getComment() {
-        return comment;
-    }
-
-    public void setComment(String comment) {
-        this.comment = comment;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    @Override
-    public String toString() {
-        return (
-            "RatingAnswerEntity{" +
-            "id='" +
-            id +
-            '\'' +
-            ", user='" +
-            user +
-            '\'' +
-            ", userDisplayName='" +
-            userDisplayName +
-            '\'' +
-            ", comment='" +
-            comment +
-            '\'' +
-            ", createdAt=" +
-            createdAt +
-            '}'
-        );
-    }
 }
