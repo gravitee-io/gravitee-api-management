@@ -26,9 +26,10 @@ import { PlanSecurityType } from '../../../../entities/plan/plan';
 import { Constants } from '../../../../entities/Constants';
 
 class ApplicationSubscribeController {
-  private subscriptions: any;
+  private subscriptions: any = {};
   private application: any;
   private selectedAPI: any;
+  private reloadAndNavigate: any;
 
   private readonly groups = [];
   private readonly subscribedAPIs = [];
@@ -122,7 +123,7 @@ class ApplicationSubscribeController {
 
     this.ApplicationService.subscribe(this.application.id, plan.id, message, apikeyMode).then(() => {
       this.NotificationService.show('Subscription to application ' + this.application.name + ' has been successfully created');
-      this.ngRouter.navigate(['../'], { relativeTo: this.activatedRoute, queryParamsHandling: 'preserve' });
+      this.reloadAndNavigate();
     });
   }
 
@@ -152,7 +153,7 @@ class ApplicationSubscribeController {
     this.$mdDialog.show(alert).then(() => {
       this.ApplicationService.closeSubscription(this.application.id, find(this.subscriptions.data, { plan: plan.id }).id).then(() => {
         this.NotificationService.show('Subscription has been successfully closed');
-        this.$onInit();
+        this.reloadAndNavigate();
       });
     });
   }
