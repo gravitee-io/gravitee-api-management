@@ -25,7 +25,6 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.RatingAnswerRepository;
 import io.gravitee.repository.management.api.RatingRepository;
 import io.gravitee.repository.management.api.search.RatingCriteria;
-import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Rating;
 import io.gravitee.repository.management.model.RatingAnswer;
 import io.gravitee.repository.management.model.RatingReferenceType;
@@ -38,12 +37,14 @@ import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.ApiRatingUnavailableException;
 import io.gravitee.rest.api.service.exceptions.RatingAlreadyExistsException;
+import io.gravitee.rest.api.service.exceptions.RatingAnswerNotFoundException;
 import io.gravitee.rest.api.service.exceptions.RatingNotFoundException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import java.util.*;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -166,6 +167,37 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
     @Override
     public RatingEntity findById(ExecutionContext executionContext, String id) {
         return convert(executionContext, findModelById(executionContext, id));
+    }
+
+    @Override
+    public RatingAnswerEntity findAnswerById(ExecutionContext executionContext, String answerId) {
+        try {
+            RatingAnswer ratingAnswer = ratingAnswerRepository
+                .findById(answerId)
+                .orElseThrow(() -> new RatingAnswerNotFoundException(answerId));
+            return convert(executionContext, ratingAnswer);
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurred while trying to find rating answer by answer id {}", answerId, ex);
+            throw new TechnicalManagementException("An error occurred while trying to find rating answer by answer id " + answerId, ex);
+        }
+    }
+
+    @NotNull
+    private RatingAnswerEntity convert(ExecutionContext executionContext, RatingAnswer ratingAnswer) {
+        final RatingAnswerEntity ratingAnswerEntity = new RatingAnswerEntity();
+        ratingAnswerEntity.setId(ratingAnswer.getId());
+        ratingAnswerEntity.setRating(ratingAnswer.getRating());
+        final UserEntity userAnswer = userService.findById(executionContext, ratingAnswer.getUser());
+        ratingAnswerEntity.setUser(userAnswer.getId());
+
+        if (userAnswer.getFirstname() != null && userAnswer.getLastname() != null) {
+            ratingAnswerEntity.setUserDisplayName(userAnswer.getFirstname() + ' ' + userAnswer.getLastname());
+        } else {
+            ratingAnswerEntity.setUserDisplayName(userAnswer.getEmail());
+        }
+        ratingAnswerEntity.setComment(ratingAnswer.getComment());
+        ratingAnswerEntity.setCreatedAt(ratingAnswer.getCreatedAt());
+        return ratingAnswerEntity;
     }
 
     @Override
@@ -396,19 +428,7 @@ public class RatingServiceImpl extends AbstractService implements RatingService 
                     ratingAnswers
                         .stream()
                         .map(ratingAnswer -> {
-                            final RatingAnswerEntity ratingAnswerEntity = new RatingAnswerEntity();
-                            ratingAnswerEntity.setId(ratingAnswer.getId());
-                            final UserEntity userAnswer = userService.findById(executionContext, ratingAnswer.getUser());
-                            ratingAnswerEntity.setUser(userAnswer.getId());
-
-                            if (userAnswer.getFirstname() != null && userAnswer.getLastname() != null) {
-                                ratingAnswerEntity.setUserDisplayName(userAnswer.getFirstname() + ' ' + userAnswer.getLastname());
-                            } else {
-                                ratingAnswerEntity.setUserDisplayName(userAnswer.getEmail());
-                            }
-                            ratingAnswerEntity.setComment(ratingAnswer.getComment());
-                            ratingAnswerEntity.setCreatedAt(ratingAnswer.getCreatedAt());
-                            return ratingAnswerEntity;
+                            return convert(executionContext, ratingAnswer);
                         })
                         .sorted(comparing(RatingAnswerEntity::getCreatedAt, reverseOrder()))
                         .collect(toList())
