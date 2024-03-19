@@ -171,4 +171,8 @@ export class ApplicationService {
     const timestampInUrl = timestamp ? '?timestamp=' + timestamp : '';
     return this.http.get<ApplicationLog>(`${this.constants.env.baseURL}/applications/${applicationId}/logs/${logId}${timestampInUrl}`);
   }
+
+  delete(applicationId: string): Observable<Application> {
+    return this.http.delete<Application>(`${this.constants.env.baseURL}/applications/${applicationId}/`);
+  }
 }

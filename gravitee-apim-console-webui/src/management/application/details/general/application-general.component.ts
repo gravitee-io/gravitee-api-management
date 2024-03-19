@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
-import { takeUntil, tap } from 'rxjs/operators';
-import { combineLatest, Subject } from 'rxjs';
+import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { catchError, filter, map, switchMap, tap } from 'rxjs/operators';
+import { combineLatest, EMPTY } from 'rxjs';
 import { UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { GIO_DIALOG_WIDTH, GioConfirmAndValidateDialogComponent, GioConfirmAndValidateDialogData } from '@gravitee/ui-particles-angular';
+import { MatDialog } from '@angular/material/dialog';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { ApplicationService } from '../../../../services-ngx/application.service';
@@ -35,12 +38,14 @@ export class ApplicationGeneralComponent implements OnInit {
   public isLoadingData = true;
   public isReadOnly = false;
   public initialApplicationGeneralFormsValue: unknown;
-  private unsubscribe$: Subject<boolean> = new Subject<boolean>();
+  private destroyRef = inject(DestroyRef);
 
   constructor(
     private readonly activatedRoute: ActivatedRoute,
     private readonly applicationService: ApplicationService,
     private readonly snackBarService: SnackBarService,
+    private readonly matDialog: MatDialog,
+    private readonly router: Router,
   ) {}
 
   public ngOnInit() {
@@ -54,7 +59,7 @@ export class ApplicationGeneralComponent implements OnInit {
           this.initialApplication = application;
           this.applicationType = applicationType;
         }),
-        takeUntil(this.unsubscribe$),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(() => {
         this.isLoadingData = false;
@@ -155,8 +160,39 @@ export class ApplicationGeneralComponent implements OnInit {
       .update(applicationToUpdate)
       .pipe(
         tap(() => this.snackBarService.success('Application details successfully updated!')),
-        takeUntil(this.unsubscribe$),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(() => this.ngOnInit());
+  }
+
+  deleteApplication() {
+    this.matDialog
+      .open<GioConfirmAndValidateDialogComponent, GioConfirmAndValidateDialogData>(GioConfirmAndValidateDialogComponent, {
+        width: GIO_DIALOG_WIDTH.MEDIUM,
+        data: {
+          title: `Delete Application`,
+          content: `Are you sure you want to delete the Application?`,
+          confirmButton: `Yes, delete it`,
+          validationMessage: `Please, type in the name of the application <code>${this.initialApplication.name}</code> to confirm.`,
+          validationValue: this.initialApplication.name,
+          warning: `This operation is irreversible.`,
+        },
+        role: 'alertdialog',
+        id: 'applicationDeleteDialog',
+      })
+      .afterClosed()
+      .pipe(
+        filter((confirm) => confirm === true),
+        switchMap(() => this.applicationService.delete(this.activatedRoute.snapshot.params.applicationId)),
+        catchError(({ error }) => {
+          this.snackBarService.error(error.message);
+          return EMPTY;
+        }),
+        map(() => this.snackBarService.success(`The Application has been deleted.`)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => {
+        this.router.navigate(['../../'], { relativeTo: this.activatedRoute });
+      });
   }
 }
