@@ -332,7 +332,9 @@ function applicationsConfig($stateProvider) {
           '$stateParams',
           'ApplicationService',
           ($stateParams, ApplicationService: ApplicationService) =>
-            ApplicationService.listSubscriptions($stateParams.applicationId, '?expand=security').then((response) => response.data),
+            ApplicationService.listSubscriptions($stateParams.applicationId, '?expand=security&status=ACCEPTED,PENDING').then(
+              (response) => response.data,
+            ),
         ],
       },
       data: {

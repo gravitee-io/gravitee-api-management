@@ -30,7 +30,7 @@
 @import 'management/submenu';
 
 // Try to encapsulate all scss with .bootstrap class
-:where(.bootstrap) {
+:where(.bootstrap, .md-dialog-container) {
   @import 'components/circularPercentage/circularPercentage';
   @import 'components/dashboard/dashboard';
   @import 'components/documentation/page/page';
@@ -88,7 +88,7 @@ body {
   @import './scss/gio-global-style';
 }
 
-:where(.bootstrap) {
+:where(.bootstrap, .md-dialog-container) {
   [layout='row'] {
     flex-direction: row;
   }
