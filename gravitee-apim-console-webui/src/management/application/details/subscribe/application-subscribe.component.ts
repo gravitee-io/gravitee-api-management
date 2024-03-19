@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 import { UpgradeComponent } from '@angular/upgrade/static';
-import { Component, ElementRef, Injector, SimpleChange } from '@angular/core';
-import { combineLatest, Subject } from 'rxjs';
-import { ActivatedRoute } from '@angular/router';
+import { Component, ElementRef, EventEmitter, Injector, Output, SimpleChange } from '@angular/core';
+import { combineLatest, Subject, switchMap } from 'rxjs';
+import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntil } from 'rxjs/operators';
 
 import { ApplicationService } from '../../../../services-ngx/application.service';
@@ -32,12 +32,16 @@ import { GroupService } from '../../../../services-ngx/group.service';
 export class ApplicationSubscribeComponent extends UpgradeComponent {
   private unsubscribe$ = new Subject<void>();
 
+  @Output()
+  reloadAndNavigate!: EventEmitter<void>;
+
   constructor(
     elementRef: ElementRef,
     injector: Injector,
     private readonly activatedRoute: ActivatedRoute,
     private readonly applicationService: ApplicationService,
     private readonly groupService: GroupService,
+    private readonly router: Router,
   ) {
     super('applicationSubscribe', elementRef, injector);
   }
@@ -47,7 +51,7 @@ export class ApplicationSubscribeComponent extends UpgradeComponent {
     combineLatest([
       this.applicationService.getLastApplicationFetch(applicationId),
       this.applicationService.getSubscribedAPIList(applicationId),
-      this.applicationService.getSubscriptions(applicationId, 'security'),
+      this.applicationService.getSubscriptions(applicationId, 'security', ['ACCEPTED', 'PENDING']),
       this.groupService.list(),
     ])
       .pipe(takeUntil(this.unsubscribe$))
@@ -63,6 +67,17 @@ export class ApplicationSubscribeComponent extends UpgradeComponent {
 
           super.ngOnInit();
         },
+      });
+
+    // Force the reload the application get by `getLastApplicationFetch`
+    // Useful, for example, when a 2nd subscription is made and the api becomes a shared api key.
+    this.reloadAndNavigate
+      .pipe(
+        switchMap(() => this.applicationService.getById(applicationId)),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe(() => {
+        this.router.navigate(['../'], { relativeTo: this.activatedRoute, queryParamsHandling: 'preserve' });
       });
   }
 
