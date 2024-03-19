@@ -152,11 +152,13 @@ export class ApplicationService {
     return this.http.get<SubscribedApi[]>(`${this.constants.env.baseURL}/applications/${applicationId}/subscribed`);
   }
 
-  getSubscriptions(applicationId: string, expand?: string): Observable<ApplicationSubscription[]> {
-    const expandQuery = expand ? `?expand=${expand}` : '';
-    return this.http.get<ApplicationSubscription[]>(
-      `${this.constants.env.baseURL}/applications/${applicationId}/subscriptions${expandQuery}`,
-    );
+  getSubscriptions(applicationId: string, expand?: string, statuses?: string[]): Observable<ApplicationSubscription[]> {
+    return this.http.get<ApplicationSubscription[]>(`${this.constants.env.baseURL}/applications/${applicationId}/subscriptions`, {
+      params: {
+        ...(statuses && statuses.length > 0 ? { status: statuses.join(',') } : {}),
+        ...(expand ? { expand: expand } : {}),
+      },
+    });
   }
 
   getSubscription(applicationId: string, subscriptionId: string): Observable<ApplicationSubscription> {
