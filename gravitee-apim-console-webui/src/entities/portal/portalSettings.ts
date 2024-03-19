@@ -20,9 +20,18 @@ export interface PortalSettings {
   portal?: PortalSettingsPortal;
   metadata?: PortalSettingsMetadata;
   application?: PortalSettingsApplication;
-  apiQualityMetrics?: PortalApiQualityMetrics;
-  apiReview?: PortalApiReview;
+  apiQualityMetrics?: PortalSettingsApiQualityMetrics;
+  apiReview?: PortalSettingsApiReview;
   authentication?: PortalSettingsAuthentication;
+  company?: PortalSettingsCompany;
+  plan?: PortalSettingsPlan;
+  api?: PortalSettingsApi;
+  dashboards?: PortalSettingsDashboards;
+  scheduler?: PortalSettingsScheduler;
+  documentation?: PortalSettingsDocumentation;
+  openAPIDocViewer?: PortalSettingsOpenAPIDocViewer;
+  cors?: PortalSettingsCors;
+  email?: PortalSettingsEmail;
 }
 
 export type PortalSettingsMetadata = Record<string, string[]>;
@@ -53,6 +62,7 @@ export interface PortalSettingsApplication {
 export interface PortalSettingsPortal {
   analytics?: {
     enabled: boolean;
+    trackingId?: string;
   };
   apikeyHeader?: string;
   apis?: {
@@ -93,9 +103,11 @@ export interface PortalSettingsPortal {
       enabled: boolean;
     };
   };
+  url?: string;
+  homepageTitle?: string;
 }
 
-export interface PortalApiQualityMetrics {
+export interface PortalSettingsApiQualityMetrics {
   enabled: boolean;
   functionalDocumentationWeight: number;
   technicalDocumentationWeight: number;
@@ -107,7 +119,7 @@ export interface PortalApiQualityMetrics {
   healthcheckWeight: number;
 }
 
-export interface PortalApiReview {
+export interface PortalSettingsApiReview {
   enabled: boolean;
 }
 
@@ -117,5 +129,91 @@ export interface PortalSettingsAuthentication {
   };
   localLogin?: {
     enabled: boolean;
+  };
+}
+
+export interface PortalSettingsCompany {
+  name: string;
+}
+
+export interface PortalSettingsPlan {
+  security: {
+    keyless: {
+      enabled: boolean;
+    };
+    apikey: {
+      enabled: boolean;
+    };
+    customApiKey: {
+      enabled: boolean;
+    };
+    sharedApiKey: {
+      enabled: boolean;
+    };
+    oauth2: {
+      enabled: boolean;
+    };
+    jwt: {
+      enabled: boolean;
+    };
+    push: {
+      enabled: boolean;
+    };
+  };
+}
+
+export interface PortalSettingsApi {
+  labelsDictionary: string[];
+  primaryOwnerMode: string;
+}
+
+export interface PortalSettingsDashboards {
+  apiStatus: {
+    enabled: boolean;
+  };
+}
+
+export interface PortalSettingsScheduler {
+  tasks: number;
+  notifications: string;
+}
+
+export interface PortalSettingsDocumentation {
+  url: string;
+}
+
+export interface PortalSettingsEmail {
+  enabled: boolean;
+  host: string;
+  port: number;
+  username: string;
+  password: string;
+  protocol: string;
+  subject: string;
+  from: string;
+  properties: {
+    auth: boolean;
+    startTlsEnable: boolean;
+    sslTrust: string;
+  };
+}
+
+export interface PortalSettingsCors {
+  allowOrigin: string[];
+  allowMethods: string[];
+  allowHeaders: string[];
+  exposedHeaders: string[];
+  maxAge: number;
+}
+
+export interface PortalSettingsOpenAPIDocViewer {
+  openAPIDocType: {
+    swagger: {
+      enabled: boolean;
+    };
+    defaultType: any;
+    redoc: {
+      enabled: boolean;
+    };
   };
 }
