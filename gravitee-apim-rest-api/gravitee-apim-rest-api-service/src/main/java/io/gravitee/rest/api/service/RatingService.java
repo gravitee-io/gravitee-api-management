@@ -34,6 +34,8 @@ public interface RatingService {
 
     RatingEntity findById(ExecutionContext executionContext, String id);
 
+    RatingAnswerEntity findAnswerById(ExecutionContext executionContext, String answerId);
+
     Page<RatingEntity> findByApi(ExecutionContext executionContext, String api, Pageable pageable);
 
     List<RatingEntity> findByApi(ExecutionContext executionContext, String api);
