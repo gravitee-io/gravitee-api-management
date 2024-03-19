@@ -72,4 +72,6 @@ export class ApplicationSubscribeComponent extends UpgradeComponent {
 
     super.ngOnDestroy();
   }
+
 }
+
