@@ -261,4 +261,14 @@ public class OrganizationServiceImpl extends TransactionalService implements Org
             throw new TechnicalManagementException("Error while getting installation", ex);
         }
     }
+
+    @Override
+    public Set<OrganizationEntity> findByHrids(Set<String> hrids) {
+        try {
+            return organizationRepository.findByHrids(hrids).stream().map(this::convert).collect(Collectors.toSet());
+        } catch (TechnicalException ex) {
+            LOGGER.error("An error occurs while trying to list all organizations", ex);
+            throw new TechnicalManagementException("An error occurs while trying to list all organizations", ex);
+        }
+    }
 }

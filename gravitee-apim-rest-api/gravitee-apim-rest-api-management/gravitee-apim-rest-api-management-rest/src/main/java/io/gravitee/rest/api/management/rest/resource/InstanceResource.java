@@ -19,10 +19,13 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
 import io.gravitee.rest.api.model.InstanceEntity;
+import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.InstanceService;
+import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.InstanceNotFoundException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.inject.Inject;
@@ -32,6 +35,10 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -47,6 +54,9 @@ public class InstanceResource {
     @Inject
     private InstanceService instanceService;
 
+    @Inject
+    private OrganizationService organizationService;
+
     @PathParam("instance")
     private String instance;
 
@@ -55,11 +65,33 @@ public class InstanceResource {
     @Operation(summary = "Get a gateway instance")
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_INSTANCE, acls = RolePermissionAction.READ) })
     public InstanceEntity getInstance() {
-        return instanceService.findByEvent(GraviteeContext.getExecutionContext(), this.instance);
+        InstanceEntity instanceEntity = instanceService.findByEvent(GraviteeContext.getExecutionContext(), this.instance);
+        if (
+            isInstanceAccessibleByEnv(instanceEntity.getEnvironments(), GraviteeContext.getCurrentEnvironment()) &&
+            isInstanceAccessibleByOrga(instanceEntity.getOrganizationsHrids(), GraviteeContext.getCurrentOrganization())
+        ) {
+            return instanceEntity;
+        }
+        throw new InstanceNotFoundException(instance);
     }
 
     @Path("monitoring/{gatewayId}")
     public MonitoringResource getMonitoringResource() {
         return resourceContext.getResource(MonitoringResource.class);
+    }
+
+    private boolean isInstanceAccessibleByOrga(List<String> organizationsHrids, String currentOrganization) {
+        if (organizationsHrids == null || organizationsHrids.isEmpty()) {
+            return true;
+        }
+        return organizationService
+            .findByHrids(new HashSet<>(organizationsHrids))
+            .stream()
+            .map(OrganizationEntity::getId)
+            .anyMatch(id -> id.equalsIgnoreCase(currentOrganization));
+    }
+
+    private boolean isInstanceAccessibleByEnv(Set<String> environments, String currentEnvironment) {
+        return environments == null || environments.isEmpty() || environments.contains(currentEnvironment);
     }
 }
