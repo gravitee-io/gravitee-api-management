@@ -1,0 +1,534 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<div class="form">
+  <form *ngIf="portalForm" [formGroup]="portalForm">
+    <h1>Settings</h1>
+    <gio-banner-info>
+      Depending on your architecture, this configuration may be overridden by a local configuration file. See documentation for more
+      information.
+    </gio-banner-info>
+    <mat-card class="portal__form__card">
+      <mat-card-content>
+        <h3>Company</h3>
+        <mat-form-field
+          class="portal__form__card__form-field"
+          formGroupName="company"
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isReadonly('company.name')"
+        >
+          <mat-label>Company Name</mat-label>
+          <input formControlName="name" matInput type="text" />
+        </mat-form-field>
+      </mat-card-content>
+    </mat-card>
+
+    <h2>Console</h2>
+    <mat-card class="portal__form__card">
+      <mat-card-content formGroupName="security">
+        <h3>Security plans type available</h3>
+        <gio-form-slide-toggle
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isReadonly('plan.security.keyless.enabled')"
+          formGroupName="keyless"
+          class="portal__form__card__form-field"
+        >
+          <gio-form-label>Keyless plans</gio-form-label>
+          <mat-slide-toggle formControlName="enabled" gioFormSlideToggle aria-label="Keyless plans"></mat-slide-toggle>
+        </gio-form-slide-toggle>
+        <gio-form-slide-toggle
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isReadonly('plan.security.apikey.enabled')"
+          formGroupName="apikey"
+          class="portal__form__card__form-field"
+        >
+          <gio-form-label>Api-key plans</gio-form-label>
+          <mat-slide-toggle formControlName="enabled" gioFormSlideToggle aria-label="Api-key plans"></mat-slide-toggle>
+        </gio-form-slide-toggle>
+        <gio-form-slide-toggle
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isReadonly('plan.security.apikey.allowCustom.enabled')"
+          formGroupName="customApiKey"
+          class="portal__form__card__form-field"
+        >
+          <gio-form-label>Allow custom API Key</gio-form-label>
+          <mat-slide-toggle formControlName="enabled" gioFormSlideToggle aria-label="Allow custom API Key"></mat-slide-toggle>
+        </gio-form-slide-toggle>
+        <gio-form-slide-toggle
+          formGroupName="sharedApiKey"
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isReadonly('plan.security.apikey.sharedApiKey.enabled')"
+          class="portal__form__card__form-field"
+        >
+          <gio-form-label>Allow to share API Key on an application</gio-form-label>
+          <mat-slide-toggle
+            formControlName="enabled"
+            gioFormSlideToggle
+            aria-label="Allow to share API Key on an application"
+          ></mat-slide-toggle>
+        </gio-form-slide-toggle>
+        <gio-form-slide-toggle
+          formGroupName="oauth2"
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isReadonly('security.oauth2.enabled')"
+          class="portal__form__card__form-field"
+        >
+          <gio-form-label>Oauth2 plans</gio-form-label>
+          <mat-slide-toggle formControlName="enabled" gioFormSlideToggle aria-label="Oauth2 plans"></mat-slide-toggle>
+        </gio-form-slide-toggle>
+        <gio-form-slide-toggle
+          formGroupName="jwt"
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isReadonly('plan.security.jwt.enabled')"
+          class="portal__form__card__form-field"
+        >
+          <gio-form-label>JWT plans</gio-form-label>
+          <mat-slide-toggle formControlName="enabled" gioFormSlideToggle aria-label="JWT plans"></mat-slide-toggle>
+        </gio-form-slide-toggle>
+        <gio-form-slide-toggle
+          formGroupName="push"
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isReadonly('plan.security.push.enabled')"
+          class="portal__form__card__form-field"
+        >
+          <gio-form-label>Push plans ( only available for API V4 )</gio-form-label>
+          <mat-slide-toggle
+            formControlName="enabled"
+            gioFormSlideToggle
+            aria-label="Push plans ( only available for API V4 )"
+          ></mat-slide-toggle>
+        </gio-form-slide-toggle>
+      </mat-card-content>
+
+      <mat-card-content formGroupName="api">
+        <h3 class="portal__form__card__title">API labels dictionary</h3>
+        <mat-form-field class="portal__form__card__form-field">
+          <mat-label>Labels (Used by API Management to suggest labels for API's details)</mat-label>
+          <gio-form-tags-input
+            formControlName="labelsDictionary"
+            [matTooltip]="'Configuration provided by the system'"
+            [matTooltipDisabled]="!isReadonly('api.labelsDictionary')"
+            [addOnBlur]="false"
+          ></gio-form-tags-input>
+        </mat-form-field>
+      </mat-card-content>
+
+      <mat-card-content formGroupName="dashboards">
+        <h3 class="portal__form__card__title">Dashboard</h3>
+        <gio-form-slide-toggle
+          formGroupName="apiStatus"
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isReadonly('console.dashboards.apiStatus.enabled')"
+          class="portal__form__card__form-field"
+        >
+          <gio-form-label>Display API STATUS panel</gio-form-label>
+          <mat-slide-toggle formControlName="enabled" gioFormSlideToggle aria-label="Display API STATUS panel"></mat-slide-toggle>
+        </gio-form-slide-toggle>
+      </mat-card-content>
+
+      <mat-card-content formGroupName="api">
+        <h3 class="portal__form__card__title">API Primary Owner mode</h3>
+        <mat-radio-group formControlName="primaryOwnerMode" class="portal__form__card__radio-group">
+          <mat-radio-button *ngFor="let primaryOwnerMode of primaryOwnerModeList" [value]="primaryOwnerMode.id">
+            {{ primaryOwnerMode.label }}
+          </mat-radio-button>
+        </mat-radio-group>
+      </mat-card-content>
+    </mat-card>
+
+    <h2>Portal</h2>
+    <mat-card class="portal__form__card">
+      <mat-card-content formGroupName="portal">
+        <h3>General</h3>
+        <mat-form-field
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isReadonly('portal.apikey.header')"
+          class="portal__form__card__form-field"
+        >
+          <mat-label
+            >Api-key Header (Used by portal to display the CURL command, change the YAML configuration to impact the gateway)
+          </mat-label>
+          <input formControlName="apikeyHeader" matInput type="text" />
+        </mat-form-field>
+        <mat-form-field
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isReadonly('portal.url')"
+          class="portal__form__card__form-field"
+        >
+          <mat-label>Portal URL</mat-label>
+          <input formControlName="url" matInput type="text" />
+        </mat-form-field>
+        <gio-form-slide-toggle
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isReadonly('portal.homepageTitle')"
+          class="api-quality-rules__form__card__form-field"
+        >
+          <gio-form-label>Override homepage title</gio-form-label>
+          <mat-slide-toggle
+            formControlName="homepageTitleToggle"
+            gioFormSlideToggle
+            aria-label="Override homepage title"
+          ></mat-slide-toggle>
+        </gio-form-slide-toggle>
+        <mat-form-field
+          class="portal__form__card__form-field"
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isReadonly('portal.homepageTitle')"
+          *ngIf="!!portalForm.get('portal.homepageTitleToggle').value"
+        >
+          <mat-label>Portal homepage title</mat-label>
+          <input formControlName="homepageTitle" matInput type="text" />
+        </mat-form-field>
+        <h3 class="portal__form__card__title">Options</h3>
+        <div formGroupName="apis">
+          <gio-form-slide-toggle
+            formGroupName="tilesMode"
+            [matTooltip]="'Configuration provided by the system'"
+            [matTooltipDisabled]="!isReadonly('portal.apis.tilesMode.enabled')"
+            class="portal__form__card__form-field"
+          >
+            <gio-form-label>Use Tiles Mode for apis by default (if not overridden by user)</gio-form-label>
+            <mat-slide-toggle
+              formControlName="enabled"
+              gioFormSlideToggle
+              aria-label="Use Tiles Mode for apis by default (if not overridden by user)"
+            ></mat-slide-toggle>
+          </gio-form-slide-toggle>
+        </div>
+        <gio-form-slide-toggle
+          formGroupName="support"
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isReadonly('portal.support.enabled')"
+          class="portal__form__card__form-field"
+        >
+          <gio-form-label>Active Support</gio-form-label>
+          <mat-slide-toggle formControlName="enabled" gioFormSlideToggle aria-label="Active Support"></mat-slide-toggle>
+        </gio-form-slide-toggle>
+        <div formGroupName="rating">
+          <gio-form-slide-toggle
+            [matTooltip]="'Configuration provided by the system'"
+            [matTooltipDisabled]="!isReadonly('portal.rating.enabled')"
+            class="portal__form__card__form-field"
+          >
+            <gio-form-label>Activate Rating</gio-form-label>
+            <mat-slide-toggle formControlName="enabled" gioFormSlideToggle aria-label="Activate Rating"></mat-slide-toggle>
+          </gio-form-slide-toggle>
+          <gio-form-slide-toggle
+            formGroupName="comment"
+            [matTooltip]="'Configuration provided by the system'"
+            [matTooltipDisabled]="!isReadonly('portal.rating.comment.mandatory')"
+            class="portal__form__card__form-field"
+          >
+            <gio-form-label>Force user to fill comment before to save a rating</gio-form-label>
+            <mat-slide-toggle
+              formControlName="mandatory"
+              gioFormSlideToggle
+              aria-label="Force user to fill comment before to save a rating"
+            ></mat-slide-toggle>
+          </gio-form-slide-toggle>
+        </div>
+        <div formGroupName="userCreation">
+          <gio-form-slide-toggle
+            [matTooltip]="'Configuration provided by the system'"
+            [matTooltipDisabled]="!isReadonly('portal.userCreation.enabled')"
+            class="portal__form__card__form-field"
+          >
+            <gio-form-label>Allow User Registration</gio-form-label>
+            <mat-slide-toggle formControlName="enabled" gioFormSlideToggle aria-label="Allow User Registration"></mat-slide-toggle>
+          </gio-form-slide-toggle>
+          <gio-form-slide-toggle
+            formGroupName="automaticValidation"
+            [matTooltip]="'Configuration provided by the system'"
+            [matTooltipDisabled]="!isReadonly('portal.userCreation.automaticValidation.enabled')"
+            class="portal__form__card__form-field"
+          >
+            <gio-form-label>Enable automatic validation of registration requests</gio-form-label>
+            <mat-slide-toggle
+              formControlName="enabled"
+              gioFormSlideToggle
+              aria-label="Enable automatic validation of registration requests"
+            ></mat-slide-toggle>
+          </gio-form-slide-toggle>
+        </div>
+        <gio-form-slide-toggle
+          formGroupName="analytics"
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isReadonly('portal.analytics.enabled')"
+          class="portal__form__card__form-field"
+        >
+          <gio-form-label>Add Google Analytics</gio-form-label>
+          <mat-slide-toggle formControlName="enabled" gioFormSlideToggle aria-label="Add Google Analytics"></mat-slide-toggle>
+        </gio-form-slide-toggle>
+        <mat-form-field
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isReadonly('portal.analytics.trackingId')"
+          class="portal__form__card__form-field"
+          formGroupName="analytics"
+        >
+          <mat-label>Google Analytics TrackingId</mat-label>
+          <input formControlName="trackingId" matInput type="text" />
+        </mat-form-field>
+        <gio-form-slide-toggle
+          formGroupName="uploadMedia"
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isReadonly('portal.uploadMedia.enabled')"
+          class="portal__form__card__form-field"
+        >
+          <gio-form-label>Allow upload media</gio-form-label>
+          <mat-slide-toggle formControlName="enabled" gioFormSlideToggle aria-label="Allow upload media"></mat-slide-toggle>
+        </gio-form-slide-toggle>
+        <mat-form-field
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isReadonly('portal.uploadMedia.maxSizeInOctet')"
+          class="portal__form__card__form-field"
+          formGroupName="uploadMedia"
+        >
+          <mat-label>Max size upload file (bytes)</mat-label>
+          <input formControlName="maxSizeInOctet" matInput type="text" />
+        </mat-form-field>
+      </mat-card-content>
+      <mat-card-content formGroupName="openAPIDocViewer">
+        <h3 class="portal__form__card__title">OpenAPI viewers</h3>
+        <div formGroupName="openAPIDocType" class="portal__form__card__radio-tab">
+          <div class="portal__form__card__radio-tab__group">
+            <gio-form-slide-toggle
+              [matTooltip]="'Configuration provided by the system'"
+              [matTooltipDisabled]="!isReadonly('open.api.doc.type.swagger.enabled')"
+              formGroupName="swagger"
+              class="portal__form__card__form-field"
+            >
+              <gio-form-label>Swagger-UI</gio-form-label>
+              <mat-slide-toggle formControlName="enabled" gioFormSlideToggle aria-label="Swagger-UI"></mat-slide-toggle>
+            </gio-form-slide-toggle>
+            <gio-form-slide-toggle
+              [matTooltip]="'Configuration provided by the system'"
+              [matTooltipDisabled]="!isReadonly('open.api.doc.type.redoc.enabled')"
+              formGroupName="redoc"
+              class="portal__form__card__form-field"
+            >
+              <gio-form-label>Redoc</gio-form-label>
+              <mat-slide-toggle formControlName="enabled" gioFormSlideToggle aria-label="Redoc"></mat-slide-toggle>
+            </gio-form-slide-toggle>
+          </div>
+          <div class="portal__form__card__radio-tab__group">
+            <mat-radio-group class="portal__form__card__radio-group radio-group" formControlName="defaultType">
+              <mat-radio-button
+                class="portal__form__card__radio-tab__group__radio-button"
+                [disabled]="!portalForm.get('openAPIDocViewer.openAPIDocType.swagger.enabled').value"
+                [value]="'Swagger'"
+                >Set as default
+              </mat-radio-button>
+              <mat-radio-button
+                class="portal__form__card__radio-tab__group__radio-button"
+                [disabled]="!portalForm.get('openAPIDocViewer.openAPIDocType.redoc.enabled').value"
+                [value]="'Redoc'"
+                >Set as default
+              </mat-radio-button>
+            </mat-radio-group>
+          </div>
+        </div>
+      </mat-card-content>
+      <mat-card-content>
+        <h3>Schedulers</h3>
+        <mat-form-field
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isReadonly('portal.scheduler.tasks')"
+          class="portal__form__card__form-field"
+          formGroupName="scheduler"
+        >
+          <mat-label>Tasks (in seconds)</mat-label>
+          <input formControlName="tasks" matInput type="number" />
+        </mat-form-field>
+        <mat-form-field
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isReadonly('portal.scheduler.notifications')"
+          class="portal__form__card__form-field"
+          formGroupName="scheduler"
+        >
+          <mat-label>Notifications (in seconds)</mat-label>
+          <input formControlName="notifications" matInput type="text" />
+        </mat-form-field>
+
+        <h3 class="portal__form__card__title">Documentation</h3>
+        <mat-form-field
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isReadonly('documentation.url')"
+          class="portal__form__card__form-field"
+          formGroupName="documentation"
+        >
+          <mat-label>Documentation URL</mat-label>
+          <input formControlName="url" matInput type="text" />
+        </mat-form-field>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="portal__form__card">
+      <mat-card-content formGroupName="cors">
+        <h3>CORS</h3>
+        <mat-form-field
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isReadonly('http.api.portal.cors.allow-origin')"
+          class="portal__form__card__form-field"
+        >
+          <mat-label>Allow-Origin</mat-label>
+          <gio-form-tags-input formControlName="allowOrigin" [addOnBlur]="false"></gio-form-tags-input>
+        </mat-form-field>
+        <mat-form-field
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isReadonly('http.api.portal.cors.allow-methods')"
+          class="portal__form__card__form-field"
+        >
+          <mat-label>Access-Control-Allow-Methods</mat-label>
+          <mat-select class="portal__form__card__form-field" [multiple]="true" formControlName="allowMethods">
+            <mat-option *ngFor="let httpMethod of httpMethods" [value]="httpMethod">{{ httpMethod }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isReadonly('http.api.portal.cors.allow-headers')"
+          class="portal__form__card__form-field"
+        >
+          <mat-label>Allow-Headers</mat-label>
+          <gio-form-tags-input
+            formControlName="allowHeaders"
+            [addOnBlur]="false"
+            [autocompleteOptions]="defaultHttpHeaders"
+          ></gio-form-tags-input>
+        </mat-form-field>
+        <mat-form-field
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isReadonly('http.api.portal.cors.exposed-headers')"
+          class="portal__form__card__form-field"
+        >
+          <mat-label>Exposed-Headers</mat-label>
+          <gio-form-tags-input
+            formControlName="exposedHeaders"
+            [addOnBlur]="false"
+            [autocompleteOptions]="defaultHttpHeaders"
+          ></gio-form-tags-input>
+        </mat-form-field>
+        <mat-form-field
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isReadonly('http.api.portal.cors.max-age')"
+          class="portal__form__card__form-field"
+        >
+          <mat-label>Max age (seconds) How long the response from a pre-flight request can be cached by clients </mat-label>
+          <input formControlName="maxAge" matInput type="number" />
+        </mat-form-field>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="portal__form__card">
+      <mat-card-content formGroupName="email">
+        <h3>SMTP</h3>
+        <gio-form-slide-toggle
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isReadonly('email.enabled')"
+          class="portal__form__card__form-field"
+        >
+          <gio-form-label>Enable Emailing</gio-form-label>
+          <mat-slide-toggle formControlName="enabled" gioFormSlideToggle aria-label="Enable Emailing"></mat-slide-toggle>
+        </gio-form-slide-toggle>
+        <mat-form-field
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isReadonly('email.host')"
+          class="portal__form__card__form-field"
+        >
+          <mat-label>Host</mat-label>
+          <input formControlName="host" matInput type="text" />
+        </mat-form-field>
+        <mat-form-field
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isReadonly('email.port')"
+          class="portal__form__card__form-field"
+        >
+          <mat-label>Port</mat-label>
+          <input formControlName="port" matInput type="number" />
+        </mat-form-field>
+        <mat-form-field
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isReadonly('email.username')"
+          class="portal__form__card__form-field"
+        >
+          <mat-label>Username</mat-label>
+          <input formControlName="username" matInput type="text" />
+        </mat-form-field>
+        <mat-form-field
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isReadonly('email.password')"
+          class="portal__form__card__form-field"
+        >
+          <mat-label>Password</mat-label>
+          <input formControlName="password" matInput type="password" />
+        </mat-form-field>
+        <mat-form-field
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isReadonly('email.protocol')"
+          class="portal__form__card__form-field"
+        >
+          <mat-label>Protocol</mat-label>
+          <input formControlName="protocol" matInput type="text" />
+        </mat-form-field>
+        <mat-form-field
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isReadonly('email.subject')"
+          class="portal__form__card__form-field"
+        >
+          <mat-label>Subject</mat-label>
+          <input formControlName="subject" matInput type="text" />
+        </mat-form-field>
+        <mat-form-field
+          [matTooltip]="'Configuration provided by the system'"
+          [matTooltipDisabled]="!isReadonly('email.from')"
+          class="portal__form__card__form-field"
+        >
+          <mat-label>From</mat-label>
+          <input formControlName="from" matInput type="text" />
+        </mat-form-field>
+        <h3 class="portal__form__card__title">Mail properties</h3>
+        <div formGroupName="properties">
+          <gio-form-slide-toggle
+            [matTooltip]="'Configuration provided by the system'"
+            [matTooltipDisabled]="!isReadonly('email.properties.auth')"
+            class="portal__form__card__form-field"
+          >
+            <gio-form-label>Enable Auth</gio-form-label>
+            <mat-slide-toggle formControlName="auth" gioFormSlideToggle aria-label="Enable Auth"></mat-slide-toggle>
+          </gio-form-slide-toggle>
+          <gio-form-slide-toggle
+            [matTooltip]="'Configuration provided by the system'"
+            [matTooltipDisabled]="!isReadonly('email.properties.starttls.enable')"
+            class="portal__form__card__form-field"
+          >
+            <gio-form-label>Enable Start TLS</gio-form-label>
+            <mat-slide-toggle formControlName="startTlsEnable" gioFormSlideToggle aria-label="Enable Start TLS"></mat-slide-toggle>
+          </gio-form-slide-toggle>
+          <mat-form-field
+            [matTooltip]="'Configuration provided by the system'"
+            [matTooltipDisabled]="!isReadonly('email.properties.ssl.trust')"
+            class="portal__form__card__form-field"
+          >
+            <mat-label>SSL Trust</mat-label>
+            <input formControlName="sslTrust" matInput type="text" />
+          </mat-form-field>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <gio-save-bar [form]="portalForm" [formInitialValues]="formInitialValues" (submitted)="onSubmit()"></gio-save-bar>
+  </form>
+</div>

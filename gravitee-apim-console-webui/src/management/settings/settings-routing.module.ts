@@ -39,6 +39,7 @@ import { CustomUserFieldsComponent } from './custom-user-fields/custom-user-fiel
 import { ApiQualityRulesNgComponent } from './api-quality-rules-ng/api-quality-rules-ng.component';
 import { EnvironmentNotificationComponent } from './notification/environment-notification.component';
 import { IdentityProvidersNgComponent } from './identity-providers-ng/identity-providers-ng.component';
+import { PortalNgComponent } from './portal-ng/portal-ng.component';
 
 import { DocumentationEditPageComponent } from '../../components/documentation/edit-page.component';
 import { DocumentationImportPagesComponent } from '../../components/documentation/import-pages.component';
@@ -282,6 +283,19 @@ export const settingsRoutes: Routes = [
       {
         path: 'portal',
         component: PortalComponent,
+        data: {
+          docs: {
+            page: 'management-configuration-portal',
+          },
+          permissions: {
+            anyOf: ['environment-settings-r'],
+            unauthorizedFallbackTo: '../theme',
+          },
+        },
+      },
+      {
+        path: 'portal-ng',
+        component: PortalNgComponent,
         data: {
           docs: {
             page: 'management-configuration-portal',

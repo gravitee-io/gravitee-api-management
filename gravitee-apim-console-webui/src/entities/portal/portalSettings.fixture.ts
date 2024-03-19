@@ -75,6 +75,119 @@ export function fakePortalSettings(attributes?: Partial<PortalSettings>): Portal
         'http.api.portal.cors.allow-origin',
       ],
     },
+    email: {
+      enabled: true,
+      host: 'testhost',
+      port: 1,
+      username: 'testusername',
+      password: 'testpassword',
+      protocol: 'smtp',
+      subject: '[gravitee] %s',
+      from: 'test@email',
+      properties: {
+        auth: true,
+        startTlsEnable: false,
+        sslTrust: 'testssl',
+      },
+    },
+    api: {
+      labelsDictionary: ['test'],
+      primaryOwnerMode: 'USER',
+    },
+    apiQualityMetrics: {
+      enabled: false,
+      functionalDocumentationWeight: 1041,
+      technicalDocumentationWeight: 1052,
+      descriptionWeight: 2412,
+      descriptionMinLength: 1022,
+      logoWeight: 1033,
+      categoriesWeight: 1040,
+      labelsWeight: 1041,
+      healthcheckWeight: 2,
+    },
+    apiReview: {
+      enabled: false,
+    },
+    application: {
+      registration: {
+        enabled: false,
+      },
+      types: {
+        simple: {
+          enabled: true,
+        },
+        browser: {
+          enabled: true,
+        },
+        web: {
+          enabled: true,
+        },
+        native: {
+          enabled: true,
+        },
+        backend_to_backend: {
+          enabled: true,
+        },
+      },
+    },
+    company: {
+      name: 'Gravitee22',
+    },
+    cors: {
+      allowOrigin: ['test.entrypoint.dev', 'test.entrypoint.dev2'],
+      allowHeaders: ['Cache-Control', 'Pragma'],
+      allowMethods: ['GET', 'DELETE'],
+      exposedHeaders: ['ETag', 'X-Xsrf-Token'],
+      maxAge: 1728000,
+    },
+    documentation: {
+      url: 'https://docs.gravitee.ios',
+    },
+    openAPIDocViewer: {
+      openAPIDocType: {
+        swagger: {
+          enabled: false,
+        },
+        redoc: {
+          enabled: true,
+        },
+        defaultType: 'Redoc',
+      },
+    },
+    plan: {
+      security: {
+        apikey: {
+          enabled: true,
+        },
+        customApiKey: {
+          enabled: true,
+        },
+        sharedApiKey: {
+          enabled: false,
+        },
+        oauth2: {
+          enabled: true,
+        },
+        keyless: {
+          enabled: false,
+        },
+        jwt: {
+          enabled: true,
+        },
+        push: {
+          enabled: true,
+        },
+      },
+    },
+    scheduler: {
+      tasks: 10,
+      notifications: '101',
+    },
+    dashboards: {
+      apiStatus: {
+        enabled: true,
+      },
+    },
   };
 
   return {
