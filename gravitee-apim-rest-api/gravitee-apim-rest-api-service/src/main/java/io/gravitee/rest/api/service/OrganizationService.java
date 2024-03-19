@@ -15,11 +15,10 @@
  */
 package io.gravitee.rest.api.service;
 
-import io.gravitee.definition.model.Organization;
 import io.gravitee.rest.api.model.OrganizationEntity;
 import io.gravitee.rest.api.model.UpdateOrganizationEntity;
-import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Collection;
+import java.util.Set;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -50,4 +49,6 @@ public interface OrganizationService {
     OrganizationEntity getDefaultOrInitialize();
 
     OrganizationEntity findByCockpitId(String cockpitId);
+
+    Set<OrganizationEntity> findByHrids(Set<String> hrids);
 }
