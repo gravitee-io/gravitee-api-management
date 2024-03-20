@@ -39,7 +39,7 @@ export const EnvironmentGuard: {
     const gioMenuSearchService = inject(GioMenuSearchService);
     const settingsNavigationService = inject(SettingsNavigationService);
 
-    const paramEnv = route.params.envId;
+    const paramEnv = route.params.envHrid;
 
     return environmentService.list().pipe(
       map((environments) => {
@@ -62,7 +62,7 @@ export const EnvironmentGuard: {
       switchMap(() => environmentSettingsService.load()),
       // Load search items in menu
       map(() => {
-        gioMenuSearchService.addMenuSearchItems(settingsNavigationService.getSettingsNavigationSearchItems(route.params.envId));
+        gioMenuSearchService.addMenuSearchItems(settingsNavigationService.getSettingsNavigationSearchItems(route.params.envHrid));
         return true;
       }),
     );
@@ -73,7 +73,7 @@ export const EnvironmentGuard: {
     const gioMenuSearchService = inject(GioMenuSearchService);
 
     gioPermissionService.clearEnvironmentPermissions();
-    gioMenuSearchService.removeMenuSearchItems([currentRoute.params.envId]);
+    gioMenuSearchService.removeMenuSearchItems([currentRoute.params.envHrid]);
     return true;
   },
 };
