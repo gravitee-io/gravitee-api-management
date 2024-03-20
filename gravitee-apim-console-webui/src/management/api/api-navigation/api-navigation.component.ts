@@ -370,7 +370,7 @@ export class ApiNavigationComponent implements OnInit, OnDestroy {
   }
 
   private getApiNavigationSearchItems() {
-    const environmentId = this.activatedRoute.snapshot.params.envId;
+    const environmentId = this.activatedRoute.snapshot.params.envHrid;
     const apiId = this.currentApi.id;
     const parentRouterLink = getPathFromRoot(this.activatedRoute);
 
