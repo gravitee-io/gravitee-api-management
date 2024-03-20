@@ -17,6 +17,7 @@ package io.gravitee.apim.core.api.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.model.ApiMetadata;
+import io.gravitee.apim.core.api.model.NewApiMetadata;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -25,6 +26,7 @@ import io.gravitee.apim.core.audit.model.event.ApiAuditEvent;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.metadata.crud_service.MetadataCrudService;
 import io.gravitee.apim.core.metadata.model.Metadata;
+import io.gravitee.apim.core.metadata.model.MetadataId;
 import io.gravitee.common.utils.IdGenerator;
 import io.gravitee.common.utils.TimeProvider;
 import java.util.List;
@@ -75,6 +77,46 @@ public class ApiMetadataDomainService {
 
     public void saveApiMetadata(String apiId, List<ApiMetadata> metadata, AuditInfo auditInfo) {
         throw new TechnicalDomainException("Not yet implemented");
+    }
+
+    public ApiMetadata create(NewApiMetadata newApiMetadata, AuditInfo auditInfo) {
+        var now = TimeProvider.now();
+        var createdMetadata = metadataCrudService.create(
+            Metadata
+                .builder()
+                .key(newApiMetadata.getKey())
+                .format(newApiMetadata.getFormat())
+                .name(newApiMetadata.getName())
+                .value(newApiMetadata.getValue())
+                .referenceType(Metadata.ReferenceType.API)
+                .referenceId(newApiMetadata.getApiId())
+                .createdAt(now)
+                .updatedAt(now)
+                .build()
+        );
+        createAuditLog(createdMetadata, auditInfo);
+
+        var defaultValue =
+            this.metadataCrudService.findById(
+                    MetadataId
+                        .builder()
+                        .key(createdMetadata.getKey())
+                        .referenceId("_")
+                        .referenceType(Metadata.ReferenceType.DEFAULT)
+                        .build()
+                )
+                .map(Metadata::getValue)
+                .orElse(null);
+
+        return ApiMetadata
+            .builder()
+            .key(createdMetadata.getKey())
+            .format(createdMetadata.getFormat())
+            .name(createdMetadata.getName())
+            .value(createdMetadata.getValue())
+            .defaultValue(defaultValue)
+            .apiId(createdMetadata.getReferenceId())
+            .build();
     }
 
     private void createAuditLog(Metadata created, AuditInfo auditInfo) {
