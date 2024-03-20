@@ -19,6 +19,7 @@ import static java.util.stream.Collectors.toMap;
 
 import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
+import io.gravitee.apim.core.metadata.model.Metadata;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.MetadataRepository;
 import io.gravitee.repository.management.model.MetadataReferenceType;
@@ -52,7 +53,7 @@ public class ApiMetadataQueryServiceImpl implements ApiMetadataQueryService {
                         .key(m.getKey())
                         .defaultValue(m.getValue())
                         .name(m.getName())
-                        .format(MetadataFormat.valueOf(m.getFormat().name()))
+                        .format(Metadata.MetadataFormat.valueOf(m.getFormat().name()))
                         .build()
                 )
                 .collect(toMap(ApiMetadata::getKey, Function.identity()));
@@ -73,7 +74,7 @@ public class ApiMetadataQueryServiceImpl implements ApiMetadataQueryService {
                                         .key(m.getKey())
                                         .value(m.getValue())
                                         .name(m.getName())
-                                        .format(MetadataFormat.valueOf(m.getFormat().name()))
+                                        .format(Metadata.MetadataFormat.valueOf(m.getFormat().name()))
                                         .build()
                                 )
                     )

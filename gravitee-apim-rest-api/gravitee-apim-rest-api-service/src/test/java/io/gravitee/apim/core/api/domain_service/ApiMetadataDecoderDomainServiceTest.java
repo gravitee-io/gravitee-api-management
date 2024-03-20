@@ -21,6 +21,7 @@ import inmemory.ApiMetadataQueryServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService.ApiMetadataDecodeContext;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService.PrimaryOwnerMetadataDecodeContext;
 import io.gravitee.apim.core.api.model.ApiMetadata;
+import io.gravitee.apim.core.metadata.model.Metadata;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.rest.api.model.MetadataFormat;
 import java.sql.Date;
@@ -59,8 +60,8 @@ class ApiMetadataDecoderDomainServiceTest {
         // Given
         givenExistingApiMetadata(
             List.of(
-                ApiMetadata.builder().apiId(API_ID).key("key1").value("value1").format(MetadataFormat.STRING).build(),
-                ApiMetadata.builder().apiId(API_ID).key("key2").value("true").format(MetadataFormat.BOOLEAN).build()
+                ApiMetadata.builder().apiId(API_ID).key("key1").value("value1").format(Metadata.MetadataFormat.STRING).build(),
+                ApiMetadata.builder().apiId(API_ID).key("key2").value("true").format(Metadata.MetadataFormat.BOOLEAN).build()
             )
         );
 
@@ -76,8 +77,8 @@ class ApiMetadataDecoderDomainServiceTest {
         // Given
         givenExistingApiMetadata(
             List.of(
-                ApiMetadata.builder().apiId(API_ID).key("key1").value("value1").format(MetadataFormat.STRING).build(),
-                ApiMetadata.builder().apiId(API_ID).key("null_key").value(null).format(MetadataFormat.STRING).build()
+                ApiMetadata.builder().apiId(API_ID).key("key1").value("value1").format(Metadata.MetadataFormat.STRING).build(),
+                ApiMetadata.builder().apiId(API_ID).key("null_key").value(null).format(Metadata.MetadataFormat.STRING).build()
             )
         );
 
@@ -93,27 +94,27 @@ class ApiMetadataDecoderDomainServiceTest {
         // Given
         givenExistingApiMetadata(
             List.of(
-                ApiMetadata.builder().apiId(API_ID).key("apiName").value("${(api.name)!''}").format(MetadataFormat.STRING).build(),
+                ApiMetadata.builder().apiId(API_ID).key("apiName").value("${(api.name)!''}").format(Metadata.MetadataFormat.STRING).build(),
                 ApiMetadata
                     .builder()
                     .apiId(API_ID)
                     .key("apiDescription")
                     .value("${(api.description)!''}")
-                    .format(MetadataFormat.STRING)
+                    .format(Metadata.MetadataFormat.STRING)
                     .build(),
                 ApiMetadata
                     .builder()
                     .apiId(API_ID)
                     .key("ownerName")
                     .value("${(api.primaryOwner.displayName)!''}")
-                    .format(MetadataFormat.STRING)
+                    .format(Metadata.MetadataFormat.STRING)
                     .build(),
                 ApiMetadata
                     .builder()
                     .apiId(API_ID)
                     .key("email-support")
                     .value("${(api.primaryOwner.email)!''}")
-                    .format(MetadataFormat.STRING)
+                    .format(Metadata.MetadataFormat.STRING)
                     .build()
             )
         );
@@ -138,8 +139,8 @@ class ApiMetadataDecoderDomainServiceTest {
         // Given
         givenExistingApiMetadata(
             List.of(
-                ApiMetadata.builder().apiId(API_ID).key("key1").value("value1").format(MetadataFormat.STRING).build(),
-                ApiMetadata.builder().apiId(API_ID).key("apiVersion").value("${api.version}").format(MetadataFormat.STRING).build()
+                ApiMetadata.builder().apiId(API_ID).key("key1").value("value1").format(Metadata.MetadataFormat.STRING).build(),
+                ApiMetadata.builder().apiId(API_ID).key("apiVersion").value("${api.version}").format(Metadata.MetadataFormat.STRING).build()
             )
         );
 

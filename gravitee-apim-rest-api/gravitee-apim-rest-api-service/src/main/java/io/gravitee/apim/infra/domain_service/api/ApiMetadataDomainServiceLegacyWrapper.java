@@ -20,6 +20,7 @@ import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.metadata.crud_service.MetadataCrudService;
+import io.gravitee.rest.api.model.MetadataFormat;
 import io.gravitee.rest.api.model.UpdateApiMetadataEntity;
 import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -55,7 +56,7 @@ public class ApiMetadataDomainServiceLegacyWrapper extends ApiMetadataDomainServ
                 UpdateApiMetadataEntity updateApiMetadataEntity = new UpdateApiMetadataEntity();
                 updateApiMetadataEntity.setApiId(apiId);
                 updateApiMetadataEntity.setDefaultValue(apiMetadata.getDefaultValue());
-                updateApiMetadataEntity.setFormat(apiMetadata.getFormat());
+                updateApiMetadataEntity.setFormat(MetadataFormat.valueOf(apiMetadata.getFormat().name()));
                 updateApiMetadataEntity.setKey(apiMetadata.getKey());
                 updateApiMetadataEntity.setName(apiMetadata.getName());
                 updateApiMetadataEntity.setValue(apiMetadata.getValue());

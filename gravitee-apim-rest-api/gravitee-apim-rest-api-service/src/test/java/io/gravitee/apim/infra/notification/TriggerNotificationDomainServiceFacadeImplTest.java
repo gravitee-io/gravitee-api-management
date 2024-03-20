@@ -38,6 +38,7 @@ import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
+import io.gravitee.apim.core.metadata.model.Metadata;
 import io.gravitee.apim.core.notification.domain_service.TriggerNotificationDomainService;
 import io.gravitee.apim.core.notification.model.ApiNotificationTemplateData;
 import io.gravitee.apim.core.notification.model.ApplicationNotificationTemplateData;
@@ -222,14 +223,14 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                 anApi().withId(API_ID),
                 PrimaryOwnerEntity.builder().id(USER_ID).build(),
                 List.of(
-                    ApiMetadata.builder().apiId(API_ID).key("key1").value("value1").format(MetadataFormat.STRING).build(),
-                    ApiMetadata.builder().apiId(API_ID).key("null_key").value(null).format(MetadataFormat.STRING).build(),
+                    ApiMetadata.builder().apiId(API_ID).key("key1").value("value1").format(Metadata.MetadataFormat.STRING).build(),
+                    ApiMetadata.builder().apiId(API_ID).key("null_key").value(null).format(Metadata.MetadataFormat.STRING).build(),
                     ApiMetadata
                         .builder()
                         .apiId(API_ID)
                         .key("email-support")
                         .value("${(api.primaryOwner.email)!''}")
-                        .format(MetadataFormat.STRING)
+                        .format(Metadata.MetadataFormat.STRING)
                         .build()
                 )
             );
@@ -629,14 +630,14 @@ public class TriggerNotificationDomainServiceFacadeImplTest {
                 anApi().withId(API_ID),
                 PrimaryOwnerEntity.builder().id(USER_ID).build(),
                 List.of(
-                    ApiMetadata.builder().apiId(API_ID).key("key1").value("value1").format(MetadataFormat.STRING).build(),
-                    ApiMetadata.builder().apiId(API_ID).key("null_key").value(null).format(MetadataFormat.STRING).build(),
+                    ApiMetadata.builder().apiId(API_ID).key("key1").value("value1").format(Metadata.MetadataFormat.STRING).build(),
+                    ApiMetadata.builder().apiId(API_ID).key("null_key").value(null).format(Metadata.MetadataFormat.STRING).build(),
                     ApiMetadata
                         .builder()
                         .apiId(API_ID)
                         .key("email-support")
                         .value("${(api.primaryOwner.email)!''}")
-                        .format(MetadataFormat.STRING)
+                        .format(Metadata.MetadataFormat.STRING)
                         .build()
                 )
             );
