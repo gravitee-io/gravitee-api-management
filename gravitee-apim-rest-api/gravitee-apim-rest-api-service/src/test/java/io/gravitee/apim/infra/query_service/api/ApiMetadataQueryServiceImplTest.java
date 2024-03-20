@@ -85,11 +85,23 @@ public class ApiMetadataQueryServiceImplTest {
                 .hasSize(2)
                 .containsEntry(
                     "team-contact",
-                    ApiMetadata.builder().apiId(API_ID).key("team-contact").value("team@gravitee.io").format(MetadataFormat.MAIL).build()
+                    ApiMetadata
+                        .builder()
+                        .apiId(API_ID)
+                        .key("team-contact")
+                        .value("team@gravitee.io")
+                        .format(io.gravitee.apim.core.metadata.model.Metadata.MetadataFormat.MAIL)
+                        .build()
                 )
                 .containsEntry(
                     "homepage",
-                    ApiMetadata.builder().apiId(API_ID).key("homepage").value("https://gravitee.io").format(MetadataFormat.URL).build()
+                    ApiMetadata
+                        .builder()
+                        .apiId(API_ID)
+                        .key("homepage")
+                        .value("https://gravitee.io")
+                        .format(io.gravitee.apim.core.metadata.model.Metadata.MetadataFormat.URL)
+                        .build()
                 );
         }
 
@@ -137,14 +149,28 @@ public class ApiMetadataQueryServiceImplTest {
                         .key("team-contact")
                         .value("team@gravitee.io")
                         .defaultValue("admin@gravitee.io")
-                        .format(MetadataFormat.MAIL)
+                        .format(io.gravitee.apim.core.metadata.model.Metadata.MetadataFormat.MAIL)
                         .build()
                 )
                 .containsEntry(
                     "homepage",
-                    ApiMetadata.builder().apiId(API_ID).key("homepage").value("https://gravitee.io").format(MetadataFormat.URL).build()
+                    ApiMetadata
+                        .builder()
+                        .apiId(API_ID)
+                        .key("homepage")
+                        .value("https://gravitee.io")
+                        .format(io.gravitee.apim.core.metadata.model.Metadata.MetadataFormat.URL)
+                        .build()
                 )
-                .containsEntry("brand", ApiMetadata.builder().key("brand").defaultValue("Gravitee").format(MetadataFormat.STRING).build());
+                .containsEntry(
+                    "brand",
+                    ApiMetadata
+                        .builder()
+                        .key("brand")
+                        .defaultValue("Gravitee")
+                        .format(io.gravitee.apim.core.metadata.model.Metadata.MetadataFormat.STRING)
+                        .build()
+                );
         }
 
         @Test

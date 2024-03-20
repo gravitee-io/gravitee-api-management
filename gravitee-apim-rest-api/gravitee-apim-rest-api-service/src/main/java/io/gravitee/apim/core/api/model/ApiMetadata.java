@@ -16,7 +16,7 @@
 package io.gravitee.apim.core.api.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.gravitee.rest.api.model.MetadataFormat;
+import io.gravitee.apim.core.metadata.model.Metadata;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -32,7 +32,7 @@ public class ApiMetadata {
     String apiId;
     String key;
     String name;
-    MetadataFormat format;
+    Metadata.MetadataFormat format;
 
     @With
     String value;

@@ -55,7 +55,7 @@ public class MetadataFixtures {
             .value(value)
             .defaultValue(defaultValue)
             .name(name)
-            .format(MetadataFormat.STRING)
+            .format(Metadata.MetadataFormat.STRING)
             .build();
     }
 

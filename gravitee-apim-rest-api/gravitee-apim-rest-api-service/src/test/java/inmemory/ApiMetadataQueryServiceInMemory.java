@@ -51,7 +51,7 @@ public class ApiMetadataQueryServiceInMemory implements ApiMetadataQueryService,
                     .key(m.getKey())
                     .name(m.getName())
                     .defaultValue(m.getValue())
-                    .format(MetadataFormat.valueOf(m.getFormat().name()))
+                    .format(Metadata.MetadataFormat.valueOf(m.getFormat().name()))
                     .build()
             )
             .collect(toMap(ApiMetadata::getKey, Function.identity()));
@@ -68,16 +68,7 @@ public class ApiMetadataQueryServiceInMemory implements ApiMetadataQueryService,
                         Optional
                             .ofNullable(existing)
                             .map(value -> value.toBuilder().apiId(apiId).name(m.getName()).value(m.getValue()).build())
-                            .orElse(
-                                ApiMetadata
-                                    .builder()
-                                    .apiId(m.getReferenceId())
-                                    .key(m.getKey())
-                                    .name(m.getName())
-                                    .value(m.getValue())
-                                    .format(MetadataFormat.valueOf(m.getFormat().name()))
-                                    .build()
-                            )
+                            .orElse(this.toApiMetadata(m))
                 )
             );
 
@@ -103,5 +94,16 @@ public class ApiMetadataQueryServiceInMemory implements ApiMetadataQueryService,
     @Override
     public List<Metadata> storage() {
         return storage;
+    }
+
+    private ApiMetadata toApiMetadata(Metadata metadata) {
+        return ApiMetadata
+            .builder()
+            .apiId(metadata.getReferenceId())
+            .key(metadata.getKey())
+            .name(metadata.getName())
+            .value(metadata.getValue())
+            .format(metadata.getFormat())
+            .build();
     }
 }
