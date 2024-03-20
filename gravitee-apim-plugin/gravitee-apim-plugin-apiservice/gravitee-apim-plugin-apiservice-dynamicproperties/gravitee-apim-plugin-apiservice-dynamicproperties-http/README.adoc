@@ -37,7 +37,7 @@ Bellow you will find a full `http-dynamic-properties` service configuration exam
     "headers": [
       {
         "name": "X-Custom-Header",
-        "value": "Custom-header-value"
+        "value": "Custom-authorizationHeader-value"
       }
     ],
     "method": "GET",
@@ -47,4 +47,3 @@ Bellow you will find a full `http-dynamic-properties` service configuration exam
   }
 }
 ```
-

@@ -37,4 +37,5 @@ public class InitializerOrder {
     public static final int IDENTITY_PROVIDER_ACTIVATION_INITIALIZER = 400;
     public static final int IDENTITY_PROVIDER_INITIALIZER = 350;
     public static final int SEARCH_INDEX_INITIALIZER = 250;
+    public static final int INTEGRATION_CONTROLLER_INITIALIZER = 400;
 }

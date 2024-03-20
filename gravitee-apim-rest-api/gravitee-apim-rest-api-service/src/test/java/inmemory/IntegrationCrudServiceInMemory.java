@@ -20,6 +20,7 @@ import io.gravitee.apim.core.integration.model.Integration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 public class IntegrationCrudServiceInMemory implements IntegrationCrudService, InMemoryAlternative<Integration> {
 
@@ -29,6 +30,11 @@ public class IntegrationCrudServiceInMemory implements IntegrationCrudService, I
     public Integration create(Integration integration) {
         storage.add(integration);
         return integration;
+    }
+
+    @Override
+    public Optional<Integration> findById(String id) {
+        return storage.stream().filter(item -> item.getId().equals(id)).findFirst();
     }
 
     @Override

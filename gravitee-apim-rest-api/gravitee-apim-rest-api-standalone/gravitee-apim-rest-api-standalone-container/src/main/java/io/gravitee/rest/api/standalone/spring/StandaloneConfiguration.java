@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.standalone.spring;
 
+import io.gravitee.integration.controller.spring.IntegrationControllerConfiguration;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.NodeMetadataResolver;
 import io.gravitee.node.container.NodeFactory;
@@ -40,6 +41,7 @@ import org.springframework.context.annotation.Import;
     {
         RestManagementConfiguration.class,
         io.gravitee.rest.api.management.v2.rest.spring.RestManagementConfiguration.class,
+        IntegrationControllerConfiguration.class,
         RestPortalConfiguration.class,
     }
 )

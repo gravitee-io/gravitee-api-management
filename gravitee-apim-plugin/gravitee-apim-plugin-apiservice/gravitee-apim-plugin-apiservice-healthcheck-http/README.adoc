@@ -63,7 +63,7 @@ Bellow you will find a full `http-health-check` service configuration example:
         "body": "xxxxx",
         "headers": [{
             "name": "X-CUSTOM-HEADAR",
-            "value": "{#api.properties['x-custom-header-value']}"
+            "value": "{#api.properties['x-custom-authorizationHeader-value']}"
         }],
         "overrideEndpointPath": false,
         "assertion": "{#response.status == 200}",
@@ -72,4 +72,3 @@ Bellow you will find a full `http-health-check` service configuration example:
     }
 }
 ```
-

@@ -26,8 +26,12 @@ import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.IntegrationRepository;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.util.Optional;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 public class IntegrationCrudServiceImplTest {
@@ -42,32 +46,97 @@ public class IntegrationCrudServiceImplTest {
         service = new IntegrationCrudServiceImpl(integrationRepository);
     }
 
-    @Test
-    @SneakyThrows
-    void should_create_integration() {
-        //Given
-        Integration integration = IntegrationFixture.anIntegration();
-        when(integrationRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
+    @Nested
+    class Create {
 
-        //When
-        Integration createdIntegration = service.create(integration);
+        @Test
+        @SneakyThrows
+        void should_create_integration() {
+            //Given
+            Integration integration = IntegrationFixture.anIntegration();
+            when(integrationRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        //Then
-        assertThat(createdIntegration).isEqualTo(integration);
+            //When
+            Integration createdIntegration = service.create(integration);
+
+            //Then
+            assertThat(createdIntegration).isEqualTo(integration);
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() throws TechnicalException {
+            // Given
+            var integration = IntegrationFixture.anIntegration();
+            when(integrationRepository.create(any())).thenThrow(TechnicalException.class);
+
+            // When
+            Throwable throwable = catchThrowable(() -> service.create(integration));
+
+            // Then
+            assertThat(throwable)
+                .isInstanceOf(TechnicalManagementException.class)
+                .hasMessage("Error when creating Integration: Test integration");
+        }
     }
 
-    @Test
-    void should_throw_when_technical_exception_occurs() throws TechnicalException {
-        // Given
-        var integration = IntegrationFixture.anIntegration();
-        when(integrationRepository.create(any())).thenThrow(TechnicalException.class);
+    @Nested
+    class FindById {
 
-        // When
-        Throwable throwable = catchThrowable(() -> service.create(integration));
+        @Test
+        @SneakyThrows
+        void should_return_the_found_integration() {
+            //Given
+            when(integrationRepository.findById(any()))
+                .thenAnswer(invocation ->
+                    Optional.of(fixtures.repository.IntegrationFixture.anIntegration().toBuilder().id(invocation.getArgument(0)).build())
+                );
 
-        // Then
-        assertThat(throwable)
-            .isInstanceOf(TechnicalManagementException.class)
-            .hasMessage("Error when creating Integration: Test integration");
+            //When
+            var result = service.findById("my-id");
+
+            //Then
+            assertThat(result)
+                .contains(
+                    IntegrationFixture
+                        .anIntegration()
+                        .toBuilder()
+                        .id("my-id")
+                        .name("An integration")
+                        .description("A description")
+                        .provider("amazon")
+                        .environmentId("environment-id")
+                        .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                        .updatedAt(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                        .build()
+                );
+        }
+
+        @Test
+        @SneakyThrows
+        void should_return_empty_when_not_found() {
+            //Given
+            when(integrationRepository.findById(any())).thenAnswer(invocation -> Optional.empty());
+
+            //When
+            var result = service.findById("my-id");
+
+            //Then
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() throws TechnicalException {
+            // Given
+            var integration = IntegrationFixture.anIntegration();
+            when(integrationRepository.findById(any())).thenThrow(TechnicalException.class);
+
+            // When
+            Throwable throwable = catchThrowable(() -> service.findById("my-id"));
+
+            // Then
+            assertThat(throwable)
+                .isInstanceOf(TechnicalManagementException.class)
+                .hasMessage("An error occurs while trying to find the integration: my-id");
+        }
     }
 }
