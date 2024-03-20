@@ -20,6 +20,7 @@ import { cloneDeep, every, forEach, isEqual, merge } from 'lodash';
 
 import DashboardService from '../../../../services/dashboard.service';
 import NotificationService from '../../../../services/notification.service';
+import { Constants } from '../../../../entities/Constants';
 const SettingsAnalyticsDashboardComponentAjs: ng.IComponentOptions = {
   template: require('html-loader!./settings-analytics-dashboard.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: [
@@ -30,6 +31,7 @@ const SettingsAnalyticsDashboardComponentAjs: ng.IComponentOptions = {
     '$mdDialog',
     '$timeout',
     'ngRouter',
+    'Constants',
     function (
       DashboardService: DashboardService,
       NotificationService: NotificationService,
@@ -38,6 +40,7 @@ const SettingsAnalyticsDashboardComponentAjs: ng.IComponentOptions = {
       $mdDialog,
       $timeout,
       ngRouter: Router,
+      constants: Constants,
     ) {
       let previousPristine = true;
       this.fields = DashboardService.getIndexedFields();
@@ -68,7 +71,7 @@ const SettingsAnalyticsDashboardComponentAjs: ng.IComponentOptions = {
         } else {
           this.dashboard = {
             type: this.activatedRoute.snapshot.params.type,
-            reference_id: 'DEFAULT',
+            reference_id: constants.org.currentEnv.id,
             reference_type: 'ENVIRONMENT',
             enabled: true,
             definition: [],
