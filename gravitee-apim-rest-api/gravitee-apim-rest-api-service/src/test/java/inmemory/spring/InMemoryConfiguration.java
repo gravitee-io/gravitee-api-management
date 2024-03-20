@@ -238,4 +238,9 @@ public class InMemoryConfiguration {
     public IntegrationQueryServiceInMemory integrationQueryService(IntegrationCrudServiceInMemory integrationCrudServiceInMemory) {
         return new IntegrationQueryServiceInMemory(integrationCrudServiceInMemory);
     }
+
+    @Bean
+    public MetadataCrudServiceInMemory metadataCrudService() {
+        return new MetadataCrudServiceInMemory();
+    }
 }
