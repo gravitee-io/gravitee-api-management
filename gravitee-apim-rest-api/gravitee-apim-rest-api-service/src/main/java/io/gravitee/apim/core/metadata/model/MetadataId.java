@@ -13,13 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.metadata.crud_service;
+package io.gravitee.apim.core.metadata.model;
 
-import io.gravitee.apim.core.metadata.model.Metadata;
-import io.gravitee.apim.core.metadata.model.MetadataId;
-import java.util.Optional;
+import lombok.Builder;
+import lombok.Data;
 
-public interface MetadataCrudService {
-    Metadata create(Metadata metadata);
-    Optional<Metadata> findById(MetadataId id);
+@Builder
+@Data
+public class MetadataId {
+
+    private String key;
+    private Metadata.ReferenceType referenceType;
+    private String referenceId;
 }
