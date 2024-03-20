@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.integration.crud_service;
 
 import io.gravitee.apim.core.integration.model.Integration;
+import java.util.Optional;
 
 /**
  * @author Remi Baptiste (remi.baptiste at graviteesource.com)
@@ -23,4 +24,6 @@ import io.gravitee.apim.core.integration.model.Integration;
  */
 public interface IntegrationCrudService {
     Integration create(Integration integration);
+
+    Optional<Integration> findById(String id);
 }

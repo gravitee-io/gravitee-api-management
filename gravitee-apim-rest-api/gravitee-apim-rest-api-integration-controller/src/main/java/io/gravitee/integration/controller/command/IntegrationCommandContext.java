@@ -13,35 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.model;
+package io.gravitee.integration.controller.command;
 
-import java.util.Date;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import io.gravitee.exchange.api.controller.ControllerCommandContext;
+import java.util.Set;
 
-/**
- * @author Remi Baptiste (remi.baptiste at graviteesource.com)
- * @author GraviteeSource Team
- */
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder(toBuilder = true)
-@Data
-public class Integration {
-
-    private String id;
-
-    private String name;
-
-    private String description;
-
-    private String provider;
-
-    private String environmentId;
-
-    private Date createdAt;
-
-    private Date updatedAt;
+public record IntegrationCommandContext(boolean valid) implements ControllerCommandContext {
+    @Override
+    public boolean isValid() {
+        return valid;
+    }
 }

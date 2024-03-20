@@ -15,7 +15,6 @@
  */
 package io.gravitee.apim.infra.crud_service.integration;
 
-import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.infra.adapter.IntegrationAdapter;
@@ -23,6 +22,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.IntegrationRepository;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.AbstractService;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -48,6 +48,15 @@ public class IntegrationCrudServiceImpl extends AbstractService implements Integ
             return IntegrationAdapter.INSTANCE.toEntity(createdIntegration);
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("Error when creating Integration: " + integration.getName(), e);
+        }
+    }
+
+    @Override
+    public Optional<Integration> findById(String id) {
+        try {
+            return integrationRepository.findById(id).map(IntegrationAdapter.INSTANCE::toEntity);
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException("An error occurs while trying to find the integration: " + id, e);
         }
     }
 }

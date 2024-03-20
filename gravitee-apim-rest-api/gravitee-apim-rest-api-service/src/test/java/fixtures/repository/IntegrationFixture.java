@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package fixtures.core.model;
+package fixtures.repository;
 
-import io.gravitee.apim.core.integration.model.Integration;
-import io.gravitee.rest.api.service.common.UuidString;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import io.gravitee.repository.management.model.Integration;
+import java.time.Instant;
+import java.util.Date;
 import java.util.function.Supplier;
 
 public class IntegrationFixture {
@@ -28,19 +27,15 @@ public class IntegrationFixture {
     public static final Supplier<Integration.IntegrationBuilder> BASE = () ->
         Integration
             .builder()
-            .id(UuidString.generateRandom())
-            .name("Test integration")
-            .description("Test description")
-            .provider("ForTestPurpose")
-            .environmentId("my-env")
-            .createdAt(ZonedDateTime.parse("2020-02-03T20:22:02.00Z").withZoneSameLocal(ZoneId.systemDefault()))
-            .updatedAt(ZonedDateTime.parse("2020-02-03T20:22:02.00Z").withZoneSameLocal(ZoneId.systemDefault()));
+            .id("integration-id")
+            .name("An integration")
+            .description("A description")
+            .provider("amazon")
+            .environmentId("environment-id")
+            .createdAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
+            .updatedAt(Date.from(Instant.parse("2020-02-04T20:22:02.00Z")));
 
     public static Integration anIntegration() {
         return BASE.get().build();
-    }
-
-    public static Integration anIntegration(String envId) {
-        return BASE.get().environmentId(envId).build();
     }
 }
