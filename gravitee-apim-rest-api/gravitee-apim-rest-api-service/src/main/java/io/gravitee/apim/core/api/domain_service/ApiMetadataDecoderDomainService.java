@@ -54,6 +54,15 @@ public class ApiMetadataDecoderDomainService {
         return decode(metadata, context);
     }
 
+    public String decodeMetadataValue(String value, Object context) {
+        try {
+            return templateProcessor.processInlineTemplate(value, Collections.singletonMap("api", context));
+        } catch (TemplateProcessorException e) {
+            log.warn("Error while creating template '{}' from reader:\n{}", e.getTemplate(), e.getMessage());
+            return value;
+        }
+    }
+
     private Map<String, String> decode(Map<String, String> metadata, ApiMetadataDecodeContext context) {
         if (metadata.isEmpty()) {
             return metadata;
