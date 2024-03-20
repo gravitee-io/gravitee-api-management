@@ -177,7 +177,7 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
   }
 
   private getApplicationNavigationSearchItems(): MenuSearchItem[] {
-    const environmentId = this.activatedRoute.snapshot.params.envId;
+    const environmentId = this.activatedRoute.snapshot.params.envHrid;
     const applicationId = this.activatedRoute.snapshot.params.applicationId;
     const parentRouterLink = getPathFromRoot(this.activatedRoute);
 

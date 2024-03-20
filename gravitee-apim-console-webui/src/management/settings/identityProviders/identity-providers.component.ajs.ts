@@ -58,7 +58,7 @@ const IdentityProvidersComponentAjs: ng.IComponentOptions = {
       this.providedConfigurationMessage = 'Configuration provided by the system';
 
       this.$onInit = () => {
-        this.envId = this.activatedRoute.snapshot.params.envId;
+        this.envId = Constants.org.currentEnv.id;
         this.canUpdatePortalSettings = UserService.isUserHasPermissions([
           'environment-settings-c',
           'environment-settings-u',

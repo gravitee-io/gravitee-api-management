@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
@@ -32,6 +32,7 @@ import { PromotionApprovalTaskData, Task } from '../../entities/task/task';
 import { PromotionService } from '../../services-ngx/promotion.service';
 import { SnackBarService } from '../../services-ngx/snack-bar.service';
 import { Workflow } from '../../entities/workflow/workflow';
+import { Constants } from '../../entities/Constants';
 
 class TaskData {
   icon: string;
@@ -61,6 +62,7 @@ export class TasksComponent implements OnInit, OnDestroy {
     private readonly promotionService: PromotionService,
     private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,
+    @Inject(Constants) private readonly constants: Constants,
   ) {}
 
   ngOnInit(): void {
@@ -97,7 +99,7 @@ export class TasksComponent implements OnInit, OnDestroy {
   }
 
   go(task: TaskData): void {
-    const currentEnvironmentId = this.activatedRoute.snapshot.params.environmentId;
+    const currentEnvironmentId = this.constants.org.currentEnv.id;
 
     switch (task.type) {
       case 'SUBSCRIPTION_APPROVAL': {
