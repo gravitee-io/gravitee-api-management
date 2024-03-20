@@ -110,6 +110,7 @@ describe('GioPolicyStudioLayoutComponent', () => {
 
       const apiReq = httpTestingController.expectOne({ method: 'PUT', url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}` });
       expect(apiReq.request.body.flowMode).toEqual(apiDefinitionToSave.flow_mode);
+      expect(apiReq.request.body.flows[0].id).toEqual(api.flows[0].id);
 
       const planReq = httpTestingController.expectOne({
         method: 'PUT',
