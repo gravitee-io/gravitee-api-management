@@ -33,6 +33,7 @@ export interface Consumer {
 }
 
 export interface Flow {
+  id?: string;
   name?: string;
   'path-operator': PathOperator;
   pre: Step[];
