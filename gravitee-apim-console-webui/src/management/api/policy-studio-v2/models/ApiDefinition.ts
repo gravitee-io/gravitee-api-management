@@ -55,6 +55,7 @@ export function toApiDefinition(api: ApiV2): ApiDefinition {
 
 // Adapt ApiV2 flow to ApiDefinition flow
 const toApiFlowDefinition = (flow: FlowV2): Flow => ({
+  id: flow.id,
   name: flow.name,
   'path-operator': flow.pathOperator,
   pre: flow.pre,
@@ -98,6 +99,7 @@ export const toApiV2 = (apiDefinition: ApiDefinition, api: ApiV2): ApiV2 => {
 };
 
 const toApiFlowV2 = (flow: Flow): FlowV2 => ({
+  id: flow.id,
   name: flow.name,
   pathOperator: flow['path-operator'],
   pre: flow.pre,
