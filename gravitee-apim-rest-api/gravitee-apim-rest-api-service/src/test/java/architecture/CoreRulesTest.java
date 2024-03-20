@@ -42,8 +42,7 @@ public class CoreRulesTest extends AbstractApimArchitectureTest {
                     "org.slf4j..",
                     "lombok..",
                     "com.fasterxml..",
-                    // Allow Spring transactional annotations until we find another way
-                    "org.springframework.transaction.annotation..",
+                    "jakarta..",
                     // Api Definition can't be in core because it is required for the Gateway
                     "io.gravitee.definition..",
                     // Allow Gravitee node API to be used in core
