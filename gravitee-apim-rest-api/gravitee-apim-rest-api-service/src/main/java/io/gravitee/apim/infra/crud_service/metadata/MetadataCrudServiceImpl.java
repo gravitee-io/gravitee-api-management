@@ -18,13 +18,18 @@ package io.gravitee.apim.infra.crud_service.metadata;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.metadata.crud_service.MetadataCrudService;
 import io.gravitee.apim.core.metadata.model.Metadata;
+import io.gravitee.apim.core.metadata.model.MetadataId;
 import io.gravitee.apim.infra.adapter.MetadataAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.MetadataRepository;
+import io.gravitee.repository.management.model.MetadataReferenceType;
+import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 public class MetadataCrudServiceImpl implements MetadataCrudService {
 
     private final MetadataRepository metadataRepository;
@@ -44,6 +49,25 @@ public class MetadataCrudServiceImpl implements MetadataCrudService {
                     metadata.getKey(),
                     metadata.getReferenceType().name().toLowerCase(),
                     metadata.getReferenceId()
+                ),
+                e
+            );
+        }
+    }
+
+    @Override
+    public Optional<Metadata> findById(MetadataId id) {
+        try {
+            return metadataRepository
+                .findById(id.getKey(), id.getReferenceId(), MetadataReferenceType.valueOf(id.getReferenceType().name()))
+                .map(MetadataAdapter.INSTANCE::toEntity);
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException(
+                String.format(
+                    "An error occurred while finding metadata by id [%s, %s, %s]",
+                    id.getReferenceId(),
+                    id.getReferenceType().name(),
+                    id.getKey()
                 ),
                 e
             );

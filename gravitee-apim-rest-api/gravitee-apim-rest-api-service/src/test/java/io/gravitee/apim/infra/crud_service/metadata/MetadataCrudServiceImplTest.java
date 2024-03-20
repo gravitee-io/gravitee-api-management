@@ -24,11 +24,15 @@ import static org.mockito.Mockito.when;
 
 import fixtures.core.model.MetadataFixtures;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
+import io.gravitee.apim.core.metadata.model.MetadataId;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.MetadataRepository;
+import io.gravitee.repository.management.model.Metadata;
 import io.gravitee.repository.management.model.MetadataFormat;
+import io.gravitee.repository.management.model.MetadataReferenceType;
 import java.time.Instant;
 import java.util.Date;
+import java.util.Optional;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -99,6 +103,61 @@ class MetadataCrudServiceImplTest {
             assertThat(throwable)
                 .isInstanceOf(TechnicalDomainException.class)
                 .hasMessage("An error occurs while trying to create the my-key metadata of [apiId=api-id]");
+        }
+    }
+
+    @Nested
+    class FindById {
+
+        @Test
+        void should_find_metadata_by_id() throws TechnicalException {
+            when(metadataRepository.findById("key", "referenceId", MetadataReferenceType.API))
+                .thenReturn(
+                    Optional.of(
+                        Metadata
+                            .builder()
+                            .key("key")
+                            .referenceId("referenceId")
+                            .referenceType(MetadataReferenceType.API)
+                            .value("value")
+                            .build()
+                    )
+                );
+
+            var foundMetadata = service.findById(
+                MetadataId
+                    .builder()
+                    .key("key")
+                    .referenceId("referenceId")
+                    .referenceType(io.gravitee.apim.core.metadata.model.Metadata.ReferenceType.API)
+                    .build()
+            );
+
+            assertThat(foundMetadata).isPresent();
+            assertThat(foundMetadata)
+                .hasValue(
+                    io.gravitee.apim.core.metadata.model.Metadata
+                        .builder()
+                        .referenceType(io.gravitee.apim.core.metadata.model.Metadata.ReferenceType.API)
+                        .referenceId("referenceId")
+                        .key("key")
+                        .value("value")
+                        .build()
+                );
+        }
+
+        @Test
+        void should_not_find_metadata_by_id_if_missing() {
+            var foundMetadata = service.findById(
+                MetadataId
+                    .builder()
+                    .key("key")
+                    .referenceId("referenceId")
+                    .referenceType(io.gravitee.apim.core.metadata.model.Metadata.ReferenceType.API)
+                    .build()
+            );
+
+            assertThat(foundMetadata).isEmpty();
         }
     }
 }

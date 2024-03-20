@@ -17,12 +17,13 @@ package inmemory;
 
 import io.gravitee.apim.core.metadata.crud_service.MetadataCrudService;
 import io.gravitee.apim.core.metadata.model.Metadata;
+import io.gravitee.apim.core.metadata.model.MetadataId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.stereotype.Service;
 
-@Service
 public class MetadataCrudServiceInMemory implements MetadataCrudService, InMemoryAlternative<Metadata> {
 
     final ArrayList<Metadata> storage = new ArrayList<>();
@@ -31,6 +32,18 @@ public class MetadataCrudServiceInMemory implements MetadataCrudService, InMemor
     public Metadata create(Metadata entity) {
         storage.add(entity);
         return entity;
+    }
+
+    @Override
+    public Optional<Metadata> findById(MetadataId id) {
+        return storage
+            .stream()
+            .filter(m ->
+                m.getKey().equals(id.getKey()) &&
+                m.getReferenceId().equals(id.getReferenceId()) &&
+                m.getReferenceType().equals(id.getReferenceType())
+            )
+            .findFirst();
     }
 
     @Override
