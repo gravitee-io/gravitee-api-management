@@ -128,8 +128,15 @@ spec:
           imagePullPolicy: {{ .Values.gateway.image.pullPolicy }}
           securityContext: {{ toYaml .Values.gateway.deployment.securityContext | nindent 12 }}
           ports:
+            {{- if .Values.gateway.servers }}
+            {{- range $i, $server := .Values.gateway.servers }}
+            - name: {{ printf "%s-%d" $server.type $i}}
+              containerPort: {{ $server.port }}
+            {{- end }}
+            {{- else }}
             - name: {{ .Values.gateway.service.internalPortName }}
               containerPort: {{ .Values.gateway.service.internalPort }}
+            {{- end }}
             {{- if .Values.gateway.services.bridge.enabled }}
             - name: {{ printf "%s-%s" (.Values.gateway.name | trunc 8 | trimSuffix "-") "bridge" }}
               containerPort: {{ .Values.gateway.services.bridge.service.internalPort }}

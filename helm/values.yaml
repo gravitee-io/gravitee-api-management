@@ -784,6 +784,84 @@ gateway:
   dbLess: false
   type: Deployment
   name: gateway
+  # you can pass a list of bot http and tcp servers in here so the gateway will use this setting to setup its internal servers
+#  servers:
+#    - type: http # tcp
+#      port: 8082
+#      #idleTimeout: 0
+#      #tcpKeepAlive: true
+#      #compressionSupported: false
+#      maxHeaderSize: 8192
+#      maxChunkSize: 8192
+#      maxInitialLineLength: 4096
+#      maxFormAttributeSize: 2048
+#      instances: 0
+#      requestTimeout: 0 (in v4 mode, default is 30_000 ms)
+#      # The following is only used in v4 engine. It represents the maximum delay to let the response's platform flows execute properly in case of error during the previous phases.
+#      # It's configures a timeout from the max between (requestTimeout - api elapsed time) and requestTimeoutGraceDelay.
+#      requestTimeoutGraceDelay: 30
+#      secured: false
+#      alpn: false
+#      ssl:
+#        clientAuth: none # Supports none, request, required
+#        tlsProtocols: TLSv1.2, TLSv1.3
+#        tlsCiphers: TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
+#        keystore:
+#          type: jks # Supports jks, pem, pkcs12, self-signed
+#          path: ${gravitee.home}/security/keystore.jks # A path is required if certificate's type is jks or pkcs12
+#          password: secret
+#          watch: true # Watch for any updates on the keystore and reload it. Default is true.
+#          # The following is for type 'pem', report to 'secrets' section for other secret-provider plugins.
+#          # This method is now the preferred way for kubernetes: /namespace/secrets/my-tls-secret
+#          secret: secret://kubernetes/my-tls-secret
+#        truststore:
+#          type: jks # Supports jks, pem, pkcs12, pem-folder (for the latter watch supports added/updated/removed files)
+#          path: ${gravitee.home}/security/truststore.jks
+#          password: secret
+#          watch: true # Watch for any updates on the keystore and reload it. Default is true.
+#        sni: false
+#        openssl: false # Used to rely on OpenSSL Engine instead of default JDK SSL Engine
+#      websocket:
+#        enabled: false
+#        subProtocols: v10.stomp, v11.stomp, v12.stomp
+#        perMessageWebSocketCompressionSupported: true
+#        perFrameWebSocketCompressionSupported: true
+#        maxWebSocketFrameSize: 65536
+#        maxWebSocketMessageSize: 262144 # 4 full frames worth of data
+#      haproxy: # Support for https://www.haproxy.org/download/1.8/doc/proxy-protocol.txt
+#        proxyProtocol: false
+#        proxyProtocolTimeout: 10000
+#          # in the case of having multiple servers configured, this can be used for mapping the ports
+#      service:
+#        type: ClusterIP
+#        externalPort: 82
+#        # used only if the type of your service is "NodePort" and must be in the range 30000-32767
+#        # if not set a random port will be used in that range
+#        nodePort: 30082
+#        internalPortName: http
+#        appProtocol: http
+#      ingress:
+#        enabled: true
+#        pathType: Prefix
+#        path: /
+#        ingressClassName: ""
+#        # Used to create an Ingress record.
+#        # Multiple hostnames supported
+#        # - hosts:
+#        #     - chart-example.local
+#        #     - chart-example2.local
+#        hosts:
+#          - apim.example.com
+#        annotations:
+#          kubernetes.io/ingress.class: nginx
+#          nginx.ingress.kubernetes.io/ssl-redirect: "false"
+#          # nginx.ingress.kubernetes.io/configuration-snippet: "etag on;\nproxy_pass_header ETag;\nproxy_set_header if-match \"\";\n"
+#          # kubernetes.io/tls-acme: "true"
+##        tls:
+##          # Secrets must be manually created in the namespace.
+##          - hosts:
+##            - apim.example.com
+##            secretName: api-custom-cert
   http:
     maxHeaderSize: 8192
     maxChunkSize: 8192

@@ -25,6 +25,83 @@ data:
   {{- if not (include "gateway.externalConfig" .)}}
   gravitee.yml: |
     # Gateway HTTP server
+    {{- if .Values.gateway.servers }}
+    # add support for multi-servers (both http and tcp)
+    servers:
+      {{- range $i, $server := .Values.gateway.servers }}
+      - type: {{ $server.type }}
+        port: {{ $server.port }}
+        host: 0.0.0.0
+        {{- if $server.idleTimeout }}
+        idleTimeout: {{ $server.idleTimeout }}
+        {{- end }}
+        {{- if $server.tcpKeepAlive }}
+        tcpKeepAlive: {{ $server.tcpKeepAlive }}
+        {{- end }}
+        {{- if $server.compressionSupported }}
+        compressionSupported: {{ $server.compressionSupported }}
+        {{- end }}
+        {{- if $server.instances }}
+        instances: {{ $server.instances }}
+        {{- end }}
+        {{- if $server.requestTimeout }}
+        requestTimeout: {{ $server.requestTimeout }}
+        {{- end }}
+        {{- if $server.requestTimeoutGraceDelay }}
+        requestTimeoutGraceDelay: {{ $server.requestTimeoutGraceDelay }}
+        {{- end }}
+        {{- if $server.maxHeaderSize }}
+        maxHeaderSize: {{ $server.maxHeaderSize }}
+        {{- end }}
+        {{- if $server.maxChunkSize }}
+        maxChunkSize: {{ $server.maxChunkSize }}
+        {{- end }}
+        {{- if $server.maxInitialLineLength }}
+        maxInitialLineLength: {{ $server.maxInitialLineLength }}
+        {{- end }}
+        {{- if $server.maxFormAttributeSize }}
+        maxFormAttributeSize: {{ $server.maxFormAttributeSize }}
+        {{- end }}
+        {{- if $server.alpn }}
+        alpn: {{ $server.alpn | default "true" }}
+        {{- end }}
+        {{- if $server.ssl }}
+        secured: true
+        ssl:
+          keystore:
+            {{- if $server.ssl.keystore.type }}
+            type: {{ $server.ssl.keystore.type }}
+            {{- end }}
+            {{- if $server.ssl.keystore.path }}
+            path: {{ $server.ssl.keystore.path }}
+            {{- end }}
+            {{- if $server.ssl.keystore.password }}
+            password: {{ $server.ssl.keystore.password | quote }}
+            {{- end }}
+            {{- if $server.ssl.keystore.kubernetes }}
+            kubernetes: {{ $server.ssl.keystore.kubernetes }}
+            {{- end }}
+            {{- if hasKey $server.ssl.keystore "watch" }}
+            watch: {{ $server.ssl.keystore.watch }}
+            {{- end }}
+          clientAuth: {{ $server.ssl.clientAuth }}
+          {{- if $server.ssl.truststore }}
+          truststore:
+            {{- if $server.ssl.truststore.type }}
+            type: {{ $server.ssl.truststore.type }}
+            {{- end }}
+            path: {{ $server.ssl.truststore.path }}
+            password: {{ $server.ssl.truststore.password | quote }}
+          {{- end }}
+          {{- if $server.ssl.sni }}
+          sni: true
+          {{- end }}
+        {{- end }}
+        {{- if $server.websocket }}
+        websocket: {{ toYaml $server.websocket | nindent 10 }}
+        {{- end }}
+    {{- end }}
+    {{- else }}
     http:
       port: {{ .Values.gateway.service.internalPort }}
       host: 0.0.0.0
@@ -73,6 +150,7 @@ data:
       {{- end }}
       websocket:
         enabled: {{ .Values.gateway.websocket }}
+    {{- end }}
     management:
     {{- if .Values.gateway.dbLess }}
       type: {{ "none" }}

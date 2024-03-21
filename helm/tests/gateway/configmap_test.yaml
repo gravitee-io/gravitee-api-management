@@ -21,3 +21,28 @@ tests:
                      *   type: PKCS12\n
                      *   path: /p12/keystore\n
                      *   password: password\n"
+
+  - it: Check multi server support
+    template: gateway/gateway-configmap.yaml
+    set:
+      gateway:
+        servers:
+          - type: http
+            port: 8082
+          - type: http
+            port: 8083
+          - type: tcp
+            port: 9092
+    asserts:
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: " *servers:\n
+                     * - type: http\n
+                     *   port: 8082\n
+                     *   host: 0.0.0.0\n
+                     * - type: http\n
+                     *   port: 8083\n
+                     *   host: 0.0.0.0\n
+                     * - type: tcp\n
+                     *   port: 9092\n
+                     *   host: 0.0.0.0\n"

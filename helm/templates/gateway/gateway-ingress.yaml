@@ -1,10 +1,70 @@
-{{- if .Values.gateway.enabled -}}
-{{- if .Values.gateway.ingress.enabled -}}
+{{- if and .Values.gateway.enabled (not .Values.gateway.ingressController.enabled) -}}
 {{- $serviceGWName := include "gravitee.gateway.fullname" . -}}
+{{- $graviteeName := include "gravitee.name" . -}}
 {{- $serviceGWPort := .Values.gateway.service.externalPort -}}
 {{- $ingressPath   := .Values.gateway.ingress.path -}}
 {{- $ingressPathType   := .Values.gateway.ingress.pathType -}}
 {{- $apiVersion := include "common.capabilities.ingress.apiVersion" . -}}
+{{- $supportsIngressClassname := include "common.ingress.supportsIngressClassname" . -}}
+{{- if .Values.gateway.servers }}
+{{- range $i, $server := .Values.gateway.servers }}
+{{- if and $server.ingress $server.ingress.enabled }}
+---
+apiVersion: {{ $apiVersion }}
+kind: Ingress
+metadata:
+  name: {{ printf "%s-%d" $serviceGWName $i }}
+  labels:
+    app.kubernetes.io/name: {{ $graviteeName }}
+    app.kubernetes.io/instance: {{ $.Release.Name }}
+    app.kubernetes.io/version: {{ $.Values.gateway.image.tag | default $.Chart.AppVersion | quote }}
+    app.kubernetes.io/component: "{{ $.Values.gateway.name }}"
+    app.kubernetes.io/managed-by: {{ $.Release.Service }}
+    helm.sh/chart: {{ $.Chart.Name }}-{{ $.Chart.Version | replace "+" "_" }}
+    {{- if and $.Values.common $.Values.common.labels }}
+    {{- range $key, $value := $.Values.common.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+  annotations:
+    {{- if $server.ingress.annotations }}
+    {{- include "common.ingress.annotations.render" (dict "annotations" $server.ingress.annotations "ingressClassName" $server.ingress.ingressClassName "openshift" $.Values.openshift "context" $) | nindent 4 }}
+    {{- end }}
+    {{- if and $.Values.common $.Values.common.annotations }}
+    {{- range $key, $value := $.Values.common.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
+spec:
+  {{- if and (eq $supportsIngressClassname "true") ($server.ingress.ingressClassName) (ne $server.ingress.ingressClassName "none") }}
+  ingressClassName: {{ $server.ingress.ingressClassName | quote }}
+  {{- end }}
+  rules:
+  {{- range $host := $server.ingress.hosts }}
+  - host: {{ $host | quote }}
+    http:
+      paths:
+      - pathType: {{ $server.ingress.pathType }}
+        path: {{ $server.ingress.path }}
+        backend:
+      {{- if (eq $apiVersion "networking.k8s.io/v1") }}
+          service:
+            name: {{ $serviceGWName }}
+            port:
+              number: {{ $server.port }}
+      {{ else }}
+          serviceName: {{ $serviceGWName }}
+          servicePort: {{ $server.port }}
+      {{- end -}}
+  {{- end -}}
+  {{- if $server.ingress.tls }}
+  tls:
+{{ toYaml $server.ingress.tls | indent 4 }}
+{{- end -}}
+{{- end }}
+{{- end }}
+{{- else }}
+{{- if .Values.gateway.ingress.enabled -}}
 apiVersion: {{ $apiVersion }}
 kind: Ingress
 metadata:
@@ -57,4 +117,5 @@ spec:
 {{ toYaml .Values.gateway.ingress.tls | indent 4 }}
   {{- end -}}
 {{- end -}}
+{{- end }}
 {{- end -}}
