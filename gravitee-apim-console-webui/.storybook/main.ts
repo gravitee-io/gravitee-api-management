@@ -1,4 +1,6 @@
-module.exports = {
+import { StorybookConfig } from '@storybook/angular';
+
+const config: StorybookConfig = {
   framework: {
     name: '@storybook/angular',
 
@@ -6,22 +8,23 @@ module.exports = {
       enableIvy: true,
     },
   },
-
   stories: ['../src/**/*.stories.@(ts|mdx)'],
   addons: ['@storybook/addon-essentials'],
-
   features: {
     previewCsfV3: true,
     storyStoreV7: true,
     postcss: false,
   },
-
   webpackFinal: async (config) => {
     config.optimization.minimize = false;
     return config;
   },
-
-  previewHead: (head) =>
-    `${head}
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">`,
+  staticDirs: [
+    {
+      from: '../node_modules/@gravitee/ui-particles-angular/assets',
+      to: '/assets',
+    },
+  ],
 };
+
+export default config;
