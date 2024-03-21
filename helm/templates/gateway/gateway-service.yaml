@@ -1,4 +1,6 @@
 {{- if .Values.gateway.enabled -}}
+{{- $gatewayName := .Values.gateway.name | trunc 63 | trimSuffix "-"}}
+{{- $appPrototcolSupported := (include "common.service.supportsAppProtocol" .)}}
 apiVersion: v1
 kind: Service
 metadata:
@@ -35,6 +37,24 @@ spec:
   externalTrafficPolicy: {{ .Values.gateway.service.externalTrafficPolicy }}
   {{- end }}
   ports:
+    {{- if .Values.gateway.servers }}
+    {{- range $i, $server := .Values.gateway.servers }}
+    - port: {{ $server.service.externalPort }}
+      targetPort: {{ $server.port }}
+      {{- if eq $server.service.type "NodePort" }}
+      {{- if $server.service.nodePort }}
+      nodePort: {{ $server.service.nodePort }}
+      {{- end }}
+      {{- end }}
+      protocol: TCP
+      {{- if $appPrototcolSupported }}
+      {{ if $server.service.appProtocol }}
+      appProtocol: {{ $server.service.appProtocol }}
+      {{ end }}
+      {{- end }}
+      name: {{ printf "%s-%d" ($gatewayName | trunc 60 | trimSuffix "-") $i}}
+    {{- end }}
+    {{- else }}
     - port: {{ .Values.gateway.service.externalPort }}
       targetPort: {{ .Values.gateway.service.internalPort }}
       {{- if eq .Values.gateway.service.type "NodePort" }}
@@ -43,7 +63,7 @@ spec:
       {{- end }}
       {{- end }}
       protocol: TCP
-      {{- if (include "common.service.supportsAppProtocol" .) }}
+      {{- if $appPrototcolSupported }}
       {{ if .Values.gateway.service.appProtocol }}
       appProtocol: {{ .Values.gateway.service.appProtocol }}
       {{ else if .Values.gateway.ssl.enabled }}
@@ -52,7 +72,8 @@ spec:
       appProtocol: http
       {{ end }}
       {{- end }}
-      name: {{ .Values.gateway.name | trunc 63 | trimSuffix "-" }}
+      name: {{ $gatewayName }}
+    {{- end }}
     {{- if .Values.gateway.services.bridge.enabled }}
     - port: {{ .Values.gateway.services.bridge.service.externalPort }}
       targetPort: {{ .Values.gateway.services.bridge.service.internalPort }}

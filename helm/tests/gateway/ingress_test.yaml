@@ -16,6 +16,15 @@ tests:
       - isEmpty:
           path: spec.ingressClassName
 
+  - it: Check Ingress not enabled if gateway is an Ingress Controller
+    set:
+      gateway:
+        ingressController:
+          enabled: true
+    asserts:
+      - hasDocuments:
+          count: 0
+
   - it: Check Ingress networking.k8s.io/v1beta1
     set:
       global:
@@ -144,3 +153,29 @@ tests:
       - equal:
           path: spec.rules[0].host
           value: "*.apim.example.com"
+
+  - it: Check multi-server, multi-service settings
+    set:
+      gateway:
+        servers:
+          - type: http
+            port: 8080
+            ingress:
+              enabled: true
+              pathType: Prefix
+              path: /test-gateway
+              hosts:
+                - apim.example.com
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Ingress
+      - isAPIVersion:
+          of: networking.k8s.io/v1
+      - equal:
+          path: spec.rules[0].http.paths[0].pathType
+          value: Prefix
+      - equal:
+          path: spec.rules[0].http.paths[0].path
+          value: /test-gateway

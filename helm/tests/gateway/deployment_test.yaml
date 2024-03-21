@@ -288,3 +288,30 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].securityContext.runAsNonRoot
           value: true
+
+  - it: Multi-server setup
+    template: gateway/gateway-deployment.yaml
+    set:
+      gateway:
+        servers:
+          - type: http
+            port: 8080
+          - type: tcp
+            port: 9090
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.spec.containers[0].ports[0].name
+          value: http-0
+      - equal:
+          path: spec.template.spec.containers[0].ports[0].containerPort
+          value: 8080
+      - equal:
+          path: spec.template.spec.containers[0].ports[1].name
+          value: tcp-1
+      - equal:
+          path: spec.template.spec.containers[0].ports[1].containerPort
+          value: 9090

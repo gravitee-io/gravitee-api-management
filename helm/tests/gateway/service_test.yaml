@@ -26,6 +26,38 @@ tests:
             name: gateway
             appProtocol: http
 
+  - it: Check multi-server, multi-service settings
+    template: gateway/gateway-service.yaml
+    set:
+      gateway:
+        servers:
+          - type: http
+            port: 8080
+            service:
+              type: ClusterIP
+              externalPort: 80
+              appProtocol: http
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Service
+      - isAPIVersion:
+          of: v1
+      - equal:
+          path: spec.type
+          value: ClusterIP
+      - isNull:
+          path: spec.externalTrafficPolicy
+      - contains:
+          path: spec.ports
+          content:
+            appProtocol: http
+            name: gateway-0
+            port: 80
+            protocol: TCP
+            targetPort: 8080
+
   - it: Check service with custom appProtocol
     template: gateway/gateway-service.yaml
     set:
