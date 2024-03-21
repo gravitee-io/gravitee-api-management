@@ -27,12 +27,17 @@ import io.gravitee.rest.api.idp.core.authentication.impl.CompositeIdentityManage
 import io.gravitee.rest.api.idp.core.plugin.IdentityProviderDefinition;
 import io.gravitee.rest.api.idp.core.plugin.IdentityProviderManager;
 import java.util.*;
+import javax.annotation.Nonnull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.core.convert.converter.ConverterFactory;
+import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.env.StandardEnvironment;
@@ -130,7 +135,21 @@ public class IdentityProviderManagerImpl implements IdentityProviderManager {
                             protected void customizePropertySources(MutablePropertySources propertySources) {
                                 propertySources.addFirst(new RelaxedPropertySource(plugin.id(), properties));
                                 super.customizePropertySources(propertySources);
-                                this.getConversionService().addConverter(Secret.class, byte[].class, Secret::asBytes);
+
+                                // add missing converters in this newly created environment
+                                // this syntax allows a property of any kind to be converted from a secret. eg. Secret +> String -> Double
+                                this.getConversionService()
+                                    .addConverterFactory(
+                                        new ConverterFactory<Secret, Object>() {
+                                            final ConversionService conversionService = DefaultConversionService.getSharedInstance();
+
+                                            @Nonnull
+                                            public <C> Converter<Secret, C> getConverter(@Nonnull Class<C> targetType) {
+                                                return source -> conversionService.convert(source.asString(), targetType);
+                                            }
+                                        }
+                                    );
+                                // byte[] has to be created separately
                                 this.getConversionService().addConverter(Secret.class, String.class, Secret::asString);
                             }
                         };
