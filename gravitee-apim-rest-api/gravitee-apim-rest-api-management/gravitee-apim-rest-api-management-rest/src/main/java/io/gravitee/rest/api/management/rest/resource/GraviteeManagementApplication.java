@@ -95,6 +95,7 @@ public class GraviteeManagementApplication extends ResourceConfig {
         register(NotAllowedExceptionMapper.class);
         register(BadRequestExceptionMapper.class);
         register(EnumParamConverterProvider.class);
+        register(JsonMappingExceptionMapper.class);
 
         register(SecurityContextFilter.class);
         register(PermissionsFilter.class);
