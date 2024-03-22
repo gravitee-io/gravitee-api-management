@@ -17,8 +17,8 @@ package io.gravitee.apim.core.api.domain_service;
 
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService.ApiMetadataDecodeContext;
-import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService.PrimaryOwnerMetadataDecodeContext;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.documentation.model.PrimaryOwnerApiTemplateData;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.search.Indexer;
 import io.gravitee.apim.core.search.model.IndexableApi;
@@ -45,7 +45,7 @@ public class ApiIndexerDomainService {
                 .createdAt(Date.from(apiToIndex.getCreatedAt().toInstant()))
                 .updatedAt(Date.from(apiToIndex.getUpdatedAt().toInstant()))
                 .primaryOwner(
-                    new PrimaryOwnerMetadataDecodeContext(
+                    new PrimaryOwnerApiTemplateData(
                         primaryOwner.id(),
                         primaryOwner.displayName(),
                         primaryOwner.email(),

@@ -22,6 +22,7 @@ import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService.ApiMetadataDecodeContext;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
+import io.gravitee.apim.core.documentation.model.PrimaryOwnerApiTemplateData;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.search.model.IndexableApi;
 import io.gravitee.apim.core.search.model.IndexablePage;
@@ -211,7 +212,7 @@ public class SearchEngineServiceImpl implements SearchEngineService {
                         .createdAt(Date.from(api.getCreatedAt().toInstant()))
                         .updatedAt(Date.from(api.getUpdatedAt().toInstant()))
                         .primaryOwner(
-                            new ApiMetadataDecoderDomainService.PrimaryOwnerMetadataDecodeContext(
+                            new PrimaryOwnerApiTemplateData(
                                 primaryOwner.id(),
                                 primaryOwner.displayName(),
                                 primaryOwner.email(),

@@ -17,7 +17,7 @@ package io.gravitee.apim.infra.notification.internal;
 
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService.ApiMetadataDecodeContext;
-import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService.PrimaryOwnerMetadataDecodeContext;
+import io.gravitee.apim.core.documentation.model.PrimaryOwnerApiTemplateData;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApplicationPrimaryOwnerDomainService;
 import io.gravitee.apim.core.notification.model.ApiNotificationTemplateData;
@@ -117,7 +117,7 @@ public class TemplateDataFetcher {
                             .createdAt(api.getCreatedAt())
                             .updatedAt(api.getUpdatedAt())
                             .primaryOwner(
-                                new PrimaryOwnerMetadataDecodeContext(
+                                new PrimaryOwnerApiTemplateData(
                                     apiPrimaryOwner.id(),
                                     apiPrimaryOwner.displayName(),
                                     apiPrimaryOwner.email(),

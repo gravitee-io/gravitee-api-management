@@ -22,11 +22,12 @@ import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.v4.ApiType;
 import java.util.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 public class ApiFreemarkerTemplate {
 
     private String id;
