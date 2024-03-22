@@ -55,6 +55,7 @@ public class GraviteePortalApplication extends ResourceConfig {
         register(NotAllowedExceptionMapper.class);
         register(BadRequestExceptionMapper.class);
         register(QueryParamExceptionMapper.class);
+        register(JsonMappingExceptionMapper.class);
 
         register(SecurityContextFilter.class);
         register(GraviteeContextRequestFilter.class);
