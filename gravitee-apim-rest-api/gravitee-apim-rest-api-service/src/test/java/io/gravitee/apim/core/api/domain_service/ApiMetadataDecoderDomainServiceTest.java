@@ -19,11 +19,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import inmemory.ApiMetadataQueryServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService.ApiMetadataDecodeContext;
-import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService.PrimaryOwnerMetadataDecodeContext;
 import io.gravitee.apim.core.api.model.ApiMetadata;
+import io.gravitee.apim.core.documentation.model.PrimaryOwnerApiTemplateData;
 import io.gravitee.apim.core.metadata.model.Metadata;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
-import io.gravitee.rest.api.model.MetadataFormat;
 import java.sql.Date;
 import java.time.Instant;
 import java.util.List;
@@ -41,9 +40,7 @@ class ApiMetadataDecoderDomainServiceTest {
         .description("api-description")
         .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
         .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
-        .primaryOwner(
-            PrimaryOwnerMetadataDecodeContext.builder().displayName("Jane Doe").email("jane.doe@gravitee.io").type("USER").build()
-        )
+        .primaryOwner(PrimaryOwnerApiTemplateData.builder().displayName("Jane Doe").email("jane.doe@gravitee.io").type("USER").build())
         .build();
 
     ApiMetadataQueryServiceInMemory apiMetadataQueryService = new ApiMetadataQueryServiceInMemory();
