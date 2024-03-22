@@ -19,6 +19,7 @@ import io.gravitee.rest.api.portal.rest.mapper.ObjectMapperResolver;
 import io.gravitee.rest.api.portal.rest.provider.BadRequestExceptionMapper;
 import io.gravitee.rest.api.portal.rest.provider.ByteArrayOutputStreamWriter;
 import io.gravitee.rest.api.portal.rest.provider.ConstraintValidationExceptionMapper;
+import io.gravitee.rest.api.portal.rest.provider.JsonMappingExceptionMapper;
 import io.gravitee.rest.api.portal.rest.provider.ManagementExceptionMapper;
 import io.gravitee.rest.api.portal.rest.provider.NotAllowedExceptionMapper;
 import io.gravitee.rest.api.portal.rest.provider.NotFoundExceptionMapper;
@@ -67,6 +68,7 @@ public class GraviteePortalApplication extends ResourceConfig {
         register(NotAllowedExceptionMapper.class);
         register(BadRequestExceptionMapper.class);
         register(QueryParamExceptionMapper.class);
+        register(JsonMappingExceptionMapper.class);
 
         register(SecurityContextFilter.class);
         register(GraviteeContextResponseFilter.class);
