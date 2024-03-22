@@ -18,7 +18,7 @@ import faker from '@faker-js/faker';
 import { NewApplicationEntity } from '@gravitee/management-webclient-sdk/src/lib/models/NewApplicationEntity';
 
 export class ApplicationsFaker {
-  static newApplication(attributes?: Partial<NewApiEntity>): NewApplicationEntity {
+  static newApplication(attributes?: Partial<NewApplicationEntity>): NewApplicationEntity {
     const name = faker.commerce.productName();
     const description = faker.commerce.productDescription();
 

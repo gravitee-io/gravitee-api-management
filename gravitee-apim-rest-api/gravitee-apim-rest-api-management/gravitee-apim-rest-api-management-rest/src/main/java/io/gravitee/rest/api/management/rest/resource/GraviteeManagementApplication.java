@@ -29,8 +29,6 @@ import io.swagger.models.Model;
 import io.swagger.models.properties.LongProperty;
 import io.swagger.models.properties.Property;
 import io.swagger.util.Json;
-import io.swagger.v3.jaxrs2.SwaggerSerializers;
-import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.Date;
@@ -95,6 +93,7 @@ public class GraviteeManagementApplication extends ResourceConfig {
         register(NotAllowedExceptionMapper.class);
         register(BadRequestExceptionMapper.class);
         register(EnumParamConverterProvider.class);
+        register(JsonMappingExceptionMapper.class);
 
         register(SecurityContextFilter.class);
         register(PermissionsFilter.class);
