@@ -21,6 +21,7 @@ import io.gravitee.rest.api.management.rest.provider.BadRequestExceptionMapper;
 import io.gravitee.rest.api.management.rest.provider.ByteArrayOutputStreamWriter;
 import io.gravitee.rest.api.management.rest.provider.ConstraintValidationExceptionMapper;
 import io.gravitee.rest.api.management.rest.provider.EnumParamConverterProvider;
+import io.gravitee.rest.api.management.rest.provider.JsonMappingExceptionMapper;
 import io.gravitee.rest.api.management.rest.provider.ManagementExceptionMapper;
 import io.gravitee.rest.api.management.rest.provider.NotAllowedDomainExceptionMapper;
 import io.gravitee.rest.api.management.rest.provider.NotAllowedExceptionMapper;
@@ -120,6 +121,7 @@ public class GraviteeManagementApplication extends ResourceConfig {
         register(NotAllowedDomainExceptionMapper.class);
         register(NotFoundDomainExceptionMapper.class);
         register(TechnicalDomainExceptionMapper.class);
+        register(JsonMappingExceptionMapper.class);
 
         register(SecurityContextFilter.class);
         register(PermissionsFilter.class);
