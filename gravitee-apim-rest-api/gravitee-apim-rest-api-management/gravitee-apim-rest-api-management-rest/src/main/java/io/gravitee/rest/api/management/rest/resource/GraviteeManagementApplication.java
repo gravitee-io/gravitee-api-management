@@ -49,7 +49,10 @@ import io.swagger.models.Model;
 import io.swagger.models.properties.LongProperty;
 import io.swagger.models.properties.Property;
 import io.swagger.util.Json;
+<<<<<<< HEAD
 import jakarta.inject.Inject;
+=======
+>>>>>>> 48ad60c635 (fix: handle json mapping exception to throw only detail message without stack trace)
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.Date;
@@ -116,10 +119,14 @@ public class GraviteeManagementApplication extends ResourceConfig {
         register(NotAllowedExceptionMapper.class);
         register(BadRequestExceptionMapper.class);
         register(EnumParamConverterProvider.class);
+<<<<<<< HEAD
         register(ValidationDomainExceptionMapper.class);
         register(NotAllowedDomainExceptionMapper.class);
         register(NotFoundDomainExceptionMapper.class);
         register(TechnicalDomainExceptionMapper.class);
+=======
+        register(JsonMappingExceptionMapper.class);
+>>>>>>> 48ad60c635 (fix: handle json mapping exception to throw only detail message without stack trace)
 
         register(SecurityContextFilter.class);
         register(PermissionsFilter.class);
