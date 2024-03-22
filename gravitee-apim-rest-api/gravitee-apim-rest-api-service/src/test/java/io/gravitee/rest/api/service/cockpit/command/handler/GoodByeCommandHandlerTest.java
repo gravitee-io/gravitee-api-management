@@ -26,6 +26,7 @@ import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.exchange.api.command.CommandStatus;
 import io.gravitee.exchange.api.command.goodbye.GoodByeCommand;
+import io.gravitee.exchange.api.command.goodbye.GoodByeCommandPayload;
 import io.gravitee.exchange.api.command.goodbye.GoodByeReply;
 import io.gravitee.rest.api.model.InstallationEntity;
 import io.gravitee.rest.api.model.promotion.PromotionEntity;
@@ -74,12 +75,12 @@ public class GoodByeCommandHandlerTest {
     }
 
     @Test
-    public void handle() throws InterruptedException {
+    public void should_handle() throws InterruptedException {
         final InstallationEntity installation = new InstallationEntity();
         installation.setId(INSTALLATION_ID);
         installation.getAdditionalInformation().put(CUSTOM_KEY, CUSTOM_VALUE);
 
-        GoodByeCommand command = new GoodByeCommand();
+        GoodByeCommand command = new GoodByeCommand(new GoodByeCommandPayload(INSTALLATION_ID, false));
 
         when(installationService.getOrInitialize()).thenReturn(installation);
         when(promotionService.search(any(), any(), any())).thenReturn(new Page<>(emptyList(), 0, 0, 0));
@@ -96,12 +97,24 @@ public class GoodByeCommandHandlerTest {
     }
 
     @Test
-    public void handleWithException() throws InterruptedException {
+    public void should_not_handle_with_reconnect_true() throws InterruptedException {
+        GoodByeCommand command = new GoodByeCommand(new GoodByeCommandPayload(INSTALLATION_ID, true));
+
+        TestObserver<GoodByeReply> obs = cut.handle(command).test();
+
+        obs.await();
+        obs.assertValue(reply -> reply.getCommandId().equals(command.getId()) && reply.getCommandStatus().equals(CommandStatus.SUCCEEDED));
+
+        verifyNoInteractions(installationService);
+    }
+
+    @Test
+    public void should_reply_on_error_with_exception() throws InterruptedException {
         final InstallationEntity installation = new InstallationEntity();
         installation.setId(INSTALLATION_ID);
         installation.getAdditionalInformation().put(CUSTOM_KEY, CUSTOM_VALUE);
 
-        GoodByeCommand command = new GoodByeCommand();
+        GoodByeCommand command = new GoodByeCommand(new GoodByeCommandPayload(INSTALLATION_ID, false));
 
         when(installationService.getOrInitialize()).thenReturn(installation);
         when(installationService.setAdditionalInformation(anyMap())).thenThrow(new TechnicalManagementException());
@@ -114,12 +127,12 @@ public class GoodByeCommandHandlerTest {
     }
 
     @Test
-    public void handleRejectAllPromotionToValidate() throws InterruptedException {
+    public void should_handle_and_reject_all_promotion_to_validate() throws InterruptedException {
         final InstallationEntity installation = new InstallationEntity();
         installation.setId(INSTALLATION_ID);
         installation.getAdditionalInformation().put(CUSTOM_KEY, CUSTOM_VALUE);
 
-        GoodByeCommand command = new GoodByeCommand();
+        GoodByeCommand command = new GoodByeCommand(new GoodByeCommandPayload(INSTALLATION_ID, false));
 
         when(installationService.getOrInitialize()).thenReturn(installation);
 

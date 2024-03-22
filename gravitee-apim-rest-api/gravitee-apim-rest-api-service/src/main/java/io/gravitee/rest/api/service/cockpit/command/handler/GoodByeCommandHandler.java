@@ -50,14 +50,14 @@ public class GoodByeCommandHandler implements CommandHandler<GoodByeCommand, Goo
 
     @Override
     public Single<GoodByeReply> handle(GoodByeCommand command) {
-        final Map<String, String> additionalInformation = this.installationService.getOrInitialize().getAdditionalInformation();
-        additionalInformation.put(InstallationService.COCKPIT_INSTALLATION_STATUS, DELETED_STATUS);
-
-        rejectAllPromotionToValidate();
-
         try {
-            this.installationService.setAdditionalInformation(additionalInformation);
-            log.info("Installation status is [{}].", DELETED_STATUS);
+            if (!command.getPayload().isReconnect()) {
+                final Map<String, String> additionalInformation = this.installationService.getOrInitialize().getAdditionalInformation();
+                additionalInformation.put(InstallationService.COCKPIT_INSTALLATION_STATUS, DELETED_STATUS);
+                rejectAllPromotionToValidate();
+                this.installationService.setAdditionalInformation(additionalInformation);
+                log.info("Installation status is [{}].", DELETED_STATUS);
+            }
             return Single.just(new GoodByeReply(command.getId(), new GoodByeReplyPayload()));
         } catch (Exception ex) {
             String errorDetails = "Error occurred when deleting installation.";
