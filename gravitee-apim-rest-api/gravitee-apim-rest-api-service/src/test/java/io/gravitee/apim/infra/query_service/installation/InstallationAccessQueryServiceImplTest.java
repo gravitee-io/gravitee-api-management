@@ -77,7 +77,7 @@ class InstallationAccessQueryServiceImplTest {
         cut.afterPropertiesSet();
         assertThat(cut.getConsoleAPIUrl(DEFAULT_ORGANIZATION_ID)).isNull();
         assertThat(cut.getPortalAPIUrl(DEFAULT_ORGANIZATION_ID)).isNull();
-        assertThat(cut.getConsoleUrl(DEFAULT_ORGANIZATION_ID)).isEqualTo("http://localhost:3000");
+        assertThat(cut.getConsoleUrl(DEFAULT_ORGANIZATION_ID)).isEqualTo("http://localhost:4000");
         assertThat(cut.getPortalUrl(DEFAULT_ORGANIZATION_ID)).isEqualTo("http://localhost:4100");
     }
 
