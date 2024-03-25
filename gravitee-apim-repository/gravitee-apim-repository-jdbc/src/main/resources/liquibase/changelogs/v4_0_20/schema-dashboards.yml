@@ -2,6 +2,7 @@ databaseChangeLog:
   - changeSet:
       id: 4.0.20-dashboards
       author: GraviteeSource Team
+      runOnChange: true
       changes:
         # ################
         # Dashboards changes
@@ -12,9 +13,11 @@ databaseChangeLog:
               - column:
                   name: type
                   type: nvarchar(64)
-                  constraints:
-                    nullable: false
         - sql:
             sql: update ${gravitee_prefix}dashboards set type = reference_type
+        - addNotNullConstraint:
+            tableName: ${gravitee_prefix}dashboards
+            columnName: type
+            defaultNullValue: PLATFORM
         - sql:
             sql: update ${gravitee_prefix}dashboards set reference_type = 'ENVIRONMENT'
