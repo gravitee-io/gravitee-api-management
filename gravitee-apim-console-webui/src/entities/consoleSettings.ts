@@ -30,6 +30,7 @@ export interface ConsoleSettings {
   emulateV4Engine?: ConsoleSettingsV4EmulationEngine;
   alertEngine?: ConsoleSettingsAlertEngine;
   licenseExpirationNotification?: ConsoleSettingsLicenseExpirationNotification;
+  trialInstance?: ConsoleSettingsTrialInstance;
 }
 
 export interface ConsoleSettingsEmail {
@@ -164,5 +165,9 @@ export interface ConsoleSettingsAlertEngine {
 }
 
 export interface ConsoleSettingsLicenseExpirationNotification {
+  enabled?: boolean;
+}
+
+export interface ConsoleSettingsTrialInstance {
   enabled?: boolean;
 }
