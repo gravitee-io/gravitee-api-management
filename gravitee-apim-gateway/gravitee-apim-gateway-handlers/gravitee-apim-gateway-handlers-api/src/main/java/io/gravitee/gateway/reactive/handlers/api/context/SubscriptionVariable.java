@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.reactive.handlers.api.context;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.gateway.api.service.Subscription;
 import java.util.Map;
 import lombok.AllArgsConstructor;
@@ -28,14 +29,17 @@ public class SubscriptionVariable {
 
     private final Subscription subscription;
 
+    @JsonProperty
     public String getId() {
         return this.subscription.getId();
     }
 
+    @JsonProperty
     public Subscription.Type getType() {
         return this.subscription.getType();
     }
 
+    @JsonProperty
     public Map<String, String> getMetadata() {
         return this.subscription.getMetadata();
     }

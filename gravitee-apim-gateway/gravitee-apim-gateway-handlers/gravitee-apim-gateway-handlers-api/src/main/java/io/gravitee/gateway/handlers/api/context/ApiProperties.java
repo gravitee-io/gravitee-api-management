@@ -15,33 +15,36 @@
  */
 package io.gravitee.gateway.handlers.api.context;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.gravitee.gateway.handlers.api.definition.Api;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-class ApiProperties {
+@RequiredArgsConstructor
+public class ApiProperties {
 
     private final Api api;
 
-    ApiProperties(final Api api) {
-        this.api = api;
-    }
-
+    @JsonProperty
     public String getId() {
         return this.api.getId();
     }
 
+    @JsonProperty
     public String getName() {
         return this.api.getName();
     }
 
+    @JsonProperty
     public String getVersion() {
         return this.api.getApiVersion();
     }
 
+    @JsonProperty
     public Map<String, String> getProperties() {
         return this.api.getDefinition().getProperties().getValues();
     }

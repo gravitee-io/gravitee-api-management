@@ -74,6 +74,13 @@
 			<artifactId>gravitee-expression-language</artifactId>
 		</dependency>
 
+		<!-- APIM Expression Language Schema -->
+		<dependency>
+			<groupId>io.gravitee.apim</groupId>
+			<artifactId>gravitee-apim-el</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
 		<!-- Spring dependencies -->
 		<dependency>
 			<groupId>org.springframework</groupId>
