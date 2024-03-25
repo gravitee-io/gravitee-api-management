@@ -136,6 +136,7 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
         enhanceFromConfigFile(consoleConfigEntity);
 
         enhanceFromRepository(executionContext, consoleConfigEntity);
+        hideForTrialInstance(consoleConfigEntity);
 
         return consoleConfigEntity;
     }
@@ -309,6 +310,12 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
         }
     }
 
+    private void hideForTrialInstance(final ConsoleSettingsEntity consoleConfigEntity) {
+        if (Boolean.TRUE.equals(consoleConfigEntity.getTrialInstance().getEnabled())) {
+            consoleConfigEntity.setEmail(null);
+        }
+    }
+
     @Override
     public void save(ExecutionContext executionContext, PortalSettingsEntity portalSettingsEntity) {
         Object[] objects = getObjectArray(portalSettingsEntity);
@@ -318,7 +325,21 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
     @Override
     public void save(ExecutionContext executionContext, ConsoleSettingsEntity consoleSettingsEntity) {
         Object[] objects = getObjectArray(consoleSettingsEntity);
-        saveConfigByReference(executionContext, objects, executionContext.getOrganizationId(), ParameterReferenceType.ORGANIZATION);
+        saveConfigByReference(
+            executionContext,
+            objects,
+            executionContext.getOrganizationId(),
+            ParameterReferenceType.ORGANIZATION,
+            isTrialInstance(consoleSettingsEntity)
+        );
+    }
+
+    private boolean isTrialInstance(ConsoleSettingsEntity consoleSettings) {
+        return (
+            consoleSettings.getTrialInstance() != null &&
+            consoleSettings.getTrialInstance().getEnabled() != null &&
+            consoleSettings.getTrialInstance().getEnabled()
+        );
     }
 
     private void saveConfigByReference(
@@ -327,10 +348,24 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
         String referenceId,
         ParameterReferenceType referenceType
     ) {
+        saveConfigByReference(executionContext, objects, referenceId, referenceType, false);
+    }
+
+    private void saveConfigByReference(
+        ExecutionContext executionContext,
+        Object[] objects,
+        String referenceId,
+        ParameterReferenceType referenceType,
+        boolean isTrialInstance
+    ) {
         for (Object o : objects) {
             for (Field f : o.getClass().getDeclaredFields()) {
                 ParameterKey parameterKey = f.getAnnotation(ParameterKey.class);
                 if (parameterKey != null) {
+                    // do not save parameters that are hidden for trial instances
+                    if (isTrialInstance && parameterKey.value().isHiddenForTrial()) {
+                        continue;
+                    }
                     boolean accessible = f.isAccessible();
                     f.setAccessible(true);
                     try {
@@ -442,6 +477,11 @@ public class ConfigServiceImpl extends AbstractService implements ConfigService 
             consoleConfigEntity.getNewsletter(),
             consoleConfigEntity.getV4EmulationEngine(),
             consoleConfigEntity.getAlertEngine(),
+<<<<<<< HEAD
+=======
+            consoleConfigEntity.getLicenseExpirationNotification(),
+            consoleConfigEntity.getTrialInstance(),
+>>>>>>> 6a6c2d18e3 (fix: prevent emails to be sent to non opted in user in trial instance)
         };
     }
 }

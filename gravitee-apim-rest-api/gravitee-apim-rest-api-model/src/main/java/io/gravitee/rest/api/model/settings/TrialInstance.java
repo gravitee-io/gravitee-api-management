@@ -13,19 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.notifiers;
+package io.gravitee.rest.api.model.settings;
 
-import io.gravitee.repository.management.model.GenericNotificationConfig;
-import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.notification.Hook;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import io.gravitee.rest.api.model.annotations.ParameterKey;
+import io.gravitee.rest.api.model.parameters.Key;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
- * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
+ * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
  * @author GraviteeSource Team
  */
-public interface EmailNotifierService {
-    void trigger(ExecutionContext executionContext, final Hook hook, final Map<String, Object> templateData, Collection<String> recipients);
+@Getter
+@Setter
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class TrialInstance {
+
+    @ParameterKey(Key.TRIAL_INSTANCE)
+    private Boolean enabled;
 }

@@ -259,17 +259,21 @@ public enum Key {
     ),
     PORTAL_HTTP_CORS_MAX_AGE("http.api.portal.cors.max-age", "1728000", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
 
-    EMAIL_ENABLED("email.enabled", "false", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
-    EMAIL_HOST("email.host", "smtp.my.domain", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
-    EMAIL_PORT("email.port", "587", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
-    EMAIL_USERNAME("email.username", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
-    EMAIL_PASSWORD("email.password", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
-    EMAIL_PROTOCOL("email.protocol", "smtp", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
-    EMAIL_SUBJECT("email.subject", "[Gravitee.io] %s", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
-    EMAIL_FROM("email.from", "noreply@my.domain", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
-    EMAIL_PROPERTIES_AUTH_ENABLED("email.properties.auth", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
-    EMAIL_PROPERTIES_STARTTLS_ENABLE("email.properties.starttls.enable", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
-    EMAIL_PROPERTIES_SSL_TRUST("email.properties.ssl.trust", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
+    EMAIL_ENABLED("email.enabled", "false", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM)), true),
+    EMAIL_HOST("email.host", "smtp.my.domain", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM)), true),
+    EMAIL_PORT("email.port", "587", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM)), true),
+    EMAIL_USERNAME("email.username", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM)), true),
+    EMAIL_PASSWORD("email.password", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM)), true),
+    EMAIL_PROTOCOL("email.protocol", "smtp", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM)), true),
+    EMAIL_SUBJECT("email.subject", "[Gravitee.io] %s", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM)), true),
+    EMAIL_FROM("email.from", "noreply@my.domain", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM)), true),
+    EMAIL_PROPERTIES_AUTH_ENABLED("email.properties.auth", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM)), true),
+    EMAIL_PROPERTIES_STARTTLS_ENABLE(
+        "email.properties.starttls.enable",
+        new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM)),
+        true
+    ),
+    EMAIL_PROPERTIES_SSL_TRUST("email.properties.ssl.trust", new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM)), true),
 
     API_LABELS_DICTIONARY("api.labelsDictionary", List.class, new HashSet<>(Arrays.asList(ENVIRONMENT, ORGANIZATION, SYSTEM))),
     API_PRIMARY_OWNER_MODE(
@@ -355,13 +359,15 @@ public enum Key {
 
     ALERT_ENGINE_ENABLED("alerts.alert-engine.enabled", "false", Set.of(SYSTEM)),
 
-    INSTALLATION_TYPE("installation.type", "standalone", Set.of(SYSTEM));
+    INSTALLATION_TYPE("installation.type", "standalone", Set.of(SYSTEM)),
+    TRIAL_INSTANCE("trialInstance.enabled", "false", Set.of(SYSTEM));
 
     String key;
     String defaultValue;
     Class<?> type;
     boolean isOverridable = true;
     Set<KeyScope> scopes;
+    boolean isHiddenForTrial = false;
 
     Key(String key, Set<KeyScope> scopes) {
         this.key = key;
@@ -394,6 +400,19 @@ public enum Key {
         this.scopes = scopes;
     }
 
+    Key(String key, String defaultValue, Set<KeyScope> scopes, boolean isHiddenForTrial) {
+        this.key = key;
+        this.defaultValue = defaultValue;
+        this.scopes = scopes;
+        this.isHiddenForTrial = isHiddenForTrial;
+    }
+
+    Key(String key, Set<KeyScope> scopes, boolean isHiddenForTrial) {
+        this.key = key;
+        this.scopes = scopes;
+        this.isHiddenForTrial = isHiddenForTrial;
+    }
+
     public static Key findByKey(String value) {
         for (Key key : Key.values()) {
             if (key.key.equals(value)) {
@@ -417,6 +436,10 @@ public enum Key {
 
     public boolean isOverridable() {
         return isOverridable;
+    }
+
+    public boolean isHiddenForTrial() {
+        return isHiddenForTrial;
     }
 
     public Set<KeyScope> scopes() {
