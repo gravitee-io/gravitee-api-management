@@ -29,6 +29,11 @@ export interface ConsoleSettings {
   theme?: ConsoleSettingsTheme;
   emulateV4Engine?: ConsoleSettingsV4EmulationEngine;
   alertEngine?: ConsoleSettingsAlertEngine;
+<<<<<<< HEAD
+=======
+  licenseExpirationNotification?: ConsoleSettingsLicenseExpirationNotification;
+  trialInstance?: ConsoleSettingsTrialInstance;
+>>>>>>> 6a6c2d18e3 (fix: prevent emails to be sent to non opted in user in trial instance)
 }
 
 export interface ConsoleSettingsEmail {
@@ -143,3 +148,14 @@ export interface ConsoleSettingsV4EmulationEngine {
 export interface ConsoleSettingsAlertEngine {
   enabled?: boolean;
 }
+<<<<<<< HEAD
+=======
+
+export interface ConsoleSettingsLicenseExpirationNotification {
+  enabled?: boolean;
+}
+
+export interface ConsoleSettingsTrialInstance {
+  enabled?: boolean;
+}
+>>>>>>> 6a6c2d18e3 (fix: prevent emails to be sent to non opted in user in trial instance)

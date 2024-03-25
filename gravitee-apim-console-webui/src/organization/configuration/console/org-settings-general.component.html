@@ -269,8 +269,12 @@
       </mat-card-content>
     </mat-card>
 
+<<<<<<< HEAD
     <mat-card class="settings-general__form__card" formGroupName="email">
       <h2 gioTableOfContents>SMTP</h2>
+=======
+    <mat-card *ngIf="!settings?.trialInstance?.enabled" class="settings-general__form__card" formGroupName="email">
+>>>>>>> 6a6c2d18e3 (fix: prevent emails to be sent to non opted in user in trial instance)
       <mat-card-content>
         <gio-form-slide-toggle
           [matTooltip]="providedConfigurationMessage"

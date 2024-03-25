@@ -41,6 +41,11 @@ public class ConsoleSettingsEntity extends AbstractCommonSettingsEntity {
     private Theme theme;
     private V4EmulationEngine v4EmulationEngine;
     private AlertEngine alertEngine;
+<<<<<<< HEAD
+=======
+    private LicenseExpirationNotification licenseExpirationNotification;
+    private TrialInstance trialInstance;
+>>>>>>> 6a6c2d18e3 (fix: prevent emails to be sent to non opted in user in trial instance)
 
     public ConsoleSettingsEntity() {
         super();
@@ -57,6 +62,11 @@ public class ConsoleSettingsEntity extends AbstractCommonSettingsEntity {
         theme = new Theme();
         v4EmulationEngine = new V4EmulationEngine();
         alertEngine = new AlertEngine();
+<<<<<<< HEAD
+=======
+        licenseExpirationNotification = new LicenseExpirationNotification();
+        trialInstance = new TrialInstance();
+>>>>>>> 6a6c2d18e3 (fix: prevent emails to be sent to non opted in user in trial instance)
     }
 
     //Classes

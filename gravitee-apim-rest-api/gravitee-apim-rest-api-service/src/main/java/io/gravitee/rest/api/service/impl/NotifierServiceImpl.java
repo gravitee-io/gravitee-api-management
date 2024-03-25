@@ -15,6 +15,11 @@
  */
 package io.gravitee.rest.api.service.impl;
 
+<<<<<<< HEAD
+=======
+import com.google.common.annotations.VisibleForTesting;
+import io.gravitee.apim.core.notification.model.Recipient;
+>>>>>>> 6a6c2d18e3 (fix: prevent emails to be sent to non opted in user in trial instance)
 import io.gravitee.plugin.core.api.ConfigurablePluginManager;
 import io.gravitee.plugin.notifier.NotifierPlugin;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -26,7 +31,11 @@ import io.gravitee.repository.management.model.PortalNotificationConfig;
 import io.gravitee.repository.management.model.PortalNotificationDefaultReferenceId;
 import io.gravitee.rest.api.model.PluginEntity;
 import io.gravitee.rest.api.model.notification.NotifierEntity;
+import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
+import io.gravitee.rest.api.service.EmailRecipientsService;
 import io.gravitee.rest.api.service.NotifierService;
+import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.PortalNotificationService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.NotifierNotFoundException;
@@ -47,7 +56,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -76,27 +84,34 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
         DEFAULT_EMAIL_NOTIFIER.setDescription("System email notifier");
     }
 
-    @Autowired
-    private ConfigurablePluginManager<NotifierPlugin> notifierManager;
+    private final ConfigurablePluginManager<NotifierPlugin> notifierManager;
+    private final PortalNotificationConfigRepository portalNotificationConfigRepository;
+    private final PortalNotificationService portalNotificationService;
+    private final GenericNotificationConfigRepository genericNotificationConfigRepository;
+    private final EmailNotifierService emailNotifierService;
+    private final WebhookNotifierService webhookNotifierService;
+    private final EmailRecipientsService emailRecipientsService;
+    private final ParameterService parameterService;
 
-    @Lazy
-    @Autowired
-    PortalNotificationConfigRepository portalNotificationConfigRepository;
-
-    @Autowired
-    PortalNotificationService portalNotificationService;
-
-    @Lazy
-    @Autowired
-    GenericNotificationConfigRepository genericNotificationConfigRepository;
-
-    @Autowired
-    @Lazy
-    EmailNotifierService emailNotifierService;
-
-    @Autowired
-    @Lazy
-    WebhookNotifierService webhookNotifierService;
+    public NotifierServiceImpl(
+        ConfigurablePluginManager<NotifierPlugin> notifierManager,
+        @Lazy PortalNotificationConfigRepository portalNotificationConfigRepository,
+        PortalNotificationService portalNotificationService,
+        @Lazy GenericNotificationConfigRepository genericNotificationConfigRepository,
+        @Lazy EmailNotifierService emailNotifierService,
+        @Lazy WebhookNotifierService webhookNotifierService,
+        @Lazy EmailRecipientsService emailRecipientsService,
+        @Lazy ParameterService parameterService
+    ) {
+        this.notifierManager = notifierManager;
+        this.portalNotificationConfigRepository = portalNotificationConfigRepository;
+        this.portalNotificationService = portalNotificationService;
+        this.genericNotificationConfigRepository = genericNotificationConfigRepository;
+        this.emailNotifierService = emailNotifierService;
+        this.webhookNotifierService = webhookNotifierService;
+        this.emailRecipientsService = emailRecipientsService;
+        this.parameterService = parameterService;
+    }
 
     @Override
     @Async
@@ -215,6 +230,7 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
         final String refId,
         final Map<String, Object> params
     ) {
+<<<<<<< HEAD
         try {
             for (GenericNotificationConfig genericNotificationConfig : genericNotificationConfigRepository.findByReferenceAndHook(
                 hook.name(),
@@ -233,6 +249,64 @@ public class NotifierServiceImpl extends AbstractService implements NotifierServ
                         break;
                 }
             }
+=======
+        triggerGenericNotifications(executionContext, hook, refType, refId, params, Collections.emptyList());
+    }
+
+    @VisibleForTesting
+    void triggerGenericNotifications(
+        ExecutionContext executionContext,
+        final Hook hook,
+        final NotificationReferenceType refType,
+        final String refId,
+        final Map<String, Object> params,
+        List<Recipient> additionalRecipients
+    ) {
+        try {
+            var notificationConfigs = genericNotificationConfigRepository
+                .findByReferenceAndHook(hook.name(), refType, refId)
+                .stream()
+                .collect(Collectors.groupingBy(GenericNotificationConfig::getNotifier));
+
+            list(refType, refId)
+                .forEach(notifier -> {
+                    switch (notifier.type()) {
+                        case EMAIL -> {
+                            var emailAdditionalRecipients = additionalRecipients
+                                .stream()
+                                .filter(r -> r.type().equals(DEFAULT_EMAIL_NOTIFIER_ID))
+                                .map(Recipient::value)
+                                .toList();
+
+                            var recipients = notificationConfigs
+                                .getOrDefault(notifier.getId(), Collections.emptyList())
+                                .stream()
+                                .map(GenericNotificationConfig::getConfig)
+                                .collect(Collectors.toList());
+                            recipients.addAll(emailAdditionalRecipients);
+
+                            // extract emails from templated string (eg: ${api.primaryOwner.email})
+                            var processedRecipients = emailRecipientsService.processTemplatedRecipients(recipients, params);
+                            // extract emails of opted-in users if trial instance
+                            var validRecipients = parameterService.findAsBoolean(
+                                    executionContext,
+                                    Key.TRIAL_INSTANCE,
+                                    ParameterReferenceType.SYSTEM
+                                )
+                                ? emailRecipientsService.filterRegisteredUser(executionContext, processedRecipients)
+                                : processedRecipients;
+
+                            emailNotifierService.trigger(executionContext, hook, params, validRecipients);
+                        }
+                        case WEBHOOK -> {
+                            notificationConfigs
+                                .getOrDefault(notifier.getId(), Collections.emptyList())
+                                .forEach(config -> webhookNotifierService.trigger(hook, config, params));
+                        }
+                        default -> LOGGER.error("Unknown notifier {}", notifier.getType());
+                    }
+                });
+>>>>>>> 6a6c2d18e3 (fix: prevent emails to be sent to non opted in user in trial instance)
         } catch (TechnicalException e) {
             LOGGER.error("Error looking for GenericNotificationConfig with {}/{}/{}", hook, refType, refId, e);
         }

@@ -17,7 +17,7 @@ package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.rest.api.model.parameters.Key.*;
 import static java.util.Collections.singletonList;
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -26,11 +26,13 @@ import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.settings.ConsoleConfigEntity;
 import io.gravitee.rest.api.model.settings.ConsoleSettingsEntity;
+import io.gravitee.rest.api.model.settings.Email;
 import io.gravitee.rest.api.model.settings.Logging;
 import io.gravitee.rest.api.model.settings.PortalSettingsEntity;
 import io.gravitee.rest.api.service.NewsletterService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.ReCaptchaService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -102,32 +104,32 @@ public class ConfigServiceTest {
 
         PortalSettingsEntity portalSettings = configService.getPortalSettings(GraviteeContext.getExecutionContext());
 
-        assertNotNull(portalSettings);
-        assertEquals("force login", true, portalSettings.getAuthentication().getForceLogin().isEnabled());
-        assertEquals("scheduler notifications", Integer.valueOf(11), portalSettings.getScheduler().getNotificationsInSeconds());
-        assertEquals("analytics", Boolean.TRUE, portalSettings.getPortal().getAnalytics().isEnabled());
-        assertEquals("recaptcha siteKey", "my-site-key", portalSettings.getReCaptcha().getSiteKey());
-        assertEquals("recaptcha enabled", Boolean.TRUE, portalSettings.getReCaptcha().getEnabled());
-        assertEquals("plan security keyless", Boolean.TRUE, portalSettings.getPlan().getSecurity().getKeyless().isEnabled());
-        assertEquals(
-            "open api swagger enabled",
-            Boolean.TRUE,
-            portalSettings.getOpenAPIDocViewer().getOpenAPIDocType().getSwagger().isEnabled()
-        );
-        assertEquals("open api swagger default", "Swagger", portalSettings.getOpenAPIDocViewer().getOpenAPIDocType().getDefaultType());
-        assertEquals("api labels", 2, portalSettings.getApi().getLabelsDictionary().size());
-        assertEquals("cors exposed headers", 2, portalSettings.getCors().getExposedHeaders().size());
+        assertThat(portalSettings).isNotNull();
+        assertThat(portalSettings.getAuthentication().getForceLogin().isEnabled()).as("force login").isTrue();
+        assertThat(portalSettings.getScheduler().getNotificationsInSeconds()).as("scheduler notifications").isEqualTo(Integer.valueOf(11));
+        assertThat(portalSettings.getPortal().getAnalytics().isEnabled()).as("analytics").isTrue();
+        assertThat(portalSettings.getReCaptcha().getSiteKey()).as("recaptcha siteKey").isEqualTo("my-site-key");
+        assertThat(portalSettings.getReCaptcha().getEnabled()).as("recaptcha enabled").isTrue();
+        assertThat(portalSettings.getPlan().getSecurity().getKeyless().isEnabled()).as("plan security keyless").isTrue();
+        assertThat(portalSettings.getOpenAPIDocViewer().getOpenAPIDocType().getSwagger().isEnabled())
+            .as("open api swagger enabled")
+            .isTrue();
+        assertThat(portalSettings.getOpenAPIDocViewer().getOpenAPIDocType().getDefaultType())
+            .as("open api swagger default")
+            .isEqualTo("Swagger");
+        assertThat(portalSettings.getApi().getLabelsDictionary()).as("api labels").hasSize(2);
+        assertThat(portalSettings.getCors().getExposedHeaders()).as("cors exposed headers").hasSize(2);
     }
 
     @Test
     public void shouldGetPortalSettingsFromEnvVar() {
         Map<String, List<String>> params = new HashMap<>();
-        params.put(Key.PORTAL_AUTHENTICATION_FORCELOGIN_ENABLED.key(), singletonList("true"));
-        params.put(Key.API_LABELS_DICTIONARY.key(), Arrays.asList("label1"));
-        params.put(Key.PORTAL_SCHEDULER_NOTIFICATIONS.key(), singletonList("11"));
-        params.put(Key.PORTAL_ANALYTICS_ENABLED.key(), singletonList("true"));
-        params.put(Key.OPEN_API_DOC_TYPE_SWAGGER_ENABLED.key(), singletonList("true"));
-        params.put(Key.PORTAL_HTTP_CORS_EXPOSED_HEADERS.key(), singletonList("OnlyOneHeader"));
+        params.put(PORTAL_AUTHENTICATION_FORCELOGIN_ENABLED.key(), singletonList("true"));
+        params.put(API_LABELS_DICTIONARY.key(), List.of("label1"));
+        params.put(PORTAL_SCHEDULER_NOTIFICATIONS.key(), singletonList("11"));
+        params.put(PORTAL_ANALYTICS_ENABLED.key(), singletonList("true"));
+        params.put(OPEN_API_DOC_TYPE_SWAGGER_ENABLED.key(), singletonList("true"));
+        params.put(PORTAL_HTTP_CORS_EXPOSED_HEADERS.key(), singletonList("OnlyOneHeader"));
 
         when(
             mockParameterService.findAll(
@@ -140,38 +142,37 @@ public class ConfigServiceTest {
         )
             .thenReturn(params);
 
-        when(environment.containsProperty(eq(Key.PORTAL_AUTHENTICATION_FORCELOGIN_ENABLED.key()))).thenReturn(true);
-        when(environment.containsProperty(Key.API_LABELS_DICTIONARY.key())).thenReturn(true);
-        when(environment.containsProperty(Key.PORTAL_SCHEDULER_NOTIFICATIONS.key())).thenReturn(true);
-        when(environment.containsProperty(Key.PORTAL_ANALYTICS_ENABLED.key())).thenReturn(true);
-        when(environment.containsProperty(Key.OPEN_API_DOC_TYPE_SWAGGER_ENABLED.key())).thenReturn(true);
+        when(environment.containsProperty(eq(PORTAL_AUTHENTICATION_FORCELOGIN_ENABLED.key()))).thenReturn(true);
+        when(environment.containsProperty(API_LABELS_DICTIONARY.key())).thenReturn(true);
+        when(environment.containsProperty(PORTAL_SCHEDULER_NOTIFICATIONS.key())).thenReturn(true);
+        when(environment.containsProperty(PORTAL_ANALYTICS_ENABLED.key())).thenReturn(true);
+        when(environment.containsProperty(OPEN_API_DOC_TYPE_SWAGGER_ENABLED.key())).thenReturn(true);
 
         PortalSettingsEntity portalSettings = configService.getPortalSettings(GraviteeContext.getExecutionContext());
 
-        assertNotNull(portalSettings);
-        assertEquals("force login", true, portalSettings.getAuthentication().getForceLogin().isEnabled());
-        assertEquals("labels dictionary", 1, portalSettings.getApi().getLabelsDictionary().size());
-        assertEquals("scheduler notifications", Integer.valueOf(11), portalSettings.getScheduler().getNotificationsInSeconds());
-        assertEquals("analytics", Boolean.TRUE, portalSettings.getPortal().getAnalytics().isEnabled());
-        assertEquals(
-            "open api swagger enabled",
-            Boolean.TRUE,
-            portalSettings.getOpenAPIDocViewer().getOpenAPIDocType().getSwagger().isEnabled()
-        );
-        assertEquals("cors exposed headers", 1, portalSettings.getCors().getExposedHeaders().size());
+        assertThat(portalSettings).isNotNull();
+        assertThat(portalSettings.getAuthentication().getForceLogin().isEnabled()).as("force login").isTrue();
+        assertThat(portalSettings.getApi().getLabelsDictionary()).as("labels dictionary").hasSize(1);
+        assertThat(portalSettings.getScheduler().getNotificationsInSeconds()).as("scheduler notifications").isEqualTo(Integer.valueOf(11));
+        assertThat(portalSettings.getPortal().getAnalytics().isEnabled()).as("analytics").isTrue();
+        assertThat(portalSettings.getOpenAPIDocViewer().getOpenAPIDocType().getSwagger().isEnabled())
+            .as("open api swagger enabled")
+            .isTrue();
+        assertThat(portalSettings.getCors().getExposedHeaders()).as("cors exposed headers").hasSize(1);
         List<String> readonlyMetadata = portalSettings.getMetadata().get(PortalSettingsEntity.METADATA_READONLY);
-        assertEquals("Config metadata size", 5, readonlyMetadata.size());
-        assertTrue(
-            "Config metadata contains AUTHENTICATION_FORCELOGIN_ENABLED",
-            readonlyMetadata.contains(Key.PORTAL_AUTHENTICATION_FORCELOGIN_ENABLED.key())
-        );
-        assertTrue("Config metadata contains API_LABELS_DICTIONARY", readonlyMetadata.contains(Key.API_LABELS_DICTIONARY.key()));
-        assertTrue("Config metadata contains SCHEDULER_NOTIFICATIONS", readonlyMetadata.contains(Key.PORTAL_SCHEDULER_NOTIFICATIONS.key()));
-        assertTrue("Config metadata contains PORTAL_ANALYTICS_ENABLED", readonlyMetadata.contains(Key.PORTAL_ANALYTICS_ENABLED.key()));
-        assertTrue(
-            "Config metadata contains OPEN_API_DOC_TYPE_SWAGGER_ENABLED",
-            readonlyMetadata.contains(Key.OPEN_API_DOC_TYPE_SWAGGER_ENABLED.key())
-        );
+        assertThat(readonlyMetadata)
+            .as("Config metadata size")
+            .hasSize(5)
+            .as("Config metadata contains AUTHENTICATION_FORCELOGIN_ENABLED")
+            .contains(PORTAL_AUTHENTICATION_FORCELOGIN_ENABLED.key())
+            .as("Config metadata contains API_LABELS_DICTIONARY")
+            .contains(API_LABELS_DICTIONARY.key())
+            .as("Config metadata contains SCHEDULER_NOTIFICATIONS")
+            .contains(PORTAL_SCHEDULER_NOTIFICATIONS.key())
+            .as("Config metadata contains PORTAL_ANALYTICS_ENABLED")
+            .contains(PORTAL_ANALYTICS_ENABLED.key())
+            .as("Config metadata contains OPEN_API_DOC_TYPE_SWAGGER_ENABLED")
+            .contains(OPEN_API_DOC_TYPE_SWAGGER_ENABLED.key());
     }
 
     @Test
@@ -201,6 +202,7 @@ public class ConfigServiceTest {
         params.put(COMPANY_NAME.key(), singletonList("ACME"));
         params.put(Key.CONSOLE_SCHEDULER_NOTIFICATIONS.key(), singletonList("11"));
         params.put(Key.ALERT_ENABLED.key(), singletonList("true"));
+        params.put(EMAIL_ENABLED.key(), singletonList("true"));
 
         when(
             mockParameterService.findAll(
@@ -217,6 +219,7 @@ public class ConfigServiceTest {
 
         ConsoleSettingsEntity consoleSettings = configService.getConsoleSettings(GraviteeContext.getExecutionContext());
 
+<<<<<<< HEAD
         assertNotNull(consoleSettings);
         assertEquals("scheduler notifications", Integer.valueOf(11), consoleSettings.getScheduler().getNotificationsInSeconds());
         assertEquals("recaptcha siteKey", "my-site-key", consoleSettings.getReCaptcha().getSiteKey());
@@ -225,6 +228,54 @@ public class ConfigServiceTest {
         assertEquals("cors exposed headers", 2, consoleSettings.getCors().getExposedHeaders().size());
         assertEquals("analytics pendo enabled", Boolean.FALSE, consoleSettings.getAnalyticsPendo().getEnabled());
         assertEquals("analytics pendo apiKey", "", consoleSettings.getAnalyticsPendo().getApiKey());
+=======
+        assertThat(consoleSettings).isNotNull();
+        assertThat(consoleSettings.getScheduler().getNotificationsInSeconds()).as("scheduler notifications").isEqualTo(Integer.valueOf(11));
+        assertThat(consoleSettings.getReCaptcha().getSiteKey()).as("recaptcha siteKey").isEqualTo("my-site-key");
+        assertThat(consoleSettings.getAlert().getEnabled()).as("alerting enabled").isTrue();
+        assertThat(consoleSettings.getReCaptcha().getEnabled()).as("recaptcha enabled").isTrue();
+        assertThat(consoleSettings.getCors().getExposedHeaders()).as("cors exposed headers").hasSize(2);
+        assertThat(consoleSettings.getAnalyticsPendo().getEnabled()).as("analytics pendo enabled").isFalse();
+        assertThat(consoleSettings.getAnalyticsPendo().getApiKey()).as("analytics pendo apiKey").isEmpty();
+        assertThat(consoleSettings.getLicenseExpirationNotification().getEnabled()).as("license expiration notification enabled").isTrue();
+        assertThat(consoleSettings.getEmail().getEnabled()).as("email enabled").isTrue();
+    }
+
+    @Test
+    public void shouldGetConsoleSettingsForTrialInstance() {
+        Map<String, List<String>> params = new HashMap<>();
+        params.put(COMPANY_NAME.key(), singletonList("ACME"));
+        params.put(Key.CONSOLE_SCHEDULER_NOTIFICATIONS.key(), singletonList("11"));
+        params.put(Key.ALERT_ENABLED.key(), singletonList("true"));
+        params.put(EMAIL_ENABLED.key(), singletonList("true"));
+        params.put(TRIAL_INSTANCE.key(), singletonList("true"));
+
+        when(
+            mockParameterService.findAll(
+                eq(GraviteeContext.getExecutionContext()),
+                any(List.class),
+                any(Function.class),
+                eq("DEFAULT"),
+                eq(ParameterReferenceType.ORGANIZATION)
+            )
+        )
+            .thenReturn(params);
+        when(reCaptchaService.getSiteKey()).thenReturn("my-site-key");
+        when(reCaptchaService.isEnabled()).thenReturn(true);
+
+        ConsoleSettingsEntity consoleSettings = configService.getConsoleSettings(GraviteeContext.getExecutionContext());
+
+        assertThat(consoleSettings).isNotNull();
+        assertThat(consoleSettings.getScheduler().getNotificationsInSeconds()).as("scheduler notifications").isEqualTo(Integer.valueOf(11));
+        assertThat(consoleSettings.getReCaptcha().getSiteKey()).as("recaptcha siteKey").isEqualTo("my-site-key");
+        assertThat(consoleSettings.getAlert().getEnabled()).as("alerting enabled").isTrue();
+        assertThat(consoleSettings.getReCaptcha().getEnabled()).as("recaptcha enabled").isTrue();
+        assertThat(consoleSettings.getCors().getExposedHeaders()).as("cors exposed headers").hasSize(2);
+        assertThat(consoleSettings.getAnalyticsPendo().getEnabled()).as("analytics pendo enabled").isFalse();
+        assertThat(consoleSettings.getAnalyticsPendo().getApiKey()).as("analytics pendo apiKey").isEmpty();
+        assertThat(consoleSettings.getLicenseExpirationNotification().getEnabled()).as("license expiration notification enabled").isTrue();
+        assertThat(consoleSettings.getEmail()).as("email should be null").isNull();
+>>>>>>> 6a6c2d18e3 (fix: prevent emails to be sent to non opted in user in trial instance)
     }
 
     @Test
@@ -249,22 +300,31 @@ public class ConfigServiceTest {
 
         ConsoleConfigEntity consoleConfig = configService.getConsoleConfig(GraviteeContext.getExecutionContext());
 
+<<<<<<< HEAD
         assertNotNull(consoleConfig);
         assertEquals("scheduler notifications", Integer.valueOf(11), consoleConfig.getScheduler().getNotificationsInSeconds());
         assertEquals("recaptcha siteKey", "my-site-key", consoleConfig.getReCaptcha().getSiteKey());
         assertEquals("alerting enabled", Boolean.TRUE, consoleConfig.getAlert().getEnabled());
         assertEquals("recaptcha enabled", Boolean.TRUE, consoleConfig.getReCaptcha().getEnabled());
+=======
+        assertThat(consoleConfig).isNotNull();
+        assertThat(consoleConfig.getScheduler().getNotificationsInSeconds()).as("scheduler notifications").isEqualTo(Integer.valueOf(11));
+        assertThat(consoleConfig.getReCaptcha().getSiteKey()).as("recaptcha siteKey").isEqualTo("my-site-key");
+        assertThat(consoleConfig.getAlert().getEnabled()).as("alerting enabled").isTrue();
+        assertThat(consoleConfig.getReCaptcha().getEnabled()).as("recaptcha enabled").isTrue();
+        assertThat(consoleConfig.getLicenseExpirationNotification().getEnabled()).as("license expiration notification enabled").isTrue();
+>>>>>>> 6a6c2d18e3 (fix: prevent emails to be sent to non opted in user in trial instance)
     }
 
     @Test
     public void shouldGetConsoleSettingsFromEnvVar() {
         Map<String, List<String>> params = new HashMap<>();
         params.put(COMPANY_NAME.key(), singletonList("ACME"));
-        params.put(Key.CONSOLE_AUTHENTICATION_LOCALLOGIN_ENABLED.key(), singletonList("false"));
-        params.put(Key.CONSOLE_SCHEDULER_NOTIFICATIONS.key(), singletonList("11"));
-        params.put(Key.ALERT_ENABLED.key(), singletonList("true"));
-        params.put(Key.ANALYTICS_CLIENT_TIMEOUT.key(), singletonList("60000"));
-        params.put(Key.CONSOLE_HTTP_CORS_EXPOSED_HEADERS.key(), singletonList("OnlyOneHeader"));
+        params.put(CONSOLE_AUTHENTICATION_LOCALLOGIN_ENABLED.key(), singletonList("false"));
+        params.put(CONSOLE_SCHEDULER_NOTIFICATIONS.key(), singletonList("11"));
+        params.put(ALERT_ENABLED.key(), singletonList("true"));
+        params.put(ANALYTICS_CLIENT_TIMEOUT.key(), singletonList("60000"));
+        params.put(CONSOLE_HTTP_CORS_EXPOSED_HEADERS.key(), singletonList("OnlyOneHeader"));
 
         when(
             mockParameterService.findAll(
@@ -277,24 +337,22 @@ public class ConfigServiceTest {
         )
             .thenReturn(params);
 
-        when(environment.containsProperty(eq(Key.CONSOLE_AUTHENTICATION_LOCALLOGIN_ENABLED.key()))).thenReturn(true);
-        when(environment.containsProperty(Key.CONSOLE_SCHEDULER_NOTIFICATIONS.key())).thenReturn(true);
+        when(environment.containsProperty(eq(CONSOLE_AUTHENTICATION_LOCALLOGIN_ENABLED.key()))).thenReturn(true);
+        when(environment.containsProperty(CONSOLE_SCHEDULER_NOTIFICATIONS.key())).thenReturn(true);
 
         ConsoleSettingsEntity consoleSettings = configService.getConsoleSettings(GraviteeContext.getExecutionContext());
 
-        assertNotNull(consoleSettings);
-        assertEquals("scheduler notifications", Integer.valueOf(11), consoleSettings.getScheduler().getNotificationsInSeconds());
-        assertEquals("cors exposed headers", 1, consoleSettings.getCors().getExposedHeaders().size());
+        assertThat(consoleSettings).isNotNull();
+        assertThat(consoleSettings.getScheduler().getNotificationsInSeconds()).as("scheduler notifications").isEqualTo(Integer.valueOf(11));
+        assertThat(consoleSettings.getCors().getExposedHeaders()).as("cors exposed headers").hasSize(1);
         List<String> readonlyMetadata = consoleSettings.getMetadata().get(PortalSettingsEntity.METADATA_READONLY);
-        assertEquals("Config metadata size", 2, readonlyMetadata.size());
-        assertTrue(
-            "Config metadata contains CONSOLE_AUTHENTICATION_LOCALLOGIN_ENABLED",
-            readonlyMetadata.contains(Key.CONSOLE_AUTHENTICATION_LOCALLOGIN_ENABLED.key())
-        );
-        assertTrue(
-            "Config metadata contains CONSOLE_SCHEDULER_NOTIFICATIONS",
-            readonlyMetadata.contains(Key.CONSOLE_SCHEDULER_NOTIFICATIONS.key())
-        );
+        assertThat(readonlyMetadata)
+            .as("Config metadata size")
+            .hasSize(2)
+            .as("Config metadata contains CONSOLE_AUTHENTICATION_LOCALLOGIN_ENABLED")
+            .contains(CONSOLE_AUTHENTICATION_LOCALLOGIN_ENABLED.key())
+            .as("Config metadata contains CONSOLE_SCHEDULER_NOTIFICATIONS")
+            .contains(CONSOLE_SCHEDULER_NOTIFICATIONS.key());
     }
 
     @Test
@@ -302,7 +360,7 @@ public class ConfigServiceTest {
         ConsoleSettingsEntity consoleSettingsEntity = new ConsoleSettingsEntity();
         consoleSettingsEntity.getAlert().setEnabled(true);
         Logging logging = new Logging();
-        logging.setMaxDurationMillis(3000l);
+        logging.setMaxDurationMillis(3000L);
         Logging.Audit audit = new Logging.Audit();
         audit.setEnabled(true);
         Logging.Audit.AuditTrail trail = new Logging.Audit.AuditTrail();
@@ -388,5 +446,79 @@ public class ConfigServiceTest {
                 "DEFAULT",
                 ParameterReferenceType.ORGANIZATION
             );
+    }
+
+    @Test
+    public void shouldCreateConsoleSettingsForTrialInstance() {
+        ConsoleSettingsEntity consoleSettingsEntity = new ConsoleSettingsEntity();
+        final Email emailSettings = new Email();
+        emailSettings.setEnabled(true);
+        emailSettings.setHost("test-host");
+        emailSettings.setPort(5551);
+        emailSettings.setFrom("from");
+        emailSettings.setUsername("username");
+        emailSettings.setPassword("password");
+        emailSettings.setProtocol("protocol");
+        emailSettings.setSubject("subject");
+        final Email.EmailProperties emailProperties = new Email.EmailProperties();
+        emailProperties.setAuth(true);
+        emailProperties.setSslTrust("trust");
+        emailProperties.setStartTlsEnable(true);
+        emailSettings.setProperties(emailProperties);
+        consoleSettingsEntity.setEmail(emailSettings);
+        consoleSettingsEntity.getTrialInstance().setEnabled(true);
+
+        configService.save(GraviteeContext.getExecutionContext(), consoleSettingsEntity);
+
+        verify(mockParameterService, never()).save(any(ExecutionContext.class), eq(EMAIL_ENABLED), any(String.class), any(), any());
+        verify(mockParameterService, never()).save(any(ExecutionContext.class), eq(EMAIL_HOST), any(String.class), any(), any());
+        verify(mockParameterService, never()).save(any(ExecutionContext.class), eq(EMAIL_PORT), any(String.class), any(), any());
+        verify(mockParameterService, never()).save(any(ExecutionContext.class), eq(EMAIL_FROM), any(String.class), any(), any());
+        verify(mockParameterService, never()).save(any(ExecutionContext.class), eq(EMAIL_USERNAME), any(String.class), any(), any());
+        verify(mockParameterService, never()).save(any(ExecutionContext.class), eq(EMAIL_PASSWORD), any(String.class), any(), any());
+        verify(mockParameterService, never()).save(any(ExecutionContext.class), eq(EMAIL_PROTOCOL), any(String.class), any(), any());
+        verify(mockParameterService, never()).save(any(ExecutionContext.class), eq(EMAIL_SUBJECT), any(String.class), any(), any());
+        verify(mockParameterService, never())
+            .save(any(ExecutionContext.class), eq(EMAIL_PROPERTIES_AUTH_ENABLED), any(String.class), any(), any());
+        verify(mockParameterService, never())
+            .save(any(ExecutionContext.class), eq(EMAIL_PROPERTIES_SSL_TRUST), any(String.class), any(), any());
+        verify(mockParameterService, never())
+            .save(any(ExecutionContext.class), eq(EMAIL_PROPERTIES_STARTTLS_ENABLE), any(String.class), any(), any());
+    }
+
+    @Test
+    public void shouldCreateConsoleSettingsWithEmailsForNonTrialInstance() {
+        ConsoleSettingsEntity consoleSettingsEntity = new ConsoleSettingsEntity();
+        final Email emailSettings = new Email();
+        emailSettings.setEnabled(true);
+        emailSettings.setHost("test-host");
+        emailSettings.setPort(5551);
+        emailSettings.setFrom("from");
+        emailSettings.setUsername("username");
+        emailSettings.setPassword("password");
+        emailSettings.setProtocol("protocol");
+        emailSettings.setSubject("subject");
+        final Email.EmailProperties emailProperties = new Email.EmailProperties();
+        emailProperties.setAuth(true);
+        emailProperties.setSslTrust("trust");
+        emailProperties.setStartTlsEnable(true);
+        emailSettings.setProperties(emailProperties);
+        consoleSettingsEntity.setEmail(emailSettings);
+        consoleSettingsEntity.getTrialInstance().setEnabled(false);
+
+        configService.save(GraviteeContext.getExecutionContext(), consoleSettingsEntity);
+
+        verify(mockParameterService).save(any(ExecutionContext.class), eq(EMAIL_ENABLED), any(String.class), any(), any());
+        verify(mockParameterService).save(any(ExecutionContext.class), eq(EMAIL_HOST), any(String.class), any(), any());
+        verify(mockParameterService).save(any(ExecutionContext.class), eq(EMAIL_PORT), any(String.class), any(), any());
+        verify(mockParameterService).save(any(ExecutionContext.class), eq(EMAIL_FROM), any(String.class), any(), any());
+        verify(mockParameterService).save(any(ExecutionContext.class), eq(EMAIL_USERNAME), any(String.class), any(), any());
+        verify(mockParameterService).save(any(ExecutionContext.class), eq(EMAIL_PASSWORD), any(String.class), any(), any());
+        verify(mockParameterService).save(any(ExecutionContext.class), eq(EMAIL_PROTOCOL), any(String.class), any(), any());
+        verify(mockParameterService).save(any(ExecutionContext.class), eq(EMAIL_SUBJECT), any(String.class), any(), any());
+        verify(mockParameterService).save(any(ExecutionContext.class), eq(EMAIL_PROPERTIES_AUTH_ENABLED), any(String.class), any(), any());
+        verify(mockParameterService).save(any(ExecutionContext.class), eq(EMAIL_PROPERTIES_SSL_TRUST), any(String.class), any(), any());
+        verify(mockParameterService)
+            .save(any(ExecutionContext.class), eq(EMAIL_PROPERTIES_STARTTLS_ENABLE), any(String.class), any(), any());
     }
 }

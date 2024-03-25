@@ -18,6 +18,7 @@ package io.gravitee.rest.api.service.notifiers;
 import io.gravitee.repository.management.model.GenericNotificationConfig;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.notification.Hook;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -26,6 +27,7 @@ import java.util.Map;
  * @author GraviteeSource Team
  */
 public interface EmailNotifierService {
+<<<<<<< HEAD
     void trigger(
         ExecutionContext executionContext,
         final Hook hook,
@@ -37,4 +39,7 @@ public interface EmailNotifierService {
         final GenericNotificationConfig genericNotificationConfig,
         final Map<String, Object> params
     );
+=======
+    void trigger(ExecutionContext executionContext, final Hook hook, final Map<String, Object> templateData, Collection<String> recipients);
+>>>>>>> 6a6c2d18e3 (fix: prevent emails to be sent to non opted in user in trial instance)
 }
