@@ -45,6 +45,7 @@ public class ConsoleSettingsEntity extends AbstractCommonSettingsEntity {
     private V4EmulationEngine v4EmulationEngine;
     private AlertEngine alertEngine;
     private LicenseExpirationNotification licenseExpirationNotification;
+    private TrialInstance trialInstance;
 
     public ConsoleSettingsEntity() {
         super();
@@ -61,6 +62,7 @@ public class ConsoleSettingsEntity extends AbstractCommonSettingsEntity {
         v4EmulationEngine = new V4EmulationEngine();
         alertEngine = new AlertEngine();
         licenseExpirationNotification = new LicenseExpirationNotification();
+        trialInstance = new TrialInstance();
     }
 
     //Classes
