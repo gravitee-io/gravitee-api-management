@@ -5850,14 +5850,19 @@ components:
                 name:
                     type: string
                     description: Name of the integration
+                    minLength: 1
+                    maxLength: 50
                 description:
                     type: string
                     description: Description of the integration
+                    minLength: 0
+                    maxLength: 250
                 provider:
                     type: string
                     description: Provider of this integration
             required:
                 - name
+                - provider
 
     parameters:
         #############
