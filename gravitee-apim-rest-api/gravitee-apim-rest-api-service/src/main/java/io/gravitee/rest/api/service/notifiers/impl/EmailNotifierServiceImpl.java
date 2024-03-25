@@ -17,12 +17,17 @@ package io.gravitee.rest.api.service.notifiers.impl;
 
 import io.gravitee.apim.core.template.TemplateProcessor;
 import io.gravitee.apim.core.template.TemplateProcessorException;
+import io.gravitee.repository.management.model.UserStatus;
+import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.settings.Email;
 import io.gravitee.rest.api.service.EmailService;
+import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.notification.Hook;
 import io.gravitee.rest.api.service.notifiers.EmailNotifierService;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -45,18 +50,15 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
 
     private final EmailService emailService;
 
-    private final TemplateProcessor templateProcessor;
-
-    public EmailNotifierServiceImpl(@Autowired EmailService emailService, @Autowired TemplateProcessor templateProcessor) {
+    public EmailNotifierServiceImpl(@Autowired EmailService emailService) {
         this.emailService = emailService;
-        this.templateProcessor = templateProcessor;
     }
 
     public void trigger(
         ExecutionContext executionContext,
         final Hook hook,
         final Map<String, Object> templateData,
-        List<String> recipients
+        Collection<String> recipients
     ) {
         var emailTemplate = getEmailTemplateOptional(hook);
         if (emailTemplate.isEmpty()) {
@@ -64,17 +66,16 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
             return;
         }
 
-        var mails = extractMailsFromRecipient(templateData, recipients);
-        if (mails.isEmpty()) {
+        if (recipients.isEmpty()) {
             LOGGER.error("No emails extracted from {}", recipients);
             return;
         }
 
         EmailNotificationBuilder template = new EmailNotificationBuilder().template(emailTemplate.get()).params(templateData);
-        if (mails.size() == 1) {
-            template.to(mails.toArray(new String[0]));
+        if (recipients.size() == 1) {
+            template.to(recipients.toArray(new String[0]));
         } else {
-            template.bcc(mails.toArray(new String[0]));
+            template.bcc(recipients.toArray(new String[0]));
         }
         emailService.sendAsyncEmailNotification(executionContext, template.build());
     }
@@ -85,28 +86,5 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
         }
 
         return Optional.ofNullable(EmailNotificationBuilder.EmailTemplate.fromHook(hook));
-    }
-
-    public Set<String> extractMailsFromRecipient(final Map<String, Object> templateData, final List<String> recipients) {
-        Stream<Optional<String>> collect = recipients
-            .stream()
-            .flatMap(recipient ->
-                Arrays
-                    .stream(recipient.split(",|;|\\s"))
-                    .filter(s -> !s.isEmpty())
-                    .map(s -> {
-                        if (s.contains("$")) {
-                            try {
-                                return Optional.ofNullable(templateProcessor.processInlineTemplate(s, templateData));
-                            } catch (TemplateProcessorException e) {
-                                LOGGER.error("Error while processing template '{}' skipping this email", s, e);
-                                return Optional.empty();
-                            }
-                        }
-                        return Optional.of(s);
-                    })
-            );
-
-        return collect.filter(s -> s.isPresent() && !s.get().isEmpty()).map(Optional::get).collect(Collectors.toSet());
     }
 }

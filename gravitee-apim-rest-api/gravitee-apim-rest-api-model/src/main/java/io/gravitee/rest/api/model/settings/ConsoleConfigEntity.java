@@ -35,6 +35,7 @@ public class ConsoleConfigEntity {
     private V4EmulationEngine v4EmulationEngine;
     private AlertEngine alertEngine;
     private LicenseExpirationNotification licenseExpirationNotification;
+    private TrialInstance trialInstance;
 
     public ConsoleConfigEntity() {
         super();
@@ -50,5 +51,6 @@ public class ConsoleConfigEntity {
         v4EmulationEngine = new V4EmulationEngine();
         alertEngine = new AlertEngine();
         licenseExpirationNotification = new LicenseExpirationNotification();
+        trialInstance = new TrialInstance();
     }
 }
