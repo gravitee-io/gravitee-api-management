@@ -268,7 +268,7 @@
       </mat-card-content>
     </mat-card>
 
-    <mat-card class="settings-general__form__card" formGroupName="email">
+    <mat-card *ngIf="!settings?.trialInstance?.enabled" class="settings-general__form__card" formGroupName="email">
       <mat-card-content>
         <h2 gioTableOfContents>SMTP</h2>
         <gio-form-slide-toggle

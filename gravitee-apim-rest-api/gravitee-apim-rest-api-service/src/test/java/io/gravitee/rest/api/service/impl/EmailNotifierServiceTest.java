@@ -20,9 +20,6 @@ import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
-import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
-import io.gravitee.rest.api.model.PrimaryOwnerEntity;
-import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.service.EmailService;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.ExecutionContext;
@@ -52,14 +49,14 @@ public class EmailNotifierServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new EmailNotifierServiceImpl(mockEmailService, new FreemarkerTemplateProcessor());
+        service = new EmailNotifierServiceImpl(mockEmailService);
     }
 
     @Nested
     class Trigger {
 
         @Test
-        public void should_send_email_based_on_hook() {
+        void should_send_email_based_on_hook() {
             // Given
             var executionContext = new ExecutionContext(null, null);
             var templateData = Map.<String, Object>of();
@@ -83,134 +80,8 @@ public class EmailNotifierServiceTest {
         }
 
         @Test
-        public void should_send_email_using_templated_recipient() {
-            // Given
-            var executionContext = new ExecutionContext(null, null);
-            var templateData = Map.<String, Object>of(
-                "api",
-                ApiEntity.builder().primaryOwner(PrimaryOwnerEntity.builder().email("po@gravitee.io").build()).build()
-            );
-
-            // When
-            service.trigger(executionContext, ApiHook.API_STARTED, templateData, List.of("${api.primaryOwner.email}"));
-
-            // Then
-            verify(mockEmailService)
-                .sendAsyncEmailNotification(
-                    same(executionContext),
-                    eq(
-                        new EmailNotificationBuilder()
-                            .to("po@gravitee.io")
-                            .template(EmailNotificationBuilder.EmailTemplate.API_API_STARTED)
-                            .params(templateData)
-                            .build()
-                    )
-                );
-        }
-
-        @Test
-        public void should_send_email_to_several_recipients() {
-            // Given
-            var executionContext = new ExecutionContext(null, null);
-            var templateData = Map.<String, Object>of();
-            var recipientEmail1 = "recipient1@gravitee.io";
-            var recipientEmail2 = "recipient2@gravitee.io";
-
-            // When
-            service.trigger(executionContext, ApiHook.API_STARTED, templateData, List.of(recipientEmail1, recipientEmail2));
-
-            // Then
-            verify(mockEmailService)
-                .sendAsyncEmailNotification(
-                    same(executionContext),
-                    eq(
-                        new EmailNotificationBuilder()
-                            .bcc(recipientEmail2, recipientEmail1)
-                            .template(EmailNotificationBuilder.EmailTemplate.API_API_STARTED)
-                            .params(templateData)
-                            .build()
-                    )
-                );
-        }
-
-        @Test
-        public void should_remove_any_duplicate_in_recipients_before_sending_email() {
-            // Given
-            var executionContext = new ExecutionContext(null, null);
-            var templateData = Map.<String, Object>of(
-                "api",
-                ApiEntity.builder().primaryOwner(PrimaryOwnerEntity.builder().email("po@gravitee.io").build()).build()
-            );
-
-            // When
-            service.trigger(
-                executionContext,
-                ApiHook.API_STARTED,
-                templateData,
-                List.of(
-                    "recipient2@gravitee.io",
-                    "${api.primaryOwner.email}",
-                    "recipient1@gravitee.io",
-                    "recipient2@gravitee.io",
-                    "po@gravitee.io",
-                    "recipient1@gravitee.io"
-                )
-            );
-
-            // Then
-            verify(mockEmailService)
-                .sendAsyncEmailNotification(
-                    same(executionContext),
-                    eq(
-                        new EmailNotificationBuilder()
-                            .bcc("recipient2@gravitee.io", "po@gravitee.io", "recipient1@gravitee.io")
-                            .template(EmailNotificationBuilder.EmailTemplate.API_API_STARTED)
-                            .params(templateData)
-                            .build()
-                    )
-                );
-        }
-
-        @Test
-        public void should_ignore_any_empty_recipients_before_sending_email() {
-            // Given
-            var executionContext = new ExecutionContext(null, null);
-            var templateData = Map.<String, Object>of(
-                "api",
-                ApiEntity.builder().primaryOwner(PrimaryOwnerEntity.builder().email("").build()).build()
-            );
-
-            // When
-            service.trigger(
-                executionContext,
-                ApiHook.API_STARTED,
-                templateData,
-                List.of("recipient1@gravitee.io", "${api.primaryOwner.email}", "recipient2@gravitee.io", "")
-            );
-
-            // Then
-            verify(mockEmailService)
-                .sendAsyncEmailNotification(
-                    same(executionContext),
-                    eq(
-                        new EmailNotificationBuilder()
-                            .bcc("recipient2@gravitee.io", "recipient1@gravitee.io")
-                            .template(EmailNotificationBuilder.EmailTemplate.API_API_STARTED)
-                            .params(templateData)
-                            .build()
-                    )
-                );
-        }
-
-        @Test
-        public void should_do_nothing_when_no_hook_is_provided() {
+        void should_do_nothing_when_no_hook_is_provided() {
             service.trigger(GraviteeContext.getExecutionContext(), null, Map.of(), List.of());
-            verifyNoInteractions(mockEmailService);
-        }
-
-        @Test
-        public void should_do_nothing_when_templated_recipient_mal_formed() {
-            service.trigger(GraviteeContext.getExecutionContext(), ApiHook.API_STARTED, Map.of(), List.of("${inco"));
             verifyNoInteractions(mockEmailService);
         }
     }
