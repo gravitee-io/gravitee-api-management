@@ -1,0 +1,30 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.4.0
+      author: GraviteeSource Team
+      changes:
+        # ################
+        # Integration changes
+        # ################
+        - createTable:
+            tableName: ${gravitee_prefix}integrations
+            columns:
+              - column: {name: id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: name, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: description, type: nvarchar(256), constraints: { nullable: true } }
+              - column: {name: provider, type: nvarchar(16), constraints: { nullable: false } }
+              - column: {name: environment_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: created_at, type: timestamp(6), constraints: { nullable: false }, defaultValueComputed: CURRENT_TIMESTAMP(6) }
+              - column: {name: updated_at, type: timestamp(6), constraints: { nullable: false }, defaultValueComputed: CURRENT_TIMESTAMP(6) }
+
+        - addPrimaryKey:
+            constraintName: pk_${gravitee_prefix}integrations
+            columnNames: id
+            tableName: ${gravitee_prefix}integrations
+        - createIndex:
+            indexName: idx_${gravitee_prefix}integrations_environment_id
+            columns:
+              - column:
+                  name: environment_id
+                  type: nvarchar(64)
+            tableName: ${gravitee_prefix}integrations

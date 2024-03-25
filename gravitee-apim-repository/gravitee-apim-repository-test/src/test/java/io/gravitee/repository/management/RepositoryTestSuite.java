@@ -51,6 +51,7 @@ import org.junit.runners.Suite;
         IdentityProviderActivationRepositoryTest.class,
         IdentityProviderRepositoryTest.class,
         InstallationRepositoryTest.class,
+        IntegrationRepositoryTest.class,
         InvitationRepositoryTest.class,
         MediaRepositoryTest.class,
         MembershipRepositoryTest.class,
