@@ -18,12 +18,15 @@ package io.gravitee.rest.api.service.impl;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
+<<<<<<< HEAD
 import freemarker.template.TemplateException;
 import io.gravitee.repository.management.model.GenericNotificationConfig;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
+=======
+>>>>>>> 6a6c2d18e3 (fix: prevent emails to be sent to non opted in user in trial instance)
 import io.gravitee.rest.api.service.EmailService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.notification.*;
@@ -55,6 +58,7 @@ public class EmailNotifierServiceTest {
     @Mock
     private NotificationTemplateService notificationTemplateService;
 
+<<<<<<< HEAD
     @Test
     public void shouldNotSendEmailIfNoConfig() {
         service.trigger(GraviteeContext.getExecutionContext(), ApiHook.API_STARTED, null, null);
@@ -70,6 +74,11 @@ public class EmailNotifierServiceTest {
         service.trigger(GraviteeContext.getExecutionContext(), ApiHook.API_STARTED, cfg, null);
         verify(mockEmailService, never()).sendAsyncEmailNotification(eq(GraviteeContext.getExecutionContext()), any());
         verify(mockEmailService, never()).sendEmailNotification(eq(GraviteeContext.getExecutionContext()), any());
+=======
+    @BeforeEach
+    void setUp() {
+        service = new EmailNotifierServiceImpl(mockEmailService);
+>>>>>>> 6a6c2d18e3 (fix: prevent emails to be sent to non opted in user in trial instance)
     }
 
     @Test
@@ -81,6 +90,7 @@ public class EmailNotifierServiceTest {
         verify(mockEmailService, never()).sendEmailNotification(eq(GraviteeContext.getExecutionContext()), any());
     }
 
+<<<<<<< HEAD
     @Test
     public void shouldHaveATemplateForApiHooks() {
         GenericNotificationConfig cfg = new GenericNotificationConfig();
@@ -110,6 +120,14 @@ public class EmailNotifierServiceTest {
             }
         }
     }
+=======
+        @Test
+        void should_send_email_based_on_hook() {
+            // Given
+            var executionContext = new ExecutionContext(null, null);
+            var templateData = Map.<String, Object>of();
+            var recipientEmail = "recipient1@gravitee.io";
+>>>>>>> 6a6c2d18e3 (fix: prevent emails to be sent to non opted in user in trial instance)
 
     @Test
     public void shouldHaveATemplateForApplicationHooks() {
@@ -136,6 +154,7 @@ public class EmailNotifierServiceTest {
         }
     }
 
+<<<<<<< HEAD
     @Test
     public void shouldHaveATemplateForPortalHooks() {
         GenericNotificationConfig cfg = new GenericNotificationConfig();
@@ -227,5 +246,12 @@ public class EmailNotifierServiceTest {
         List<String> mails = service.getMails(GraviteeContext.getExecutionContext(), null, params);
         assertNotNull(mails);
         assertTrue(mails.isEmpty());
+=======
+        @Test
+        void should_do_nothing_when_no_hook_is_provided() {
+            service.trigger(GraviteeContext.getExecutionContext(), null, Map.of(), List.of());
+            verifyNoInteractions(mockEmailService);
+        }
+>>>>>>> 6a6c2d18e3 (fix: prevent emails to be sent to non opted in user in trial instance)
     }
 }

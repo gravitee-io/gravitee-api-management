@@ -15,15 +15,29 @@
  */
 package io.gravitee.rest.api.service.notifiers.impl;
 
+<<<<<<< HEAD
 import io.gravitee.repository.management.model.GenericNotificationConfig;
+=======
+import io.gravitee.apim.core.template.TemplateProcessor;
+import io.gravitee.apim.core.template.TemplateProcessorException;
+import io.gravitee.repository.management.model.UserStatus;
+import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.settings.Email;
+>>>>>>> 6a6c2d18e3 (fix: prevent emails to be sent to non opted in user in trial instance)
 import io.gravitee.rest.api.service.EmailService;
+import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.notification.Hook;
 import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.notifiers.EmailNotifierService;
+<<<<<<< HEAD
 import java.util.*;
 import java.util.ArrayList;
+=======
+import java.util.Arrays;
+import java.util.Collection;
+>>>>>>> 6a6c2d18e3 (fix: prevent emails to be sent to non opted in user in trial instance)
 import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -43,15 +57,26 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
     @Autowired
     EmailService emailService;
 
+<<<<<<< HEAD
     @Autowired
     private NotificationTemplateService notificationTemplateService;
+=======
+    public EmailNotifierServiceImpl(@Autowired EmailService emailService) {
+        this.emailService = emailService;
+    }
+>>>>>>> 6a6c2d18e3 (fix: prevent emails to be sent to non opted in user in trial instance)
 
     @Override
     public void trigger(
         ExecutionContext executionContext,
         final Hook hook,
+<<<<<<< HEAD
         GenericNotificationConfig genericNotificationConfig,
         final Map<String, Object> params
+=======
+        final Map<String, Object> templateData,
+        Collection<String> recipients
+>>>>>>> 6a6c2d18e3 (fix: prevent emails to be sent to non opted in user in trial instance)
     ) {
         if (
             genericNotificationConfig == null ||
@@ -67,11 +92,26 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
             return;
         }
 
+<<<<<<< HEAD
         String[] mails = getMails(executionContext, genericNotificationConfig, params).toArray(new String[0]);
         emailService.sendAsyncEmailNotification(
             executionContext,
             new EmailNotificationBuilder().to(mails).template(emailTemplate).params(params).build()
         );
+=======
+        if (recipients.isEmpty()) {
+            LOGGER.error("No emails extracted from {}", recipients);
+            return;
+        }
+
+        EmailNotificationBuilder template = new EmailNotificationBuilder().template(emailTemplate.get()).params(templateData);
+        if (recipients.size() == 1) {
+            template.to(recipients.toArray(new String[0]));
+        } else {
+            template.bcc(recipients.toArray(new String[0]));
+        }
+        emailService.sendAsyncEmailNotification(executionContext, template.build());
+>>>>>>> 6a6c2d18e3 (fix: prevent emails to be sent to non opted in user in trial instance)
     }
 
     public List<String> getMails(
@@ -119,6 +159,10 @@ public class EmailNotifierServiceImpl implements EmailNotifierService {
             return null;
         }
 
+<<<<<<< HEAD
         return EmailNotificationBuilder.EmailTemplate.fromHook(hook);
+=======
+        return Optional.ofNullable(EmailNotificationBuilder.EmailTemplate.fromHook(hook));
+>>>>>>> 6a6c2d18e3 (fix: prevent emails to be sent to non opted in user in trial instance)
     }
 }
