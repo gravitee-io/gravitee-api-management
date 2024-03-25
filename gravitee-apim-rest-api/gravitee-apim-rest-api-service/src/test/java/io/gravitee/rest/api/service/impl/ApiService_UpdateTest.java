@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gravitee.rest.api.service.impl;
 
 import static io.gravitee.rest.api.model.WorkflowReferenceType.API;
@@ -604,6 +605,24 @@ public class ApiService_UpdateTest {
         if (updateAPIDefinitionVersion != null) {
             updateApiEntity.setGraviteeDefinitionVersion(updateAPIDefinitionVersion.getLabel());
         }
+    }
+
+    @Test
+    public void shouldUpdateWithPOGroupsWhenGroupsAreNotProvided() throws TechnicalException {
+        prepareUpdate();
+
+        PrimaryOwnerEntity po = mock(PrimaryOwnerEntity.class);
+        when(po.getType()).thenReturn(MembershipMemberType.GROUP.name());
+        when(po.getId()).thenReturn("group-with-po");
+        when(primaryOwnerService.getPrimaryOwner(any(), eq(API_ID))).thenReturn(po);
+
+        updateApiEntity.setGroups(Sets.newSet());
+
+        final ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity);
+
+        assertNotNull(apiEntity);
+        assertEquals(API_NAME, apiEntity.getName());
+        verify(apiRepository).update(argThat(api -> api.getId().equals(API_ID) && api.getGroups().equals(Sets.newSet("group-with-po"))));
     }
 
     private void prepareUpdate() throws TechnicalException {
