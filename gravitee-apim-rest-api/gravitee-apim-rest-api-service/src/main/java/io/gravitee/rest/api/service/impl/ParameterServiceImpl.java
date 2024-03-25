@@ -383,7 +383,7 @@ public class ParameterServiceImpl extends TransactionalService implements Parame
         if (refIdToUse == null) {
             if (referenceType == io.gravitee.rest.api.model.parameters.ParameterReferenceType.ORGANIZATION) {
                 refIdToUse = executionContext.getOrganizationId();
-            } else {
+            } else if (referenceType == io.gravitee.rest.api.model.parameters.ParameterReferenceType.ENVIRONMENT) {
                 refIdToUse = executionContext.getEnvironmentId();
             }
         }
