@@ -31,11 +31,14 @@ import io.gravitee.rest.api.model.MembershipMemberType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EmailService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -81,6 +84,9 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
     @Mock
     private AuditService auditService;
 
+    @Mock
+    private ParameterService parameterService;
+
     @BeforeEach
     public void setUp() throws Exception {
         membershipService =
@@ -99,7 +105,8 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
                 null,
                 null,
                 groupService,
-                auditService
+                auditService,
+                parameterService
             );
     }
 
@@ -186,6 +193,7 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
         )
             .thenReturn(Set.of(newMembership), Collections.emptySet());
         when(membershipRepository.create(any())).thenReturn(newMembership);
+        when(parameterService.findAsBoolean(any(), eq(Key.TRIAL_INSTANCE), eq(ParameterReferenceType.SYSTEM))).thenReturn(false);
 
         membershipService.addRoleToMemberOnReference(
             GraviteeContext.getExecutionContext(),
@@ -205,6 +213,59 @@ public class MembershipService_AddRoleToMemberOnReferenceTest {
         verify(membershipRepository, times(1)).create(any());
         verify(membershipRepository, never()).update(any());
         verify(emailService, times(1)).sendAsyncEmailNotification(eq(GraviteeContext.getExecutionContext()), any());
+    }
+
+    @Test
+    public void shouldAddPrimaryOwnerApiGroupMembershipAndNotSendEmailForNonOptedInUserInTrialInstance() throws Exception {
+        RoleEntity role = mock(RoleEntity.class);
+        when(role.getScope()).thenReturn(RoleScope.API);
+        when(role.getName()).thenReturn("PRIMARY_OWNER");
+        when(role.getId()).thenReturn("API_PRIMARY_OWNER");
+        when(roleService.findByScopeAndName(RoleScope.API, "PRIMARY_OWNER", GraviteeContext.getCurrentOrganization()))
+            .thenReturn(Optional.of(role));
+
+        UserEntity userEntity = new UserEntity();
+        userEntity.setId("my name");
+        userEntity.setEmail("me@mail.com");
+        when(userService.findById(GraviteeContext.getExecutionContext(), userEntity.getId())).thenReturn(userEntity);
+
+        Membership newMembership = new Membership();
+        newMembership.setReferenceType(io.gravitee.repository.management.model.MembershipReferenceType.API);
+        newMembership.setRoleId("API_PRIMARY_OWNER");
+        newMembership.setReferenceId(API_ID);
+        newMembership.setMemberId(GROUP_ID);
+        newMembership.setMemberType(io.gravitee.repository.management.model.MembershipMemberType.GROUP);
+        when(groupService.findById(GraviteeContext.getExecutionContext(), GROUP_ID)).thenReturn(mock(GroupEntity.class));
+        when(
+            membershipRepository.findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
+                userEntity.getId(),
+                io.gravitee.repository.management.model.MembershipMemberType.USER,
+                io.gravitee.repository.management.model.MembershipReferenceType.GROUP,
+                GROUP_ID
+            )
+        )
+            .thenReturn(Set.of(newMembership), Collections.emptySet());
+        when(membershipRepository.create(any())).thenReturn(newMembership);
+        when(parameterService.findAsBoolean(any(), eq(Key.TRIAL_INSTANCE), eq(ParameterReferenceType.SYSTEM))).thenReturn(true);
+
+        membershipService.addRoleToMemberOnReference(
+            GraviteeContext.getExecutionContext(),
+            new MembershipService.MembershipReference(MembershipReferenceType.GROUP, GROUP_ID),
+            new MembershipService.MembershipMember("my name", null, MembershipMemberType.USER),
+            new MembershipService.MembershipRole(RoleScope.API, "PRIMARY_OWNER")
+        );
+
+        verify(userService, times(1)).findById(GraviteeContext.getExecutionContext(), userEntity.getId());
+        verify(membershipRepository, times(2))
+            .findByMemberIdAndMemberTypeAndReferenceTypeAndReferenceId(
+                userEntity.getId(),
+                io.gravitee.repository.management.model.MembershipMemberType.USER,
+                io.gravitee.repository.management.model.MembershipReferenceType.GROUP,
+                GROUP_ID
+            );
+        verify(membershipRepository, times(1)).create(any());
+        verify(membershipRepository, never()).update(any());
+        verify(emailService, times(0)).sendAsyncEmailNotification(eq(GraviteeContext.getExecutionContext()), any());
     }
 
     @Test

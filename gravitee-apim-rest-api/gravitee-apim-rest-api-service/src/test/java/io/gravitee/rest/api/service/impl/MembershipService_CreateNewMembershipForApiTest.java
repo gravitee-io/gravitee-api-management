@@ -107,7 +107,8 @@ public class MembershipService_CreateNewMembershipForApiTest {
                 null,
                 apiRepository,
                 null,
-                auditService
+                auditService,
+                null
             );
 
         mockRole();
