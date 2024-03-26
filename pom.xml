@@ -154,6 +154,7 @@
         <maven-dependency-plugin.version>3.6.1</maven-dependency-plugin.version>
         <maven-clean-plugin.version>3.3.2</maven-clean-plugin.version>
         <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
+        <maven-remote-resources-plugin.version>3.2.0</maven-remote-resources-plugin.version>
         <jacoco-maven-plugin.version>0.8.11</jacoco-maven-plugin.version>
         <os-maven-plugin.version>1.7.1</os-maven-plugin.version>
         <swagger-maven-plugin.version>>2.2.9</swagger-maven-plugin.version>
