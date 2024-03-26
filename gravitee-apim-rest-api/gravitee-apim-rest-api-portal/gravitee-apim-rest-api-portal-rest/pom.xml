@@ -34,7 +34,7 @@
 	<name>Gravitee.io APIM - Management API - Portal - Rest API</name>
 
 	<properties>
-		<openapi-generator.version>6.5.0</openapi-generator.version>
+		<openapi-generator.version>6.6.0</openapi-generator.version>
 		<jackson-databind-nullable-version>0.2.6</jackson-databind-nullable-version>
 		<openapi.modelPackage>io.gravitee.rest.api.portal.rest.model</openapi.modelPackage>
 	</properties>
