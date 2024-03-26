@@ -8,24 +8,30 @@
 
 $background: map.get(gio.$mat-theme, background);
 
-.gio-snack-bar-success {
-  white-space: pre-wrap;
-  background-color: mat.get-color-from-palette(gio.$mat-success-palette, default);
-  color: mat.get-color-from-palette(gio.$mat-success-palette, default-contrast);
+$error-background-color: mat.get-color-from-palette(gio.$mat-error-palette, default);
+$error-color: mat.get-color-from-palette(gio.$mat-error-palette, default-contrast);
 
-  .mat-button {
-    color: mat.get-color-from-palette(gio.$mat-success-palette, default-contrast);
-  }
+$success-background-color: mat.get-color-from-palette(gio.$mat-success-palette, default);
+$success-color: mat.get-color-from-palette(gio.$mat-success-palette, default-contrast);
+
+$snackbar-button: mat.get-color-from-palette(gio.$mat-basic-palette, white);
+
+.gio-snack-bar-success {
+  --mdc-snackbar-container-color: #{$success-background-color};
+  --mdc-snackbar-supporting-text-color: #{$success-color};
+  --mat-snack-bar-button-color: #{$snackbar-button};
+  white-space: pre-wrap;
 }
 
 .gio-snack-bar-error {
+  --mdc-snackbar-container-color: #{$error-background-color};
+  --mdc-snackbar-supporting-text-color: #{$error-color};
+  --mat-snack-bar-button-color: #{$snackbar-button};
   white-space: pre-wrap;
-  background-color: mat.get-color-from-palette(gio.$mat-error-palette, default);
-  color: mat.get-color-from-palette(gio.$mat-error-palette, default-contrast);
+}
 
-  .mat-button {
-    color: mat.get-color-from-palette(gio.$mat-error-palette, default-contrast);
-  }
+.mdc-button__label {
+  white-space: nowrap;
 }
 
 /**
