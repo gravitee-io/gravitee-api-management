@@ -27,7 +27,7 @@ import { created, fail, noContent, unauthorized } from '@lib/jest-utils';
 import { ApplicationApi } from '@gravitee/portal-webclient-sdk/src/lib/apis/ApplicationApi';
 import { Application } from '@gravitee/portal-webclient-sdk/src/lib/models/Application';
 import { PortalApplicationFaker } from '@gravitee/fixtures/portal/PortalApplicationFaker';
-import { ApiKeyModeEnum } from "../../../../lib/portal-webclient-sdk/src/lib";
+import { ApiKeyModeEnum } from '../../../../lib/portal-webclient-sdk/src/lib';
 
 const portalApplicationApiAsAdminUser = new ApplicationApi(forPortalAsAdminUser());
 const portalApplicationApiAsAppUser = new ApplicationApi(forPortalAsAppUser());
