@@ -149,7 +149,7 @@
         <wiremock.version>3.0.4</wiremock.version>
         <wsdl4j.version>1.6.3</wsdl4j.version>
         <!-- Plugins version -->
-        <gatling-maven-plugin.version>4.0.1</gatling-maven-plugin.version>
+        <gatling-maven-plugin.version>4.8.2</gatling-maven-plugin.version>
         <maven-assembly-plugin.version>3.3.0</maven-assembly-plugin.version>
         <maven-clean-plugin.version>3.1.0</maven-clean-plugin.version>
         <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
