@@ -234,7 +234,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-remote-resources-plugin</artifactId>
-                <version>3.0.0</version>
+                <version>${maven-remote-resources-plugin.version}</version>
                 <configuration>
                     <resourceBundles>
                         <resourceBundle>io.gravitee.elasticsearch:gravitee-common-elasticsearch:${gravitee-common-elasticsearch.version}</resourceBundle>
