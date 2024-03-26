@@ -26,7 +26,7 @@ import {
 import { created, fail, noContent, unauthorized } from '@lib/jest-utils';
 import { ApplicationEntity } from '@gravitee/management-webclient-sdk/src/lib/models/ApplicationEntity';
 import { ApplicationsFaker } from '@gravitee/fixtures/management/ApplicationsFaker';
-import { NewApplicationEntityOriginEnum } from "../../../../lib/management-webclient-sdk/src/lib/models";
+import { NewApplicationEntityOriginEnum } from '../../../../lib/management-webclient-sdk/src/lib/models';
 
 const managementApplicationsApiAsAdminUser = new ApplicationsApi(forManagementAsAdminUser());
 const managementApplicationsApiAsAppUser = new ApplicationsApi(forManagementAsAppUser());
