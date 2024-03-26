@@ -347,7 +347,7 @@
 			<plugin>
 				<groupId>org.jsonschema2pojo</groupId>
 				<artifactId>jsonschema2pojo-maven-plugin</artifactId>
-				<version>1.0.2</version>
+				<version>${jsonschema2pojo-maven-plugin.version}</version>
 				<configuration>
 					<sourceDirectory>${basedir}/src/main/resources/schema</sourceDirectory>
 					<targetPackage>io.gravitee.rest.api.service.swagger.converter.extension</targetPackage>
