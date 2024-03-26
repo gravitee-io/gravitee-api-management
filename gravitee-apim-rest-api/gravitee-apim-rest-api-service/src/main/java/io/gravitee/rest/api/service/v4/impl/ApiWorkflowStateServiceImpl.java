@@ -30,6 +30,8 @@ import io.gravitee.rest.api.model.ReviewEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.WorkflowReferenceType;
 import io.gravitee.rest.api.model.WorkflowState;
+import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.ApiPermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
@@ -39,6 +41,7 @@ import io.gravitee.rest.api.service.AuditService;
 import io.gravitee.rest.api.service.EmailService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.NotifierService;
+import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.WorkflowService;
@@ -55,6 +58,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Predicate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -75,6 +79,7 @@ public class ApiWorkflowStateServiceImpl implements ApiWorkflowStateService {
     private final MembershipService membershipService;
     private final EmailService emailService;
     private final ApiSearchService apiSearchService;
+    private final ParameterService parameterService;
 
     public ApiWorkflowStateServiceImpl(
         final AuditService auditService,
@@ -85,7 +90,8 @@ public class ApiWorkflowStateServiceImpl implements ApiWorkflowStateService {
         final NotifierService notifierService,
         final MembershipService membershipService,
         final EmailService emailService,
-        final ApiSearchService apiSearchService
+        final ApiSearchService apiSearchService,
+        final ParameterService parameterService
     ) {
         this.auditService = auditService;
         this.apiMetadataService = apiMetadataService;
@@ -96,6 +102,7 @@ public class ApiWorkflowStateServiceImpl implements ApiWorkflowStateService {
         this.membershipService = membershipService;
         this.emailService = emailService;
         this.apiSearchService = apiSearchService;
+        this.parameterService = parameterService;
     }
 
     @Override
@@ -164,14 +171,16 @@ public class ApiWorkflowStateServiceImpl implements ApiWorkflowStateService {
         // Find all reviewers of the API and send them a notification email
         if (hook.equals(ApiHook.ASK_FOR_REVIEW)) {
             List<String> reviewersEmail = findAllReviewersEmail(executionContext, genericApiEntity);
-            this.emailService.sendAsyncEmailNotification(
-                    executionContext,
-                    new EmailNotificationBuilder()
-                        .params(new NotificationParamsBuilder().api(genericApiEntity).user(user).build())
-                        .to(reviewersEmail.toArray(new String[reviewersEmail.size()]))
-                        .template(EmailNotificationBuilder.EmailTemplate.API_ASK_FOR_REVIEW)
-                        .build()
-                );
+            if (reviewersEmail.size() > 0) {
+                this.emailService.sendAsyncEmailNotification(
+                        executionContext,
+                        new EmailNotificationBuilder()
+                            .params(new NotificationParamsBuilder().api(genericApiEntity).user(user).build())
+                            .to(reviewersEmail.toArray(new String[reviewersEmail.size()]))
+                            .template(EmailNotificationBuilder.EmailTemplate.API_ASK_FOR_REVIEW)
+                            .build()
+                    );
+            }
         }
 
         Map<Audit.AuditProperties, String> properties = new HashMap<>();
@@ -197,6 +206,8 @@ public class ApiWorkflowStateServiceImpl implements ApiWorkflowStateService {
 
     private List<String> findAllReviewersEmail(ExecutionContext executionContext, GenericApiEntity genericApiEntity) {
         final RolePermissionAction[] acls = { RolePermissionAction.UPDATE };
+        final boolean isTrialInstance = parameterService.findAsBoolean(executionContext, Key.TRIAL_INSTANCE, ParameterReferenceType.SYSTEM);
+        final Predicate<UserEntity> excludeIfTrialAndNotOptedIn = userEntity -> !isTrialInstance || userEntity.optedIn();
 
         // find direct members of the API
         Set<String> reviewerEmails = roleService
@@ -211,6 +222,7 @@ public class ApiWorkflowStateServiceImpl implements ApiWorkflowStateService {
             .map(MembershipEntity::getMemberId)
             .distinct()
             .map(id -> this.userService.findById(executionContext, id))
+            .filter(excludeIfTrialAndNotOptedIn)
             .map(UserEntity::getEmail)
             .filter(Objects::nonNull)
             .collect(toSet());
@@ -232,6 +244,7 @@ public class ApiWorkflowStateServiceImpl implements ApiWorkflowStateService {
                         .map(MembershipEntity::getMemberId)
                         .distinct()
                         .map(id -> this.userService.findById(executionContext, id))
+                        .filter(excludeIfTrialAndNotOptedIn)
                         .map(UserEntity::getEmail)
                         .filter(Objects::nonNull)
                         .collect(toSet())
