@@ -52,6 +52,8 @@ import io.gravitee.rest.api.model.alert.ApplicationAlertMembershipEvent;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
+import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.providers.User;
@@ -64,6 +66,7 @@ import io.gravitee.rest.api.service.EmailService;
 import io.gravitee.rest.api.service.GroupService;
 import io.gravitee.rest.api.service.IdentityService;
 import io.gravitee.rest.api.service.MembershipService;
+import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.builder.EmailNotificationBuilder;
@@ -137,6 +140,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
     private final EventManager eventManager;
 
     private final PrimaryOwnerService primaryOwnerService;
+    private ParameterService parameterService;
 
     public MembershipServiceImpl(
         @Autowired @Lazy IdentityService identityService,
@@ -153,7 +157,8 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         @Autowired @Lazy ApiGroupService apiGroupService,
         @Autowired @Lazy ApiRepository apiRepository,
         @Autowired @Lazy GroupService groupService,
-        @Autowired AuditService auditService
+        @Autowired AuditService auditService,
+        @Autowired ParameterService parameterService
     ) {
         this.identityService = identityService;
         this.userService = userService;
@@ -170,6 +175,7 @@ public class MembershipServiceImpl extends AbstractService implements Membership
         this.apiRepository = apiRepository;
         this.groupService = groupService;
         this.auditService = auditService;
+        this.parameterService = parameterService;
     }
 
     @Override
@@ -319,7 +325,14 @@ public class MembershipServiceImpl extends AbstractService implements Membership
                             reference.getId()
                         );
                         if (emailNotification != null) {
-                            emailService.sendAsyncEmailNotification(executionContext, emailNotification);
+                            final boolean isTrialInstance = parameterService.findAsBoolean(
+                                executionContext,
+                                Key.TRIAL_INSTANCE,
+                                ParameterReferenceType.SYSTEM
+                            );
+                            if (!isTrialInstance || userEntity.optedIn()) {
+                                emailService.sendAsyncEmailNotification(executionContext, emailNotification);
+                            }
                         }
                     }
 

@@ -114,7 +114,8 @@ public class MembershipService_TransferOwnershipTest {
                 apiGroupService,
                 apiRepository,
                 null,
-                auditService
+                auditService,
+                null
             );
         newPrimaryOwnerRole.setId(USER_ROLE_ID);
         newPrimaryOwnerRole.setName(USER_ROLE_NAME);
