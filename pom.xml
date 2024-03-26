@@ -161,8 +161,6 @@
         <jsonschema2pojo-maven-plugin.version>1.2.1</jsonschema2pojo-maven-plugin.version>
         <os-maven-plugin.version>1.7.1</os-maven-plugin.version>
         <swagger-maven-plugin.version>>2.2.9</swagger-maven-plugin.version>
-        <maven-plugin-prettier.version>0.19</maven-plugin-prettier.version>
-        <maven-plugin-prettier.prettierjava.version>2.1.0</maven-plugin-prettier.prettierjava.version>
         <skip.validation>false</skip.validation>
 
         <!-- Versions of the plugins for the full distribution -->
@@ -1211,7 +1209,7 @@
                 <groupId>com.hubspot.maven.plugins</groupId>
                 <artifactId>prettier-maven-plugin</artifactId>
                 <configuration>
-                    <prettierJavaVersion>${maven-plugin-prettier.prettierjava.version}</prettierJavaVersion>
+                    <prettierJavaVersion>${prettier-maven-plugin.prettierJavaVersion}</prettierJavaVersion>
                     <skip>${skip.validation}</skip>
                     <inputGlobs>
                         <inputGlob>src/{main,test}/**/*.java</inputGlob>
