@@ -101,7 +101,8 @@ public class MembershipService_UpdateMembershipForApiTest {
                 null,
                 apiRepository,
                 null,
-                auditService
+                auditService,
+                null
             );
         mockApi();
     }
