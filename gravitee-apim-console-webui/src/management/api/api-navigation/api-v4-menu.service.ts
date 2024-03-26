@@ -97,13 +97,6 @@ export class ApiV4MenuService implements ApiMenuService {
       });
     }
 
-    if (this.permissionService.hasAnyMatching(['api-event-r'])) {
-      tabs.push({
-        displayName: 'Version History',
-        routerLink: 'v4/history',
-      });
-    }
-
     if (this.permissionService.hasAnyMatching(['api-audit-r'])) {
       tabs.push({
         displayName: 'Audit Logs',
@@ -257,6 +250,13 @@ export class ApiV4MenuService implements ApiMenuService {
       tabs.push({
         displayName: 'Configuration',
         routerLink: 'deployments',
+      });
+    }
+
+    if (this.permissionService.hasAnyMatching(['api-event-r'])) {
+      tabs.push({
+        displayName: 'Version History',
+        routerLink: 'v4/history',
       });
     }
 
