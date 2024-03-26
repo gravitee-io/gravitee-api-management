@@ -98,6 +98,7 @@ public class MembershipService_GetMemberPermissionsTest {
                 null,
                 apiRepository,
                 null,
+                null,
                 null
             );
     }
