@@ -18,6 +18,7 @@ databaseChangeLog:
         - addNotNullConstraint:
             tableName: ${gravitee_prefix}dashboards
             columnName: type
+            columnDataType: nvarchar(64)
             defaultNullValue: PLATFORM
         - sql:
             sql: update ${gravitee_prefix}dashboards set reference_type = 'ENVIRONMENT'
