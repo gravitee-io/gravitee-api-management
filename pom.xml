@@ -124,7 +124,7 @@
         <jmh.version>1.33</jmh.version>
         <jcstress.version>0.15</jcstress.version>
         <jsonassert.version>1.5.0</jsonassert.version>
-        <json-unit.version>3.0.0</json-unit.version>
+        <json-unit.version>3.2.7</json-unit.version>
         <json-patch.version>1.13</json-patch.version>
         <json-path.version>2.9.0</json-path.version>
         <json-smart.version>2.4.11</json-smart.version>
