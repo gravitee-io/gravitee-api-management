@@ -306,6 +306,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Autowired
     private ApiSearchService apiSearchService;
 
+    @Autowired
+    private EmailRecipientsService emailRecipientsService;
+
     @Override
     public ApiEntity createFromSwagger(
         ExecutionContext executionContext,
@@ -2201,6 +2204,8 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
     private List<String> findAllReviewersEmail(ExecutionContext executionContext, String apiId) {
         final RolePermissionAction[] acls = { RolePermissionAction.UPDATE };
+        final boolean isTrialInstance = parameterService.findAsBoolean(executionContext, Key.TRIAL_INSTANCE, ParameterReferenceType.SYSTEM);
+        final Predicate<UserEntity> excludeIfTrialAndNotOptedIn = userEntity -> !isTrialInstance || userEntity.optedIn();
 
         // find direct members of the API
         Set<String> reviewerEmails = roleService
@@ -2214,6 +2219,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             .map(MembershipEntity::getMemberId)
             .distinct()
             .map(id -> this.userService.findById(executionContext, id))
+            .filter(excludeIfTrialAndNotOptedIn)
             .map(UserEntity::getEmail)
             .filter(Objects::nonNull)
             .collect(toSet());
@@ -2235,6 +2241,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                         .map(MembershipEntity::getMemberId)
                         .distinct()
                         .map(id -> this.userService.findById(executionContext, id))
+                        .filter(excludeIfTrialAndNotOptedIn)
                         .map(UserEntity::getEmail)
                         .filter(Objects::nonNull)
                         .collect(toSet())
