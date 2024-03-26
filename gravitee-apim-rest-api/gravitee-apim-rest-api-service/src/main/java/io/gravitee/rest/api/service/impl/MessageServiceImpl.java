@@ -27,6 +27,8 @@ import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Subscription;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
+import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.model.v4.api.GenericApiModel;
@@ -40,6 +42,7 @@ import io.gravitee.rest.api.service.notification.NotificationTemplateService;
 import io.gravitee.rest.api.service.notification.PortalHook;
 import io.gravitee.rest.api.service.v4.ApiTemplateService;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -110,6 +113,9 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
 
     @Autowired
     private Environment environment;
+
+    @Autowired
+    private ParameterService parameterService;
 
     private List<String> httpWhitelist;
 
@@ -345,13 +351,16 @@ public class MessageServiceImpl extends AbstractService implements MessageServic
             return Collections.emptySet();
         }
 
-        Set<String> emails = userService
+        final boolean isTrialInstance = parameterService.findAsBoolean(executionContext, Key.TRIAL_INSTANCE, ParameterReferenceType.SYSTEM);
+        final Predicate<UserEntity> excludeIfTrialAndNotOptedIn = userEntity -> !isTrialInstance || userEntity.optedIn();
+
+        return userService
             .findByIds(executionContext, new ArrayList<>(recipientsId))
             .stream()
             .filter(userEntity -> !StringUtils.isEmpty(userEntity.getEmail()))
+            .filter(excludeIfTrialAndNotOptedIn)
             .map(UserEntity::getEmail)
             .collect(Collectors.toSet());
-        return emails;
     }
 
     private void assertMessageNotEmpty(MessageEntity messageEntity) {
