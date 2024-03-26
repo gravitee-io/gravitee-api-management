@@ -150,7 +150,7 @@
         <wsdl4j.version>1.6.3</wsdl4j.version>
         <!-- Plugins version -->
         <gatling-maven-plugin.version>4.8.2</gatling-maven-plugin.version>
-        <maven-assembly-plugin.version>3.3.0</maven-assembly-plugin.version>
+        <maven-assembly-plugin.version>3.7.1</maven-assembly-plugin.version>
         <maven-clean-plugin.version>3.3.2</maven-clean-plugin.version>
         <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
         <jacoco-maven-plugin.version>0.8.11</jacoco-maven-plugin.version>
