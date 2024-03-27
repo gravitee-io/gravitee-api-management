@@ -20,10 +20,12 @@ import static fixtures.core.model.ApiFixtures.aProxyApiV4;
 import static fixtures.core.model.PlanFixtures.aKeylessV4;
 import static fixtures.core.model.PlanFixtures.anApiKeyV4;
 import static fixtures.core.model.SubscriptionFixtures.aSubscription;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.AuditInfoFixtures;
@@ -61,6 +63,7 @@ import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.DeployApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
+import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.crd.ApiCRD;
 import io.gravitee.apim.core.api.model.crd.ApiCRDStatus;
@@ -68,6 +71,7 @@ import io.gravitee.apim.core.api.model.crd.PlanCRD;
 import io.gravitee.apim.core.api_key.domain_service.RevokeApiKeyDomainService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.group.model.Group;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
@@ -159,6 +163,7 @@ class ImportCRDUseCaseTest {
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     WorkflowCrudServiceInMemory workflowCrudService = new WorkflowCrudServiceInMemory();
 
+    ValidateApiDomainService validateApiDomainService = mock(ValidateApiDomainService.class);
     PlanSynchronizationService planSynchronizationService = mock(PlanSynchronizationService.class);
     PlanQueryServiceInMemory planQueryService = new PlanQueryServiceInMemory(planCrudService);
     IndexerInMemory indexer = new IndexerInMemory();
@@ -237,7 +242,6 @@ class ImportCRDUseCaseTest {
         );
 
         var createApiDomainService = new CreateApiDomainService(
-            (api, primaryOwner, environmentId, organizationId) -> api,
             apiCrudService,
             auditDomainService,
             new ApiIndexerDomainService(
@@ -245,7 +249,6 @@ class ImportCRDUseCaseTest {
                 indexer
             ),
             new ApiMetadataDomainService(metadataCrudService, auditDomainService),
-            apiPrimaryOwnerFactory,
             new ApiPrimaryOwnerDomainService(
                 auditDomainService,
                 groupQueryService,
@@ -267,6 +270,8 @@ class ImportCRDUseCaseTest {
             new ImportCRDUseCase(
                 apiCrudService,
                 apiQueryService,
+                apiPrimaryOwnerFactory,
+                validateApiDomainService,
                 createApiDomainService,
                 createPlanDomainService,
                 apiMetadataDomainService,
@@ -290,6 +295,8 @@ class ImportCRDUseCaseTest {
         when(policyValidationDomainService.validateAndSanitizeConfiguration(any(), any()))
             .thenAnswer(invocation -> invocation.getArgument(1));
         when(planSynchronizationService.checkSynchronized(any(), any(), any(), any())).thenReturn(true);
+        when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any()))
+            .thenAnswer(invocation -> invocation.getArgument(0));
 
         roleQueryService.resetSystemRoles(ORGANIZATION_ID);
         givenExistingUsers(
@@ -323,6 +330,22 @@ class ImportCRDUseCaseTest {
 
     @Nested
     class Create {
+
+        @Test
+        void should_not_create_api_if_validation_fails() {
+            // Given
+            when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any()))
+                .thenThrow(new ValidationDomainException("Validation error"));
+
+            // When
+            var throwable = catchThrowable(() -> useCase.execute(new ImportCRDUseCase.Input(AUDIT_INFO, aCRD())));
+
+            // Then
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(throwable).isInstanceOf(ValidationDomainException.class);
+                soft.assertThat(apiCrudService.storage()).isEmpty();
+            });
+        }
 
         @Test
         void should_create_and_index_a_new_api() {
