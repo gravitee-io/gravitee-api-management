@@ -36,3 +36,9 @@ export interface CreateIntegrationPayload {
   description: string;
   provider: string;
 }
+
+export interface IntegrationProvider {
+  name: string;
+  icon: string;
+  value: string;
+}

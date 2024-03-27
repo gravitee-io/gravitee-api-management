@@ -25,81 +25,129 @@
   </div>
 
   <mat-card>
-    <mat-card-content>
-      <div class="card-header">
-        <div class="card-header__title">
-          <h3>Create Integration</h3>
-        </div>
-
-        <div class="card-header__actions">
-          <button mat-raised-button [disabled]="false" data-testid="exit-create-integration-button" routerLink="..">
-            <mat-icon svgIcon="gio:cancel"></mat-icon>
-            Exit without saving
-          </button>
-        </div>
+    <div class="card-header">
+      <div class="card-header__title">
+        <h3>Create Integration</h3>
       </div>
+      <div class="card-header__actions">
+        <button mat-raised-button [disabled]="false" data-testid="exit-create-integration-button" routerLink="..">
+          <mat-icon svgIcon="gio:cancel"></mat-icon>
+          Exit without saving
+        </button>
+      </div>
+    </div>
 
-      <form [formGroup]="informationForm" class="form" (ngSubmit)="onSubmit()">
-        <div class="form__body">
-          <mat-card class="form-card">
-            <mat-card-content>
-              <div>
-                <h5>General Information</h5>
-                <p class="info">Enter the general information for this new integration.</p>
+    <mat-stepper linear color="accent" [disableRipple]="true">
+      <!-- step 1-->
+      <mat-step [stepControl]="chooseProviderForm">
+        <form [formGroup]="chooseProviderForm" class="form providers">
+          <div class="providers__body">
+            <ng-template matStepLabel>Choose Provider</ng-template>
+            <mat-radio-group formControlName="provider" class="radio-group">
+              <div class="list">
+                <mat-radio-button *ngFor="let provider of integrationProviders.active" [value]="provider.value" class="gio-radio-button">
+                  <div class="radio-button-content">
+                    <img class="logo" [src]="'assets/logos/' + provider.icon + '.svg'" alt="logo" />
+                    <span class="name">{{ provider.name }}</span>
+                  </div>
+                </mat-radio-button>
               </div>
-              <div>
-                <mat-form-field appearance="outline" class="form-field">
-                  <input
-                    id="name"
-                    type="text"
-                    matInput
-                    formControlName="name"
-                    required="true"
-                    data-testid="create-integration-name-input"
-                  />
-                  <mat-label>Name</mat-label>
-                  <mat-error *ngIf="informationForm.get('name').hasError('required')">Integration name is required.</mat-error>
-                  <mat-error *ngIf="informationForm.get('name').hasError('maxlength')"
-                    >Integration name has to be less than 50 characters long.</mat-error
-                  >
-                  <mat-error *ngIf="informationForm.get('name').hasError('minlength')"
-                    >Integration name has to be more than 1 characters long.</mat-error
-                  >
-                </mat-form-field>
-              </div>
-              <div>
-                <mat-form-field appearance="outline" class="form-field">
-                  <textarea
-                    id="description"
-                    matInput
-                    #input
-                    formControlName="description"
-                    maxlength="250"
-                    rows="2"
-                    data-testid="create-integration-description"
-                  ></textarea>
-                  <mat-label>Description</mat-label>
-                  <mat-hint align="start" class="hint">{{ input.value.length }}/250</mat-hint>
-                </mat-form-field>
-              </div>
-            </mat-card-content>
-          </mat-card>
-        </div>
 
-        <div class="form__actions">
-          <button mat-flat-button [disabled]="true" data-testid="create-integration-back-button" routerLink="..">Back</button>
+              <div class="badges">
+                <span class="gio-badge-neutral">Coming soon</span>
+              </div>
 
-          <button
-            type="submit"
-            mat-raised-button
-            color="primary"
-            data-testid="create-integration-submit-button"
-            [disabled]="!informationForm.valid"
-          >
-            Create Integration
-          </button>
-        </div>
-      </form>
-    </mat-card-content>
+              <div class="list">
+                <mat-radio-button
+                  disabled
+                  *ngFor="let provider of integrationProviders.comingSoon"
+                  [value]="provider.value"
+                  class="gio-radio-button"
+                >
+                  <div class="radio-button-content">
+                    <img class="logo" [src]="'assets/logos/' + provider.icon + '_gray.svg'" alt="logo" />
+                    <span class="name">{{ provider.name }}</span>
+                  </div>
+                </mat-radio-button>
+              </div>
+            </mat-radio-group>
+          </div>
+          <div class="providers__actions">
+            <button
+              mat-raised-button
+              color="primary"
+              matStepperNext
+              [disabled]="!chooseProviderForm.valid"
+              data-testid="create-integration-submit-first-step"
+            >
+              Next
+            </button>
+          </div>
+        </form>
+      </mat-step>
+      <!-- step 2 -->
+      <mat-step [stepControl]="addInformationForm">
+        <form [formGroup]="addInformationForm" class="form" (ngSubmit)="onSubmit()">
+          <ng-template matStepLabel>Enter Information</ng-template>
+          <div class="form__body">
+            <mat-card class="form-card">
+              <mat-card-content>
+                <div>
+                  <h5>General Information</h5>
+                  <p class="info">Enter the general information for this new integration.</p>
+                </div>
+                <div>
+                  <mat-form-field appearance="outline" class="form-field">
+                    <input
+                      id="name"
+                      type="text"
+                      matInput
+                      formControlName="name"
+                      required="true"
+                      data-testid="create-integration-name-input"
+                    />
+                    <mat-label>Name</mat-label>
+                    <mat-error *ngIf="addInformationForm.get('name').hasError('required')">Integration name is required. </mat-error>
+                    <mat-error *ngIf="addInformationForm.get('name').hasError('maxlength')"
+                      >Integration name has to be less than 50 characters long.
+                    </mat-error>
+                    <mat-error *ngIf="addInformationForm.get('name').hasError('minlength')"
+                      >Integration name has to be more than 1 characters long.
+                    </mat-error>
+                  </mat-form-field>
+                </div>
+                <div>
+                  <mat-form-field appearance="outline" class="form-field">
+                    <textarea
+                      id="description"
+                      matInput
+                      #input
+                      formControlName="description"
+                      maxlength="250"
+                      rows="2"
+                      data-testid="create-integration-description"
+                    ></textarea>
+                    <mat-label>Description</mat-label>
+                    <mat-hint align="start" class="hint">{{ input.value.length }}/250</mat-hint>
+                  </mat-form-field>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+          <div class="form__actions">
+            <button matStepperPrevious mat-raised-button>Back</button>
+            <button
+              type="submit"
+              mat-raised-button
+              color="primary"
+              data-testid="create-integration-submit-button"
+              [disabled]="!addInformationForm.valid"
+            >
+              Create Integration
+            </button>
+          </div>
+        </form>
+      </mat-step>
+    </mat-stepper>
   </mat-card>
 </div>
