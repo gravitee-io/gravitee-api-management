@@ -30,6 +30,7 @@ import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.*;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.cockpit.model.ContextPathValidationResult;
 import io.gravitee.rest.api.service.cockpit.model.DeploymentMode;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
@@ -257,9 +258,14 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
         api.setPaths(null);
         api.setLabels(labels);
 
-        return checkContextPath(executionContext.getEnvironmentId(), api, apiId)
-            .map(ApiEntityResult::failure)
-            .orElseGet(() -> ApiEntityResult.success(this.apiService.updateFromSwagger(executionContext, apiId, api, swaggerDescriptor)));
+        // apply update to proxy paths
+        final ContextPathValidationResult result = checkContextPath(executionContext.getEnvironmentId(), api);
+        if (result.hasError()) {
+            return ApiEntityResult.failure(result.getError());
+        }
+        api.getProxy().setVirtualHosts(result.toVirtualHosts());
+
+        return ApiEntityResult.success(this.apiService.updateFromSwagger(executionContext, apiId, api, swaggerDescriptor));
     }
 
     private ApiEntityResult createApiEntity(
@@ -273,41 +279,52 @@ public class ApiServiceCockpitImpl implements ApiServiceCockpit {
         api.setPaths(null);
         api.setLabels(labels);
 
-        final Optional<String> result = checkContextPath(executionContext.getEnvironmentId(), api);
-        if (result.isEmpty()) {
-            final ObjectNode apiDefinition = objectMapper.valueToTree(api);
-            apiDefinition.put("crossId", apiId);
-            api.setCrossId(apiId);
-
-            final ApiEntity createdApi = apiService.createWithApiDefinition(executionContext, api, userId, apiDefinition);
-
-            pageService.createAsideFolder(executionContext, createdApi.getId());
-            pageService.createOrUpdateSwaggerPage(executionContext, createdApi.getId(), swaggerDescriptor, true);
-            apiMetadataService.create(executionContext, api.getMetadata(), createdApi.getId());
-            return ApiEntityResult.success(createdApi);
+        final ContextPathValidationResult result = checkContextPath(executionContext.getEnvironmentId(), api);
+        if (result.hasError()) {
+            return ApiEntityResult.failure(result.getError());
         }
 
-        return ApiEntityResult.failure(result.get());
+        // Update virtual hosts from sanitized paths
+        api.getProxy().setVirtualHosts(result.toVirtualHosts());
+
+        final ObjectNode apiDefinition = objectMapper.valueToTree(api);
+        apiDefinition.put("crossId", apiId);
+        api.setCrossId(apiId);
+
+        final ApiEntity createdApi = apiService.createWithApiDefinition(executionContext, api, userId, apiDefinition);
+
+        pageService.createAsideFolder(executionContext, createdApi.getId());
+        pageService.createOrUpdateSwaggerPage(executionContext, createdApi.getId(), swaggerDescriptor, true);
+        apiMetadataService.create(executionContext, api.getMetadata(), createdApi.getId());
+        return ApiEntityResult.success(createdApi);
     }
 
-    Optional<String> checkContextPath(String environmentId, SwaggerApiEntity api) {
+    ContextPathValidationResult checkContextPath(String environmentId, SwaggerApiEntity api) {
         return checkContextPath(environmentId, api, null);
     }
 
-    Optional<String> checkContextPath(String environmentId, SwaggerApiEntity api, String apiId) {
+    ContextPathValidationResult checkContextPath(String environmentId, SwaggerApiEntity api, String apiId) {
         try {
-            verifyApiPathDomainService.checkAndSanitizeApiPaths(
+            var sanitizedPaths = verifyApiPathDomainService.checkAndSanitizeApiPaths(
                 environmentId,
                 apiId,
-                api.getProxy().getVirtualHosts().stream().map(h -> Path.builder().path(h.getPath()).host(h.getHost()).build()).toList()
+                api
+                    .getProxy()
+                    .getVirtualHosts()
+                    .stream()
+                    .map(h -> Path.builder().path(h.getPath()).host(h.getHost()).overrideAccess(h.isOverrideEntrypoint()).build())
+                    .toList()
             );
+            return ContextPathValidationResult.builder().sanitizedPaths(sanitizedPaths).build();
         } catch (InvalidPathsException e) {
             String ctxPath = api.getProxy().getVirtualHosts().stream().findFirst().map(VirtualHost::getPath).orElse("");
-            return Optional.of("The path [" + ctxPath + "] automatically generated from the name is already covered by another API.");
+            return ContextPathValidationResult
+                .builder()
+                .error("The path [" + ctxPath + "] automatically generated from the name is already covered by another API.")
+                .build();
         } catch (Exception e) {
-            return Optional.of(e.getMessage());
+            return ContextPathValidationResult.builder().error(e.getMessage()).build();
         }
-        return Optional.empty();
     }
 
     private NewPlanEntity createKeylessPlan(String apiId, String environmentId) {
