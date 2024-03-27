@@ -31,6 +31,8 @@ import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.*;
+import jakarta.ws.rs.container.ResourceContext;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,6 +43,9 @@ import lombok.extern.slf4j.Slf4j;
 @Path("/environments/{envId}/integrations")
 @Slf4j
 public class IntegrationsResource extends AbstractResource {
+
+    @Context
+    private ResourceContext resourceContext;
 
     @Inject
     private CreateIntegrationUseCase createIntegrationUsecase;
@@ -87,5 +92,10 @@ public class IntegrationsResource extends AbstractResource {
                 PaginationInfo.computePaginationInfo(totalElements, Math.toIntExact(integrations.getPageElements()), paginationParam)
             )
             .links(computePaginationLinks(totalElements, paginationParam));
+    }
+
+    @Path("{integrationId}")
+    public IntegrationResource getIntegrationResource() {
+        return resourceContext.getResource(IntegrationResource.class);
     }
 }

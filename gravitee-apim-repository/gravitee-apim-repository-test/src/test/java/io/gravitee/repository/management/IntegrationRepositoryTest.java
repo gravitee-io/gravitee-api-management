@@ -24,6 +24,7 @@ import io.gravitee.repository.management.api.search.builder.PageableBuilder;
 import io.gravitee.repository.management.model.Integration;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import org.junit.Test;
 
 public class IntegrationRepositoryTest extends AbstractManagementRepositoryTest {
@@ -58,10 +59,11 @@ public class IntegrationRepositoryTest extends AbstractManagementRepositoryTest 
         return Integration
             .builder()
             .id(uuid)
-            .name("my-name")
-            .description("my-description")
-            .provider("my_provider")
+            .name("my-another-integration")
+            .description("test-description")
+            .provider("sample-provider")
             .environmentId("my-env")
+            .agentStatus(Integration.AgentStatus.DISCONNECTED)
             .createdAt(date)
             .updatedAt(date)
             .build();
@@ -90,5 +92,25 @@ public class IntegrationRepositoryTest extends AbstractManagementRepositoryTest 
             .getContent();
 
         assertThat(integrations).hasSize(0);
+    }
+
+    @Test
+    public void should_get_integration_by_id() throws TechnicalException {
+        var id = "f66274c9-3d8f-44c5-a274-c93d8fb4c5f3";
+        var date = new Date(1470157767000L);
+        var expectedIntegration = creatIntegration(id, date);
+
+        final Optional<Integration> integration = integrationRepository.findById(id);
+
+        assertThat(integration).isPresent().isNotEmpty().hasValue(expectedIntegration);
+    }
+
+    @Test
+    public void should_return_empty_when_integration_not_found() throws TechnicalException {
+        var id = "not-existing-id";
+
+        final Optional<Integration> integration = integrationRepository.findById(id);
+
+        assertThat(integration).isNotPresent();
     }
 }

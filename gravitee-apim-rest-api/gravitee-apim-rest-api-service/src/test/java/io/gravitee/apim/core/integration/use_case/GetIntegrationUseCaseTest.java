@@ -16,66 +16,63 @@
 package io.gravitee.apim.core.integration.use_case;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 
 import fixtures.core.model.IntegrationFixture;
 import inmemory.IntegrationCrudServiceInMemory;
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
+import io.gravitee.apim.core.integration.exception.IntegrationNotFoundException;
 import io.gravitee.apim.core.integration.model.Integration;
-import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.service.common.UuidString;
-import java.time.Clock;
-import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import org.junit.jupiter.api.AfterEach;
+import java.util.List;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class CreateIntegrationUseCaseTest {
+class GetIntegrationUseCaseTest {
 
     private static final String INTEGRATION_ID = "generated-id";
     private static final String NAME = "test-name";
     private static final String DESCRIPTION = "integration-description";
     private static final String PROVIDER = "test-provider";
-    private static final Instant INSTANT_NOW = Instant.parse("2023-10-22T10:15:30Z");
+    private static final ZonedDateTime CREATED_AT = ZonedDateTime
+        .parse("2020-02-03T20:22:02.00Z")
+        .withZoneSameLocal(ZoneId.systemDefault());
+    private static final ZonedDateTime UPDATED_AT = CREATED_AT;
     private static final String ENV_ID = "my-env";
     private static final Integration.AgentStatus AGENT_STATUS = Integration.AgentStatus.DISCONNECTED;
 
     IntegrationCrudServiceInMemory integrationCrudServiceInMemory = new IntegrationCrudServiceInMemory();
 
-    CreateIntegrationUseCase usecase;
+    GetIntegrationUseCase usecase;
 
     @BeforeAll
     static void beforeAll() {
         UuidString.overrideGenerator(() -> INTEGRATION_ID);
-        TimeProvider.overrideClock(Clock.fixed(INSTANT_NOW, ZoneId.systemDefault()));
     }
 
     @BeforeEach
     void setUp() {
         IntegrationCrudService integrationCrudService = integrationCrudServiceInMemory;
-        usecase = new CreateIntegrationUseCase(integrationCrudService);
-    }
-
-    @AfterEach
-    void tearDown() {
-        integrationCrudServiceInMemory.reset();
+        usecase = new GetIntegrationUseCase(integrationCrudService);
+        var integration = List.of(IntegrationFixture.anIntegration());
+        integrationCrudServiceInMemory.initWith(integration);
     }
 
     @Test
-    void should_create_new_integration() {
+    void should_get_integration() {
         //Given
-        var integration = IntegrationFixture.anIntegration();
-        var input = CreateIntegrationUseCase.Input.builder().integration(integration).build();
+        var input = GetIntegrationUseCase.Input.builder().integrationId(INTEGRATION_ID).build();
 
         //When
-        CreateIntegrationUseCase.Output output = usecase.execute(input);
+        GetIntegrationUseCase.Output output = usecase.execute(input);
 
         //Then
         assertThat(output).isNotNull();
-        assertThat(output.createdIntegration().getId()).isEqualTo(INTEGRATION_ID);
-        assertThat(output.createdIntegration())
+        assertThat(output.integration().getId()).isEqualTo(INTEGRATION_ID);
+        assertThat(output.integration())
             .extracting(
                 Integration::getName,
                 Integration::getDescription,
@@ -85,14 +82,15 @@ public class CreateIntegrationUseCaseTest {
                 Integration::getUpdatedAt,
                 Integration::getAgentStatus
             )
-            .containsExactly(
-                NAME,
-                DESCRIPTION,
-                PROVIDER,
-                ENV_ID,
-                ZonedDateTime.ofInstant(INSTANT_NOW, ZoneId.systemDefault()),
-                ZonedDateTime.ofInstant(INSTANT_NOW, ZoneId.systemDefault()),
-                AGENT_STATUS
-            );
+            .containsExactly(NAME, DESCRIPTION, PROVIDER, ENV_ID, CREATED_AT, UPDATED_AT, AGENT_STATUS);
+    }
+
+    @Test
+    void should_throw_error_when_integration_not_found() {
+        var input = GetIntegrationUseCase.Input.builder().integrationId("not-existing-integration-id").build();
+
+        assertThatExceptionOfType(IntegrationNotFoundException.class)
+            .isThrownBy(() -> usecase.execute(input))
+            .withMessage("Integration not found.");
     }
 }

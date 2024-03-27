@@ -29,6 +29,10 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}integrations")
 public class IntegrationMongo extends Auditable {
 
+    public enum AgentStatus {
+        DISCONNECTED,
+    }
+
     @Id
     private String id;
 
@@ -39,6 +43,8 @@ public class IntegrationMongo extends Auditable {
     private String provider;
 
     private String environmentId;
+
+    private AgentStatus agentStatus;
 
     public IntegrationMongo() {}
 }

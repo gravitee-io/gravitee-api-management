@@ -17,64 +17,19 @@ package io.gravitee.rest.api.management.v2.rest.resource.integration;
 
 import static assertions.MAPIAssertions.assertThat;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
-import static org.mockito.Mockito.doReturn;
 
 import fixtures.core.model.IntegrationFixture;
-import inmemory.IntegrationCrudServiceInMemory;
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.management.v2.rest.model.*;
-import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
-import io.gravitee.rest.api.model.EnvironmentEntity;
-import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.common.UuidString;
 import jakarta.ws.rs.client.Entity;
-import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
 import java.time.ZonedDateTime;
 import java.util.stream.IntStream;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
-public class IntegrationsResourceTest extends AbstractResourceTest {
-
-    @Autowired
-    IntegrationCrudServiceInMemory integrationCrudServiceInMemory;
-
-    private static final String ENVIRONMENT = "my-env";
-    private static final String INTEGRATION_NAME = "test-name";
-    private static final String INTEGRATION_DESCRIPTION = "integration-description";
-    private static final String INTEGRATION_PROVIDER = "test-provider";
-    private static final String INTEGRATION_ID = "generated-id";
-
-    WebTarget target;
-
-    @Override
-    protected String contextPath() {
-        return "/environments/" + ENVIRONMENT + "/integrations";
-    }
-
-    @BeforeEach
-    public void init() throws TechnicalException {
-        target = rootTarget();
-
-        EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
-        doReturn(environmentEntity).when(environmentService).findById(ENVIRONMENT);
-        doReturn(environmentEntity).when(environmentService).findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT);
-
-        GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
-        GraviteeContext.setCurrentOrganization(ORGANIZATION);
-
-        UuidString.overrideGenerator(() -> INTEGRATION_ID);
-    }
-
-    @AfterEach
-    public void tearDown() {
-        integrationCrudServiceInMemory.reset();
-    }
+public class IntegrationsResourceTest extends IntegrationResourceTest {
 
     @Nested
     class CreateIntegrations {
@@ -104,6 +59,7 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
                         .name(INTEGRATION_NAME)
                         .description(INTEGRATION_DESCRIPTION)
                         .provider(INTEGRATION_PROVIDER)
+                        .agentStatus(Integration.AgentStatusEnum.DISCONNECTED)
                         .build()
                 );
         }
@@ -211,7 +167,16 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
                 .asEntity(IntegrationsResponse.class)
                 .extracting(IntegrationsResponse::getData)
                 .extracting(integrations -> integrations.get(0))
-                .isEqualTo(Integration.builder().id(INTEGRATION_ID).name(name).description(description).provider(provider).build());
+                .isEqualTo(
+                    Integration
+                        .builder()
+                        .id(INTEGRATION_ID)
+                        .name(name)
+                        .description(description)
+                        .provider(provider)
+                        .agentStatus(Integration.AgentStatusEnum.DISCONNECTED)
+                        .build()
+                );
         }
 
         @Test

@@ -41,4 +41,9 @@ public class Integration {
     String environmentId;
     ZonedDateTime createdAt;
     ZonedDateTime updatedAt;
+    AgentStatus agentStatus;
+
+    public enum AgentStatus {
+        DISCONNECTED,
+    }
 }
