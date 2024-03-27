@@ -2100,14 +2100,14 @@ components:
                               $ref: "#/components/schemas/Property"
                       _links:
                           $ref: "#/components/schemas/ApiLinks"
+                  required:
+                      - definitionVersion
             discriminator:
                 propertyName: definitionVersion
                 mapping:
                     V1: ApiV1
                     V2: ApiV2
                     V4: ApiV4
-            required:
-                - definitionVersion
         ApiV1:
             type: object
             title: "ApiV1"
@@ -3312,8 +3312,8 @@ components:
                           example: 2023-05-25T12:40:46.184Z
                       validation:
                           $ref: "#/components/schemas/PlanValidation"
-            required:
-                - definitionVersion
+                  required:
+                      - definitionVersion
             discriminator:
                 propertyName: definitionVersion
                 mapping:
@@ -4715,6 +4715,10 @@ components:
                     type: string
                     description: The body of the request
                     example: my body
+                provider:
+                    $ref: "#/components/schemas/DynamicPropertyProvider"
+            required:
+                - provider
         HttpHeader:
             type: object
             properties:
@@ -4997,6 +5001,8 @@ components:
             properties:
                 type:
                     $ref: "#/components/schemas/TrustStoreType"
+            required:
+                - type
             discriminator:
                 propertyName: type
                 mapping:
