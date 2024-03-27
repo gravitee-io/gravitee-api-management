@@ -446,7 +446,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
                         .getProxy()
                         .getVirtualHosts()
                         .stream()
-                        .map(vh -> Path.builder().host(vh.getHost()).path(vh.getPath()).build())
+                        .map(vh -> Path.builder().host(vh.getHost()).path(vh.getPath()).overrideAccess(vh.isOverrideEntrypoint()).build())
                         .collect(toList())
                 )
                 .stream()
