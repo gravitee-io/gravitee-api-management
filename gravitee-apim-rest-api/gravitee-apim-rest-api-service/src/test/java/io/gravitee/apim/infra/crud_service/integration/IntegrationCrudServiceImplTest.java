@@ -73,9 +73,7 @@ public class IntegrationCrudServiceImplTest {
             Throwable throwable = catchThrowable(() -> service.create(integration));
 
             // Then
-            assertThat(throwable)
-                .isInstanceOf(TechnicalManagementException.class)
-                .hasMessage("Error when creating Integration: Test integration");
+            assertThat(throwable).isInstanceOf(TechnicalManagementException.class).hasMessage("Error when creating Integration: test-name");
         }
     }
 
@@ -105,6 +103,7 @@ public class IntegrationCrudServiceImplTest {
                         .description("A description")
                         .provider("amazon")
                         .environmentId("environment-id")
+                        .agentStatus(Integration.AgentStatus.DISCONNECTED)
                         .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
                         .updatedAt(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneId.systemDefault()))
                         .build()
@@ -127,7 +126,6 @@ public class IntegrationCrudServiceImplTest {
         @Test
         void should_throw_when_technical_exception_occurs() throws TechnicalException {
             // Given
-            var integration = IntegrationFixture.anIntegration();
             when(integrationRepository.findById(any())).thenThrow(TechnicalException.class);
 
             // When

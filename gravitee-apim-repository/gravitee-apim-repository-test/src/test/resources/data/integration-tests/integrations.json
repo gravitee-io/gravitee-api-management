@@ -5,6 +5,7 @@
     "environmentId": "my-env",
     "name": "my-integration",
     "provider": "sample-provider",
+    "agentStatus": "DISCONNECTED",
     "createdAt": 1470157767000,
     "updatedAt": 1470157767000
   },
@@ -14,6 +15,7 @@
     "environmentId": "my-env",
     "name": "my-another-integration",
     "provider": "sample-provider",
+    "agentStatus": "DISCONNECTED",
     "createdAt": 1470157767000,
     "updatedAt": 1470157767000
   },
@@ -23,6 +25,7 @@
     "environmentId": "my-env",
     "name": "my-yet-another-integration",
     "provider": "sample-provider",
+    "agentStatus": "DISCONNECTED",
     "createdAt": 1470157767000,
     "updatedAt": 1470157767000
   }

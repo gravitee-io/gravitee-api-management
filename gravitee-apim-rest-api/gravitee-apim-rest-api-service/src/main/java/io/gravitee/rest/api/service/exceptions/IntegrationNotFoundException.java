@@ -13,34 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.integration.model;
+package io.gravitee.rest.api.service.exceptions;
 
-import java.time.ZonedDateTime;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import static java.util.Collections.singletonMap;
+
+import java.util.Map;
 
 /**
  * @author Remi Baptiste (remi.baptiste at graviteesource.com)
  * @author GraviteeSource Team
  */
-@Data
-@Builder(toBuilder = true)
-@NoArgsConstructor
-@AllArgsConstructor
-public class Integration {
+public class IntegrationNotFoundException extends AbstractNotFoundException {
 
-    String id;
-    String name;
-    String description;
-    String provider;
-    String environmentId;
-    ZonedDateTime createdAt;
-    ZonedDateTime updatedAt;
-    AgentStatus agentStatus;
+    private final String integrationName;
 
-    public enum AgentStatus {
-        DISCONNECTED,
+    public IntegrationNotFoundException(String integrationName) {
+        this.integrationName = integrationName;
+    }
+
+    @Override
+    public String getMessage() {
+        return "Integration [" + integrationName + "] cannot be found.";
+    }
+
+    @Override
+    public String getTechnicalCode() {
+        return "integration.notFound";
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return singletonMap("integration", integrationName);
     }
 }
