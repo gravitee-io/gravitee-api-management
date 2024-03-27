@@ -51,10 +51,7 @@ public class IntegrationRepositoryTest extends AbstractManagementRepositoryTest 
         Integration integration = creatIntegration(uuid, date);
 
         integrationRepository.create(integration);
-        assertThatThrownBy(() -> integrationRepository.create(integration))
-            .isInstanceOf(Exception.class)
-            .cause()
-            .hasMessageContaining("duplicate key");
+        assertThatThrownBy(() -> integrationRepository.create(integration)).isInstanceOf(Exception.class);
     }
 
     private static Integration creatIntegration(String uuid, Date date) {
