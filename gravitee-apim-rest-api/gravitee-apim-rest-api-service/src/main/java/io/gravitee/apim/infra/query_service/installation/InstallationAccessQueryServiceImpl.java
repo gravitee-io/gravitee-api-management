@@ -79,7 +79,7 @@ public class InstallationAccessQueryServiceImpl implements InstallationAccessQue
             // Setup default value if required
             if (cockpitEnabled) {
                 if (consoleUrls.isEmpty()) {
-                    consoleUrls.put(DEFAULT_ID, "http://localhost:3000");
+                    consoleUrls.put(DEFAULT_ID, "http://localhost:4000");
                 }
                 if (portalUrls.isEmpty()) {
                     portalUrls.put(DEFAULT_ID, "http://localhost:4100");
