@@ -28,7 +28,6 @@ import { ApiPortalHeaderComponent as ApiPortalHeaderComponentMigrated } from './
 import { ClientRegistrationProvidersComponent } from './client-registration-providers/client-registration-providers.component';
 import { ClientRegistrationProviderComponent } from './client-registration-providers/client-registration-provider/client-registration-provider.component';
 import { EnvironmentMetadataComponent } from './metadata/environment-metadata.component';
-import { PortalComponent } from './portal/portal.component';
 import { PortalThemeComponent } from './portal-theme/portalTheme.component';
 import { TopApisComponent } from './top-apis/top-apis.component';
 import { TopApisComponent as TopApisComponentMigrated } from './top-apis/migrated/top-apis.component';
@@ -282,19 +281,6 @@ export const settingsRoutes: Routes = [
       },
       {
         path: 'portal',
-        component: PortalComponent,
-        data: {
-          docs: {
-            page: 'management-configuration-portal',
-          },
-          permissions: {
-            anyOf: ['environment-settings-r'],
-            unauthorizedFallbackTo: '../theme',
-          },
-        },
-      },
-      {
-        path: 'portal-ng',
         component: PortalNgComponent,
         data: {
           docs: {
