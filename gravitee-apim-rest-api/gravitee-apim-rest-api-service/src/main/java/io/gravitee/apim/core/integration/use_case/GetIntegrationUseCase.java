@@ -17,9 +17,8 @@ package io.gravitee.apim.core.integration.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
+import io.gravitee.apim.core.integration.exception.IntegrationNotFoundException;
 import io.gravitee.apim.core.integration.model.Integration;
-import io.gravitee.common.utils.TimeProvider;
-import io.gravitee.rest.api.service.common.UuidString;
 import lombok.Builder;
 
 /**
@@ -27,36 +26,26 @@ import lombok.Builder;
  * @author GraviteeSource Team
  */
 @UseCase
-public class CreateIntegrationUseCase {
+public class GetIntegrationUseCase {
 
     private final IntegrationCrudService integrationCrudService;
 
-    public CreateIntegrationUseCase(IntegrationCrudService integrationCrudService) {
+    public GetIntegrationUseCase(IntegrationCrudService integrationCrudService) {
         this.integrationCrudService = integrationCrudService;
     }
 
-    public Output execute(Input input) {
-        var now = TimeProvider.now();
+    public GetIntegrationUseCase.Output execute(GetIntegrationUseCase.Input input) {
+        var integrationId = input.integrationId();
 
-        var integrationToCreate = Integration
-            .builder()
-            .id(UuidString.generateRandom())
-            .name(input.integration.getName())
-            .description(input.integration.getDescription())
-            .provider(input.integration.getProvider())
-            .environmentId(input.integration.getEnvironmentId())
-            .agentStatus(Integration.AgentStatus.DISCONNECTED)
-            .createdAt(now)
-            .updatedAt(now)
-            .build();
+        Integration integrationCreated = integrationCrudService
+            .findById(integrationId)
+            .orElseThrow(() -> new IntegrationNotFoundException(integrationId));
 
-        Integration integrationCreated = integrationCrudService.create(integrationToCreate);
-
-        return new Output(integrationCreated);
+        return new GetIntegrationUseCase.Output(integrationCreated);
     }
 
     @Builder
-    public record Input(Integration integration) {}
+    public record Input(String integrationId) {}
 
-    public record Output(Integration createdIntegration) {}
+    public record Output(Integration integration) {}
 }

@@ -29,10 +29,11 @@ public class IntegrationFixture {
         Integration
             .builder()
             .id(UuidString.generateRandom())
-            .name("Test integration")
-            .description("Test description")
-            .provider("ForTestPurpose")
+            .name("test-name")
+            .description("integration-description")
+            .provider("test-provider")
             .environmentId("my-env")
+            .agentStatus(Integration.AgentStatus.DISCONNECTED)
             .createdAt(ZonedDateTime.parse("2020-02-03T20:22:02.00Z").withZoneSameLocal(ZoneId.systemDefault()))
             .updatedAt(ZonedDateTime.parse("2020-02-03T20:22:02.00Z").withZoneSameLocal(ZoneId.systemDefault()));
 

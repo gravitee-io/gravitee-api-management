@@ -1042,7 +1042,7 @@ paths:
                 - $ref: "#/components/parameters/pageParam"
                 - $ref: "#/components/parameters/perPageParam"
             tags:
-                - Integration
+                - Integrations
             summary: List Integrations
             description: |-
                 Get the list of Integration for a specific environment.<br>
@@ -1057,7 +1057,7 @@ paths:
                     $ref: "#/components/responses/Error"
         post:
             tags:
-                - Integration
+                - Integrations
             summary: Create an Integration
             description: |-
                 Create a new Integration.
@@ -1073,6 +1073,28 @@ paths:
             responses:
                 "201":
                     description: Integration successfully created
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Integration"
+                default:
+                    $ref: "#/components/responses/Error"
+    /environments/{envId}/integrations/{integrationId}:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/integrationIdParam"
+        get:
+            tags:
+                - Integrations
+            summary: Get a specific Integration
+            description: |-
+                Get a specific Integration.
+
+                User must have at least one management (create, update, or delete) permission on the Integration to access it.
+            operationId: getIntegration
+            responses:
+                "200":
+                    description: Integration found
                     content:
                         application/json:
                             schema:
@@ -3046,6 +3068,12 @@ components:
                 provider:
                     type: string
                     description: Provider of this integration
+                agentStatus:
+                    type: string
+                    description: Agent connection status
+                    example: DISCONNECTED
+                    enum:
+                        - DISCONNECTED
         Links:
             description: List of links for pagination
             properties:
