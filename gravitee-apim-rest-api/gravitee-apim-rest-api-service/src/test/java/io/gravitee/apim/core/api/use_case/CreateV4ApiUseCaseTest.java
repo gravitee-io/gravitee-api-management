@@ -146,7 +146,6 @@ class CreateV4ApiUseCaseTest {
         );
 
         var createApiDomainService = new CreateApiDomainService(
-            validateApiDomainService,
             apiCrudService,
             auditService,
             new ApiIndexerDomainService(
@@ -154,7 +153,6 @@ class CreateV4ApiUseCaseTest {
                 indexer
             ),
             new ApiMetadataDomainService(metadataCrudService, auditService),
-            apiPrimaryOwnerFactory,
             new ApiPrimaryOwnerDomainService(
                 auditService,
                 groupQueryService,
