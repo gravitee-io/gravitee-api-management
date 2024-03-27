@@ -21,22 +21,43 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, tap } from 'rxjs/operators';
 import { EMPTY } from 'rxjs';
 
-import { CreateIntegrationPayload } from '../integrations.model';
+import { CreateIntegrationPayload, IntegrationProvider } from '../integrations.model';
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
 @Component({
   selector: 'app-create-integration',
   templateUrl: './create-integration.component.html',
-  styleUrls: ['./create-integration.component.scss'],
+  styleUrls: ['./create-integration.component.scss']
 })
 export class CreateIntegrationComponent {
   public isLoading = false;
   private destroyRef = inject(DestroyRef);
 
-  public informationForm = this.formBuilder.group({
+  // hardcoded list of providers for time when backend is not ready.
+  public integrationProviders: { active: IntegrationProvider[], comingSoon: IntegrationProvider[] } = {
+    active: [
+      { name: 'AWS', icon: 'aws.svg' },
+      { name: 'Solace', icon: 'solace.svg' },
+      { name: 'Apigee', icon: 'apigee.svg' }
+    ],
+    comingSoon: [
+      { name: 'Confluent', icon: 'confluent.svg' },
+      { name: 'Azure', icon: 'azure.svg' },
+      { name: 'Kong', icon: 'kong.svg' },
+      { name: 'IBM API Connect', icon: 'ibm-api-connect.svg' },
+      { name: 'Mulesoft', icon: 'mulesoft.svg' },
+      { name: 'Dell Boomi', icon: 'dell-boomi.svg' }
+    ]
+  };
+
+  public chooseProviderForm = this.formBuilder.group({
+    provider: ['', Validators.required]
+  });
+
+  public addInformationForm = this.formBuilder.group({
     name: ['', [Validators.required, Validators.maxLength(50), Validators.minLength(1)]],
-    description: ['', Validators.maxLength(250)],
+    description: ['', Validators.maxLength(250)]
   });
 
   constructor(
@@ -44,14 +65,15 @@ export class CreateIntegrationComponent {
     private formBuilder: FormBuilder,
     private readonly router: Router,
     private activatedRoute: ActivatedRoute,
-    private snackBarService: SnackBarService,
-  ) {}
+    private snackBarService: SnackBarService
+  ) {
+  }
 
   public onSubmit(): void {
     const payload: CreateIntegrationPayload = {
-      name: this.informationForm.controls.name.getRawValue(),
-      description: this.informationForm.controls.description.getRawValue(),
-      provider: 'AWS',
+      name: this.addInformationForm.controls.name.getRawValue(),
+      description: this.addInformationForm.controls.description.getRawValue(),
+      provider: this.chooseProviderForm.controls.provider.getRawValue()
     };
 
     this.isLoading = true;
@@ -67,7 +89,7 @@ export class CreateIntegrationComponent {
           this.snackBarService.error('An error occurred. Integration not created');
           return EMPTY;
         }),
-        takeUntilDestroyed(this.destroyRef),
+        takeUntilDestroyed(this.destroyRef)
       )
       .subscribe(() => {
         this.isLoading = false;

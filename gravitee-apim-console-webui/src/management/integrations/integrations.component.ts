@@ -65,14 +65,14 @@ export class IntegrationsComponent implements OnInit {
         }),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe((response: IntegrationResponse) => {
+      .subscribe((response: IntegrationResponse): void => {
         this.nbTotalInstances = response.pagination.totalCount;
         this.integrations = response.data;
         this.isLoading = false;
       });
   }
 
-  onFiltersChanged(filters: GioTableWrapperFilters) {
+  onFiltersChanged(filters: GioTableWrapperFilters): void {
     this.filters = { ...this.filters, ...filters };
     this.filters$.next(this.filters);
   }

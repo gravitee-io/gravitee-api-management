@@ -41,7 +41,7 @@ $typography: map.get(gio.$mat-theme, typography);
 .card-header {
   display: flex;
   justify-content: space-between;
-  padding-bottom: 24px;
+  padding: 16px 16px 0 16px;
 
   &__title {
     @include mat.typography-level($typography, subtitle-1);
