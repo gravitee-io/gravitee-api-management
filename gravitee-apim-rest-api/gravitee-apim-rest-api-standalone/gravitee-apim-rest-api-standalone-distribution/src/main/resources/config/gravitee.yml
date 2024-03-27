@@ -576,8 +576,11 @@ notifiers:
 # Cockpit
 #cockpit:
 #  enabled: false
-## Specify the URL to cockpit instance. Default is the Gravitee SAAS instance
-#  url: https://cockpit.gravitee.io
+#  connector:
+#    ws:
+#      endpoints:
+#        ## Specify the URL to cockpit instance. Default is the Gravitee SAAS instance
+#        - https://cockpit.gravitee.io
 ## Specify the auth path used to authenticate from cockpit. {token} placeholder can be used and will be replaced by cockpit token.
 #  auth:
 #    path: /auth/cockpit?token={token}
