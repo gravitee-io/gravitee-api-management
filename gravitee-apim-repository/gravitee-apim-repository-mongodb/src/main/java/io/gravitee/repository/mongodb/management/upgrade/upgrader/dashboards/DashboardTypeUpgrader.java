@@ -17,10 +17,8 @@ package io.gravitee.repository.mongodb.management.upgrade.upgrader.dashboards;
 
 import static io.gravitee.repository.mongodb.management.upgrade.upgrader.promotions.RemovePromotionAuthorPictureUpgrader.REMOVE_PROMOTION_AUTHOR_PICTURE_UPGRADER_ORDER;
 
-import com.mongodb.client.model.Updates;
+import com.mongodb.client.model.Filters;
 import io.gravitee.repository.mongodb.management.upgrade.upgrader.common.MongoUpgrader;
-import java.util.List;
-import org.bson.BsonDocument;
 import org.springframework.stereotype.Component;
 
 /**
@@ -34,10 +32,16 @@ public class DashboardTypeUpgrader extends MongoUpgrader {
 
     @Override
     public boolean upgrade() {
-        var updateResult = template
+        // Because of DocumentDB which does not support latest aggregation APIs of MongoDB, we need to use this kind of update method.
+        template
             .getCollection("dashboards")
-            .updateMany(new BsonDocument(), List.of(Updates.set("type", "$referenceType"), Updates.set("referenceType", "ENVIRONMENT")));
-        return updateResult.wasAcknowledged();
+            .find()
+            .forEach(dashboard -> {
+                dashboard.append("type", dashboard.getString("referenceType"));
+                dashboard.put("referenceType", "ENVIRONMENT");
+                template.getCollection("dashboards").replaceOne(Filters.eq("_id", dashboard.getString("_id")), dashboard);
+            });
+        return true;
     }
 
     @Override
