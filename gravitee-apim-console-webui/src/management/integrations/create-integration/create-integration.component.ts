@@ -21,7 +21,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, tap } from 'rxjs/operators';
 import { EMPTY } from 'rxjs';
 
-import { CreateIntegrationPayload } from '../integrations.model';
+import { CreateIntegrationPayload, IntegrationProvider } from '../integrations.model';
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
@@ -34,7 +34,26 @@ export class CreateIntegrationComponent {
   public isLoading = false;
   private destroyRef = inject(DestroyRef);
 
-  public informationForm = this.formBuilder.group({
+  // hardcoded list of providers for time when backend is not ready.
+  public integrationProviders: { active?: IntegrationProvider[]; comingSoon?: IntegrationProvider[] } = {
+    active: [{ name: 'AWS', icon: 'aws', value: 'aws-api-gateway' }],
+    comingSoon: [
+      { name: 'Solace', icon: 'solace', value: 'solace' },
+      { name: 'Apigee', icon: 'apigee', value: 'apigee' },
+      { name: 'Confluent', icon: 'confluent', value: 'confluent' },
+      { name: 'Azure', icon: 'azure', value: 'azure' },
+      { name: 'Kong', icon: 'kong', value: 'kong' },
+      { name: 'IBM API Connect', icon: 'ibm-api-connect', value: 'ibm-api-connect' },
+      { name: 'Mulesoft', icon: 'mulesoft', value: 'mulesoft' },
+      { name: 'Dell Boomi', icon: 'dell-boomi', value: 'dell-boomi' },
+    ],
+  };
+
+  public chooseProviderForm = this.formBuilder.group({
+    provider: ['', Validators.required],
+  });
+
+  public addInformationForm = this.formBuilder.group({
     name: ['', [Validators.required, Validators.maxLength(50), Validators.minLength(1)]],
     description: ['', Validators.maxLength(250)],
   });
@@ -49,9 +68,9 @@ export class CreateIntegrationComponent {
 
   public onSubmit(): void {
     const payload: CreateIntegrationPayload = {
-      name: this.informationForm.controls.name.getRawValue(),
-      description: this.informationForm.controls.description.getRawValue(),
-      provider: 'aws-api-gateway',
+      name: this.addInformationForm.controls.name.getRawValue(),
+      description: this.addInformationForm.controls.description.getRawValue(),
+      provider: this.chooseProviderForm.controls.provider.getRawValue(),
     };
 
     this.isLoading = true;

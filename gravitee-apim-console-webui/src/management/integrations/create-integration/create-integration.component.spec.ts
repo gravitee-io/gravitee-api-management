@@ -20,6 +20,8 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatErrorHarness } from '@angular/material/form-field/testing';
+import { MatRadioButtonHarness, MatRadioGroupHarness } from '@angular/material/radio/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
 import { CreateIntegrationComponent } from './create-integration.component';
 import { CreateIntegrationHarness } from './create-integration.harness';
@@ -69,7 +71,61 @@ describe('CreateIntegrationComponent', () => {
     httpTestingController.verify();
   });
 
-  describe('form', () => {
+  describe('choose provider', () => {
+    it('should set correct value in reactive forms object', async () => {
+      fixture.componentInstance.integrationProviders = {
+        active: [{ name: 'AWS', icon: 'aws.svg', value: 'test_my_value' }],
+      };
+
+      let reactiveFormsValue = fixture.componentInstance.chooseProviderForm.controls.provider.getRawValue();
+      expect(reactiveFormsValue).toEqual('');
+
+      const radioButtonsGroup: MatRadioGroupHarness = await componentHarness.getRadioButtonsGroup();
+      await radioButtonsGroup.checkRadioButton();
+
+      reactiveFormsValue = fixture.componentInstance.chooseProviderForm.controls.provider.getRawValue();
+      expect(reactiveFormsValue).toEqual('test_my_value');
+    });
+
+    it('should have correct numbers of radio buttons', async () => {
+      fixture.componentInstance.integrationProviders = {
+        active: [
+          { name: 'AWS', icon: 'aws.svg', value: 'aws-api-gateway' },
+          { name: 'Solace', icon: 'solace.svg', value: 'solace' },
+          { name: 'Apigee', icon: 'apigee.svg', value: 'apigee' },
+        ],
+        comingSoon: [
+          { name: 'Confluent', icon: 'confluent.svg', value: 'confluent' },
+          { name: 'Azure', icon: 'azure.svg', value: 'azure' },
+          { name: 'Kong', icon: 'kong.svg', value: 'kong' },
+        ],
+      };
+      const radioButtonsGroup: MatRadioGroupHarness = await componentHarness.getRadioButtonsGroup();
+      const radioButtons: MatRadioButtonHarness[] = await radioButtonsGroup.getRadioButtons();
+      expect(radioButtons.length).toEqual(6);
+    });
+
+    it('should have not selected radio by default', async () => {
+      const radioButtonsGroup: MatRadioGroupHarness = await componentHarness.getRadioButtonsGroup();
+      const checked: MatRadioButtonHarness = await radioButtonsGroup.getCheckedRadioButton();
+      expect(checked).toBe(null);
+    });
+
+    it('should disable button when no radio button selected', async () => {
+      const submitFirstStepButton: MatButtonHarness = await componentHarness.getSubmitStepFirstButton();
+      expect(await submitFirstStepButton.isDisabled()).toBe(true);
+    });
+
+    it('should show active button when form is active', async () => {
+      const radioButtonsGroup: MatRadioGroupHarness = await componentHarness.getRadioButtonsGroup();
+      await radioButtonsGroup.checkRadioButton();
+
+      const submitFirstStepButton: MatButtonHarness = await componentHarness.getSubmitStepFirstButton();
+      expect(await submitFirstStepButton.isDisabled()).toBe(false);
+    });
+  });
+
+  describe('details form', () => {
     it('should not submit integration with too short name', async () => {
       await componentHarness.setName('');
       await componentHarness.setDescription('Some description');
@@ -107,7 +163,7 @@ describe('CreateIntegrationComponent', () => {
       const expectedPayload: CreateIntegrationPayload = {
         name: 'TEST123',
         description: '',
-        provider: 'aws-api-gateway',
+        provider: '',
       };
       await componentHarness.setName('TEST123');
       await componentHarness.clickOnSubmit();
@@ -118,7 +174,7 @@ describe('CreateIntegrationComponent', () => {
       const expectedPayload: CreateIntegrationPayload = {
         name: 'TEST123',
         description: 'Test Description',
-        provider: 'aws-api-gateway',
+        provider: '',
       };
       await componentHarness.setName('TEST123');
       await componentHarness.setDescription('Test Description');

@@ -14,17 +14,36 @@
  * limitations under the License.
  */
 
-import { ComponentHarness } from '@angular/cdk/testing';
+import { AsyncFactoryFn, ComponentHarness } from '@angular/cdk/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatErrorHarness } from '@angular/material/form-field/testing';
+import { MatRadioGroupHarness } from '@angular/material/radio/testing';
 
 export class CreateIntegrationHarness extends ComponentHarness {
   public static readonly hostSelector = 'app-create-integration';
 
-  private nameInputLocator = this.locatorFor(MatInputHarness.with({ selector: '[data-testid=create-integration-name-input]' }));
-  private descriptionTextAreaLocator = this.locatorFor(MatInputHarness.with({ selector: '[data-testid=create-integration-description]' }));
-  private submitButtonLocator = this.locatorFor(MatButtonHarness.with({ selector: '[data-testid=create-integration-submit-button]' }));
+  private radioButtonsGroupLocator: AsyncFactoryFn<MatRadioGroupHarness> = this.locatorFor(MatRadioGroupHarness);
+  private submitStepFirstButtonLocator: AsyncFactoryFn<MatButtonHarness> = this.locatorFor(
+    MatButtonHarness.with({ selector: '[data-testid=create-integration-submit-first-step]' }),
+  );
+
+  private nameInputLocator: AsyncFactoryFn<MatInputHarness> = this.locatorFor(
+    MatInputHarness.with({ selector: '[data-testid=create-integration-name-input]' }),
+  );
+  private descriptionTextAreaLocator: AsyncFactoryFn<MatInputHarness> = this.locatorFor(
+    MatInputHarness.with({ selector: '[data-testid=create-integration-description]' }),
+  );
+  private submitButtonLocator: AsyncFactoryFn<MatButtonHarness> = this.locatorFor(
+    MatButtonHarness.with({ selector: '[data-testid=create-integration-submit-button]' }),
+  );
+
+  public getSubmitStepFirstButton = async (): Promise<MatButtonHarness> => {
+    return await this.submitStepFirstButtonLocator();
+  };
+  public getRadioButtonsGroup = async (): Promise<MatRadioGroupHarness> => {
+    return await this.radioButtonsGroupLocator();
+  };
 
   public async setName(name: string) {
     return this.nameInputLocator().then((input: MatInputHarness) => input.setValue(name));

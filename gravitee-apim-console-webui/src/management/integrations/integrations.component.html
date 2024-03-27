@@ -24,30 +24,28 @@
     >
   </div>
   <mat-card>
-    <mat-card-content>
-      <div class="card-header">
-        <div class="card-header__title">
-          <h3>Integrations</h3>
+    <div class="card-header">
+      <div class="card-header__title">
+        <h3>Integrations</h3>
+      </div>
+      <div class="card-header__actions">
+        <button mat-raised-button color="primary" [disabled]="isLoading" data-testid="create-integration-button" routerLink="new">
+          Create Integration
+        </button>
+      </div>
+    </div>
+
+    <ng-template #noIntegrations>
+      <div class="no-integrations">
+        <div class="no-integrations__img">
+          <img class="banner" src="/assets/integrations-banner.png" alt="Integrations banner" />
         </div>
-        <div class="card-header__actions">
-          <button mat-raised-button color="primary" [disabled]="isLoading" data-testid="create-integration-button" routerLink="new">
-            Create Integration
-          </button>
+        <div class="no-integrations__message">
+          <h2 class="header">No integrations yet</h2>
+          <p class="description">Create an integration to start importing APIs and event streams from a 3rd-party provider.</p>
         </div>
       </div>
-
-      <ng-template #noIntegrations>
-        <div class="no-integrations">
-          <div class="no-integrations__img">
-            <img class="banner" src="/assets/integrations-banner.png" alt="Integrations banner" />
-          </div>
-          <div class="no-integrations__message">
-            <h2 class="header">No integrations yet</h2>
-            <p class="description">Create an integration to start importing APIs and event streams from a 3rd-party provider.</p>
-          </div>
-        </div>
-      </ng-template>
-    </mat-card-content>
+    </ng-template>
 
     <ng-container *ngIf="integrations.length || isLoading; else noIntegrations">
       <gio-table-wrapper

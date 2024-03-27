@@ -41,7 +41,7 @@ $typography: map.get(gio.$mat-theme, typography);
 .card-header {
   display: flex;
   justify-content: space-between;
-  padding-bottom: 24px;
+  padding: 16px;
 
   &__title {
     @include mat.typography-level($typography, subtitle-1);
@@ -71,11 +71,34 @@ $typography: map.get(gio.$mat-theme, typography);
   &__actions {
     display: flex;
     justify-content: space-between;
-    padding-top: 24px;
+    padding-top: 36px;
   }
 
   .form-field {
     width: 100%;
+  }
+}
+
+.providers {
+  &__body {
+    padding: 24px 0;
+
+    .radio-group {
+      padding: 24px 0;
+    }
+  }
+
+  &__actions {
+    margin-top: 8px;
+    display: flex;
+    justify-content: end;
+  }
+
+  .list {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: auto;
   }
 }
 
@@ -86,4 +109,23 @@ textarea {
 .info,
 .hint {
   color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+}
+
+mat-stepper {
+  border-top: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker20');
+}
+
+.logo {
+  margin-bottom: 10px;
+}
+
+.logo,
+.name {
+  display: block;
+}
+
+.badges {
+  display: flex;
+  justify-content: center;
+  margin: 36px 0 20px 0;
 }
