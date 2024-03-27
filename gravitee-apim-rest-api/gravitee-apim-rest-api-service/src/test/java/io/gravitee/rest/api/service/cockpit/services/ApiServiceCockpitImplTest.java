@@ -19,14 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.argThat;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.same;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -130,6 +123,9 @@ public class ApiServiceCockpitImplTest {
 
     @Captor
     private ArgumentCaptor<UpdatePageEntity> updatePageCaptor;
+
+    @Captor
+    private ArgumentCaptor<SwaggerApiEntity> swaggerApiCaptor;
 
     @Before
     public void setUp() throws Exception {
@@ -477,8 +473,6 @@ public class ApiServiceCockpitImplTest {
 
         when(swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
             .thenReturn(swaggerApi);
-        when(verifyApiPathsDomainService.checkAndSanitizeApiPaths(any(), eq(API_ID), any()))
-            .thenReturn(List.of(Path.builder().path(virtualHost.getPath()).host(virtualHost.getHost()).build()));
 
         ApiEntity updatedApiEntity = new ApiEntity();
         updatedApiEntity.setName("updated api");
@@ -603,8 +597,6 @@ public class ApiServiceCockpitImplTest {
 
         when(swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
             .thenReturn(swaggerApi);
-        when(verifyApiPathsDomainService.checkAndSanitizeApiPaths(any(), eq(API_ID), any()))
-            .thenReturn(List.of(Path.builder().path(virtualHost.getPath()).host(virtualHost.getHost()).build()));
 
         ApiEntity updatedApiEntity = new ApiEntity();
         updatedApiEntity.setName("updated api");
@@ -643,8 +635,6 @@ public class ApiServiceCockpitImplTest {
 
         when(apiService.start(EXECUTION_CONTEXT, API_ID, USER_ID)).thenReturn(updatedApiEntity);
         when(planService.findByApi(EXECUTION_CONTEXT, API_ID)).thenReturn(null);
-        when(verifyApiPathsDomainService.checkAndSanitizeApiPaths(any(), eq(API_ID), any()))
-            .thenReturn(List.of(Path.builder().path(virtualHost.getPath()).host(virtualHost.getHost()).build()));
 
         service.updateApi(EXECUTION_CONTEXT, API_ID, USER_ID, SWAGGER_DEFINITION, ENVIRONMENT_ID, DeploymentMode.API_PUBLISHED, LABELS);
 
@@ -679,9 +669,6 @@ public class ApiServiceCockpitImplTest {
         when(apiService.deploy(any(), eq(API_ID), eq(USER_ID), eq(EventType.PUBLISH_API), any(ApiDeploymentEntity.class)))
             .thenReturn(updatedApiEntity);
         when(apiService.start(any(), eq(API_ID), eq(USER_ID))).thenReturn(updatedApiEntity);
-
-        when(verifyApiPathsDomainService.checkAndSanitizeApiPaths(any(), eq(API_ID), any()))
-            .thenReturn(List.of(Path.builder().path(virtualHost.getPath()).host(virtualHost.getHost()).build()));
 
         preparePageServiceMock();
 
@@ -725,8 +712,6 @@ public class ApiServiceCockpitImplTest {
             .thenReturn(updatedApiEntity);
 
         when(planService.findByApi(EXECUTION_CONTEXT, API_ID)).thenReturn(Collections.singleton(new PlanEntity()));
-        when(verifyApiPathsDomainService.checkAndSanitizeApiPaths(any(), eq(API_ID), any()))
-            .thenReturn(List.of(Path.builder().path(virtualHost.getPath()).host(virtualHost.getHost()).build()));
 
         preparePageServiceMock();
 
@@ -753,7 +738,8 @@ public class ApiServiceCockpitImplTest {
         proxy.setVirtualHosts(List.of(virtualHost));
         api.setProxy(proxy);
 
-        when(verifyApiPathsDomainService.checkAndSanitizeApiPaths(any(), eq(null), anyList()))
+        lenient()
+            .when(verifyApiPathsDomainService.checkAndSanitizeApiPaths(any(), eq(null), anyList()))
             .thenReturn(List.of(Path.builder().path(virtualHost.getPath()).host(virtualHost.getHost()).build()));
         var message = service.checkContextPath(ENVIRONMENT_ID, api);
 
@@ -763,7 +749,7 @@ public class ApiServiceCockpitImplTest {
                 eq(null),
                 eq(List.of(Path.builder().path(virtualHost.getPath()).host(virtualHost.getHost()).build()))
             );
-        assertThat(message.isPresent()).isFalse();
+        assertThat(message.hasError()).isFalse();
     }
 
     @Test
@@ -785,7 +771,87 @@ public class ApiServiceCockpitImplTest {
                 eq(null),
                 eq(List.of(Path.builder().path(virtualHost.getPath()).host(virtualHost.getHost()).build()))
             );
-        assertThat(message).contains("The path [contextPath] automatically generated from the name is already covered by another API.");
+        assertThat(message.getError())
+            .contains("The path [contextPath] automatically generated from the name is already covered by another API.");
+    }
+
+    @Test
+    public void should_apply_sanitized_paths_on_create() {
+        ImportSwaggerDescriptorEntity expectedDescriptor = new ImportSwaggerDescriptorEntity();
+        expectedDescriptor.setPayload(SWAGGER_DEFINITION);
+        expectedDescriptor.setWithDocumentation(true);
+        expectedDescriptor.setWithPolicyPaths(true);
+
+        SwaggerApiEntity swaggerApi = new SwaggerApiEntity();
+        swaggerApi.setMetadata(new ArrayList<>());
+        Proxy proxy = new Proxy();
+        VirtualHost virtualHost = new VirtualHost("/un-sanitized/path/");
+        proxy.setVirtualHosts(List.of(virtualHost));
+        swaggerApi.setProxy(proxy);
+
+        ApiEntity api = new ApiEntity();
+        api.setCrossId(API_CROSS_ID);
+        api.setId(API_ID);
+        api.setLabels(LABELS);
+
+        when(verifyApiPathsDomainService.checkAndSanitizeApiPaths(any(), any(), anyList()))
+            .thenReturn(List.of(Path.builder().path("/sanitized/path").build()));
+        when(swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
+            .thenReturn(swaggerApi);
+        when(apiService.createWithApiDefinition(eq(EXECUTION_CONTEXT), eq(swaggerApi), eq(USER_ID), any(ObjectNode.class))).thenReturn(api);
+
+        service.createApi(
+            EXECUTION_CONTEXT,
+            API_CROSS_ID,
+            USER_ID,
+            SWAGGER_DEFINITION,
+            ENVIRONMENT_ID,
+            DeploymentMode.API_DOCUMENTED,
+            LABELS
+        );
+
+        verify(apiService).createWithApiDefinition(eq(EXECUTION_CONTEXT), eq(swaggerApi), eq(USER_ID), apiDefinitionCaptor.capture());
+        assertThat(apiDefinitionCaptor.getValue().get("proxy").get("virtual_hosts").get(0).get("path"))
+            .isEqualTo(new JsonNodeFactory(false).textNode("/sanitized/path"));
+    }
+
+    @Test
+    public void should_apply_sanitized_paths_on_update() {
+        ImportSwaggerDescriptorEntity expectedDescriptor = new ImportSwaggerDescriptorEntity();
+        expectedDescriptor.setPayload(SWAGGER_DEFINITION);
+        expectedDescriptor.setWithDocumentation(true);
+        expectedDescriptor.setWithPolicyPaths(true);
+
+        SwaggerApiEntity swaggerApi = new SwaggerApiEntity();
+        swaggerApi.setMetadata(new ArrayList<>());
+        Proxy proxy = new Proxy();
+        VirtualHost virtualHost = new VirtualHost("/un-sanitized/path/");
+        proxy.setVirtualHosts(List.of(virtualHost));
+        swaggerApi.setProxy(proxy);
+
+        ApiEntity api = new ApiEntity();
+        api.setCrossId(API_CROSS_ID);
+        api.setId(API_ID);
+        api.setLabels(LABELS);
+
+        when(verifyApiPathsDomainService.checkAndSanitizeApiPaths(any(), any(), anyList()))
+            .thenReturn(List.of(Path.builder().path("/sanitized/path").build()));
+        when(swaggerService.createAPI(eq(EXECUTION_CONTEXT), any(ImportSwaggerDescriptorEntity.class), eq(DefinitionVersion.V2)))
+            .thenReturn(swaggerApi);
+        when(apiService.updateFromSwagger(eq(EXECUTION_CONTEXT), any(), any(), any())).thenReturn(api);
+
+        service.updateApi(
+            EXECUTION_CONTEXT,
+            API_CROSS_ID,
+            USER_ID,
+            SWAGGER_DEFINITION,
+            ENVIRONMENT_ID,
+            DeploymentMode.API_DOCUMENTED,
+            LABELS
+        );
+
+        verify(apiService, times(1)).updateFromSwagger(eq(EXECUTION_CONTEXT), any(), swaggerApiCaptor.capture(), any());
+        assertThat(swaggerApiCaptor.getValue().getProxy().getVirtualHosts().get(0).getPath()).isEqualTo("/sanitized/path");
     }
 
     private void preparePageServiceMock() {
