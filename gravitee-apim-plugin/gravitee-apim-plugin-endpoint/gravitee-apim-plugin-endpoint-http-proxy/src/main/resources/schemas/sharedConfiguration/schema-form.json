@@ -145,7 +145,6 @@
                         }
                     },
                     "required":[
-                        "keepAliveTimeout",
                         "connectTimeout",
                         "readTimeout",
                         "idleTimeout",
@@ -194,7 +193,6 @@
                         }
                     },
                     "required":[
-                        "keepAliveTimeout",
                         "connectTimeout",
                         "readTimeout",
                         "idleTimeout",
