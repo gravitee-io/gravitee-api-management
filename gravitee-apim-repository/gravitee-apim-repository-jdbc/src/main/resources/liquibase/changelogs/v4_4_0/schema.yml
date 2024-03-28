@@ -14,6 +14,7 @@ databaseChangeLog:
               - column: {name: description, type: nvarchar(256), constraints: { nullable: true } }
               - column: {name: provider, type: nvarchar(16), constraints: { nullable: false } }
               - column: {name: environment_id, type: nvarchar(64), constraints: { nullable: false } }
+              - column: {name: agent_status, type: nvarchar(32), constraints: { nullable: false } }
               - column: {name: created_at, type: timestamp(6), constraints: { nullable: false }, defaultValueComputed: CURRENT_TIMESTAMP(6) }
               - column: {name: updated_at, type: timestamp(6), constraints: { nullable: false }, defaultValueComputed: CURRENT_TIMESTAMP(6) }
 

@@ -44,4 +44,10 @@ public class Integration {
     private Date createdAt;
 
     private Date updatedAt;
+
+    private AgentStatus agentStatus;
+
+    public enum AgentStatus {
+        DISCONNECTED,
+    }
 }
