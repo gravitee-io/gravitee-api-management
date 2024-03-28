@@ -1,3 +1,13 @@
+## [1.0.6](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.0.5...1.0.6) (2024-03-28)
+
+
+### Bug Fixes
+
+* **deps:** update dependency commons-validator:commons-validator to v1.8.0 ([9e820b0](https://github.com/gravitee-io/gravitee-reporter-common/commit/9e820b023733736a748df2fea8fe86ca42ab85c4))
+* **deps:** update dependency io.gravitee.reporter:gravitee-reporter-api to v1.28.1 ([c573e35](https://github.com/gravitee-io/gravitee-reporter-common/commit/c573e35d6de736c0db9f950d676158e454fb7df5))
+* **deps:** update dependency org.msgpack:jackson-dataformat-msgpack to v0.9.8 ([b5ffc5a](https://github.com/gravitee-io/gravitee-reporter-common/commit/b5ffc5af7448b1a0f8471a0aedeb1bf338d23613))
+* use the right Monitor class ([1e547a8](https://github.com/gravitee-io/gravitee-reporter-common/commit/1e547a86c699871c07f39d8b3598625a9ffdb398))
+
 ## [1.0.5](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.0.4...1.0.5) (2024-01-30)
 
 
