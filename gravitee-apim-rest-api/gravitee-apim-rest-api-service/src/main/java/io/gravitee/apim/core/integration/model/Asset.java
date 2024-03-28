@@ -15,30 +15,7 @@
  */
 package io.gravitee.apim.core.integration.model;
 
-import java.time.ZonedDateTime;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.With;
 
-/**
- * @author Remi Baptiste (remi.baptiste at graviteesource.com)
- * @author GraviteeSource Team
- */
-@Data
 @Builder(toBuilder = true)
-@NoArgsConstructor
-@AllArgsConstructor
-public class Integration {
-
-    @With
-    String id;
-
-    String name;
-    String description;
-    String provider;
-    String environmentId;
-    ZonedDateTime createdAt;
-    ZonedDateTime updatedAt;
-}
+public record Asset(String integrationId, String id, String name, String description, String version) {}

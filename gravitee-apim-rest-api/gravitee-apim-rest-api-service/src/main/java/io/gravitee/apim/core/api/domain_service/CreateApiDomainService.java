@@ -34,9 +34,11 @@ import io.gravitee.apim.core.parameters.model.ParameterContext;
 import io.gravitee.apim.core.parameters.query_service.ParametersQueryService;
 import io.gravitee.apim.core.search.Indexer;
 import io.gravitee.apim.core.workflow.crud_service.WorkflowCrudService;
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import java.util.Collections;
+import java.util.List;
 import java.util.function.UnaryOperator;
 
 @DomainService
@@ -98,13 +100,13 @@ public class CreateApiDomainService {
 
         apiPrimaryOwnerDomainService.createApiPrimaryOwnerMembership(created.getId(), primaryOwner, auditInfo);
 
-        createDefaultMailNotification(created.getId());
+        createDefaultMailNotification(created);
 
-        apiMetadataDomainService.createDefaultApiMetadata(created.getId(), auditInfo);
+        createDefaultMetadata(created, auditInfo);
 
-        flowCrudService.saveApiFlows(api.getId(), api.getApiDefinitionV4().getFlows());
+        var createdFlows = saveApiFlows(api);
 
-        if (isApiReviewEnabled(auditInfo.organizationId(), auditInfo.environmentId())) {
+        if (isApiReviewEnabled(created, auditInfo.organizationId(), auditInfo.environmentId())) {
             workflowCrudService.create(newApiReviewWorkflow(api.getId(), auditInfo.actor().userId()));
         }
 
@@ -113,7 +115,7 @@ public class CreateApiDomainService {
             created,
             primaryOwner
         );
-        return new ApiWithFlows(created, api.getApiDefinitionV4().getFlows());
+        return new ApiWithFlows(created, createdFlows);
     }
 
     private void createAuditLog(Api created, AuditInfo auditInfo) {
@@ -132,14 +134,38 @@ public class CreateApiDomainService {
         );
     }
 
-    private void createDefaultMailNotification(String apiId) {
-        notificationConfigCrudService.create(NotificationConfig.defaultMailNotificationConfigFor(apiId));
+    private void createDefaultMailNotification(Api api) {
+        switch (api.getDefinitionVersion()) {
+            case V4 -> notificationConfigCrudService.create(NotificationConfig.defaultMailNotificationConfigFor(api.getId()));
+            case V1, V2, FEDERATED -> {
+                // nothing to do
+            }
+        }
     }
 
-    private boolean isApiReviewEnabled(String organizationId, String environmentId) {
-        return parametersQueryService.findAsBoolean(
-            Key.API_REVIEW_ENABLED,
-            new ParameterContext(environmentId, organizationId, ParameterReferenceType.ENVIRONMENT)
-        );
+    private void createDefaultMetadata(Api api, AuditInfo auditInfo) {
+        switch (api.getDefinitionVersion()) {
+            case V4 -> apiMetadataDomainService.createDefaultApiMetadata(api.getId(), auditInfo);
+            case V1, V2, FEDERATED -> {
+                // nothing to do
+            }
+        }
+    }
+
+    private List<Flow> saveApiFlows(Api api) {
+        return switch (api.getDefinitionVersion()) {
+            case V4 -> flowCrudService.saveApiFlows(api.getId(), api.getApiDefinitionV4().getFlows());
+            case V1, V2, FEDERATED -> null;
+        };
+    }
+
+    private boolean isApiReviewEnabled(Api api, String organizationId, String environmentId) {
+        return switch (api.getDefinitionVersion()) {
+            case V1, V2, V4 -> parametersQueryService.findAsBoolean(
+                Key.API_REVIEW_ENABLED,
+                new ParameterContext(environmentId, organizationId, ParameterReferenceType.ENVIRONMENT)
+            );
+            case FEDERATED -> false;
+        };
     }
 }

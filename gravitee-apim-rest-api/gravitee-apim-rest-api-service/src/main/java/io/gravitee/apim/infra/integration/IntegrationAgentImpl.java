@@ -13,32 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.integration.model;
+package io.gravitee.apim.infra.integration;
 
-import java.time.ZonedDateTime;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.With;
+import io.gravitee.apim.core.integration.model.Asset;
+import io.gravitee.apim.core.integration.model.Integration;
+import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
+import io.reactivex.rxjava3.core.Flowable;
+import org.springframework.stereotype.Component;
 
-/**
- * @author Remi Baptiste (remi.baptiste at graviteesource.com)
- * @author GraviteeSource Team
- */
-@Data
-@Builder(toBuilder = true)
-@NoArgsConstructor
-@AllArgsConstructor
-public class Integration {
+@Component
+public class IntegrationAgentImpl implements IntegrationAgent {
 
-    @With
-    String id;
-
-    String name;
-    String description;
-    String provider;
-    String environmentId;
-    ZonedDateTime createdAt;
-    ZonedDateTime updatedAt;
+    @Override
+    public Flowable<Asset> fetchAllAssets(Integration integration) {
+        return Flowable.empty();
+    }
 }
