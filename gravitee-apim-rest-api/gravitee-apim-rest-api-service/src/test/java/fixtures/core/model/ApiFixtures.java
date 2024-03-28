@@ -265,4 +265,14 @@ public class ApiFixtures {
             )
             .build();
     }
+
+    public static Api aFederatedApi() {
+        return BASE
+            .get()
+            .definitionVersion(DefinitionVersion.FEDERATED)
+            .lifecycleState(null)
+            .apiDefinitionV4(null)
+            .apiDefinition(null)
+            .build();
+    }
 }

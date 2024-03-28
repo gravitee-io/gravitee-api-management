@@ -16,6 +16,7 @@
 package fixtures;
 
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
@@ -104,6 +105,16 @@ public class ApiModelFixtures {
         .background("my-background")
         .backgroundUrl("my-background-url");
 
+    private static final ApiEntity.ApiEntityBuilder BASE_MODEL_API_FEDERATED = ApiEntity
+        .builder()
+        .id("my-id")
+        .name("my-name")
+        .apiVersion("v1.0")
+        .definitionVersion(DefinitionVersion.FEDERATED)
+        .deployedAt(new Date())
+        .createdAt(new Date())
+        .updatedAt(new Date());
+
     public static io.gravitee.rest.api.model.api.ApiEntity aModelApiV1() {
         return BASE_MODEL_API_V1.build();
     }
@@ -121,6 +132,7 @@ public class ApiModelFixtures {
             case V1 -> aModelApiV1();
             case V2 -> aModelApiV2();
             case V4 -> aModelApiV4();
+            case FEDERATED -> BASE_MODEL_API_FEDERATED.build();
         };
     }
 }
