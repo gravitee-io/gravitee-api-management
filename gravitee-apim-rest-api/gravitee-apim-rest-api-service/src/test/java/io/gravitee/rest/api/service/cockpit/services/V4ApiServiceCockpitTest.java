@@ -98,8 +98,6 @@ public class V4ApiServiceCockpitTest {
     private static final String USER_ID = "user-id";
     private static final String GROUP_ID = "group-id";
 
-    ValidateApiDomainService validateApiDomainService;
-
     ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     FlowCrudServiceInMemory flowCrudService = new FlowCrudServiceInMemory();
@@ -112,6 +110,9 @@ public class V4ApiServiceCockpitTest {
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     WorkflowCrudServiceInMemory workflowCrudService = new WorkflowCrudServiceInMemory();
     IndexerInMemory indexer = new IndexerInMemory();
+
+    @Mock
+    ValidateApiDomainService validateApiDomainService;
 
     @Mock
     private ApiService apiServiceV4;
@@ -148,7 +149,6 @@ public class V4ApiServiceCockpitTest {
             userCrudService
         );
         var createApiDomainService = new CreateApiDomainService(
-            validateApiDomainService,
             apiCrudService,
             auditService,
             new ApiIndexerDomainService(
@@ -156,7 +156,6 @@ public class V4ApiServiceCockpitTest {
                 indexer
             ),
             new ApiMetadataDomainService(metadataCrudService, auditService),
-            apiPrimaryOwnerFactory,
             new ApiPrimaryOwnerDomainService(
                 auditService,
                 groupQueryService,
@@ -171,7 +170,14 @@ public class V4ApiServiceCockpitTest {
             workflowCrudService
         );
 
-        service = new V4ApiServiceCockpitImpl(createApiDomainService, apiServiceV4, apiStateService);
+        service =
+            new V4ApiServiceCockpitImpl(
+                apiPrimaryOwnerFactory,
+                validateApiDomainService,
+                createApiDomainService,
+                apiServiceV4,
+                apiStateService
+            );
 
         lenient()
             .when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any()))

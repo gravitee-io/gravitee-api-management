@@ -54,14 +54,18 @@ public class CreateV4ApiUseCase {
             auditInfo.actor().userId()
         );
 
-        var sanitized = validateApiDomainService.validateAndSanitizeForCreation(
+        var created = createApiDomainService.create(
             ApiModelFactory.fromNewApi(input.newApi, auditInfo.environmentId()),
             primaryOwner,
-            auditInfo.environmentId(),
-            auditInfo.organizationId()
+            auditInfo,
+            api ->
+                validateApiDomainService.validateAndSanitizeForCreation(
+                    api,
+                    primaryOwner,
+                    auditInfo.environmentId(),
+                    auditInfo.organizationId()
+                )
         );
-
-        var created = createApiDomainService.create(sanitized, auditInfo);
 
         return new Output(created);
     }

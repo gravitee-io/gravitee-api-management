@@ -107,7 +107,7 @@ describe('CreateIntegrationComponent', () => {
       const expectedPayload: CreateIntegrationPayload = {
         name: 'TEST123',
         description: '',
-        provider: 'AWS',
+        provider: 'aws-api-gateway',
       };
       await componentHarness.setName('TEST123');
       await componentHarness.clickOnSubmit();
@@ -118,7 +118,7 @@ describe('CreateIntegrationComponent', () => {
       const expectedPayload: CreateIntegrationPayload = {
         name: 'TEST123',
         description: 'Test Description',
-        provider: 'AWS',
+        provider: 'aws-api-gateway',
       };
       await componentHarness.setName('TEST123');
       await componentHarness.setDescription('Test Description');

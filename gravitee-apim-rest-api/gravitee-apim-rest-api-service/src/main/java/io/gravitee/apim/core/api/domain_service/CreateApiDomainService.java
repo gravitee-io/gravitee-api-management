@@ -27,25 +27,26 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.ApiAuditEvent;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
-import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
+import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.notification.crud_service.NotificationConfigCrudService;
 import io.gravitee.apim.core.notification.model.config.NotificationConfig;
 import io.gravitee.apim.core.parameters.model.ParameterContext;
 import io.gravitee.apim.core.parameters.query_service.ParametersQueryService;
 import io.gravitee.apim.core.search.Indexer;
 import io.gravitee.apim.core.workflow.crud_service.WorkflowCrudService;
+import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import java.util.Collections;
+import java.util.List;
+import java.util.function.UnaryOperator;
 
 @DomainService
 public class CreateApiDomainService {
 
-    private final ValidateApiDomainService validateApiDomainService;
     private final ApiCrudService apiCrudService;
     private final AuditDomainService auditService;
     private final ApiIndexerDomainService apiIndexerDomainService;
-    private final ApiPrimaryOwnerFactory apiPrimaryOwnerFactory;
     private final ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService;
     private final ApiMetadataDomainService apiMetadataDomainService;
     private final FlowCrudService flowCrudService;
@@ -54,23 +55,19 @@ public class CreateApiDomainService {
     private final WorkflowCrudService workflowCrudService;
 
     public CreateApiDomainService(
-        ValidateApiDomainService validateApiDomainService,
         ApiCrudService apiCrudService,
         AuditDomainService auditService,
         ApiIndexerDomainService apiIndexerDomainService,
         ApiMetadataDomainService apiMetadataDomainService,
-        ApiPrimaryOwnerFactory apiPrimaryOwnerFactory,
         ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService,
         FlowCrudService flowCrudService,
         NotificationConfigCrudService notificationConfigCrudService,
         ParametersQueryService parametersQueryService,
         WorkflowCrudService workflowCrudService
     ) {
-        this.validateApiDomainService = validateApiDomainService;
         this.apiCrudService = apiCrudService;
         this.auditService = auditService;
         this.apiIndexerDomainService = apiIndexerDomainService;
-        this.apiPrimaryOwnerFactory = apiPrimaryOwnerFactory;
         this.apiPrimaryOwnerDomainService = apiPrimaryOwnerDomainService;
         this.apiMetadataDomainService = apiMetadataDomainService;
         this.flowCrudService = flowCrudService;
@@ -87,25 +84,15 @@ public class CreateApiDomainService {
      * <p>
      * Once created, the API is indexed in the search engine.
      * </p>
-     * <p>⚠️ There is no validation, callers should ensure the API provided is valid. They can use {@link io.gravitee.apim.core.api.model.factory.ApiModelFactory} to build a valid model.</p>
      *
-     * @param api       The API to create.
-     * @param auditInfo The audit information.
+     * @param api          The API to create.
+     * @param primaryOwner The primary owner of the API.
+     * @param auditInfo    The audit information.
+     * @param sanitizer    A sanitizer function to apply on the API before creating it. This will be used to apply additional validation and sanitization.
      * @return The created API.
      */
-    public ApiWithFlows create(Api api, AuditInfo auditInfo) {
-        var primaryOwner = apiPrimaryOwnerFactory.createForNewApi(
-            auditInfo.organizationId(),
-            auditInfo.environmentId(),
-            auditInfo.actor().userId()
-        );
-
-        var sanitized = validateApiDomainService.validateAndSanitizeForCreation(
-            api,
-            primaryOwner,
-            auditInfo.environmentId(),
-            auditInfo.organizationId()
-        );
+    public ApiWithFlows create(Api api, PrimaryOwnerEntity primaryOwner, AuditInfo auditInfo, UnaryOperator<Api> sanitizer) {
+        var sanitized = sanitizer.apply(api);
 
         var created = apiCrudService.create(sanitized);
 
@@ -113,13 +100,13 @@ public class CreateApiDomainService {
 
         apiPrimaryOwnerDomainService.createApiPrimaryOwnerMembership(created.getId(), primaryOwner, auditInfo);
 
-        createDefaultMailNotification(created.getId());
+        createDefaultMailNotification(created);
 
-        apiMetadataDomainService.createDefaultApiMetadata(created.getId(), auditInfo);
+        createDefaultMetadata(created, auditInfo);
 
-        flowCrudService.saveApiFlows(api.getId(), api.getApiDefinitionV4().getFlows());
+        var createdFlows = saveApiFlows(api);
 
-        if (isApiReviewEnabled(auditInfo.organizationId(), auditInfo.environmentId())) {
+        if (isApiReviewEnabled(created, auditInfo.organizationId(), auditInfo.environmentId())) {
             workflowCrudService.create(newApiReviewWorkflow(api.getId(), auditInfo.actor().userId()));
         }
 
@@ -128,7 +115,7 @@ public class CreateApiDomainService {
             created,
             primaryOwner
         );
-        return new ApiWithFlows(created, api.getApiDefinitionV4().getFlows());
+        return new ApiWithFlows(created, createdFlows);
     }
 
     private void createAuditLog(Api created, AuditInfo auditInfo) {
@@ -147,14 +134,38 @@ public class CreateApiDomainService {
         );
     }
 
-    private void createDefaultMailNotification(String apiId) {
-        notificationConfigCrudService.create(NotificationConfig.defaultMailNotificationConfigFor(apiId));
+    private void createDefaultMailNotification(Api api) {
+        switch (api.getDefinitionVersion()) {
+            case V4 -> notificationConfigCrudService.create(NotificationConfig.defaultMailNotificationConfigFor(api.getId()));
+            case V1, V2, FEDERATED -> {
+                // nothing to do
+            }
+        }
     }
 
-    private boolean isApiReviewEnabled(String organizationId, String environmentId) {
-        return parametersQueryService.findAsBoolean(
-            Key.API_REVIEW_ENABLED,
-            new ParameterContext(environmentId, organizationId, ParameterReferenceType.ENVIRONMENT)
-        );
+    private void createDefaultMetadata(Api api, AuditInfo auditInfo) {
+        switch (api.getDefinitionVersion()) {
+            case V4 -> apiMetadataDomainService.createDefaultApiMetadata(api.getId(), auditInfo);
+            case V1, V2, FEDERATED -> {
+                // nothing to do
+            }
+        }
+    }
+
+    private List<Flow> saveApiFlows(Api api) {
+        return switch (api.getDefinitionVersion()) {
+            case V4 -> flowCrudService.saveApiFlows(api.getId(), api.getApiDefinitionV4().getFlows());
+            case V1, V2, FEDERATED -> null;
+        };
+    }
+
+    private boolean isApiReviewEnabled(Api api, String organizationId, String environmentId) {
+        return switch (api.getDefinitionVersion()) {
+            case V1, V2, V4 -> parametersQueryService.findAsBoolean(
+                Key.API_REVIEW_ENABLED,
+                new ParameterContext(environmentId, organizationId, ParameterReferenceType.ENVIRONMENT)
+            );
+            case FEDERATED -> false;
+        };
     }
 }

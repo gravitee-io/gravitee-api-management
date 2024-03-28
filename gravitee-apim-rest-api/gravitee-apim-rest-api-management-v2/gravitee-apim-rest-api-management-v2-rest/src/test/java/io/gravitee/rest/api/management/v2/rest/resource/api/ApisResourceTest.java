@@ -21,7 +21,6 @@ import static io.gravitee.common.http.HttpStatusCode.ACCEPTED_202;
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
-import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
@@ -37,7 +36,6 @@ import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiWithFlows;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
@@ -63,8 +61,6 @@ import io.gravitee.rest.api.management.v2.rest.model.PathV4;
 import io.gravitee.rest.api.management.v2.rest.model.Qos;
 import io.gravitee.rest.api.management.v2.rest.model.Selector;
 import io.gravitee.rest.api.management.v2.rest.model.StepV4;
-import io.gravitee.rest.api.management.v2.rest.model.SubscriptionListener;
-import io.gravitee.rest.api.management.v2.rest.model.TcpListener;
 import io.gravitee.rest.api.management.v2.rest.model.VerifyApiHosts;
 import io.gravitee.rest.api.management.v2.rest.model.VerifyApiHostsResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
@@ -347,7 +343,7 @@ class ApisResourceTest extends AbstractResourceTest {
         public void should_return_created_api() {
             when(validateApiDomainService.validateAndSanitizeForCreation(any(), any(), any(), any()))
                 .thenAnswer(invocation -> invocation.getArgument(0));
-            when(createApiDomainService.create(any(Api.class), any(AuditInfo.class)))
+            when(createApiDomainService.create(any(Api.class), any(), any(AuditInfo.class), any()))
                 .thenAnswer(invocation -> {
                     Api api = invocation.getArgument(0);
                     return new ApiWithFlows(api.toBuilder().id("api-id").build(), api.getApiDefinitionV4().getFlows());

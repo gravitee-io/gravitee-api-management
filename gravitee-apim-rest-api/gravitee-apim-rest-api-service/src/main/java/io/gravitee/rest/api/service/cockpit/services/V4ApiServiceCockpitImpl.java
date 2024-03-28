@@ -19,11 +19,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
+import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.NewApi;
 import io.gravitee.apim.core.api.model.factory.ApiModelFactory;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.rest.api.model.ApiMetadataEntity;
 import io.gravitee.rest.api.model.Visibility;
@@ -52,6 +54,8 @@ public class V4ApiServiceCockpitImpl implements V4ApiServiceCockpit {
     public static final String PLAN_ENTITIES_NODE = "/planEntities";
     public static final String METADATA_NODE = "/metadata";
 
+    private final ApiPrimaryOwnerFactory apiPrimaryOwnerFactory;
+    private final ValidateApiDomainService validateApiDomainService;
     private final CreateApiDomainService createApiDomainService;
     private final ApiService apiServiceV4;
     private final ApiStateService apiStateService;
@@ -59,10 +63,14 @@ public class V4ApiServiceCockpitImpl implements V4ApiServiceCockpit {
     private final ObjectMapper mapper;
 
     public V4ApiServiceCockpitImpl(
+        ApiPrimaryOwnerFactory apiPrimaryOwnerFactory,
+        ValidateApiDomainService validateApiDomainService,
         CreateApiDomainService createApiDomainService,
         ApiService apiServiceV4,
         ApiStateService apiStateService
     ) {
+        this.apiPrimaryOwnerFactory = apiPrimaryOwnerFactory;
+        this.validateApiDomainService = validateApiDomainService;
         this.createApiDomainService = createApiDomainService;
         this.apiServiceV4 = apiServiceV4;
         this.apiStateService = apiStateService;
@@ -80,12 +88,15 @@ public class V4ApiServiceCockpitImpl implements V4ApiServiceCockpit {
         final JsonNode node = mapper.readTree(apiDefinition);
         final UpdateApiEntity updateApiEntity = getUpdateApiEntity(node);
         final ExecutionContext executionContext = new ExecutionContext(organizationId, environmentId);
+        var primaryOwner = apiPrimaryOwnerFactory.createForNewApi(organizationId, environmentId, userId);
 
         return Single
             .just(
                 createApiDomainService.create(
                     deserializeApi(node, environmentId),
-                    new AuditInfo(organizationId, environmentId, AuditActor.builder().userId(userId).build())
+                    primaryOwner,
+                    new AuditInfo(organizationId, environmentId, AuditActor.builder().userId(userId).build()),
+                    api -> validateApiDomainService.validateAndSanitizeForCreation(api, primaryOwner, environmentId, organizationId)
                 )
             )
             .flatMap(api -> publishApi(executionContext, api, userId, updateApiEntity))

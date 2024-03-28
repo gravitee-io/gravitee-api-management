@@ -23,6 +23,7 @@ import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.DeployApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
+import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.crd.ApiCRD;
 import io.gravitee.apim.core.api.model.crd.ApiCRDStatus;
@@ -30,6 +31,8 @@ import io.gravitee.apim.core.api.model.crd.PlanCRD;
 import io.gravitee.apim.core.api.model.factory.ApiModelFactory;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.exception.AbstractDomainException;
+import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.DeletePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.ReorderPlanDomainService;
@@ -53,6 +56,8 @@ import java.util.stream.Collectors;
 public class ImportCRDUseCase {
 
     private final ApiQueryService apiQueryService;
+    private final ApiPrimaryOwnerFactory apiPrimaryOwnerFactory;
+    private final ValidateApiDomainService validateApiDomainService;
     private final CreateApiDomainService createApiDomainService;
     private final CreatePlanDomainService createPlanDomainService;
     private final ApiMetadataDomainService apiMetadataDomainService;
@@ -69,6 +74,8 @@ public class ImportCRDUseCase {
     public ImportCRDUseCase(
         ApiCrudService apiCrudService,
         ApiQueryService apiQueryService,
+        ApiPrimaryOwnerFactory apiPrimaryOwnerFactory,
+        ValidateApiDomainService validateApiDomainService,
         CreateApiDomainService createApiDomainService,
         CreatePlanDomainService createPlanDomainService,
         ApiMetadataDomainService apiMetadataDomainService,
@@ -83,6 +90,8 @@ public class ImportCRDUseCase {
     ) {
         this.apiCrudService = apiCrudService;
         this.apiQueryService = apiQueryService;
+        this.apiPrimaryOwnerFactory = apiPrimaryOwnerFactory;
+        this.validateApiDomainService = validateApiDomainService;
         this.createApiDomainService = createApiDomainService;
         this.createPlanDomainService = createPlanDomainService;
         this.apiMetadataDomainService = apiMetadataDomainService;
@@ -113,8 +122,15 @@ public class ImportCRDUseCase {
             String environmentId = input.auditInfo.environmentId();
             String organizationId = input.auditInfo.organizationId();
 
-            var api = createApiDomainService.create(ApiModelFactory.fromCrd(input.crd, environmentId), input.auditInfo);
-            apiMetadataDomainService.saveApiMetadata(api.getId(), input.crd.getMetadata(), input.auditInfo);
+            var primaryOwner = apiPrimaryOwnerFactory.createForNewApi(organizationId, environmentId, input.auditInfo.actor().userId());
+
+            var createdApi = createApiDomainService.create(
+                ApiModelFactory.fromCrd(input.crd, environmentId),
+                primaryOwner,
+                input.auditInfo,
+                api -> validateApiDomainService.validateAndSanitizeForCreation(api, primaryOwner, environmentId, organizationId)
+            );
+            apiMetadataDomainService.saveApiMetadata(createdApi.getId(), input.crd.getMetadata(), input.auditInfo);
 
             var planNameIdMapping = input.crd
                 .getPlans()
@@ -124,25 +140,27 @@ public class ImportCRDUseCase {
                     Map.entry(
                         entry.getKey(),
                         createPlanDomainService
-                            .create(initPlanFromCRD(entry.getValue()), entry.getValue().getFlows(), api, input.auditInfo)
+                            .create(initPlanFromCRD(entry.getValue()), entry.getValue().getFlows(), createdApi, input.auditInfo)
                             .getId()
                     )
                 )
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
             if (input.crd.getDefinitionContext().getSyncFrom().equals(DefinitionContext.ORIGIN_MANAGEMENT)) {
-                deployApiDomainService.deploy(api, "Import via Kubernetes operator", input.auditInfo);
+                deployApiDomainService.deploy(createdApi, "Import via Kubernetes operator", input.auditInfo);
             }
 
             return ApiCRDStatus
                 .builder()
-                .id(api.getId())
-                .crossId(api.getCrossId())
+                .id(createdApi.getId())
+                .crossId(createdApi.getCrossId())
                 .environmentId(environmentId)
                 .organizationId(organizationId)
-                .state(api.getLifecycleState().name())
+                .state(createdApi.getLifecycleState().name())
                 .plans(planNameIdMapping)
                 .build();
+        } catch (AbstractDomainException e) {
+            throw e;
         } catch (Exception e) {
             throw new TechnicalManagementException(e);
         }

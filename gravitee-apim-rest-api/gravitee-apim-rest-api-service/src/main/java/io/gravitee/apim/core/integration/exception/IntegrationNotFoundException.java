@@ -13,32 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.integration.model;
+package io.gravitee.apim.core.integration.exception;
 
-import java.time.ZonedDateTime;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.With;
+import io.gravitee.apim.core.exception.NotFoundDomainException;
 
-/**
- * @author Remi Baptiste (remi.baptiste at graviteesource.com)
- * @author GraviteeSource Team
- */
-@Data
-@Builder(toBuilder = true)
-@NoArgsConstructor
-@AllArgsConstructor
-public class Integration {
+public class IntegrationNotFoundException extends NotFoundDomainException {
 
-    @With
-    String id;
-
-    String name;
-    String description;
-    String provider;
-    String environmentId;
-    ZonedDateTime createdAt;
-    ZonedDateTime updatedAt;
+    public IntegrationNotFoundException(String id) {
+        super("Integration not found.", id);
+    }
 }

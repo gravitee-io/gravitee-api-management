@@ -243,4 +243,9 @@ public class InMemoryConfiguration {
     public MetadataCrudServiceInMemory metadataCrudService() {
         return new MetadataCrudServiceInMemory();
     }
+
+    @Bean
+    public IntegrationAgentInMemory integrationAgent() {
+        return new IntegrationAgentInMemory();
+    }
 }

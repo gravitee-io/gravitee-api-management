@@ -43,6 +43,7 @@ public class CoreRulesTest extends AbstractApimArchitectureTest {
                     "lombok..",
                     "com.fasterxml..",
                     "jakarta..",
+                    "io.reactivex.rxjava3..",
                     // Api Definition can't be in core because it is required for the Gateway
                     "io.gravitee.definition..",
                     // Allow Gravitee node API to be used in core

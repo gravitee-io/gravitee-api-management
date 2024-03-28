@@ -642,6 +642,12 @@ notifiers:
 #    verificationKey: ozhbx5HJCS41NzKrBSQ0vZU1WOmG0Uhm
 #    issuer: my-issuer
 
+# Integration
+integration:
+  controller:
+    ws:
+      port: 8072
+
 api:
   v2:
     # V4 Emulation engine allows strict respect of the policy execution order, as it defines it the policy studio whereas, in "v3" mode, execution order may differ depending on policy REQUEST_CONTENT or RESPONSE_CONTENT scope.
