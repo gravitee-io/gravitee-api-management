@@ -23,6 +23,9 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
+ * This repository does no operation with any persistent storage but ensures that any call dealing with the 'DEFAULT' hardcoded organization behaves appropriately.
+ * This is to ensure full compatibility with all the APIM components where the 'DEFAULT' organization is used.
+ *
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
@@ -30,11 +33,30 @@ public class NoOpOrganizationRepository extends AbstractNoOpManagementRepository
 
     @Override
     public Long count() throws TechnicalException {
-        return null;
+        // 1 single 'DEFAULT' organization.
+        return 1L;
+    }
+
+    @Override
+    public Optional<Organization> findById(String organizationId) throws TechnicalException {
+        if (organizationId.equals(Organization.DEFAULT.getId())) {
+            return Optional.of(Organization.DEFAULT);
+        }
+
+        return Optional.empty();
+    }
+
+    @Override
+    public Set<Organization> findAll() throws TechnicalException {
+        return Set.of(Organization.DEFAULT);
     }
 
     @Override
     public Set<Organization> findByHrids(Set<String> hrids) throws TechnicalException {
+        if (hrids.stream().anyMatch(orgHrid -> Organization.DEFAULT.getHrids().contains(orgHrid))) {
+            return Set.of(Organization.DEFAULT);
+        }
+
         return Set.of();
     }
 

@@ -18,27 +18,54 @@ package io.gravitee.repository.noop.management;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.model.Environment;
+import io.gravitee.repository.management.model.Organization;
 import java.util.Optional;
 import java.util.Set;
 
 /**
+ * This repository does no operation with any persistent storage but ensures that any call dealing with the 'DEFAULT' hardcoded environment behaves appropriately.
+ * This is to ensure full compatibility with all the APIM components where the 'DEFAULT' environment is used.
+ *
  * @author Kamiel Ahmadpour (kamiel.ahmadpour at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class NoOpEnvironmentRepository extends AbstractNoOpManagementRepository<Environment, String> implements EnvironmentRepository {
 
     @Override
+    public Optional<Environment> findById(String environmentId) throws TechnicalException {
+        if (environmentId.equals(Environment.DEFAULT.getId())) {
+            return Optional.of(Environment.DEFAULT);
+        }
+
+        return Optional.empty();
+    }
+
+    @Override
     public Set<Environment> findByOrganization(String organizationId) throws TechnicalException {
+        if (organizationId.equals(Environment.DEFAULT.getOrganizationId())) {
+            return Set.of(Environment.DEFAULT);
+        }
         return Set.of();
     }
 
     @Override
     public Set<Environment> findByOrganizationsAndHrids(Set<String> organizationsHrids, Set<String> hrids) throws TechnicalException {
+        if (
+            organizationsHrids.stream().anyMatch(orgHrid -> Organization.DEFAULT.getHrids().contains(orgHrid)) &&
+            hrids.stream().anyMatch(envHrid -> Environment.DEFAULT.getHrids().contains(envHrid))
+        ) {
+            return Set.of(Environment.DEFAULT);
+        }
         return Set.of();
     }
 
     @Override
     public Optional<Environment> findByCockpitId(String cockpitId) throws TechnicalException {
         return Optional.empty();
+    }
+
+    @Override
+    public Set<Environment> findAll() throws TechnicalException {
+        return Set.of(Environment.DEFAULT);
     }
 }
