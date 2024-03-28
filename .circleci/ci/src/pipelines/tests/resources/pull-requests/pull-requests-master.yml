@@ -293,6 +293,40 @@ jobs:
           root: .
           paths:
             - gravitee-apim-definition/gravitee-apim-definition-coverage/target/site/jacoco-aggregate/
+  job-sonarcloud-analysis:
+    parameters:
+      working_directory:
+        type: string
+        default: gravitee-apim-rest-api
+        description: Directory where the Sonarcloud analysis will be run
+    docker:
+      - image: sonarsource/sonar-scanner-cli:5.0.1
+    resource_class: large
+    steps:
+      - run:
+          name: Add SSH tool
+          command: apk add --no-cache openssh
+      - checkout
+      - attach_workspace:
+          at: .
+      - restore_cache:
+          keys:
+            - gravitee-api-management-v9-sonarcloud-analysis-<< parameters.working_directory >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+            - gravitee-api-management-v9-sonarcloud-analysis-<< parameters.working_directory >>-{{ .Branch }}
+            - gravitee-api-management-v9-sonarcloud-analysis-<< parameters.working_directory >>
+      - keeper/env-export:
+          secret-url: keeper://9x9YgyU6DWzux4DPoHAzDQ/field/password
+          var-name: SONAR_TOKEN
+      - run:
+          name: Run Sonarcloud Analysis
+          command: sonar-scanner -Dsonar.projectVersion=4.2.0
+          working_directory: << parameters.working_directory >>
+      - cmd-notify-on-failure
+      - save_cache:
+          paths:
+            - /opt/sonar-scanner/.sonar/cache
+          key: gravitee-api-management-v9-sonarcloud-analysis-<< parameters.working_directory >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+          when: always
   job-test-gateway:
     docker:
       - image: cimg/openjdk:17.0.8
@@ -389,7 +423,7 @@ jobs:
             echo "Following test files will run on this executor:"
             cat tests-to-run
 
-            # Run tests with rerunFailingTestsCount=2 because some integration tests related to RabbitMQ or Websocket are randomly failing on the CI             
+            # Run tests with rerunFailingTestsCount=2 because some integration tests related to RabbitMQ or Websocket are randomly failing on the CI
             mvn --fail-fast -s ../.gravitee.settings.xml test --no-transfer-progress -Dskip.validation=true -Dsurefire.excludesFile=/tmp/ignore_list -Dsurefire.rerunFailingTestsCount=2
       - run:
           name: Save test results
@@ -467,40 +501,6 @@ jobs:
           root: .
           paths:
             - gravitee-apim-repository/gravitee-apim-repository-coverage/target/site/jacoco-aggregate/
-  job-sonarcloud-analysis:
-    parameters:
-      working_directory:
-        type: string
-        default: gravitee-apim-rest-api
-        description: Directory where the Sonarcloud analysis will be run
-    docker:
-      - image: sonarsource/sonar-scanner-cli:5.0.1
-    resource_class: large
-    steps:
-      - run:
-          name: Add SSH tool
-          command: apk add --no-cache openssh
-      - checkout
-      - attach_workspace:
-          at: .
-      - restore_cache:
-          keys:
-            - gravitee-api-management-v9-sonarcloud-analysis-<< parameters.working_directory >>-{{ .Branch }}-{{ checksum "pom.xml" }}
-            - gravitee-api-management-v9-sonarcloud-analysis-<< parameters.working_directory >>-{{ .Branch }}
-            - gravitee-api-management-v9-sonarcloud-analysis-<< parameters.working_directory >>
-      - keeper/env-export:
-          secret-url: keeper://9x9YgyU6DWzux4DPoHAzDQ/field/password
-          var-name: SONAR_TOKEN
-      - run:
-          name: Run Sonarcloud Analysis
-          command: sonar-scanner -Dsonar.projectVersion=4.2.0
-          working_directory: << parameters.working_directory >>
-      - cmd-notify-on-failure
-      - save_cache:
-          paths:
-            - /opt/sonar-scanner/.sonar/cache
-          key: gravitee-api-management-v9-sonarcloud-analysis-<< parameters.working_directory >>-{{ .Branch }}-{{ checksum "pom.xml" }}
-          when: always
   job-webui-lint-test:
     parameters:
       apim-ui-project:
@@ -1019,18 +1019,39 @@ workflows:
             - cicd-orchestrator
           requires:
             - Build backend
+      - job-sonarcloud-analysis:
+          name: Sonar - gravitee-apim-definition
+          context:
+            - cicd-orchestrator
+          requires:
+            - Test definition
+          working_directory: gravitee-apim-definition
       - job-test-gateway:
           name: Test gateway
           context:
             - cicd-orchestrator
           requires:
             - Build backend
+      - job-sonarcloud-analysis:
+          name: Sonar - gravitee-apim-gateway
+          context:
+            - cicd-orchestrator
+          requires:
+            - Test gateway
+          working_directory: gravitee-apim-gateway
       - job-test-rest-api:
           name: Test rest-api
           context:
             - cicd-orchestrator
           requires:
             - Build backend
+      - job-sonarcloud-analysis:
+          name: Sonar - gravitee-apim-rest-api
+          context:
+            - cicd-orchestrator
+          requires:
+            - Test rest-api
+          working_directory: gravitee-apim-rest-api
       - job-test-integration:
           name: Integration tests
           context:
@@ -1043,33 +1064,6 @@ workflows:
             - cicd-orchestrator
           requires:
             - Build backend
-      - job-test-repository:
-          name: Test repository
-          context:
-            - cicd-orchestrator
-          requires:
-            - Build backend
-      - job-sonarcloud-analysis:
-          name: Sonar - gravitee-apim-definition
-          context:
-            - cicd-orchestrator
-          requires:
-            - Test definition
-          working_directory: gravitee-apim-definition
-      - job-sonarcloud-analysis:
-          name: Sonar - gravitee-apim-gateway
-          context:
-            - cicd-orchestrator
-          requires:
-            - Test gateway
-          working_directory: gravitee-apim-gateway
-      - job-sonarcloud-analysis:
-          name: Sonar - gravitee-apim-rest-api
-          context:
-            - cicd-orchestrator
-          requires:
-            - Test rest-api
-          working_directory: gravitee-apim-rest-api
       - job-sonarcloud-analysis:
           name: Sonar - gravitee-apim-plugin
           context:
@@ -1077,6 +1071,12 @@ workflows:
           requires:
             - Test plugins
           working_directory: gravitee-apim-plugin
+      - job-test-repository:
+          name: Test repository
+          context:
+            - cicd-orchestrator
+          requires:
+            - Build backend
       - job-sonarcloud-analysis:
           name: Sonar - gravitee-apim-repository
           context:
