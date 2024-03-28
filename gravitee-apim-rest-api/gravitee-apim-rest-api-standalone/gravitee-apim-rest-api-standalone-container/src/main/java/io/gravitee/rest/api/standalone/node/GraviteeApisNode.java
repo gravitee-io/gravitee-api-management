@@ -17,11 +17,10 @@ package io.gravitee.rest.api.standalone.node;
 
 import io.gravitee.common.component.LifecycleComponent;
 import io.gravitee.node.api.NodeMetadataResolver;
-import io.gravitee.node.container.AbstractNode;
+import io.gravitee.node.jetty.node.JettyNode;
 import io.gravitee.plugin.alert.AlertEventProducerManager;
 import io.gravitee.plugin.alert.AlertTriggerProviderManager;
 import io.gravitee.rest.api.service.InitializerService;
-import io.gravitee.rest.api.standalone.jetty.JettyEmbeddedContainer;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class GraviteeApisNode extends AbstractNode {
+public class GraviteeApisNode extends JettyNode {
 
     @Autowired
     private NodeMetadataResolver nodeMetadataResolver;
@@ -61,7 +60,6 @@ public class GraviteeApisNode extends AbstractNode {
     public List<Class<? extends LifecycleComponent>> components() {
         final List<Class<? extends LifecycleComponent>> components = super.components();
         components.add(InitializerService.class);
-        components.add(JettyEmbeddedContainer.class);
         components.add(AlertTriggerProviderManager.class);
         components.add(AlertEventProducerManager.class);
         return components;
