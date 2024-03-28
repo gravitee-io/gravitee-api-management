@@ -33,6 +33,10 @@ set JAVA_OPTS=%JAVA_OPTS% -Xms%GIO_MIN_MEM% -Xmx%GIO_MAX_MEM%
 REM set to headless, just in case
 set JAVA_OPTS=%JAVA_OPTS% -Djava.awt.headless=true
 
+REM disable jersey WADL
+set JAVA_OPTS=%JAVA_OPTS% -Djersey.config.allowSystemPropertiesProvider=true
+set JAVA_OPTS=%JAVA_OPTS% -Djersey.config.server.wadl.disableWadl=true
+
 REM Force the JVM to use IPv4 stack
 if NOT "%ES_USE_IPV4%" == "" (
 set JAVA_OPTS=%JAVA_OPTS% -Djava.net.preferIPv4Stack=true
