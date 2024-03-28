@@ -4522,6 +4522,11 @@ components:
                     format: int32
                     description: The idle timeout of the http client in ms
                     default: 60000
+                keepAliveTimeout:
+                    type: integer
+                    format: int32
+                    description: The keep-alive timeout of the http client in ms
+                    default: 30000
                 connectTimeout:
                     type: integer
                     format: int32
