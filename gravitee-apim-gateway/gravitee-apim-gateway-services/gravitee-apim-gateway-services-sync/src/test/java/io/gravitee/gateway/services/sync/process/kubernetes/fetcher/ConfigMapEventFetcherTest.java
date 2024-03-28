@@ -15,6 +15,7 @@
  */
 package io.gravitee.gateway.services.sync.process.kubernetes.fetcher;
 
+import static io.gravitee.gateway.services.sync.process.kubernetes.fetcher.ConfigMapEventFetcher.DATA_API_DEFINITION_VERSION;
 import static io.gravitee.gateway.services.sync.process.kubernetes.fetcher.ConfigMapEventFetcher.DATA_DEFINITION;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doReturn;
@@ -23,6 +24,7 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.definition.model.Api;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.kubernetes.client.KubernetesClient;
 import io.gravitee.kubernetes.client.config.KubernetesConfig;
 import io.gravitee.kubernetes.client.model.v1.*;
@@ -102,13 +104,28 @@ class ConfigMapEventFetcherTest {
     }
 
     @Test
+    void should_watch_current_namespace_api_v2_when_not_specified() throws JsonProcessingException {
+        cut = new ConfigMapEventFetcher(kubernetesClient, null, objectMapper);
+        KubernetesConfig.getInstance().setCurrentNamespace("current");
+        ConfigMap configMap = createConfigMap("apiV2", "current");
+
+        // If no definition version is present, consider v2 for backward-compatibility.
+        configMap.getData().remove(DATA_API_DEFINITION_VERSION);
+
+        when(kubernetesClient.watch(argThat(argument -> argument.getNamespace().equals("current"))))
+            .thenReturn(Flowable.just(createEvent(configMap)));
+        when(objectMapper.readValue("api", Api.class)).thenReturn(mockApiV2());
+
+        cut.fetchLatest().test().assertComplete().assertValueCount(1);
+    }
+
+    @Test
     void should_watch_current_namespace_api_v4() throws JsonProcessingException {
         cut = new ConfigMapEventFetcher(kubernetesClient, null, objectMapper);
         KubernetesConfig.getInstance().setCurrentNamespace("current");
         ConfigMap configMap = createConfigMap("apiV4", "current");
-        OwnerReference ownerReference = new OwnerReference();
-        ownerReference.setApiVersion(String.format("%s/%s", ConfigMapEventFetcher.GRAVITEE_IO, "v1beta1"));
-        configMap.getMetadata().setOwnerReferences(List.of(ownerReference));
+
+        configMap.getData().put(DATA_API_DEFINITION_VERSION, DefinitionVersion.V4.getLabel());
 
         when(kubernetesClient.watch(argThat(argument -> argument.getNamespace().equals("current"))))
             .thenReturn(Flowable.just(createEvent(configMap)));
@@ -116,6 +133,20 @@ class ConfigMapEventFetcherTest {
         when(objectMapper.readValue("api", io.gravitee.definition.model.v4.Api.class)).thenReturn(mockApiV4());
 
         cut.fetchLatest().test().assertComplete().assertValueCount(1);
+    }
+
+    @Test
+    void should_fail_watch_current_namespace_when_api_definition_version_is_unknown() {
+        cut = new ConfigMapEventFetcher(kubernetesClient, null, objectMapper);
+        KubernetesConfig.getInstance().setCurrentNamespace("current");
+        ConfigMap configMap = createConfigMap("apiV4", "current");
+
+        configMap.getData().put(DATA_API_DEFINITION_VERSION, "unknown");
+
+        when(kubernetesClient.watch(argThat(argument -> argument.getNamespace().equals("current"))))
+            .thenReturn(Flowable.just(createEvent(configMap)));
+
+        cut.fetchLatest().test().assertNoValues();
     }
 
     @Test
@@ -164,6 +195,8 @@ class ConfigMapEventFetcherTest {
 
         Map<String, String> data = new HashMap<>();
         data.put(DATA_DEFINITION, "api");
+        data.put(DATA_API_DEFINITION_VERSION, DefinitionVersion.V2.getLabel());
+
         return new ConfigMap("v1", null, data, true, "ConfigMap", objectMeta);
     }
 
