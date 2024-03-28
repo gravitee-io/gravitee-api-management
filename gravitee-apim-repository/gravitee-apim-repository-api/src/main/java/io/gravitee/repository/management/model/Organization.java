@@ -17,10 +17,7 @@ package io.gravitee.repository.management.model;
 
 import java.util.List;
 import java.util.Objects;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 /**
  * @author Florent CHAMFROY (florent.chamfroy at graviteesource.com)
@@ -30,7 +27,12 @@ import lombok.ToString;
 @Setter
 @EqualsAndHashCode
 @ToString
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Organization {
+
+    public static final Organization DEFAULT = Organization.builder().id("DEFAULT").hrids(List.of("default")).name("Default").build();
 
     private String id;
     private String cockpitId;
