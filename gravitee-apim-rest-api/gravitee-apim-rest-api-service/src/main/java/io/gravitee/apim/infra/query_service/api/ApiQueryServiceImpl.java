@@ -20,6 +20,8 @@ import io.gravitee.apim.core.api.model.ApiFieldFilter;
 import io.gravitee.apim.core.api.model.ApiSearchCriteria;
 import io.gravitee.apim.core.api.model.Sortable;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
+import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
+import io.gravitee.apim.core.environment.model.Environment;
 import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.apim.infra.adapter.ApiFieldFilterAdapter;
 import io.gravitee.apim.infra.adapter.ApiSearchCriteriaAdapter;
@@ -27,7 +29,9 @@ import io.gravitee.apim.infra.adapter.SortableAdapter;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -38,9 +42,11 @@ import org.springframework.stereotype.Service;
 public class ApiQueryServiceImpl implements ApiQueryService {
 
     private final ApiRepository apiRepository;
+    private final EnvironmentCrudService environmentCrudService;
 
-    public ApiQueryServiceImpl(@Lazy final ApiRepository apiRepository) {
+    public ApiQueryServiceImpl(@Lazy final ApiRepository apiRepository, EnvironmentCrudService environmentCrudService) {
         this.apiRepository = apiRepository;
+        this.environmentCrudService = environmentCrudService;
     }
 
     @Override
@@ -61,5 +67,24 @@ public class ApiQueryServiceImpl implements ApiQueryService {
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(e);
         }
+    }
+
+    @Override
+    public Stream<Api> findAllStartedApisByOrganization(String organizationId) {
+        return search(
+            ApiSearchCriteria
+                .builder()
+                .environments(
+                    environmentCrudService
+                        .findByOrganizationId(organizationId)
+                        .stream()
+                        .map(Environment::getId)
+                        .collect(Collectors.toList())
+                )
+                .state(Api.LifecycleState.STARTED)
+                .build(),
+            null,
+            null
+        );
     }
 }

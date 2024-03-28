@@ -49,6 +49,6 @@ public class InvalidPathException extends AbstractManagementException {
 
     @Override
     public String getMessage() {
-        return super.getMessage() + " (" + this.getCause().getMessage() + ")";
+        return super.getMessage() + (this.getCause() == null ? "" : " (" + this.getCause().getMessage() + ")");
     }
 }

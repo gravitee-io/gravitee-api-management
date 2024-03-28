@@ -26,4 +26,6 @@ public interface ApiQueryService {
     Stream<Api> search(ApiSearchCriteria apiCriteria, Sortable sortable, ApiFieldFilter apiFieldFilter);
 
     Optional<Api> findByEnvironmentIdAndCrossId(String environmentId, String crossId);
+
+    Stream<Api> findAllStartedApisByOrganization(String organizationId);
 }

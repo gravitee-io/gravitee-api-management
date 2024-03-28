@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.environment.crud_service;
+package io.gravitee.apim.core.api.domain_service;
 
-import io.gravitee.apim.core.environment.model.Environment;
-import java.util.Set;
+import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.audit.model.AuditInfo;
 
-public interface EnvironmentCrudService {
-    Environment get(String environmentId);
-    Set<Environment> findByOrganizationId(String organizationId);
+public interface StopApiDomainService {
+    Api stop(Api apiToStop, AuditInfo auditInfo);
 }
