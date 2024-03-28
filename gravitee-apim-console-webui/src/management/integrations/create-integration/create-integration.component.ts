@@ -51,7 +51,7 @@ export class CreateIntegrationComponent {
     const payload: CreateIntegrationPayload = {
       name: this.informationForm.controls.name.getRawValue(),
       description: this.informationForm.controls.description.getRawValue(),
-      provider: 'AWS',
+      provider: 'aws-api-gateway',
     };
 
     this.isLoading = true;
