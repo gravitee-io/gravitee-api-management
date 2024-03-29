@@ -180,12 +180,11 @@ export class FullReleaseWorkflow {
       // Notify APIM team
       new workflow.WorkflowJob(slackAnnouncementJob, {
         context: config.jobContext,
-        name: 'Announce release is starting',
+        name: 'Announce release is completed',
         message: `🎆 APIM - ${environment.graviteeioVersion} released!`,
         requires: [
           'Nexus staging',
           'Push docker images to Snyk',
-          'Create release note pull request',
           'Release Helm Chart',
           `Build and push RPM packages for APIM ${environment.graviteeioVersion}${environment.isDryRun ? ' - Dry Run' : ''}`,
         ],
