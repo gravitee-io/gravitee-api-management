@@ -15,10 +15,13 @@
  */
 package io.gravitee.apim.infra.adapter;
 
+import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.repository.management.model.Api;
+import io.gravitee.rest.api.model.context.IntegrationContext;
 import io.gravitee.rest.api.model.context.KubernetesContext;
 import io.gravitee.rest.api.model.context.ManagementContext;
 import io.gravitee.rest.api.model.context.OriginContext;
+import io.gravitee.rest.api.model.federation.FederatedApiEntity;
 
 public abstract class ApiAdapterDecorator implements ApiAdapter {
 
@@ -40,6 +43,10 @@ public abstract class ApiAdapterDecorator implements ApiAdapter {
                 api.setOrigin(OriginContext.Origin.KUBERNETES.name().toLowerCase());
                 api.setMode(((KubernetesContext) source.getOriginContext()).getMode().name().toLowerCase());
             }
+            case INTEGRATION -> {
+                api.setOrigin(OriginContext.Origin.INTEGRATION.name().toLowerCase());
+                api.setIntegrationId(((IntegrationContext) source.getOriginContext()).getIntegrationId());
+            }
         }
 
         return api;
@@ -48,7 +55,18 @@ public abstract class ApiAdapterDecorator implements ApiAdapter {
     @Override
     public io.gravitee.apim.core.api.model.Api toCoreModel(Api source) {
         var api = delegate.toCoreModel(source);
+        api.setOriginContext(toOriginContext(source));
+        return api;
+    }
 
+    @Override
+    public FederatedApiEntity toFederatedApiEntity(Api source, PrimaryOwnerEntity primaryOwnerEntity) {
+        var api = delegate.toFederatedApiEntity(source, primaryOwnerEntity);
+        api.setOriginContext(toOriginContext(source));
+        return api;
+    }
+
+    public static OriginContext toOriginContext(Api source) {
         OriginContext.Origin origin;
         try {
             if (source.getOrigin() == null) {
@@ -60,15 +78,14 @@ public abstract class ApiAdapterDecorator implements ApiAdapter {
             origin = OriginContext.Origin.MANAGEMENT;
         }
 
-        switch (origin) {
-            case MANAGEMENT -> {
-                api.setOriginContext(new ManagementContext());
-            }
-            case KUBERNETES -> {
-                api.setOriginContext(new KubernetesContext(KubernetesContext.Mode.valueOf(source.getMode().toUpperCase())));
-            }
-        }
-
-        return api;
+        return switch (origin) {
+            case MANAGEMENT -> new ManagementContext();
+            case KUBERNETES -> new KubernetesContext(
+                source.getMode() != null
+                    ? KubernetesContext.Mode.valueOf(source.getMode().toUpperCase())
+                    : KubernetesContext.Mode.FULLY_MANAGED
+            );
+            case INTEGRATION -> new IntegrationContext(source.getIntegrationId());
+        };
     }
 }

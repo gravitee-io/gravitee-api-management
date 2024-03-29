@@ -16,7 +16,9 @@
 package io.gravitee.apim.infra.adapter;
 
 import io.gravitee.apim.core.integration.model.Integration;
+import io.gravitee.apim.core.integration.model.IntegrationApi;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 /**
@@ -30,4 +32,9 @@ public interface IntegrationAdapter {
     Integration toEntity(io.gravitee.repository.management.model.Integration integration);
 
     io.gravitee.repository.management.model.Integration toRepository(Integration integration);
+
+    IntegrationApi map(io.gravitee.integration.api.model.Api source, String integrationId);
+
+    @Mapping(source = "planSecurityType", target = "type")
+    IntegrationApi.Plan map(io.gravitee.integration.api.model.Plan source);
 }

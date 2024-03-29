@@ -41,6 +41,7 @@ public interface ApiAdapter {
 
     @Mapping(target = "apiDefinitionV4", expression = "java(deserializeApiDefinitionV4(source))")
     @Mapping(target = "apiDefinition", expression = "java(deserializeApiDefinitionV2(source))")
+    @Mapping(target = "federatedApiDefinition", expression = "java(deserializeFederatedApiDefinition(source))")
     Api toCoreModel(io.gravitee.repository.management.model.Api source);
 
     Stream<Api> toCoreModelStream(Stream<io.gravitee.repository.management.model.Api> source);
@@ -105,7 +106,7 @@ public interface ApiAdapter {
             return null;
         }
 
-        if (api.getDefinitionVersion() != DefinitionVersion.V4) {
+        if (api.getDefinitionVersion() != DefinitionVersion.V4 && api.getDefinitionVersion() != DefinitionVersion.FEDERATED) {
             try {
                 return GraviteeJacksonMapper.getInstance().readValue(api.getDefinition(), io.gravitee.definition.model.Api.class);
             } catch (IOException ioe) {
@@ -117,21 +118,54 @@ public interface ApiAdapter {
         return null;
     }
 
-    default String serializeApiDefinition(Api api) {
-        if (api.getDefinitionVersion() == DefinitionVersion.V4) {
+    default io.gravitee.definition.model.federation.FederatedApi deserializeFederatedApiDefinition(
+        io.gravitee.repository.management.model.Api api
+    ) {
+        if (api.getDefinition() == null) {
+            // This can happen when filtering the definition using ApiFieldFilter
+            return null;
+        }
+
+        if (api.getDefinitionVersion() == DefinitionVersion.FEDERATED) {
             try {
-                return GraviteeJacksonMapper.getInstance().writeValueAsString(api.getApiDefinitionV4());
+                return GraviteeJacksonMapper
+                    .getInstance()
+                    .readValue(api.getDefinition(), io.gravitee.definition.model.federation.FederatedApi.class);
             } catch (IOException ioe) {
-                LOGGER.error("Unexpected error while serializing V4 API definition", ioe);
-                return null;
-            }
-        } else {
-            try {
-                return GraviteeJacksonMapper.getInstance().writeValueAsString(api.getApiDefinition());
-            } catch (IOException ioe) {
-                LOGGER.error("Unexpected error while serializing V2 API definition", ioe);
+                LOGGER.error("Unexpected error while deserializing Federated API definition", ioe);
                 return null;
             }
         }
+
+        return null;
+    }
+
+    default String serializeApiDefinition(Api api) {
+        return switch (api.getDefinitionVersion()) {
+            case V1, V2 -> {
+                try {
+                    yield GraviteeJacksonMapper.getInstance().writeValueAsString(api.getApiDefinition());
+                } catch (IOException ioe) {
+                    LOGGER.error("Unexpected error while serializing V2 API definition", ioe);
+                    yield null;
+                }
+            }
+            case V4 -> {
+                try {
+                    yield GraviteeJacksonMapper.getInstance().writeValueAsString(api.getApiDefinitionV4());
+                } catch (IOException ioe) {
+                    LOGGER.error("Unexpected error while serializing V4 API definition", ioe);
+                    yield null;
+                }
+            }
+            case FEDERATED -> {
+                try {
+                    yield GraviteeJacksonMapper.getInstance().writeValueAsString(api.getFederatedApiDefinition());
+                } catch (IOException ioe) {
+                    LOGGER.error("Unexpected error while serializing Federated API definition", ioe);
+                    yield null;
+                }
+            }
+        };
     }
 }

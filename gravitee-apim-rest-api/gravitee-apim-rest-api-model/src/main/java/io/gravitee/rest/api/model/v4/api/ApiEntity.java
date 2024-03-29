@@ -161,7 +161,8 @@ public class ApiEntity implements GenericApiEntity {
     private Visibility visibility;
 
     @Schema(description = "The status of the API regarding the gateway.", example = "STARTED")
-    private Lifecycle.State state;
+    @Builder.Default
+    private Lifecycle.State state = Lifecycle.State.STOPPED;
 
     @Schema(description = "The user with role PRIMARY_OWNER on this API.")
     private PrimaryOwnerEntity primaryOwner;

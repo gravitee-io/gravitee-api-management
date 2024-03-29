@@ -15,14 +15,17 @@
  */
 package io.gravitee.repository.management;
 
+import static io.gravitee.repository.management.model.ApiLifecycleState.CREATED;
 import static io.gravitee.repository.management.model.ApiLifecycleState.PUBLISHED;
 import static io.gravitee.repository.management.model.LifecycleState.STOPPED;
+import static io.gravitee.repository.management.model.Visibility.PRIVATE;
 import static io.gravitee.repository.management.model.Visibility.PUBLIC;
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static io.gravitee.repository.utils.DateUtils.parse;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.*;
 
 import io.gravitee.common.data.domain.Page;
@@ -94,6 +97,44 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         int nbApplicationAfter = apiRepository.search(null, ApiFieldFilter.allFields()).size();
         assertFalse("api was deleted", apiRepository.findById(apiId).isPresent());
         assertEquals("Invalid number of apis after deletion", nbApplicationBefore - 1, nbApplicationAfter);
+    }
+
+    @Test
+    public void createAndDeleteFederatedApiTest() throws Exception {
+        String apiId = "newApi-Id";
+
+        var api = Api
+            .builder()
+            .id(apiId)
+            .environmentId("DEFAULT")
+            .origin("integration")
+            .integrationId("integration-id")
+            .name("A Federated API")
+            .description("federated-api-description")
+            .definition("{}")
+            .version("1.0")
+            .visibility(PRIVATE)
+            .createdAt(parse("11/02/2024"))
+            .updatedAt(parse("11/02/2024"))
+            .lifecycleState(null)
+            .mode(null)
+            .labels(List.of())
+            .categories(Set.of())
+            .groups(Set.of())
+            .apiLifecycleState(CREATED)
+            .build();
+        var created = apiRepository.create(api);
+
+        assertThat(apiRepository.findById(apiId))
+            .isPresent()
+            .get()
+            .satisfies(result -> {
+                assertThat(result).usingRecursiveComparison().isEqualTo(api);
+            });
+
+        // test delete
+        apiRepository.delete(apiId);
+        assertThat(apiRepository.findById(apiId)).isEmpty();
     }
 
     @Test

@@ -1,11 +1,8 @@
 databaseChangeLog:
   - changeSet:
-      id: 4.4.0
+      id: 4.4.0_add_integration_table
       author: GraviteeSource Team
       changes:
-        # ################
-        # Integration changes
-        # ################
         - createTable:
             tableName: ${gravitee_prefix}integrations
             columns:

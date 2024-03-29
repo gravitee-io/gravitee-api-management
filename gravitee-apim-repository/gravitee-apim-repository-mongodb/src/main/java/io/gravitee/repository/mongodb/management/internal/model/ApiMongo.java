@@ -52,6 +52,9 @@ public class ApiMongo extends Auditable {
      */
     private String mode;
 
+    /** The integration id for Federated API */
+    private String integrationId;
+
     @Field("name")
     private String name;
 
@@ -231,6 +234,15 @@ public class ApiMongo extends Auditable {
 
     public void setCrossId(String crossId) {
         this.crossId = crossId;
+    }
+
+    public String getIntegrationId() {
+        return integrationId;
+    }
+
+    public ApiMongo setIntegrationId(String integrationId) {
+        this.integrationId = integrationId;
+        return this;
     }
 
     @Override

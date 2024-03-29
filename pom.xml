@@ -66,7 +66,7 @@
         <gravitee-expression-language.version>3.1.0</gravitee-expression-language.version>
         <gravitee-fetcher-api.version>1.4.0</gravitee-fetcher-api.version>
         <gravitee-gateway-api.version>3.5.0</gravitee-gateway-api.version>
-        <gravitee-integration-api.version>1.0.0-alpha.3</gravitee-integration-api.version>
+        <gravitee-integration-api.version>1.0.0-alpha.5</gravitee-integration-api.version>
         <gravitee-node.version>5.12.3</gravitee-node.version>
         <gravitee-notifier-api.version>1.4.3</gravitee-notifier-api.version>
         <gravitee-plugin.version>3.1.1</gravitee-plugin.version>
@@ -312,6 +312,12 @@
                 <groupId>io.gravitee.cockpit</groupId>
                 <artifactId>gravitee-cockpit-api</artifactId>
                 <version>${gravitee-cockpit-api.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.gravitee.integration</groupId>
+                <artifactId>gravitee-integration-api</artifactId>
+                <version>${gravitee-integration-api.version}</version>
             </dependency>
 
             <dependency>
@@ -1243,7 +1249,7 @@
                         <exclude>src/main/resources/**</exclude>
                         <exclude>src/main/resources-filtered/**</exclude>
                         <exclude>src/main/webapp/**</exclude>
-                        <exclude>assets/**</exclude>
+                        <exclude>integrationApis/**</exclude>
                         <exclude>**/dist/**</exclude>
                         <exclude>**/.tmp/**</exclude>
                         <exclude>**/node_modules/**</exclude>

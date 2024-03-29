@@ -15,7 +15,10 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.integration;
 
+import io.gravitee.apim.core.audit.model.AuditActor;
+import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.integration.use_case.GetIntegrationUseCase;
+import io.gravitee.apim.core.integration.use_case.IngestIntegrationApisUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.IntegrationMapper;
 import io.gravitee.rest.api.management.v2.rest.model.IngestionStatus;
@@ -25,12 +28,16 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
+import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.container.AsyncResponse;
+import jakarta.ws.rs.container.Suspended;
 import jakarta.ws.rs.core.Response;
 import lombok.extern.slf4j.Slf4j;
 
@@ -43,6 +50,9 @@ public class IntegrationResource extends AbstractResource {
 
     @Inject
     private GetIntegrationUseCase getIntegrationUsecase;
+
+    @Inject
+    private IngestIntegrationApisUseCase ingestIntegrationApisUseCase;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -64,7 +74,46 @@ public class IntegrationResource extends AbstractResource {
             @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.CREATE }),
         }
     )
-    public Response ingestApis(@PathParam("integrationId") String integrationId) {
-        return Response.ok(IntegrationIngestionResponse.builder().status(IngestionStatus.SUCCESS).build()).build();
+    public void ingestApis(@PathParam("integrationId") String integrationId, @Suspended final AsyncResponse response) {
+        var executionContext = GraviteeContext.getExecutionContext();
+        if (
+            !hasPermission(
+                executionContext,
+                RolePermission.ENVIRONMENT_INTEGRATION,
+                GraviteeContext.getCurrentEnvironment(),
+                RolePermissionAction.READ
+            ) ||
+            !hasPermission(
+                executionContext,
+                RolePermission.ENVIRONMENT_API,
+                GraviteeContext.getCurrentEnvironment(),
+                RolePermissionAction.CREATE
+            )
+        ) {
+            throw new ForbiddenAccessException();
+        }
+
+        var userDetails = getAuthenticatedUserDetails();
+
+        AuditInfo audit = AuditInfo
+            .builder()
+            .organizationId(executionContext.getOrganizationId())
+            .environmentId(executionContext.getEnvironmentId())
+            .actor(
+                AuditActor
+                    .builder()
+                    .userId(userDetails.getUsername())
+                    .userSource(userDetails.getSource())
+                    .userSourceId(userDetails.getSourceId())
+                    .build()
+            )
+            .build();
+
+        ingestIntegrationApisUseCase
+            .execute(new IngestIntegrationApisUseCase.Input(integrationId, audit))
+            .subscribe(
+                () -> response.resume(IntegrationIngestionResponse.builder().status(IngestionStatus.SUCCESS).build()),
+                response::resume
+            );
     }
 }

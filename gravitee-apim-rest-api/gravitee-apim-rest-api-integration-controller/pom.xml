@@ -52,7 +52,6 @@
         <dependency>
             <groupId>io.gravitee.integration</groupId>
             <artifactId>gravitee-integration-api</artifactId>
-            <version>${gravitee-integration-api.version}</version>
         </dependency>
         <dependency>
             <groupId>io.gravitee.apim.rest.api</groupId>

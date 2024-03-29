@@ -18,23 +18,83 @@ package io.gravitee.rest.api.management.v2.rest.resource.integration;
 import static assertions.MAPIAssertions.assertThat;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.IntegrationFixture;
+import inmemory.IntegrationCrudServiceInMemory;
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.rest.api.management.v2.rest.model.*;
+import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.rest.api.management.v2.rest.model.ApiLogsResponse;
+import io.gravitee.rest.api.management.v2.rest.model.CreateIntegration;
+import io.gravitee.rest.api.management.v2.rest.model.Integration;
+import io.gravitee.rest.api.management.v2.rest.model.IntegrationsResponse;
+import io.gravitee.rest.api.management.v2.rest.model.Links;
+import io.gravitee.rest.api.management.v2.rest.model.Pagination;
+import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
+import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.common.UuidString;
 import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
 import java.time.ZonedDateTime;
 import java.util.stream.IntStream;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
-public class IntegrationsResourceTest extends IntegrationResourceTest {
+public class IntegrationsResourceTest extends AbstractResourceTest {
+
+    static final String ENVIRONMENT = "my-env";
+    static final String INTEGRATION_NAME = "test-name";
+    static final String INTEGRATION_DESCRIPTION = "integration-description";
+    static final String INTEGRATION_PROVIDER = "test-provider";
+    static final String INTEGRATION_ID = "integration-id";
+
+    @Autowired
+    IntegrationCrudServiceInMemory integrationCrudServiceInMemory;
+
+    WebTarget target;
+
+    @Override
+    protected String contextPath() {
+        return "/environments/" + ENVIRONMENT + "/integrations";
+    }
+
+    @BeforeAll
+    static void beforeAll() {
+        UuidString.overrideGenerator(() -> INTEGRATION_ID);
+    }
+
+    @AfterAll
+    static void afterAll() {
+        UuidString.reset();
+    }
+
+    @BeforeEach
+    public void init() throws TechnicalException {
+        target = rootTarget();
+
+        EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
+        doReturn(environmentEntity).when(environmentService).findById(ENVIRONMENT);
+        doReturn(environmentEntity).when(environmentService).findByOrgAndIdOrHrid(ORGANIZATION, ENVIRONMENT);
+
+        GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
+        GraviteeContext.setCurrentOrganization(ORGANIZATION);
+    }
+
+    @AfterEach
+    public void tearDown() {
+        integrationCrudServiceInMemory.reset();
+        GraviteeContext.cleanContext();
+    }
 
     @Nested
     class CreateIntegrations {
@@ -176,6 +236,7 @@ public class IntegrationsResourceTest extends IntegrationResourceTest {
             var recentDate = ZonedDateTime.parse("2024-02-03T20:22:02.00Z");
             var integration = IntegrationFixture.BASE
                 .get()
+                .id(INTEGRATION_ID)
                 .name(name)
                 .description(description)
                 .provider(provider)

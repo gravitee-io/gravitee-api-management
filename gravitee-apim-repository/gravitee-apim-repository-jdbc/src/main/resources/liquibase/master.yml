@@ -168,4 +168,6 @@ databaseChangeLog:
   - include:
       - file: liquibase/changelogs/v4_3_0/schema.yml
   - include:
-      - file: liquibase/changelogs/v4_4_0/schema.yml
+      - file: liquibase/changelogs/v4_4_0/00_add_new_integration_table.yml
+  - include:
+      - file: liquibase/changelogs/v4_4_0/01_store_federated_apis.yml

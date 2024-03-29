@@ -53,6 +53,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -169,7 +170,8 @@ public class ApiEntity implements GenericApiEntity {
     private Visibility visibility;
 
     @Schema(description = "The status of the API regarding the gateway.", example = "STARTED")
-    private Lifecycle.State state;
+    @Builder.Default
+    private Lifecycle.State state = Lifecycle.State.STOPPED;
 
     @JsonProperty("owner")
     @Schema(description = "The user with role PRIMARY_OWNER on this API.")

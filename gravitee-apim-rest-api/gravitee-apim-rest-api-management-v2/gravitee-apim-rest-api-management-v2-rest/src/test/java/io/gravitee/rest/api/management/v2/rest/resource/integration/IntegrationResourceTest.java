@@ -16,21 +16,25 @@
 package io.gravitee.rest.api.management.v2.rest.resource.integration;
 
 import static assertions.MAPIAssertions.assertThat;
+import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.IntegrationFixture;
 import inmemory.IntegrationCrudServiceInMemory;
+import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.rest.api.management.v2.rest.model.IngestionStatus;
 import io.gravitee.rest.api.management.v2.rest.model.Integration;
+import io.gravitee.rest.api.management.v2.rest.model.IntegrationIngestionResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.service.common.GraviteeContext;
-import io.gravitee.rest.api.service.common.UuidString;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
@@ -38,6 +42,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class IntegrationResourceTest extends AbstractResourceTest {
@@ -46,16 +52,13 @@ public class IntegrationResourceTest extends AbstractResourceTest {
     IntegrationCrudServiceInMemory integrationCrudServiceInMemory;
 
     static final String ENVIRONMENT = "my-env";
-    static final String INTEGRATION_NAME = "test-name";
-    static final String INTEGRATION_DESCRIPTION = "integration-description";
-    static final String INTEGRATION_PROVIDER = "test-provider";
-    static final String INTEGRATION_ID = "generated-id";
+    static final String INTEGRATION_ID = "integration-id";
 
     WebTarget target;
 
     @Override
     protected String contextPath() {
-        return "/environments/" + ENVIRONMENT + "/integrations";
+        return "/environments/" + ENVIRONMENT + "/integrations/" + INTEGRATION_ID;
     }
 
     @BeforeEach
@@ -69,12 +72,17 @@ public class IntegrationResourceTest extends AbstractResourceTest {
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
 
-        UuidString.overrideGenerator(() -> INTEGRATION_ID);
+        roleQueryService.resetSystemRoles(ORGANIZATION);
+        enableApiPrimaryOwnerMode(ENVIRONMENT, ApiPrimaryOwnerMode.USER);
+        givenExistingUsers(
+            List.of(BaseUserEntity.builder().id(USER_NAME).firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build())
+        );
     }
 
     @AfterEach
     public void tearDown() {
         integrationCrudServiceInMemory.reset();
+        GraviteeContext.cleanContext();
     }
 
     @Nested
@@ -83,9 +91,9 @@ public class IntegrationResourceTest extends AbstractResourceTest {
         @Test
         public void should_get_integration() {
             //Given
-            target = rootTarget(INTEGRATION_ID);
-            var integration = List.of(IntegrationFixture.anIntegration());
-            integrationCrudServiceInMemory.initWith(integration);
+            target = rootTarget();
+            var integration = IntegrationFixture.anIntegration().withId(INTEGRATION_ID);
+            integrationCrudServiceInMemory.initWith(List.of(integration));
 
             //When
             Response response = target.request().get();
@@ -98,9 +106,9 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                     Integration
                         .builder()
                         .id(INTEGRATION_ID)
-                        .name(INTEGRATION_NAME)
-                        .description(INTEGRATION_DESCRIPTION)
-                        .provider(INTEGRATION_PROVIDER)
+                        .name(integration.getName())
+                        .description(integration.getDescription())
+                        .provider(integration.getProvider())
                         .agentStatus(Integration.AgentStatusEnum.DISCONNECTED)
                         .build()
                 );
@@ -133,6 +141,78 @@ public class IntegrationResourceTest extends AbstractResourceTest {
 
             Response response = target.request().get();
             assertThat(response).hasStatus(HttpStatusCode.FORBIDDEN_403);
+        }
+    }
+
+    @Nested
+    class IngestApis {
+
+        @BeforeEach
+        void setUp() {
+            target = rootTarget().path("_ingest");
+        }
+
+        @ParameterizedTest(name = "[{index}] {arguments}")
+        @CsvSource(
+            delimiterString = "|",
+            useHeadersInDisplayName = true,
+            textBlock = """
+        ENVIRONMENT_INTEGRATION[READ] |  ENVIRONMENT_API[CREATE]
+        false                  |  false
+        true                   |  false
+        false                  |  true
+     """
+        )
+        public void should_get_error_if_user_does_not_have_correct_permissions(
+            boolean environmentIntegrationRead,
+            boolean environmentApiCreate
+        ) {
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.ENVIRONMENT_INTEGRATION,
+                    ENVIRONMENT,
+                    RolePermissionAction.READ
+                )
+            )
+                .thenReturn(environmentIntegrationRead);
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.ENVIRONMENT_API,
+                    ENVIRONMENT,
+                    RolePermissionAction.CREATE
+                )
+            )
+                .thenReturn(environmentApiCreate);
+
+            final Response response = target.request().post(null);
+
+            assertThat(response).hasStatus(FORBIDDEN_403);
+        }
+
+        @Test
+        public void should_throw_error_when_integration_not_found() {
+            //When
+            Response response = target.request().post(null);
+
+            //Then
+            assertThat(response).hasStatus(HttpStatusCode.NOT_FOUND_404);
+        }
+
+        @Test
+        public void should_return_success_when_ingestion_succeed() {
+            //Given
+            integrationCrudServiceInMemory.initWith(List.of(IntegrationFixture.anIntegration().withId(INTEGRATION_ID)));
+
+            //When
+            Response response = target.request().post(null);
+
+            //Then
+            assertThat(response)
+                .hasStatus(HttpStatusCode.OK_200)
+                .asEntity(IntegrationIngestionResponse.class)
+                .isEqualTo(IntegrationIngestionResponse.builder().status(IngestionStatus.SUCCESS).build());
         }
     }
 }

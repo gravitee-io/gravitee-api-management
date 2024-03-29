@@ -74,6 +74,7 @@ public class Api {
 
     private io.gravitee.definition.model.v4.Api apiDefinitionV4;
     private io.gravitee.definition.model.Api apiDefinition;
+    private io.gravitee.definition.model.federation.FederatedApi federatedApiDefinition;
 
     /**
      * The api type.
@@ -101,8 +102,7 @@ public class Api {
     /**
      * The current runtime life cycle state.
      */
-    @Builder.Default
-    private LifecycleState lifecycleState = LifecycleState.STOPPED;
+    private LifecycleState lifecycleState;
 
     /**
      * The api picture
@@ -173,6 +173,9 @@ public class Api {
         if (apiDefinition != null) {
             apiDefinition.setId(id);
         }
+        if (federatedApiDefinition != null) {
+            federatedApiDefinition.setId(id);
+        }
         return this;
     }
 
@@ -185,6 +188,12 @@ public class Api {
     public Api setApiDefinition(io.gravitee.definition.model.Api apiDefinition) {
         this.apiDefinition = apiDefinition;
         this.definitionVersion = apiDefinition.getDefinitionVersion();
+        return this;
+    }
+
+    public Api setFederatedApiDefinition(io.gravitee.definition.model.federation.FederatedApi federatedApiDefinition) {
+        this.federatedApiDefinition = federatedApiDefinition;
+        this.definitionVersion = federatedApiDefinition.getDefinitionVersion();
         return this;
     }
 
@@ -222,6 +231,14 @@ public class Api {
             this.apiDefinitionV4 = apiDefinitionV4;
             if (apiDefinitionV4 != null) {
                 this.definitionVersion = apiDefinitionV4.getDefinitionVersion();
+            }
+            return self();
+        }
+
+        public B federatedApiDefinition(io.gravitee.definition.model.federation.FederatedApi federatedApiDefinition) {
+            this.federatedApiDefinition = federatedApiDefinition;
+            if (federatedApiDefinition != null) {
+                this.definitionVersion = federatedApiDefinition.getDefinitionVersion();
             }
             return self();
         }

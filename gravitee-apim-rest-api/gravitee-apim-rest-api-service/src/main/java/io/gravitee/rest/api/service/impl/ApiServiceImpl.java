@@ -2484,6 +2484,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         if (updateApiEntity.getLifecycleState() != null) {
             api.setApiLifecycleState(ApiLifecycleState.valueOf(updateApiEntity.getLifecycleState().name()));
         }
+        api.setLifecycleState(
+            updateApiEntity.getState() != null ? LifecycleState.valueOf(updateApiEntity.getState().name()) : LifecycleState.STOPPED
+        );
         return api;
     }
 
