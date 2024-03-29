@@ -1101,6 +1101,26 @@ paths:
                                 $ref: "#/components/schemas/Integration"
                 default:
                     $ref: "#/components/responses/Error"
+    /environments/{envId}/integrations/{integrationId}/_ingest:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/integrationIdParam"
+        get:
+            tags:
+                - Integrations
+            summary: Ingest APIs for a specific Integration
+            description: |-
+                Ingest all APIs for a specific Integration.
+            operationId: ingestIntegration
+            responses:
+                "200":
+                    description: Ingestion successful
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/IntegrationIngestionResponse"
+                default:
+                    $ref: "#/components/responses/Error"
 
     # API Subscriptions
     /environments/{envId}/apis/{apiId}/subscribers:
@@ -3074,6 +3094,24 @@ components:
                     example: DISCONNECTED
                     enum:
                         - DISCONNECTED
+
+        IntegrationIngestionResponse:
+            type: object
+            properties:
+                status:
+                    $ref: "#/components/schemas/IngestionStatus"
+                message:
+                    type: string
+                    description: Integration Ingestion message.
+                    example: Integration APIs have been ingested successfully
+
+        IngestionStatus:
+            type: string
+            description: Integration Ingestion status.
+            example: SUCCESS
+            enum:
+                - SUCCESS
+
         Links:
             description: List of links for pagination
             properties:
