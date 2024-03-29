@@ -25,8 +25,9 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
+import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.AuditInfoFixtures;
-import fixtures.core.model.IntegrationAssetFixtures;
+import fixtures.core.model.IntegrationApiFixtures;
 import fixtures.core.model.IntegrationFixture;
 import inmemory.ApiCategoryQueryServiceInMemory;
 import inmemory.ApiCrudServiceInMemory;
@@ -59,8 +60,8 @@ import io.gravitee.apim.core.audit.model.event.ApiAuditEvent;
 import io.gravitee.apim.core.audit.model.event.MembershipAuditEvent;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.integration.exception.IntegrationNotFoundException;
-import io.gravitee.apim.core.integration.model.Asset;
 import io.gravitee.apim.core.integration.model.Integration;
+import io.gravitee.apim.core.integration.model.IntegrationApi;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
 import io.gravitee.apim.core.membership.model.Membership;
@@ -72,8 +73,10 @@ import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.federation.FederatedApi;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
+import io.gravitee.rest.api.model.context.IntegrationContext;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.service.common.UuidString;
@@ -96,7 +99,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
-class DiscoverIntegrationAssetUseCaseTest {
+class IngestIntegrationApisUseCaseTest {
 
     private static final Instant INSTANT_NOW = Instant.parse("2023-10-22T10:15:30Z");
     private static final String INTEGRATION_ID = "integration-id";
@@ -123,11 +126,11 @@ class DiscoverIntegrationAssetUseCaseTest {
     IndexerInMemory indexer = new IndexerInMemory();
 
     ValidateFederatedApiDomainService validateFederatedApiDomainService = spy(new ValidateFederatedApiDomainService());
-    DiscoverIntegrationAssetUseCase useCase;
+    IngestIntegrationApisUseCase useCase;
 
     @BeforeAll
     static void beforeAll() {
-        UuidString.overrideGenerator(() -> "generated-id");
+        UuidString.overrideGenerator(seed -> seed != null ? seed : "generated-id");
         TimeProvider.overrideClock(Clock.fixed(INSTANT_NOW, ZoneId.systemDefault()));
     }
 
@@ -176,10 +179,11 @@ class DiscoverIntegrationAssetUseCaseTest {
         );
 
         useCase =
-            new DiscoverIntegrationAssetUseCase(
+            new IngestIntegrationApisUseCase(
                 integrationCrudService,
                 apiPrimaryOwnerFactory,
                 validateFederatedApiDomainService,
+                apiCrudService,
                 createApiDomainService,
                 integrationAgent
             );
@@ -217,25 +221,26 @@ class DiscoverIntegrationAssetUseCaseTest {
         void should_create_and_index_a_federated_api() {
             // Given
             givenAnIntegration(IntegrationFixture.anIntegration(ENVIRONMENT_ID).withId(INTEGRATION_ID));
-            givenAssets(
-                IntegrationAssetFixtures
-                    .anAssetForIntegration(INTEGRATION_ID)
+            givenIntegrationApis(
+                IntegrationApiFixtures
+                    .anIntegrationApiForIntegration(INTEGRATION_ID)
                     .toBuilder()
                     .id("asset-1")
                     .name("api-1")
                     .description("my description")
                     .version("1.1.1")
+                    .connectionDetails(Map.of("url", "https://example.com"))
                     .build()
             );
 
             // When
-            useCase.execute(new DiscoverIntegrationAssetUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().awaitDone(10, TimeUnit.SECONDS);
+            useCase.execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().awaitDone(10, TimeUnit.SECONDS);
 
             // Then
             SoftAssertions.assertSoftly(soft -> {
                 Api expectedApi = Api
                     .builder()
-                    .id("generated-id")
+                    .id("environment-idintegration-idasset-1")
                     .definitionVersion(DefinitionVersion.FEDERATED)
                     .name("api-1")
                     .description("my description")
@@ -244,6 +249,17 @@ class DiscoverIntegrationAssetUseCaseTest {
                     .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
                     .environmentId(ENVIRONMENT_ID)
                     .lifecycleState(null)
+                    .originContext(new IntegrationContext(INTEGRATION_ID))
+                    .federatedApiDefinition(
+                        FederatedApi
+                            .builder()
+                            .id("environment-idintegration-idasset-1")
+                            .providerId("asset-1")
+                            .apiVersion("1.1.1")
+                            .name("api-1")
+                            .server(Map.of("url", "https://example.com"))
+                            .build()
+                    )
                     .build();
                 soft.assertThat(apiCrudService.storage()).containsExactlyInAnyOrder(expectedApi);
                 soft
@@ -263,10 +279,10 @@ class DiscoverIntegrationAssetUseCaseTest {
         void should_create_an_audit() {
             // Given
             givenAnIntegration(IntegrationFixture.anIntegration(ENVIRONMENT_ID).withId(INTEGRATION_ID));
-            givenAssets(IntegrationAssetFixtures.anAssetForIntegration(INTEGRATION_ID));
+            givenIntegrationApis(IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID));
 
             // When
-            useCase.execute(new DiscoverIntegrationAssetUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().awaitDone(10, TimeUnit.SECONDS);
+            useCase.execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().awaitDone(10, TimeUnit.SECONDS);
 
             // Then
             assertThat(auditCrudService.storage())
@@ -279,7 +295,7 @@ class DiscoverIntegrationAssetUseCaseTest {
                         .organizationId(ORGANIZATION_ID)
                         .environmentId(ENVIRONMENT_ID)
                         .referenceType(AuditEntity.AuditReferenceType.API)
-                        .referenceId("generated-id")
+                        .referenceId("environment-idintegration-idasset-id")
                         .user(USER_ID)
                         .properties(Collections.emptyMap())
                         .event(ApiAuditEvent.API_CREATED.name())
@@ -292,7 +308,7 @@ class DiscoverIntegrationAssetUseCaseTest {
                         .organizationId(ORGANIZATION_ID)
                         .environmentId(ENVIRONMENT_ID)
                         .referenceType(AuditEntity.AuditReferenceType.API)
-                        .referenceId("generated-id")
+                        .referenceId("environment-idintegration-idasset-id")
                         .user(USER_ID)
                         .properties(Map.of("USER", USER_ID))
                         .event(MembershipAuditEvent.MEMBERSHIP_CREATED.name())
@@ -307,10 +323,10 @@ class DiscoverIntegrationAssetUseCaseTest {
             // Given
             enableApiPrimaryOwnerMode(mode);
             givenAnIntegration(IntegrationFixture.anIntegration(ENVIRONMENT_ID).withId(INTEGRATION_ID));
-            givenAssets(IntegrationAssetFixtures.anAssetForIntegration(INTEGRATION_ID));
+            givenIntegrationApis(IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID));
 
             // When
-            useCase.execute(new DiscoverIntegrationAssetUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().awaitDone(10, TimeUnit.SECONDS);
+            useCase.execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().awaitDone(10, TimeUnit.SECONDS);
 
             // Then
             assertThat(membershipCrudService.storage())
@@ -321,7 +337,7 @@ class DiscoverIntegrationAssetUseCaseTest {
                         .roleId(apiPrimaryOwnerRoleId(ORGANIZATION_ID))
                         .memberId(USER_ID)
                         .memberType(Membership.Type.USER)
-                        .referenceId("generated-id")
+                        .referenceId("environment-idintegration-idasset-id")
                         .referenceType(Membership.ReferenceType.API)
                         .source("system")
                         .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
@@ -334,10 +350,10 @@ class DiscoverIntegrationAssetUseCaseTest {
         void should_not_create_default_metadata() {
             // Given
             givenAnIntegration(IntegrationFixture.anIntegration(ENVIRONMENT_ID).withId(INTEGRATION_ID));
-            givenAssets(IntegrationAssetFixtures.anAssetForIntegration(INTEGRATION_ID));
+            givenIntegrationApis(IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID));
 
             // When
-            useCase.execute(new DiscoverIntegrationAssetUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().awaitDone(10, TimeUnit.SECONDS);
+            useCase.execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().awaitDone(10, TimeUnit.SECONDS);
 
             // Then
             assertThat(metadataCrudService.storage()).isEmpty();
@@ -347,10 +363,10 @@ class DiscoverIntegrationAssetUseCaseTest {
         void should_not_create_default_email_notification_configuration() {
             // Given
             givenAnIntegration(IntegrationFixture.anIntegration(ENVIRONMENT_ID).withId(INTEGRATION_ID));
-            givenAssets(IntegrationAssetFixtures.anAssetForIntegration(INTEGRATION_ID));
+            givenIntegrationApis(IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID));
 
             // When
-            useCase.execute(new DiscoverIntegrationAssetUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().awaitDone(10, TimeUnit.SECONDS);
+            useCase.execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().awaitDone(10, TimeUnit.SECONDS);
 
             // Then
             assertThat(notificationConfigCrudService.storage()).isEmpty();
@@ -361,14 +377,14 @@ class DiscoverIntegrationAssetUseCaseTest {
             // Given
             enableApiReview();
             givenAnIntegration(IntegrationFixture.anIntegration(ENVIRONMENT_ID).withId(INTEGRATION_ID));
-            givenAssets(
-                IntegrationAssetFixtures.anAssetForIntegration(INTEGRATION_ID).toBuilder().id("asset-1").name("api-1").build(),
-                IntegrationAssetFixtures.anAssetForIntegration(INTEGRATION_ID).toBuilder().id("asset-2").name("api-2").build()
+            givenIntegrationApis(
+                IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID).toBuilder().id("asset-1").name("api-1").build(),
+                IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID).toBuilder().id("asset-2").name("api-2").build()
             );
 
             // When
             useCase
-                .execute(new DiscoverIntegrationAssetUseCase.Input(INTEGRATION_ID, AUDIT_INFO))
+                .execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO))
                 .test()
                 .awaitDone(0, TimeUnit.SECONDS)
                 .assertComplete();
@@ -387,36 +403,36 @@ class DiscoverIntegrationAssetUseCaseTest {
     @Test
     void should_throw_when_no_integration_is_found() {
         // When
-        var obs = useCase.execute(new DiscoverIntegrationAssetUseCase.Input("unknown", AUDIT_INFO)).test();
+        var obs = useCase.execute(new IngestIntegrationApisUseCase.Input("unknown", AUDIT_INFO)).test();
 
         // Then
         obs.assertError(IntegrationNotFoundException.class);
     }
 
     @Test
-    void should_do_nothing_when_no_asset_to_import() {
+    void should_do_nothing_when_no_apis_to_ingest() {
         // Given
         givenAnIntegration(IntegrationFixture.anIntegration().withId(INTEGRATION_ID));
 
         // When
-        useCase.execute(new DiscoverIntegrationAssetUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().awaitDone(10, TimeUnit.SECONDS);
+        useCase.execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().awaitDone(10, TimeUnit.SECONDS);
 
         // Then
         Assertions.assertThat(apiCrudService.storage()).isEmpty();
     }
 
     @Test
-    void should_create_a_federated_api_for_each_asset() {
+    void should_create_a_federated_api_for_each_integration_apis() {
         // Given
         givenAnIntegration(IntegrationFixture.anIntegration(ENVIRONMENT_ID).withId(INTEGRATION_ID));
-        givenAssets(
-            IntegrationAssetFixtures.anAssetForIntegration(INTEGRATION_ID).toBuilder().id("asset-1").name("api-1").build(),
-            IntegrationAssetFixtures.anAssetForIntegration(INTEGRATION_ID).toBuilder().id("asset-2").name("api-2").build()
+        givenIntegrationApis(
+            IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID).toBuilder().id("api-id-1").name("api-1").build(),
+            IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID).toBuilder().id("api-id-2").name("api-2").build()
         );
 
         // When
         useCase
-            .execute(new DiscoverIntegrationAssetUseCase.Input(INTEGRATION_ID, AUDIT_INFO))
+            .execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO))
             .test()
             .awaitDone(0, TimeUnit.SECONDS)
             .assertComplete();
@@ -429,10 +445,10 @@ class DiscoverIntegrationAssetUseCaseTest {
     void should_skip_creating_federated_api_when_validation_fails() {
         // Given
         givenAnIntegration(IntegrationFixture.anIntegration(ENVIRONMENT_ID).withId(INTEGRATION_ID));
-        givenAssets(
-            IntegrationAssetFixtures.anAssetForIntegration(INTEGRATION_ID).toBuilder().id("asset-1").name("api-1").build(),
-            IntegrationAssetFixtures.anAssetForIntegration(INTEGRATION_ID).toBuilder().id("asset-2").name("api-2").build(),
-            IntegrationAssetFixtures.anAssetForIntegration(INTEGRATION_ID).toBuilder().id("asset-3").name("api-3").build()
+        givenIntegrationApis(
+            IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID).toBuilder().id("api-id-1").name("api-1").build(),
+            IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID).toBuilder().id("api-id-2").name("api-2").build(),
+            IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID).toBuilder().id("api-id-3").name("api-3").build()
         );
         doThrow(new ValidationDomainException("validation failed"))
             .when(validateFederatedApiDomainService)
@@ -440,7 +456,7 @@ class DiscoverIntegrationAssetUseCaseTest {
 
         // When
         useCase
-            .execute(new DiscoverIntegrationAssetUseCase.Input(INTEGRATION_ID, AUDIT_INFO))
+            .execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO))
             .test()
             .awaitDone(0, TimeUnit.SECONDS)
             .assertComplete();
@@ -449,12 +465,59 @@ class DiscoverIntegrationAssetUseCaseTest {
         Assertions.assertThat(apiCrudService.storage()).extracting(Api::getName).containsExactlyInAnyOrder("api-1", "api-3");
     }
 
+    @Test
+    void should_ignore_already_ingested_apis() {
+        // Given
+        givenAnIntegration(IntegrationFixture.anIntegration(ENVIRONMENT_ID).withId(INTEGRATION_ID));
+        givenIntegrationApis(
+            IntegrationApiFixtures
+                .anIntegrationApiForIntegration(INTEGRATION_ID)
+                .toBuilder()
+                .id("api-id-1")
+                .version("v1")
+                .name("external-api-1")
+                .build(),
+            IntegrationApiFixtures
+                .anIntegrationApiForIntegration(INTEGRATION_ID)
+                .toBuilder()
+                .id("api-id-2")
+                .version("v1")
+                .name("api-2")
+                .build(),
+            IntegrationApiFixtures
+                .anIntegrationApiForIntegration(INTEGRATION_ID)
+                .toBuilder()
+                .id("api-id-3")
+                .version("v1")
+                .name("external-api-3")
+                .build()
+        );
+        givenExistingApi(
+            ApiFixtures.aFederatedApi().toBuilder().id(ENVIRONMENT_ID + INTEGRATION_ID + "api-id-1").name("api-1").build(),
+            ApiFixtures.aFederatedApi().toBuilder().id(ENVIRONMENT_ID + INTEGRATION_ID + "api-id-3").name("api-3").build()
+        );
+
+        // When
+        useCase
+            .execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO))
+            .test()
+            .awaitDone(0, TimeUnit.SECONDS)
+            .assertComplete();
+
+        // Then
+        Assertions.assertThat(apiCrudService.storage()).extracting(Api::getName).containsExactlyInAnyOrder("api-1", "api-2", "api-3");
+    }
+
     private void givenAnIntegration(Integration integration) {
         integrationCrudService.initWith(List.of(integration));
     }
 
-    private void givenAssets(Asset... assets) {
-        integrationAgent.initWith(List.of(assets));
+    private void givenIntegrationApis(IntegrationApi... integrationApis) {
+        integrationAgent.initWith(List.of(integrationApis));
+    }
+
+    private void givenExistingApi(Api... apis) {
+        apiCrudService.initWith(List.of(apis));
     }
 
     private void givenExistingUsers(List<BaseUserEntity> users) {

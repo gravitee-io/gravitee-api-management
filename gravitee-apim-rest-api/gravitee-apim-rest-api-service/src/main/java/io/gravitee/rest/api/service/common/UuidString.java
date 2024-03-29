@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.common;
 
 import io.gravitee.common.utils.UUID;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -28,9 +29,14 @@ import java.util.stream.Stream;
  */
 public class UuidString {
 
-    private static final Supplier<String> DEFAULT_GENERATOR = () -> UUID.toString(UUID.random());
+    private static final Function<String, String> DEFAULT_GENERATOR = (String seed) -> {
+        if (seed == null) {
+            return UUID.toString(UUID.random());
+        }
+        return UUID.toString(java.util.UUID.nameUUIDFromBytes(seed.getBytes()));
+    };
 
-    private static Supplier<String> uuidGenerator = DEFAULT_GENERATOR;
+    private static Function<String, String> uuidGenerator = DEFAULT_GENERATOR;
 
     private UuidString() {}
 
@@ -39,7 +45,7 @@ public class UuidString {
      * @return A random UUID as string
      */
     public static String generateRandom() {
-        return uuidGenerator.get();
+        return uuidGenerator.apply(null);
     }
 
     public static String generateForEnvironment(String environmentId, String... fields) {
@@ -52,13 +58,16 @@ public class UuidString {
         for (String f : fields) {
             b.append(f);
         }
-        String baseStringForUUID = b.toString();
 
-        return UUID.toString(java.util.UUID.nameUUIDFromBytes(baseStringForUUID.getBytes()));
+        return uuidGenerator.apply(b.toString());
+    }
+
+    public static void overrideGenerator(Function<String, String> newGenerator) {
+        UuidString.uuidGenerator = newGenerator;
     }
 
     public static void overrideGenerator(Supplier<String> newGenerator) {
-        UuidString.uuidGenerator = newGenerator;
+        UuidString.uuidGenerator = (String seed) -> newGenerator.get();
     }
 
     public static void reset() {

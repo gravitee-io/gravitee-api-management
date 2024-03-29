@@ -18,10 +18,18 @@ package io.gravitee.rest.api.management.v2.rest.resource;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 
+import inmemory.ParametersQueryServiceInMemory;
+import inmemory.RoleQueryServiceInMemory;
+import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
+import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.model.Parameter;
+import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.rest.api.management.v2.rest.JerseySpringTest;
 import io.gravitee.rest.api.management.v2.rest.spring.ResourceContextConfiguration;
+import io.gravitee.rest.api.model.parameters.Key;
+import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.service.ApiDuplicatorService;
 import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.ApiService;
@@ -42,6 +50,7 @@ import io.gravitee.rest.api.service.v4.EndpointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.PolicyPluginService;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -140,8 +149,27 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     @Autowired
     protected VerifyApiPathDomainService verifyApiPathDomainService;
 
+    @Autowired
+    protected ParametersQueryServiceInMemory parametersQueryService;
+
+    @Autowired
+    protected RoleQueryServiceInMemory roleQueryService;
+
+    @Autowired
+    protected UserCrudServiceInMemory userCrudService;
+
     @BeforeEach
     public void setUp() {
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
+    }
+
+    protected void givenExistingUsers(List<BaseUserEntity> users) {
+        userCrudService.initWith(users);
+    }
+
+    protected void enableApiPrimaryOwnerMode(String environmentId, ApiPrimaryOwnerMode mode) {
+        parametersQueryService.initWith(
+            List.of(new Parameter(Key.API_PRIMARY_OWNER_MODE.key(), environmentId, ParameterReferenceType.ENVIRONMENT, mode.name()))
+        );
     }
 }

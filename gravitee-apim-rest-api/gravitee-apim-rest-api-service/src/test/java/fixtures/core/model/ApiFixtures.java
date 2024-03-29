@@ -20,6 +20,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.FlowMode;
 import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.federation.FederatedApi;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
@@ -30,6 +31,7 @@ import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
+import io.gravitee.rest.api.model.context.IntegrationContext;
 import io.gravitee.rest.api.model.context.ManagementContext;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -271,10 +273,12 @@ public class ApiFixtures {
     public static Api aFederatedApi() {
         return BASE
             .get()
-            .definitionVersion(DefinitionVersion.FEDERATED)
+            .crossId(null)
             .lifecycleState(null)
             .apiDefinitionV4(null)
             .apiDefinition(null)
+            .originContext(new IntegrationContext("integration-id"))
+            .federatedApiDefinition(FederatedApi.builder().id(MY_API).providerId("provider-id").name("My Api").apiVersion("1.0.0").build())
             .build();
     }
 }

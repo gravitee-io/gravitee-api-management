@@ -13,9 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.integration.model;
+package io.gravitee.rest.api.model.context;
 
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
-@Builder(toBuilder = true)
-public record Asset(String integrationId, String id, String name, String description, String version) {}
+/**
+ * This context tells that the API has been created through an integration.
+ */
+@Builder
+@Getter
+@EqualsAndHashCode(callSuper = true)
+@ToString
+public class IntegrationContext extends AbstractContext {
+
+    private final String integrationId;
+
+    public IntegrationContext(String integrationId) {
+        super(Origin.INTEGRATION);
+        this.integrationId = integrationId;
+    }
+}

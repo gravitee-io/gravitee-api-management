@@ -13,12 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.integration.service_provider;
+package fixtures.core.model;
 
-import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
-import io.reactivex.rxjava3.core.Flowable;
+import java.util.function.Supplier;
 
-public interface IntegrationAgent {
-    Flowable<IntegrationApi> fetchAllApis(Integration integration);
+public class IntegrationApiFixtures {
+
+    private IntegrationApiFixtures() {}
+
+    private static final Supplier<IntegrationApi.IntegrationApiBuilder> BASE = () ->
+        IntegrationApi
+            .builder()
+            .integrationId("integration-id")
+            .id("asset-id")
+            .name("An alien API")
+            .description("An alien API description")
+            .version("1.0.0");
+
+    public static IntegrationApi anIntegrationApiForIntegration(String integrationId) {
+        return BASE.get().integrationId(integrationId).build();
+    }
 }

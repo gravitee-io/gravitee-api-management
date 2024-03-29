@@ -20,6 +20,7 @@ import static io.gravitee.rest.api.model.WorkflowType.REVIEW;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.infra.adapter.ApiAdapterDecorator;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
@@ -33,8 +34,8 @@ import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.WorkflowState;
+import io.gravitee.rest.api.model.context.IntegrationContext;
 import io.gravitee.rest.api.model.context.KubernetesContext;
-import io.gravitee.rest.api.model.context.ManagementContext;
 import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
@@ -150,21 +151,7 @@ public class ApiMapper {
             apiEntity.setLifecycleState(io.gravitee.rest.api.model.api.ApiLifecycleState.valueOf(lifecycleState.name()));
         }
 
-        OriginContext.Origin origin;
-        try {
-            origin = OriginContext.Origin.valueOf(api.getOrigin().toUpperCase());
-        } catch (IllegalArgumentException e) {
-            origin = OriginContext.Origin.MANAGEMENT;
-        }
-
-        switch (origin) {
-            case MANAGEMENT -> {
-                apiEntity.setOriginContext(new ManagementContext());
-            }
-            case KUBERNETES -> {
-                apiEntity.setOriginContext(new KubernetesContext(KubernetesContext.Mode.valueOf(api.getMode().toUpperCase())));
-            }
-        }
+        apiEntity.setOriginContext(ApiAdapterDecorator.toOriginContext(api));
 
         apiEntity.setPrimaryOwner(primaryOwner);
         return apiEntity;
@@ -367,6 +354,10 @@ public class ApiMapper {
             case KUBERNETES -> {
                 repoApi.setOrigin(OriginContext.Origin.KUBERNETES.name().toLowerCase());
                 repoApi.setMode(((KubernetesContext) apiEntity.getOriginContext()).getMode().name().toLowerCase());
+            }
+            case INTEGRATION -> {
+                repoApi.setOrigin(OriginContext.Origin.INTEGRATION.name().toLowerCase());
+                repoApi.setIntegrationId(((IntegrationContext) apiEntity.getOriginContext()).getIntegrationId());
             }
         }
 

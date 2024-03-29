@@ -51,6 +51,10 @@ public class Api {
      * Indicates that this api comes from Gravitee Management Console.
      */
     public static final String ORIGIN_MANAGEMENT = "management";
+    /**
+     * Indicates that this api comes from an integration.
+     */
+    public static final String ORIGIN_INTEGRATION = "integration";
 
     /**
      * Mode indicating the api is fully managed by the origin and so, only the origin should be able to manage the api.
@@ -93,9 +97,10 @@ public class Api {
     private String origin = ORIGIN_MANAGEMENT;
     /**
      * How the api is managed by the origin (fully, api_definition_only, ...).
-     * Default is {@link Api#MODE_FULLY_MANAGED}.
      */
-    private String mode = MODE_FULLY_MANAGED;
+    private String mode;
+    /** The id of the integration that created the API */
+    private String integrationId;
     /**
      * The api definition version.
      */
@@ -127,7 +132,7 @@ public class Api {
     /**
      * The current runtime life cycle state.
      */
-    private LifecycleState lifecycleState = LifecycleState.STOPPED;
+    private LifecycleState lifecycleState;
     /**
      * The api picture
      */

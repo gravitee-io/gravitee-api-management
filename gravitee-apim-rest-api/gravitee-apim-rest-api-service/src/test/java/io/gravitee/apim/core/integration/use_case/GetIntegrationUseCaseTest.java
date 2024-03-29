@@ -23,11 +23,9 @@ import inmemory.IntegrationCrudServiceInMemory;
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
 import io.gravitee.apim.core.integration.exception.IntegrationNotFoundException;
 import io.gravitee.apim.core.integration.model.Integration;
-import io.gravitee.rest.api.service.common.UuidString;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -48,16 +46,11 @@ class GetIntegrationUseCaseTest {
 
     GetIntegrationUseCase usecase;
 
-    @BeforeAll
-    static void beforeAll() {
-        UuidString.overrideGenerator(() -> INTEGRATION_ID);
-    }
-
     @BeforeEach
     void setUp() {
         IntegrationCrudService integrationCrudService = integrationCrudServiceInMemory;
         usecase = new GetIntegrationUseCase(integrationCrudService);
-        var integration = List.of(IntegrationFixture.anIntegration());
+        var integration = List.of(IntegrationFixture.anIntegration().withId(INTEGRATION_ID));
         integrationCrudServiceInMemory.initWith(integration);
     }
 

@@ -15,25 +15,25 @@
  */
 package inmemory;
 
-import io.gravitee.apim.core.integration.model.Asset;
 import io.gravitee.apim.core.integration.model.Integration;
+import io.gravitee.apim.core.integration.model.IntegrationApi;
 import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
 import io.reactivex.rxjava3.core.Flowable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class IntegrationAgentInMemory implements IntegrationAgent, InMemoryAlternative<Asset> {
+public class IntegrationAgentInMemory implements IntegrationAgent, InMemoryAlternative<IntegrationApi> {
 
-    List<Asset> storage = new ArrayList<>();
+    List<IntegrationApi> storage = new ArrayList<>();
 
     @Override
-    public Flowable<Asset> fetchAllAssets(Integration integration) {
+    public Flowable<IntegrationApi> fetchAllApis(Integration integration) {
         return Flowable.fromIterable(storage).filter(asset -> asset.integrationId().equals(integration.getId()));
     }
 
     @Override
-    public void initWith(List<Asset> items) {
+    public void initWith(List<IntegrationApi> items) {
         this.storage.addAll(items);
     }
 
@@ -43,7 +43,7 @@ public class IntegrationAgentInMemory implements IntegrationAgent, InMemoryAlter
     }
 
     @Override
-    public List<Asset> storage() {
+    public List<IntegrationApi> storage() {
         return Collections.unmodifiableList(storage);
     }
 }

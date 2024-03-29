@@ -333,7 +333,6 @@ public class ApiMapperTest {
         assertThat(api.getCreatedAt()).isNull();
         assertThat(api.getUpdatedAt()).isNotNull();
         assertThat(api.getVisibility()).isEqualTo(Visibility.PUBLIC);
-        assertThat(api.getLifecycleState()).isEqualTo(LifecycleState.STOPPED);
         assertThat(api.getPicture()).isEqualTo(updateApiEntity.getPicture());
         assertThat(api.getBackground()).isEqualTo(updateApiEntity.getBackground());
         assertThat(api.getGroups().size()).isEqualTo(2);

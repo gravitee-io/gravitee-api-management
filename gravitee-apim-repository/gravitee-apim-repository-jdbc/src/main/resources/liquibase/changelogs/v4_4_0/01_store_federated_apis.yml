@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.4.0_store_federated_apis
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}apis
+            columns:
+              - column:
+                  name: integration_id
+                  type: nvarchar(64)
+        - dropNotNullConstraint:
+            tableName: ${gravitee_prefix}apis
+            columnName: lifecycle_state

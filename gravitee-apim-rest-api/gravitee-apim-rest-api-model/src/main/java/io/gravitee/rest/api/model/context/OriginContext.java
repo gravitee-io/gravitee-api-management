@@ -40,5 +40,6 @@ public interface OriginContext {
     enum Origin {
         MANAGEMENT,
         KUBERNETES,
+        INTEGRATION,
     }
 }

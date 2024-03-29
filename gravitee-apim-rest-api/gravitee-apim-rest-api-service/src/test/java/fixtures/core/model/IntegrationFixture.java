@@ -28,7 +28,7 @@ public class IntegrationFixture {
     public static final Supplier<Integration.IntegrationBuilder> BASE = () ->
         Integration
             .builder()
-            .id(UuidString.generateRandom())
+            .id("integration-id")
             .name("test-name")
             .description("integration-description")
             .provider("test-provider")

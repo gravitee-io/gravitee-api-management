@@ -13,25 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package fixtures.core.model;
+package io.gravitee.apim.core.integration.exception;
 
-import io.gravitee.apim.core.integration.model.Asset;
-import java.util.function.Supplier;
+public class IntegrationIngestionException extends RuntimeException {
 
-public class IntegrationAssetFixtures {
-
-    private IntegrationAssetFixtures() {}
-
-    private static final Supplier<Asset.AssetBuilder> BASE = () ->
-        Asset
-            .builder()
-            .integrationId("integration-id")
-            .id("asset-id")
-            .name("An alien API")
-            .description("An alien API description")
-            .version("1.0.0");
-
-    public static Asset anAssetForIntegration(String integrationId) {
-        return BASE.get().integrationId(integrationId).build();
+    public IntegrationIngestionException(String message) {
+        super(message);
     }
 }
