@@ -48,6 +48,7 @@ import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDoc
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.FIELD_UPDATED_AT;
 import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDocumentTransformer.SPECIAL_CHARS;
 
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.search.model.IndexableApi;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -55,6 +56,7 @@ import io.gravitee.definition.model.v4.listener.ListenerType;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.impl.search.lucene.DocumentTransformer;
+import java.util.Objects;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.LongPoint;
@@ -75,7 +77,7 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
         var metadata = indexableApi.getDecodedMetadata();
         var categories = indexableApi.getCategoryKeys();
 
-        if (api.getDefinitionVersion() != null && api.getDefinitionVersion() != DefinitionVersion.V4) {
+        if (!accept(indexableApi)) {
             throw new TechnicalDomainException("Unsupported definition version: " + api.getDefinitionVersion());
         }
 
@@ -117,20 +119,6 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
             }
         }
 
-        var apiDefinitionV4 = api.getApiDefinitionV4();
-        if (apiDefinitionV4.getListeners() != null) {
-            final int[] pathIndex = { 0 };
-            apiDefinitionV4
-                .getListeners()
-                .stream()
-                .filter(listener -> listener.getType() == ListenerType.HTTP)
-                .flatMap(listener -> {
-                    HttpListener httpListener = (HttpListener) listener;
-                    return httpListener.getPaths().stream();
-                })
-                .forEach(path -> appendPath(doc, pathIndex, path.getHost(), path.getPath()));
-        }
-
         // labels
         if (api.getLabels() != null) {
             for (String label : api.getLabels()) {
@@ -145,14 +133,6 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
             for (String category : categories) {
                 doc.add(new StringField(FIELD_CATEGORIES, category, Field.Store.NO));
                 doc.add(new TextField(FIELD_CATEGORIES_SPLIT, category, Field.Store.NO));
-            }
-        }
-
-        // tags
-        if (api.getTags() != null) {
-            for (String tag : api.getTags()) {
-                doc.add(new StringField(FIELD_TAGS, tag, Field.Store.NO));
-                doc.add(new TextField(FIELD_TAGS_SPLIT, tag, Field.Store.NO));
             }
         }
 
@@ -177,7 +157,47 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
             doc.add(new StringField(FIELD_ORIGIN, api.getOriginContext().getOrigin().name().toLowerCase(), Field.Store.NO));
         }
 
+        if (api.getDefinitionVersion() == DefinitionVersion.V4) {
+            transformV4Api(doc, indexableApi);
+        }
+
         return doc;
+    }
+
+    private boolean accept(IndexableApi indexableApi) {
+        Api api = indexableApi.getApi();
+
+        if (api.getDefinitionVersion() != null) {
+            return switch (api.getDefinitionVersion()) {
+                case V4, FEDERATED -> true;
+                default -> false;
+            };
+        }
+        return true;
+    }
+
+    private void transformV4Api(Document doc, IndexableApi api) {
+        var apiDefinitionV4 = api.getApi().getApiDefinitionV4();
+        if (apiDefinitionV4 != null && apiDefinitionV4.getListeners() != null) {
+            final int[] pathIndex = { 0 };
+            apiDefinitionV4
+                .getListeners()
+                .stream()
+                .filter(listener -> listener.getType() == ListenerType.HTTP)
+                .flatMap(listener -> {
+                    HttpListener httpListener = (HttpListener) listener;
+                    return httpListener.getPaths().stream();
+                })
+                .forEach(path -> appendPath(doc, pathIndex, path.getHost(), path.getPath()));
+        }
+
+        // tags
+        if (apiDefinitionV4.getTags() != null) {
+            for (String tag : apiDefinitionV4.getTags()) {
+                doc.add(new StringField(FIELD_TAGS, tag, Field.Store.NO));
+                doc.add(new TextField(FIELD_TAGS_SPLIT, tag, Field.Store.NO));
+            }
+        }
     }
 
     private void appendPath(final Document doc, final int[] pathIndex, final String host, final String path) {

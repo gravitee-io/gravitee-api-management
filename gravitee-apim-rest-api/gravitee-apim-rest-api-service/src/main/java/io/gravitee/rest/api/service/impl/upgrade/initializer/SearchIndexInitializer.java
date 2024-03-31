@@ -198,17 +198,18 @@ public class SearchIndexInitializer implements Initializer {
             LOGGER.warn("Failed to retrieve API primary owner, API will we indexed without his primary owner", e);
         }
         try {
-            if (api.getDefinitionVersion() == DefinitionVersion.V4) {
-                indexable =
-                    apiIndexerDomainService.toIndexableApi(
-                        new Indexer.IndexationContext(organizationId, environmentId),
-                        ApiAdapter.INSTANCE.toCoreModel(api)
-                    );
-                return runApiIndexationAsync(executionContext, api, primaryOwner, indexable, executorService);
-            } else {
+            // V2 APIs have a null definitionVersion attribute in the Repository
+            if (api.getDefinitionVersion() == null) {
                 indexable = apiConverter.toApiEntity(executionContext, api, primaryOwner, null, false);
                 return runApiIndexationAsync(executionContext, api, primaryOwner, indexable, executorService);
             }
+
+            indexable =
+                apiIndexerDomainService.toIndexableApi(
+                    new Indexer.IndexationContext(organizationId, environmentId),
+                    ApiAdapter.INSTANCE.toCoreModel(api)
+                );
+            return runApiIndexationAsync(executionContext, api, primaryOwner, indexable, executorService);
         } catch (Exception e) {
             LOGGER.error("Failed to convert API {} to indexable", api.getId(), e);
             return CompletableFuture.failedFuture(e);

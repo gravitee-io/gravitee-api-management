@@ -17,6 +17,8 @@ package fixtures.definition;
 
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ExecutionMode;
+import io.gravitee.definition.model.Proxy;
+import io.gravitee.definition.model.VirtualHost;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
@@ -38,7 +40,12 @@ public class ApiDefinitionFixtures {
         Api.builder().name("an-api").apiVersion("1.0.0").type(ApiType.PROXY).analytics(Analytics.builder().enabled(false).build());
 
     private static final Supplier<io.gravitee.definition.model.Api.ApiBuilder> BASE_V2 = () ->
-        io.gravitee.definition.model.Api.builder().name("an-api").version("1.0.0").executionMode(ExecutionMode.V3);
+        io.gravitee.definition.model.Api
+            .builder()
+            .name("an-api")
+            .version("1.0.0")
+            .executionMode(ExecutionMode.V3)
+            .proxy(Proxy.builder().virtualHosts(List.of(new VirtualHost("/"))).build());
 
     public static Api anApiV4() {
         return aSyncApiV4();
