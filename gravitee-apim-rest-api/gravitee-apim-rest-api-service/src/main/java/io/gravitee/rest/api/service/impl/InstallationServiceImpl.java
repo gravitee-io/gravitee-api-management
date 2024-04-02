@@ -66,7 +66,7 @@ public class InstallationServiceImpl implements InstallationService {
     }
 
     @Override
-    public InstallationEntity getOrInitialize() {
+    public synchronized InstallationEntity getOrInitialize() {
         try {
             final Optional<Installation> optInstallation = this.installationRepository.find();
             if (optInstallation.isPresent()) {
