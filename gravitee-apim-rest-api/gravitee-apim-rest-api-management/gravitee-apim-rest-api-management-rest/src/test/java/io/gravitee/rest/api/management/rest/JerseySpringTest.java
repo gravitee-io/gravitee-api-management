@@ -31,6 +31,7 @@ import java.security.Principal;
 import java.util.Collections;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.HttpUrlConnectorProvider;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -41,6 +42,7 @@ import org.junit.Before;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -56,9 +58,13 @@ public abstract class JerseySpringTest {
 
     private String orgBaseURL = "/organizations/DEFAULT";
     private String envBaseURL = orgBaseURL + "/environments/DEFAULT";
-    private HttpServletRequest httpServletRequest;
+    protected HttpServletRequest httpServletRequest;
 
     protected abstract String contextPath();
+
+    protected boolean followRedirect() {
+        return true;
+    }
 
     public HttpServletRequest httpServletRequest() {
         return httpServletRequest;
@@ -100,6 +106,8 @@ public abstract class JerseySpringTest {
 
     @Autowired
     public void setApplicationContext(final ApplicationContext context) {
+        var followRedirect = this.followRedirect();
+
         _jerseyTest =
             new JerseyTest() {
                 @Override
@@ -122,6 +130,7 @@ public abstract class JerseySpringTest {
                     config.register(ObjectMapperResolver.class);
                     config.register(MultiPartFeature.class);
                     config.property(HttpUrlConnectorProvider.SET_METHOD_WORKAROUND, true);
+                    config.property(ClientProperties.FOLLOW_REDIRECTS, followRedirect);
                 }
             };
     }
@@ -129,7 +138,7 @@ public abstract class JerseySpringTest {
     protected void decorate(ResourceConfig resourceConfig) {
         resourceConfig.register(AuthenticationFilter.class);
 
-        httpServletRequest = Mockito.spy(HttpServletRequest.class);
+        httpServletRequest = Mockito.spy(MockHttpServletRequest.class);
         final HttpServletResponse response = Mockito.mock(HttpServletResponse.class);
         resourceConfig.register(
             new AbstractBinder() {
