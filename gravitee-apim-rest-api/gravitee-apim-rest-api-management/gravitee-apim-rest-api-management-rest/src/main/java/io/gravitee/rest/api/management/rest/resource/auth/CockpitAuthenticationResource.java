@@ -15,6 +15,9 @@
  */
 package io.gravitee.rest.api.management.rest.resource.auth;
 
+import static io.gravitee.rest.api.management.rest.resource.PortalRedirectResource.PROPERTY_HTTP_API_PORTAL_ENTRYPOINT;
+import static io.gravitee.rest.api.management.rest.resource.PortalRedirectResource.PROPERTY_HTTP_API_PORTAL_PROXY_PATH;
+
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
@@ -27,6 +30,7 @@ import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import com.nimbusds.jwt.proc.JWTProcessor;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.rest.api.idp.api.authentication.UserDetails;
+import io.gravitee.rest.api.management.rest.model.TokenEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.security.cookies.CookieGenerator;
 import io.gravitee.rest.api.security.utils.AuthoritiesProvider;
@@ -34,8 +38,10 @@ import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -60,9 +66,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.http.server.ServerHttpRequest;
+import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.util.UriComponents;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @Singleton
 @Path("/auth/cockpit")
@@ -73,6 +83,7 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
     protected static final String REDIRECT_URI_CLAIM = "redirect_uri";
     protected static final String ENVIRONMENT_CLAIM = "env";
     protected static final String API_CLAIM = "api";
+    protected static final String APPLICATION_CLAIM = "app";
     private static final Logger LOGGER = LoggerFactory.getLogger(CockpitAuthenticationResource.class);
     private static final String COCKPIT_SOURCE = "cockpit";
 
@@ -124,7 +135,11 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
     }
 
     @GET
-    public Response tokenExchange(@QueryParam(value = "token") final String token, @Context final HttpServletResponse httpResponse) {
+    public Response tokenExchange(
+        @Context final HttpServletRequest httpServletRequest,
+        @QueryParam(value = "token") final String token,
+        @Context final HttpServletResponse httpResponse
+    ) {
         if (!enabled) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
@@ -152,20 +167,44 @@ public class CockpitAuthenticationResource extends AbstractAuthenticationResourc
             // Cockpit user is authenticated, connect user (ie: generate cookie).
             super.connectUser(user, httpResponse);
 
-            final String apiCrossId = jwtClaimsSet.getStringClaim(API_CLAIM);
-            final String apiId = Optional
-                .ofNullable(apiCrossId)
-                .flatMap(crossId -> this.apiSearchService.findIdByEnvironmentIdAndCrossId(environmentId, crossId))
-                .orElse(null);
-            String url = String.format(
-                "%s/#!/%s/%s",
-                installationAccessQueryService.getConsoleUrl(organizationId),
-                environmentId,
-                apiId == null ? "" : String.format("apis/%s", apiId)
-            );
+            if ("PORTAL".equalsIgnoreCase(jwtClaimsSet.getStringClaim(APPLICATION_CLAIM))) {
+                TokenEntity tokenEntity = generateToken(user, 30);
+                String url = installationAccessQueryService.getPortalAPIUrl(environmentId);
+                if (url == null) {
+                    ServerHttpRequest request = new ServletServerHttpRequest(httpServletRequest);
+                    UriComponents uriComponents = UriComponentsBuilder
+                        .fromHttpRequest(request)
+                        .replacePath(getProperty(PROPERTY_HTTP_API_PORTAL_ENTRYPOINT, PROPERTY_HTTP_API_PORTAL_PROXY_PATH, "/portal"))
+                        .replaceQuery(null)
+                        .build();
+                    url = uriComponents.toUriString();
+                }
 
-            // Redirect the user.
-            return Response.temporaryRedirect(new URI(url)).build();
+                return Response
+                    .temporaryRedirect(
+                        new URI("%s/environments/%s/auth/console?token=%s".formatted(url, environmentId, tokenEntity.getToken()))
+                    )
+                    .build();
+            } else {
+                final String apiCrossId = jwtClaimsSet.getStringClaim(API_CLAIM);
+                final String apiId = Optional
+                    .ofNullable(apiCrossId)
+                    .flatMap(crossId -> this.apiSearchService.findIdByEnvironmentIdAndCrossId(environmentId, crossId))
+                    .orElse(null);
+
+                String url = String.format(
+                    "%s/#!/%s/%s",
+                    installationAccessQueryService.getConsoleUrl(organizationId),
+                    environmentId,
+                    apiId == null ? "" : String.format("apis/%s", apiId)
+                );
+
+                // Redirect the user.
+                return Response.temporaryRedirect(new URI(url)).build();
+            }
+        } catch (UserNotFoundException e) {
+            LOGGER.error("Authentication failed", e);
+            return Response.status(Response.Status.FORBIDDEN).build();
         } catch (Exception e) {
             LOGGER.error("Error occurred when trying to log user using cockpit.", e);
             return Response.serverError().build();
