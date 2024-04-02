@@ -27,7 +27,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
 import javax.inject.Singleton;
@@ -45,8 +44,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Path("/redirect")
 public class PortalRedirectResource extends AbstractAuthenticationResource {
 
-    private static final String PROPERTY_HTTP_API_PORTAL_PROXY_PATH = "installation.api.proxyPath.portal";
-    private static final String PROPERTY_HTTP_API_PORTAL_ENTRYPOINT = "http.api.portal.entrypoint";
+    public static final String PROPERTY_HTTP_API_PORTAL_PROXY_PATH = "installation.api.proxyPath.portal";
+    public static final String PROPERTY_HTTP_API_PORTAL_ENTRYPOINT = "http.api.portal.entrypoint";
 
     @Autowired
     private InstallationAccessQueryService installationAccessQueryService;
