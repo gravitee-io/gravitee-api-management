@@ -25,6 +25,7 @@ import io.gravitee.gateway.reactive.api.ExecutionFailure;
 import io.gravitee.gateway.reactive.api.connector.entrypoint.EntrypointConnector;
 import io.gravitee.gateway.reactive.api.context.ContextAttributes;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
+import io.gravitee.gateway.reactive.api.invoker.Invoker;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.v4.entrypoint.DefaultEntrypointConnectorResolver;
 import io.gravitee.gateway.reactive.core.v4.invoker.EndpointInvoker;
@@ -50,7 +51,7 @@ public abstract class AbstractApiReactor extends AbstractLifecycleComponent<Reac
     protected final Api api;
     protected final DefaultEntrypointConnectorResolver entrypointConnectorResolver;
     protected final AtomicLong pendingRequests = new AtomicLong(0);
-    protected EndpointInvoker defaultInvoker;
+    protected Invoker defaultInvoker;
     private final RequestTimeoutConfiguration requestTimeoutConfiguration;
     private final long pendingRequestsTimeout;
 

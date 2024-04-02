@@ -21,7 +21,6 @@ import static io.gravitee.gateway.reactive.api.ExecutionPhase.REQUEST;
 import static io.gravitee.gateway.reactive.api.ExecutionPhase.RESPONSE;
 import static io.gravitee.gateway.reactive.api.context.InternalContextAttributes.*;
 import static io.reactivex.rxjava3.core.Completable.defer;
-import static io.reactivex.rxjava3.core.Observable.interval;
 import static java.lang.Boolean.TRUE;
 
 import io.gravitee.common.component.Lifecycle;
@@ -45,6 +44,7 @@ import io.gravitee.gateway.reactive.api.hook.InvokerHook;
 import io.gravitee.gateway.reactive.api.invoker.Invoker;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.context.interruption.InterruptionHelper;
+import io.gravitee.gateway.reactive.core.failover.FailoverInvoker;
 import io.gravitee.gateway.reactive.core.hook.HookHelper;
 import io.gravitee.gateway.reactive.core.processor.ProcessorChain;
 import io.gravitee.gateway.reactive.core.tracing.TracingHook;
@@ -183,8 +183,12 @@ public class DefaultApiReactor extends AbstractApiReactor {
         this.invokerHooks = new ArrayList<>();
     }
 
-    protected EndpointInvoker endpointInvoker(EndpointManager endpointManager) {
-        return new EndpointInvoker(endpointManager);
+    protected Invoker endpointInvoker(EndpointManager endpointManager) {
+        final EndpointInvoker endpointInvoker = new EndpointInvoker(endpointManager);
+        if (api.getDefinition().failoverEnabled()) {
+            return new FailoverInvoker(endpointInvoker, api.getDefinition().getFailover(), api.getId());
+        }
+        return endpointInvoker;
     }
 
     @Override
