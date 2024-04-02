@@ -114,6 +114,16 @@
             </exclusions>
         </dependency>
 
+        <dependency>
+            <groupId>io.github.resilience4j</groupId>
+            <artifactId>resilience4j-circuitbreaker</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.github.resilience4j</groupId>
+            <artifactId>resilience4j-rxjava3</artifactId>
+        </dependency>
+
+
         <!-- Tests dependencies -->
         <dependency>
             <groupId>org.springframework</groupId>

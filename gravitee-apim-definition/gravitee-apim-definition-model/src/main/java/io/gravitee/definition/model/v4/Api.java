@@ -22,6 +22,7 @@ import io.gravitee.definition.model.Plugin;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.definition.model.v4.failover.Failover;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.listener.Listener;
@@ -95,6 +96,8 @@ public class Api implements Serializable {
 
     private List<Resource> resources;
 
+    private Failover failover;
+
     @JsonProperty(required = true)
     @NotNull
     private Map<@NotEmpty String, @NotNull Plan> plans;
@@ -155,6 +158,10 @@ public class Api implements Serializable {
             )
             .flatMap(List::stream)
             .collect(Collectors.toList());
+    }
+
+    public boolean failoverEnabled() {
+        return failover != null && failover.isEnabled();
     }
 
     public static class ApiBuilder {

@@ -1,0 +1,135 @@
+{
+  "id": "my-api-v4-only-one-endpoint",
+  "name": "my-api-v4-only-one-endpoint",
+  "gravitee": "4.0.0",
+  "type": "proxy",
+  "listeners": [
+    {
+      "type": "http",
+      "paths": [
+        {
+          "path": "/test"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "http-proxy"
+        }
+      ]
+    }
+  ],
+  "failover": {
+    "enabled": true,
+    "maxRetries": 2,
+    "slowCallDuration": 500,
+    "perSubscription": false
+  },
+  "endpointGroups": [
+    {
+      "name": "default-group",
+      "type": "http-proxy",
+      "endpoints": [
+        {
+          "name": "endpoint-1",
+          "type": "http-proxy",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "target": "http://localhost:8080/default-group-endpoint"
+          },
+          "sharedConfigurationOverride": {
+            "http": {
+              "connectTimeout": 3000,
+              "readTimeout": 60000
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "second-group",
+      "type": "http-proxy",
+      "endpoints": [
+        {
+          "name": "second-group-endpoint-1",
+          "type": "http-proxy",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "target": "http://localhost:8080/second-group-endpoint-1"
+          },
+          "sharedConfigurationOverride": {
+            "http": {
+              "connectTimeout": 3000,
+              "readTimeout": 60000
+            }
+          }
+        },{
+          "name": "second-group-endpoint-2",
+          "type": "http-proxy",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "target": "http://localhost:8080/second-group-endpoint-2"
+          },
+          "sharedConfigurationOverride": {
+            "http": {
+              "connectTimeout": 3000,
+              "readTimeout": 60000
+            }
+          }
+        },
+        {
+          "name": "second-group-endpoint-3",
+          "type": "http-proxy",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "target": "http://localhost:8080/second-group-endpoint-3"
+          },
+          "sharedConfigurationOverride": {
+            "http": {
+              "connectTimeout": 3000,
+              "readTimeout": 60000
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "name": "flow-1",
+      "enabled": true,
+      "selectors": [
+        {
+          "type": "http",
+          "path": "/",
+          "pathOperator": "START_WITH",
+          "methods": [
+            "GET"
+          ]
+        }
+      ],
+      "request": [
+        {
+          "name": "Dynamic routing",
+          "description": "",
+          "enabled": true,
+          "policy": "dynamic-routing",
+          "configuration": {
+            "rules": [
+              {
+                "pattern": "/dynamic-route/(.*)",
+                "url": "{#endpoints['second-group-endpoint-1']}/{#group[0]}"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "analytics": {
+    "enabled": false
+  }
+}
