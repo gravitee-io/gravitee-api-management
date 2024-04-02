@@ -127,19 +127,21 @@ public class ListEnvironmentOperationHandlerTest {
                 List<BridgeReplyPayload.BridgeReplyContent> contents = replyPayload.contents();
                 assertEquals(3, contents.size());
                 for (BridgeReplyPayload.BridgeReplyContent replyContent : contents) {
-                    if (replyContent.environmentId().equals(envA.getId()) && replyContent.error()) {
+                    if (replyContent.getEnvironmentId().equals(envA.getId()) && replyContent.isError()) {
                         return false;
                     }
-                    if (replyContent.environmentId().equals(envB.getId()) && replyContent.error()) {
+                    if (replyContent.getEnvironmentId().equals(envB.getId()) && replyContent.isError()) {
                         return false;
                     }
-                    if (replyContent.environmentId().equals(envC_ERROR.getId()) && !replyContent.error()) {
+                    if (replyContent.getEnvironmentId().equals(envC_ERROR.getId()) && !replyContent.isError()) {
                         return false;
                     }
                 }
-                assertTrue(contents.stream().anyMatch(bridgeReplyContent -> bridgeReplyContent.environmentId().equals(envA.getId())));
-                assertTrue(contents.stream().anyMatch(bridgeReplyContent -> bridgeReplyContent.environmentId().equals(envB.getId())));
-                assertTrue(contents.stream().anyMatch(bridgeReplyContent -> bridgeReplyContent.environmentId().equals(envC_ERROR.getId())));
+                assertTrue(contents.stream().anyMatch(bridgeReplyContent -> bridgeReplyContent.getEnvironmentId().equals(envA.getId())));
+                assertTrue(contents.stream().anyMatch(bridgeReplyContent -> bridgeReplyContent.getEnvironmentId().equals(envB.getId())));
+                assertTrue(
+                    contents.stream().anyMatch(bridgeReplyContent -> bridgeReplyContent.getEnvironmentId().equals(envC_ERROR.getId()))
+                );
                 return true;
             }
             return false;

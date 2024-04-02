@@ -104,9 +104,9 @@ public class PromoteApiOperationHandlerTest {
             BridgeReplyPayload.BridgeReplyContent bridgeReplyContent = reply.getPayload().contents().get(0);
             return (
                 reply.getCommandStatus().equals(CommandStatus.SUCCEEDED) &&
-                bridgeReplyContent.organizationId().equals(ORGANIZATION_ID) &&
-                bridgeReplyContent.environmentId().equals("target") &&
-                bridgeReplyContent.installationId().equals(INSTALLATION_ID) &&
+                bridgeReplyContent.getOrganizationId().equals(ORGANIZATION_ID) &&
+                bridgeReplyContent.getEnvironmentId().equals("target") &&
+                bridgeReplyContent.getInstallationId().equals(INSTALLATION_ID) &&
                 reply.getCommandId().equals(command.getId())
             );
         });
