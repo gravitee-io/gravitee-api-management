@@ -27,6 +27,7 @@ import static org.junit.Assert.*;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.search.ApiCriteria;
 import io.gravitee.repository.management.api.search.ApiFieldFilter;
@@ -398,6 +399,7 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(1, apis.size());
         assertEquals("async-api", apis.get(0).getId());
         assertEquals(DefinitionVersion.V4, apis.get(0).getDefinitionVersion());
+        assertEquals(ApiType.MESSAGE, apis.get(0).getType());
     }
 
     @Test
