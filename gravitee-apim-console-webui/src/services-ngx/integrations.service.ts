@@ -16,7 +16,8 @@
 
 import { Inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
 
 import { CreateIntegrationPayload, Integration, IntegrationResponse } from '../management/integrations/integrations.model';
 import { Constants } from '../entities/Constants';
@@ -26,17 +27,26 @@ import { Constants } from '../entities/Constants';
 })
 export class IntegrationsService {
   private url: string = `${this.constants.env.v2BaseURL}/integrations`;
+  private currentIntegration$: BehaviorSubject<Integration> = new BehaviorSubject<Integration>(null);
 
   constructor(
     private readonly httpClient: HttpClient,
     @Inject(Constants) private readonly constants: Constants,
   ) {}
 
-  getIntegrations(page, size): Observable<IntegrationResponse> {
+  public currentIntegration(): Observable<Integration> {
+    return this.currentIntegration$.asObservable();
+  }
+
+  public getIntegrations(page, size): Observable<IntegrationResponse> {
     return this.httpClient.get<IntegrationResponse>(`${this.url}/?page=${page}&perPage=${size}`);
   }
 
-  createIntegration(payload: CreateIntegrationPayload): Observable<Integration[]> {
-    return this.httpClient.post<Integration[]>(this.url, payload);
+  public createIntegration(payload: CreateIntegrationPayload): Observable<Integration> {
+    return this.httpClient.post<Integration>(this.url, payload);
+  }
+
+  public getIntegration(id: string): Observable<Integration> {
+    return this.httpClient.get<Integration>(`${this.url}/${id}`).pipe(tap((integration) => this.currentIntegration$.next(integration)));
   }
 }

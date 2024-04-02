@@ -13,23 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { AsyncFactoryFn, ComponentHarness, TestElement } from '@angular/cdk/testing';
 
-import { Integration } from '../../management/integrations/integrations.model';
+export class IntegrationOverviewHarness extends ComponentHarness {
+  public static readonly hostSelector = 'app-integration-overview';
 
-export function fakeIntegration(attribute?: Partial<Integration>) {
-  const base: Integration = {
-    agentStatus: 'CONNECTED',
-    id: 'test_id',
-    name: 'test_name',
-    description: 'test_description',
-    provider: 'test_provider',
-    owner: 'test_owner',
-    status: 'test_status',
-    agent: 'test_agent',
+  private badgeErrorLocator: AsyncFactoryFn<TestElement> = this.locatorForOptional('.gio-badge-error');
+  private badgeSuccessLocator: AsyncFactoryFn<TestElement> = this.locatorForOptional('.gio-badge-success');
+
+  public getErrorBadge = async (): Promise<TestElement> => {
+    return this.badgeErrorLocator();
   };
 
-  return {
-    ...base,
-    ...attribute,
+  public getSuccessBadge = async (): Promise<TestElement> => {
+    return this.badgeSuccessLocator();
   };
 }

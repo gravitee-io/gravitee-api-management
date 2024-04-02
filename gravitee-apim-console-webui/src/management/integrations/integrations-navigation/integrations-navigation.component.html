@@ -1,0 +1,56 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+<div class="navigation">
+  <div class="navigation__menu">
+    <gio-submenu class="navigation__submenu">
+      <div class="title">
+        <div class="title__name">{{ (integrationsService.currentIntegration() | async)?.name }}</div>
+        <div class="title__states">
+          <span
+            *ngIf="(integrationsService.currentIntegration() | async)?.agentStatus === 'DISCONNECTED'; else connected"
+            class="gio-badge-error"
+          >
+            <mat-icon class="icon" svgIcon="gio:prohibition"></mat-icon>
+            Disconnected
+          </span>
+          <ng-template #connected>
+            <span class="gio-badge-success capitalize">
+              <mat-icon class="icon" svgIcon="gio:check"></mat-icon>
+              Connected
+            </span>
+          </ng-template>
+        </div>
+      </div>
+
+      <ng-container *ngFor="let item of items">
+        <a [routerLink]="item.routerLink" routerLinkActive #rla="routerLinkActive">
+          <gio-submenu-item tabIndex="1" [active]="rla.isActive">
+            <div class="menu-item">
+              <mat-icon class="menu-item__icon" [svgIcon]="'gio:' + item.icon"> </mat-icon>
+              <span class="menu-item__text">{{ item.displayName }}</span>
+            </div>
+          </gio-submenu-item>
+        </a>
+      </ng-container>
+    </gio-submenu>
+  </div>
+  <div class="navigation__content">
+    <router-outlet></router-outlet>
+  </div>
+</div>
