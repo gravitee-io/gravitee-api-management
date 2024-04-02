@@ -20,29 +20,62 @@ import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService.
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.query_service.ApiCategoryQueryService;
 import io.gravitee.apim.core.documentation.model.PrimaryOwnerApiTemplateData;
+import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
+import io.gravitee.apim.core.membership.exception.ApiPrimaryOwnerNotFoundException;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.search.Indexer;
 import io.gravitee.apim.core.search.model.IndexableApi;
 import java.util.Date;
+import lombok.extern.slf4j.Slf4j;
 
 @DomainService
+@Slf4j
 public class ApiIndexerDomainService {
 
     private final ApiMetadataDecoderDomainService apiMetadataDecoderDomainService;
+    private final ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService;
     private final ApiCategoryQueryService apiCategoryQueryService;
     private final Indexer indexer;
 
     public ApiIndexerDomainService(
         ApiMetadataDecoderDomainService apiMetadataDecoderDomainService,
+        ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService,
         ApiCategoryQueryService apiCategoryQueryService,
         Indexer indexer
     ) {
         this.apiMetadataDecoderDomainService = apiMetadataDecoderDomainService;
+        this.apiPrimaryOwnerDomainService = apiPrimaryOwnerDomainService;
         this.apiCategoryQueryService = apiCategoryQueryService;
         this.indexer = indexer;
     }
 
     public void index(Indexer.IndexationContext context, Api apiToIndex, PrimaryOwnerEntity primaryOwner) {
+        indexer.index(context, toIndexableApi(apiToIndex, primaryOwner));
+    }
+
+    /**
+     * Build an {@link IndexableApi} from an {@link Api}.
+     * @param context The indexation context.
+     * @param apiToIndex The API to index
+     * @return The {@link IndexableApi} to index.
+     */
+    public IndexableApi toIndexableApi(Indexer.IndexationContext context, Api apiToIndex) {
+        try {
+            var primaryOwner = apiPrimaryOwnerDomainService.getApiPrimaryOwner(context.organizationId(), apiToIndex.getId());
+            return toIndexableApi(apiToIndex, primaryOwner);
+        } catch (ApiPrimaryOwnerNotFoundException e) {
+            log.warn("Failed to retrieve API primary owner, API will we indexed without his primary owner", e);
+            return toIndexableApi(apiToIndex, null);
+        }
+    }
+
+    /**
+     * Build an {@link IndexableApi} from an {@link Api}.
+     * @param apiToIndex The API to index
+     * @param primaryOwner The primary owner of the API.
+     * @return The {@link IndexableApi} to index.
+     */
+    public IndexableApi toIndexableApi(Api apiToIndex, PrimaryOwnerEntity primaryOwner) {
         var metadata = apiMetadataDecoderDomainService.decodeMetadata(
             apiToIndex.getId(),
             ApiMetadataDecodeContext
@@ -52,17 +85,18 @@ public class ApiIndexerDomainService {
                 .createdAt(Date.from(apiToIndex.getCreatedAt().toInstant()))
                 .updatedAt(Date.from(apiToIndex.getUpdatedAt().toInstant()))
                 .primaryOwner(
-                    new PrimaryOwnerApiTemplateData(
-                        primaryOwner.id(),
-                        primaryOwner.displayName(),
-                        primaryOwner.email(),
-                        primaryOwner.type().name()
-                    )
+                    primaryOwner != null
+                        ? new PrimaryOwnerApiTemplateData(
+                            primaryOwner.id(),
+                            primaryOwner.displayName(),
+                            primaryOwner.email(),
+                            primaryOwner.type().name()
+                        )
+                        : null
                 )
                 .build()
         );
         var categoryKeys = apiCategoryQueryService.findApiCategoryKeys(apiToIndex);
-
-        indexer.index(context, new IndexableApi(apiToIndex, primaryOwner, metadata, categoryKeys));
+        return new IndexableApi(apiToIndex, primaryOwner, metadata, categoryKeys);
     }
 }

@@ -23,6 +23,7 @@ import static org.mockito.Mockito.mock;
 
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.PageCrudServiceInMemory;
+import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
@@ -744,13 +745,8 @@ public class SearchEngineServiceTest {
         }
 
         @Bean
-        public ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService() {
-            return mock(ApiPrimaryOwnerDomainService.class);
-        }
-
-        @Bean
-        public ApiMetadataDecoderDomainService apiMetadataDecoderDomainService() {
-            return mock(ApiMetadataDecoderDomainService.class);
+        public ApiIndexerDomainService apiIndexerDomainService() {
+            return mock(ApiIndexerDomainService.class);
         }
     }
 

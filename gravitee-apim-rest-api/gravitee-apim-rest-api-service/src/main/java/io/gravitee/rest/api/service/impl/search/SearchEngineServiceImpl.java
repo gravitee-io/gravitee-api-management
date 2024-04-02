@@ -18,13 +18,9 @@ package io.gravitee.rest.api.service.impl.search;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
-import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
-import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService.ApiMetadataDecodeContext;
-import io.gravitee.apim.core.api.query_service.ApiCategoryQueryService;
-import io.gravitee.apim.core.api.query_service.ApiQueryService;
+import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
-import io.gravitee.apim.core.documentation.model.PrimaryOwnerApiTemplateData;
-import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
+import io.gravitee.apim.core.search.Indexer;
 import io.gravitee.apim.core.search.model.IndexableApi;
 import io.gravitee.apim.core.search.model.IndexablePage;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -54,7 +50,6 @@ import io.gravitee.rest.api.service.search.query.Query;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -116,13 +111,7 @@ public class SearchEngineServiceImpl implements SearchEngineService {
     private ApiCrudService apiCrudService;
 
     @Autowired
-    private ApiPrimaryOwnerDomainService apiPrimaryOwnerDomainService;
-
-    @Autowired
-    private ApiMetadataDecoderDomainService apiMetadataDecoderDomainService;
-
-    @Autowired
-    private ApiCategoryQueryService apiCategoryQueryService;
+    private ApiIndexerDomainService apiIndexerDomainService;
 
     @Async("indexerThreadPoolTaskExecutor")
     @Override
@@ -206,28 +195,10 @@ public class SearchEngineServiceImpl implements SearchEngineService {
                 return new IndexablePage(pageCrudService.get(id));
             } else if (IndexableApi.class.getName().equals(clazz)) {
                 var api = apiCrudService.get(id);
-                var primaryOwner = apiPrimaryOwnerDomainService.getApiPrimaryOwner(executionContext.getOrganizationId(), id);
-                var metadata = apiMetadataDecoderDomainService.decodeMetadata(
-                    id,
-                    ApiMetadataDecodeContext
-                        .builder()
-                        .name(api.getName())
-                        .description(api.getDescription())
-                        .createdAt(Date.from(api.getCreatedAt().toInstant()))
-                        .updatedAt(Date.from(api.getUpdatedAt().toInstant()))
-                        .primaryOwner(
-                            new PrimaryOwnerApiTemplateData(
-                                primaryOwner.id(),
-                                primaryOwner.displayName(),
-                                primaryOwner.email(),
-                                primaryOwner.type().name()
-                            )
-                        )
-                        .build()
+                return apiIndexerDomainService.toIndexableApi(
+                    new Indexer.IndexationContext(executionContext.getOrganizationId(), executionContext.getEnvironmentId()),
+                    api
                 );
-                var categoryKeys = apiCategoryQueryService.findApiCategoryKeys(api);
-
-                return new IndexableApi(api, primaryOwner, metadata, categoryKeys);
             }
         } catch (final AbstractNotFoundException nfe) {
             // ignore not found exception because may be due to synchronization not yet processed by DBs
