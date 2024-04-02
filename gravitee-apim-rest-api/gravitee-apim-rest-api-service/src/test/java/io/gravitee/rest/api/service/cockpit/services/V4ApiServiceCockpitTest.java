@@ -149,23 +149,25 @@ public class V4ApiServiceCockpitTest {
             roleQueryService,
             userCrudService
         );
+        var apiPrimaryOwnerDomainService = new ApiPrimaryOwnerDomainService(
+            auditService,
+            groupQueryService,
+            membershipCrudService,
+            membershipQueryService,
+            roleQueryService,
+            userCrudService
+        );
         var createApiDomainService = new CreateApiDomainService(
             apiCrudService,
             auditService,
             new ApiIndexerDomainService(
                 new ApiMetadataDecoderDomainService(metadataQueryService, new FreemarkerTemplateProcessor()),
+                apiPrimaryOwnerDomainService,
                 new ApiCategoryQueryServiceInMemory(),
                 indexer
             ),
             new ApiMetadataDomainService(metadataCrudService, auditService),
-            new ApiPrimaryOwnerDomainService(
-                auditService,
-                groupQueryService,
-                membershipCrudService,
-                membershipQueryService,
-                roleQueryService,
-                userCrudService
-            ),
+            apiPrimaryOwnerDomainService,
             flowCrudService,
             notificationConfigCrudService,
             parametersQueryService,

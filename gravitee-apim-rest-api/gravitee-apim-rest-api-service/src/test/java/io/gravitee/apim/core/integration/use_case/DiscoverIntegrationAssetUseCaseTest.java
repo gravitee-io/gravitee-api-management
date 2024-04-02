@@ -150,24 +150,25 @@ class DiscoverIntegrationAssetUseCaseTest {
             roleQueryService,
             userCrudService
         );
-
+        var apiPrimaryOwnerDomainService = new ApiPrimaryOwnerDomainService(
+            auditDomainService,
+            groupQueryService,
+            membershipCrudService,
+            membershipQueryService,
+            roleQueryService,
+            userCrudService
+        );
         var createApiDomainService = new CreateApiDomainService(
             apiCrudService,
             auditDomainService,
             new ApiIndexerDomainService(
                 new ApiMetadataDecoderDomainService(metadataQueryService, new FreemarkerTemplateProcessor()),
+                apiPrimaryOwnerDomainService,
                 new ApiCategoryQueryServiceInMemory(),
                 indexer
             ),
             new ApiMetadataDomainService(metadataCrudService, auditDomainService),
-            new ApiPrimaryOwnerDomainService(
-                auditDomainService,
-                groupQueryService,
-                membershipCrudService,
-                membershipQueryService,
-                roleQueryService,
-                userCrudService
-            ),
+            apiPrimaryOwnerDomainService,
             new FlowCrudServiceInMemory(),
             notificationConfigCrudService,
             parametersQueryService,
@@ -252,7 +253,7 @@ class DiscoverIntegrationAssetUseCaseTest {
                             expectedApi,
                             new PrimaryOwnerEntity(USER_ID, "jane.doe@gravitee.io", "Jane Doe", PrimaryOwnerEntity.Type.USER),
                             Map.of(),
-                            Collections.emptyList()
+                            Collections.emptySet()
                         )
                     );
             });

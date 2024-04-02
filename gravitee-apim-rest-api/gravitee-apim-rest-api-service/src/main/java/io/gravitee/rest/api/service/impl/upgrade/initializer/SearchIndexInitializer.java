@@ -18,6 +18,9 @@ package io.gravitee.rest.api.service.impl.upgrade.initializer;
 import static io.gravitee.rest.api.service.common.SecurityContextHelper.authenticateAsSystem;
 import static java.util.stream.Collectors.toList;
 
+import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
+import io.gravitee.apim.core.search.Indexer;
+import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.node.api.initializer.Initializer;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -47,15 +50,17 @@ import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.UserConverter;
 import io.gravitee.rest.api.service.exceptions.PrimaryOwnerNotFoundException;
 import io.gravitee.rest.api.service.search.SearchEngineService;
-import io.gravitee.rest.api.service.v4.ApiSearchService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
-import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicLong;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -86,13 +91,13 @@ public class SearchIndexInitializer implements Initializer {
 
     private final EnvironmentRepository environmentRepository;
 
-    private final ApiMapper apiMapper;
     private final ApiConverter apiConverter;
 
     private final UserConverter userConverter;
 
     private final Map<String, String> organizationIdByEnvironmentIdMap = new ConcurrentHashMap<>();
     private final PrimaryOwnerService primaryOwnerService;
+    private final ApiIndexerDomainService apiIndexerDomainService;
 
     @Autowired
     public SearchIndexInitializer(
@@ -102,10 +107,10 @@ public class SearchIndexInitializer implements Initializer {
         @Lazy UserRepository userRepository,
         SearchEngineService searchEngineService,
         @Lazy EnvironmentRepository environmentRepository,
-        final ApiMapper apiMapper,
         ApiConverter apiConverter,
         UserConverter userConverter,
-        final PrimaryOwnerService primaryOwnerService
+        final PrimaryOwnerService primaryOwnerService,
+        ApiIndexerDomainService apiIndexerDomainService
     ) {
         this.apiRepository = apiRepository;
         this.genericApiMapper = genericApiMapper;
@@ -113,10 +118,10 @@ public class SearchIndexInitializer implements Initializer {
         this.userRepository = userRepository;
         this.searchEngineService = searchEngineService;
         this.environmentRepository = environmentRepository;
-        this.apiMapper = apiMapper;
         this.apiConverter = apiConverter;
         this.userConverter = userConverter;
         this.primaryOwnerService = primaryOwnerService;
+        this.apiIndexerDomainService = apiIndexerDomainService;
     }
 
     @Override
@@ -194,15 +199,20 @@ public class SearchIndexInitializer implements Initializer {
         }
         try {
             if (api.getDefinitionVersion() == DefinitionVersion.V4) {
-                indexable = apiMapper.toEntity(executionContext, api, primaryOwner, null, false);
+                indexable =
+                    apiIndexerDomainService.toIndexableApi(
+                        new Indexer.IndexationContext(organizationId, environmentId),
+                        ApiAdapter.INSTANCE.toCoreModel(api)
+                    );
+                return runApiIndexationAsync(executionContext, api, primaryOwner, indexable, executorService);
             } else {
                 indexable = apiConverter.toApiEntity(api, primaryOwner);
+                return runApiIndexationAsync(executionContext, api, primaryOwner, indexable, executorService);
             }
         } catch (Exception e) {
             LOGGER.error("Failed to convert API {} to indexable", api.getId(), e);
             return CompletableFuture.failedFuture(e);
         }
-        return runApiIndexationAsync(executionContext, api, primaryOwner, indexable, executorService);
     }
 
     private CompletableFuture<?> runApiIndexationAsync(

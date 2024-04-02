@@ -145,24 +145,25 @@ class CreateV4ApiUseCaseTest {
             roleQueryService,
             userCrudService
         );
-
+        var apiPrimaryOwnerDomainService = new ApiPrimaryOwnerDomainService(
+            auditService,
+            groupQueryService,
+            membershipCrudService,
+            membershipQueryService,
+            roleQueryService,
+            userCrudService
+        );
         var createApiDomainService = new CreateApiDomainService(
             apiCrudService,
             auditService,
             new ApiIndexerDomainService(
                 new ApiMetadataDecoderDomainService(metadataQueryService, new FreemarkerTemplateProcessor()),
+                apiPrimaryOwnerDomainService,
                 new ApiCategoryQueryServiceInMemory(),
                 indexer
             ),
             new ApiMetadataDomainService(metadataCrudService, auditService),
-            new ApiPrimaryOwnerDomainService(
-                auditService,
-                groupQueryService,
-                membershipCrudService,
-                membershipQueryService,
-                roleQueryService,
-                userCrudService
-            ),
+            apiPrimaryOwnerDomainService,
             flowCrudService,
             notificationConfigCrudService,
             parametersQueryService,
@@ -242,7 +243,7 @@ class CreateV4ApiUseCaseTest {
                         expectedApi,
                         new PrimaryOwnerEntity(USER_ID, "jane.doe@gravitee.io", "Jane Doe", PrimaryOwnerEntity.Type.USER),
                         Map.ofEntries(Map.entry("email-support", "jane.doe@gravitee.io")),
-                        Collections.emptyList()
+                        Collections.emptySet()
                     )
                 );
         });

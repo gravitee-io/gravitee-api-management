@@ -17,6 +17,7 @@ package io.gravitee.rest.api.service.impl.upgrade.initializer;
 
 import static io.gravitee.repository.management.model.UserStatus.ACTIVE;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.in;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyBoolean;
@@ -28,6 +29,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import fixtures.repository.ApiFixtures;
+import io.gravitee.apim.core.api.domain_service.ApiIndexerDomainService;
+import io.gravitee.apim.core.search.Indexer;
+import io.gravitee.apim.core.search.model.IndexableApi;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -51,12 +55,14 @@ import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
 import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.stream.Stream;
 import lombok.SneakyThrows;
+import org.apache.lucene.index.IndexCommit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -95,6 +101,9 @@ public class SearchIndexInitializerTest {
     @Mock
     private ApiConverter apiConverter;
 
+    @Mock
+    private ApiIndexerDomainService apiIndexerDomainService;
+
     private final PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity();
 
     private SearchIndexInitializer initializer;
@@ -109,10 +118,10 @@ public class SearchIndexInitializerTest {
                 userRepository,
                 searchEngineService,
                 environmentRepository,
-                apiMapper,
                 apiConverter,
                 new UserConverter(),
-                primaryOwnerService
+                primaryOwnerService,
+                apiIndexerDomainService
             );
 
         givenExistingEnvironments(
@@ -239,14 +248,10 @@ public class SearchIndexInitializerTest {
             .of(apis)
             .forEach(api -> {
                 if (api.getDefinitionVersion() == DefinitionVersion.V4) {
-                    when(apiMapper.toEntity(any(), same(api), any(), any(), eq(false)))
-                        .thenReturn(
-                            io.gravitee.rest.api.model.v4.api.ApiEntity
-                                .builder()
-                                .id(api.getId())
-                                .referenceId(api.getEnvironmentId())
-                                .referenceType("ENVIRONMENT")
-                                .build()
+                    lenient()
+                        .when(apiIndexerDomainService.toIndexableApi(any(Indexer.IndexationContext.class), any()))
+                        .thenAnswer(invocation ->
+                            new IndexableApi(invocation.getArgument(1), null, Collections.emptyMap(), Collections.emptyList())
                         );
                 } else if (api.getDefinitionVersion() == DefinitionVersion.V2) {
                     when(apiConverter.toApiEntity(same(api), any()))

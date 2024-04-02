@@ -25,7 +25,6 @@ import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.AuditInfoFixtures;
@@ -242,24 +241,26 @@ class ImportCRDUseCaseTest {
             roleQueryService,
             userCrudService
         );
+        var apiPrimaryOwnerDomainService = new ApiPrimaryOwnerDomainService(
+            auditDomainService,
+            groupQueryService,
+            membershipCrudService,
+            membershipQueryService,
+            roleQueryService,
+            userCrudService
+        );
 
         var createApiDomainService = new CreateApiDomainService(
             apiCrudService,
             auditDomainService,
             new ApiIndexerDomainService(
                 new ApiMetadataDecoderDomainService(metadataQueryService, new FreemarkerTemplateProcessor()),
+                apiPrimaryOwnerDomainService,
                 new ApiCategoryQueryServiceInMemory(),
                 indexer
             ),
             new ApiMetadataDomainService(metadataCrudService, auditDomainService),
-            new ApiPrimaryOwnerDomainService(
-                auditDomainService,
-                groupQueryService,
-                membershipCrudService,
-                membershipQueryService,
-                roleQueryService,
-                userCrudService
-            ),
+            apiPrimaryOwnerDomainService,
             flowCrudService,
             notificationConfigCrudService,
             parametersQueryService,
@@ -368,7 +369,7 @@ class ImportCRDUseCaseTest {
                             expected,
                             new PrimaryOwnerEntity(USER_ID, "jane.doe@gravitee.io", "Jane Doe", PrimaryOwnerEntity.Type.USER),
                             Map.ofEntries(Map.entry("email-support", "jane.doe@gravitee.io")),
-                            Collections.emptyList()
+                            Collections.emptySet()
                         )
                     );
             });
