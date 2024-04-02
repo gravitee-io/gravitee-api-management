@@ -18,6 +18,7 @@ package io.gravitee.apim.core.api.domain_service;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService.ApiMetadataDecodeContext;
 import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api.query_service.ApiCategoryQueryService;
 import io.gravitee.apim.core.documentation.model.PrimaryOwnerApiTemplateData;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.search.Indexer;
@@ -28,10 +29,16 @@ import java.util.Date;
 public class ApiIndexerDomainService {
 
     private final ApiMetadataDecoderDomainService apiMetadataDecoderDomainService;
+    private final ApiCategoryQueryService apiCategoryQueryService;
     private final Indexer indexer;
 
-    public ApiIndexerDomainService(ApiMetadataDecoderDomainService apiMetadataDecoderDomainService, Indexer indexer) {
+    public ApiIndexerDomainService(
+        ApiMetadataDecoderDomainService apiMetadataDecoderDomainService,
+        ApiCategoryQueryService apiCategoryQueryService,
+        Indexer indexer
+    ) {
         this.apiMetadataDecoderDomainService = apiMetadataDecoderDomainService;
+        this.apiCategoryQueryService = apiCategoryQueryService;
         this.indexer = indexer;
     }
 
@@ -54,7 +61,8 @@ public class ApiIndexerDomainService {
                 )
                 .build()
         );
+        var categoryKeys = apiCategoryQueryService.findApiCategoryKeys(apiToIndex);
 
-        indexer.index(context, new IndexableApi(apiToIndex, primaryOwner, metadata));
+        indexer.index(context, new IndexableApi(apiToIndex, primaryOwner, metadata, categoryKeys));
     }
 }

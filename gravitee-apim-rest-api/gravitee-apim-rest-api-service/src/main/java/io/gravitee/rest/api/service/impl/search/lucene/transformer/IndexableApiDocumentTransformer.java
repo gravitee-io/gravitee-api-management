@@ -73,6 +73,7 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
         var api = indexableApi.getApi();
         var primaryOwner = indexableApi.getPrimaryOwner();
         var metadata = indexableApi.getDecodedMetadata();
+        var categories = indexableApi.getCategoryKeys();
 
         if (api.getDefinitionVersion() != null && api.getDefinitionVersion() != DefinitionVersion.V4) {
             throw new TechnicalDomainException("Unsupported definition version: " + api.getDefinitionVersion());
@@ -140,8 +141,8 @@ public class IndexableApiDocumentTransformer implements DocumentTransformer<Inde
         }
 
         // categories
-        if (api.getCategories() != null) {
-            for (String category : api.getCategories()) {
+        if (categories != null) {
+            for (String category : categories) {
                 doc.add(new StringField(FIELD_CATEGORIES, category, Field.Store.NO));
                 doc.add(new TextField(FIELD_CATEGORIES_SPLIT, category, Field.Store.NO));
             }

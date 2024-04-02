@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 
 import fixtures.core.model.AuditInfoFixtures;
 import fixtures.core.model.NewApiFixtures;
+import inmemory.ApiCategoryQueryServiceInMemory;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiMetadataQueryServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
@@ -150,6 +151,7 @@ class CreateV4ApiUseCaseTest {
             auditService,
             new ApiIndexerDomainService(
                 new ApiMetadataDecoderDomainService(metadataQueryService, new FreemarkerTemplateProcessor()),
+                new ApiCategoryQueryServiceInMemory(),
                 indexer
             ),
             new ApiMetadataDomainService(metadataCrudService, auditService),
@@ -239,7 +241,8 @@ class CreateV4ApiUseCaseTest {
                     new IndexableApi(
                         expectedApi,
                         new PrimaryOwnerEntity(USER_ID, "jane.doe@gravitee.io", "Jane Doe", PrimaryOwnerEntity.Type.USER),
-                        Map.ofEntries(Map.entry("email-support", "jane.doe@gravitee.io"))
+                        Map.ofEntries(Map.entry("email-support", "jane.doe@gravitee.io")),
+                        Collections.emptyList()
                     )
                 );
         });

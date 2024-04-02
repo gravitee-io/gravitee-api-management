@@ -71,7 +71,7 @@ public class IndexableApiDocumentTransformerTest {
     @Test
     void should_transform_id_and_type_only_when_definition_version_and_name_are_null() {
         // Given
-        var indexable = new IndexableApi(Api.builder().id(API_ID).build(), PRIMARY_OWNER, Map.of());
+        var indexable = new IndexableApi(Api.builder().id(API_ID).build(), PRIMARY_OWNER, Map.of(), Set.of());
 
         // When
         var result = cut.transform(indexable);
@@ -88,9 +88,10 @@ public class IndexableApiDocumentTransformerTest {
     void should_transform_api_info() {
         // Given
         var indexable = new IndexableApi(
-            ApiFixtures.aProxyApiV4().toBuilder().labels(List.of("Label1, Label2")).categories(Set.of("Category1", "Category2")).build(),
+            ApiFixtures.aProxyApiV4().toBuilder().labels(List.of("Label1, Label2")).build(),
             PRIMARY_OWNER,
-            Map.of()
+            Map.of(),
+            Set.of("category1", "category2")
         );
 
         // When
@@ -131,11 +132,11 @@ public class IndexableApiDocumentTransformerTest {
             softly
                 .assertThat(result.getFields(FIELD_CATEGORIES))
                 .extracting(IndexableField::stringValue)
-                .contains("Category1", "Category2");
+                .contains("category1", "category2");
             softly
                 .assertThat(result.getFields(FIELD_CATEGORIES_SPLIT))
                 .extracting(IndexableField::stringValue)
-                .contains("Category1", "Category2");
+                .contains("category1", "category2");
 
             // tags
             softly.assertThat(result.getFields(FIELD_TAGS)).extracting(IndexableField::stringValue).contains("tag1");
@@ -149,7 +150,7 @@ public class IndexableApiDocumentTransformerTest {
     @Test
     void should_transform_primary_owner_info() {
         // Given
-        var indexable = new IndexableApi(ApiFixtures.aProxyApiV4(), PRIMARY_OWNER, Map.of());
+        var indexable = new IndexableApi(ApiFixtures.aProxyApiV4(), PRIMARY_OWNER, Map.of(), Set.of());
 
         // When
         var result = cut.transform(indexable);
@@ -166,7 +167,12 @@ public class IndexableApiDocumentTransformerTest {
     @Test
     void should_transform_api_metadata() {
         // Given
-        var indexable = new IndexableApi(ApiFixtures.aProxyApiV4(), PRIMARY_OWNER, Map.of("metadata1", "value1", "metadata2", "value2"));
+        var indexable = new IndexableApi(
+            ApiFixtures.aProxyApiV4(),
+            PRIMARY_OWNER,
+            Map.of("metadata1", "value1", "metadata2", "value2"),
+            Set.of()
+        );
 
         // When
         var result = cut.transform(indexable);
@@ -181,7 +187,7 @@ public class IndexableApiDocumentTransformerTest {
     @Test
     void should_throw_when_not_V4_api() {
         // Given
-        var indexable = new IndexableApi(ApiFixtures.aProxyApiV2(), PRIMARY_OWNER, Map.of());
+        var indexable = new IndexableApi(ApiFixtures.aProxyApiV2(), PRIMARY_OWNER, Map.of(), Set.of());
 
         // When
         var throwable = catchThrowable(() -> cut.transform(indexable));
