@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService.ApiMetadataDecodeContext;
+import io.gravitee.apim.core.api.query_service.ApiCategoryQueryService;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.core.documentation.crud_service.PageCrudService;
 import io.gravitee.apim.core.documentation.model.PrimaryOwnerApiTemplateData;
@@ -119,6 +120,9 @@ public class SearchEngineServiceImpl implements SearchEngineService {
 
     @Autowired
     private ApiMetadataDecoderDomainService apiMetadataDecoderDomainService;
+
+    @Autowired
+    private ApiCategoryQueryService apiCategoryQueryService;
 
     @Async("indexerThreadPoolTaskExecutor")
     @Override
@@ -221,8 +225,9 @@ public class SearchEngineServiceImpl implements SearchEngineService {
                         )
                         .build()
                 );
+                var categoryKeys = apiCategoryQueryService.findApiCategoryKeys(api);
 
-                return new IndexableApi(api, primaryOwner, metadata);
+                return new IndexableApi(api, primaryOwner, metadata, categoryKeys);
             }
         } catch (final AbstractNotFoundException nfe) {
             // ignore not found exception because may be due to synchronization not yet processed by DBs

@@ -31,6 +31,7 @@ import static org.mockito.Mockito.when;
 import fixtures.core.model.AuditInfoFixtures;
 import fixtures.definition.ApiDefinitionFixtures;
 import fixtures.definition.FlowFixtures;
+import inmemory.ApiCategoryQueryServiceInMemory;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiKeyCrudServiceInMemory;
 import inmemory.ApiKeyQueryServiceInMemory;
@@ -119,6 +120,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -246,6 +248,7 @@ class ImportCRDUseCaseTest {
             auditDomainService,
             new ApiIndexerDomainService(
                 new ApiMetadataDecoderDomainService(metadataQueryService, new FreemarkerTemplateProcessor()),
+                new ApiCategoryQueryServiceInMemory(),
                 indexer
             ),
             new ApiMetadataDomainService(metadataCrudService, auditDomainService),
@@ -364,7 +367,8 @@ class ImportCRDUseCaseTest {
                         new IndexableApi(
                             expected,
                             new PrimaryOwnerEntity(USER_ID, "jane.doe@gravitee.io", "Jane Doe", PrimaryOwnerEntity.Type.USER),
-                            Map.ofEntries(Map.entry("email-support", "jane.doe@gravitee.io"))
+                            Map.ofEntries(Map.entry("email-support", "jane.doe@gravitee.io")),
+                            Collections.emptyList()
                         )
                     );
             });

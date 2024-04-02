@@ -28,6 +28,7 @@ import static org.mockito.Mockito.when;
 import fixtures.core.model.AuditInfoFixtures;
 import fixtures.core.model.IntegrationAssetFixtures;
 import fixtures.core.model.IntegrationFixture;
+import inmemory.ApiCategoryQueryServiceInMemory;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiMetadataQueryServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
@@ -155,6 +156,7 @@ class DiscoverIntegrationAssetUseCaseTest {
             auditDomainService,
             new ApiIndexerDomainService(
                 new ApiMetadataDecoderDomainService(metadataQueryService, new FreemarkerTemplateProcessor()),
+                new ApiCategoryQueryServiceInMemory(),
                 indexer
             ),
             new ApiMetadataDomainService(metadataCrudService, auditDomainService),
@@ -249,7 +251,8 @@ class DiscoverIntegrationAssetUseCaseTest {
                         new IndexableApi(
                             expectedApi,
                             new PrimaryOwnerEntity(USER_ID, "jane.doe@gravitee.io", "Jane Doe", PrimaryOwnerEntity.Type.USER),
-                            Map.of()
+                            Map.of(),
+                            Collections.emptyList()
                         )
                     );
             });

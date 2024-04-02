@@ -19,6 +19,7 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.common.ReferenceContext;
+import java.util.Collection;
 import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -37,6 +38,9 @@ public class IndexableApi implements Indexable {
 
     /** Decoded API metadata */
     private Map<String, String> decodedMetadata;
+
+    /** API categories' keys */
+    private Collection<String> categoryKeys;
 
     @Override
     public String getId() {
