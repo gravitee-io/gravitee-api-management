@@ -141,7 +141,7 @@
               mat-raised-button
               color="primary"
               data-testid="create-integration-submit-button"
-              [disabled]="!addInformationForm.valid"
+              [disabled]="!addInformationForm.valid || isLoading"
             >
               Create Integration
             </button>

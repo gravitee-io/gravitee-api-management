@@ -16,12 +16,20 @@
 
 import { Pagination } from '../../entities/management-api-v2';
 
+export interface IntegrationNavigationItem {
+  routerLink: string;
+  displayName: string;
+  permissions: string[];
+  icon: string;
+}
+
 export interface IntegrationResponse {
   data: Integration[];
   pagination: Pagination;
 }
 
 export interface Integration {
+  agentStatus: string;
   id: string;
   name: string;
   provider: string;

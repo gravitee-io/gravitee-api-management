@@ -13,23 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { AsyncFactoryFn, ComponentHarness, TestElement } from '@angular/cdk/testing';
 
-import { Integration } from '../../management/integrations/integrations.model';
+export class IntegrationsNavigationHarness extends ComponentHarness {
+  public static readonly hostSelector = 'app-integrations-navigation';
 
-export function fakeIntegration(attribute?: Partial<Integration>) {
-  const base: Integration = {
-    agentStatus: 'CONNECTED',
-    id: 'test_id',
-    name: 'test_name',
-    description: 'test_description',
-    provider: 'test_provider',
-    owner: 'test_owner',
-    status: 'test_status',
-    agent: 'test_agent',
-  };
+  private menuItemsLocator: AsyncFactoryFn<TestElement[]> = this.locatorForAll('.menu-item');
 
-  return {
-    ...base,
-    ...attribute,
+  public getMenuItems = async (): Promise<TestElement[]> => {
+    return this.menuItemsLocator();
   };
 }

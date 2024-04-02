@@ -25,17 +25,25 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { MatTooltip } from '@angular/material/tooltip';
 import { MatCell, MatCellDef, MatColumnDef, MatHeaderCell, MatTableModule } from '@angular/material/table';
 import { MatRadioButton, MatRadioGroup } from '@angular/material/radio';
-import { GioRadioButtonModule } from '@gravitee/ui-particles-angular';
+import {
+  GioBannerModule,
+  GioBreadcrumbModule,
+  GioClipboardModule,
+  GioRadioButtonModule,
+  GioSubmenuModule,
+} from '@gravitee/ui-particles-angular';
 import { MatStep, MatStepLabel, MatStepper, MatStepperIcon, MatStepperNext, MatStepperPrevious } from '@angular/material/stepper';
 
 import { IntegrationsComponent } from './integrations.component';
 import { CreateIntegrationComponent } from './create-integration/create-integration.component';
 import { IntegrationsRoutingModule } from './integrations-routing.module';
+import { IntegrationOverviewComponent } from './integration-overview/integration-overview.component';
+import { IntegrationsNavigationComponent } from './integrations-navigation/integrations-navigation.component';
 
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 
 @NgModule({
-  declarations: [IntegrationsComponent, CreateIntegrationComponent],
+  declarations: [IntegrationsComponent, CreateIntegrationComponent, IntegrationOverviewComponent, IntegrationsNavigationComponent],
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -67,6 +75,10 @@ import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper
     MatStepperPrevious,
     MatStepperNext,
     MatStepperIcon,
+    GioBreadcrumbModule,
+    GioSubmenuModule,
+    GioBannerModule,
+    GioClipboardModule,
   ],
 })
 export class IntegrationsModule {}

@@ -21,7 +21,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, tap } from 'rxjs/operators';
 import { EMPTY } from 'rxjs';
 
-import { CreateIntegrationPayload, IntegrationProvider } from '../integrations.model';
+import { CreateIntegrationPayload, Integration, IntegrationProvider } from '../integrations.model';
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
@@ -34,9 +34,9 @@ export class CreateIntegrationComponent {
   public isLoading = false;
   private destroyRef = inject(DestroyRef);
 
-  // hardcoded list of providers for time when backend is not ready.
+  // hardcoded list of providers for time when backend is not ready, icon not needed in future stick to value
   public integrationProviders: { active?: IntegrationProvider[]; comingSoon?: IntegrationProvider[] } = {
-    active: [{ name: 'AWS', icon: 'aws', value: 'aws-api-gateway' }],
+    active: [{ name: 'AWS', icon: 'aws-api-gateway', value: 'aws-api-gateway' }],
     comingSoon: [
       { name: 'Solace', icon: 'solace', value: 'solace' },
       { name: 'Apigee', icon: 'apigee', value: 'apigee' },
@@ -88,9 +88,9 @@ export class CreateIntegrationComponent {
         }),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe(() => {
+      .subscribe((integration: Integration) => {
         this.isLoading = false;
-        this.router.navigate(['..'], { relativeTo: this.activatedRoute });
+        this.router.navigate([`../${integration.id}`], { relativeTo: this.activatedRoute });
       });
   }
 }

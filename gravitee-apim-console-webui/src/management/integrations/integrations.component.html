@@ -60,7 +60,11 @@
           </caption>
           <ng-container matColumnDef="name">
             <th mat-header-cell *matHeaderCellDef id="name">Name</th>
-            <td mat-cell *matCellDef="let integration">{{ integration.name }}</td>
+            <td mat-cell *matCellDef="let integration">
+              <a [routerLink]="'./' + integration.id">
+                {{ integration.name }}
+              </a>
+            </td>
           </ng-container>
 
           <ng-container matColumnDef="owner">
