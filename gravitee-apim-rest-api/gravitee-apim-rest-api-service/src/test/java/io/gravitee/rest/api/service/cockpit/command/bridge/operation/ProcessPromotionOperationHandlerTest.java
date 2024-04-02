@@ -106,9 +106,9 @@ public class ProcessPromotionOperationHandlerTest {
             BridgeReplyPayload.BridgeReplyContent bridgeReplyContent = reply.getPayload().contents().get(0);
             return (
                 reply.getCommandStatus().equals(CommandStatus.SUCCEEDED) &&
-                bridgeReplyContent.organizationId().equals(ORGANIZATION_ID) &&
-                bridgeReplyContent.environmentId().equals("source") &&
-                bridgeReplyContent.installationId().equals(INSTALLATION_ID) &&
+                bridgeReplyContent.getOrganizationId().equals(ORGANIZATION_ID) &&
+                bridgeReplyContent.getEnvironmentId().equals("source") &&
+                bridgeReplyContent.getInstallationId().equals(INSTALLATION_ID) &&
                 reply.getCommandId().equals(command.getId())
             );
         });

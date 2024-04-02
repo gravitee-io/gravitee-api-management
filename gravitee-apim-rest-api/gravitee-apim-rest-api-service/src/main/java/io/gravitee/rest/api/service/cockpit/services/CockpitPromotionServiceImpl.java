@@ -57,25 +57,25 @@ public class CockpitPromotionServiceImpl implements CockpitPromotionService {
             .getPayload()
             .contents()
             .stream()
-            .filter(bridgeReplyContent -> bridgeReplyContent.content() != null)
+            .filter(bridgeReplyContent -> bridgeReplyContent.getContent() != null)
             .map(bridgeReplyContent -> {
                 try {
                     final EnvironmentEntity environmentEntity =
-                        this.objectMapper.readValue(bridgeReplyContent.content(), EnvironmentEntity.class);
+                        this.objectMapper.readValue(bridgeReplyContent.getContent(), EnvironmentEntity.class);
 
                     // Be careful with env and org ids, we need to use the one from the reply and not the payload
                     // because cockpit has updated them to handle the case were id is "DEFAULT"
                     return new PromotionTargetEntity(
                         environmentEntity,
-                        bridgeReplyContent.organizationId(),
-                        bridgeReplyContent.environmentId(),
-                        bridgeReplyContent.installationId()
+                        bridgeReplyContent.getOrganizationId(),
+                        bridgeReplyContent.getEnvironmentId(),
+                        bridgeReplyContent.getInstallationId()
                     );
                 } catch (JsonProcessingException e) {
                     log.warn(
                         "Problem while deserializing environment {} with payload {}",
-                        bridgeReplyContent.environmentId(),
-                        bridgeReplyContent.content()
+                        bridgeReplyContent.getEnvironmentId(),
+                        bridgeReplyContent.getContent()
                     );
                     return null;
                 }
