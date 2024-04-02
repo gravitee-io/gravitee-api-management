@@ -17,6 +17,7 @@ import { inject } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivateFn, CanDeactivateFn, Router, RouterStateSnapshot } from '@angular/router';
 import { map, switchMap } from 'rxjs/operators';
 import { GioMenuSearchService } from '@gravitee/ui-particles-angular';
+import { get } from 'lodash';
 
 import { ManagementComponent } from './management.component';
 import { SettingsNavigationService } from './settings/settings-navigation/settings-navigation.service';
@@ -43,9 +44,15 @@ export const EnvironmentGuard: {
 
     return environmentService.list().pipe(
       map((environments) => {
+        if (!environments || environments.length === 0) {
+          throw new Error('No environment found!');
+        }
+
         const currentEnvironment = environments.find((e) => e.id === paramEnv || e.hrids?.includes(paramEnv));
+        // Redirect to first environment if no environment is found
         if (!currentEnvironment) {
-          router.navigate([environments[0].hrids[0] ?? environments[0].id]);
+          const hrid = get(environments[0], 'hrids[0]');
+          router.navigate([hrid ?? environments[0].id]);
         }
 
         constants.org.environments = environments;
