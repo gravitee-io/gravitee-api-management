@@ -34,8 +34,8 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { ApiPortalHeaderComponent } from './api-portal-header.component';
 import { ApiPortalHeaderEditDialogComponent } from './api-portal-header-edit-dialog/api-portal-header-edit-dialog.component';
 
-import { GioTableWrapperModule } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
-import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
+import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
+import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 
 @NgModule({
   declarations: [ApiPortalHeaderComponent, ApiPortalHeaderEditDialogComponent],

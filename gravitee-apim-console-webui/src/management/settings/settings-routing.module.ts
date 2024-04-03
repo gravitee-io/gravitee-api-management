@@ -23,7 +23,7 @@ import { CategoriesComponent } from './categories/categories.component';
 import { CategoryComponent } from './categories/category/category.component';
 import { GroupsComponent } from './groups/groups.component';
 import { GroupComponent } from './groups/group/group.component';
-import { ApiPortalHeaderComponent as ApiPortalHeaderComponentMigrated } from './api-portal-header/migrated/api-portal-header.component';
+import { ApiPortalHeaderComponent as ApiPortalHeaderComponentMigrated } from './api-portal-header/api-portal-header.component';
 import { ClientRegistrationProvidersComponent } from './client-registration-providers/client-registration-providers.component';
 import { ClientRegistrationProviderComponent } from './client-registration-providers/client-registration-provider/client-registration-provider.component';
 import { EnvironmentMetadataComponent } from './metadata/environment-metadata.component';

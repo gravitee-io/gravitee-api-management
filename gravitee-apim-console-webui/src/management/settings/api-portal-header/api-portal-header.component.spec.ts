@@ -27,11 +27,11 @@ import { ApiPortalHeaderComponent } from './api-portal-header.component';
 import { ApiPortalHeaderHarness } from './api-portal-header.harness.';
 import { ApiPortalHeaderEditDialogHarness } from './api-portal-header-edit-dialog/api-portal-header-edit-dialog.harness';
 
-import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
-import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
-import { PortalSettings } from '../../../../entities/portal/portalSettings';
-import { ApiPortalHeader } from '../../../../entities/apiPortalHeader';
-import { Constants } from '../../../../entities/Constants';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
+import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
+import { PortalSettings } from '../../../entities/portal/portalSettings';
+import { ApiPortalHeader } from '../../../entities/apiPortalHeader';
+import { Constants } from '../../../entities/Constants';
 
 describe('ApiPortalHeaderComponent', () => {
   let fixture: ComponentFixture<ApiPortalHeaderComponent>;

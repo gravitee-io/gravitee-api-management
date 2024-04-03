@@ -182,11 +182,6 @@ import interceptorConfig from './app.interceptor.ajs';
 
 import { permission } from 'angular-permission';
 
-import ApiPortalHeaderComponentAjs from './management/settings/api-portal-header/api-portal-header.component.ajs';
-import ApiHeaderService from './services/apiHeader.service';
-
-import UpdateApiPortalHeaderDialogController from './management/settings/api-portal-header/update.api-portal-header.dialog.controller';
-import NewApiPortalHeaderDialogController from './management/settings/api-portal-header/new.api-portal-header.dialog.controller';
 // Alerts
 import AlertService from './services/alert.service';
 import AlertsComponentAjs from './components/alerts/alerts.component.ajs';
@@ -614,14 +609,6 @@ graviteeManagementModule.component('settingsDictionaryAjs', DictionaryComponentA
 graviteeManagementModule.controller('DictionariesController', DictionariesController);
 graviteeManagementModule.controller('DictionaryController', DictionaryController);
 graviteeManagementModule.controller('DialogDictionaryAddPropertyController', DialogDictionaryAddPropertyController);
-
-// ApiHeader
-graviteeManagementModule.component('settingsApiPortalHeaderAjs', ApiPortalHeaderComponentAjs);
-graviteeManagementModule.service('ApiHeaderService', ApiHeaderService);
-graviteeManagementModule.controller('NewApiPortalHeaderDialogController', NewApiPortalHeaderDialogController);
-graviteeManagementModule.controller('UpdateApiPortalHeaderDialogController', UpdateApiPortalHeaderDialogController);
-
-// Settings: Identity provider
 
 // Alerts
 graviteeManagementModule.service('AlertService', AlertService);

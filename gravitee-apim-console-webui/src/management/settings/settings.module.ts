@@ -22,7 +22,6 @@ import { SettingsRoutingModule } from './settings-routing.module';
 import { SettingsAnalyticsComponent } from './analytics/settings-analytics.component';
 import { SettingsNavigationComponent } from './settings-navigation/settings-navigation.component';
 import { SettingsAnalyticsDashboardComponent } from './analytics/dashboard/settings-analytics-dashboard.component';
-import { ApiPortalHeaderComponent } from './api-portal-header/api-portal-header.component';
 import { CategoriesComponent } from './categories/categories.component';
 import { CategoryComponent } from './categories/category/category.component';
 import { GroupsComponent } from './groups/groups.component';
@@ -36,7 +35,7 @@ import { DictionaryComponent } from './dictionaries/dictionary.component';
 import { CustomUserFieldsComponent } from './custom-user-fields/custom-user-fields.component';
 import { EnvironmentNotificationModule } from './notification/environment-notification.module';
 import { ApiQualityRulesModule } from './api-quality-rules/api-quality-rules.module';
-import { ApiPortalHeaderModule } from './api-portal-header/migrated/api-portal-header.module';
+import { ApiPortalHeaderModule } from './api-portal-header/api-portal-header.module';
 import { IdentityProvidersModule } from './identity-providers/identity-providers.module';
 import { PortalSettingsModule } from './portal-settings/portal-settings.module';
 import { TopApisModule } from './top-apis/top-apis.module';
@@ -65,7 +64,6 @@ import { DocumentationModule } from '../../components/documentation/documentatio
     SettingsNavigationComponent,
     SettingsAnalyticsComponent,
     SettingsAnalyticsDashboardComponent,
-    ApiPortalHeaderComponent,
     CategoriesComponent,
     CategoryComponent,
     GroupsComponent,

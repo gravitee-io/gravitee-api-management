@@ -22,7 +22,6 @@ import { EnvironmentApiHeadersService } from './environment-api-headers.service'
 import { CONSTANTS_TESTING } from '../shared/testing';
 import { fakeApiPortalHeaders } from '../entities/api-portal-headers/api-portal-headers.fixture';
 import { ApiPortalHeader } from '../entities/apiPortalHeader';
-import { ApiPortalHeaderEditDialogResult } from '../management/settings/api-portal-header/migrated/api-portal-header-edit-dialog/api-portal-header-edit-dialog.component';
 import { Constants } from '../entities/Constants';
 
 describe('environment api headers service', () => {
@@ -62,7 +61,10 @@ describe('environment api headers service', () => {
 
   describe('createApiHeader', () => {
     it('should call the API', (done) => {
-      const headerDialogResult: ApiPortalHeaderEditDialogResult = { name: 'test-name', value: 'test-value' };
+      const headerDialogResult: {
+        name: string;
+        value: string;
+      } = { name: 'test-name', value: 'test-value' };
       environmentApiHeadersService.createApiHeader(headerDialogResult).subscribe(() => {
         done();
       });
