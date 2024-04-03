@@ -23,7 +23,12 @@
   flex-direction: row;
 }
 
-.avatar {
-  display: inline-block;
-  margin-right: 12px;
+.autocompleteRow {
+  display: flex;
+  align-items: center;
+
+  &__avatar {
+    height: 28px;
+    margin-right: 12px;
+  }
 }

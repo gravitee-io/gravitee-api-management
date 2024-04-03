@@ -79,7 +79,10 @@ export class AddTopApisDialogComponent implements OnInit {
   }
 
   public displayFn(option: Api): string {
-    return option.name;
+    if (option && option.name && option.version) {
+      return option.name + ' - ' + option.version;
+    }
+    return option.toString();
   }
 
   resetSearchTerm() {
