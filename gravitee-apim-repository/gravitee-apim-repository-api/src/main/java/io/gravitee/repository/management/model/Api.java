@@ -35,7 +35,7 @@ import lombok.With;
  */
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 @Getter
 @Setter
 @ToString
