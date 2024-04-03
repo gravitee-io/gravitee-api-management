@@ -89,7 +89,8 @@ public class ConfigMapEventFetcher {
                     .labelSelector(LabelSelector.equals(LABEL_GIO_TYPE, APIDEFINITIONS_TYPE))
                     .build()
             )
-            .retryWhen(errors -> errors.delay(RETRY_DELAY_MILLIS, TimeUnit.MILLISECONDS));
+            .retryWhen(errors -> errors.delay(RETRY_DELAY_MILLIS, TimeUnit.MILLISECONDS))
+            .repeat();
     }
 
     public Maybe<io.gravitee.repository.management.model.Event> convertTo(final Event<ConfigMap> configMapEvent) {
