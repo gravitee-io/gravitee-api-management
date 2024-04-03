@@ -17,14 +17,14 @@
 -->
 
 <div class="api-portal-headers">
-  <h1>API Portal Information</h1>
+  <h2>API Portal Information</h2>
 
   <div class="form">
     <div class="form-cards">
       <mat-card>
-        <mat-card-header class="card-header">
-          <h3>Header configuration</h3>
-          <p>Add additional information to each API header</p>
+        <mat-card-header>
+          <mat-card-title>Header configuration</mat-card-title>
+          <mat-card-subtitle>Add additional information to each API header</mat-card-subtitle>
         </mat-card-header>
         <mat-card-content *ngIf="!!settings.portal" class="toggle-group">
           <gio-form-slide-toggle>
@@ -54,9 +54,22 @@
       </mat-card>
 
       <mat-card>
-        <mat-card-header class="card-header">
-          <h3>General information</h3>
-          <p>Use hard-coded values or templating to display information about your API on the General Information page</p>
+        <mat-card-header class="card-header-with-btn">
+          <mat-card-title>General information</mat-card-title>
+          <mat-card-subtitle
+            >Use hard-coded values or templating to display information about your API on the General Information page</mat-card-subtitle
+          >
+          <div class="card-header__addBtn">
+            <button
+              class="add-button"
+              (click)="createHeader()"
+              mat-raised-button
+              color="primary"
+              *gioPermission="{ anyOf: ['environment-settings-c'] }"
+            >
+              Add Information
+            </button>
+          </div>
         </mat-card-header>
         <mat-card-content>
           <table mat-table [dataSource]="headersList">
@@ -135,24 +148,13 @@
               <td class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">No headers to display.</td>
             </tr>
           </table>
-          <div class="add-headers">
-            <button
-              class="add-button"
-              (click)="createHeader()"
-              mat-raised-button
-              color="primary"
-              *gioPermission="{ anyOf: ['environment-settings-c'] }"
-            >
-              Add Information
-            </button>
-          </div>
         </mat-card-content>
       </mat-card>
 
       <mat-card>
-        <mat-card-header class="card-header">
-          <h3>Catalog settings</h3>
-          <p>Configure how lists of APIs are shown in the catalog</p>
+        <mat-card-header>
+          <mat-card-title>Catalog settings</mat-card-title>
+          <mat-card-subtitle>Configure how lists of APIs are shown in the catalog</mat-card-subtitle>
         </mat-card-header>
         <mat-card-content>
           <gio-form-slide-toggle *ngIf="!!settings.portal">
