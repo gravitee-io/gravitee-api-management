@@ -206,7 +206,7 @@ public class SearchIndexInitializer implements Initializer {
                     );
                 return runApiIndexationAsync(executionContext, api, primaryOwner, indexable, executorService);
             } else {
-                indexable = apiConverter.toApiEntity(api, primaryOwner);
+                indexable = apiConverter.toApiEntity(executionContext, api, primaryOwner, null, false);
                 return runApiIndexationAsync(executionContext, api, primaryOwner, indexable, executorService);
             }
         } catch (Exception e) {
