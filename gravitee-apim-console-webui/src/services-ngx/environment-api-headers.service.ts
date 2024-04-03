@@ -21,7 +21,6 @@ import { switchMap, tap } from 'rxjs/operators';
 
 import { Constants } from '../entities/Constants';
 import { ApiPortalHeader } from '../entities/apiPortalHeader';
-import { ApiPortalHeaderEditDialogResult } from '../management/settings/api-portal-header/migrated/api-portal-header-edit-dialog/api-portal-header-edit-dialog.component';
 
 @Injectable({
   providedIn: 'root',
@@ -46,9 +45,9 @@ export class EnvironmentApiHeadersService {
     );
   }
 
-  createApiHeader(headerDialogResult: ApiPortalHeaderEditDialogResult): Observable<ApiPortalHeader[]> {
+  createApiHeader(headerToAdd: { name: string; value: string }): Observable<ApiPortalHeader[]> {
     return this.httpClient
-      .post(`${this.constants.env.baseURL}/configuration/apiheaders/`, headerDialogResult)
+      .post(`${this.constants.env.baseURL}/configuration/apiheaders/`, headerToAdd)
       .pipe(switchMap(() => this.getApiHeaders()));
   }
 
