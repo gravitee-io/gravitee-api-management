@@ -23,8 +23,6 @@ import { SettingsAnalyticsComponent } from './analytics/settings-analytics.compo
 import { SettingsNavigationComponent } from './settings-navigation/settings-navigation.component';
 import { SettingsAnalyticsDashboardComponent } from './analytics/dashboard/settings-analytics-dashboard.component';
 import { ApiPortalHeaderComponent } from './api-portal-header/api-portal-header.component';
-import { ApiQualityRulesComponent } from './api-quality-rules/api-quality-rules.component';
-import { ApiQualityRuleComponent } from './api-quality-rules/api-quality-rule/api-quality-rule.component';
 import { IdentityProvidersComponent } from './identityProviders/identity-providers.component';
 import { CategoriesComponent } from './categories/categories.component';
 import { CategoryComponent } from './categories/category/category.component';
@@ -71,8 +69,6 @@ import { DocumentationModule } from '../../components/documentation/documentatio
     SettingsAnalyticsComponent,
     SettingsAnalyticsDashboardComponent,
     ApiPortalHeaderComponent,
-    ApiQualityRulesComponent,
-    ApiQualityRuleComponent,
     IdentityProvidersComponent,
     CategoriesComponent,
     CategoryComponent,
