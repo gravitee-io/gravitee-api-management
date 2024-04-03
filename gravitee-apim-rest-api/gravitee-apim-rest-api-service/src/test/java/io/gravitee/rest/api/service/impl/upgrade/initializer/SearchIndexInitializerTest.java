@@ -254,7 +254,7 @@ public class SearchIndexInitializerTest {
                             new IndexableApi(invocation.getArgument(1), null, Collections.emptyMap(), Collections.emptyList())
                         );
                 } else if (api.getDefinitionVersion() == DefinitionVersion.V2) {
-                    when(apiConverter.toApiEntity(same(api), any()))
+                    when(apiConverter.toApiEntity(any(), same(api), any(), eq(null), eq(false)))
                         .thenReturn(
                             ApiEntity.builder().id(api.getId()).referenceId(api.getEnvironmentId()).referenceType("ENVIRONMENT").build()
                         );
