@@ -16,7 +16,7 @@
 
 -->
 
-<h4 mat-dialog-title>{{ data.title }}</h4>
+<span mat-dialog-title>{{ data.title }}</span>
 <form autocomplete="off" (ngSubmit)="submit()">
   <mat-dialog-content>
     <mat-form-field appearance="outline" class="form-field">
@@ -28,14 +28,16 @@
       </button>
       <mat-autocomplete #auto="matAutocomplete" (optionSelected)="selectTopAPI()" [displayWith]="displayFn">
         <mat-option hide *ngFor="let option of filteredOptions$ | async" [value]="option" data-testid="new-top-api-option">
-          <gio-avatar
-            class="avatar"
-            [src]="option.picture_url"
-            [name]="option.name + ' ' + option.version"
-            [size]="12"
-            [roundedBorder]="true"
-          ></gio-avatar>
-          <span>{{ option.name }}</span>
+          <span class="autocompleteRow">
+            <gio-avatar
+              class="autocompleteRow__avatar"
+              [src]="option.picture_url"
+              [name]="option.name + ' ' + option.version"
+              [size]="28"
+              [roundedBorder]="true"
+            ></gio-avatar>
+            <span>{{ option.name }} - {{ option.version }}</span>
+          </span>
         </mat-option>
         <mat-option *ngIf="(filteredOptions$ | async)?.length === 0 && searchApiControl.getRawValue()" disabled>
           No Top APIs matching search criteria
