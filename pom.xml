@@ -1253,6 +1253,7 @@
                         <exclude>**/LICENSE_TEMPLATE.txt</exclude>
                         <exclude>**/sonar-project.properties</exclude>
                         <exclude>gravitee-apim-portal-webui/**</exclude>
+                        <exclude>gravitee-apim-portal-webui-next/**</exclude>
                         <exclude>gravitee-apim-console-webui/**</exclude>
                         <exclude>gravitee-apim-e2e/**</exclude>
                         <exclude>gravitee-apim-perf/**</exclude>
