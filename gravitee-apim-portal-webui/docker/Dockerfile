@@ -17,11 +17,14 @@
 FROM graviteeio/nginx-noconfd:1.25.1
 LABEL maintainer="contact@graviteesource.com"
 
+EXPOSE 8080
+
 ENV ALLOWED_FRAME_ANCESTOR_URLS "'self'"
 ENV PORTAL_BASE_HREF "/"
 ENV PORTAL_API_URL "http://localhost:8083/portal"
 
 COPY ./dist /usr/share/nginx/html/
+COPY ./dist-next /usr/share/nginx/html/next
 
 COPY docker/config/config.json /usr/share/nginx/html/assets/config.json
 COPY docker/config/default.conf /etc/nginx/conf.d/default.conf
