@@ -146,6 +146,7 @@ class ApiAnalyticsLogControllerAjs {
       relativeTo: this.activatedRoute,
       queryParams: {
         ...this.backStateParams,
+        timestamp: this.activatedRoute.snapshot.queryParams.timestamp,
       },
     });
     this.ApiService.getLog(this.activatedRoute.snapshot.params.apiId, logId, this.activatedRoute.snapshot.queryParams.timestamp).then(
