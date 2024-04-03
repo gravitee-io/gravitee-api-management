@@ -26,22 +26,22 @@ import { GioFormTagsInputHarness, GioSaveBarHarness } from '@gravitee/ui-particl
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 
-import { PortalNgComponent } from './portal-ng.component';
-import { PortalNgModule } from './portal-ng.module';
+import { PortalSettingsComponent } from './portal-settings.component';
+import { PortalSettingsModule } from './portal-settings.module';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 import { fakePortalSettings } from '../../../entities/portal/portalSettings.fixture';
 
-describe('PortalNgComponent', () => {
-  let fixture: ComponentFixture<PortalNgComponent>;
+describe('PortalSettingsComponent', () => {
+  let fixture: ComponentFixture<PortalSettingsComponent>;
   let loader: HarnessLoader;
   let httpTestingController: HttpTestingController;
   const portalSettingsMock = fakePortalSettings();
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioTestingModule, PortalNgModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, PortalSettingsModule, MatIconTestingModule],
       providers: [
         {
           provide: GioTestingPermissionProvider,
@@ -57,7 +57,7 @@ describe('PortalNgComponent', () => {
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(PortalNgComponent);
+    fixture = TestBed.createComponent(PortalSettingsComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();

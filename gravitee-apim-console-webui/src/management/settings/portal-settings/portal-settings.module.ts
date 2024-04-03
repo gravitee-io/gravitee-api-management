@@ -33,14 +33,14 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
 
-import { PortalNgComponent } from './portal-ng.component';
+import { PortalSettingsComponent } from './portal-settings.component';
 
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 
 @NgModule({
-  declarations: [PortalNgComponent],
-  exports: [PortalNgComponent],
+  declarations: [PortalSettingsComponent],
+  exports: [PortalSettingsComponent],
   imports: [
     CommonModule,
     FormsModule,
@@ -67,4 +67,4 @@ import { GioPermissionModule } from '../../../shared/components/gio-permission/g
     MatSelectModule,
   ],
 })
-export class PortalNgModule {}
+export class PortalSettingsModule {}
