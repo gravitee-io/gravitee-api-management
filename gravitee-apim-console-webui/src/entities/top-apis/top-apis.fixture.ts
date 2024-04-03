@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TopApi } from '../../management/settings/top-apis/migrated/top-apis.model';
+import { TopApi } from '../../management/settings/top-apis/top-apis.model';
 
 export function fakeTopApi(attribute?: Partial<TopApi>): TopApi {
   const base: TopApi = {

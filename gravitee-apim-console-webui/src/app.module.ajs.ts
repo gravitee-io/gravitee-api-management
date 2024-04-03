@@ -182,12 +182,6 @@ import interceptorConfig from './app.interceptor.ajs';
 
 import { permission } from 'angular-permission';
 
-import TopApisController from './management/settings/top-apis/top-apis.controller';
-import TopApiService from './services/top-api.service';
-import TopApisComponentAjs from './management/settings/top-apis/top-apis.component.ajs';
-import AddTopApiDialogController from './management/settings/top-apis/dialog/add.top-api.dialog.controller';
-import DeleteTopApiDialogController from './management/settings/top-apis/dialog/delete.top-api.dialog.controller';
-
 import ApiPortalHeaderComponentAjs from './management/settings/api-portal-header/api-portal-header.component.ajs';
 import ApiHeaderService from './services/apiHeader.service';
 
@@ -488,9 +482,6 @@ graviteeManagementModule.controller('DialogDynamicProviderHttpController', Dialo
 graviteeManagementModule.component('apiAuditComponentAjs', ApiAuditComponentAjs);
 graviteeManagementModule.controller('PortalThemeController', PortalThemeController);
 graviteeManagementModule.controller('CustomUserFieldsController', CustomUserFieldsController);
-graviteeManagementModule.controller('TopApisController', TopApisController);
-graviteeManagementModule.controller('AddTopApiDialogController', AddTopApiDialogController);
-graviteeManagementModule.controller('DeleteTopApiDialogController', DeleteTopApiDialogController);
 graviteeManagementModule.controller('SelectFolderDialogController', SelectFolderDialogController);
 graviteeManagementModule.controller('SelectPageDialogController', SelectPageDialogController);
 graviteeManagementModule.service('ApplicationService', ApplicationService);
@@ -517,7 +508,6 @@ graviteeManagementModule.service('StringService', StringService);
 graviteeManagementModule.service('RoleService', RoleService);
 graviteeManagementModule.service('TicketService', TicketService);
 graviteeManagementModule.service('AuditService', AuditService);
-graviteeManagementModule.service('TopApiService', TopApiService);
 graviteeManagementModule.service('PortalThemeService', PortalThemeService);
 graviteeManagementModule.service('TokenService', TokenService);
 graviteeManagementModule.service('EnvironmentService', EnvironmentService);
@@ -553,7 +543,6 @@ graviteeManagementModule.component('settingsCategoriesAjs', CategoriesComponentA
 graviteeManagementModule.component('settingsCategoryEditAjs', CategoryComponentAjs);
 
 graviteeManagementModule.component('settingsThemeAjs', PortalThemeComponentAjs);
-graviteeManagementModule.component('settingsTopApis', TopApisComponentAjs);
 
 graviteeManagementModule.component('settingsAnalyticsAjs', SettingsAnalyticsComponentAjs);
 graviteeManagementModule.component('customUserFieldsAjs', CustomUserFieldsComponentAjs);

@@ -34,8 +34,8 @@ import { MatInputModule } from '@angular/material/input';
 import { TopApisComponent } from './top-apis.component';
 import { AddTopApisDialogComponent } from './add-top-apis-dialog/add-top-apis-dialog.component';
 
-import { GioTableWrapperModule } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
-import { GioPermissionModule } from '../../../../shared/components/gio-permission/gio-permission.module';
+import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
+import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 
 @NgModule({
   declarations: [TopApisComponent, AddTopApisDialogComponent],

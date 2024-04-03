@@ -22,7 +22,7 @@ import { TopApiService } from './top-api.service';
 import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { Constants } from '../entities/Constants';
 import { fakeTopApi } from '../entities/top-apis/top-apis.fixture';
-import { TopApi } from '../management/settings/top-apis/migrated/top-apis.model';
+import { TopApi } from '../management/settings/top-apis/top-apis.model';
 
 describe('TopApiService', () => {
   const topApiUrl = `${CONSTANTS_TESTING.env.baseURL}/configuration/top-apis/`;
