@@ -21,7 +21,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "../gravitee-apim-portal-webui/dist/next",
+            "outputPath": "../gravitee-apim-portal-webui/dist-next",
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": ["zone.js"],
