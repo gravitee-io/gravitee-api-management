@@ -35,7 +35,7 @@ import { ApiLoggingComponent } from './api-logging/api-logging.component';
 import { DictionariesComponent } from './dictionaries/dictionaries.component';
 import { DictionaryComponent } from './dictionaries/dictionary.component';
 import { CustomUserFieldsComponent } from './custom-user-fields/custom-user-fields.component';
-import { ApiQualityRulesNgComponent } from './api-quality-rules-ng/api-quality-rules-ng.component';
+import { ApiQualityRulesComponent } from './api-quality-rules/api-quality-rules.component';
 import { EnvironmentNotificationComponent } from './notification/environment-notification.component';
 import { IdentityProvidersNgComponent } from './identity-providers-ng/identity-providers-ng.component';
 import { PortalNgComponent } from './portal-ng/portal-ng.component';
@@ -114,7 +114,7 @@ export const settingsRoutes: Routes = [
       },
       {
         path: 'api-quality-rules',
-        component: ApiQualityRulesNgComponent,
+        component: ApiQualityRulesComponent,
         data: {
           docs: {
             page: 'management-configuration-apiquality',

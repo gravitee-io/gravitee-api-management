@@ -28,15 +28,15 @@ import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 
-import { ApiQualityRulesNgComponent } from './api-quality-rules-ng.component';
-import { ApiQualityRulesNgModule } from './api-quality-rules-ng.module';
+import { ApiQualityRulesComponent } from './api-quality-rules.component';
+import { ApiQualityRulesModule } from './api-quality-rules.module';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 import { QualityRule } from '../../../entities/qualityRule';
 
-describe('ApiQualityRulesNgComponent', () => {
-  let fixture: ComponentFixture<ApiQualityRulesNgComponent>;
+describe('ApiQualityRulesComponent', () => {
+  let fixture: ComponentFixture<ApiQualityRulesComponent>;
   let loader: HarnessLoader;
   let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
@@ -60,7 +60,7 @@ describe('ApiQualityRulesNgComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioTestingModule, ApiQualityRulesNgModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, ApiQualityRulesModule, MatIconTestingModule],
       providers: [
         {
           provide: GioTestingPermissionProvider,
@@ -81,7 +81,7 @@ describe('ApiQualityRulesNgComponent', () => {
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(ApiQualityRulesNgComponent);
+    fixture = TestBed.createComponent(ApiQualityRulesComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     httpTestingController = TestBed.inject(HttpTestingController);
