@@ -242,7 +242,6 @@ import ApplicationSubscribeComponentAjs from './management/application/details/s
 import ApplicationSubscribeController from './management/application/details/subscribe/application-subscribe.controller';
 import ApiKeyModeChoiceDialogController from './components/dialog/apiKeyMode/api-key-mode-choice-dialog.controller';
 
-import QualityRuleService from './services/qualityRule.service';
 import DialogQueryFilterInformationController from './management/settings/analytics/dashboard/query-filter-information.dialog.controller';
 
 import PortalThemeController from './management/settings/portal-theme/portalTheme.controller';
@@ -634,8 +633,6 @@ graviteeManagementModule.component('settingsApiPortalHeaderAjs', ApiPortalHeader
 graviteeManagementModule.service('ApiHeaderService', ApiHeaderService);
 graviteeManagementModule.controller('NewApiPortalHeaderDialogController', NewApiPortalHeaderDialogController);
 graviteeManagementModule.controller('UpdateApiPortalHeaderDialogController', UpdateApiPortalHeaderDialogController);
-
-graviteeManagementModule.service('QualityRuleService', QualityRuleService);
 
 // Settings: Identity provider
 
