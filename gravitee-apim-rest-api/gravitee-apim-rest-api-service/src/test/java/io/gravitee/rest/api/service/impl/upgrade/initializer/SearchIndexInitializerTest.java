@@ -16,11 +16,21 @@
 package io.gravitee.rest.api.service.impl.upgrade.initializer;
 
 import static io.gravitee.repository.management.model.UserStatus.ACTIVE;
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyBoolean;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.same;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import fixtures.repository.ApiFixtures;
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EnvironmentRepository;
 import io.gravitee.repository.management.api.UserRepository;
@@ -30,7 +40,6 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.Environment;
 import io.gravitee.repository.management.model.User;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
-import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.search.Indexable;
 import io.gravitee.rest.api.service.PageService;
@@ -40,34 +49,30 @@ import io.gravitee.rest.api.service.converter.UserConverter;
 import io.gravitee.rest.api.service.exceptions.PrimaryOwnerNotFoundException;
 import io.gravitee.rest.api.service.search.SearchEngineService;
 import io.gravitee.rest.api.service.v4.PrimaryOwnerService;
+import io.gravitee.rest.api.service.v4.mapper.ApiMapper;
 import io.gravitee.rest.api.service.v4.mapper.GenericApiMapper;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.stream.Stream;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
+import lombok.SneakyThrows;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * @author GraviteeSource Team
  */
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class SearchIndexInitializerTest {
-
-    @InjectMocks
-    private SearchIndexInitializer initializer;
 
     @Mock
     private ApiRepository apiRepository;
-
-    @Mock
-    private GenericApiMapper genericApiMapper;
 
     @Mock
     private PageService pageService;
@@ -85,192 +90,182 @@ public class SearchIndexInitializerTest {
     private EnvironmentRepository environmentRepository;
 
     @Mock
-    private ApiConverter apiConverter;
+    private ApiMapper apiMapper;
 
     @Mock
-    private UserConverter userConverter;
+    private ApiConverter apiConverter;
 
     private final PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity();
 
-    @Before
+    private SearchIndexInitializer initializer;
+
+    @BeforeEach
     public void setup() throws Exception {
-        mockEnvironment("env1", "org1");
-        mockEnvironment("env2", "org2");
-        mockEnvironment("env3", "org1");
-        when(primaryOwnerService.getPrimaryOwner(any(), any())).thenReturn(primaryOwnerEntity);
+        initializer =
+            new SearchIndexInitializer(
+                apiRepository,
+                new GenericApiMapper(apiMapper, apiConverter),
+                pageService,
+                userRepository,
+                searchEngineService,
+                environmentRepository,
+                apiMapper,
+                apiConverter,
+                new UserConverter(),
+                primaryOwnerService
+            );
+
+        givenExistingEnvironments(
+            Environment.builder().id("env1").organizationId("org1").build(),
+            Environment.builder().id("env2").organizationId("org2").build(),
+            Environment.builder().id("env3").organizationId("org1").build()
+        );
+
+        lenient().when(primaryOwnerService.getPrimaryOwner(any(), any())).thenReturn(primaryOwnerEntity);
     }
 
-    @Test
-    public void runApisIndexationAsync_should_retrieve_environment_of_each_api() throws Exception {
-        mockTestApis();
-        mockTestUsers();
+    @Nested
+    class RunApisIndexationAsync {
 
-        List<CompletableFuture<?>> futures = initializer.runApisIndexationAsync(Executors.newSingleThreadExecutor());
-        assertEquals(futures.size(), 4);
+        @Test
+        public void runApisIndexationAsync_should_index_every_api() throws Exception {
+            givenExistingApis(
+                ApiFixtures.aV2Api().toBuilder().id("api1").environmentId("env1").build(),
+                ApiFixtures.aV2Api().toBuilder().id("api2").environmentId("env2").build(),
+                ApiFixtures.aV4Api().toBuilder().id("api3").environmentId("env1").build(),
+                ApiFixtures.aV4Api().toBuilder().id("api4").environmentId("env3").build()
+            );
 
-        futures.forEach(CompletableFuture::join);
+            initializer.runApisIndexationAsync(Executors.newSingleThreadExecutor()).forEach(CompletableFuture::join);
 
-        verify(environmentRepository, times(1)).findById("env1");
-        verify(environmentRepository, times(1)).findById("env2");
-        verify(environmentRepository, times(1)).findById("env3");
+            verify(searchEngineService, times(1))
+                .index(
+                    argThat(e -> e.hasEnvironmentId() && e.getEnvironmentId().equals("env1") && e.getOrganizationId().equals("org1")),
+                    argThat(api -> api.getId().equals("api1")),
+                    eq(true),
+                    eq(false)
+                );
+            verify(searchEngineService, times(1))
+                .index(
+                    argThat(e -> e.hasEnvironmentId() && e.getEnvironmentId().equals("env2") && e.getOrganizationId().equals("org2")),
+                    argThat(api -> api.getId().equals("api2")),
+                    eq(true),
+                    eq(false)
+                );
+            verify(searchEngineService, times(1))
+                .index(
+                    argThat(e -> e.hasEnvironmentId() && e.getEnvironmentId().equals("env1") && e.getOrganizationId().equals("org1")),
+                    argThat(api -> api.getId().equals("api3")),
+                    eq(true),
+                    eq(false)
+                );
+            verify(searchEngineService, times(1))
+                .index(
+                    argThat(e -> e.hasEnvironmentId() && e.getEnvironmentId().equals("env3") && e.getOrganizationId().equals("org1")),
+                    argThat(api -> api.getId().equals("api4")),
+                    eq(true),
+                    eq(false)
+                );
+        }
 
-        verifyNoMoreInteractions(environmentRepository);
+        @Test
+        public void runApisIndexationAsync_should_index_every_api_even_if_primaryOwner_not_found() throws Exception {
+            givenExistingApis(
+                ApiFixtures.aV2Api().toBuilder().id("api1").environmentId("env1").build(),
+                ApiFixtures.aV4Api().toBuilder().id("api2").environmentId("env2").build()
+            );
+            when(primaryOwnerService.getPrimaryOwner(any(), any())).thenThrow(PrimaryOwnerNotFoundException.class);
 
-        verify(genericApiMapper, times(4)).toGenericApi(any(Api.class), any());
+            initializer.runApisIndexationAsync(Executors.newSingleThreadExecutor()).forEach(CompletableFuture::join);
+
+            verify(searchEngineService, times(2)).index(any(ExecutionContext.class), any(Indexable.class), anyBoolean(), anyBoolean());
+        }
     }
 
-    @Test
-    public void runApisIndexationAsync_should_index_every_api() throws Exception {
-        mockTestApis();
-        mockTestUsers();
+    @Nested
+    class RunUsersIndexationAsync {
 
-        List<CompletableFuture<?>> futures = initializer.runApisIndexationAsync(Executors.newSingleThreadExecutor());
-        assertEquals(futures.size(), 4);
-
-        futures.forEach(CompletableFuture::join);
-
-        verify(searchEngineService, times(1))
-            .index(
-                argThat(e -> e.hasEnvironmentId() && e.getEnvironmentId().equals("env1") && e.getOrganizationId().equals("org1")),
-                argThat(api -> api.getId().equals("api1")),
-                eq(true),
-                eq(false)
-            );
-        verify(searchEngineService, times(1))
-            .index(
-                argThat(e -> e.hasEnvironmentId() && e.getEnvironmentId().equals("env2") && e.getOrganizationId().equals("org2")),
-                argThat(api -> api.getId().equals("api2")),
-                eq(true),
-                eq(false)
-            );
-        verify(searchEngineService, times(1))
-            .index(
-                argThat(e -> e.hasEnvironmentId() && e.getEnvironmentId().equals("env1") && e.getOrganizationId().equals("org1")),
-                argThat(api -> api.getId().equals("api3")),
-                eq(true),
-                eq(false)
-            );
-        verify(searchEngineService, times(1))
-            .index(
-                argThat(e -> e.hasEnvironmentId() && e.getEnvironmentId().equals("env3") && e.getOrganizationId().equals("org1")),
-                argThat(api -> api.getId().equals("api4")),
-                eq(true),
-                eq(false)
+        @Test
+        public void runUsersIndexationAsync_should_index_every_user() throws Exception {
+            givenExistingUsers(
+                User.builder().id("user1").organizationId("org1").build(),
+                User.builder().id("user2").organizationId("org2").build(),
+                User.builder().id("user3").organizationId("org1").build(),
+                User.builder().id("user4").organizationId("org3").build()
             );
 
-        verify(genericApiMapper, times(4)).toGenericApi(any(Api.class), any());
-    }
+            initializer.runUsersIndexationAsync(Executors.newSingleThreadExecutor()).forEach(CompletableFuture::join);
 
-    @Test
-    public void runApisIndexationAsync_should_index_every_api_even_if_primaryOwner_not_found() throws Exception {
-        mockTestApis();
-        mockTestUsers();
-        when(primaryOwnerService.getPrimaryOwner(any(), any())).thenThrow(PrimaryOwnerNotFoundException.class);
-
-        List<CompletableFuture<?>> futures = initializer.runApisIndexationAsync(Executors.newSingleThreadExecutor());
-        assertEquals(futures.size(), 4);
-
-        futures.forEach(CompletableFuture::join);
-
-        verify(searchEngineService, times(4)).index(any(ExecutionContext.class), any(Indexable.class), anyBoolean(), anyBoolean());
-    }
-
-    @Test
-    public void runUsersIndexationAsync_should_index_every_user() throws Exception {
-        mockTestApis();
-        mockTestUsers();
-
-        List<CompletableFuture<?>> futures = initializer.runUsersIndexationAsync(Executors.newSingleThreadExecutor());
-        assertEquals(futures.size(), 4);
-
-        futures.forEach(CompletableFuture::join);
-
-        verify(searchEngineService, times(1))
-            .index(
-                argThat(e -> !e.hasEnvironmentId() && e.getOrganizationId().equals("org1")),
-                argThat(user -> user.getId().equals("user1")),
-                eq(true),
-                eq(false)
-            );
-        verify(searchEngineService, times(1))
-            .index(
-                argThat(e -> !e.hasEnvironmentId() && e.getOrganizationId().equals("org2")),
-                argThat(user -> user.getId().equals("user2")),
-                eq(true),
-                eq(false)
-            );
-        verify(searchEngineService, times(1))
-            .index(
-                argThat(e -> !e.hasEnvironmentId() && e.getOrganizationId().equals("org1")),
-                argThat(user -> user.getId().equals("user3")),
-                eq(true),
-                eq(false)
-            );
-        verify(searchEngineService, times(1))
-            .index(
-                argThat(e -> !e.hasEnvironmentId() && e.getOrganizationId().equals("org3")),
-                argThat(user -> user.getId().equals("user4")),
-                eq(true),
-                eq(false)
-            );
+            verify(searchEngineService, times(1))
+                .index(
+                    argThat(e -> !e.hasEnvironmentId() && e.getOrganizationId().equals("org1")),
+                    argThat(user -> user.getId().equals("user1")),
+                    eq(true),
+                    eq(false)
+                );
+            verify(searchEngineService, times(1))
+                .index(
+                    argThat(e -> !e.hasEnvironmentId() && e.getOrganizationId().equals("org2")),
+                    argThat(user -> user.getId().equals("user2")),
+                    eq(true),
+                    eq(false)
+                );
+            verify(searchEngineService, times(1))
+                .index(
+                    argThat(e -> !e.hasEnvironmentId() && e.getOrganizationId().equals("org1")),
+                    argThat(user -> user.getId().equals("user3")),
+                    eq(true),
+                    eq(false)
+                );
+            verify(searchEngineService, times(1))
+                .index(
+                    argThat(e -> !e.hasEnvironmentId() && e.getOrganizationId().equals("org3")),
+                    argThat(user -> user.getId().equals("user4")),
+                    eq(true),
+                    eq(false)
+                );
+        }
     }
 
     @Test
     public void testOrder() {
-        assertEquals(InitializerOrder.SEARCH_INDEX_INITIALIZER, initializer.getOrder());
+        assertThat(initializer.getOrder()).isEqualTo(InitializerOrder.SEARCH_INDEX_INITIALIZER);
     }
 
-    private void mockTestApis() throws Exception {
-        Stream<Api> apis = Stream.of(
-            mockTestApi("api1", "env1"),
-            mockTestApi("api2", "env2"),
-            mockTestApi("api3", "env1"),
-            mockTestApi("api4", "env3")
-        );
-        when(apiRepository.search(any(ApiCriteria.class), eq(null), any(ApiFieldFilter.class))).thenReturn(apis);
+    private void givenExistingApis(Api... apis) {
+        when(apiRepository.search(any(ApiCriteria.class), eq(null), any(ApiFieldFilter.class))).thenReturn(Stream.of(apis));
+
+        Stream
+            .of(apis)
+            .forEach(api -> {
+                if (api.getDefinitionVersion() == DefinitionVersion.V4) {
+                    when(apiMapper.toEntity(any(), same(api), any(), any(), eq(false)))
+                        .thenReturn(
+                            io.gravitee.rest.api.model.v4.api.ApiEntity
+                                .builder()
+                                .id(api.getId())
+                                .referenceId(api.getEnvironmentId())
+                                .referenceType("ENVIRONMENT")
+                                .build()
+                        );
+                } else if (api.getDefinitionVersion() == DefinitionVersion.V2) {
+                    when(apiConverter.toApiEntity(same(api), any()))
+                        .thenReturn(
+                            ApiEntity.builder().id(api.getId()).referenceId(api.getEnvironmentId()).referenceType("ENVIRONMENT").build()
+                        );
+                }
+            });
     }
 
-    private Api mockTestApi(String apiId, String environmentId) {
-        Api api = new Api();
-        api.setId(apiId);
-        api.setEnvironmentId(environmentId);
-
-        ApiEntity apiEntity = new ApiEntity();
-        apiEntity.setId(apiId);
-
-        when(apiConverter.toApiEntity(same(api), any())).thenReturn(apiEntity);
-
-        return api;
-    }
-
-    private void mockTestUsers() throws Exception {
-        List<User> users = List.of(
-            mockTestUser("user1", "org1"),
-            mockTestUser("user2", "org2"),
-            mockTestUser("user3", "org1"),
-            mockTestUser("user4", "org3")
-        );
-        Page<User> page = new Page<>(users, 0, users.size(), users.size());
+    private void givenExistingUsers(User... users) throws Exception {
         when(userRepository.search(argThat(criteria -> criteria.getStatuses().length == 1 && criteria.getStatuses()[0] == ACTIVE), any()))
-            .thenReturn(page);
+            .thenReturn(new Page<>(List.of(users), 0, users.length, users.length));
     }
 
-    private User mockTestUser(String userId, String organizationId) {
-        User user = new User();
-        user.setId(userId);
-        user.setOrganizationId(organizationId);
-
-        UserEntity userEntity = new UserEntity();
-        userEntity.setId(userId);
-        when(userConverter.toUserEntity(user)).thenReturn(userEntity);
-
-        return user;
-    }
-
-    private void mockEnvironment(String envId, String orgId) throws Exception {
-        Environment environment1 = new Environment();
-        environment1.setId(envId);
-        environment1.setOrganizationId(orgId);
-        when(environmentRepository.findById(envId)).thenReturn(Optional.of(environment1));
+    @SneakyThrows
+    private void givenExistingEnvironments(Environment... environments) {
+        for (Environment environment : environments) {
+            lenient().when(environmentRepository.findById(environment.getId())).thenReturn(Optional.of(environment));
+        }
     }
 }

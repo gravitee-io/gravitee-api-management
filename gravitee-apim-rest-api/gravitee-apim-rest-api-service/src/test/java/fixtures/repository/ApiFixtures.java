@@ -15,11 +15,16 @@
  */
 package fixtures.repository;
 
+import fixtures.definition.ApiDefinitionFixtures;
+import io.gravitee.definition.jackson.datatype.GraviteeMapper;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.management.model.Api;
 import java.time.Instant;
+import lombok.SneakyThrows;
 
 public class ApiFixtures {
+
+    private static final GraviteeMapper GRAVITEE_MAPPER = new GraviteeMapper();
 
     private ApiFixtures() {}
 
@@ -36,5 +41,21 @@ public class ApiFixtures {
 
     public static Api anApi() {
         return BASE.build();
+    }
+
+    @SneakyThrows
+    public static Api aV2Api() {
+        return BASE
+            .definitionVersion(DefinitionVersion.V2)
+            .definition(GRAVITEE_MAPPER.writeValueAsString(ApiDefinitionFixtures.anApiV2()))
+            .build();
+    }
+
+    @SneakyThrows
+    public static Api aV4Api() {
+        return BASE
+            .definitionVersion(DefinitionVersion.V4)
+            .definition(GRAVITEE_MAPPER.writeValueAsString(ApiDefinitionFixtures.anApiV4()))
+            .build();
     }
 }
