@@ -29,8 +29,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 
-import { ApiQualityRulesNgComponent } from './api-quality-rules-ng.component';
-import { ApiQualityRulesNgAddDialogComponent } from './api-quality-rules-ng-add-dialog/api-quality-rules-ng-add-dialog.component';
+import { ApiQualityRulesComponent } from './api-quality-rules.component';
+import { ApiQualityRulesAddDialogComponent } from './api-quality-rules-add-dialog/api-quality-rules-add-dialog.component';
 
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
@@ -57,7 +57,7 @@ import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrap
     MatTooltipModule,
     MatSnackBarModule,
   ],
-  declarations: [ApiQualityRulesNgComponent, ApiQualityRulesNgAddDialogComponent],
-  exports: [ApiQualityRulesNgComponent, ApiQualityRulesNgAddDialogComponent],
+  declarations: [ApiQualityRulesComponent, ApiQualityRulesAddDialogComponent],
+  exports: [ApiQualityRulesComponent, ApiQualityRulesAddDialogComponent],
 })
-export class ApiQualityRulesNgModule {}
+export class ApiQualityRulesModule {}

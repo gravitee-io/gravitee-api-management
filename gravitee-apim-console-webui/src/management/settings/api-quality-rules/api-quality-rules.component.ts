@@ -23,8 +23,8 @@ import { MatDialog } from '@angular/material/dialog';
 import {
   ApiQualityRulesDialogData,
   ApiQualityRulesDialogResult,
-  ApiQualityRulesNgAddDialogComponent,
-} from './api-quality-rules-ng-add-dialog/api-quality-rules-ng-add-dialog.component';
+  ApiQualityRulesAddDialogComponent,
+} from './api-quality-rules-add-dialog/api-quality-rules-add-dialog.component';
 
 import { PortalSettingsService } from '../../../services-ngx/portal-settings.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
@@ -53,11 +53,11 @@ interface ApiQualityRulesForm {
 }
 
 @Component({
-  selector: 'api-quality-rules-ng',
-  templateUrl: './api-quality-rules-ng.component.html',
-  styleUrls: ['./api-quality-rules-ng.component.scss'],
+  selector: 'api-quality-rules',
+  templateUrl: './api-quality-rules.component.html',
+  styleUrls: ['./api-quality-rules.component.scss'],
 })
-export class ApiQualityRulesNgComponent implements OnInit {
+export class ApiQualityRulesComponent implements OnInit {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   settings?: PortalSettings;
   apiQualityRulesForm: FormGroup<ApiQualityRulesForm>;
@@ -227,14 +227,11 @@ export class ApiQualityRulesNgComponent implements OnInit {
 
   addQualityRule() {
     this.matDialog
-      .open<ApiQualityRulesNgAddDialogComponent, ApiQualityRulesDialogData, ApiQualityRulesDialogResult>(
-        ApiQualityRulesNgAddDialogComponent,
-        {
-          width: GIO_DIALOG_WIDTH.MEDIUM,
-          role: 'dialog',
-          id: 'addQualityRule',
-        },
-      )
+      .open<ApiQualityRulesAddDialogComponent, ApiQualityRulesDialogData, ApiQualityRulesDialogResult>(ApiQualityRulesAddDialogComponent, {
+        width: GIO_DIALOG_WIDTH.MEDIUM,
+        role: 'dialog',
+        id: 'addQualityRule',
+      })
       .afterClosed()
       .pipe(
         filter((result) => !!result),
@@ -249,17 +246,14 @@ export class ApiQualityRulesNgComponent implements OnInit {
 
   updateRule(element: ApiQualityRulesDialogData) {
     this.matDialog
-      .open<ApiQualityRulesNgAddDialogComponent, ApiQualityRulesDialogData, ApiQualityRulesDialogResult>(
-        ApiQualityRulesNgAddDialogComponent,
-        {
-          width: GIO_DIALOG_WIDTH.MEDIUM,
-          role: 'dialog',
-          id: 'updateQualityRule',
-          data: {
-            ...element,
-          },
+      .open<ApiQualityRulesAddDialogComponent, ApiQualityRulesDialogData, ApiQualityRulesDialogResult>(ApiQualityRulesAddDialogComponent, {
+        width: GIO_DIALOG_WIDTH.MEDIUM,
+        role: 'dialog',
+        id: 'updateQualityRule',
+        data: {
+          ...element,
         },
-      )
+      })
       .afterClosed()
       .pipe(
         filter((result) => !!result),

@@ -37,11 +37,11 @@ interface NewQualityRuleForm {
 }
 
 @Component({
-  selector: 'api-quality-rules-ng-add-dialog',
-  templateUrl: './api-quality-rules-ng-add-dialog.component.html',
-  styleUrls: ['./api-quality-rules-ng-add-dialog.component.scss'],
+  selector: 'api-quality-rules-add-dialog',
+  templateUrl: './api-quality-rules-add-dialog.component.html',
+  styleUrls: ['./api-quality-rules-add-dialog.component.scss'],
 })
-export class ApiQualityRulesNgAddDialogComponent implements OnInit {
+export class ApiQualityRulesAddDialogComponent implements OnInit {
   newQualityRuleForm: UntypedFormGroup;
   qualityRoleForm: ApiQualityRulesDialogData;
 
