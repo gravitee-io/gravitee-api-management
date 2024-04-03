@@ -74,8 +74,6 @@ import ApplicationCreationStep3Component from './management/application/creation
 import ApplicationCreationStep4Component from './management/application/creation/steps/application-creation-step4.component';
 
 import ApplicationHeaderComponent from './management/application/details/header/application-header.component';
-import ApplicationSubscriptionsController from './management/application/details/subscriptions/application-subscriptions.controller';
-import ApplicationSubscriptionsComponentAjs from './management/application/details/subscriptions/application-subscriptions.component.ajs';
 import ApplicationSubscriptionComponentAjs from './management/application/details/subscriptions/application-subscription.component.ajs';
 import ApplicationAnalyticsController from './management/application/details/analytics/application-analytics.controller';
 import ApplicationAnalyticsComponentAjs from './management/application/details/analytics/application-analytics.component.ajs';
@@ -229,7 +227,6 @@ import AlertTriggerTimeframesComponent from './components/alerts/alert/triggers/
 import SelectFolderDialogController from './components/documentation/dialog/selectfolder.controller';
 import SelectPageDialogController from './components/documentation/dialog/selectpage.controller';
 // Settings - Client Registration
-
 import DashboardService from './services/dashboard.service';
 import SettingsAnalyticsDashboardComponentAjs from './management/settings/analytics/dashboard/settings-analytics-dashboard.components.ajs';
 // Tokens
@@ -267,14 +264,28 @@ import UpdateFieldDialogController from './management/settings/custom-user-field
 import FlowService from './services/flow.service';
 import AlertsDashboardComponent from './components/alerts/dashboard/alerts-dashboard.component';
 import WidgetChartCountComponent from './components/dashboard/widget/count/widget-chart-count.component';
-
-(<any>window).jQuery = jQuery;
-
 import * as angular from 'angular';
 
 import { ApiAlertsDashboardComponentAjs } from './management/api/analytics/alerts/api-alerts-dashboard.component.ajs';
 
 import { markedHighlight } from 'marked-highlight';
+import { downgradeInjectable } from '@angular/upgrade/static';
+import DialogTransferOwnershipController from './management/settings/groups/group/transferOwnershipDialog.controller';
+import ApiKeysComponent from './management/application/components/api-key/api-keys.component';
+import ApiKeysController from './management/application/components/api-key/api-keys.controller';
+import { IfMatchEtagInterceptor } from './shared/interceptors/if-match-etag.interceptor';
+import SearchAndSelectComponent from './components/logs/search-and-select/search-and-select.component';
+import { SearchAndSelectController } from './components/logs/search-and-select/search-and-select.controller';
+import AlertsActivityComponentAjs from './management/alerts/activity/alerts-activity.component.ajs';
+import { ApiV2Service } from './services-ngx/api-v2.service';
+import { GioPermissionService } from './shared/components/gio-permission/gio-permission.service';
+import { ApiAnalyticsOverviewComponentAjs } from './management/api/analytics/overview/analytics-overview.component.ajs';
+import { Router } from '@angular/router';
+import SettingsAnalyticsComponentAjs from './management/settings/analytics/settings-analytics.component.ajs';
+import AnalyticsDashboardComponentAjs from './management/analytics/analytics-dashboard/analytics-dashboard.component.ajs';
+
+(<any>window).jQuery = jQuery;
+
 (<any>window).hljs = hljs;
 
 marked.use(
@@ -343,23 +354,6 @@ require('highcharts/modules/no-data-to-display')(Highcharts);
 require('highcharts/modules/map')(Highcharts);
 
 require('@highcharts/map-collection/custom/world');
-import { downgradeInjectable } from '@angular/upgrade/static';
-import DialogTransferOwnershipController from './management/settings/groups/group/transferOwnershipDialog.controller';
-
-import ApplicationSubscriptionsListComponent from './management/application/details/subscriptions/application-subscriptions-list.component';
-import ApplicationSubscriptionsListController from './management/application/details/subscriptions/application-subscriptions-list.controller';
-import ApiKeysComponent from './management/application/components/api-key/api-keys.component';
-import ApiKeysController from './management/application/components/api-key/api-keys.controller';
-import { IfMatchEtagInterceptor } from './shared/interceptors/if-match-etag.interceptor';
-import SearchAndSelectComponent from './components/logs/search-and-select/search-and-select.component';
-import { SearchAndSelectController } from './components/logs/search-and-select/search-and-select.controller';
-import AlertsActivityComponentAjs from './management/alerts/activity/alerts-activity.component.ajs';
-import { ApiV2Service } from './services-ngx/api-v2.service';
-import { GioPermissionService } from './shared/components/gio-permission/gio-permission.service';
-import { ApiAnalyticsOverviewComponentAjs } from './management/api/analytics/overview/analytics-overview.component.ajs';
-import { Router } from '@angular/router';
-import SettingsAnalyticsComponentAjs from './management/settings/analytics/settings-analytics.component.ajs';
-import AnalyticsDashboardComponentAjs from './management/analytics/analytics-dashboard/analytics-dashboard.component.ajs';
 
 (<any>window).moment = moment;
 require('angular-moment-picker');
@@ -603,14 +597,10 @@ graviteeManagementModule.component('applicationCreationStep3', ApplicationCreati
 graviteeManagementModule.component('applicationCreationStep4', ApplicationCreationStep4Component);
 
 graviteeManagementModule.component('applicationHeader', ApplicationHeaderComponent);
-graviteeManagementModule.component('applicationSubscriptions', ApplicationSubscriptionsComponentAjs);
 graviteeManagementModule.component('applicationSubscription', ApplicationSubscriptionComponentAjs);
-graviteeManagementModule.component('applicationSubscriptionsList', ApplicationSubscriptionsListComponent);
 graviteeManagementModule.component('applicationAnalytics', ApplicationAnalyticsComponentAjs);
 graviteeManagementModule.component('applicationLogs', ApplicationLogsComponentAjs);
 graviteeManagementModule.component('applicationLog', ApplicationLogComponentAjs);
-graviteeManagementModule.controller('ApplicationSubscriptionsController', ApplicationSubscriptionsController);
-graviteeManagementModule.controller('ApplicationSubscriptionsListController', ApplicationSubscriptionsListController);
 graviteeManagementModule.controller('ApplicationAnalyticsController', ApplicationAnalyticsController);
 graviteeManagementModule.controller('ApplicationLogsController', ApplicationLogsController);
 graviteeManagementModule.component('apiPlan', ApiPlanComponent);

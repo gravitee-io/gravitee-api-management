@@ -21,6 +21,7 @@ import { ApplicationService } from './application.service';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { fakeApplication, fakeApplicationType } from '../entities/application/Application.fixture';
+import { fakeApplicationSubscription } from '../entities/subscription/subscription.fixture';
 
 describe('ApplicationService', () => {
   let httpTestingController: HttpTestingController;
@@ -274,6 +275,81 @@ describe('ApplicationService', () => {
         .flush(mockApplicationTwo);
 
       expect(done).toEqual(['first', 'second']);
+    });
+  });
+
+  describe('getSubscriptionsPage', () => {
+    const appId = 'my-app-id';
+    const subscriptions = [fakeApplicationSubscription({ application: appId })];
+
+    it('should get application paged result', (done) => {
+      applicationService.getSubscriptionsPage(appId).subscribe((response) => {
+        expect(response).toMatchObject(subscriptions);
+        done();
+      });
+
+      httpTestingController
+        .expectOne({
+          method: 'GET',
+          url: `${CONSTANTS_TESTING.env.baseURL}/applications/${appId}/subscriptions?page=1&size=20`,
+        })
+        .flush(subscriptions);
+    });
+
+    it('should get application page 2 result', (done) => {
+      applicationService.getSubscriptionsPage(appId, null, 2, 50).subscribe((response) => {
+        expect(response).toMatchObject(subscriptions);
+        done();
+      });
+
+      httpTestingController
+        .expectOne({
+          method: 'GET',
+          url: `${CONSTANTS_TESTING.env.baseURL}/applications/${appId}/subscriptions?page=2&size=50`,
+        })
+        .flush(subscriptions);
+    });
+
+    it('should get application paged result for status', (done) => {
+      applicationService.getSubscriptionsPage(appId, { status: ['ACCEPTED'] }).subscribe((response) => {
+        expect(response).toMatchObject(subscriptions);
+        done();
+      });
+
+      httpTestingController
+        .expectOne({
+          method: 'GET',
+          url: `${CONSTANTS_TESTING.env.baseURL}/applications/${appId}/subscriptions?page=1&size=20&status=ACCEPTED`,
+        })
+        .flush(subscriptions);
+    });
+
+    it('should get application paged result for apiKey', (done) => {
+      applicationService.getSubscriptionsPage(appId, { apiKey: 'azerty' }).subscribe((response) => {
+        expect(response).toMatchObject(subscriptions);
+        done();
+      });
+
+      httpTestingController
+        .expectOne({
+          method: 'GET',
+          url: `${CONSTANTS_TESTING.env.baseURL}/applications/${appId}/subscriptions?page=1&size=20&api_key=azerty`,
+        })
+        .flush(subscriptions);
+    });
+
+    it('should get application paged result for apis', (done) => {
+      applicationService.getSubscriptionsPage(appId, { apis: ['api-1', 'api-2'] }).subscribe((response) => {
+        expect(response).toMatchObject(subscriptions);
+        done();
+      });
+
+      httpTestingController
+        .expectOne({
+          method: 'GET',
+          url: `${CONSTANTS_TESTING.env.baseURL}/applications/${appId}/subscriptions?page=1&size=20&api=api-1,api-2`,
+        })
+        .flush(subscriptions);
     });
   });
 });
