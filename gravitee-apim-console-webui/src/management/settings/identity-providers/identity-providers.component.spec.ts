@@ -25,8 +25,8 @@ import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 
-import { IdentityProvidersNgComponent } from './identity-providers-ng.component';
-import { IdentityProvidersNgModule } from './identity-providers-ng.module';
+import { IdentityProvidersComponent } from './identity-providers.component';
+import { IdentityProvidersModule } from './identity-providers.module';
 
 import { PortalSettings } from '../../../entities/portal/portalSettings';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
@@ -38,8 +38,8 @@ import {
   IdentityProviderListItem,
 } from '../../../entities/identity-provider';
 
-describe('IdentityProvidersNgComponent', () => {
-  let fixture: ComponentFixture<IdentityProvidersNgComponent>;
+describe('IdentityProvidersComponent', () => {
+  let fixture: ComponentFixture<IdentityProvidersComponent>;
   let loader: HarnessLoader;
   let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
@@ -56,7 +56,7 @@ describe('IdentityProvidersNgComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioTestingModule, IdentityProvidersNgModule, MatIconTestingModule],
+      imports: [NoopAnimationsModule, GioTestingModule, IdentityProvidersModule, MatIconTestingModule],
       providers: [
         {
           provide: GioTestingPermissionProvider,
@@ -81,7 +81,7 @@ describe('IdentityProvidersNgComponent', () => {
   });
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(IdentityProvidersNgComponent);
+    fixture = TestBed.createComponent(IdentityProvidersComponent);
     loader = TestbedHarnessEnvironment.loader(fixture);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     httpTestingController = TestBed.inject(HttpTestingController);

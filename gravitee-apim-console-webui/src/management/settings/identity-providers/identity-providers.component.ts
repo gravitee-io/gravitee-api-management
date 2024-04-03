@@ -40,11 +40,11 @@ interface IdentityProviderForm {
 }
 
 @Component({
-  selector: 'identity-providers-ng',
-  templateUrl: './identity-providers-ng.component.html',
-  styleUrls: ['./identity-providers-ng.component.scss'],
+  selector: 'identity-providers',
+  templateUrl: './identity-providers.component.html',
+  styleUrls: ['./identity-providers.component.scss'],
 })
-export class IdentityProvidersNgComponent implements OnInit {
+export class IdentityProvidersComponent implements OnInit {
   identityProvidersForm: FormGroup;
   settings: PortalSettings;
   activatedIdentityProvider: IdentityProviderActivation[] = [];

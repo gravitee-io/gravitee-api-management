@@ -37,7 +37,7 @@ import { DictionaryComponent } from './dictionaries/dictionary.component';
 import { CustomUserFieldsComponent } from './custom-user-fields/custom-user-fields.component';
 import { ApiQualityRulesComponent } from './api-quality-rules/api-quality-rules.component';
 import { EnvironmentNotificationComponent } from './notification/environment-notification.component';
-import { IdentityProvidersNgComponent } from './identity-providers-ng/identity-providers-ng.component';
+import { IdentityProvidersComponent } from './identity-providers/identity-providers.component';
 import { PortalNgComponent } from './portal-ng/portal-ng.component';
 
 import { DocumentationEditPageComponent } from '../../components/documentation/edit-page.component';
@@ -127,7 +127,7 @@ export const settingsRoutes: Routes = [
       },
       {
         path: 'identity-providers',
-        component: IdentityProvidersNgComponent,
+        component: IdentityProvidersComponent,
         data: {
           docs: {
             page: 'management-configuration-identityproviders',
