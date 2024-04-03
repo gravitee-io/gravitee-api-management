@@ -225,8 +225,8 @@ export class ApiGeneralMembersComponent implements OnInit {
           return combineLatest([of(apiDialogResult), this.apiService.get(this.activatedRoute.snapshot.params.apiId)]);
         }),
         switchMap(([apiDialogResult, api]) => {
-          return api.definitionVersion === 'V1'
-            ? throwError({ message: 'You cannot modify a V1 API.' })
+          return api.definitionVersion === 'V1' || api.definitionVersion === 'FEDERATED'
+            ? throwError({ message: `You cannot modify a ${api.definitionVersion} API.` })
             : this.apiService.update(api.id, { ...api, groups: apiDialogResult?.groups });
         }),
         takeUntil(this.unsubscribe$),

@@ -19,11 +19,11 @@ import { ServicesV2 } from './servicesV2';
 import { FlowV2 } from './flowV2';
 import { ExecutionMode } from './executionMode';
 
-import { BaseApi } from '../baseApi';
+import { GenericApi } from '../baseApi';
 import { ApiEntrypoint } from '../apiEntrypoint';
 import { FlowMode } from '../flowMode';
 
-export interface ApiV2 extends BaseApi {
+export interface ApiV2 extends GenericApi {
   definitionVersion: 'V2';
   /**
    * The environment's uuid.

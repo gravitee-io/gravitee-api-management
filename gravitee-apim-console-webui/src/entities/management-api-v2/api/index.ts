@@ -16,6 +16,7 @@
 export * from './v1';
 export * from './v2';
 export * from './v4';
+export * from './federated';
 export * from './api.fixture';
 export * from './api';
 export * from './apiEntrypoint';
@@ -32,6 +33,7 @@ export * from './flowMode';
 export * from './httpMethod';
 export * from './loadBalancer';
 export * from './operator';
+export * from './originContext';
 export * from './primaryOwner';
 export * from './property';
 export * from './resource';

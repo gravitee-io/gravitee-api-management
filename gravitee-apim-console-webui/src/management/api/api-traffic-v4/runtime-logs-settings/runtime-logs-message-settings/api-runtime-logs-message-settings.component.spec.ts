@@ -49,6 +49,9 @@ describe('ApiRuntimeLogsSettingsComponent', () => {
       },
       sampling: { type: 'COUNT', value: '50' },
     },
+    originContext: {
+      origin: 'MANAGEMENT',
+    },
   };
   const testSettings: ConsoleSettings = {
     metadata: {

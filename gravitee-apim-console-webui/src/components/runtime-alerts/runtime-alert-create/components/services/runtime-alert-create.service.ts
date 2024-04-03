@@ -95,9 +95,14 @@ export class RuntimeAlertCreateService {
   }
 
   private loadEndpointsNames(apiId: string) {
-    return this.apiService
-      .get(apiId)
-      .pipe(map((api) => (api.definitionVersion === 'V4' ? this.mapGroups(api.endpointGroups) : this.mapGroups(api.proxy.groups))));
+    return this.apiService.get(apiId).pipe(
+      map((api) => {
+        if (api.definitionVersion === 'FEDERATED') {
+          return [];
+        }
+        return api.definitionVersion === 'V4' ? this.mapGroups(api.endpointGroups) : this.mapGroups(api.proxy.groups);
+      }),
+    );
   }
 
   private mapGroups(groups: (EndpointGroupV4 | EndpointGroupV2)[]) {

@@ -84,7 +84,7 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy, 
   ) {}
 
   ngOnInit(): void {
-    this.isReadOnly = this.api.definitionVersion === 'V1' || this.api.definitionContext?.origin === 'KUBERNETES';
+    this.isReadOnly = this.api.definitionVersion === 'V1' || this.api.originContext?.origin === 'KUBERNETES';
 
     this.license$ = this.licenseService.getLicense$();
     this.isOEM$ = this.licenseService.isOEM$();

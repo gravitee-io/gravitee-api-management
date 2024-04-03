@@ -26,7 +26,7 @@
         [apiState]="currentApi.state"
         [apiLifecycleState]="currentApi.lifecycleState"
         [apiDeploymentState]="currentApi.deploymentState"
-        [apiOrigin]="currentApi.definitionContext.origin"
+        [apiOrigin]="currentApi.originContext.origin"
       ></api-navigation-title>
       <ng-container *ngFor="let menuItem of this.subMenuItems">
         <ng-container *ngIf="!menuItem?.routerLink && menuItem?.tabs?.length > 0">
@@ -138,7 +138,7 @@
           [apiState]="currentApi.state"
           [apiLifecycleState]="currentApi.lifecycleState"
           [apiDeploymentState]="currentApi.deploymentState"
-          [apiOrigin]="currentApi.definitionContext.origin"
+          [apiOrigin]="currentApi.originContext.origin"
           *gioBreadcrumbItem
         ></api-navigation-title>
         <ng-template ngFor let-item [ngForOf]="this.computeBreadcrumbItems()">

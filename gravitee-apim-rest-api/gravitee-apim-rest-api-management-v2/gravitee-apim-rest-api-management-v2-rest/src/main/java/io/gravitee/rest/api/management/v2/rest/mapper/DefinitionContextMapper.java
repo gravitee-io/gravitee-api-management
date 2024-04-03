@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.rest.api.management.v2.rest.model.DefinitionContext;
+import io.gravitee.rest.api.model.context.IntegrationContext;
 import io.gravitee.rest.api.model.context.KubernetesContext;
 import io.gravitee.rest.api.model.context.ManagementContext;
 import io.gravitee.rest.api.model.context.OriginContext;
@@ -40,28 +41,7 @@ public interface DefinitionContextMapper {
                 .origin(DefinitionContext.OriginEnum.KUBERNETES)
                 .mode(DefinitionContext.ModeEnum.FULLY_MANAGED)
                 .syncFrom(DefinitionContext.SyncFromEnum.KUBERNETES);
-        };
-    }
-
-    default OriginContext map(DefinitionContext definitionContext) {
-        if (definitionContext == null || definitionContext.getOrigin() == null) {
-            return new ManagementContext();
-        }
-
-        OriginContext.Origin origin;
-        try {
-            origin = OriginContext.Origin.valueOf(definitionContext.getOrigin().name());
-        } catch (IllegalArgumentException e) {
-            origin = OriginContext.Origin.MANAGEMENT;
-        }
-
-        return switch (origin) {
-            case MANAGEMENT -> new ManagementContext();
-            case KUBERNETES -> new KubernetesContext(
-                definitionContext.getMode() == null
-                    ? KubernetesContext.Mode.FULLY_MANAGED
-                    : KubernetesContext.Mode.valueOf(definitionContext.getMode().name())
-            );
+            case INTEGRATION -> null;
         };
     }
 }

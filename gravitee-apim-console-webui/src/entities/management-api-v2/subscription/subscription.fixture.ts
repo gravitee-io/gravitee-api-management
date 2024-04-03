@@ -24,7 +24,6 @@ export function fakeSubscription(modifier?: Partial<Subscription> | ((baseApi: S
     api: {
       id: 'bee23b1e-34b1-4551-a23b-1e34b165516a',
       name: 'My API',
-      apiVersion: 'v1.2',
     },
     application: {
       id: 'cee23b1e-34b1-4551-a23b-1e34b165516a',

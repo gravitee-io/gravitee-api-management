@@ -59,12 +59,7 @@ export class ApiCorsComponent implements OnInit, OnDestroy {
       .pipe(
         tap(([api, entrypoints]) => {
           let cors: Cors;
-          if (api.definitionVersion !== 'V4') {
-            this.hasEntrypointsSupportingCors = true;
-            cors = api.proxy?.cors ?? {
-              enabled: false,
-            };
-          } else {
+          if (api.definitionVersion === 'V4') {
             cors = api.listeners
               .filter((listener) => listener.type === 'HTTP')
               .map((listener) => listener as HttpListener)
@@ -80,6 +75,11 @@ export class ApiCorsComponent implements OnInit, OnDestroy {
               api,
               entrypointsSupportingCors.map((entrypoint) => entrypoint.id),
             );
+          } else if (api.definitionVersion !== 'FEDERATED') {
+            this.hasEntrypointsSupportingCors = true;
+            cors = api.proxy?.cors ?? {
+              enabled: false,
+            };
           }
 
           const isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-u']) || api.definitionContext?.origin === 'KUBERNETES';

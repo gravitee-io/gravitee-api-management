@@ -15,13 +15,28 @@
  */
 import { isFunction } from 'lodash';
 
-import { BaseApi, ApiV2, ApiV4, ApiV1 } from '.';
+import { BaseApi, ApiV2, ApiV4, ApiV1, ManagementContext, GenericApi } from '.';
 
 export function fakeBaseApi(modifier?: Partial<BaseApi> | ((baseApi: BaseApi) => BaseApi)): BaseApi {
   const base: BaseApi = {
     id: 'aee23b1e-34b1-4551-a23b-1e34b165516a',
     name: '\uD83E\uDE90 Planets',
     description: 'The whole universe in your hand.',
+  };
+
+  if (isFunction(modifier)) {
+    return modifier(base);
+  }
+
+  return {
+    ...base,
+    ...modifier,
+  };
+}
+
+export function fakeGenericApi(modifier?: Partial<GenericApi> | ((baseApi: GenericApi) => GenericApi)): GenericApi {
+  const base: GenericApi = {
+    ...fakeBaseApi({ ...modifier }),
     apiVersion: '1.0',
     definitionVersion: 'V2',
     deployedAt: new Date(),
@@ -36,6 +51,7 @@ export function fakeBaseApi(modifier?: Partial<BaseApi> | ((baseApi: BaseApi) =>
     definitionContext: {
       origin: 'MANAGEMENT',
     },
+    originContext: new ManagementContext(),
     responseTemplates: {
       customKey: {
         '*/*': {
@@ -87,7 +103,7 @@ export function fakeBaseApi(modifier?: Partial<BaseApi> | ((baseApi: BaseApi) =>
 
 export function fakeApiV1(modifier?: Partial<ApiV1> | ((baseApi: ApiV1) => ApiV1)): ApiV1 {
   const base: ApiV1 = {
-    ...fakeBaseApi(),
+    ...fakeGenericApi({ ...modifier }),
     definitionVersion: 'V1',
     environmentId: 'my-environment',
     entrypoints: [
@@ -156,7 +172,7 @@ export function fakeApiV1(modifier?: Partial<ApiV1> | ((baseApi: ApiV1) => ApiV1
 
 export function fakeApiV2(modifier?: Partial<ApiV2> | ((baseApi: ApiV2) => ApiV2)): ApiV2 {
   const base: ApiV2 = {
-    ...fakeBaseApi(),
+    ...fakeGenericApi({ ...modifier }),
     definitionVersion: 'V2',
     entrypoints: [
       {
@@ -266,7 +282,7 @@ export function fakeApiV2(modifier?: Partial<ApiV2> | ((baseApi: ApiV2) => ApiV2
 
 export function fakeApiV4(modifier?: Partial<ApiV4> | ((baseApi: ApiV4) => ApiV4)): ApiV4 {
   const base: ApiV4 = {
-    ...fakeBaseApi(),
+    ...fakeGenericApi({ ...modifier }),
     definitionVersion: 'V4',
     type: 'MESSAGE',
     listeners: [
@@ -324,7 +340,7 @@ export function fakeApiV4(modifier?: Partial<ApiV4> | ((baseApi: ApiV4) => ApiV4
 
 export function fakeProxyApiV4(modifier?: Partial<ApiV4> | ((baseApi: ApiV4) => ApiV4)): ApiV4 {
   const base: ApiV4 = {
-    ...fakeBaseApi({ ...modifier }),
+    ...fakeGenericApi({ ...modifier }),
     definitionVersion: 'V4',
     type: 'PROXY',
     listeners: [
@@ -412,7 +428,7 @@ export function fakeProxyApiV4(modifier?: Partial<ApiV4> | ((baseApi: ApiV4) => 
 
 export function fakeProxyTcpApiV4(modifier?: Partial<ApiV4> | ((baseApi: ApiV4) => ApiV4)): ApiV4 {
   const base: ApiV4 = {
-    ...fakeBaseApi({ ...modifier }),
+    ...fakeGenericApi({ ...modifier }),
     definitionVersion: 'V4',
     type: 'PROXY',
     listeners: [

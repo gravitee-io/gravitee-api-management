@@ -22,9 +22,9 @@ import { FlowV4 } from './flowV4';
 import { EndpointGroupV4 } from './endpointGroupV4';
 import { FlowExecution } from './flowExecution';
 
-import { BaseApi } from '../baseApi';
+import { GenericApi } from '../baseApi';
 
-export interface ApiV4 extends BaseApi {
+export interface ApiV4 extends GenericApi {
   definitionVersion: 'V4';
   type: ApiType;
   /**

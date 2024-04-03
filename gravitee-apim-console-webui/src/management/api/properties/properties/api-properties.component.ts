@@ -94,6 +94,9 @@ export class ApiPropertiesComponent implements OnInit, OnDestroy {
           if (api.definitionVersion === 'V1') {
             throw new Error('Unexpected API type. This page is compatible only for API > V1');
           }
+          if (api.definitionVersion === 'FEDERATED') {
+            throw new Error('Unexpected API type. This page is not compatible with API Federated');
+          }
           this.isV4 = api.definitionVersion === 'V4';
           if (api.definitionVersion === 'V4') {
             this.apiProperties = api.properties?.map((p) => ({ ...p, _id: uniqueId(), dynamic: p.dynamic })) ?? [];
