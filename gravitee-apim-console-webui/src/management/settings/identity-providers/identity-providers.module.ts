@@ -28,14 +28,14 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 
-import { IdentityProvidersNgComponent } from './identity-providers-ng.component';
+import { IdentityProvidersComponent } from './identity-providers.component';
 
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 
 @NgModule({
-  declarations: [IdentityProvidersNgComponent],
-  exports: [IdentityProvidersNgComponent],
+  declarations: [IdentityProvidersComponent],
+  exports: [IdentityProvidersComponent],
   imports: [
     CommonModule,
     FormsModule,
@@ -55,4 +55,4 @@ import { GioTableWrapperModule } from '../../../shared/components/gio-table-wrap
     MatSnackBarModule,
   ],
 })
-export class IdentityProvidersNgModule {}
+export class IdentityProvidersModule {}

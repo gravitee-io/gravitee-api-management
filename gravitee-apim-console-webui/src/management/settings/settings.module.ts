@@ -39,7 +39,7 @@ import { CustomUserFieldsComponent } from './custom-user-fields/custom-user-fiel
 import { EnvironmentNotificationModule } from './notification/environment-notification.module';
 import { ApiQualityRulesModule } from './api-quality-rules/api-quality-rules.module';
 import { ApiPortalHeaderModule } from './api-portal-header/migrated/api-portal-header.module';
-import { IdentityProvidersNgModule } from './identity-providers-ng/identity-providers-ng.module';
+import { IdentityProvidersModule } from './identity-providers/identity-providers.module';
 import { PortalNgModule } from './portal-ng/portal-ng.module';
 import { TopApisModule } from './top-apis/migrated/top-apis.module';
 
@@ -58,7 +58,7 @@ import { DocumentationModule } from '../../components/documentation/documentatio
     EnvironmentMetadataModule,
     ClientRegistrationProvidersModule,
     ApiLoggingModule,
-    IdentityProvidersNgModule,
+    IdentityProvidersModule,
     EnvironmentNotificationModule,
     PortalNgModule,
     ApiPortalHeaderModule,
