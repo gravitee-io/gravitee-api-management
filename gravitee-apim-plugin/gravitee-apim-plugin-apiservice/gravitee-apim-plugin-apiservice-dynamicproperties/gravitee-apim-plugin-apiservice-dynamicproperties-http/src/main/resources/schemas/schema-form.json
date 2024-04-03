@@ -6,7 +6,8 @@
       "title": "Schedule",
       "description": "A cron expression to schedule the health check.",
       "default": "*/30 * * * * *",
-      "type": "string"
+      "type": "string",
+      "format": "gio-cron"
     },
     "method" : {
       "title": "HTTP Method",
