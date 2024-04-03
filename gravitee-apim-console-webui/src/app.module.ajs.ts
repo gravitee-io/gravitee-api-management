@@ -187,7 +187,6 @@ import TopApiService from './services/top-api.service';
 import TopApisComponentAjs from './management/settings/top-apis/top-apis.component.ajs';
 import AddTopApiDialogController from './management/settings/top-apis/dialog/add.top-api.dialog.controller';
 import DeleteTopApiDialogController from './management/settings/top-apis/dialog/delete.top-api.dialog.controller';
-import PortalSettingsComponentAjs from './management/settings/portal/portal.component.ajs';
 
 import ApiPortalHeaderComponentAjs from './management/settings/api-portal-header/api-portal-header.component.ajs';
 import ApiHeaderService from './services/apiHeader.service';
@@ -556,7 +555,6 @@ graviteeManagementModule.component('settingsCategoryEditAjs', CategoryComponentA
 graviteeManagementModule.component('settingsThemeAjs', PortalThemeComponentAjs);
 graviteeManagementModule.component('settingsTopApis', TopApisComponentAjs);
 
-graviteeManagementModule.component('settingsPortalAjs', PortalSettingsComponentAjs);
 graviteeManagementModule.component('settingsAnalyticsAjs', SettingsAnalyticsComponentAjs);
 graviteeManagementModule.component('customUserFieldsAjs', CustomUserFieldsComponentAjs);
 
