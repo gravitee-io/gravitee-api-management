@@ -138,11 +138,11 @@ interface PortalForm {
 }
 
 @Component({
-  selector: 'portal-ng',
-  templateUrl: './portal-ng.component.html',
-  styleUrls: ['./portal-ng.component.scss'],
+  selector: 'portal-settings',
+  templateUrl: './portal-settings.component.html',
+  styleUrls: ['./portal-settings.component.scss'],
 })
-export class PortalNgComponent implements OnInit {
+export class PortalSettingsComponent implements OnInit {
   settings: PortalSettings;
   portalForm: FormGroup<PortalForm>;
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();

@@ -39,7 +39,7 @@ import { EnvironmentNotificationModule } from './notification/environment-notifi
 import { ApiQualityRulesModule } from './api-quality-rules/api-quality-rules.module';
 import { ApiPortalHeaderModule } from './api-portal-header/migrated/api-portal-header.module';
 import { IdentityProvidersModule } from './identity-providers/identity-providers.module';
-import { PortalNgModule } from './portal-ng/portal-ng.module';
+import { PortalSettingsModule } from './portal-settings/portal-settings.module';
 import { TopApisModule } from './top-apis/migrated/top-apis.module';
 
 import { DocumentationModule } from '../../components/documentation/documentation.module';
@@ -59,7 +59,7 @@ import { DocumentationModule } from '../../components/documentation/documentatio
     ApiLoggingModule,
     IdentityProvidersModule,
     EnvironmentNotificationModule,
-    PortalNgModule,
+    PortalSettingsModule,
     ApiPortalHeaderModule,
   ],
   declarations: [
