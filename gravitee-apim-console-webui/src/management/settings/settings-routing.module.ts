@@ -19,7 +19,6 @@ import { RouterModule, Routes } from '@angular/router';
 import { SettingsNavigationComponent } from './settings-navigation/settings-navigation.component';
 import { SettingsAnalyticsComponent } from './analytics/settings-analytics.component';
 import { SettingsAnalyticsDashboardComponent } from './analytics/dashboard/settings-analytics-dashboard.component';
-import { ApiPortalHeaderComponent } from './api-portal-header/api-portal-header.component';
 import { CategoriesComponent } from './categories/categories.component';
 import { CategoryComponent } from './categories/category/category.component';
 import { GroupsComponent } from './groups/groups.component';
@@ -90,19 +89,6 @@ export const settingsRoutes: Routes = [
       },
       {
         path: 'api-portal-header',
-        component: ApiPortalHeaderComponent,
-        data: {
-          docs: {
-            page: 'management-configuration-apiportalheader',
-          },
-          permissions: {
-            anyOf: ['environment-api_header-r'],
-            unauthorizedFallbackTo: '../api-quality-rules',
-          },
-        },
-      },
-      {
-        path: 'api-portal-header-ng',
         component: ApiPortalHeaderComponentMigrated,
         data: {
           permissions: {
