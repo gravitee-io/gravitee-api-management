@@ -11,7 +11,8 @@
         }
       },
       "i18n": {
-        "sourceLocale": "en-US"
+        "sourceLocale": "en-US",
+        "locales": {}
       },
       "root": "",
       "sourceRoot": "src",
@@ -28,7 +29,8 @@
             "inlineStyleLanguage": "scss",
             "assets": ["src/favicon.ico", "src/assets"],
             "styles": ["src/styles.scss"],
-            "scripts": []
+            "scripts": [],
+            "i18nMissingTranslation": "warning"
           },
           "configurations": {
             "production": {

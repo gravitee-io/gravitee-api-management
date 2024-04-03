@@ -6,6 +6,7 @@
     "start": "ng serve",
     "build": "ng build",
     "build:prod": "NODE_OPTIONS=--max_old_space_size=8192 ng build --configuration production",
+    "build:i18n": "yarn build:prod --localize",
     "watch": "ng build --watch --configuration development",
     "extract": "ng extract-i18n --output-path src/locale",
     "test": "jest",
