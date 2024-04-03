@@ -21,7 +21,7 @@ import { EnvironmentIdentityProviderService } from './environment-identity-provi
 import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { fakeIdentityProviderActivation, IdentityProviderActivation } from '../entities/identity-provider';
 
-describe('IdentityProviderService', () => {
+describe('EnvironmentIdentityProviderService', () => {
   let httpTestingController: HttpTestingController;
   let environmentIdentityProviderService: EnvironmentIdentityProviderService;
 

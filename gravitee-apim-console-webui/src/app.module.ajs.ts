@@ -175,8 +175,6 @@ import DictionaryComponentAjs from './management/settings/dictionaries/dictionar
 import DictionaryController from './management/settings/dictionaries/dictionary.controller';
 import DialogDictionaryAddPropertyController from './management/settings/dictionaries/add-property.dialog.controller';
 // Settings - Identity providers
-import IdentityProvidersComponentAjs from './management/settings/identityProviders/identity-providers.component.ajs';
-import IdentityProviderService from './services/identityProvider.service';
 // Others
 import StringService from './services/string.service';
 
@@ -640,9 +638,6 @@ graviteeManagementModule.controller('UpdateApiPortalHeaderDialogController', Upd
 graviteeManagementModule.service('QualityRuleService', QualityRuleService);
 
 // Settings: Identity provider
-graviteeManagementModule.component('settingsIdentityProvidersAjs', IdentityProvidersComponentAjs);
-
-graviteeManagementModule.service('IdentityProviderService', IdentityProviderService);
 
 // Alerts
 graviteeManagementModule.service('AlertService', AlertService);
