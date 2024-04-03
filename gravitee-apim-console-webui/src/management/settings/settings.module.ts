@@ -28,7 +28,6 @@ import { CategoryComponent } from './categories/category/category.component';
 import { GroupsComponent } from './groups/groups.component';
 import { GroupComponent } from './groups/group/group.component';
 import { EnvironmentMetadataModule } from './metadata/environment-metadata.module';
-import { PortalComponent } from './portal/portal.component';
 import { ClientRegistrationProvidersModule } from './client-registration-providers/client-registration-providers.module';
 import { PortalThemeComponent } from './portal-theme/portalTheme.component';
 import { TopApisComponent } from './top-apis/top-apis.component';
@@ -72,7 +71,6 @@ import { DocumentationModule } from '../../components/documentation/documentatio
     CategoryComponent,
     GroupsComponent,
     GroupComponent,
-    PortalComponent,
     PortalThemeComponent,
     TopApisComponent,
     DictionariesComponent,
