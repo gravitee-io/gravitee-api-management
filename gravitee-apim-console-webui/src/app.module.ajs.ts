@@ -245,10 +245,6 @@ import ApplicationSubscribeController from './management/application/details/sub
 import ApiKeyModeChoiceDialogController from './components/dialog/apiKeyMode/api-key-mode-choice-dialog.controller';
 
 import QualityRuleService from './services/qualityRule.service';
-import ApiQualityRulesComponentAjs from './management/settings/api-quality-rules/api-quality-rules.component.ajs';
-import ApiQualityRuleComponentAjs from './management/settings/api-quality-rules/api-quality-rule/api-quality-rule-component.ajs';
-import ApiQualityRuleController from './management/settings/api-quality-rules/api-quality-rule/api-quality-rule.controller';
-import DeleteApiQualityRuleDialogController from './management/settings/api-quality-rules/api-quality-rule/delete-api-quality-rule.dialog.controller';
 import DialogQueryFilterInformationController from './management/settings/analytics/dashboard/query-filter-information.dialog.controller';
 
 import PortalThemeController from './management/settings/portal-theme/portalTheme.controller';
@@ -641,10 +637,6 @@ graviteeManagementModule.service('ApiHeaderService', ApiHeaderService);
 graviteeManagementModule.controller('NewApiPortalHeaderDialogController', NewApiPortalHeaderDialogController);
 graviteeManagementModule.controller('UpdateApiPortalHeaderDialogController', UpdateApiPortalHeaderDialogController);
 
-graviteeManagementModule.component('settingsApiQualityAjs', ApiQualityRulesComponentAjs);
-graviteeManagementModule.component('settingsApiQualityRuleEditAjs', ApiQualityRuleComponentAjs);
-graviteeManagementModule.controller('ApiQualityRuleController', ApiQualityRuleController);
-graviteeManagementModule.controller('DeleteApiQualityRuleDialogController', DeleteApiQualityRuleDialogController);
 graviteeManagementModule.service('QualityRuleService', QualityRuleService);
 
 // Settings: Identity provider
