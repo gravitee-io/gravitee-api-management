@@ -23,9 +23,9 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter as lodashFilter, includes as lodashIncludes, map as lodashMap } from 'lodash';
 
 import { TopApi } from '../top-apis.model';
-import { ApiService } from '../../../../../services-ngx/api.service';
-import { Api } from '../../../../../entities/api';
-import { TopApiService } from '../../../../../services-ngx/top-api.service';
+import { ApiService } from '../../../../services-ngx/api.service';
+import { Api } from '../../../../entities/api';
+import { TopApiService } from '../../../../services-ngx/top-api.service';
 
 export interface AddTopApisDialogData {
   title: string;

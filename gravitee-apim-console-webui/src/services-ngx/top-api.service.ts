@@ -19,7 +19,7 @@ import { map } from 'lodash';
 import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
-import { TopApi } from '../management/settings/top-apis/migrated/top-apis.model';
+import { TopApi } from '../management/settings/top-apis/top-apis.model';
 
 @Injectable({
   providedIn: 'root',

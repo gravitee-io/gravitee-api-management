@@ -28,10 +28,10 @@ import { TopApisHarness } from './top-apis.harness';
 import { TopApi } from './top-apis.model';
 import { AddTopApisDialogHarness } from './add-top-apis-dialog/add-top-apis-dialog.harness';
 
-import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
-import { Constants } from '../../../../entities/Constants';
-import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
-import { fakeTopApi } from '../../../../entities/top-apis/top-apis.fixture';
+import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
+import { Constants } from '../../../entities/Constants';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
+import { fakeTopApi } from '../../../entities/top-apis/top-apis.fixture';
 
 describe('TopApisComponent', () => {
   let fixture: ComponentFixture<TopApisComponent>;

@@ -13,10 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const TopApisComponentAjs: ng.IComponentOptions = {
-  bindings: {},
-  controller: 'TopApisController',
-  template: require('html-loader!./top-apis.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
-};
 
-export default TopApisComponentAjs;
+@use '../../../scss/gio-layout' as gio-layout;
+
+:host {
+  @include gio-layout.gio-responsive-margin-container;
+  display: flex;
+  flex-direction: column;
+}
+
+.actions__edit {
+  display: flex;
+  justify-content: end;
+}
+
+.order-buttons {
+  display: flex;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 24px;
+
+  &__actions {
+    align-self: center;
+  }
+}
+
+.add-button {
+  width: auto;
+}
+
+.picture-cell {
+  padding: 8px 0 0 16px;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+}

@@ -30,7 +30,6 @@ import { GroupComponent } from './groups/group/group.component';
 import { EnvironmentMetadataModule } from './metadata/environment-metadata.module';
 import { ClientRegistrationProvidersModule } from './client-registration-providers/client-registration-providers.module';
 import { PortalThemeComponent } from './portal-theme/portalTheme.component';
-import { TopApisComponent } from './top-apis/top-apis.component';
 import { ApiLoggingModule } from './api-logging/api-logging.module';
 import { DictionariesComponent } from './dictionaries/dictionaries.component';
 import { DictionaryComponent } from './dictionaries/dictionary.component';
@@ -40,7 +39,7 @@ import { ApiQualityRulesModule } from './api-quality-rules/api-quality-rules.mod
 import { ApiPortalHeaderModule } from './api-portal-header/migrated/api-portal-header.module';
 import { IdentityProvidersModule } from './identity-providers/identity-providers.module';
 import { PortalSettingsModule } from './portal-settings/portal-settings.module';
-import { TopApisModule } from './top-apis/migrated/top-apis.module';
+import { TopApisModule } from './top-apis/top-apis.module';
 
 import { DocumentationModule } from '../../components/documentation/documentation.module';
 
@@ -72,7 +71,6 @@ import { DocumentationModule } from '../../components/documentation/documentatio
     GroupsComponent,
     GroupComponent,
     PortalThemeComponent,
-    TopApisComponent,
     DictionariesComponent,
     DictionaryComponent,
     CustomUserFieldsComponent,
