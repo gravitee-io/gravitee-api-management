@@ -2784,11 +2784,13 @@ components:
             oneOf:
                 - $ref: "#/components/schemas/ManagementOriginContext"
                 - $ref: "#/components/schemas/KubernetesOriginContext"
+                - $ref: "#/components/schemas/IntegrationOriginContext"
             discriminator:
                 propertyName: origin
                 mapping:
                     MANAGEMENT: ManagementOriginContext
                     KUBERNETES: KubernetesOriginContext
+                    INTEGRATION: IntegrationOriginContext
         BaseOriginContext:
             type: object
             properties:
@@ -2799,11 +2801,13 @@ components:
                     enum:
                         - MANAGEMENT
                         - KUBERNETES
+                        - INTEGRATION
             discriminator:
                 propertyName: origin
                 mapping:
                     MANAGEMENT: ManagementOriginContext
                     KUBERNETES: KubernetesOriginContext
+                    INTEGRATION: IntegrationOriginContext
         ManagementOriginContext:
             type: object
             title: "ManagementOriginContext"
@@ -2838,6 +2842,18 @@ components:
                           enum:
                               - MANAGEMENT
                               - KUBERNETES
+        IntegrationOriginContext:
+            type: object
+            title: "IntegrationOriginContext"
+            description: Indicates the API has been created through an Integration
+            allOf:
+                - $ref: "#/components/schemas/BaseOriginContext"
+                - properties:
+                      integrationId:
+                          type: string
+                          description: |-
+                              The id of the integration that created the API.
+                          example: b300b445-8bbb-4034-865c-d2113ba5b768
 
         DefinitionContext:
             deprecated: true

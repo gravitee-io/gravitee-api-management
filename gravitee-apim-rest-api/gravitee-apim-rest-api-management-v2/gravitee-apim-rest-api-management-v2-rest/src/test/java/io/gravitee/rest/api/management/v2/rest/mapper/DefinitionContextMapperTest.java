@@ -48,28 +48,4 @@ public class DefinitionContextMapperTest {
         assertThat(result.getOrigin()).isEqualTo(DefinitionContext.OriginEnum.KUBERNETES);
         assertThat(result.getMode()).isEqualTo(DefinitionContext.ModeEnum.FULLY_MANAGED);
     }
-
-    @Test
-    void shouldMapDefinitionContextWithManagementOriginEnum() {
-        io.gravitee.rest.api.management.v2.rest.model.DefinitionContext definitionContext =
-            new io.gravitee.rest.api.management.v2.rest.model.DefinitionContext();
-        definitionContext.setOrigin(io.gravitee.rest.api.management.v2.rest.model.DefinitionContext.OriginEnum.MANAGEMENT);
-        definitionContext.setMode(io.gravitee.rest.api.management.v2.rest.model.DefinitionContext.ModeEnum.FULLY_MANAGED);
-
-        var result = definitionContextMapper.map(definitionContext);
-
-        assertThat(result).isEqualTo(new ManagementContext());
-    }
-
-    @Test
-    void shouldMapDefinitionContextWithKubernetesEnum() {
-        io.gravitee.rest.api.management.v2.rest.model.DefinitionContext definitionContext =
-            new io.gravitee.rest.api.management.v2.rest.model.DefinitionContext();
-        definitionContext.setOrigin(DefinitionContext.OriginEnum.KUBERNETES);
-        definitionContext.setMode(io.gravitee.rest.api.management.v2.rest.model.DefinitionContext.ModeEnum.FULLY_MANAGED);
-
-        var result = definitionContextMapper.map(definitionContext);
-
-        assertThat(result).isEqualTo(new KubernetesContext(KubernetesContext.Mode.FULLY_MANAGED));
-    }
 }

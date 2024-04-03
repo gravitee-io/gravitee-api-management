@@ -27,17 +27,17 @@ import { Constants } from '../../../entities/Constants';
 import {
   Api,
   ApiLifecycleState,
+  apiSortByParamFromString,
   ApisResponse,
+  ApiState,
   ApiV2,
   ApiV4,
-  ApiState,
-  OriginEnum,
   HttpListener,
-  PagedResult,
-  apiSortByParamFromString,
-  TcpListener,
   Listener,
   ListenerType,
+  Origin,
+  PagedResult,
+  TcpListener,
 } from '../../../entities/management-api-v2';
 
 export type ApisTableDS = {
@@ -55,7 +55,7 @@ export type ApisTableDS = {
   isNotSynced$?: Observable<boolean>;
   qualityScore$?: Observable<{ score: number; class: string }>;
   visibility: { label: string; icon: string };
-  origin: OriginEnum;
+  origin: Origin;
   readonly: boolean;
   definitionVersion: { label: string; icon?: string };
   listenerTypes?: ListenerType[];
@@ -169,18 +169,25 @@ export class ApiListComponent implements OnInit, OnDestroy {
             lifecycleState: api.lifecycleState,
             workflowBadge: this.getWorkflowBadge(api),
             visibility: { label: api.visibility, icon: this.visibilitiesIcons[api.visibility] },
-            origin: api.definitionContext?.origin,
-            readonly: api.definitionContext?.origin === 'KUBERNETES',
+            origin: api.originContext?.origin,
+            readonly: api.originContext?.origin === 'KUBERNETES',
             definitionVersion: this.getDefinitionVersion(api),
             owner: api.primaryOwner?.displayName,
             ownerEmail: api.primaryOwner?.email,
             picture: api._links.pictureUrl,
-            access: this.getApiAccess(api),
           };
           if (api.definitionVersion === 'V4') {
             return {
               ...tableDS,
+              access: this.getApiAccess(api),
               listenerTypes: api.listeners.map((listener: Listener) => listener.type),
+              isNotSynced$: undefined,
+              qualityScore$: null,
+            };
+          } else if (api.definitionVersion === 'FEDERATED') {
+            return {
+              ...tableDS,
+              access: [],
               isNotSynced$: undefined,
               qualityScore$: null,
             };
@@ -188,6 +195,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
             const apiv2 = api as ApiV2;
             return {
               ...tableDS,
+              access: this.getApiAccess(apiv2),
               isNotSynced$: this.apiService.isAPISynchronized(apiv2.id).pipe(map((a) => !a.is_synchronized)),
               qualityScore$: this.isQualityDisplayed
                 ? this.apiService.getQualityMetrics(apiv2.id).pipe(map((a) => this.getQualityScore(Math.floor(a.score * 100))))
@@ -204,6 +212,8 @@ export class ApiListComponent implements OnInit, OnDestroy {
         return { label: api.definitionVersion };
       case 'V4':
         return { label: `${api.definitionVersion} - ${(api as ApiV4).type}` };
+      case 'FEDERATED':
+        return { label: `${api.definitionVersion}` };
       default:
         return { icon: 'gio:alert-circle', label: 'V1' };
     }
@@ -234,7 +244,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
     return { score, class: qualityClass };
   }
 
-  private getApiAccess(api: Api): string[] | null {
+  private getApiAccess(api: ApiV4 | ApiV2): string[] | null {
     if (api.definitionVersion === 'V4') {
       const tcpListenerHosts = api.listeners
         .filter((listener) => listener.type === 'TCP')

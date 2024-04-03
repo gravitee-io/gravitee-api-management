@@ -15,8 +15,10 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import io.gravitee.rest.api.management.v2.rest.model.IntegrationOriginContext;
 import io.gravitee.rest.api.management.v2.rest.model.KubernetesOriginContext;
 import io.gravitee.rest.api.management.v2.rest.model.ManagementOriginContext;
+import io.gravitee.rest.api.model.context.IntegrationContext;
 import io.gravitee.rest.api.model.context.KubernetesContext;
 import io.gravitee.rest.api.model.context.ManagementContext;
 import io.gravitee.rest.api.model.context.OriginContext;
@@ -35,6 +37,7 @@ public interface OriginContextMapper {
         return switch (source.getOrigin()) {
             case MANAGEMENT -> map((ManagementContext) source);
             case KUBERNETES -> map((KubernetesContext) source);
+            case INTEGRATION -> map((IntegrationContext) source);
         };
     }
 
@@ -45,11 +48,14 @@ public interface OriginContextMapper {
         return switch (source.getOrigin()) {
             case MANAGEMENT -> map((ManagementOriginContext) source);
             case KUBERNETES -> map((KubernetesOriginContext) source);
+            case INTEGRATION -> map((IntegrationOriginContext) source);
         };
     }
 
     ManagementOriginContext map(ManagementContext source);
     KubernetesOriginContext map(KubernetesContext source);
+    IntegrationOriginContext map(IntegrationContext source);
     ManagementContext map(ManagementOriginContext source);
     KubernetesContext map(KubernetesOriginContext source);
+    IntegrationContext map(IntegrationOriginContext source);
 }

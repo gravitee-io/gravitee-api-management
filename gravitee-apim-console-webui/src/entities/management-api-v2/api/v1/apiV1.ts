@@ -15,11 +15,11 @@
  */
 import { PathV1 } from './pathV1';
 
-import { BaseApi } from '../baseApi';
+import { GenericApi } from '../baseApi';
 import { ApiEntrypoint } from '../apiEntrypoint';
 import { ExecutionMode, Proxy, ServicesV2 } from '../v2';
 
-export interface ApiV1 extends BaseApi {
+export interface ApiV1 extends GenericApi {
   definitionVersion: 'V1';
   /**
    * The environment's uuid.

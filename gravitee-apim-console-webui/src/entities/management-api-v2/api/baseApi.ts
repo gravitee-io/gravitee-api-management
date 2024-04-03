@@ -23,16 +23,13 @@ import { Property } from './property';
 import { Resource } from './resource';
 import { ResponseTemplate } from './responseTemplate';
 import { PrimaryOwner } from './primaryOwner';
+import { OriginContext } from './originContext';
 
 export interface BaseApi {
   /**
    * API's uuid.
    */
   id: string;
-  /**
-   * API's crossId. Identifies API across environments.
-   */
-  crossId?: string;
   /**
    * API's name. Duplicate names can exists.
    */
@@ -41,6 +38,13 @@ export interface BaseApi {
    * API's description. A short description of your API.
    */
   description?: string;
+}
+
+export interface GenericApi extends BaseApi {
+  /**
+   * API's crossId. Identifies API across environments.
+   */
+  crossId?: string;
   /**
    * API's version. It's a simple string only used in the portal.
    */
@@ -94,6 +98,7 @@ export interface BaseApi {
    */
   categories?: string[];
   definitionContext?: DefinitionContext;
+  originContext: OriginContext;
   /**
    * The status of the API regarding the review feature.
    */

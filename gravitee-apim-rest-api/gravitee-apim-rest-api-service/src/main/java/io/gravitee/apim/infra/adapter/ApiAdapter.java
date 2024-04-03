@@ -17,7 +17,9 @@ package io.gravitee.apim.infra.adapter;
 
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.crd.ApiCRD;
+import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.rest.api.model.federation.FederatedApiEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
@@ -76,6 +78,15 @@ public interface ApiAdapter {
     @Mapping(source = "version", target = "apiVersion")
     @Mapping(target = "metadata", ignore = true)
     ApiEntity toApiEntity(Api api);
+
+    @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
+    @Mapping(source = "source.version", target = "apiVersion")
+    @Mapping(source = "source.id", target = "id")
+    @Mapping(target = "primaryOwner", source = "primaryOwnerEntity")
+    @Mapping(target = "referenceId", source = "source.environmentId")
+    @Mapping(target = "referenceType", constant = "ENVIRONMENT")
+    @Mapping(source = "source.apiLifecycleState", target = "lifecycleState")
+    FederatedApiEntity toFederatedApiEntity(io.gravitee.repository.management.model.Api source, PrimaryOwnerEntity primaryOwnerEntity);
 
     @Mapping(source = "state", target = "lifecycleState")
     @Mapping(source = "lifecycleState", target = "apiLifecycleState")

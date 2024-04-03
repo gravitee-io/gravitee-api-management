@@ -228,12 +228,12 @@ describe('ApisListComponent', () => {
       }));
 
       it('should display one row with kubernetes icon', fakeAsync(async () => {
-        await initComponent([fakeApiV2({ definitionContext: { origin: 'KUBERNETES' } })]);
+        await initComponent([fakeApiV2({ originContext: { origin: 'KUBERNETES' } })]);
         expect(await loader.getHarness(MatIconHarness.with({ selector: '.states__api-origin' }))).toBeTruthy();
       }));
 
       it('should display one row without kubernetes icon', fakeAsync(async () => {
-        await initComponent([fakeApiV2({ definitionContext: { origin: 'MANAGEMENT' } })]);
+        await initComponent([fakeApiV2({ originContext: { origin: 'MANAGEMENT' } })]);
         expect(await loader.getAllHarnesses(MatIconHarness.with({ selector: '.states__api-origin' }))).toHaveLength(0);
       }));
 

@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { GenericApi } from '../baseApi';
+import { IntegrationContext } from '../originContext';
 
-/**
- * API's gravitee definition version.
- */
-export type DefinitionVersion = 'V1' | 'V2' | 'V4' | 'FEDERATED';
+export interface ApiFederated extends GenericApi {
+  definitionVersion: 'FEDERATED';
+  originContext: IntegrationContext;
+}

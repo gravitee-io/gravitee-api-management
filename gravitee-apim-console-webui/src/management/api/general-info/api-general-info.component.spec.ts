@@ -285,7 +285,7 @@ describe('ApiGeneralInfoComponent', () => {
           apiVersion: '1.0.0',
           labels: ['label1', 'label2'],
           categories: ['category1'],
-          definitionContext: {
+          originContext: {
             origin: 'KUBERNETES',
           },
         });
@@ -410,7 +410,7 @@ describe('ApiGeneralInfoComponent', () => {
           apiVersion: '1.0.0',
           labels: ['label1', 'label2'],
           categories: ['category1'],
-          definitionContext: {
+          originContext: {
             origin: 'KUBERNETES',
           },
         });
@@ -533,7 +533,7 @@ describe('ApiGeneralInfoComponent', () => {
         apiVersion: '1.0.0',
         labels: ['label1', 'label2'],
         categories: ['category1'],
-        definitionContext: {
+        originContext: {
           origin: 'KUBERNETES',
         },
       });
