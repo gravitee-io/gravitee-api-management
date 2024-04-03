@@ -20,7 +20,6 @@ import { ApplicationNavigationComponent } from './application-navigation/applica
 import { EnvApplicationListComponent } from './list/env-application-list.component';
 import { ApplicationGuard } from './application.guard';
 import { ApplicationMetadataComponent } from './details/metadata/application-metadata.component';
-import { ApplicationSubscriptionsComponent } from './details/subscriptions/application-subscriptions.component';
 import { ApplicationSubscriptionComponent } from './details/subscriptions/application-subscription.component';
 import { ApplicationAnalyticsComponent } from './details/analytics/application-analytics.component';
 import { ApplicationLogsComponent } from './details/logs/application-logs.component';
@@ -32,6 +31,7 @@ import { ApplicationGeneralGroupsComponent } from './details/user-group-access/g
 import { ApplicationGeneralTransferOwnershipComponent } from './details/user-group-access/transfer-ownership/application-general-transfer-ownership.component';
 import { ApplicationGeneralComponent } from './details/general/application-general.component';
 import { ApplicationNotificationComponent } from './details/notification/application-notification.component';
+import { ApplicationSubscriptionListComponent } from './details/subscriptions/list/application-subscription-list.component';
 
 import { PermissionGuard } from '../../shared/components/gio-permission/gio-permission.guard';
 
@@ -89,7 +89,7 @@ const applicationRoutes: Routes = [
       },
       {
         path: 'subscriptions',
-        component: ApplicationSubscriptionsComponent,
+        component: ApplicationSubscriptionListComponent,
         data: {
           permissions: {
             anyOf: ['application-subscription-r'],

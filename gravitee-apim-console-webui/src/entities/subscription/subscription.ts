@@ -54,4 +54,5 @@ export interface ApplicationSubscription {
   starting_at?: Date;
   created_at?: Date;
   updated_at?: Date;
+  ending_at?: Date;
 }

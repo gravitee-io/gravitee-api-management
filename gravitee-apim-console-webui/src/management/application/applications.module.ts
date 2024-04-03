@@ -34,7 +34,6 @@ import { ApplicationNavigationModule } from './application-navigation/applicatio
 import { ApplicationMetadataModule } from './details/metadata/application-metadata.module';
 import { ApplicationGeneralUserGroupModule } from './details/user-group-access/application-general-user-group.module';
 import { ApplicationGeneralModule } from './details/general/application-general.module';
-import { ApplicationSubscriptionsComponent } from './details/subscriptions/application-subscriptions.component';
 import { ApplicationSubscriptionComponent } from './details/subscriptions/application-subscription.component';
 import { ApplicationAnalyticsComponent } from './details/analytics/application-analytics.component';
 import { ApplicationLogsComponent } from './details/logs/application-logs.component';
@@ -43,6 +42,7 @@ import { ApplicationCreationComponent } from './creation/steps/application-creat
 import { ApplicationSubscribeComponent } from './details/subscribe/application-subscribe.component';
 import { ApplicationNotificationModule } from './details/notification/application-notification.module';
 import { ApplicationsRoutingModule } from './applications-routing.module';
+import { ApplicationSubscriptionListModule } from './details/subscriptions/list/application-subscription-list.module';
 
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioRoleModule } from '../../shared/components/gio-role/gio-role.module';
@@ -76,10 +76,10 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
     ApplicationMetadataModule,
     ApplicationGeneralUserGroupModule,
     ApplicationGeneralModule,
+    ApplicationSubscriptionListModule,
   ],
   declarations: [
     EnvApplicationListComponent,
-    ApplicationSubscriptionsComponent,
     ApplicationSubscriptionComponent,
     ApplicationAnalyticsComponent,
     ApplicationLogsComponent,

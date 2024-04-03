@@ -161,6 +161,29 @@ export class ApplicationService {
     });
   }
 
+  getSubscriptionsPage(
+    applicationId: string,
+    filters?: {
+      status?: string[];
+      apiKey?: string;
+      apis?: string[];
+    },
+    page: number = 1,
+    size: number = 20,
+    expand: ('keys' | 'security')[] = [],
+  ): Observable<PagedResult<ApplicationSubscription>> {
+    let params = new HttpParams().appendAll({ page, size });
+    if (filters?.status?.length > 0) params = params.append('status', filters.status.join(','));
+    if (filters?.apis?.length > 0) params = params.append('api', filters.apis.join(','));
+    if (filters?.apiKey) params = params.append('api_key', filters.apiKey);
+    if (expand?.length > 0) params = params.append('expand', expand.join(','));
+
+    return this.http.get<PagedResult<ApplicationSubscription>>(
+      `${this.constants.env.baseURL}/applications/${applicationId}/subscriptions`,
+      { params },
+    );
+  }
+
   getSubscription(applicationId: string, subscriptionId: string): Observable<ApplicationSubscription> {
     return this.http.get<ApplicationSubscription>(
       `${this.constants.env.baseURL}/applications/${applicationId}/subscriptions/${subscriptionId}`,
