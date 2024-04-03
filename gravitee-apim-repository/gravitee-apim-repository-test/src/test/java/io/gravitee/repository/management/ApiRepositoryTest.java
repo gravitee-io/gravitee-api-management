@@ -400,6 +400,7 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals("async-api", apis.get(0).getId());
         assertEquals(DefinitionVersion.V4, apis.get(0).getDefinitionVersion());
         assertEquals(ApiType.MESSAGE, apis.get(0).getType());
+        assertEquals("async-searched-crossId", apis.get(0).getCrossId());
     }
 
     @Test
