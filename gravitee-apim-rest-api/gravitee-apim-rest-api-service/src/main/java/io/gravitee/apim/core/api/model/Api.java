@@ -20,6 +20,8 @@ import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.property.Property;
+import io.gravitee.rest.api.model.context.ManagementContext;
+import io.gravitee.rest.api.model.context.OriginContext;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Set;
@@ -60,6 +62,10 @@ public class Api {
      * The api version.
      */
     private String version;
+
+    /** Context explaining where the API comes from. */
+    @Builder.Default
+    private OriginContext originContext = new ManagementContext();
 
     /**
      * the API definition context.

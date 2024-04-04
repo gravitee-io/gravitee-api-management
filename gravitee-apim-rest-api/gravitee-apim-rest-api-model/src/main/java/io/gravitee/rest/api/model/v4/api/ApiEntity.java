@@ -35,6 +35,8 @@ import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
+import io.gravitee.rest.api.model.context.ManagementContext;
+import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
@@ -182,6 +184,10 @@ public class ApiEntity implements GenericApiEntity {
     @Schema(description = "the context where the api definition was created from")
     @Builder.Default
     private DefinitionContext definitionContext = new DefinitionContext();
+
+    /** Context explaining where the API comes from. */
+    @Builder.Default
+    private OriginContext originContext = new ManagementContext();
 
     @JsonIgnore
     @Builder.Default

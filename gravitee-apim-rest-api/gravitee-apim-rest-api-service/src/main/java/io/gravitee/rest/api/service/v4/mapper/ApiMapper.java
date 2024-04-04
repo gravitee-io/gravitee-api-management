@@ -34,6 +34,9 @@ import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.model.CategoryEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.WorkflowState;
+import io.gravitee.rest.api.model.context.KubernetesContext;
+import io.gravitee.rest.api.model.context.ManagementContext;
+import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
@@ -147,6 +150,22 @@ public class ApiMapper {
         final ApiLifecycleState lifecycleState = api.getApiLifecycleState();
         if (lifecycleState != null) {
             apiEntity.setLifecycleState(io.gravitee.rest.api.model.api.ApiLifecycleState.valueOf(lifecycleState.name()));
+        }
+
+        OriginContext.Origin origin;
+        try {
+            origin = OriginContext.Origin.valueOf(api.getOrigin().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            origin = OriginContext.Origin.MANAGEMENT;
+        }
+
+        switch (origin) {
+            case MANAGEMENT -> {
+                apiEntity.setOriginContext(new ManagementContext());
+            }
+            case KUBERNETES -> {
+                apiEntity.setOriginContext(new KubernetesContext(KubernetesContext.Mode.valueOf(api.getMode().toUpperCase())));
+            }
         }
 
         apiEntity.setPrimaryOwner(primaryOwner);
@@ -347,6 +366,17 @@ public class ApiMapper {
             repoApi.setMode(apiEntity.getDefinitionContext().getMode());
             repoApi.setOrigin(apiEntity.getDefinitionContext().getOrigin());
         }
+
+        switch (apiEntity.getOriginContext().getOrigin()) {
+            case MANAGEMENT -> {
+                repoApi.setOrigin(OriginContext.Origin.MANAGEMENT.name().toLowerCase());
+            }
+            case KUBERNETES -> {
+                repoApi.setOrigin(OriginContext.Origin.KUBERNETES.name().toLowerCase());
+                repoApi.setMode(((KubernetesContext) apiEntity.getOriginContext()).getMode().name().toLowerCase());
+            }
+        }
+
         repoApi.setName(apiEntity.getName());
         repoApi.setPicture(apiEntity.getPicture());
         repoApi.setType(apiEntity.getType());

@@ -24,6 +24,7 @@ import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import java.io.IOException;
 import java.util.stream.Stream;
+import org.mapstruct.DecoratedWith;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
@@ -33,6 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Mapper(uses = { PlanAdapter.class })
+@DecoratedWith(ApiAdapterDecorator.class)
 public interface ApiAdapter {
     Logger LOGGER = LoggerFactory.getLogger(ApiAdapter.class);
     ApiAdapter INSTANCE = Mappers.getMapper(ApiAdapter.class);
@@ -45,8 +47,6 @@ public interface ApiAdapter {
 
     Stream<Api> toCoreModelStream(Stream<io.gravitee.repository.management.model.Api> source);
 
-    @Mapping(target = "mode", source = "definitionContext.mode")
-    @Mapping(target = "origin", source = "definitionContext.origin")
     @Mapping(target = "definition", expression = "java(serializeApiDefinition(source))")
     io.gravitee.repository.management.model.Api toRepository(Api source);
 
