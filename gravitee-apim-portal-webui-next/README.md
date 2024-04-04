@@ -22,6 +22,8 @@ Run `yarn test` to execute the unit tests via [Jest](https://jestjs.io/).
 
 You can add your own translations to this project. 
 
+### Manually add your translations
+
 1. Run `yarn extract` to extract the source language file. 
    - You can specify the file extension with `yarn extract --format=<format>`. Find out more about [available formats](https://angular.io/guide/i18n-common-translation-files#extract-i18n---format-example).
 2. Rename the translation file in `src/locale` to add the locale: `messages.xlf --> messages.{locale}.xlf`
@@ -45,6 +47,15 @@ You can add your own translations to this project.
 6. Serve the application from the `gravitee-apim-portal-webui/dist/next/browser`. 
    - You use a simple HTTP server to test the build with `npx http-server gravitee-apim-portal-webui/dist/next/browser`.
 7. The translations will be available via `<host>/en-US/` and for each locale specified, example: `<host>/fr/`.
+
+### Use a script to merge your translations
+
+1. Run `yarn extract` to extract the source language file.
+  - You can specify the file extension with `yarn extract --format=<format>`. Find out more about [available formats](https://angular.io/guide/i18n-common-translation-files#extract-i18n---format-example).
+2. Rename the translation file in `src/locale` to add the locale: `messages.xlf --> messages.{locale}.xlf`
+3. Complete the file with the desired translations.
+4. Run `yarn merge:i18n` to update the `angular.json` with the locale configuration and build the project. 
+5. Serve the application from the `gravitee-apim-portal-webui/dist/next/browser`.
 
 Find out more about [@angular/localize](https://angular.io/guide/i18n-common-translation-files).
 
