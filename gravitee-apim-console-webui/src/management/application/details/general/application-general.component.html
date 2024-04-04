@@ -125,12 +125,14 @@
           <div class="details-card__header__right-coll__media coll-oauth">
             <mat-form-field class="oauth">
               <mat-label>Client ID</mat-label>
-              <input formControlName="client_id" matInput type="text" maxlength="50" readonly />
+              <input #clientIdInput formControlName="client_id" matInput type="text" maxlength="50" readonly />
+              <gio-clipboard-copy-icon matIconSuffix [contentToCopy]="clientIdInput.value"></gio-clipboard-copy-icon>
             </mat-form-field>
 
             <mat-form-field class="oauth">
               <mat-label>Client Secret</mat-label>
-              <input formControlName="client_secret" matInput type="text" readonly />
+              <input #clientSecretInput formControlName="client_secret" matInput type="text" readonly />
+              <gio-clipboard-copy-icon matIconSuffix [contentToCopy]="clientSecretInput.value"></gio-clipboard-copy-icon>
             </mat-form-field>
           </div>
           <div class="details-card__header__info-inputs__second-row">
