@@ -30,6 +30,7 @@ import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
+import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import java.util.List;
@@ -293,6 +294,14 @@ public class ApiEntityAssert extends AbstractObjectAssert<ApiEntityAssert, ApiEn
             failWithMessage(assertjErrorMessage, labels, actual.getLabels());
         }
 
+        return this;
+    }
+
+    public ApiEntityAssert hasOriginContext(OriginContext originContext) {
+        isNotNull();
+        if (!actual.getOriginContext().equals(originContext)) {
+            failWithMessage("Expected api origin context to be <%s> but was <%s>", originContext, actual.getOriginContext());
+        }
         return this;
     }
 

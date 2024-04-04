@@ -43,6 +43,7 @@ import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomain
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.rest.api.model.context.KubernetesContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.List;
 import java.util.Map;
@@ -173,7 +174,12 @@ public class ImportCRDUseCase {
             var api = apiCrudService.update(
                 updated
                     .toBuilder()
-                    .definitionContext(input.crd().getDefinitionContext())
+                    .originContext(
+                        new KubernetesContext(
+                            KubernetesContext.Mode.valueOf(input.crd().getDefinitionContext().getMode().toUpperCase()),
+                            input.crd().getDefinitionContext().getSyncFrom()
+                        )
+                    )
                     .lifecycleState(Api.LifecycleState.valueOf(input.crd().getState()))
                     .build()
             );

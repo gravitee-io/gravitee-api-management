@@ -19,6 +19,7 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.rest.api.model.context.OriginContext;
 import java.util.List;
 import java.util.Set;
 import org.assertj.core.api.AbstractObjectAssert;
@@ -165,6 +166,14 @@ public class ApiAssert extends AbstractObjectAssert<ApiAssert, Api> {
         isNotNull();
         if (!actual.getDefinitionContext().equals(definitionContext)) {
             failWithMessage("Expected api definition context to be <%s> but was <%s>", definitionContext, actual.getDefinitionContext());
+        }
+        return this;
+    }
+
+    public ApiAssert hasOriginContext(OriginContext originContext) {
+        isNotNull();
+        if (!actual.getOriginContext().equals(originContext)) {
+            failWithMessage("Expected api origin context to be <%s> but was <%s>", originContext, actual.getOriginContext());
         }
         return this;
     }

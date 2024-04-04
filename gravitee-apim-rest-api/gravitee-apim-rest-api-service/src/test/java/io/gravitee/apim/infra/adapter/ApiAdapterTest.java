@@ -15,8 +15,10 @@
  */
 package io.gravitee.apim.infra.adapter;
 
+import static assertions.CoreAssertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import fixtures.core.model.ApiFixtures;
-import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
@@ -31,11 +33,12 @@ import io.gravitee.repository.management.model.Api;
 import io.gravitee.repository.management.model.ApiLifecycleState;
 import io.gravitee.repository.management.model.LifecycleState;
 import io.gravitee.repository.management.model.Visibility;
+import io.gravitee.rest.api.model.context.KubernetesContext;
+import io.gravitee.rest.api.model.context.ManagementContext;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -228,6 +231,15 @@ class ApiAdapterTest {
                 soft.assertThat(api.getBackground()).isEqualTo("my-background");
             });
         }
+
+        @Test
+        void should_convert_origin_context() {
+            var apiWithManagementContext = ApiAdapter.INSTANCE.toCoreModel(apiV4().origin("management").build());
+            assertThat(apiWithManagementContext).hasOriginContext(new ManagementContext());
+
+            var apiWithKubernetesContext = ApiAdapter.INSTANCE.toCoreModel(apiV4().origin("kubernetes").mode("fully_managed").build());
+            assertThat(apiWithKubernetesContext).hasOriginContext(new KubernetesContext(KubernetesContext.Mode.FULLY_MANAGED));
+        }
     }
 
     @Nested
@@ -259,7 +271,6 @@ class ApiAdapterTest {
                 soft.assertThat(api.getId()).isEqualTo("my-api");
                 soft.assertThat(api.getLabels()).containsExactly("label-1");
                 soft.assertThat(api.getLifecycleState()).isEqualTo(LifecycleState.STARTED);
-                soft.assertThat(api.getMode()).isEqualTo("fully_managed");
                 soft.assertThat(api.getName()).isEqualTo("My Api");
                 soft.assertThat(api.getOrigin()).isEqualTo("management");
                 soft.assertThat(api.getPicture()).isEqualTo("api-picture");
@@ -296,7 +307,6 @@ class ApiAdapterTest {
                 soft.assertThat(api.getId()).isEqualTo("my-api");
                 soft.assertThat(api.getLabels()).containsExactly("label-1");
                 soft.assertThat(api.getLifecycleState()).isEqualTo(LifecycleState.STARTED);
-                soft.assertThat(api.getMode()).isEqualTo("fully_managed");
                 soft.assertThat(api.getName()).isEqualTo("My Api");
                 soft.assertThat(api.getOrigin()).isEqualTo("management");
                 soft.assertThat(api.getPicture()).isEqualTo("api-picture");
@@ -304,6 +314,25 @@ class ApiAdapterTest {
                 soft.assertThat(api.getUpdatedAt()).isEqualTo(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")));
                 soft.assertThat(api.getVisibility()).isEqualTo(Visibility.PUBLIC);
                 soft.assertThat(api.getVersion()).isEqualTo("1.0.0");
+            });
+        }
+
+        @Test
+        void should_convert_origin_context() {
+            var apiWithManagementContext = ApiAdapter.INSTANCE.toRepository(
+                ApiFixtures.aProxyApiV4().toBuilder().originContext(new ManagementContext()).build()
+            );
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(apiWithManagementContext.getOrigin()).isEqualTo("management");
+                soft.assertThat(apiWithManagementContext.getMode()).isNull();
+            });
+
+            var apiWithKubernetesContext = ApiAdapter.INSTANCE.toRepository(
+                ApiFixtures.aProxyApiV4().toBuilder().originContext(new KubernetesContext(KubernetesContext.Mode.FULLY_MANAGED)).build()
+            );
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(apiWithKubernetesContext.getOrigin()).isEqualTo("kubernetes");
+                soft.assertThat(apiWithKubernetesContext.getMode()).isEqualTo("fully_managed");
             });
         }
     }
