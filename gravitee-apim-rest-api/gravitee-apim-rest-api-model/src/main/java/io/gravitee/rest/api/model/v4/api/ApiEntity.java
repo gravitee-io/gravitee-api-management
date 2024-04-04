@@ -181,10 +181,6 @@ public class ApiEntity implements GenericApiEntity {
     @Schema(description = "the free list of labels associated with this API", example = "json, read_only, awesome")
     private List<String> labels;
 
-    @Schema(description = "the context where the api definition was created from")
-    @Builder.Default
-    private DefinitionContext definitionContext = new DefinitionContext();
-
     /** Context explaining where the API comes from. */
     @Builder.Default
     private OriginContext originContext = new ManagementContext();

@@ -394,7 +394,7 @@ public class ApiStateServiceImpl implements ApiStateService {
     public boolean isSynchronized(ExecutionContext executionContext, GenericApiEntity genericApiEntity) {
         try {
             // The state of the api is managed by kubernetes. There is no synchronization allowed from management.
-            if (genericApiEntity.getDefinitionContext().isOriginKubernetes()) {
+            if (genericApiEntity.getOriginContext().isOriginKubernetes()) {
                 return true;
             }
 

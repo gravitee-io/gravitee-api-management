@@ -162,14 +162,6 @@ public class ApiAssert extends AbstractObjectAssert<ApiAssert, Api> {
         return this;
     }
 
-    public ApiAssert hasDefinitionContext(DefinitionContext definitionContext) {
-        isNotNull();
-        if (!actual.getDefinitionContext().equals(definitionContext)) {
-            failWithMessage("Expected api definition context to be <%s> but was <%s>", definitionContext, actual.getDefinitionContext());
-        }
-        return this;
-    }
-
     public ApiAssert hasOriginContext(OriginContext originContext) {
         isNotNull();
         if (!actual.getOriginContext().equals(originContext)) {

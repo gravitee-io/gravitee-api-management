@@ -22,6 +22,7 @@ import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.WorkflowState;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
+import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.search.Indexable;
 import java.util.Date;
 import java.util.List;
@@ -69,7 +70,7 @@ public interface GenericApiEntity extends Indexable {
 
     Set<String> getCategories();
 
-    DefinitionContext getDefinitionContext();
+    OriginContext getOriginContext();
 
     WorkflowState getWorkflowState();
 

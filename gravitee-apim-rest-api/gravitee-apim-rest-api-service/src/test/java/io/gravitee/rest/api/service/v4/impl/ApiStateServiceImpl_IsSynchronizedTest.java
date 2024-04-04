@@ -35,6 +35,7 @@ import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.api.EventLatestRepository;
 import io.gravitee.rest.api.model.EventEntity;
 import io.gravitee.rest.api.model.EventType;
+import io.gravitee.rest.api.model.context.ManagementContext;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.*;
@@ -187,7 +188,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setId("apiId");
         apiEntity.setName("Api name");
-        apiEntity.setDefinitionContext(new DefinitionContext());
+        apiEntity.setOriginContext(new ManagementContext());
 
         EventEntity eventEntity = new EventEntity();
         eventEntity.setType(EventType.PUBLISH_API);
@@ -338,7 +339,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         ApiEntity apiEntity = new ApiEntity();
         apiEntity.setId("apiId");
         apiEntity.setName("Api name");
-        apiEntity.setDefinitionContext(new DefinitionContext());
+        apiEntity.setOriginContext(new ManagementContext());
 
         EventEntity eventEntity = new EventEntity();
         eventEntity.setType(EventType.PUBLISH_API);
@@ -389,7 +390,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         apiEntity.setId("apiId");
         apiEntity.setName("Api name");
         apiEntity.setDeployedAt(nowDate);
-        apiEntity.setDefinitionContext(new DefinitionContext());
+        apiEntity.setOriginContext(new ManagementContext());
 
         EventEntity eventEntity = new EventEntity();
         eventEntity.setType(EventType.PUBLISH_API);
@@ -450,7 +451,7 @@ public class ApiStateServiceImpl_IsSynchronizedTest {
         apiEntity.setId("apiId");
         apiEntity.setName("Api name");
         apiEntity.setDeployedAt(nowDate);
-        apiEntity.setDefinitionContext(new DefinitionContext());
+        apiEntity.setOriginContext(new ManagementContext());
 
         EventEntity eventEntity = new EventEntity();
         eventEntity.setType(EventType.PUBLISH_API);

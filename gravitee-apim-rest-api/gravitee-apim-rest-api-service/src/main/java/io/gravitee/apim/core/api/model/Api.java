@@ -68,12 +68,6 @@ public class Api {
     private OriginContext originContext = new ManagementContext();
 
     /**
-     * the API definition context.
-     */
-    @Builder.Default
-    private DefinitionContext definitionContext = new DefinitionContext();
-
-    /**
      * The api definition version.
      */
     private DefinitionVersion definitionVersion;

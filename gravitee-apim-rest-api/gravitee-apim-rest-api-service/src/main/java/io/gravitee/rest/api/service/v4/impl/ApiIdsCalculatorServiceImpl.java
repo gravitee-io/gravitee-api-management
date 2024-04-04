@@ -191,8 +191,8 @@ public class ApiIdsCalculatorServiceImpl implements ApiIdsCalculatorService {
 
     private boolean canRecalculateIds(ExportApiEntity api) {
         // If the definition is managed by kubernetes, do not try to recalculate ids because k8s is the source of truth.
-        final DefinitionContext definitionContext = api.getApiEntity().getDefinitionContext();
-        return !DefinitionContext.ORIGIN_KUBERNETES.equalsIgnoreCase(definitionContext != null ? definitionContext.getOrigin() : null);
+        var originContext = api.getApiEntity().getOriginContext();
+        return !originContext.isOriginKubernetes();
     }
 
     private ExportApiEntity generateEmptyIdsForPlansAndPages(ExportApiEntity toRecalculate) {

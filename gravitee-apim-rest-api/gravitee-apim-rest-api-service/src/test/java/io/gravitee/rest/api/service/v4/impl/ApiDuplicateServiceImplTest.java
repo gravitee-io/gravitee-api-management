@@ -276,7 +276,7 @@ public class ApiDuplicateServiceImplTest {
             .hasPictureUrl(sourceApi.getPictureUrl())
             .hasOnlyCategories(sourceApi.getCategories())
             .hasOnlyLabels(sourceApi.getLabels())
-            .hasDefinitionContext(sourceApi.getDefinitionContext())
+            .hasOriginContext(sourceApi.getOriginContext())
             .hasOnlyMetadataKeys(sourceApi.getMetadata().keySet())
             .hasDisableMembershipNotifications(sourceApi.isDisableMembershipNotifications())
             .hasBackground(sourceApi.getBackground())

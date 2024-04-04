@@ -21,6 +21,7 @@ import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.services.Services;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.rest.api.model.WorkflowState;
+import io.gravitee.rest.api.model.context.ManagementContext;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import java.util.Date;
@@ -32,12 +33,6 @@ import java.util.Set;
 public class ApiModelFixtures {
 
     private ApiModelFixtures() {}
-
-    private static final io.gravitee.definition.model.DefinitionContext.DefinitionContextBuilder BASE_MODEL_DEFINITION_CONTEXT =
-        io.gravitee.definition.model.DefinitionContext
-            .builder()
-            .origin(io.gravitee.definition.model.DefinitionContext.ORIGIN_MANAGEMENT)
-            .mode(io.gravitee.definition.model.DefinitionContext.MODE_FULLY_MANAGED);
 
     private static final io.gravitee.rest.api.model.api.ApiEntity.ApiEntityBuilder BASE_MODEL_API_V1 =
         io.gravitee.rest.api.model.api.ApiEntity
@@ -97,7 +92,7 @@ public class ApiModelFixtures {
         .pictureUrl("my-picture-url")
         .categories(Set.of("my-category1", "my-category2"))
         .labels(List.of("my-label1", "my-label2"))
-        .definitionContext(BASE_MODEL_DEFINITION_CONTEXT.build())
+        .originContext(new ManagementContext())
         .metadata(Map.of("key", "value"))
         .lifecycleState(io.gravitee.rest.api.model.api.ApiLifecycleState.CREATED)
         .workflowState(WorkflowState.REVIEW_OK)

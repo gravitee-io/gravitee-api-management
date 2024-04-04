@@ -249,7 +249,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         repositoryApi.setUpdatedAt(repositoryApi.getCreatedAt());
 
         repositoryApi.setApiLifecycleState(ApiLifecycleState.CREATED);
-        if (apiEntity.getDefinitionContext().isOriginManagement()) {
+        if (apiEntity.getOriginContext().isOriginManagement()) {
             repositoryApi.setLifecycleState(LifecycleState.STOPPED);
         } else {
             repositoryApi.setLifecycleState(LifecycleState.valueOf(apiEntity.getState().name()));

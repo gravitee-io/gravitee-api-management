@@ -305,14 +305,6 @@ public class ApiEntityAssert extends AbstractObjectAssert<ApiEntityAssert, ApiEn
         return this;
     }
 
-    public ApiEntityAssert hasDefinitionContext(DefinitionContext definitionContext) {
-        isNotNull();
-        if (!actual.getDefinitionContext().equals(definitionContext)) {
-            failWithMessage("Expected api definition context to be <%s> but was <%s>", definitionContext, actual.getDefinitionContext());
-        }
-        return this;
-    }
-
     public ApiEntityAssert hasOnlyMetadataKeys(Set<String> metadataKeys) {
         isNotNull();
         var assertjErrorMessage = "Expecting api to have metadata:  <%s> but was: <%s>";
