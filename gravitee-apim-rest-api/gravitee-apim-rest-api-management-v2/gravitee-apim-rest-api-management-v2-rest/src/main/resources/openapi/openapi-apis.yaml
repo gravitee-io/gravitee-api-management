@@ -2123,6 +2123,8 @@ components:
                               - 12559b64-0b2c-4004-9300-640b2ce0047b
                           items:
                               type: string
+                      originContext:
+                          $ref: "#/components/schemas/BaseOriginContext"
                       definitionContext:
                           $ref: "#/components/schemas/DefinitionContext"
                       workflowState:
@@ -2778,9 +2780,69 @@ components:
                 endpoint:
                     type: string
                     description: The endpoint of the DLQ.
-        DefinitionContext:
+        OriginContext:
+            oneOf:
+                - $ref: "#/components/schemas/ManagementOriginContext"
+                - $ref: "#/components/schemas/KubernetesOriginContext"
+            discriminator:
+                propertyName: origin
+                mapping:
+                    MANAGEMENT: ManagementOriginContext
+                    KUBERNETES: KubernetesOriginContext
+        BaseOriginContext:
             type: object
-            description: the context where the api definition was created
+            properties:
+                origin:
+                    type: string
+                    description: The origin of the API.
+                    example: MANAGEMENT
+                    enum:
+                        - MANAGEMENT
+                        - KUBERNETES
+            discriminator:
+                propertyName: origin
+                mapping:
+                    MANAGEMENT: ManagementOriginContext
+                    KUBERNETES: KubernetesOriginContext
+        ManagementOriginContext:
+            type: object
+            title: "ManagementOriginContext"
+            description: Indicates the API has been created by the Management API
+            allOf:
+                - $ref: "#/components/schemas/BaseOriginContext"
+        KubernetesOriginContext:
+            type: object
+            title: "KubernetesOriginContext"
+            description: Indicates the API has been created by the Gravitee Kubernetes Operator
+            allOf:
+                - $ref: "#/components/schemas/BaseOriginContext"
+                - properties:
+                      mode:
+                          type: string
+                          description: |-
+                              The mode of the API.
+                              fully_managed: Mode indicating the api is fully managed by the origin and so, only the origin should be able to manage the api.
+                          example: FULLY_MANAGED
+                          enum:
+                              - FULLY_MANAGED
+                      syncFrom:
+                          type: string
+                          description: |-
+                              syncFrom stands for where the Gateway should source the API definition from. 
+                              If the value is KUBERNETES, then the gateway will sync the definition by listening to changes
+                              issued on a kubernetes config map. If the value is MANAGEMENT, then the gateway will sync
+                              the definition using the same datastore as APIM. 
+                              Defining MANAGEMENT as source for sync is useful e.g. when a single operator should operate
+                              on gateways deployed on multiple kubernetes clusters.
+                          example: MANAGEMENT
+                          enum:
+                              - MANAGEMENT
+                              - KUBERNETES
+
+        DefinitionContext:
+            deprecated: true
+            type: object
+            description: the context where the api definition was created. Deprecated in favor of OriginContext.
             properties:
                 origin:
                     type: string
