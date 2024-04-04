@@ -55,7 +55,7 @@
         <!-- For Test SDK & Gateway Integration tests. Make sure it is aligned with the version used by Vert.x -->
         <grpc.version>1.61.0</grpc.version>
         <!-- Gravitee dependencies version -->
-        <gravitee-bom.version>6.0.32</gravitee-bom.version>
+        <gravitee-bom.version>6.0.39</gravitee-bom.version>
         <gravitee-alert-api.version>1.9.1</gravitee-alert-api.version>
         <gravitee-cockpit-api.version>2.5.0</gravitee-cockpit-api.version>
         <gravitee-common.version>3.3.3</gravitee-common.version>
