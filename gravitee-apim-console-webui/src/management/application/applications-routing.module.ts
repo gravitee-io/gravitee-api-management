@@ -24,7 +24,10 @@ import { ApplicationSubscriptionComponent } from './details/subscriptions/applic
 import { ApplicationAnalyticsComponent } from './details/analytics/application-analytics.component';
 import { ApplicationLogsComponent } from './details/logs/application-logs.component';
 import { ApplicationLogComponent } from './details/logs/application-log.component';
-import { ApplicationCreationComponent } from './creation/steps/application-creation.component';
+import {
+  ApplicationCreationComponent as ApplicationCreationAjsComponent,
+  ApplicationCreationComponent,
+} from './creation/steps/application-creation.component';
 import { ApplicationSubscribeComponent } from './details/subscribe/application-subscribe.component';
 import { ApplicationGeneralMembersComponent } from './details/user-group-access/members/application-general-members.component';
 import { ApplicationGeneralGroupsComponent } from './details/user-group-access/groups/application-general-groups.component';
@@ -52,6 +55,19 @@ const applicationRoutes: Routes = [
   },
   {
     path: 'create',
+    component: ApplicationCreationAjsComponent,
+    canActivate: [PermissionGuard.checkRouteDataPermissions],
+    data: {
+      permissions: {
+        anyOf: ['environment-application-c'],
+      },
+      docs: {
+        page: 'management-create-application',
+      },
+    },
+  },
+  {
+    path: 'create-ng',
     component: ApplicationCreationComponent,
     canActivate: [PermissionGuard.checkRouteDataPermissions],
     data: {
