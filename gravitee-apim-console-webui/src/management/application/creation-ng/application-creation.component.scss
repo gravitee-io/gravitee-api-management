@@ -13,12 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-.application-creation {
-  &__header {
+
+@use '../../../scss/gio-layout' as gio-layout;
+
+:host {
+  @include gio-layout.gio-responsive-margin-container;
+}
+
+.header {
+  margin-bottom: 24px;
+}
+
+.content {
+  &__form {
     display: flex;
-    width: 100%;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 20px;
+    flex-direction: column;
+
+    &__securityTitle {
+      margin-top: 24px;
+    }
   }
 }

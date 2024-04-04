@@ -14,15 +14,87 @@
  * limitations under the License.
  */
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
+import { map } from 'rxjs/operators';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { GioSaveBarModule } from '@gravitee/ui-particles-angular';
 
+import { ApplicationCreationFormComponent, ApplicationForm } from './components/application-creation-form.component';
+
+import { ApplicationTypesService } from '../../../services-ngx/application-types.service';
+
+const TYPES_INFOS = {
+  SIMPLE: {
+    title: 'Simple',
+    subtitle: 'A hands-free application. Using this type, you will be able to define the client_id by your own',
+    icon: 'gio:hand',
+  },
+  BROWSER: {
+    title: 'SPA',
+    subtitle: 'Angular, React, Ember, ...',
+    icon: 'gio:laptop',
+  },
+  WEB: {
+    title: 'Web',
+    subtitle: 'Java, .Net, ...',
+    icon: 'gio:language',
+  },
+  NATIVE: {
+    title: 'Native',
+    subtitle: 'iOS, Android, ...',
+    icon: 'gio:tablet-device',
+  },
+  BACKEND_TO_BACKEND: {
+    title: 'Backend to backend',
+    subtitle: 'Machine to machine',
+    icon: 'gio:share-2',
+  },
+};
 
 @Component({
   selector: 'application-creation',
-  templateUrl: './application-creation.component.html',
-  styleUrls: ['./application-creation.component.scss'],
-  imports: [CommonModule, MatCardModule],
+  imports: [CommonModule, ReactiveFormsModule, MatCardModule, ApplicationCreationFormComponent, GioSaveBarModule],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  styleUrls: ['./application-creation.component.scss'],
+  templateUrl: './application-creation.component.html',
 })
-export class ApplicationCreationComponent {}
+export class ApplicationCreationComponent implements OnInit {
+  public applicationFormGroup = new FormGroup<ApplicationForm>({
+    name: new FormControl(undefined, Validators.required),
+    description: new FormControl(),
+    domain: new FormControl(),
+    type: new FormControl(undefined, Validators.required),
+
+    appType: new FormControl(),
+    appClientId: new FormControl(),
+
+    oauthGrantTypes: new FormControl(),
+    oauthRedirectUris: new FormControl([]),
+  });
+
+  public applicationTypes$ = this.applicationTypesService.getEnabledApplicationTypes().pipe(
+    map((types) =>
+      types.map((type) => {
+        const typeInfo = TYPES_INFOS[type.id.toUpperCase()];
+        return {
+          ...type,
+          id: type.id.toUpperCase(),
+          title: typeInfo.title,
+          subtitle: typeInfo.subtitle,
+          icon: typeInfo.icon,
+        };
+      }),
+    ),
+  );
+
+  public applicationPayload: unknown;
+  constructor(private readonly applicationTypesService: ApplicationTypesService) {}
+  ngOnInit() {}
+
+  onSubmit() {
+    // TODO: save application
+    this.applicationPayload = this.applicationFormGroup.value;
+  }
+}

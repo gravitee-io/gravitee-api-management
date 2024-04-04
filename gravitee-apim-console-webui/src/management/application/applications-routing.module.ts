@@ -24,10 +24,7 @@ import { ApplicationSubscriptionComponent } from './details/subscriptions/applic
 import { ApplicationAnalyticsComponent } from './details/analytics/application-analytics.component';
 import { ApplicationLogsComponent } from './details/logs/application-logs.component';
 import { ApplicationLogComponent } from './details/logs/application-log.component';
-import {
-  ApplicationCreationComponent as ApplicationCreationAjsComponent,
-  ApplicationCreationComponent,
-} from './creation/steps/application-creation.component';
+import { ApplicationCreationComponent as ApplicationCreationAjsComponent } from './creation/steps/application-creation.component';
 import { ApplicationSubscribeComponent } from './details/subscribe/application-subscribe.component';
 import { ApplicationGeneralMembersComponent } from './details/user-group-access/members/application-general-members.component';
 import { ApplicationGeneralGroupsComponent } from './details/user-group-access/groups/application-general-groups.component';
@@ -35,6 +32,7 @@ import { ApplicationGeneralTransferOwnershipComponent } from './details/user-gro
 import { ApplicationGeneralComponent } from './details/general/application-general.component';
 import { ApplicationNotificationComponent } from './details/notification/application-notification.component';
 import { ApplicationSubscriptionListComponent } from './details/subscriptions/list/application-subscription-list.component';
+import { ApplicationCreationComponent } from './creation-ng/application-creation.component';
 
 import { PermissionGuard } from '../../shared/components/gio-permission/gio-permission.guard';
 
