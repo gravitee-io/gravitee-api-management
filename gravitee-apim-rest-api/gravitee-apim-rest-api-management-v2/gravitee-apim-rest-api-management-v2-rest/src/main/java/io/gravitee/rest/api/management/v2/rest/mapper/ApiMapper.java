@@ -54,6 +54,7 @@ import org.slf4j.LoggerFactory;
         AnalyticsMapper.class,
         DateMapper.class,
         DefinitionContextMapper.class,
+        OriginContextMapper.class,
         EndpointMapper.class,
         EntrypointMapper.class,
         FlowMapper.class,
@@ -125,10 +126,12 @@ public interface ApiMapper {
         return result;
     }
 
+    @Mapping(target = "definitionContext", source = "apiEntity.originContext")
     @Mapping(target = "listeners", qualifiedByName = "fromListeners")
     @Mapping(target = "links", expression = "java(computeApiLinks(apiEntity, uriInfo))")
     ApiV4 mapToV4(ApiEntity apiEntity, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
 
+    @Mapping(target = "definitionContext", source = "source.originContext")
     @Mapping(target = "apiVersion", source = "source.version")
     @Mapping(target = "analytics", source = "source.apiDefinitionV4.analytics")
     @Mapping(target = "deploymentState", source = "deploymentState")
@@ -141,6 +144,7 @@ public interface ApiMapper {
     @Mapping(target = "state", source = "source.lifecycleState")
     ApiV4 mapToV4(io.gravitee.apim.core.api.model.Api source, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
 
+    @Mapping(target = "definitionContext", source = "apiEntity.originContext")
     @Mapping(target = "links", expression = "java(computeApiLinks(apiEntity, uriInfo))")
     ApiV2 mapToV2(io.gravitee.rest.api.model.api.ApiEntity apiEntity, UriInfo uriInfo, GenericApi.DeploymentStateEnum deploymentState);
 
