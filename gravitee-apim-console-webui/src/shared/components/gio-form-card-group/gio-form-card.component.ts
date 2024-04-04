@@ -18,15 +18,16 @@ import { ChangeDetectorRef, Component, Input } from '@angular/core';
 @Component({
   selector: 'gio-form-card',
   template: `
-    <mat-card matRipple [matRippleDisabled]="disabled" class="card" [class.selected]="selected" [class.disabled]="disabled">
+    <div matRipple [matRippleDisabled]="disabled" class="card" [class.selected]="selected" [class.disabled]="disabled">
       <span *ngIf="!lock" class="selection-icon" [class.selection-icon__disabled]="disabled">
-        <mat-icon>check_circle</mat-icon>
+        <mat-icon>{{ selected ? 'radio_button_checked' : 'radio_button_unchecked' }}</mat-icon>
       </span>
+
       <span *ngIf="lock" class="lock-icon">
         <mat-icon svgIcon="gio:lock"></mat-icon>
       </span>
-      <mat-card-content class="card__content"><ng-content></ng-content></mat-card-content>
-    </mat-card>
+      <div class="card__content"><ng-content></ng-content></div>
+    </div>
   `,
   host: {
     '[class.disabled]': 'disabled',
