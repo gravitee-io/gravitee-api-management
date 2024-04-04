@@ -41,11 +41,11 @@ export const Simple: StoryObj = {
       <gio-form-card value="B">Hello</gio-form-card>
       <gio-form-card value="C">Hello</gio-form-card>
       <gio-form-card value="D">Hello</gio-form-card>
-      <gio-form-card value="E">Hello</gio-form-card>
+        <gio-form-card [lock]="true" value="E">Hello locked</gio-form-card>
     </gio-form-card-group>
     `,
     props: {
-      selected: 'A',
+      selected: 'E',
       onSelect: (e) => action('On select')(e),
     },
   }),
@@ -66,7 +66,7 @@ export const ReactiveForms: StoryObj = {
         <gio-form-card value="B">Hello</gio-form-card>
         <gio-form-card value="C">Hello</gio-form-card>
         <gio-form-card value="D">Hello</gio-form-card>
-        <gio-form-card value="E">Hello</gio-form-card>
+        <gio-form-card [lock]="true" value="E">Hello locked</gio-form-card>
       </gio-form-card-group>
       `,
       props: {
@@ -76,7 +76,7 @@ export const ReactiveForms: StoryObj = {
   },
 };
 
-export const ReactiveFormsGroupDisable: StoryObj = {
+export const Disable: StoryObj = {
   render: () => {
     const selectControl = new FormControl({ value: 'A', disabled: true });
 
@@ -91,7 +91,54 @@ export const ReactiveFormsGroupDisable: StoryObj = {
         <gio-form-card value="B">B card</gio-form-card>
         <gio-form-card value="C">C card</gio-form-card>
         <gio-form-card value="D">D card</gio-form-card>
-        <gio-form-card value="E">E card</gio-form-card>
+        <gio-form-card value="E" [lock]="true" value="E">E card</gio-form-card>
+      </gio-form-card-group>
+      `,
+      props: {
+        selectControl,
+      },
+    };
+  },
+};
+
+export const WithContent: StoryObj = {
+  render: () => {
+    const selectControl = new FormControl({ value: 'A', disabled: false });
+
+    selectControl.valueChanges.subscribe((value) => {
+      action('On select')(value);
+    });
+
+    return {
+      template: `
+      <gio-form-card-group [formControl]="selectControl">
+        <gio-form-card value="fox">
+            <gio-form-card-content icon="gio:gitlab">
+                <gio-form-card-content-title>Fox</gio-form-card-content-title>
+                <gio-form-card-content-subtitle>This is a fox icon</gio-form-card-content-subtitle>
+            </gio-form-card-content>
+        </gio-form-card>
+
+        <gio-form-card value="cat" [lock]="true" value="E">
+          <gio-form-card-content icon="gio:github">
+            <gio-form-card-content-title>Cat</gio-form-card-content-title>
+            <gio-form-card-content-subtitle>Lorem ipsum dolor sit amet, consectetur adipiscing elit</gio-form-card-content-subtitle>
+          </gio-form-card-content>
+        </gio-form-card>
+
+        <gio-form-card value="dog">
+          <gio-form-card-content icon="gio:cpu">
+            <gio-form-card-content-title>Dog</gio-form-card-content-title>
+            <gio-form-card-content-subtitle>This is not a dog icon</gio-form-card-content-subtitle>
+          </gio-form-card-content>
+        </gio-form-card>
+
+        <gio-form-card value="no-title">
+          <gio-form-card-content icon="gio:off-rounded">
+            <gio-form-card-content-subtitle>Only subtitle</gio-form-card-content-subtitle>
+          </gio-form-card-content>
+        </gio-form-card>
+
       </gio-form-card-group>
       `,
       props: {

@@ -18,13 +18,31 @@ import { NgModule } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatRippleModule } from '@angular/material/core';
 import { MatIconModule } from '@angular/material/icon';
+import { GioIconsModule } from '@gravitee/ui-particles-angular';
 
 import { GioFormCardComponent } from './gio-form-card.component';
 import { GioFormCardGroupComponent } from './gio-form-card-group.component';
+import {
+  GioFormCardContentComponent,
+  GioFormCardContentSubtitleComponent,
+  GioFormCardContentTitleComponent,
+} from './gio-form-card-content/gio-form-card-content.component';
 
 @NgModule({
-  imports: [CommonModule, MatCardModule, MatIconModule, MatRippleModule],
-  declarations: [GioFormCardGroupComponent, GioFormCardComponent],
-  exports: [GioFormCardGroupComponent, GioFormCardComponent],
+  imports: [CommonModule, MatCardModule, MatIconModule, MatRippleModule, GioIconsModule],
+  declarations: [
+    GioFormCardGroupComponent,
+    GioFormCardComponent,
+    GioFormCardContentSubtitleComponent,
+    GioFormCardContentTitleComponent,
+    GioFormCardContentComponent,
+  ],
+  exports: [
+    GioFormCardGroupComponent,
+    GioFormCardComponent,
+    GioFormCardContentSubtitleComponent,
+    GioFormCardContentTitleComponent,
+    GioFormCardContentComponent,
+  ],
 })
 export class GioFormCardGroupModule {}

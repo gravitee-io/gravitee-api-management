@@ -21,66 +21,67 @@ $foreground: map.get(gio.$mat-theme, foreground);
 $accent: map.get(gio.$mat-theme, accent);
 
 :host {
+  flex: 1 0 0%;
   display: flex;
 }
 
 .card {
-  @include mat.elevation(1);
   flex: 1 1 auto;
   margin: 6px;
   cursor: pointer;
   min-height: 40px;
   min-width: 64px;
+  border: 1px solid var(--mdc-outlined-text-field-outline-color);
+  border-radius: 4px;
+
+  &:hover:not(.disabled, .selected) {
+    border-color: var(--mdc-outlined-text-field-hover-outline-color);
+    & .selection-icon {
+      color: var(--mdc-outlined-text-field-hover-outline-color);
+    }
+  }
 
   & > .selection-icon,
   & > .lock-icon {
-    opacity: 0;
+    color: var(--mdc-outlined-text-field-outline-color);
     cursor: pointer;
-    color: mat.get-color-from-palette($accent);
-    background: #fff;
     position: absolute;
-    right: 4px;
-    top: 4px;
+    right: 8px;
+    top: 8px;
     border-radius: 100%;
     height: 24px;
     width: 24px;
 
     &__disabled {
-      color: mat.get-color-from-palette($foreground, disabled);
       cursor: auto;
+      color: mat.get-color-from-palette($foreground, disabled);
     }
   }
 
-  & > .lock-icon {
-    opacity: 1;
-  }
-
   &.selected {
-    border: 1px solid mat.get-color-from-palette($accent);
+    border: 2px solid mat.get-color-from-palette($accent);
+    color: mat.get-color-from-palette($accent);
     margin: 5px;
 
-    & > .selection-icon {
-      opacity: 1;
+    & > .selection-icon,
+    .lock-icon {
+      color: mat.get-color-from-palette($accent);
     }
   }
 
   &.disabled {
     color: mat.get-color-from-palette($foreground, disabled);
-    border: 1px solid mat.get-color-from-palette($foreground, disabled);
+    border-color: mat.get-color-from-palette($foreground, disabled);
     cursor: auto;
-  }
+    opacity: 0.4;
 
-  &:hover:not(.disabled) {
-    @include mat.elevation-transition();
-    @include mat.elevation(3);
-
-    & > .selection-icon {
-      opacity: 1;
+    & > .selection-icon,
+    .lock-icon {
+      color: mat.get-color-from-palette($foreground, disabled);
     }
   }
 
   &__content {
-    margin-bottom: 0;
-    padding-top: 16px;
+    padding: 16px;
   }
 }
