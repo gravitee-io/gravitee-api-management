@@ -13,12 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Meta, StoryObj } from '@storybook/angular';
+import { Meta, moduleMetadata, StoryObj } from '@storybook/angular';
+import { of } from 'rxjs';
 
 import { ApplicationCreationComponent } from './application-creation.component';
 
+import { fakeApplicationTypes } from '../../../entities/application-type/ApplicationType.fixture';
+import { ApplicationTypesService } from '../../../services-ngx/application-types.service';
+
 export default {
-  title: 'ApplicationCreationComponent story',
+  title: 'Application / Creation page',
   component: ApplicationCreationComponent,
   argTypes: {},
   render: (args) => ({
@@ -29,7 +33,33 @@ export default {
     `,
     props: args,
   }),
+  decorators: [
+    moduleMetadata({
+      providers: [
+        {
+          provide: ApplicationTypesService,
+          useValue: {
+            getEnabledApplicationTypes: () => of(fakeApplicationTypes()),
+          },
+        },
+      ],
+    }),
+  ],
 } as Meta;
 
 export const Default: StoryObj = {};
 Default.args = {};
+
+export const WithOnlySimpleType: StoryObj = {};
+WithOnlySimpleType.decorators = [
+  moduleMetadata({
+    providers: [
+      {
+        provide: ApplicationTypesService,
+        useValue: {
+          getEnabledApplicationTypes: () => of([fakeApplicationTypes()[0]]),
+        },
+      },
+    ],
+  }),
+];

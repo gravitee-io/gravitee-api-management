@@ -16,17 +16,23 @@
 
 -->
 
-<mat-card>
-  <mat-card-header>
-    <div class="application-creation__header">
-      <div class="application-creation__header__titles">
-        <mat-card-title>Hello applicationCreation !</mat-card-title>
-        <mat-card-subtitle>Add a description here</mat-card-subtitle>
-      </div>
-    </div>
-  </mat-card-header>
-  <mat-card-content>
-    Put your card content here ! 👀
-  </mat-card-content>
-</mat-card>
+<form [formGroup]="applicationFormGroup" (ngSubmit)="onSubmit()" gioFormFocusInvalid>
+  <mat-card>
+    <mat-card-header class="header">
+      <mat-card-title>Application creation</mat-card-title>
+      <mat-card-subtitle
+        >An application is required to subscribe to API's plan. It is the intermediate link between a user (you) and an API managed by
+        someone else.</mat-card-subtitle
+      >
+    </mat-card-header>
 
+    <mat-card-content class="content">
+      <application-creation-form
+        [applicationTypes]="applicationTypes$ | async"
+        [applicationFormGroup]="applicationFormGroup"
+      ></application-creation-form>
+    </mat-card-content>
+  </mat-card>
+
+  <gio-save-bar [creationMode]="true" [form]="applicationFormGroup"></gio-save-bar>
+</form>
