@@ -30,6 +30,7 @@ import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
 import io.gravitee.definition.model.v4.listener.http.Path;
 import io.gravitee.definition.model.v4.listener.tcp.TcpListener;
+import io.gravitee.rest.api.model.context.ManagementContext;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.List;
@@ -62,6 +63,7 @@ public class ApiFixtures {
             .categories(Set.of("category-1"))
             .labels(List.of("label-1"))
             .disableMembershipNotifications(true)
+            .originContext(new ManagementContext())
             .background("api-background");
 
     public static Api aProxyApiV4() {

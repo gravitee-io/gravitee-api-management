@@ -38,6 +38,9 @@ import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.WorkflowState;
+import io.gravitee.rest.api.model.context.KubernetesContext;
+import io.gravitee.rest.api.model.context.ManagementContext;
+import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
@@ -284,5 +287,18 @@ public class ApiEntity implements GenericApiEntity {
             return DefinitionVersion.valueOfLabel(graviteeDefinitionVersion);
         }
         return null;
+    }
+
+    @Override
+    public OriginContext getOriginContext() {
+        if (definitionContext == null) {
+            return new ManagementContext();
+        } else if (definitionContext.isOriginKubernetes()) {
+            return new io.gravitee.rest.api.model.context.KubernetesContext(
+                KubernetesContext.Mode.valueOf(definitionContext.getMode().toUpperCase()),
+                definitionContext.getSyncFrom()
+            );
+        }
+        return new ManagementContext();
     }
 }

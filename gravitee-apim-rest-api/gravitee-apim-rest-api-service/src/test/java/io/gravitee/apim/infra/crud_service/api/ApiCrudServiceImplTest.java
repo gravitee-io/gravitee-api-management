@@ -103,6 +103,12 @@ public class ApiCrudServiceImplTest {
     @Nested
     class Update {
 
+        @BeforeEach
+        @SneakyThrows
+        void setUp() {
+            when(apiRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        }
+
         @Test
         @SneakyThrows
         void should_update_an_existing_v4_api() {
@@ -131,7 +137,6 @@ public class ApiCrudServiceImplTest {
                         .apiLifecycleState(ApiLifecycleState.PUBLISHED)
                         .lifecycleState(LifecycleState.STARTED)
                         .visibility(Visibility.PUBLIC)
-                        .mode("fully_managed")
                         .origin("management")
                         .background("api-background")
                         .picture("api-picture")
@@ -155,8 +160,8 @@ public class ApiCrudServiceImplTest {
         @Test
         @SneakyThrows
         void should_update_an_existing_v2_api() {
-            var plan = ApiFixtures.aProxyApiV2();
-            service.update(plan);
+            var api = ApiFixtures.aProxyApiV2();
+            service.update(api);
 
             var captor = ArgumentCaptor.forClass(io.gravitee.repository.management.model.Api.class);
             verify(apiRepository).update(captor.capture());
@@ -175,7 +180,6 @@ public class ApiCrudServiceImplTest {
                         .apiLifecycleState(ApiLifecycleState.PUBLISHED)
                         .lifecycleState(LifecycleState.STARTED)
                         .visibility(Visibility.PUBLIC)
-                        .mode("fully_managed")
                         .origin("management")
                         .background("api-background")
                         .picture("api-picture")

@@ -39,8 +39,6 @@ public interface ApiAdapter {
     Logger LOGGER = LoggerFactory.getLogger(ApiAdapter.class);
     ApiAdapter INSTANCE = Mappers.getMapper(ApiAdapter.class);
 
-    @Mapping(target = "definitionContext.mode", source = "mode")
-    @Mapping(target = "definitionContext.origin", source = "origin")
     @Mapping(target = "apiDefinitionV4", expression = "java(deserializeApiDefinitionV4(source))")
     @Mapping(target = "apiDefinition", expression = "java(deserializeApiDefinitionV2(source))")
     Api toCoreModel(io.gravitee.repository.management.model.Api source);

@@ -15,10 +15,11 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
-import static io.gravitee.definition.model.DefinitionContext.*;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import io.gravitee.rest.api.management.v2.rest.model.DefinitionContext;
+import io.gravitee.rest.api.model.context.KubernetesContext;
+import io.gravitee.rest.api.model.context.ManagementContext;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 
@@ -28,12 +29,9 @@ public class DefinitionContextMapperTest {
 
     @Test
     void shouldMapDefinitionContextWithManagementOriginString() {
-        io.gravitee.definition.model.DefinitionContext definitionContext = new io.gravitee.definition.model.DefinitionContext(
-            ORIGIN_MANAGEMENT,
-            MODE_FULLY_MANAGED
-        );
+        var context = new ManagementContext();
 
-        io.gravitee.rest.api.management.v2.rest.model.DefinitionContext result = definitionContextMapper.map(definitionContext);
+        io.gravitee.rest.api.management.v2.rest.model.DefinitionContext result = definitionContextMapper.map(context);
 
         assertThat(result).isNotNull();
         assertThat(result.getOrigin()).isEqualTo(io.gravitee.rest.api.management.v2.rest.model.DefinitionContext.OriginEnum.MANAGEMENT);
@@ -42,16 +40,13 @@ public class DefinitionContextMapperTest {
 
     @Test
     void shouldMapDefinitionContextWithKubernetesOriginString() {
-        io.gravitee.definition.model.DefinitionContext definitionContext = new io.gravitee.definition.model.DefinitionContext(
-            ORIGIN_KUBERNETES,
-            MODE_API_DEFINITION_ONLY
-        );
+        var context = new KubernetesContext(KubernetesContext.Mode.FULLY_MANAGED);
 
-        io.gravitee.rest.api.management.v2.rest.model.DefinitionContext result = definitionContextMapper.map(definitionContext);
+        io.gravitee.rest.api.management.v2.rest.model.DefinitionContext result = definitionContextMapper.map(context);
 
         assertThat(result).isNotNull();
         assertThat(result.getOrigin()).isEqualTo(DefinitionContext.OriginEnum.KUBERNETES);
-        assertThat(result.getMode()).isEqualTo(DefinitionContext.ModeEnum.API_DEFINITION_ONLY);
+        assertThat(result.getMode()).isEqualTo(DefinitionContext.ModeEnum.FULLY_MANAGED);
     }
 
     @Test
@@ -61,24 +56,20 @@ public class DefinitionContextMapperTest {
         definitionContext.setOrigin(io.gravitee.rest.api.management.v2.rest.model.DefinitionContext.OriginEnum.MANAGEMENT);
         definitionContext.setMode(io.gravitee.rest.api.management.v2.rest.model.DefinitionContext.ModeEnum.FULLY_MANAGED);
 
-        io.gravitee.definition.model.DefinitionContext result = definitionContextMapper.map(definitionContext);
+        var result = definitionContextMapper.map(definitionContext);
 
-        assertThat(result).isNotNull();
-        assertThat(result.getOrigin()).isEqualTo(ORIGIN_MANAGEMENT);
-        assertThat(result.getMode()).isEqualTo(MODE_FULLY_MANAGED);
+        assertThat(result).isEqualTo(new ManagementContext());
     }
 
     @Test
     void shouldMapDefinitionContextWithKubernetesEnum() {
         io.gravitee.rest.api.management.v2.rest.model.DefinitionContext definitionContext =
             new io.gravitee.rest.api.management.v2.rest.model.DefinitionContext();
-        definitionContext.setOrigin(io.gravitee.rest.api.management.v2.rest.model.DefinitionContext.OriginEnum.MANAGEMENT);
+        definitionContext.setOrigin(DefinitionContext.OriginEnum.KUBERNETES);
         definitionContext.setMode(io.gravitee.rest.api.management.v2.rest.model.DefinitionContext.ModeEnum.FULLY_MANAGED);
 
-        io.gravitee.definition.model.DefinitionContext result = definitionContextMapper.map(definitionContext);
+        var result = definitionContextMapper.map(definitionContext);
 
-        assertThat(result).isNotNull();
-        assertThat(result.getOrigin()).isEqualTo(ORIGIN_MANAGEMENT);
-        assertThat(result.getMode()).isEqualTo(MODE_FULLY_MANAGED);
+        assertThat(result).isEqualTo(new KubernetesContext(KubernetesContext.Mode.FULLY_MANAGED));
     }
 }

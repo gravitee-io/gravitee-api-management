@@ -67,7 +67,6 @@ class ApiAdapterTest {
                 soft.assertThat(api.getCrossId()).isEqualTo("cross-id");
                 soft.assertThat(api.getDescription()).isEqualTo("api-description");
                 soft.assertThat(api.getVersion()).isEqualTo("1.0.0");
-                soft.assertThat(api.getDefinitionContext()).isEqualTo(new DefinitionContext("management", "fully_managed"));
                 soft.assertThat(api.getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
                 soft.assertThat(api.getApiDefinition()).isNull();
                 soft
@@ -145,7 +144,6 @@ class ApiAdapterTest {
                 soft.assertThat(api.getCrossId()).isEqualTo("cross-id");
                 soft.assertThat(api.getDescription()).isEqualTo("api-description");
                 soft.assertThat(api.getVersion()).isEqualTo("1.0.0");
-                soft.assertThat(api.getDefinitionContext()).isEqualTo(new DefinitionContext("management", "fully_managed"));
                 soft.assertThat(api.getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
                 soft.assertThat(api.getApiDefinition()).isNull();
                 soft.assertThat(api.getApiDefinitionV4()).isNull();
@@ -178,7 +176,6 @@ class ApiAdapterTest {
                 soft.assertThat(api.getCrossId()).isEqualTo("cross-id");
                 soft.assertThat(api.getDescription()).isEqualTo("api-description");
                 soft.assertThat(api.getVersion()).isEqualTo("1.0.0");
-                soft.assertThat(api.getDefinitionContext()).isEqualTo(new DefinitionContext("management", "fully_managed"));
                 soft.assertThat(api.getDefinitionVersion()).isEqualTo(DefinitionVersion.V2);
                 soft.assertThat(api.getApiDefinitionV4()).isNull();
                 soft
@@ -214,7 +211,6 @@ class ApiAdapterTest {
                 soft.assertThat(api.getCrossId()).isEqualTo("cross-id");
                 soft.assertThat(api.getDescription()).isEqualTo("api-description");
                 soft.assertThat(api.getVersion()).isEqualTo("1.0.0");
-                soft.assertThat(api.getDefinitionContext()).isEqualTo(new DefinitionContext("management", "fully_managed"));
                 soft.assertThat(api.getDefinitionVersion()).isNull();
                 soft.assertThat(api.getApiDefinitionV4()).isNull();
                 soft.assertThat(api.getApiDefinition()).isNull();

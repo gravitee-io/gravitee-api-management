@@ -26,6 +26,7 @@ import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.context.KubernetesContext;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
@@ -386,11 +387,7 @@ class ApiIdsCalculatorServiceImplTest {
                 .filter(page -> page.getId() != null && !page.getId().isEmpty())
                 .collect(Collectors.toMap(PageEntity::getName, PageEntity::getId));
 
-            toRecalculate
-                .getApiEntity()
-                .setDefinitionContext(
-                    new DefinitionContext(DefinitionContext.ORIGIN_KUBERNETES, DefinitionContext.MODE_API_DEFINITION_ONLY)
-                );
+            toRecalculate.getApiEntity().setOriginContext(new KubernetesContext(KubernetesContext.Mode.FULLY_MANAGED));
             final ExecutionContext executionContext = new ExecutionContext("default", "default");
             final ExportApiEntity result = cut.recalculateApiDefinitionIds(executionContext, toRecalculate);
 

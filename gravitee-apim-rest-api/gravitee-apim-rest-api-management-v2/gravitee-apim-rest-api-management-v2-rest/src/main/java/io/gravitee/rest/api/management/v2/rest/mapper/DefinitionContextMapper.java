@@ -15,9 +15,10 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
-import static io.gravitee.definition.model.DefinitionContext.*;
-
 import io.gravitee.rest.api.management.v2.rest.model.DefinitionContext;
+import io.gravitee.rest.api.model.context.KubernetesContext;
+import io.gravitee.rest.api.model.context.ManagementContext;
+import io.gravitee.rest.api.model.context.OriginContext;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
@@ -25,38 +26,42 @@ import org.mapstruct.factory.Mappers;
 public interface DefinitionContextMapper {
     DefinitionContextMapper INSTANCE = Mappers.getMapper(DefinitionContextMapper.class);
 
-    default DefinitionContext map(io.gravitee.definition.model.DefinitionContext definitionContext) {
-        if (definitionContext == null) {
+    default DefinitionContext map(OriginContext originContext) {
+        if (originContext == null) {
             return null;
         }
-        DefinitionContext context = new DefinitionContext();
-        context.setOrigin(
-            definitionContext.getOrigin().equals(ORIGIN_MANAGEMENT)
-                ? DefinitionContext.OriginEnum.MANAGEMENT
-                : DefinitionContext.OriginEnum.KUBERNETES
-        );
-        context.setMode(
-            definitionContext.getMode().equals(MODE_FULLY_MANAGED)
-                ? DefinitionContext.ModeEnum.FULLY_MANAGED
-                : DefinitionContext.ModeEnum.API_DEFINITION_ONLY
-        );
-        context.setSyncFrom(
-            definitionContext.getSyncFrom().equals(ORIGIN_MANAGEMENT)
-                ? DefinitionContext.SyncFromEnum.MANAGEMENT
-                : DefinitionContext.SyncFromEnum.KUBERNETES
-        );
-        return context;
+
+        return switch (originContext.getOrigin()) {
+            case MANAGEMENT -> new DefinitionContext()
+                .origin(DefinitionContext.OriginEnum.MANAGEMENT)
+                .mode(DefinitionContext.ModeEnum.FULLY_MANAGED)
+                .syncFrom(DefinitionContext.SyncFromEnum.MANAGEMENT);
+            case KUBERNETES -> new DefinitionContext()
+                .origin(DefinitionContext.OriginEnum.KUBERNETES)
+                .mode(DefinitionContext.ModeEnum.FULLY_MANAGED)
+                .syncFrom(DefinitionContext.SyncFromEnum.KUBERNETES);
+        };
     }
 
-    default io.gravitee.definition.model.DefinitionContext map(DefinitionContext definitionContext) {
-        if (definitionContext == null) {
-            return new io.gravitee.definition.model.DefinitionContext();
+    default OriginContext map(DefinitionContext definitionContext) {
+        if (definitionContext == null || definitionContext.getOrigin() == null) {
+            return new ManagementContext();
         }
 
-        return new io.gravitee.definition.model.DefinitionContext(
-            definitionContext.getOrigin() == DefinitionContext.OriginEnum.MANAGEMENT ? ORIGIN_MANAGEMENT : ORIGIN_KUBERNETES,
-            definitionContext.getMode() == DefinitionContext.ModeEnum.FULLY_MANAGED ? MODE_FULLY_MANAGED : MODE_API_DEFINITION_ONLY,
-            definitionContext.getSyncFrom() == DefinitionContext.SyncFromEnum.MANAGEMENT ? ORIGIN_MANAGEMENT : ORIGIN_KUBERNETES
-        );
+        OriginContext.Origin origin;
+        try {
+            origin = OriginContext.Origin.valueOf(definitionContext.getOrigin().name());
+        } catch (IllegalArgumentException e) {
+            origin = OriginContext.Origin.MANAGEMENT;
+        }
+
+        return switch (origin) {
+            case MANAGEMENT -> new ManagementContext();
+            case KUBERNETES -> new KubernetesContext(
+                definitionContext.getMode() == null
+                    ? KubernetesContext.Mode.FULLY_MANAGED
+                    : KubernetesContext.Mode.valueOf(definitionContext.getMode().name())
+            );
+        };
     }
 }

@@ -200,8 +200,8 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
                 });
         }
 
-        if (api.getDefinitionContext() != null && api.getDefinitionContext().getOrigin() != null) {
-            doc.add(new StringField(FIELD_ORIGIN, api.getDefinitionContext().getOrigin(), Field.Store.NO));
+        if (api.getOriginContext() != null && api.getOriginContext().getOrigin() != null) {
+            doc.add(new StringField(FIELD_ORIGIN, api.getOriginContext().getOrigin().name().toLowerCase(), Field.Store.NO));
         }
 
         return doc;

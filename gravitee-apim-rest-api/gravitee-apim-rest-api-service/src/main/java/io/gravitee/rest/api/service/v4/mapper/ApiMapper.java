@@ -21,7 +21,6 @@ import static io.gravitee.rest.api.model.WorkflowType.REVIEW;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.component.Lifecycle;
-import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.property.Property;
@@ -96,7 +95,6 @@ public class ApiMapper {
     public ApiEntity toEntity(final Api api, final PrimaryOwnerEntity primaryOwner) {
         ApiEntity apiEntity = new ApiEntity();
 
-        apiEntity.setDefinitionContext(new DefinitionContext(api.getOrigin(), api.getMode()));
         apiEntity.setId(api.getId());
         apiEntity.setCrossId(api.getCrossId());
         apiEntity.setName(api.getName());
@@ -360,11 +358,6 @@ public class ApiMapper {
         }
         if (apiEntity.getState() != null) {
             repoApi.setLifecycleState(LifecycleState.valueOf(apiEntity.getState().name()));
-        }
-
-        if (apiEntity.getDefinitionContext() != null) {
-            repoApi.setMode(apiEntity.getDefinitionContext().getMode());
-            repoApi.setOrigin(apiEntity.getDefinitionContext().getOrigin());
         }
 
         switch (apiEntity.getOriginContext().getOrigin()) {

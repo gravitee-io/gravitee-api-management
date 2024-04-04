@@ -101,6 +101,7 @@ import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.Visibility;
 import io.gravitee.rest.api.model.api.ApiDeploymentEntity;
+import io.gravitee.rest.api.model.context.ManagementContext;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.permissions.RoleScope;
@@ -1160,8 +1161,7 @@ public class ApiServiceImplTest {
         apiEntity.setType(ApiType.PROXY);
         apiEntity.setVisibility(Visibility.PUBLIC);
 
-        DefinitionContext context = new DefinitionContext();
-        apiEntity.setDefinitionContext(context);
+        apiEntity.setOriginContext(new ManagementContext());
         PrimaryOwnerEntity primaryOwnerEntity = new PrimaryOwnerEntity();
         primaryOwnerEntity.setId(USER_NAME);
         primaryOwnerEntity.setType("USER");
