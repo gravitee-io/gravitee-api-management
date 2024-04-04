@@ -66,7 +66,7 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
     // Best effort to scroll to the anchor after markdown is rendered
     setTimeout(() => {
       const fragment = this.activatedRoute.snapshot.fragment;
-      if (fragment && this.pageElementsPosition && this.pageElementsPosition.map(e => e.id).includes(fragment)) {
+      if (fragment && this.pageElementsPosition?.map(e => e.id).includes(fragment)) {
         this.scrollService.scrollToAnchor(fragment);
       }
     }, 1000);
@@ -91,7 +91,7 @@ export class GvPageMarkdownComponent implements OnInit, AfterViewInit {
   @HostListener('window:scroll')
   onScroll() {
     this.processOffsets();
-    if (this.pageElementsPosition) {
+    if (this.pageElementsPosition && this.pageElementsPosition.length > 0) {
       let anchor: string;
       const currentYPosition = window.pageYOffset;
       for (let index = 0; index < this.pageElementsPosition.length && !anchor; index++) {
