@@ -27,20 +27,20 @@ export class WebuiInstallCommand {
       WebuiInstallCommand.commandName,
       [
         new commands.cache.Restore({
-          name: 'Restore NPM cache',
+          name: 'Restore Yarn cache',
           keys: [
-            '<< parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project >>/package-lock.json" }}',
+            '<< parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project >>/yarn.lock" }}',
             '<< parameters.apim-ui-project >>-cache-v1-{{ .Branch }}',
           ],
         }),
         new commands.Run({
           name: 'Install dependencies',
-          command: 'npm install',
+          command: 'yarn',
           working_directory: '<< parameters.apim-ui-project >>',
         }),
         new commands.cache.Save({
-          name: 'Save NPM cache',
-          key: '<< parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project >>/package-lock.json" }}',
+          name: 'Save Yarn cache',
+          key: '<< parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project >>/yarn.lock" }}',
           paths: ['./<< parameters.apim-ui-project >>/node_modules'],
         }),
       ],

@@ -17,13 +17,7 @@
 import { ADMIN_USER, API_PUBLISHER_USER } from '@fakers/users/users';
 import { ApisFaker } from '@gravitee/fixtures/management/ApisFaker';
 import { PlansFaker } from '@gravitee/fixtures/management/PlansFaker';
-import {
-  ApiEntity,
-  PlanSecurityType,
-  PlanStatus,
-  PlanValidationType,
-  ReviewAction,
-} from '../../../../../lib/management-webclient-sdk/src/lib/models';
+import { PlanSecurityType, PlanStatus, PlanValidationType, ReviewAction } from '@gravitee/management-webclient-sdk/src/lib/models';
 import { ApplicationsFaker } from '@gravitee/fixtures/management/ApplicationsFaker';
 import { ApplicationEntity } from '@model/applications';
 import faker, { Faker } from '@faker-js/faker';

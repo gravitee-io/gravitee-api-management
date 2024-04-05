@@ -89,7 +89,6 @@ export class FullReleaseWorkflow {
         name: 'Build APIM Portal and publish image',
         'apim-ui-project': config.dockerImages.portal.project,
         'docker-image-name': config.dockerImages.portal.image,
-        node_version: '20.9',
         requires: ['Setup'],
       }),
       new workflow.WorkflowJob(webuiPublishArtifactoryJob, {

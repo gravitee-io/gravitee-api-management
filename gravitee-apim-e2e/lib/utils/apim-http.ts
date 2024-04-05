@@ -17,7 +17,7 @@ import 'dotenv/config';
 import fetchApi, { HeadersInit, Response } from 'node-fetch';
 
 import { fetchEventSource } from './eventsource-fetch';
-import { ApiResponse, ApisResponse } from '../management-v2-webclient-sdk/src/lib';
+import { ApiResponse, ApisResponse } from '@gravitee/management-v2-webclient-sdk/src/lib';
 import { logger } from 'bs-logger';
 
 export type HttpMethod = 'GET' | 'PUT' | 'POST' | 'DELETE' | 'OPTIONS';

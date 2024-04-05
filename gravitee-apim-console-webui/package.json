@@ -1,6 +1,7 @@
 {
   "name": "gravitee-apim-console-webui",
   "version": "0.0.0",
+  "license": "Apache-2.0",
   "description": "Gravitee.io APIM - UI Console",
   "dependencies": {
     "@angular/animations": "17.2.3",
@@ -132,17 +133,16 @@
     }
   },
   "engines": {
-    "node": "^20.11",
-    "npm": "^10.2"
+    "node": "^20.11"
   },
   "scripts": {
     "ng": "ng",
     "build": "NODE_OPTIONS=--max_old_space_size=7168 ng build --stats-json",
     "build:prod": "NODE_OPTIONS=--max_old_space_size=7168 ng build --configuration=production",
-    "lint": "npm run lint:eslint && npm run prettier",
+    "lint": "yarn lint:eslint && yarn prettier",
     "lint:eslint": "eslint --ext .json,.ts ./src",
     "lint:eslint:fix": "eslint --ext .json,.ts ./src --fix",
-    "lint:fix": "npm run lint:eslint:fix && npm run lint:license:fix && npm run prettier:fix",
+    "lint:fix": "yarn lint:eslint:fix && yarn lint:license:fix && yarn prettier:fix",
     "lint:license": "license-check-and-add check -f license-check-config.json",
     "lint:license:fix": "license-check-and-add add -f license-check-config.json -r",
     "prettier": "prettier --check \"**/*.{js,ts,html,css,scss,json}\"",
@@ -151,10 +151,11 @@
     "storybook": "ng run apim-console:start-storybook",
     "build-storybook": "ng run apim-console:build-storybook",
     "serve": "NODE_OPTIONS=--max_old_space_size=7168 ng serve",
-    "serve:apim-master": "BACKEND_ENV=apim-master-api.team-apim.gravitee.dev npm run serve",
+    "serve:apim-master": "BACKEND_ENV=apim-master-api.team-apim.gravitee.dev yarn serve",
     "test-old": "jest --config old-jest.config.js --detectOpenHandles",
     "test": "jest",
     "test:auto": "jest --watch",
     "test:coverage": "JEST_JUNIT_ADD_FILE_ATTRIBUTE=true JEST_JUNIT_OUTPUT_DIR=\"coverage\" node --max-old-space-size=10240 --expose-gc  ./node_modules/.bin/jest --ci --reporters=default --reporters=jest-junit  --maxWorkers=7 --collectCoverage=true --logHeapUsage"
-  }
+  },
+  "packageManager": "yarn@4.1.1"
 }

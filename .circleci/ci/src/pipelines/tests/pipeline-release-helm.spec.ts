@@ -35,6 +35,6 @@ describe('Release helm charts tests', () => {
     });
 
     const expected = fs.readFileSync(`./src/pipelines/tests/resources/release-helm/${expectedResult}`, 'utf-8');
-    expect(expected).toStrictEqual(result.stringify());
+    expect(result.stringify()).toStrictEqual(expected);
   });
 });

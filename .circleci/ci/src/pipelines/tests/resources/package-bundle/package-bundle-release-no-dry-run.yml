@@ -25,6 +25,12 @@ parameters:
     type: string
     default: /home/circleci/project/pom.xml
     description: Path to pom.xml with APIM version
+commands:
+  cmd-install-yarn:
+    steps:
+      - run:
+          name: Yarn Set Version Stable
+          command: yarn set version 4.1.1
 jobs:
   job-package-bundle:
     docker:
@@ -41,13 +47,14 @@ jobs:
       - run:
           name: Checkout tag 4.1.0
           command: git checkout 4.1.0
+      - cmd-install-yarn
       - run:
           name: Install dependencies
-          command: npm install
+          command: yarn
           working_directory: ./release
       - run:
           name: Building package bundle
-          command: npm run zx -- --quiet --experimental ci-steps/package-bundles.mjs --version=4.1.0
+          command: yarn zx --quiet --experimental ci-steps/package-bundles.mjs --version=4.1.0
           working_directory: ./release
           environment:
             ARTIFACTORY_REPO_URL: https://odbxikk7vo-artifactory.services.clever-cloud.com/external-dependencies-n-gravitee-all

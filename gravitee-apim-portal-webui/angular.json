@@ -173,7 +173,6 @@
     }
   },
   "cli": {
-    "analytics": false,
-    "packageManager": "npm"
+    "analytics": false
   }
 }

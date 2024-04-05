@@ -19,6 +19,7 @@ import { orbs } from '../../orbs';
 import { NodeLtsExecutor } from '../../executors';
 import { config } from '../../config';
 import { CircleCIEnvironment } from '../../pipelines';
+import { InstallYarnCommand } from '../../commands';
 
 export class ReleaseHelmJob {
   private static jobName = 'job-release-helm';
@@ -29,6 +30,9 @@ export class ReleaseHelmJob {
     dynamicConfig.importOrb(orbs.keeper);
     dynamicConfig.importOrb(orbs.helm);
     dynamicConfig.importOrb(orbs.github);
+
+    const installYarnCmd = InstallYarnCommand.get();
+    dynamicConfig.addReusableCommand(installYarnCmd);
 
     const steps: Command[] = [
       new commands.Checkout(),
@@ -73,9 +77,10 @@ helm package -d charts .
 sed "s/name.*/name: apim3/" -i Chart.yaml
 helm package -d charts .`,
       }),
+      new reusable.ReusedCommand(installYarnCmd),
       new commands.Run({
         name: 'Install dependencies',
-        command: 'npm install',
+        command: 'yarn',
         working_directory: './release',
       }),
     );
@@ -85,7 +90,7 @@ helm package -d charts .`,
         new commands.Run({
           name: 'Open a PR to publish helm chart release into helm-charts repository',
           working_directory: './release',
-          command: `npm run zx -- ci-steps/release-helm.mjs --version=${apimVersion}`,
+          command: `yarn zx ci-steps/release-helm.mjs --version=${apimVersion}`,
         }),
       );
     } else {

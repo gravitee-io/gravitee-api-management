@@ -17,7 +17,7 @@ You will need the following tools installed on your computer:
 * Java (JDK >= 17)
 * Maven
 * Docker
-* NPM (preferably with NVM)
+* Yarn 4.1.1 (preferably with NVM)
 
 === Get the project and prepare your workspace
 
@@ -54,10 +54,10 @@ mvn clean install -T 2C -P bundle-default,bundle-dev
 
 Prepare APIM Console UI and Portal UI::
 
-First, be sure to have the correct version of npm installed, there are .nvmrc files in the UI projects.
-If you've `nvm` installed, you can use `nvm use` to switch to the appropriate version of npm.
+First, be sure to have the correct version of node installed, there are .nvmrc files in the UI projects.
+If you've `nvm` installed, you can use `nvm use` to switch to the appropriate version of node.
 
-Then run `npm install` in the following directories:
+Then run `yarn` in the following directories:
  - `gravitee-api-management/gravitee-apim-console-webui`
  - `gravitee-api-management/gravitee-apim-portal-webui`
 
@@ -114,10 +114,10 @@ Create a new Run configuration in IntelliJ:
 . Select *Command: run*.
 . Select *Script: serve*.
 
-TIP: To run `npm install` from IntelliJ, you can duplicate this configuration and choose *Command > Install*.
+TIP: To run `yarn` from IntelliJ, you can duplicate this configuration and choose *Command > Install*.
 
 CLI Version::
-Run `npm run serve` from the `gravitee-api-management/gravitee-apim-console-webui` directory to start the UI.
+Run `yarn serve` from the `gravitee-api-management/gravitee-apim-console-webui` directory to start the UI.
 
 
 ==== APIM Portal (gravitee-apim-portal-webui)
@@ -132,10 +132,10 @@ Create a new Run configuration in IntelliJ:
 . Select *Command: run*.
 . Select *Script: serve*.
 
-TIP: To run `npm install` from IntelliJ, you can duplicate this configuration and choose *Command > Install*.
+TIP: To run `yarn` from IntelliJ, you can duplicate this configuration and choose *Command > Install*.
 
 CLI Version::
-Run `npm run serve` from the `gravitee-api-management/gravitee-apim-portal-webui` directory to start the UI.
+Run `yarn serve` from the `gravitee-api-management/gravitee-apim-portal-webui` directory to start the UI.
 
 // end::dev-guide[]
 

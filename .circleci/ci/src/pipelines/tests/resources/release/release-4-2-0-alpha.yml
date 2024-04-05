@@ -26,6 +26,11 @@ parameters:
     default: /home/circleci/project/pom.xml
     description: Path to pom.xml with APIM version
 commands:
+  cmd-install-yarn:
+    steps:
+      - run:
+          name: Yarn Set Version Stable
+          command: yarn set version 4.1.1
   cmd-webui-install:
     parameters:
       apim-ui-project:
@@ -34,17 +39,17 @@ commands:
         description: the name of the UI project to build
     steps:
       - restore_cache:
-          name: Restore NPM cache
+          name: Restore Yarn cache
           keys:
-            - << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project >>/package-lock.json" }}
+            - << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project >>/yarn.lock" }}
             - << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}
       - run:
           name: Install dependencies
-          command: npm install
+          command: yarn
           working_directory: << parameters.apim-ui-project >>
       - save_cache:
-          name: Save NPM cache
-          key: << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project >>/package-lock.json" }}
+          name: Save Yarn cache
+          key: << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project >>/yarn.lock" }}
           paths:
             - ./<< parameters.apim-ui-project >>/node_modules
   cmd-notify-on-failure:
@@ -230,12 +235,8 @@ jobs:
         type: string
         default: ""
         description: the name of the image
-      node_version:
-        type: string
-        default: "20.11"
-        description: Node version to use for executor
     docker:
-      - image: cimg/node:<< parameters.node_version >>
+      - image: cimg/node:20.11.1
     resource_class: large
     steps:
       - checkout
@@ -243,6 +244,7 @@ jobs:
           at: .
       - setup_remote_docker:
           version: default
+      - cmd-install-yarn
       - cmd-webui-install:
           apim-ui-project: << parameters.apim-ui-project >>
       - run:
@@ -250,7 +252,7 @@ jobs:
           command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0-alpha.1\"/' << parameters.apim-ui-project >>/build.json"
       - run:
           name: Build
-          command: npm run build:prod
+          command: yarn build:prod
           environment:
             NODE_OPTIONS: --max_old_space_size=4086
           working_directory: << parameters.apim-ui-project >>
@@ -269,7 +271,7 @@ jobs:
         default: ""
         description: the name of the UI project to publish
     docker:
-      - image: cimg/node:16.13
+      - image: cimg/node:20.11.1
     resource_class: small
     steps:
       - attach_workspace:
@@ -396,7 +398,6 @@ workflows:
           name: Build APIM Portal and publish image
           apim-ui-project: gravitee-apim-portal-webui
           docker-image-name: apim-portal-ui
-          node_version: "20.9"
           requires:
             - Setup
       - job-webui-publish-artifactory:

@@ -17,10 +17,9 @@ import { commands, Config, Job, parameters, reusable } from '@circleci/circleci-
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { CommandParameterLiteral } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Parameters/types/CustomParameterLiterals.types';
 import { NodeLtsExecutor } from '../../executors';
-import { BuildUiImageCommand, NotifyOnFailureCommand, WebuiInstallCommand } from '../../commands';
+import { BuildUiImageCommand, InstallYarnCommand, NotifyOnFailureCommand, WebuiInstallCommand } from '../../commands';
 import { CircleCIEnvironment } from '../../pipelines';
 import { computeApimVersion } from '../../utils';
-import { config } from '../../config';
 import { SetupRemoteDockerCommand } from '../../commands/cmd-setup-remote-docker';
 
 export class WebuiBuildJob {
@@ -29,10 +28,12 @@ export class WebuiBuildJob {
   private static customParametersList = new parameters.CustomParametersList<CommandParameterLiteral>([
     new parameters.CustomParameter('apim-ui-project', 'string', '', 'the name of the UI project to build'),
     new parameters.CustomParameter('docker-image-name', 'string', '', 'the name of the image'),
-    new parameters.CustomParameter('node_version', 'string', config.executor.node.console.version, 'Node version to use for executor'),
   ]);
 
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
+    const installYarnCmd = InstallYarnCommand.get();
+    dynamicConfig.addReusableCommand(installYarnCmd);
+
     const webUiInstallCommand = WebuiInstallCommand.get();
     dynamicConfig.addReusableCommand(webUiInstallCommand);
 
@@ -48,6 +49,7 @@ export class WebuiBuildJob {
       new commands.Checkout(),
       new commands.workspace.Attach({ at: '.' }),
       SetupRemoteDockerCommand.get(),
+      new reusable.ReusedCommand(installYarnCmd),
       new reusable.ReusedCommand(webUiInstallCommand, { 'apim-ui-project': '<< parameters.apim-ui-project >>' }),
       new commands.Run({
         name: 'Update Build version',
@@ -55,7 +57,7 @@ export class WebuiBuildJob {
       }),
       new commands.Run({
         name: 'Build',
-        command: 'npm run build:prod',
+        command: 'yarn build:prod',
         environment: {
           NODE_OPTIONS: '--max_old_space_size=4086',
         },
@@ -72,11 +74,6 @@ export class WebuiBuildJob {
       }),
     ];
 
-    return new reusable.ParameterizedJob(
-      WebuiBuildJob.jobName,
-      NodeLtsExecutor.create('large', '<< parameters.node_version >>'),
-      WebuiBuildJob.customParametersList,
-      steps,
-    );
+    return new reusable.ParameterizedJob(WebuiBuildJob.jobName, NodeLtsExecutor.create('large'), WebuiBuildJob.customParametersList, steps);
   }
 }

@@ -31,7 +31,7 @@ describe('Nexus staging workflow tests', () => {
     });
 
     const expected = fs.readFileSync('./src/pipelines/tests/resources/nexus-staging/nexus-staging-no-dry-run.yml', 'utf-8');
-    expect(expected).toStrictEqual(result.stringify());
+    expect(result.stringify()).toStrictEqual(expected);
   });
 
   it('should throw exception if dry run is true', function () {
