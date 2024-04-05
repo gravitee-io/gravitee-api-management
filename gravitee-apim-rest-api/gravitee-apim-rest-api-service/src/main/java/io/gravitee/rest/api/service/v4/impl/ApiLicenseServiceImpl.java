@@ -26,6 +26,7 @@ import io.gravitee.rest.api.service.exceptions.InvalidLicenseException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.v4.ApiLicenseService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
+import java.util.Collections;
 import java.util.List;
 import org.springframework.stereotype.Component;
 
@@ -54,9 +55,11 @@ public class ApiLicenseServiceImpl implements ApiLicenseService {
             if (DefinitionVersion.V4.equals(repositoryApi.getDefinitionVersion())) {
                 var apiDefinition = objectMapper.readValue(repositoryApi.getDefinition(), io.gravitee.definition.model.v4.Api.class);
                 plugins = apiDefinition.getPlugins();
-            } else {
+            } else if (repositoryApi.getDefinitionVersion() != DefinitionVersion.FEDERATED) {
                 var apiDefinition = objectMapper.readValue(repositoryApi.getDefinition(), io.gravitee.definition.model.Api.class);
                 plugins = apiDefinition.getPlugins();
+            } else {
+                plugins = Collections.emptyList();
             }
         } catch (Exception e) {
             throw new TechnicalManagementException(e.getMessage());

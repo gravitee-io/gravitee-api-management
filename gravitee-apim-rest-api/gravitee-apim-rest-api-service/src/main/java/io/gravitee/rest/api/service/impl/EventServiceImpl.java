@@ -426,7 +426,13 @@ public class EventServiceImpl extends TransactionalService implements EventServi
     private Api buildApiEventPayload(ExecutionContext executionContext, Api api) {
         try {
             Api apiForGatewayEvent = new Api(api);
-            if (api.getDefinitionVersion() == null || !api.getDefinitionVersion().equals(DefinitionVersion.V4)) {
+            if (
+                api.getDefinitionVersion() == null ||
+                (
+                    !api.getDefinitionVersion().equals(DefinitionVersion.V4) &&
+                    !api.getDefinitionVersion().equals(DefinitionVersion.FEDERATED)
+                )
+            ) {
                 apiForGatewayEvent.setDefinition(objectMapper.writeValueAsString(buildGatewayApiDefinition(executionContext, api)));
             } else {
                 apiForGatewayEvent.setDefinition(objectMapper.writeValueAsString(buildGatewayApiDefinitionV4(executionContext, api)));

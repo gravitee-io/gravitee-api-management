@@ -69,6 +69,10 @@ public class ApiTemplateServiceImpl implements ApiTemplateService {
     public GenericApiModel findByIdForTemplates(ExecutionContext executionContext, String apiId, boolean decodeTemplate) {
         final GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId);
 
+        if (genericApiEntity.getDefinitionVersion() == DefinitionVersion.FEDERATED) {
+            return null;
+        }
+
         if (genericApiEntity.getDefinitionVersion() != DefinitionVersion.V4) {
             ApiEntity apiEntity = (ApiEntity) genericApiEntity;
             final ApiModel apiModelEntity = new ApiModel();

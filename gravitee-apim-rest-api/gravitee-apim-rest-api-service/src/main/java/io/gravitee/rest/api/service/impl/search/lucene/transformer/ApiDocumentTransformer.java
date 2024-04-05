@@ -122,7 +122,7 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
             }
         }
 
-        if (api.getDefinitionVersion() != DefinitionVersion.V4) {
+        if (api.getDefinitionVersion() != DefinitionVersion.V4 && api.getDefinitionVersion() != DefinitionVersion.FEDERATED) {
             ApiEntity apiEntity = (ApiEntity) api;
             if (apiEntity.getProxy() != null) {
                 final int[] pathIndex = { 0 };

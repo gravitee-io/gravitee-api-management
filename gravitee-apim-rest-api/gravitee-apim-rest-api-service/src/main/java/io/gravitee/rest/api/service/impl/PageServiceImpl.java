@@ -596,6 +596,10 @@ public class PageServiceImpl extends AbstractService implements PageService, App
     }
 
     private String getContextPath(GenericApiEntity genericApiEntity) {
+        if (genericApiEntity.getDefinitionVersion() != DefinitionVersion.FEDERATED) {
+            return null;
+        }
+
         if (genericApiEntity.getDefinitionVersion() != DefinitionVersion.V4) {
             ApiEntity apiEntity = (ApiEntity) genericApiEntity;
             return apiEntity.getContextPath();

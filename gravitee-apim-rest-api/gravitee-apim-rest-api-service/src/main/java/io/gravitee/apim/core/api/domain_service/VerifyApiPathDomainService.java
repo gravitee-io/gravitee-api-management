@@ -27,6 +27,7 @@ import io.gravitee.apim.core.installation.model.RestrictedDomain;
 import io.gravitee.apim.core.installation.query_service.InstallationAccessQueryService;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -151,7 +152,7 @@ public class VerifyApiPathDomainService {
                         )
                 )
                 .collect(Collectors.toList());
-        } else {
+        } else if (api.getDefinitionVersion() != DefinitionVersion.FEDERATED) {
             return api
                 .getApiDefinition()
                 .getProxy()
@@ -168,6 +169,7 @@ public class VerifyApiPathDomainService {
                 )
                 .collect(Collectors.toList());
         }
+        return Collections.emptyList();
     }
 
     private void checkPathNotYetRegistered(final String path, final List<String> registeredPaths) {

@@ -23,6 +23,7 @@ import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.rest.api.model.context.ManagementContext;
 import io.gravitee.rest.api.model.context.OriginContext;
 import java.time.ZonedDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import lombok.AllArgsConstructor;
@@ -158,11 +159,11 @@ public class Api {
     }
 
     public Set<String> getTags() {
-        if (definitionVersion == DefinitionVersion.V4) {
-            return apiDefinitionV4.getTags();
-        } else {
-            return apiDefinition.getTags();
-        }
+        return switch (definitionVersion) {
+            case V4 -> apiDefinitionV4.getTags();
+            case V1, V2 -> apiDefinition.getTags();
+            case FEDERATED -> Collections.emptySet();
+        };
     }
 
     public Api setId(String id) {

@@ -395,6 +395,18 @@ public class ApiResource extends AbstractResource {
                 .build();
         }
 
+        if (definitionVersion == DefinitionVersion.FEDERATED) {
+            return Response
+                .status(Response.Status.BAD_REQUEST)
+                .entity(
+                    new Error()
+                        .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
+                        .message("Duplicating FEDERATED API is not supported")
+                        .technicalCode("api.duplicate.federated")
+                )
+                .build();
+        }
+
         if (definitionVersion == DefinitionVersion.V4) {
             duplicate =
                 duplicateApiService.duplicate(

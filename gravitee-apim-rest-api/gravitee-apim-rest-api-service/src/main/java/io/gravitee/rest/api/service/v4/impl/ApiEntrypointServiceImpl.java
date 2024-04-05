@@ -107,6 +107,10 @@ public class ApiEntrypointServiceImpl implements ApiEntrypointService {
         final String tcpPort,
         final Set<String> tagEntrypoints
     ) {
+        if (genericApiEntity.getDefinitionVersion() == DefinitionVersion.FEDERATED) {
+            return Collections.emptyList();
+        }
+
         if (genericApiEntity.getDefinitionVersion() != DefinitionVersion.V4) {
             ApiEntity api = (ApiEntity) genericApiEntity;
             return api
