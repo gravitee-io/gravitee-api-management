@@ -27,6 +27,10 @@ import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.model.common.PageableImpl;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.rest.annotation.Permission;
+import io.gravitee.rest.api.rest.annotation.Permissions;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -56,8 +60,7 @@ public class IntegrationsResource extends AbstractResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    //    TODO enable permission when front will be ready
-    //    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_INTEGRATION, acls = { RolePermissionAction.CREATE }) })
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_INTEGRATION, acls = { RolePermissionAction.CREATE }) })
     public Response createIntegration(@PathParam("envId") String environmentId, @Valid @NotNull final CreateIntegration integration) {
         var newIntegrationEntity = IntegrationMapper.INSTANCE.map(integration);
         newIntegrationEntity.setEnvironmentId(environmentId);
@@ -74,8 +77,7 @@ public class IntegrationsResource extends AbstractResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    //    TODO enable permission when front will be ready
-    //    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_INTEGRATION, acls = { RolePermissionAction.CREATE }) })
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_INTEGRATION, acls = { RolePermissionAction.READ }) })
     public IntegrationsResponse listIntegrations(
         @PathParam("envId") String environmentId,
         @BeanParam @Valid PaginationParam paginationParam
