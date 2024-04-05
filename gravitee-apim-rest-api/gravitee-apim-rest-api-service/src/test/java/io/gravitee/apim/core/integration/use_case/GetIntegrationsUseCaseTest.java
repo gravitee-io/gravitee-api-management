@@ -46,6 +46,11 @@ public class GetIntegrationsUseCaseTest {
         usecase = new GetIntegrationsUseCase(integrationQueryService);
     }
 
+    @AfterEach
+    void tearDown() {
+        integrationQueryServiceInMemory.reset();
+    }
+
     @Test
     void should_return_integrations_with_specific_env_id() {
         //Given

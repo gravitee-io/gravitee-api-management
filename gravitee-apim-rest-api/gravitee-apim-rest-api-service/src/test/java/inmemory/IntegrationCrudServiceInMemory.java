@@ -17,10 +17,7 @@ package inmemory;
 
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
 import io.gravitee.apim.core.integration.model.Integration;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class IntegrationCrudServiceInMemory implements IntegrationCrudService, InMemoryAlternative<Integration> {
 
@@ -35,6 +32,17 @@ public class IntegrationCrudServiceInMemory implements IntegrationCrudService, I
     @Override
     public Optional<Integration> findById(String id) {
         return storage.stream().filter(item -> item.getId().equals(id)).findFirst();
+    }
+
+    @Override
+    public Integration update(Integration integration) {
+        OptionalInt index = this.findIndex(this.storage, i -> i.getId().equals(integration.getId()));
+        if (index.isPresent()) {
+            storage.set(index.getAsInt(), integration);
+            return integration;
+        }
+
+        throw new IllegalStateException("Integration not found");
     }
 
     @Override

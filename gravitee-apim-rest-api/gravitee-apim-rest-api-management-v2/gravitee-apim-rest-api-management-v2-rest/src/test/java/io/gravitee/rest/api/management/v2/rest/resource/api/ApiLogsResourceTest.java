@@ -109,6 +109,7 @@ public class ApiLogsResourceTest extends ApiResourceTest {
     @Override
     @AfterEach
     public void tearDown() {
+        super.tearDown();
         GraviteeContext.cleanContext();
 
         Stream

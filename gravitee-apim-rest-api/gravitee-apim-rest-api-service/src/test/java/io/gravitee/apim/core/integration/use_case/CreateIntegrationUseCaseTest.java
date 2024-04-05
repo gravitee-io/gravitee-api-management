@@ -27,10 +27,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 public class CreateIntegrationUseCaseTest {
 
@@ -50,6 +47,12 @@ public class CreateIntegrationUseCaseTest {
     static void beforeAll() {
         UuidString.overrideGenerator(() -> INTEGRATION_ID);
         TimeProvider.overrideClock(Clock.fixed(INSTANT_NOW, ZoneId.systemDefault()));
+    }
+
+    @AfterAll
+    static void afterAll() {
+        UuidString.reset();
+        TimeProvider.overrideClock(Clock.systemDefaultZone());
     }
 
     @BeforeEach

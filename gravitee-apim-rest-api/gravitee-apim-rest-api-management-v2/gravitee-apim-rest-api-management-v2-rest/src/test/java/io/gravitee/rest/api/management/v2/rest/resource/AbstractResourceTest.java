@@ -18,6 +18,7 @@ package io.gravitee.rest.api.management.v2.rest.resource;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 
+import inmemory.InMemoryAlternative;
 import inmemory.ParametersQueryServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
@@ -51,6 +52,8 @@ import io.gravitee.rest.api.service.v4.EntrypointConnectorPluginService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import io.gravitee.rest.api.service.v4.PolicyPluginService;
 import java.util.List;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
@@ -161,6 +164,11 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
     @BeforeEach
     public void setUp() {
         when(permissionService.hasPermission(any(), any(), any(), any())).thenReturn(true);
+    }
+
+    @AfterEach
+    public void tearDown() {
+        Stream.of(userCrudService, roleQueryService, parametersQueryService).forEach(InMemoryAlternative::reset);
     }
 
     protected void givenExistingUsers(List<BaseUserEntity> users) {

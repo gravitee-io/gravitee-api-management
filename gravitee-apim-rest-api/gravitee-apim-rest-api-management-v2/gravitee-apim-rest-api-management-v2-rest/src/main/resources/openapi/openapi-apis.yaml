@@ -1101,6 +1101,30 @@ paths:
                                 $ref: "#/components/schemas/Integration"
                 default:
                     $ref: "#/components/responses/Error"
+        put:
+            tags:
+                - Integrations
+            summary: Update Integration
+            description: |-
+                Update specific Integration.
+
+                User must have ENVIRONMENT_INTEGRATION[UPDATE] permission to access it.
+            operationId: updateIntegration
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/UpdateIntegration"
+                required: true
+            responses:
+                "200":
+                    description: Integration updated
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/Integration"
+                default:
+                    $ref: "#/components/responses/Error"
     /environments/{envId}/integrations/{integrationId}/_ingest:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
@@ -5469,7 +5493,7 @@ components:
                 patch:
                     type: string
                     description: The JSON Patch of the modification.
-                    example: "[{ \"op\": \"add\", \"path\": \"/hello\", \"value\": [\"world\"] }]"
+                    example: '[{ "op": "add", "path": "/hello", "value": ["world"] }]'
         AuditReference:
             type: object
             properties:
@@ -5517,7 +5541,7 @@ components:
                 payload:
                     type: string
                     description: The event payload.
-                    example: "{\"id\":\"023d7a64-b5de-4e1a-bd7a-64b5dede1adb\"}"
+                    example: '{"id":"023d7a64-b5de-4e1a-bd7a-64b5dede1adb"}'
                 properties:
                     type: object
                     description: Properties of the event.
@@ -6038,6 +6062,22 @@ components:
             required:
                 - name
                 - provider
+
+        UpdateIntegration:
+            type: object
+            properties:
+                name:
+                    type: string
+                    description: Updated name of the integration
+                    minLength: 1
+                    maxLength: 50
+                description:
+                    type: string
+                    description: Updated description of the integration
+                    minLength: 0
+                    maxLength: 250
+            required:
+                - name
 
     parameters:
         #############

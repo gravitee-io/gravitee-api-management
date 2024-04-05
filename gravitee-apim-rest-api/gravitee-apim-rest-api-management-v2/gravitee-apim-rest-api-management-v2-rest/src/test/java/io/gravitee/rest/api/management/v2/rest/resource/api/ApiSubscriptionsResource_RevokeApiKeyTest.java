@@ -81,6 +81,7 @@ public class ApiSubscriptionsResource_RevokeApiKeyTest extends ApiSubscriptionsR
 
     @AfterEach
     public void tearDown() {
+        super.tearDown();
         Stream
             .of(apiKeyCrudServiceInMemory, applicationCrudServiceInMemory, subscriptionCrudServiceInMemory)
             .forEach(InMemoryAlternative::reset);

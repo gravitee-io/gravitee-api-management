@@ -137,4 +137,49 @@ public class IntegrationCrudServiceImplTest {
                 .hasMessage("An error occurs while trying to find the integration: my-id");
         }
     }
+
+    @Nested
+    class Update {
+
+        @Test
+        @SneakyThrows
+        void should_return_the_updated_integration() {
+            var integrationTuUpdate = IntegrationFixture.anIntegration();
+
+            when(integrationRepository.update(any())).thenAnswer(invocation -> fixtures.repository.IntegrationFixture.anIntegration());
+
+            var updatedIntegration = service.update(integrationTuUpdate);
+
+            assertThat(updatedIntegration)
+                .isEqualTo(
+                    IntegrationFixture
+                        .anIntegration()
+                        .toBuilder()
+                        .id("integration-id")
+                        .name("An integration")
+                        .description("A description")
+                        .provider("amazon")
+                        .environmentId("environment-id")
+                        .agentStatus(Integration.AgentStatus.DISCONNECTED)
+                        .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                        .updatedAt(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                        .build()
+                );
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() throws TechnicalException {
+            // Given
+            var integration = IntegrationFixture.anIntegration();
+            when(integrationRepository.update(any())).thenThrow(TechnicalException.class);
+
+            // When
+            Throwable throwable = catchThrowable(() -> service.update(integration));
+
+            // Then
+            assertThat(throwable)
+                .isInstanceOf(TechnicalManagementException.class)
+                .hasMessage("An error occurred when updating integration: integration-id");
+        }
+    }
 }

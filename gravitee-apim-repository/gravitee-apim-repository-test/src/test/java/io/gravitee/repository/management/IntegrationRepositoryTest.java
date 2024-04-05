@@ -113,4 +113,34 @@ public class IntegrationRepositoryTest extends AbstractManagementRepositoryTest 
 
         assertThat(integration).isNotPresent();
     }
+
+    @Test
+    public void should_update_integration() throws TechnicalException {
+        var id = "f66274c9-3d8f-44c5-a274-c93d8fb4c5f3";
+        var date = new Date(1470157767000L);
+        var updateDate = new Date(1712660289);
+        Integration integration = Integration
+            .builder()
+            .id(id)
+            .name("my-updated-integration")
+            .description("updated-description")
+            .provider("sample-provider")
+            .environmentId("my-env")
+            .agentStatus(Integration.AgentStatus.DISCONNECTED)
+            .createdAt(date)
+            .updatedAt(updateDate)
+            .build();
+
+        final Integration updatedIntegration = integrationRepository.update(integration);
+        assertThat(updatedIntegration).isEqualTo(integration);
+    }
+
+    @Test
+    public void should_throw_exception_when_integration_to_update_not_found() {
+        var id = "not-existing-id";
+        var date = new Date(1470157767000L);
+        Integration integration = creatIntegration(id, date);
+
+        assertThatThrownBy(() -> integrationRepository.update(integration)).isInstanceOf(Exception.class);
+    }
 }

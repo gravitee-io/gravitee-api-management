@@ -51,7 +51,8 @@ public class EnvironmentsResourceTest extends AbstractResourceTest {
     }
 
     @AfterEach
-    void tearDown() {
+    public void tearDown() {
+        super.tearDown();
         GraviteeContext.cleanContext();
     }
 

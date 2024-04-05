@@ -38,4 +38,6 @@ public interface IntegrationMapper {
     io.gravitee.rest.api.management.v2.rest.model.Integration map(Integration createdIntegration);
 
     List<io.gravitee.rest.api.management.v2.rest.model.Integration> map(Set<Integration> createdIntegration);
+
+    Integration map(io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration updatedIntegration);
 }

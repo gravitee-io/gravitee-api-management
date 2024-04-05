@@ -26,6 +26,7 @@ import io.gravitee.apim.core.integration.model.Integration;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -52,6 +53,11 @@ class GetIntegrationUseCaseTest {
         usecase = new GetIntegrationUseCase(integrationCrudService);
         var integration = List.of(IntegrationFixture.anIntegration().withId(INTEGRATION_ID));
         integrationCrudServiceInMemory.initWith(integration);
+    }
+
+    @AfterEach
+    void tearDown() {
+        integrationCrudServiceInMemory.reset();
     }
 
     @Test

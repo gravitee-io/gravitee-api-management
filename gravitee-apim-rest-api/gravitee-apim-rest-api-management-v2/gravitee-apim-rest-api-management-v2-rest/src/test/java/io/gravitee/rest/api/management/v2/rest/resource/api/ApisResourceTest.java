@@ -129,8 +129,8 @@ class ApisResourceTest extends AbstractResourceTest {
     }
 
     @AfterEach
-    void tearDown() {
-        Stream.of(apiQueryServiceInMemory, parametersQueryService, roleQueryService, userCrudService).forEach(InMemoryAlternative::reset);
+    public void tearDown() {
+        apiQueryServiceInMemory.reset();
     }
 
     @Nested

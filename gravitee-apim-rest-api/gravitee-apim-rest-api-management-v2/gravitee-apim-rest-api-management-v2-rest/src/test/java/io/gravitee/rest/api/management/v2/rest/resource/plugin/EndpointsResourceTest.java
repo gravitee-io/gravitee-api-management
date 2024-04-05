@@ -64,7 +64,8 @@ public class EndpointsResourceTest extends AbstractResourceTest {
     private static final String FAKE_ENDPOINT_ID = "my_endpoint";
 
     @AfterEach
-    void tearDown() {
+    public void tearDown() {
+        super.tearDown();
         reset(endpointConnectorPluginService);
         GraviteeContext.cleanContext();
     }
