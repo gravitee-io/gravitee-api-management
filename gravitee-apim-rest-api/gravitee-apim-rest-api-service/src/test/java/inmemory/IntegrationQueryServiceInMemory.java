@@ -30,7 +30,7 @@ import java.util.List;
 
 public class IntegrationQueryServiceInMemory implements IntegrationQueryService, InMemoryAlternative<Integration> {
 
-    private List<Integration> storage;
+    private final List<Integration> storage;
 
     public IntegrationQueryServiceInMemory() {
         storage = new ArrayList<>();
@@ -61,7 +61,7 @@ public class IntegrationQueryServiceInMemory implements IntegrationQueryService,
     @Override
     public void initWith(List<Integration> items) {
         storage.clear();
-        storage = items;
+        storage.addAll(items);
     }
 
     @Override

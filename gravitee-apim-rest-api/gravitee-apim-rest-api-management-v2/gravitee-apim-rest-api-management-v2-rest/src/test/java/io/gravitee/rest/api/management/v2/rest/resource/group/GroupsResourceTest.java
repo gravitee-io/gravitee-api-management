@@ -85,7 +85,8 @@ public class GroupsResourceTest extends AbstractResourceTest {
     }
 
     @AfterEach
-    void tearDown() {
+    public void tearDown() {
+        super.tearDown();
         Mockito.reset(membershipService, groupService);
         GraviteeContext.cleanContext();
     }

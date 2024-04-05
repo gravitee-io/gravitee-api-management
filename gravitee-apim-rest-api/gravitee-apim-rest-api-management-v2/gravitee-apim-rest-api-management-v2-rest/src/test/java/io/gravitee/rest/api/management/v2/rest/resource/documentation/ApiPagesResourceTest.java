@@ -102,7 +102,8 @@ class ApiPagesResourceTest extends AbstractResourceTest {
     }
 
     @AfterEach
-    void tearDown() {
+    public void tearDown() {
+        super.tearDown();
         GraviteeContext.cleanContext();
         Stream
             .of(
@@ -110,10 +111,8 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                 pageCrudServiceInMemory,
                 pageRevisionCrudServiceInMemory,
                 auditCrudService,
-                userCrudService,
                 apiCrudServiceInMemory,
                 planQueryServiceInMemory,
-                roleQueryService,
                 membershipQueryService,
                 indexer
             )

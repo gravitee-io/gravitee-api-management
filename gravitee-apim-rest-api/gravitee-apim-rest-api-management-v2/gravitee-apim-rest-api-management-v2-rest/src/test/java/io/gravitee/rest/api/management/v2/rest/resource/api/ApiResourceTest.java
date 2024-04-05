@@ -72,6 +72,7 @@ public abstract class ApiResourceTest extends AbstractResourceTest {
 
     @AfterEach
     public void tearDown() {
+        super.tearDown();
         GraviteeContext.cleanContext();
     }
 }

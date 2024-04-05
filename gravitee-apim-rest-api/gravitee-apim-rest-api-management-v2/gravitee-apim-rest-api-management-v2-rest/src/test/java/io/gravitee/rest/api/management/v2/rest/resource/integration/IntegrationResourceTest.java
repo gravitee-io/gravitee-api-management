@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.integration;
 
 import static assertions.MAPIAssertions.assertThat;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
+import static io.gravitee.rest.api.management.v2.rest.resource.integration.IntegrationsResourceTest.INTEGRATION_PROVIDER;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
@@ -35,6 +36,7 @@ import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
@@ -81,6 +83,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
 
     @AfterEach
     public void tearDown() {
+        super.tearDown();
         integrationCrudServiceInMemory.reset();
         GraviteeContext.cleanContext();
     }
@@ -91,7 +94,6 @@ public class IntegrationResourceTest extends AbstractResourceTest {
         @Test
         public void should_get_integration() {
             //Given
-            target = rootTarget();
             var integration = IntegrationFixture.anIntegration().withId(INTEGRATION_ID);
             integrationCrudServiceInMemory.initWith(List.of(integration));
 
@@ -117,9 +119,6 @@ public class IntegrationResourceTest extends AbstractResourceTest {
         @Test
         public void should_throw_error_when_integration_not_found() {
             //Given
-            var notExistingId = "not-existing-id";
-            target = rootTarget(notExistingId);
-
             //When
             Response response = target.request().get();
 
@@ -213,6 +212,104 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                 .hasStatus(HttpStatusCode.OK_200)
                 .asEntity(IntegrationIngestionResponse.class)
                 .isEqualTo(IntegrationIngestionResponse.builder().status(IngestionStatus.SUCCESS).build());
+        }
+    }
+
+    @Nested
+    class UpdateIntegration {
+
+        @Test
+        public void should_update_integration() {
+            //Given
+            var updatedName = "updated-name";
+            var updatedDescription = "updated-description";
+            var integration = List.of(IntegrationFixture.anIntegration());
+            integrationCrudServiceInMemory.initWith(integration);
+
+            var updateIntegration = io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration
+                .builder()
+                .name(updatedName)
+                .description(updatedDescription)
+                .build();
+
+            //When
+            Response response = target.request().put(Entity.json(updateIntegration));
+
+            //Then
+            assertThat(response)
+                .hasStatus(HttpStatusCode.OK_200)
+                .asEntity(Integration.class)
+                .isEqualTo(
+                    Integration
+                        .builder()
+                        .id(INTEGRATION_ID)
+                        .name(updatedName)
+                        .description(updatedDescription)
+                        .provider(INTEGRATION_PROVIDER)
+                        .agentStatus(Integration.AgentStatusEnum.DISCONNECTED)
+                        .build()
+                );
+        }
+
+        @Test
+        public void should_throw_error_when_integration_to_update_not_found() {
+            //Given
+            var updatedName = "updated-name";
+            var updatedDescription = "updated-description";
+
+            var updateIntegration = io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration
+                .builder()
+                .name(updatedName)
+                .description(updatedDescription)
+                .build();
+
+            //When
+            Response response = target.request().put(Entity.json(updateIntegration));
+
+            //Then
+            assertThat(response).hasStatus(HttpStatusCode.NOT_FOUND_404);
+        }
+
+        @Test
+        public void should_return_403_when_incorrect_permission() {
+            when(
+                permissionService.hasPermission(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(RolePermission.ENVIRONMENT_INTEGRATION),
+                    eq(ENVIRONMENT),
+                    eq(RolePermissionAction.UPDATE)
+                )
+            )
+                .thenReturn(false);
+
+            var updateIntegration = io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration.builder().build();
+
+            Response response = target.request().put(Entity.json(updateIntegration));
+
+            assertThat(response).hasStatus(HttpStatusCode.FORBIDDEN_403);
+        }
+
+        @Test
+        public void should_return_400_when_missing_name_to_update() {
+            var updatedDescription = "updated-description";
+
+            var updateIntegration = io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration
+                .builder()
+                .description(updatedDescription)
+                .build();
+
+            Response response = target.request().put(Entity.json(updateIntegration));
+
+            assertThat(response).hasStatus(HttpStatusCode.BAD_REQUEST_400);
+        }
+
+        @Test
+        public void should_return_400_when_missing_body() {
+            var updateIntegration = io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration.builder().build();
+
+            Response response = target.request().put(Entity.json(updateIntegration));
+
+            assertThat(response).hasStatus(HttpStatusCode.BAD_REQUEST_400);
         }
     }
 }

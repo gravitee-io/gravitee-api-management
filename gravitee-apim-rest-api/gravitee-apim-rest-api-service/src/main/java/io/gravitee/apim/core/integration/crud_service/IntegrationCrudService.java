@@ -26,4 +26,6 @@ public interface IntegrationCrudService {
     Integration create(Integration integration);
 
     Optional<Integration> findById(String id);
+
+    Integration update(Integration integration);
 }

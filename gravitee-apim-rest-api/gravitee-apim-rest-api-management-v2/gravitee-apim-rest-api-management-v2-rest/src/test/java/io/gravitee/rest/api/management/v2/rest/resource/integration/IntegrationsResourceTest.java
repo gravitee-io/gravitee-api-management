@@ -92,6 +92,7 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
 
     @AfterEach
     public void tearDown() {
+        super.tearDown();
         integrationCrudServiceInMemory.reset();
         GraviteeContext.cleanContext();
     }

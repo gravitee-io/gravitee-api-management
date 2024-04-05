@@ -59,4 +59,14 @@ public class IntegrationCrudServiceImpl extends AbstractService implements Integ
             throw new TechnicalManagementException("An error occurs while trying to find the integration: " + id, e);
         }
     }
+
+    @Override
+    public Integration update(Integration integration) {
+        try {
+            var updatedIntegration = integrationRepository.update(IntegrationAdapter.INSTANCE.toRepository(integration));
+            return IntegrationAdapter.INSTANCE.toEntity(updatedIntegration);
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException("An error occurred when updating integration: " + integration.getId(), e);
+        }
+    }
 }

@@ -123,6 +123,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
 
     @AfterEach
     public void tearDown() {
+        super.tearDown();
         GraviteeContext.cleanContext();
         Mockito.reset(planServiceV4, planServiceV2, apiSearchServiceV4, planSearchService);
     }

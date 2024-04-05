@@ -80,7 +80,8 @@ public class ApiSubscriptionsResource_CloseTest extends AbstractResourceTest {
     }
 
     @AfterEach
-    void tearDown() {
+    public void tearDown() {
+        super.tearDown();
         subscriptionCrudServiceInMemory.reset();
     }
 

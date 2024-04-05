@@ -19,10 +19,12 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.integration.use_case.GetIntegrationUseCase;
 import io.gravitee.apim.core.integration.use_case.IngestIntegrationApisUseCase;
+import io.gravitee.apim.core.integration.use_case.UpdateIntegrationUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.IntegrationMapper;
 import io.gravitee.rest.api.management.v2.rest.model.IngestionStatus;
 import io.gravitee.rest.api.management.v2.rest.model.IntegrationIngestionResponse;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
@@ -31,11 +33,9 @@ import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.container.AsyncResponse;
 import jakarta.ws.rs.container.Suspended;
 import jakarta.ws.rs.core.Response;
@@ -52,6 +52,9 @@ public class IntegrationResource extends AbstractResource {
     private GetIntegrationUseCase getIntegrationUsecase;
 
     @Inject
+    private UpdateIntegrationUseCase updateIntegrationUsecase;
+
+    @Inject
     private IngestIntegrationApisUseCase ingestIntegrationApisUseCase;
 
     @GET
@@ -63,6 +66,19 @@ public class IntegrationResource extends AbstractResource {
             .integration();
 
         return Response.ok(IntegrationMapper.INSTANCE.map(integration)).build();
+    }
+
+    @PUT
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_INTEGRATION, acls = { RolePermissionAction.UPDATE }) })
+    public Response updateIntegration(
+        @PathParam("integrationId") String integrationId,
+        @Valid @NotNull UpdateIntegration updateIntegration
+    ) {
+        var integrationToUpdate = IntegrationMapper.INSTANCE.map(updateIntegration).toBuilder().id(integrationId).build();
+        var input = UpdateIntegrationUseCase.Input.builder().integration(integrationToUpdate).build();
+        var updatedIntegration = updateIntegrationUsecase.execute(input).integration();
+        return Response.ok(IntegrationMapper.INSTANCE.map(updatedIntegration)).build();
     }
 
     @POST

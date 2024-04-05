@@ -65,7 +65,8 @@ public class EntrypointsResourceTest extends AbstractResourceTest {
     }
 
     @AfterEach
-    void tearDown() {
+    public void tearDown() {
+        super.tearDown();
         reset(entrypointConnectorPluginService);
         GraviteeContext.cleanContext();
     }

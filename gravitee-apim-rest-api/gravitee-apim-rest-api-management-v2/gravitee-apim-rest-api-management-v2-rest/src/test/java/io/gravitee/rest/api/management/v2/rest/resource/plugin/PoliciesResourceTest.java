@@ -59,7 +59,8 @@ public class PoliciesResourceTest extends AbstractResourceTest {
     private static final String FAKE_POLICY_ID = "my_policy";
 
     @AfterEach
-    void tearDown() {
+    public void tearDown() {
+        super.tearDown();
         reset(policyPluginService);
         GraviteeContext.cleanContext();
     }

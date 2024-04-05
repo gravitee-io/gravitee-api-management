@@ -81,7 +81,8 @@ public class ApiMembersResourceTest extends AbstractResourceTest {
     }
 
     @AfterEach
-    void tearDown() {
+    public void tearDown() {
+        super.tearDown();
         reset(membershipService);
         GraviteeContext.cleanContext();
     }

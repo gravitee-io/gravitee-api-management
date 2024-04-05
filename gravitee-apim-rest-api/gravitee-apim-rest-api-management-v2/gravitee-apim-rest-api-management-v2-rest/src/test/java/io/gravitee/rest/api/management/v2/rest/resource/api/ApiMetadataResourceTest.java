@@ -75,7 +75,8 @@ public class ApiMetadataResourceTest extends AbstractResourceTest {
     }
 
     @AfterEach
-    void tearDown() {
+    public void tearDown() {
+        super.tearDown();
         GraviteeContext.cleanContext();
         Stream.of(apiCrudServiceInMemory, apiMetadataQueryServiceInMemory).forEach(InMemoryAlternative::reset);
     }
