@@ -21,7 +21,7 @@ import { PlanType } from '@gravitee/management-webclient-sdk/src/lib/models/Plan
 import { PlanStatus } from '@gravitee/management-webclient-sdk/src/lib/models/PlanStatus';
 import { NewPlanEntity } from '@gravitee/management-webclient-sdk/src/lib/models/NewPlanEntity';
 import { Plan } from '@gravitee/management-webclient-sdk/src/lib/models/Plan';
-import { MetadataFormat, NewMetadataEntity } from '../../management-webclient-sdk/src/lib/models';
+import { MetadataFormat, NewMetadataEntity } from '@gravitee/management-webclient-sdk/src/lib/models';
 
 export class MetadataFaker {
   static newMetadata(attributes?: Partial<NewMetadataEntity>): NewMetadataEntity {

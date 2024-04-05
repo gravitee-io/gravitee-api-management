@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { PageType, Visibility } from '../../management-webclient-sdk/src/lib/models';
+import { PageType, Visibility } from '@gravitee/management-webclient-sdk/src/lib/models';
 import faker from '@faker-js/faker';
 import { Page } from '@gravitee/management-v2-webclient-sdk/src/lib';
 

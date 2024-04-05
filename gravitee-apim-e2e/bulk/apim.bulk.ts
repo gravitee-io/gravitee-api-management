@@ -70,7 +70,7 @@ process.argv
 log(`Bulk script started with`, options);
 
 /**
- * This script only run with command line `npm run bulk`
+ * This script only run with command line `yarn bulk`
  */
 describe(`BULK data to APIM`, () => {
   describe('APIs', () => {

@@ -15,14 +15,7 @@
  */
 
 import { forManagementV2AsApiUser } from '@gravitee/utils/configuration';
-import {
-  APIPlansApi,
-  APIsApi,
-  ApiV4,
-  ListenerType,
-  PlanSecurityType,
-  UpdateApi,
-} from '../../../../../lib/management-v2-webclient-sdk/src/lib';
+import { APIPlansApi, APIsApi, ApiV4, ListenerType, PlanSecurityType, UpdateApi } from '@gravitee/management-v2-webclient-sdk/src/lib';
 import { afterAll, beforeAll, expect, test } from '@jest/globals';
 import { MAPIV2PlansFaker } from '@gravitee/fixtures/management/MAPIV2PlansFaker';
 import { created, fail, noContent, succeed } from '@lib/jest-utils';

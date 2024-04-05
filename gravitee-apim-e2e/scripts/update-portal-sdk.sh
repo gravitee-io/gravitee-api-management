@@ -12,7 +12,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-npx @openapitools/openapi-generator-cli@1.0.18-4.3.1 generate \
+
+rm -rf lib/portal-webclient-sdk
+yarn dlx @openapitools/openapi-generator-cli@1.0.18-4.3.1 generate \
   -i ../gravitee-apim-rest-api/gravitee-apim-rest-api-portal/gravitee-apim-rest-api-portal-rest/src/main/resources/portal-openapi.yaml \
   -g typescript-fetch \
   -o lib/portal-webclient-sdk/src/lib/ \

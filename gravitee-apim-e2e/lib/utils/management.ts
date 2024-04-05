@@ -22,7 +22,7 @@ import { LifecycleAction } from '@gravitee/management-webclient-sdk/src/lib/mode
 import { ApplicationsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/ApplicationsApi';
 import { ApiLifecycleState } from '@gravitee/management-webclient-sdk/src/lib/models/ApiLifecycleState';
 import { ApiEntityStateEnum } from '@gravitee/management-webclient-sdk/src/lib/models/ApiEntity';
-import { ApiType, ApiV4 } from '../management-v2-webclient-sdk/src/lib';
+import { ApiType, ApiV4 } from '@gravitee/management-v2-webclient-sdk/src/lib';
 
 const apisResource = new APIsApi(forManagementAsAdminUser());
 const apiPlansResource = new APIPlansApi(forManagementAsAdminUser());

@@ -234,13 +234,11 @@ export class PullRequestsWorkflow {
         new workflow.WorkflowJob(storybookConsoleJob, {
           name: 'Build Console Storybook',
           context: config.jobContext,
-          node_version: config.executor.node.console.version,
         }),
         new workflow.WorkflowJob(chromaticConsoleJob, {
           name: 'Deploy console in chromatic',
           context: config.jobContext,
           requires: ['Build Console Storybook'],
-          node_version: config.executor.node.console.version,
         }),
         new workflow.WorkflowJob(sonarCloudAnalysisJob, {
           name: 'Sonar - gravitee-apim-console-webui',
@@ -269,14 +267,12 @@ export class PullRequestsWorkflow {
           context: config.jobContext,
           'apim-ui-project': config.dockerImages.portal.project,
           resource_class: 'large',
-          node_version: '20.9',
         }),
         new workflow.WorkflowJob(webuiBuildJob, {
           name: 'Build APIM Portal and publish image',
           context: config.jobContext,
           'apim-ui-project': config.dockerImages.portal.project,
           'docker-image-name': config.dockerImages.portal.image,
-          node_version: '20.9',
         }),
         new workflow.WorkflowJob(sonarCloudAnalysisJob, {
           name: 'Sonar - gravitee-apim-portal-webui',

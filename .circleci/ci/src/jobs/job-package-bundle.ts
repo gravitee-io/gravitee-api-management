@@ -21,6 +21,7 @@ import { ReusedCommand } from '@circleci/circleci-config-sdk/dist/src/lib/Compon
 import { keeper } from '../orbs/keeper';
 import { awsS3 } from '../orbs/aws-s3';
 import { GraviteeioVersion, parse } from '../utils';
+import { InstallYarnCommand } from '../commands';
 
 export class PackageBundleJob {
   private static readonly ARTIFACTORY_REPO_URL = `${config.artifactoryUrl}/external-dependencies-n-gravitee-all`;
@@ -28,6 +29,9 @@ export class PackageBundleJob {
   public static create(dynamicConfig: Config, graviteeioVersion: string, isDryRun: boolean) {
     dynamicConfig.importOrb(keeper);
     dynamicConfig.importOrb(awsS3);
+
+    const installYarnCmd = InstallYarnCommand.get();
+    dynamicConfig.addReusableCommand(installYarnCmd);
 
     const parsedGraviteeioVersion = parse(graviteeioVersion);
 
@@ -45,14 +49,15 @@ export class PackageBundleJob {
         name: `Checkout tag ${parsedGraviteeioVersion.full}`,
         command: `git checkout ${parsedGraviteeioVersion.full}`,
       }),
+      new reusable.ReusedCommand(installYarnCmd),
       new commands.Run({
         name: 'Install dependencies',
-        command: 'npm install',
+        command: 'yarn',
         working_directory: './release',
       }),
       new commands.Run({
         name: 'Building package bundle',
-        command: `npm run zx -- --quiet --experimental ci-steps/package-bundles.mjs --version=${parsedGraviteeioVersion.full}`,
+        command: `yarn zx --quiet --experimental ci-steps/package-bundles.mjs --version=${parsedGraviteeioVersion.full}`,
         working_directory: './release',
         environment: {
           ARTIFACTORY_REPO_URL: PackageBundleJob.ARTIFACTORY_REPO_URL,

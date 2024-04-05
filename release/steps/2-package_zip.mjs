@@ -35,7 +35,7 @@ const data = await response.json();
 if (response.status === 201) {
   console.log(chalk.green(`Pipeline created with number: ${data.number}`));
   echo`Follow its progress on: https://app.circleci.com/pipelines/github/gravitee-io/gravitee-api-management/${data.number}`;
-  console.log(chalk.greenBright(`When it's done, run 'npm run docker_rpms -- --version=${releasingVersion}'`));
+  console.log(chalk.greenBright(`When it's done, run 'yarn docker_rpms --version=${releasingVersion}'`));
 } else {
   console.log(chalk.yellow('Something went wrong'));
 }

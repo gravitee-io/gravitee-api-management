@@ -17,8 +17,7 @@ import { commands, Config, Job, parameters, reusable } from '@circleci/circleci-
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { CommandParameterLiteral } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Parameters/types/CustomParameterLiterals.types';
 import { NodeLtsExecutor } from '../../executors';
-import { NotifyOnFailureCommand, WebuiInstallCommand } from '../../commands';
-import { config } from '../../config';
+import { InstallYarnCommand, NotifyOnFailureCommand, WebuiInstallCommand } from '../../commands';
 
 export class WebuiLintTestJob {
   private static jobName = 'job-webui-lint-test';
@@ -26,10 +25,12 @@ export class WebuiLintTestJob {
   private static customParametersList = new parameters.CustomParametersList<CommandParameterLiteral>([
     new parameters.CustomParameter('apim-ui-project', 'string', '', 'the name of the UI project to build'),
     new parameters.CustomParameter('resource_class', 'string', 'medium', 'Resource class to use for executor'),
-    new parameters.CustomParameter('node_version', 'string', config.executor.node.console.version, 'Node version to use for executor'),
   ]);
 
   public static create(dynamicConfig: Config): Job {
+    const installYarnCmd = InstallYarnCommand.get();
+    dynamicConfig.addReusableCommand(installYarnCmd);
+
     const webUiInstallCommand = WebuiInstallCommand.get();
     dynamicConfig.addReusableCommand(webUiInstallCommand);
 
@@ -38,21 +39,22 @@ export class WebuiLintTestJob {
 
     const steps: Command[] = [
       new commands.Checkout(),
+      new reusable.ReusedCommand(installYarnCmd),
       new reusable.ReusedCommand(webUiInstallCommand, { 'apim-ui-project': '<< parameters.apim-ui-project >>' }),
       new commands.workspace.Attach({ at: '.' }),
       new commands.Run({
         name: 'Check License',
-        command: 'npm run lint:license',
+        command: 'yarn lint:license',
         working_directory: '<< parameters.apim-ui-project >>',
       }),
       new commands.Run({
         name: 'Run Prettier and ESLint',
-        command: 'npm run lint',
+        command: 'yarn lint',
         working_directory: '<< parameters.apim-ui-project >>',
       }),
       new commands.Run({
         name: 'Run unit tests',
-        command: 'npm run test:coverage',
+        command: 'yarn test:coverage',
         working_directory: '<< parameters.apim-ui-project >>',
       }),
       new reusable.ReusedCommand(notifyOnFailureCommand),
@@ -73,7 +75,7 @@ export class WebuiLintTestJob {
 
     return new reusable.ParameterizedJob(
       WebuiLintTestJob.jobName,
-      NodeLtsExecutor.create('<< parameters.resource_class >>', '<< parameters.node_version >>'),
+      NodeLtsExecutor.create('<< parameters.resource_class >>'),
       WebuiLintTestJob.customParametersList,
       steps,
     );

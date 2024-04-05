@@ -22,7 +22,7 @@ services:
     working_dir: /test
     volumes:
       - ./:/test
-    command: npm run test:api:ci
+    command: yarn test:api:ci
     environment:
       - MANAGEMENT_BASE_URL=http://management_api:8083/management
       - MANAGEMENT_V2_BASE_URL=http://management_api:8083/management/v2

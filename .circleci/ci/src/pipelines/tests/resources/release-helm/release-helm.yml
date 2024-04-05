@@ -25,6 +25,12 @@ parameters:
     type: string
     default: /home/circleci/project/pom.xml
     description: Path to pom.xml with APIM version
+commands:
+  cmd-install-yarn:
+    steps:
+      - run:
+          name: Yarn Set Version Stable
+          command: yarn set version 4.1.1
 jobs:
   job-test-apim-charts:
     docker:
@@ -47,7 +53,7 @@ jobs:
           path: apim-result.xml
   job-release-helm:
     docker:
-      - image: cimg/node:16.13
+      - image: cimg/node:20.11.1
     resource_class: medium
     steps:
       - checkout
@@ -83,14 +89,15 @@ jobs:
 
             sed "s/name.*/name: apim3/" -i Chart.yaml
             helm package -d charts .
+      - cmd-install-yarn
       - run:
           name: Install dependencies
-          command: npm install
+          command: yarn
           working_directory: ./release
       - run:
           name: Open a PR to publish helm chart release into helm-charts repository
           working_directory: ./release
-          command: npm run zx -- ci-steps/release-helm.mjs --version=4.2.0
+          command: yarn zx ci-steps/release-helm.mjs --version=4.2.0
 workflows:
   release_helm:
     jobs:

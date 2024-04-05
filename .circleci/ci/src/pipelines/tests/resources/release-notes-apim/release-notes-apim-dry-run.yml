@@ -25,10 +25,16 @@ parameters:
     type: string
     default: /home/circleci/project/pom.xml
     description: Path to pom.xml with APIM version
+commands:
+  cmd-install-yarn:
+    steps:
+      - run:
+          name: Yarn Set Version Stable
+          command: yarn set version 4.1.1
 jobs:
   job-release-notes-apim:
     docker:
-      - image: cimg/node:16.13
+      - image: cimg/node:20.11.1
     resource_class: medium
     steps:
       - checkout
@@ -56,13 +62,14 @@ jobs:
             git config --global user.name "${GIT_USER_NAME}"
             git config --global user.email "${GIT_USER_EMAIL}"
       - gh/setup
+      - cmd-install-yarn
       - run:
           name: Install dependencies
-          command: npm install
+          command: yarn
           working_directory: ./release
       - run:
           name: Open a PR to create release notes into docs repository
-          command: npm run zx -- --quiet ci-steps/generate-changelog.mjs --version=4.1.0
+          command: yarn zx --quiet ci-steps/generate-changelog.mjs --version=4.1.0
           working_directory: ./release
 workflows:
   release-notes-apim:

@@ -26,7 +26,7 @@ import { PrimaryOwnerEntity, PrimaryOwnerEntityToJSON } from '@gravitee/manageme
 import { ResponseTemplate } from '@gravitee/management-webclient-sdk/src/lib/models/ResponseTemplate';
 import { Flow, FlowToJSON } from '@gravitee/management-webclient-sdk/src/lib/models/Flow';
 import { PlanEntity, PlanEntityToJSON } from '@gravitee/management-webclient-sdk/src/lib/models/PlanEntity';
-import { PropertyToJSON, ResourceToJSON } from '../../management-webclient-sdk/src/lib/models';
+import { PropertyToJSON, ResourceToJSON } from '@gravitee/management-webclient-sdk/src/lib/models';
 
 export interface ApiImportEntity {
   id?: string;

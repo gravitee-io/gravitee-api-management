@@ -65,6 +65,11 @@ commands:
           branch_pattern: master,[0-9]+\.[0-9]+\.x
           event: fail
           template: basic_fail_1
+  cmd-install-yarn:
+    steps:
+      - run:
+          name: Yarn Set Version Stable
+          command: yarn set version 4.1.1
   cmd-webui-install:
     parameters:
       apim-ui-project:
@@ -73,17 +78,17 @@ commands:
         description: the name of the UI project to build
     steps:
       - restore_cache:
-          name: Restore NPM cache
+          name: Restore Yarn cache
           keys:
-            - << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project >>/package-lock.json" }}
+            - << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project >>/yarn.lock" }}
             - << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}
       - run:
           name: Install dependencies
-          command: npm install
+          command: yarn
           working_directory: << parameters.apim-ui-project >>
       - save_cache:
-          name: Save NPM cache
-          key: << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project >>/package-lock.json" }}
+          name: Save Yarn cache
+          key: << parameters.apim-ui-project >>-cache-v1-{{ .Branch }}-{{ checksum "<< parameters.apim-ui-project >>/yarn.lock" }}
           paths:
             - ./<< parameters.apim-ui-project >>/node_modules
   cmd-create-docker-context:
@@ -218,7 +223,7 @@ jobs:
           jobName: job-validate
   job-danger-js:
     docker:
-      - image: cimg/node:16.13
+      - image: cimg/node:20.11.1
     resource_class: small
     steps:
       - checkout
@@ -511,30 +516,27 @@ jobs:
         type: string
         default: medium
         description: Resource class to use for executor
-      node_version:
-        type: string
-        default: "20.11"
-        description: Node version to use for executor
     docker:
-      - image: cimg/node:<< parameters.node_version >>
+      - image: cimg/node:20.11.1
     resource_class: << parameters.resource_class >>
     steps:
       - checkout
+      - cmd-install-yarn
       - cmd-webui-install:
           apim-ui-project: << parameters.apim-ui-project >>
       - attach_workspace:
           at: .
       - run:
           name: Check License
-          command: npm run lint:license
+          command: yarn lint:license
           working_directory: << parameters.apim-ui-project >>
       - run:
           name: Run Prettier and ESLint
-          command: npm run lint
+          command: yarn lint
           working_directory: << parameters.apim-ui-project >>
       - run:
           name: Run unit tests
-          command: npm run test:coverage
+          command: yarn test:coverage
           working_directory: << parameters.apim-ui-project >>
       - cmd-notify-on-failure
       - persist_to_workspace:
@@ -555,12 +557,8 @@ jobs:
         type: string
         default: ""
         description: the name of the image
-      node_version:
-        type: string
-        default: "20.11"
-        description: Node version to use for executor
     docker:
-      - image: cimg/node:<< parameters.node_version >>
+      - image: cimg/node:20.11.1
     resource_class: large
     steps:
       - checkout
@@ -568,6 +566,7 @@ jobs:
           at: .
       - setup_remote_docker:
           version: default
+      - cmd-install-yarn
       - cmd-webui-install:
           apim-ui-project: << parameters.apim-ui-project >>
       - run:
@@ -575,7 +574,7 @@ jobs:
           command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' << parameters.apim-ui-project >>/build.json"
       - run:
           name: Build
-          command: npm run build:prod
+          command: yarn build:prod
           environment:
             NODE_OPTIONS: --max_old_space_size=4086
           working_directory: << parameters.apim-ui-project >>
@@ -588,21 +587,17 @@ jobs:
           paths:
             - << parameters.apim-ui-project >>/dist
   job-console-webui-build-storybook:
-    parameters:
-      node_version:
-        type: string
-        default: "20.11"
-        description: Node version to use for executor
     docker:
-      - image: cimg/node:<< parameters.node_version >>
+      - image: cimg/node:20.11.1
     resource_class: large
     steps:
       - checkout
+      - cmd-install-yarn
       - cmd-webui-install:
           apim-ui-project: gravitee-apim-console-webui
       - run:
           name: Build
-          command: npm run build-storybook
+          command: yarn build-storybook
           working_directory: gravitee-apim-console-webui
           environment:
             NODE_OPTIONS: --max_old_space_size=8192
@@ -612,18 +607,14 @@ jobs:
           paths:
             - gravitee-apim-console-webui/storybook-static
   job-console-webui-chromatic-deployment:
-    parameters:
-      node_version:
-        type: string
-        default: "20.11"
-        description: Node version to use for executor
     docker:
-      - image: cimg/node:<< parameters.node_version >>
+      - image: cimg/node:20.11.1
     resource_class: small
     steps:
       - checkout
       - attach_workspace:
           at: .
+      - cmd-install-yarn
       - cmd-webui-install:
           apim-ui-project: gravitee-apim-console-webui
       - keeper/env-export:
@@ -711,17 +702,18 @@ jobs:
     resource_class: small
     steps:
       - checkout
-      - cmd-webui-install:
-          apim-ui-project: gravitee-apim-e2e
       - attach_workspace:
           at: .
+      - cmd-install-yarn
       - run:
           name: Generate e2e tests SDK
           command: |-
-            npm run update:sdk:management
-            npm run update:sdk:management:v2
-            npm run update:sdk:portal
+            sh ./scripts/update-management-sdk.sh
+            sh ./scripts/update-management-v2-sdk.sh
+            sh ./scripts/update-portal-sdk.sh
           working_directory: gravitee-apim-e2e
+      - cmd-webui-install:
+          apim-ui-project: gravitee-apim-e2e
       - cmd-notify-on-failure
       - persist_to_workspace:
           root: .
@@ -731,25 +723,26 @@ jobs:
             - gravitee-apim-e2e/lib/portal-webclient-sdk
   job-e2e-lint-build:
     docker:
-      - image: cimg/node:16.13
+      - image: cimg/node:20.11.1
     resource_class: small
     steps:
       - checkout
+      - cmd-install-yarn
       - cmd-webui-install:
           apim-ui-project: gravitee-apim-e2e
       - attach_workspace:
           at: .
       - run:
           name: Check License
-          command: npm run lint:license
+          command: yarn lint:license
           working_directory: gravitee-apim-e2e
       - run:
           name: Run Prettier and ESLint
-          command: npm run lint
+          command: yarn lint
           working_directory: gravitee-apim-e2e
       - run:
           name: Build
-          command: npm run build
+          command: yarn build
           working_directory: gravitee-apim-e2e
       - cmd-notify-on-failure
       - persist_to_workspace:
@@ -780,6 +773,7 @@ jobs:
       - keeper/env-export:
           secret-url: keeper://w8WBpALVCgYdxtV5pVrQsw/custom_field/base64
           var-name: GRAVITEE_LICENSE
+      - cmd-install-yarn
       - run:
           name: Running API & E2E tests in << parameters.execution_mode >> mode with << parameters.database >> database
           command: |-
@@ -789,9 +783,9 @@ jobs:
               export V4_EMULATION_ENGINE_DEFAULT=no
             fi
             if [ -z "<< parameters.apim_client_tag >>" ]; then
-              APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=4.1.x-latest APIM_CLIENT_TAG=4.1.x-latest npm run test:api:<< parameters.database >>
+              APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=4.1.x-latest APIM_CLIENT_TAG=4.1.x-latest yarn test:api:<< parameters.database >>
             else 
-              APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=4.1.x-latest APIM_CLIENT_TAG=<< parameters.apim_client_tag >> npm run test:api:<< parameters.database >>
+              APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=4.1.x-latest APIM_CLIENT_TAG=<< parameters.apim_client_tag >> yarn test:api:<< parameters.database >>
             fi
       - cmd-docker-azure-logout
       - cmd-notify-on-failure
@@ -814,11 +808,12 @@ jobs:
       - keeper/env-export:
           secret-url: keeper://FVzylPCgY-LJsgjkW4q1eQ/field/password
           var-name: CYPRESS_CLOUD_KEY
+      - cmd-install-yarn
       - run:
           name: Running UI tests
           command: |-
             cd gravitee-apim-e2e
-            APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=4.1.x-latest npm run test:ui
+            APIM_REGISTRY=graviteeio.azurecr.io APIM_TAG=4.1.x-latest yarn test:ui
       - cmd-docker-azure-logout
       - cmd-notify-on-failure
       - store_artifacts:
@@ -829,25 +824,26 @@ jobs:
           path: ./gravitee-apim-e2e/.logs
   job-perf-lint-build:
     docker:
-      - image: cimg/node:16.13
+      - image: cimg/node:20.11.1
     resource_class: small
     steps:
       - checkout
+      - cmd-install-yarn
       - cmd-webui-install:
           apim-ui-project: gravitee-apim-perf
       - attach_workspace:
           at: .
       - run:
           name: Check License
-          command: npm run lint:license
+          command: yarn lint:license
           working_directory: gravitee-apim-perf
       - run:
           name: Run Prettier and ESLint
-          command: npm run lint
+          command: yarn lint
           working_directory: gravitee-apim-perf
       - run:
           name: Build
-          command: npm run build
+          command: yarn build
           working_directory: gravitee-apim-perf
       - cmd-notify-on-failure
   job-community-build:
@@ -917,7 +913,7 @@ jobs:
           jobName: job-publish-on-nexus
   job-release-helm:
     docker:
-      - image: cimg/node:16.13
+      - image: cimg/node:20.11.1
     resource_class: medium
     steps:
       - checkout
@@ -950,9 +946,10 @@ jobs:
 
             sed "s/name.*/name: apim3/" -i Chart.yaml
             helm package -d charts .
+      - cmd-install-yarn
       - run:
           name: Install dependencies
-          command: npm install
+          command: yarn
           working_directory: ./release
       - keeper/env-export:
           secret-url: keeper://Q721P2LSOPJ9qiXLuf5AHQ/field/login
@@ -1114,14 +1111,12 @@ workflows:
           name: Build Console Storybook
           context:
             - cicd-orchestrator
-          node_version: "20.11"
       - job-console-webui-chromatic-deployment:
           name: Deploy console in chromatic
           context:
             - cicd-orchestrator
           requires:
             - Build Console Storybook
-          node_version: "20.11"
       - job-sonarcloud-analysis:
           name: Sonar - gravitee-apim-console-webui
           context:
@@ -1135,14 +1130,12 @@ workflows:
             - cicd-orchestrator
           apim-ui-project: gravitee-apim-portal-webui
           resource_class: large
-          node_version: "20.9"
       - job-webui-build:
           name: Build APIM Portal and publish image
           context:
             - cicd-orchestrator
           apim-ui-project: gravitee-apim-portal-webui
           docker-image-name: apim-portal-ui
-          node_version: "20.9"
       - job-sonarcloud-analysis:
           name: Sonar - gravitee-apim-portal-webui
           context:

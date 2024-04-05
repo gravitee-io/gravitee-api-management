@@ -16,12 +16,15 @@
 import { commands, Config, Job, reusable } from '@circleci/circleci-config-sdk';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { NodeLtsExecutor } from '../executors';
-import { NotifyOnFailureCommand, WebuiInstallCommand } from '../commands';
+import { InstallYarnCommand, NotifyOnFailureCommand, WebuiInstallCommand } from '../commands';
 
 export class PerfLintBuildJob {
   private static jobName = 'job-perf-lint-build';
 
   public static create(dynamicConfig: Config): Job {
+    const installYarnCmd = InstallYarnCommand.get();
+    dynamicConfig.addReusableCommand(installYarnCmd);
+
     const webUiInstallCommand = WebuiInstallCommand.get();
     dynamicConfig.addReusableCommand(webUiInstallCommand);
 
@@ -30,21 +33,22 @@ export class PerfLintBuildJob {
 
     const steps: Command[] = [
       new commands.Checkout(),
+      new reusable.ReusedCommand(installYarnCmd),
       new reusable.ReusedCommand(webUiInstallCommand, { 'apim-ui-project': 'gravitee-apim-perf' }),
       new commands.workspace.Attach({ at: '.' }),
       new commands.Run({
         name: 'Check License',
-        command: 'npm run lint:license',
+        command: 'yarn lint:license',
         working_directory: 'gravitee-apim-perf',
       }),
       new commands.Run({
         name: 'Run Prettier and ESLint',
-        command: 'npm run lint',
+        command: 'yarn lint',
         working_directory: 'gravitee-apim-perf',
       }),
       new commands.Run({
         name: 'Build',
-        command: 'npm run build',
+        command: 'yarn build',
         working_directory: 'gravitee-apim-perf',
       }),
       new reusable.ReusedCommand(notifyOnFailureCommand),

@@ -56,10 +56,7 @@ const executor = {
   },
   node: {
     image: 'cimg/node',
-    version: '16.13',
-    console: {
-      version: '20.11',
-    },
+    version: '20.11.1',
   },
   sonar: {
     image: 'sonarsource/sonar-scanner-cli',
@@ -75,6 +72,10 @@ const jobContext = ['cicd-orchestrator'];
 
 const maven = {
   settingsFile: '.gravitee.settings.xml',
+};
+
+const yarn = {
+  version: '4.1.1',
 };
 
 const orbs = {
@@ -142,4 +143,5 @@ export const config = {
   secrets,
   slack,
   ssh,
+  yarn,
 };

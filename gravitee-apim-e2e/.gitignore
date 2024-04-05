@@ -6,3 +6,10 @@ lib/management-webclient-sdk
 lib/management-v2-webclient-sdk
 lib/portal-webclient-sdk
 cypress/downloads
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions

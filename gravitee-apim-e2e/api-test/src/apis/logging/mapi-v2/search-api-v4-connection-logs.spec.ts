@@ -21,7 +21,7 @@ import {
   APISubscriptionsApi,
   HttpListener,
   PlanSecurityType,
-} from '../../../../../lib/management-v2-webclient-sdk/src/lib';
+} from '@gravitee/management-v2-webclient-sdk/src/lib';
 import { forManagementAsAppUser, forManagementV2AsApiUser } from '@gravitee/utils/configuration';
 import { afterAll, beforeEach, describe, expect, test } from '@jest/globals';
 import { created, noContent, succeed } from '@lib/jest-utils';

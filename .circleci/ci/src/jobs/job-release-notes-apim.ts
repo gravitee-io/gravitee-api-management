@@ -21,12 +21,16 @@ import { github } from '../orbs/github';
 import { Command } from '@circleci/circleci-config-sdk/dist/src/lib/Components/Commands/exports/Command';
 import { NodeLtsExecutor } from '../executors';
 import { config } from '../config';
+import { InstallYarnCommand } from '../commands';
 
 export class ReleaseNotesApimJob {
   private static jobName: string = 'job-release-notes-apim';
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
     dynamicConfig.importOrb(keeper);
     dynamicConfig.importOrb(github);
+
+    const installYarnCmd = InstallYarnCommand.get();
+    dynamicConfig.addReusableCommand(installYarnCmd);
 
     const steps: Command[] = [
       new commands.Checkout(),
@@ -57,14 +61,15 @@ export class ReleaseNotesApimJob {
 git config --global user.email "\${GIT_USER_EMAIL}"`,
       }),
       new reusable.ReusedCommand(github.commands['setup']),
+      new reusable.ReusedCommand(installYarnCmd),
       new commands.Run({
         name: 'Install dependencies',
-        command: 'npm install',
+        command: 'yarn',
         working_directory: './release',
       }),
       new commands.Run({
         name: 'Open a PR to create release notes into docs repository',
-        command: `npm run zx -- --quiet ci-steps/generate-changelog.mjs --version=${environment.graviteeioVersion}`,
+        command: `yarn zx --quiet ci-steps/generate-changelog.mjs --version=${environment.graviteeioVersion}`,
         working_directory: './release',
       }),
     ];
