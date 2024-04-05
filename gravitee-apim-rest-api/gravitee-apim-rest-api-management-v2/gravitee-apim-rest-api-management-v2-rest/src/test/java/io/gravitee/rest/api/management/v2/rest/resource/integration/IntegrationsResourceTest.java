@@ -17,10 +17,15 @@ package io.gravitee.rest.api.management.v2.rest.resource.integration;
 
 import static assertions.MAPIAssertions.assertThat;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 
 import fixtures.core.model.IntegrationFixture;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.rest.api.management.v2.rest.model.*;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
 import java.time.ZonedDateTime;
@@ -87,6 +92,27 @@ public class IntegrationsResourceTest extends IntegrationResourceTest {
 
             //Then
             assertThat(response).hasStatus(HttpStatusCode.BAD_REQUEST_400);
+        }
+
+        @Test
+        public void should_return_403_when_incorrect_permission() {
+            //Given
+            CreateIntegration createIntegration = new CreateIntegration().toBuilder().build();
+            when(
+                permissionService.hasPermission(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(RolePermission.ENVIRONMENT_INTEGRATION),
+                    eq(ENVIRONMENT),
+                    eq(RolePermissionAction.CREATE)
+                )
+            )
+                .thenReturn(false);
+
+            //When
+            Response response = target.request().post(Entity.json(createIntegration));
+
+            //Then
+            assertThat(response).hasStatus(HttpStatusCode.FORBIDDEN_403);
         }
     }
 
@@ -197,6 +223,26 @@ public class IntegrationsResourceTest extends IntegrationResourceTest {
                         .next(target.queryParam("page", 3).queryParam("perPage", 5).getUri().toString())
                         .build()
                 );
+        }
+
+        @Test
+        public void should_return_403_when_incorrect_permission() {
+            //Given
+            when(
+                permissionService.hasPermission(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(RolePermission.ENVIRONMENT_INTEGRATION),
+                    eq(ENVIRONMENT),
+                    eq(RolePermissionAction.READ)
+                )
+            )
+                .thenReturn(false);
+
+            //When
+            Response response = target.queryParam("page", 1).queryParam("perPage", 5).request().get();
+
+            //Then
+            assertThat(response).hasStatus(HttpStatusCode.FORBIDDEN_403);
         }
     }
 }

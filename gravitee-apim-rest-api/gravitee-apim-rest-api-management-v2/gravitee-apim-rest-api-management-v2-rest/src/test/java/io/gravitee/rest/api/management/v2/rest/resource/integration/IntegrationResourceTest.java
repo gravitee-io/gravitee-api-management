@@ -16,7 +16,9 @@
 package io.gravitee.rest.api.management.v2.rest.resource.integration;
 
 import static assertions.MAPIAssertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 import fixtures.core.model.IntegrationFixture;
 import inmemory.IntegrationCrudServiceInMemory;
@@ -25,6 +27,8 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.management.v2.rest.model.Integration;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
+import io.gravitee.rest.api.model.permissions.RolePermission;
+import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import jakarta.ws.rs.client.WebTarget;
@@ -113,6 +117,22 @@ public class IntegrationResourceTest extends AbstractResourceTest {
 
             //Then
             assertThat(response).hasStatus(HttpStatusCode.NOT_FOUND_404);
+        }
+
+        @Test
+        public void should_return_403_when_incorrect_permission() {
+            when(
+                permissionService.hasPermission(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(RolePermission.ENVIRONMENT_INTEGRATION),
+                    eq(ENVIRONMENT),
+                    eq(RolePermissionAction.READ)
+                )
+            )
+                .thenReturn(false);
+
+            Response response = target.request().get();
+            assertThat(response).hasStatus(HttpStatusCode.FORBIDDEN_403);
         }
     }
 }
