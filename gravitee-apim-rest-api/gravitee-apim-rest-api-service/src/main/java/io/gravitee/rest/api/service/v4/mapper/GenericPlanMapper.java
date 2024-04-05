@@ -55,9 +55,11 @@ public class GenericPlanMapper {
         if (api.getDefinitionVersion() == DefinitionVersion.V4) {
             List<Flow> flows = flowService.findByReference(FlowReferenceType.PLAN, plan.getId());
             return planMapper.toEntity(plan, flows);
-        } else {
+        } else if (api.getDefinitionVersion() != DefinitionVersion.FEDERATED) {
             List<io.gravitee.definition.model.flow.Flow> flows = flowServiceV2.findByReference(FlowReferenceType.PLAN, plan.getId());
             return planConverter.toPlanEntity(plan, flows);
         }
+
+        return null;
     }
 }

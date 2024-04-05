@@ -424,7 +424,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
             } else {
                 metadata.put("deleted", "true");
             }
-        } else {
+        } else if (api.getDefinitionVersion() != DefinitionVersion.FEDERATED) {
             Optional<Endpoint> endpointOpt =
                 ((ApiEntity) api).getProxy()
                     .getGroups()
