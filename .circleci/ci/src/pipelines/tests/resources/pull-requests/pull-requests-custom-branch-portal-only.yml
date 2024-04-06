@@ -179,6 +179,31 @@ jobs:
           path: << parameters.apim-ui-project >>/coverage/lcov.info
       - store_test_results:
           path: << parameters.apim-ui-project >>/coverage/junit.xml
+  job-portal-webui-next-build:
+    docker:
+      - image: cimg/node:20.11.1
+    resource_class: medium
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - cmd-install-yarn
+      - cmd-webui-install:
+          apim-ui-project: gravitee-apim-portal-webui-next
+      - run:
+          name: Update Build version
+          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' gravitee-apim-portal-webui-next/build.json"
+      - run:
+          name: Build
+          command: yarn build:prod
+          environment:
+            NODE_OPTIONS: --max_old_space_size=4086
+          working_directory: gravitee-apim-portal-webui-next
+      - cmd-notify-on-failure
+      - persist_to_workspace:
+          root: .
+          paths:
+            - gravitee-apim-portal-webui/dist-next
   job-webui-build:
     parameters:
       apim-ui-project:
@@ -264,15 +289,26 @@ workflows:
   pull_requests:
     jobs:
       - job-webui-lint-test:
+          name: Lint & test APIM Portal Next
+          context:
+            - cicd-orchestrator
+          apim-ui-project: gravitee-apim-portal-webui-next
+      - job-webui-lint-test:
           name: Lint & test APIM Portal
           context:
             - cicd-orchestrator
           apim-ui-project: gravitee-apim-portal-webui
           resource_class: large
+      - job-portal-webui-next-build:
+          name: Build APIM Portal Next
+          context:
+            - cicd-orchestrator
       - job-webui-build:
           name: Build APIM Portal and publish image
           context:
             - cicd-orchestrator
+          requires:
+            - Build APIM Portal Next
           apim-ui-project: gravitee-apim-portal-webui
           docker-image-name: apim-portal-ui
       - job-sonarcloud-analysis:
@@ -286,6 +322,7 @@ workflows:
           name: Validate workflow status
           requires:
             - Lint & test APIM Portal
+            - Lint & test APIM Portal Next
             - Build APIM Portal and publish image
 orbs:
   keeper: gravitee-io/keeper@0.6.3

@@ -258,6 +258,31 @@ jobs:
           docker-image-name: apim-gateway
           version: master-latest
       - cmd-docker-azure-logout
+  job-portal-webui-next-build:
+    docker:
+      - image: cimg/node:20.11.1
+    resource_class: medium
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - cmd-install-yarn
+      - cmd-webui-install:
+          apim-ui-project: gravitee-apim-portal-webui-next
+      - run:
+          name: Update Build version
+          command: "sed -i 's/\"version\": \".*\"/\"version\": \"4.2.0\"/' gravitee-apim-portal-webui-next/build.json"
+      - run:
+          name: Build
+          command: yarn build:prod
+          environment:
+            NODE_OPTIONS: --max_old_space_size=4086
+          working_directory: gravitee-apim-portal-webui-next
+      - cmd-notify-on-failure
+      - persist_to_workspace:
+          root: .
+          paths:
+            - gravitee-apim-portal-webui/dist-next
   job-webui-build:
     parameters:
       apim-ui-project:
@@ -370,11 +395,17 @@ workflows:
           name: Build APIM Console and publish image
           apim-ui-project: gravitee-apim-console-webui
           docker-image-name: apim-management-ui
-      - job-webui-build:
+      - job-portal-webui-next-build:
+          name: Build APIM Portal Next
           context:
             - cicd-orchestrator
           requires:
             - Setup
+      - job-webui-build:
+          context:
+            - cicd-orchestrator
+          requires:
+            - Build APIM Portal Next
           name: Build APIM Portal and publish image
           apim-ui-project: gravitee-apim-portal-webui
           docker-image-name: apim-portal-ui

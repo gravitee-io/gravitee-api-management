@@ -31,6 +31,7 @@ import {
   E2ELintBuildJob,
   E2ETestJob,
   PerfLintBuildJob,
+  PortalWebuiNextBuildJob,
   PublishJob,
   ReleaseHelmJob,
   SetupJob,
@@ -255,6 +256,9 @@ export class PullRequestsWorkflow {
       const webuiLintTestJob = WebuiLintTestJob.create(dynamicConfig);
       dynamicConfig.addJob(webuiLintTestJob);
 
+      const portalWebuiNextBuildJob = PortalWebuiNextBuildJob.create(dynamicConfig, environment);
+      dynamicConfig.addJob(portalWebuiNextBuildJob);
+
       const webuiBuildJob = WebuiBuildJob.create(dynamicConfig, environment);
       dynamicConfig.addJob(webuiBuildJob);
 
@@ -263,14 +267,24 @@ export class PullRequestsWorkflow {
 
       jobs.push(
         new workflow.WorkflowJob(webuiLintTestJob, {
+          name: 'Lint & test APIM Portal Next',
+          context: config.jobContext,
+          'apim-ui-project': config.dockerImages.portal.next.project,
+        }),
+        new workflow.WorkflowJob(webuiLintTestJob, {
           name: 'Lint & test APIM Portal',
           context: config.jobContext,
           'apim-ui-project': config.dockerImages.portal.project,
           resource_class: 'large',
         }),
+        new workflow.WorkflowJob(portalWebuiNextBuildJob, {
+          name: 'Build APIM Portal Next',
+          context: config.jobContext,
+        }),
         new workflow.WorkflowJob(webuiBuildJob, {
           name: 'Build APIM Portal and publish image',
           context: config.jobContext,
+          requires: ['Build APIM Portal Next'],
           'apim-ui-project': config.dockerImages.portal.project,
           'docker-image-name': config.dockerImages.portal.image,
         }),
@@ -282,7 +296,7 @@ export class PullRequestsWorkflow {
         }),
       );
 
-      requires.push('Lint & test APIM Portal', 'Build APIM Portal and publish image');
+      requires.push('Lint & test APIM Portal', 'Lint & test APIM Portal Next', 'Build APIM Portal and publish image');
     }
 
     // compute check-workflow job

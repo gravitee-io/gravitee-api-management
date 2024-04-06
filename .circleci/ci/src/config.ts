@@ -36,6 +36,9 @@ const dockerImages = {
   portal: {
     project: 'gravitee-apim-portal-webui',
     image: 'apim-portal-ui',
+    next: {
+      project: 'gravitee-apim-portal-webui-next',
+    },
   },
 };
 
