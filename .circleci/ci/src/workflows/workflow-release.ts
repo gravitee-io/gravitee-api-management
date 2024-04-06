@@ -14,10 +14,17 @@
  * limitations under the License.
  */
 import { Config, workflow, Workflow } from '@circleci/circleci-config-sdk';
-import { ReleaseCommitAndPrepareNextVersionJob, SetupJob, SlackAnnouncementJob, WebuiBuildJob, WebuiPublishArtifactoryJob } from '../jobs';
+import {
+  BackendBuildAndPublishOnArtifactoryJob,
+  PortalWebuiNextBuildJob,
+  ReleaseCommitAndPrepareNextVersionJob,
+  SetupJob,
+  SlackAnnouncementJob,
+  WebuiBuildJob,
+  WebuiPublishArtifactoryJob,
+} from '../jobs';
 import { CircleCIEnvironment } from '../pipelines';
 import { config } from '../config';
-import { BackendBuildAndPublishOnArtifactoryJob } from '../jobs/backend';
 
 export class ReleaseWorkflow {
   private static workflowName = 'release';
@@ -28,6 +35,9 @@ export class ReleaseWorkflow {
 
     const slackAnnouncementJob = SlackAnnouncementJob.create(dynamicConfig);
     dynamicConfig.addJob(slackAnnouncementJob);
+
+    const portalWebuiNextBuildJob = PortalWebuiNextBuildJob.create(dynamicConfig, environment);
+    dynamicConfig.addJob(portalWebuiNextBuildJob);
 
     const webuiBuildJob = WebuiBuildJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(webuiBuildJob);
@@ -51,12 +61,17 @@ export class ReleaseWorkflow {
       }),
 
       // APIM Portal
+      new workflow.WorkflowJob(portalWebuiNextBuildJob, {
+        name: 'Build APIM Portal Next',
+        context: config.jobContext,
+        requires: ['Setup'],
+      }),
       new workflow.WorkflowJob(webuiBuildJob, {
         context: config.jobContext,
         name: 'Build APIM Portal and publish image',
         'apim-ui-project': config.dockerImages.portal.project,
         'docker-image-name': 'apim-portal-ui',
-        requires: ['Setup'],
+        requires: ['Build APIM Portal Next'],
       }),
       new workflow.WorkflowJob(webuiPublishArtifactoryJob, {
         context: config.jobContext,

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Config, workflow, Workflow } from '@circleci/circleci-config-sdk';
-import { BuildBackendImagesJob, BuildBackendJob, PublishPrEnvUrlsJob, SetupJob } from '../jobs';
+import { BuildBackendImagesJob, BuildBackendJob, PortalWebuiNextBuildJob, PublishPrEnvUrlsJob, SetupJob } from '../jobs';
 import { config } from '../config';
 import { CircleCIEnvironment } from '../pipelines';
 import { WebuiBuildJob } from '../jobs/frontend';
@@ -29,6 +29,9 @@ export class PublishDockerImagesWorkflow {
 
     const buildBackendImagesJob = BuildBackendImagesJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(buildBackendImagesJob);
+
+    const portalWebuiNextBuildJob = PortalWebuiNextBuildJob.create(dynamicConfig, environment);
+    dynamicConfig.addJob(portalWebuiNextBuildJob);
 
     const webuiBuildJob = WebuiBuildJob.create(dynamicConfig, environment);
     dynamicConfig.addJob(webuiBuildJob);
@@ -51,9 +54,14 @@ export class PublishDockerImagesWorkflow {
         'apim-ui-project': config.dockerImages.console.project,
         'docker-image-name': config.dockerImages.console.image,
       }),
-      new workflow.WorkflowJob(webuiBuildJob, {
+      new workflow.WorkflowJob(portalWebuiNextBuildJob, {
+        name: 'Build APIM Portal Next',
         context: config.jobContext,
         requires: ['Setup'],
+      }),
+      new workflow.WorkflowJob(webuiBuildJob, {
+        context: config.jobContext,
+        requires: ['Build APIM Portal Next'],
         name: 'Build APIM Portal and publish image',
         'apim-ui-project': config.dockerImages.portal.project,
         'docker-image-name': config.dockerImages.portal.image,
