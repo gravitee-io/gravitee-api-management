@@ -34,8 +34,11 @@ import static org.mockito.Mockito.when;
 
 import fixtures.PlanFixtures;
 import inmemory.ApiCrudServiceInMemory;
+import inmemory.SubscriptionQueryServiceInMemory;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
+import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -61,6 +64,7 @@ import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.PlanType;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanQuery;
 import io.gravitee.rest.api.model.v4.plan.UpdatePlanEntity;
@@ -87,6 +91,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class ApiPlansResourceTest extends AbstractResourceTest {
 
     protected static final String API = "my-api";
+    protected static final String APPLICATION = "my-app";
     protected static final String PLAN = "my-plan";
     protected static final String ENVIRONMENT = "my-env";
 
@@ -98,6 +103,9 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
 
     @Autowired
     private CreatePlanDomainService createPlanDomainService;
+
+    @Autowired
+    private SubscriptionQueryServiceInMemory subscriptionQueryService;
 
     WebTarget target;
 
@@ -275,6 +283,138 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                                 .next(target.queryParam("page", 2).getUri().toString())
                                 .build()
                         )
+                        .build()
+                );
+        }
+
+        @Test
+        public void should_return_subscribable_plans() {
+            var plan1 = PlanFixtures.aPlanEntityV4().toBuilder().id("plan-1").apiId(API).build();
+            var plan2 = PlanFixtures.aPlanEntityV4().toBuilder().id("plan-2").apiId(API).build();
+            var plan3 = PlanFixtures
+                .aPlanEntityV4()
+                .toBuilder()
+                .id("plan-3")
+                .apiId(API)
+                .mode(io.gravitee.rest.api.model.v4.plan.PlanMode.PUSH)
+                .security(null)
+                .build();
+            var planQuery = PlanQuery.builder().apiId(API).securityType(new ArrayList<>()).status(List.of(PlanStatus.PUBLISHED)).build();
+            when(planSearchService.search(eq(GraviteeContext.getExecutionContext()), eq(planQuery), eq(USER_NAME), eq(true)))
+                .thenReturn(List.of(plan1, plan2, plan3));
+
+            var subscription = SubscriptionEntity.builder().apiId(API).planId(plan2.getId()).applicationId(APPLICATION).build();
+            subscriptionQueryService.initWith(List.of(subscription));
+
+            target = target.queryParam("subscribableBy", APPLICATION);
+            final Response response = target.request().get();
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(PlansResponse.class)
+                .isEqualTo(
+                    PlansResponse
+                        .builder()
+                        .pagination(Pagination.builder().page(1).perPage(10).pageItemsCount(2).totalCount(2L).pageCount(1).build())
+                        .data(
+                            Stream
+                                .of(plan1, plan3)
+                                .map(PlanMapper.INSTANCE::map)
+                                .map(p -> {
+                                    var plan = new Plan();
+                                    plan.setActualInstance(p);
+                                    return plan;
+                                })
+                                .toList()
+                        )
+                        .links(Links.builder().self(target.getUri().toString()).build())
+                        .build()
+                );
+        }
+
+        @Test
+        public void should_not_find_any_subscribable_plan() {
+            var plan1 = PlanFixtures
+                .aPlanEntityV4()
+                .toBuilder()
+                .id("plan-1")
+                .apiId(API)
+                .security(
+                    io.gravitee.definition.model.v4.plan.PlanSecurity
+                        .builder()
+                        .type(io.gravitee.rest.api.model.v4.plan.PlanSecurityType.KEY_LESS.getLabel())
+                        .build()
+                )
+                .build();
+            var plan2 = PlanFixtures.aPlanEntityV4().toBuilder().id("plan-2").apiId(API).build();
+            var planQuery = PlanQuery.builder().apiId(API).securityType(new ArrayList<>()).status(List.of(PlanStatus.PUBLISHED)).build();
+            when(planSearchService.search(eq(GraviteeContext.getExecutionContext()), eq(planQuery), eq(USER_NAME), eq(true)))
+                .thenReturn(List.of(plan1, plan2));
+
+            var subscription = SubscriptionEntity.builder().apiId(API).planId(plan2.getId()).applicationId(APPLICATION).build();
+            subscriptionQueryService.initWith(List.of(subscription));
+
+            target = target.queryParam("subscribableBy", APPLICATION);
+            final Response response = target.request().get();
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(PlansResponse.class)
+                .extracting(PlansResponse::getData)
+                .isEqualTo(Collections.emptyList());
+        }
+
+        @Test
+        public void should_return_subscribable_plans_without_keyless() {
+            var plan1 = PlanFixtures
+                .aPlanEntityV4()
+                .toBuilder()
+                .id("plan-1")
+                .apiId(API)
+                .security(
+                    io.gravitee.definition.model.v4.plan.PlanSecurity
+                        .builder()
+                        .type(io.gravitee.rest.api.model.v4.plan.PlanSecurityType.KEY_LESS.getLabel())
+                        .build()
+                )
+                .build();
+            var plan2 = PlanFixtures
+                .aPlanEntityV2()
+                .toBuilder()
+                .id("plan-2")
+                .api(API)
+                .security(io.gravitee.rest.api.model.PlanSecurityType.KEY_LESS)
+                .build();
+            var plan3 = PlanFixtures.aPlanEntityV4().toBuilder().id("plan-3").apiId(API).build();
+            var plan4 = PlanFixtures.aPlanEntityV4().toBuilder().id("plan-4").apiId(API).build();
+            var planQuery = PlanQuery.builder().apiId(API).securityType(new ArrayList<>()).status(List.of(PlanStatus.PUBLISHED)).build();
+            when(planSearchService.search(eq(GraviteeContext.getExecutionContext()), eq(planQuery), eq(USER_NAME), eq(true)))
+                .thenReturn(List.of(plan1, plan2, plan3, plan4));
+
+            subscriptionQueryService.initWith(Collections.emptyList());
+
+            target = target.queryParam("subscribableBy", APPLICATION);
+            final Response response = target.request().get();
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(PlansResponse.class)
+                .isEqualTo(
+                    PlansResponse
+                        .builder()
+                        .pagination(Pagination.builder().page(1).perPage(10).pageItemsCount(2).totalCount(2L).pageCount(1).build())
+                        .data(
+                            Stream
+                                .of(plan3, plan4)
+                                .map(PlanMapper.INSTANCE::map)
+                                .map(p -> {
+                                    var plan = new Plan();
+                                    plan.setActualInstance(p);
+                                    return plan;
+                                })
+                                .toList()
+                        )
+                        .links(Links.builder().self(target.getUri().toString()).build())
                         .build()
                 );
         }

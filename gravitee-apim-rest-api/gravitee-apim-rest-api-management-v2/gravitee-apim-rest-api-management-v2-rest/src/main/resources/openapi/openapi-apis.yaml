@@ -819,6 +819,12 @@ paths:
                   description: Mode of plan
                   schema:
                       $ref: "#/components/schemas/PlanMode"
+                - name: subscribableBy
+                  in: query
+                  required: false
+                  description: Application's identifier. Allow user to get API's plans subscribable by an application.
+                  schema:
+                      type: string
                 - $ref: "#/components/parameters/pageParam"
                 - $ref: "#/components/parameters/perPageParam"
             tags:
