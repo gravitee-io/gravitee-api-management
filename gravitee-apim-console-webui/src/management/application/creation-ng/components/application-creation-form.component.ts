@@ -19,9 +19,9 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { GioFormTagsInputModule, GioIconsModule } from '@gravitee/ui-particles-angular';
+import { GioBannerModule, GioFormTagsInputModule, GioIconsModule } from '@gravitee/ui-particles-angular';
 import { MatRadioModule } from '@angular/material/radio';
-import { map, share, tap } from 'rxjs/operators';
+import { filter, map, share, startWith, tap } from 'rxjs/operators';
 import { MatSelectModule } from '@angular/material/select';
 import { Observable } from 'rxjs';
 
@@ -60,6 +60,7 @@ export type ApplicationCreationFormApplicationType = ApplicationType & {
     GioFormCardGroupModule,
     GioIconsModule,
     GioFormTagsInputModule,
+    GioBannerModule,
   ],
   standalone: true,
   styleUrls: ['./application-creation-form.component.scss'],
@@ -86,6 +87,8 @@ export class ApplicationCreationFormComponent implements OnInit {
 
   ngOnInit() {
     this.applicationType$ = this.applicationFormGroup.get('type').valueChanges.pipe(
+      startWith(this.applicationFormGroup.get('type').value),
+      filter((typeSelected) => !!typeSelected),
       map((typeSelected) => {
         const applicationType = this.applicationTypes.find(
           (applicationType) => applicationType.id.toUpperCase() === typeSelected.toUpperCase(),

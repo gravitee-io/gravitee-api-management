@@ -51,16 +51,22 @@
     </mat-form-field>
 
     <h3 class="form__securityTitle">Security</h3>
-    <gio-form-card-group formControlName="type">
-      @for (type of applicationTypes; track type.id) {
-        <gio-form-card [value]="type.id">
-          <gio-form-card-content [icon]="type.icon">
-            <gio-form-card-content-title>{{ type.title }}</gio-form-card-content-title>
-            <gio-form-card-content-subtitle>{{ type.subtitle }}</gio-form-card-content-subtitle>
-          </gio-form-card-content>
-        </gio-form-card>
-      }
-    </gio-form-card-group>
+    @if (applicationTypes.length === 0) {
+      <gio-banner-warning>No application type available, please check Client Registration configuration.</gio-banner-warning>
+    }
+
+    @if (applicationTypes.length > 1) {
+      <gio-form-card-group formControlName="type">
+        @for (type of applicationTypes; track type.id) {
+          <gio-form-card [value]="type.id">
+            <gio-form-card-content [icon]="type.icon">
+              <gio-form-card-content-title>{{ type.title }}</gio-form-card-content-title>
+              <gio-form-card-content-subtitle>{{ type.subtitle }}</gio-form-card-content-subtitle>
+            </gio-form-card-content>
+          </gio-form-card>
+        }
+      </gio-form-card-group>
+    }
 
     @if (applicationType$ | async; as applicationType) {
       @if (applicationType.isOauth) {
