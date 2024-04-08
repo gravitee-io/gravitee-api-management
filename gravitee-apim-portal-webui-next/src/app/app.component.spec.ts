@@ -13,31 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TestBed } from '@angular/core/testing';
+import { HarnessLoader } from '@angular/cdk/testing';
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { AppComponent } from './app.component';
+import { CompanyTitleHarness } from '../components/company-title/company-title.harness';
 
 describe('AppComponent', () => {
+  let fixture: ComponentFixture<AppComponent>;
+  let harnessLoader: HarnessLoader;
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AppComponent],
     }).compileComponents();
+    fixture = TestBed.createComponent(AppComponent);
+    harnessLoader = TestbedHarnessEnvironment.loader(fixture);
   });
 
   it('should create the app', () => {
-    const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
     expect(app).toBeTruthy();
   });
 
-  it(`should have the 'gravitee-apim-portal-webui-next' title`, () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app.title).toEqual('gravitee-apim-portal-webui-next');
+  it(`should have the 'Developer Portal' title`, async () => {
+    const companyTitleComponent = await harnessLoader.getHarness(CompanyTitleHarness);
+    expect(companyTitleComponent).toBeTruthy();
+
+    expect(await companyTitleComponent.getTitle()).toEqual('Developer Portal');
   });
 
   it('should render title', () => {
-    const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('h1')?.textContent).toContain('Hello there');

@@ -15,6 +15,8 @@
  */
 @use '@angular/material' as mat;
 
+$default-text-color: #1d192b;
+$background-color: #f7f8fd;
 $mat-primary: (
   main: #6c59bd,
   lighter: #d3cdeb,

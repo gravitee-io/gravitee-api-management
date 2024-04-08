@@ -13,28 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+:host {
+  display: flex;
+  max-width: 1040px;
+  min-height: 95vh;
+  flex-flow: column;
+  margin: auto;
+  gap: 60px;
+}
 
-/* You can add global styles to this file, and also import other style files */
-
-@use '@angular/material' as mat;
-@import './scss/theme/theme';
-
-@include mat.core;
-
-$light-theme: mat.define-light-theme(
-  (
-    color: (
-      primary: $theme-primary,
-      accent: $theme-accent,
-      warn: $theme-warn,
-    ),
-    typography: $theme-typography,
-  )
-);
-@include mat.all-component-themes($light-theme);
-
-body {
-  background-color: $background-color;
-  color: $default-text-color;
-  font-family: 'Golos UI', Roboto, 'Helvetica Neue', sans-serif;
+.content {
+  flex: 1 1 100%;
 }
