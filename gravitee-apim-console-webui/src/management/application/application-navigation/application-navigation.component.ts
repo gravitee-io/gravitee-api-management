@@ -23,7 +23,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 import { cleanRouterLink, getPathFromRoot } from '../../../util/router-link.util';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
-import { Application } from '../../../entities/application/application';
+import { Application } from '../../../entities/application/Application';
 import { ApplicationService } from '../../../services-ngx/application.service';
 
 export interface MenuItem {

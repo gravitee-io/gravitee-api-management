@@ -42,6 +42,7 @@ export interface Application {
 export interface ApplicationSettings {
   app?: {
     client_id?: string;
+    type?: string;
   };
   oauth?: {
     client_id?: string;

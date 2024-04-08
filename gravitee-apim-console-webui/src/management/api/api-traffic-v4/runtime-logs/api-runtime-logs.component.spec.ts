@@ -42,7 +42,7 @@ import {
   PlanV4,
 } from '../../../../entities/management-api-v2';
 import { fakeApplication } from '../../../../entities/application/Application.fixture';
-import { Application } from '../../../../entities/application/application';
+import { Application } from '../../../../entities/application/Application';
 
 type ComponentInitData = {
   hasLogs: boolean;

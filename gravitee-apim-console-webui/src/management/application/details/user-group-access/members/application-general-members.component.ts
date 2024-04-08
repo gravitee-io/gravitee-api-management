@@ -36,7 +36,7 @@ import { ApplicationService } from '../../../../../services-ngx/application.serv
 import { GroupData } from '../../../../api/user-group-access/members/api-general-members.component';
 import { GroupV2Service } from '../../../../../services-ngx/group-v2.service';
 import { Member } from '../../../../../entities/members/members';
-import { Application } from '../../../../../entities/application/application';
+import { Application } from '../../../../../entities/application/Application';
 import { ApplicationMembersService } from '../../../../../services-ngx/application-members.service';
 
 class MemberDataSource {

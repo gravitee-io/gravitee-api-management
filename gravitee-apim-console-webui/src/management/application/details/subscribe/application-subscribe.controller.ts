@@ -21,7 +21,7 @@ import { filter, find, forEach, groupBy, includes, join, map, merge, noop } from
 import { ApiService } from '../../../../services/api.service';
 import ApplicationService from '../../../../services/application.service';
 import NotificationService from '../../../../services/notification.service';
-import { ApiKeyMode } from '../../../../entities/application/application';
+import { ApiKeyMode } from '../../../../entities/application/Application';
 import { PlanSecurityType } from '../../../../entities/plan/plan';
 import { Constants } from '../../../../entities/Constants';
 

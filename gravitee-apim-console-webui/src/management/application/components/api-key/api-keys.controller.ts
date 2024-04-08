@@ -18,7 +18,7 @@ import { Observable } from 'rxjs';
 
 import NotificationService from '../../../../services/notification.service';
 import ApplicationService from '../../../../services/application.service';
-import { ApiKeyMode } from '../../../../entities/application/application';
+import { ApiKeyMode } from '../../../../entities/application/Application';
 
 class ApiKeysController {
   private subscription: any;

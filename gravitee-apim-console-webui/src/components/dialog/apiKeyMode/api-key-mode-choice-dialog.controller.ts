@@ -15,7 +15,7 @@
  */
 import * as angular from 'angular';
 
-import { ApiKeyMode } from '../../../entities/application/application';
+import { ApiKeyMode } from '../../../entities/application/Application';
 
 export default class ApiKeyModeChoiceDialogController {
   constructor(private $mdDialog: angular.material.IDialogService) {}

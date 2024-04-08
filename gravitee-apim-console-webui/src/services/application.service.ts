@@ -19,7 +19,7 @@ import { IHttpResponse } from 'angular';
 import { clone, forEach, startsWith } from 'lodash';
 
 import { PagedResult } from '../entities/pagedResult';
-import { ApiKeyMode } from '../entities/application/application';
+import { ApiKeyMode } from '../entities/application/Application';
 
 export class LogsQuery {
   from: number;

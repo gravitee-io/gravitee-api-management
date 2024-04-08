@@ -23,7 +23,7 @@ import { FormControl, FormGroup } from '@angular/forms';
 
 import { GroupService } from '../../../../../services-ngx/group.service';
 import { ApplicationService } from '../../../../../services-ngx/application.service';
-import { Application } from '../../../../../entities/application/application';
+import { Application } from '../../../../../entities/application/Application';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 
 @Component({

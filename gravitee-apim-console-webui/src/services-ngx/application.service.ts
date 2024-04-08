@@ -20,7 +20,7 @@ import { filter, shareReplay, switchMap, tap } from 'rxjs/operators';
 
 import { Constants } from '../entities/Constants';
 import { PagedResult } from '../entities/pagedResult';
-import { Application, ApplicationType } from '../entities/application/application';
+import { Application, ApplicationType } from '../entities/application/Application';
 import { SubscribedApi } from '../entities/application/SubscribedApi';
 import { ApplicationSubscription } from '../entities/subscription/subscription';
 import { ApplicationLog } from '../entities/application/ApplicationLog';

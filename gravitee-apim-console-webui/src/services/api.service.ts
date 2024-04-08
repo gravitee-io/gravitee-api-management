@@ -22,7 +22,7 @@ import { ApplicationExcludeFilter } from './application.service';
 import { Constants } from '../entities/Constants';
 import { PagedResult } from '../entities/pagedResult';
 import { IfMatchEtagInterceptor } from '../shared/interceptors/if-match-etag.interceptor';
-import { ApiKeyMode } from '../entities/application/application';
+import { ApiKeyMode } from '../entities/application/Application';
 
 export class LogsQuery {
   from: number;

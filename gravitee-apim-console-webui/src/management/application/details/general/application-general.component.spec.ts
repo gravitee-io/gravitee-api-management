@@ -29,7 +29,7 @@ import { ApplicationGeneralModule } from './application-general.module';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { fakeApplication, fakeApplicationType } from '../../../../entities/application/Application.fixture';
-import { Application, ApplicationType } from '../../../../entities/application/application';
+import { Application, ApplicationType } from '../../../../entities/application/Application';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApplicationGeneralInfoComponent', () => {

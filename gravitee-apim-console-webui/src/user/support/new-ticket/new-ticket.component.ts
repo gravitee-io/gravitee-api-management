@@ -22,7 +22,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ApiV2Service } from '../../../services-ngx/api-v2.service';
 import { Api } from '../../../entities/management-api-v2';
 import { ApplicationService } from '../../../services-ngx/application.service';
-import { Application } from '../../../entities/application/application';
+import { Application } from '../../../entities/application/Application';
 import { NewTicket } from '../../../entities/ticket/newTicket';
 import { TicketService } from '../../../services-ngx/ticket.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';

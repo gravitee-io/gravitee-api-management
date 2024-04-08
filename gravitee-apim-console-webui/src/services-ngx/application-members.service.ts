@@ -19,7 +19,7 @@ import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
 import { Member } from '../entities/members/members';
-import { ApplicationTransferOwnership } from '../entities/application/application';
+import { ApplicationTransferOwnership } from '../entities/application/Application';
 
 @Injectable({
   providedIn: 'root',

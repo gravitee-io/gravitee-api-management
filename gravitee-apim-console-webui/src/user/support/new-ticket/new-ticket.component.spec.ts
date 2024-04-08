@@ -30,7 +30,7 @@ import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { TicketsModule } from '../tickets.module';
 import { Api, ApisResponse, fakeApiV2, fakeApiV4 } from '../../../entities/management-api-v2';
 import { fakePagedResult, PagedResult } from '../../../entities/pagedResult';
-import { Application } from '../../../entities/application/application';
+import { Application } from '../../../entities/application/Application';
 import { fakeApplication } from '../../../entities/application/Application.fixture';
 
 describe('NewTicketComponent', () => {

@@ -19,7 +19,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import ApplicationService from '../../../../services/application.service';
 import NotificationService from '../../../../services/notification.service';
 import { PlanSecurityType } from '../../../../entities/plan/plan';
-import { ApiKeyMode } from '../../../../entities/application/application';
+import { ApiKeyMode } from '../../../../entities/application/Application';
 
 const ApplicationSubscriptionComponentAjs: ng.IComponentOptions = {
   bindings: {

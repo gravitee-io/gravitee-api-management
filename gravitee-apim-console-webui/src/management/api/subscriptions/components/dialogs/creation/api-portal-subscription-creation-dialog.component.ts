@@ -24,7 +24,7 @@ import { has } from 'lodash';
 
 import { CreateSubscription, Entrypoint, Plan } from '../../../../../../entities/management-api-v2';
 import { ApplicationService } from '../../../../../../services-ngx/application.service';
-import { ApiKeyMode, Application } from '../../../../../../entities/application/application';
+import { ApiKeyMode, Application } from '../../../../../../entities/application/Application';
 import { PagedResult } from '../../../../../../entities/pagedResult';
 import { Constants } from '../../../../../../entities/Constants';
 import { ConnectorPluginsV2Service } from '../../../../../../services-ngx/connector-plugins-v2.service';

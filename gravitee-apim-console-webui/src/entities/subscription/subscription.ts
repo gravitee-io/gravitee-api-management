@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { Api, ApiPlan } from '../api';
-import { Application } from '../application/application';
+import { Application } from '../application/Application';
 import { User } from '../user/user';
 
 export type SubscriptionStatus = 'PENDING' | 'REJECTED' | 'ACCEPTED' | 'CLOSED' | 'PAUSED' | 'RESUMED';
