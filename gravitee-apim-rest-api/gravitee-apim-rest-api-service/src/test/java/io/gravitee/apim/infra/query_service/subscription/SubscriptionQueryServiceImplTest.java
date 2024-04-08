@@ -240,6 +240,44 @@ public class SubscriptionQueryServiceImplTest {
         }
     }
 
+    @Nested
+    class FindByApplicationIdAndApiId {
+
+        @Test
+        void should_return_subscription_for_given_api_and_application_() throws TechnicalException {
+            // Given
+            var id = "s1";
+            var apiId = "api-id";
+            var appId = "app-id";
+            when(subscriptionRepository.search(any()))
+                .thenAnswer(invocation -> List.of(aSubscription(id).api(apiId).application(appId).build()));
+
+            // When
+            var result = service.findByApplicationIdAndApiId(appId, apiId);
+
+            // Then
+            assertThat(result)
+                .hasSize(1)
+                .element(0)
+                .extracting(SubscriptionEntity::getId, SubscriptionEntity::getApiId, SubscriptionEntity::getApplicationId)
+                .containsExactly(id, apiId, appId);
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() throws TechnicalException {
+            // Given
+            when(subscriptionRepository.search(any())).thenThrow(TechnicalException.class);
+
+            // When
+            Throwable throwable = catchThrowable(() -> service.findByApplicationIdAndApiId("app-id", "api-id"));
+
+            // Then
+            assertThat(throwable)
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurs while trying to find subscriptions");
+        }
+    }
+
     private Subscription.SubscriptionBuilder aSubscription(String subscriptionId) {
         return Subscription
             .builder()

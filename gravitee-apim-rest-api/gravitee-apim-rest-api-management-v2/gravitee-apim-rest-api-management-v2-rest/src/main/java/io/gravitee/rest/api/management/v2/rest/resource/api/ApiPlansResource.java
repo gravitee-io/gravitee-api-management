@@ -19,8 +19,9 @@ import static java.util.Comparator.comparingInt;
 
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
-import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.use_case.CreatePlanUseCase;
+import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.FlowMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.PlanMapper;
@@ -70,6 +71,7 @@ import jakarta.ws.rs.core.Response;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -92,6 +94,9 @@ public class ApiPlansResource extends AbstractResource {
     @Inject
     private PlanSearchService planSearchService;
 
+    @Inject
+    private SubscriptionQueryService subscriptionQueryService;
+
     @PathParam("apiId")
     private String apiId;
 
@@ -102,6 +107,7 @@ public class ApiPlansResource extends AbstractResource {
         @QueryParam("statuses") @DefaultValue("PUBLISHED") final Set<PlanStatus> statuses,
         @QueryParam("securities") @Nonnull Set<PlanSecurityType> securities,
         @QueryParam("mode") PlanMode planMode,
+        @QueryParam("subscribableBy") String subscribableBy,
         @BeanParam @Valid PaginationParam paginationParam
     ) {
         var planQuery = PlanQuery
@@ -121,13 +127,32 @@ public class ApiPlansResource extends AbstractResource {
             )
             .mode(planMode);
 
-        List<GenericPlanEntity> plans = planSearchService
+        Stream<GenericPlanEntity> plansStream = planSearchService
             .search(GraviteeContext.getExecutionContext(), planQuery.build(), getAuthenticatedUser(), isAdmin())
             .stream()
             .sorted(comparingInt(GenericPlanEntity::getOrder))
-            .map(this::filterSensitiveData)
-            .collect(Collectors.toList());
+            .map(this::filterSensitiveData);
 
+        if (subscribableBy != null) {
+            var subscriptions = subscriptionQueryService.findByApplicationIdAndApiId(subscribableBy, apiId);
+            var subscribedPlans = subscriptions.stream().map(SubscriptionEntity::getPlanId).toList();
+
+            plansStream =
+                plansStream.filter(plan ->
+                    (
+                        plan.getPlanSecurity() == null ||
+                        !List
+                            .of(
+                                io.gravitee.rest.api.model.v4.plan.PlanSecurityType.KEY_LESS.getLabel(),
+                                PlanSecurityType.KEY_LESS.getValue()
+                            )
+                            .contains(plan.getPlanSecurity().getType())
+                    ) &&
+                    (subscribedPlans.isEmpty() || !subscribedPlans.contains(plan.getId()))
+                );
+        }
+
+        List<GenericPlanEntity> plans = plansStream.toList();
         List<GenericPlanEntity> paginationData = computePaginationData(plans, paginationParam);
 
         return new PlansResponse()
