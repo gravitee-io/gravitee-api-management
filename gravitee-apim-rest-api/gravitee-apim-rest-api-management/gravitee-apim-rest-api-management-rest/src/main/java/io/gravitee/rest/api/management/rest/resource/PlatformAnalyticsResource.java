@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gravitee.rest.api.management.rest.resource;
 
 import static io.gravitee.rest.api.model.permissions.RolePermission.*;
@@ -144,11 +145,7 @@ public class PlatformAnalyticsResource extends AbstractResource {
         if (isAdmin()) {
             return applicationService.findIdsByUser(executionContext, null);
         }
-        return applicationService
-            .findIdsByUser(executionContext, getAuthenticatedUser())
-            .stream()
-            .filter(appId -> permissionService.hasPermission(executionContext, APPLICATION_ANALYTICS, appId, READ))
-            .collect(Collectors.toSet());
+        return applicationService.findIdsByUserAndPermission(executionContext, getAuthenticatedUser(), null, APPLICATION_ANALYTICS, READ);
     }
 
     private Analytics executeStats(AnalyticsParam analyticsParam, String extraFilter) {
