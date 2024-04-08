@@ -15,15 +15,20 @@
  */
 
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, DestroyRef, inject } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { map, tap } from 'rxjs/operators';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { GioSaveBarModule } from '@gravitee/ui-particles-angular';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApplicationCreationFormComponent, ApplicationForm } from './components/application-creation-form.component';
 
 import { ApplicationTypesService } from '../../../services-ngx/application-types.service';
+import { ApplicationService } from '../../../services-ngx/application.service';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
 const TYPES_INFOS = {
   SIMPLE: {
@@ -55,16 +60,18 @@ const TYPES_INFOS = {
 
 @Component({
   selector: 'application-creation',
-  imports: [CommonModule, ReactiveFormsModule, MatCardModule, ApplicationCreationFormComponent, GioSaveBarModule],
+  imports: [CommonModule, ReactiveFormsModule, MatCardModule, MatSnackBarModule, ApplicationCreationFormComponent, GioSaveBarModule],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrls: ['./application-creation.component.scss'],
   templateUrl: './application-creation.component.html',
 })
-export class ApplicationCreationComponent implements OnInit {
+export class ApplicationCreationComponent {
+  private destroyRef = inject(DestroyRef);
+
   public applicationFormGroup = new FormGroup<ApplicationForm>({
     name: new FormControl(undefined, Validators.required),
-    description: new FormControl(),
+    description: new FormControl(undefined, Validators.required),
     domain: new FormControl(),
     type: new FormControl(undefined, Validators.required),
 
@@ -96,12 +103,48 @@ export class ApplicationCreationComponent implements OnInit {
     }),
   );
 
-  public applicationPayload: unknown;
-  constructor(private readonly applicationTypesService: ApplicationTypesService) {}
-  ngOnInit() {}
+  constructor(
+    private readonly applicationTypesService: ApplicationTypesService,
+    private readonly applicationService: ApplicationService,
+    private readonly snackBarService: SnackBarService,
+    private readonly activatedRoute: ActivatedRoute,
+    private readonly router: Router,
+  ) {}
 
   onSubmit() {
-    // TODO: save application
-    this.applicationPayload = this.applicationFormGroup.value;
+    const applicationPayload = this.applicationFormGroup.value;
+
+    this.applicationService
+      .create({
+        name: applicationPayload.name,
+        description: applicationPayload.description,
+        domain: applicationPayload.domain,
+        settings: {
+          ...(applicationPayload.type === 'SIMPLE'
+            ? {
+                app: {
+                  client_id: applicationPayload.appClientId,
+                  type: applicationPayload.appType,
+                },
+              }
+            : {
+                oauth: {
+                  application_type: applicationPayload.type,
+                  grant_types: applicationPayload.oauthGrantTypes,
+                  redirect_uris: applicationPayload.oauthRedirectUris,
+                },
+              }),
+        },
+      })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (application) => {
+          this.snackBarService.success('Application created');
+          this.router.navigate(['../', application.id], { relativeTo: this.activatedRoute });
+        },
+        error: () => {
+          this.snackBarService.error('An error occurred while creating the application!');
+        },
+      });
   }
 }

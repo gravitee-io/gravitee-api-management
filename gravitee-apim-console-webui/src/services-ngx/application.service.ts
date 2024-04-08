@@ -25,6 +25,7 @@ import { SubscribedApi } from '../entities/application/SubscribedApi';
 import { ApplicationSubscription } from '../entities/subscription/subscription';
 import { ApplicationLog } from '../entities/application/ApplicationLog';
 import { MembershipListItem } from '../entities/role/membershipListItem';
+import { CreateApplication } from '../entities/application/CreateApplication';
 
 @Injectable({
   providedIn: 'root',
@@ -197,5 +198,9 @@ export class ApplicationService {
 
   delete(applicationId: string): Observable<Application> {
     return this.http.delete<Application>(`${this.constants.env.baseURL}/applications/${applicationId}/`);
+  }
+
+  create(application: CreateApplication): Observable<Application> {
+    return this.http.post<Application>(`${this.constants.env.baseURL}/applications`, application);
   }
 }
