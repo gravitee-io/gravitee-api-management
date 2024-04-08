@@ -25,6 +25,7 @@ import { ApplicationCreationFormHarness } from './components/application-creatio
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { fakeApplicationTypes } from '../../../entities/application-type/ApplicationType.fixture';
+import { ApplicationType } from '../../../entities/application-type/ApplicationType';
 
 describe('ApplicationCreationComponent', () => {
   let component: ApplicationCreationComponent;
@@ -43,79 +44,111 @@ describe('ApplicationCreationComponent', () => {
     loader = TestbedHarnessEnvironment.loader(fixture);
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.autoDetectChanges();
-    applicationCreationForm = await loader.getHarness(ApplicationCreationFormHarness);
-
-    expectGetEnabledApplicationTypes();
   });
 
-  it('should create application type=simple', async () => {
-    await applicationCreationForm.setGeneralInformation('name', 'description', 'domain');
-    await applicationCreationForm.setApplicationType('SIMPLE');
+  describe('when multiple types available', () => {
+    beforeEach(async () => {
+      expectGetEnabledApplicationTypes(fakeApplicationTypes());
+      applicationCreationForm = await loader.getHarness(ApplicationCreationFormHarness);
+    });
 
-    await applicationCreationForm.setSimpleApplicationType('appType', 'appClientId');
+    it('should create application type=simple', async () => {
+      await applicationCreationForm.setGeneralInformation('name', 'description', 'domain');
+      await applicationCreationForm.setApplicationType('SIMPLE');
 
-    const saveBar = await loader.getHarness(GioSaveBarHarness);
-    await saveBar.clickSubmit();
+      await applicationCreationForm.setSimpleApplicationType('appType', 'appClientId');
 
-    expect(component.applicationPayload).toEqual({
-      name: 'name',
-      description: 'description',
-      domain: 'domain',
-      type: 'SIMPLE',
-      appType: 'appType',
-      appClientId: 'appClientId',
-      oauthGrantTypes: null,
-      oauthRedirectUris: [],
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      await saveBar.clickSubmit();
+
+      expect(component.applicationPayload).toEqual({
+        name: 'name',
+        description: 'description',
+        domain: 'domain',
+        type: 'SIMPLE',
+        appType: 'appType',
+        appClientId: 'appClientId',
+        oauthGrantTypes: null,
+        oauthRedirectUris: [],
+      });
+    });
+
+    it('should create application type=web', async () => {
+      await applicationCreationForm.setGeneralInformation('name', 'description', 'domain');
+      await applicationCreationForm.setApplicationType('WEB');
+
+      await applicationCreationForm.setOAuthApplicationType(['Refresh Token'], ['redirectUri']);
+
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      await saveBar.clickSubmit();
+
+      expect(component.applicationPayload).toEqual({
+        name: 'name',
+        description: 'description',
+        domain: 'domain',
+        type: 'WEB',
+        appType: null,
+        appClientId: null,
+        oauthGrantTypes: ['authorization_code', 'refresh_token'],
+        oauthRedirectUris: ['redirectUri'],
+      });
+    });
+
+    it('should create application type=BACKEND_TO_BACKEND', async () => {
+      await applicationCreationForm.setGeneralInformation('name', 'description', 'domain');
+      await applicationCreationForm.setApplicationType('BACKEND_TO_BACKEND');
+
+      expect(await applicationCreationForm.getOauthRedirectUrisInput()).toEqual(null);
+
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      await saveBar.clickSubmit();
+
+      expect(component.applicationPayload).toEqual({
+        name: 'name',
+        description: 'description',
+        domain: 'domain',
+        type: 'BACKEND_TO_BACKEND',
+        appType: null,
+        appClientId: null,
+        oauthGrantTypes: ['client_credentials'],
+        oauthRedirectUris: [],
+      });
     });
   });
 
-  it('should create application type=web', async () => {
-    await applicationCreationForm.setGeneralInformation('name', 'description', 'domain');
-    await applicationCreationForm.setApplicationType('WEB');
+  describe('when only one type available', () => {
+    beforeEach(async () => {
+      const SIMPLE = fakeApplicationTypes().find((type) => type.id === 'simple');
+      expectGetEnabledApplicationTypes([SIMPLE]);
+      applicationCreationForm = await loader.getHarness(ApplicationCreationFormHarness);
+    });
 
-    await applicationCreationForm.setOAuthApplicationType(['Refresh Token'], ['redirectUri']);
+    it('should preselect the only available type', async () => {
+      await applicationCreationForm.setGeneralInformation('name', 'description', 'domain');
 
-    const saveBar = await loader.getHarness(GioSaveBarHarness);
-    await saveBar.clickSubmit();
+      await applicationCreationForm.setSimpleApplicationType('appType', 'appClientId');
 
-    expect(component.applicationPayload).toEqual({
-      name: 'name',
-      description: 'description',
-      domain: 'domain',
-      type: 'WEB',
-      appType: null,
-      appClientId: null,
-      oauthGrantTypes: ['authorization_code', 'refresh_token'],
-      oauthRedirectUris: ['redirectUri'],
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      await saveBar.clickSubmit();
+
+      expect(component.applicationPayload).toEqual({
+        name: 'name',
+        description: 'description',
+        domain: 'domain',
+        type: 'SIMPLE',
+        appType: 'appType',
+        appClientId: 'appClientId',
+        oauthGrantTypes: null,
+        oauthRedirectUris: [],
+      });
     });
   });
 
-  it('should create application type=BACKEND_TO_BACKEND', async () => {
-    await applicationCreationForm.setGeneralInformation('name', 'description', 'domain');
-    await applicationCreationForm.setApplicationType('BACKEND_TO_BACKEND');
-
-    expect(await applicationCreationForm.getOauthRedirectUrisInput()).toEqual(null);
-
-    const saveBar = await loader.getHarness(GioSaveBarHarness);
-    await saveBar.clickSubmit();
-
-    expect(component.applicationPayload).toEqual({
-      name: 'name',
-      description: 'description',
-      domain: 'domain',
-      type: 'BACKEND_TO_BACKEND',
-      appType: null,
-      appClientId: null,
-      oauthGrantTypes: ['client_credentials'],
-      oauthRedirectUris: [],
-    });
-  });
-
-  function expectGetEnabledApplicationTypes() {
+  function expectGetEnabledApplicationTypes(fakeApplicationTypes: ApplicationType[]) {
     const req = httpTestingController.expectOne({
       method: 'GET',
       url: `${CONSTANTS_TESTING.env.baseURL}/configuration/applications/types`,
     });
-    req.flush(fakeApplicationTypes());
+    req.flush(fakeApplicationTypes);
   }
 });

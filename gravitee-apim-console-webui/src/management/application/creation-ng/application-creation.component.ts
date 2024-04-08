@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
-import { map } from 'rxjs/operators';
+import { map, tap } from 'rxjs/operators';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { GioSaveBarModule } from '@gravitee/ui-particles-angular';
 
@@ -87,6 +88,12 @@ export class ApplicationCreationComponent implements OnInit {
         };
       }),
     ),
+    tap((types) => {
+      // If there is only one type available, select it by default
+      if (types.length === 1) {
+        this.applicationFormGroup.get('type').setValue(types[0].id.toUpperCase());
+      }
+    }),
   );
 
   public applicationPayload: unknown;

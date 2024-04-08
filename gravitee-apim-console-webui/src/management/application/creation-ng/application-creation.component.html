@@ -27,10 +27,12 @@
     </mat-card-header>
 
     <mat-card-content class="content">
-      <application-creation-form
-        [applicationTypes]="applicationTypes$ | async"
-        [applicationFormGroup]="applicationFormGroup"
-      ></application-creation-form>
+      @if (applicationTypes$ | async; as applicationTypes) {
+        <application-creation-form
+          [applicationTypes]="applicationTypes"
+          [applicationFormGroup]="applicationFormGroup"
+        ></application-creation-form>
+      }
     </mat-card-content>
   </mat-card>
 
