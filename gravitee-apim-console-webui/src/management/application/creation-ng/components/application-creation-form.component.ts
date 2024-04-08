@@ -83,8 +83,6 @@ export class ApplicationCreationFormComponent implements OnInit {
     }
   >;
 
-  constructor() {}
-
   ngOnInit() {
     this.applicationType$ = this.applicationFormGroup.get('type').valueChanges.pipe(
       startWith(this.applicationFormGroup.get('type').value),

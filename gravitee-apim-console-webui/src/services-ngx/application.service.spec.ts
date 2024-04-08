@@ -352,4 +352,33 @@ describe('ApplicationService', () => {
         .flush(subscriptions);
     });
   });
+
+  describe('create', () => {
+    it('should call the API', (done) => {
+      const mockApplication = {
+        name: 'my-app',
+        description: 'my-app-description',
+        domain: 'my-app-domain',
+        settings: {
+          oauth: {
+            application_type: 'WEB',
+            grant_types: ['authorization_code', 'refresh_token'],
+            redirect_uris: ['redirectUri'],
+          },
+        },
+      };
+
+      applicationService.create(mockApplication).subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.baseURL}/applications`,
+      });
+
+      expect(req.request.body).toEqual(mockApplication);
+      req.flush({});
+    });
+  });
 });

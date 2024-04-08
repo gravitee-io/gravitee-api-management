@@ -28,7 +28,6 @@ import { fakeApplicationTypes } from '../../../entities/application-type/Applica
 import { ApplicationType } from '../../../entities/application-type/ApplicationType';
 
 describe('ApplicationCreationComponent', () => {
-  let component: ApplicationCreationComponent;
   let fixture: ComponentFixture<ApplicationCreationComponent>;
   let loader: HarnessLoader;
   let applicationCreationForm: ApplicationCreationFormHarness;
@@ -40,7 +39,6 @@ describe('ApplicationCreationComponent', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(ApplicationCreationComponent);
-    component = fixture.componentInstance;
     loader = TestbedHarnessEnvironment.loader(fixture);
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.autoDetectChanges();
@@ -61,15 +59,20 @@ describe('ApplicationCreationComponent', () => {
       const saveBar = await loader.getHarness(GioSaveBarHarness);
       await saveBar.clickSubmit();
 
-      expect(component.applicationPayload).toEqual({
+      const req = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.baseURL}/applications`,
+      });
+      expect(req.request.body).toEqual({
         name: 'name',
         description: 'description',
         domain: 'domain',
-        type: 'SIMPLE',
-        appType: 'appType',
-        appClientId: 'appClientId',
-        oauthGrantTypes: null,
-        oauthRedirectUris: [],
+        settings: {
+          app: {
+            client_id: 'appClientId',
+            type: 'appType',
+          },
+        },
       });
     });
 
@@ -82,15 +85,21 @@ describe('ApplicationCreationComponent', () => {
       const saveBar = await loader.getHarness(GioSaveBarHarness);
       await saveBar.clickSubmit();
 
-      expect(component.applicationPayload).toEqual({
+      const req = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.baseURL}/applications`,
+      });
+      expect(req.request.body).toEqual({
         name: 'name',
         description: 'description',
         domain: 'domain',
-        type: 'WEB',
-        appType: null,
-        appClientId: null,
-        oauthGrantTypes: ['authorization_code', 'refresh_token'],
-        oauthRedirectUris: ['redirectUri'],
+        settings: {
+          oauth: {
+            application_type: 'WEB',
+            grant_types: ['authorization_code', 'refresh_token'],
+            redirect_uris: ['redirectUri'],
+          },
+        },
       });
     });
 
@@ -103,15 +112,21 @@ describe('ApplicationCreationComponent', () => {
       const saveBar = await loader.getHarness(GioSaveBarHarness);
       await saveBar.clickSubmit();
 
-      expect(component.applicationPayload).toEqual({
+      const req = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.baseURL}/applications`,
+      });
+      expect(req.request.body).toEqual({
         name: 'name',
         description: 'description',
         domain: 'domain',
-        type: 'BACKEND_TO_BACKEND',
-        appType: null,
-        appClientId: null,
-        oauthGrantTypes: ['client_credentials'],
-        oauthRedirectUris: [],
+        settings: {
+          oauth: {
+            application_type: 'BACKEND_TO_BACKEND',
+            grant_types: ['client_credentials'],
+            redirect_uris: [],
+          },
+        },
       });
     });
   });
@@ -131,15 +146,20 @@ describe('ApplicationCreationComponent', () => {
       const saveBar = await loader.getHarness(GioSaveBarHarness);
       await saveBar.clickSubmit();
 
-      expect(component.applicationPayload).toEqual({
+      const req = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.baseURL}/applications`,
+      });
+      expect(req.request.body).toEqual({
         name: 'name',
         description: 'description',
         domain: 'domain',
-        type: 'SIMPLE',
-        appType: 'appType',
-        appClientId: 'appClientId',
-        oauthGrantTypes: null,
-        oauthRedirectUris: [],
+        settings: {
+          app: {
+            client_id: 'appClientId',
+            type: 'appType',
+          },
+        },
       });
     });
   });
