@@ -18,14 +18,13 @@ package io.gravitee.rest.api.standalone.spring;
 import io.gravitee.node.api.NodeMetadataResolver;
 import io.gravitee.node.certificates.spring.NodeCertificatesConfiguration;
 import io.gravitee.node.container.NodeFactory;
+import io.gravitee.node.jetty.spring.JettyContainerConfiguration;
 import io.gravitee.node.vertx.spring.VertxConfiguration;
 import io.gravitee.platform.repository.api.RepositoryScopeProvider;
 import io.gravitee.rest.api.management.rest.spring.RestManagementConfiguration;
 import io.gravitee.rest.api.portal.rest.spring.RestPortalConfiguration;
 import io.gravitee.rest.api.repository.plugins.RestApiRepositoryScopeProvider;
-import io.gravitee.rest.api.standalone.jetty.JettyConfiguration;
-import io.gravitee.rest.api.standalone.jetty.JettyEmbeddedContainer;
-import io.gravitee.rest.api.standalone.jetty.JettyServerFactory;
+import io.gravitee.rest.api.standalone.jetty.GraviteeApisServer;
 import io.gravitee.rest.api.standalone.node.GraviteeApisNode;
 import io.gravitee.rest.api.standalone.node.GraviteeApisNodeMetadataResolver;
 import org.springframework.context.annotation.Bean;
@@ -37,27 +36,20 @@ import org.springframework.context.annotation.Import;
  * @author GraviteeSource Team
  */
 @Configuration
-@Import({ VertxConfiguration.class, RestManagementConfiguration.class, RestPortalConfiguration.class, NodeCertificatesConfiguration.class })
+@Import(
+    {
+        VertxConfiguration.class,
+        RestManagementConfiguration.class,
+        RestPortalConfiguration.class,
+        NodeCertificatesConfiguration.class,
+        GraviteeApisServer.class,
+    }
+)
 public class StandaloneConfiguration {
 
     @Bean
     public NodeFactory node() {
         return new NodeFactory(GraviteeApisNode.class);
-    }
-
-    @Bean
-    public JettyConfiguration jettyConfiguration() {
-        return new JettyConfiguration();
-    }
-
-    @Bean
-    public JettyServerFactory server() {
-        return new JettyServerFactory();
-    }
-
-    @Bean
-    public JettyEmbeddedContainer container() {
-        return new JettyEmbeddedContainer();
     }
 
     @Bean
