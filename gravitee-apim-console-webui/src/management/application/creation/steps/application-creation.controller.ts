@@ -16,7 +16,7 @@
 import { ActivatedRoute, Router } from '@angular/router';
 import { find, findIndex, groupBy, join, keys, map, remove, uniqBy } from 'lodash';
 
-import { ApplicationType } from '../../../../entities/application';
+import { DeprecatedApplicationType } from '../../../../entities/application-type/DeprecatedApplicationType';
 import { ApiService } from '../../../../services/api.service';
 import ApplicationService from '../../../../services/application.service';
 import NotificationService from '../../../../services/notification.service';
@@ -25,7 +25,7 @@ import { PlanSecurityType } from '../../../../entities/plan';
 
 class ApplicationCreationController {
   application: any;
-  enabledApplicationTypes: ApplicationType[];
+  enabledApplicationTypes: DeprecatedApplicationType[];
   private activatedRoute: ActivatedRoute;
 
   private steps: any[];

@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-import { DeprecatedApplicationType } from '../entities/application-type/DeprecatedApplicationType';
-
-class ApplicationTypesService {
-  constructor(
-    private $http: ng.IHttpService,
-    private Constants,
-  ) {}
-
-  getEnabledApplicationTypes(): ng.IHttpPromise<Array<DeprecatedApplicationType>> {
-    return this.$http.get(`${this.Constants.env.baseURL}/configuration/applications/types`);
-  }
+export interface ApplicationType {
+  id: string;
+  name: string;
+  description?: string;
+  configuration?: unknown;
+  default_grant_types: Array<ApplicationTypeGrantType>;
+  requires_redirect_uris: boolean;
+  allowed_grant_types: Array<ApplicationTypeGrantType>;
+  mandatory_grant_types: Array<ApplicationTypeGrantType>;
 }
-ApplicationTypesService.$inject = ['$http', 'Constants'];
 
-export default ApplicationTypesService;
+export interface ApplicationTypeGrantType {
+  type: string;
+  name: string;
+  response_types: Array<string>;
+}
