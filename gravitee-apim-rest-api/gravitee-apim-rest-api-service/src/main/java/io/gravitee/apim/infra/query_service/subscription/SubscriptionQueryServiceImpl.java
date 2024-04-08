@@ -69,4 +69,15 @@ public class SubscriptionQueryServiceImpl implements SubscriptionQueryService {
             throw new TechnicalDomainException("An error occurs while trying to find active plan's subscription", e);
         }
     }
+
+    @Override
+    public List<SubscriptionEntity> findByApplicationIdAndApiId(String applicationId, String apiId) {
+        var criteria = SubscriptionCriteria.builder().apis(List.of(apiId)).applications(List.of(applicationId)).build();
+
+        try {
+            return subscriptionRepository.search(criteria).stream().map(subscriptionAdapter::toEntity).toList();
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("An error occurs while trying to find subscriptions", e);
+        }
+    }
 }

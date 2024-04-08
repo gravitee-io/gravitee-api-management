@@ -16,10 +16,14 @@
 package io.gravitee.apim.core.subscription.query_service;
 
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import java.util.List;
 
 public interface SubscriptionQueryService {
     List<SubscriptionEntity> findExpiredSubscriptions();
 
     List<SubscriptionEntity> findActiveSubscriptionsByPlan(String planId);
+
+    List<SubscriptionEntity> findByApplicationIdAndApiId(String applicationId, String apiId);
 }

@@ -59,6 +59,14 @@ public class SubscriptionQueryServiceInMemory implements SubscriptionQueryServic
     }
 
     @Override
+    public List<SubscriptionEntity> findByApplicationIdAndApiId(String applicationId, String apiId) {
+        return storage
+            .stream()
+            .filter(subscription -> apiId.equals(subscription.getApiId()) && applicationId.equals(subscription.getApplicationId()))
+            .toList();
+    }
+
+    @Override
     public void initWith(List<SubscriptionEntity> items) {
         storage.clear();
         storage.addAll(items);
