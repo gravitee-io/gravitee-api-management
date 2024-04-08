@@ -43,7 +43,7 @@ export class ApplicationCreationComponent extends UpgradeComponent {
   }
 
   override ngOnInit() {
-    combineLatest([this.applicationTypeService.getEnabledApplicationTypes(), this.groupService.list()])
+    combineLatest([this.applicationTypeService.deprecatedGetEnabledApplicationTypes(), this.groupService.list()])
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe({
         next: ([applicationTypes, groupList]) => {

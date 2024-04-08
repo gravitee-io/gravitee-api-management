@@ -16,17 +16,18 @@
 
 import { indexOf } from 'lodash';
 
-export class ApplicationType {
+export class DeprecatedApplicationType {
   public name: string;
   public id: string;
   public description: string;
-  public icon: string;
-  public oauth?: any;
   public configuration: any;
   public default_grant_types: Array<any>;
   public requires_redirect_uris: boolean;
   public allowed_grant_types: Array<any>;
   public mandatory_grant_types: Array<any>;
+
+  public icon?: string;
+  public oauth?: any;
 
   constructor({ name, id, description, requires_redirect_uris, allowed_grant_types, default_grant_types, mandatory_grant_types }) {
     this.id = id;

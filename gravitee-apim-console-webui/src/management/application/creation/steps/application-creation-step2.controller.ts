@@ -15,17 +15,17 @@
  */
 import ApplicationCreationController from './application-creation.controller';
 
-import { ApplicationType } from '../../../../entities/application';
+import { DeprecatedApplicationType } from '../../../../entities/application-type/DeprecatedApplicationType';
 
 class ApplicationCreationStep2Controller {
-  private selectedType: ApplicationType;
+  private selectedType: DeprecatedApplicationType;
   private parent: ApplicationCreationController;
 
   $onInit() {
     this.selectedType = this.parent.enabledApplicationTypes[0];
   }
 
-  selectType(applicationType: ApplicationType) {
+  selectType(applicationType: DeprecatedApplicationType) {
     this.selectedType = applicationType;
     if (this.selectedType.isOauth()) {
       this.parent.application.settings = {

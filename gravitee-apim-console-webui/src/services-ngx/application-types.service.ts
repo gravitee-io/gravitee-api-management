@@ -19,7 +19,8 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 import { Constants } from '../entities/Constants';
-import { ApplicationType } from '../entities/application';
+import { DeprecatedApplicationType } from '../entities/application-type/DeprecatedApplicationType';
+import { ApplicationType } from '../entities/application-type/ApplicationType';
 
 @Injectable({
   providedIn: 'root',
@@ -30,9 +31,13 @@ export class ApplicationTypesService {
     @Inject(Constants) private readonly constants: Constants,
   ) {}
 
-  getEnabledApplicationTypes(): Observable<ApplicationType[]> {
+  deprecatedGetEnabledApplicationTypes(): Observable<DeprecatedApplicationType[]> {
     return this.http
       .get<any[]>(`${this.constants.env.baseURL}/configuration/applications/types`)
-      .pipe(map((response) => response.map((applicationType) => new ApplicationType(applicationType))));
+      .pipe(map((response) => response.map((applicationType) => new DeprecatedApplicationType(applicationType))));
+  }
+
+  getEnabledApplicationTypes(): Observable<ApplicationType[]> {
+    return this.http.get<ApplicationType[]>(`${this.constants.env.baseURL}/configuration/applications/types`);
   }
 }
