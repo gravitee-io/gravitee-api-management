@@ -27,21 +27,23 @@
         <mat-icon>close</mat-icon>
       </button>
       <mat-autocomplete #auto="matAutocomplete" (optionSelected)="selectTopAPI()" [displayWith]="displayFn">
-        <mat-option hide *ngFor="let option of filteredOptions$ | async" [value]="option" data-testid="new-top-api-option">
-          <span class="autocompleteRow">
-            <gio-avatar
-              class="autocompleteRow__avatar"
-              [src]="option.picture_url"
-              [name]="option.name + ' ' + option.version"
-              [size]="28"
-              [roundedBorder]="true"
-            ></gio-avatar>
-            <span>{{ option.name }} - {{ option.version }}</span>
-          </span>
-        </mat-option>
-        <mat-option *ngIf="(filteredOptions$ | async)?.length === 0 && searchApiControl.getRawValue()" disabled>
-          No Top APIs matching search criteria
-        </mat-option>
+        @if (filteredOptions$ | async; as filteredOptions) {
+          <mat-option hide *ngFor="let option of filteredOptions" [value]="option" data-testid="new-top-api-option">
+            <span class="autocompleteRow">
+              <gio-avatar
+                class="autocompleteRow__avatar"
+                [src]="option._links?.pictureUrl"
+                [name]="option.name + ' ' + option.apiVersion"
+                [size]="28"
+                [roundedBorder]="true"
+              ></gio-avatar>
+              <span>{{ option.name }} - {{ option.apiVersion }}</span>
+            </span>
+          </mat-option>
+          <mat-option *ngIf="filteredOptions.length === 0 && searchApiControl.getRawValue()" disabled>
+            No Top APIs matching search criteria
+          </mat-option>
+        }
       </mat-autocomplete>
     </mat-form-field>
   </mat-dialog-content>

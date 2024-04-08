@@ -30,9 +30,14 @@ export class AddTopApisDialogHarness extends ComponentHarness {
     MatButtonHarness.with({ selector: '[data-testid=submit-button' }),
   );
 
-  public async fillFormAndSubmit(value: string): Promise<void> {
-    await this.inputLocator().then((input: MatAutocompleteHarness) => input.enterText(value));
-    await this.inputLocator().then((input: MatAutocompleteHarness) => input.selectOption({ isSelected: false }));
+  public async fillFormAndSubmit(value: string, onAutocompleteIsSetCb: () => void): Promise<void> {
+    const inputAutocomplete = await this.inputLocator();
+
+    await inputAutocomplete.enterText(value);
+    onAutocompleteIsSetCb();
+
+    await inputAutocomplete.selectOption({});
+
     await this.addButtonLocator().then((button: MatButtonHarness) => button.click());
   }
 

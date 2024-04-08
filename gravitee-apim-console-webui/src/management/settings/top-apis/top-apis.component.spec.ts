@@ -123,48 +123,47 @@ describe('TopApisComponent', () => {
       const addTopApisDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(AddTopApisDialogHarness);
       expect(addTopApisDialog).toBeTruthy();
 
-      expectTopApisGetRequest(fakeTopApis);
-      expectApisListGetRequest([
-        {
-          id: 'la;kndvlka',
-          name: 'test routing',
-          version: '1.1',
-          description: '21aefvtinggg',
-          visibility: 'PRIVATE',
-          state: 'STARTED',
-          numberOfRatings: 0,
-          tags: [],
-          created_at: 1688646887369,
-          updated_at: 1709555039399,
-          owner: {
-            id: '4015f9f2-c0a4-4c0c-95f9-f2c0a4fc0c4c',
-            email: 'test',
-            displayName: 'asd master',
-            type: 'USasdfER',
-          },
-          picture_url: '/url',
-          virtual_hosts: [
-            {
-              path: '/',
+      await addTopApisDialog.fillFormAndSubmit('search term', () => {
+        expectApisSearchPostRequest([
+          {
+            id: 'la;kndvlka',
+            name: 'test routing',
+            version: '1.1',
+            description: '21aefvtinggg',
+            visibility: 'PRIVATE',
+            state: 'STARTED',
+            numberOfRatings: 0,
+            tags: [],
+            created_at: 1688646887369,
+            updated_at: 1709555039399,
+            owner: {
+              id: '4015f9f2-c0a4-4c0c-95f9-f2c0a4fc0c4c',
+              email: 'test',
+              displayName: 'asd master',
+              type: 'USasdfER',
             },
-          ],
-          lifecycle_state: 'PUBLISHED',
-          context_path: '/dynamicrouting',
-          healthcheck_enabled: false,
-          definition_context: {
-            origin: 'management',
-            mode: 'fully_managed',
-            syncFrom: 'management',
-            syncFromKubernetes: false,
-            syncFromManagement: true,
-            originManagement: true,
-            originKubernetes: false,
+            picture_url: '/url',
+            virtual_hosts: [
+              {
+                path: '/',
+              },
+            ],
+            lifecycle_state: 'PUBLISHED',
+            context_path: '/dynamicrouting',
+            healthcheck_enabled: false,
+            definition_context: {
+              origin: 'management',
+              mode: 'fully_managed',
+              syncFrom: 'management',
+              syncFromKubernetes: false,
+              syncFromManagement: true,
+              originManagement: true,
+              originKubernetes: false,
+            },
+            gravitee: '2.0.0',
           },
-          gravitee: '2.0.0',
-        },
-      ]);
-
-      await addTopApisDialog.fillFormAndSubmit('test');
+        ]);
+      });
 
       expectTopApisPostRequest();
     });
@@ -190,10 +189,12 @@ describe('TopApisComponent', () => {
     expect(req.request.method).toEqual('PUT');
   }
 
-  function expectApisListGetRequest(apisList): void {
-    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/environments/DEFAULT/apis`);
-    req.flush(apisList);
-    expect(req.request.method).toEqual('GET');
+  function expectApisSearchPostRequest(apisList): void {
+    const req = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search?page=1&perPage=10`);
+    req.flush({
+      data: apisList,
+    });
+    expect(req.request.method).toEqual('POST');
   }
 
   function expectTopApisPostRequest(): void {

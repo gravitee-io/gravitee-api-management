@@ -17,15 +17,13 @@
 import { Component, Inject, OnInit, DestroyRef, inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { FormControl } from '@angular/forms';
-import { forkJoin, Observable } from 'rxjs';
-import { filter, map, startWith, tap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { debounceTime, distinctUntilChanged, filter, map, switchMap, tap } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter as lodashFilter, includes as lodashIncludes, map as lodashMap } from 'lodash';
 
-import { TopApi } from '../top-apis.model';
-import { ApiService } from '../../../../services-ngx/api.service';
-import { Api } from '../../../../entities/api';
-import { TopApiService } from '../../../../services-ngx/top-api.service';
+import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
+import { Api } from '../../../../entities/management-api-v2';
 
 export interface AddTopApisDialogData {
   title: string;
@@ -39,30 +37,28 @@ export type AddTopApisDialogResult = Api;
 })
 export class AddTopApisDialogComponent implements OnInit {
   public searchApiControl: FormControl<string | Api> = new FormControl('');
-  public apis: Api[] = [];
   public filteredOptions$: Observable<Api[]>;
   public isApiSelected = false;
   private destroyRef = inject(DestroyRef);
 
   constructor(
     public dialogRef: MatDialogRef<AddTopApisDialogComponent>,
-    private apiService: ApiService,
-    private topApiService: TopApiService,
+    private apiService: ApiV2Service,
     @Inject(MAT_DIALOG_DATA) public data: AddTopApisDialogData,
   ) {}
 
   ngOnInit(): void {
-    forkJoin([this.apiService.getAll(), this.topApiService.getList()])
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(([apis, topApis]: [Api[], TopApi[]]) => {
-        this.apis = this.removeTopApis(apis, topApis);
-      });
-
     this.filteredOptions$ = this.searchApiControl.valueChanges.pipe(
-      startWith(''),
       filter((v) => typeof v === 'string'),
+      debounceTime(300),
+      distinctUntilChanged(),
+      switchMap((term: string) =>
+        this.apiService.search({
+          query: term,
+        }),
+      ),
       tap(() => (this.isApiSelected = false)),
-      map((value: string): Api[] => (value ? this._filter(value) : [])),
+      map((apisResponse) => apisResponse.data),
       takeUntilDestroyed(this.destroyRef),
     );
   }
@@ -71,16 +67,9 @@ export class AddTopApisDialogComponent implements OnInit {
     return lodashFilter(apis, (api: Api) => !lodashIncludes(lodashMap(topApis, 'api'), api.id));
   }
 
-  private _filter(value: string): Api[] {
-    const filterValue = value.toLowerCase();
-    return this.apis.filter((api: Api) => {
-      return api.name.toLowerCase().includes(filterValue) || api.description.toLowerCase().includes(filterValue);
-    });
-  }
-
   public displayFn(option: Api): string {
-    if (option && option.name && option.version) {
-      return option.name + ' - ' + option.version;
+    if (option && option.name && option.apiVersion) {
+      return option.name + ' - ' + option.apiVersion;
     }
     return option.toString();
   }
