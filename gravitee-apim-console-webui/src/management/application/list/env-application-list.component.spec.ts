@@ -30,7 +30,7 @@ import { ApplicationsModule } from '../applications.module';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { fakePagedResult } from '../../../entities/pagedResult';
 import { GioTableWrapperHarness } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
-import { Application } from '../../../entities/application/application';
+import { Application } from '../../../entities/application/Application';
 import { fakeApplication } from '../../../entities/application/Application.fixture';
 import { GioTestingRoleProvider } from '../../../shared/components/gio-role/gio-role.service';
 

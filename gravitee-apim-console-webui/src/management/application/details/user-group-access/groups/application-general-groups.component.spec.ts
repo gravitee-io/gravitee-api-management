@@ -29,7 +29,7 @@ import { ApplicationGeneralUserGroupModule } from '../application-general-user-g
 import { fakeApplication } from '../../../../../entities/application/Application.fixture';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
 import { fakeGroup, Group } from '../../../../../entities/management-api-v2';
-import { Application } from '../../../../../entities/application/application';
+import { Application } from '../../../../../entities/application/Application';
 
 describe('ApplicationGeneralGroupsComponent', () => {
   let fixture: ComponentFixture<ApplicationGeneralGroupsComponent>;

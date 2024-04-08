@@ -24,7 +24,7 @@ import { PagedResult } from '../../../entities/pagedResult';
 import { GioTableWrapperFilters, Sort } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { ApplicationService } from '../../../services-ngx/application.service';
-import { Application } from '../../../entities/application/application';
+import { Application } from '../../../entities/application/Application';
 import { GioRoleService } from '../../../shared/components/gio-role/gio-role.service';
 import { toOrder, toSort } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.util';
 

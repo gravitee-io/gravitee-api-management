@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ApiKeyMode, Application, ApplicationType } from './application';
+import { ApiKeyMode, Application, ApplicationType } from './Application';
 
 export function fakeApplication(attributes?: Partial<Application>): Application {
   const base: Application = {

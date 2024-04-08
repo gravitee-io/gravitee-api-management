@@ -46,7 +46,7 @@ import {
   Plan,
   VerifySubscription,
 } from '../../../../../../entities/management-api-v2';
-import { ApiKeyMode, Application } from '../../../../../../entities/application/application';
+import { ApiKeyMode, Application } from '../../../../../../entities/application/Application';
 import { PagedResult } from '../../../../../../entities/pagedResult';
 import { fakeApplication } from '../../../../../../entities/application/Application.fixture';
 import { SubscriptionService } from '../../../../../../services-ngx/subscription.service';

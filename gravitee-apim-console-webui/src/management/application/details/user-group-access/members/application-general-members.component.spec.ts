@@ -36,7 +36,7 @@ import { RoleService } from '../../../../../services-ngx/role.service';
 import { fakeGroup, fakeGroupsResponse, Member } from '../../../../../entities/management-api-v2';
 import { fakeMembers } from '../../../../../entities/members/Members.fixture';
 import { fakeApplication } from '../../../../../entities/application/Application.fixture';
-import { Application } from '../../../../../entities/application/application';
+import { Application } from '../../../../../entities/application/Application';
 import { fakeSearchableUser } from '../../../../../entities/user/searchableUser.fixture';
 import { GioUsersSelectorHarness } from '../../../../../shared/components/gio-users-selector/gio-users-selector.harness';
 import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';

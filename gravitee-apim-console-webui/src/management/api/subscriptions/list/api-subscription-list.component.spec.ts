@@ -46,7 +46,7 @@ import {
   VerifySubscription,
 } from '../../../../entities/management-api-v2';
 import { PagedResult } from '../../../../entities/pagedResult';
-import { Application } from '../../../../entities/application/application';
+import { Application } from '../../../../entities/application/Application';
 import { fakeApplication } from '../../../../entities/application/Application.fixture';
 import { ApiPortalSubscriptionCreationDialogHarness } from '../components/dialogs/creation/api-portal-subscription-creation-dialog.harness';
 import { PlanSecurityType } from '../../../../entities/plan';

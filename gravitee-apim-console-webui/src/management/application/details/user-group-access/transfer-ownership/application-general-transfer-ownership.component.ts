@@ -30,7 +30,7 @@ import { Group } from '../../../../../entities/group/group';
 import { Role } from '../../../../../entities/role/role';
 import { Member } from '../../../../../entities/members/members';
 import { Constants } from '../../../../../entities/Constants';
-import { ApplicationTransferOwnership } from '../../../../../entities/application/application';
+import { ApplicationTransferOwnership } from '../../../../../entities/application/Application';
 
 @Component({
   selector: 'application-general-transfer-ownership',

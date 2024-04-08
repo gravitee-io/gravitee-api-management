@@ -24,7 +24,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { ApplicationService } from '../../../../services-ngx/application.service';
-import { Application, ApplicationType } from '../../../../entities/application/application';
+import { Application, ApplicationType } from '../../../../entities/application/Application';
 
 @Component({
   selector: 'application-general',
