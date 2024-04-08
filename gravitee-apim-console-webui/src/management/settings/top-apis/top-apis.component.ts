@@ -31,7 +31,6 @@ import {
 
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { TopApiService } from '../../../services-ngx/top-api.service';
-import { Api } from '../../../entities/api';
 
 @Component({
   selector: 'app-top-apis',
@@ -155,7 +154,7 @@ export class TopApisComponent implements OnInit {
       .pipe(
         filter((data): boolean => !!data),
         tap(() => (this.isLoading = true)),
-        switchMap((api: Api) => this.topApiService.create(api.id)),
+        switchMap((api) => this.topApiService.create(api.id)),
         tap(() => {
           this.isLoading = false;
           this.snackBarService.success(`API added successfully`);
