@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.gravitee.rest.api.management.rest.resource;
 
 import static org.junit.Assert.assertEquals;
@@ -107,16 +108,16 @@ public class PlatformAnalyticsResource_NotAdmin_GetTest extends AbstractResource
 
     @Test
     public void should_return_analytics_when_user_not_admin_and_application_analytics() {
-        when(applicationService.findIdsByUser(GraviteeContext.getExecutionContext(), USER_NAME)).thenReturn(Set.of("app-1"));
         when(
-            permissionService.hasPermission(
+            applicationService.findIdsByUserAndPermission(
                 GraviteeContext.getExecutionContext(),
+                USER_NAME,
+                null,
                 RolePermission.APPLICATION_ANALYTICS,
-                "app-1",
                 RolePermissionAction.READ
             )
         )
-            .thenReturn(true);
+            .thenReturn(Set.of("app-1"));
 
         HitsAnalytics analytics = new HitsAnalytics();
         analytics.setHits(100L);
