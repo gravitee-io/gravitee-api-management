@@ -52,7 +52,7 @@ const applicationRoutes: Routes = [
     },
   },
   {
-    path: 'create',
+    path: 'create-old',
     component: ApplicationCreationAjsComponent,
     canActivate: [PermissionGuard.checkRouteDataPermissions],
     data: {
@@ -65,7 +65,7 @@ const applicationRoutes: Routes = [
     },
   },
   {
-    path: 'create-ng',
+    path: 'create',
     component: ApplicationCreationComponent,
     canActivate: [PermissionGuard.checkRouteDataPermissions],
     data: {
