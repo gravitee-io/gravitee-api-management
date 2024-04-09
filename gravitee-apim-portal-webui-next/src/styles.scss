@@ -38,4 +38,11 @@ body {
   background-color: $background-color;
   color: $default-text-color;
   font-family: 'Golos UI', Roboto, 'Helvetica Neue', sans-serif;
+
+  // mat-card
+  --mdc-elevated-card-container-elevation: 0;
+
+  p {
+    color: $paragraph-color;
+  }
 }
