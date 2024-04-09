@@ -145,7 +145,7 @@ public class FailoverInvoker extends EndpointInvoker {
                 new CircuitBreakerOptions()
                     .setMaxRetries(options.getMaxAttempts()) // number of failure before opening the circuit
                     .setTimeout(options.getRetryTimeout()) // consider a failure if the operation does not succeed in time
-                    .setResetTimeout(10000L) // time spent in open state before attempting to re-try
+                    .setResetTimeout(10000L) // time spent in open state before attempting to pass in half-open state. Half-open state would only let one attempt and if it fails, it goes back to open
                     .setNotificationAddress(null)
             );
     }

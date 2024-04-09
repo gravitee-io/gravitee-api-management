@@ -1,0 +1,146 @@
+{
+  "id": "my-api-only-one-endpoint",
+  "name": "my-api-only-one-endpoint",
+  "gravitee": "2.0.0",
+  "proxy": {
+    "context_path": "/test",
+    "groups": [
+      {
+        "name": "default-group",
+        "endpoints": [
+          {
+            "name": "endpoint-1",
+            "target": "http://localhost:8080/default-group-endpoint",
+            "weight": 1,
+            "backup": false,
+            "status": "UP",
+            "type": "http",
+            "inherit": false,
+            "headers": [],
+            "proxy": {
+              "enabled": false,
+              "useSystemProxy": false,
+              "port": 0,
+              "type": "HTTP"
+            },
+            "http": {
+              "connectTimeout": 1000,
+              "readTimeout": 1000
+            }
+          }
+        ],
+        "http": {
+          "connectTimeout": 1000,
+          "readTimeout": 1000
+        }
+      },
+      {
+        "name": "second-group",
+        "endpoints": [
+          {
+            "name": "second-group-endpoint-1",
+            "target": "http://localhost:8080/second-group-endpoint-1",
+            "weight": 1,
+            "backup": false,
+            "status": "UP",
+            "type": "http",
+            "inherit": false,
+            "headers": [],
+            "proxy": {
+              "enabled": false,
+              "useSystemProxy": false,
+              "port": 0,
+              "type": "HTTP"
+            },
+            "http": {
+              "connectTimeout": 1000,
+              "readTimeout": 1000
+            }
+          },
+          {
+            "name": "second-group-endpoint-2",
+            "target": "http://localhost:8080/second-group-endpoint-2",
+            "weight": 1,
+            "backup": false,
+            "status": "UP",
+            "type": "http",
+            "inherit": false,
+            "headers": [],
+            "proxy": {
+              "enabled": false,
+              "useSystemProxy": false,
+              "port": 0,
+              "type": "HTTP"
+            },
+            "http": {
+              "connectTimeout": 1000,
+              "readTimeout": 1000
+            }
+          },
+          {
+            "name": "second-group-endpoint-3",
+            "target": "http://localhost:8080/second-group-endpoint-3",
+            "weight": 1,
+            "backup": false,
+            "status": "UP",
+            "type": "http",
+            "inherit": false,
+            "headers": [],
+            "proxy": {
+              "enabled": false,
+              "useSystemProxy": false,
+              "port": 0,
+              "type": "HTTP"
+            },
+            "http": {
+              "connectTimeout": 1000,
+              "readTimeout": 1000
+            }
+          }
+        ],
+        "http": {
+          "connectTimeout": 1000,
+          "readTimeout": 1000
+        }
+      }
+    ],
+    "failover": {
+      "maxAttempts": 2,
+      "retryTimeout": 500,
+      "cases": [
+        "TIMEOUT"
+      ]
+    }
+  },
+  "flows": [
+    {
+      "name": "flow-1",
+      "methods": [
+        "GET"
+      ],
+      "enabled": true,
+      "path-operator": {
+        "path": "/",
+        "operator": "STARTS_WITH"
+      },
+      "pre": [
+        {
+          "name": "Dynamic routing",
+          "description": "",
+          "enabled": true,
+          "policy": "dynamic-routing",
+          "configuration": {
+            "rules": [
+              {
+                "pattern": "/dynamic-route/(.*)",
+                "url": "{#endpoints['second-group']}/{#group[0]}"
+              }
+            ]
+          }
+        }
+      ],
+      "post": []
+    }
+  ],
+  "resources": []
+}
