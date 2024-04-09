@@ -71,24 +71,24 @@
           <div class="stepper__content">
             <div class="mat-subtitle-2">Page source</div>
 
-            <mat-radio-group class="gio-radio-group stepper__content__source" formControlName="source">
-              <mat-radio-button value="FILL" class="gio-radio-button">
-                <gio-radio-button-content icon="gio:edit-pencil">
-                  <gio-radio-button-title>Fill in the content myself</gio-radio-button-title>
-                </gio-radio-button-content>
-              </mat-radio-button>
-              <mat-radio-button value="IMPORT" class="gio-radio-button">
-                <gio-radio-button-content icon="gio:down-circle">
-                  <gio-radio-button-title>Import from file</gio-radio-button-title>
-                </gio-radio-button-content>
-              </mat-radio-button>
-              <mat-radio-button value="EXTERNAL" class="gio-radio-button" disabled="true">
-                <gio-radio-button-content icon="gio:language">
-                  <gio-radio-button-title>Import from source (URL)</gio-radio-button-title>
-                  <gio-radio-button-subtitle><div class="gio-badge-primary">Coming soon</div></gio-radio-button-subtitle>
-                </gio-radio-button-content>
-              </mat-radio-button>
-            </mat-radio-group>
+            <gio-form-selection-inline class="gio-radio-group stepper__content__source" formControlName="source">
+              <gio-form-selection-inline-card value="FILL">
+                <gio-form-selection-inline-card-content icon="gio:edit-pencil">
+                  <gio-card-content-title>Fill in the content myself</gio-card-content-title>
+                </gio-form-selection-inline-card-content>
+              </gio-form-selection-inline-card>
+              <gio-form-selection-inline-card value="IMPORT">
+                <gio-form-selection-inline-card-content icon="gio:down-circle">
+                  <gio-card-content-title>Import from file</gio-card-content-title>
+                </gio-form-selection-inline-card-content>
+              </gio-form-selection-inline-card>
+              <gio-form-selection-inline-card value="EXTERNAL" [disabled]="true">
+                <gio-form-selection-inline-card-content icon="gio:language">
+                  <gio-card-content-title>Import from source (URL)</gio-card-content-title>
+                  <gio-card-content-subtitle><div class="gio-badge-primary">Coming soon</div></gio-card-content-subtitle>
+                </gio-form-selection-inline-card-content>
+              </gio-form-selection-inline-card>
+            </gio-form-selection-inline>
           </div>
           <div class="stepper__actions">
             <button mat-flat-button color="primary" matStepperNext>Next</button>

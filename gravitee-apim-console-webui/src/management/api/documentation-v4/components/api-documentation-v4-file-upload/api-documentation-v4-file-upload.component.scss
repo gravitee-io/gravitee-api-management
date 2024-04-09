@@ -21,11 +21,10 @@
     justify-content: center;
 
     gio-form-file-picker {
-      flex: 0 0 0px;
+      flex: 1 1 100%;
     }
 
     &__add-btn {
-      width: 800px;
       height: 300px;
 
       &__wrapper {
