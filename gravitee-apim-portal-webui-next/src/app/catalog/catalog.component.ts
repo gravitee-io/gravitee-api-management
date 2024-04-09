@@ -14,12 +14,21 @@
  * limitations under the License.
  */
 import { Component } from '@angular/core';
+import { MatCard, MatCardContent } from '@angular/material/card';
+
+import { BannerComponent } from '../../components/banner/banner.component';
 
 @Component({
   selector: 'app-catalog',
   standalone: true,
-  imports: [],
+  imports: [BannerComponent, MatCard, MatCardContent],
   templateUrl: './catalog.component.html',
   styleUrl: './catalog.component.scss',
 })
-export class CatalogComponent {}
+export class CatalogComponent {
+  apis: string[] = [];
+
+  // TODO: Get banner title + subtitle from configuration
+  bannerTitle: string = 'Welcome to Gravitee Developer Portal!';
+  bannerSubtitle: string = 'Discover powerful APIs to supercharge your projects.';
+}

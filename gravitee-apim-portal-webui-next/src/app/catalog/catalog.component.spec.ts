@@ -13,13 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { HarnessLoader } from '@angular/cdk/testing';
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { MatCardHarness } from '@angular/material/card/testing';
 
 import { CatalogComponent } from './catalog.component';
 
 describe('CatalogComponent', () => {
   let component: CatalogComponent;
   let fixture: ComponentFixture<CatalogComponent>;
+  let harnessLoader: HarnessLoader;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -28,10 +32,22 @@ describe('CatalogComponent', () => {
 
     fixture = TestBed.createComponent(CatalogComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
+    harnessLoader = TestbedHarnessEnvironment.loader(fixture);
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should render banner text', () => {
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('h1')?.textContent).toContain('Welcome to Gravitee Developer Portal!');
+  });
+
+  it('should show empty API list', async () => {
+    const noApiCard = await harnessLoader.getHarness(MatCardHarness.with({ selector: '#no-apis' }));
+    expect(noApiCard).toBeTruthy();
+    expect(await noApiCard.getText()).toContain('Sorry, there are no APIs listed yet.');
   });
 });
