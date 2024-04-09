@@ -21,7 +21,7 @@ import { MatDialogHarness } from '@angular/material/dialog/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
 import { MatFormFieldHarness } from '@angular/material/form-field/testing';
 
-import { ApiKeyValidationHarness } from '../../api-key-validation/api-key-validation.harness';
+import { ApiKeyValidationHarness } from '../../../../../../components/api-key-validation/api-key-validation.harness';
 
 export class ApiPortalSubscriptionCreationDialogHarness extends MatDialogHarness {
   static override hostSelector = 'api-portal-subscription-creation-dialog';

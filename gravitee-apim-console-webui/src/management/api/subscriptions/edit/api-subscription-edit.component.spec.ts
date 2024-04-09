@@ -45,7 +45,7 @@ import {
   UpdateSubscription,
   VerifySubscription,
 } from '../../../../entities/management-api-v2';
-import { ApiKeyValidationHarness } from '../components/api-key-validation/api-key-validation.harness';
+import { ApiKeyValidationHarness } from '../../../../components/api-key-validation/api-key-validation.harness';
 import { ApiKey, fakeApiKey } from '../../../../entities/management-api-v2/api-key';
 import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 import { ApiPortalSubscriptionValidateDialogHarness } from '../components/dialogs/validate/api-portal-subscription-validate-dialog.harness';

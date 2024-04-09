@@ -16,7 +16,7 @@
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatDialogHarness } from '@angular/material/dialog/testing';
 
-import { ApiKeyValidationHarness } from '../../api-key-validation/api-key-validation.harness';
+import { ApiKeyValidationHarness } from '../../../../../../components/api-key-validation/api-key-validation.harness';
 
 export class ApiPortalSubscriptionValidateDialogHarness extends MatDialogHarness {
   static override hostSelector = 'api-portal-subscription-validate-dialog';

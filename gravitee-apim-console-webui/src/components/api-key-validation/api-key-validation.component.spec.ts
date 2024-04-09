@@ -18,16 +18,14 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { MatIconTestingModule } from '@angular/material/icon/testing';
-import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 
 import { ApiKeyValidationHarness } from './api-key-validation.harness';
+import { ApiKeyValidationModule } from './api-key-validation.module';
 
-import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
-import { ApiSubscriptionsModule } from '../../api-subscriptions.module';
-import { VerifySubscription } from '../../../../../entities/management-api-v2';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../shared/testing';
+import { VerifySubscription } from '../../entities/management-api-v2';
 
 const API_ID = 'my-api-id';
 const APP_ID = 'my-app-id';
@@ -35,12 +33,16 @@ const APP_ID = 'my-app-id';
 @Component({
   selector: 'test-component',
   template: `<api-key-validation [formControl]="apiKey" [apiId]="apiId" [applicationId]="applicationId"></api-key-validation>`,
+  standalone: true,
+  imports: [ApiKeyValidationModule, ReactiveFormsModule],
 })
 class TestComponent {
   apiId: string = API_ID;
   applicationId: string = APP_ID;
-  apiKey: FormControl = new FormControl('');
+  apiKey: FormControl<string> = new FormControl<string>('');
+  form = new FormGroup({ apikey: this.apiKey });
 }
+
 describe('ApiKeyValidationComponent', () => {
   let fixture: ComponentFixture<TestComponent>;
   let loader: HarnessLoader;
@@ -48,17 +50,7 @@ describe('ApiKeyValidationComponent', () => {
 
   const init = async () => {
     await TestBed.configureTestingModule({
-      imports: [ApiSubscriptionsModule, NoopAnimationsModule, GioTestingModule, MatIconTestingModule, ReactiveFormsModule],
-      declarations: [TestComponent],
-      providers: [
-        {
-          provide: InteractivityChecker,
-          useValue: {
-            isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
-            isTabbable: () => true, // Allows tabbing and avoids warnings
-          },
-        },
-      ],
+      imports: [TestComponent, NoopAnimationsModule, GioTestingModule],
     }).compileComponents();
 
     fixture = TestBed.createComponent(TestComponent);
