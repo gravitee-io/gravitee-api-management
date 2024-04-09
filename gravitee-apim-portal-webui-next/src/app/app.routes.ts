@@ -15,4 +15,6 @@
  */
 import { Routes } from '@angular/router';
 
-export const routes: Routes = [];
+import { CatalogComponent } from './catalog/catalog.component';
+
+export const routes: Routes = [{ path: '', component: CatalogComponent }];
