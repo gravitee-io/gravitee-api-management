@@ -16,7 +16,12 @@
 import { NgModule } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
-import { GioFormFilePickerModule, GioIconsModule, GioMonacoEditorModule, GioRadioButtonModule } from '@gravitee/ui-particles-angular';
+import {
+  GioFormFilePickerModule,
+  GioFormSelectionInlineModule,
+  GioIconsModule,
+  GioMonacoEditorModule,
+} from '@gravitee/ui-particles-angular';
 import { MatButtonModule } from '@angular/material/button';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
@@ -30,6 +35,7 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterModule } from '@angular/router';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatIconModule } from '@angular/material/icon';
 
 import { ApiDocumentationV4EmptyStateComponent } from './components/documentation-empty-state/api-documentation-v4-empty-state.component';
 import { ApiDocumentationV4ListNavigationHeaderComponent } from './components/documentation-list-navigation-header/api-documentation-v4-list-navigation-header.component';
@@ -84,15 +90,16 @@ import { GioApiMetadataListModule } from '../component/gio-api-metadata-list/gio
     MatTableModule,
     MatSnackBarModule,
     MatTooltipModule,
+    MatIconModule,
 
     MarkdownModule.forRoot(),
 
     GioIconsModule,
     GioMonacoEditorModule,
-    GioRadioButtonModule,
     GioPermissionModule,
     GioTooltipOnEllipsisModule,
     GioFormFilePickerModule,
+    GioFormSelectionInlineModule,
     NgOptimizedImage,
     MatMenuModule,
     GioSwaggerUiModule,

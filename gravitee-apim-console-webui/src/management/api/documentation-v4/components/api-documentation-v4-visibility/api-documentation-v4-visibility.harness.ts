@@ -14,30 +14,23 @@
  * limitations under the License.
  */
 import { ComponentHarness } from '@angular/cdk/testing';
-import { MatRadioButtonHarness, MatRadioGroupHarness } from '@angular/material/radio/testing';
+import { GioFormSelectionInlineHarness } from '@gravitee/ui-particles-angular';
 
 export class ApiDocumentationV4VisibilityHarness extends ComponentHarness {
   public static hostSelector = 'api-documentation-visibility';
 
-  private radioGroupLocator = this.locatorFor(MatRadioGroupHarness);
-  private publicRadioLocator = this.locatorFor(MatRadioButtonHarness.with({ selector: '[value="PUBLIC"]' }));
-  private privateRadioLocator = this.locatorFor(MatRadioButtonHarness.with({ selector: '[value="PRIVATE"]' }));
-
-  public getPublicRadioOption() {
-    return this.publicRadioLocator();
-  }
-  public getPrivateRadioOption() {
-    return this.privateRadioLocator();
-  }
+  private selectionInlineLocator = this.locatorFor(GioFormSelectionInlineHarness);
 
   public getValue(): Promise<string> {
-    return this.radioGroupLocator().then((radioGroup) => radioGroup.getCheckedValue());
+    return this.selectionInlineLocator().then((radioGroup) => radioGroup.getSelectedValue());
+  }
+
+  public async select(value: string): Promise<void> {
+    const radioGroup = await this.selectionInlineLocator();
+    return radioGroup.select(value);
   }
 
   public async formIsDisabled(): Promise<boolean> {
-    const publicIsDisabled = await this.publicRadioLocator().then((btn) => btn.isDisabled());
-    const privateIsDisabled = await this.privateRadioLocator().then((btn) => btn.isDisabled());
-
-    return publicIsDisabled && privateIsDisabled;
+    return await this.selectionInlineLocator().then((radioGroup) => radioGroup.isDisabled());
   }
 }

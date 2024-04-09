@@ -18,29 +18,31 @@
 <div class="visibility">Visibility</div>
 <div *ngIf="showSubtitle" class="visibility__subtitle">This can be changed later</div>
 
-<mat-radio-group [(ngModel)]="_value" class="gio-radio-group" (change)="_onChange($event.value)" [disabled]="disabled">
-  <mat-radio-button value="PUBLIC" class="gio-radio-button">
-    <gio-radio-button-content icon="gio:language">
-      <gio-radio-button-title>Public</gio-radio-button-title>
-      <gio-radio-button-subtitle *ngIf="documentationType === 'page'"
+<gio-form-selection-inline [(ngModel)]="_value" class="gio-radio-group" (ngModelChange)="_onChange($event)" [disabled]="disabled">
+  <gio-form-selection-inline-card value="PUBLIC">
+    <gio-form-selection-inline-card-content icon="gio:language">
+      <gio-card-content-title>Public</gio-card-content-title>
+      <gio-card-content-subtitle *ngIf="documentationType === 'page'"
         >All users browsing the API in the Developer Portal can view the page, including anonymous users if permitted in Settings >
-        Authentication</gio-radio-button-subtitle
+        Authentication</gio-card-content-subtitle
       >
-      <gio-radio-button-subtitle *ngIf="documentationType === 'folder'"
+
+      <gio-card-content-subtitle *ngIf="documentationType === 'folder'"
         >All users browsing the API in the Developer Portal can view the content of the folder, including anonymous users if permitted in
-        Settings > Authentication</gio-radio-button-subtitle
+        Settings > Authentication</gio-card-content-subtitle
       >
-    </gio-radio-button-content>
-  </mat-radio-button>
-  <mat-radio-button value="PRIVATE" class="gio-radio-button">
-    <gio-radio-button-content icon="gio:lock">
-      <gio-radio-button-title>Private</gio-radio-button-title>
-      <gio-radio-button-subtitle *ngIf="documentationType === 'page'"
-        >Users must be authenticated in the Developer Portal to view the page</gio-radio-button-subtitle
+    </gio-form-selection-inline-card-content>
+  </gio-form-selection-inline-card>
+
+  <gio-form-selection-inline-card value="PRIVATE">
+    <gio-form-selection-inline-card-content icon="gio:lock">
+      <gio-card-content-title>Private</gio-card-content-title>
+      <gio-card-content-subtitle *ngIf="documentationType === 'page'"
+        >Users must be authenticated in the Developer Portal to view the page</gio-card-content-subtitle
       >
-      <gio-radio-button-subtitle *ngIf="documentationType === 'folder'"
-        >Users must be authenticated in the Developer Portal to view the contents of the folder</gio-radio-button-subtitle
+      <gio-card-content-subtitle *ngIf="documentationType === 'folder'"
+        >Users must be authenticated in the Developer Portal to view the contents of the folder</gio-card-content-subtitle
       >
-    </gio-radio-button-content>
-  </mat-radio-button>
-</mat-radio-group>
+    </gio-form-selection-inline-card-content>
+  </gio-form-selection-inline-card>
+</gio-form-selection-inline>

@@ -78,8 +78,8 @@ describe('ApiDocumentationV4EditFolderDialog', () => {
       expect(input).toBeDefined();
       await input.setValue('folder');
 
-      const buttons = await addFolderDialogHarness.getRadioButtons();
-      const values = await Promise.all(buttons.map(async (btn) => await btn.getValue()));
+      const buttons = await addFolderDialogHarness.getSelectionInlineCards();
+      const values = buttons.map((b) => b.value);
       expect(values).toEqual(['PUBLIC', 'PRIVATE']);
       await addFolderDialogHarness.selectVisibility('PRIVATE');
       fixture.detectChanges();
