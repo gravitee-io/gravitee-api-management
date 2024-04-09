@@ -26,7 +26,12 @@ import { omit } from 'lodash';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatCardHarness } from '@angular/material/card/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
-import { GioFormTagsInputHarness, GioSaveBarHarness, GioLicenseTestingModule } from '@gravitee/ui-particles-angular';
+import {
+  GioFormTagsInputHarness,
+  GioSaveBarHarness,
+  GioLicenseTestingModule,
+  GioFormSelectionInlineHarness,
+} from '@gravitee/ui-particles-angular';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs';
@@ -35,7 +40,6 @@ import { OrgSettingsIdentityProviderComponent } from './org-settings-identity-pr
 
 import { OrganizationSettingsModule } from '../organization-settings.module';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
-import { GioFormCardGroupHarness } from '../../../shared/components/gio-form-card-group/gio-form-card-group.harness';
 import { GioFormColorInputHarness } from '../../../shared/components/gio-form-color-input/gio-form-color-input.harness';
 import { NewIdentityProvider } from '../../../entities/identity-provider/newIdentityProvider';
 import { fakeIdentityProvider, IdentityProvider } from '../../../entities/identity-provider';
@@ -81,7 +85,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
     });
 
     it('should change provider type', async () => {
-      const formCardGroup = await loader.getHarness(GioFormCardGroupHarness.with({ selector: '[formControlName=type]' }));
+      const formCardGroup = await loader.getHarness(GioFormSelectionInlineHarness.with({ selector: '[formControlName=type]' }));
 
       expect(await formCardGroup.getSelectedValue()).toEqual('GRAVITEEIO_AM');
 
@@ -161,7 +165,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
 
     describe('github', () => {
       it('should save identity provider github configuration ', async () => {
-        const formCardGroup = await loader.getHarness(GioFormCardGroupHarness.with({ selector: '[formControlName=type]' }));
+        const formCardGroup = await loader.getHarness(GioFormSelectionInlineHarness.with({ selector: '[formControlName=type]' }));
 
         await formCardGroup.select('GITHUB');
 
@@ -200,7 +204,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
 
     describe('google', () => {
       it('should save identity provider google configuration ', async () => {
-        const formCardGroup = await loader.getHarness(GioFormCardGroupHarness.with({ selector: '[formControlName=type]' }));
+        const formCardGroup = await loader.getHarness(GioFormSelectionInlineHarness.with({ selector: '[formControlName=type]' }));
 
         await formCardGroup.select('GOOGLE');
 
@@ -325,7 +329,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
 
     describe('oidc', () => {
       it('should not load form without license', async () => {
-        const formCardGroup = await loader.getHarness(GioFormCardGroupHarness.with({ selector: '[formControlName=type]' }));
+        const formCardGroup = await loader.getHarness(GioFormSelectionInlineHarness.with({ selector: '[formControlName=type]' }));
 
         await formCardGroup.select('OIDC');
 
@@ -352,7 +356,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
 
     describe('oidc', () => {
       it('should save identity provider oidc configuration ', async () => {
-        const formCardGroup = await loader.getHarness(GioFormCardGroupHarness.with({ selector: '[formControlName=type]' }));
+        const formCardGroup = await loader.getHarness(GioFormSelectionInlineHarness.with({ selector: '[formControlName=type]' }));
 
         await formCardGroup.select('OIDC');
 
@@ -502,7 +506,7 @@ describe('OrgSettingsIdentityProviderComponent', () => {
       expectEnvironmentListRequest([]);
 
       expect(component.mode).toEqual('edit');
-      const providerType = await loader.getAllHarnesses(GioFormCardGroupHarness.with({ selector: '[formControlName=type]' }));
+      const providerType = await loader.getAllHarnesses(GioFormSelectionInlineHarness.with({ selector: '[formControlName=type]' }));
       expect(providerType.length).toBe(0);
     });
 

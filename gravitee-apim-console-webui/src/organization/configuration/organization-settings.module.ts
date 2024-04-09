@@ -53,6 +53,7 @@ import {
   GioClipboardModule,
   GioLicenseModule,
   GioMonacoEditorModule,
+  GioFormSelectionInlineModule,
 } from '@gravitee/ui-particles-angular';
 import { MatTabsModule } from '@angular/material/tabs';
 import { RouterModule } from '@angular/router';
@@ -88,7 +89,6 @@ import { OrgSettingsPlatformPoliciesStudioModule } from './policies/studio/org-s
 
 import { GioTableOfContentsModule } from '../../shared/components/gio-table-of-contents/gio-table-of-contents.module';
 import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
-import { GioFormCardGroupModule } from '../../shared/components/gio-form-card-group/gio-form-card-group.module';
 import { GioFormColorInputModule } from '../../shared/components/gio-form-color-input/gio-form-color-input.module';
 import { GioGoBackButtonModule } from '../../shared/components/gio-go-back-button/gio-go-back-button.module';
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
@@ -132,7 +132,7 @@ import { GioUsersSelectorModule } from '../../shared/components/gio-users-select
     GioAvatarModule,
     GioTableOfContentsModule,
     GioFormSlideToggleModule,
-    GioFormCardGroupModule,
+    GioFormSelectionInlineModule,
     GioFormTagsInputModule,
     GioFormColorInputModule,
     GioGoBackButtonModule,

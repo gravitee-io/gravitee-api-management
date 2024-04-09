@@ -28,8 +28,6 @@ import { MatIconModule } from '@angular/material/icon';
 
 import { LoginComponent } from './login.component';
 
-import { GioFormCardGroupModule } from '../../shared/components/gio-form-card-group/gio-form-card-group.module';
-
 @NgModule({
   declarations: [LoginComponent],
   exports: [LoginComponent],
@@ -46,7 +44,6 @@ import { GioFormCardGroupModule } from '../../shared/components/gio-form-card-gr
 
     GioIconsModule,
     RouterModule,
-    GioFormCardGroupModule,
   ],
 })
 export class LoginModule {}

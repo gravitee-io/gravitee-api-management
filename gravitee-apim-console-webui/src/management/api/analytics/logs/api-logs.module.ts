@@ -17,7 +17,13 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { GioBannerModule, GioIconsModule, GioSaveBarModule, GioFormSlideToggleModule } from '@gravitee/ui-particles-angular';
+import {
+  GioBannerModule,
+  GioIconsModule,
+  GioSaveBarModule,
+  GioFormSlideToggleModule,
+  GioFormSelectionInlineModule,
+} from '@gravitee/ui-particles-angular';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatCardModule } from '@angular/material/card';
@@ -29,8 +35,6 @@ import { RouterModule } from '@angular/router';
 import { ApiLogsConfigurationComponent } from './configuration/api-logs-configuration.component';
 import { ApiAnalyticsLogsComponent } from './analytics-logs.component';
 import { ApiAnalyticsLogComponent } from './analytics-log.component';
-
-import { GioFormCardGroupModule } from '../../../../shared/components/gio-form-card-group/gio-form-card-group.module';
 
 @NgModule({
   declarations: [ApiAnalyticsLogsComponent, ApiLogsConfigurationComponent, ApiAnalyticsLogComponent],
@@ -46,7 +50,7 @@ import { GioFormCardGroupModule } from '../../../../shared/components/gio-form-c
     MatInputModule,
     MatSlideToggleModule,
     MatSnackBarModule,
-    GioFormCardGroupModule,
+    GioFormSelectionInlineModule,
     GioIconsModule,
     GioBannerModule,
     GioFormSlideToggleModule,

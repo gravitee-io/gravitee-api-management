@@ -41,7 +41,6 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 
 import { ApiLoggingComponent } from './api-logging.component';
 
-import { GioFormCardGroupModule } from '../../../shared/components/gio-form-card-group/gio-form-card-group.module';
 import { GioGoBackButtonModule } from '../../../shared/components/gio-go-back-button/gio-go-back-button.module';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { GioTableOfContentsModule } from '../../../shared/components/gio-table-of-contents/gio-table-of-contents.module';
@@ -66,7 +65,6 @@ import { GioTableOfContentsModule } from '../../../shared/components/gio-table-o
     MatSelectModule,
     MatCheckboxModule,
 
-    GioFormCardGroupModule,
     GioIconsModule,
     GioBannerModule,
     GioFormSlideToggleModule,
