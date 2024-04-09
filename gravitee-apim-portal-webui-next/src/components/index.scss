@@ -14,28 +14,12 @@
  * limitations under the License.
  */
 
-/* You can add global styles to this file, and also import other style files */
-
-@forward './components/index.scss';
-@use '@angular/material' as mat;
-@import './scss/theme/theme';
-
-@include mat.core;
-
-$light-theme: mat.define-light-theme(
-  (
-    color: (
-      primary: $theme-primary,
-      accent: $theme-accent,
-      warn: $theme-warn,
-    ),
-    typography: $theme-typography,
-  )
-);
-@include mat.all-component-themes($light-theme);
-
-body {
-  background-color: $background-color;
-  color: $default-text-color;
-  font-family: 'Golos UI', Roboto, 'Helvetica Neue', sans-serif;
+button {
+  --mdc-outlined-button-container-shape: 100px;
+  --mdc-filled-button-container-shape: 100px;
+  --mdc-outlined-button-label-text-tracking: 0.1px;
+  --mdc-filled-button-label-text-tracking: 0.1px;
+  --mat-outlined-button-horizontal-padding: 24px;
+  --mat-filled-button-horizontal-padding: 24px;
+  --mat-protected-button-horizontal-padding: 24px;
 }
