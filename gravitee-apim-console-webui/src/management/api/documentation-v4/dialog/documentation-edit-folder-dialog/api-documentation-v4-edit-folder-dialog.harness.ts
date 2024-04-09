@@ -16,13 +16,13 @@
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
-import { MatRadioButtonHarness } from '@angular/material/radio/testing';
+import { GioFormSelectionInlineHarness } from '@gravitee/ui-particles-angular';
 
 export class ApiDocumentationV4EditFolderDialogHarness extends ComponentHarness {
   public static hostSelector = 'api-documentation-v4-edit-folder-dialog';
 
   private nameInputLocator = this.locatorFor(MatInputHarness.with({ placeholder: 'Name' }));
-  private radioButtonsLocator = this.locatorForAll(MatRadioButtonHarness);
+  private selectionInlineLocator = this.locatorFor(GioFormSelectionInlineHarness);
   private saveButtonLocator = this.locatorFor(MatButtonHarness.with({ selector: '[type=submit]' }));
   private cancelButtonLocator = this.locatorFor(MatButtonHarness.with({ text: 'Cancel' }));
 
@@ -34,18 +34,13 @@ export class ApiDocumentationV4EditFolderDialogHarness extends ComponentHarness 
     return this.getNameInput().then((input) => input.setValue(name));
   }
 
-  public async getRadioButtons() {
-    return this.radioButtonsLocator();
+  public async getSelectionInlineCards() {
+    return (await this.selectionInlineLocator()).getSelectionCards();
   }
 
   public async selectVisibility(visibility: 'PUBLIC' | 'PRIVATE') {
-    const buttons = await this.locatorForAll(
-      MatRadioButtonHarness.with({
-        label: new RegExp(`${visibility}.*`, 'i'),
-      }),
-    )();
-    expect(buttons.length).toEqual(1);
-    return await buttons[0].check();
+    const select = await this.locatorFor(GioFormSelectionInlineHarness)();
+    await select.select(visibility);
   }
 
   public getSaveButton() {

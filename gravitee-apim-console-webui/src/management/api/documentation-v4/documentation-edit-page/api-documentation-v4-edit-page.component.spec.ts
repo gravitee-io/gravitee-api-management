@@ -199,12 +199,12 @@ describe('ApiDocumentationV4EditPageComponent', () => {
           const options = await harness.getSourceOptions();
 
           expect(options.length).toEqual(3);
-          const sourceOptions = await Promise.all(options.map(async (opt) => await opt.getLabelText()));
+          const sourceOptions = options.map((option) => option.text);
           expect(sourceOptions).toEqual(['Fill in the content myself', 'Import from file', 'Import from source (URL)Coming soon']);
-          expect(await options[1].isDisabled()).toEqual(false);
-          expect(await options[2].isDisabled()).toEqual(true);
+          expect(await options[1].disabled).toEqual(false);
+          expect(await options[2].disabled).toEqual(true);
 
-          await options[0].check();
+          await harness.selectSource('IMPORT');
         });
       });
 
@@ -362,8 +362,7 @@ describe('ApiDocumentationV4EditPageComponent', () => {
             return btn.click();
           });
 
-          const options = await harness.getSourceOptions();
-          await options[1].check();
+          await harness.selectSource('IMPORT');
 
           await harness.getNextButton().then(async (btn) => {
             expect(await btn.isDisabled()).toEqual(false);

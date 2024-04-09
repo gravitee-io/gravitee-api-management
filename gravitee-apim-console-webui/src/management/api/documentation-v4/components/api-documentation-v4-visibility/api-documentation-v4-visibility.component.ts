@@ -39,7 +39,7 @@ export class ApiDocumentationV4VisibilityComponent implements ControlValueAccess
 
   private _disabled = false;
 
-  public _onChange: (_selection: 'PUBLIC' | 'PRIVATE') => void = () => ({});
+  public _onChange: (_selection: string) => void = () => ({});
 
   protected _onTouched: () => void = () => ({});
 
