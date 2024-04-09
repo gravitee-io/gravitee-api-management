@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 
 import { CompanyTitleComponent } from './company-title.component';
 
@@ -24,6 +25,7 @@ describe('CompanyTitleComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [CompanyTitleComponent],
+      providers: [provideRouter([])],
     }).compileComponents();
 
     fixture = TestBed.createComponent(CompanyTitleComponent);
