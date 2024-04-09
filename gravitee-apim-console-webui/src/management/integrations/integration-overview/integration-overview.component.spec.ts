@@ -21,6 +21,8 @@ import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { TestElement } from '@angular/cdk/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
+import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 
 import { IntegrationOverviewComponent } from './integration-overview.component';
 import { IntegrationOverviewHarness } from './integration-overview.harness';
@@ -98,9 +100,65 @@ describe('IntegrationOverviewComponent', () => {
     expect(successBadge).toBeTruthy();
   });
 
+  describe('discover', () => {
+    it('should call _ingest endpoint on confirm', async () => {
+      expectIntegrationGetRequest(fakeIntegration({ id: integrationId }));
+
+      const discoverBtn: MatButtonHarness = await componentHarness.getDiscoverButton();
+      await discoverBtn.click();
+
+      const dialogHarness: GioConfirmDialogHarness =
+        await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
+      await dialogHarness.confirm();
+
+      expectIngestPostRequest({
+        status: 'SUCCESS',
+        message: 'Integration APIs have been ingested successfully',
+      });
+      expect(fakeSnackBarService.success).toHaveBeenCalledWith('APIs successfully created and ready for use!');
+    });
+
+    it('should not call _ingest endpoint on cancel', async () => {
+      expectIntegrationGetRequest(fakeIntegration({ id: integrationId }));
+
+      const discoverBtn: MatButtonHarness = await componentHarness.getDiscoverButton();
+      await discoverBtn.click();
+
+      const dialogHarness: GioConfirmDialogHarness =
+        await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
+      await dialogHarness.cancel();
+
+      httpTestingController.expectNone(`${CONSTANTS_TESTING.env.v2BaseURL}/integrations/${integrationId}/_ingest`);
+    });
+
+    it('should handle error with message', async () => {
+      expectIntegrationGetRequest(fakeIntegration({ id: integrationId }));
+
+      const discoverBtn: MatButtonHarness = await componentHarness.getDiscoverButton();
+      await discoverBtn.click();
+
+      const dialogHarness: GioConfirmDialogHarness =
+        await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
+      await dialogHarness.confirm();
+
+      const req: TestRequest = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/integrations/${integrationId}/_ingest`);
+      req.flush({}, { status: 400, statusText: 'Bad Request' });
+
+      fixture.detectChanges();
+
+      expect(fakeSnackBarService.error).toHaveBeenCalledWith('An error occurred while we were importing assets from the provider');
+    });
+  });
+
   function expectIntegrationGetRequest(integrationMock: Integration): void {
     const req: TestRequest = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/integrations/${integrationId}`);
     req.flush(integrationMock);
     expect(req.request.method).toEqual('GET');
+  }
+
+  function expectIngestPostRequest(res): void {
+    const req: TestRequest = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/integrations/${integrationId}/_ingest`);
+    req.flush(res);
+    expect(req.request.method).toEqual('POST');
   }
 });

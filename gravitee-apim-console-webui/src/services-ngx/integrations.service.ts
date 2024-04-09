@@ -38,6 +38,10 @@ export class IntegrationsService {
     return this.currentIntegration$.asObservable();
   }
 
+  public resetCurrentIntegration(): void {
+    this.currentIntegration$.next(null);
+  }
+
   public getIntegrations(page, size): Observable<IntegrationResponse> {
     return this.httpClient.get<IntegrationResponse>(`${this.url}/?page=${page}&perPage=${size}`);
   }
@@ -48,5 +52,9 @@ export class IntegrationsService {
 
   public getIntegration(id: string): Observable<Integration> {
     return this.httpClient.get<Integration>(`${this.url}/${id}`).pipe(tap((integration) => this.currentIntegration$.next(integration)));
+  }
+
+  public ingestIntegration(id: string) {
+    return this.httpClient.post(`${this.url}/${id}/_ingest`, null);
   }
 }

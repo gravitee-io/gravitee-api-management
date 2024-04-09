@@ -17,8 +17,10 @@
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { catchError } from 'rxjs/operators';
+import { MatDialog } from '@angular/material/dialog';
+import { catchError, filter, switchMap, tap } from 'rxjs/operators';
 import { EMPTY } from 'rxjs';
+import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
 import { Integration } from '../integrations.model';
@@ -32,11 +34,14 @@ import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 export class IntegrationOverviewComponent implements OnInit {
   private destroyRef: DestroyRef = inject(DestroyRef);
   public integration: Integration;
+  public isLoading = true;
+  public isIngesting = false;
 
   constructor(
     private route: ActivatedRoute,
     private integrationsService: IntegrationsService,
     private snackBarService: SnackBarService,
+    private matDialog: MatDialog,
   ) {}
 
   ngOnInit(): void {
@@ -56,6 +61,41 @@ export class IntegrationOverviewComponent implements OnInit {
       )
       .subscribe((integration: Integration): void => {
         this.integration = integration;
+        this.isLoading = false;
       });
+  }
+
+  public ingest(): void {
+    this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+        width: GIO_DIALOG_WIDTH.SMALL,
+        data: {
+          title: 'Discover',
+          content:
+            "By proceeding, you'll initiate the creation of new Federated APIs in Gravitee for each API uncovered at the provider. Are you ready to continue?",
+          confirmButton: 'Proceed',
+        },
+        role: 'alertdialog',
+        id: 'ingestIntegrationConfirmDialog',
+      })
+      .afterClosed()
+      .pipe(
+        filter((confirm) => !!confirm),
+        switchMap(() => {
+          this.isIngesting = true;
+          return this.integrationsService.ingestIntegration(this.integration.id);
+        }),
+        tap(() => {
+          this.isIngesting = false;
+          this.snackBarService.success('APIs successfully created and ready for use!');
+        }),
+        catchError(() => {
+          this.isIngesting = false;
+          this.snackBarService.error('An error occurred while we were importing assets from the provider');
+          return EMPTY;
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
   }
 }

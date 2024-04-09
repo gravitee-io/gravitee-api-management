@@ -19,6 +19,7 @@ import { BrowserAnimationsModule, NoopAnimationsModule } from '@angular/platform
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { TestElement } from '@angular/cdk/testing';
+import { of } from 'rxjs';
 
 import { IntegrationsNavigationComponent } from './integrations-navigation.component';
 import { IntegrationsNavigationHarness } from './integrations-navigation.harness';
@@ -26,6 +27,7 @@ import { IntegrationsNavigationHarness } from './integrations-navigation.harness
 import { IntegrationsModule } from '../integrations.module';
 import { GioTestingModule } from '../../../shared/testing';
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
+import { fakeIntegration } from '../../../entities/integrations/integration.fixture';
 
 describe('IntegrationsNavigationComponent', () => {
   let fixture: ComponentFixture<IntegrationsNavigationComponent>;
@@ -40,7 +42,7 @@ describe('IntegrationsNavigationComponent', () => {
         {
           provide: IntegrationsService,
           useValue: {
-            currentIntegration: jest.fn(),
+            currentIntegration: () => of(fakeIntegration()),
           },
         },
       ],

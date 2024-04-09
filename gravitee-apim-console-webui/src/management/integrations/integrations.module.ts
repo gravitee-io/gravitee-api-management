@@ -29,6 +29,7 @@ import {
   GioBannerModule,
   GioBreadcrumbModule,
   GioClipboardModule,
+  GioLoaderModule,
   GioRadioButtonModule,
   GioSubmenuModule,
 } from '@gravitee/ui-particles-angular';
@@ -79,6 +80,7 @@ import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper
     GioSubmenuModule,
     GioBannerModule,
     GioClipboardModule,
+    GioLoaderModule,
   ],
 })
 export class IntegrationsModule {}
