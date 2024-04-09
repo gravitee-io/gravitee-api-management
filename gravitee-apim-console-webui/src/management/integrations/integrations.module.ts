@@ -30,7 +30,6 @@ import {
   GioBreadcrumbModule,
   GioClipboardModule,
   GioLoaderModule,
-  GioRadioButtonModule,
   GioSubmenuModule,
 } from '@gravitee/ui-particles-angular';
 import { MatStep, MatStepLabel, MatStepper, MatStepperIcon, MatStepperNext, MatStepperPrevious } from '@angular/material/stepper';
@@ -69,7 +68,6 @@ import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper
     IntegrationsRoutingModule,
     MatRadioGroup,
     MatRadioButton,
-    GioRadioButtonModule,
     MatStepper,
     MatStep,
     MatStepLabel,

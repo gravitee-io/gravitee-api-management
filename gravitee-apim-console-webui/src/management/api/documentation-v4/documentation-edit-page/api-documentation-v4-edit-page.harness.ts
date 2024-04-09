@@ -16,7 +16,7 @@
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
-import { MatRadioGroupHarness } from '@angular/material/radio/testing';
+import { GioFormSelectionInlineHarness } from '@gravitee/ui-particles-angular';
 
 import { ApiDocumentationV4VisibilityHarness } from '../components/api-documentation-v4-visibility/api-documentation-v4-visibility.harness';
 
@@ -27,7 +27,7 @@ export class ApiDocumentationV4EditPageHarness extends ComponentHarness {
   private deleteButtonLocator = this.locatorFor(MatButtonHarness.with({ text: 'Delete page' }));
   private nameInputLocator = this.locatorFor(MatInputHarness);
   private visibilityHarness = this.locatorFor(ApiDocumentationV4VisibilityHarness);
-  private sourceRadioHarness = this.locatorFor(MatRadioGroupHarness.with({ selector: '.stepper__content__source' }));
+  private sourceSelectionInlineHarness = this.locatorFor(GioFormSelectionInlineHarness.with({ selector: '.stepper__content__source' }));
 
   async getNextButton() {
     return this.nextButtonLocator();
@@ -51,9 +51,7 @@ export class ApiDocumentationV4EditPageHarness extends ComponentHarness {
 
   async checkVisibility(visibility: 'PRIVATE' | 'PUBLIC') {
     const visibilityHarness = await this.visibilityHarness();
-    const button =
-      visibility === 'PRIVATE' ? await visibilityHarness.getPrivateRadioOption() : await visibilityHarness.getPublicRadioOption();
-    return button.check();
+    await visibilityHarness.select(visibility);
   }
 
   async getVisibility() {
@@ -64,10 +62,14 @@ export class ApiDocumentationV4EditPageHarness extends ComponentHarness {
     return this.visibilityHarness().then((harness) => harness.formIsDisabled());
   }
 
-  async getSourceRadioGroupHarness() {
-    return await this.sourceRadioHarness();
+  async getSourceSelectionInlineHarnessHarness() {
+    return await this.sourceSelectionInlineHarness();
   }
   async getSourceOptions() {
-    return Promise.all(await this.sourceRadioHarness().then(async (radioGroup) => await radioGroup.getRadioButtons()));
+    return Promise.all(await this.sourceSelectionInlineHarness().then(async (radioGroup) => await radioGroup.getSelectionCards()));
+  }
+
+  async selectSource(value: string) {
+    return this.sourceSelectionInlineHarness().then((radioGroup) => radioGroup.select(value));
   }
 }
