@@ -111,6 +111,7 @@ $typography: map.get(gio.$mat-theme, typography);
     display: flex;
     justify-content: center;
     margin-bottom: 24px;
+    height: 72px;
   }
 
   &__message {
@@ -140,4 +141,19 @@ gio-banner-error {
 
 .body-strong {
   @include mat.typography-level($typography, body-1);
+}
+
+.background-circle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background-color: mat.get-color-from-palette(gio.$mat-primary-palette, 'lighter80');
+}
+
+.loadingTemplate {
+  height: 50vh;
+  display: flex;
 }

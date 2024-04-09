@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 import { AsyncFactoryFn, ComponentHarness, TestElement } from '@angular/cdk/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
 export class IntegrationOverviewHarness extends ComponentHarness {
   public static readonly hostSelector = 'app-integration-overview';
 
   private badgeErrorLocator: AsyncFactoryFn<TestElement> = this.locatorForOptional('.gio-badge-error');
   private badgeSuccessLocator: AsyncFactoryFn<TestElement> = this.locatorForOptional('.gio-badge-success');
+  private discoverButtonLocator: AsyncFactoryFn<MatButtonHarness> = this.locatorForOptional(
+    MatButtonHarness.with({ selector: '[data-testid=discover-button]' }),
+  );
 
   public getErrorBadge = async (): Promise<TestElement> => {
     return this.badgeErrorLocator();
@@ -27,5 +31,9 @@ export class IntegrationOverviewHarness extends ComponentHarness {
 
   public getSuccessBadge = async (): Promise<TestElement> => {
     return this.badgeSuccessLocator();
+  };
+
+  public getDiscoverButton = async (): Promise<MatButtonHarness> => {
+    return this.discoverButtonLocator();
   };
 }
