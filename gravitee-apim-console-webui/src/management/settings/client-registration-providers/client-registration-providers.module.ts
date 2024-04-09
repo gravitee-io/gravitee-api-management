@@ -44,7 +44,6 @@ import { RouterModule } from '@angular/router';
 import { ClientRegistrationProvidersComponent } from './client-registration-providers.component';
 import { ClientRegistrationProviderComponent } from './client-registration-provider/client-registration-provider.component';
 
-import { GioFormCardGroupModule } from '../../../shared/components/gio-form-card-group/gio-form-card-group.module';
 import { GioGoBackButtonModule } from '../../../shared/components/gio-go-back-button/gio-go-back-button.module';
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 
@@ -69,7 +68,6 @@ import { GioPermissionModule } from '../../../shared/components/gio-permission/g
     MatSelectModule,
     MatCheckboxModule,
 
-    GioFormCardGroupModule,
     GioIconsModule,
     GioBannerModule,
     GioFormSlideToggleModule,

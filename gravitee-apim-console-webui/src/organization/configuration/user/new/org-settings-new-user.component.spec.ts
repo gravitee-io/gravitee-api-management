@@ -22,7 +22,7 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { MatFormFieldHarness } from '@angular/material/form-field/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatSelectHarness } from '@angular/material/select/testing';
-import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
+import { GioFormSelectionInlineHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { Validators } from '@angular/forms';
 
 import { OrgSettingsNewUserComponent, UserType } from './org-settings-new-user.component';
@@ -31,7 +31,6 @@ import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing'
 import { OrganizationSettingsModule } from '../../organization-settings.module';
 import { fakeIdentityProviderListItem } from '../../../../entities/identity-provider';
 import { fakeUser } from '../../../../entities/user/user.fixture';
-import { GioFormCardGroupHarness } from '../../../../shared/components/gio-form-card-group/gio-form-card-group.harness';
 
 describe('OrgSettingsNewUserComponent', () => {
   let fixture: ComponentFixture<OrgSettingsNewUserComponent>;
@@ -64,7 +63,7 @@ describe('OrgSettingsNewUserComponent', () => {
     httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/identities`).flush([]);
     fixture.detectChanges();
 
-    const formCardGroup = await loader.getHarness(GioFormCardGroupHarness.with({ selector: '[formControlName=type]' }));
+    const formCardGroup = await loader.getHarness(GioFormSelectionInlineHarness.with({ selector: '[formControlName=type]' }));
     expect(await formCardGroup.getSelectedValue()).toEqual(UserType.EXTERNAL_USER);
 
     expect(component.userForm.get('firstName').hasValidator(Validators.required)).toBeTruthy();
@@ -116,7 +115,7 @@ describe('OrgSettingsNewUserComponent', () => {
     ]);
     fixture.detectChanges();
 
-    const formCardGroup = await loader.getHarness(GioFormCardGroupHarness.with({ selector: '[formControlName=type]' }));
+    const formCardGroup = await loader.getHarness(GioFormSelectionInlineHarness.with({ selector: '[formControlName=type]' }));
     expect(await formCardGroup.getSelectedValue()).toEqual(UserType.EXTERNAL_USER);
 
     expect(component.userForm.get('firstName').hasValidator(Validators.required)).toBeTruthy();
@@ -165,7 +164,7 @@ describe('OrgSettingsNewUserComponent', () => {
     httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/identities`).flush([]);
     fixture.detectChanges();
 
-    const formCardGroup = await loader.getHarness(GioFormCardGroupHarness.with({ selector: '[formControlName=type]' }));
+    const formCardGroup = await loader.getHarness(GioFormSelectionInlineHarness.with({ selector: '[formControlName=type]' }));
     expect(await formCardGroup.getSelectedValue()).toEqual(UserType.EXTERNAL_USER);
 
     await formCardGroup.select(UserType.SERVICE_ACCOUNT);
@@ -201,7 +200,7 @@ describe('OrgSettingsNewUserComponent', () => {
     httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/identities`).flush([]);
     fixture.detectChanges();
 
-    const formCardGroup = await loader.getHarness(GioFormCardGroupHarness.with({ selector: '[formControlName=type]' }));
+    const formCardGroup = await loader.getHarness(GioFormSelectionInlineHarness.with({ selector: '[formControlName=type]' }));
     expect(await formCardGroup.getSelectedValue()).toEqual(UserType.EXTERNAL_USER);
 
     await formCardGroup.select(UserType.SERVICE_ACCOUNT);
@@ -231,7 +230,7 @@ describe('OrgSettingsNewUserComponent', () => {
     httpTestingController.expectOne(`${CONSTANTS_TESTING.org.baseURL}/configuration/identities`).flush([]);
     fixture.detectChanges();
 
-    const formCardGroup = await loader.getHarness(GioFormCardGroupHarness.with({ selector: '[formControlName=type]' }));
+    const formCardGroup = await loader.getHarness(GioFormSelectionInlineHarness.with({ selector: '[formControlName=type]' }));
     expect(await formCardGroup.getSelectedValue()).toEqual(UserType.EXTERNAL_USER);
 
     // Fill form for External User

@@ -56,16 +56,16 @@
     }
 
     @if (applicationTypes.length > 1) {
-      <gio-form-card-group formControlName="type">
+      <gio-form-selection-inline formControlName="type">
         @for (type of applicationTypes; track type.id) {
-          <gio-form-card [value]="type.id">
-            <gio-form-card-content [icon]="type.icon">
-              <gio-form-card-content-title>{{ type.title }}</gio-form-card-content-title>
-              <gio-form-card-content-subtitle>{{ type.subtitle }}</gio-form-card-content-subtitle>
-            </gio-form-card-content>
-          </gio-form-card>
+          <gio-form-selection-inline-card [value]="type.id">
+            <gio-form-selection-inline-card-content [icon]="type.icon">
+              <gio-card-content-title>{{ type.title }}</gio-card-content-title>
+              <gio-card-content-subtitle>{{ type.subtitle }}</gio-card-content-subtitle>
+            </gio-form-selection-inline-card-content>
+          </gio-form-selection-inline-card>
         }
-      </gio-form-card-group>
+      </gio-form-selection-inline>
     }
 
     @if (applicationType$ | async; as applicationType) {

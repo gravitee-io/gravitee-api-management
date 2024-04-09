@@ -15,10 +15,8 @@
  */
 import { ComponentHarness, parallel } from '@angular/cdk/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
-import { GioFormTagsInputHarness } from '@gravitee/ui-particles-angular';
+import { GioFormSelectionInlineHarness, GioFormTagsInputHarness } from '@gravitee/ui-particles-angular';
 import { MatSelectHarness } from '@angular/material/select/testing';
-
-import { GioFormCardGroupHarness } from '../../../../shared/components/gio-form-card-group/gio-form-card-group.harness';
 
 export class ApplicationCreationFormHarness extends ComponentHarness {
   static readonly hostSelector = 'application-creation-form';
@@ -27,7 +25,7 @@ export class ApplicationCreationFormHarness extends ComponentHarness {
   private getDescriptionInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="description"]' }));
   private getDomainInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="domain"]' }));
 
-  private getTypeInput = this.locatorFor(GioFormCardGroupHarness.with({ selector: '[formControlName="type"]' }));
+  private getTypeInput = this.locatorFor(GioFormSelectionInlineHarness.with({ selector: '[formControlName="type"]' }));
 
   // Simple type
   private getAppTypeInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="appType"]' }));

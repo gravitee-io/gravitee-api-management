@@ -20,7 +20,7 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { MatSlideToggleHarness } from '@angular/material/slide-toggle/testing';
-import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
+import { GioFormSelectionInlineHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { ActivatedRoute } from '@angular/router';
 
@@ -28,7 +28,6 @@ import { ApiLogsConfigurationComponent } from './api-logs-configuration.componen
 
 import { ApiLogsModule } from '../api-logs.module';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
-import { GioFormCardGroupHarness } from '../../../../../shared/components/gio-form-card-group/gio-form-card-group.harness';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { ApiV2, fakeApiV2 } from '../../../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
@@ -126,7 +125,7 @@ describe('ApiLogsConfigurationComponent', () => {
       });
       expectApiGetRequest(api);
 
-      const groups = await loader.getAllHarnesses(GioFormCardGroupHarness);
+      const groups = await loader.getAllHarnesses(GioFormSelectionInlineHarness);
       for (const group of groups) {
         expect(await group.isDisabled()).toBe(true);
       }
@@ -139,7 +138,9 @@ describe('ApiLogsConfigurationComponent', () => {
         expect(await group.isDisabled()).toBe(false);
       }
 
-      const modeGroup = await loader.getHarness(GioFormCardGroupHarness.with({ selector: '.logging-card__logging-modes__card-group' }));
+      const modeGroup = await loader.getHarness(
+        GioFormSelectionInlineHarness.with({ selector: '.logging-card__logging-modes__card-group' }),
+      );
       expect(await modeGroup.getSelectedValue()).toStrictEqual('CLIENT_PROXY');
 
       await modeGroup.select('CLIENT');
@@ -167,15 +168,21 @@ describe('ApiLogsConfigurationComponent', () => {
       await loader.getHarness(MatSlideToggleHarness).then((toggle) => toggle.toggle());
       fixture.detectChanges();
 
-      const modeGroup = await loader.getHarness(GioFormCardGroupHarness.with({ selector: '.logging-card__logging-modes__card-group' }));
+      const modeGroup = await loader.getHarness(
+        GioFormSelectionInlineHarness.with({ selector: '.logging-card__logging-modes__card-group' }),
+      );
       await modeGroup.select('CLIENT');
       expect(await modeGroup.getSelectedValue()).toStrictEqual('CLIENT');
 
-      const scopeGroup = await loader.getHarness(GioFormCardGroupHarness.with({ selector: '.logging-card__scope-modes__card-group' }));
+      const scopeGroup = await loader.getHarness(
+        GioFormSelectionInlineHarness.with({ selector: '.logging-card__scope-modes__card-group' }),
+      );
       await scopeGroup.select('REQUEST');
       expect(await scopeGroup.getSelectedValue()).toStrictEqual('REQUEST');
 
-      const contentGroup = await loader.getHarness(GioFormCardGroupHarness.with({ selector: '.logging-card__content-modes__card-group' }));
+      const contentGroup = await loader.getHarness(
+        GioFormSelectionInlineHarness.with({ selector: '.logging-card__content-modes__card-group' }),
+      );
       await contentGroup.select('HEADERS');
       expect(await contentGroup.getSelectedValue()).toStrictEqual('HEADERS');
 
@@ -233,7 +240,7 @@ describe('ApiLogsConfigurationComponent', () => {
       });
       expectApiGetRequest(api);
 
-      const groups = await loader.getAllHarnesses(GioFormCardGroupHarness);
+      const groups = await loader.getAllHarnesses(GioFormSelectionInlineHarness);
       for (const group of groups) {
         expect(await group.isDisabled()).toBe(true);
       }

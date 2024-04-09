@@ -23,17 +23,17 @@
     <mat-card-content>
       <h2>User type</h2>
 
-      <gio-form-card-group class="org-settings-new-user__card__provider-type-group" formControlName="type">
-        <gio-form-card class="org-settings-new-user__card__user-type-group__button" value="EXTERNAL_USER">
+      <gio-form-selection-inline class="org-settings-new-user__card__provider-type-group" formControlName="type">
+        <gio-form-selection-inline-card class="org-settings-new-user__card__user-type-group__button" value="EXTERNAL_USER">
           <mat-icon class="org-settings-new-user__card__user-type-group__button__logo" matPrefix>perm_identity</mat-icon>
           <p class="org-settings-new-user__card__user-type-group__button__label">User</p>
-        </gio-form-card>
+        </gio-form-selection-inline-card>
 
-        <gio-form-card class="org-settings-new-user__card__user-type-group__button" value="SERVICE_ACCOUNT">
+        <gio-form-selection-inline-card class="org-settings-new-user__card__user-type-group__button" value="SERVICE_ACCOUNT">
           <mat-icon class="org-settings-new-user__card__user-type-group__button__logo" matPrefix>manage_accounts</mat-icon>
           <p class="org-settings-new-user__card__user-type-group__button__label">Service Account</p>
-        </gio-form-card>
-      </gio-form-card-group>
+        </gio-form-selection-inline-card>
+      </gio-form-selection-inline>
     </mat-card-content>
   </mat-card>
 

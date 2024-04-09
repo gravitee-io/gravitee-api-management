@@ -19,13 +19,12 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { GioBannerModule, GioFormTagsInputModule, GioIconsModule } from '@gravitee/ui-particles-angular';
+import { GioBannerModule, GioFormSelectionInlineModule, GioFormTagsInputModule, GioIconsModule } from '@gravitee/ui-particles-angular';
 import { MatRadioModule } from '@angular/material/radio';
 import { filter, map, share, startWith, tap } from 'rxjs/operators';
 import { MatSelectModule } from '@angular/material/select';
 import { Observable } from 'rxjs';
 
-import { GioFormCardGroupModule } from '../../../../shared/components/gio-form-card-group/gio-form-card-group.module';
 import { ApplicationType } from '../../../../entities/application-type/ApplicationType';
 
 export type ApplicationForm = {
@@ -57,7 +56,7 @@ export type ApplicationCreationFormApplicationType = ApplicationType & {
     MatButtonToggleModule,
     MatRadioModule,
     MatSelectModule,
-    GioFormCardGroupModule,
+    GioFormSelectionInlineModule,
     GioIconsModule,
     GioFormTagsInputModule,
     GioBannerModule,
