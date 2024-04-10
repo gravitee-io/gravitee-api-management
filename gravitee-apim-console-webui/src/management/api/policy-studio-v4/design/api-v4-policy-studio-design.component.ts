@@ -55,6 +55,7 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
   public plans: PSPlan[];
   public policies: PSPolicy[];
   public isLoading = true;
+  public isReadOnly = true;
 
   public trialURL: string;
 
@@ -141,6 +142,7 @@ export class ApiV4PolicyStudioDesignComponent implements OnInit, OnDestroy {
         // Set resources for specific json schema resource type component
         this.resourceTypeService.setResources(api.resources ?? []);
 
+        this.isReadOnly = api.definitionContext.origin === 'KUBERNETES';
         this.isLoading = false;
       });
     this.trialURL = this.gioLicenseService.getTrialURL({ feature: ApimFeature.APIM_DEBUG_MODE, context: UTMTags.CONTEXT_API_V4 });

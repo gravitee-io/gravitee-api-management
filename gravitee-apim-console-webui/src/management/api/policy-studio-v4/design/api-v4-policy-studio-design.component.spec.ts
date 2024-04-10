@@ -81,6 +81,108 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
     httpTestingController.verify();
   });
 
+  describe('KUBERNETES API origin', () => {
+    let api: ApiV4;
+    let planA: PlanV4;
+    let policyStudioHarness: GioPolicyStudioHarness;
+
+    beforeEach(async () => {
+      api = fakeApiV4({
+        id: API_ID,
+        definitionContext: {
+          origin: 'KUBERNETES',
+        },
+        name: 'my brand new API',
+        type: 'MESSAGE',
+        listeners: [
+          {
+            type: 'SUBSCRIPTION',
+            entrypoints: [
+              {
+                type: 'webhook',
+              },
+            ],
+          },
+        ],
+        endpointGroups: [
+          {
+            name: 'default-group',
+            type: 'kafka',
+            endpoints: [
+              {
+                name: 'default',
+                type: 'kafka',
+                weight: 1,
+                inheritConfiguration: false,
+                configuration: {
+                  bootstrapServers: 'localhost:9092',
+                },
+              },
+            ],
+          },
+        ],
+        flows: [
+          {
+            name: 'my flow',
+            enabled: true,
+            selectors: [
+              {
+                channel: 'my-channel',
+                channelOperator: 'EQUALS',
+                type: 'CHANNEL',
+              },
+            ],
+          },
+        ],
+      });
+
+      planA = fakePlanV4({
+        name: 'PlanA',
+        flows: [
+          {
+            name: 'PlanA flow',
+            selectors: [
+              {
+                type: 'CHANNEL',
+                channel: 'my-channel',
+                pathOperator: 'STARTS_WITH',
+                condition: 'The condition',
+                entrypoints: [],
+                operations: [],
+              },
+            ],
+            request: [
+              {
+                name: 'Mock',
+                description: 'Saying hello to the world',
+                enabled: true,
+                policy: 'mock',
+                configuration: { content: 'Hello world', status: '200' },
+              },
+            ],
+            response: [],
+            subscribe: [],
+            publish: [],
+            enabled: true,
+          },
+        ],
+      });
+
+      expectEntrypointsGetRequest([{ id: 'webhook', name: 'Webhook', supportedModes: ['SUBSCRIBE'] }]);
+      expectEndpointsGetRequest([{ id: 'kafka', name: 'Kafka', supportedModes: ['PUBLISH', 'SUBSCRIBE'] }]);
+      expectGetPolicies();
+
+      expectListApiPlans(API_ID, [planA]);
+      expectGetApi(api);
+      policyStudioHarness = await loader.getHarness(GioPolicyStudioHarness);
+    });
+
+    it('should make policy studio readonly', async () => {
+      const isReadOnly = await policyStudioHarness.isReadOnly();
+      expect(isReadOnly).toBe(true);
+    });
+  });
+
   describe('MESSAGE API type', () => {
     let api: ApiV4;
     let planA: PlanV4;
@@ -89,6 +191,9 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
     beforeEach(async () => {
       api = fakeApiV4({
         id: API_ID,
+        definitionContext: {
+          origin: 'MANAGEMENT',
+        },
         name: 'my brand new API',
         type: 'MESSAGE',
         listeners: [
@@ -173,6 +278,11 @@ describe('ApiV4PolicyStudioDesignComponent', () => {
       expectGetApi(api);
 
       policyStudioHarness = await loader.getHarness(GioPolicyStudioHarness);
+    });
+
+    it('should not make policy studio readonly', async () => {
+      const isReadOnly = await policyStudioHarness.isReadOnly();
+      expect(isReadOnly).toBe(false);
     });
 
     it('should display simple policy studio', async () => {
