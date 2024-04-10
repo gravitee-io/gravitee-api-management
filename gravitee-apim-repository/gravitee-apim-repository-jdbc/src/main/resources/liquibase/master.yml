@@ -162,6 +162,8 @@ databaseChangeLog:
   - include:
       - file: liquibase/changelogs/v4_0_20/schema-dashboards.yml
   - include:
+      - file: liquibase/changelogs/v4_0_22/schema-idp.yml
+  - include:
       - file: liquibase/changelogs/v4_2_0/schema.yml
   - include:
       - file: liquibase/changelogs/v4_2_0/schema-quality-rules.yml
