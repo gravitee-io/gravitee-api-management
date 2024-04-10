@@ -20,16 +20,16 @@
     <h2>Manage your subscriptions</h2>
   </div>
   <div *ngIf="subscriptionsTableDS && !isLoadingData" class="subscriptions__header__buttons">
-    <a
+    <button
       *gioPermission="{ anyOf: ['application-subscription-c'] }"
       mat-raised-button
       type="button"
       color="primary"
       aria-label="Create a subscription"
-      routerLink="./subscribe"
+      (click)="createSubscription()"
     >
       <mat-icon svgIcon="gio:plus"></mat-icon>Create a subscription
-    </a>
+    </button>
   </div>
 </div>
 

@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { NewSubscriptionEntity } from 'src/entities/application';
+
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, of } from 'rxjs';
@@ -168,6 +170,7 @@ export class ApplicationService {
       status?: string[];
       apiKey?: string;
       apis?: string[];
+      security_types?: string[];
     },
     page: number = 1,
     size: number = 20,
@@ -177,6 +180,7 @@ export class ApplicationService {
     if (filters?.status?.length > 0) params = params.append('status', filters.status.join(','));
     if (filters?.apis?.length > 0) params = params.append('api', filters.apis.join(','));
     if (filters?.apiKey) params = params.append('api_key', filters.apiKey);
+    if (filters?.security_types) params = params.append('security_types', filters.security_types.join(','));
     if (expand?.length > 0) params = params.append('expand', expand.join(','));
 
     return this.http.get<PagedResult<ApplicationSubscription>>(
@@ -188,6 +192,18 @@ export class ApplicationService {
   getSubscription(applicationId: string, subscriptionId: string): Observable<ApplicationSubscription> {
     return this.http.get<ApplicationSubscription>(
       `${this.constants.env.baseURL}/applications/${applicationId}/subscriptions/${subscriptionId}`,
+    );
+  }
+
+  subscribe(applicationId: string, planId: string, subscription: NewSubscriptionEntity) {
+    return this.http.post<ApplicationSubscription>(
+      `${this.constants.env.baseURL}/applications/${applicationId}/subscriptions`,
+      subscription,
+      {
+        params: {
+          plan: planId,
+        },
+      },
     );
   }
 
