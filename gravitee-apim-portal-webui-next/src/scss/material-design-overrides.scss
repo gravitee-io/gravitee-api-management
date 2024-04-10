@@ -23,3 +23,7 @@ button {
   --mat-filled-button-horizontal-padding: 24px;
   --mat-protected-button-horizontal-padding: 24px;
 }
+
+mat-card {
+  --mdc-elevated-card-container-elevation: 0;
+}
