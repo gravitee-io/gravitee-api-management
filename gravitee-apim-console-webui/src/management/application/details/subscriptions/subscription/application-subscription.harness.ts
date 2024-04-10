@@ -13,8 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentHarness } from '@angular/cdk/testing';
+import { ComponentHarness, parallel } from '@angular/cdk/testing';
+import { chunk } from 'lodash';
 
 export class ApplicationSubscriptionHarness extends ComponentHarness {
   static readonly hostSelector = 'application-subscription';
+
+  private getSubscriptionDetailsToChunk = () => this.locatorForAll(`dt, dd`)();
+
+  async getSubscriptionDetails(): Promise<string[][]> {
+    const subscriptionDetails = await this.getSubscriptionDetailsToChunk();
+
+    const subscriptionDetailsToChunk = await parallel(() => subscriptionDetails.map(async (detail) => await detail.text()));
+    return chunk(subscriptionDetailsToChunk, 2);
+  }
 }

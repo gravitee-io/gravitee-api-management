@@ -24,7 +24,7 @@ import { Constants } from '../entities/Constants';
 import { PagedResult } from '../entities/pagedResult';
 import { Application, ApplicationType } from '../entities/application/Application';
 import { SubscribedApi } from '../entities/application/SubscribedApi';
-import { ApplicationSubscription } from '../entities/subscription/subscription';
+import { ApplicationSubscription, Subscription } from '../entities/subscription/subscription';
 import { ApplicationLog } from '../entities/application/ApplicationLog';
 import { MembershipListItem } from '../entities/role/membershipListItem';
 import { CreateApplication } from '../entities/application/CreateApplication';
@@ -189,10 +189,8 @@ export class ApplicationService {
     );
   }
 
-  getSubscription(applicationId: string, subscriptionId: string): Observable<ApplicationSubscription> {
-    return this.http.get<ApplicationSubscription>(
-      `${this.constants.env.baseURL}/applications/${applicationId}/subscriptions/${subscriptionId}`,
-    );
+  getSubscription(applicationId: string, subscriptionId: string): Observable<Subscription> {
+    return this.http.get<Subscription>(`${this.constants.env.baseURL}/applications/${applicationId}/subscriptions/${subscriptionId}`);
   }
 
   subscribe(applicationId: string, planId: string, subscription: NewSubscriptionEntity) {

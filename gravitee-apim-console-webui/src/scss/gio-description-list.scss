@@ -4,6 +4,7 @@
 
 $foreground: map.get(gio.$mat-theme, foreground);
 $background: map.get(gio.$mat-theme, background);
+$typography: map.get(gio.$mat-theme, typography);
 
 dl.gio-description-list {
   display: flex;
@@ -11,14 +12,16 @@ dl.gio-description-list {
 
   dt {
     flex: 1 1 30%;
-    padding: 4px 8px;
-    color: mat.get-color-from-palette($foreground, disabled);
+    padding: 6px 8px;
+    color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+    @include mat.typography-level($typography, body-1);
   }
 
   dd {
     flex: 1 1 70%;
     margin: 0;
-    padding: 4px 8px;
+    padding: 6px 8px;
+    @include mat.typography-level($typography, subtitle-2);
   }
 
   dd ~ dd,

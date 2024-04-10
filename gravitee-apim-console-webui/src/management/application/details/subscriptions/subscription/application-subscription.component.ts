@@ -14,15 +14,27 @@
  * limitations under the License.
  */
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
+import { ActivatedRoute } from '@angular/router';
+import { GioClipboardModule, GioIconsModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
+
+import { ApplicationService } from '../../../../../services-ngx/application.service';
 
 @Component({
   selector: 'application-subscription',
   templateUrl: './application-subscription.component.html',
   styleUrls: ['./application-subscription.component.scss'],
-  imports: [CommonModule, MatCardModule, MatButtonModule],
+  imports: [CommonModule, MatCardModule, MatButtonModule, GioLoaderModule, GioIconsModule, GioClipboardModule],
   standalone: true,
 })
-export class ApplicationSubscriptionComponent {}
+export class ApplicationSubscriptionComponent {
+  private readonly activatedRoute = inject(ActivatedRoute);
+  private readonly applicationService = inject(ApplicationService);
+
+  public subscription$ = this.applicationService.getSubscription(
+    this.activatedRoute.snapshot.params.applicationId,
+    this.activatedRoute.snapshot.params.subscriptionId,
+  );
+}
