@@ -20,10 +20,13 @@ import static org.junit.Assert.*;
 
 import io.gravitee.repository.management.model.IdentityProvider;
 import io.gravitee.repository.management.model.IdentityProviderType;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeMap;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -220,6 +223,50 @@ public class IdentityProviderRepositoryTest extends AbstractManagementRepository
     }
 
     @Test
+    public void shouldBeAbleToStoreBigGroupMappingAndRoleMapping() throws Exception {
+        Optional<IdentityProvider> optional = identityProviderRepository.findById("idp-1");
+        Assert.assertTrue("Identity provider to update not found", optional.isPresent());
+        Assert.assertEquals("Invalid saved identity provider name.", "Google", optional.get().getName());
+
+        Map<String, String[]> veryBigGroupMappings = new HashMap<>();
+        Map<String, String[]> veryBigRoleMappings = new HashMap<>();
+        for (int i = 0; i < 50; i++) {
+            veryBigGroupMappings.put(
+                "{#jsonPath(#profile, '$.groups').contains('long_text_to_increase_the_final_size_" + i + "')}",
+                new String[] { "A_very_very_long_group_id_to_increase_the_final_size_" + i }
+            );
+            veryBigRoleMappings.put(
+                "{#jsonPath(#profile, '$.groups').contains('long_text_to_increase_the_final_size_" + i + "')}",
+                new String[] { "A_very_very_long_role_id_to_increase_the_final_size_" + i }
+            );
+        }
+
+        final IdentityProvider identityProvider = optional.get();
+        identityProvider.setGroupMappings(veryBigGroupMappings);
+        identityProvider.setRoleMappings(veryBigRoleMappings);
+
+        int nbIdentityProvidersBeforeUpdate = identityProviderRepository.findAll().size();
+        identityProviderRepository.update(identityProvider);
+        int nbIdentityProvidersAfterUpdate = identityProviderRepository.findAll().size();
+
+        Assert.assertEquals(nbIdentityProvidersBeforeUpdate, nbIdentityProvidersAfterUpdate);
+
+        Optional<IdentityProvider> optionalUpdated = identityProviderRepository.findById("idp-1");
+        Assert.assertTrue("Identity provider to update not found", optionalUpdated.isPresent());
+
+        final IdentityProvider identityProviderUpdated = optionalUpdated.get();
+        Assert.assertEquals("Invalid saved identity provider name.", identityProvider.getName(), identityProviderUpdated.getName());
+        Assert.assertTrue(
+            "Invalid saved identity provider group mappings list.",
+            areEqualWithArrayValue(identityProvider.getGroupMappings(), identityProviderUpdated.getGroupMappings())
+        );
+        Assert.assertTrue(
+            "Invalid saved identity provider role mappings list.",
+            areEqualWithArrayValue(identityProvider.getRoleMappings(), identityProviderUpdated.getRoleMappings())
+        );
+    }
+
+    @Test
     public void shouldDelete() throws Exception {
         int nbIdentityProvidersBeforeDeletion = identityProviderRepository.findAll().size();
         identityProviderRepository.delete("idp-3");
@@ -241,5 +288,13 @@ public class IdentityProviderRepositoryTest extends AbstractManagementRepository
     public void shouldNotUpdateNull() throws Exception {
         identityProviderRepository.update(null);
         fail("A null identity provider should not be updated");
+    }
+
+    private boolean areEqualWithArrayValue(Map<String, String[]> first, Map<String, String[]> second) {
+        if (first.size() != second.size()) {
+            return false;
+        }
+
+        return first.entrySet().stream().allMatch(e -> Arrays.equals(e.getValue(), second.get(e.getKey())));
     }
 }
