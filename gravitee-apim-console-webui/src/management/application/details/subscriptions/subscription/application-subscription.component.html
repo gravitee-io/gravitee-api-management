@@ -18,11 +18,75 @@
 
 <mat-card>
   <mat-card-header>
-    <mat-card-title>Hello application-subscription !</mat-card-title>
-    <mat-card-subtitle>Add a description here</mat-card-subtitle>
-    <div class="application-subscription__headerRightBtn">
-      <button mat-button>Right button</button>
-    </div>
+    <mat-card-title>Subscription details</mat-card-title>
   </mat-card-header>
-  <mat-card-content> Put your card content here ! 👀 </mat-card-content>
+  @if (subscription$ | async; as subscription) {
+    <mat-card-content>
+      <dl class="gio-description-list">
+        <dt>ID</dt>
+        <dd gioClipboardCopyWrapper [contentToCopy]="subscription.id">
+          {{ subscription.id || '-' }}
+        </dd>
+
+        <dt>API</dt>
+        <dd gioClipboardCopyWrapper [contentToCopy]="subscription.api.name + ' - ' + subscription.api.version">
+          {{ subscription.api.name }} - {{ subscription.api.version }}
+        </dd>
+
+        <dt>Plan</dt>
+        <dd gioClipboardCopyWrapper [contentToCopy]="subscription.plan.name">
+          {{ subscription.plan.name || '-' }}
+        </dd>
+
+        <dt>Status</dt>
+        <dd gioClipboardCopyWrapper [contentToCopy]="pageVM.subscription.status | uppercase">
+          {{ (subscription.status | uppercase) || '-' }}
+        </dd>
+
+        <dt>Subscribed by</dt>
+        <dd gioClipboardCopyWrapper [contentToCopy]="subscription.subscribed_by.displayName">
+          {{ subscription.subscribed_by.displayName || '-' }}
+        </dd>
+
+        @if (subscription.request) {
+          <dt>Publisher message to subscriber</dt>
+          <dd gioClipboardCopyWrapper [contentToCopy]="subscription.request">
+            {{ subscription.request || '-' }}
+          </dd>
+        }
+
+        @if (subscription.reason) {
+          <dt>Subscriber message to publisher</dt>
+          <dd gioClipboardCopyWrapper [contentToCopy]="subscription.reason">
+            {{ subscription.reason || '-' }}
+          </dd>
+        }
+
+        <dt>Created at</dt>
+        <dd>{{ (subscription.created_at | date: 'medium') || '-' }}</dd>
+        <dt>Processed at</dt>
+        <dd>{{ (subscription.processed_at || '-' | date: 'medium') || '-' }}</dd>
+
+        @if ('REJECTED' !== subscription.status) {
+          <dt>Starting at</dt>
+          <dd>{{ (subscription.starting_at | date: 'medium') || '-' }}</dd>
+          <dt>Paused at</dt>
+          <dd>{{ (subscription.paused_at | date: 'medium') || '-' }}</dd>
+          <dt>Ending at</dt>
+          <dd>{{ (subscription.ending_at | date: 'medium') || '-' }}</dd>
+        }
+        <dt>Closed at</dt>
+        <dd>{{ (subscription.closed_at | date: 'medium') || '-' }}</dd>
+      </dl>
+    </mat-card-content>
+
+    <mat-card-actions>
+      <button mat-raised-button color="warn">
+        <mat-icon svgIcon="gio:x-circle"></mat-icon>
+        Close
+      </button>
+    </mat-card-actions>
+  } @else {
+    <mat-card-content> <gio-loader></gio-loader> </mat-card-content>
+  }
 </mat-card>
