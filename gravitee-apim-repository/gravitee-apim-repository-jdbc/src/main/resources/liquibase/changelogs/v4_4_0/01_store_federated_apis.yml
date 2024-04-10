@@ -12,3 +12,4 @@ databaseChangeLog:
         - dropNotNullConstraint:
             tableName: ${gravitee_prefix}apis
             columnName: lifecycle_state
+            columnDataType: nvarchar(64)
