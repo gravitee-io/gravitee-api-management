@@ -91,11 +91,11 @@ export class ApiEndpointGroupsHarness extends ComponentHarness {
     return button.click();
   }
 
-  public async getMoveUpButton(index) {
+  public async getMoveUpButton(index: number) {
     return await this.locatorForOptional(MatButtonHarness.with({ selector: `#moveUpBtn-${index}` }))();
   }
 
-  public async getMoveDownButton(index) {
+  public async getMoveDownButton(index: number) {
     return await this.locatorForOptional(MatButtonHarness.with({ selector: `#moveDownBtn-${index}` }))();
   }
 

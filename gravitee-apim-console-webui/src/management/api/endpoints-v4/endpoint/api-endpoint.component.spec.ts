@@ -32,6 +32,7 @@ import { ApiEndpointHarness } from './api-endpoint.harness';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { ApiV4, fakeApiV4, fakeConnectorPlugin, fakeProxyApiV4 } from '../../../../entities/management-api-v2';
 import { fakeEndpointGroupV4, fakeHTTPProxyEndpointGroupV4 } from '../../../../entities/management-api-v2/api/v4/endpointGroupV4.fixture';
+import { GioPermissionService } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 const healthCheckSchema = {
   $schema: 'http://json-schema.org/draft-07/schema#',
@@ -76,7 +77,15 @@ describe('ApiEndpointComponent', () => {
     TestBed.configureTestingModule({
       declarations: [TestComponent],
       imports: [NoopAnimationsModule, GioTestingModule, ApiEndpointModule, MatIconTestingModule],
-      providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: routerParams } } }],
+      providers: [
+        { provide: ActivatedRoute, useValue: { snapshot: { params: routerParams } } },
+        {
+          provide: GioPermissionService,
+          useValue: {
+            hasAnyMatching: Boolean,
+          },
+        },
+      ],
     });
 
     fixture = TestBed.createComponent(TestComponent);

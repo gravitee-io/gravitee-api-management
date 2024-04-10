@@ -45,6 +45,7 @@ export class ApiEndpointGroupsComponent implements OnInit, OnDestroy {
   public shouldUpgrade = false;
   public license$: Observable<License>;
   public isOEM$: Observable<boolean>;
+  public isReadOnly = true;
   public api: ApiV4;
 
   private licenseOptions = {
@@ -69,6 +70,8 @@ export class ApiEndpointGroupsComponent implements OnInit, OnDestroy {
         tap(([apiV4, plugins]: [ApiV4, ConnectorPlugin[]]) => {
           this.api = apiV4;
           this.groupsTableData = toEndpoints(apiV4);
+
+          this.isReadOnly = this.api.definitionContext?.origin === 'KUBERNETES';
 
           this.plugins = new Map(
             plugins.map((plugin) => [

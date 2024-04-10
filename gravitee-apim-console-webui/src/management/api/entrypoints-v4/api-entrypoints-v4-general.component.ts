@@ -81,6 +81,7 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
   public shouldUpgrade = false;
   public license$: Observable<License>;
   public isOEM$: Observable<boolean>;
+  public isReadOnly = true;
   public canUpdate = false;
   constructor(
     private readonly activatedRoute: ActivatedRoute,
@@ -125,6 +126,8 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
       this.isOEM$ = this.licenseService.isOEM$();
     }
 
+    this.isReadOnly = api.definitionContext.origin === 'KUBERNETES';
+
     this.api = api as ApiV4;
     this.formGroup = new UntypedFormGroup({});
 
@@ -133,7 +136,10 @@ export class ApiEntrypointsV4GeneralComponent implements OnInit, OnDestroy {
       this.apiExistingPaths = httpListeners.flatMap((listener) => {
         return (listener as HttpListener).paths;
       });
-      this.pathsFormControl = this.formBuilder.control({ value: this.apiExistingPaths, disabled: !this.canUpdate }, Validators.required);
+      this.pathsFormControl = this.formBuilder.control(
+        { value: this.apiExistingPaths, disabled: this.isReadOnly || !this.canUpdate },
+        Validators.required,
+      );
       this.formGroup.addControl('paths', this.pathsFormControl);
       this.enableVirtualHost = this.apiExistingPaths.some((path) => path.host !== undefined);
     } else {

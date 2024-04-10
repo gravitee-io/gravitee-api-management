@@ -133,7 +133,7 @@ export class ApiEndpointGroupComponent implements OnInit, OnDestroy {
           isEndpointNameUniqueAndDoesNotMatchDefaultValue(this.api, this.endpointGroup.name),
         ],
       ),
-      loadBalancerType: new UntypedFormControl({ value: this.endpointGroup.loadBalancer?.type ?? null, disabled: false }, [
+      loadBalancerType: new UntypedFormControl({ value: this.endpointGroup.loadBalancer?.type ?? null, disabled: this.isReadOnly }, [
         Validators.required,
       ]),
     });

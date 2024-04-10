@@ -47,7 +47,7 @@
               class="endpoint-group-card__header__actions__button"
               aria-label="Reorder element to a higher position"
               (click)="reorderEndpointGroup(i, i - 1)"
-              [disabled]="isReordering"
+              [disabled]="isReadOnly || isReordering"
             >
               <mat-icon svgIcon="gio:arrow-up"></mat-icon>
             </button>
@@ -58,17 +58,17 @@
               class="endpoint-group-card__header__actions__button"
               aria-label="Reorder element to a lower position"
               (click)="reorderEndpointGroup(i + 1, i)"
-              [disabled]="isReordering"
+              [disabled]="isReadOnly || isReordering"
             >
               <mat-icon svgIcon="gio:arrow-down"></mat-icon>
             </button>
             <button
               *gioPermission="{ anyOf: ['api-definition-u'] }"
               mat-stroked-button
-              aria-label="Edit endpoint group"
+              [attr.aria-label]="isReadOnly ? 'View endpoint group' : 'Edit endpoint group'"
               [routerLink]="['./', i]"
             >
-              <mat-icon svgIcon="gio:edit-pencil"></mat-icon>Edit
+              <mat-icon [svgIcon]="isReadOnly ? 'gio:eye-empty' : 'gio:edit-pencil'"></mat-icon>{{ isReadOnly ? 'View' : 'Edit' }}
             </button>
             <ng-container *gioPermission="{ anyOf: ['api-definition-u'] }">
               <button
@@ -76,6 +76,7 @@
                 mat-stroked-button
                 aria-label="Delete endpoints group"
                 (click)="deleteGroup(group.name)"
+                [disabled]="isReadOnly"
               >
                 <mat-icon svgIcon="gio:trash"></mat-icon>
                 Delete
@@ -119,14 +120,19 @@
             <th mat-header-cell *matHeaderCellDef id="actions">Actions</th>
             <td mat-cell *matCellDef="let element; let j = index">
               <div class="endpoint-group-card__table__actions" *gioPermission="{ anyOf: ['api-definition-u'] }">
-                <a mat-icon-button aria-label="Edit endpoint" matTooltip="Edit endpoint" [routerLink]="['./', i, j]">
-                  <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
+                <a
+                  mat-icon-button
+                  [attr.aria-label]="isReadOnly ? 'View endpoint' : 'Edit endpoint'"
+                  [matTooltip]="isReadOnly ? 'View endpoint' : 'Edit endpoint'"
+                  [routerLink]="['./', i, j]"
+                >
+                  <mat-icon [svgIcon]="isReadOnly ? 'gio:eye-empty' : 'gio:edit-pencil'"></mat-icon>
                 </a>
                 <button
                   mat-icon-button
                   aria-label="Delete endpoint"
                   (click)="deleteEndpoint(group.name, element.name)"
-                  [disabled]="groupsTableData?.length === 1 && group.endpoints.length === 1"
+                  [disabled]="isReadOnly || (groupsTableData?.length === 1 && group.endpoints.length === 1)"
                 >
                   <mat-icon
                     [matTooltip]="
@@ -155,6 +161,7 @@
           aria-label="Add endpoint"
           class="add_endpoint"
           [routerLink]="['./', i, 'new']"
+          [disabled]="isReadOnly"
           >Add endpoint</a
         >
       </mat-card-content>
@@ -168,6 +175,7 @@
   color="primary"
   aria-label="Add endpoint group"
   [routerLink]="['./', 'new']"
+  [disabled]="isReadOnly"
 >
   Add endpoint group
 </button>

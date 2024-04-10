@@ -48,7 +48,7 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
   private groupIndex: number;
   private endpointIndex: number;
   public endpointGroup: EndpointGroupV4;
-  public isReadOnly: boolean;
+  public isReadOnly = false;
   public formGroup: UntypedFormGroup;
   public endpointSchema: { config: GioJsonSchema; sharedConfig: GioJsonSchema };
   public connectorPlugin: ConnectorPlugin;
@@ -85,7 +85,10 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
           this.api = api;
 
           this.isHttpProxyApi = api.type === 'PROXY' && !(api.listeners.find((listener) => listener.type === 'TCP') != null);
-          this.isReadOnly = !this.permissionService.hasAnyMatching(['api-definition-r']) || api.definitionContext?.origin === 'KUBERNETES';
+
+          const isKubernetesOrigin = api.definitionContext?.origin === 'KUBERNETES';
+          const hasPermission = this.permissionService.hasAnyMatching(['api-definition-r']);
+          this.isReadOnly = isKubernetesOrigin || !hasPermission;
 
           this.endpointGroup = api.endpointGroups[this.groupIndex];
 
@@ -317,7 +320,12 @@ export class ApiEndpointComponent implements OnInit, OnDestroy {
       sharedConfigurationOverride: new UntypedFormControl({ value: sharedConfigurationOverride, disabled: inheritConfiguration }),
       healthCheck: this.healthCheckForm,
     });
+
+    if (this.isReadOnly) {
+      this.formGroup.disable({ emitEvent: false });
+    }
   }
+
   private resetHealthCheckToGroup() {
     this.healthCheckForm.controls.enabled.patchValue(this.endpointGroup.services?.healthCheck?.enabled ?? false);
     this.healthCheckForm.controls.configuration.patchValue(this.endpointGroup.services?.healthCheck?.configuration ?? {});
