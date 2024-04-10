@@ -46,7 +46,7 @@ import {
   VerifySubscription,
 } from '../../../../entities/management-api-v2';
 import { PagedResult } from '../../../../entities/pagedResult';
-import { Application } from '../../../../entities/application/Application';
+import { ApiKeyMode as ApplicationApiKeyMode, Application } from '../../../../entities/application/Application';
 import { fakeApplication } from '../../../../entities/application/Application.fixture';
 import { ApiPortalSubscriptionCreationDialogHarness } from '../components/dialogs/creation/api-portal-subscription-creation-dialog.harness';
 import { PlanSecurityType } from '../../../../entities/plan';
@@ -487,6 +487,48 @@ describe('ApiSubscriptionListComponent', () => {
 
       flush();
     }));
+
+    it('should not display custom api key for applications with share api key mode', fakeAsync(async () => {
+      await init({
+        customApiKey: { enabled: true },
+        sharedApiKey: { enabled: true },
+      });
+      const planV4 = fakePlanV4({ generalConditions: undefined });
+      const application = fakeApplication({ api_key_mode: ApplicationApiKeyMode.SHARED });
+
+      await initComponent([], fakeApiV4({ id: API_ID, listeners: [] }), [planV4]);
+      const harness = await loader.getHarness(ApiSubscriptionListHarness);
+
+      const createSubBtn = await harness.getCreateSubscriptionButton();
+      expect(await createSubBtn).toBeDefined();
+      expect(await createSubBtn.isDisabled()).toEqual(false);
+
+      await createSubBtn.click();
+
+      const creationDialogHarness = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
+        ApiPortalSubscriptionCreationDialogHarness,
+      );
+      expect(await creationDialogHarness.getTitleText()).toEqual('Create a subscription');
+
+      await creationDialogHarness.searchApplication('application');
+      tick(400);
+      expectApplicationsSearch('application', [application]);
+      tick();
+      await creationDialogHarness.selectApplication('application');
+      tick(400);
+      expectSubscriptionsForApplication(application.id, [
+        {
+          security: PlanSecurityType.API_KEY,
+          api: 'another-plan-id',
+        },
+      ]);
+      await creationDialogHarness.choosePlan(planV4.name);
+
+      expect(await creationDialogHarness.isApiKeyModeRadioGroupDisplayed()).toBeFalsy();
+      expect(await creationDialogHarness.isCustomApiKeyInputDisplayed()).toBeFalsy();
+      flush();
+    }));
+
     it('should create subscription to a API Key plan without customApiKey', fakeAsync(async () => {
       await init();
       const planV4 = fakePlanV4({ generalConditions: undefined });

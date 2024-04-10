@@ -1,0 +1,16 @@
+@use 'sass:map';
+@use '../../../../../../node_modules/@angular/material/index' as mat;
+@use '../../../../../../node_modules/@gravitee/ui-particles-angular/index' as gio;
+
+.subscription-creation {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  &__api-option {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    align-items: center;
+  }
+}

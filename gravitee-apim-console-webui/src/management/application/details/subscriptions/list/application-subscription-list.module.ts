@@ -24,18 +24,21 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 
 import { ApplicationSubscriptionListComponent } from './application-subscription-list.component';
 
 import { GioTableWrapperModule } from '../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../../../../shared/components/gio-permission/gio-permission.module';
+import { ApplicationSubscriptionCreationDialogModule } from '../creation';
 
 @NgModule({
   declarations: [ApplicationSubscriptionListComponent],
   imports: [
+    ApplicationSubscriptionCreationDialogModule,
     CommonModule,
+    FormsModule,
     GioIconsModule,
     GioLoaderModule,
     GioPermissionModule,
