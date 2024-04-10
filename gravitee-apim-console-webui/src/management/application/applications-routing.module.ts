@@ -20,7 +20,7 @@ import { ApplicationNavigationComponent } from './application-navigation/applica
 import { EnvApplicationListComponent } from './list/env-application-list.component';
 import { ApplicationGuard } from './application.guard';
 import { ApplicationMetadataComponent } from './details/metadata/application-metadata.component';
-import { ApplicationSubscriptionComponent } from './details/subscriptions/application-subscription.component';
+import { ApplicationSubscriptionComponent as ApplicationSubscriptionComponentAjs } from './details/subscriptions/application-subscription.component';
 import { ApplicationAnalyticsComponent } from './details/analytics/application-analytics.component';
 import { ApplicationLogsComponent } from './details/logs/application-logs.component';
 import { ApplicationLogComponent } from './details/logs/application-log.component';
@@ -33,6 +33,7 @@ import { ApplicationGeneralComponent } from './details/general/application-gener
 import { ApplicationNotificationComponent } from './details/notification/application-notification.component';
 import { ApplicationSubscriptionListComponent } from './details/subscriptions/list/application-subscription-list.component';
 import { ApplicationCreationComponent } from './creation-ng/application-creation.component';
+import { ApplicationSubscriptionComponent } from './details/subscriptions/subscription/application-subscription.component';
 
 import { PermissionGuard } from '../../shared/components/gio-permission/gio-permission.guard';
 
@@ -125,6 +126,18 @@ const applicationRoutes: Routes = [
       {
         path: 'subscriptions/:subscriptionId',
         component: ApplicationSubscriptionComponent,
+        data: {
+          permissions: {
+            anyOf: ['application-subscription-r'],
+          },
+          docs: {
+            page: 'management-application-subscriptions',
+          },
+        },
+      },
+      {
+        path: 'subscriptions-old/:subscriptionId',
+        component: ApplicationSubscriptionComponentAjs,
         data: {
           permissions: {
             anyOf: ['application-subscription-r'],
