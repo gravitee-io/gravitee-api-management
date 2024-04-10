@@ -18,6 +18,7 @@
     "target": "ES2022",
     "module": "ES2022",
     "useDefineForClassFields": false,
+    "strictPropertyInitialization": false,
     "lib": ["ES2022", "dom"],
     "types": ["@angular/localize"]
   },

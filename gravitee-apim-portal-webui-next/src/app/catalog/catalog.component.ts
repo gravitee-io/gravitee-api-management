@@ -13,20 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { MatCard, MatCardContent } from '@angular/material/card';
 
+import { ApiCardComponent } from '../../components/api-card/api-card.component';
 import { BannerComponent } from '../../components/banner/banner.component';
+
+export interface ApiVM {
+  title: string;
+  version: string;
+  content: string;
+  id: number;
+}
 
 @Component({
   selector: 'app-catalog',
   standalone: true,
-  imports: [BannerComponent, MatCard, MatCardContent],
+  imports: [BannerComponent, MatCard, MatCardContent, ApiCardComponent, CommonModule],
   templateUrl: './catalog.component.html',
   styleUrl: './catalog.component.scss',
 })
 export class CatalogComponent {
-  apis: string[] = [];
+  apis: ApiVM[] = [
+    {
+      title: 'Test tile',
+      version: 'v.1.2',
+      content:
+        'Get real-time weather updates, forecasts, and historical data to enhance your applications with accurate weather information.',
+      id: 1,
+    },
+  ];
 
   // TODO: Get banner title + subtitle from configuration
   bannerTitle: string = 'Welcome to Gravitee Developer Portal!';
