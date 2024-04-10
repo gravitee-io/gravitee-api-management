@@ -168,6 +168,7 @@ export class ApplicationService {
       status?: string[];
       apiKey?: string;
       apis?: string[];
+      security_types?: string[];
     },
     page: number = 1,
     size: number = 20,
@@ -177,6 +178,7 @@ export class ApplicationService {
     if (filters?.status?.length > 0) params = params.append('status', filters.status.join(','));
     if (filters?.apis?.length > 0) params = params.append('api', filters.apis.join(','));
     if (filters?.apiKey) params = params.append('api_key', filters.apiKey);
+    if (filters?.security_types) params = params.append('security_types', filters.security_types.join(','));
     if (expand?.length > 0) params = params.append('expand', expand.join(','));
 
     return this.http.get<PagedResult<ApplicationSubscription>>(

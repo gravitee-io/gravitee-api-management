@@ -30,6 +30,7 @@ export class ApplicationSubscriptionListHarness extends ComponentHarness {
   public getResetFilterButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Reset filters"]' }));
   public getTable = this.locatorFor(MatTableHarness.with({ selector: '#subscriptionsTable' }));
   public getEditButtons = this.locatorForAll(MatButtonHarness.with({ selector: '[aria-label="View the subscription details"]' }));
+  public getCreateButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Create a subscription"]' }));
 
   public async getApis(): Promise<string[]> {
     const matSelectHarness = await this.getApiSelectInput();
@@ -73,6 +74,10 @@ export class ApplicationSubscriptionListHarness extends ComponentHarness {
 
   async getApiTags() {
     return this.getApiSelectInput().then((input) => input.getTags());
+  }
+
+  async createSubscription() {
+    return this.getCreateButton().then((btn) => btn.click());
   }
 
   private async getEditButton(index: number) {

@@ -351,6 +351,20 @@ describe('ApplicationService', () => {
         })
         .flush(subscriptions);
     });
+
+    it('should get application paged result for API_KEY security type', (done) => {
+      applicationService.getSubscriptionsPage(appId, { security_types: ['API_KEY'] }).subscribe((response) => {
+        expect(response).toMatchObject(subscriptions);
+        done();
+      });
+
+      httpTestingController
+        .expectOne({
+          method: 'GET',
+          url: `${CONSTANTS_TESTING.env.baseURL}/applications/${appId}/subscriptions?page=1&size=20&security_types=API_KEY`,
+        })
+        .flush(subscriptions);
+    });
   });
 
   describe('create', () => {

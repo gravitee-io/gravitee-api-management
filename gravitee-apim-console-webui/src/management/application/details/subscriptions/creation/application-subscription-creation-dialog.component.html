@@ -1,0 +1,138 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<form [formGroup]="form" (ngSubmit)="create()">
+  <h2 mat-dialog-title class="title">Create a subscription</h2>
+
+  <mat-dialog-content class="subscription-creation">
+    <label id="api-label">Search an API</label>
+    <mat-form-field aria-labelledby="api-label">
+      <mat-icon matPrefix>search</mat-icon>
+      <mat-label>Search an API by name</mat-label>
+      <input matInput type="search" [matAutocomplete]="auto" formControlName="selectedApi" />
+
+      <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayApi" (optionSelected)="onApiSelection($event.option.value)">
+        @for (api of apis$ | async; track api.id) {
+          <mat-option [value]="api">
+            <div class="subscription-creation__api-option">
+              <gio-avatar [src]="api._links?.pictureUrl.toString()" [name]="api.name" [size]="32" [roundedBorder]="true"></gio-avatar>
+              {{ api.name }} - {{ api.apiVersion }}
+              <small>({{ api.primaryOwner?.displayName }})</small>
+            </div>
+          </mat-option>
+        }
+
+        @if ((apis$ | async)?.length === 0) {
+          <mat-option disabled>No API found</mat-option>
+        }
+      </mat-autocomplete>
+    </mat-form-field>
+
+    @if (plans$ | async; as plans) {
+      <label id="radio-group-label">Select a plan to subscribe</label>
+      <mat-radio-group
+        aria-labelledby="radio-group-label"
+        formControlName="selectedPlan"
+        arial-label="Select an plan"
+        class="subscription-creation__plans"
+      >
+        @for (plan of plans; track plan.id) {
+          <mat-radio-button [value]="plan">{{ plan.name }}</mat-radio-button>
+        }
+
+        @if (plans?.length === 0) {
+          <div>
+            You don't have any available plan. To subscribe, you need to have at least one published plan whose type is not Keyless.
+          </div>
+        }
+      </mat-radio-group>
+
+      @if (form.controls.selectedPlan.hasError('clientIdRequired')) {
+        <mat-error>JWT and OAuth2 plans require an application with a clientId</mat-error>
+      }
+    }
+
+    @if (form.controls.apiKeyMode) {
+      <div class="mat-body-2">
+        <p>You have to choose between two modes for your application :</p>
+        <ul>
+          <li><b>API Key</b> - a new API Key will be generated for each subscription</li>
+          <li><b>Shared API Key</b> - each subscription will use the same API Key</li>
+        </ul>
+      </div>
+      <div class="subscription-creation__content__keymode__warning">
+        <p>Please note that this choice is permanent.</p>
+      </div>
+      <mat-radio-group
+        aria-labelledby="radio-group-label"
+        formControlName="apiKeyMode"
+        arial-label="API Key Mode"
+        class="subscription-creation__content__keymode"
+      >
+        <mat-radio-button value="EXCLUSIVE">API Key</mat-radio-button>
+        <mat-radio-button value="SHARED">Shared API Key</mat-radio-button>
+      </mat-radio-group>
+    }
+
+    @if (form.controls.customApiKey) {
+      <div class="mat-body-2">
+        You can provide a custom API Key if you already have one. <br />
+        Leave it blank to get a generated API Key.
+      </div>
+      <api-key-validation
+        formControlName="customApiKey"
+        [applicationId]="application.id"
+        [apiId]="form.controls.selectedPlan.value.apiId"
+      ></api-key-validation>
+    }
+
+    @if (form.controls.selectedEntrypoint) {
+      <mat-form-field>
+        <mat-label>Select the entrypoint to subscribe</mat-label>
+        <mat-select formControlName="selectedEntrypoint" placeholder="Select an entrypoint">
+          @for (entrypoint of availableSubscriptionEntrypoints; track entrypoint.name) {
+            <mat-option [value]="entrypoint.type"> <mat-icon [svgIcon]="entrypoint.icon"></mat-icon> {{ entrypoint.name }} </mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field class="subscription-creation__content__channel">
+        <mat-label>Channel</mat-label>
+        <input matInput type="text" formControlName="channel" />
+        <mat-hint>You can provide a channel for the subscription</mat-hint>
+      </mat-form-field>
+
+      @if (form.controls.entrypointConfiguration && selectedSchema) {
+        <gio-form-json-schema [jsonSchema]="selectedSchema" formControlName="entrypointConfiguration"></gio-form-json-schema>
+      }
+    }
+  </mat-dialog-content>
+
+  <mat-dialog-actions class="actions">
+    <button type="button" class="actions__cancelBtn" mat-flat-button [mat-dialog-close]="false">Cancel</button>
+    <button
+      type="submit"
+      class="actions__createBtn"
+      color="primary"
+      mat-raised-button
+      role="dialog"
+      [disabled]="this.form.invalid || this.form.pristine"
+    >
+      Create
+    </button>
+  </mat-dialog-actions>
+</form>

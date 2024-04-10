@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { catchError, debounceTime, distinctUntilChanged, map, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { BehaviorSubject, EMPTY, Observable, of, Subject } from 'rxjs';
 import { isEqual } from 'lodash';
 import { FormControl, FormGroup } from '@angular/forms';
-import { AutocompleteOptions } from '@gravitee/ui-particles-angular';
+import { AutocompleteOptions, GIO_DIALOG_WIDTH } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute, Router } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
 
 import { ApplicationService } from '../../../../../services-ngx/application.service';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
@@ -28,6 +29,9 @@ import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { GioTableWrapperFilters } from '../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { SubscriptionStatus } from '../../../../../entities/subscription/subscription';
 import { ApiPlanV2Service } from '../../../../../services-ngx/api-plan-v2.service';
+import { ApiSubscriptionV2Service } from '../../../../../services-ngx/api-subscription-v2.service';
+import { ApplicationSubscriptionCreationDialogComponent } from '../creation';
+import { Api, CreateSubscription } from '../../../../../entities/management-api-v2';
 
 type SubscriptionsTableDS = {
   id: string;
@@ -49,6 +53,15 @@ type SubscriptionsTableFilters = {
 type SubscriptionsFilters = {
   tableWrapper: GioTableWrapperFilters;
   subscriptionsFilters: SubscriptionsTableFilters;
+};
+
+export type ApplicationSubscriptionCreationDialogData = {
+  applicationId: string;
+};
+
+export type ApplicationSubscriptionCreationDialogResult = {
+  api: Api;
+  subscriptionToCreate: CreateSubscription;
 };
 
 @Component({
@@ -98,6 +111,8 @@ export class ApplicationSubscriptionListComponent implements OnInit, OnDestroy {
     private readonly applicationService: ApplicationService,
     private readonly snackBarService: SnackBarService,
     private readonly permissionService: GioPermissionService,
+    private readonly matDialog: MatDialog,
+    private readonly apiSubscriptionService: ApiSubscriptionV2Service,
   ) {}
 
   ngOnInit(): void {
@@ -240,4 +255,34 @@ export class ApplicationSubscriptionListComponent implements OnInit, OnDestroy {
       catchError(() => of(value)),
     );
   };
+
+  protected createSubscription() {
+    this.matDialog
+      .open<
+        ApplicationSubscriptionCreationDialogComponent,
+        ApplicationSubscriptionCreationDialogData,
+        ApplicationSubscriptionCreationDialogResult
+      >(ApplicationSubscriptionCreationDialogComponent, {
+        role: 'alertdialog',
+        id: 'createSubscriptionDialog',
+        data: { applicationId: this.activatedRoute.snapshot.params.applicationId },
+        width: GIO_DIALOG_WIDTH.MEDIUM,
+      })
+      .afterClosed()
+      .pipe(
+        filter((result) => !!result),
+        switchMap((result) => {
+          return this.apiSubscriptionService.create(result.api.id, result.subscriptionToCreate);
+        }),
+        tap(() => {
+          this.snackBarService.success(`Subscription successfully created`);
+        }),
+        catchError(() => {
+          this.snackBarService.error('An error occured during subscription creation');
+          return EMPTY;
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe((subscription) => this.router.navigate(['.', subscription.id], { relativeTo: this.activatedRoute }));
+  }
 }

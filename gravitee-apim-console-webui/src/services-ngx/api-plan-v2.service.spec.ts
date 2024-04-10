@@ -34,6 +34,7 @@ describe('ApiPlanV2Service', () => {
   let httpTestingController: HttpTestingController;
   let apiPlanV2Service: ApiPlanV2Service;
   const API_ID = 'api-id';
+  const APP_ID = 'app-id';
   const PLAN_ID = 'plan-id';
 
   beforeEach(() => {
@@ -313,6 +314,24 @@ describe('ApiPlanV2Service', () => {
 
       expect(req.request.body).toEqual({});
       req.flush(plan);
+    });
+  });
+
+  describe('listSubscribablePlans', () => {
+    it('should list subscribable plan for the api and application', (done) => {
+      const fakeApiPlansResponse: ApiPlansResponse = { data: [fakePlanV4({ id: PLAN_ID, apiId: API_ID })] };
+
+      apiPlanV2Service.listSubscribablePlans(API_ID, APP_ID).subscribe((response) => {
+        expect(response).toMatchObject(fakeApiPlansResponse);
+        done();
+      });
+
+      httpTestingController
+        .expectOne({
+          method: 'GET',
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans?page=1&perPage=9999&subscribableBy=${APP_ID}`,
+        })
+        .flush(fakeApiPlansResponse);
     });
   });
 });

@@ -31,10 +31,12 @@ import { ApplicationSubscriptionListComponent } from './application-subscription
 
 import { GioTableWrapperModule } from '../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../../../../shared/components/gio-permission/gio-permission.module';
+import { ApplicationSubscriptionCreationDialogModule } from '../creation';
 
 @NgModule({
   declarations: [ApplicationSubscriptionListComponent],
   imports: [
+    ApplicationSubscriptionCreationDialogModule,
     CommonModule,
     GioIconsModule,
     GioLoaderModule,
