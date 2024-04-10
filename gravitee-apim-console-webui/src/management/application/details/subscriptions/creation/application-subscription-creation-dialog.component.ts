@@ -191,7 +191,7 @@ export class ApplicationSubscriptionCreationDialogComponent {
             this.form.addControl('apiKeyMode', new FormControl(null, [Validators.required]));
             this.onApiKeyModeChange();
           }
-          if (this.canUseCustomApiKey && !shouldDisplayKeyModeChoice) {
+          if (this.canUseCustomApiKey && !shouldDisplayKeyModeChoice && this.application.api_key_mode !== ApiKeyMode.SHARED) {
             this.form.addControl('customApiKey', new FormControl(null));
           }
           this.removeFormControls(['selectedEntrypoint', 'channel', 'entrypointConfiguration']);

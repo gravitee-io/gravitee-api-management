@@ -63,6 +63,10 @@ export class ApplicationSubscriptionCreationDialogHarness extends ComponentHarne
     return this.getCustomApiKeyInput().then((input) => input.setInputValue(key));
   }
 
+  public async isCustomApiKeyAvailable() {
+    return (await this.getCustomApiKeyInput()) != null;
+  }
+
   public async selectEntrypoint(name: string) {
     return this.getEntrypointSelect().then((select) => select.clickOptions({ text: name }));
   }

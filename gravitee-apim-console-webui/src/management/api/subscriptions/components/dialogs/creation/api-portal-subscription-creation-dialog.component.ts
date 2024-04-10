@@ -241,7 +241,11 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
           if (shouldDisplayKeyModeChoice) {
             this.form.addControl('apiKeyMode', new UntypedFormControl('', [Validators.required]));
           }
-          if (this.canUseCustomApiKey && !shouldDisplayKeyModeChoice) {
+          if (
+            this.canUseCustomApiKey &&
+            !shouldDisplayKeyModeChoice &&
+            this.form.get('selectedApplication').value.api_key_mode !== ApiKeyMode.SHARED
+          ) {
             this.form.addControl('customApiKey', new UntypedFormControl('', []));
           }
           this.form.removeControl('selectedEntrypoint');

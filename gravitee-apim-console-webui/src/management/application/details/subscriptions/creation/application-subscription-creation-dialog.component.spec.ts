@@ -235,6 +235,32 @@ describe('ApplicationSubscriptionCreationDialogComponent', () => {
         expectApiSubscriptionsPostRequest(subscription, ApiKeyMode.SHARED);
         expect(routerNavigateSpy).toHaveBeenCalledWith(['.', subscription.id], expect.anything());
       }));
+
+      it('should not display custom api key for applications with share api key mode', fakeAsync(async () => {
+        await init(
+          { ...APP, api_key_mode: ApiKeyMode.SHARED },
+          {
+            plan: {
+              security: {
+                ...DEFAULT_ENV_SETTINGS.plan.security,
+                customApiKey: { enabled: true },
+                sharedApiKey: { enabled: true },
+              },
+            },
+          },
+        );
+
+        await dialogHarness.searchApi(API_NAME);
+        tick(100);
+        expectApiSearchPost(API);
+
+        await dialogHarness.selectApi(API_NAME);
+        expectSubscribableApiPlansGet([API_KEY_PLAN, fakePlanV4({ apiId: API_ID, security: { type: 'JWT' } })]);
+
+        tick(100);
+        await dialogHarness.selectPlan(API_KEY_PLAN.name);
+        expect(await dialogHarness.isCustomApiKeyAvailable()).toBeFalsy();
+      }));
     });
 
     it.each(['JWT', 'OAUTH2'])(
