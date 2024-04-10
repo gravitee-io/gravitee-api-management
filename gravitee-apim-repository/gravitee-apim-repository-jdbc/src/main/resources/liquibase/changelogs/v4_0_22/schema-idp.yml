@@ -1,0 +1,16 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.0.22-idp
+      author: GraviteeSource Team
+      changes:
+        # ######################### #
+        # Identity Provider changes #
+        # ######################### #
+        - modifyDataType:
+            columnName: group_mappings
+            newDataType: clob
+            tableName: ${gravitee_prefix}identity_providers
+        - modifyDataType:
+            columnName: role_mappings
+            newDataType: clob
+            tableName: ${gravitee_prefix}identity_providers
