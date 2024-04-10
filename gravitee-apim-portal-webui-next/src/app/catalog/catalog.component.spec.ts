@@ -46,8 +46,23 @@ describe('CatalogComponent', () => {
   });
 
   it('should show empty API list', async () => {
+    component.apis = [];
     const noApiCard = await harnessLoader.getHarness(MatCardHarness.with({ selector: '#no-apis' }));
     expect(noApiCard).toBeTruthy();
     expect(await noApiCard.getText()).toContain('Sorry, there are no APIs listed yet.');
+  });
+
+  it('should show API list', async () => {
+    component.apis = [
+      {
+        title: 'Test tile',
+        version: 'v.1.2',
+        content:
+          'Get real-time weather updates, forecasts, and historical data to enhance your applications with accurate weather information.',
+        id: 1,
+      },
+    ];
+    const debugApiCardElement = fixture.debugElement.nativeElement.querySelector('app-api-card');
+    expect(debugApiCardElement).toBeDefined();
   });
 });

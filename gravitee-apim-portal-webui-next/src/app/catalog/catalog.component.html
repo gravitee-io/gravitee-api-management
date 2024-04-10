@@ -32,5 +32,7 @@
     </mat-card-content>
   </mat-card>
 } @else {
-  <div>Coming soon.</div>
+  @for (api of apis; track api.id) {
+    <app-api-card [title]="api.title" [version]="api.version" [content]="api.content" />
+  }
 }
