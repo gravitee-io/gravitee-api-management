@@ -16,7 +16,7 @@
 
 /* You can add global styles to this file, and also import other style files */
 
-@forward './components/index.scss';
+@forward './scss/material-design-overrides';
 @use '@angular/material' as mat;
 @import './scss/theme/theme';
 
@@ -38,9 +38,6 @@ body {
   background-color: $background-color;
   color: $default-text-color;
   font-family: 'Golos UI', Roboto, 'Helvetica Neue', sans-serif;
-
-  // mat-card
-  --mdc-elevated-card-container-elevation: 0;
 
   p {
     color: $paragraph-color;
