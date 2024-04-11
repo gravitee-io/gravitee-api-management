@@ -1878,6 +1878,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
     @Override
     public ApiEntity migrate(ExecutionContext executionContext, String apiId) {
         final ApiEntity apiEntity = findById(executionContext, apiId);
+        if (
+            apiEntity.getGraviteeDefinitionVersion() != null &&
+            !apiEntity.getGraviteeDefinitionVersion().equals(DefinitionVersion.V1.getLabel())
+        ) {
+            return apiEntity;
+        }
         final Set<PolicyEntity> policies = policyService.findAll();
         Set<PlanEntity> plans = planService.findByApi(executionContext, apiId);
 
