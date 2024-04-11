@@ -22,7 +22,9 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
+import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.IntegrationFixture;
+import inmemory.ApiCrudServiceInMemory;
 import inmemory.IntegrationCrudServiceInMemory;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.common.http.HttpStatusCode;
@@ -52,6 +54,9 @@ public class IntegrationResourceTest extends AbstractResourceTest {
 
     @Autowired
     IntegrationCrudServiceInMemory integrationCrudServiceInMemory;
+
+    @Autowired
+    ApiCrudServiceInMemory apiCrudServiceInMemory;
 
     static final String ENVIRONMENT = "my-env";
     static final String INTEGRATION_ID = "integration-id";
@@ -310,6 +315,55 @@ public class IntegrationResourceTest extends AbstractResourceTest {
             Response response = target.request().put(Entity.json(updateIntegration));
 
             assertThat(response).hasStatus(HttpStatusCode.BAD_REQUEST_400);
+        }
+    }
+
+    @Nested
+    class DeleteIntegration {
+
+        @Test
+        public void should_delete_integration() {
+            //Given
+            integrationCrudServiceInMemory.initWith(List.of(IntegrationFixture.anIntegration()));
+            //When
+            Response response = target.request().delete();
+
+            //Then
+            assertThat(response).hasStatus(HttpStatusCode.NO_CONTENT_204);
+            assertThat(integrationCrudServiceInMemory.storage().size()).isEqualTo(0);
+        }
+
+        @Test
+        public void should_return_404_when_integration_to_delete_not_found() {
+            Response response = target.request().delete();
+
+            assertThat(response).hasStatus(HttpStatusCode.NOT_FOUND_404);
+        }
+
+        @Test
+        public void should_return_400_when_associated_federated_api_found() {
+            integrationCrudServiceInMemory.initWith(List.of(IntegrationFixture.anIntegration()));
+            apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aFederatedApi()));
+
+            Response response = target.request().delete();
+            assertThat(response).hasStatus(HttpStatusCode.BAD_REQUEST_400);
+        }
+
+        @Test
+        public void should_return_403_when_incorrect_permission() {
+            when(
+                permissionService.hasPermission(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(RolePermission.ENVIRONMENT_INTEGRATION),
+                    eq(ENVIRONMENT),
+                    eq(RolePermissionAction.DELETE)
+                )
+            )
+                .thenReturn(false);
+
+            Response response = target.request().delete();
+
+            assertThat(response).hasStatus(HttpStatusCode.FORBIDDEN_403);
         }
     }
 }

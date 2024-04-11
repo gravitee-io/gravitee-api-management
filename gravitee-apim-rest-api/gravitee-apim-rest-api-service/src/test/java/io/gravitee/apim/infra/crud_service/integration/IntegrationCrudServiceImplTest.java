@@ -15,19 +15,15 @@
  */
 package io.gravitee.apim.infra.crud_service.integration;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import fixtures.core.model.IntegrationFixture;
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.IntegrationRepository;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.vertx.core.cli.Argument;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Date;
@@ -205,6 +201,25 @@ public class IntegrationCrudServiceImplTest {
             assertThat(throwable)
                 .isInstanceOf(TechnicalManagementException.class)
                 .hasMessage("An error occurred when updating integration: integration-id");
+        }
+    }
+
+    @Nested
+    class Delete {
+
+        @Test
+        void should_delete_an_integration() throws TechnicalException {
+            service.delete("integration-id");
+            verify(integrationRepository).delete("integration-id");
+        }
+
+        @Test
+        void should_throw_if_deletion_problem_occurs() throws TechnicalException {
+            doThrow(new TechnicalException()).when(integrationRepository).delete("integration-id");
+            assertThatThrownBy(() -> service.delete("integration-id"))
+                .isInstanceOf(TechnicalManagementException.class)
+                .hasMessage("Error when deleting Integration: integration-id");
+            verify(integrationRepository).delete("integration-id");
         }
     }
 }

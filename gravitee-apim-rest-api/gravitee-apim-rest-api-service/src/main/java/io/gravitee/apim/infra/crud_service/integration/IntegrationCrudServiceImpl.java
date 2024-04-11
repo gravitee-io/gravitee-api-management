@@ -69,4 +69,13 @@ public class IntegrationCrudServiceImpl extends AbstractService implements Integ
             throw new TechnicalManagementException("An error occurred when updating integration: " + integration.getId(), e);
         }
     }
+
+    @Override
+    public void delete(String id) {
+        try {
+            integrationRepository.delete(id);
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException("Error when deleting Integration: " + id, e);
+        }
+    }
 }

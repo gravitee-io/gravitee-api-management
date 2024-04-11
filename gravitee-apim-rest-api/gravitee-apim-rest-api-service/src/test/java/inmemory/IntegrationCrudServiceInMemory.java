@@ -46,6 +46,14 @@ public class IntegrationCrudServiceInMemory implements IntegrationCrudService, I
     }
 
     @Override
+    public void delete(String id) {
+        OptionalInt index = this.findIndex(this.storage, i -> i.getId().equals(id));
+        if (index.isPresent()) {
+            storage.remove(index.getAsInt());
+        }
+    }
+
+    @Override
     public void initWith(List<Integration> items) {
         storage.clear();
         storage.addAll(items);

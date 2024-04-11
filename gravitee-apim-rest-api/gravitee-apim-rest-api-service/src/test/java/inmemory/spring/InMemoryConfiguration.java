@@ -16,7 +16,6 @@
 package inmemory.spring;
 
 import inmemory.*;
-import io.gravitee.apim.infra.query_service.api.ApiCategoryQueryServiceImpl;
 import io.gravitee.apim.infra.query_service.audit.AuditEventQueryServiceImpl;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
@@ -26,8 +25,8 @@ import org.springframework.context.annotation.Configuration;
 public class InMemoryConfiguration {
 
     @Bean
-    public ApiQueryServiceInMemory apiQueryService() {
-        return new ApiQueryServiceInMemory();
+    public ApiQueryServiceInMemory apiQueryService(ApiCrudServiceInMemory apiCrudServiceInMemory) {
+        return new ApiQueryServiceInMemory(apiCrudServiceInMemory);
     }
 
     @Bean

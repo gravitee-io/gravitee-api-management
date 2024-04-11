@@ -123,14 +123,12 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
             .groups(Set.of())
             .apiLifecycleState(CREATED)
             .build();
-        var created = apiRepository.create(api);
+        apiRepository.create(api);
 
         assertThat(apiRepository.findById(apiId))
             .isPresent()
             .get()
-            .satisfies(result -> {
-                assertThat(result).usingRecursiveComparison().isEqualTo(api);
-            });
+            .satisfies(result -> assertThat(result).usingRecursiveComparison().isEqualTo(api));
 
         // test delete
         apiRepository.delete(apiId);
@@ -258,7 +256,7 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(2, apis.size());
-        assertTrue(apis.stream().map(Api::getId).collect(toList()).containsAll(asList("api-to-delete", "api-to-update")));
+        assertTrue(apis.stream().map(Api::getId).toList().containsAll(asList("api-to-delete", "api-to-update")));
     }
 
     @Test
@@ -270,7 +268,7 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(3, apis.size());
-        assertTrue(apis.stream().map(Api::getId).collect(toList()).containsAll(asList("api-to-delete", "api-to-update", "big-name")));
+        assertTrue(apis.stream().map(Api::getId).toList().containsAll(asList("api-to-delete", "api-to-update", "big-name")));
     }
 
     @Test(expected = IllegalStateException.class)
@@ -321,11 +319,7 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         assertFalse(apis.isEmpty());
         assertEquals(4, apis.size());
         assertTrue(
-            apis
-                .stream()
-                .map(Api::getId)
-                .collect(toList())
-                .containsAll(asList("api-to-delete", "api-to-update", "api-to-findById", "grouped-api"))
+            apis.stream().map(Api::getId).toList().containsAll(asList("api-to-delete", "api-to-update", "api-to-findById", "grouped-api"))
         );
     }
 
@@ -335,7 +329,7 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(2, apis.size());
-        assertTrue(apis.stream().map(Api::getId).collect(toList()).containsAll(asList("grouped-api", "api-to-findById")));
+        assertTrue(apis.stream().map(Api::getId).toList().containsAll(asList("grouped-api", "api-to-findById")));
     }
 
     @Test
@@ -345,11 +339,7 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         assertFalse(apis.isEmpty());
         assertEquals(4, apis.size());
         assertTrue(
-            apis
-                .stream()
-                .map(Api::getId)
-                .collect(toList())
-                .containsAll(asList("api-to-delete", "api-to-update", "api-to-findById", "grouped-api"))
+            apis.stream().map(Api::getId).toList().containsAll(asList("api-to-delete", "api-to-update", "api-to-findById", "grouped-api"))
         );
     }
 
@@ -368,7 +358,7 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(2, apis.size());
-        assertTrue(apis.stream().map(Api::getId).collect(toList()).containsAll(asList("api-to-findById", "grouped-api")));
+        assertTrue(apis.stream().map(Api::getId).toList().containsAll(asList("api-to-findById", "grouped-api")));
     }
 
     @Test
@@ -424,7 +414,7 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
         assertEquals(3, apis.size());
-        assertTrue(apis.stream().map(Api::getId).collect(toList()).containsAll(asList("api-to-update", "grouped-api")));
+        assertTrue(apis.stream().map(Api::getId).toList().containsAll(asList("api-to-update", "grouped-api")));
         assertEquals(PUBLISHED, apis.get(0).getApiLifecycleState());
         assertEquals(PUBLISHED, apis.get(1).getApiLifecycleState());
         assertEquals(PUBLISHED, apis.get(2).getApiLifecycleState());
@@ -452,9 +442,19 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
         );
         assertNotNull(apis);
         assertEquals(2, apis.size());
-        assertTrue(apis.stream().map(Api::getId).collect(toList()).containsAll(asList("api-to-delete", "big-name")));
+        assertTrue(apis.stream().map(Api::getId).toList().containsAll(asList("api-to-delete", "big-name")));
         assertNull(apis.get(0).getDefinitionVersion());
         assertNull(apis.get(1).getDefinitionVersion());
+    }
+
+    @Test
+    public void shouldFindByIntegrationId() {
+        var integrationId = "integration-id";
+        final List<Api> apis = apiRepository.search(
+            new ApiCriteria.Builder().integrationId(integrationId).build(),
+            ApiFieldFilter.allFields()
+        );
+        assertThat(apis).isNotNull().isNotEmpty().hasSize(1);
     }
 
     @Test
@@ -466,7 +466,7 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
 
         assertNotNull(apis);
         assertEquals(1, apis.size());
-        assertTrue(apis.stream().map(Api::getId).collect(toList()).containsAll(asList("api-with-many-categories")));
+        assertTrue(apis.stream().map(Api::getId).toList().contains("api-with-many-categories"));
     }
 
     @Test
@@ -587,12 +587,12 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void shouldStreamSearch() throws NoSuchFieldException, IllegalAccessException {
+    public void shouldStreamSearch() {
         List<Api> apis = apiRepository.search(null, null, ApiFieldFilter.allFields(), 2).collect(toList());
 
         assertNotNull(apis);
         assertFalse(apis.isEmpty());
-        assertEquals(11, apis.size());
+        assertEquals(12, apis.size());
     }
 
     @Test

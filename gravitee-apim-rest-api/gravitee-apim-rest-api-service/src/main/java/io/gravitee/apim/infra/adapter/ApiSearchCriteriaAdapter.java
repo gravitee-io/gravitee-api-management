@@ -57,7 +57,8 @@ public class ApiSearchCriteriaAdapter {
                 .name(criteria.getName())
                 .environmentId(criteria.getEnvironmentId())
                 .environments(criteria.getEnvironments())
-                .crossId(criteria.getCrossId());
+                .crossId(criteria.getCrossId())
+                .integrationId(criteria.getIntegrationId());
         }
         return builder.build();
     }

@@ -143,4 +143,15 @@ public class IntegrationRepositoryTest extends AbstractManagementRepositoryTest 
 
         assertThatThrownBy(() -> integrationRepository.update(integration)).isInstanceOf(Exception.class);
     }
+
+    @Test
+    public void should_delete_integration() throws TechnicalException {
+        var id = "f66274c9-3d8f-44c5-a274-c93d8fb4c5f3";
+
+        integrationRepository.delete(id);
+
+        var deletedIntegration = integrationRepository.findById(id);
+
+        assertThat(deletedIntegration).isEmpty();
+    }
 }
