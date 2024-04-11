@@ -88,16 +88,21 @@ describe('IntegrationOverviewComponent', () => {
     expectIntegrationGetRequest(fakeIntegration({ id: integrationId, agentStatus: 'DISCONNECTED' }));
 
     const errorBadge: TestElement = await componentHarness.getErrorBadge();
-
     expect(errorBadge).toBeTruthy();
+
+    const errorBanner = await componentHarness.getErrorBanner().then((e) => e.text());
+    expect(errorBanner).toEqual(
+      'Check your agent status and ensure connectivity with the provider to start importing your APIs in Gravitee.',
+    );
   });
 
   it('should display success badge', async (): Promise<void> => {
     expectIntegrationGetRequest(fakeIntegration({ id: integrationId, agentStatus: 'CONNECTED' }));
 
     const successBadge: TestElement = await componentHarness.getSuccessBadge();
-
     expect(successBadge).toBeTruthy();
+
+    expect(await componentHarness.getErrorBanner()).toBeNull();
   });
 
   describe('discover', () => {

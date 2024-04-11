@@ -24,9 +24,14 @@ export class IntegrationOverviewHarness extends ComponentHarness {
   private discoverButtonLocator: AsyncFactoryFn<MatButtonHarness> = this.locatorForOptional(
     MatButtonHarness.with({ selector: '[data-testid=discover-button]' }),
   );
+  private errorBannerLocator = this.locatorForOptional('gio-banner-error');
 
   public getErrorBadge = async (): Promise<TestElement> => {
     return this.badgeErrorLocator();
+  };
+
+  public getErrorBanner = async (): Promise<TestElement> => {
+    return this.errorBannerLocator();
   };
 
   public getSuccessBadge = async (): Promise<TestElement> => {
