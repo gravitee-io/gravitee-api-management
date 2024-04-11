@@ -27,6 +27,8 @@ import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
+import io.gravitee.rest.api.model.context.KubernetesContext;
+import io.gravitee.rest.api.model.context.OriginContext;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -108,7 +110,18 @@ public class ApiCRD {
             .labels(labels == null ? null : new ArrayList<>(labels))
             .type(ApiType.valueOf(type))
             .apiLifecycleState(Api.ApiLifecycleState.valueOf(lifecycleState))
-            .lifecycleState(Api.LifecycleState.valueOf(state));
+            .lifecycleState(Api.LifecycleState.valueOf(state))
+            .originContext(
+                KubernetesContext
+                    .builder()
+                    .syncFrom(
+                        definitionContext.isSyncFromManagement()
+                            ? OriginContext.Origin.MANAGEMENT.name()
+                            : OriginContext.Origin.KUBERNETES.name()
+                    )
+                    .mode(KubernetesContext.Mode.FULLY_MANAGED)
+                    .build()
+            );
     }
 
     /**

@@ -131,7 +131,6 @@ public class ImportCRDUseCase {
                 input.auditInfo,
                 api -> validateApiDomainService.validateAndSanitizeForCreation(api, primaryOwner, environmentId, organizationId)
             );
-            apiMetadataDomainService.saveApiMetadata(createdApi.getId(), input.crd.getMetadata(), input.auditInfo);
 
             var planNameIdMapping = input.crd
                 .getPlans()
@@ -171,6 +170,8 @@ public class ImportCRDUseCase {
         try {
             var updated = updateApiDomainService.update(existingApi.getId(), input.crd, input.auditInfo);
             // update state and definition context because legacy service does not update it
+
+            // Why are we getting MANAGEMENT as an origin here ?? the API has been saved as kubernetes before
             var api = apiCrudService.update(
                 updated
                     .toBuilder()
@@ -183,7 +184,6 @@ public class ImportCRDUseCase {
                     .lifecycleState(Api.LifecycleState.valueOf(input.crd().getState()))
                     .build()
             );
-            apiMetadataDomainService.saveApiMetadata(api.getId(), input.crd.getMetadata(), input.auditInfo);
 
             List<Plan> existingPlans = planQueryService.findAllByApiId(api.getId());
             Map<String, PlanStatus> existingPlanStatuses = existingPlans.stream().collect(toMap(Plan::getId, Plan::getStatus));

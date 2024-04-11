@@ -112,6 +112,8 @@ import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
+import io.gravitee.rest.api.model.context.KubernetesContext;
+import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
 import io.gravitee.rest.api.service.common.UuidString;
@@ -698,7 +700,7 @@ class ImportCRDUseCaseTest {
             .builder()
             .analytics(Analytics.builder().enabled(false).build())
             .crossId(API_CROSS_ID)
-            .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("MANAGEMENT").build())
+            .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("KUBERNETES").build())
             .description("api-description")
             .endpointGroups(
                 List.of(
@@ -765,6 +767,13 @@ class ImportCRDUseCaseTest {
     private Api expectedApi() {
         return aProxyApiV4()
             .toBuilder()
+            .originContext(
+                KubernetesContext
+                    .builder()
+                    .syncFrom(OriginContext.Origin.KUBERNETES.name())
+                    .mode(KubernetesContext.Mode.FULLY_MANAGED)
+                    .build()
+            )
             .id(API_ID)
             .environmentId(ENVIRONMENT_ID)
             .crossId(API_CROSS_ID)
