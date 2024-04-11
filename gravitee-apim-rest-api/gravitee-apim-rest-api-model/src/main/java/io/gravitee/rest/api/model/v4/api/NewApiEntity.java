@@ -19,6 +19,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.definition.model.v4.failover.Failover;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.flow.execution.FlowMode;
@@ -85,6 +86,9 @@ public class NewApiEntity {
 
     @Schema(description = "Analytics configuration")
     private Analytics analytics;
+
+    @Schema(description = "Failover configuration")
+    private Failover failover;
 
     @Schema(description = "API's flow execution.")
     private FlowExecution flowExecution;

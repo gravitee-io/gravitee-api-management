@@ -23,6 +23,7 @@ import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.definition.model.v4.failover.Failover;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.flow.execution.FlowMode;
@@ -120,6 +121,10 @@ public class ApiEntity implements GenericApiEntity {
     @Schema(description = "Analytics configuration")
     @DeploymentRequired
     private Analytics analytics;
+
+    @Schema(description = "Failover configuration")
+    @DeploymentRequired
+    private Failover failover;
 
     @Schema(description = "A dictionary (could be dynamic) of properties available in the API context.")
     @DeploymentRequired

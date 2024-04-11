@@ -19,12 +19,12 @@ import static assertions.CoreAssertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import fixtures.core.model.ApiFixtures;
-import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.Endpoint;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.definition.model.v4.failover.Failover;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.listener.entrypoint.Entrypoint;
 import io.gravitee.definition.model.v4.listener.http.HttpListener;
@@ -80,6 +80,17 @@ class ApiAdapterTest {
                             .definitionVersion(DefinitionVersion.V4)
                             .flowExecution(new FlowExecution())
                             .analytics(Analytics.builder().enabled(false).build())
+                            .failover(
+                                Failover
+                                    .builder()
+                                    .enabled(true)
+                                    .maxRetries(7)
+                                    .slowCallDuration(500)
+                                    .openStateDuration(11000)
+                                    .maxFailures(3)
+                                    .perSubscription(false)
+                                    .build()
+                            )
                             .type(ApiType.PROXY)
                             .tags(Set.of("tag1"))
                             .listeners(
@@ -244,6 +255,19 @@ class ApiAdapterTest {
         @Test
         void should_convert_v4_api_to_repository() {
             var model = ApiFixtures.aProxyApiV4();
+            model
+                .getApiDefinitionV4()
+                .setFailover(
+                    Failover
+                        .builder()
+                        .enabled(true)
+                        .maxRetries(7)
+                        .slowCallDuration(500)
+                        .openStateDuration(11000)
+                        .maxFailures(3)
+                        .perSubscription(false)
+                        .build()
+                );
 
             var api = ApiAdapter.INSTANCE.toRepository(model);
 
@@ -256,7 +280,7 @@ class ApiAdapterTest {
                 soft
                     .assertThat(api.getDefinition())
                     .isEqualTo(
-                        "{\"id\":\"my-api\",\"name\":\"My Api\",\"type\":\"proxy\",\"apiVersion\":\"1.0.0\",\"definitionVersion\":\"4.0.0\",\"tags\":[\"tag1\"],\"listeners\":[{\"type\":\"http\",\"entrypoints\":[{\"type\":\"http-proxy\",\"qos\":\"auto\",\"configuration\":{}}],\"paths\":[{\"path\":\"/http_proxy\"}]}],\"endpointGroups\":[{\"name\":\"default-group\",\"type\":\"http-proxy\",\"loadBalancer\":{\"type\":\"round-robin\"},\"sharedConfiguration\":{},\"endpoints\":[{\"name\":\"default-endpoint\",\"type\":\"http-proxy\",\"secondary\":false,\"weight\":1,\"inheritConfiguration\":true,\"configuration\":{\"target\":\"https://api.gravitee.io/echo\"},\"services\":{}}],\"services\":{}}],\"analytics\":{\"enabled\":false},\"flowExecution\":{\"mode\":\"default\",\"matchRequired\":false},\"flows\":[]}"
+                        "{\"id\":\"my-api\",\"name\":\"My Api\",\"type\":\"proxy\",\"apiVersion\":\"1.0.0\",\"definitionVersion\":\"4.0.0\",\"tags\":[\"tag1\"],\"listeners\":[{\"type\":\"http\",\"entrypoints\":[{\"type\":\"http-proxy\",\"qos\":\"auto\",\"configuration\":{}}],\"paths\":[{\"path\":\"/http_proxy\"}]}],\"endpointGroups\":[{\"name\":\"default-group\",\"type\":\"http-proxy\",\"loadBalancer\":{\"type\":\"round-robin\"},\"sharedConfiguration\":{},\"endpoints\":[{\"name\":\"default-endpoint\",\"type\":\"http-proxy\",\"secondary\":false,\"weight\":1,\"inheritConfiguration\":true,\"configuration\":{\"target\":\"https://api.gravitee.io/echo\"},\"services\":{}}],\"services\":{}}],\"analytics\":{\"enabled\":false},\"failover\":{\"enabled\":true,\"maxRetries\":7,\"slowCallDuration\":500,\"openStateDuration\":11000,\"maxFailures\":3,\"perSubscription\":false},\"flowExecution\":{\"mode\":\"default\",\"matchRequired\":false},\"flows\":[]}"
                     );
                 soft.assertThat(api.getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
                 soft.assertThat(api.getDeployedAt()).isEqualTo(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")));
@@ -347,7 +371,7 @@ class ApiAdapterTest {
             .definitionVersion(DefinitionVersion.V4)
             .definition(
                 """
-                {"id": "my-id", "name": "api-name", "type": "proxy", "apiVersion": "1.0.0", "definitionVersion": "4.0.0", "tags": ["tag1"], "listeners": [{"type": "http", "entrypoints": [{ "type": "http-proxy", "qos": "auto", "configuration": {} }], "paths": [{ "path": "/http_proxy" }]}], "endpointGroups": [{"name": "default-group", "type": "http-proxy", "loadBalancer": { "type": "round-robin" }, "sharedConfiguration": {}, "endpoints": [{"name": "default-endpoint", "type": "http-proxy", "secondary": false, "weight": 1, "inheritConfiguration": true, "configuration": { "target": "https://api.gravitee.io/echo" }, "services": {}}], "services": {}}], "analytics": { "enabled": false }, "flowExecution": { "mode": "default", "matchRequired": false }, "flows": []}
+                {"id": "my-id", "name": "api-name", "type": "proxy", "apiVersion": "1.0.0", "definitionVersion": "4.0.0", "tags": ["tag1"], "listeners": [{"type": "http", "entrypoints": [{ "type": "http-proxy", "qos": "auto", "configuration": {} }], "paths": [{ "path": "/http_proxy" }]}], "endpointGroups": [{"name": "default-group", "type": "http-proxy", "loadBalancer": { "type": "round-robin" }, "sharedConfiguration": {}, "endpoints": [{"name": "default-endpoint", "type": "http-proxy", "secondary": false, "weight": 1, "inheritConfiguration": true, "configuration": { "target": "https://api.gravitee.io/echo" }, "services": {}}], "services": {}}], "analytics": { "enabled": false }, "failover": { "enabled": true, "maxRetries": 7, "slowCallDuration": 500, "openStateDuration": 11000, "maxFailures": 3, "perSubscription": false }, "flowExecution": { "mode": "default", "matchRequired": false }, "flows": []}
                 """
             )
             .type(ApiType.PROXY)

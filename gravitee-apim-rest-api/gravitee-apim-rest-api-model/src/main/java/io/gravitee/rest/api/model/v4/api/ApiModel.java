@@ -20,6 +20,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.definition.model.v4.failover.Failover;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
@@ -77,6 +78,7 @@ public class ApiModel implements GenericApiModel {
     private Map<String, String> metadata = new HashMap<>();
     private ApiLifecycleState lifecycleState;
     private boolean disableMembershipNotifications;
+    private Failover failover;
 
     @Override
     public String getVersion() {

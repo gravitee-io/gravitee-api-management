@@ -23,6 +23,7 @@ import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.definition.model.v4.failover.Failover;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.property.Property;
@@ -90,6 +91,8 @@ public class ApiCRD {
 
     private Analytics analytics;
 
+    private Failover failover;
+
     public String getDefinitionVersion() {
         return "V4";
     }
@@ -135,6 +138,7 @@ public class ApiCRD {
             .apiVersion(version)
             .definitionVersion(DefinitionVersion.V4)
             .endpointGroups(endpointGroups)
+            .failover(failover)
             .flows(flows)
             .id(id)
             .listeners(listeners)

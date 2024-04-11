@@ -25,6 +25,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ResponseTemplate;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.definition.model.v4.failover.Failover;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.flow.execution.FlowMode;
@@ -108,6 +109,9 @@ public class ApiMapperTest {
         apiDefinition.setFlowExecution(new FlowExecution());
         apiDefinition.setFlows(List.of(new Flow(), new Flow()));
         apiDefinition.setResponseTemplates(Map.of("/", Map.of("/", new ResponseTemplate())));
+        apiDefinition.setFailover(
+            Failover.builder().enabled(true).perSubscription(false).maxFailures(3).openStateDuration(11000).slowCallDuration(500).build()
+        );
 
         Api api = new Api();
         api.setId("id");
@@ -171,6 +175,17 @@ public class ApiMapperTest {
         assertThat(apiEntity.getFlows().size()).isEqualTo(2);
         assertThat(apiEntity.getResponseTemplates()).isNotNull();
         assertThat(apiEntity.getResponseTemplates().size()).isEqualTo(1);
+        assertThat(apiEntity.getFailover())
+            .isEqualTo(
+                Failover
+                    .builder()
+                    .enabled(true)
+                    .perSubscription(false)
+                    .maxFailures(3)
+                    .openStateDuration(11000)
+                    .slowCallDuration(500)
+                    .build()
+            );
     }
 
     @Test
@@ -227,6 +242,7 @@ public class ApiMapperTest {
         assertThat(apiEntity.getTags()).isEmpty();
         assertThat(apiEntity.getFlows()).isNull();
         assertThat(apiEntity.getResponseTemplates()).isEmpty();
+        assertThat(apiEntity.getFailover()).isNull();
     }
 
     @Test
@@ -241,6 +257,9 @@ public class ApiMapperTest {
         newApiEntity.setEndpointGroups(List.of(new EndpointGroup()));
         newApiEntity.setFlowExecution(new FlowExecution());
         newApiEntity.setFlows(List.of(new Flow(), new Flow()));
+        newApiEntity.setFailover(
+            Failover.builder().enabled(true).perSubscription(false).maxFailures(3).openStateDuration(11000).slowCallDuration(500).build()
+        );
 
         Api api = apiMapper.toRepository(GraviteeContext.getExecutionContext(), newApiEntity);
         assertThat(api.getDescription()).isNull();
@@ -274,6 +293,9 @@ public class ApiMapperTest {
         apiDefinition.setTags(Set.of("tag"));
         apiDefinition.setFlowExecution(new FlowExecution());
         apiDefinition.setFlows(List.of(new Flow(), new Flow()));
+        apiDefinition.setFailover(
+            Failover.builder().enabled(true).perSubscription(false).maxFailures(3).openStateDuration(11000).slowCallDuration(500).build()
+        );
         assertThat(api.getDefinition()).isEqualTo(objectMapper.writeValueAsString(apiDefinition));
     }
 
@@ -303,6 +325,9 @@ public class ApiMapperTest {
         updateApiEntity.setMetadata(List.of(new ApiMetadataEntity()));
         updateApiEntity.setLifecycleState(io.gravitee.rest.api.model.api.ApiLifecycleState.UNPUBLISHED);
         updateApiEntity.setDisableMembershipNotifications(true);
+        updateApiEntity.setFailover(
+            Failover.builder().enabled(true).perSubscription(false).maxFailures(3).openStateDuration(11000).slowCallDuration(500).build()
+        );
         updateApiEntity.setProperties(
             List.of(
                 new PropertyEntity("propKey", "propValue", false, false),
@@ -353,6 +378,9 @@ public class ApiMapperTest {
         apiDefinition.setProperties(
             List.of(new Property("propKey", "propValue", false, false), new Property("dynPropKey", "dynPropValue", false, true))
         );
+        apiDefinition.setFailover(
+            Failover.builder().enabled(true).perSubscription(false).maxFailures(3).openStateDuration(11000).slowCallDuration(500).build()
+        );
         apiDefinition.setResources(List.of(new Resource()));
         apiDefinition.setFlowExecution(new FlowExecution());
         apiDefinition.setFlows(List.of(new Flow(), new Flow()));
@@ -389,6 +417,9 @@ public class ApiMapperTest {
         apiEntity.setResources(List.of(new Resource()));
         apiEntity.setPlans(Set.of(new PlanEntity()));
         apiEntity.setUpdatedAt(new Date());
+        apiEntity.setFailover(
+            Failover.builder().enabled(true).perSubscription(false).maxFailures(3).openStateDuration(11000).slowCallDuration(500).build()
+        );
 
         CategoryEntity existingCategoryByIdEntity = new CategoryEntity();
         existingCategoryByIdEntity.setId("existingCatId");
@@ -438,6 +469,9 @@ public class ApiMapperTest {
         apiDefinition.setFlowExecution(new FlowExecution());
         apiDefinition.setFlows(List.of(new Flow(), new Flow()));
         apiDefinition.setResponseTemplates(new HashMap<>());
+        apiDefinition.setFailover(
+            Failover.builder().enabled(true).perSubscription(false).maxFailures(3).openStateDuration(11000).slowCallDuration(500).build()
+        );
         assertThat(api.getDefinition()).isEqualTo(objectMapper.writeValueAsString(apiDefinition));
     }
 }

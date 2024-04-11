@@ -110,6 +110,7 @@ public class ApiMapper {
                 var apiDefinition = objectMapper.readValue(api.getDefinition(), io.gravitee.definition.model.v4.Api.class);
                 apiEntity.setDefinitionVersion(apiDefinition.getDefinitionVersion());
                 apiEntity.setAnalytics(apiDefinition.getAnalytics());
+                apiEntity.setFailover(apiDefinition.getFailover());
                 apiEntity.setListeners(apiDefinition.getListeners());
                 apiEntity.setEndpointGroups(apiDefinition.getEndpointGroups());
                 apiEntity.setServices(apiDefinition.getServices());
@@ -232,6 +233,7 @@ public class ApiMapper {
             apiDefinition.setListeners(newApiEntity.getListeners());
             apiDefinition.setEndpointGroups(newApiEntity.getEndpointGroups());
             apiDefinition.setAnalytics(newApiEntity.getAnalytics());
+            apiDefinition.setFailover(newApiEntity.getFailover());
             apiDefinition.setFlowExecution(newApiEntity.getFlowExecution());
             apiDefinition.setFlows(newApiEntity.getFlows());
 
@@ -294,6 +296,7 @@ public class ApiMapper {
             apiDefinition.setListeners(updateApiEntity.getListeners());
             apiDefinition.setEndpointGroups(updateApiEntity.getEndpointGroups());
             apiDefinition.setAnalytics(updateApiEntity.getAnalytics());
+            apiDefinition.setFailover(updateApiEntity.getFailover());
             if (updateApiEntity.getProperties() != null) {
                 apiDefinition.setProperties(
                     updateApiEntity
@@ -385,6 +388,7 @@ public class ApiMapper {
             apiDefinition.setListeners(apiEntity.getListeners());
             apiDefinition.setEndpointGroups(apiEntity.getEndpointGroups());
             apiDefinition.setAnalytics(apiEntity.getAnalytics());
+            apiDefinition.setFailover(apiEntity.getFailover());
             if (apiEntity.getProperties() != null) {
                 apiDefinition.setProperties(
                     apiEntity
