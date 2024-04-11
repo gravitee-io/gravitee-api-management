@@ -20,6 +20,7 @@ import io.gravitee.apim.core.api.model.crd.PlanCRD;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Rule;
+import io.gravitee.definition.model.federation.FederatedPlan;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -51,12 +52,13 @@ public interface PlanAdapter {
     @Mapping(target = "definitionVersion", defaultValue = "V2")
     @Mapping(target = "planDefinitionV4", expression = "java(deserializeDefinitionV4(plan))")
     @Mapping(target = "planDefinitionV2", expression = "java(deserializeDefinitionV2(plan))")
+    @Mapping(target = "federatedPlanDefinition", expression = "java(deserializeDefinitionFederated(plan))")
     Plan fromRepository(io.gravitee.repository.management.model.Plan plan);
 
     @Mapping(source = "apiId", target = "api")
     @Mapping(target = "security", source = "planSecurity", qualifiedByName = "computeRepositorySecurityType")
     @Mapping(target = "securityDefinition", source = "planSecurity.configuration")
-    @Mapping(target = "definition", source = "planDefinitionV2", qualifiedByName = "serializeV2PlanPaths")
+    @Mapping(target = "definition", expression = "java(serializeDefinition(source))")
     @Mapping(target = "mode", source = "planMode")
     @Mapping(target = "selectionRule", expression = "java(serializeSelectionRule(source))")
     @Mapping(target = "status", source = "planStatus")
@@ -108,6 +110,21 @@ public interface PlanAdapter {
         }
 
         return toPlanDefinitionV2(source);
+    }
+
+    default FederatedPlan deserializeDefinitionFederated(io.gravitee.repository.management.model.Plan source) {
+        if (source.getDefinitionVersion() != DefinitionVersion.FEDERATED) {
+            return null;
+        }
+
+        try {
+            return GraviteeJacksonMapper
+                .getInstance()
+                .readValue(source.getDefinition(), io.gravitee.definition.model.federation.FederatedPlan.class);
+        } catch (IOException ioe) {
+            LOGGER.error("Unexpected error while deserializing Federated Plan definition", ioe);
+            return null;
+        }
     }
 
     default Map<String, io.gravitee.definition.model.v4.plan.Plan> toApiDefinition(Map<String, PlanCRD> source) {
@@ -178,7 +195,23 @@ public interface PlanAdapter {
         }
     }
 
-    @Named("serializeV2PlanPaths")
+    default String serializeDefinition(Plan source) {
+        return switch (source.getDefinitionVersion()) {
+            case V4 -> null;
+            case FEDERATED -> serializeFederatedPlan(source.getFederatedPlanDefinition());
+            default -> serializeV2PlanPaths(source.getPlanDefinitionV2());
+        };
+    }
+
+    default String serializeFederatedPlan(FederatedPlan source) {
+        try {
+            return GraviteeJacksonMapper.getInstance().writeValueAsString(source);
+        } catch (IOException ioe) {
+            LOGGER.error("Unexpected error while serializing federated plan definition", ioe);
+            return null;
+        }
+    }
+
     default String serializeV2PlanPaths(io.gravitee.definition.model.Plan plan) {
         if (plan != null && plan.getPaths() != null && !plan.getPaths().isEmpty()) {
             try {

@@ -17,8 +17,11 @@ package io.gravitee.apim.infra.adapter;
 
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
+import io.gravitee.integration.api.model.PlanSecurityType;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
+import org.mapstruct.ValueMapping;
 import org.mapstruct.factory.Mappers;
 
 /**
@@ -37,4 +40,9 @@ public interface IntegrationAdapter {
 
     @Mapping(source = "planSecurityType", target = "type")
     IntegrationApi.Plan map(io.gravitee.integration.api.model.Plan source);
+
+    @ValueMapping(source = "API_KEY", target = "API_KEY")
+    @ValueMapping(source = "JWT", target = MappingConstants.NULL)
+    @ValueMapping(source = "OAUTH", target = MappingConstants.NULL)
+    IntegrationApi.PlanType map(PlanSecurityType source);
 }

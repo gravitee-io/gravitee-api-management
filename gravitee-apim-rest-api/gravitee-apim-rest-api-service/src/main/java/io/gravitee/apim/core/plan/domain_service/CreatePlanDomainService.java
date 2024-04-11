@@ -33,6 +33,7 @@ import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.sql.Date;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -63,6 +64,7 @@ public class CreatePlanDomainService {
     public PlanWithFlows create(Plan plan, List<Flow> flows, Api api, AuditInfo auditInfo) {
         return switch (api.getDefinitionVersion()) {
             case V4 -> createV4ApiPlan(plan, flows, api, auditInfo);
+            case FEDERATED -> createFederatedApiPlan(plan, auditInfo);
             default -> throw new IllegalStateException(api.getDefinitionVersion() + " is not supported");
         };
     }
@@ -107,6 +109,12 @@ public class CreatePlanDomainService {
         createAuditLog(createdPlan, auditInfo);
 
         return toPlanWithFlows(createdPlan, createdFlows);
+    }
+
+    private PlanWithFlows createFederatedApiPlan(Plan plan, AuditInfo auditInfo) {
+        var createdPlan = planCrudService.create(plan);
+        createAuditLog(createdPlan, auditInfo);
+        return toPlanWithFlows(plan, Collections.emptyList());
     }
 
     private void createAuditLog(Plan createdPlan, AuditInfo auditInfo) {

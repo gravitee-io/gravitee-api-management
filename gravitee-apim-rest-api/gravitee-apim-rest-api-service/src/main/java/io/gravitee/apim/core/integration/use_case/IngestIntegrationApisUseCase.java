@@ -21,20 +21,26 @@ import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateFederatedApiDomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.factory.ApiModelFactory;
-import io.gravitee.apim.core.api.model.factory.ApiModelFactory;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
 import io.gravitee.apim.core.integration.exception.IntegrationNotFoundException;
-import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
 import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
+import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
+import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
+import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.common.utils.TimeProvider;
-import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.rest.api.model.context.IntegrationContext;
+import io.gravitee.definition.model.federation.FederatedPlan;
+import io.gravitee.definition.model.v4.plan.PlanSecurity;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
+import java.time.ZonedDateTime;
+import java.util.Collections;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 
 @UseCase
@@ -46,6 +52,7 @@ public class IngestIntegrationApisUseCase {
     private final ValidateFederatedApiDomainService validateFederatedApi;
     private final ApiCrudService apiCrudService;
     private final CreateApiDomainService createApiDomainService;
+    private final CreatePlanDomainService createPlanDomainService;
     private final IntegrationAgent integrationAgent;
 
     public IngestIntegrationApisUseCase(
@@ -54,6 +61,7 @@ public class IngestIntegrationApisUseCase {
         ValidateFederatedApiDomainService validateFederatedApi,
         ApiCrudService apiCrudService,
         CreateApiDomainService createApiDomainService,
+        CreatePlanDomainService createPlanDomainService,
         IntegrationAgent integrationAgent
     ) {
         this.integrationCrudService = integrationCrudService;
@@ -61,6 +69,7 @@ public class IngestIntegrationApisUseCase {
         this.validateFederatedApi = validateFederatedApi;
         this.apiCrudService = apiCrudService;
         this.createApiDomainService = createApiDomainService;
+        this.createPlanDomainService = createPlanDomainService;
         this.integrationAgent = integrationAgent;
     }
 
@@ -89,19 +98,53 @@ public class IngestIntegrationApisUseCase {
                             return;
                         }
 
-                        try {
-                            createApiDomainService.create(
-                                federatedApi,
-                                primaryOwner,
-                                auditInfo,
-                                validateFederatedApi::validateAndSanitizeForCreation
-                            );
-                        } catch (Exception e) {
-                            log.warn("An error occurred while importing api {}", api, e);
+                        createApi(federatedApi, primaryOwner, auditInfo);
+
+                        if (api.plans() != null) {
+                            createPlans(api.plans(), federatedApi, auditInfo);
                         }
                     });
             })
             .ignoreElements();
+    }
+
+    private void createApi(Api federatedApi, PrimaryOwnerEntity primaryOwner, AuditInfo auditInfo) {
+        try {
+            createApiDomainService.create(federatedApi, primaryOwner, auditInfo, validateFederatedApi::validateAndSanitizeForCreation);
+        } catch (Exception e) {
+            log.warn("An error occurred while importing api {}", federatedApi, e);
+        }
+    }
+
+    private void createPlans(List<IntegrationApi.Plan> plans, Api federatedApi, AuditInfo auditInfo) {
+        plans
+            .stream()
+            .map(p -> {
+                var id = UuidString.generateRandom();
+                var now = TimeProvider.now();
+                return Plan
+                    .builder()
+                    .id(id)
+                    .name(p.name())
+                    .description(p.description())
+                    .apiId(federatedApi.getId())
+                    .federatedPlanDefinition(
+                        FederatedPlan
+                            .builder()
+                            .id(id)
+                            .providerId(p.id())
+                            .security(PlanSecurity.builder().type(PlanSecurityType.valueOf(p.type().name()).getLabel()).build())
+                            .status(PlanStatus.PUBLISHED)
+                            .build()
+                    )
+                    .createdAt(now)
+                    .updatedAt(now)
+                    .validation(Plan.PlanValidationType.MANUAL)
+                    .build();
+            })
+            .forEach(p -> {
+                createPlanDomainService.create(p, Collections.emptyList(), federatedApi, auditInfo);
+            });
     }
 
     public record Input(String integrationId, AuditInfo auditInfo) {}

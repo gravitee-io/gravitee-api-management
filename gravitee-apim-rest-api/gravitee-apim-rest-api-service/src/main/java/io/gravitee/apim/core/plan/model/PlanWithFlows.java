@@ -54,7 +54,8 @@ public class PlanWithFlows extends Plan {
             plan.getCommentMessage(),
             plan.getGeneralConditions(),
             plan.getPlanDefinitionV4(),
-            plan.getPlanDefinitionV2()
+            plan.getPlanDefinitionV2(),
+            plan.getFederatedPlanDefinition()
         );
         this.flows = flows;
     }

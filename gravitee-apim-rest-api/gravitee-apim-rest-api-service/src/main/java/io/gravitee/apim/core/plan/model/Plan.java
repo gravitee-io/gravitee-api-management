@@ -20,6 +20,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -90,6 +91,7 @@ public class Plan implements GenericPlanEntity {
 
     private io.gravitee.definition.model.v4.plan.Plan planDefinitionV4;
     private io.gravitee.definition.model.Plan planDefinitionV2;
+    private io.gravitee.definition.model.federation.FederatedPlan federatedPlanDefinition;
 
     @Override
     public io.gravitee.rest.api.model.v4.plan.PlanType getPlanType() {
@@ -101,7 +103,7 @@ public class Plan implements GenericPlanEntity {
         return switch (definitionVersion) {
             case V4 -> planDefinitionV4.getSecurity();
             case V1, V2 -> new PlanSecurity(planDefinitionV2.getSecurity(), planDefinitionV2.getSecurityDefinition());
-            case FEDERATED -> throw new IllegalStateException("FEDERATED type not supported");
+            case FEDERATED -> federatedPlanDefinition.getSecurity();
         };
     }
 
@@ -110,7 +112,7 @@ public class Plan implements GenericPlanEntity {
         return switch (definitionVersion) {
             case V4 -> planDefinitionV4.getStatus();
             case V1, V2 -> PlanStatus.valueOf(planDefinitionV2.getStatus());
-            case FEDERATED -> throw new IllegalStateException("FEDERATED type not supported");
+            case FEDERATED -> federatedPlanDefinition.getStatus();
         };
     }
 
@@ -118,6 +120,7 @@ public class Plan implements GenericPlanEntity {
         switch (definitionVersion) {
             case V4 -> planDefinitionV4.setStatus(planStatus);
             case V1, V2 -> planDefinitionV2.setStatus(planStatus.name());
+            case FEDERATED -> federatedPlanDefinition.setStatus(planStatus);
         }
         return this;
     }
@@ -127,7 +130,7 @@ public class Plan implements GenericPlanEntity {
         return switch (definitionVersion) {
             case V4 -> planDefinitionV4.getMode();
             case V1, V2 -> PlanMode.STANDARD;
-            case FEDERATED -> throw new IllegalStateException("FEDERATED type not supported");
+            case FEDERATED -> federatedPlanDefinition.getMode();
         };
     }
 
@@ -143,6 +146,7 @@ public class Plan implements GenericPlanEntity {
         switch (definitionVersion) {
             case V4 -> planDefinitionV4.setId(id);
             case V1, V2 -> planDefinitionV2.setId(id);
+            case FEDERATED -> federatedPlanDefinition.setId(id);
         }
         return this;
     }
@@ -156,6 +160,9 @@ public class Plan implements GenericPlanEntity {
         switch (definitionVersion) {
             case V4 -> planDefinitionV4.setTags(tags);
             case V1, V2 -> planDefinitionV2.setTags(tags);
+            case FEDERATED -> {
+                // do nothing
+            }
         }
         return this;
     }
@@ -198,6 +205,7 @@ public class Plan implements GenericPlanEntity {
             .updatedAt(TimeProvider.now())
             .planDefinitionV4(updated.planDefinitionV4)
             .planDefinitionV2(updated.planDefinitionV2)
+            .federatedPlanDefinition(updated.federatedPlanDefinition)
             .commentRequired(updated.commentRequired)
             .commentMessage(updated.commentMessage)
             .generalConditions(updated.generalConditions)
@@ -218,7 +226,7 @@ public class Plan implements GenericPlanEntity {
         return switch (definitionVersion) {
             case V4 -> toBuilder().planDefinitionV4(planDefinitionV4.toBuilder().build()).build();
             case V1, V2 -> toBuilder().planDefinitionV2(planDefinitionV2.toBuilder().build()).build();
-            case FEDERATED -> toBuilder().build();
+            case FEDERATED -> toBuilder().federatedPlanDefinition(federatedPlanDefinition.toBuilder().build()).build();
         };
     }
 
@@ -236,6 +244,14 @@ public class Plan implements GenericPlanEntity {
             this.planDefinitionV4 = planDefinitionV4;
             if (planDefinitionV4 != null) {
                 this.definitionVersion = DefinitionVersion.V4;
+            }
+            return self();
+        }
+
+        public B federatedPlanDefinition(io.gravitee.definition.model.federation.FederatedPlan federatedPlan) {
+            this.federatedPlanDefinition = federatedPlan;
+            if (federatedPlan != null) {
+                this.definitionVersion = DefinitionVersion.FEDERATED;
             }
             return self();
         }

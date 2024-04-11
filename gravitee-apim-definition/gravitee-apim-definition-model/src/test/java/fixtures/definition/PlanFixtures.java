@@ -15,6 +15,7 @@
  */
 package fixtures.definition;
 
+import io.gravitee.definition.model.federation.FederatedPlan;
 import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
@@ -55,5 +56,16 @@ public class PlanFixtures {
 
     public static io.gravitee.definition.model.Plan aKeylessV1() {
         return BASE_V2.get().id("keyless").name("Keyless").security("key-less").paths(Map.of("/", List.of())).build();
+    }
+
+    public static FederatedPlan aFederatedPlan() {
+        return FederatedPlan
+            .builder()
+            .id("my-plan")
+            .mode(PlanMode.STANDARD)
+            .providerId("provider-id")
+            .status(PlanStatus.PUBLISHED)
+            .security(PlanSecurity.builder().type("api-key").build())
+            .build();
     }
 }
