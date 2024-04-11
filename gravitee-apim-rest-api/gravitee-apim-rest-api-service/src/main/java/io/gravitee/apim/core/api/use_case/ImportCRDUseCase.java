@@ -107,8 +107,22 @@ public class ImportCRDUseCase {
 
     private ApiCRDStatus create(Input input) {
         try {
+<<<<<<< HEAD
             var api = createApiDomainService.create(input.crd, input.auditInfo);
             apiMetadataDomainService.saveApiMetadata(api.getId(), input.crd.getMetadata(), input.auditInfo);
+=======
+            String environmentId = input.auditInfo.environmentId();
+            String organizationId = input.auditInfo.organizationId();
+
+            var primaryOwner = apiPrimaryOwnerFactory.createForNewApi(organizationId, environmentId, input.auditInfo.actor().userId());
+
+            var createdApi = createApiDomainService.create(
+                ApiModelFactory.fromCrd(input.crd, environmentId),
+                primaryOwner,
+                input.auditInfo,
+                api -> validateApiDomainService.validateAndSanitizeForCreation(api, primaryOwner, environmentId, organizationId)
+            );
+>>>>>>> 51da5b0ea6 (fix: set context properly in API CRD usecase)
 
             var planNameIdMapping = input.crd
                 .getPlans()
@@ -146,6 +160,8 @@ public class ImportCRDUseCase {
         try {
             var updated = updateApiDomainService.update(existingApi.getId(), input.crd, input.auditInfo);
             // update state and definition context because legacy service does not update it
+
+            // Why are we getting MANAGEMENT as an origin here ?? the API has been saved as kubernetes before
             var api = apiCrudService.update(
                 updated
                     .toBuilder()
@@ -153,7 +169,6 @@ public class ImportCRDUseCase {
                     .lifecycleState(Api.LifecycleState.valueOf(input.crd().getState()))
                     .build()
             );
-            apiMetadataDomainService.saveApiMetadata(api.getId(), input.crd.getMetadata(), input.auditInfo);
 
             List<Plan> existingPlans = planQueryService.findAllByApiId(api.getId());
             Map<String, PlanStatus> existingPlanStatuses = existingPlans.stream().collect(toMap(Plan::getId, Plan::getStatus));

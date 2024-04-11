@@ -81,6 +81,8 @@ import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
+import io.gravitee.rest.api.model.context.KubernetesContext;
+import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.time.Clock;
@@ -587,6 +589,35 @@ class ImportCRDUseCaseTest {
     private static ApiCRD aCRD() {
         return ApiCRD
             .builder()
+<<<<<<< HEAD
+=======
+            .analytics(Analytics.builder().enabled(false).build())
+            .crossId(API_CROSS_ID)
+            .definitionContext(DefinitionContext.builder().origin("KUBERNETES").syncFrom("KUBERNETES").build())
+            .description("api-description")
+            .endpointGroups(
+                List.of(
+                    EndpointGroup
+                        .builder()
+                        .name("default-group")
+                        .type("http-proxy")
+                        .sharedConfiguration("{}")
+                        .endpoints(
+                            List.of(
+                                Endpoint
+                                    .builder()
+                                    .name("default-endpoint")
+                                    .type("http-proxy")
+                                    .inheritConfiguration(true)
+                                    .configuration("{\"target\":\"https://api.gravitee.io/echo\"}")
+                                    .build()
+                            )
+                        )
+                        .build()
+                )
+            )
+            .flows(List.of())
+>>>>>>> 51da5b0ea6 (fix: set context properly in API CRD usecase)
             .id(API_ID)
             .crossId(API_CROSS_ID)
             .type("PROXY")
@@ -612,4 +643,70 @@ class ImportCRDUseCaseTest {
             .flows(List.of())
             .build();
     }
+<<<<<<< HEAD
+=======
+
+    private Api expectedApi() {
+        return aProxyApiV4()
+            .toBuilder()
+            .originContext(
+                KubernetesContext
+                    .builder()
+                    .syncFrom(OriginContext.Origin.KUBERNETES.name())
+                    .mode(KubernetesContext.Mode.FULLY_MANAGED)
+                    .build()
+            )
+            .id(API_ID)
+            .environmentId(ENVIRONMENT_ID)
+            .crossId(API_CROSS_ID)
+            .visibility(Api.Visibility.PRIVATE)
+            .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+            .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+            .deployedAt(null)
+            .disableMembershipNotifications(false)
+            .categories(null)
+            .picture(null)
+            .background(null)
+            .groups(null)
+            .apiLifecycleState(Api.ApiLifecycleState.CREATED)
+            .apiDefinitionV4(
+                ApiDefinitionFixtures
+                    .aHttpProxyApiV4(API_ID)
+                    .toBuilder()
+                    .id(API_ID)
+                    .name("My Api")
+                    .apiVersion("1.0.0")
+                    .properties(List.of(Property.builder().key("prop-key").value("prop-value").build()))
+                    .resources(List.of(Resource.builder().name("resource-name").type("resource-type").enabled(true).build()))
+                    .responseTemplates(Map.of("DEFAULT", Map.of("*.*", ResponseTemplate.builder().statusCode(200).build())))
+                    .tags(Set.of(TAG))
+                    .build()
+            )
+            .build();
+    }
+
+    private void enableApiPrimaryOwnerMode(ApiPrimaryOwnerMode mode) {
+        parametersQueryService.initWith(
+            List.of(new Parameter(Key.API_PRIMARY_OWNER_MODE.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, mode.name()))
+        );
+    }
+
+    private void enableApiReview() {
+        parametersQueryService.define(
+            new Parameter(Key.API_REVIEW_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true")
+        );
+    }
+
+    private void givenExistingUsers(List<BaseUserEntity> users) {
+        userCrudService.initWith(users);
+    }
+
+    private void givenExistingMemberships(List<Membership> memberships) {
+        membershipCrudService.initWith(memberships);
+    }
+
+    private void givenExistingGroup(List<Group> groups) {
+        groupQueryService.initWith(groups);
+    }
+>>>>>>> 51da5b0ea6 (fix: set context properly in API CRD usecase)
 }

@@ -24,6 +24,12 @@ import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.definition.model.v4.resource.Resource;
+<<<<<<< HEAD
+=======
+import io.gravitee.rest.api.model.context.KubernetesContext;
+import io.gravitee.rest.api.model.context.OriginContext;
+import java.util.ArrayList;
+>>>>>>> 51da5b0ea6 (fix: set context properly in API CRD usecase)
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -87,4 +93,59 @@ public class ApiCRD {
     public String getDefinitionVersion() {
         return "V4";
     }
+<<<<<<< HEAD
+=======
+
+    /**
+     * @return An instance of {@link Api.ApiBuilder} based on the current state of this ApiCRD.
+     */
+    public Api.ApiBuilder toApiBuilder() {
+        // Currently we can't use MapStruct in core. We will need to discuss as team if we want to introduce a rule to allow MapStruct in core.
+        return Api
+            .builder()
+            .id(id)
+            .crossId(crossId)
+            .name(name)
+            .version(version)
+            .definitionVersion(DefinitionVersion.V4)
+            .description(description)
+            .labels(labels == null ? null : new ArrayList<>(labels))
+            .type(ApiType.valueOf(type))
+            .apiLifecycleState(Api.ApiLifecycleState.valueOf(lifecycleState))
+            .lifecycleState(Api.LifecycleState.valueOf(state))
+            .originContext(
+                KubernetesContext
+                    .builder()
+                    .syncFrom(
+                        definitionContext.isSyncFromManagement()
+                            ? OriginContext.Origin.MANAGEMENT.name()
+                            : OriginContext.Origin.KUBERNETES.name()
+                    )
+                    .mode(KubernetesContext.Mode.FULLY_MANAGED)
+                    .build()
+            );
+    }
+
+    /**
+     * @return An instance of {@link io.gravitee.definition.model.v4.Api.ApiBuilder} based on the current state of this ApiCRD.
+     */
+    public io.gravitee.definition.model.v4.Api.ApiBuilder toApiDefinitionBuilder() {
+        // Currently we can't use MapStruct in core. We will need to discuss as team if we want to introduce a rule to allow MapStruct in core.
+        return io.gravitee.definition.model.v4.Api
+            .builder()
+            .analytics(analytics)
+            .apiVersion(version)
+            .definitionVersion(DefinitionVersion.V4)
+            .endpointGroups(endpointGroups)
+            .flows(flows)
+            .id(id)
+            .listeners(listeners)
+            .name(name)
+            .properties(properties)
+            .resources(resources)
+            .responseTemplates(responseTemplates)
+            .tags(tags)
+            .type(ApiType.valueOf(type));
+    }
+>>>>>>> 51da5b0ea6 (fix: set context properly in API CRD usecase)
 }
