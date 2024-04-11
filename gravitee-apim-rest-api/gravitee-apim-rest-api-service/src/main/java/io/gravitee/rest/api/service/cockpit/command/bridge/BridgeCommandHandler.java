@@ -35,11 +35,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class BridgeCommandHandler implements CommandHandler<BridgeCommand, BridgeReply> {
 
-    private List<BridgeOperationHandler> operationHandlers;
-
-    public BridgeCommandHandler(List<BridgeOperationHandler> operationHandlers) {
-        this.operationHandlers = operationHandlers;
-    }
+    private final List<BridgeOperationHandler> operationHandlers;
 
     @Override
     public String supportType() {
