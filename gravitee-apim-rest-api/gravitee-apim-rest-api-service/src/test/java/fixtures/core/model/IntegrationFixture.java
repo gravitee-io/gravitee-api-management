@@ -16,9 +16,8 @@
 package fixtures.core.model;
 
 import io.gravitee.apim.core.integration.model.Integration;
-import io.gravitee.rest.api.service.common.UuidString;
+import java.time.Instant;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.function.Supplier;
 
 public class IntegrationFixture {
@@ -34,8 +33,8 @@ public class IntegrationFixture {
             .provider("test-provider")
             .environmentId("my-env")
             .agentStatus(Integration.AgentStatus.DISCONNECTED)
-            .createdAt(ZonedDateTime.parse("2020-02-03T20:22:02.00Z").withZoneSameLocal(ZoneId.systemDefault()))
-            .updatedAt(ZonedDateTime.parse("2020-02-03T20:22:02.00Z").withZoneSameLocal(ZoneId.systemDefault()));
+            .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+            .updatedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()));
 
     public static Integration anIntegration() {
         return BASE.get().build();

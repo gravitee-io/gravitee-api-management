@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.integration.model;
 
+import io.gravitee.common.utils.TimeProvider;
 import java.time.ZonedDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -44,6 +45,15 @@ public class Integration {
     AgentStatus agentStatus;
 
     public enum AgentStatus {
+        CONNECTED,
         DISCONNECTED,
+    }
+
+    public Integration agentConnected() {
+        return this.toBuilder().agentStatus(AgentStatus.CONNECTED).updatedAt(TimeProvider.now()).build();
+    }
+
+    public Integration agentDisconnected() {
+        return this.toBuilder().agentStatus(AgentStatus.DISCONNECTED).updatedAt(TimeProvider.now()).build();
     }
 }

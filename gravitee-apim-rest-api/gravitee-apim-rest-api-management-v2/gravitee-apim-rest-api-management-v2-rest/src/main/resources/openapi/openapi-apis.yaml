@@ -3195,6 +3195,7 @@ components:
                     description: Agent connection status
                     example: DISCONNECTED
                     enum:
+                        - CONNECTED
                         - DISCONNECTED
 
         IntegrationIngestionResponse:

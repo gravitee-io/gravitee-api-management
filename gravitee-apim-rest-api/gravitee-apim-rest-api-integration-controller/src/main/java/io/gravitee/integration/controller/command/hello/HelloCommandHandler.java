@@ -16,6 +16,8 @@
 package io.gravitee.integration.controller.command.hello;
 
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
+import io.gravitee.apim.core.integration.model.Integration;
+import io.gravitee.apim.core.integration.use_case.UpdateAgentStatusUseCase;
 import io.gravitee.exchange.api.command.CommandHandler;
 import io.gravitee.exchange.api.command.hello.HelloReply;
 import io.gravitee.exchange.api.command.hello.HelloReplyPayload;
@@ -31,7 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class HelloCommandHandler implements CommandHandler<HelloCommand, HelloReply> {
 
-    private final IntegrationCrudService integrationCrudService;
+    private final UpdateAgentStatusUseCase updateAgentStatusUseCase;
 
     @Override
     public String supportType() {
@@ -44,22 +46,15 @@ public class HelloCommandHandler implements CommandHandler<HelloCommand, HelloRe
             .fromCallable(() -> {
                 HelloCommandPayload payload = command.getPayload();
 
-                return integrationCrudService
-                    .findById(payload.getTargetId())
-                    .map(integration -> {
-                        if (integration.getProvider().equals(payload.getProvider())) {
-                            return new HelloReply(command.getId(), HelloReplyPayload.builder().targetId(integration.getId()).build());
-                        }
-                        return new HelloReply(
-                            command.getId(),
-                            String.format(
-                                "Integration [id=%s] does not match. Expected provider [provider=%s]",
-                                integration.getId(),
-                                integration.getProvider()
-                            )
-                        );
-                    })
-                    .orElse(new HelloReply(command.getId(), String.format("Integration [id=%s] not found", payload.getTargetId())));
+                var result = updateAgentStatusUseCase.execute(
+                    new UpdateAgentStatusUseCase.Input(payload.getTargetId(), payload.getProvider(), Integration.AgentStatus.CONNECTED)
+                );
+
+                if (result.success()) {
+                    return new HelloReply(command.getId(), HelloReplyPayload.builder().targetId(payload.getTargetId()).build());
+                }
+
+                return new HelloReply(command.getId(), result.message());
             })
             .doOnError(throwable ->
                 log.error("Unable to process hello command payload for target [{}]", command.getPayload().getTargetId(), throwable)

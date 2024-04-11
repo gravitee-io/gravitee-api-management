@@ -48,6 +48,7 @@ public class Integration {
     private AgentStatus agentStatus;
 
     public enum AgentStatus {
+        CONNECTED,
         DISCONNECTED,
     }
 }

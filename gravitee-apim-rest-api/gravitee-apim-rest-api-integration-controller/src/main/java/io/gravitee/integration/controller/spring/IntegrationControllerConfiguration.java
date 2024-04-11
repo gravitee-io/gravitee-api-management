@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
+import io.gravitee.apim.core.integration.use_case.UpdateAgentStatusUseCase;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.exchange.api.configuration.IdentifyConfiguration;
 import io.gravitee.exchange.api.controller.ControllerCommandHandlersFactory;
@@ -66,9 +67,9 @@ public class IntegrationControllerConfiguration {
 
     @Bean("integrationControllerCommandHandlerFactory")
     public IntegrationControllerCommandHandlerFactory integrationControllerCommandHandlerFactory(
-        final IntegrationCrudService integrationCrudService
+        final UpdateAgentStatusUseCase updateAgentStatusUseCase
     ) {
-        return new IntegrationControllerCommandHandlerFactory(integrationCrudService);
+        return new IntegrationControllerCommandHandlerFactory(updateAgentStatusUseCase);
     }
 
     @Bean("integrationExchangeController")
