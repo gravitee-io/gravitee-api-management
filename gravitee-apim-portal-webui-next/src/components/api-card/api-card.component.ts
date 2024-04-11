@@ -27,9 +27,11 @@ import { MatCardModule } from '@angular/material/card';
 })
 export class ApiCardComponent {
   @Input({ required: true })
-  title: string;
+  title!: string;
   @Input({ required: true })
-  version: string;
+  version!: string;
   @Input()
-  content: string;
+  picture: string | undefined = 'assets/images/logo.png';
+  @Input()
+  content?: string;
 }

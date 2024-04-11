@@ -15,54 +15,63 @@
  */
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatCardHarness } from '@angular/material/card/testing';
 
 import { CatalogComponent } from './catalog.component';
+import { fakeApi, fakeApisResponse } from '../../entities/api/api.fixtures';
+import { ApisResponse } from '../../entities/api/apis-response';
+import { AppTestingModule, TESTING_BASE_URL } from '../../testing/app-testing.module';
 
 describe('CatalogComponent', () => {
-  let component: CatalogComponent;
   let fixture: ComponentFixture<CatalogComponent>;
   let harnessLoader: HarnessLoader;
+  let httpTestingController: HttpTestingController;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CatalogComponent],
+      imports: [CatalogComponent, AppTestingModule],
     }).compileComponents();
 
     fixture = TestBed.createComponent(CatalogComponent);
-    component = fixture.componentInstance;
+    httpTestingController = TestBed.inject(HttpTestingController);
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
-  });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+    fixture.detectChanges();
   });
 
   it('should render banner text', () => {
-    fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('h1')?.textContent).toContain('Welcome to Gravitee Developer Portal!');
   });
 
   it('should show empty API list', async () => {
-    component.apis = [];
+    expectApiList(fakeApisResponse({ data: [] }));
     const noApiCard = await harnessLoader.getHarness(MatCardHarness.with({ selector: '#no-apis' }));
     expect(noApiCard).toBeTruthy();
     expect(await noApiCard.getText()).toContain('Sorry, there are no APIs listed yet.');
   });
 
   it('should show API list', async () => {
-    component.apis = [
-      {
-        title: 'Test tile',
-        version: 'v.1.2',
-        content:
-          'Get real-time weather updates, forecasts, and historical data to enhance your applications with accurate weather information.',
-        id: 1,
-      },
-    ];
+    expectApiList(
+      fakeApisResponse({
+        data: [
+          fakeApi({
+            id: '1',
+            name: 'Test title',
+            version: 'v.1.2',
+            description:
+              'Get real-time weather updates, forecasts, and historical data to enhance your applications with accurate weather information.',
+          }),
+        ],
+      }),
+    );
     const debugApiCardElement = fixture.debugElement.nativeElement.querySelector('app-api-card');
     expect(debugApiCardElement).toBeDefined();
   });
+
+  function expectApiList(apisResponse: ApisResponse = fakeApisResponse()) {
+    httpTestingController.expectOne(`${TESTING_BASE_URL}/apis?page=1&size=9`).flush(apisResponse);
+  }
 });
