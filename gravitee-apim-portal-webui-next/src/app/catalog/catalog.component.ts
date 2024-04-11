@@ -13,39 +13,49 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+
+import { Component, OnInit } from '@angular/core';
 import { MatCard, MatCardContent } from '@angular/material/card';
 
 import { ApiCardComponent } from '../../components/api-card/api-card.component';
 import { BannerComponent } from '../../components/banner/banner.component';
+import { ApiService } from '../../services/api.service';
 
 export interface ApiVM {
+  id: string;
   title: string;
   version: string;
   content: string;
-  id: number;
+  picture?: string;
 }
 
 @Component({
   selector: 'app-catalog',
   standalone: true,
-  imports: [BannerComponent, MatCard, MatCardContent, ApiCardComponent, CommonModule],
+  imports: [BannerComponent, MatCard, MatCardContent, ApiCardComponent],
   templateUrl: './catalog.component.html',
   styleUrl: './catalog.component.scss',
 })
-export class CatalogComponent {
-  apis: ApiVM[] = [
-    {
-      title: 'Test tile',
-      version: 'v.1.2',
-      content:
-        'Get real-time weather updates, forecasts, and historical data to enhance your applications with accurate weather information.',
-      id: 1,
-    },
-  ];
+export class CatalogComponent implements OnInit {
+  apis: ApiVM[] = [];
 
   // TODO: Get banner title + subtitle from configuration
   bannerTitle: string = 'Welcome to Gravitee Developer Portal!';
   bannerSubtitle: string = 'Discover powerful APIs to supercharge your projects.';
+
+  constructor(private apiService: ApiService) {}
+
+  ngOnInit(): void {
+    this.apiService.list().subscribe(resp => {
+      if (resp.data) {
+        this.apis = resp.data.map(api => ({
+          id: api.id,
+          content: api.description,
+          version: api.version,
+          title: api.name,
+          picture: api._links?.picture,
+        }));
+      }
+    });
+  }
 }

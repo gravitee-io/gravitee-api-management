@@ -32,7 +32,9 @@
     </mat-card-content>
   </mat-card>
 } @else {
-  @for (api of apis; track api.id) {
-    <app-api-card [title]="api.title" [version]="api.version" [content]="api.content" />
-  }
+  <div class="api-list__container">
+    @for (api of apis; track api.id) {
+      <app-api-card [title]="api.title" [version]="api.version" [content]="api.content" [picture]="api.picture" />
+    }
+  </div>
 }

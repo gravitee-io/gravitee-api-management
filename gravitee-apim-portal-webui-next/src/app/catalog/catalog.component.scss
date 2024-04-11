@@ -22,3 +22,9 @@
 .welcome-banner-content {
   padding: 0 16px;
 }
+
+.api-list__container {
+  display: grid;
+  gap: 32px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}

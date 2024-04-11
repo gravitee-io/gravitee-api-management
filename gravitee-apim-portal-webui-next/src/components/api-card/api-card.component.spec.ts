@@ -26,7 +26,7 @@ describe('CardComponent', () => {
     version: 'v.1',
     content:
       'Get real-time weather updates, forecasts, and historical data to enhance your applications with accurate weather information.',
-    id: 1,
+    id: '1',
   };
   beforeEach(async () => {
     await TestBed.configureTestingModule({
