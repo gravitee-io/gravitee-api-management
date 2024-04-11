@@ -625,7 +625,7 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
         // If user is not admin, get list of apiIds in their scope and add it to the criteria
         if (!isAdmin) {
-            Set<String> userApiIds = apiAuthorizationService.findApiIdsByUserId(executionContext, userId, null);
+            Set<String> userApiIds = apiAuthorizationService.findApiIdsByUserId(executionContext, userId, null, true);
 
             // User has no associated apis
             if (userApiIds.isEmpty()) {

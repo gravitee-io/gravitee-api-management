@@ -65,6 +65,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
@@ -261,7 +262,8 @@ public class ApisResource extends AbstractResource {
         @BeanParam @Valid PaginationParam paginationParam,
         @BeanParam ApiSortByParam apiSortByParam,
         final @Valid @NotNull ApiSearchQuery apiSearchQuery,
-        @QueryParam("expands") Set<String> expands
+        @QueryParam("expands") Set<String> expands,
+        @QueryParam("manageOnly") @DefaultValue("true") boolean manageOnly
     ) {
         apiSortByParam.validate();
 
@@ -294,7 +296,8 @@ public class ApisResource extends AbstractResource {
             isAdmin(),
             apiQueryBuilder,
             paginationParam.toPageable(),
-            expandDeploymentState
+            expandDeploymentState,
+            manageOnly
         );
 
         long totalCount = apis.getTotalElements();

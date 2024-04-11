@@ -154,7 +154,8 @@ public class ApiSearchService_SearchTest {
             eq(true),
             apiEntityQueryBuilder.setFilters(filters),
             new PageableImpl(1, 10),
-            false
+            false,
+            true
         );
 
         assertThat(apis).isNotNull();
@@ -163,7 +164,7 @@ public class ApiSearchService_SearchTest {
         assertThat(apis.getPageNumber()).isEqualTo(0);
         assertThat(apis.getPageElements()).isEqualTo(0);
 
-        verify(apiAuthorizationService, never()).findApiIdsByUserId(any(), any(), any());
+        verify(apiAuthorizationService, never()).findApiIdsByUserId(any(), any(), any(), anyBoolean());
         verify(apiRepository, never()).search(any(), any(), any(), any());
     }
 
@@ -202,7 +203,8 @@ public class ApiSearchService_SearchTest {
             true,
             apiEntityQueryBuilder.setFilters(filters),
             new PageableImpl(1, 10),
-            false
+            false,
+            true
         );
 
         assertThat(apis).isNotNull();
@@ -211,7 +213,7 @@ public class ApiSearchService_SearchTest {
         assertThat(apis.getPageNumber()).isEqualTo(0);
         assertThat(apis.getPageElements()).isEqualTo(0);
 
-        verify(apiAuthorizationService, never()).findApiIdsByUserId(any(), any(), any());
+        verify(apiAuthorizationService, never()).findApiIdsByUserId(any(), any(), any(), anyBoolean());
         verify(apiRepository, times(1)).search(any(), any());
     }
 
@@ -273,7 +275,8 @@ public class ApiSearchService_SearchTest {
             true,
             apiEntityQueryBuilder.setFilters(filters),
             new PageableImpl(2, 2),
-            false
+            false,
+            true
         );
 
         assertThat(apis).isNotNull();
@@ -290,7 +293,7 @@ public class ApiSearchService_SearchTest {
         )
             .isTrue();
 
-        verify(apiAuthorizationService, never()).findApiIdsByUserId(any(), any(), any());
+        verify(apiAuthorizationService, never()).findApiIdsByUserId(any(), any(), any(), anyBoolean());
         verify(apiRepository, times(1)).search(any(), any());
         verify(primaryOwnerService, times(1)).getPrimaryOwners(any(), any());
         verify(categoryService, never()).findAll(any());
@@ -320,7 +323,7 @@ public class ApiSearchService_SearchTest {
         apiEntity2.setDefinitionVersion(DefinitionVersion.V4);
         apiEntity2.setLifecycleState(LifecycleState.STARTED);
 
-        when(apiAuthorizationService.findApiIdsByUserId(eq(GraviteeContext.getExecutionContext()), eq(USER_ID), isNull()))
+        when(apiAuthorizationService.findApiIdsByUserId(eq(GraviteeContext.getExecutionContext()), eq(USER_ID), isNull(), eq(true)))
             .thenReturn(Set.of("id-1"));
 
         when(
@@ -342,7 +345,8 @@ public class ApiSearchService_SearchTest {
             false,
             apiEntityQueryBuilder.setFilters(filters),
             new PageableImpl(1, 10),
-            false
+            false,
+            true
         );
 
         assertThat(apis).isNotNull();
@@ -351,7 +355,7 @@ public class ApiSearchService_SearchTest {
         assertThat(apis.getPageNumber()).isEqualTo(1);
         assertThat(apis.getPageElements()).isEqualTo(1);
 
-        verify(apiAuthorizationService, times(1)).findApiIdsByUserId(any(), any(), any());
+        verify(apiAuthorizationService, times(1)).findApiIdsByUserId(any(), any(), any(), eq(true));
         verify(apiRepository, times(1)).search(any(), any());
     }
 
@@ -376,7 +380,7 @@ public class ApiSearchService_SearchTest {
         apiEntity2.setId("id-2");
         apiEntity2.setLifecycleState(LifecycleState.STARTED);
 
-        when(apiAuthorizationService.findApiIdsByUserId(eq(GraviteeContext.getExecutionContext()), eq(USER_ID), isNull()))
+        when(apiAuthorizationService.findApiIdsByUserId(eq(GraviteeContext.getExecutionContext()), eq(USER_ID), isNull(), eq(true)))
             .thenReturn(Set.of());
 
         final Page<GenericApiEntity> apis = apiSearchService.search(
@@ -385,7 +389,8 @@ public class ApiSearchService_SearchTest {
             false,
             apiEntityQueryBuilder.setFilters(filters),
             new PageableImpl(1, 10),
-            false
+            false,
+            true
         );
 
         assertThat(apis).isNotNull();
@@ -394,7 +399,7 @@ public class ApiSearchService_SearchTest {
         assertThat(apis.getPageNumber()).isEqualTo(0);
         assertThat(apis.getPageElements()).isEqualTo(0);
 
-        verify(apiAuthorizationService, times(1)).findApiIdsByUserId(any(), any(), any());
+        verify(apiAuthorizationService, times(1)).findApiIdsByUserId(any(), any(), any(), eq(true));
         verify(apiRepository, never()).search(any(), any(), any(), any());
     }
 
@@ -419,7 +424,7 @@ public class ApiSearchService_SearchTest {
         apiEntity2.setId("id-2");
         apiEntity2.setLifecycleState(LifecycleState.STARTED);
 
-        when(apiAuthorizationService.findApiIdsByUserId(eq(GraviteeContext.getExecutionContext()), eq(USER_ID), isNull()))
+        when(apiAuthorizationService.findApiIdsByUserId(eq(GraviteeContext.getExecutionContext()), eq(USER_ID), isNull(), eq(true)))
             .thenReturn(Set.of("id-3"));
 
         final Page<GenericApiEntity> apis = apiSearchService.search(
@@ -428,7 +433,8 @@ public class ApiSearchService_SearchTest {
             false,
             apiEntityQueryBuilder.setFilters(filters),
             new PageableImpl(1, 10),
-            false
+            false,
+            true
         );
 
         assertThat(apis).isNotNull();
@@ -437,7 +443,7 @@ public class ApiSearchService_SearchTest {
         assertThat(apis.getPageNumber()).isEqualTo(0);
         assertThat(apis.getPageElements()).isEqualTo(0);
 
-        verify(apiAuthorizationService, times(1)).findApiIdsByUserId(any(), any(), any());
+        verify(apiAuthorizationService, times(1)).findApiIdsByUserId(any(), any(), any(), eq(true));
         verify(apiRepository, never()).search(any(), any(), any(), any());
     }
 
@@ -496,6 +502,7 @@ public class ApiSearchService_SearchTest {
             true,
             apiEntityQueryBuilder,
             new PageableImpl(1, 2),
+            true,
             true
         );
 
@@ -513,7 +520,7 @@ public class ApiSearchService_SearchTest {
         )
             .isTrue();
 
-        verify(apiAuthorizationService, never()).findApiIdsByUserId(any(), any(), any());
+        verify(apiAuthorizationService, never()).findApiIdsByUserId(any(), any(), any(), anyBoolean());
         verify(apiRepository, times(1)).search(any(), any());
         verify(primaryOwnerService, times(1)).getPrimaryOwners(any(), any());
         verify(categoryService, times(1)).findAll(GraviteeContext.getCurrentEnvironment());

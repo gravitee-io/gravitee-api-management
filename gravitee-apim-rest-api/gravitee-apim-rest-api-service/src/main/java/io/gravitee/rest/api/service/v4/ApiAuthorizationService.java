@@ -70,7 +70,7 @@ public interface ApiAuthorizationService {
         final boolean manageOnly
     );
 
-    Set<String> findApiIdsByUserId(ExecutionContext executionContext, String userId, ApiQuery apiQuery);
+    Set<String> findApiIdsByUserId(ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean manageOnly);
     Set<String> findIdsByEnvironment(final String environmentId);
     List<ApiCriteria> computeApiCriteriaForUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean manageOnly);
 }
