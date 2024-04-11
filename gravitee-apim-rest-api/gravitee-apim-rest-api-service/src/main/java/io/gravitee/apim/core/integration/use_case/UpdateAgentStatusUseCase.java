@@ -53,7 +53,11 @@ public class UpdateAgentStatusUseCase {
             .orElse(new Output(false, String.format("Integration [id=%s] not found", input.integrationId)));
     }
 
-    public record Input(String integrationId, String provider, Integration.AgentStatus agentStatus) {}
+    public record Input(String integrationId, String provider, Integration.AgentStatus agentStatus) {
+        public Input(String integrationId, Integration.AgentStatus agentStatus) {
+            this(integrationId, null, agentStatus);
+        }
+    }
 
     public record Output(boolean success, String message) {
         public Output(boolean success) {
