@@ -30,6 +30,7 @@ import io.gravitee.exchange.controller.websocket.WebSocketExchangeController;
 import io.gravitee.exchange.controller.websocket.auth.WebSocketControllerAuthentication;
 import io.gravitee.integration.api.websocket.command.IntegrationExchangeSerDe;
 import io.gravitee.integration.controller.command.IntegrationControllerCommandHandlerFactory;
+import io.gravitee.integration.controller.listener.ControllerEventListener;
 import io.gravitee.integration.controller.websocket.auth.IntegrationWebsocketControllerAuthentication;
 import io.gravitee.node.api.cache.CacheManager;
 import io.gravitee.node.api.certificate.KeyStoreLoaderFactoryRegistry;
@@ -72,6 +73,11 @@ public class IntegrationControllerConfiguration {
         return new IntegrationControllerCommandHandlerFactory(updateAgentStatusUseCase);
     }
 
+    @Bean("integrationControllerEventListener")
+    ControllerEventListener controllerEventListener(UpdateAgentStatusUseCase updateAgentStatusUseCase) {
+        return new ControllerEventListener(updateAgentStatusUseCase);
+    }
+
     @Bean("integrationExchangeController")
     public ExchangeController integrationExchangeController(
         final @Lazy ClusterManager clusterManager,
@@ -86,7 +92,8 @@ public class IntegrationControllerConfiguration {
         final @Qualifier(
             "integrationControllerCommandHandlerFactory"
         ) ControllerCommandHandlersFactory integrationControllerCommandHandlerFactory,
-        final @Qualifier("integrationExchangeSerDe") ExchangeSerDe integrationExchangeSerDe
+        final @Qualifier("integrationExchangeSerDe") ExchangeSerDe integrationExchangeSerDe,
+        final @Qualifier("integrationControllerEventListener") ControllerEventListener eventListener
     ) {
         return new WebSocketExchangeController(
             identifyConfiguration,
@@ -98,7 +105,8 @@ public class IntegrationControllerConfiguration {
             integrationWebsocketControllerAuthentication,
             integrationControllerCommandHandlerFactory,
             integrationExchangeSerDe
-        );
+        )
+            .addListener(eventListener);
     }
 
     public ObjectMapper objectMapper() {
