@@ -47,7 +47,7 @@ import {
   VerifySubscription,
 } from '../../../../../../entities/management-api-v2';
 import { ApiKeyMode, Application } from '../../../../../../entities/application/Application';
-import { PagedResult } from '../../../../../../entities/pagedResult';
+import { fakePagedResult, PagedResult } from '../../../../../../entities/pagedResult';
 import { fakeApplication } from '../../../../../../entities/application/Application.fixture';
 import { SubscriptionService } from '../../../../../../services-ngx/subscription.service';
 import { PlanSecurityType } from '../../../../../../entities/plan';
@@ -263,6 +263,7 @@ describe('Subscription creation dialog', () => {
         expect(await harness.isPlanRadioGroupEnabled()).toBeTruthy();
         await harness.choosePlan(planV4.name);
 
+        expectApiKeySubscriptionsGetRequest(applicationWithClientId.id, []);
         expect(await harness.isCustomApiKeyInputDisplayed()).toBeTruthy();
         expect(await harness.isApiKeyModeRadioGroupDisplayed()).toBeFalsy();
 
@@ -278,6 +279,7 @@ describe('Subscription creation dialog', () => {
         expect(req.request.body).toEqual(verifySubscription);
         req.flush({ ok: true });
       });
+
       it('should have input when selecting non API Key plan and then select an API Key Plan', async () => {
         const applicationWithClientId = fakeApplication({ name: 'withClientId', settings: { app: { client_id: 'clientId' } } });
 
@@ -308,8 +310,10 @@ describe('Subscription creation dialog', () => {
 
         await harness.choosePlan(apiKeyPlanV4.name);
 
+        expectApiKeySubscriptionsGetRequest(applicationWithClientId.id, []);
         expect(await harness.isCustomApiKeyInputDisplayed()).toBeTruthy();
       });
+
       it('should not have input with OAUTH2 Plan', async () => {
         const planV4 = fakePlanV4({ mode: 'STANDARD', security: { type: 'OAUTH2' }, generalConditions: undefined });
         component.plans = [planV4];
@@ -386,16 +390,16 @@ describe('Subscription creation dialog', () => {
         expectApplicationsSearch('withClientId', [applicationWithClientId]);
         await harness.selectApplication(applicationWithClientId.name);
 
-        expectSubscriptionsForApplication(applicationWithClientId.id, [
-          {
-            security: PlanSecurityType.API_KEY,
-            api: 'another-plan-id',
-          },
-        ]);
+        const apikeySubscription = {
+          security: PlanSecurityType.API_KEY,
+          api: 'another-plan-id',
+        };
+        expectSubscriptionsForApplication(applicationWithClientId.id, [apikeySubscription]);
 
         expect(await harness.isPlanRadioGroupEnabled()).toBeTruthy();
         await harness.choosePlan(planV4.name);
 
+        expectApiKeySubscriptionsGetRequest(applicationWithClientId.id, [apikeySubscription]);
         expect(await harness.isApiKeyModeRadioGroupDisplayed()).toBeTruthy();
 
         await harness.chooseApiKeyMode('API Key');
@@ -414,6 +418,7 @@ describe('Subscription creation dialog', () => {
         expect(req.request.body).toEqual(verifySubscription);
         req.flush({ ok: true });
       });
+
       it('should not be able to select API Key mode when no subscription and custom API Key', async () => {
         const applicationWithClientId = fakeApplication({
           id: 'my-app',
@@ -443,8 +448,8 @@ describe('Subscription creation dialog', () => {
         expect(await harness.isPlanRadioGroupEnabled()).toBeTruthy();
         await harness.choosePlan(planV4.name);
 
+        expectApiKeySubscriptionsGetRequest(applicationWithClientId.id, []);
         expect(await harness.isApiKeyModeRadioGroupDisplayed()).toBeFalsy();
-
         expect(await harness.isCustomApiKeyInputDisplayed()).toBeTruthy();
 
         await harness.addCustomKey('12345678');
@@ -459,6 +464,7 @@ describe('Subscription creation dialog', () => {
         expect(req.request.body).toEqual(verifySubscription);
         req.flush({ ok: true });
       });
+
       it('should be able to select API Key mode SHARED and not custom API Key', async () => {
         const applicationWithClientId = fakeApplication({
           id: 'my-app',
@@ -483,16 +489,16 @@ describe('Subscription creation dialog', () => {
         expectApplicationsSearch('withClientId', [applicationWithClientId]);
         await harness.selectApplication(applicationWithClientId.name);
 
-        expectSubscriptionsForApplication(applicationWithClientId.id, [
-          {
-            security: PlanSecurityType.API_KEY,
-            api: 'another-plan-id',
-          },
-        ]);
+        const apikeySubscription = {
+          security: PlanSecurityType.API_KEY,
+          api: 'another-plan-id',
+        };
+        expectSubscriptionsForApplication(applicationWithClientId.id, [apikeySubscription]);
 
         expect(await harness.isPlanRadioGroupEnabled()).toBeTruthy();
         await harness.choosePlan(planV4.name);
 
+        expectApiKeySubscriptionsGetRequest(applicationWithClientId.id, [apikeySubscription]);
         expect(await harness.isApiKeyModeRadioGroupDisplayed()).toBeTruthy();
 
         await harness.chooseApiKeyMode('Shared API Key');
@@ -749,6 +755,16 @@ describe('Subscription creation dialog', () => {
       });
     fixture.detectChanges();
   }
+
+  const expectApiKeySubscriptionsGetRequest = (applicationId: string, subscriptions: ApplicationSubscription[]) => {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/applications/${applicationId}/subscriptions?page=1&size=20&security_types=API_KEY`,
+        method: 'GET',
+      })
+      .flush(fakePagedResult(subscriptions));
+    fixture.detectChanges();
+  };
 
   function expectEntrypointSubscriptionSchema(entrypointId: string) {
     const response: GioJsonSchema = {
