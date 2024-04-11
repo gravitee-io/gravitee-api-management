@@ -80,12 +80,14 @@
       </dl>
     </mat-card-content>
 
-    <mat-card-actions>
-      <button mat-raised-button color="warn">
-        <mat-icon svgIcon="gio:x-circle"></mat-icon>
-        Close
-      </button>
-    </mat-card-actions>
+    @if (subscription.status === 'ACCEPTED' || subscription.status === 'PENDING' || subscription.status === 'PAUSED') {
+      <mat-card-actions *gioPermission="{ anyOf: ['application-subscription-d'] }">
+        <button mat-raised-button color="warn" (click)="closeSubscription(subscription)">
+          <mat-icon svgIcon="gio:x-circle"></mat-icon>
+          Close
+        </button>
+      </mat-card-actions>
+    }
   } @else {
     <mat-card-content> <gio-loader></gio-loader> </mat-card-content>
   }
