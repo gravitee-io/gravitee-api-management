@@ -16,7 +16,7 @@
 
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { EMPTY, Observable, of, Subject } from 'rxjs';
+import { combineLatest, EMPTY, Observable, of, Subject } from 'rxjs';
 import { UntypedFormControl, UntypedFormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, filter, map, share, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { GioJsonSchema } from '@gravitee/ui-particles-angular';
@@ -29,7 +29,6 @@ import { PagedResult } from '../../../../../../entities/pagedResult';
 import { Constants } from '../../../../../../entities/Constants';
 import { ConnectorPluginsV2Service } from '../../../../../../services-ngx/connector-plugins-v2.service';
 import { IconService } from '../../../../../../services-ngx/icon.service';
-import { PlanSecurityType } from '../../../../../../entities/plan';
 import { SubscriptionService } from '../../../../../../services-ngx/subscription.service';
 import { ApplicationSubscription } from '../../../../../../entities/subscription/subscription';
 
@@ -228,12 +227,15 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
         distinctUntilChanged(),
         filter((plan) => plan?.security?.type === 'API_KEY'),
         switchMap((plan) => {
+          const selectedAppId = this.form.get('selectedApplication').value?.id;
+          if (selectedAppId != null) {
+            return combineLatest([this.applicationService.getSubscriptionsPage(selectedAppId, { security_types: ['API_KEY'] }), of(plan)]);
+          }
+          return combineLatest([of(null), of(plan)]);
+        }),
+        switchMap(([subscriptions, plan]) => {
           if (this.canUseSharedApiKeys && this.form.get('selectedApplication').value.api_key_mode === ApiKeyMode.UNSPECIFIED) {
-            return of(
-              this.currentSubscriptions.filter(
-                (subscription) => subscription?.security === PlanSecurityType.API_KEY && subscription?.api !== plan?.apiId,
-              ).length >= 1,
-            );
+            return of(subscriptions?.data?.filter((subscription) => subscription?.api !== plan?.apiId).length >= 1);
           }
           return of(false);
         }),
