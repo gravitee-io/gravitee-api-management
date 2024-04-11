@@ -46,7 +46,13 @@
                   "maximumError": "4kb"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "fileReplacements": [
+                {
+                  "replace": "src/assets/config.json",
+                  "with": "src/assets/config.prod.json"
+                }
+              ]
             },
             "development": {
               "optimization": false,
@@ -59,7 +65,9 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "port": 4101
+            "port": 4101,
+            "proxyConfig": "src/proxy.conf.mjs",
+            "buildTarget": "gravitee-apim-portal-webui-next:build"
           },
           "configurations": {
             "production": {
