@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.integration;
 
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.integration.use_case.DeleteIntegrationUseCase;
 import io.gravitee.apim.core.integration.use_case.GetIntegrationUseCase;
 import io.gravitee.apim.core.integration.use_case.IngestIntegrationApisUseCase;
 import io.gravitee.apim.core.integration.use_case.UpdateIntegrationUseCase;
@@ -57,6 +58,9 @@ public class IntegrationResource extends AbstractResource {
     @Inject
     private IngestIntegrationApisUseCase ingestIntegrationApisUseCase;
 
+    @Inject
+    private DeleteIntegrationUseCase deleteIntegrationUseCase;
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_INTEGRATION, acls = { RolePermissionAction.READ }) })
@@ -79,6 +83,13 @@ public class IntegrationResource extends AbstractResource {
         var input = UpdateIntegrationUseCase.Input.builder().integration(integrationToUpdate).build();
         var updatedIntegration = updateIntegrationUsecase.execute(input).integration();
         return Response.ok(IntegrationMapper.INSTANCE.map(updatedIntegration)).build();
+    }
+
+    @DELETE
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_INTEGRATION, acls = { RolePermissionAction.DELETE }) })
+    public void deleteIntegrationById(@PathParam("integrationId") String integrationId) {
+        var input = DeleteIntegrationUseCase.Input.builder().integrationId(integrationId).build();
+        deleteIntegrationUseCase.execute(input);
     }
 
     @POST

@@ -13,21 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.integration.crud_service;
+package io.gravitee.apim.core.integration.exception;
 
-import io.gravitee.apim.core.integration.model.Integration;
-import java.util.Optional;
+import io.gravitee.apim.core.exception.ValidationDomainException;
 
-/**
- * @author Remi Baptiste (remi.baptiste at graviteesource.com)
- * @author GraviteeSource Team
- */
-public interface IntegrationCrudService {
-    Integration create(Integration integration);
+public class AssociatedApisFoundException extends ValidationDomainException {
 
-    Optional<Integration> findById(String id);
-
-    Integration update(Integration integration);
-
-    void delete(String id);
+    public AssociatedApisFoundException(String id) {
+        super(String.format("Associated APIs found for federation with id: %s", id));
+    }
 }

@@ -45,6 +45,7 @@ public class ApiCriteria {
     private List<String> environments;
     private String crossId;
     private List<DefinitionVersion> definitionVersion;
+    private String integrationId;
 
     ApiCriteria(ApiCriteria.Builder builder) {
         this.ids = builder.ids;
@@ -60,6 +61,7 @@ public class ApiCriteria {
         this.environments = builder.environments;
         this.crossId = builder.crossId;
         this.definitionVersion = builder.definitionVersion;
+        this.integrationId = builder.integrationId;
     }
 
     public Collection<String> getIds() {
@@ -122,6 +124,14 @@ public class ApiCriteria {
         this.definitionVersion = definitionVersion;
     }
 
+    public String getIntegrationId() {
+        return integrationId;
+    }
+
+    public void setIntegrationId(String integrationId) {
+        this.integrationId = integrationId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -140,7 +150,8 @@ public class ApiCriteria {
             Objects.equals(environmentId, that.environmentId) &&
             Objects.equals(environments, that.environments) &&
             Objects.equals(crossId, that.crossId) &&
-            Objects.equals(definitionVersion, that.definitionVersion)
+            Objects.equals(definitionVersion, that.definitionVersion) &&
+            Objects.equals(integrationId, that.integrationId)
         );
     }
 
@@ -159,7 +170,8 @@ public class ApiCriteria {
             environmentId,
             environments,
             crossId,
-            definitionVersion
+            definitionVersion,
+            integrationId
         );
     }
 
@@ -178,6 +190,7 @@ public class ApiCriteria {
         private List<String> environments;
         private String crossId;
         private List<DefinitionVersion> definitionVersion;
+        private String integrationId;
 
         public ApiCriteria.Builder ids(final String... id) {
             this.ids = Set.of(id);
@@ -251,6 +264,11 @@ public class ApiCriteria {
 
         public ApiCriteria.Builder definitionVersion(final List<DefinitionVersion> definitionVersion) {
             this.definitionVersion = definitionVersion;
+            return this;
+        }
+
+        public ApiCriteria.Builder integrationId(final String integrationId) {
+            this.integrationId = integrationId;
             return this;
         }
 

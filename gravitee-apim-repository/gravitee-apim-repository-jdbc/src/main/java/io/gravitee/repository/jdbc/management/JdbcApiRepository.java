@@ -498,6 +498,9 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
                     lastIndex = getOrm().setArguments(ps, definitionVersionList, lastIndex);
                 }
             }
+            if (hasText(apiCriteria.getIntegrationId())) {
+                ps.setString(lastIndex++, apiCriteria.getIntegrationId());
+            }
         }
         return lastIndex;
     }
@@ -539,6 +542,9 @@ public class JdbcApiRepository extends JdbcAbstractPageableRepository<Api> imple
         }
         if (!isEmpty(apiCriteria.getEnvironments())) {
             clauses.add("a.environment_id in (" + getOrm().buildInClause(apiCriteria.getEnvironments()) + ")");
+        }
+        if (hasText(apiCriteria.getIntegrationId())) {
+            clauses.add("a.integration_id = ?");
         }
         if (!isEmpty(apiCriteria.getDefinitionVersion())) {
             List<DefinitionVersion> definitionVersionList = new ArrayList<>(apiCriteria.getDefinitionVersion());

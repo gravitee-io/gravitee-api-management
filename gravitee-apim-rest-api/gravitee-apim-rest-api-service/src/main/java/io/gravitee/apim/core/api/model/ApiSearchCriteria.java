@@ -37,4 +37,5 @@ public class ApiSearchCriteria {
     private List<String> environments;
     private String crossId;
     private List<DefinitionVersion> definitionVersion;
+    private String integrationId;
 }

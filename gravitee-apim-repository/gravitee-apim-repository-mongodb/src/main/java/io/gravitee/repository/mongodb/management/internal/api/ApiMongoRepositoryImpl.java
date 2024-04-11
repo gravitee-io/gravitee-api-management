@@ -162,6 +162,9 @@ public class ApiMongoRepositoryImpl implements ApiMongoRepositoryCustom {
                     if (apiCriteria.getDefinitionVersion() != null && !apiCriteria.getDefinitionVersion().isEmpty()) {
                         criteria.add(where("definitionVersion").in(apiCriteria.getDefinitionVersion()));
                     }
+                    if (apiCriteria.getIntegrationId() != null && !apiCriteria.getIntegrationId().isEmpty()) {
+                        criteria.add(where("integrationId").is(apiCriteria.getIntegrationId()));
+                    }
                     return criteria;
                 })
                 .filter(criteria -> criteria.size() > 0)

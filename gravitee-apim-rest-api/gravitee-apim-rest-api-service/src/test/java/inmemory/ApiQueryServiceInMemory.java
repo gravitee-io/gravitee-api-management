@@ -15,12 +15,12 @@
  */
 package inmemory;
 
-import io.gravitee.apim.core.api.crud_service.ApiCrudService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.ApiFieldFilter;
 import io.gravitee.apim.core.api.model.ApiSearchCriteria;
 import io.gravitee.apim.core.api.model.Sortable;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
+import io.gravitee.rest.api.model.context.IntegrationContext;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -41,9 +41,19 @@ public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlterna
 
     /**
      * WARNING: this implementation doesn't actually filter the API present in the storage. Instead, it will return all applications from storage.
+     * Except for the integrationId where filtering is implemented.
      */
     @Override
     public Stream<Api> search(ApiSearchCriteria apiCriteria, Sortable sortable, ApiFieldFilter apiFieldFilter) {
+        if (apiCriteria != null && apiCriteria.getIntegrationId() != null) {
+            return this.storage()
+                .stream()
+                .filter(api -> {
+                    var integrationContext = (IntegrationContext) api.getOriginContext();
+                    var federationId = integrationContext.getIntegrationId();
+                    return federationId.equals(apiCriteria.getIntegrationId());
+                });
+        }
         return this.storage().stream();
     }
 

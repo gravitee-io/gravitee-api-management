@@ -1125,6 +1125,21 @@ paths:
                                 $ref: "#/components/schemas/Integration"
                 default:
                     $ref: "#/components/responses/Error"
+        delete:
+            tags:
+                - Integrations
+            summary: Delete Integration
+            description: |-
+                Delete specific integration
+
+                To delete integration user must have ENVIRONMENT_INTEGRATION[DELETE] permission.
+                Deletion is not possible if there is any federated API associated.
+            operationId: deleteIntegration
+            responses:
+                "204":
+                    description: Integration deleted
+                default:
+                    $ref: "#/components/responses/Error"
     /environments/{envId}/integrations/{integrationId}/_ingest:
         parameters:
             - $ref: "#/components/parameters/envIdParam"
