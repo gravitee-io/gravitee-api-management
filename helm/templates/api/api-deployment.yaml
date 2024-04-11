@@ -133,6 +133,10 @@ spec:
           ports:
             - name: {{ .Values.api.service.internalPortName }}
               containerPort: {{ .Values.api.service.internalPort }}
+            {{- if .Values.api.integration.enabled }}
+            - name: {{ printf "%s-%s" (.Values.api.name | trunc 8 | trimSuffix "-") "integration" }}
+              containerPort: {{ .Values.api.integration.port }}
+            {{- end }}
             {{- if .Values.api.http.services.core.http.enabled }}
             - name: {{ printf "%s-%s" (.Values.api.name | trunc 7 | trimSuffix "-") "techapi" }}
               containerPort: {{ .Values.api.http.services.core.http.port | default "18083" }}

@@ -89,7 +89,7 @@ inMemoryAuth:
 jwtSecret: myJWT4Gr4v1t33_S3cr3t
 
 # Define extra inMemory users here or disable the default ones here
-# By default, admin user will be added. If you want to remove the default admin turn the followong boolean to false. 
+# By default, admin user will be added. If you want to remove the default admin turn the followong boolean to false.
 adminAccountEnable: true
 # Default password "admin", use bcrypt ($2a$ version) to generate a new one
 adminPasswordBcrypt: $2a$10$Ihk05VSds5rUSgMdsMVi9OKMIx2yUvMz7y9VP3rJmQeizZLrhLMyq
@@ -258,7 +258,7 @@ jdbc:
   # the version of the gravitee-repository-jdbc (only required for apim versions < 3.5.0)
 #  repositoryVersion: 3.3.0
   username:
-  password: 
+  password:
   liquibase: true
   schema: public
   pool:
@@ -406,24 +406,25 @@ ratelimit:
 # Support for Gravitee.io Cockpit (cockpit.gravitee.io)
 cockpit:
   enabled: false
-  keystore: 
+  keystore:
     value: "base64 encoded value of the keystore provided by Cockpit (required)"
     password:
       #value: "keystores password provided by Cockpit"
-      #valueFrom: 
+      #valueFrom:
         #secretKeyRef:
         #configMapKeyRef:
-  #truststore: 
+  #truststore:
     #value: base64 encoded value of the truststore provided by Cockpit (optional)
     #password:
       #value: "truststore password provided by Cockpit"
-      #valueFrom: 
+      #valueFrom:
         #secretKeyRef:
         #configMapKeyRef:
   url: https://cockpit.gravitee.io
   controller: https://cockpit-controller.gravitee.io
   ssl:
     verifyHostname: true
+
 
 api:
   enabled: true
@@ -641,7 +642,7 @@ api:
 #          annotations:
 #            kubernetes.io/ingress.class: nginx
 #            nginx.ingress.kubernetes.io/rewrite-target: /_$1
-        service: 
+        service:
 #       If you choose to enable this service, you'll need to expose the technical api
 #       on an accessible host outside of the pod: api.http.services.core.http.host
           enabled: false
@@ -720,7 +721,7 @@ api:
       # Used to create an Ingress record.
       hosts:
         - apim.example.com
-      annotations: 
+      annotations:
         kubernetes.io/ingress.class: nginx
         nginx.ingress.kubernetes.io/configuration-snippet: "etag on;\nproxy_pass_header ETag;\nproxy_set_header if-match \"\";\n"
         # kubernetes.io/tls-acme: "true"
@@ -771,6 +772,28 @@ api:
   #      algorithm: HS256
   #      verificationKey: ozhbx5HJCS41NzKrBSQ0vZU1WOmG0Uhm # verificationKey or the JWKS URL
   #      issuer: MY_ISSUER
+
+  integration:
+    enabled: false
+    port: 8072
+    ingress:
+      enabled: false
+      ingressClassName: ""
+      path: /integration-controller(/.*)?
+      pathType: Prefix
+      hosts:
+        - apim.example.com
+      annotations:
+        kubernetes.io/ingress.class: nginx
+        nginx.ingress.kubernetes.io/proxy-read-timeout: 3600                                                                                                                                              │
+        nginx.ingress.kubernetes.io/proxy-send-timeout: 3600
+        nginx.ingress.kubernetes.io/rewrite-target: /$1
+#      tls:
+#        - hosts:
+#            - apim.example.com
+#          secretName: api-custom-cert
+    service:
+      externalPort: 72
 
 gateway:
   enabled: true
@@ -1006,13 +1029,13 @@ gateway:
 #            port: 26379
 #          - host: sentinel2
 #            port: 26379
-  management: 
+  management:
     http:
-      # url: 
+      # url:
       # keepAlive: true
       # idleTimeout: 30000
       # connectTimeout: 10000
-      # username: 
+      # username:
       # password:
       # proxy:
       #   host: proxy.com
@@ -1060,7 +1083,7 @@ gateway:
         annotations: {}
 #            kubernetes.io/ingress.class: nginx
 #            nginx.ingress.kubernetes.io/rewrite-target: /_$1
-      service: 
+      service:
 #       If you choose to enable this service, you'll need to expose the technical api
 #       on an accessible host outside of the pod: api.http.services.core.http.host
         enabled: false
@@ -1333,7 +1356,7 @@ portal:
     enabled: false
     minAvailable: ""
     maxUnavailable: "50%"
-       
+
   podAnnotations: {}
     # iam.amazonaws.com/role: es-cluster
 
@@ -1486,7 +1509,7 @@ ui:
         maxUnavailable: 1
     topologySpreadConstraints: []
     # revisionHistoryLimit: 10
-    
+
     livenessProbe:
       enabled: true
       httpGet:
@@ -1520,7 +1543,7 @@ ui:
     maxUnavailable: "50%"
 
   podAnnotations: {}
-    # iam.amazonaws.com/role: es-cluster 
+    # iam.amazonaws.com/role: es-cluster
 
   # How long to wait for APIM Console pods to stop gracefully
   terminationGracePeriod: 30

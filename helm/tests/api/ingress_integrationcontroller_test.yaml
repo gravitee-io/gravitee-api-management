@@ -1,0 +1,131 @@
+suite: Test Management API - Integration Controller Ingress
+templates:
+  - "api/api-ingress-integration-controller.yaml"
+tests:
+  - it: Check integration ingress disabled by default
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: Check integration disabled
+    set:
+      api:
+        integration:
+          enabled: false
+          ingress:
+            enabled: true
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: Check integration ingress disabled
+    set:
+      api:
+        integration:
+          enabled: true
+          ingress:
+            enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: Check default integration ingress
+    set:
+      api:
+        integration:
+          enabled: true
+          ingress:
+            enabled: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Ingress
+      - isAPIVersion:
+          of: networking.k8s.io/v1
+      - equal:
+          path: spec.rules[0].host
+          value: apim.example.com
+      - equal:
+          path: spec.rules[0].http.paths[0].path
+          value: /integration-controller(/.*)?
+
+  - it: Check integration controller ingress with ingressClassName and kube < 1.18-0
+    set:
+      global:
+        kubeVersion: 1.15.0
+      api:
+        integration:
+          enabled: true
+          ingress:
+            enabled: true
+            ingressClassName: "nginx"
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Ingress
+      - isAPIVersion:
+          of: networking.k8s.io/v1beta1
+      - isEmpty:
+          path: spec.ingressClassName
+
+  - it: Check integration controller ingress with ingressClassName and kube >= 1.18-0
+    set:
+      global:
+        kubeVersion: 1.18.0
+      api:
+        integration:
+          enabled: true
+          ingress:
+            enabled: true
+            ingressClassName: "ingress"
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Ingress
+      - isAPIVersion:
+          of: networking.k8s.io/v1beta1
+      - equal:
+          path: spec.ingressClassName
+          value: ingress
+
+  - it: Check integration controller ingress with ingressClassName "none" and kube >= 1.18-0
+    set:
+      global:
+        kubeVersion: 1.18.0
+      api:
+          integration:
+            enabled: true
+            ingress:
+              enabled: true
+              ingressClassName: "none"
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Ingress
+      - isAPIVersion:
+          of: networking.k8s.io/v1beta1
+      - isEmpty:
+          path: spec.ingressClassName
+
+  - it: Check Ingress pathType and path
+    set:
+      global:
+        kubeVersion: 1.18.0
+      api:
+          integration:
+            enabled: true
+            ingress:
+              enabled: true
+              pathType: Exact
+              path: /test-integration-controller
+    asserts:
+      - equal:
+          path: spec.rules[0].http.paths[0].pathType
+          value: Exact
+      - equal:
+          path: spec.rules[0].http.paths[0].path
+          value: /test-integration-controller

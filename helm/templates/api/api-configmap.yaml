@@ -490,6 +490,14 @@ data:
     gateway:
       unknown-expire-after: {{ .Values.api.gateway.unknownExpireAfter }}
 
+    # Integration controller
+    integration:
+      enabled: {{ .Values.api.integration.enabled }}
+      {{ if .Values.api.integration.enabled }}
+      controller:
+        ws:
+          port: {{ .Values.api.integration.port }}
+      {{- end}}
     # Alert Engine communication
     {{ if .Values.alerts.enabled }}
     alerts:
@@ -530,7 +538,9 @@ data:
     auth:
       external: {{- toYaml .Values.api.auth.external | nindent 8 -}}
     {{- end }}
-    {{- if .Values.api.logging.debug }}
+
+
+  {{- if .Values.api.logging.debug }}
   logback.xml: |
     <?xml version="1.0" encoding="UTF-8"?>
     <!--

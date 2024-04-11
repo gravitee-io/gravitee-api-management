@@ -1,0 +1,55 @@
+suite: Test Management API - Integration Controller Service
+templates:
+  - "api/api-service.yaml"
+tests:
+  - it: Check default integration service
+    template: api/api-service.yaml
+    set:
+      api:
+        integration:
+          enabled: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Service
+      - isAPIVersion:
+          of: v1
+      - equal:
+          path: spec.type
+          value: ClusterIP
+      - contains:
+          path: spec.ports
+          content:
+            port: 72
+            targetPort: 8072
+            protocol: TCP
+            name: api-integration-controller
+
+  - it: Check overridden integration service
+    template: api/api-service.yaml
+    set:
+      api:
+        integration:
+          enabled: true
+          service:
+            externalPort: 8888
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Service
+      - isAPIVersion:
+          of: v1
+      - equal:
+          path: spec.type
+          value: ClusterIP
+      - contains:
+          path: spec.ports
+          content:
+            port: 8888
+            targetPort: 8072
+            protocol: TCP
+            name: api-integration-controller
+      - isNull:
+          path: spec.externalTrafficPolicy
