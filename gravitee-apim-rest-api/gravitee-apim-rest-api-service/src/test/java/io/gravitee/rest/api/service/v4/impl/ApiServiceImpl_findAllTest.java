@@ -307,7 +307,7 @@ public class ApiServiceImpl_findAllTest {
         var api2 = new Api();
         api2.setId("API_2");
 
-        when(apiAuthorizationService.findApiIdsByUserId(eq(GraviteeContext.getExecutionContext()), eq(USER_ID), isNull()))
+        when(apiAuthorizationService.findApiIdsByUserId(eq(GraviteeContext.getExecutionContext()), eq(USER_ID), isNull(), eq(true)))
             .thenReturn(Set.of("API_1"));
 
         when(
@@ -343,7 +343,7 @@ public class ApiServiceImpl_findAllTest {
 
     @Test
     public void should_return_empty_page_and_not_call_repository_if_not_admin_and_no_apis() {
-        when(apiAuthorizationService.findApiIdsByUserId(eq(GraviteeContext.getExecutionContext()), eq(USER_ID), isNull()))
+        when(apiAuthorizationService.findApiIdsByUserId(eq(GraviteeContext.getExecutionContext()), eq(USER_ID), isNull(), eq(true)))
             .thenReturn(Set.of());
 
         final Page<GenericApiEntity> apis = apiService.findAll(

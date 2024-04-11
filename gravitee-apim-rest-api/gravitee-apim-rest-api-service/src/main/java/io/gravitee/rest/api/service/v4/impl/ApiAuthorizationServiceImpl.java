@@ -368,7 +368,7 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
         return applicationIds;
     }
 
-    public Set<String> findApiIdsByUserId(ExecutionContext executionContext, String userId, ApiQuery apiQuery) {
+    public Set<String> findApiIdsByUserId(ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean manageOnly) {
         if (Objects.isNull(userId)) {
             return new HashSet<>();
         }
@@ -380,11 +380,11 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
         }
 
         // get user apis
-        final Set<String> userApiIds = this.findUserApiIdsFromMemberships(userId, true);
+        final Set<String> userApiIds = this.findUserApiIdsFromMemberships(userId, manageOnly);
         apiIds.addAll(userApiIds);
 
         // get user groups apis
-        final Set<String> userGroupApiIds = this.findApiIdsByUserGroups(executionContext, userId, apiQuery, true);
+        final Set<String> userGroupApiIds = this.findApiIdsByUserGroups(executionContext, userId, apiQuery, manageOnly);
         apiIds.addAll(userGroupApiIds);
 
         return apiIds;

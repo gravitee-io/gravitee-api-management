@@ -217,7 +217,8 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
         final boolean isAdmin,
         final QueryBuilder<ApiEntity> apiQueryBuilder,
         final Pageable pageable,
-        final boolean mapToFullGenericApiEntity
+        final boolean mapToFullGenericApiEntity,
+        final boolean manageOnly
     ) {
         // Step 1: find apiIds from lucene indexer from 'query' parameter without any pagination and sorting
         var apiQuery = apiQueryBuilder.build();
@@ -231,7 +232,12 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
 
         // Step 2: if user is not admin, get list of apiIds in their scope and join with Lucene results
         if (!isAdmin) {
-            Set<String> userApiIds = apiAuthorizationService.findApiIdsByUserId(GraviteeContext.getExecutionContext(), userId, null);
+            Set<String> userApiIds = apiAuthorizationService.findApiIdsByUserId(
+                GraviteeContext.getExecutionContext(),
+                userId,
+                null,
+                manageOnly
+            );
 
             // User has no associated apis
             if (userApiIds.isEmpty()) {

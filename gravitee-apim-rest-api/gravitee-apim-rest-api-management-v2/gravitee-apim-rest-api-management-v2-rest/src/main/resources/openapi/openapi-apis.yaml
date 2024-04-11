@@ -146,6 +146,7 @@ paths:
                 - $ref: "#/components/parameters/perPageParam"
                 - $ref: "#/components/parameters/apiSortByParam"
                 - $ref: "#/components/parameters/apiExpandsParam"
+                - $ref: "#/components/parameters/apiManageOnlyParam"
             tags:
                 - APIs
             summary: Search APIs
@@ -6259,6 +6260,13 @@ components:
                     type: string
                     enum:
                         - deploymentState
+        apiManageOnlyParam:
+            name: manageOnly
+            in: query
+            description: By default only APIs that the user can manage are returned. If set to false, all APIs that the user can view are returned.
+            schema:
+                type: boolean
+                default: true
         apiMetadataSourceParam:
             name: source
             in: query

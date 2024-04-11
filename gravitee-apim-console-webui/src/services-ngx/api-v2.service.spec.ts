@@ -262,6 +262,26 @@ describe('ApiV2Service', () => {
         data: [fakeApi],
       });
     });
+
+    it('should not get manage only APIs', (done) => {
+      const fakeApi = fakeApiV4();
+
+      apiV2Service.search({ ids: [fakeApi.id] }, null, 1, 9999, false).subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_search?page=1&perPage=9999&manageOnly=false`,
+        method: 'POST',
+      });
+
+      expect(req.request.body).toEqual({
+        ids: [fakeApi.id],
+      });
+      req.flush({
+        data: [fakeApi],
+      });
+    });
   });
 
   describe('picture', () => {

@@ -192,7 +192,7 @@ public class ApiAuthorizationServiceImplTest {
 
         when(roleService.findByScope(RoleScope.API, GraviteeContext.getCurrentOrganization())).thenReturn(List.of(poRole));
 
-        final Set<String> apis = apiAuthorizationService.findApiIdsByUserId(GraviteeContext.getExecutionContext(), userId, null);
+        final Set<String> apis = apiAuthorizationService.findApiIdsByUserId(GraviteeContext.getExecutionContext(), userId, null, true);
 
         assertThat(apis).hasSize(1);
     }
@@ -228,7 +228,7 @@ public class ApiAuthorizationServiceImplTest {
 
         when(roleService.findByScope(RoleScope.API, GraviteeContext.getCurrentOrganization())).thenReturn(List.of(poRole, userRole));
 
-        final Set<String> apis = apiAuthorizationService.findApiIdsByUserId(GraviteeContext.getExecutionContext(), userId, null);
+        final Set<String> apis = apiAuthorizationService.findApiIdsByUserId(GraviteeContext.getExecutionContext(), userId, null, true);
 
         assertThat(apis).hasSize(0);
     }

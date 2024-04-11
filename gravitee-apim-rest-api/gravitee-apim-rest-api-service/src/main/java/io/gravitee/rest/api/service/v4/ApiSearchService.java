@@ -60,7 +60,8 @@ public interface ApiSearchService {
         final boolean isAdmin,
         final QueryBuilder<ApiEntity> queryBuilder,
         final Pageable pageable,
-        final boolean mapToFullGenericApiEntity
+        final boolean mapToFullGenericApiEntity,
+        final boolean manageOnly
     );
 
     Collection<String> searchIds(
