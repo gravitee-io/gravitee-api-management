@@ -20,8 +20,8 @@ import { HttpTestingController } from '@angular/common/http/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { MatErrorHarness } from '@angular/material/form-field/testing';
-import { MatRadioButtonHarness, MatRadioGroupHarness } from '@angular/material/radio/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { GioFormSelectionInlineCardHarness, GioFormSelectionInlineHarness } from '@gravitee/ui-particles-angular';
 
 import { CreateIntegrationComponent } from './create-integration.component';
 import { CreateIntegrationHarness } from './create-integration.harness';
@@ -30,6 +30,7 @@ import { IntegrationsModule } from '../integrations.module';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { CreateIntegrationPayload } from '../integrations.model';
+import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 
 describe('CreateIntegrationComponent', () => {
   let fixture: ComponentFixture<CreateIntegrationComponent>;
@@ -48,6 +49,10 @@ describe('CreateIntegrationComponent', () => {
         {
           provide: SnackBarService,
           useValue: fakeSnackBarService,
+        },
+        {
+          provide: GioTestingPermissionProvider,
+          useValue: ['environment-integration-u', 'environment-integration-d', 'environment-integration-c', 'environment-integration-r'],
         },
       ],
     })
@@ -72,22 +77,19 @@ describe('CreateIntegrationComponent', () => {
   });
 
   describe('choose provider', () => {
-    it('should set correct value in reactive forms object', async () => {
+    it('should set correct value', async (): Promise<void> => {
       fixture.componentInstance.integrationProviders = {
         active: [{ name: 'AWS', icon: 'aws.svg', value: 'test_my_value' }],
       };
 
-      let reactiveFormsValue = fixture.componentInstance.chooseProviderForm.controls.provider.getRawValue();
-      expect(reactiveFormsValue).toEqual('');
+      const radioButtonsGroup: GioFormSelectionInlineHarness = await componentHarness.getRadioButtonsGroup();
+      expect(await radioButtonsGroup.getSelectedValue()).toBeUndefined();
 
-      const radioButtonsGroup: MatRadioGroupHarness = await componentHarness.getRadioButtonsGroup();
-      await radioButtonsGroup.checkRadioButton();
-
-      reactiveFormsValue = fixture.componentInstance.chooseProviderForm.controls.provider.getRawValue();
-      expect(reactiveFormsValue).toEqual('test_my_value');
+      await radioButtonsGroup.select('test_my_value');
+      expect(await radioButtonsGroup.getSelectedValue()).toStrictEqual('test_my_value');
     });
 
-    it('should have correct numbers of radio buttons', async () => {
+    it('should have correct numbers of radio buttons', async (): Promise<void> => {
       fixture.componentInstance.integrationProviders = {
         active: [
           { name: 'AWS', icon: 'aws.svg', value: 'aws-api-gateway' },
@@ -100,33 +102,28 @@ describe('CreateIntegrationComponent', () => {
           { name: 'Kong', icon: 'kong.svg', value: 'kong' },
         ],
       };
-      const radioButtonsGroup: MatRadioGroupHarness = await componentHarness.getRadioButtonsGroup();
-      const radioButtons: MatRadioButtonHarness[] = await radioButtonsGroup.getRadioButtons();
-      expect(radioButtons.length).toEqual(6);
+      const radioCards: GioFormSelectionInlineCardHarness[] = await componentHarness.getRadioCards();
+      expect(radioCards.length).toEqual(6);
     });
 
-    it('should have not selected radio by default', async () => {
-      const radioButtonsGroup: MatRadioGroupHarness = await componentHarness.getRadioButtonsGroup();
-      const checked: MatRadioButtonHarness = await radioButtonsGroup.getCheckedRadioButton();
-      expect(checked).toBe(null);
-    });
-
-    it('should disable button when no radio button selected', async () => {
+    it('should disable button when no radio button selected', async (): Promise<void> => {
       const submitFirstStepButton: MatButtonHarness = await componentHarness.getSubmitStepFirstButton();
       expect(await submitFirstStepButton.isDisabled()).toBe(true);
     });
 
-    it('should show active button when form is active', async () => {
-      const radioButtonsGroup: MatRadioGroupHarness = await componentHarness.getRadioButtonsGroup();
-      await radioButtonsGroup.checkRadioButton();
-
+    it('should show active button when Choose Provider form is valid', async (): Promise<void> => {
       const submitFirstStepButton: MatButtonHarness = await componentHarness.getSubmitStepFirstButton();
+      expect(await submitFirstStepButton.isDisabled()).toBe(true);
+
+      fixture.componentInstance.chooseProviderForm.controls.provider.setValue('test-value');
+      fixture.detectChanges();
+
       expect(await submitFirstStepButton.isDisabled()).toBe(false);
     });
   });
 
-  describe('details form', () => {
-    it('should not submit integration with too short name', async () => {
+  describe('details form', (): void => {
+    it('should not submit integration with too short name', async (): Promise<void> => {
       await componentHarness.setName('');
       await componentHarness.setDescription('Some description');
       fixture.detectChanges();
@@ -150,7 +147,7 @@ describe('CreateIntegrationComponent', () => {
       httpTestingController.expectNone(`${CONSTANTS_TESTING.env.v2BaseURL}/integrations`);
     });
 
-    it('should not submit integration with too long description', async () => {
+    it('should not submit integration with too long description', async (): Promise<void> => {
       await componentHarness.setName('test0');
       await componentHarness.setDescription(
         'TOO long description: loa hdvoiah dfopivioa fdo[ivu[au f[09vu a[09eu v9[ua09efu 0v9u e09fv u09qw uef09v uq0w9duf v0 qu0efdu 0vwu df09vu 0wduf09v wu0dfu v0 wud0fv uqw0 uf90v uw9efuv9wu efvu wqpefuvqwu e0fu v0wu ef0vu w0euf 0vqwu 0efu v0qwuef uvqw uefvru wfeuvwufvu w0  ufev',
@@ -159,7 +156,7 @@ describe('CreateIntegrationComponent', () => {
       httpTestingController.expectNone(`${CONSTANTS_TESTING.env.v2BaseURL}/integrations`);
     });
 
-    it('should create integration with valid name', async () => {
+    it('should create integration with valid name', async (): Promise<void> => {
       const expectedPayload: CreateIntegrationPayload = {
         name: 'TEST123',
         description: '',
@@ -170,7 +167,7 @@ describe('CreateIntegrationComponent', () => {
       expectIntegrationPostRequest(expectedPayload);
     });
 
-    it('should create integration with description', async () => {
+    it('should create integration with description', async (): Promise<void> => {
       const expectedPayload: CreateIntegrationPayload = {
         name: 'TEST123',
         description: 'Test Description',
@@ -183,7 +180,7 @@ describe('CreateIntegrationComponent', () => {
       expectIntegrationPostRequest(expectedPayload);
     });
 
-    it('should handle error with message', async () => {
+    it('should handle error with message', async (): Promise<void> => {
       await componentHarness.setName('TEST123');
       await componentHarness.clickOnSubmit();
 

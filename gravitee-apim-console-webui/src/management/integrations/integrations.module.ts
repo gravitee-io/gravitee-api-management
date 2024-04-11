@@ -29,6 +29,7 @@ import {
   GioBannerModule,
   GioBreadcrumbModule,
   GioClipboardModule,
+  GioFormSelectionInlineModule,
   GioLoaderModule,
   GioSubmenuModule,
 } from '@gravitee/ui-particles-angular';
@@ -41,6 +42,7 @@ import { IntegrationOverviewComponent } from './integration-overview/integration
 import { IntegrationsNavigationComponent } from './integrations-navigation/integrations-navigation.component';
 
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
+import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
 
 @NgModule({
   declarations: [IntegrationsComponent, CreateIntegrationComponent, IntegrationOverviewComponent, IntegrationsNavigationComponent],
@@ -79,6 +81,8 @@ import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper
     GioBannerModule,
     GioClipboardModule,
     GioLoaderModule,
+    GioPermissionModule,
+    GioFormSelectionInlineModule,
   ],
 })
 export class IntegrationsModule {}

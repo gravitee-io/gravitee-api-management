@@ -84,7 +84,14 @@
         <h3>APIs</h3>
       </div>
       <div class="card-header__actions">
-        <button mat-raised-button color="primary" [disabled]="isIngesting" data-testid="discover-button" (click)="ingest()">
+        <button
+          mat-raised-button
+          color="primary"
+          [disabled]="isIngesting"
+          data-testid="discover-button"
+          (click)="ingest()"
+          *gioPermission="{ anyOf: ['environment-integration-c'] }"
+        >
           Discover
         </button>
       </div>
@@ -100,7 +107,7 @@
               </div>
             </div>
             <div class="no-integrations__message">
-              <h2 class="header">{{ isIngesting ? 'Import in progress' : 'No APIs created' }}</h2>
+              <h2 class="header">{{ isIngesting ? 'Discover in progress' : 'No APIs created' }}</h2>
               <p class="description">
                 {{
                   isIngesting

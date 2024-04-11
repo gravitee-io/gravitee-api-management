@@ -30,6 +30,11 @@ const routes: Routes = [
   {
     path: 'new',
     component: CreateIntegrationComponent,
+    data: {
+      permissions: {
+        anyOf: ['environment-integration-c'],
+      },
+    },
   },
   {
     path: ':integrationId',
@@ -38,9 +43,15 @@ const routes: Routes = [
       {
         path: '',
         component: IntegrationOverviewComponent,
+        data: {
+          permissions: {
+            anyOf: ['environment-integration-r'],
+          },
+        },
       },
     ],
   },
+  { path: '', pathMatch: 'full', redirectTo: 'home' },
 ];
 
 @NgModule({

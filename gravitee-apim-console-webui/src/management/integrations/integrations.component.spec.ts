@@ -30,16 +30,30 @@ import { IntegrationsModule } from './integrations.module';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../shared/testing';
 import { fakeIntegration } from '../../entities/integrations/integration.fixture';
+import { GioTestingPermission, GioTestingPermissionProvider } from '../../shared/components/gio-permission/gio-permission.service';
 
 describe('IntegrationsComponent', () => {
   let fixture: ComponentFixture<IntegrationsComponent>;
   let componentHarness: IntegrationsHarness;
   let httpTestingController: HttpTestingController;
 
-  beforeEach(async () => {
+  const init = async (
+    permissions: GioTestingPermission = [
+      'environment-integration-u',
+      'environment-integration-d',
+      'environment-integration-c',
+      'environment-integration-r',
+    ],
+  ) => {
     await TestBed.configureTestingModule({
       declarations: [IntegrationsComponent],
       imports: [IntegrationsModule, GioTestingModule, BrowserAnimationsModule, NoopAnimationsModule, RouterTestingModule],
+      providers: [
+        {
+          provide: GioTestingPermissionProvider,
+          useValue: [...permissions],
+        },
+      ],
     })
       .overrideProvider(InteractivityChecker, {
         useValue: {
@@ -48,9 +62,7 @@ describe('IntegrationsComponent', () => {
         },
       })
       .compileComponents();
-  });
 
-  beforeEach(async () => {
     fixture = TestBed.createComponent(IntegrationsComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, IntegrationsHarness);
@@ -59,21 +71,47 @@ describe('IntegrationsComponent', () => {
       searchTerm: '',
     };
     fixture.detectChanges();
-  });
+  };
 
   afterEach(() => {
     httpTestingController.verify();
   });
 
+  describe('create integration with permissions ', () => {
+    beforeEach(() => {
+      init();
+    });
+
+    it('should allow create integration', async () => {
+      const fakeIntegrations: Integration[] = [fakeIntegration(), fakeIntegration(), fakeIntegration()];
+
+      expectIntegrationGetRequest(fakeIntegrations);
+      expect(await componentHarness.getCreateIntegrationButton()).toBeTruthy();
+    });
+  });
+
+  describe('without permissions ', () => {
+    beforeEach(() => {
+      init([]);
+    });
+
+    it('should not allow create integration', async () => {
+      const fakeIntegrations: Integration[] = [fakeIntegration(), fakeIntegration(), fakeIntegration()];
+
+      expectIntegrationGetRequest(fakeIntegrations);
+      expect(await componentHarness.getCreateIntegrationButton()).toBeNull();
+    });
+  });
+
   describe('table', () => {
+    beforeEach(() => {
+      init();
+    });
+
     it('should display correct number of rows', async () => {
       const fakeIntegrations: Integration[] = [fakeIntegration(), fakeIntegration(), fakeIntegration()];
-      const fakeIntegrationResponse: IntegrationResponse = {
-        data: fakeIntegrations,
-        pagination: {},
-      };
 
-      expectIntegrationGetRequest(fakeIntegrationResponse);
+      expectIntegrationGetRequest(fakeIntegrations);
 
       const rows = await componentHarness.rowsNumber();
       expect(rows).toEqual(fakeIntegrations.length);
@@ -81,23 +119,24 @@ describe('IntegrationsComponent', () => {
   });
 
   describe('pagination', () => {
+    beforeEach(() => {
+      init();
+    });
+
     it('should request proper url', async () => {
       const fakeIntegrations: Integration[] = [fakeIntegration(), fakeIntegration(), fakeIntegration(), fakeIntegration()];
-      const fakeIntegrationResponse: IntegrationResponse = {
-        data: fakeIntegrations,
-        pagination: {},
-      };
-      expectIntegrationGetRequest(fakeIntegrationResponse, 1, 10);
+
+      expectIntegrationGetRequest(fakeIntegrations, 1, 10);
       const pagination: MatPaginatorHarness = await componentHarness.getPagination();
 
       await pagination.setPageSize(5);
-      expectIntegrationGetRequest(fakeIntegrationResponse, 1, 5);
+      expectIntegrationGetRequest(fakeIntegrations, 1, 5);
       pagination.getPageSize().then((value) => {
         expect(value).toEqual(5);
       });
 
       await pagination.setPageSize(25);
-      expectIntegrationGetRequest(fakeIntegrationResponse, 1, 25);
+      expectIntegrationGetRequest(fakeIntegrations, 1, 25);
       pagination.getPageSize().then((value) => {
         expect(value).toEqual(25);
       });
@@ -105,32 +144,37 @@ describe('IntegrationsComponent', () => {
   });
 
   describe('banner', () => {
+    beforeEach(() => {
+      init();
+    });
+
     it('should be visible when no integrations', async () => {
-      const fakeIntegrationResponse: IntegrationResponse = {
-        data: [],
-        pagination: {},
-      };
-      expectIntegrationGetRequest(fakeIntegrationResponse);
+      expectIntegrationGetRequest([]);
       const banner: TestElement = await componentHarness.getBanner();
       expect(banner).toBeTruthy();
     });
 
     it('should be hidden when integration are present', async () => {
-      const fakeIntegrationResponse: IntegrationResponse = {
-        data: [fakeIntegration()],
-        pagination: {},
-      };
-      expectIntegrationGetRequest(fakeIntegrationResponse);
+      expectIntegrationGetRequest([fakeIntegration()]);
       const banner: TestElement = await componentHarness.getBanner();
       expect(banner).toBeFalsy();
     });
   });
 
-  function expectIntegrationGetRequest(fakeIntegrations: IntegrationResponse, page: number = 1, size: number = 10): void {
+  function expectIntegrationGetRequest(
+    fakeIntegrations: Integration[] = [fakeIntegration(), fakeIntegration(), fakeIntegration()],
+    page: number = 1,
+    size: number = 10,
+  ): void {
+    const fakeIntegrationResponse: IntegrationResponse = {
+      data: fakeIntegrations,
+      pagination: {},
+    };
+
     const req: TestRequest = httpTestingController.expectOne(
       `${CONSTANTS_TESTING.env.v2BaseURL}/integrations/?page=${page}&perPage=${size}`,
     );
-    req.flush(fakeIntegrations);
+    req.flush(fakeIntegrationResponse);
     expect(req.request.method).toEqual('GET');
   }
 });
