@@ -169,9 +169,9 @@ public class ImportCRDUseCase {
     private ApiCRDStatus update(Input input, Api existingApi) {
         try {
             var updated = updateApiDomainService.update(existingApi.getId(), input.crd, input.auditInfo);
-            // update state and definition context because legacy service does not update it
 
-            // Why are we getting MANAGEMENT as an origin here ?? the API has been saved as kubernetes before
+            // update state and definition context because legacy service does not update it
+            // Why are we getting MANAGEMENT as an origin here ? the API has been saved as kubernetes before
             var api = apiCrudService.update(
                 updated
                     .toBuilder()
@@ -260,7 +260,7 @@ public class ImportCRDUseCase {
         return Plan
             .builder()
             .id(planCRD.getId())
-            .name(planCRD.getName())
+            .name(planCRD.getDisplayName())
             .description(planCRD.getDescription())
             .security(planCRD.getSecurity())
             .characteristics(planCRD.getCharacteristics())

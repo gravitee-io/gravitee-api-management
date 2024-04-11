@@ -36,7 +36,9 @@ public class PlanCRD {
 
     private String id;
 
-    private String name;
+    private String crossId;
+
+    private String displayName;
 
     private String description;
 
@@ -47,8 +49,6 @@ public class PlanCRD {
     private String commentMessage;
 
     private boolean commentRequired;
-
-    private String crossId;
 
     private List<String> excludedGroups;
 
