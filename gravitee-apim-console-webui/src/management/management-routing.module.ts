@@ -50,6 +50,11 @@ const managementRoutes: Routes = [
       {
         path: 'integrations',
         loadChildren: () => import('./integrations/integrations.module').then((m) => m.IntegrationsModule),
+        data: {
+          permissions: {
+            anyOf: ['environment-integration-r'],
+          },
+        },
       },
       {
         path: 'settings',

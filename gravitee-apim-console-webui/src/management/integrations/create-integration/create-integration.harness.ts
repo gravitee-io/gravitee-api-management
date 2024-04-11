@@ -18,12 +18,15 @@ import { AsyncFactoryFn, ComponentHarness } from '@angular/cdk/testing';
 import { MatInputHarness } from '@angular/material/input/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatErrorHarness } from '@angular/material/form-field/testing';
-import { MatRadioGroupHarness } from '@angular/material/radio/testing';
+import { GioFormSelectionInlineCardHarness, GioFormSelectionInlineHarness } from '@gravitee/ui-particles-angular';
 
 export class CreateIntegrationHarness extends ComponentHarness {
   public static readonly hostSelector = 'app-create-integration';
 
-  private radioButtonsGroupLocator: AsyncFactoryFn<MatRadioGroupHarness> = this.locatorFor(MatRadioGroupHarness);
+  private radioButtonsGroupLocator: AsyncFactoryFn<GioFormSelectionInlineHarness> = this.locatorFor(GioFormSelectionInlineHarness);
+
+  private radioCards: AsyncFactoryFn<GioFormSelectionInlineCardHarness[]> = this.locatorForAll(GioFormSelectionInlineCardHarness);
+
   private submitStepFirstButtonLocator: AsyncFactoryFn<MatButtonHarness> = this.locatorFor(
     MatButtonHarness.with({ selector: '[data-testid=create-integration-submit-first-step]' }),
   );
@@ -41,8 +44,12 @@ export class CreateIntegrationHarness extends ComponentHarness {
   public getSubmitStepFirstButton = async (): Promise<MatButtonHarness> => {
     return await this.submitStepFirstButtonLocator();
   };
-  public getRadioButtonsGroup = async (): Promise<MatRadioGroupHarness> => {
+  public getRadioButtonsGroup = async (): Promise<GioFormSelectionInlineHarness> => {
     return await this.radioButtonsGroupLocator();
+  };
+
+  public getRadioCards = async (): Promise<GioFormSelectionInlineCardHarness[]> => {
+    return await this.radioCards();
   };
 
   public async setName(name: string) {

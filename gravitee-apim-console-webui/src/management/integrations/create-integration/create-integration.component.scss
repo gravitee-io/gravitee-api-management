@@ -82,10 +82,6 @@ $typography: map.get(gio.$mat-theme, typography);
 .providers {
   &__body {
     padding: 24px 0;
-
-    .radio-group {
-      padding: 24px 0;
-    }
   }
 
   &__actions {

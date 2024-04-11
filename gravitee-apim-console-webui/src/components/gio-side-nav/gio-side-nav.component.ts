@@ -129,6 +129,7 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
         icon: 'gio:box',
         routerLink: './integrations',
         displayName: 'Integrations',
+        permissions: ['environment-integration-r'],
         category: 'Integrations',
       },
       {

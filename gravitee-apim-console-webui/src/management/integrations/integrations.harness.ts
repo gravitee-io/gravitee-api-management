@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-import { ComponentHarness, TestElement } from '@angular/cdk/testing';
+import { AsyncFactoryFn, ComponentHarness, TestElement } from '@angular/cdk/testing';
 import { MatRowHarness, MatTableHarness } from '@angular/material/table/testing';
 import { MatPaginatorHarness } from '@angular/material/paginator/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
 export class IntegrationsHarness extends ComponentHarness {
   public static readonly hostSelector = 'app-integrations';
@@ -24,6 +25,15 @@ export class IntegrationsHarness extends ComponentHarness {
   private getTable = this.locatorForOptional(MatTableHarness);
   private getBannerLocator = this.locatorForOptional('.no-integrations');
   private getPaginationLocator = this.locatorForOptional(MatPaginatorHarness);
+  private createIntegrationButtonLocator: AsyncFactoryFn<MatButtonHarness> = this.locatorForOptional(
+    MatButtonHarness.with({
+      selector: '[data-testid=create-integration-button]',
+    }),
+  );
+
+  public getCreateIntegrationButton = async (): Promise<MatButtonHarness> => {
+    return this.createIntegrationButtonLocator();
+  };
 
   public rowsNumber = async (): Promise<number> => {
     return this.getTable()

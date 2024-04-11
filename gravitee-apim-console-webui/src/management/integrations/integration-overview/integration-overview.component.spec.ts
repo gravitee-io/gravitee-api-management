@@ -32,6 +32,7 @@ import { Integration } from '../integrations.model';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { fakeIntegration } from '../../../entities/integrations/integration.fixture';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { GioTestingPermission, GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 
 describe('IntegrationOverviewComponent', () => {
   let fixture: ComponentFixture<IntegrationOverviewComponent>;
@@ -44,7 +45,14 @@ describe('IntegrationOverviewComponent', () => {
     success: jest.fn(),
   };
 
-  beforeEach(async () => {
+  const init = async (
+    permissions: GioTestingPermission = [
+      'environment-integration-u',
+      'environment-integration-d',
+      'environment-integration-c',
+      'environment-integration-r',
+    ],
+  ) => {
     await TestBed.configureTestingModule({
       declarations: [IntegrationOverviewComponent],
       imports: [GioTestingModule, IntegrationsModule, BrowserAnimationsModule, NoopAnimationsModule],
@@ -57,6 +65,10 @@ describe('IntegrationOverviewComponent', () => {
           provide: SnackBarService,
           useValue: fakeSnackBarService,
         },
+        {
+          provide: GioTestingPermissionProvider,
+          useValue: permissions,
+        },
       ],
     })
       .overrideProvider(InteractivityChecker, {
@@ -66,46 +78,35 @@ describe('IntegrationOverviewComponent', () => {
         },
       })
       .compileComponents();
-  });
 
-  beforeEach(async () => {
     fixture = TestBed.createComponent(IntegrationOverviewComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, IntegrationOverviewHarness);
     fixture.detectChanges();
-  });
+  };
 
   afterEach(() => {
     httpTestingController.verify();
   });
 
-  it('should call backend with proper integration id', () => {
-    const integrationMock: Integration = fakeIntegration({ id: integrationId });
-    expectIntegrationGetRequest(integrationMock);
-  });
+  describe('permissions', () => {
+    beforeEach(() => {
+      init(['environment-integration-r']);
+    });
 
-  it('should display error badge', async (): Promise<void> => {
-    expectIntegrationGetRequest(fakeIntegration({ id: integrationId, agentStatus: 'DISCONNECTED' }));
+    it('button should be hidden without permissions', async () => {
+      expectIntegrationGetRequest(fakeIntegration({ id: integrationId }));
 
-    const errorBadge: TestElement = await componentHarness.getErrorBadge();
-    expect(errorBadge).toBeTruthy();
-
-    const errorBanner = await componentHarness.getErrorBanner().then((e) => e.text());
-    expect(errorBanner).toEqual(
-      'Check your agent status and ensure connectivity with the provider to start importing your APIs in Gravitee.',
-    );
-  });
-
-  it('should display success badge', async (): Promise<void> => {
-    expectIntegrationGetRequest(fakeIntegration({ id: integrationId, agentStatus: 'CONNECTED' }));
-
-    const successBadge: TestElement = await componentHarness.getSuccessBadge();
-    expect(successBadge).toBeTruthy();
-
-    expect(await componentHarness.getErrorBanner()).toBeNull();
+      const discoverBtn: MatButtonHarness = await componentHarness.getDiscoverButton();
+      expect(discoverBtn).toBeNull();
+    });
   });
 
   describe('discover', () => {
+    beforeEach(() => {
+      init();
+    });
+
     it('should call _ingest endpoint on confirm', async () => {
       expectIntegrationGetRequest(fakeIntegration({ id: integrationId }));
 
@@ -152,6 +153,38 @@ describe('IntegrationOverviewComponent', () => {
       fixture.detectChanges();
 
       expect(fakeSnackBarService.error).toHaveBeenCalledWith('An error occurred while we were importing assets from the provider');
+    });
+  });
+
+  describe('details', () => {
+    beforeEach(() => {
+      init();
+    });
+
+    it('should call backend with proper integration id', () => {
+      const integrationMock: Integration = fakeIntegration({ id: integrationId });
+      expectIntegrationGetRequest(integrationMock);
+    });
+
+    it('should display error badge', async (): Promise<void> => {
+      expectIntegrationGetRequest(fakeIntegration({ id: integrationId, agentStatus: 'DISCONNECTED' }));
+
+      const errorBadge: TestElement = await componentHarness.getErrorBadge();
+      expect(errorBadge).toBeTruthy();
+
+      const errorBanner = await componentHarness.getErrorBanner().then((e) => e.text());
+      expect(errorBanner).toEqual(
+        'Check your agent status and ensure connectivity with the provider to start importing your APIs in Gravitee.',
+      );
+    });
+
+    it('should display success badge', async (): Promise<void> => {
+      expectIntegrationGetRequest(fakeIntegration({ id: integrationId, agentStatus: 'CONNECTED' }));
+
+      const successBadge: TestElement = await componentHarness.getSuccessBadge();
+      expect(successBadge).toBeTruthy();
+
+      expect(await componentHarness.getErrorBanner()).toBeNull();
     });
   });
 
