@@ -30,6 +30,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class IntegrationMongo extends Auditable {
 
     public enum AgentStatus {
+        CONNECTED,
         DISCONNECTED,
     }
 

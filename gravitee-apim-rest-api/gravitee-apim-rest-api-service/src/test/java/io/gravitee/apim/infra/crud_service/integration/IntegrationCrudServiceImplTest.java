@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.IntegrationFixture;
@@ -26,13 +27,16 @@ import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.IntegrationRepository;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.vertx.core.cli.Argument;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.Date;
 import java.util.Optional;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 public class IntegrationCrudServiceImplTest {
 
@@ -143,28 +147,49 @@ public class IntegrationCrudServiceImplTest {
 
         @Test
         @SneakyThrows
-        void should_return_the_updated_integration() {
-            var integrationTuUpdate = IntegrationFixture.anIntegration();
+        void should_update_integration() {
+            Integration integration = IntegrationFixture
+                .anIntegration()
+                .toBuilder()
+                .agentStatus(Integration.AgentStatus.CONNECTED)
+                .updatedAt(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                .build();
+            when(integrationRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-            when(integrationRepository.update(any())).thenAnswer(invocation -> fixtures.repository.IntegrationFixture.anIntegration());
+            service.update(integration);
 
-            var updatedIntegration = service.update(integrationTuUpdate);
+            var captor = ArgumentCaptor.forClass(io.gravitee.repository.management.model.Integration.class);
+            verify(integrationRepository).update(captor.capture());
 
-            assertThat(updatedIntegration)
+            assertThat(captor.getValue())
+                .usingRecursiveComparison()
                 .isEqualTo(
-                    IntegrationFixture
-                        .anIntegration()
-                        .toBuilder()
+                    io.gravitee.repository.management.model.Integration
+                        .builder()
                         .id("integration-id")
-                        .name("An integration")
-                        .description("A description")
-                        .provider("amazon")
-                        .environmentId("environment-id")
-                        .agentStatus(Integration.AgentStatus.DISCONNECTED)
-                        .createdAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
-                        .updatedAt(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                        .name("test-name")
+                        .description("integration-description")
+                        .provider("test-provider")
+                        .environmentId("my-env")
+                        .agentStatus(io.gravitee.repository.management.model.Integration.AgentStatus.CONNECTED)
+                        .createdAt(Date.from(Instant.parse("2020-02-03T20:22:02.00Z")))
+                        .updatedAt(Date.from(Instant.parse("2020-02-04T20:22:02.00Z")))
                         .build()
                 );
+        }
+
+        @Test
+        @SneakyThrows
+        void should_return_the_updated_integration() {
+            //Given
+            when(integrationRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+            //When
+            Integration toUpdate = IntegrationFixture.anIntegration();
+            Integration updated = service.update(toUpdate);
+
+            //Then
+            assertThat(updated).isEqualTo(toUpdate);
         }
 
         @Test

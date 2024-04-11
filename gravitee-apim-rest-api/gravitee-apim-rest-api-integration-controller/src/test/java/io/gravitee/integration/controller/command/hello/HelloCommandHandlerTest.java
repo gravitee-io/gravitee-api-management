@@ -22,6 +22,8 @@ import fixtures.core.model.IntegrationFixture;
 import inmemory.IntegrationCrudServiceInMemory;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.integration.model.Integration;
+import io.gravitee.apim.core.integration.use_case.UpdateAgentStatusUseCase;
+import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.exchange.api.command.CommandStatus;
 import io.gravitee.exchange.api.command.hello.HelloReplyPayload;
 import io.gravitee.integration.api.command.IntegrationCommandType;
@@ -29,19 +31,27 @@ import io.gravitee.integration.api.command.hello.HelloCommand;
 import io.gravitee.integration.api.command.hello.HelloCommandPayload;
 import io.gravitee.integration.controller.command.IntegrationCommandContext;
 import io.gravitee.integration.controller.command.IntegrationControllerCommandHandlerFactory;
+import io.gravitee.rest.api.service.common.UuidString;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import org.assertj.core.api.Assertions;
 import org.assertj.core.api.SoftAssertions;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 class HelloCommandHandlerTest {
 
+    private static final Instant INSTANT_NOW = Instant.parse("2023-10-22T10:15:30Z");
     private static final String COMMAND_ID = "command-id";
     private static final String INTEGRATION_ID = "my-integration-id";
-    private static final String INTEGRATION_PROVIDER = "amazon";
+    private static final String INTEGRATION_PROVIDER = "aws-api-gateway";
 
     private static final HelloCommand COMMAND = new HelloCommand(
         COMMAND_ID,
@@ -51,9 +61,19 @@ class HelloCommandHandlerTest {
     IntegrationCrudServiceInMemory integrationCrudServiceInMemory = new IntegrationCrudServiceInMemory();
     HelloCommandHandler commandHandler;
 
+    @BeforeAll
+    static void beforeAll() {
+        TimeProvider.overrideClock(Clock.fixed(INSTANT_NOW, ZoneId.systemDefault()));
+    }
+
+    @AfterAll
+    static void afterAll() {
+        TimeProvider.overrideClock(Clock.systemDefaultZone());
+    }
+
     @BeforeEach
     void setUp() {
-        var factory = new IntegrationControllerCommandHandlerFactory(integrationCrudServiceInMemory);
+        var factory = new IntegrationControllerCommandHandlerFactory(new UpdateAgentStatusUseCase(integrationCrudServiceInMemory));
 
         commandHandler =
             (HelloCommandHandler) factory
@@ -67,6 +87,25 @@ class HelloCommandHandlerTest {
     @AfterEach
     void tearDown() {
         integrationCrudServiceInMemory.reset();
+    }
+
+    @Test
+    void should_update_integration() {
+        var integration = givenIntegration(
+            IntegrationFixture.anIntegration().toBuilder().id(INTEGRATION_ID).provider(INTEGRATION_PROVIDER).build()
+        );
+
+        commandHandler.handle(COMMAND).test().awaitDone(10, TimeUnit.SECONDS).assertComplete().assertNoErrors();
+
+        Assertions
+            .assertThat(integrationCrudServiceInMemory.storage())
+            .contains(
+                integration
+                    .toBuilder()
+                    .agentStatus(Integration.AgentStatus.CONNECTED)
+                    .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                    .build()
+            );
     }
 
     @Test
@@ -135,7 +174,7 @@ class HelloCommandHandlerTest {
     void should_reply_error_when_exception_occurs() {
         var spied = Mockito.spy(integrationCrudServiceInMemory);
         lenient().when(spied.findById(any())).thenThrow(new TechnicalDomainException("error"));
-        commandHandler = new HelloCommandHandler(spied);
+        commandHandler = new HelloCommandHandler(new UpdateAgentStatusUseCase(spied));
 
         commandHandler
             .handle(COMMAND)
