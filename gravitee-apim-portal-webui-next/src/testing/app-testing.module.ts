@@ -13,27 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { provideHttpClient } from '@angular/common/http';
-import { APP_INITIALIZER, ApplicationConfig } from '@angular/core';
-import { provideRouter } from '@angular/router';
-import { Observable } from 'rxjs';
+import { CommonModule } from '@angular/common';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { Injectable, NgModule } from '@angular/core';
 
-import { routes } from './app.routes';
 import { ConfigService } from '../services/config.service';
 
-function initConfig(configService: ConfigService): () => Observable<string> {
-  return configService.initBaseURL();
+export const TESTING_BASE_URL = 'http://localhost:8083/portal/environments/DEFAULT';
+
+@Injectable()
+export class ConfigServiceStub {
+  get baseURL(): string {
+    return TESTING_BASE_URL;
+  }
 }
 
-export const appConfig: ApplicationConfig = {
+@NgModule({
+  declarations: [],
+  imports: [CommonModule, HttpClientTestingModule],
   providers: [
-    provideRouter(routes),
-    provideHttpClient(),
     {
-      provide: APP_INITIALIZER,
-      useFactory: initConfig,
-      deps: [ConfigService],
-      multi: true,
+      provide: ConfigService,
+      useClass: ConfigServiceStub,
     },
   ],
-};
+})
+export class AppTestingModule {}
