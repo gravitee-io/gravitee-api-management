@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import io.gravitee.rest.api.management.v2.rest.model.BaseOriginContext;
 import io.gravitee.rest.api.management.v2.rest.model.IntegrationOriginContext;
 import io.gravitee.rest.api.management.v2.rest.model.KubernetesOriginContext;
 import io.gravitee.rest.api.management.v2.rest.model.ManagementOriginContext;
@@ -23,6 +24,7 @@ import io.gravitee.rest.api.model.context.KubernetesContext;
 import io.gravitee.rest.api.model.context.ManagementContext;
 import io.gravitee.rest.api.model.context.OriginContext;
 import org.mapstruct.Mapper;
+import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
 @Mapper

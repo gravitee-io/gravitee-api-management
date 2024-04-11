@@ -46,4 +46,8 @@ public class KubernetesContext extends AbstractContext {
         /** Mode indicating the api is fully managed by the origin and so, only the origin should be able to manage the api. */
         FULLY_MANAGED,
     }
+
+    public String getSyncFrom() {
+        return syncFrom.toUpperCase();
+    }
 }
