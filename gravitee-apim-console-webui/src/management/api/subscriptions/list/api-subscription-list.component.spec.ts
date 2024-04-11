@@ -45,7 +45,7 @@ import {
   Subscription,
   VerifySubscription,
 } from '../../../../entities/management-api-v2';
-import { PagedResult } from '../../../../entities/pagedResult';
+import { fakePagedResult, PagedResult } from '../../../../entities/pagedResult';
 import { ApiKeyMode as ApplicationApiKeyMode, Application } from '../../../../entities/application/Application';
 import { fakeApplication } from '../../../../entities/application/Application.fixture';
 import { ApiPortalSubscriptionCreationDialogHarness } from '../components/dialogs/creation/api-portal-subscription-creation-dialog.harness';
@@ -412,16 +412,16 @@ describe('ApiSubscriptionListComponent', () => {
       tick();
       await creationDialogHarness.selectApplication('application');
       tick(400);
-      expectSubscriptionsForApplication(application.id, [
-        {
-          security: PlanSecurityType.API_KEY,
-          api: 'another-plan-id',
-        },
-      ]);
+      const apiKeySubscription = {
+        security: PlanSecurityType.API_KEY,
+        api: 'another-plan-id',
+      };
+      expectSubscriptionsForApplication(application.id, [apiKeySubscription]);
       await creationDialogHarness.choosePlan(planV4.name);
 
       expect(await creationDialogHarness.isCustomApiKeyInputDisplayed()).toBeFalsy();
 
+      expectApiKeySubscriptionsGetRequest(application.id, [apiKeySubscription]);
       expect(await creationDialogHarness.isApiKeyModeRadioGroupDisplayed()).toBeTruthy();
       await creationDialogHarness.chooseApiKeyMode('API Key');
       expect(await creationDialogHarness.isCustomApiKeyInputDisplayed()).toBeTruthy();
@@ -435,6 +435,7 @@ describe('ApiSubscriptionListComponent', () => {
 
       flush();
     }));
+
     it('should create subscription to a api key plan in shared API Key mode without customApiKey', fakeAsync(async () => {
       await init({
         customApiKey: { enabled: true },
@@ -463,17 +464,18 @@ describe('ApiSubscriptionListComponent', () => {
       tick();
       await creationDialogHarness.selectApplication('application');
       tick(400);
-      expectSubscriptionsForApplication(application.id, [
-        {
-          security: PlanSecurityType.API_KEY,
-          api: 'another-plan-id',
-        },
-      ]);
+
+      const apiKeySubscription = {
+        security: PlanSecurityType.API_KEY,
+        api: 'another-plan-id',
+      };
+      expectSubscriptionsForApplication(application.id, [apiKeySubscription]);
 
       await creationDialogHarness.choosePlan(planV4.name);
 
       expect(await creationDialogHarness.isCustomApiKeyInputDisplayed()).toBeFalsy();
 
+      expectApiKeySubscriptionsGetRequest(application.id, [apiKeySubscription]);
       expect(await creationDialogHarness.isApiKeyModeRadioGroupDisplayed()).toBeTruthy();
       await creationDialogHarness.chooseApiKeyMode('Shared API Key');
       expect(await creationDialogHarness.isCustomApiKeyInputDisplayed()).toBeFalsy();
@@ -516,14 +518,14 @@ describe('ApiSubscriptionListComponent', () => {
       tick();
       await creationDialogHarness.selectApplication('application');
       tick(400);
-      expectSubscriptionsForApplication(application.id, [
-        {
-          security: PlanSecurityType.API_KEY,
-          api: 'another-plan-id',
-        },
-      ]);
+      const apiKeySubscription = {
+        security: PlanSecurityType.API_KEY,
+        api: 'another-plan-id',
+      };
+      expectSubscriptionsForApplication(application.id, [apiKeySubscription]);
       await creationDialogHarness.choosePlan(planV4.name);
 
+      expectApiKeySubscriptionsGetRequest(application.id, [apiKeySubscription]);
       expect(await creationDialogHarness.isApiKeyModeRadioGroupDisplayed()).toBeFalsy();
       expect(await creationDialogHarness.isCustomApiKeyInputDisplayed()).toBeFalsy();
       flush();
@@ -556,6 +558,8 @@ describe('ApiSubscriptionListComponent', () => {
       tick(400);
       expectSubscriptionsForApplication(application.id, []);
       await creationDialogHarness.choosePlan(planV4.name);
+
+      expectApiKeySubscriptionsGetRequest(application.id, []);
       await creationDialogHarness.createSubscription();
       tick(400);
       const subscription = fakeSubscription();
@@ -594,6 +598,7 @@ describe('ApiSubscriptionListComponent', () => {
       expectSubscriptionsForApplication(application.id, []);
       await creationDialogHarness.choosePlan(planV4.name);
 
+      expectApiKeySubscriptionsGetRequest(application.id, []);
       expect(await creationDialogHarness.isCustomApiKeyInputDisplayed()).toBeTruthy();
       await creationDialogHarness.addCustomKey('12345678');
       const req = httpTestingController.expectOne({
@@ -913,6 +918,16 @@ describe('ApiSubscriptionListComponent', () => {
         method: 'GET',
       })
       .flush(new Blob(['a'], { type: 'text/csv' }));
+    fixture.detectChanges();
+  }
+
+  function expectApiKeySubscriptionsGetRequest(applicationId: string, subscriptions: ApplicationSubscription[]) {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/applications/${applicationId}/subscriptions?page=1&size=20&security_types=API_KEY`,
+        method: 'GET',
+      })
+      .flush(fakePagedResult(subscriptions));
     fixture.detectChanges();
   }
 });
