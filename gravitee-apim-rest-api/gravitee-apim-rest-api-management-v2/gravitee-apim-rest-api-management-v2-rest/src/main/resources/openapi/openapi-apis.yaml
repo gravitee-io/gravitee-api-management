@@ -2273,6 +2273,8 @@ components:
                               $ref: "#/components/schemas/EndpointGroupV4"
                       analytics:
                           $ref: "#/components/schemas/Analytics"
+                      failover:
+                          $ref: "#/components/schemas/FailoverV4"
                       flowExecution:
                           $ref: "#/components/schemas/FlowExecution"
                       flows:
@@ -2410,6 +2412,8 @@ components:
                           minItems: 1
                       analytics:
                           $ref: "#/components/schemas/Analytics"
+                      failover:
+                          $ref: "#/components/schemas/FailoverV4"
                       flowExecution:
                           $ref: "#/components/schemas/FlowExecution"
                       flows:
@@ -2626,6 +2630,8 @@ components:
                           minItems: 1
                       analytics:
                           $ref: "#/components/schemas/Analytics"
+                      failover:
+                          $ref: "#/components/schemas/FailoverV4"
                       flowExecution:
                           $ref: "#/components/schemas/FlowExecution"
                       flows:
@@ -5768,6 +5774,44 @@ components:
                 - ROOT
                 - SYSTEM_FOLDER
                 - TRANSLATION
+
+        # Failover v4
+        FailoverV4:
+            type: object
+            properties:
+                enabled:
+                    type: boolean
+                    description: Is the failover enabled.
+                    default: false
+                maxRetries:
+                    type: integer
+                    format: int32
+                    description: The maximum number of retries.
+                    default: 2
+                    minimum: 0
+                slowCallDuration:
+                    type: integer
+                    format: int64
+                    description: The duration in milliseconds to consider a request as slow.
+                    default: 2000
+                    minimum: 50
+                openStateDuration:
+                    type: integer
+                    format: int64
+                    description: The duration in milliseconds to indicate how long the circuit breaker should stay open, before it switches to half open.
+                    default: 10000
+                    minimum: 500
+                maxFailures:
+                    type: integer
+                    format: int32
+                    description: The maximum number of failures allowed before the circuit breaker can calculate the error rate.
+                    default: 5
+                    minimum: 1
+                perSubscription:
+                    type: boolean
+                    description: If true, a circuit breaker breaker will be dedicated for each subscriber, else, one and only circuit breaker will be used for the API.
+                    default: true
+
 
         CreateDocumentation:
             type: object

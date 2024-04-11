@@ -19,6 +19,8 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import fixtures.ApiFixtures;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.failover.Failover;
+import io.gravitee.rest.api.management.v2.rest.model.FailoverV4;
 import java.util.ArrayList;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
@@ -30,6 +32,16 @@ public class ApiMapperTest {
     @Test
     void shouldMapToUpdateApiEntityV4() {
         var updateApi = ApiFixtures.anUpdateApiV4();
+        updateApi.failover(
+            FailoverV4
+                .builder()
+                .enabled(true)
+                .perSubscription(false)
+                .maxFailures(3)
+                .openStateDuration(11000L)
+                .slowCallDuration(500L)
+                .build()
+        );
 
         var updateApiEntity = apiMapper.map(updateApi, "api-id");
         assertThat(updateApiEntity).isNotNull();
@@ -58,6 +70,17 @@ public class ApiMapperTest {
         assertThat(updateApiEntity.getMetadata()).isNull();
         assertThat(updateApiEntity.getLifecycleState().name()).isEqualTo(updateApi.getLifecycleState().name());
         assertThat(updateApiEntity.isDisableMembershipNotifications()).isEqualTo(updateApi.getDisableMembershipNotifications());
+        assertThat(updateApiEntity.getFailover())
+            .isEqualTo(
+                Failover
+                    .builder()
+                    .enabled(true)
+                    .perSubscription(false)
+                    .maxFailures(3)
+                    .openStateDuration(11000)
+                    .slowCallDuration(500)
+                    .build()
+            );
     }
 
     @Test

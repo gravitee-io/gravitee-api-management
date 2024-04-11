@@ -19,6 +19,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.definition.model.v4.endpointgroup.EndpointGroup;
+import io.gravitee.definition.model.v4.failover.Failover;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.flow.execution.FlowExecution;
 import io.gravitee.definition.model.v4.listener.Listener;
@@ -65,6 +66,8 @@ public class NewApi {
     @Builder.Default
     private Set<String> groups = Set.of();
 
+    private Failover failover;
+
     /**
      * @return An instance of {@link Api.ApiBuilder} based on the current state of this NewApi.
      */
@@ -96,6 +99,7 @@ public class NewApi {
             .listeners(listeners)
             .endpointGroups(endpointGroups)
             .flows(flows)
-            .flowExecution(flowExecution);
+            .flowExecution(flowExecution)
+            .failover(failover);
     }
 }
