@@ -15,6 +15,7 @@
  */
 import { ComponentHarness, parallel } from '@angular/cdk/testing';
 import { chunk } from 'lodash';
+import { MatButtonHarness } from '@angular/material/button/testing';
 
 export class ApplicationSubscriptionHarness extends ComponentHarness {
   static readonly hostSelector = 'application-subscription';
@@ -26,5 +27,10 @@ export class ApplicationSubscriptionHarness extends ComponentHarness {
 
     const subscriptionDetailsToChunk = await parallel(() => subscriptionDetails.map(async (detail) => await detail.text()));
     return chunk(subscriptionDetailsToChunk, 2);
+  }
+
+  async closeSubscription(): Promise<void> {
+    const button = await this.locatorFor(MatButtonHarness.with({ text: /Close/ }))();
+    return button.click();
   }
 }

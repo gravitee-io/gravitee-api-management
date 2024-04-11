@@ -18,6 +18,9 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { ActivatedRoute } from '@angular/router';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { HarnessLoader } from '@angular/cdk/testing';
+import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
+import { InteractivityChecker } from '@angular/cdk/a11y';
 
 import { ApplicationSubscriptionComponent } from './application-subscription.component';
 import { ApplicationSubscriptionHarness } from './application-subscription.harness';
@@ -25,12 +28,15 @@ import { ApplicationSubscriptionHarness } from './application-subscription.harne
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testing';
 import { fakeSubscription } from '../../../../../entities/subscription/subscription.fixture';
 import { Subscription } from '../../../../../entities/subscription/subscription';
+import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
+import { Application } from '../../../../../entities/application/Application';
+import { fakeApplication } from '../../../../../entities/application/Application.fixture';
 
 describe('ApplicationSubscriptionComponent', () => {
-  let component: ApplicationSubscriptionComponent;
   let fixture: ComponentFixture<ApplicationSubscriptionComponent>;
   let componentHarness: ApplicationSubscriptionHarness;
   let httpTestingController: HttpTestingController;
+  let rootLoader: HarnessLoader;
 
   const applicationId = 'applicationId';
   const subscriptionId = 'subscriptionId';
@@ -50,13 +56,23 @@ describe('ApplicationSubscriptionComponent', () => {
             },
           },
         },
+        {
+          provide: GioTestingPermissionProvider,
+          useValue: ['application-subscription-c', 'application-subscription-r', 'application-subscription-d'],
+        },
       ],
-    }).compileComponents();
+    })
+      .overrideProvider(InteractivityChecker, {
+        useValue: {
+          isFocusable: () => true, // This checks focus trap, set it to true to  avoid the warning
+        },
+      })
+      .compileComponents();
 
     fixture = TestBed.createComponent(ApplicationSubscriptionComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
-    component = fixture.componentInstance;
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApplicationSubscriptionHarness);
+    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     fixture.autoDetectChanges();
     expectApplicationSubscriptionGet(
       applicationId,
@@ -67,9 +83,6 @@ describe('ApplicationSubscriptionComponent', () => {
   });
 
   it('should display subscription details', async () => {
-    expect(component).toBeTruthy();
-    expect(componentHarness).toBeTruthy();
-
     expect(await componentHarness.getSubscriptionDetails()).toEqual([
       ['ID', 'subscriptionId content_copy'],
       ['API', '🪐 Planets - 1.0 content_copy'],
@@ -84,6 +97,29 @@ describe('ApplicationSubscriptionComponent', () => {
       ['Closed at', ''],
     ]);
   });
+
+  it('should close subscription', async () => {
+    await componentHarness.closeSubscription();
+
+    expectApplicationGetRequest(fakeApplication({ id: applicationId }));
+
+    const confirmDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
+    await confirmDialog.confirm();
+
+    httpTestingController.expectOne({
+      url: `${CONSTANTS_TESTING.env.baseURL}/applications/${applicationId}/subscriptions/${subscriptionId}`,
+      method: 'DELETE',
+    });
+  });
+
+  const expectApplicationGetRequest = (application: Application): void => {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/applications/${applicationId}`,
+        method: 'GET',
+      })
+      .flush(application);
+  };
 
   function expectApplicationSubscriptionGet(applicationId: string, subscription: Subscription): void {
     httpTestingController
