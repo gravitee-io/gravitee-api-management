@@ -42,9 +42,6 @@ public class PlanCrudServiceInMemory implements PlanCrudService, InMemoryAlterna
 
     @Override
     public Plan create(Plan plan) {
-        if (storage.stream().anyMatch(p -> p.getId().equals(plan.getId()))) {
-            throw new IllegalStateException("Plan already exists");
-        }
         storage.add(plan);
         return plan;
     }

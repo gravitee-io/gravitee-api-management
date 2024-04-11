@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import fixtures.core.model.PlanFixtures;
 import io.gravitee.apim.core.api.model.crd.PlanCRD;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.federation.FederatedPlan;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -80,6 +81,46 @@ class PlanAdapterTest {
                 soft.assertThat(plan.getValidation()).isEqualTo(io.gravitee.apim.core.plan.model.Plan.PlanValidationType.AUTO);
                 soft.assertThat(plan.getUpdatedAt()).isEqualTo(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC));
                 soft.assertThat(plan.isCommentRequired()).isTrue();
+            });
+        }
+
+        @Test
+        void should_convert_from_federated_repository_to_core_model() {
+            var repository = federatedPlan().build();
+
+            var plan = PlanAdapter.INSTANCE.fromRepository(repository);
+
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(plan.getApiId()).isEqualTo("my-api");
+                soft.assertThat(plan.getCharacteristics()).containsExactly("characteristic-1");
+                soft.assertThat(plan.getCommentMessage()).isEqualTo("comment-message");
+                soft.assertThat(plan.getCreatedAt()).isEqualTo(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(plan.getDefinitionVersion()).isEqualTo(DefinitionVersion.FEDERATED);
+                soft.assertThat(plan.getDescription()).isEqualTo("plan-description");
+                soft.assertThat(plan.getExcludedGroups()).containsExactly("excluded-group-1");
+                soft.assertThat(plan.getGeneralConditions()).isEqualTo("general-conditions");
+                soft.assertThat(plan.getId()).isEqualTo("my-id");
+                soft.assertThat(plan.getPlanMode()).isEqualTo(io.gravitee.definition.model.v4.plan.PlanMode.STANDARD);
+                soft.assertThat(plan.getName()).isEqualTo("plan-name");
+                soft.assertThat(plan.getOrder()).isOne();
+                soft.assertThat(plan.getPlanSecurity()).isEqualTo(PlanSecurity.builder().type("api-key").build());
+                soft.assertThat(plan.getPlanStatus()).isEqualTo(PlanStatus.PUBLISHED);
+                soft.assertThat(plan.getType()).isEqualTo(io.gravitee.apim.core.plan.model.Plan.PlanType.API);
+                soft.assertThat(plan.getValidation()).isEqualTo(io.gravitee.apim.core.plan.model.Plan.PlanValidationType.MANUAL);
+                soft.assertThat(plan.getUpdatedAt()).isEqualTo(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC));
+                soft.assertThat(plan.isCommentRequired()).isTrue();
+                soft
+                    .assertThat(plan.getFederatedPlanDefinition())
+                    .isEqualTo(
+                        FederatedPlan
+                            .builder()
+                            .id("my-id")
+                            .providerId("provider-id")
+                            .security(PlanSecurity.builder().type("api-key").build())
+                            .mode(PlanMode.STANDARD)
+                            .status(PlanStatus.PUBLISHED)
+                            .build()
+                    );
             });
         }
 
@@ -229,6 +270,50 @@ class PlanAdapterTest {
             });
         }
 
+        @Test
+        void should_convert_federated_plan_to_repository() {
+            var model = PlanFixtures
+                .aFederatedPlan()
+                .toBuilder()
+                .closedAt(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneOffset.UTC))
+                .publishedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC))
+                .characteristics(List.of("characteristic1", "characteristic2"))
+                .commentMessage("Comment message")
+                .generalConditions("General conditions")
+                .federatedPlanDefinition(fixtures.definition.PlanFixtures.aFederatedPlan())
+                .excludedGroups(List.of("excludedGroup1", "excludedGroup2"))
+                .build();
+
+            var plan = PlanAdapter.INSTANCE.toRepository(model);
+
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(plan.getApi()).isEqualTo("my-api");
+                soft.assertThat(plan.getCharacteristics()).containsExactly("characteristic1", "characteristic2");
+                soft.assertThat(plan.getClosedAt()).isEqualTo(Date.from(Instant.parse("2020-02-04T20:22:02.00Z")));
+                soft.assertThat(plan.getCommentMessage()).isEqualTo("Comment message");
+                soft.assertThat(plan.getCreatedAt()).isEqualTo(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")));
+                soft.assertThat(plan.getDefinitionVersion()).isEqualTo(DefinitionVersion.FEDERATED);
+                soft.assertThat(plan.getDescription()).isEqualTo("Description");
+                soft.assertThat(plan.getExcludedGroups()).containsExactly("excludedGroup1", "excludedGroup2");
+                soft.assertThat(plan.getGeneralConditions()).isEqualTo("General conditions");
+                soft.assertThat(plan.getId()).isEqualTo("federated");
+                soft.assertThat(plan.getMode()).isEqualTo(Plan.PlanMode.STANDARD);
+                soft.assertThat(plan.getName()).isEqualTo("Federated Plan");
+                soft.assertThat(plan.getOrder()).isOne();
+                soft.assertThat(plan.getSecurity()).isEqualTo(Plan.PlanSecurityType.API_KEY);
+                soft.assertThat(plan.getStatus()).isEqualTo(Plan.Status.PUBLISHED);
+                soft.assertThat(plan.getType()).isEqualTo(Plan.PlanType.API);
+                soft.assertThat(plan.getValidation()).isEqualTo(Plan.PlanValidationType.MANUAL);
+                soft.assertThat(plan.getUpdatedAt()).isEqualTo(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")));
+                soft.assertThat(plan.isCommentRequired()).isFalse();
+                soft
+                    .assertThat(plan.getDefinition())
+                    .isEqualTo(
+                        "{\"id\":\"my-plan\",\"providerId\":\"provider-id\",\"security\":{\"type\":\"api-key\"},\"mode\":\"standard\",\"status\":\"published\"}"
+                    );
+            });
+        }
+
         private Plan.PlanBuilder planV4() {
             return Plan
                 .builder()
@@ -257,6 +342,32 @@ class PlanAdapterTest {
                 .commentMessage("comment-message")
                 .generalConditions("general-conditions")
                 .tags(Set.of("tag-1"));
+        }
+
+        private Plan.PlanBuilder federatedPlan() {
+            return Plan
+                .builder()
+                .id("my-id")
+                .api("my-api")
+                .name("plan-name")
+                .definitionVersion(DefinitionVersion.FEDERATED)
+                .description("plan-description")
+                .security(Plan.PlanSecurityType.API_KEY)
+                .validation(Plan.PlanValidationType.MANUAL)
+                .mode(Plan.PlanMode.STANDARD)
+                .order(1)
+                .type(Plan.PlanType.API)
+                .status(Plan.Status.PUBLISHED)
+                .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                .characteristics(List.of("characteristic-1"))
+                .excludedGroups(List.of("excluded-group-1"))
+                .commentRequired(true)
+                .commentMessage("comment-message")
+                .generalConditions("general-conditions")
+                .definition(
+                    "{\"id\":\"my-id\",\"providerId\":\"provider-id\",\"security\":{\"type\":\"api-key\"},\"mode\":\"standard\",\"status\":\"published\"}"
+                );
         }
 
         private Plan.PlanBuilder planV2() {

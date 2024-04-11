@@ -31,11 +31,9 @@ public record IntegrationApi(
     Map<String, String> connectionDetails,
     List<Plan> plans
 ) {
-    public record Plan(String id, String name, PlanType type) {}
+    public record Plan(String id, String name, String description, PlanType type) {}
     public enum PlanType {
         API_KEY,
-        OAUTH,
-        JWT,
     }
 
     public FederatedApi.FederatedApiBuilder toFederatedApiDefinitionBuilder() {

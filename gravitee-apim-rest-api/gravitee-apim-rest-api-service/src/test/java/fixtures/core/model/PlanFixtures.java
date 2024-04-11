@@ -66,4 +66,14 @@ public class PlanFixtures {
     public static Plan aPushPlan() {
         return BASE.get().id("push").name("Push Plan").planDefinitionV4(fixtures.definition.PlanFixtures.aPushPlan()).build();
     }
+
+    public static Plan aFederatedPlan() {
+        return BASE
+            .get()
+            .id("federated")
+            .name("Federated Plan")
+            .federatedPlanDefinition(fixtures.definition.PlanFixtures.aFederatedPlan())
+            .validation(Plan.PlanValidationType.MANUAL)
+            .build();
+    }
 }

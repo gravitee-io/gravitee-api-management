@@ -16,6 +16,7 @@
 package io.gravitee.apim.infra.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.in;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -97,7 +98,7 @@ class IntegrationAgentImplTest {
                         "asset-description-1",
                         "asset-version-1",
                         Map.of("url", "https://example.com/1"),
-                        List.of(new IntegrationApi.Plan("plan-id-1", "Gold 1", IntegrationApi.PlanType.API_KEY))
+                        List.of(new IntegrationApi.Plan("plan-id-1", "Gold 1", "Gold description 1", IntegrationApi.PlanType.API_KEY))
                     ),
                     new IntegrationApi(
                         INTEGRATION_ID,
@@ -107,7 +108,7 @@ class IntegrationAgentImplTest {
                         "asset-description-2",
                         "asset-version-2",
                         Map.of("url", "https://example.com/2"),
-                        List.of(new IntegrationApi.Plan("plan-id-2", "Gold 2", IntegrationApi.PlanType.API_KEY))
+                        List.of(new IntegrationApi.Plan("plan-id-2", "Gold 2", "Gold description 2", IntegrationApi.PlanType.API_KEY))
                     )
                 );
         }
@@ -147,7 +148,17 @@ class IntegrationAgentImplTest {
             .version("asset-version-" + index)
             .description("asset-description-" + index)
             .connectionDetails(Map.of("url", "https://example.com/" + index))
-            .plans(List.of(Plan.builder().id("plan-id-" + index).name("Gold " + index).planSecurityType(PlanSecurityType.API_KEY).build()))
+            .plans(
+                List.of(
+                    Plan
+                        .builder()
+                        .id("plan-id-" + index)
+                        .name("Gold " + index)
+                        .description("Gold description " + index)
+                        .planSecurityType(PlanSecurityType.API_KEY)
+                        .build()
+                )
+            )
             .build();
     }
 }

@@ -33,6 +33,7 @@ import inmemory.ApiCategoryQueryServiceInMemory;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiMetadataQueryServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
+import inmemory.EntrypointPluginQueryServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
 import inmemory.GroupQueryServiceInMemory;
 import inmemory.InMemoryAlternative;
@@ -43,7 +44,9 @@ import inmemory.MembershipCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.MetadataCrudServiceInMemory;
 import inmemory.NotificationConfigCrudServiceInMemory;
+import inmemory.PageCrudServiceInMemory;
 import inmemory.ParametersQueryServiceInMemory;
+import inmemory.PlanCrudServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import inmemory.WorkflowCrudServiceInMemory;
@@ -59,6 +62,7 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.ApiAuditEvent;
 import io.gravitee.apim.core.audit.model.event.MembershipAuditEvent;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.integration.exception.IntegrationNotFoundException;
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
@@ -66,6 +70,9 @@ import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainServ
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
 import io.gravitee.apim.core.membership.model.Membership;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
+import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
+import io.gravitee.apim.core.plan.domain_service.PlanValidatorDomainService;
+import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.core.search.model.IndexableApi;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
@@ -74,11 +81,16 @@ import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.federation.FederatedApi;
+import io.gravitee.definition.model.federation.FederatedPlan;
+import io.gravitee.definition.model.v4.plan.PlanMode;
+import io.gravitee.definition.model.v4.plan.PlanSecurity;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.rest.api.model.context.IntegrationContext;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.settings.ApiPrimaryOwnerMode;
+import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.service.common.UuidString;
 import java.time.Clock;
 import java.time.Instant;
@@ -121,6 +133,8 @@ class IngestIntegrationApisUseCaseTest {
     RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     WorkflowCrudServiceInMemory workflowCrudService = new WorkflowCrudServiceInMemory();
+
+    PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
 
     IntegrationAgentInMemory integrationAgent = new IntegrationAgentInMemory();
     IndexerInMemory indexer = new IndexerInMemory();
@@ -178,6 +192,23 @@ class IngestIntegrationApisUseCaseTest {
             workflowCrudService
         );
 
+        var planValidatorService = new PlanValidatorDomainService(
+            parametersQueryService,
+            policyValidationDomainService,
+            new PageCrudServiceInMemory()
+        );
+        var flowValidationDomainService = new FlowValidationDomainService(
+            policyValidationDomainService,
+            new EntrypointPluginQueryServiceInMemory()
+        );
+        var createPlanDomainService = new CreatePlanDomainService(
+            planValidatorService,
+            flowValidationDomainService,
+            planCrudService,
+            new FlowCrudServiceInMemory(),
+            auditDomainService
+        );
+
         useCase =
             new IngestIntegrationApisUseCase(
                 integrationCrudService,
@@ -185,6 +216,7 @@ class IngestIntegrationApisUseCaseTest {
                 validateFederatedApiDomainService,
                 apiCrudService,
                 createApiDomainService,
+                createPlanDomainService,
                 integrationAgent
             );
 
@@ -208,6 +240,7 @@ class IngestIntegrationApisUseCaseTest {
                 integrationCrudService,
                 membershipCrudService,
                 parametersQueryService,
+                planCrudService,
                 userCrudService
             )
             .forEach(InMemoryAlternative::reset);
@@ -398,6 +431,79 @@ class IngestIntegrationApisUseCaseTest {
             parametersQueryService.define(
                 new Parameter(Key.API_REVIEW_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true")
             );
+        }
+    }
+
+    @Nested
+    class PlanCreation {
+
+        @Test
+        void should_create_all_plans_associated() {
+            // Given
+            givenAnIntegration(IntegrationFixture.anIntegration(ENVIRONMENT_ID).withId(INTEGRATION_ID));
+            givenIntegrationApis(
+                IntegrationApiFixtures
+                    .anIntegrationApiForIntegration(INTEGRATION_ID)
+                    .toBuilder()
+                    .plans(
+                        List.of(
+                            new IntegrationApi.Plan("plan1", "My Plan 1", "Description 1", IntegrationApi.PlanType.API_KEY),
+                            new IntegrationApi.Plan("plan2", "My Plan 2", "Description 2", IntegrationApi.PlanType.API_KEY)
+                        )
+                    )
+                    .build()
+            );
+
+            // When
+            useCase.execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().awaitDone(10, TimeUnit.SECONDS);
+
+            // Then
+            SoftAssertions.assertSoftly(soft -> {
+                soft
+                    .assertThat(planCrudService.storage())
+                    .containsExactlyInAnyOrder(
+                        Plan
+                            .builder()
+                            .id("generated-id")
+                            .name("My Plan 1")
+                            .description("Description 1")
+                            .validation(Plan.PlanValidationType.MANUAL)
+                            .apiId("environment-idintegration-idasset-uid")
+                            .federatedPlanDefinition(
+                                FederatedPlan
+                                    .builder()
+                                    .id("generated-id")
+                                    .providerId("plan1")
+                                    .security(PlanSecurity.builder().type(PlanSecurityType.API_KEY.getLabel()).build())
+                                    .status(PlanStatus.PUBLISHED)
+                                    .mode(PlanMode.STANDARD)
+                                    .build()
+                            )
+                            .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                            .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                            .build(),
+                        Plan
+                            .builder()
+                            .id("generated-id")
+                            .name("My Plan 2")
+                            .description("Description 2")
+                            .validation(Plan.PlanValidationType.MANUAL)
+                            .apiId("environment-idintegration-idasset-uid")
+                            .federatedPlanDefinition(
+                                FederatedPlan
+                                    .builder()
+                                    .id("generated-id")
+                                    .providerId("plan2")
+                                    .security(PlanSecurity.builder().type(PlanSecurityType.API_KEY.getLabel()).build())
+                                    .status(PlanStatus.PUBLISHED)
+                                    .mode(PlanMode.STANDARD)
+                                    .build()
+                            )
+                            .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                            .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                            .build()
+                    );
+            });
         }
     }
 

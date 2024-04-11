@@ -107,7 +107,13 @@ public class Plan {
     private Date closedAt;
 
     /**
-     * The JSON payload of all policies to apply for this plan
+     * The JSON payload containing plan definition.
+     *
+     * <ul>
+     * <li>For V1, it contains all policies to apply for this plan</li>
+     * <li>For V2/V4, it null</li>
+     * <li>For FEDERATED, it contains the serialized definition</li>
+     * </ul>
      */
     private String definition;
 
