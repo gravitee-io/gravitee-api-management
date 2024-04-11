@@ -88,6 +88,32 @@ tests:
           # There is a k8s limitation that port names must be 15 characters or less
           pattern: ^.{0,15}$
 
+  - it: Set containerPort for Integration Controller when enabled
+    template: api/api-deployment.yaml
+    set:
+      api:
+        integration:
+          enabled: true
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.spec.containers[0].ports
+          value:
+            - name: http
+              containerPort: 8083
+            - name: api-integration
+              containerPort: 8072
+            - name: api-techapi
+              containerPort: 18083
+      - matchRegex:
+          path: spec.template.spec.containers[0].ports[1].name
+          # There is a k8s limitation that port names must be 15 characters or less
+          pattern: ^.{0,15}$
+
+
   - it: Deploy with managed ServiceAccount
     template: api/api-deployment.yaml
     set:

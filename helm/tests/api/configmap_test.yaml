@@ -153,3 +153,18 @@ tests:
                     *   issuer: test\n
                     *   key: ozhbx5HJCS41NzKrBSQ0vZU1WOmG0Uhm"
 
+  - it: Configure Integration
+    template: api/api-configmap.yaml
+    set:
+      api:
+        integration:
+          enabled: true
+    asserts:
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: "integration:\n
+                    * enabled: true\n
+                    * \n
+                    * controller:\n
+                    *   ws:\n
+                    *     port: 8072"

@@ -78,6 +78,12 @@ spec:
       {{- end }}
       name: {{ printf "%s-%s" (.Values.api.name | trunc 56 | trimSuffix "-") "bridge" }}
     {{- end }}
+    {{- if .Values.api.integration.enabled }}
+    - port: {{ .Values.api.integration.service.externalPort }}
+      targetPort: {{ .Values.api.integration.port }}
+      protocol: TCP
+      name: {{ printf "%s-%s" (.Values.api.name | trunc 56 | trimSuffix "-") "integration-controller" }}
+    {{- end }}
   selector:
     app.kubernetes.io/name: {{ template "gravitee.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
