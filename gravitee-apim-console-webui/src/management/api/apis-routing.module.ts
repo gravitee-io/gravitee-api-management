@@ -167,6 +167,11 @@ const apisRoutes: Routes = [
         path: '',
         component: ApiGeneralInfoComponent,
       },
+      {
+        path: 'general',
+        redirectTo: '',
+        pathMatch: 'full',
+      },
 
       /**
        * Common Api state
