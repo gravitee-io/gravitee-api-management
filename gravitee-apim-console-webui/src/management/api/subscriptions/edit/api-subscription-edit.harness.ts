@@ -20,7 +20,7 @@ import { MatTableHarness } from '@angular/material/table/testing';
 export class ApiSubscriptionEditHarness extends ComponentHarness {
   static hostSelector = '#subscription-edit';
 
-  protected getSubscriptionDetail = (attr: string) => this.locatorFor(`#subscription-${attr}`)();
+  protected getSubscriptionDetail = (attr: string) => this.locatorFor(`[data-testId=subscription-${attr}]`)();
   protected getBackButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Go back to your subscriptions"]' }));
   protected getFooter = this.locatorFor('.subscription__footer');
   protected getBtnByText = (text: string) => this.locatorFor(MatButtonHarness.with({ text }))();
@@ -207,6 +207,11 @@ export class ApiSubscriptionEditHarness extends ComponentHarness {
   }
 
   private async getSubscriptionDetailText(attr: string): Promise<string> {
-    return this.getSubscriptionDetail(attr).then((res) => res.text());
+    return (
+      this.getSubscriptionDetail(attr)
+        .then((res) => res.text({}))
+        // Remove the copy icon if present
+        .then((txt) => txt.replace(' content_copy', '').trim())
+    );
   }
 }

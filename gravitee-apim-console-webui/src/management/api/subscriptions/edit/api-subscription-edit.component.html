@@ -25,95 +25,79 @@
     <mat-card-content>
       <h3>Subscription details</h3>
       <ng-container *ngIf="subscription">
-        <div class="subscription__rows">
-          <div class="subscription__row">
-            <div class="mat-subtitle-2">ID</div>
-            <div id="subscription-id">
-              {{ subscription.id }}
-            </div>
-          </div>
-          <div class="subscription__row">
-            <div class="mat-subtitle-2">Plan</div>
-            <div id="subscription-plan">
-              {{ subscription.plan.label }}
-            </div>
-          </div>
-          <div class="subscription__row">
-            <div class="mat-subtitle-2">Status</div>
-            <div id="subscription-status">
-              {{ subscription.status }}
-            </div>
-          </div>
-          <div class="subscription__row">
-            <div class="mat-subtitle-2">Subscribed by</div>
-            <div id="subscription-subscribed-by">
-              {{ subscription.subscribedBy }}
-            </div>
-          </div>
-          <div class="subscription__row">
-            <div class="mat-subtitle-2">Application</div>
-            <div id="subscription-application">
-              <div>{{ subscription.application.label }}</div>
-              <div>{{ subscription.application.description }}</div>
-            </div>
-          </div>
-          <div class="subscription__row">
-            <div class="mat-subtitle-2">Publisher message to subscriber</div>
-            <div id="subscription-publisher-message">
-              {{ subscription.publisherMessage }}
-            </div>
-          </div>
-          <div class="subscription__row">
-            <div class="mat-subtitle-2">Subscriber message to publisher</div>
-            <div id="subscription-subscriber-message">
-              {{ subscription.subscriberMessage }}
-            </div>
-          </div>
-          <div class="subscription__row">
-            <div class="mat-subtitle-2">Created at</div>
-            <div id="subscription-created-at">
-              {{ subscription.createdAt }}
-            </div>
-          </div>
-          <div class="subscription__row">
-            <div class="mat-subtitle-2">Processed at</div>
-            <div id="subscription-processed-at">
-              {{ subscription.processedAt }}
-            </div>
-          </div>
+        <dl class="gio-description-list">
+          <dt>ID</dt>
+          <dd gioClipboardCopyWrapper [contentToCopy]="subscription.id" id="subscription-id">
+            {{ subscription.id }}
+          </dd>
+
+          <dt>Plan</dt>
+          <dd gioClipboardCopyWrapper [contentToCopy]="subscription.plan.label" id="subscription-plan">
+            {{ subscription.plan.label }}
+          </dd>
+
+          <dt>Status</dt>
+          <dd gioClipboardCopyWrapper [contentToCopy]="subscription.status" id="subscription-status">
+            {{ subscription.status }}
+          </dd>
+
+          <dt>Subscribed by</dt>
+          <dd gioClipboardCopyWrapper [contentToCopy]="subscription.subscribedBy" id="subscription-subscribed-by">
+            {{ subscription.subscribedBy }}
+          </dd>
+
+          <dt>Application</dt>
+          <dd id="subscription-application">
+            <div class="subtitle-2">{{ subscription.application.label }}</div>
+            <div class="mat-body-2">{{ subscription.application.description }}</div>
+          </dd>
+
+          <dt>Publisher message to subscriber</dt>
+          <dd id="subscription-publisher-message">
+            {{ subscription.publisherMessage }}
+          </dd>
+
+          <dt>Subscriber message to publisher</dt>
+          <dd id="subscription-subscriber-message">
+            {{ subscription.subscriberMessage }}
+          </dd>
+
+          <dt>Created at</dt>
+          <dd id="subscription-created-at">
+            {{ subscription.createdAt }}
+          </dd>
+
+          <dt>Processed at</dt>
+          <dd id="subscription-processed-at">
+            {{ subscription.processedAt }}
+          </dd>
+
           <ng-container *ngIf="subscription.status !== 'REJECTED'">
-            <div class="subscription__row">
-              <div class="mat-subtitle-2">Starting at</div>
-              <div id="subscription-starting-at">
-                {{ subscription.startingAt }}
-              </div>
-            </div>
-            <div class="subscription__row">
-              <div class="mat-subtitle-2">Paused at</div>
-              <div id="subscription-paused-at">
-                {{ subscription.pausedAt }}
-              </div>
-            </div>
-            <div class="subscription__row">
-              <div class="mat-subtitle-2">Ending at</div>
-              <div id="subscription-ending-at">
-                {{ subscription.endingAt }}
-              </div>
-            </div>
+            <dt>Starting at</dt>
+            <dd id="subscription-starting-at">
+              {{ subscription.startingAt }}
+            </dd>
+            <dt>Paused at</dt>
+            <dd id="subscription-paused-at">
+              {{ subscription.pausedAt }}
+            </dd>
+            <dt>Ending at</dt>
+            <dd id="subscription-ending-at">
+              {{ subscription.endingAt }}
+            </dd>
           </ng-container>
-          <div class="subscription__row">
-            <div class="mat-subtitle-2">Closed at</div>
-            <div id="subscription-closed-at">
-              {{ subscription.closedAt }}
-            </div>
-          </div>
-          <div class="subscription__row">
-            <div class="mat-subtitle-2">Domain</div>
-            <div id="subscription-domain">
-              {{ subscription.domain }}
-            </div>
-          </div>
-        </div>
+
+          <dt>Closed at</dt>
+          <dd id="subscription-closed-at">
+            {{ subscription.closedAt }}
+          </dd>
+
+          <dt>Domain</dt>
+          <dd id="subscription-domain">
+            {{ subscription.domain }}
+          </dd>
+        </dl>
+
         <ng-container
           *ngIf="subscription?.status === 'PAUSED' || subscription?.status === 'ACCEPTED' || subscription?.status === 'PENDING'"
         >
