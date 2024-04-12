@@ -18,7 +18,11 @@ package io.gravitee.integration.controller.command;
 import io.gravitee.exchange.api.controller.ControllerCommandContext;
 import java.util.Set;
 
-public record IntegrationCommandContext(boolean valid) implements ControllerCommandContext {
+public record IntegrationCommandContext(boolean valid, String organizationId) implements ControllerCommandContext {
+    public IntegrationCommandContext(boolean valid) {
+        this(valid, null);
+    }
+
     @Override
     public boolean isValid() {
         return valid;

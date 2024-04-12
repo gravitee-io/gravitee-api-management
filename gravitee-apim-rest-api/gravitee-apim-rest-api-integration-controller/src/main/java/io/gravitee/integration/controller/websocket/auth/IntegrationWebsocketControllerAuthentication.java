@@ -45,15 +45,13 @@ public class IntegrationWebsocketControllerAuthentication implements WebSocketCo
         var tokenValue = Optional
             .ofNullable(headers.get(AUTHORIZATION_HEADER))
             .map(authorizationHeader -> authorizationHeader.substring(AUTHORIZATION_HEADER_BEARER.length()).trim());
-        var organizationId = headers.get(ORGANIZATION_HEADER);
 
         if (tokenValue.isPresent()) {
             try {
                 var token = tokenService.findByToken(tokenValue.get());
                 return userCrudService
                     .findBaseUserById(token.getReferenceId())
-                    .filter(u -> u.getOrganizationId().equalsIgnoreCase(organizationId))
-                    .map(user -> new IntegrationCommandContext(true))
+                    .map(user -> new IntegrationCommandContext(true, user.getOrganizationId()))
                     .orElseThrow(() -> new UserNotFoundException(token.getReferenceId()));
             } catch (Exception e) {
                 log.warn("Unable to authenticate incoming websocket controller request");

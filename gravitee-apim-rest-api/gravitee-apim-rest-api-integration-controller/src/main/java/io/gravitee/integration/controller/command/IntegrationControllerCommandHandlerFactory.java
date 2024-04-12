@@ -35,6 +35,6 @@ public class IntegrationControllerCommandHandlerFactory implements ControllerCom
     public List<CommandHandler<? extends Command<?>, ? extends Reply<?>>> buildCommandHandlers(
         final ControllerCommandContext controllerCommandContext
     ) {
-        return List.of(new HelloCommandHandler(updateAgentStatusUseCase));
+        return List.of(new HelloCommandHandler(updateAgentStatusUseCase, (IntegrationCommandContext) controllerCommandContext));
     }
 }
