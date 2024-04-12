@@ -26,7 +26,7 @@ import { Step3Endpoints2ConfigComponent } from './step-3-endpoints-2-config.comp
 
 import { ApiCreationStepService } from '../../services/api-creation-step.service';
 import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
-import { ConnectorVM, fromConnector } from '../../../../../entities/management-api-v2';
+import { ConnectorVM, mapAndFilterBySupportedQos } from '../../../../../entities/management-api-v2';
 import {
   GioConnectorDialogComponent,
   GioConnectorDialogData,
@@ -78,7 +78,8 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
       .listEndpointPluginsByApiType('MESSAGE')
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe((endpointPlugins) => {
-        this.endpoints = endpointPlugins.map((endpoint) => fromConnector(this.iconService, endpoint));
+        const requiredQoS = this.stepService.payload.selectedEntrypoints.map((e) => e.selectedQos);
+        this.endpoints = mapAndFilterBySupportedQos(endpointPlugins, requiredQoS, this.iconService);
 
         this.changeDetectorRef.detectChanges();
       });

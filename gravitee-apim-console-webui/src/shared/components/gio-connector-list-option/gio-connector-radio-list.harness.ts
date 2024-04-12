@@ -24,4 +24,9 @@ export class GioConnectorRadioListHarness extends MatRadioGroupHarness {
   async getValue(): Promise<string> {
     return this.getCheckedValue();
   }
+
+  async getValues(): Promise<string[]> {
+    const radioButtons = await this.getRadioButtons();
+    return Promise.all(radioButtons.map((radioButton) => radioButton.getValue()));
+  }
 }

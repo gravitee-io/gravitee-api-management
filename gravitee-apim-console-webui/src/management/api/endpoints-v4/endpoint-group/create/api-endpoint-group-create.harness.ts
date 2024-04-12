@@ -45,6 +45,10 @@ export class ApiEndpointGroupCreateHarness extends ComponentHarness {
     return this.getEndpointGroupRadio().then((radioGroup) => radioGroup.selectOptionById(type));
   }
 
+  async getEndpointGroupTypes(): Promise<string[]> {
+    return this.getEndpointGroupRadio().then((radioGroup) => radioGroup.getValues());
+  }
+
   async getSelectedEndpointGroupId(): Promise<string> {
     return this.getEndpointGroupRadio().then((radioGroup) => radioGroup.getValue());
   }
