@@ -14,25 +14,38 @@
  * limitations under the License.
  */
 import { Component, Input } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-
-import { ApiPictureComponent } from '../api-picture/api-picture.component';
+import { toSvg } from 'jdenticon';
 
 @Component({
-  selector: 'app-api-card',
+  selector: 'app-api-picture',
   standalone: true,
-  imports: [MatCardModule, MatButtonModule, ApiPictureComponent],
-  templateUrl: './api-card.component.html',
-  styleUrl: './api-card.component.scss',
+  imports: [],
+  template: `
+    <img
+      i18n-alt="@@apiPicture"
+      alt="API Picture"
+      class="round"
+      [src]="picture"
+      [height]="size"
+      [width]="size"
+      (error)="useGeneratedPicture()"
+      placeholder="assets/images/logo.png" />
+  `,
+  styleUrl: './api-picture.component.scss',
 })
-export class ApiCardComponent {
+export class ApiPictureComponent {
   @Input({ required: true })
-  title!: string;
+  name!: string;
   @Input({ required: true })
   version!: string;
   @Input()
-  picture: string | undefined;
+  picture: string | undefined = 'assets/images/logo.png';
   @Input()
-  content?: string;
+  size: number = 40;
+
+  useGeneratedPicture() {
+    const asSvg = toSvg(`${this.name} ${this.version}`, this.size, { backColor: '#FFF', padding: 0 });
+    const encodedToBase64 = window.btoa(asSvg);
+    this.picture = `data:image/svg+xml;base64,${encodedToBase64}`;
+  }
 }
