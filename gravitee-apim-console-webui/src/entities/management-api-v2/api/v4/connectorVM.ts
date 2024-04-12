@@ -1,4 +1,5 @@
 import { ConnectorPlugin, ListenerType, Qos } from '../../index';
+import { IconService } from '../../../../services-ngx/icon.service';
 
 /*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
@@ -43,3 +44,15 @@ export const fromConnector: (iconService, connector: ConnectorPlugin) => Connect
   };
   return result;
 };
+
+export function mapAndFilterBySupportedQos(endpointPlugins: ConnectorPlugin[], requiredQoS: Qos[], iconService: IconService) {
+  const mapped = endpointPlugins.map((endpoint) => fromConnector(iconService, endpoint));
+
+  if (requiredQoS.length === 0) {
+    return mapped;
+  }
+
+  return mapped.filter((endpoint) => {
+    return endpoint.supportedQos !== undefined && endpoint.supportedQos.some((qos) => requiredQoS.includes(qos));
+  });
+}

@@ -125,6 +125,7 @@ const ENDPOINT_LIST = [
     icon: 'mock-icon',
     deployed: true,
     supportedApiType: 'MESSAGE',
+    supportedQos: ['AT_MOST_ONCE', 'NONE', 'AT_LEAST_ONCE', 'AUTO'],
   },
   {
     id: 'rabbitmq',
@@ -133,6 +134,7 @@ const ENDPOINT_LIST = [
     icon: 'rabbitmq-icon',
     deployed: true,
     supportedApiType: 'MESSAGE',
+    supportedQos: ['NONE', 'AUTO'],
   },
   {
     id: 'kafka',
@@ -141,6 +143,7 @@ const ENDPOINT_LIST = [
     icon: 'kafka-icon',
     deployed: true,
     supportedApiType: 'MESSAGE',
+    supportedQos: ['AT_MOST_ONCE', 'NONE', 'AT_LEAST_ONCE', 'AUTO'],
   },
 ];
 describe('ApiEndpointGroupCreateComponent', () => {
@@ -190,7 +193,7 @@ describe('ApiEndpointGroupCreateComponent', () => {
   describe('V4 API - Message', () => {
     describe('Stepper', () => {
       beforeEach(async () => {
-        await initComponent(fakeApiV4({ id: API_ID }));
+        await initComponent(fakeApiV4({ id: API_ID, listeners: [{ type: 'HTTP', entrypoints: [{ type: 'http-get', qos: 'AUTO' }] }] }));
       });
 
       it('should go back to endpoint groups page on exit', async () => {
@@ -247,7 +250,7 @@ describe('ApiEndpointGroupCreateComponent', () => {
 
     describe('When creating a Kafka endpoint group', () => {
       beforeEach(async () => {
-        await initComponent(fakeApiV4({ id: API_ID }));
+        await initComponent(fakeApiV4({ id: API_ID, listeners: [{ type: 'HTTP', entrypoints: [{ type: 'http-get', qos: 'AUTO' }] }] }));
         await fillOutAndValidateEndpointSelection();
         await fillOutAndValidateGeneralInformation();
         await harness.setConfigurationInputValue('bootstrapServers', 'a new server');
@@ -297,7 +300,7 @@ describe('ApiEndpointGroupCreateComponent', () => {
 
     describe('When creating a Mock endpoint group', () => {
       beforeEach(async () => {
-        await initComponent(fakeApiV4({ id: API_ID }));
+        await initComponent(fakeApiV4({ id: API_ID, listeners: [{ type: 'HTTP', entrypoints: [{ type: 'http-get', qos: 'AUTO' }] }] }));
         await fillOutAndValidateEndpointSelection('mock');
         await fillOutAndValidateGeneralInformation();
 
@@ -331,6 +334,22 @@ describe('ApiEndpointGroupCreateComponent', () => {
           },
         });
       });
+    });
+  });
+
+  describe('When creating a RabbitMQ endpoint group', () => {
+    it('cannot create an endpoint group for AT_LEAST_ONCE QoS', async () => {
+      await initComponent(
+        fakeApiV4({ id: API_ID, listeners: [{ type: 'HTTP', entrypoints: [{ type: 'http-get', qos: 'AT_LEAST_ONCE' }] }] }),
+      );
+      expect(await harness.isEndpointGroupTypeStepSelected()).toEqual(true);
+      expect(await harness.getEndpointGroupTypes()).toEqual(['kafka', 'mock']);
+    });
+
+    it('can create an endpoint group for AUTO QoS', async () => {
+      await initComponent(fakeApiV4({ id: API_ID, listeners: [{ type: 'HTTP', entrypoints: [{ type: 'http-get', qos: 'AUTO' }] }] }));
+      expect(await harness.isEndpointGroupTypeStepSelected()).toEqual(true);
+      expect(await harness.getEndpointGroupTypes()).toEqual(['kafka', 'mock', 'rabbitmq']);
     });
   });
 
@@ -374,7 +393,12 @@ describe('ApiEndpointGroupCreateComponent', () => {
    * Expect requests
    */
   function expectApiGet(): void {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`,
+        method: 'GET',
+      })
+      .flush(api);
   }
 
   function expectConfigurationSchemaGet(endpointId = 'kafka', schema: any = fakeKafkaSchema): void {
@@ -385,18 +409,29 @@ describe('ApiEndpointGroupCreateComponent', () => {
 
   function expectSharedConfigurationSchemaGet(endpointId = 'kafka', schema: any = fakeKafkaSharedSchema): void {
     httpTestingController
-      .expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/endpoints/${endpointId}/shared-configuration-schema`, method: 'GET' })
+      .expectOne({
+        url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/endpoints/${endpointId}/shared-configuration-schema`,
+        method: 'GET',
+      })
       .flush(schema);
   }
 
   function expectApiPut(updatedApi: ApiV4): void {
-    const req = httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'PUT' });
+    const req = httpTestingController.expectOne({
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`,
+      method: 'PUT',
+    });
     expect(req.request.body.endpointGroups).toEqual(updatedApi.endpointGroups);
     req.flush(updatedApi);
   }
 
   function expectEndpointListGet(): void {
-    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/endpoints`, method: 'GET' }).flush(ENDPOINT_LIST);
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.v2BaseURL}/plugins/endpoints`,
+        method: 'GET',
+      })
+      .flush(ENDPOINT_LIST);
   }
 
   /**

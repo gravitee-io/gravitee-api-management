@@ -864,6 +864,69 @@ describe('ApiCreationV4Component', () => {
       ]);
     });
 
+    describe('step3 with QoS selection', () => {
+      beforeEach(async () => {
+        await fillAndValidateStep1ApiDetails();
+        await fillAndValidateStep2Entrypoints0Architecture();
+        expectLicenseGetRequest({ tier: '', features: [], packs: [] });
+        const connectorPlugins: Partial<ConnectorPlugin>[] = [
+          {
+            id: 'http-get',
+            name: 'Send an HTTP GET request including the data directly in the request URL and process the response from the HTTP server.',
+            supportedApiType: 'MESSAGE',
+            supportedListenerType: 'HTTP',
+            supportedQos: ['AUTO', 'AT_MOST_ONCE', 'AT_LEAST_ONCE'],
+          },
+        ];
+        await fillAndValidateStep2Entrypoints1List(connectorPlugins);
+        expectSchemaGetRequest(connectorPlugins);
+      });
+      it('cannot select rabbitmq for AT_LEAST_ONCE QoS option', async () => {
+        const step22EntrypointsConfigHarness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
+        exceptEnvironmentGetRequest(fakeEnvironment());
+
+        expectApiGetPortalSettings();
+        await step22EntrypointsConfigHarness.fillPaths('/some-entrypoint');
+        await step22EntrypointsConfigHarness.selectQos('http-get', 'AT_LEAST_ONCE');
+        expect(await step22EntrypointsConfigHarness.hasValidationDisabled()).toBeFalsy();
+
+        await step22EntrypointsConfigHarness.clickValidate();
+        expectVerifyContextPathGetRequest();
+        const endpoints: Partial<ConnectorPlugin>[] = [
+          { id: 'kafka', supportedApiType: 'MESSAGE', name: 'Kafka', supportedQos: ['NONE', 'AUTO', 'AT_MOST_ONCE', 'AT_LEAST_ONCE'] },
+          { id: 'rabbitmq', supportedApiType: 'MESSAGE', name: 'RabbitMq', supportedQos: ['NONE', 'AUTO'] },
+          { id: 'mock', supportedApiType: 'MESSAGE', name: 'Mock', supportedQos: ['NONE', 'AUTO', 'AT_MOST_ONCE', 'AT_LEAST_ONCE'] },
+        ];
+        expectEndpointsGetRequest(endpoints);
+        const step3Harness = await harnessLoader.getHarness(Step3EndpointListHarness);
+        expect(step3Harness).toBeTruthy();
+        const list = await step3Harness.getEndpoints();
+        expect(await list.getListValues()).toEqual(['kafka', 'mock']);
+      });
+      it('can select rabbitmq for AUTO QoS option', async () => {
+        const step22EntrypointsConfigHarness = await harnessLoader.getHarness(Step2Entrypoints2ConfigHarness);
+        exceptEnvironmentGetRequest(fakeEnvironment());
+
+        expectApiGetPortalSettings();
+        await step22EntrypointsConfigHarness.fillPaths('/some-entrypoint');
+        await step22EntrypointsConfigHarness.selectQos('http-get', 'AUTO');
+        expect(await step22EntrypointsConfigHarness.hasValidationDisabled()).toBeFalsy();
+
+        await step22EntrypointsConfigHarness.clickValidate();
+        expectVerifyContextPathGetRequest();
+        const endpoints: Partial<ConnectorPlugin>[] = [
+          { id: 'kafka', supportedApiType: 'MESSAGE', name: 'Kafka', supportedQos: ['NONE', 'AUTO', 'AT_MOST_ONCE', 'AT_LEAST_ONCE'] },
+          { id: 'rabbitmq', supportedApiType: 'MESSAGE', name: 'RabbitMq', supportedQos: ['NONE', 'AUTO'] },
+          { id: 'mock', supportedApiType: 'MESSAGE', name: 'Mock', supportedQos: ['NONE', 'AUTO', 'AT_MOST_ONCE', 'AT_LEAST_ONCE'] },
+        ];
+        expectEndpointsGetRequest(endpoints);
+        const step3Harness = await harnessLoader.getHarness(Step3EndpointListHarness);
+        expect(step3Harness).toBeTruthy();
+        const list = await step3Harness.getEndpoints();
+        expect(await list.getListValues()).toEqual(['kafka', 'mock', 'rabbitmq']);
+      });
+    });
+
     it('should display only async endpoints in the list', async () => {
       await fillAndValidateStep1ApiDetails('API', '1.0', 'Description');
       await fillAndValidateStep2Entrypoints0Architecture('MESSAGE');
@@ -872,9 +935,9 @@ describe('ApiCreationV4Component', () => {
       const step3Harness = await harnessLoader.getHarness(Step3EndpointListHarness);
 
       expectEndpointsGetRequest([
-        { id: 'http-post', supportedApiType: 'PROXY', name: 'HTTP Post' },
-        { id: 'kafka', supportedApiType: 'MESSAGE', name: 'Kafka' },
-        { id: 'mock', supportedApiType: 'MESSAGE', name: 'Mock' },
+        { id: 'http-post', supportedApiType: 'PROXY', name: 'HTTP Post', supportedQos: ['NONE', 'AUTO'] },
+        { id: 'kafka', supportedApiType: 'MESSAGE', name: 'Kafka', supportedQos: ['NONE', 'AUTO', 'AT_MOST_ONCE', 'AT_LEAST_ONCE'] },
+        { id: 'mock', supportedApiType: 'MESSAGE', name: 'Mock', supportedQos: ['NONE', 'AUTO', 'AT_MOST_ONCE', 'AT_LEAST_ONCE'] },
       ]);
       expectLicenseGetRequest({ tier: '', features: [], packs: [] });
 
@@ -892,8 +955,8 @@ describe('ApiCreationV4Component', () => {
       expect(step3Harness).toBeTruthy();
 
       expectEndpointsGetRequest([
-        { id: 'kafka', supportedApiType: 'MESSAGE', name: 'Kafka' },
-        { id: 'mock', supportedApiType: 'MESSAGE', name: 'Mock' },
+        { id: 'kafka', supportedApiType: 'MESSAGE', name: 'Kafka', supportedQos: ['NONE', 'AUTO', 'AT_MOST_ONCE', 'AT_LEAST_ONCE'] },
+        { id: 'mock', supportedApiType: 'MESSAGE', name: 'Mock', supportedQos: ['NONE', 'AUTO', 'AT_MOST_ONCE', 'AT_LEAST_ONCE'] },
       ]);
       expectLicenseGetRequest({ tier: '', features: [], packs: [] });
 
@@ -929,8 +992,8 @@ describe('ApiCreationV4Component', () => {
       expect(step3Harness).toBeTruthy();
 
       expectEndpointsGetRequest([
-        { id: 'kafka', supportedApiType: 'MESSAGE', name: 'Kafka' },
-        { id: 'mock', supportedApiType: 'MESSAGE', name: 'Mock' },
+        { id: 'kafka', supportedApiType: 'MESSAGE', name: 'Kafka', supportedQos: ['NONE', 'AUTO', 'AT_MOST_ONCE', 'AT_LEAST_ONCE'] },
+        { id: 'mock', supportedApiType: 'MESSAGE', name: 'Mock', supportedQos: ['NONE', 'AUTO', 'AT_MOST_ONCE', 'AT_LEAST_ONCE'] },
       ]);
       expectLicenseGetRequest({ tier: '', features: [], packs: [] });
 
@@ -1384,8 +1447,8 @@ describe('ApiCreationV4Component', () => {
 
         const step3Harness = await harnessLoader.getHarness(Step3EndpointListHarness);
         expectEndpointsGetRequest([
-          { id: 'kafka', supportedApiType: 'MESSAGE', name: 'Kafka' },
-          { id: 'mock', supportedApiType: 'MESSAGE', name: 'Mock' },
+          { id: 'kafka', supportedApiType: 'MESSAGE', name: 'Kafka', supportedQos: ['NONE', 'AUTO', 'AT_MOST_ONCE', 'AT_LEAST_ONCE'] },
+          { id: 'mock', supportedApiType: 'MESSAGE', name: 'Mock', supportedQos: ['NONE', 'AUTO', 'AT_MOST_ONCE', 'AT_LEAST_ONCE'] },
         ]);
 
         const list = await step3Harness.getEndpoints();
@@ -1567,8 +1630,8 @@ describe('ApiCreationV4Component', () => {
 
   async function fillAndValidateStep3Endpoints1List(
     endpoints: Partial<ConnectorPlugin>[] = [
-      { id: 'kafka', supportedApiType: 'MESSAGE', name: 'Kafka' },
-      { id: 'mock', supportedApiType: 'MESSAGE', name: 'Mock' },
+      { id: 'kafka', supportedApiType: 'MESSAGE', name: 'Kafka', supportedQos: ['AUTO', 'AT_MOST_ONCE', 'AT_LEAST_ONCE', 'NONE'] },
+      { id: 'mock', supportedApiType: 'MESSAGE', name: 'Mock', supportedQos: ['AUTO', 'AT_MOST_ONCE', 'AT_LEAST_ONCE', 'NONE'] },
     ],
   ) {
     const step3Harness = await harnessLoader.getHarness(Step3EndpointListHarness);

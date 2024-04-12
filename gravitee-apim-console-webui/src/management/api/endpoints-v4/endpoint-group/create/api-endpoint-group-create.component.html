@@ -23,7 +23,11 @@
           <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
         </ng-template>
         <ng-template matStepLabel>Endpoint Group Type</ng-template>
-        <api-endpoints-group-selection [endpointGroupTypeForm]="endpointGroupTypeForm" [apiType]="apiType"></api-endpoints-group-selection>
+        <api-endpoints-group-selection
+          [endpointGroupTypeForm]="endpointGroupTypeForm"
+          [apiType]="apiType"
+          [requiredQos]="requiredQos"
+        ></api-endpoints-group-selection>
         <div class="api-endpoint-group-create__footer">
           <ng-container *ngTemplateOutlet="exitButton"></ng-container>
           <button mat-raised-button type="button" color="primary" [disabled]="createForm.get('type').invalid" matStepperNext>
