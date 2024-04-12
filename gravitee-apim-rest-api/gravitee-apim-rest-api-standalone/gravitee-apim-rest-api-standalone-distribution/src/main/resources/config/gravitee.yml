@@ -637,10 +637,11 @@ notifiers:
 # External Authentication
 #auth:
 #  external:
-#    enabled: true
+#    enabled: false
 #    algorithm: HS256
 #    verificationKey: ozhbx5HJCS41NzKrBSQ0vZU1WOmG0Uhm
 #    issuer: my-issuer
+#    allowAccountDeletion: true
 
 # Integration
 integration:

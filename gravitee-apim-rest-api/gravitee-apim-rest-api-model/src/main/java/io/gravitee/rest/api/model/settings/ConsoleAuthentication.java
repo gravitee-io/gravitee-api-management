@@ -29,11 +29,33 @@ public class ConsoleAuthentication extends CommonAuthentication {
     @ParameterKey(Key.CONSOLE_AUTHENTICATION_LOCALLOGIN_ENABLED)
     private Enabled localLogin;
 
+    @ParameterKey(Key.EXTERNAL_AUTH_ENABLED)
+    private Enabled externalAuth;
+
+    @ParameterKey(Key.EXTERNAL_AUTH_ACCOUNT_DELETION_ENABLED)
+    private Enabled externalAuthAccountDeletion;
+
     public Enabled getLocalLogin() {
         return localLogin;
     }
 
     public void setLocalLogin(Enabled localLogin) {
         this.localLogin = localLogin;
+    }
+
+    public Enabled getExternalAuth() {
+        return externalAuth;
+    }
+
+    public void setExternalAuth(Enabled externalAuth) {
+        this.externalAuth = externalAuth;
+    }
+
+    public Enabled getExternalAuthAccountDeletion() {
+        return externalAuthAccountDeletion;
+    }
+
+    public void setExternalAuthAccountDeletion(Enabled externalAuthAccountDeletion) {
+        this.externalAuthAccountDeletion = externalAuthAccountDeletion;
     }
 }

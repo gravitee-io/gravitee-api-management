@@ -362,7 +362,10 @@ public enum Key {
     ALERT_ENGINE_ENABLED("alerts.alert-engine.enabled", "false", Set.of(SYSTEM)),
 
     INSTALLATION_TYPE("installation.type", "standalone", Set.of(SYSTEM)),
-    TRIAL_INSTANCE("trialInstance.enabled", "false", Set.of(SYSTEM));
+    TRIAL_INSTANCE("trialInstance.enabled", "false", Set.of(SYSTEM)),
+
+    EXTERNAL_AUTH_ENABLED("auth.external.enabled", "false", Set.of(SYSTEM)),
+    EXTERNAL_AUTH_ACCOUNT_DELETION_ENABLED("auth.external.allowAccountDeletion", "true", Set.of(SYSTEM));
 
     String key;
     String defaultValue;
