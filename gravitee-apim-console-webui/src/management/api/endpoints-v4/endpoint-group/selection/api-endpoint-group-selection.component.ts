@@ -19,7 +19,7 @@ import { of, Subject } from 'rxjs';
 import { FormGroup } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 
-import { ApiType, ConnectorVM, fromConnector } from '../../../../../entities/management-api-v2';
+import { ApiType, ConnectorVM, mapAndFilterBySupportedQos, Qos } from '../../../../../entities/management-api-v2';
 import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
 import { IconService } from '../../../../../services-ngx/icon.service';
 import {
@@ -41,6 +41,7 @@ export class ApiEndpointGroupSelectionComponent implements OnInit {
   public apiType: ApiType;
 
   public endpoints: ConnectorVM[];
+  @Input() requiredQos!: Qos[];
 
   constructor(
     private readonly connectorPluginsV2Service: ConnectorPluginsV2Service,
@@ -53,7 +54,7 @@ export class ApiEndpointGroupSelectionComponent implements OnInit {
       .listEndpointPluginsByApiType(this.apiType)
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe((endpointPlugins) => {
-        this.endpoints = endpointPlugins.map((endpoint) => fromConnector(this.iconService, endpoint));
+        this.endpoints = mapAndFilterBySupportedQos(endpointPlugins, this.requiredQos, this.iconService);
       });
   }
 
