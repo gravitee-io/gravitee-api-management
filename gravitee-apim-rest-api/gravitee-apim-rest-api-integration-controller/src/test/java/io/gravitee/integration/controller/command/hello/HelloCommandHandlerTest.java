@@ -19,7 +19,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 
 import fixtures.core.model.IntegrationFixture;
+import inmemory.EnvironmentCrudServiceInMemory;
+import inmemory.InMemoryAlternative;
 import inmemory.IntegrationCrudServiceInMemory;
+import io.gravitee.apim.core.environment.model.Environment;
 import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.use_case.UpdateAgentStatusUseCase;
@@ -31,12 +34,12 @@ import io.gravitee.integration.api.command.hello.HelloCommand;
 import io.gravitee.integration.api.command.hello.HelloCommandPayload;
 import io.gravitee.integration.controller.command.IntegrationCommandContext;
 import io.gravitee.integration.controller.command.IntegrationControllerCommandHandlerFactory;
-import io.gravitee.rest.api.service.common.UuidString;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterAll;
@@ -49,16 +52,20 @@ import org.mockito.Mockito;
 class HelloCommandHandlerTest {
 
     private static final Instant INSTANT_NOW = Instant.parse("2023-10-22T10:15:30Z");
+    private static final String ORGANIZATION_ID = "organization-id";
+    private static final Environment ENVIRONMENT = Environment.builder().id("env1").organizationId(ORGANIZATION_ID).build();
     private static final String COMMAND_ID = "command-id";
     private static final String INTEGRATION_ID = "my-integration-id";
     private static final String INTEGRATION_PROVIDER = "aws-api-gateway";
 
+    private static final IntegrationCommandContext CONTEXT = new IntegrationCommandContext(true, ORGANIZATION_ID);
     private static final HelloCommand COMMAND = new HelloCommand(
         COMMAND_ID,
         HelloCommandPayload.builder().targetId(INTEGRATION_ID).provider(INTEGRATION_PROVIDER).build()
     );
 
     IntegrationCrudServiceInMemory integrationCrudServiceInMemory = new IntegrationCrudServiceInMemory();
+    EnvironmentCrudServiceInMemory environmentCrudService = new EnvironmentCrudServiceInMemory();
     HelloCommandHandler commandHandler;
 
     @BeforeAll
@@ -73,26 +80,36 @@ class HelloCommandHandlerTest {
 
     @BeforeEach
     void setUp() {
-        var factory = new IntegrationControllerCommandHandlerFactory(new UpdateAgentStatusUseCase(integrationCrudServiceInMemory));
+        var factory = new IntegrationControllerCommandHandlerFactory(
+            new UpdateAgentStatusUseCase(integrationCrudServiceInMemory, environmentCrudService)
+        );
 
         commandHandler =
             (HelloCommandHandler) factory
-                .buildCommandHandlers(new IntegrationCommandContext(true))
+                .buildCommandHandlers(CONTEXT)
                 .stream()
                 .filter(handler -> handler.supportType().equals(IntegrationCommandType.HELLO.name()))
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("No handler found for type [HELLO]"));
+
+        environmentCrudService.initWith(List.of(ENVIRONMENT));
     }
 
     @AfterEach
     void tearDown() {
-        integrationCrudServiceInMemory.reset();
+        Stream.of(environmentCrudService, integrationCrudServiceInMemory).forEach(InMemoryAlternative::reset);
     }
 
     @Test
     void should_update_integration() {
         var integration = givenIntegration(
-            IntegrationFixture.anIntegration().toBuilder().id(INTEGRATION_ID).provider(INTEGRATION_PROVIDER).build()
+            IntegrationFixture
+                .anIntegration()
+                .toBuilder()
+                .id(INTEGRATION_ID)
+                .environmentId(ENVIRONMENT.getId())
+                .provider(INTEGRATION_PROVIDER)
+                .build()
         );
 
         commandHandler.handle(COMMAND).test().awaitDone(10, TimeUnit.SECONDS).assertComplete().assertNoErrors();
@@ -111,7 +128,13 @@ class HelloCommandHandlerTest {
     @Test
     void should_reply_succeeded_when_integration_exists() {
         var integration = givenIntegration(
-            IntegrationFixture.anIntegration().toBuilder().id(INTEGRATION_ID).provider(INTEGRATION_PROVIDER).build()
+            IntegrationFixture
+                .anIntegration()
+                .toBuilder()
+                .id(INTEGRATION_ID)
+                .environmentId(ENVIRONMENT.getId())
+                .provider(INTEGRATION_PROVIDER)
+                .build()
         );
 
         commandHandler
@@ -150,7 +173,15 @@ class HelloCommandHandlerTest {
 
     @Test
     void should_reply_error_when_integration_exist_but_provider_mismatch() {
-        givenIntegration(IntegrationFixture.anIntegration().toBuilder().id("my-integration-id").provider("other").build());
+        givenIntegration(
+            IntegrationFixture
+                .anIntegration()
+                .toBuilder()
+                .id("my-integration-id")
+                .environmentId(ENVIRONMENT.getId())
+                .provider("other")
+                .build()
+        );
 
         commandHandler
             .handle(COMMAND)
@@ -174,7 +205,7 @@ class HelloCommandHandlerTest {
     void should_reply_error_when_exception_occurs() {
         var spied = Mockito.spy(integrationCrudServiceInMemory);
         lenient().when(spied.findById(any())).thenThrow(new TechnicalDomainException("error"));
-        commandHandler = new HelloCommandHandler(new UpdateAgentStatusUseCase(spied));
+        commandHandler = new HelloCommandHandler(new UpdateAgentStatusUseCase(spied, environmentCrudService), CONTEXT);
 
         commandHandler
             .handle(COMMAND)

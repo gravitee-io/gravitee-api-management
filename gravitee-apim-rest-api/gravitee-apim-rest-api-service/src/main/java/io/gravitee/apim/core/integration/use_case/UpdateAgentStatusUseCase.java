@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.integration.use_case;
 
 import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.environment.crud_service.EnvironmentCrudService;
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
 import io.gravitee.apim.core.integration.model.Integration;
 
@@ -23,14 +24,24 @@ import io.gravitee.apim.core.integration.model.Integration;
 public class UpdateAgentStatusUseCase {
 
     private final IntegrationCrudService integrationCrudService;
+    private final EnvironmentCrudService environmentCrudService;
 
-    public UpdateAgentStatusUseCase(IntegrationCrudService integrationCrudService) {
+    public UpdateAgentStatusUseCase(IntegrationCrudService integrationCrudService, EnvironmentCrudService environmentCrudService) {
         this.integrationCrudService = integrationCrudService;
+        this.environmentCrudService = environmentCrudService;
     }
 
     public Output execute(Input input) {
         return integrationCrudService
             .findById(input.integrationId)
+            .filter(integration -> {
+                if (input.agentStatus == Integration.AgentStatus.DISCONNECTED) {
+                    // No need to check the environment as the integration was connected
+                    return true;
+                }
+                var environment = environmentCrudService.get(integration.getEnvironmentId());
+                return environment.getOrganizationId().equals(input.organizationId);
+            })
             .map(integration -> {
                 if (input.agentStatus == Integration.AgentStatus.CONNECTED && !integration.getProvider().equals(input.provider)) {
                     return new Output(
@@ -53,9 +64,9 @@ public class UpdateAgentStatusUseCase {
             .orElse(new Output(false, String.format("Integration [id=%s] not found", input.integrationId)));
     }
 
-    public record Input(String integrationId, String provider, Integration.AgentStatus agentStatus) {
+    public record Input(String organizationId, String integrationId, String provider, Integration.AgentStatus agentStatus) {
         public Input(String integrationId, Integration.AgentStatus agentStatus) {
-            this(integrationId, null, agentStatus);
+            this(null, integrationId, null, agentStatus);
         }
     }
 

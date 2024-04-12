@@ -18,7 +18,10 @@ package io.gravitee.apim.core.integration.use_case;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import fixtures.core.model.IntegrationFixture;
+import inmemory.EnvironmentCrudServiceInMemory;
+import inmemory.InMemoryAlternative;
 import inmemory.IntegrationCrudServiceInMemory;
+import io.gravitee.apim.core.environment.model.Environment;
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.use_case.UpdateAgentStatusUseCase.Input;
 import io.gravitee.apim.core.integration.use_case.UpdateAgentStatusUseCase.Output;
@@ -27,8 +30,11 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Stream;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -37,6 +43,10 @@ import org.junit.jupiter.api.Test;
 class UpdateAgentStatusUseCaseTest {
 
     private static final Instant INSTANT_NOW = Instant.parse("2023-10-22T10:15:30Z");
+    private static final String ORGANIZATION_1 = "organization-1";
+    private static final String ENVIRONMENT_1 = "environment-1";
+    private static final String ORGANIZATION_2 = "organization-2";
+    private static final String ENVIRONMENT_2 = "environment-2";
     private static final String INTEGRATION_ID = "my-integration-id";
     private static final String PROVIDER = "aws-api-gateway";
     private static final Integration INTEGRATION = IntegrationFixture
@@ -44,9 +54,11 @@ class UpdateAgentStatusUseCaseTest {
         .toBuilder()
         .id(INTEGRATION_ID)
         .provider(PROVIDER)
+        .environmentId(ENVIRONMENT_1)
         .build();
 
     IntegrationCrudServiceInMemory integrationCrudService = new IntegrationCrudServiceInMemory();
+    EnvironmentCrudServiceInMemory environmentCrudService = new EnvironmentCrudServiceInMemory();
 
     UpdateAgentStatusUseCase useCase;
 
@@ -62,7 +74,19 @@ class UpdateAgentStatusUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        useCase = new UpdateAgentStatusUseCase(integrationCrudService);
+        useCase = new UpdateAgentStatusUseCase(integrationCrudService, environmentCrudService);
+
+        environmentCrudService.initWith(
+            List.of(
+                Environment.builder().id(ENVIRONMENT_1).organizationId(ORGANIZATION_1).build(),
+                Environment.builder().id(ENVIRONMENT_2).organizationId(ORGANIZATION_2).build()
+            )
+        );
+    }
+
+    @AfterEach
+    void tearDown() {
+        Stream.of(integrationCrudService, environmentCrudService).forEach(InMemoryAlternative::reset);
     }
 
     @Nested
@@ -71,7 +95,7 @@ class UpdateAgentStatusUseCaseTest {
         @Test
         void should_fail_when_integration_does_not_exist() {
             // When
-            var result = useCase.execute(new Input("unknown", PROVIDER, Integration.AgentStatus.CONNECTED));
+            var result = useCase.execute(new Input(ORGANIZATION_1, "unknown", PROVIDER, Integration.AgentStatus.CONNECTED));
 
             // Then
             assertThat(result).extracting(Output::success, Output::message).containsExactly(false, "Integration [id=unknown] not found");
@@ -83,7 +107,7 @@ class UpdateAgentStatusUseCaseTest {
             givenExistingIntegration(INTEGRATION);
 
             // When
-            var result = useCase.execute(new Input(INTEGRATION_ID, "other", Integration.AgentStatus.CONNECTED));
+            var result = useCase.execute(new Input(ORGANIZATION_1, INTEGRATION_ID, "other", Integration.AgentStatus.CONNECTED));
 
             // Then
             assertThat(result)
@@ -92,11 +116,25 @@ class UpdateAgentStatusUseCaseTest {
         }
 
         @Test
+        void should_fail_when_using_integration_from_other_organization() {
+            // Given
+            givenExistingIntegration(INTEGRATION);
+
+            // When
+            var result = useCase.execute(new Input(ORGANIZATION_2, INTEGRATION_ID, PROVIDER, Integration.AgentStatus.CONNECTED));
+
+            // Then
+            assertThat(result)
+                .extracting(Output::success, Output::message)
+                .containsExactly(false, "Integration [id=my-integration-id] not found");
+        }
+
+        @Test
         void should_update_agent_status() {
             // Given
             givenExistingIntegration(INTEGRATION);
 
-            var result = useCase.execute(new Input(INTEGRATION_ID, PROVIDER, Integration.AgentStatus.CONNECTED));
+            var result = useCase.execute(new Input(ORGANIZATION_1, INTEGRATION_ID, PROVIDER, Integration.AgentStatus.CONNECTED));
 
             SoftAssertions.assertSoftly(soft -> {
                 soft
@@ -119,7 +157,7 @@ class UpdateAgentStatusUseCaseTest {
         @Test
         void should_fail_when_integration_does_not_exist() {
             // When
-            var result = useCase.execute(new Input("unknown", PROVIDER, Integration.AgentStatus.DISCONNECTED));
+            var result = useCase.execute(new Input("unknown", Integration.AgentStatus.DISCONNECTED));
 
             // Then
             assertThat(result).extracting(Output::success, Output::message).containsExactly(false, "Integration [id=unknown] not found");
@@ -130,7 +168,7 @@ class UpdateAgentStatusUseCaseTest {
             // Given
             givenExistingIntegration(INTEGRATION.toBuilder().agentStatus(Integration.AgentStatus.CONNECTED).build());
 
-            var result = useCase.execute(new Input(INTEGRATION_ID, "unknown", Integration.AgentStatus.DISCONNECTED));
+            var result = useCase.execute(new Input(INTEGRATION_ID, Integration.AgentStatus.DISCONNECTED));
 
             assertThat(result).extracting(Output::success).isEqualTo(true);
         }
@@ -140,7 +178,7 @@ class UpdateAgentStatusUseCaseTest {
             // Given
             givenExistingIntegration(INTEGRATION.toBuilder().agentStatus(Integration.AgentStatus.CONNECTED).build());
 
-            var result = useCase.execute(new Input(INTEGRATION_ID, PROVIDER, Integration.AgentStatus.DISCONNECTED));
+            var result = useCase.execute(new Input(INTEGRATION_ID, Integration.AgentStatus.DISCONNECTED));
 
             SoftAssertions.assertSoftly(soft -> {
                 soft

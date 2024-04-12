@@ -76,7 +76,7 @@ class IntegrationWebsocketControllerAuthenticationTest {
 
         var result = authentication.authenticate(request);
 
-        assertThat(result).isEqualTo(new IntegrationCommandContext(true));
+        assertThat(result).isEqualTo(new IntegrationCommandContext(true, ORGANIZATION_ID));
     }
 
     @Test
@@ -91,16 +91,6 @@ class IntegrationWebsocketControllerAuthenticationTest {
     @Test
     void should_return_an_invalid_IntegrationCommandContext_when_no_user_found() {
         givenToken(Token.builder().token(TOKEN_VALUE).referenceId("user-id").build());
-
-        var result = authentication.authenticate(request);
-
-        assertThat(result).isEqualTo(new IntegrationCommandContext(false));
-    }
-
-    @Test
-    void should_return_an_invalid_IntegrationCommandContext_when_organization_id_mismatch() {
-        var token = givenToken(Token.builder().token(TOKEN_VALUE).referenceId("user-id").build());
-        givenUser(BaseUserEntity.builder().id(token.getReferenceId()).organizationId("DEFAULT").build());
 
         var result = authentication.authenticate(request);
 
