@@ -23,6 +23,7 @@ import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import io.gravitee.rest.api.service.converter.PlanConverter;
 import io.gravitee.rest.api.service.v4.FlowService;
+import java.util.Collections;
 import java.util.List;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -52,14 +53,11 @@ public class GenericPlanMapper {
     }
 
     public GenericPlanEntity toGenericPlan(final Api api, final Plan plan) {
-        if (api.getDefinitionVersion() == DefinitionVersion.V4) {
-            List<Flow> flows = flowService.findByReference(FlowReferenceType.PLAN, plan.getId());
-            return planMapper.toEntity(plan, flows);
-        } else if (api.getDefinitionVersion() != DefinitionVersion.FEDERATED) {
-            List<io.gravitee.definition.model.flow.Flow> flows = flowServiceV2.findByReference(FlowReferenceType.PLAN, plan.getId());
-            return planConverter.toPlanEntity(plan, flows);
-        }
-
-        return null;
+        var apiDefinitionVersion = api.getDefinitionVersion() != null ? api.getDefinitionVersion() : DefinitionVersion.V2;
+        return switch (apiDefinitionVersion) {
+            case V4 -> planMapper.toEntity(plan, flowService.findByReference(FlowReferenceType.PLAN, plan.getId()));
+            case FEDERATED -> planMapper.toEntity(plan, null);
+            default -> planConverter.toPlanEntity(plan, flowServiceV2.findByReference(FlowReferenceType.PLAN, plan.getId()));
+        };
     }
 }

@@ -31,7 +31,7 @@ describe('ApiFederatedMenuService', () => {
         { provide: ApiFederatedMenuService },
         {
           provide: GioTestingPermissionProvider,
-          useValue: ['api-member-r', 'api-audit-r'],
+          useValue: ['api-member-r', 'api-audit-r', 'api-plan-r'],
         },
         { provide: Constants, useValue: CONSTANTS_TESTING },
         { provide: 'LicenseConfiguration', useValue: LICENSE_CONFIGURATION_TESTING },
@@ -80,6 +80,21 @@ describe('ApiFederatedMenuService', () => {
               },
             ],
           },
+          {
+            displayName: 'Consumers',
+            header: {
+              subtitle: 'Manage how your API is consumed',
+              title: 'Consumers',
+            },
+            icon: 'cloud-consumers',
+            routerLink: '',
+            tabs: [
+              {
+                displayName: 'Plans',
+                routerLink: 'plans',
+              },
+            ],
+          },
         ],
         groupItems: [],
       });
@@ -108,6 +123,16 @@ describe('ApiFederatedMenuService', () => {
                 },
               },
             ],
+          },
+          {
+            displayName: 'Consumers',
+            header: {
+              subtitle: 'Manage how your API is consumed',
+              title: 'Consumers',
+            },
+            icon: 'cloud-consumers',
+            routerLink: '',
+            tabs: [],
           },
         ],
         groupItems: [],
