@@ -243,7 +243,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                 .apiId(API)
                 .securityType(List.of(io.gravitee.rest.api.model.v4.plan.PlanSecurityType.JWT))
                 .status(List.of(PlanStatus.DEPRECATED))
-                .mode(io.gravitee.rest.api.model.v4.plan.PlanMode.STANDARD)
+                .mode(io.gravitee.definition.model.v4.plan.PlanMode.STANDARD)
                 .build();
             when(planSearchService.search(eq(GraviteeContext.getExecutionContext()), eq(planQuery), eq(USER_NAME), eq(true)))
                 .thenReturn(List.of(plan1, plan3));
@@ -296,7 +296,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                 .toBuilder()
                 .id("plan-3")
                 .apiId(API)
-                .mode(io.gravitee.rest.api.model.v4.plan.PlanMode.PUSH)
+                .mode(io.gravitee.definition.model.v4.plan.PlanMode.PUSH)
                 .security(null)
                 .build();
             var planQuery = PlanQuery.builder().apiId(API).securityType(new ArrayList<>()).status(List.of(PlanStatus.PUBLISHED)).build();

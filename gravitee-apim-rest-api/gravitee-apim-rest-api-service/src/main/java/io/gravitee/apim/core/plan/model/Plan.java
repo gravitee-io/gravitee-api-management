@@ -113,8 +113,8 @@ public class Plan implements GenericPlanEntity {
     }
 
     @Override
-    public io.gravitee.rest.api.model.v4.plan.PlanMode getPlanMode() {
-        return io.gravitee.rest.api.model.v4.plan.PlanMode.valueOf(mode.name());
+    public PlanMode getPlanMode() {
+        return mode;
     }
 
     @Override

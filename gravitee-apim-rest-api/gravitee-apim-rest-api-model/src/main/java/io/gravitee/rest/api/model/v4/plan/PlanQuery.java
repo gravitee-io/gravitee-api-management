@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.model.v4.plan;
 
+import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;

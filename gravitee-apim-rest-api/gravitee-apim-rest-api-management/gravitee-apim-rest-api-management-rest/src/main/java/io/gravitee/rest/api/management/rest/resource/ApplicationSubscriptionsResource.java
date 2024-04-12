@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.rest.api.management.rest.model.Pageable;
 import io.gravitee.rest.api.management.rest.model.Subscription;
 import io.gravitee.rest.api.management.rest.model.wrapper.SubscriptionEntityPageResult;
@@ -32,7 +33,6 @@ import io.gravitee.rest.api.model.subscription.SubscriptionMetadataQuery;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
-import io.gravitee.rest.api.model.v4.plan.PlanMode;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.service.ApiService;
