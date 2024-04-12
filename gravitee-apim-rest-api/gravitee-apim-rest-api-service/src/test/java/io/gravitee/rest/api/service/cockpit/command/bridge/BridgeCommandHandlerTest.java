@@ -95,7 +95,7 @@ public class BridgeCommandHandlerTest {
 
         @Override
         public Single<BridgeReply> handle(BridgeCommand bridgeCommand) {
-            final BridgeReply reply = new BridgeReply(bridgeCommand.getId(), new BridgeReplyPayload(List.of()));
+            final BridgeReply reply = new BridgeReply(bridgeCommand.getId(), new BridgeReplyPayload(false, List.of()));
             return Single.just(reply);
         }
     }
@@ -109,7 +109,7 @@ public class BridgeCommandHandlerTest {
 
         @Override
         public Single<BridgeReply> handle(BridgeCommand bridgeCommand) {
-            final BridgeReply reply = new BridgeReply(bridgeCommand.getId(), new BridgeReplyPayload(List.of()));
+            final BridgeReply reply = new BridgeReply(bridgeCommand.getId(), new BridgeReplyPayload(true, List.of()));
             return Single.just(reply);
         }
     }

@@ -69,6 +69,7 @@ public class ProcessPromotionOperationHandler implements BridgeOperationHandler 
                 new BridgeReply(
                     bridgeCommand.getId(),
                     new BridgeReplyPayload(
+                        true,
                         List.of(
                             BridgeReplyPayload.BridgeReplyContent
                                 .builder()

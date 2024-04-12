@@ -29,9 +29,7 @@ import io.gravitee.exchange.api.command.hello.HelloCommandPayload;
 import io.gravitee.node.api.Node;
 import io.gravitee.plugin.core.api.PluginRegistry;
 import io.gravitee.rest.api.model.InstallationEntity;
-import io.gravitee.rest.api.service.EnvironmentService;
 import io.gravitee.rest.api.service.InstallationService;
-import io.gravitee.rest.api.service.OrganizationService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.reactivex.rxjava3.observers.TestObserver;
@@ -92,7 +90,7 @@ public class HelloCommandAdapterTest {
         when(installationTypeDomainService.get()).thenReturn(InstallationType.STANDALONE);
 
         final TestObserver<HelloCommand> obs = cut
-            .adapt(new io.gravitee.exchange.api.command.hello.HelloCommand(new HelloCommandPayload()))
+            .adapt(null, new io.gravitee.exchange.api.command.hello.HelloCommand(new HelloCommandPayload()))
             .test();
 
         obs.await();
@@ -116,7 +114,7 @@ public class HelloCommandAdapterTest {
     void adaptWithException() {
         when(installationService.getOrInitialize()).thenThrow(new TechnicalManagementException());
         cut
-            .adapt(new io.gravitee.exchange.api.command.hello.HelloCommand(new HelloCommandPayload()))
+            .adapt(null, new io.gravitee.exchange.api.command.hello.HelloCommand(new HelloCommandPayload()))
             .test()
             .assertError(TechnicalManagementException.class);
     }
