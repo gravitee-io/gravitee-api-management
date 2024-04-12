@@ -19,13 +19,13 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { GioIconsModule } from '@gravitee/ui-particles-angular';
 import { MatButtonModule } from '@angular/material/button';
 
-import { GioConnectorDialogComponent } from './gio-connector-dialog.component';
+import { GioInformationDialogComponent } from './gio-information-dialog.component';
 
 import { GioSafePipeModule } from '../../../../shared/utils/safe.pipe.module';
 
 @NgModule({
   imports: [CommonModule, MatDialogModule, GioIconsModule, MatButtonModule, GioSafePipeModule],
-  declarations: [GioConnectorDialogComponent],
-  exports: [GioConnectorDialogComponent],
+  declarations: [GioInformationDialogComponent],
+  exports: [GioInformationDialogComponent],
 })
-export class GioConnectorDialogModule {}
+export class GioInformationDialogModule {}

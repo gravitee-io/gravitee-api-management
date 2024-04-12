@@ -16,31 +16,31 @@
 import { Component, Inject } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 
-import { PluginMoreInformation } from '../../../../entities/plugin/PluginMoreInformation';
+import { Information } from '../../../../entities/plugin/PluginMoreInformation';
 
 export type GioConnectorDialogData = {
   name: string;
-  pluginMoreInformation?: PluginMoreInformation;
+  information?: Information;
 };
 
 @Component({
-  selector: 'gio-connector-dialog',
-  templateUrl: './gio-connector-dialog.component.html',
-  styleUrls: ['./gio-connector-dialog.component.scss'],
+  selector: 'gio-information-dialog',
+  templateUrl: './gio-information-dialog.component.html',
+  styleUrls: ['./gio-information-dialog.component.scss'],
 })
-export class GioConnectorDialogComponent {
+export class GioInformationDialogComponent {
   public name: string;
-  public pluginMoreInformation: PluginMoreInformation | undefined;
+  public information: Information | undefined;
 
   constructor(
     private readonly dialogRef: MatDialogRef<GioConnectorDialogData>,
     @Inject(MAT_DIALOG_DATA) dialogData: GioConnectorDialogData,
   ) {
     this.name = dialogData.name;
-    this.pluginMoreInformation = dialogData?.pluginMoreInformation;
+    this.information = dialogData?.information;
 
-    if (!this.pluginMoreInformation.description) {
-      this.pluginMoreInformation.description = '🚧 More information coming soon 🚧';
+    if (!this.information.description) {
+      this.information.description = '🚧 More information coming soon 🚧';
     }
   }
 

@@ -20,7 +20,7 @@ import { of, Subject } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { isEmpty } from 'lodash';
 
-import { GioConnectorDialogComponent, GioConnectorDialogData } from '../gio-connector-dialog/gio-connector-dialog.component';
+import { GioInformationDialogComponent, GioConnectorDialogData } from '../gio-information-dialog/gio-information-dialog.component';
 import { ConnectorPluginsV2Service } from '../../../../services-ngx/connector-plugins-v2.service';
 import { ConnectorVM } from '../../../../entities/management-api-v2';
 
@@ -73,10 +73,10 @@ export class GioEntrypointsSelectionListComponent implements OnDestroy, ControlV
         catchError(() => of({})),
         switchMap((pluginMoreInformation) =>
           this.matDialog
-            .open<GioConnectorDialogComponent, GioConnectorDialogData, boolean>(GioConnectorDialogComponent, {
+            .open<GioInformationDialogComponent, GioConnectorDialogData, boolean>(GioInformationDialogComponent, {
               data: {
                 name: entrypoint.name,
-                pluginMoreInformation,
+                information: pluginMoreInformation,
               },
               role: 'alertdialog',
               id: 'moreInfoDialog',

@@ -24,9 +24,9 @@ import { ApiType, ConnectorVM, fromConnector } from '../../../../../entities/man
 import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
 import { IconService } from '../../../../../services-ngx/icon.service';
 import {
-  GioConnectorDialogComponent,
+  GioInformationDialogComponent,
   GioConnectorDialogData,
-} from '../../../component/gio-connector-dialog/gio-connector-dialog.component';
+} from '../../../component/gio-information-dialog/gio-information-dialog.component';
 import { ApimFeature, UTMTags } from '../../../../../shared/components/gio-license/gio-license-data';
 
 @Component({
@@ -75,10 +75,10 @@ export class ApiEndpointGroupSelectionComponent implements OnInit {
         catchError(() => of({})),
         switchMap((pluginMoreInformation) =>
           this.matDialog
-            .open<GioConnectorDialogComponent, GioConnectorDialogData, boolean>(GioConnectorDialogComponent, {
+            .open<GioInformationDialogComponent, GioConnectorDialogData, boolean>(GioInformationDialogComponent, {
               data: {
                 name: endpoint.name,
-                pluginMoreInformation,
+                information: pluginMoreInformation,
               },
               role: 'alertdialog',
               id: 'moreInfoDialog',

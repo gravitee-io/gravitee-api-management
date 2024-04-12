@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export type PluginMoreInformation = {
+
+export type Information = {
   description?: string;
   schemaImg?: string;
   documentationUrl?: string;
 };
+
+export type PluginMoreInformation = Information;
