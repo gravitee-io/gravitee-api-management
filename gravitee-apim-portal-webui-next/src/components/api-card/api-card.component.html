@@ -16,17 +16,17 @@
 
 -->
 <mat-card class="api-card" appearance="outlined">
-  <mat-card-content>
+  <mat-card-content class="api-card__content">
     <div class="api-card__header">
       <app-api-picture [picture]="picture" [name]="title" [version]="version" [size]="40" />
-      <div class="api-card__header-content">
+      <div>
         <div class="api-card__header-content-title">{{ title }}</div>
         <div class="api-card__header-content-version">{{ version }}</div>
       </div>
     </div>
-    <div class="api-card__content">
-      <p class="api-card__description">{{ content }}</p>
-      <button class="api-card__content-button" i18n="@@apiCardButton" mat-stroked-button color="primary">Learn more</button>
-    </div>
+    <p class="api-card__description">{{ content }}</p>
   </mat-card-content>
+  <mat-card-actions class="api-card__actions">
+    <button i18n="@@apiCardButton" mat-stroked-button color="primary">Learn more</button>
+  </mat-card-actions>
 </mat-card>

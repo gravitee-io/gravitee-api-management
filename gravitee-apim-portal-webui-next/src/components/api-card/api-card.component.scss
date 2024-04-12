@@ -13,10 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+:host {
+  display: flex;
+  height: 25vh;
+  flex-flow: column;
+
+  --mdc-outlined-card-container-shape: 12px;
+}
+
 .api-card {
   display: flex;
-
-  --mdc-elevated-card-container-shape: 12px;
+  height: 100%;
+  flex-flow: column;
+  justify-content: space-between;
 
   &__header {
     display: flex;
@@ -26,13 +35,6 @@
 
   &__header-picture {
     border-radius: 50%;
-  }
-
-  &_header-content {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    gap: 4px;
   }
 
   &__header-content-title {
@@ -48,8 +50,8 @@
 
   &__content {
     display: flex;
+    flex: 1 1 100%;
     flex-direction: column;
-    gap: 32px;
   }
 
   &__description {
@@ -61,7 +63,7 @@
     text-overflow: ellipsis;
   }
 
-  &__content-button {
-    max-width: fit-content;
+  &__actions {
+    margin: 8px;
   }
 }
