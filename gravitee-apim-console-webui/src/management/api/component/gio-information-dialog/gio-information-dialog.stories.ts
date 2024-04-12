@@ -20,16 +20,16 @@ import { tap } from 'rxjs/operators';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 
-import { GioConnectorDialogComponent, GioConnectorDialogData } from './gio-connector-dialog.component';
-import { GioConnectorDialogModule } from './gio-connector-dialog.module';
+import { GioInformationDialogComponent, GioConnectorDialogData } from './gio-information-dialog.component';
+import { GioInformationDialogModule } from './gio-information-dialog.module';
 
 import { PluginMoreInformation } from '../../../../entities/plugin/PluginMoreInformation';
 
 @Component({
-  selector: 'gio-connector-dialog-story',
+  selector: 'gio-information-dialog-story',
   template: `<button id="open-dialog" (click)="openDialog()">More information</button>`,
 })
-class GioConnectorDialogStoryComponent {
+class GioInformationDialogStoryComponent {
   @Input() public name: string;
   @Input() public pluginMoreInformation: PluginMoreInformation;
 
@@ -37,10 +37,10 @@ class GioConnectorDialogStoryComponent {
 
   public openDialog() {
     this.matDialog
-      .open<GioConnectorDialogComponent, GioConnectorDialogData, boolean>(GioConnectorDialogComponent, {
+      .open<GioInformationDialogComponent, GioConnectorDialogData, boolean>(GioInformationDialogComponent, {
         data: {
           name: this.name,
-          pluginMoreInformation: this.pluginMoreInformation,
+          information: this.pluginMoreInformation,
         },
         role: 'alertdialog',
         id: 'dialog',
@@ -57,11 +57,11 @@ class GioConnectorDialogStoryComponent {
 
 export default {
   title: 'Shared / Connector dialog',
-  component: GioConnectorDialogComponent,
+  component: GioInformationDialogComponent,
   decorators: [
     moduleMetadata({
-      declarations: [GioConnectorDialogStoryComponent],
-      imports: [GioConnectorDialogModule, MatButtonModule, MatDialogModule],
+      declarations: [GioInformationDialogStoryComponent],
+      imports: [GioInformationDialogModule, MatButtonModule, MatDialogModule],
     }),
   ],
   argTypes: {

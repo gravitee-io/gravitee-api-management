@@ -28,9 +28,9 @@ import { ApiCreationStepService } from '../../services/api-creation-step.service
 import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
 import { ConnectorVM, fromConnector } from '../../../../../entities/management-api-v2';
 import {
-  GioConnectorDialogComponent,
+  GioInformationDialogComponent,
   GioConnectorDialogData,
-} from '../../../component/gio-connector-dialog/gio-connector-dialog.component';
+} from '../../../component/gio-information-dialog/gio-information-dialog.component';
 import { IconService } from '../../../../../services-ngx/icon.service';
 import { ApimFeature, UTMTags } from '../../../../../shared/components/gio-license/gio-license-data';
 
@@ -154,10 +154,10 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
         catchError(() => of({})),
         tap((pluginMoreInformation) => {
           this.matDialog
-            .open<GioConnectorDialogComponent, GioConnectorDialogData, boolean>(GioConnectorDialogComponent, {
+            .open<GioInformationDialogComponent, GioConnectorDialogData, boolean>(GioInformationDialogComponent, {
               data: {
                 name: endpoint.name,
-                pluginMoreInformation,
+                information: pluginMoreInformation,
               },
               role: 'alertdialog',
               id: 'moreInfoDialog',
