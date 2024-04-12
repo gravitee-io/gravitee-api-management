@@ -25,7 +25,7 @@ import { ApiEndpointGroupSelectionComponent } from '../selection/api-endpoint-gr
 import { ApiEndpointGroupConfigurationComponent } from '../configuration/api-endpoint-group-configuration.component';
 import { ApiEndpointGroupGeneralComponent } from '../general/api-endpoint-group-general.component';
 import { ApiV2Service } from '../../../../../services-ngx/api-v2.service';
-import { ApiType, ApiV4, EndpointGroupV4, EndpointV4Default, UpdateApiV4 } from '../../../../../entities/management-api-v2';
+import { ApiType, ApiV4, EndpointGroupV4, EndpointV4Default, Qos, UpdateApiV4 } from '../../../../../entities/management-api-v2';
 import { UIRouterState, UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { ConnectorPluginsV2Service } from '../../../../../services-ngx/connector-plugins-v2.service';
@@ -63,6 +63,7 @@ export class ApiEndpointGroupCreateComponent implements OnInit {
   public configurationSchema: GioJsonSchema;
   public sharedConfigurationSchema: GioJsonSchema;
   public apiType: ApiType;
+  public requiredQos: Qos[];
 
   constructor(
     @Inject(UIRouterStateParams) private readonly ajsStateParams,
@@ -84,6 +85,7 @@ export class ApiEndpointGroupCreateComponent implements OnInit {
           const apiV4 = api as ApiV4;
           this.generalForm.get('name').addValidators([isEndpointNameUnique(apiV4)]);
           this.apiType = apiV4.type;
+          this.requiredQos = apiV4.listeners.flatMap((listener) => listener.entrypoints).flatMap((entrypoint) => entrypoint.qos);
           if (this.apiType === 'PROXY') {
             this.endpointGroupTypeForm.get('endpointGroupType').setValue('http-proxy');
           }
