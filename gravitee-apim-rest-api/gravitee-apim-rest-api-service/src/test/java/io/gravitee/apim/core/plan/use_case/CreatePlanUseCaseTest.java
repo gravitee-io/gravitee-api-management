@@ -138,7 +138,7 @@ class CreatePlanUseCaseTest {
             .extracting(
                 PlanWithFlows::getApiId,
                 createdPlan -> createdPlan.getPlanType().name(),
-                createdPlan -> createdPlan.getMode().name()
+                createdPlan -> createdPlan.getPlanMode().name()
             )
             .containsExactly(API_ID, Plan.PlanType.API.name(), PlanMode.STANDARD.name());
     }

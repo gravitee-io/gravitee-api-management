@@ -49,6 +49,7 @@ import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.flow.Operator;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
@@ -192,7 +193,7 @@ class UpdatePlanDomainServiceTest {
         @MethodSource("io.gravitee.apim.core.plan.domain_service.UpdatePlanDomainServiceTest#testData")
         void should_throw_when_invalid_status_change_detected(Api api, Plan plan, List<Flow> flows) {
             // Given
-            givenExistingPlan(plan.toBuilder().status(PlanStatus.CLOSED).build());
+            givenExistingPlan(plan.copy().setPlanStatus(PlanStatus.CLOSED));
 
             // When
             var throwable = Assertions.catchThrowable(() -> service.update(plan, flows, api, AUDIT_INFO));
@@ -209,9 +210,7 @@ class UpdatePlanDomainServiceTest {
             api.getApiDefinitionV4().setTags(Set.of("tag1", "tag2"));
 
             // When
-            var throwable = Assertions.catchThrowable(() ->
-                service.update(plan.toBuilder().tags(Set.of("tag3")).build(), flows, api, AUDIT_INFO)
-            );
+            var throwable = Assertions.catchThrowable(() -> service.update(plan.setPlanTags(Set.of("tag3")), flows, api, AUDIT_INFO));
 
             // Then
             Assertions.assertThat(throwable).isInstanceOf(ValidationDomainException.class);
@@ -268,7 +267,7 @@ class UpdatePlanDomainServiceTest {
             List<Flow> flows
         ) {
             // Given
-            var publishedPlan = givenExistingPlan(plan.toBuilder().status(PlanStatus.PUBLISHED).build());
+            var publishedPlan = givenExistingPlan(plan.toBuilder().build().setPlanStatus(PlanStatus.PUBLISHED));
 
             // When
             var throwable = Assertions.catchThrowable(() ->
@@ -293,13 +292,20 @@ class UpdatePlanDomainServiceTest {
                 // When
                 Plan toUpdate = plan
                     .toBuilder()
+                    .definitionVersion(DefinitionVersion.V4)
                     .name("updated name")
                     .description("updated description")
                     .commentRequired(true)
                     .commentMessage("updated comment")
-                    .status(PlanStatus.PUBLISHED)
-                    .tags(Set.of("tag1"))
-                    .selectionRule("updated rule")
+                    .planDefinitionV4(
+                        plan
+                            .getPlanDefinitionV4()
+                            .toBuilder()
+                            .status(PlanStatus.PUBLISHED)
+                            .tags(Set.of("tag1"))
+                            .selectionRule("updated rule")
+                            .build()
+                    )
                     .excludedGroups(List.of("updated group"))
                     .characteristics(List.of("updated characteristic"))
                     .build();
@@ -361,7 +367,10 @@ class UpdatePlanDomainServiceTest {
                 when(planSynchronizationService.checkSynchronized(any(), any(), any(), any())).thenReturn(false);
 
                 // When
-                var toUpdate = plan.toBuilder().selectionRule("updated rule").build();
+                var toUpdate = plan
+                    .toBuilder()
+                    .planDefinitionV4(plan.getPlanDefinitionV4().toBuilder().selectionRule("updated rule").build())
+                    .build();
                 var result = service.update(toUpdate, flows, api, AUDIT_INFO);
 
                 // Then
@@ -394,12 +403,24 @@ class UpdatePlanDomainServiceTest {
         return Stream.of(
             Arguments.of(
                 API_PROXY_V4,
-                anApiKeyV4().toBuilder().apiId(API_ID).tags(Set.of(TAG)).status(PlanStatus.STAGING).build(),
+                anApiKeyV4()
+                    .toBuilder()
+                    .apiId(API_ID)
+                    .planDefinitionV4(
+                        fixtures.definition.PlanFixtures.anApiKeyV4().toBuilder().tags(Set.of(TAG)).status(PlanStatus.STAGING).build()
+                    )
+                    .build(),
                 List.of(Flow.builder().name("flow").selectors(List.of(new HttpSelector())).build())
             ),
             Arguments.of(
                 API_MESSAGE_V4,
-                aPushPlan().toBuilder().apiId(API_ID).tags(Set.of(TAG)).status(PlanStatus.STAGING).build(),
+                aPushPlan()
+                    .toBuilder()
+                    .apiId(API_ID)
+                    .planDefinitionV4(
+                        fixtures.definition.PlanFixtures.anApiKeyV4().toBuilder().tags(Set.of(TAG)).status(PlanStatus.STAGING).build()
+                    )
+                    .build(),
                 List.of(Flow.builder().name("flow").selectors(List.of(new ChannelSelector())).build())
             )
         );

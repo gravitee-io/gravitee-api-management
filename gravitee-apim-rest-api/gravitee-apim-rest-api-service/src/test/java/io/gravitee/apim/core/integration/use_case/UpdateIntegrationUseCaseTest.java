@@ -37,9 +37,7 @@ public class UpdateIntegrationUseCaseTest {
     private static final Instant INSTANT_NOW = Instant.parse("2023-10-22T10:15:30Z");
     private static final String PROVIDER = "test-provider";
     private static final String ENV_ID = "my-env";
-    private static final ZonedDateTime CREATED_DATE = ZonedDateTime
-        .parse("2020-02-03T20:22:02.00Z")
-        .withZoneSameLocal(ZoneId.systemDefault());
+    private static final ZonedDateTime CREATED_DATE = Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault());
     private static final Integration.AgentStatus AGENT_STATUS = Integration.AgentStatus.DISCONNECTED;
 
     IntegrationCrudServiceInMemory integrationCrudServiceInMemory = new IntegrationCrudServiceInMemory();

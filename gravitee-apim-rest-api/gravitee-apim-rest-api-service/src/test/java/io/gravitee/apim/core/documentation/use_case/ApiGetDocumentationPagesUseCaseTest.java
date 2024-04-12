@@ -142,9 +142,9 @@ class ApiGetDocumentationPagesUseCaseTest {
                         .toBuilder()
                         .id("plan-1")
                         .apiId(API_ID)
-                        .status(PlanStatus.PUBLISHED)
                         .generalConditions("page#1")
                         .build()
+                        .setPlanStatus(PlanStatus.PUBLISHED)
                 )
             );
 

@@ -47,6 +47,8 @@ import io.gravitee.rest.api.management.v2.rest.model.BasePlan;
 import io.gravitee.rest.api.management.v2.rest.model.HttpMethod;
 import io.gravitee.rest.api.management.v2.rest.model.Links;
 import io.gravitee.rest.api.management.v2.rest.model.Pagination;
+import io.gravitee.rest.api.management.v2.rest.model.PlanSecurity;
+import io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType;
 import io.gravitee.rest.api.management.v2.rest.resource.api.log.param.SearchLogsParam;
 import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
@@ -70,8 +72,8 @@ import org.junit.jupiter.api.Test;
 
 public class ApiLogsResourceTest extends ApiResourceTest {
 
-    private static final Plan PLAN_1 = Plan.builder().id("plan1").name("1st plan").apiId(API).build();
-    private static final Plan PLAN_2 = Plan.builder().id("plan2").name("2nd plan").apiId(API).build();
+    private static final Plan PLAN_1 = PlanFixtures.aPlanV4().toBuilder().id("plan1").name("1st plan").apiId(API).build();
+    private static final Plan PLAN_2 = PlanFixtures.aPlanV4().toBuilder().id("plan2").name("2nd plan").apiId(API).build();
     private static final BaseApplicationEntity APPLICATION = BaseApplicationEntity.builder().id("app1").name("an application name").build();
     public static final String REQUEST_ID = "request-id";
 
@@ -163,7 +165,16 @@ public class ApiLogsResourceTest extends ApiResourceTest {
                                 ApiLog
                                     .builder()
                                     .application(BaseApplication.builder().id(APPLICATION.getId()).name(APPLICATION.getName()).build())
-                                    .plan(BasePlan.builder().id(PLAN_1.getId()).name(PLAN_1.getName()).apiId(API).build())
+                                    .plan(
+                                        BasePlan
+                                            .builder()
+                                            .id(PLAN_1.getId())
+                                            .name(PLAN_1.getName())
+                                            .apiId(API)
+                                            .description(PLAN_1.getDescription())
+                                            .security(PlanSecurity.builder().type(PlanSecurityType.KEY_LESS).build())
+                                            .build()
+                                    )
                                     .method(HttpMethod.GET)
                                     .status(200)
                                     .clientIdentifier("client-identifier")
@@ -293,7 +304,16 @@ public class ApiLogsResourceTest extends ApiResourceTest {
             var expectedApiLog = ApiLog
                 .builder()
                 .application(BaseApplication.builder().id(APPLICATION.getId()).name(APPLICATION.getName()).build())
-                .plan(BasePlan.builder().id(PLAN_1.getId()).name(PLAN_1.getName()).apiId(API).build())
+                .plan(
+                    BasePlan
+                        .builder()
+                        .id(PLAN_1.getId())
+                        .name(PLAN_1.getName())
+                        .apiId(API)
+                        .description(PLAN_1.getDescription())
+                        .security(PlanSecurity.builder().type(PlanSecurityType.KEY_LESS).build())
+                        .build()
+                )
                 .method(HttpMethod.GET)
                 .status(200)
                 .clientIdentifier("client-identifier")
@@ -340,7 +360,16 @@ public class ApiLogsResourceTest extends ApiResourceTest {
             var expectedApiLog = ApiLog
                 .builder()
                 .application(BaseApplication.builder().id("app1").name(APPLICATION.getName()).build())
-                .plan(BasePlan.builder().id(PLAN_1.getId()).name(PLAN_1.getName()).apiId(API).build())
+                .plan(
+                    BasePlan
+                        .builder()
+                        .id(PLAN_1.getId())
+                        .name(PLAN_1.getName())
+                        .apiId(API)
+                        .description(PLAN_1.getDescription())
+                        .security(PlanSecurity.builder().type(PlanSecurityType.KEY_LESS).build())
+                        .build()
+                )
                 .method(HttpMethod.GET)
                 .status(200)
                 .clientIdentifier("client-identifier")
@@ -377,7 +406,16 @@ public class ApiLogsResourceTest extends ApiResourceTest {
             var expectedApiLog = ApiLog
                 .builder()
                 .application(BaseApplication.builder().id("app1").name(APPLICATION.getName()).build())
-                .plan(BasePlan.builder().id(PLAN_1.getId()).name(PLAN_1.getName()).apiId(API).build())
+                .plan(
+                    BasePlan
+                        .builder()
+                        .id(PLAN_1.getId())
+                        .name(PLAN_1.getName())
+                        .apiId(API)
+                        .description(PLAN_1.getDescription())
+                        .security(PlanSecurity.builder().type(PlanSecurityType.KEY_LESS).build())
+                        .build()
+                )
                 .method(HttpMethod.GET)
                 .status(200)
                 .clientIdentifier("client-identifier")
@@ -422,7 +460,16 @@ public class ApiLogsResourceTest extends ApiResourceTest {
                                 ApiLog
                                     .builder()
                                     .application(BaseApplication.builder().id("app1").name(APPLICATION.getName()).build())
-                                    .plan(BasePlan.builder().id(PLAN_1.getId()).name(PLAN_1.getName()).apiId(API).build())
+                                    .plan(
+                                        BasePlan
+                                            .builder()
+                                            .id(PLAN_1.getId())
+                                            .name(PLAN_1.getName())
+                                            .apiId(API)
+                                            .description(PLAN_1.getDescription())
+                                            .security(PlanSecurity.builder().type(PlanSecurityType.KEY_LESS).build())
+                                            .build()
+                                    )
                                     .method(HttpMethod.GET)
                                     .status(200)
                                     .clientIdentifier("client-identifier")
@@ -463,7 +510,16 @@ public class ApiLogsResourceTest extends ApiResourceTest {
                                 ApiLog
                                     .builder()
                                     .application(BaseApplication.builder().id("app1").name(APPLICATION.getName()).build())
-                                    .plan(BasePlan.builder().id(PLAN_1.getId()).name(PLAN_1.getName()).apiId(API).build())
+                                    .plan(
+                                        BasePlan
+                                            .builder()
+                                            .id(PLAN_1.getId())
+                                            .name(PLAN_1.getName())
+                                            .apiId(API)
+                                            .description(PLAN_1.getDescription())
+                                            .security(PlanSecurity.builder().type(PlanSecurityType.KEY_LESS).build())
+                                            .build()
+                                    )
                                     .method(HttpMethod.GET)
                                     .status(202)
                                     .clientIdentifier("client-identifier")

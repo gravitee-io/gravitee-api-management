@@ -70,7 +70,7 @@ public class UpdatePlanDomainService {
 
     public Plan update(Plan planToUpdate, List<Flow> flows, Api api, AuditInfo auditInfo) {
         List<Plan> existingPlans = planQueryService.findAllByApiId(api.getId());
-        Map<String, PlanStatus> existingPlanStatuses = existingPlans.stream().collect(toMap(Plan::getId, Plan::getStatus));
+        Map<String, PlanStatus> existingPlanStatuses = existingPlans.stream().collect(toMap(Plan::getId, Plan::getPlanStatus));
 
         return update(planToUpdate, flows, existingPlanStatuses, api, auditInfo);
     }
@@ -87,13 +87,13 @@ public class UpdatePlanDomainService {
         if (
             existingPlanStatuses.containsKey(planToUpdate.getId()) &&
             existingPlanStatuses.get(planToUpdate.getId()) == PlanStatus.CLOSED &&
-            existingPlanStatuses.get(planToUpdate.getId()) != planToUpdate.getStatus()
+            existingPlanStatuses.get(planToUpdate.getId()) != planToUpdate.getPlanStatus()
         ) {
             throw new ValidationDomainException("Invalid status for plan '" + planToUpdate.getName() + "'");
         }
 
         planValidatorDomainService.validatePlanSecurity(planToUpdate, auditInfo.organizationId(), auditInfo.environmentId());
-        planValidatorDomainService.validatePlanTagsAgainstApiTags(planToUpdate.getTags(), api.getTags());
+        planValidatorDomainService.validatePlanTagsAgainstApiTags(planToUpdate.getPlanDefinitionV4().getTags(), api.getTags());
         planValidatorDomainService.validateGeneralConditionsPageStatus(planToUpdate);
 
         var sanitizedFlows = flowValidationDomainService.validateAndSanitize(api.getType(), flows);

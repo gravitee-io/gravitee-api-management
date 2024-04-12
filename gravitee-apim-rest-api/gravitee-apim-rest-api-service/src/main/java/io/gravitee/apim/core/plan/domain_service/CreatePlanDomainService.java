@@ -61,19 +61,26 @@ public class CreatePlanDomainService {
     }
 
     public PlanWithFlows create(Plan plan, List<Flow> flows, Api api, AuditInfo auditInfo) {
+        return switch (api.getDefinitionVersion()) {
+            case V4 -> createV4ApiPlan(plan, flows, api, auditInfo);
+            default -> throw new IllegalStateException(api.getDefinitionVersion() + " is not supported");
+        };
+    }
+
+    private PlanWithFlows createV4ApiPlan(Plan plan, List<Flow> flows, Api api, AuditInfo auditInfo) {
         if (api.isDeprecated()) {
             throw new ApiDeprecatedException(plan.getApiId());
         }
 
         if (api.getApiDefinitionV4().getListeners() != null) {
             planValidatorDomainService.validatePlanSecurityAgainstEntrypoints(
-                plan.getSecurity(),
+                plan.getPlanSecurity(),
                 api.getApiDefinitionV4().getListeners().stream().map(Listener::getType).toList()
             );
         }
 
         planValidatorDomainService.validatePlanSecurity(plan, auditInfo.organizationId(), auditInfo.environmentId());
-        planValidatorDomainService.validatePlanTagsAgainstApiTags(plan.getTags(), api.getTags());
+        planValidatorDomainService.validatePlanTagsAgainstApiTags(plan.getPlanDefinitionV4().getTags(), api.getTags());
         planValidatorDomainService.validateGeneralConditionsPageStatus(plan);
 
         var sanitizedFlows = flowValidationDomainService.validateAndSanitize(api.getType(), flows);
@@ -133,11 +140,8 @@ public class CreatePlanDomainService {
             .needRedeployAt(plan.getNeedRedeployAt())
             .validation(plan.getValidation())
             .type(plan.getType())
-            .mode(plan.getMode())
-            .security(plan.getSecurity())
-            .selectionRule(plan.getSelectionRule())
-            .tags(plan.getTags())
-            .status(plan.getStatus())
+            .planDefinitionV4(plan.getPlanDefinitionV4())
+            .planDefinitionV2(plan.getPlanDefinitionV2())
             .apiId(plan.getApiId())
             .order(plan.getOrder())
             .characteristics(plan.getCharacteristics())
@@ -145,7 +149,6 @@ public class CreatePlanDomainService {
             .commentRequired(plan.isCommentRequired())
             .commentMessage(plan.getCommentMessage())
             .generalConditions(plan.getGeneralConditions())
-            .paths(plan.getPaths())
             .build();
     }
 }

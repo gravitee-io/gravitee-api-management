@@ -104,12 +104,12 @@ public class PlanMapperTest {
         assertEquals(createPlanV4.getCommentMessage(), plan.getCommentMessage());
         assertEquals(createPlanV4.getCrossId(), plan.getCrossId());
         assertEquals(createPlanV4.getGeneralConditions(), plan.getGeneralConditions());
-        assertEquals(new HashSet<>(createPlanV4.getTags()), plan.getTags());
+        assertEquals(new HashSet<>(createPlanV4.getTags()), plan.getPlanDefinitionV4().getTags());
         assertEquals(createPlanV4.getExcludedGroups(), plan.getExcludedGroups());
         assertEquals(createPlanV4.getValidation().name(), plan.getValidation().name());
-        assertEquals(createPlanV4.getSelectionRule(), plan.getSelectionRule());
+        assertEquals(createPlanV4.getSelectionRule(), plan.getPlanDefinitionV4().getSelectionRule());
 
-        assertSecurityV4Equals(plan.getSecurity(), createPlanV4.getSecurity());
+        assertSecurityV4Equals(plan.getPlanSecurity(), createPlanV4.getSecurity());
     }
 
     @Test
@@ -121,8 +121,8 @@ public class PlanMapperTest {
         assertNotNull(plan.getValidation());
         assertEquals(PlanValidationType.MANUAL.name(), plan.getValidation().name());
 
-        assertNotNull(plan.getMode());
-        assertEquals(PlanMode.STANDARD.name(), plan.getMode().name());
+        assertNotNull(plan.getPlanMode());
+        assertEquals(PlanMode.STANDARD.name(), plan.getPlanMode().name());
     }
 
     @Test
@@ -205,14 +205,14 @@ public class PlanMapperTest {
         assertEquals(planWithFlows.getDescription(), plan.getDescription());
         assertEquals(planWithFlows.getValidation().name(), plan.getValidation().name());
         assertEquals(planWithFlows.getType().name(), plan.getType().name());
-        assertEquals(planWithFlows.getMode().name(), plan.getMode().name());
+        assertEquals(planWithFlows.getPlanMode().name(), plan.getMode().name());
 
         assertNotNull(plan.getSecurity());
-        assertSecurityV4Equals(planWithFlows.getSecurity(), plan.getSecurity());
+        assertSecurityV4Equals(planWithFlows.getPlanSecurity(), plan.getSecurity());
 
-        assertEquals(planWithFlows.getSelectionRule(), plan.getSelectionRule());
-        assertEquals(planWithFlows.getTags(), new HashSet<>(plan.getTags()));
-        assertEquals(planWithFlows.getStatus().name(), plan.getStatus().name());
+        assertEquals(planWithFlows.getPlanDefinitionV4().getSelectionRule(), plan.getSelectionRule());
+        assertEquals(planWithFlows.getPlanDefinitionV4().getTags(), new HashSet<>(plan.getTags()));
+        assertEquals(planWithFlows.getPlanStatus().name(), plan.getStatus().name());
         assertEquals(planWithFlows.getApiId(), plan.getApiId());
         assertEquals(planWithFlows.getOrder(), plan.getOrder());
         assertEquals(planWithFlows.getCharacteristics(), plan.getCharacteristics());

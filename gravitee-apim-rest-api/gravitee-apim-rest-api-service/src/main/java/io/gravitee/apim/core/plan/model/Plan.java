@@ -17,23 +17,20 @@ package io.gravitee.apim.core.plan.model;
 
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
-import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 /**
@@ -45,6 +42,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder(toBuilder = true)
+@Setter
 // Implement GenericPlanEntity to ease transition but it should be removed once core elements only use Plan instead of GenericPlanEntity
 public class Plan implements GenericPlanEntity {
 
@@ -76,18 +74,6 @@ public class Plan implements GenericPlanEntity {
     @Builder.Default
     private PlanType type = PlanType.API;
 
-    @Builder.Default
-    private PlanMode mode = PlanMode.STANDARD;
-
-    private PlanSecurity security;
-
-    private String selectionRule;
-
-    @Builder.Default
-    private Set<String> tags = new HashSet<>();
-
-    private PlanStatus status;
-
     private String apiId;
 
     private int order;
@@ -102,8 +88,8 @@ public class Plan implements GenericPlanEntity {
     private String commentMessage;
     private String generalConditions;
 
-    /** Use only for V2 plans */
-    private Map<String, List<Rule>> paths;
+    private io.gravitee.definition.model.v4.plan.Plan planDefinitionV4;
+    private io.gravitee.definition.model.Plan planDefinitionV2;
 
     @Override
     public io.gravitee.rest.api.model.v4.plan.PlanType getPlanType() {
@@ -112,17 +98,66 @@ public class Plan implements GenericPlanEntity {
 
     @Override
     public PlanSecurity getPlanSecurity() {
-        return this.security;
+        return switch (definitionVersion) {
+            case V4 -> planDefinitionV4.getSecurity();
+            case V1, V2 -> new PlanSecurity(planDefinitionV2.getSecurity(), planDefinitionV2.getSecurityDefinition());
+            case FEDERATED -> throw new IllegalStateException("FEDERATED type not supported");
+        };
     }
 
     @Override
     public PlanStatus getPlanStatus() {
-        return this.status;
+        return switch (definitionVersion) {
+            case V4 -> planDefinitionV4.getStatus();
+            case V1, V2 -> PlanStatus.valueOf(planDefinitionV2.getStatus());
+            case FEDERATED -> throw new IllegalStateException("FEDERATED type not supported");
+        };
+    }
+
+    public Plan setPlanStatus(PlanStatus planStatus) {
+        switch (definitionVersion) {
+            case V4 -> planDefinitionV4.setStatus(planStatus);
+            case V1, V2 -> planDefinitionV2.setStatus(planStatus.name());
+        }
+        return this;
     }
 
     @Override
     public PlanMode getPlanMode() {
-        return mode;
+        return switch (definitionVersion) {
+            case V4 -> planDefinitionV4.getMode();
+            case V1, V2 -> PlanMode.STANDARD;
+            case FEDERATED -> throw new IllegalStateException("FEDERATED type not supported");
+        };
+    }
+
+    public Plan setPlanMode(PlanMode planMode) {
+        if (definitionVersion == DefinitionVersion.V4) {
+            planDefinitionV4.setMode(planMode);
+        }
+        return this;
+    }
+
+    public Plan setPlanId(String id) {
+        this.id = id;
+        switch (definitionVersion) {
+            case V4 -> planDefinitionV4.setId(id);
+            case V1, V2 -> planDefinitionV2.setId(id);
+        }
+        return this;
+    }
+
+    public Plan setGeneralConditions(String generalConditions) {
+        this.generalConditions = generalConditions;
+        return this;
+    }
+
+    public Plan setPlanTags(Set<String> tags) {
+        switch (definitionVersion) {
+            case V4 -> planDefinitionV4.setTags(tags);
+            case V1, V2 -> planDefinitionV2.setTags(tags);
+        }
+        return this;
     }
 
     @Override
@@ -144,15 +179,15 @@ public class Plan implements GenericPlanEntity {
     }
 
     public boolean isClosed() {
-        return this.status == PlanStatus.CLOSED;
+        return getPlanStatus() == PlanStatus.CLOSED;
     }
 
     public boolean isDeprecated() {
-        return this.status == PlanStatus.DEPRECATED;
+        return getPlanStatus() == PlanStatus.DEPRECATED;
     }
 
     public boolean isPublished() {
-        return this.status == PlanStatus.PUBLISHED;
+        return getPlanStatus() == PlanStatus.PUBLISHED;
     }
 
     public Plan update(Plan updated) {
@@ -161,21 +196,48 @@ public class Plan implements GenericPlanEntity {
             .description(updated.description)
             .order(updated.order)
             .updatedAt(TimeProvider.now())
-            .security(updated.security)
-            .status(updated.status)
+            .planDefinitionV4(updated.planDefinitionV4)
+            .planDefinitionV2(updated.planDefinitionV2)
             .commentRequired(updated.commentRequired)
             .commentMessage(updated.commentMessage)
-            .tags(updated.tags)
-            .selectionRule(updated.selectionRule)
             .generalConditions(updated.generalConditions)
             .excludedGroups(updated.excludedGroups)
             .characteristics(updated.characteristics)
             .crossId(updated.crossId == null ? crossId : updated.crossId)
-            .validation(
-                updated.security != null && updated.security.getType().equals(PlanSecurityType.KEY_LESS.getLabel())
-                    ? PlanValidationType.AUTO
-                    : updated.validation
-            )
             .build();
+    }
+
+    /**
+     * Create copy of the Plan (definition included)
+     *
+     * <p>Useful essentially for testing</p>
+     *
+     * @return A copy of the Plan
+     */
+    public Plan copy() {
+        return switch (definitionVersion) {
+            case V4 -> toBuilder().planDefinitionV4(planDefinitionV4.toBuilder().build()).build();
+            case V1, V2 -> toBuilder().planDefinitionV2(planDefinitionV2.toBuilder().build()).build();
+            case FEDERATED -> toBuilder().build();
+        };
+    }
+
+    public abstract static class PlanBuilder<C extends Plan, B extends PlanBuilder<C, B>> {
+
+        public B planDefinition(io.gravitee.definition.model.Plan planDefinition) {
+            this.planDefinitionV2 = planDefinition;
+            if (planDefinition != null) {
+                this.definitionVersion = DefinitionVersion.V2;
+            }
+            return self();
+        }
+
+        public B planDefinitionV4(io.gravitee.definition.model.v4.plan.Plan planDefinitionV4) {
+            this.planDefinitionV4 = planDefinitionV4;
+            if (planDefinitionV4 != null) {
+                this.definitionVersion = DefinitionVersion.V4;
+            }
+            return self();
+        }
     }
 }

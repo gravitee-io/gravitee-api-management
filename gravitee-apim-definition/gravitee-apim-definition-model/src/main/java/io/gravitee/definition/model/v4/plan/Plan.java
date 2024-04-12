@@ -35,7 +35,7 @@ import lombok.*;
  */
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 @Getter
 @Setter
 @ToString

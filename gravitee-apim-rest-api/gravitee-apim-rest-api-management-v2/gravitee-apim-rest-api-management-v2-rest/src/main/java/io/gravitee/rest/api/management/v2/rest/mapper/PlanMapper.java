@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.rest.api.management.v2.rest.model.BasePlan;
+import io.gravitee.rest.api.management.v2.rest.model.CreateGenericPlan;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePlanV2;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePlanV4;
 import io.gravitee.rest.api.management.v2.rest.model.Plan;
@@ -54,10 +55,18 @@ public interface PlanMapper {
     @Mapping(constant = "V4", target = "definitionVersion")
     PlanV4 map(PlanEntity planEntity);
 
-    @Mapping(target = "security.type", qualifiedByName = "mapToPlanSecurityType")
-    @Mapping(target = "security.configuration", qualifiedByName = "deserializeConfiguration")
-    @Mapping(constant = "V4", target = "definitionVersion")
-    PlanV4 map(PlanWithFlows planWithFlows);
+    @Mapping(target = "security.type", source = "planDefinitionV4.security.type", qualifiedByName = "mapToPlanSecurityType")
+    @Mapping(
+        target = "security.configuration",
+        source = "planDefinitionV4.security.configuration",
+        qualifiedByName = "deserializeConfiguration"
+    )
+    @Mapping(target = "selectionRule", source = "planDefinitionV4.selectionRule")
+    @Mapping(target = "status", source = "planDefinitionV4.status")
+    @Mapping(target = "tags", source = "planDefinitionV4.tags")
+    @Mapping(target = "mode", source = "planDefinitionV4.mode")
+    @Mapping(target = "definitionVersion", constant = "V4")
+    PlanV4 map(PlanWithFlows source);
 
     Set<PlanV4> map(Set<PlanEntity> planEntityList);
 
@@ -84,11 +93,10 @@ public interface PlanMapper {
         }
     }
 
-    @Mapping(target = "security.type", qualifiedByName = "mapFromSecurityType")
-    @Mapping(target = "security.configuration", qualifiedByName = "serializeConfiguration")
     @Mapping(target = "validation", defaultValue = "MANUAL")
-    @Mapping(target = "mode", defaultValue = "STANDARD")
-    io.gravitee.apim.core.plan.model.Plan map(CreatePlanV4 plan);
+    @Mapping(target = "definitionVersion", constant = "V4")
+    @Mapping(target = "planDefinitionV4", source = "source", qualifiedByName = "mapToPlanDefinitionV4")
+    io.gravitee.apim.core.plan.model.Plan map(CreatePlanV4 source);
 
     @Mapping(target = "security", source = "security.type")
     @Mapping(target = "securityDefinition", source = "security.configuration", qualifiedByName = "serializeConfiguration")
@@ -134,4 +142,10 @@ public interface PlanMapper {
     BasePlan map(GenericPlanEntity plan);
 
     Collection<BasePlan> mapToBasePlans(Set<GenericPlanEntity> plans);
+
+    @Named("mapToPlanDefinitionV4")
+    @Mapping(target = "security.type", qualifiedByName = "mapFromSecurityType")
+    @Mapping(target = "security.configuration", qualifiedByName = "serializeConfiguration")
+    @Mapping(target = "mode", defaultValue = "STANDARD")
+    io.gravitee.definition.model.v4.plan.Plan mapToPlanDefinitionV4(CreatePlanV4 source);
 }

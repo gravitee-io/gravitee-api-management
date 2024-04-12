@@ -220,8 +220,8 @@ class ApiUnpublishDocumentationPageUseCaseTest {
                     .id("plan-id")
                     .apiId(API_ID)
                     .generalConditions(PAGE_ID)
-                    .status(PlanStatus.PUBLISHED)
                     .build()
+                    .setPlanStatus(PlanStatus.PUBLISHED)
             )
         );
         assertThatThrownBy(() -> useCase.execute(new ApiUnpublishDocumentationPageUseCase.Input(API_ID, PAGE_ID, AUDIT_INFO)))

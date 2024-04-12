@@ -186,7 +186,7 @@ public class ImportCRDUseCase {
             );
 
             List<Plan> existingPlans = planQueryService.findAllByApiId(api.getId());
-            Map<String, PlanStatus> existingPlanStatuses = existingPlans.stream().collect(toMap(Plan::getId, Plan::getStatus));
+            Map<String, PlanStatus> existingPlanStatuses = existingPlans.stream().collect(toMap(Plan::getId, Plan::getPlanStatus));
 
             var planKeyIdMapping = input
                 .crd()
@@ -262,7 +262,16 @@ public class ImportCRDUseCase {
             .id(planCRD.getId())
             .name(planCRD.getDisplayName())
             .description(planCRD.getDescription())
-            .security(planCRD.getSecurity())
+            .planDefinitionV4(
+                io.gravitee.definition.model.v4.plan.Plan
+                    .builder()
+                    .security(planCRD.getSecurity())
+                    .selectionRule(planCRD.getSelectionRule())
+                    .status(planCRD.getStatus())
+                    .tags(planCRD.getTags())
+                    .mode(planCRD.getMode())
+                    .build()
+            )
             .characteristics(planCRD.getCharacteristics())
             .commentMessage(planCRD.getCommentMessage())
             .commentRequired(planCRD.isCommentRequired())
@@ -271,12 +280,8 @@ public class ImportCRDUseCase {
             .generalConditions(planCRD.getGeneralConditions())
             .order(planCRD.getOrder())
             .publishedAt(planCRD.getPublishedAt())
-            .selectionRule(planCRD.getSelectionRule())
-            .status(planCRD.getStatus())
-            .tags(planCRD.getTags())
             .type(planCRD.getType())
             .validation(planCRD.getValidation())
-            .mode(planCRD.getMode())
             .build();
     }
 }
