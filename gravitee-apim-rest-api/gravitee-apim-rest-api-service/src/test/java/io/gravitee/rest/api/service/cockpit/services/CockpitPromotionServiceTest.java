@@ -112,7 +112,7 @@ public class CockpitPromotionServiceTest {
             .content(objectMapper.writeValueAsString(envB))
             .build();
 
-        BridgeReply environmentsMultiReply = new BridgeReply("commandId", new BridgeReplyPayload(List.of(envAContent, envBContent)));
+        BridgeReply environmentsMultiReply = new BridgeReply("commandId", new BridgeReplyPayload(false, List.of(envAContent, envBContent)));
 
         when(cockpitCommandService.send(any())).thenReturn(environmentsMultiReply);
 
@@ -149,7 +149,7 @@ public class CockpitPromotionServiceTest {
 
     @Test
     public void shouldProcessPromotion() {
-        BridgeReply reply = new BridgeReply("commandid", new BridgeReplyPayload(List.of()));
+        BridgeReply reply = new BridgeReply("commandid", new BridgeReplyPayload(true, List.of()));
         when(cockpitCommandService.send(any())).thenReturn(reply);
 
         final PromotionEntity promotionEntity = new PromotionEntity();

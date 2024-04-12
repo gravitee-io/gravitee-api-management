@@ -80,6 +80,7 @@ public class PromoteApiOperationHandler implements BridgeOperationHandler {
                     return new BridgeReply(
                         bridgeCommand.getId(),
                         new BridgeReplyPayload(
+                            true,
                             List.of(
                                 BridgeReplyPayload.BridgeReplyContent
                                     .builder()

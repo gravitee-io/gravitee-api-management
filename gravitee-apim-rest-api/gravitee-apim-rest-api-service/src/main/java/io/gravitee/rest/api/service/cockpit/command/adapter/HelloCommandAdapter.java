@@ -95,7 +95,7 @@ public class HelloCommandAdapter implements CommandAdapter<io.gravitee.exchange.
     }
 
     @Override
-    public Single<HelloCommand> adapt(final io.gravitee.exchange.api.command.hello.HelloCommand command) {
+    public Single<HelloCommand> adapt(final String targetId, final io.gravitee.exchange.api.command.hello.HelloCommand command) {
         return Single
             .fromCallable(installationService::getOrInitialize)
             .map(installation -> {

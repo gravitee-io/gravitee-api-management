@@ -66,7 +66,7 @@ public class ListEnvironmentOperationHandler implements BridgeOperationHandler {
                     })
                     .filter(Objects::nonNull)
                     .toList();
-            return Single.just(new BridgeReply(bridgeCommand.getId(), new BridgeReplyPayload(replyContents)));
+            return Single.just(new BridgeReply(bridgeCommand.getId(), new BridgeReplyPayload(false, replyContents)));
         } catch (TechnicalManagementException ex) {
             return Single.just(new BridgeReply(bridgeCommand.getId(), "No environment available for organization: " + organizationId));
         }

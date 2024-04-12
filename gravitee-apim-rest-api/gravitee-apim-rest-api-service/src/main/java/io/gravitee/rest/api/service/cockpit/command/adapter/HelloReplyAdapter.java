@@ -51,7 +51,7 @@ public class HelloReplyAdapter implements ReplyAdapter<HelloReply, io.gravitee.e
     }
 
     @Override
-    public Single<io.gravitee.exchange.api.command.hello.HelloReply> adapt(final HelloReply reply) {
+    public Single<io.gravitee.exchange.api.command.hello.HelloReply> adapt(final String targetId, final HelloReply reply) {
         return Single
             .just(reply.getPayload())
             .map(replyPayload -> {

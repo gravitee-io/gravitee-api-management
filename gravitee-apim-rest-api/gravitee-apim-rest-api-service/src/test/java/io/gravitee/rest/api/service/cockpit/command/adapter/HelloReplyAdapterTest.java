@@ -22,15 +22,11 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import io.gravitee.apim.core.cockpit.query_service.CockpitAccessService;
-import io.gravitee.apim.core.installation.domain_service.InstallationTypeDomainService;
-import io.gravitee.apim.core.installation.model.InstallationType;
 import io.gravitee.cockpit.api.command.v1.CockpitCommandType;
 import io.gravitee.cockpit.api.command.v1.hello.HelloReply;
 import io.gravitee.cockpit.api.command.v1.hello.HelloReplyPayload;
 import io.gravitee.definition.model.FlowMode;
 import io.gravitee.definition.model.flow.Flow;
-import io.gravitee.node.api.Node;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.InstallationEntity;
 import io.gravitee.rest.api.model.OrganizationEntity;
@@ -40,13 +36,10 @@ import io.gravitee.rest.api.service.OrganizationService;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import org.junit.Before;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
@@ -93,7 +86,7 @@ public class HelloReplyAdapterTest {
         when(environmentService.getDefaultOrInitialize()).thenReturn(defaultEnvironment);
 
         cut
-            .adapt(helloReply)
+            .adapt(null, helloReply)
             .test()
             .await()
             .assertValue(helloReplyResponse -> {
@@ -129,7 +122,7 @@ public class HelloReplyAdapterTest {
         when(organizationService.getDefaultOrInitialize()).thenReturn(defaultOrganization);
 
         cut
-            .adapt(helloReply)
+            .adapt(null, helloReply)
             .test()
             .await()
             .assertValue(helloReplyResponse -> {
@@ -178,7 +171,7 @@ public class HelloReplyAdapterTest {
         );
 
         cut
-            .adapt(helloReply)
+            .adapt(null, helloReply)
             .test()
             .await()
             .assertValue(helloReplyResponse -> {
