@@ -81,6 +81,7 @@ import { ApiRuntimeAlertsComponent } from './runtime-alerts';
 import { ApiDocumentationV4MetadataComponent } from './documentation-v4/documentation-metadata/api-documentation-v4-metadata.component';
 import { ApiHistoryV4Component } from './history-v4/api-history-v4.component';
 import { ApiHistoryV4DeploymentInfoComponent } from './history-v4/deployment-info/api-history-v4-deployment-info.component';
+import { ApiFailoverV4Component } from './failover-v4/api-failover-v4.component';
 
 import { DocumentationManagementComponent } from '../../components/documentation/documentation-management.component';
 import { DocumentationNewPageComponent } from '../../components/documentation/new-page.component';
@@ -976,6 +977,15 @@ const apisRoutes: Routes = [
           },
           docs: {
             page: 'management-api-proxy-endpoints',
+          },
+        },
+      },
+      {
+        path: 'v4/failover',
+        component: ApiFailoverV4Component,
+        data: {
+          permissions: {
+            anyOf: ['api-definition-r'],
           },
         },
       },
