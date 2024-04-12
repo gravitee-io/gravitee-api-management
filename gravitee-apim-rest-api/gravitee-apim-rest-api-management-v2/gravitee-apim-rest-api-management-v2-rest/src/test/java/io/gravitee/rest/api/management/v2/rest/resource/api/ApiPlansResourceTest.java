@@ -455,18 +455,7 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
             when(createPlanDomainService.create(any(), any(), any(), any()))
                 .thenAnswer(invocation -> {
                     io.gravitee.apim.core.plan.model.Plan plan = invocation.getArgument(0);
-                    plan.setId(planId);
-                    return PlanWithFlows
-                        .builder()
-                        .id(planId)
-                        .apiId(plan.getApiId())
-                        .name(plan.getName())
-                        .order(plan.getOrder())
-                        .commentRequired(plan.isCommentRequired())
-                        .mode(plan.getMode())
-                        .security(plan.getSecurity())
-                        .flows(invocation.getArgument(1))
-                        .build();
+                    return new PlanWithFlows(plan.setPlanId(planId), invocation.getArgument(1));
                 });
 
             final CreatePlanV4 createPlanV4 = PlanFixtures.aCreatePlanV4();
@@ -480,15 +469,22 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                         .builder()
                         .definitionVersion(io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.V4)
                         .id(planId)
+                        .crossId(createPlanV4.getCrossId())
                         .apiId(API)
                         .name(createPlanV4.getName())
+                        .description(createPlanV4.getDescription())
                         .order(1)
-                        .commentRequired(false)
+                        .commentRequired(createPlanV4.getCommentRequired())
+                        .commentMessage(createPlanV4.getCommentMessage())
+                        .generalConditions(createPlanV4.getGeneralConditions())
+                        .validation(createPlanV4.getValidation())
                         .mode(PlanMode.STANDARD)
+                        .status(io.gravitee.rest.api.management.v2.rest.model.PlanStatus.STAGING)
                         .security(PlanSecurity.builder().type(PlanSecurityType.API_KEY).configuration(Map.of("nice", "config")).build())
-                        .characteristics(Collections.emptyList())
-                        .excludedGroups(Collections.emptyList())
-                        .tags(Collections.emptyList())
+                        .selectionRule(createPlanV4.getSelectionRule())
+                        .characteristics(createPlanV4.getCharacteristics())
+                        .excludedGroups(createPlanV4.getExcludedGroups())
+                        .tags(List.of("tag1", "tag2"))
                         .type(io.gravitee.rest.api.management.v2.rest.model.PlanType.API)
                         .flows(createPlanV4.getFlows())
                         .build()

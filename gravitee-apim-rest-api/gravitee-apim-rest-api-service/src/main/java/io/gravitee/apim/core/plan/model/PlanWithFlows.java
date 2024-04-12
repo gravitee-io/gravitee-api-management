@@ -31,4 +31,31 @@ import lombok.experimental.SuperBuilder;
 public class PlanWithFlows extends Plan {
 
     List<Flow> flows;
+
+    public PlanWithFlows(Plan plan, List<Flow> flows) {
+        super(
+            plan.getId(),
+            plan.getDefinitionVersion(),
+            plan.getCrossId(),
+            plan.getName(),
+            plan.getDescription(),
+            plan.getCreatedAt(),
+            plan.getUpdatedAt(),
+            plan.getPublishedAt(),
+            plan.getClosedAt(),
+            plan.getNeedRedeployAt(),
+            plan.getValidation(),
+            plan.getType(),
+            plan.getApiId(),
+            plan.getOrder(),
+            plan.getCharacteristics(),
+            plan.getExcludedGroups(),
+            plan.isCommentRequired(),
+            plan.getCommentMessage(),
+            plan.getGeneralConditions(),
+            plan.getPlanDefinitionV4(),
+            plan.getPlanDefinitionV2()
+        );
+        this.flows = flows;
+    }
 }

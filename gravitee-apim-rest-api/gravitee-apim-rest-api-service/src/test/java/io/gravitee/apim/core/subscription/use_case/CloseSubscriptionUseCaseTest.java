@@ -190,7 +190,7 @@ class CloseSubscriptionUseCaseTest {
     @Test
     void should_reject_pending_subscription() {
         // Given
-        var plan = givenExistingPlan(PlanFixtures.aPlanV4().toBuilder().id("plan-id").status(PlanStatus.PUBLISHED).build());
+        var plan = givenExistingPlan(PlanFixtures.aPlanV4().toBuilder().id("plan-id").build().setPlanStatus(PlanStatus.PUBLISHED));
         givenExistingSubscription(
             SubscriptionFixtures
                 .aSubscription()

@@ -126,9 +126,9 @@ class DeleteApiDocumentationDomainServiceTest {
                         .toBuilder()
                         .id("plan-1")
                         .apiId(API.getId())
-                        .status(PlanStatus.PUBLISHED)
                         .generalConditions(PAGE_ID)
                         .build()
+                        .setPlanStatus(PlanStatus.PUBLISHED)
                 )
             );
             assertThatThrownBy(() -> cut.delete(API, PAGE_ID, AUDIT_INFO)).isInstanceOf(ApiPageUsedAsGeneralConditionException.class);
@@ -160,9 +160,9 @@ class DeleteApiDocumentationDomainServiceTest {
                         .toBuilder()
                         .id("plan-1")
                         .apiId(API.getId())
-                        .status(PlanStatus.PUBLISHED)
                         .generalConditions(PAGE_ID)
                         .build()
+                        .setPlanStatus(PlanStatus.PUBLISHED)
                 )
             );
 

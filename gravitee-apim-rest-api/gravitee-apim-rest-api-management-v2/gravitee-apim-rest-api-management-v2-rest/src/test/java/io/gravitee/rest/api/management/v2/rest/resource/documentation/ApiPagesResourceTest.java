@@ -818,8 +818,8 @@ class ApiPagesResourceTest extends AbstractResourceTest {
                         .id("plan-1")
                         .apiId("api-id")
                         .generalConditions("page-1")
-                        .status(PlanStatus.PUBLISHED)
                         .build()
+                        .setPlanStatus(PlanStatus.PUBLISHED)
                 )
             );
 
@@ -1868,7 +1868,14 @@ class ApiPagesResourceTest extends AbstractResourceTest {
 
             planQueryServiceInMemory.initWith(
                 List.of(
-                    PlanFixtures.aPlanV4().toBuilder().id("plan-id").status(planStatus).apiId(API_ID).generalConditions(PAGE_ID).build()
+                    PlanFixtures
+                        .aPlanV4()
+                        .toBuilder()
+                        .id("plan-id")
+                        .apiId(API_ID)
+                        .generalConditions(PAGE_ID)
+                        .build()
+                        .setPlanStatus(planStatus)
                 )
             );
 

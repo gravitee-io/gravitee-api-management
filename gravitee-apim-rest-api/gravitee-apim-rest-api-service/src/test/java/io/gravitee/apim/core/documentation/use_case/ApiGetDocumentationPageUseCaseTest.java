@@ -86,10 +86,10 @@ class ApiGetDocumentationPageUseCaseTest {
                     .aPlanV4()
                     .toBuilder()
                     .id("plan-1")
-                    .status(PlanStatus.PUBLISHED)
                     .apiId(API_ID)
                     .generalConditions(PAGE_ID)
                     .build()
+                    .setPlanStatus(PlanStatus.PUBLISHED)
             )
         );
 

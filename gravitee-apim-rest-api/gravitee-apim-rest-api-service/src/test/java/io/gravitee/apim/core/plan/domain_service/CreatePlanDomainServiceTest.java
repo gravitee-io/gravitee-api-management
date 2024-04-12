@@ -28,6 +28,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.AuditInfoFixtures;
+import fixtures.definition.PlanFixtures;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.EntrypointPluginQueryServiceInMemory;
 import inmemory.FlowCrudServiceInMemory;
@@ -186,7 +187,10 @@ class CreatePlanDomainServiceTest {
         @Test
         void should_throw_when_security_configuration_is_invalid() {
             // Given
-            var plan = aPushPlan().toBuilder().security(PlanSecurity.builder().build()).build();
+            var plan = aPushPlan()
+                .toBuilder()
+                .planDefinitionV4(PlanFixtures.aPushPlan().toBuilder().security(PlanSecurity.builder().build()).build())
+                .build();
 
             // When
             var throwable = Assertions.catchThrowable(() -> service.create(plan, List.of(), HTTP_PROXY_API_V4, AUDIT_INFO));
@@ -255,7 +259,12 @@ class CreatePlanDomainServiceTest {
         ) {
             // When
             var throwable = Assertions.catchThrowable(() ->
-                service.create(plan.toBuilder().status(PlanStatus.PUBLISHED).generalConditions("page-id").build(), flows, api, AUDIT_INFO)
+                service.create(
+                    plan.toBuilder().generalConditions("page-id").build().setPlanStatus(PlanStatus.PUBLISHED),
+                    flows,
+                    api,
+                    AUDIT_INFO
+                )
             );
 
             // Then
@@ -324,7 +333,7 @@ class CreatePlanDomainServiceTest {
         @MethodSource("plans")
         void should_create_plan_with_publishedAt_filled_when_creating_a_published_plan(Api api, Plan plan, List<Flow> flows) {
             // Given
-            var publishedPlan = plan.toBuilder().status(PlanStatus.PUBLISHED).generalConditions(null).build();
+            var publishedPlan = plan.toBuilder().generalConditions(null).build().setPlanStatus(PlanStatus.PUBLISHED);
 
             // When
             var result = service.create(publishedPlan, flows, api, AUDIT_INFO);
@@ -386,7 +395,7 @@ class CreatePlanDomainServiceTest {
         @Test
         void should_allow_keyless_plan_creation_to_tcp_api() {
             // Given
-            var plan = aKeylessV4().toBuilder().apiId(API_ID).tags(Set.of(TAG)).status(PlanStatus.PUBLISHED).build();
+            var plan = aKeylessV4().toBuilder().apiId(API_ID).build().setPlanStatus(PlanStatus.PUBLISHED).setPlanTags(Set.of(TAG));
             var flows = List.of(Flow.builder().name("flow").selectors(List.of(new HttpSelector())).build());
 
             // When
@@ -400,7 +409,7 @@ class CreatePlanDomainServiceTest {
                 soft.assertThat(result.getApiId()).isEqualTo(API_ID);
                 soft.assertThat(result.getType()).isEqualTo(Plan.PlanType.API);
                 soft
-                    .assertThat(result.getSecurity())
+                    .assertThat(result.getPlanSecurity())
                     .usingRecursiveComparison()
                     .isEqualTo(PlanSecurity.builder().type(PlanSecurityType.KEY_LESS.getLabel()).build());
             });
@@ -410,12 +419,12 @@ class CreatePlanDomainServiceTest {
             return Stream.of(
                 Arguments.of(
                     HTTP_PROXY_API_V4,
-                    anApiKeyV4().toBuilder().apiId(API_ID).tags(Set.of(TAG)).status(PlanStatus.STAGING).build(),
+                    anApiKeyV4().toBuilder().apiId(API_ID).build().setPlanStatus(PlanStatus.STAGING).setPlanTags(Set.of(TAG)),
                     List.of(Flow.builder().name("flow").selectors(List.of(new HttpSelector())).build())
                 ),
                 Arguments.of(
                     API_MESSAGE_V4,
-                    aPushPlan().toBuilder().apiId(API_ID).tags(Set.of(TAG)).status(PlanStatus.STAGING).build(),
+                    aPushPlan().toBuilder().apiId(API_ID).build().setPlanStatus(PlanStatus.STAGING).setPlanTags(Set.of(TAG)),
                     List.of(Flow.builder().name("flow").selectors(List.of(new ChannelSelector())).build())
                 )
             );

@@ -27,6 +27,8 @@ import io.gravitee.rest.api.management.v2.rest.model.UpdateGenericPlanSecurity;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePlanV2;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePlanV4;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -54,6 +56,7 @@ public class PlanFixtures {
         .description("Description")
         .order(1)
         .characteristics(List.of("characteristic1", "characteristic2"))
+        .commentRequired(true)
         .commentMessage("Comment message")
         .crossId("my-plan-crossId")
         .generalConditions("General conditions")
@@ -167,11 +170,16 @@ public class PlanFixtures {
             .description("Description")
             .validation(Plan.PlanValidationType.AUTO)
             .type(Plan.PlanType.API)
-            .mode(PlanMode.STANDARD)
-            .security(PlanSecurity.builder().type("API_KEY").configuration("{\"nice\": \"config\"}").build())
-            .selectionRule("{#request.attribute['selectionRule'] != null}")
-            .tags(Set.of("tag1", "tag2"))
-            .status(PlanStatus.CLOSED)
+            .planDefinitionV4(
+                fixtures.definition.PlanFixtures
+                    .anApiKeyV4()
+                    .toBuilder()
+                    .security(PlanSecurity.builder().type("API_KEY").configuration("{\"nice\": \"config\"}").build())
+                    .selectionRule("{#request.attribute['selectionRule'] != null}")
+                    .tags(Set.of("tag1", "tag2"))
+                    .status(PlanStatus.CLOSED)
+                    .build()
+            )
             .apiId("api-id")
             .order(1)
             .characteristics(List.of("characteristic1", "characteristic2"))

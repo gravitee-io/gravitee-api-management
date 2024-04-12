@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fixtures.core.model.PlanFixtures;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.definition.model.v4.plan.Plan;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import java.util.Arrays;
@@ -45,12 +46,17 @@ class JacksonJsonDiffProcessorTest {
         var oldPlan = PlanFixtures
             .aPlanV4()
             .toBuilder()
-            .security(
-                PlanSecurity
+            .planDefinitionV4(
+                Plan
                     .builder()
-                    .type(PlanSecurityType.OAUTH2.getLabel())
-                    .configuration("""
+                    .security(
+                        PlanSecurity
+                            .builder()
+                            .type(PlanSecurityType.OAUTH2.getLabel())
+                            .configuration("""
                                 {"modeStrict": true}""")
+                            .build()
+                    )
                     .build()
             )
             .build();

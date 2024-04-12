@@ -16,6 +16,7 @@
 package fixtures.core.model;
 
 import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
@@ -43,38 +44,26 @@ public class PlanFixtures {
             .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
             .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
             .crossId("my-plan-crossId")
-            .status(PlanStatus.PUBLISHED)
-            .security(PlanSecurity.builder().type(PlanSecurityType.KEY_LESS.getLabel()).configuration("{\"nice\": \"config\"}").build())
             .type(Plan.PlanType.API)
             .validation(Plan.PlanValidationType.AUTO);
 
     public static Plan aPlanV4() {
-        return BASE.get().build();
+        return BASE.get().definitionVersion(DefinitionVersion.V4).planDefinitionV4(fixtures.definition.PlanFixtures.aKeylessV4()).build();
     }
 
     public static Plan aPlanV2() {
-        return BASE.get().paths(Map.of("/", List.of())).build();
+        return BASE.get().definitionVersion(DefinitionVersion.V2).planDefinitionV2(fixtures.definition.PlanFixtures.aKeylessV2()).build();
     }
 
     public static Plan aKeylessV4() {
-        return BASE
-            .get()
-            .id("keyless")
-            .name("Keyless")
-            .security(PlanSecurity.builder().type(PlanSecurityType.KEY_LESS.getLabel()).build())
-            .build();
+        return BASE.get().id("keyless").name("Keyless").planDefinitionV4(fixtures.definition.PlanFixtures.aKeylessV4()).build();
     }
 
     public static Plan anApiKeyV4() {
-        return BASE
-            .get()
-            .id("apikey")
-            .name("API Key")
-            .security(PlanSecurity.builder().type(PlanSecurityType.API_KEY.getLabel()).build())
-            .build();
+        return BASE.get().id("apikey").name("API Key").planDefinitionV4(fixtures.definition.PlanFixtures.anApiKeyV4()).build();
     }
 
     public static Plan aPushPlan() {
-        return BASE.get().id("keyless").name("Keyless").mode(PlanMode.PUSH).security(null).build();
+        return BASE.get().id("push").name("Push Plan").planDefinitionV4(fixtures.definition.PlanFixtures.aPushPlan()).build();
     }
 }

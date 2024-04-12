@@ -109,10 +109,10 @@ public class PlanCrudServiceImplTest {
                 soft.assertThat(plan.getPlanType()).isEqualTo(PlanType.API);
                 soft.assertThat(plan.getPlanValidation()).isEqualTo(PlanValidationType.AUTO);
                 soft.assertThat(plan.getPublishedAt()).isEqualTo(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC));
-                soft.assertThat(plan.getSelectionRule()).isEqualTo("selection-rule");
-                soft.assertThat(plan.getTags()).isEqualTo(Set.of("tag-1"));
                 soft.assertThat(plan.getUpdatedAt()).isEqualTo(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC));
                 soft.assertThat(plan.isCommentRequired()).isTrue();
+                soft.assertThat(plan.getPlanDefinitionV4().getSelectionRule()).isEqualTo("selection-rule");
+                soft.assertThat(plan.getPlanDefinitionV4().getTags()).isEqualTo(Set.of("tag-1"));
             });
         }
 
@@ -134,7 +134,7 @@ public class PlanCrudServiceImplTest {
             // Then
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(plan.getApiId()).isEqualTo(apiId);
-                soft.assertThat(plan.getDefinitionVersion()).isNull();
+                soft.assertThat(plan.getDefinitionVersion()).isEqualTo(DefinitionVersion.V2);
                 soft.assertThat(plan.getCharacteristics()).containsExactly("characteristic-1");
                 soft.assertThat(plan.getClosedAt()).isEqualTo(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneOffset.UTC));
                 soft.assertThat(plan.getCommentMessage()).isEqualTo("comment-message");
@@ -147,7 +147,6 @@ public class PlanCrudServiceImplTest {
                 soft.assertThat(plan.getName()).isEqualTo("plan-name");
                 soft.assertThat(plan.getNeedRedeployAt()).isEqualTo(Date.from(Instant.parse("2020-02-05T20:22:02.00Z")));
                 soft.assertThat(plan.getOrder()).isOne();
-                soft.assertThat(plan.getPaths()).isEqualTo(Map.of("/", List.of()));
                 soft.assertThat(plan.getPlanMode()).isEqualTo(PlanMode.STANDARD);
                 soft
                     .assertThat(plan.getPlanSecurity())
@@ -156,10 +155,11 @@ public class PlanCrudServiceImplTest {
                 soft.assertThat(plan.getPlanType()).isEqualTo(PlanType.API);
                 soft.assertThat(plan.getPlanValidation()).isEqualTo(PlanValidationType.AUTO);
                 soft.assertThat(plan.getPublishedAt()).isEqualTo(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneOffset.UTC));
-                soft.assertThat(plan.getSelectionRule()).isEqualTo("selection-rule");
-                soft.assertThat(plan.getTags()).isEqualTo(Set.of("tag-1"));
                 soft.assertThat(plan.getUpdatedAt()).isEqualTo(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneOffset.UTC));
                 soft.assertThat(plan.isCommentRequired()).isTrue();
+                soft.assertThat(plan.getPlanDefinitionV2().getPaths()).isEqualTo(Map.of("/", List.of()));
+                soft.assertThat(plan.getPlanDefinitionV2().getSelectionRule()).isEqualTo("selection-rule");
+                soft.assertThat(plan.getPlanDefinitionV2().getTags()).isEqualTo(Set.of("tag-1"));
             });
         }
 
@@ -199,7 +199,7 @@ public class PlanCrudServiceImplTest {
         @SneakyThrows
         void should_create_a_v4_plan() {
             var plan = PlanFixtures
-                .aPlanV4()
+                .aKeylessV4()
                 .toBuilder()
                 .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
                 .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
@@ -249,8 +249,15 @@ public class PlanCrudServiceImplTest {
                 .commentMessage("Comment message")
                 .excludedGroups(List.of("excludedGroup1", "excludedGroup2"))
                 .generalConditions("General conditions")
-                .selectionRule("{#request.attribute['selectionRule'] != null}")
-                .tags(Set.of("tag1", "tag2"))
+                .planDefinitionV4(
+                    fixtures.definition.PlanFixtures
+                        .aKeylessV4()
+                        .toBuilder()
+                        .security(PlanSecurity.builder().type("key-less").configuration("{\"nice\": \"config\"}").build())
+                        .selectionRule("{#request.attribute['selectionRule'] != null}")
+                        .tags(Set.of("tag1", "tag2"))
+                        .build()
+                )
                 .build();
             service.update(plan);
 
@@ -266,6 +273,7 @@ public class PlanCrudServiceImplTest {
                         .api("my-api")
                         .crossId("my-plan-crossId")
                         .name("My plan")
+                        .definitionVersion(DefinitionVersion.V4)
                         .description("Description")
                         .security(Plan.PlanSecurityType.KEY_LESS)
                         .securityDefinition("{\"nice\": \"config\"}")
@@ -306,8 +314,14 @@ public class PlanCrudServiceImplTest {
                 .commentMessage("Comment message")
                 .excludedGroups(List.of("excludedGroup1", "excludedGroup2"))
                 .generalConditions("General conditions")
-                .selectionRule("{#request.attribute['selectionRule'] != null}")
-                .tags(Set.of("tag1", "tag2"))
+                .planDefinitionV2(
+                    fixtures.definition.PlanFixtures
+                        .aKeylessV2()
+                        .toBuilder()
+                        .selectionRule("{#request.attribute['selectionRule'] != null}")
+                        .tags(Set.of("tag1", "tag2"))
+                        .build()
+                )
                 .build();
             service.update(plan);
 
@@ -323,10 +337,10 @@ public class PlanCrudServiceImplTest {
                         .api("my-api")
                         .crossId("my-plan-crossId")
                         .name("My plan")
+                        .definitionVersion(DefinitionVersion.V2)
                         .description("Description")
                         .security(Plan.PlanSecurityType.KEY_LESS)
                         .securityDefinition("{\"nice\": \"config\"}")
-                        .definition("{\"/\":[]}")
                         .selectionRule("{#request.attribute['selectionRule'] != null}")
                         .validation(Plan.PlanValidationType.AUTO)
                         .mode(Plan.PlanMode.STANDARD)
@@ -353,7 +367,7 @@ public class PlanCrudServiceImplTest {
         void should_return_the_updated_plan() {
             when(planRepository.update(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-            var toUpdate = PlanFixtures.aPlanV4();
+            var toUpdate = PlanFixtures.aKeylessV4();
             var result = service.update(toUpdate);
 
             assertThat(result).isEqualTo(toUpdate);

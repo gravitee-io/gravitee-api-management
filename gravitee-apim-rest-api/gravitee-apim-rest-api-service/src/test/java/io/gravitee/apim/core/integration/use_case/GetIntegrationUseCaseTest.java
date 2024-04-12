@@ -23,6 +23,7 @@ import inmemory.IntegrationCrudServiceInMemory;
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
 import io.gravitee.apim.core.integration.exception.IntegrationNotFoundException;
 import io.gravitee.apim.core.integration.model.Integration;
+import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -36,9 +37,7 @@ class GetIntegrationUseCaseTest {
     private static final String NAME = "test-name";
     private static final String DESCRIPTION = "integration-description";
     private static final String PROVIDER = "test-provider";
-    private static final ZonedDateTime CREATED_AT = ZonedDateTime
-        .parse("2020-02-03T20:22:02.00Z")
-        .withZoneSameLocal(ZoneId.systemDefault());
+    private static final ZonedDateTime CREATED_AT = Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault());
     private static final ZonedDateTime UPDATED_AT = CREATED_AT;
     private static final String ENV_ID = "my-env";
     private static final Integration.AgentStatus AGENT_STATUS = Integration.AgentStatus.DISCONNECTED;

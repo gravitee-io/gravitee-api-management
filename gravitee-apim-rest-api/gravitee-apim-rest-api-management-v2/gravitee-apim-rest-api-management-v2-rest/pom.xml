@@ -161,6 +161,13 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>io.gravitee.apim.definition</groupId>
+			<artifactId>gravitee-apim-definition-model</artifactId>
+			<version>${project.version}</version>
+			<type>test-jar</type>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>io.gravitee.apim.rest.api</groupId>
 			<artifactId>gravitee-apim-rest-api-service</artifactId>
 			<version>${project.version}</version>

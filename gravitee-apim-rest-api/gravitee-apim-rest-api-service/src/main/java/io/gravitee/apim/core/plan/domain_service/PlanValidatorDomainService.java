@@ -57,15 +57,14 @@ public class PlanValidatorDomainService {
     }
 
     public void validatePlanSecurity(Plan plan, String currentOrganizationId, String currentEnvironmentId) {
-        if (plan.getMode().equals(PlanMode.STANDARD)) {
-            ensurePlanSecurityIsAllowed(plan.getSecurity().getType(), currentOrganizationId, currentEnvironmentId);
-            policyValidationDomainService.validateAndSanitizeConfiguration(
-                plan.getSecurity().getType(),
-                plan.getSecurity().getConfiguration()
-            );
+        var planMode = plan.getPlanMode();
+        var security = plan.getPlanSecurity();
+        if (planMode.equals(PlanMode.STANDARD)) {
+            ensurePlanSecurityIsAllowed(security.getType(), currentOrganizationId, currentEnvironmentId);
+            policyValidationDomainService.validateAndSanitizeConfiguration(security.getType(), security.getConfiguration());
         }
 
-        if (plan.getMode().equals(PlanMode.PUSH) && plan.getSecurity() != null) {
+        if (planMode.equals(PlanMode.PUSH) && security != null) {
             throw new PlanInvalidException("Security type is forbidden for plan with 'Push' mode");
         }
     }

@@ -426,8 +426,8 @@ class ImportCRDUseCaseTest {
             .environmentId(ENVIRONMENT_ID)
             .crossId(API_CROSS_ID)
             .build();
-        private static final Plan KEYLESS = aKeylessV4().toBuilder().apiId(API_ID).tags(Set.of(TAG)).build();
-        private static final Plan API_KEY = anApiKeyV4().toBuilder().apiId(API_ID).tags(Set.of(TAG)).build();
+        private static final Plan KEYLESS = aKeylessV4().toBuilder().apiId(API_ID).build().setPlanTags(Set.of(TAG));
+        private static final Plan API_KEY = anApiKeyV4().toBuilder().apiId(API_ID).build().setPlanTags(Set.of(TAG));
 
         @BeforeEach
         void setUp() {
@@ -454,10 +454,10 @@ class ImportCRDUseCaseTest {
                                     .builder()
                                     .id(KEYLESS.getId())
                                     .displayName(KEYLESS.getName())
-                                    .security(KEYLESS.getSecurity())
-                                    .mode(KEYLESS.getMode())
+                                    .security(KEYLESS.getPlanSecurity())
+                                    .mode(KEYLESS.getPlanMode())
                                     .validation(KEYLESS.getValidation())
-                                    .status(KEYLESS.getStatus())
+                                    .status(KEYLESS.getPlanStatus())
                                     .type(KEYLESS.getType())
                                     .flows(List.of(FlowFixtures.aSimpleFlowV4().withName("keyless-flow")))
                                     .build(),
@@ -513,10 +513,10 @@ class ImportCRDUseCaseTest {
                                     .builder()
                                     .id(KEYLESS.getId())
                                     .displayName(KEYLESS.getName())
-                                    .security(KEYLESS.getSecurity())
-                                    .mode(KEYLESS.getMode())
+                                    .security(KEYLESS.getPlanSecurity())
+                                    .mode(KEYLESS.getPlanMode())
                                     .validation(KEYLESS.getValidation())
-                                    .status(KEYLESS.getStatus())
+                                    .status(KEYLESS.getPlanStatus())
                                     .type(KEYLESS.getType())
                                     .flows(List.of(FlowFixtures.aSimpleFlowV4().withName("keyless-flow")))
                                     .build(),

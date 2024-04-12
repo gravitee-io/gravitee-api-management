@@ -37,9 +37,9 @@ public class CreatePlanUseCase {
         var plan = input.plan;
         plan.setApiId(input.apiId);
         plan.setType(Plan.PlanType.API);
-        plan.setStatus(PlanStatus.STAGING);
-        if (plan.getMode() == null) {
-            plan.setMode(io.gravitee.definition.model.v4.plan.PlanMode.STANDARD);
+        plan.setPlanStatus(PlanStatus.STAGING);
+        if (plan.getPlanMode() == null) {
+            plan.setPlanMode(io.gravitee.definition.model.v4.plan.PlanMode.STANDARD);
         }
 
         PlanWithFlows createdPlan = createPlanDomainService.create(

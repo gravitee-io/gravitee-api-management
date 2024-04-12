@@ -18,6 +18,7 @@ package io.gravitee.apim.infra.adapter;
 import com.fasterxml.jackson.core.type.TypeReference;
 import io.gravitee.apim.core.api.model.crd.PlanCRD;
 import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
@@ -47,28 +48,67 @@ public interface PlanAdapter {
     PlanAdapter INSTANCE = Mappers.getMapper(PlanAdapter.class);
 
     @Mapping(source = "api", target = "apiId")
-    @Mapping(target = "security", expression = "java(computeBasePlanEntitySecurityV4(plan))")
-    @Mapping(target = "paths", expression = "java(computeBasePlanEntityPaths(plan))")
+    @Mapping(target = "definitionVersion", defaultValue = "V2")
+    @Mapping(target = "planDefinitionV4", expression = "java(deserializeDefinitionV4(plan))")
+    @Mapping(target = "planDefinitionV2", expression = "java(deserializeDefinitionV2(plan))")
     Plan fromRepository(io.gravitee.repository.management.model.Plan plan);
 
     @Mapping(source = "apiId", target = "api")
-    @Mapping(target = "security", qualifiedByName = "computeRepositorySecurityType")
-    @Mapping(target = "securityDefinition", source = "security.configuration")
-    @Mapping(target = "definition", source = "paths", qualifiedByName = "computeBasePlanEntityPaths")
-    io.gravitee.repository.management.model.Plan toRepository(Plan plan);
+    @Mapping(target = "security", source = "planSecurity", qualifiedByName = "computeRepositorySecurityType")
+    @Mapping(target = "securityDefinition", source = "planSecurity.configuration")
+    @Mapping(target = "definition", source = "planDefinitionV2", qualifiedByName = "serializeV2PlanPaths")
+    @Mapping(target = "mode", source = "planMode")
+    @Mapping(target = "selectionRule", expression = "java(serializeSelectionRule(source))")
+    @Mapping(target = "status", source = "planStatus")
+    @Mapping(target = "tags", expression = "java(serializeTags(source))")
+    io.gravitee.repository.management.model.Plan toRepository(Plan source);
 
+    @Mapping(target = "status", source = "planStatus")
+    @Mapping(target = "security", source = "planSecurity")
+    @Mapping(target = "mode", source = "planMode")
     PlanEntity toEntityV4(Plan plan);
 
     @Mapping(target = "api", source = "apiId")
-    @Mapping(target = "security", conditionQualifiedByName = "mapPlanSecurityTypeV2")
-    @Mapping(target = "securityDefinition", source = "security.configuration")
+    @Mapping(target = "status", source = "planStatus")
+    @Mapping(target = "security", source = "planSecurity", conditionQualifiedByName = "mapPlanSecurityTypeV2")
+    @Mapping(target = "securityDefinition", source = "planSecurity.configuration")
     io.gravitee.rest.api.model.PlanEntity toEntityV2(Plan source);
 
     NewPlanEntity entityToNewPlanEntity(PlanEntity entity);
 
+    @Mapping(target = "security", source = "planSecurity")
+    @Mapping(target = "mode", source = "planMode")
+    @Mapping(target = "displayName", source = "name")
+    @Mapping(target = "selectionRule", expression = "java(serializeSelectionRule(source))")
+    @Mapping(target = "status", source = "planStatus")
+    @Mapping(target = "tags", expression = "java(serializeTags(source))")
     PlanCRD toCRD(Plan source);
+
     PlanEntity toEntityV4(PlanCRD source);
     io.gravitee.definition.model.v4.plan.Plan toApiDefinition(PlanCRD source);
+
+    @Mapping(target = "security", expression = "java(computeBasePlanEntitySecurityV4(source))")
+    io.gravitee.definition.model.v4.plan.Plan toPlanDefinitionV4(io.gravitee.repository.management.model.Plan source);
+
+    @Mapping(target = "paths", expression = "java(computeBasePlanEntityPaths(source))")
+    @Mapping(target = "security", qualifiedByName = "serializeV2PlanSecurityType")
+    io.gravitee.definition.model.Plan toPlanDefinitionV2(io.gravitee.repository.management.model.Plan source);
+
+    default io.gravitee.definition.model.v4.plan.Plan deserializeDefinitionV4(io.gravitee.repository.management.model.Plan source) {
+        if (source.getDefinitionVersion() != DefinitionVersion.V4) {
+            return null;
+        }
+
+        return toPlanDefinitionV4(source);
+    }
+
+    default io.gravitee.definition.model.Plan deserializeDefinitionV2(io.gravitee.repository.management.model.Plan source) {
+        if (source.getDefinitionVersion() != null) {
+            return null;
+        }
+
+        return toPlanDefinitionV2(source);
+    }
 
     default Map<String, io.gravitee.definition.model.v4.plan.Plan> toApiDefinition(Map<String, PlanCRD> source) {
         return source
@@ -138,11 +178,11 @@ public interface PlanAdapter {
         }
     }
 
-    @Named("computeBasePlanEntityPaths")
-    default String serializeV2PlanPaths(Map<String, List<Rule>> paths) {
-        if (paths != null && !paths.isEmpty()) {
+    @Named("serializeV2PlanPaths")
+    default String serializeV2PlanPaths(io.gravitee.definition.model.Plan plan) {
+        if (plan != null && plan.getPaths() != null && !plan.getPaths().isEmpty()) {
             try {
-                return GraviteeJacksonMapper.getInstance().writeValueAsString(paths);
+                return GraviteeJacksonMapper.getInstance().writeValueAsString(plan.getPaths());
             } catch (IOException ioe) {
                 LOGGER.error("Unexpected error while serializing v2 plan paths", ioe);
                 return null;
@@ -150,6 +190,32 @@ public interface PlanAdapter {
         } else {
             return null;
         }
+    }
+
+    @Named("serializeV2PlanSecurityType")
+    default String serializeV2PlanSecurityType(io.gravitee.repository.management.model.Plan.PlanSecurityType planSecurityType) {
+        if (planSecurityType != null) {
+            return PlanSecurityType.valueOfLabel(planSecurityType.name()).getLabel();
+        }
+        return null;
+    }
+
+    @Named("serializeSelectionRule")
+    default String serializeSelectionRule(Plan source) {
+        return switch (source.getDefinitionVersion()) {
+            case V4 -> source.getPlanDefinitionV4().getSelectionRule();
+            case V1, V2 -> source.getPlanDefinitionV2().getSelectionRule();
+            case FEDERATED -> null;
+        };
+    }
+
+    @Named("serializeTags")
+    default Set<String> serializeTags(Plan source) {
+        return switch (source.getDefinitionVersion()) {
+            case V4 -> source.getPlanDefinitionV4().getTags();
+            case V1, V2 -> source.getPlanDefinitionV2().getTags();
+            case FEDERATED -> null;
+        };
     }
 
     @Named("computeRepositorySecurityType")
