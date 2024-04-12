@@ -32,8 +32,9 @@ COPY docker/config/default.conf /etc/nginx/conf.d/default.conf
 
 RUN chown -R 101:0 /usr/share/nginx/ /etc/nginx/conf.d/
 
+COPY docker/config/portal-next-run.sh /portal-next-run.sh
 
-CMD ["sh", "/run.sh"]
+CMD ["/bin/sh", "-c", "sh /portal-next-run.sh; sh /run.sh"]
 
 USER nginx
 
