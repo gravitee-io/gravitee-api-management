@@ -846,9 +846,9 @@ describe('ApiCreationV4Component - Navigation', () => {
       const step3Harness = await harnessLoader.getHarness(Step3EndpointListHarness);
 
       httpExpects.expectEndpointsGetRequest([
-        { id: 'http-post', supportedApiType: 'PROXY', name: 'HTTP Post' },
-        { id: 'kafka', supportedApiType: 'MESSAGE', name: 'Kafka' },
-        { id: 'mock', supportedApiType: 'MESSAGE', name: 'Mock' },
+        { id: 'http-post', supportedApiType: 'PROXY', name: 'HTTP Post', supportedQos: ['AUTO', 'NONE'] },
+        { id: 'kafka', supportedApiType: 'MESSAGE', name: 'Kafka', supportedQos: ['AUTO', 'NONE', 'AT_LEAST_ONCE', 'AT_MOST_ONCE'] },
+        { id: 'mock', supportedApiType: 'MESSAGE', name: 'Mock', supportedQos: ['AUTO', 'NONE', 'AT_LEAST_ONCE', 'AT_MOST_ONCE'] },
       ]);
 
       const list = await step3Harness.getEndpoints();
@@ -865,8 +865,8 @@ describe('ApiCreationV4Component - Navigation', () => {
       expect(step3Harness).toBeTruthy();
 
       httpExpects.expectEndpointsGetRequest([
-        { id: 'kafka', supportedApiType: 'MESSAGE', name: 'Kafka' },
-        { id: 'mock', supportedApiType: 'MESSAGE', name: 'Mock' },
+        { id: 'kafka', supportedApiType: 'MESSAGE', name: 'Kafka', supportedQos: ['AUTO', 'NONE', 'AT_LEAST_ONCE', 'AT_MOST_ONCE'] },
+        { id: 'mock', supportedApiType: 'MESSAGE', name: 'Mock', supportedQos: ['AUTO', 'NONE', 'AT_LEAST_ONCE', 'AT_MOST_ONCE'] },
       ]);
 
       await step3Harness.fillAndValidate(['mock', 'kafka']);
@@ -899,8 +899,8 @@ describe('ApiCreationV4Component - Navigation', () => {
       expect(step3EndpointListHarness).toBeTruthy();
 
       httpExpects.expectEndpointsGetRequest([
-        { id: 'kafka', supportedApiType: 'MESSAGE', name: 'Kafka' },
-        { id: 'mock', supportedApiType: 'MESSAGE', name: 'Mock' },
+        { id: 'kafka', supportedApiType: 'MESSAGE', name: 'Kafka', supportedQos: ['AUTO', 'NONE', 'AT_LEAST_ONCE', 'AT_MOST_ONCE'] },
+        { id: 'mock', supportedApiType: 'MESSAGE', name: 'Mock', supportedQos: ['AUTO', 'NONE', 'AT_LEAST_ONCE', 'AT_MOST_ONCE'] },
       ]);
 
       await step3EndpointListHarness.fillAndValidate(['mock', 'kafka']);
@@ -1329,8 +1329,8 @@ describe('ApiCreationV4Component - Navigation', () => {
 
         const step3Harness = await harnessLoader.getHarness(Step3EndpointListHarness);
         httpExpects.expectEndpointsGetRequest([
-          { id: 'kafka', supportedApiType: 'MESSAGE', name: 'Kafka' },
-          { id: 'mock', supportedApiType: 'MESSAGE', name: 'Mock' },
+          { id: 'kafka', supportedApiType: 'MESSAGE', name: 'Kafka', supportedQos: ['AUTO', 'NONE', 'AT_LEAST_ONCE', 'AT_MOST_ONCE'] },
+          { id: 'mock', supportedApiType: 'MESSAGE', name: 'Mock', supportedQos: ['AUTO', 'NONE', 'AT_LEAST_ONCE', 'AT_MOST_ONCE'] },
         ]);
         const list = await step3Harness.getEndpoints();
 
