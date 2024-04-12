@@ -118,7 +118,7 @@ export class ApiListComponent implements OnInit, OnDestroy {
         }),
         switchMap(({ pagination, searchTerm, sort }) =>
           this.apiServiceV2
-            .search({ query: searchTerm }, apiSortByParamFromString(toOrder(sort)), pagination.index, pagination.size)
+            .search({ query: searchTerm }, apiSortByParamFromString(toOrder(sort)), pagination.index, pagination.size, false)
             .pipe(catchError(() => of(new PagedResult<Api>()))),
         ),
         tap((apisPage) => {
