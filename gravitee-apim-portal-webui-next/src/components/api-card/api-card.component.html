@@ -18,13 +18,7 @@
 <mat-card class="api-card" appearance="outlined">
   <mat-card-content>
     <div class="api-card__header">
-      <img
-        i18n-alt="@@apiCardPicture"
-        ngSrc="{{ picture }}"
-        height="40"
-        width="40"
-        alt="Api Card Picture"
-        class="api-card__header-picture" />
+      <app-api-picture [picture]="picture" [name]="title" [version]="version" [size]="40" />
       <div class="api-card__header-content">
         <div class="api-card__header-content-title">{{ title }}</div>
         <div class="api-card__header-content-version">{{ version }}</div>

@@ -8298,6 +8298,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"canvas-renderer@npm:~2.2.0":
+  version: 2.2.1
+  resolution: "canvas-renderer@npm:2.2.1"
+  dependencies:
+    "@types/node": "npm:*"
+  checksum: 10c0/436f2f516723cf2cac03dcb189907b282249cc33446c6bce7760fb3ebd22689b0a4a27b3a3ab077a2c8204bd597a5e923da505520735b00cd839a790e6bdda50
+  languageName: node
+  linkType: hard
+
 "case-sensitive-paths-webpack-plugin@npm:^2.4.0":
   version: 2.4.0
   resolution: "case-sensitive-paths-webpack-plugin@npm:2.4.0"
@@ -11443,6 +11452,7 @@ __metadata:
     eslint-plugin-import: "npm:2.29.1"
     eslint-plugin-prettier: "npm:5.1.3"
     eslint-plugin-storybook: "npm:0.8.0"
+    jdenticon: "npm:3.2.0"
     jest: "npm:29.7.0"
     jest-junit: "npm:16.0.0"
     jest-preset-angular: "npm:14.0.3"
@@ -12568,6 +12578,17 @@ __metadata:
   bin:
     jake: bin/cli.js
   checksum: 10c0/89326d01a8bc110d02d973729a66394c79a34b34461116f5c530a2a2dbc30265683fe6737928f75df9178e9d369ff1442f5753fb983d525e740eefdadc56a103
+  languageName: node
+  linkType: hard
+
+"jdenticon@npm:3.2.0":
+  version: 3.2.0
+  resolution: "jdenticon@npm:3.2.0"
+  dependencies:
+    canvas-renderer: "npm:~2.2.0"
+  bin:
+    jdenticon: bin/jdenticon.js
+  checksum: 10c0/441e1ecf4efae01b006825a5b4630958a445d0841e9f84c10957ca3185070c8a8373135ccd2c782935719849ec2865e301d1abde22ab0723150efc8204d239f4
   languageName: node
   linkType: hard
 

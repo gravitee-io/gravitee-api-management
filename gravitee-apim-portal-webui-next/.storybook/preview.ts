@@ -1,4 +1,5 @@
 import type { Preview } from '@storybook/angular';
+import '@angular/localize/init';
 
 const preview: Preview = {
   parameters: {

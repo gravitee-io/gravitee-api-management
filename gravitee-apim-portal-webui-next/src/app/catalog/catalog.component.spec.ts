@@ -20,6 +20,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatCardHarness } from '@angular/material/card/testing';
 
 import { CatalogComponent } from './catalog.component';
+import { ApiCardHarness } from '../../components/api-card/api-card.harness';
 import { fakeApi, fakeApisResponse } from '../../entities/api/api.fixtures';
 import { ApisResponse } from '../../entities/api/apis-response';
 import { AppTestingModule, TESTING_BASE_URL } from '../../testing/app-testing.module';
@@ -67,8 +68,13 @@ describe('CatalogComponent', () => {
         ],
       }),
     );
-    const debugApiCardElement = fixture.debugElement.nativeElement.querySelector('app-api-card');
-    expect(debugApiCardElement).toBeDefined();
+    const apiCard = await harnessLoader.getHarness(ApiCardHarness);
+    expect(apiCard).toBeDefined();
+    expect(await apiCard.getTitle()).toEqual('Test title');
+    expect(await apiCard.getDescription()).toEqual(
+      'Get real-time weather updates, forecasts, and historical data to enhance your applications with accurate weather information.',
+    );
+    expect(await apiCard.getVersion()).toEqual('v.1.2');
   });
 
   function expectApiList(apisResponse: ApisResponse = fakeApisResponse()) {
