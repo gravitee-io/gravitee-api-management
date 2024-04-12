@@ -36,7 +36,7 @@ export class ApiFederatedMenuService implements ApiMenuService {
     subMenuItems: MenuItem[];
     groupItems: MenuGroupItem[];
   } {
-    const subMenuItems: MenuItem[] = [this.addConfigurationMenuEntry()];
+    const subMenuItems: MenuItem[] = [this.addConfigurationMenuEntry(), this.addConsumersMenuEntry()];
 
     return { subMenuItems, groupItems: [] };
   }
@@ -78,6 +78,28 @@ export class ApiFederatedMenuService implements ApiMenuService {
       header: {
         title: 'Configuration',
         subtitle: 'Manage general settings, user permissions, properties, and resources, and track changes to your API',
+      },
+      tabs: tabs,
+    };
+  }
+
+  private addConsumersMenuEntry(): MenuItem {
+    const tabs: MenuItem[] = [];
+
+    if (this.permissionService.hasAnyMatching(['api-plan-r'])) {
+      tabs.push({
+        displayName: 'Plans',
+        routerLink: 'plans',
+      });
+    }
+
+    return {
+      displayName: 'Consumers',
+      icon: 'cloud-consumers',
+      routerLink: '',
+      header: {
+        title: 'Consumers',
+        subtitle: 'Manage how your API is consumed',
       },
       tabs: tabs,
     };
