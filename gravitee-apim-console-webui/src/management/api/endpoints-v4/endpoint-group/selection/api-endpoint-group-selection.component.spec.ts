@@ -38,6 +38,7 @@ const ENDPOINT_LIST: ConnectorPlugin[] = [
     icon: 'mock-icon',
     deployed: true,
     supportedApiType: 'MESSAGE',
+    supportedQos: ['AT_MOST_ONCE', 'NONE', 'AT_LEAST_ONCE', 'AUTO'],
   },
   {
     id: 'kafka',
@@ -46,6 +47,7 @@ const ENDPOINT_LIST: ConnectorPlugin[] = [
     icon: 'kafka-icon',
     deployed: false,
     supportedApiType: 'MESSAGE',
+    supportedQos: ['AT_MOST_ONCE', 'NONE', 'AT_LEAST_ONCE', 'AUTO'],
   },
 ];
 
@@ -80,6 +82,7 @@ describe('ApiEndpointGroupSelectionComponent', () => {
         endpointGroupType: new FormControl(),
       }),
     );
+    fixture.componentRef.setInput('requiredQos', ['AUTO']);
     harness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiEndpointGroupSelectionHarness);
     fixture.detectChanges();
   });

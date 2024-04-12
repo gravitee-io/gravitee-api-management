@@ -81,8 +81,20 @@ export class ApiCreationV4SpecStepperHelper {
 
   async fillAndValidateStep2_2_EntrypointsConfig(
     entrypoints: Partial<ConnectorPlugin>[] = [
-      { id: 'entrypoint-1', name: 'initial entrypoint', supportedApiType: 'MESSAGE', supportedListenerType: 'HTTP' },
-      { id: 'entrypoint-2', name: 'new entrypoint', supportedApiType: 'MESSAGE', supportedListenerType: 'SUBSCRIPTION' },
+      {
+        id: 'entrypoint-1',
+        name: 'initial entrypoint',
+        supportedApiType: 'MESSAGE',
+        supportedListenerType: 'HTTP',
+        supportedQos: ['AUTO'],
+      },
+      {
+        id: 'entrypoint-2',
+        name: 'new entrypoint',
+        supportedApiType: 'MESSAGE',
+        supportedListenerType: 'SUBSCRIPTION',
+        supportedQos: ['AUTO'],
+      },
     ],
     paths: string[] = ['/api/my-api-3'],
     hosts: string[] = ['host'],
@@ -106,8 +118,8 @@ export class ApiCreationV4SpecStepperHelper {
 
   async fillAndValidateStep3_1_EndpointsList(
     endpoints: Partial<ConnectorPlugin>[] = [
-      { id: 'kafka', supportedApiType: 'MESSAGE', name: 'Kafka' },
-      { id: 'mock', supportedApiType: 'MESSAGE', name: 'Mock' },
+      { id: 'kafka', supportedApiType: 'MESSAGE', name: 'Kafka', supportedQos: ['AUTO', 'NONE', 'AT_LEAST_ONCE', 'AT_MOST_ONCE'] },
+      { id: 'mock', supportedApiType: 'MESSAGE', name: 'Mock', supportedQos: ['AUTO', 'NONE', 'AT_LEAST_ONCE', 'AT_MOST_ONCE'] },
     ],
   ) {
     const endpointsList = await this.harnessLoader.getHarness(Step3EndpointListHarness);
