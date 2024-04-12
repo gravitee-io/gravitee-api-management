@@ -1,0 +1,141 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<form *ngIf="failoverForm" [formGroup]="failoverForm" autocomplete="off" gioFormFocusInvalid>
+  <mat-card>
+    <mat-card-content>
+      <gio-form-slide-toggle class="failover-card__enable-toggle">
+        <gio-form-label>Enable Failover</gio-form-label>
+        Automatically redirects request to the next endpoint if the response is too slow.
+        <mat-slide-toggle
+          gioFormSlideToggle
+          formControlName="enabled"
+          aria-label="Failover enable toggle"
+          name="enableFailover"
+        ></mat-slide-toggle>
+      </gio-form-slide-toggle>
+
+      <gio-banner-info class="failover-card__info">
+        Failover mechanism operates using a circuit breaker system. When a certain threshold of slow calls or connection failures (ssl
+        error, unknown host, ...) is reached, the circuit breaker reaches "open" state, stopping all requests to the backend. During this
+        time, the API will answer with a 502 - Bad Gateway status.
+        <div class="failover-card__info__button">
+          <button type="button" mat-stroked-button (click)="onMoreInfoClick($event)">
+            <mat-icon svgIcon="gio:eye-empty"></mat-icon>
+            More information
+          </button>
+        </div>
+      </gio-banner-info>
+
+      <mat-divider></mat-divider>
+
+      <div class="failover-card__control">
+        <div class="failover-card__control__label">Max retries</div>
+        <p class="failover-card__control__hint">
+          Limit the number of retry attempts before recording an error. Each attempt dynamically selects an endpoint based on the load
+          balancing algorithm.
+        </p>
+        <mat-form-field class="failover-card__max-attempts__form-field">
+          <mat-label>Max Retries</mat-label>
+          <input matInput formControlName="maxRetries" type="number" required />
+          @if (failoverForm.controls.maxRetries.hasError('min')) {
+            <mat-error>Must be greater than 0.</mat-error>
+          }
+          @if (failoverForm.controls.maxRetries.hasError('required')) {
+            <mat-error>Max Retries is required</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div class="failover-card__control">
+        <div class="failover-card__control__label">Slow call duration (ms)</div>
+        <p class="failover-card__control__hint">
+          Define a threshold for slow responses. Requests exceeding this duration are recorded as slow.
+        </p>
+        <gio-banner-info> Endpoints should be configured with timeouts greater than the slow call duration. </gio-banner-info>
+        <mat-form-field class="failover-card__control__form-field">
+          <mat-label>Slow call duration</mat-label>
+          <input matInput formControlName="slowCallDuration" type="number" required />
+          @if (failoverForm.controls.slowCallDuration.hasError('min')) {
+            <mat-error>Must be greater than 50.</mat-error>
+          }
+          @if (failoverForm.controls.slowCallDuration.hasError('required')) {
+            <mat-error>Timeout is required</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div class="failover-card__control">
+        <div class="failover-card__control__label">Open state duration (ms)</div>
+        <p class="failover-card__control__hint">
+          Set the duration for which the circuit breaker remains open before transitioning to the half-open state.
+        </p>
+        <gio-banner-info>
+          In the half-open state, there is no retry mechanism. Transitioning to this state opens the circuit breaker if the next call is
+          slow, otherwise it will close it.
+        </gio-banner-info>
+        <mat-form-field class="failover-card__control__form-field">
+          <mat-label>Open state duration</mat-label>
+          <input matInput formControlName="openStateDuration" type="number" required />
+          @if (failoverForm.controls.openStateDuration.hasError('min')) {
+            <mat-error>Must be greater than 500.</mat-error>
+          }
+          @if (failoverForm.controls.openStateDuration.hasError('required')) {
+            <mat-error>Duration is required</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div class="failover-card__control">
+        <div class="failover-card__control__label">Maximum failures</div>
+        <p class="failover-card__control__hint">The maximum of failures before switching the circuit breaker to open state.</p>
+        <mat-form-field class="failover-card__control__form-field">
+          <mat-label>Duration</mat-label>
+          <input matInput formControlName="maxFailures" type="number" required />
+          @if (failoverForm.controls.maxFailures.hasError('min')) {
+            <mat-error>Must be greater than 50.</mat-error>
+          }
+          @if (failoverForm.controls.maxFailures.hasError('required')) {
+            <mat-error>Timeout is required</mat-error>
+          }
+        </mat-form-field>
+      </div>
+
+      <div class="failover-card__control">
+        <gio-form-slide-toggle class="failover-card__enable-toggle">
+          <gio-form-label>Per subscription</gio-form-label>
+          If true, a circuit breaker breaker will be dedicated for each subscriber, else, one and only circuit breaker will be used for the
+          API.
+          <mat-slide-toggle
+            gioFormSlideToggle
+            formControlName="perSubscription"
+            aria-label="Per subscription toggle"
+            name="perSubscription"
+          ></mat-slide-toggle>
+        </gio-form-slide-toggle>
+        @if (!failoverForm.controls.perSubscription.value) {
+          <gio-banner-warning>
+            The circuit breaker will be configured for the whole API. It implies that a subscriber doing slow requests might change the
+            state of the circuit breaker to open, and make the API unavailable for other consumers.
+          </gio-banner-warning>
+        }
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <gio-save-bar [form]="failoverForm" [formInitialValues]="initialFailoverFormValue" (submitted)="onSubmit()"></gio-save-bar>
+</form>

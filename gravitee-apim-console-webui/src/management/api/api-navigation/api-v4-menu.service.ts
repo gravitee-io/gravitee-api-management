@@ -37,12 +37,11 @@ export class ApiV4MenuService implements ApiMenuService {
     groupItems: MenuGroupItem[];
   } {
     const hasTcpListeners = api.listeners.find((listener) => listener.type === 'TCP') != null;
-    const isHttpProxyApi = api.type === 'PROXY' && !hasTcpListeners;
 
     const subMenuItems: MenuItem[] = [
       this.addConfigurationMenuEntry(),
       this.addEntrypointsMenuEntry(hasTcpListeners),
-      this.addEndpointsMenuEntry(isHttpProxyApi),
+      this.addEndpointsMenuEntry(api, hasTcpListeners),
       this.addPoliciesMenuEntry(hasTcpListeners),
       this.addConsumersMenuEntry(hasTcpListeners),
       this.addDocumentationMenuEntry(),
@@ -152,7 +151,7 @@ export class ApiV4MenuService implements ApiMenuService {
     };
   }
 
-  private addEndpointsMenuEntry(isHttpProxyApi: boolean): MenuItem {
+  private addEndpointsMenuEntry(api: ApiV4, hasTcpListeners: boolean): MenuItem {
     const tabs: MenuItem[] = [];
 
     if (this.permissionService.hasAnyMatching(['api-definition-r'])) {
@@ -162,12 +161,11 @@ export class ApiV4MenuService implements ApiMenuService {
       });
     }
 
-    if (isHttpProxyApi) {
+    if ((api.type === 'PROXY' && !hasTcpListeners) || api.type === 'MESSAGE')
       tabs.push({
         displayName: 'Failover',
-        routerLink: 'DISABLED',
+        routerLink: 'v4/failover',
       });
-    }
 
     return {
       displayName: 'Endpoints',

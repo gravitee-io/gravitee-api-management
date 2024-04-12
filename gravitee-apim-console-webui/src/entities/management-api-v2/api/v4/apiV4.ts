@@ -21,6 +21,7 @@ import { Listener } from './listener';
 import { FlowV4 } from './flowV4';
 import { EndpointGroupV4 } from './endpointGroupV4';
 import { FlowExecution } from './flowExecution';
+import { Failover } from './failover';
 
 import { GenericApi } from '../baseApi';
 
@@ -36,4 +37,5 @@ export interface ApiV4 extends GenericApi {
   flowExecution?: FlowExecution;
   flows?: FlowV4[];
   services?: ApiServices;
+  failover?: Failover;
 }

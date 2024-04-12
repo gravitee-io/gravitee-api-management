@@ -13,20 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { UpdateBaseApi } from './updateBaseApi';
 
-import { Analytics, ApiServices, ApiType, EndpointGroupV4, FlowExecution, FlowV4, Listener } from '../api/v4';
-import { Failover } from '../api/v4/failover';
-
-export interface UpdateApiV4 extends UpdateBaseApi {
-  definitionVersion: 'V4';
-  type: ApiType;
-  /** @description The list of listeners associated with this API. */
-  listeners?: Listener[];
-  endpointGroups?: EndpointGroupV4[];
-  analytics?: Analytics;
-  flowExecution?: FlowExecution;
-  flows?: FlowV4[];
-  services?: ApiServices;
-  failover?: Failover;
+export interface Failover {
+  /**
+   * Whether failover is enabled.
+   */
+  enabled?: boolean;
+  maxRetries?: number;
+  slowCallDuration?: number;
+  openStateDuration?: number;
+  maxFailures?: number;
+  perSubscription?: boolean;
 }

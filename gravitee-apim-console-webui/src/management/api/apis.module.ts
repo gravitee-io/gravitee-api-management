@@ -52,6 +52,7 @@ import { ApiPropertiesModule } from './properties/properties/api-properties.modu
 import { ApiProxyHealthCheckDashboardModule } from './health-check-dashboard/api-proxy-health-check-dashboard.module';
 import { ApiRuntimeAlertsModule } from './runtime-alerts';
 import { ApiHistoryV4Module } from './history-v4/api-history-v4.module';
+import { ApiFailoverV4Module } from './failover-v4/api-failover-v4.module';
 
 import { SpecificJsonSchemaTypeModule } from '../../shared/components/specific-json-schema-type/specific-json-schema-type.module';
 import { DocumentationModule } from '../../components/documentation/documentation.module';
@@ -81,6 +82,7 @@ import { AlertsModule } from '../../components/alerts/alerts.module';
     ApiEntrypointsModule,
     ApiEntrypointsV4Module,
     ApiFailoverModule,
+    ApiFailoverV4Module,
     ApiGeneralInfoModule,
     ApiProxyHealthCheckDashboardModule,
     ApiHealthCheckModule,
