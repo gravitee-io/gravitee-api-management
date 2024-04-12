@@ -68,6 +68,12 @@ export interface ConsoleSettingsAuthentication {
   localLogin?: {
     enabled?: boolean;
   };
+  externalAuth?: {
+    enabled?: boolean;
+  };
+  externalAuthAccountDeletion?: {
+    enabled?: boolean;
+  };
 }
 
 export interface ConsoleSettingsCors {

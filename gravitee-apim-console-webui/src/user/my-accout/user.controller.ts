@@ -17,6 +17,7 @@ import { User } from '../../entities/user';
 import NotificationService from '../../services/notification.service';
 import TokenService from '../../services/token.service';
 import UserService from '../../services/user.service';
+import { Constants } from '../../entities/Constants';
 
 class UserController {
   private originalPicture: any;
@@ -33,7 +34,7 @@ class UserController {
     private NotificationService: NotificationService,
     private TokenService: TokenService,
     private $mdDialog: angular.material.IDialogService,
-    private Constants,
+    private Constants: Constants,
   ) {}
 
   $onInit() {
@@ -66,6 +67,13 @@ class UserController {
       this.NotificationService.show('User has been updated successfully');
       this.onSaved();
     });
+  }
+
+  displayDangerZone(): boolean {
+    return (
+      !this.Constants.org.settings.authentication.externalAuth.enabled ||
+      this.Constants.org.settings.authentication.externalAuthAccountDeletion.enabled
+    );
   }
 
   canDeleteMyAccount(): boolean {

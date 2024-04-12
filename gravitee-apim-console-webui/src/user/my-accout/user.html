@@ -148,7 +148,7 @@
     </div>
   </div>
 
-  <div class="gv-form gv-form-danger">
+  <div class="gv-form gv-form-danger" ng-if="$ctrl.displayDangerZone()">
     <h2>Danger Zone</h2>
     <div class="gv-form-content" layout="column">
       <div layout="row" layout-align="space-between center" ng-if="!$ctrl.canDeleteMyAccount()">
