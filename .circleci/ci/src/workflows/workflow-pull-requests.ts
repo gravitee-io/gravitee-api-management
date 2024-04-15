@@ -172,18 +172,21 @@ export class PullRequestsWorkflow {
           context: config.jobContext,
           requires: ['Test definition'],
           working_directory: 'gravitee-apim-definition',
+          cache_type: 'backend',
         }),
         new workflow.WorkflowJob(sonarCloudAnalysisJob, {
           name: 'Sonar - gravitee-apim-gateway',
           context: config.jobContext,
           requires: ['Test gateway'],
           working_directory: 'gravitee-apim-gateway',
+          cache_type: 'backend',
         }),
         new workflow.WorkflowJob(sonarCloudAnalysisJob, {
           name: 'Sonar - gravitee-apim-rest-api',
           context: config.jobContext,
           requires: ['Test rest-api'],
           working_directory: 'gravitee-apim-rest-api',
+          cache_type: 'backend',
         }),
 
         new workflow.WorkflowJob(sonarCloudAnalysisJob, {
@@ -191,12 +194,14 @@ export class PullRequestsWorkflow {
           context: config.jobContext,
           requires: ['Test plugins'],
           working_directory: 'gravitee-apim-plugin',
+          cache_type: 'backend',
         }),
         new workflow.WorkflowJob(sonarCloudAnalysisJob, {
           name: 'Sonar - gravitee-apim-repository',
           context: config.jobContext,
           requires: ['Test repository'],
           working_directory: 'gravitee-apim-repository',
+          cache_type: 'backend',
         }),
       );
 
@@ -246,6 +251,7 @@ export class PullRequestsWorkflow {
           context: config.jobContext,
           requires: ['Lint & test APIM Console'],
           working_directory: config.dockerImages.console.project,
+          cache_type: 'frontend',
         }),
       );
 
@@ -293,6 +299,7 @@ export class PullRequestsWorkflow {
           context: config.jobContext,
           requires: ['Lint & test APIM Portal'],
           working_directory: config.dockerImages.portal.project,
+          cache_type: 'frontend',
         }),
       );
 
