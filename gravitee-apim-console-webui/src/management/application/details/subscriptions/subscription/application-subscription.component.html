@@ -15,6 +15,10 @@
     limitations under the License.
 
 -->
+<button mat-button aria-label="Go back to your subscriptions" [routerLink]="'../'">
+  <mat-icon svgIcon="gio:nav-arrow-left"></mat-icon> Go back to subscriptions list
+</button>
+
 @if (pageVM$ | async; as pageVM) {
   <mat-card class="subscriptionDetailsCard">
     <mat-card-header>

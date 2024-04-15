@@ -17,7 +17,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 import {
   GIO_DIALOG_WIDTH,
   GioClipboardModule,
@@ -52,6 +52,7 @@ type PageVM = {
   styleUrls: ['./application-subscription.component.scss'],
   imports: [
     CommonModule,
+    RouterModule,
     MatCardModule,
     MatButtonModule,
     GioLoaderModule,
