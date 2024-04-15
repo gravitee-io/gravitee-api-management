@@ -18,15 +18,18 @@ package io.gravitee.repository.jdbc.management;
 import static java.lang.String.format;
 import static org.springframework.util.CollectionUtils.isEmpty;
 
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.PlanRepository;
+import io.gravitee.repository.management.model.ApiKey;
 import io.gravitee.repository.management.model.Plan;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.*;
+import liquibase.database.PreparedStatementFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,12 +44,21 @@ import org.springframework.stereotype.Repository;
 public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> implements PlanRepository {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JdbcPlanRepository.class);
+    private final String APIS;
     private final String PLAN_TAGS;
     private final String PLAN_CHARACTERISTICS;
     private final String PLAN_EXCLUDED_GROUPS;
 
+    private static final JdbcHelper.ChildAdder<Plan> CHILD_ADDER = (Plan parent, ResultSet rs) -> {
+        var definitionVersion = rs.getString("definition_version");
+        if (definitionVersion != null) {
+            parent.setDefinitionVersion(DefinitionVersion.valueOf(definitionVersion));
+        }
+    };
+
     JdbcPlanRepository(@Value("${management.jdbc.prefix:}") String tablePrefix) {
         super(tablePrefix, "plans");
+        APIS = getTableNameFor("apis");
         PLAN_TAGS = getTableNameFor("plan_tags");
         PLAN_CHARACTERISTICS = getTableNameFor("plan_characteristics");
         PLAN_EXCLUDED_GROUPS = getTableNameFor("plan_excluded_groups");
@@ -100,8 +112,12 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
     public Optional<Plan> findById(String id) throws TechnicalException {
         LOGGER.debug("JdbcPlanRepository.findById({})", id);
         try {
-            List<Plan> plans = jdbcTemplate.query(getOrm().getSelectAllSql() + " p where p.id = ?", getOrm().getRowMapper(), id);
-            Optional<Plan> result = plans.stream().findFirst();
+            String query = getOrm().getSelectAllSql() + " p left join " + APIS + " api on api.id = p.api" + " where p.id = ?";
+            JdbcHelper.CollatingRowMapper<Plan> rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
+
+            jdbcTemplate.query(query, rowMapper, id);
+
+            Optional<Plan> result = rowMapper.getRows().stream().findFirst();
             if (result.isPresent()) {
                 addCharacteristics(result.get());
                 addExcludedGroups(result.get());
@@ -250,11 +266,19 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
             return Collections.emptyList();
         }
         try {
-            List<Plan> plans = jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " where api in (" + getOrm().buildInClause(apiIds) + ")",
-                (PreparedStatement ps) -> getOrm().setArguments(ps, apiIds, 1),
-                getOrm().getRowMapper()
-            );
+            var query =
+                getOrm().getSelectAllSql() +
+                " p left join " +
+                APIS +
+                " api on api.id = p.api" +
+                " where p.api in (" +
+                getOrm().buildInClause(apiIds) +
+                ")";
+            var rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
+
+            jdbcTemplate.query(query, ps -> getOrm().setArguments(ps, apiIds, 1), rowMapper);
+
+            List<Plan> plans = rowMapper.getRows();
             for (Plan plan : plans) {
                 addCharacteristics(plan);
                 addExcludedGroups(plan);
@@ -271,7 +295,11 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
     public Set<Plan> findByApi(String apiId) throws TechnicalException {
         LOGGER.debug("JdbcPlanRepository.findByApi({})", apiId);
         try {
-            List<Plan> plans = jdbcTemplate.query(getOrm().getSelectAllSql() + " where api = ?", getOrm().getRowMapper(), apiId);
+            var query = getOrm().getSelectAllSql() + " p left join " + APIS + " api on api.id = p.api" + " where p.api = ?";
+            var rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
+
+            jdbcTemplate.query(query, rowMapper, apiId);
+            List<Plan> plans = rowMapper.getRows();
             for (Plan plan : plans) {
                 addCharacteristics(plan);
                 addExcludedGroups(plan);
@@ -291,11 +319,24 @@ public class JdbcPlanRepository extends JdbcAbstractFindAllRepository<Plan> impl
             return Collections.emptySet();
         }
         try {
-            List<Plan> plans = jdbcTemplate.query(
-                getOrm().getSelectAllSql() + " where id in (" + getOrm().buildInClause(ids) + ")",
-                ps -> getOrm().setArguments(ps, ids, 1),
-                getOrm().getRowMapper()
-            );
+            var query =
+                getOrm().getSelectAllSql() +
+                " p left join " +
+                APIS +
+                " api on api.id = p.api" +
+                " where p.id in (" +
+                getOrm().buildInClause(ids) +
+                ")";
+            var rowMapper = new JdbcHelper.CollatingRowMapper<>(getOrm().getRowMapper(), CHILD_ADDER, "id");
+
+            jdbcTemplate.query(query, ps -> getOrm().setArguments(ps, ids, 1), rowMapper);
+
+            List<Plan> plans = rowMapper.getRows();
+            for (Plan plan : plans) {
+                addCharacteristics(plan);
+                addExcludedGroups(plan);
+                addTags(plan);
+            }
             return new HashSet<>(plans);
         } catch (final Exception ex) {
             LOGGER.error("Failed to find plans by id list", ex);

@@ -26,6 +26,24 @@
       "tags": [ "tag1", "tag2" ]
    },
    {
+      "id":"plan-v4",
+      "name":"Free plan",
+      "description": "Description of the free plan",
+      "definitionVersion": "4.0.0",
+      "api": "api2",
+      "security": "API_KEY",
+      "validation": "AUTO",
+      "type": "API",
+      "mode": "STANDARD",
+      "status": "PUBLISHED",
+      "order": 0,
+      "createdAt": 1506964899000,
+      "characteristics": ["charac_v4"],
+      "excludedGroups": ["grp_v4"],
+      "commentRequired": false,
+      "tags": ["tag_v4"]
+   },
+   {
       "id":"updated-plan",
       "name":"old plan",
       "api": "api3",
@@ -36,13 +54,15 @@
       "name":"Products",
       "description": "Description for products view",
       "api": "api1",
+      "characteristics": [],
+      "excludedGroups": [],
       "commentRequired": false
    },
    {
       "id":"stores",
       "name":"Stores",
       "description": "Description for stores view",
-      "api": "api2"
+      "api": "api3"
    },
    {
       "id": "plan-oauth2",

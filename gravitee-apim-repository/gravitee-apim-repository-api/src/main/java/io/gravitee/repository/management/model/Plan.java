@@ -15,6 +15,7 @@
  */
 package io.gravitee.repository.management.model;
 
+import io.gravitee.definition.model.DefinitionVersion;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -47,6 +48,7 @@ public class Plan {
     }
 
     private String id;
+    private DefinitionVersion definitionVersion;
 
     /**
      * The plan crossId uniquely identifies a plan across environments.
@@ -132,6 +134,7 @@ public class Plan {
 
     public Plan(Plan cloned) {
         this.id = cloned.id;
+        this.definitionVersion = cloned.definitionVersion;
         this.crossId = cloned.crossId;
         this.name = cloned.name;
         this.description = cloned.description;
@@ -180,7 +183,10 @@ public class Plan {
             "id='" +
             id +
             '\'' +
-            "crossId='" +
+            ", definitionVersion='" +
+            definitionVersion +
+            '\'' +
+            ", crossId='" +
             crossId +
             '\'' +
             ", api='" +

@@ -16,6 +16,7 @@
 package io.gravitee.apim.core.plan.model;
 
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
@@ -48,6 +49,13 @@ import lombok.experimental.SuperBuilder;
 public class Plan implements GenericPlanEntity {
 
     private String id;
+    /**
+     * The definition version of the Plan.
+     *
+     * <p><code>null</code> for V2/V1 plans because it is null for APIs</p>
+     */
+    private DefinitionVersion definitionVersion;
+
     /**
      * The plan crossId uniquely identifies a plan across environments.
      * Plans promoted between environments will share the same crossId.

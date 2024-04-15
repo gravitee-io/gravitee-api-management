@@ -18,6 +18,8 @@ package io.gravitee.repository.mongodb.management.internal.model;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -26,10 +28,14 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author GraviteeSource Team
  */
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}plans")
+@Getter
+@Setter
 public class PlanMongo extends Auditable {
 
     @Id
     private String id;
+
+    private String definitionVersion;
 
     /**
      * The plan crossId uniquely identifies a plan across environments.
@@ -93,190 +99,6 @@ public class PlanMongo extends Auditable {
     private Set<String> tags;
 
     private String selectionRule;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getValidation() {
-        return validation;
-    }
-
-    public void setValidation(String validation) {
-        this.validation = validation;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getMode() {
-        return mode;
-    }
-
-    public void setMode(String mode) {
-        this.mode = mode;
-    }
-
-    public String getApi() {
-        return api;
-    }
-
-    public void setApi(String api) {
-        this.api = api;
-    }
-
-    public String getDefinition() {
-        return definition;
-    }
-
-    public void setDefinition(String definition) {
-        this.definition = definition;
-    }
-
-    public List<String> getCharacteristics() {
-        return characteristics;
-    }
-
-    public void setCharacteristics(List<String> characteristics) {
-        this.characteristics = characteristics;
-    }
-
-    public int getOrder() {
-        return order;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public Date getPublishedAt() {
-        return publishedAt;
-    }
-
-    public void setPublishedAt(Date publishedAt) {
-        this.publishedAt = publishedAt;
-    }
-
-    public Date getClosedAt() {
-        return closedAt;
-    }
-
-    public void setClosedAt(Date closedAt) {
-        this.closedAt = closedAt;
-    }
-
-    public void setOrder(int order) {
-        this.order = order;
-    }
-
-    public String getSecurity() {
-        return security;
-    }
-
-    public void setSecurity(String security) {
-        this.security = security;
-    }
-
-    public List<String> getExcludedGroups() {
-        return excludedGroups;
-    }
-
-    public void setExcludedGroups(List<String> excludedGroups) {
-        this.excludedGroups = excludedGroups;
-    }
-
-    public String getSecurityDefinition() {
-        return securityDefinition;
-    }
-
-    public void setSecurityDefinition(String securityDefinition) {
-        this.securityDefinition = securityDefinition;
-    }
-
-    public Date getNeedRedeployAt() {
-        return needRedeployAt;
-    }
-
-    public void setNeedRedeployAt(Date needRedeployAt) {
-        this.needRedeployAt = needRedeployAt;
-    }
-
-    public boolean isCommentRequired() {
-        return commentRequired;
-    }
-
-    public void setCommentRequired(boolean commentRequired) {
-        this.commentRequired = commentRequired;
-    }
-
-    public String getCommentMessage() {
-        return commentMessage;
-    }
-
-    public void setCommentMessage(String commentMessage) {
-        this.commentMessage = commentMessage;
-    }
-
-    public Set<String> getTags() {
-        return tags;
-    }
-
-    public void setTags(Set<String> tags) {
-        this.tags = tags;
-    }
-
-    public String getSelectionRule() {
-        return selectionRule;
-    }
-
-    public void setSelectionRule(String selectionRule) {
-        this.selectionRule = selectionRule;
-    }
-
-    public String getGeneralConditions() {
-        return generalConditions;
-    }
-
-    public void setGeneralConditions(String generalConditions) {
-        this.generalConditions = generalConditions;
-    }
-
-    public String getCrossId() {
-        return crossId;
-    }
-
-    public void setCrossId(String crossId) {
-        this.crossId = crossId;
-    }
 
     @Override
     public boolean equals(Object o) {
