@@ -32,6 +32,7 @@ export class SonarCloudAnalysisJob {
       'gravitee-apim-rest-api',
       'Directory where the Sonarcloud analysis will be run',
     ),
+    new parameters.CustomEnumParameter('cache_type', ['backend', 'frontend'], 'backend', 'Type of cache to use'),
   ]);
 
   public static create(dynamicConfig: Config, environment: CircleCIEnvironment): Job {
@@ -54,11 +55,7 @@ export class SonarCloudAnalysisJob {
       new commands.Checkout(),
       new commands.workspace.Attach({ at: '.' }),
       new commands.cache.Restore({
-        keys: [
-          `${config.cache.prefix}-sonarcloud-analysis-<< parameters.working_directory >>-{{ .Branch }}-{{ checksum "pom.xml" }}`,
-          `${config.cache.prefix}-sonarcloud-analysis-<< parameters.working_directory >>-{{ .Branch }}`,
-          `${config.cache.prefix}-sonarcloud-analysis-<< parameters.working_directory >>`,
-        ],
+        keys: [`${config.cache.prefix}-sonarcloud-analysis-<< parameters.cache_type >>`],
       }),
       new reusable.ReusedCommand(orbs.keeper.commands['env-export'], {
         'secret-url': config.secrets.sonarToken,
@@ -72,7 +69,7 @@ export class SonarCloudAnalysisJob {
       new reusable.ReusedCommand(notifyOnFailureCmd),
       new commands.cache.Save({
         paths: ['/opt/sonar-scanner/.sonar/cache'],
-        key: `${config.cache.prefix}-sonarcloud-analysis-<< parameters.working_directory >>-{{ .Branch }}-{{ checksum "pom.xml" }}`,
+        key: `${config.cache.prefix}-sonarcloud-analysis-<< parameters.cache_type >>`,
         when: 'always',
       }),
     ];
