@@ -20,6 +20,8 @@ import { ApplicationSubscriptionService } from './application-subscription.servi
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { fakeApplicationSubscriptionApiKey } from '../entities/subscription/ApplicationSubscriptionApiKey.fixture';
+import { fakeApplicationSubscription } from '../entities/subscription/subscription.fixture';
+import { fakeNewSubscriptionEntity } from '../entities/application/NewSubscriptionEntity.fixtures';
 
 describe('ApplicationSubscriptionService', () => {
   let httpTestingController: HttpTestingController;
@@ -36,6 +38,24 @@ describe('ApplicationSubscriptionService', () => {
 
   afterEach(() => {
     httpTestingController.verify();
+  });
+
+  describe('getSubscription', () => {
+    it('should call the API', (done) => {
+      const expectedSubscription = fakeApplicationSubscription({ id: 'subscriptionId' });
+
+      service.getSubscription('applicationId', 'subscriptionId').subscribe((subscription) => {
+        expect(subscription).toEqual(expectedSubscription);
+        done();
+      });
+
+      httpTestingController
+        .expectOne({
+          method: 'GET',
+          url: `${CONSTANTS_TESTING.env.baseURL}/applications/applicationId/subscriptions/subscriptionId`,
+        })
+        .flush(expectedSubscription);
+    });
   });
 
   describe('closeSubscription', () => {
@@ -96,6 +116,26 @@ describe('ApplicationSubscriptionService', () => {
           url: `${CONSTANTS_TESTING.env.baseURL}/applications/applicationId/subscriptions/subscriptionId/apikeys/apiKeyId`,
         })
         .flush({});
+    });
+  });
+
+  describe('subscribe', () => {
+    it('should subscribe to api', (done) => {
+      const appId = 'app-id';
+      const planId = 'plan-id';
+      const newSubscription = fakeNewSubscriptionEntity();
+
+      service.subscribe(appId, planId, newSubscription).subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.baseURL}/applications/${appId}/subscriptions?plan=${planId}`,
+      });
+
+      expect(req.request.body).toEqual(newSubscription);
+      req.flush({});
     });
   });
 });

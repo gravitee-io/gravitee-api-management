@@ -22,7 +22,6 @@ import { ApplicationService } from './application.service';
 import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { fakeApplication, fakeApplicationType } from '../entities/application/Application.fixture';
 import { fakeApplicationSubscription } from '../entities/subscription/subscription.fixture';
-import { fakeNewSubscriptionEntity } from '../entities/application/NewSubscriptionEntity.fixtures';
 
 describe('ApplicationService', () => {
   let httpTestingController: HttpTestingController;
@@ -393,26 +392,6 @@ describe('ApplicationService', () => {
       });
 
       expect(req.request.body).toEqual(mockApplication);
-      req.flush({});
-    });
-  });
-
-  describe('subscribe', () => {
-    it('should subscribe to api', (done) => {
-      const appId = 'app-id';
-      const planId = 'plan-id';
-      const newSubscription = fakeNewSubscriptionEntity();
-
-      applicationService.subscribe(appId, planId, newSubscription).subscribe(() => {
-        done();
-      });
-
-      const req = httpTestingController.expectOne({
-        method: 'POST',
-        url: `${CONSTANTS_TESTING.env.baseURL}/applications/${appId}/subscriptions?plan=${planId}`,
-      });
-
-      expect(req.request.body).toEqual(newSubscription);
       req.flush({});
     });
   });

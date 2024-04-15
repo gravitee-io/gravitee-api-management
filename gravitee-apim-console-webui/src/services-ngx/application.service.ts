@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NewSubscriptionEntity } from 'src/entities/application';
 
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
@@ -24,7 +23,7 @@ import { Constants } from '../entities/Constants';
 import { PagedResult } from '../entities/pagedResult';
 import { Application, ApplicationType } from '../entities/application/Application';
 import { SubscribedApi } from '../entities/application/SubscribedApi';
-import { ApplicationSubscription, Subscription } from '../entities/subscription/subscription';
+import { ApplicationSubscription } from '../entities/subscription/subscription';
 import { ApplicationLog } from '../entities/application/ApplicationLog';
 import { MembershipListItem } from '../entities/role/membershipListItem';
 import { CreateApplication } from '../entities/application/CreateApplication';
@@ -186,22 +185,6 @@ export class ApplicationService {
     return this.http.get<PagedResult<ApplicationSubscription>>(
       `${this.constants.env.baseURL}/applications/${applicationId}/subscriptions`,
       { params },
-    );
-  }
-
-  getSubscription(applicationId: string, subscriptionId: string): Observable<Subscription> {
-    return this.http.get<Subscription>(`${this.constants.env.baseURL}/applications/${applicationId}/subscriptions/${subscriptionId}`);
-  }
-
-  subscribe(applicationId: string, planId: string, subscription: NewSubscriptionEntity) {
-    return this.http.post<ApplicationSubscription>(
-      `${this.constants.env.baseURL}/applications/${applicationId}/subscriptions`,
-      subscription,
-      {
-        params: {
-          plan: planId,
-        },
-      },
     );
   }
 

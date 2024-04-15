@@ -31,6 +31,7 @@ import { SubscriptionStatus } from '../../../../../entities/subscription/subscri
 import { ApiPlanV2Service } from '../../../../../services-ngx/api-plan-v2.service';
 import { ApplicationSubscriptionCreationDialogComponent } from '../creation';
 import { NewSubscriptionEntity } from '../../../../../entities/application';
+import { ApplicationSubscriptionService } from '../../../../../services-ngx/application-subscription.service';
 
 type SubscriptionsTableDS = {
   id: string;
@@ -108,6 +109,7 @@ export class ApplicationSubscriptionListComponent implements OnInit, OnDestroy {
     private readonly apiService: ApiV2Service,
     private readonly planService: ApiPlanV2Service,
     private readonly applicationService: ApplicationService,
+    private readonly applicationSubscriptionService: ApplicationSubscriptionService,
     private readonly snackBarService: SnackBarService,
     private readonly permissionService: GioPermissionService,
     private readonly matDialog: MatDialog,
@@ -270,7 +272,7 @@ export class ApplicationSubscriptionListComponent implements OnInit, OnDestroy {
       .pipe(
         filter((result) => !!result),
         switchMap((result) => {
-          return this.applicationService.subscribe(
+          return this.applicationSubscriptionService.subscribe(
             this.activatedRoute.snapshot.params.applicationId,
             result.planId,
             result.subscriptionToCreate,
