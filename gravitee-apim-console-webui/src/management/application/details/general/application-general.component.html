@@ -73,7 +73,47 @@
               <dt>Created</dt>
               <dd>{{ initialApplication.created_at | date: 'medium' }}</dd>
               <dt>Type</dt>
-              <dd>{{ initialApplication.type }}</dd>
+              <dd>
+                @switch (initialApplication.type) {
+                  @case ('SIMPLE') {
+                    Simple
+                  }
+                  @case ('BROWSER') {
+                    SPA
+                  }
+                  @case ('WEB') {
+                    Web
+                  }
+                  @case ('NATIVE') {
+                    Native
+                  }
+                  @case ('BACKEND_TO_BACKEND') {
+                    Backend to backend
+                  }
+                  @default {
+                    {{ initialApplication.type }}
+                  }
+                }
+              </dd>
+              <dt>API key mode</dt>
+              <dd>
+                @switch (initialApplication.api_key_mode) {
+                  @case ('UNSPECIFIED') {
+                    <span matTooltip="From the 2nd apiKey subscription onwards, you can choose whether or not to share the api Key"
+                      >Unspecified</span
+                    >
+                  }
+                  @case ('SHARED') {
+                    <span matTooltip="Use the same API key in all application subscriptions">Shared</span>
+                  }
+                  @case ('EXCLUSIVE') {
+                    <span matTooltip="Each application subscription has its own API key">Exclusive</span>
+                  }
+                  @default {
+                    {{ initialApplication.api_key_mode }}
+                  }
+                }
+              </dd>
             </dl>
           </div>
         </div>

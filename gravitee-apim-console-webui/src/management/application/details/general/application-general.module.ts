@@ -36,6 +36,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatChipsModule } from '@angular/material/chips';
 import { RouterModule } from '@angular/router';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { ApplicationGeneralComponent } from './application-general.component';
 
@@ -65,6 +66,7 @@ import { GioPermissionModule } from '../../../../shared/components/gio-permissio
     MatSelectModule,
     MatSlideToggleModule,
     MatSnackBarModule,
+    MatTooltipModule,
 
     MatChipsModule,
 
