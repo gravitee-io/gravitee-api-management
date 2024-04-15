@@ -15,80 +15,93 @@
     limitations under the License.
 
 -->
-
-<mat-card>
-  <mat-card-header>
-    <mat-card-title>Subscription details</mat-card-title>
-  </mat-card-header>
-  @if (subscription$ | async; as subscription) {
+@if (pageVM$ | async; as pageVM) {
+  <mat-card class="subscriptionDetailsCard">
+    <mat-card-header>
+      <mat-card-title>Subscription details</mat-card-title>
+    </mat-card-header>
     <mat-card-content>
       <dl class="gio-description-list">
         <dt>ID</dt>
-        <dd gioClipboardCopyWrapper [contentToCopy]="subscription.id">
-          {{ subscription.id || '-' }}
+        <dd gioClipboardCopyWrapper [contentToCopy]="pageVM.subscription.id">
+          {{ pageVM.subscription.id || '-' }}
         </dd>
 
         <dt>API</dt>
-        <dd gioClipboardCopyWrapper [contentToCopy]="subscription.api.name + ' - ' + subscription.api.version">
-          {{ subscription.api.name }} - {{ subscription.api.version }}
+        <dd gioClipboardCopyWrapper [contentToCopy]="pageVM.subscription.api.name + ' - ' + pageVM.subscription.api.version">
+          {{ pageVM.subscription.api.name }} - {{ pageVM.subscription.api.version }}
         </dd>
 
         <dt>Plan</dt>
-        <dd gioClipboardCopyWrapper [contentToCopy]="subscription.plan.name">
-          {{ subscription.plan.name || '-' }}
+        <dd gioClipboardCopyWrapper [contentToCopy]="pageVM.subscription.plan.name">
+          {{ pageVM.subscription.plan.name || '-' }}
         </dd>
 
         <dt>Status</dt>
         <dd gioClipboardCopyWrapper [contentToCopy]="pageVM.subscription.status | uppercase">
-          {{ (subscription.status | uppercase) || '-' }}
+          {{ (pageVM.subscription.status | uppercase) || '-' }}
         </dd>
 
         <dt>Subscribed by</dt>
-        <dd gioClipboardCopyWrapper [contentToCopy]="subscription.subscribed_by.displayName">
-          {{ subscription.subscribed_by.displayName || '-' }}
+        <dd gioClipboardCopyWrapper [contentToCopy]="pageVM.subscription.subscribed_by.displayName">
+          {{ pageVM.subscription.subscribed_by.displayName || '-' }}
         </dd>
 
-        @if (subscription.request) {
+        @if (pageVM.subscription.request) {
           <dt>Publisher message to subscriber</dt>
-          <dd gioClipboardCopyWrapper [contentToCopy]="subscription.request">
-            {{ subscription.request || '-' }}
+          <dd gioClipboardCopyWrapper [contentToCopy]="pageVM.subscription.request">
+            {{ pageVM.subscription.request || '-' }}
           </dd>
         }
 
-        @if (subscription.reason) {
+        @if (pageVM.subscription.reason) {
           <dt>Subscriber message to publisher</dt>
-          <dd gioClipboardCopyWrapper [contentToCopy]="subscription.reason">
-            {{ subscription.reason || '-' }}
+          <dd gioClipboardCopyWrapper [contentToCopy]="pageVM.subscription.reason">
+            {{ pageVM.subscription.reason || '-' }}
           </dd>
         }
 
         <dt>Created at</dt>
-        <dd>{{ (subscription.created_at | date: 'medium') || '-' }}</dd>
+        <dd>{{ (pageVM.subscription.created_at | date: 'medium') || '-' }}</dd>
         <dt>Processed at</dt>
-        <dd>{{ (subscription.processed_at || '-' | date: 'medium') || '-' }}</dd>
+        <dd>{{ (pageVM.subscription.processed_at || '-' | date: 'medium') || '-' }}</dd>
 
-        @if ('REJECTED' !== subscription.status) {
+        @if ('REJECTED' !== pageVM.subscription.status) {
           <dt>Starting at</dt>
-          <dd>{{ (subscription.starting_at | date: 'medium') || '-' }}</dd>
+          <dd>{{ (pageVM.subscription.starting_at | date: 'medium') || '-' }}</dd>
           <dt>Paused at</dt>
-          <dd>{{ (subscription.paused_at | date: 'medium') || '-' }}</dd>
+          <dd>{{ (pageVM.subscription.paused_at | date: 'medium') || '-' }}</dd>
           <dt>Ending at</dt>
-          <dd>{{ (subscription.ending_at | date: 'medium') || '-' }}</dd>
+          <dd>{{ (pageVM.subscription.ending_at | date: 'medium') || '-' }}</dd>
         }
         <dt>Closed at</dt>
-        <dd>{{ (subscription.closed_at | date: 'medium') || '-' }}</dd>
+        <dd>{{ (pageVM.subscription.closed_at | date: 'medium') || '-' }}</dd>
       </dl>
     </mat-card-content>
 
-    @if (subscription.status === 'ACCEPTED' || subscription.status === 'PENDING' || subscription.status === 'PAUSED') {
+    @if (pageVM.subscription.status === 'ACCEPTED' || pageVM.subscription.status === 'PENDING' || pageVM.subscription.status === 'PAUSED') {
       <mat-card-actions *gioPermission="{ anyOf: ['application-subscription-d'] }">
-        <button mat-raised-button color="warn" (click)="closeSubscription(subscription)">
+        <button mat-raised-button color="warn" (click)="closeSubscription(pageVM.application, pageVM.subscription)">
           <mat-icon svgIcon="gio:x-circle"></mat-icon>
           Close
         </button>
       </mat-card-actions>
     }
-  } @else {
-    <mat-card-content> <gio-loader></gio-loader> </mat-card-content>
+  </mat-card>
+
+  @if (pageVM.subscription.plan.security === 'API_KEY') {
+    <subscription-api-keys
+      [applicationId]="pageVM.application.id"
+      [subscriptionId]="pageVM.subscription.id"
+      [isSharedApiKeyMode]="pageVM.application.api_key_mode === 'SHARED'"
+      [subscriptionStatus]="pageVM.subscription.status"
+    ></subscription-api-keys>
   }
-</mat-card>
+} @else {
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Subscription details</mat-card-title>
+    </mat-card-header>
+    <mat-card-content> <gio-loader></gio-loader> </mat-card-content>
+  </mat-card>
+}

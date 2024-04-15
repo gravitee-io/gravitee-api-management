@@ -13,6 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-.subscriptionDetailsCard {
-  margin-bottom: 16px;
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+
+.apiKeyCell {
+  width: 100%;
+}
+
+.activeIcon {
+  color: mat.get-color-from-palette(gio.$mat-success-palette, darker20);
+}
+
+.revokedIcon {
+  color: mat.get-color-from-palette(gio.$mat-error-palette, default);
 }

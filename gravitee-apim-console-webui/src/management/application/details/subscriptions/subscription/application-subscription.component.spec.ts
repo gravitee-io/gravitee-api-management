@@ -31,6 +31,7 @@ import { Subscription } from '../../../../../entities/subscription/subscription'
 import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
 import { Application } from '../../../../../entities/application/Application';
 import { fakeApplication } from '../../../../../entities/application/Application.fixture';
+import { fakeApplicationSubscriptionApiKey } from '../../../../../entities/subscription/ApplicationSubscriptionApiKey.fixture';
 
 describe('ApplicationSubscriptionComponent', () => {
   let fixture: ComponentFixture<ApplicationSubscriptionComponent>;
@@ -74,12 +75,24 @@ describe('ApplicationSubscriptionComponent', () => {
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApplicationSubscriptionHarness);
     rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     fixture.autoDetectChanges();
+    expectApplicationGetRequest(fakeApplication({ id: applicationId }));
     expectApplicationSubscriptionGet(
       applicationId,
       fakeSubscription({
         id: subscriptionId,
+        plan: {
+          id: 'planId',
+          name: 'Free Spaceshuttle',
+          security: 'API_KEY',
+        },
       }),
     );
+    fixture.detectChanges();
+    expectApplicationApiKeysGetRequest();
+  });
+
+  afterEach(() => {
+    httpTestingController.verify();
   });
 
   it('should display subscription details', async () => {
@@ -92,16 +105,25 @@ describe('ApplicationSubscriptionComponent', () => {
       ['Created at', expect.any(String)],
       ['Processed at', expect.any(String)],
       ['Starting at', expect.any(String)],
-      ['Paused at', ''],
-      ['Ending at', ''],
-      ['Closed at', ''],
+      ['Paused at', '-'],
+      ['Ending at', '-'],
+      ['Closed at', '-'],
+    ]);
+
+    const subscriptionApiKeysHarness = await componentHarness.getSubscriptionApiKeysHarness();
+    expect((await subscriptionApiKeysHarness.computeTableCells()).rowCells).toEqual([
+      {
+        activeIcon: 'check-circled-outline',
+        key: 'key1',
+        createdAt: 'Mar 21, 2024, 11:24:34 AM',
+        endDate: '-',
+        actions: undefined,
+      },
     ]);
   });
 
   it('should close subscription', async () => {
     await componentHarness.closeSubscription();
-
-    expectApplicationGetRequest(fakeApplication({ id: applicationId }));
 
     const confirmDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
     await confirmDialog.confirm();
@@ -129,4 +151,18 @@ describe('ApplicationSubscriptionComponent', () => {
       })
       .flush(subscription);
   }
+
+  const expectApplicationApiKeysGetRequest = (): void => {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/applications/applicationId/subscriptions/subscriptionId/apikeys`,
+        method: 'GET',
+      })
+      .flush([
+        fakeApplicationSubscriptionApiKey({
+          id: '1',
+          key: 'key1',
+        }),
+      ]);
+  };
 });

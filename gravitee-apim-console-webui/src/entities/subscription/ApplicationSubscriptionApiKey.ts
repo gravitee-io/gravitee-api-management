@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Gravitee team (http://gravitee.io)
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-.subscriptionDetailsCard {
-  margin-bottom: 16px;
+import { Application } from '../application/Application';
+
+export interface ApplicationSubscriptionApiKey {
+  id: string;
+  key?: string;
+  application?: Application;
+  subscriptions?: unknown[];
+
+  revoked?: boolean;
+  revoked_at?: number;
+
+  expired?: boolean;
+  expire_at?: number;
+
+  created_at?: number;
+  updated_at?: number;
 }
