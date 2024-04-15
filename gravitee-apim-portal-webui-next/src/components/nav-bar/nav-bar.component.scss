@@ -13,11 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@import '../../scss/theme/theme';
+
 :host {
+  position: sticky;
+  z-index: 99;
+  top: 0;
   display: flex;
-  width: 100%;
   flex-flow: row;
   align-items: center;
+  padding: 18px 0;
+  backdrop-filter: blur(10px);
+  background-color: color-mix(in srgb, $background-color, transparent 20%);
   gap: 40px;
 }
 
