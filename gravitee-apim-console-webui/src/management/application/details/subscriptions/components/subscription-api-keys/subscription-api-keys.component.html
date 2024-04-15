@@ -1,0 +1,107 @@
+<!--
+
+    Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+
+@if (pageVM$ | async; as pageVM) {
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>{{ isSharedApiKeyMode ? 'Shared API Keys' : 'API Keys' }}</mat-card-title>
+      <mat-card-subtitle *ngIf="isSharedApiKeyMode">
+        This subscription uses a shared API Key. You can renew or revoke the shared API Key at the application level.
+      </mat-card-subtitle>
+    </mat-card-header>
+
+    <div class="subscription__api-keys__table-wrapper">
+      <gio-table-wrapper
+        [disableSearchInput]="true"
+        [length]="pageVM.totalLength"
+        [filters]="defaultFilters"
+        (filtersChange)="onFiltersChanged($event)"
+        [paginationPageSizeOptions]="[25, 50, 100]"
+      >
+        <table mat-table [dataSource]="pageVM.apiKeys" matSort [matSortDisabled]="pageVM.apiKeys.length < 1" aria-label="API Keys Table">
+          <ng-container matColumnDef="active-icon">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header="isValid"></th>
+            <td mat-cell *matCellDef="let apiKey">
+              <mat-icon
+                [matTooltip]="apiKey.isValid ? 'Valid' : 'Revoked or Expired'"
+                [ngClass]="{
+                  activeIcon: apiKey.isValid,
+                  revokedIcon: !apiKey.isValid
+                }"
+                [svgIcon]="apiKey.isValid ? 'gio:check-circled-outline' : 'gio:x-circle'"
+              ></mat-icon>
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="key">
+            <th mat-header-cell *matHeaderCellDef>Key</th>
+            <td mat-cell *matCellDef="let apiKey">
+              <mat-form-field class="apiKeyCell">
+                <input matInput [value]="apiKey.key" readonly />
+                <gio-clipboard-copy-icon matSuffix [contentToCopy]="apiKey.key"></gio-clipboard-copy-icon>
+              </mat-form-field>
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="createdAt">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header="createdAt">Created at</th>
+            <td mat-cell *matCellDef="let apiKey">
+              {{ (apiKey.createdAt | date: 'medium') || '-' }}
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="endDate">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header="endDate">Revoked/Expired at</th>
+            <td mat-cell *matCellDef="let apiKey">
+              {{ (apiKey.endDate | date: 'medium') || '-' }}
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef></th>
+            <td mat-cell *matCellDef="let apiKey">
+              @if (!isSharedApiKeyMode && apiKey.isValid && subscriptionStatus === 'ACCEPTED') {
+                <div *gioPermission="{ anyOf: ['application-subscription-u'] }">
+                  <button (click)="revokeApiKey(apiKey)" mat-button aria-label="Button to revoke an API Key" matTooltip="Revoke">
+                    <mat-icon svgIcon="gio:x-circle"></mat-icon>
+                  </button>
+                </div>
+              }
+            </td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+
+          <!-- Row shown when there is no data -->
+          <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+            <td *ngIf="!pageVM.loading" class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">No API keys!</td>
+            <td *ngIf="pageVM.loading" class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">
+              <gio-loader></gio-loader>
+            </td>
+          </tr>
+        </table>
+      </gio-table-wrapper>
+    </div>
+    @if (!isSharedApiKeyMode && subscriptionStatus === 'ACCEPTED') {
+      <mat-card-actions>
+        <div class="subscription__api-keys__footer" *gioPermission="{ anyOf: ['application-subscription-u'] }">
+          <button mat-stroked-button (click)="renewApiKey()">
+            <mat-icon svgIcon="gio:refresh-cw"></mat-icon>
+            Renew
+          </button>
+        </div>
+      </mat-card-actions>
+    }
+  </mat-card>
+}

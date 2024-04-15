@@ -17,10 +17,14 @@ import { ComponentHarness, parallel } from '@angular/cdk/testing';
 import { chunk } from 'lodash';
 import { MatButtonHarness } from '@angular/material/button/testing';
 
+import { SubscriptionApiKeysHarness } from '../components/subscription-api-keys/subscription-api-keys.harness';
+
 export class ApplicationSubscriptionHarness extends ComponentHarness {
   static readonly hostSelector = 'application-subscription';
 
   private getSubscriptionDetailsToChunk = () => this.locatorForAll(`dt, dd`)();
+
+  public getSubscriptionApiKeysHarness = this.locatorForOptional(SubscriptionApiKeysHarness);
 
   async getSubscriptionDetails(): Promise<string[][]> {
     const subscriptionDetails = await this.getSubscriptionDetailsToChunk();

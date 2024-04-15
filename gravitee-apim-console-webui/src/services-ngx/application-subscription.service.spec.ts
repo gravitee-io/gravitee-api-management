@@ -19,6 +19,7 @@ import { TestBed } from '@angular/core/testing';
 import { ApplicationSubscriptionService } from './application-subscription.service';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
+import { fakeApplicationSubscriptionApiKey } from '../entities/subscription/ApplicationSubscriptionApiKey.fixture';
 
 describe('ApplicationSubscriptionService', () => {
   let httpTestingController: HttpTestingController;
@@ -47,6 +48,52 @@ describe('ApplicationSubscriptionService', () => {
         .expectOne({
           method: 'DELETE',
           url: `${CONSTANTS_TESTING.env.baseURL}/applications/applicationId/subscriptions/subscriptionId`,
+        })
+        .flush({});
+    });
+  });
+
+  describe('getApiKeys', () => {
+    it('should call the API', (done) => {
+      service.getApiKeys('applicationId', 'subscriptionId').subscribe((apiKeys) => {
+        expect(apiKeys).toEqual([fakeApplicationSubscriptionApiKey()]);
+        done();
+      });
+
+      httpTestingController
+        .expectOne({
+          method: 'GET',
+          url: `${CONSTANTS_TESTING.env.baseURL}/applications/applicationId/subscriptions/subscriptionId/apikeys`,
+        })
+        .flush([fakeApplicationSubscriptionApiKey()]);
+    });
+  });
+
+  describe('renewApiKey', () => {
+    it('should call the API', (done) => {
+      service.renewApiKey('applicationId', 'subscriptionId').subscribe(() => {
+        done();
+      });
+
+      httpTestingController
+        .expectOne({
+          method: 'POST',
+          url: `${CONSTANTS_TESTING.env.baseURL}/applications/applicationId/subscriptions/subscriptionId/apikeys/_renew`,
+        })
+        .flush({});
+    });
+  });
+
+  describe('revokeApiKey', () => {
+    it('should call the API', (done) => {
+      service.revokeApiKey('applicationId', 'subscriptionId', 'apiKeyId').subscribe(() => {
+        done();
+      });
+
+      httpTestingController
+        .expectOne({
+          method: 'DELETE',
+          url: `${CONSTANTS_TESTING.env.baseURL}/applications/applicationId/subscriptions/subscriptionId/apikeys/apiKeyId`,
         })
         .flush({});
     });

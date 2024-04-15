@@ -18,6 +18,7 @@ import { Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
+import { ApplicationSubscriptionApiKey } from '../entities/subscription/ApplicationSubscriptionApiKey';
 
 @Injectable({
   providedIn: 'root',
@@ -30,5 +31,24 @@ export class ApplicationSubscriptionService {
 
   closeSubscription(applicationId: string, subscriptionId: string): Observable<void> {
     return this.http.delete<void>(`${this.constants.env.baseURL}/applications/${applicationId}/subscriptions/${subscriptionId}`);
+  }
+
+  getApiKeys(applicationId: string, subscriptionId: string): Observable<ApplicationSubscriptionApiKey[]> {
+    return this.http.get<ApplicationSubscriptionApiKey[]>(
+      `${this.constants.env.baseURL}/applications/${applicationId}/subscriptions/${subscriptionId}/apikeys`,
+    );
+  }
+
+  renewApiKey(applicationId: string, subscriptionId: string): Observable<void> {
+    return this.http.post<void>(
+      `${this.constants.env.baseURL}/applications/${applicationId}/subscriptions/${subscriptionId}/apikeys/_renew`,
+      {},
+    );
+  }
+
+  revokeApiKey(applicationId: string, subscriptionId: string, apiKeyId: string): Observable<void> {
+    return this.http.delete<void>(
+      `${this.constants.env.baseURL}/applications/${applicationId}/subscriptions/${subscriptionId}/apikeys/${apiKeyId}`,
+    );
   }
 }

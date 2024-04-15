@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { ActivatedRoute } from '@angular/router';
@@ -22,22 +22,29 @@ import {
   GIO_DIALOG_WIDTH,
   GioClipboardModule,
   GioConfirmDialogComponent,
+  GioConfirmDialogData,
   GioConfirmDialogModule,
   GioIconsModule,
   GioLoaderModule,
 } from '@gravitee/ui-particles-angular';
 import { MatDialog } from '@angular/material/dialog';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { BehaviorSubject, switchMap } from 'rxjs';
-import { filter } from 'rxjs/operators';
+import { combineLatest, BehaviorSubject, switchMap, Observable } from 'rxjs';
+import { filter, map } from 'rxjs/operators';
 
 import { ApplicationService } from '../../../../../services-ngx/application.service';
 import { GioPermissionModule } from '../../../../../shared/components/gio-permission/gio-permission.module';
 import { PlanSecurityType } from '../../../../../entities/plan';
-import { ApiKeyMode } from '../../../../../entities/application/Application';
+import { ApiKeyMode, Application } from '../../../../../entities/application/Application';
 import { Subscription } from '../../../../../entities/subscription/subscription';
 import { SnackBarService } from '../../../../../services-ngx/snack-bar.service';
 import { ApplicationSubscriptionService } from '../../../../../services-ngx/application-subscription.service';
+import { SubscriptionApiKeysComponent } from '../components/subscription-api-keys/subscription-api-keys.component';
+
+type PageVM = {
+  application: Application;
+  subscription: Subscription;
+};
 
 @Component({
   selector: 'application-subscription',
@@ -52,8 +59,10 @@ import { ApplicationSubscriptionService } from '../../../../../services-ngx/appl
     GioClipboardModule,
     GioPermissionModule,
     GioConfirmDialogModule,
+    SubscriptionApiKeysComponent,
   ],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ApplicationSubscriptionComponent {
   private readonly destroyRef = inject(DestroyRef);
@@ -65,7 +74,7 @@ export class ApplicationSubscriptionComponent {
 
   private subscriptionChanges$ = new BehaviorSubject<void>(undefined);
 
-  public subscription$ = this.subscriptionChanges$.pipe(
+  private subscription$ = this.subscriptionChanges$.pipe(
     switchMap(() =>
       this.applicationService.getSubscription(
         this.activatedRoute.snapshot.params.applicationId,
@@ -73,30 +82,34 @@ export class ApplicationSubscriptionComponent {
       ),
     ),
   );
+  private application$ = this.applicationService.getLastApplicationFetch(this.activatedRoute.snapshot.params.applicationId);
 
-  public closeSubscription(subscription: Subscription) {
+  public pageVM$: Observable<PageVM> = combineLatest([this.application$, this.subscription$]).pipe(
+    map(([application, subscription]) => ({
+      application,
+      subscription,
+    })),
+  );
+
+  public closeSubscription(application: Application, subscription: Subscription) {
     const applicationId = this.activatedRoute.snapshot.params.applicationId;
 
-    this.applicationService
-      .getLastApplicationFetch(this.activatedRoute.snapshot.params.applicationId)
-      .pipe(
-        switchMap((application) => {
-          let content =
-            'Are you sure you want to close this subscription? <br> <br> The application will not be able to consume this API anymore.';
-          if (subscription.plan.security === PlanSecurityType.API_KEY && application.api_key_mode !== ApiKeyMode.SHARED) {
-            content += '<br/>All Api-keys associated to this subscription will be closed and could not be used.';
-          }
+    let content =
+      'Are you sure you want to close this subscription? <br> <br> The application will not be able to consume this API anymore.';
+    if (subscription.plan.security === PlanSecurityType.API_KEY && application.api_key_mode !== ApiKeyMode.SHARED) {
+      content += '<br/>All Api-keys associated to this subscription will be closed and could not be used.';
+    }
 
-          return this.matDialog
-            .open(GioConfirmDialogComponent, {
-              data: {
-                title: 'Close subscription',
-                content,
-              },
-              width: GIO_DIALOG_WIDTH.MEDIUM,
-            })
-            .afterClosed();
-        }),
+    return this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+        data: {
+          title: 'Close subscription',
+          content,
+        },
+        width: GIO_DIALOG_WIDTH.MEDIUM,
+      })
+      .afterClosed()
+      .pipe(
         filter((result) => !!result),
         switchMap(() => this.applicationSubscriptionService.closeSubscription(applicationId, subscription.id)),
         takeUntilDestroyed(this.destroyRef),
