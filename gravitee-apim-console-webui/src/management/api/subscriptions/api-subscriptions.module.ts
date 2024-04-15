@@ -41,6 +41,7 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { OwlMomentDateTimeModule } from '@danielmoncada/angular-datetime-picker-moment-adapter';
 import { OwlDateTimeModule } from '@danielmoncada/angular-datetime-picker';
 import { RouterModule } from '@angular/router';
+import { MatSortModule } from '@angular/material/sort';
 
 import { ApiPortalSubscriptionCreationDialogComponent } from './components/dialogs/creation/api-portal-subscription-creation-dialog.component';
 import { ApiPortalSubscriptionTransferDialogComponent } from './components/dialogs/transfer/api-portal-subscription-transfer-dialog.component';
@@ -90,6 +91,7 @@ import { GioPermissionModule } from '../../../shared/components/gio-permission/g
 
     MatRadioModule,
     MatTableModule,
+    MatSortModule,
     MatTooltipModule,
     MatButtonToggleModule,
     OwlDateTimeModule,

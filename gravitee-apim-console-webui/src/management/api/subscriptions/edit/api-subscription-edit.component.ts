@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Inject, OnInit } from '@angular/core';
 import { EMPTY, Observable, Subject } from 'rxjs';
 import { catchError, switchMap, takeUntil, tap } from 'rxjs/operators';
 import { DatePipe } from '@angular/common';
@@ -65,12 +65,12 @@ interface SubscriptionDetailVM {
   application?: { id: string; label: string; name: string; description: string };
   publisherMessage?: string;
   subscriberMessage?: string;
-  createdAt?: string;
-  endingAt?: string;
-  pausedAt?: string;
-  processedAt?: string;
-  startingAt?: string;
-  closedAt?: string;
+  createdAt?: Date;
+  endingAt?: Date;
+  pausedAt?: Date;
+  processedAt?: Date;
+  startingAt?: Date;
+  closedAt?: Date;
   domain?: string;
   description?: string;
   consumerConfiguration?: SubscriptionConsumerConfiguration;
@@ -80,8 +80,8 @@ interface SubscriptionDetailVM {
 interface ApiKeyVM {
   id: string;
   key: string;
-  createdAt: string;
-  endDate: string;
+  createdAt: Date;
+  endDate: Date;
   isValid: boolean;
 }
 
@@ -89,13 +89,21 @@ interface ApiKeyVM {
   selector: 'api-subscription-detail',
   templateUrl: './api-subscription-edit.component.html',
   styleUrls: ['./api-subscription-edit.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ApiSubscriptionEditComponent implements OnInit {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
   subscription: SubscriptionDetailVM;
   apiKeys: ApiKeyVM[];
   apiKeysTotalCount: number;
-  filters: GioTableWrapperFilters;
+  filters: GioTableWrapperFilters = {
+    searchTerm: '',
+    pagination: { index: 1, size: 25 },
+    sort: {
+      active: 'isValid',
+      direction: 'desc',
+    },
+  };
   displayedColumns: string[];
   hasSharedApiKeyMode: boolean;
   private apiId: string;
@@ -109,11 +117,12 @@ export class ApiSubscriptionEditComponent implements OnInit {
     private datePipe: DatePipe,
     private readonly matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,
+    private readonly changeDetectorRef: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
     this.apiId = this.activatedRoute.snapshot.params.apiId;
-    this.displayedColumns = ['key', 'createdAt', 'endDate', 'actions'];
+    this.displayedColumns = ['active-icon', 'key', 'createdAt', 'endDate', 'actions'];
     this.apiKeys = [];
     this.apiKeysTotalCount = 0;
     this.hasSharedApiKeyMode = false;
@@ -141,15 +150,16 @@ export class ApiSubscriptionEditComponent implements OnInit {
               },
               status: subscription.status,
               subscribedBy: subscription.subscribedBy.displayName,
-              publisherMessage: subscription.publisherMessage ?? '-',
-              subscriberMessage: subscription.consumerMessage ?? '-',
-              createdAt: this.serializeDate(subscription.createdAt),
-              pausedAt: this.serializeDate(subscription.pausedAt),
-              startingAt: this.serializeDate(subscription.startingAt),
-              endingAt: this.serializeDate(subscription.endingAt),
-              processedAt: this.serializeDate(subscription.processedAt),
-              closedAt: this.serializeDate(subscription.closedAt),
-              domain: !subscription.application.domain || subscription.application.domain === '' ? '-' : subscription.application.domain,
+              publisherMessage: subscription.publisherMessage,
+              subscriberMessage: subscription.consumerMessage,
+              createdAt: subscription.createdAt,
+              pausedAt: subscription.pausedAt,
+              startingAt: subscription.startingAt,
+              endingAt: subscription.endingAt,
+              processedAt: subscription.processedAt,
+              closedAt: subscription.closedAt,
+              domain:
+                !subscription.application.domain || subscription.application.domain === '' ? undefined : subscription.application.domain,
               consumerConfiguration: subscription.consumerConfiguration,
               metadata: subscription.metadata,
             };
@@ -159,8 +169,8 @@ export class ApiSubscriptionEditComponent implements OnInit {
 
             if (this.subscription.plan.securityType === 'API_KEY' && this.subscription.status !== 'REJECTED') {
               this.hasSharedApiKeyMode = subscription.application.apiKeyMode === 'SHARED';
-              return this.getApiKeysList(1, 10);
             }
+            return this.getApiKeysList(1, 10);
           }
           return EMPTY;
         }),
@@ -170,7 +180,10 @@ export class ApiSubscriptionEditComponent implements OnInit {
         }),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe();
+      .subscribe(() => {
+        this.changeDetectorRef.markForCheck();
+        this.changeDetectorRef.detectChanges();
+      });
   }
 
   validateSubscription() {
@@ -343,7 +356,7 @@ export class ApiSubscriptionEditComponent implements OnInit {
       >(ApiPortalSubscriptionChangeEndDateDialogComponent, {
         width: GIO_DIALOG_WIDTH.MEDIUM,
         data: {
-          currentEndDate: this.deserializeDate(this.subscription.endingAt),
+          currentEndDate: this.subscription.endingAt,
           applicationName: this.subscription.application.name,
           securityType: this.subscription.plan.securityType,
         },
@@ -355,7 +368,7 @@ export class ApiSubscriptionEditComponent implements OnInit {
         switchMap((result) =>
           result
             ? this.apiSubscriptionService.update(this.apiId, this.subscription.id, {
-                startingAt: this.deserializeDate(this.subscription.startingAt),
+                startingAt: this.subscription.startingAt,
                 endingAt: result.endDate,
                 consumerConfiguration: this.subscription.consumerConfiguration,
                 metadata: this.subscription.metadata,
@@ -467,7 +480,7 @@ export class ApiSubscriptionEditComponent implements OnInit {
       >(ApiPortalSubscriptionExpireApiKeyDialogComponent, {
         width: GIO_DIALOG_WIDTH.MEDIUM,
         data: {
-          expirationDate: this.deserializeDate(apiKey.endDate),
+          expirationDate: apiKey.endDate,
         },
         role: 'alertdialog',
         id: 'expireApiKeyDialog',
@@ -522,10 +535,6 @@ export class ApiSubscriptionEditComponent implements OnInit {
     }
   }
 
-  private serializeDate(date: Date): string {
-    return date ? this.datePipe.transform(date, 'yyyy-MM-dd HH:mm:ss') : '-';
-  }
-
   private deserializeDate(dateAsString: string): Date {
     return dateAsString === '-' ? undefined : new Date(dateAsString);
   }
@@ -537,8 +546,8 @@ export class ApiSubscriptionEditComponent implements OnInit {
         this.apiKeys = response.data.map((apiKey) => ({
           id: apiKey.id,
           key: apiKey.key,
-          createdAt: this.serializeDate(apiKey.createdAt),
-          endDate: this.serializeDate(apiKey.revoked ? apiKey.revokedAt : apiKey.expireAt),
+          createdAt: apiKey.createdAt,
+          endDate: apiKey.revoked ? apiKey.revokedAt : apiKey.expireAt,
           isValid: !apiKey.revoked && !apiKey.expired,
         }));
       }),

@@ -118,11 +118,11 @@ describe('ApiSubscriptionEditComponent', () => {
       expect(await harness.getSubscribedBy()).toEqual('My subscriber');
       expect(await harness.getSubscriberMessage()).toEqual('My consumer message');
       expect(await harness.getPublisherMessage()).toEqual('My publisher message');
-      expect(await harness.getCreatedAt()).toEqual('2020-01-01 00:00:00');
-      expect(await harness.getProcessedAt()).toEqual('2020-01-01 00:00:00');
+      expect(await harness.getCreatedAt()).toEqual('Jan 1, 2020, 12:00:00 AM');
+      expect(await harness.getProcessedAt()).toEqual('Jan 1, 2020, 12:00:00 AM');
       expect(await harness.getClosedAt()).toEqual('-');
       expect(await harness.getPausedAt()).toEqual('-');
-      expect(await harness.getStartingAt()).toEqual('2020-01-01 00:00:00');
+      expect(await harness.getStartingAt()).toEqual('Jan 1, 2020, 12:00:00 AM');
       expect(await harness.getEndingAt()).toEqual('-');
       expect(await harness.getDomain()).toEqual('https://my-domain.com');
 
@@ -163,6 +163,7 @@ describe('ApiSubscriptionEditComponent', () => {
       const rejectedSubscription = BASIC_SUBSCRIPTION();
       rejectedSubscription.status = 'REJECTED';
       await initComponent(rejectedSubscription);
+      expectApiKeyListGet();
 
       const harness = await loader.getHarness(ApiSubscriptionEditHarness);
 
@@ -206,6 +207,9 @@ describe('ApiSubscriptionEditComponent', () => {
       const pushPlanSubscription = BASIC_SUBSCRIPTION();
       pushPlanSubscription.plan = fakeBasePlan({ id: PLAN_ID, security: { type: undefined, configuration: {} } });
       await initComponent(pushPlanSubscription);
+
+      expectApiKeyListGet();
+
       const harness = await loader.getHarness(ApiSubscriptionEditHarness);
       expect(await harness.transferBtnIsVisible()).toEqual(true);
 
@@ -251,6 +255,7 @@ describe('ApiSubscriptionEditComponent', () => {
         security: { type: undefined, configuration: {} },
       });
       expectApiSubscriptionGet(newSubscription);
+      expectApiKeyListGet();
     });
 
     it('should not transfer subscription on cancel', async () => {
@@ -330,6 +335,7 @@ describe('ApiSubscriptionEditComponent', () => {
       const keylessSubscription = BASIC_SUBSCRIPTION();
       keylessSubscription.plan = fakeBasePlan({ security: { type: 'KEY_LESS' } });
       await initComponent(keylessSubscription);
+      expectApiKeyListGet();
 
       const harness = await loader.getHarness(ApiSubscriptionEditHarness);
       await harness.openPauseDialog();
@@ -427,7 +433,7 @@ describe('ApiSubscriptionEditComponent', () => {
 
       expectApiSubscriptionGet(newEndDateSubscription);
       expectApiKeyListGet();
-      expect(await harness.getEndingAt()).toEqual('2080-01-01 00:00:00');
+      expect(await harness.getEndingAt()).toEqual('Jan 1, 2080, 12:00:00 AM');
     });
 
     it('should change existing end date', async () => {
@@ -440,7 +446,7 @@ describe('ApiSubscriptionEditComponent', () => {
       expectApiKeyListGet();
 
       const harness = await loader.getHarness(ApiSubscriptionEditHarness);
-      expect(await harness.getEndingAt()).toEqual('2080-01-01 00:00:00');
+      expect(await harness.getEndingAt()).toEqual('Jan 1, 2080, 12:00:00 AM');
 
       await harness.openChangeEndDateDialog();
 
@@ -476,7 +482,7 @@ describe('ApiSubscriptionEditComponent', () => {
 
       expectApiSubscriptionGet(newEndDateSubscription);
       expectApiKeyListGet();
-      expect(await harness.getEndingAt()).toEqual('2080-01-02 00:00:00');
+      expect(await harness.getEndingAt()).toEqual('Jan 2, 2080, 12:00:00 AM');
     });
 
     it('should not change end date on cancel', async () => {
@@ -654,6 +660,7 @@ describe('ApiSubscriptionEditComponent', () => {
       const jwtSubscription: Subscription = { ...pendingSubscription };
       jwtSubscription.plan.security.type = 'JWT';
       await initComponent(jwtSubscription);
+      expectApiKeyListGet();
       await validateInformation(false);
     });
     it('should show custom key field if API_KEY', async () => {
@@ -710,6 +717,7 @@ describe('ApiSubscriptionEditComponent', () => {
       const rejectedSubscription = BASIC_SUBSCRIPTION();
       rejectedSubscription.status = 'REJECTED';
       expectApiSubscriptionGet(rejectedSubscription);
+      expectApiKeyListGet();
     });
     it('should reject subscription with reason specified', async () => {
       const harness = await loader.getHarness(ApiSubscriptionEditHarness);
@@ -731,6 +739,7 @@ describe('ApiSubscriptionEditComponent', () => {
       const rejectedSubscription = BASIC_SUBSCRIPTION();
       rejectedSubscription.status = 'REJECTED';
       expectApiSubscriptionGet(rejectedSubscription);
+      expectApiKeyListGet();
     });
     it('should not reject subscription on cancel', async () => {
       const harness = await loader.getHarness(ApiSubscriptionEditHarness);
@@ -941,7 +950,7 @@ describe('ApiSubscriptionEditComponent', () => {
 
       expectApiSubscriptionGet(BASIC_SUBSCRIPTION());
       expectApiKeyListGet(SUBSCRIPTION_ID, [fakeApiKey({ expireAt: endingAt })]);
-      expect(await harness.getApiKeyEndDateByRowIndex(0)).toEqual('2080-01-01 00:00:00');
+      expect(await harness.getApiKeyEndDateByRowIndex(0)).toEqual('Jan 1, 2080, 12:00:00 AM');
     });
 
     it('should change existing expiration date', async () => {
@@ -975,7 +984,7 @@ describe('ApiSubscriptionEditComponent', () => {
 
       expectApiSubscriptionGet(BASIC_SUBSCRIPTION());
       expectApiKeyListGet(SUBSCRIPTION_ID, [fakeApiKey({ expireAt: newEndingAt })]);
-      expect(await harness.getApiKeyEndDateByRowIndex(0)).toEqual('2080-01-02 00:00:00');
+      expect(await harness.getApiKeyEndDateByRowIndex(0)).toEqual('Jan 2, 2080, 12:00:00 AM');
     });
 
     it('should not change expiration date on cancel', async () => {
