@@ -19,6 +19,8 @@ import { Observable } from 'rxjs';
 
 import { Constants } from '../entities/Constants';
 import { ApplicationSubscriptionApiKey } from '../entities/subscription/ApplicationSubscriptionApiKey';
+import { ApplicationSubscription, Subscription } from '../entities/subscription/subscription';
+import { NewSubscriptionEntity } from '../entities/application';
 
 @Injectable({
   providedIn: 'root',
@@ -28,6 +30,22 @@ export class ApplicationSubscriptionService {
     private readonly http: HttpClient,
     @Inject(Constants) private readonly constants: Constants,
   ) {}
+
+  getSubscription(applicationId: string, subscriptionId: string): Observable<Subscription> {
+    return this.http.get<Subscription>(`${this.constants.env.baseURL}/applications/${applicationId}/subscriptions/${subscriptionId}`);
+  }
+
+  subscribe(applicationId: string, planId: string, subscription: NewSubscriptionEntity) {
+    return this.http.post<ApplicationSubscription>(
+      `${this.constants.env.baseURL}/applications/${applicationId}/subscriptions`,
+      subscription,
+      {
+        params: {
+          plan: planId,
+        },
+      },
+    );
+  }
 
   closeSubscription(applicationId: string, subscriptionId: string): Observable<void> {
     return this.http.delete<void>(`${this.constants.env.baseURL}/applications/${applicationId}/subscriptions/${subscriptionId}`);

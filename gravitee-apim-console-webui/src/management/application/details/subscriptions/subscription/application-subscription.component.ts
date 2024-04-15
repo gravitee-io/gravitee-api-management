@@ -76,7 +76,7 @@ export class ApplicationSubscriptionComponent {
 
   private subscription$ = this.subscriptionChanges$.pipe(
     switchMap(() =>
-      this.applicationService.getSubscription(
+      this.applicationSubscriptionService.getSubscription(
         this.activatedRoute.snapshot.params.applicationId,
         this.activatedRoute.snapshot.params.subscriptionId,
       ),

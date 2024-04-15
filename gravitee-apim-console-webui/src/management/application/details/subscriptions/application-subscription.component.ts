@@ -20,6 +20,7 @@ import { ActivatedRoute } from '@angular/router';
 import { takeUntil } from 'rxjs/operators';
 
 import { ApplicationService } from '../../../../services-ngx/application.service';
+import { ApplicationSubscriptionService } from '../../../../services-ngx/application-subscription.service';
 
 @Component({
   template: '',
@@ -36,6 +37,7 @@ export class ApplicationSubscriptionComponent extends UpgradeComponent {
     injector: Injector,
     private readonly activatedRoute: ActivatedRoute,
     private readonly applicationService: ApplicationService,
+    private readonly applicationSubscriptionService: ApplicationSubscriptionService,
   ) {
     super('applicationSubscription', elementRef, injector);
   }
@@ -44,7 +46,7 @@ export class ApplicationSubscriptionComponent extends UpgradeComponent {
     const applicationId = this.activatedRoute.snapshot.params.applicationId;
     combineLatest([
       this.applicationService.getLastApplicationFetch(applicationId),
-      this.applicationService.getSubscription(applicationId, this.activatedRoute.snapshot.params.subscriptionId),
+      this.applicationSubscriptionService.getSubscription(applicationId, this.activatedRoute.snapshot.params.subscriptionId),
     ])
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe({
