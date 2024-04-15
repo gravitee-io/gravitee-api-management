@@ -23,6 +23,7 @@ import lombok.Builder;
 @Builder(toBuilder = true)
 public record IntegrationApi(
     String integrationId,
+    String uniqueId,
     String id,
     String name,
     String description,

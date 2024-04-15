@@ -26,6 +26,7 @@ public class IntegrationApiFixtures {
         IntegrationApi
             .builder()
             .integrationId("integration-id")
+            .uniqueId("asset-uid")
             .id("asset-id")
             .name("An alien API")
             .description("An alien API description")

@@ -83,7 +83,7 @@ public class ApiModelFactory {
      *     <ul>
      *         <li>environment id</li>
      *         <li>integration id</li>
-     *         <li>external API id</li>
+     *         <li>external API unique id</li>
      *     </ul>
      * </p>
      * <p>
@@ -95,6 +95,6 @@ public class ApiModelFactory {
      * @return The generated id
      */
     private static String generateFederatedApiId(IntegrationApi integrationApi, Integration integration) {
-        return UuidString.generateForEnvironment(integration.getEnvironmentId(), integration.getId(), integrationApi.id());
+        return UuidString.generateForEnvironment(integration.getEnvironmentId(), integration.getId(), integrationApi.uniqueId());
     }
 }

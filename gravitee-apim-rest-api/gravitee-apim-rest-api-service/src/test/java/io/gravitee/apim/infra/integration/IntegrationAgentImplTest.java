@@ -91,6 +91,7 @@ class IntegrationAgentImplTest {
                 .containsExactly(
                     new IntegrationApi(
                         INTEGRATION_ID,
+                        "asset-uid-1",
                         "asset-1",
                         "asset-name-1",
                         "asset-description-1",
@@ -100,6 +101,7 @@ class IntegrationAgentImplTest {
                     ),
                     new IntegrationApi(
                         INTEGRATION_ID,
+                        "asset-uid-2",
                         "asset-2",
                         "asset-name-2",
                         "asset-description-2",
@@ -139,6 +141,7 @@ class IntegrationAgentImplTest {
     private static io.gravitee.integration.api.model.Api buildApi(int index) {
         return io.gravitee.integration.api.model.Api
             .builder()
+            .uniqueId("asset-uid-" + index)
             .id("asset-" + index)
             .name("asset-name-" + index)
             .version("asset-version-" + index)
