@@ -13,13 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ComponentHarness } from '@angular/cdk/testing';
+import { BaseHarnessFilters, ContentContainerComponentHarness, HarnessPredicate } from '@angular/cdk/testing';
 
-export class ApiCardHarness extends ComponentHarness {
+export class ApiCardHarness extends ContentContainerComponentHarness {
   public static hostSelector = 'app-api-card';
   protected locateTitle = this.locatorFor('.api-card__header-content-title');
   protected locateVersion = this.locatorFor('.api-card__header-content-version');
   protected locateDescription = this.locatorFor('.api-card__description');
+
+  public static with(options: BaseHarnessFilters): HarnessPredicate<ApiCardHarness> {
+    return new HarnessPredicate(ApiCardHarness, options);
+  }
 
   public async getTitle(): Promise<string> {
     const div = await this.locateTitle();

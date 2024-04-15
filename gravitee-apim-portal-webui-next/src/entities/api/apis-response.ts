@@ -21,9 +21,15 @@ export interface ApisResponse {
    * List of API.
    */
   data?: Array<Api>;
-  /**
-   * Map of Map of Object
-   */
-  metadata?: { [key: string]: { [key: string]: object } };
+  metadata?: {
+    pagination?: {
+      current_page?: number;
+      first?: number;
+      last?: number;
+      size?: number;
+      total?: number;
+      total_pages?: number;
+    };
+  };
   links?: Links;
 }

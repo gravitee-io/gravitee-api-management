@@ -42,42 +42,112 @@ describe('CatalogComponent', () => {
     fixture.detectChanges();
   });
 
-  it('should render banner text', () => {
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Welcome to Gravitee Developer Portal!');
+  afterEach(() => {
+    httpTestingController.verify();
   });
 
-  it('should show empty API list', async () => {
-    expectApiList(fakeApisResponse({ data: [] }));
-    const noApiCard = await harnessLoader.getHarness(MatCardHarness.with({ selector: '#no-apis' }));
-    expect(noApiCard).toBeTruthy();
-    expect(await noApiCard.getText()).toContain('Sorry, there are no APIs listed yet.');
+  describe('populated api list', () => {
+    beforeEach(() => {
+      expectApiList(
+        fakeApisResponse({
+          data: [
+            fakeApi({
+              id: '1',
+              name: 'Test title',
+              version: 'v.1.2',
+              description:
+                'Get real-time weather updates, forecasts, and historical data to enhance your applications with accurate weather information.',
+            }),
+          ],
+          metadata: {
+            pagination: {
+              current_page: 1,
+              total_pages: 2,
+            },
+          },
+        }),
+      );
+    });
+
+    it('should render banner text', () => {
+      const compiled = fixture.nativeElement as HTMLElement;
+      expect(compiled.querySelector('h1')?.textContent).toContain('Welcome to Gravitee Developer Portal!');
+    });
+
+    it('should show API list', async () => {
+      const apiCard = await harnessLoader.getHarness(ApiCardHarness);
+      expect(apiCard).toBeDefined();
+      expect(await apiCard.getTitle()).toEqual('Test title');
+      expect(await apiCard.getDescription()).toEqual(
+        'Get real-time weather updates, forecasts, and historical data to enhance your applications with accurate weather information.',
+      );
+      expect(await apiCard.getVersion()).toEqual('v.1.2');
+    });
+    it('should call second page after scrolled event', async () => {
+      const apiCard = await harnessLoader.getAllHarnesses(ApiCardHarness);
+      expect(apiCard).toBeDefined();
+      expect(apiCard.length).toEqual(1);
+      expect(await apiCard[0].getTitle()).toEqual('Test title');
+
+      document.getElementsByClassName('api-list__container')[0].dispatchEvent(new Event('scrolled'));
+      expectApiList(
+        fakeApisResponse({
+          data: [fakeApi({ id: 'second-page-api', name: 'second page api', version: '24' })],
+          metadata: {
+            pagination: {
+              current_page: 2,
+              total_pages: 2,
+            },
+          },
+        }),
+        2,
+      );
+      fixture.detectChanges();
+
+      const allHarnesses = await harnessLoader.getAllHarnesses(ApiCardHarness);
+      expect(allHarnesses.length).toEqual(2);
+
+      const secondPageApi = await harnessLoader.getHarnessOrNull(ApiCardHarness.with({ selector: '#second-page-api' }));
+      expect(secondPageApi).toBeTruthy();
+    });
+
+    it('should not call page if on last page', async () => {
+      const apiCard = await harnessLoader.getAllHarnesses(ApiCardHarness);
+      expect(apiCard.length).toEqual(1);
+
+      document.getElementsByClassName('api-list__container')[0].dispatchEvent(new Event('scrolled'));
+      expectApiList(
+        fakeApisResponse({
+          data: [fakeApi({ id: 'second-page-api' })],
+          metadata: {
+            pagination: {
+              current_page: 2,
+              total_pages: 2,
+            },
+          },
+        }),
+        2,
+      );
+      fixture.detectChanges();
+
+      const allHarnesses = await harnessLoader.getAllHarnesses(ApiCardHarness);
+      expect(allHarnesses.length).toEqual(2);
+
+      document.getElementsByClassName('api-list__container')[0].dispatchEvent(new Event('scrolled'));
+      httpTestingController.expectNone(`${TESTING_BASE_URL}/apis?page=3&size=9`);
+    });
   });
 
-  it('should show API list', async () => {
-    expectApiList(
-      fakeApisResponse({
-        data: [
-          fakeApi({
-            id: '1',
-            name: 'Test title',
-            version: 'v.1.2',
-            description:
-              'Get real-time weather updates, forecasts, and historical data to enhance your applications with accurate weather information.',
-          }),
-        ],
-      }),
-    );
-    const apiCard = await harnessLoader.getHarness(ApiCardHarness);
-    expect(apiCard).toBeDefined();
-    expect(await apiCard.getTitle()).toEqual('Test title');
-    expect(await apiCard.getDescription()).toEqual(
-      'Get real-time weather updates, forecasts, and historical data to enhance your applications with accurate weather information.',
-    );
-    expect(await apiCard.getVersion()).toEqual('v.1.2');
+  describe('empty component', () => {
+    it('should show empty API list', async () => {
+      expectApiList(fakeApisResponse({ data: [] }));
+      const noApiCard = await harnessLoader.getHarness(MatCardHarness.with({ selector: '#no-apis' }));
+      expect(noApiCard).toBeTruthy();
+      expect(await noApiCard.getText()).toContain('Sorry, there are no APIs listed yet.');
+    });
   });
 
-  function expectApiList(apisResponse: ApisResponse = fakeApisResponse()) {
-    httpTestingController.expectOne(`${TESTING_BASE_URL}/apis?page=1&size=9`).flush(apisResponse);
+  function expectApiList(apisResponse: ApisResponse = fakeApisResponse(), page: number = 1, size: number = 9) {
+    httpTestingController.expectOne(`${TESTING_BASE_URL}/apis?page=${page}&size=${size}`).flush(apisResponse);
   }
 });
