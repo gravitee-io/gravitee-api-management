@@ -30,6 +30,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class DashboardTypeUpgrader extends MongoUpgrader {
 
+    public static final int DASHBOARD_TYPE_UPGRADER_ORDER = REMOVE_PROMOTION_AUTHOR_PICTURE_UPGRADER_ORDER + 1;
+
     @Override
     public boolean upgrade() {
         // Because of DocumentDB which does not support latest aggregation APIs of MongoDB, we need to use this kind of update method.
@@ -46,6 +48,6 @@ public class DashboardTypeUpgrader extends MongoUpgrader {
 
     @Override
     public int getOrder() {
-        return REMOVE_PROMOTION_AUTHOR_PICTURE_UPGRADER_ORDER + 1;
+        return DASHBOARD_TYPE_UPGRADER_ORDER;
     }
 }
