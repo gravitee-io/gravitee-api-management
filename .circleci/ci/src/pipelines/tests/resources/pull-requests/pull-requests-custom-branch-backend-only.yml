@@ -354,6 +354,13 @@ jobs:
         type: string
         default: gravitee-apim-rest-api
         description: Directory where the Sonarcloud analysis will be run
+      cache_type:
+        type: enum
+        default: backend
+        description: Type of cache to use
+        enum:
+          - backend
+          - frontend
     docker:
       - image: sonarsource/sonar-scanner-cli:5.0.1
     resource_class: large
@@ -366,9 +373,7 @@ jobs:
           at: .
       - restore_cache:
           keys:
-            - gravitee-api-management-v9-sonarcloud-analysis-<< parameters.working_directory >>-{{ .Branch }}-{{ checksum "pom.xml" }}
-            - gravitee-api-management-v9-sonarcloud-analysis-<< parameters.working_directory >>-{{ .Branch }}
-            - gravitee-api-management-v9-sonarcloud-analysis-<< parameters.working_directory >>
+            - gravitee-api-management-v9-sonarcloud-analysis-<< parameters.cache_type >>
       - keeper/env-export:
           secret-url: keeper://9x9YgyU6DWzux4DPoHAzDQ/field/password
           var-name: SONAR_TOKEN
@@ -380,7 +385,7 @@ jobs:
       - save_cache:
           paths:
             - /opt/sonar-scanner/.sonar/cache
-          key: gravitee-api-management-v9-sonarcloud-analysis-<< parameters.working_directory >>-{{ .Branch }}-{{ checksum "pom.xml" }}
+          key: gravitee-api-management-v9-sonarcloud-analysis-<< parameters.cache_type >>
           when: always
   job-validate-workflow-status:
     docker:
@@ -458,6 +463,7 @@ workflows:
           requires:
             - Test definition
           working_directory: gravitee-apim-definition
+          cache_type: backend
       - job-sonarcloud-analysis:
           name: Sonar - gravitee-apim-gateway
           context:
@@ -465,6 +471,7 @@ workflows:
           requires:
             - Test gateway
           working_directory: gravitee-apim-gateway
+          cache_type: backend
       - job-sonarcloud-analysis:
           name: Sonar - gravitee-apim-rest-api
           context:
@@ -472,6 +479,7 @@ workflows:
           requires:
             - Test rest-api
           working_directory: gravitee-apim-rest-api
+          cache_type: backend
       - job-sonarcloud-analysis:
           name: Sonar - gravitee-apim-plugin
           context:
@@ -479,6 +487,7 @@ workflows:
           requires:
             - Test plugins
           working_directory: gravitee-apim-plugin
+          cache_type: backend
       - job-sonarcloud-analysis:
           name: Sonar - gravitee-apim-repository
           context:
@@ -486,6 +495,7 @@ workflows:
           requires:
             - Test repository
           working_directory: gravitee-apim-repository
+          cache_type: backend
       - job-validate-workflow-status:
           name: Validate workflow status
           requires:
