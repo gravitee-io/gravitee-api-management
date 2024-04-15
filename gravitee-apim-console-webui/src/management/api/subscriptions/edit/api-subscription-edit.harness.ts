@@ -16,6 +16,7 @@
 import { ComponentHarness } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { MatTableHarness } from '@angular/material/table/testing';
+import { MatInputHarness } from '@angular/material/input/testing';
 
 export class ApiSubscriptionEditHarness extends ComponentHarness {
   static hostSelector = '#subscription-edit';
@@ -166,8 +167,9 @@ export class ApiSubscriptionEditHarness extends ComponentHarness {
   public async getApiKeyByRowIndex(index: number): Promise<string> {
     return this.getTable()
       .then((table) => table.getRows())
-      .then((rows) => rows[index].getCellTextByIndex({ columnName: 'key' }))
-      .then((txt) => txt[0]);
+      .then((rows) => rows[index].getCells({ columnName: 'key' }))
+      .then((txt) => txt[0].getHarness(MatInputHarness))
+      .then((input) => input.getValue());
   }
 
   public async getApiKeyEndDateByRowIndex(index: number): Promise<string> {
