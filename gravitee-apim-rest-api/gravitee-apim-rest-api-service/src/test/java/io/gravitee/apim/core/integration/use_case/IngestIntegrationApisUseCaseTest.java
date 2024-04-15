@@ -225,6 +225,7 @@ class IngestIntegrationApisUseCaseTest {
                 IntegrationApiFixtures
                     .anIntegrationApiForIntegration(INTEGRATION_ID)
                     .toBuilder()
+                    .uniqueId("uid-1")
                     .id("asset-1")
                     .name("api-1")
                     .description("my description")
@@ -240,7 +241,7 @@ class IngestIntegrationApisUseCaseTest {
             SoftAssertions.assertSoftly(soft -> {
                 Api expectedApi = Api
                     .builder()
-                    .id("environment-idintegration-idasset-1")
+                    .id("environment-idintegration-iduid-1")
                     .definitionVersion(DefinitionVersion.FEDERATED)
                     .name("api-1")
                     .description("my description")
@@ -253,7 +254,7 @@ class IngestIntegrationApisUseCaseTest {
                     .federatedApiDefinition(
                         FederatedApi
                             .builder()
-                            .id("environment-idintegration-idasset-1")
+                            .id("environment-idintegration-iduid-1")
                             .providerId("asset-1")
                             .apiVersion("1.1.1")
                             .name("api-1")
@@ -295,7 +296,7 @@ class IngestIntegrationApisUseCaseTest {
                         .organizationId(ORGANIZATION_ID)
                         .environmentId(ENVIRONMENT_ID)
                         .referenceType(AuditEntity.AuditReferenceType.API)
-                        .referenceId("environment-idintegration-idasset-id")
+                        .referenceId("environment-idintegration-idasset-uid")
                         .user(USER_ID)
                         .properties(Collections.emptyMap())
                         .event(ApiAuditEvent.API_CREATED.name())
@@ -308,7 +309,7 @@ class IngestIntegrationApisUseCaseTest {
                         .organizationId(ORGANIZATION_ID)
                         .environmentId(ENVIRONMENT_ID)
                         .referenceType(AuditEntity.AuditReferenceType.API)
-                        .referenceId("environment-idintegration-idasset-id")
+                        .referenceId("environment-idintegration-idasset-uid")
                         .user(USER_ID)
                         .properties(Map.of("USER", USER_ID))
                         .event(MembershipAuditEvent.MEMBERSHIP_CREATED.name())
@@ -337,7 +338,7 @@ class IngestIntegrationApisUseCaseTest {
                         .roleId(apiPrimaryOwnerRoleId(ORGANIZATION_ID))
                         .memberId(USER_ID)
                         .memberType(Membership.Type.USER)
-                        .referenceId("environment-idintegration-idasset-id")
+                        .referenceId("environment-idintegration-idasset-uid")
                         .referenceType(Membership.ReferenceType.API)
                         .source("system")
                         .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
@@ -426,8 +427,8 @@ class IngestIntegrationApisUseCaseTest {
         // Given
         givenAnIntegration(IntegrationFixture.anIntegration(ENVIRONMENT_ID).withId(INTEGRATION_ID));
         givenIntegrationApis(
-            IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID).toBuilder().id("api-id-1").name("api-1").build(),
-            IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID).toBuilder().id("api-id-2").name("api-2").build()
+            IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID).toBuilder().uniqueId("api-id-1").name("api-1").build(),
+            IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID).toBuilder().uniqueId("api-id-2").name("api-2").build()
         );
 
         // When
@@ -446,9 +447,9 @@ class IngestIntegrationApisUseCaseTest {
         // Given
         givenAnIntegration(IntegrationFixture.anIntegration(ENVIRONMENT_ID).withId(INTEGRATION_ID));
         givenIntegrationApis(
-            IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID).toBuilder().id("api-id-1").name("api-1").build(),
-            IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID).toBuilder().id("api-id-2").name("api-2").build(),
-            IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID).toBuilder().id("api-id-3").name("api-3").build()
+            IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID).toBuilder().uniqueId("api-id-1").name("api-1").build(),
+            IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID).toBuilder().uniqueId("api-id-2").name("api-2").build(),
+            IntegrationApiFixtures.anIntegrationApiForIntegration(INTEGRATION_ID).toBuilder().uniqueId("api-id-3").name("api-3").build()
         );
         doThrow(new ValidationDomainException("validation failed"))
             .when(validateFederatedApiDomainService)
@@ -473,21 +474,21 @@ class IngestIntegrationApisUseCaseTest {
             IntegrationApiFixtures
                 .anIntegrationApiForIntegration(INTEGRATION_ID)
                 .toBuilder()
-                .id("api-id-1")
+                .uniqueId("api-id-1")
                 .version("v1")
                 .name("external-api-1")
                 .build(),
             IntegrationApiFixtures
                 .anIntegrationApiForIntegration(INTEGRATION_ID)
                 .toBuilder()
-                .id("api-id-2")
+                .uniqueId("api-id-2")
                 .version("v1")
                 .name("api-2")
                 .build(),
             IntegrationApiFixtures
                 .anIntegrationApiForIntegration(INTEGRATION_ID)
                 .toBuilder()
-                .id("api-id-3")
+                .uniqueId("api-id-3")
                 .version("v1")
                 .name("external-api-3")
                 .build()
