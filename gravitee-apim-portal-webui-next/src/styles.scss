@@ -35,6 +35,7 @@ $light-theme: mat.define-light-theme(
 @include mat.all-component-themes($light-theme);
 
 body {
+  margin: 0;
   background-color: $background-color;
   color: $default-text-color;
   font-family: 'Golos UI', Roboto, 'Helvetica Neue', sans-serif;
