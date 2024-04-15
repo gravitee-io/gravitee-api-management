@@ -88,6 +88,7 @@ public class PlanCrudServiceImplTest {
             // Then
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(plan.getApiId()).isEqualTo(apiId);
+                soft.assertThat(plan.getDefinitionVersion()).isEqualTo(DefinitionVersion.V4);
                 soft.assertThat(plan.getCharacteristics()).containsExactly("characteristic-1");
                 soft.assertThat(plan.getClosedAt()).isEqualTo(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneOffset.UTC));
                 soft.assertThat(plan.getCommentMessage()).isEqualTo("comment-message");
@@ -133,6 +134,7 @@ public class PlanCrudServiceImplTest {
             // Then
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(plan.getApiId()).isEqualTo(apiId);
+                soft.assertThat(plan.getDefinitionVersion()).isNull();
                 soft.assertThat(plan.getCharacteristics()).containsExactly("characteristic-1");
                 soft.assertThat(plan.getClosedAt()).isEqualTo(Instant.parse("2020-02-04T20:22:02.00Z").atZone(ZoneOffset.UTC));
                 soft.assertThat(plan.getCommentMessage()).isEqualTo("comment-message");
@@ -402,6 +404,7 @@ public class PlanCrudServiceImplTest {
     private Plan.PlanBuilder planV4() {
         return Plan
             .builder()
+            .definitionVersion(DefinitionVersion.V4)
             .crossId("cross-id")
             .name("plan-name")
             .description("plan-description")

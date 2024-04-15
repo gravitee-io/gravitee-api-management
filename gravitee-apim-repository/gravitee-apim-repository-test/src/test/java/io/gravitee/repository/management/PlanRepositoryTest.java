@@ -18,8 +18,12 @@ package io.gravitee.repository.management;
 import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static io.gravitee.repository.utils.DateUtils.parse;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.Assert.*;
 
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Plan;
 import java.util.*;
@@ -68,6 +72,36 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
+    public void shouldFindById_v4() throws Exception {
+        final Optional<Plan> plan = planRepository.findById("plan-v4");
+
+        assertThat(plan)
+            .isPresent()
+            .get()
+            .usingRecursiveComparison()
+            .isEqualTo(
+                Plan
+                    .builder()
+                    .id("plan-v4")
+                    .definitionVersion(DefinitionVersion.V4)
+                    .name("Free plan")
+                    .description("Description of the free plan")
+                    .api("api2")
+                    .security(Plan.PlanSecurityType.API_KEY)
+                    .validation(Plan.PlanValidationType.AUTO)
+                    .type(Plan.PlanType.API)
+                    .mode(Plan.PlanMode.STANDARD)
+                    .status(Plan.Status.PUBLISHED)
+                    .order(0)
+                    .createdAt(new Date(1506964899000L))
+                    .characteristics(List.of("charac_v4"))
+                    .excludedGroups(List.of(("grp_v4")))
+                    .tags(Set.of("tag_v4"))
+                    .build()
+            );
+    }
+
+    @Test
     public void shouldFindByIdIn() throws TechnicalException {
         Set<Plan> plans = planRepository.findByIdIn(List.of("my-plan", "unknown-id"));
         assertNotNull(plans);
@@ -90,6 +124,22 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
         assertTrue(compareDate(new Date(1506878460000L), plan.getPublishedAt()));
         assertTrue(compareDate(new Date(1507611600000L), plan.getClosedAt()));
         assertTrue(compareDate(new Date(1507611670000L), plan.getNeedRedeployAt()));
+    }
+
+    @Test
+    public void shouldFindByIdIn_v4() throws TechnicalException {
+        Set<Plan> plans = planRepository.findByIdIn(List.of("my-plan", "plan-v4"));
+        assertThat(plans)
+            .hasSize(2)
+            .extracting(
+                Plan::getId,
+                Plan::getName,
+                Plan::getDefinitionVersion,
+                Plan::getCharacteristics,
+                Plan::getExcludedGroups,
+                Plan::getTags
+            )
+            .contains(tuple("plan-v4", "Free plan", DefinitionVersion.V4, List.of("charac_v4"), List.of("grp_v4"), Set.of("tag_v4")));
     }
 
     @Test
@@ -148,13 +198,41 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
-    public void shouldFindByApis() throws Exception {
-        final List<Plan> plans = planRepository.findByApis(Arrays.asList("api1", "4e0db366-f772-4489-8db3-66f772b48989"));
+    public void shouldFindByApi_v4() throws Exception {
+        final Set<Plan> plans = planRepository.findByApi("api2");
 
-        assertNotNull(plans);
-        assertEquals(3, plans.size());
-        assertEquals(2, plans.stream().filter(plan -> plan.getApi().equals("api1")).count());
-        assertEquals(1, plans.stream().filter(plan -> plan.getApi().equals("4e0db366-f772-4489-8db3-66f772b48989")).count());
+        assertThat(plans)
+            .hasSize(1)
+            .extracting(
+                Plan::getId,
+                Plan::getName,
+                Plan::getDefinitionVersion,
+                Plan::getCharacteristics,
+                Plan::getExcludedGroups,
+                Plan::getTags
+            )
+            .contains(tuple("plan-v4", "Free plan", DefinitionVersion.V4, List.of("charac_v4"), List.of("grp_v4"), Set.of("tag_v4")));
+    }
+
+    @Test
+    public void shouldFindByApis() throws Exception {
+        final List<Plan> plans = planRepository.findByApis(Arrays.asList("api1", "api2"));
+
+        assertThat(plans)
+            .hasSize(3)
+            .extracting(
+                Plan::getId,
+                Plan::getName,
+                Plan::getDefinitionVersion,
+                Plan::getCharacteristics,
+                Plan::getExcludedGroups,
+                Plan::getTags
+            )
+            .contains(
+                tuple("my-plan", "Free plan", null, List.of("charac 1", "charac 2"), List.of("grp1"), Set.of("tag2", "tag1")),
+                tuple("products", "Products", null, emptyList(), emptyList(), emptySet()),
+                tuple("plan-v4", "Free plan", DefinitionVersion.V4, List.of("charac_v4"), List.of("grp_v4"), Set.of("tag_v4"))
+            );
     }
 
     @Test
@@ -201,6 +279,31 @@ public class PlanRepositoryTest extends AbstractManagementRepositoryTest {
         Assert.assertTrue("Invalid plan published date.", compareDate(plan.getPublishedAt(), createdPlan.getPublishedAt()));
         Assert.assertTrue("Invalid plan closed date.", compareDate(plan.getClosedAt(), createdPlan.getClosedAt()));
         Assert.assertEquals("Invalid plan security.", plan.getSecurity(), createdPlan.getSecurity());
+    }
+
+    @Test
+    public void should_create_v4() throws Exception {
+        var toCreate = Plan
+            .builder()
+            .id("a-plan-v4")
+            .definitionVersion(DefinitionVersion.V4)
+            .name("Plan V4")
+            .description("Description of the V4 plan")
+            .api("api2")
+            .security(Plan.PlanSecurityType.API_KEY)
+            .validation(Plan.PlanValidationType.AUTO)
+            .type(Plan.PlanType.API)
+            .mode(Plan.PlanMode.STANDARD)
+            .status(Plan.Status.PUBLISHED)
+            .order(0)
+            .createdAt(new Date(1506964899000L))
+            .characteristics(emptyList())
+            .excludedGroups(emptyList())
+            .build();
+
+        var created = planRepository.create(toCreate);
+
+        assertThat(created).usingRecursiveComparison().isEqualTo(toCreate);
     }
 
     @Test
