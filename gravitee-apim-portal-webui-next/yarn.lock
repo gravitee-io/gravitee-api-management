@@ -11457,6 +11457,7 @@ __metadata:
     jest-junit: "npm:16.0.0"
     jest-preset-angular: "npm:14.0.3"
     license-check-and-add: "npm:4.0.5"
+    ngx-infinite-scroll: "npm:17.0.0"
     prettier: "npm:3.2.5"
     prettier-eslint: "npm:16.3.0"
     rxjs: "npm:7.8.0"
@@ -14183,6 +14184,18 @@ __metadata:
   version: 2.6.2
   resolution: "neo-async@npm:2.6.2"
   checksum: 10c0/c2f5a604a54a8ec5438a342e1f356dff4bc33ccccdb6dc668d94fe8e5eccfc9d2c2eea6064b0967a767ba63b33763f51ccf2cd2441b461a7322656c1f06b3f5d
+  languageName: node
+  linkType: hard
+
+"ngx-infinite-scroll@npm:17.0.0":
+  version: 17.0.0
+  resolution: "ngx-infinite-scroll@npm:17.0.0"
+  dependencies:
+    tslib: "npm:^2.3.0"
+  peerDependencies:
+    "@angular/common": ">=17.0.0 <18.0.0"
+    "@angular/core": ">=17.0.0 <18.0.0"
+  checksum: 10c0/2b78597707880454c955f63672890ea831568b3e82de27e08657cdd2a0545d281663e0a53727a12dbf47b635773f1d2f4b2118a4d37f9bb8a44321a23b9bbd6f
   languageName: node
   linkType: hard
 
