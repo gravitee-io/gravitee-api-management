@@ -23,6 +23,7 @@ import jakarta.ws.rs.core.Response;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
+import org.openapitools.jackson.nullable.JsonNullable;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -56,7 +57,7 @@ public class ConstraintValidationExceptionMapper extends AbstractExceptionMapper
                     .message(constraintViolation.getMessage())
                     // getPropertyPath returns a location in the form of "methodName.methodParameter.fieldNameOfTheParameter.[...]". We are not interested by the method name and parameter, so we remove them.
                     .location(errorLocation.substring(StringUtils.ordinalIndexOf(errorLocation, ".", 2) + 1))
-                    .invalidValue(constraintViolation.getInvalidValue())
+                    .invalidValue(JsonNullable.of(constraintViolation.getInvalidValue()))
                     .build();
             })
             .collect(Collectors.toList());
