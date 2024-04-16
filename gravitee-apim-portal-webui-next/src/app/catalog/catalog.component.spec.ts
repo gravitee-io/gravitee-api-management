@@ -18,6 +18,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatCardHarness } from '@angular/material/card/testing';
+import { RouterModule } from '@angular/router';
 
 import { CatalogComponent } from './catalog.component';
 import { ApiCardHarness } from '../../components/api-card/api-card.harness';
@@ -32,7 +33,7 @@ describe('CatalogComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CatalogComponent, AppTestingModule],
+      imports: [CatalogComponent, AppTestingModule, RouterModule.forRoot([])],
     }).compileComponents();
 
     fixture = TestBed.createComponent(CatalogComponent);
@@ -107,7 +108,8 @@ describe('CatalogComponent', () => {
       const allHarnesses = await harnessLoader.getAllHarnesses(ApiCardHarness);
       expect(allHarnesses.length).toEqual(2);
 
-      const secondPageApi = await harnessLoader.getHarnessOrNull(ApiCardHarness.with({ selector: '#second-page-api' }));
+      const secondPageApi = await harnessLoader.getHarnessOrNull(ApiCardHarness.with({ selector: '[ng-reflect-id="second-page-api"]' }));
+      console.log(1, secondPageApi);
       expect(secondPageApi).toBeTruthy();
     });
 

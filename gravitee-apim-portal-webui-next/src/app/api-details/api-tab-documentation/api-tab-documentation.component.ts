@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Routes } from '@angular/router';
+import { Component } from '@angular/core';
 
-import { ApiDetailsComponent } from './api-details/api-details.component';
-import { CatalogComponent } from './catalog/catalog.component';
-
-export const routes: Routes = [
-  { path: '', component: CatalogComponent },
-  { path: 'api/:apiId', component: ApiDetailsComponent },
-];
+@Component({
+  selector: 'app-api-tab-documentation',
+  standalone: true,
+  imports: [],
+  templateUrl: './api-tab-documentation.component.html',
+  styleUrl: './api-tab-documentation.component.scss',
+})
+export class ApiTabDocumentationComponent {}

@@ -27,6 +27,6 @@
     <p class="api-card__description">{{ content }}</p>
   </mat-card-content>
   <mat-card-actions class="api-card__actions">
-    <button i18n="@@apiCardButton" mat-stroked-button color="primary">Learn more</button>
+    <button i18n="@@apiCardButton" mat-stroked-button color="primary" [routerLink]="['/api', id]">Learn more</button>
   </mat-card-actions>
 </mat-card>

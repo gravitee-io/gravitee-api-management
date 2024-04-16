@@ -1,0 +1,51 @@
+<!--
+
+    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<mat-card class="api-details" appearance="outlined">
+  <mat-card-content class="api-details__content">
+    <div class="api-details__header">
+      <app-api-picture [picture]="details._links?.picture" [name]="details.name" [version]="details.version" [size]="40" />
+      <div>
+        <div class="api-details__header-content-title">{{ details.name }}</div>
+        <div class="api-details__header-content-version">{{ details.version }}</div>
+      </div>
+      <button i18n="@@logInOrSignUpToSubscribe" mat-stroked-button disabled color="primary api-details__header-button">
+        Log in / Sign up to subscribe
+      </button>
+    </div>
+    @if (details.description) {
+      <app-banner class="api-details__banner">
+        <div class="api-details__banner-content">
+          <mat-icon svgIcon="light-bulb" aria-hidden="false" aria-label="Light-bulb icon"></mat-icon>
+          <p>{{ details.description }}</p>
+        </div>
+      </app-banner>
+    }
+    <mat-tab-group animationDuration="0ms">
+      <mat-tab label="Details">
+        <ng-template matTabContent>
+          <app-api-tab-details />
+        </ng-template>
+      </mat-tab>
+      <mat-tab label="Documentation">
+        <ng-template matTabContent>
+          <app-api-tab-documentation />
+        </ng-template>
+      </mat-tab>
+    </mat-tab-group>
+  </mat-card-content>
+</mat-card>
