@@ -123,8 +123,7 @@ public class UserTokensResource extends AbstractResource {
         userService.findById(GraviteeContext.getExecutionContext(), userId);
 
         // Check that token exists and belongs to user
-        Token tokenToRevoke = tokenService.findByToken(tokenId);
-        if (!userId.equalsIgnoreCase(tokenToRevoke.getReferenceId())) {
+        if (!tokenService.tokenExistsForUser(tokenId, userId)) {
             throw new TokenNotFoundException(tokenId);
         }
 
