@@ -84,6 +84,7 @@ public class ApiDefinitionResource extends AbstractResource {
     }
 
     @PATCH
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(
         summary = "Update the API with json patches",

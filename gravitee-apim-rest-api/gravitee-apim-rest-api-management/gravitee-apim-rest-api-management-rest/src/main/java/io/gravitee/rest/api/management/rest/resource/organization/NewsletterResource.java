@@ -55,6 +55,7 @@ public class NewsletterResource extends AbstractResource {
     private UserService userService;
 
     @POST
+    @Produces(MediaType.APPLICATION_JSON)
     @Path("/_subscribe")
     @Operation(summary = "Subscribe to the newsletter the authenticated user")
     @ApiResponse(
