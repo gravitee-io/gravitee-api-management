@@ -28,6 +28,7 @@ import java.util.List;
 public interface TokenService {
     List<TokenEntity> findByUser(String userId);
     Token findByToken(String token);
+    boolean tokenExistsForUser(String tokenId, String userId);
     TokenEntity create(ExecutionContext executionContext, NewTokenEntity token, String userId);
     void revokeByUser(ExecutionContext executionContext, String userId);
     void revoke(ExecutionContext executionContext, String tokenId);
