@@ -39,6 +39,7 @@ body {
   background-color: $background-color;
   color: $default-text-color;
   font-family: 'Golos UI', Roboto, 'Helvetica Neue', sans-serif;
+  overflow-y: scroll;
 
   p {
     color: $paragraph-color;

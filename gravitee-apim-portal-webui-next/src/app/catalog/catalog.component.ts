@@ -22,6 +22,7 @@ import { BehaviorSubject, map, Observable, scan, switchMap, tap } from 'rxjs';
 
 import { ApiCardComponent } from '../../components/api-card/api-card.component';
 import { BannerComponent } from '../../components/banner/banner.component';
+import { LoaderComponent } from '../../components/loader/loader.component';
 import { ApiService } from '../../services/api.service';
 
 export interface ApiVM {
@@ -41,7 +42,7 @@ export interface ApiPaginatorVM {
 @Component({
   selector: 'app-catalog',
   standalone: true,
-  imports: [BannerComponent, MatCard, MatCardContent, ApiCardComponent, AsyncPipe, InfiniteScrollModule],
+  imports: [BannerComponent, MatCard, MatCardContent, ApiCardComponent, AsyncPipe, InfiniteScrollModule, LoaderComponent],
   templateUrl: './catalog.component.html',
   styleUrl: './catalog.component.scss',
 })
