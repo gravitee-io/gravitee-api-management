@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.0.6...1.1.0) (2024-04-16)
+
+
+### Features
+
+* add entrypoint id to v4 metrics index ([3e116a8](https://github.com/gravitee-io/gravitee-reporter-common/commit/3e116a82c1963800d3a01b490d939a1bd77a5d78))
+
 ## [1.0.6](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.0.5...1.0.6) (2024-03-28)
 
 
