@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass;
 
 import org.junit.jupiter.api.AfterEach;
@@ -49,6 +50,16 @@ class GatewayTestingExtensionTest {
         EngineTestKit
             .engine("junit-jupiter")
             .selectors(selectClass(SuccessTestCase.class))
+            .execute()
+            .testEvents()
+            .assertStatistics(stats -> stats.started(1).succeeded(1));
+    }
+
+    @Test
+    void should_replace_placeholders() {
+        EngineTestKit
+            .engine("junit-jupiter")
+            .selectors(selectClass(PlaceholderTestCase.class))
             .execute()
             .testEvents()
             .assertStatistics(stats -> stats.started(1).succeeded(1));

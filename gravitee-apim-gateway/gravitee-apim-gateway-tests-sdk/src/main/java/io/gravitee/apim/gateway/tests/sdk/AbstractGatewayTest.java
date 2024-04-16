@@ -50,11 +50,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayNameGeneration;
-import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.platform.commons.PreconditionViolationException;
@@ -80,6 +76,7 @@ public abstract class AbstractGatewayTest
     implements PluginRegister, ApiConfigurer, ApiDeployer, OrganizationConfigurer, ApplicationContextAware {
 
     private static final ObjectMapper objectMapper = new GraviteeMapper();
+    protected static final PlaceholderSymbols DEFAULT_PLACEHOLDER_SYMBOLS = new PlaceholderSymbols("${", "}");
     private int wiremockHttpsPort;
     private int wiremockPort;
 
@@ -100,6 +97,34 @@ public abstract class AbstractGatewayTest
     protected WireMockServer wiremock;
     private Consumer<ReactableApi<?>> apiDeployer;
     private Consumer<String> apiUndeployer;
+
+    /**
+     * Represent the symbol used for placeholder.
+     * Default is <code>${}</code>, meaning the prefix is <code>${</code> and the suffix is <code>}</code>.
+     * This allows for adding some particular variables such as <code>${MY_VARIABLE}</code> into the JSON API definition
+     * that can be dynamically replaced before the deployment.
+     *
+     * @param prefix the prefix for the placeholder.
+     * @param suffix the suffix for the placeholder.
+     */
+    public record PlaceholderSymbols(String prefix, String suffix) {}
+
+    /**
+     * Return the placeholder prefix <code>${</code> and suffix <code>}</code> which allows for defining variables such as <code>${MY_VARIABLE}</code>.
+     * Override this method to define a custom one.
+     *
+     * @return the placeholder prefix and suffix to use for variables.
+     */
+    public PlaceholderSymbols configurePlaceHolder() {
+        return DEFAULT_PLACEHOLDER_SYMBOLS;
+    }
+
+    /**
+     * Allows providing variables that will be used to resolve the placeholders set in the API definition.
+     *
+     * @param variables the key/value map that can be enriched with variables.
+     */
+    public void configurePlaceHolderVariables(Map<String, String> variables) {}
 
     /**
      * Override this method to modify the configuration of the wiremock server which acts as a backend for the deployed apis.
