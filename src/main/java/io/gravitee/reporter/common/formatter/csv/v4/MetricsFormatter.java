@@ -51,6 +51,7 @@ public class MetricsFormatter extends SingleValueFormatter<Metrics> {
     appendString(buffer, metrics.getMappedPath());
     appendString(buffer, metrics.getHttpMethod().name());
     appendInt(buffer, metrics.getStatus());
+    appendString(buffer, metrics.getEntrypointId());
     appendString(buffer, metrics.getEndpoint());
     appendString(buffer, metrics.getErrorKey());
     appendString(buffer, metrics.getErrorMessage(), true, false);

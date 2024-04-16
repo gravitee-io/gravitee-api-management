@@ -73,6 +73,9 @@
   ,"request-content-length":${requestContentLength}
   </#if>
   ,"request-ended":"${metrics.isRequestEnded()?c}"
+  <#if metrics.getEntrypointId()??>
+    ,"entrypoint-id":"${metrics.getEntrypointId()?j_string}"
+  </#if>
   <#if metrics.getEndpoint()??>
   ,"endpoint":"${metrics.getEndpoint()?j_string}"
   </#if>

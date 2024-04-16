@@ -19,6 +19,7 @@
   "path-info": "",
   "user-agent": "",
   "request-ended": "true",
+  "entrypoint-id": "http-get",
   "endpoint": "https://api.gravitee.io/echo",
   "endpoint-response-time-ms": 137,
   "status": 200,
