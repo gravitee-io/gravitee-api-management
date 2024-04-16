@@ -75,21 +75,14 @@ import io.gravitee.reporter.api.Reporter;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.JarURLConnection;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.URLDecoder;
-import java.net.URLStreamHandler;
+import java.net.*;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.regex.Pattern;
 import lombok.SneakyThrows;
 import org.junit.platform.commons.PreconditionViolationException;
 import org.slf4j.Logger;
@@ -713,12 +706,27 @@ public class GatewayRunner {
     }
 
     private <T> T loadResource(String resourcePath, Class<T> toClass) throws IOException {
-        URL jsonFile = loadURL(resourcePath);
-        return loadResource(jsonFile, toClass);
-    }
+        try {
+            final URL jsonFile = loadURL(resourcePath);
+            String definition = Files.readString(Paths.get(jsonFile.toURI()));
 
-    private <T> T loadResource(URL jsonFile, Class<T> toClass) throws IOException {
-        return graviteeMapper.readValue(jsonFile, toClass);
+            final AbstractGatewayTest.PlaceholderSymbols placeHolderSymbols = testInstance.configurePlaceHolder();
+
+            final HashMap<String, String> variables = new HashMap<>();
+            testInstance.configurePlaceHolderVariables(variables);
+
+            for (Map.Entry<String, String> entry : variables.entrySet()) {
+                definition =
+                    definition.replaceAll(
+                        Pattern.quote(placeHolderSymbols.prefix() + entry.getKey() + placeHolderSymbols.suffix()),
+                        entry.getValue()
+                    );
+            }
+
+            return graviteeMapper.readValue(definition, toClass);
+        } catch (URISyntaxException e) {
+            throw new IOException("Invalid resourcePath [" + resourcePath + "].", e);
+        }
     }
 
     private URL loadURL(String resourcePath) {
