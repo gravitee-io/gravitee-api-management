@@ -116,6 +116,9 @@
             "request-ended": {
                 "type": "boolean"
             },
+            "entrypoint-id": {
+                "type": "keyword"
+            },
             "endpoint": {
                 "type": "keyword"
             },
