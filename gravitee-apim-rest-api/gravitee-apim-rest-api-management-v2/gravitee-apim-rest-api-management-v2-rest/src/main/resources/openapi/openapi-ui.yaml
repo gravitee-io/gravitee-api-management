@@ -161,7 +161,6 @@ components:
                                 description: The json path of the field in error.
                                 example: updateApi.properties[0].key
                             invalidValue:
-                                type: object
                                 description: The invalid value.
     parameters:
         orgIdParam:
