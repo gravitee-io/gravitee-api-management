@@ -97,11 +97,11 @@
             </th>
             <td mat-cell *matCellDef="let integration">
               <button
-                *gioPermission="{ anyOf: ['environment-integration-u'] }"
-                disabled
+                *gioPermission="{ anyOf: ['environment-integration-u', 'environment-integration-d'] }"
+                [routerLink]="integration.id + '/configuration'"
                 mat-icon-button
-                aria-label="Edit Integration button"
-                matTooltip="Edit Integraion"
+                aria-label="Configure integration button"
+                matTooltip="Configure integraion"
               >
                 <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
               </button>

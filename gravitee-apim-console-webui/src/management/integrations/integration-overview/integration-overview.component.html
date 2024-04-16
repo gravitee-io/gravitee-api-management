@@ -63,7 +63,7 @@
           <div class="details-card__item">
             <h5 class="title body-strong">Integration ID</h5>
             <div class="status">
-              <span class="gio-badge-neutral">
+              <span class="gio-badge-neutral id-badge">
                 <div gioClipboardCopyWrapper [alwaysVisible]="true" [contentToCopy]="integration?.id">
                   {{ integration.id }}
                 </div>
@@ -107,7 +107,7 @@
               </div>
             </div>
             <div class="no-integrations__message">
-              <h2 class="header">{{ isIngesting ? 'Discover in progress' : 'No APIs created' }}</h2>
+              <h2 class="header">{{ isIngesting ? 'Discovery in progress' : 'No APIs created' }}</h2>
               <p class="description">
                 {{
                   isIngesting

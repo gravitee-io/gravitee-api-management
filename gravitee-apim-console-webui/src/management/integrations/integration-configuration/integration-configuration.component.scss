@@ -17,7 +17,7 @@
 @use 'sass:map';
 @use '@angular/material' as mat;
 @use '@gravitee/ui-particles-angular' as gio;
-@use '../../scss/gio-layout' as gio-layout;
+@use '../../../scss/gio-layout' as gio-layout;
 
 $typography: map.get(gio.$mat-theme, typography);
 
@@ -25,9 +25,14 @@ $typography: map.get(gio.$mat-theme, typography);
   @include gio-layout.gio-responsive-content-container;
 }
 
-.page-header {
-  margin-bottom: 24px;
+.integration-configuration,
+.page-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
 
+.page-header {
   &__page-title {
     @include mat.typography-level($typography, headline-6);
     margin: 0 0 4px 0;
@@ -35,54 +40,63 @@ $typography: map.get(gio.$mat-theme, typography);
 
   &__description {
     color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
-    @include mat.typography-level($typography, body-2);
   }
 }
 
 .card-header {
-  display: flex;
-  justify-content: space-between;
-  padding: 16px 16px 0 16px;
+  padding: 16px;
+  border-bottom: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker20');
 
   &__title {
-    @include mat.typography-level($typography, subtitle-1);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-
     h3 {
+      @include mat.typography-level($typography, subtitle-1);
       margin: 0;
     }
   }
 }
 
-.no-integrations {
-  &__img {
-    display: flex;
-    justify-content: center;
-    padding: 36px 0 24px 0;
+.form {
+  margin: 16px 0;
 
-    .banner {
-      width: 327px;
-    }
+  .form-field {
+    width: 100%;
   }
 
-  &__message {
+  textarea {
+    resize: none;
+  }
+
+  .hint {
+    color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+  }
+}
+
+.body-strong {
+  @include mat.typography-level($typography, body-1);
+}
+
+.loadingTemplate {
+  height: 50vh;
+  display: flex;
+}
+
+.danger-card {
+  border: 1px solid mat.get-color-from-palette(gio.$mat-error-palette, 'default');
+
+  &__title {
+    color: mat.get-color-from-palette(gio.$mat-error-palette, 'default');
+  }
+
+  &__actions {
     display: flex;
     flex-direction: column;
-    padding: 12px 0 22px 0;
 
-    .header {
-      @include mat.typography-level($typography, 'headline-6');
-      align-self: center;
-    }
-
-    .description {
-      color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
-      @include mat.typography-level($typography, body-2);
-      width: 343px;
-      align-self: center;
-      text-align: center;
+    &__action {
+      display: flex;
+      align-items: center;
+      flex-direction: row;
+      justify-content: space-between;
+      height: 48px;
     }
   }
 }

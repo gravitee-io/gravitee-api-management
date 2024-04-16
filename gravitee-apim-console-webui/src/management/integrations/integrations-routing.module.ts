@@ -21,6 +21,7 @@ import { IntegrationsComponent } from './integrations.component';
 import { CreateIntegrationComponent } from './create-integration/create-integration.component';
 import { IntegrationsNavigationComponent } from './integrations-navigation/integrations-navigation.component';
 import { IntegrationOverviewComponent } from './integration-overview/integration-overview.component';
+import { IntegrationConfigurationComponent } from './integration-configuration/integration-configuration.component';
 
 const routes: Routes = [
   {
@@ -46,6 +47,15 @@ const routes: Routes = [
         data: {
           permissions: {
             anyOf: ['environment-integration-r'],
+          },
+        },
+      },
+      {
+        path: 'configuration',
+        component: IntegrationConfigurationComponent,
+        data: {
+          permissions: {
+            anyOf: ['environment-integration-u', 'environment-integration-d'],
           },
         },
       },

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { BrowserAnimationsModule, NoopAnimationsModule } from '@angular/platform-browser/animations';
@@ -28,13 +29,14 @@ import { IntegrationsModule } from '../integrations.module';
 import { GioTestingModule } from '../../../shared/testing';
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
 import { fakeIntegration } from '../../../entities/integrations/integration.fixture';
+import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 
 describe('IntegrationsNavigationComponent', () => {
   let fixture: ComponentFixture<IntegrationsNavigationComponent>;
   let componentHarness: IntegrationsNavigationHarness;
   let httpTestingController: HttpTestingController;
 
-  beforeEach(async () => {
+  const init = async (hasAnyMatching): Promise<void> => {
     await TestBed.configureTestingModule({
       declarations: [IntegrationsNavigationComponent],
       imports: [GioTestingModule, IntegrationsModule, BrowserAnimationsModule, NoopAnimationsModule],
@@ -43,6 +45,12 @@ describe('IntegrationsNavigationComponent', () => {
           provide: IntegrationsService,
           useValue: {
             currentIntegration: () => of(fakeIntegration()),
+          },
+        },
+        {
+          provide: GioPermissionService,
+          useValue: {
+            hasAnyMatching: () => hasAnyMatching,
           },
         },
       ],
@@ -54,37 +62,68 @@ describe('IntegrationsNavigationComponent', () => {
         },
       })
       .compileComponents();
-  });
 
-  beforeEach(async () => {
     fixture = TestBed.createComponent(IntegrationsNavigationComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, IntegrationsNavigationHarness);
     fixture.detectChanges();
-  });
+  };
 
   afterEach(() => {
     httpTestingController.verify();
   });
 
-  it('should display correct number of items in navigation', async (): Promise<void> => {
-    fixture.componentInstance.items = [
-      {
-        routerLink: `/boo`,
-        displayName: 'test1',
-        permissions: [],
-        icon: 'info',
-      },
-      {
-        routerLink: `/bla`,
-        displayName: 'test2',
-        permissions: [],
-        icon: 'info',
-      },
-    ];
-    fixture.detectChanges();
+  describe('menu items without permissions', () => {
+    beforeEach(async () => {
+      init(false);
+    });
 
-    const menuItems: TestElement[] = await componentHarness.getMenuItems();
-    expect(menuItems.length).toEqual(2);
+    it('should not be in view', async (): Promise<void> => {
+      fixture.componentInstance.items = [
+        {
+          routerLink: `/boo`,
+          displayName: 'test1',
+          permissions: [''],
+          icon: 'info',
+        },
+        {
+          routerLink: `/bla`,
+          displayName: 'test2',
+          permissions: [''],
+          icon: 'info',
+        },
+      ];
+      fixture.detectChanges();
+
+      const menuItems: TestElement[] = await componentHarness.getMenuItems();
+      expect(menuItems.length).toEqual(0);
+    });
+  });
+
+  describe('menu items with permissions', () => {
+    beforeEach(async () => {
+      init(true);
+    });
+
+    it('should be in view', async (): Promise<void> => {
+      fixture.componentInstance.items = [
+        {
+          routerLink: `/boo`,
+          displayName: 'test1',
+          permissions: [''],
+          icon: 'info',
+        },
+        {
+          routerLink: `/bla`,
+          displayName: 'test2',
+          permissions: [''],
+          icon: 'info',
+        },
+      ];
+      fixture.detectChanges();
+
+      const menuItems: TestElement[] = await componentHarness.getMenuItems();
+      expect(menuItems.length).toEqual(2);
+    });
   });
 });

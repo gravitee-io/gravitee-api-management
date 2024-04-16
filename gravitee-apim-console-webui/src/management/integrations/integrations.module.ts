@@ -32,6 +32,7 @@ import {
   GioFormSelectionInlineModule,
   GioLoaderModule,
   GioSubmenuModule,
+  GioSaveBarModule,
 } from '@gravitee/ui-particles-angular';
 import { MatStep, MatStepLabel, MatStepper, MatStepperIcon, MatStepperNext, MatStepperPrevious } from '@angular/material/stepper';
 
@@ -40,12 +41,19 @@ import { CreateIntegrationComponent } from './create-integration/create-integrat
 import { IntegrationsRoutingModule } from './integrations-routing.module';
 import { IntegrationOverviewComponent } from './integration-overview/integration-overview.component';
 import { IntegrationsNavigationComponent } from './integrations-navigation/integrations-navigation.component';
+import { IntegrationConfigurationComponent } from './integration-configuration/integration-configuration.component';
 
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
 
 @NgModule({
-  declarations: [IntegrationsComponent, CreateIntegrationComponent, IntegrationOverviewComponent, IntegrationsNavigationComponent],
+  declarations: [
+    IntegrationsComponent,
+    CreateIntegrationComponent,
+    IntegrationOverviewComponent,
+    IntegrationsNavigationComponent,
+    IntegrationConfigurationComponent,
+  ],
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -83,6 +91,7 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
     GioLoaderModule,
     GioPermissionModule,
     GioFormSelectionInlineModule,
+    GioSaveBarModule,
   ],
 })
 export class IntegrationsModule {}
