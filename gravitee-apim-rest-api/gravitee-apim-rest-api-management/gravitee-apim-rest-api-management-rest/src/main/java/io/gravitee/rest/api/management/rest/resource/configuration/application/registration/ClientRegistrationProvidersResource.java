@@ -92,6 +92,8 @@ public class ClientRegistrationProvidersResource extends AbstractResource {
     }
 
     @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_CLIENT_REGISTRATION_PROVIDER, acls = RolePermissionAction.CREATE) })
     @Operation(
         summary = "Create a client registration provider",
