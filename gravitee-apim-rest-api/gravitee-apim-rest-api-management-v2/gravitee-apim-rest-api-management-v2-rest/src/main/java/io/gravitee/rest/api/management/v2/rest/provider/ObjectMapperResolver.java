@@ -15,11 +15,17 @@
  */
 package io.gravitee.rest.api.management.v2.rest.provider;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.*;
+import com.fasterxml.jackson.databind.deser.std.StdScalarDeserializer;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.ser.std.StdScalarSerializer;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
+import io.gravitee.rest.api.management.v2.rest.model.ErrorDetailsInner;
 import jakarta.ws.rs.ext.ContextResolver;
 import jakarta.ws.rs.ext.Provider;
+import java.io.IOException;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -34,10 +40,61 @@ public class ObjectMapperResolver implements ContextResolver<ObjectMapper> {
     public ObjectMapperResolver() {
         mapper = new GraviteeMapper();
         mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        mapper.registerModule(
+            new SimpleModule()
+                // Ser & Deser for ErrorDetailsInner. Avoid to have JsonNullable "present" parameter in the response.
+                .addSerializer(new ErrorDetailsInnerSerializer(ErrorDetailsInner.class))
+                .addDeserializer(ErrorDetailsInner.class, new ErrorDetailsInnerDeserializer(ErrorDetailsInner.class))
+        );
     }
 
     @Override
     public ObjectMapper getContext(Class<?> type) {
         return mapper;
+    }
+
+    public static class ErrorDetailsInnerSerializer extends StdScalarSerializer<ErrorDetailsInner> {
+
+        protected ErrorDetailsInnerSerializer(Class<ErrorDetailsInner> t) {
+            super(t);
+        }
+
+        @Override
+        public void serialize(ErrorDetailsInner value, JsonGenerator gen, SerializerProvider serializers) throws java.io.IOException {
+            gen.writeStartObject();
+            if (value.getMessage() != null) {
+                gen.writeStringField("message", value.getMessage());
+            }
+            if (value.getInvalidValue() != null) {
+                gen.writeObjectField("invalidValue", value.getInvalidValue());
+            }
+            if (value.getLocation() != null) {
+                gen.writeStringField("location", value.getLocation());
+            }
+            gen.writeEndObject();
+        }
+    }
+
+    public static class ErrorDetailsInnerDeserializer extends StdScalarDeserializer<ErrorDetailsInner> {
+
+        protected ErrorDetailsInnerDeserializer(Class<?> vc) {
+            super(vc);
+        }
+
+        @Override
+        public ErrorDetailsInner deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+            ErrorDetailsInner errorDetailsInner = new ErrorDetailsInner();
+            JsonNode node = p.getCodec().readTree(p);
+            if (node.has("message")) {
+                errorDetailsInner.setMessage(node.get("message").asText());
+            }
+            if (node.has("invalidValue")) {
+                errorDetailsInner.setInvalidValue(node.get("invalidValue"));
+            }
+            if (node.has("location")) {
+                errorDetailsInner.setLocation(node.get("location").asText());
+            }
+            return errorDetailsInner;
+        }
     }
 }
