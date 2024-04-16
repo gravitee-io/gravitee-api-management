@@ -35,11 +35,26 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
 
     @Override
     public Api validateAndSanitizeForCreation(Api api, PrimaryOwnerEntity primaryOwner, String environmentId, String organizationId) {
+        var apiEntity = ApiAdapter.INSTANCE.toNewApiEntity(api);
+
         apiValidationService.validateAndSanitizeNewApi(
             new ExecutionContext(organizationId, environmentId),
-            ApiAdapter.INSTANCE.toNewApiEntity(api),
+            apiEntity,
             PrimaryOwnerAdapter.INSTANCE.toRestEntity(primaryOwner)
         );
+
+        api.setName(apiEntity.getName());
+        api.setVersion(apiEntity.getApiVersion());
+        api.setType(apiEntity.getType());
+        api.setDescription(apiEntity.getDescription());
+        api.setGroups(apiEntity.getGroups());
+        api.setTag(apiEntity.getTags());
+        api.getApiDefinitionV4().setListeners(apiEntity.getListeners());
+        api.getApiDefinitionV4().setEndpointGroups(apiEntity.getEndpointGroups());
+        api.getApiDefinitionV4().setAnalytics(apiEntity.getAnalytics());
+        api.getApiDefinitionV4().setFlowExecution(apiEntity.getFlowExecution());
+        api.getApiDefinitionV4().setFlows(apiEntity.getFlows());
+
         return api;
     }
 }

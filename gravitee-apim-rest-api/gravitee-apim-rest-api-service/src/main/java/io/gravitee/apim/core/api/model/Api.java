@@ -19,6 +19,7 @@ import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
+import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.rest.api.model.context.ManagementContext;
 import io.gravitee.rest.api.model.context.OriginContext;
@@ -164,6 +165,16 @@ public class Api {
             case V1, V2 -> apiDefinition.getTags();
             case FEDERATED -> Collections.emptySet();
         };
+    }
+
+    public Api setTag(Set<String> tags) {
+        if (apiDefinitionV4 != null) {
+            apiDefinitionV4.setTags(tags);
+        }
+        if (apiDefinition != null) {
+            apiDefinition.setTags(tags);
+        }
+        return this;
     }
 
     public Api setId(String id) {
