@@ -110,6 +110,7 @@ public class TokenServiceTest {
         when(token.getCreatedAt()).thenReturn(new Date(1486771200000L));
         when(token.getExpiresAt()).thenReturn(new Date(1486772200000L));
         when(token.getLastUseAt()).thenReturn(new Date(1486773200000L));
+        when(token.getReferenceId()).thenReturn(USER_ID);
         when(tokenRepository.findById(TOKEN_ID)).thenReturn(of(token));
 
         SecurityContextHolder.setContext(
@@ -312,5 +313,25 @@ public class TokenServiceTest {
             verify(tokenRepository, never()).update(any());
             throw e;
         }
+    }
+
+    @Test
+    public void should_return_token_does_not_exist() throws TechnicalException {
+        when(tokenRepository.findById(TOKEN_ID)).thenReturn(Optional.empty());
+        boolean tokenExistsForUser = tokenService.tokenExistsForUser(TOKEN_ID, USER_ID);
+        assertFalse(tokenExistsForUser);
+    }
+
+    @Test
+    public void should_return_token_does_not_exist_because_does_not_belong_to_user() throws TechnicalException {
+        when(token.getReferenceId()).thenReturn("another_user_id");
+        boolean tokenExistsForUser = tokenService.tokenExistsForUser(TOKEN_ID, USER_ID);
+        assertFalse(tokenExistsForUser);
+    }
+
+    @Test
+    public void should_return_token_exists() throws TechnicalException {
+        boolean tokenExistsForUser = tokenService.tokenExistsForUser(TOKEN_ID, USER_ID);
+        assertTrue(tokenExistsForUser);
     }
 }

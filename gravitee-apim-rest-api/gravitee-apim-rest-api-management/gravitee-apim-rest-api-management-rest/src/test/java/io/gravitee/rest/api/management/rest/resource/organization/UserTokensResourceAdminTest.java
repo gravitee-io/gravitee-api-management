@@ -151,14 +151,12 @@ public class UserTokensResourceAdminTest extends AbstractResourceTest {
 
     @Test
     public void shouldRevokeToken() {
-        Token existingToken = new Token();
-        existingToken.setReferenceId(USER_ID);
-        when(tokenService.findByToken(TOKEN_ID)).thenReturn(existingToken);
+        when(tokenService.tokenExistsForUser(TOKEN_ID, USER_ID)).thenReturn(true);
 
         final Response response = envTarget().path(TOKEN_ID).request().delete();
 
         assertThat(response.getStatus()).isEqualTo(204);
-        verify(tokenService, times(1)).findByToken(TOKEN_ID);
+        verify(tokenService, times(1)).tokenExistsForUser(TOKEN_ID, USER_ID);
         verify(userService, times(1)).findById(GraviteeContext.getExecutionContext(), USER_ID);
         verify(tokenService, times(1)).revoke(GraviteeContext.getExecutionContext(), TOKEN_ID);
     }
@@ -171,33 +169,31 @@ public class UserTokensResourceAdminTest extends AbstractResourceTest {
 
         assertThat(response.getStatus()).isEqualTo(404);
         verify(userService, times(1)).findById(GraviteeContext.getExecutionContext(), USER_ID);
-        verify(tokenService, never()).findByToken(TOKEN_ID);
+        verify(tokenService, never()).tokenExistsForUser(TOKEN_ID, USER_ID);
         verify(tokenService, never()).revoke(GraviteeContext.getExecutionContext(), TOKEN_ID);
     }
 
     @Test
     public void shouldNotRevokeTokenBecauseTokenDoesNotExist() {
-        when(tokenService.findByToken(TOKEN_ID)).thenThrow(new TokenNotFoundException(TOKEN_ID));
+        when(tokenService.tokenExistsForUser(TOKEN_ID, USER_ID)).thenReturn(false);
 
         final Response response = envTarget().path(TOKEN_ID).request().delete();
 
         assertThat(response.getStatus()).isEqualTo(404);
         verify(userService, times(1)).findById(GraviteeContext.getExecutionContext(), USER_ID);
-        verify(tokenService, times(1)).findByToken(TOKEN_ID);
+        verify(tokenService, times(1)).tokenExistsForUser(TOKEN_ID, USER_ID);
         verify(tokenService, never()).revoke(GraviteeContext.getExecutionContext(), TOKEN_ID);
     }
 
     @Test
     public void shouldNotRevokeTokenBecauseTokenDoesBelongToUser() {
-        Token existingToken = new Token();
-        existingToken.setReferenceId("another_user_id");
-        when(tokenService.findByToken(TOKEN_ID)).thenReturn(existingToken);
+        when(tokenService.tokenExistsForUser(TOKEN_ID, USER_ID)).thenReturn(false);
 
         final Response response = envTarget().path(TOKEN_ID).request().delete();
 
         assertThat(response.getStatus()).isEqualTo(404);
         verify(userService, times(1)).findById(GraviteeContext.getExecutionContext(), USER_ID);
-        verify(tokenService, times(1)).findByToken(TOKEN_ID);
+        verify(tokenService, times(1)).tokenExistsForUser(TOKEN_ID, USER_ID);
         verify(tokenService, never()).revoke(GraviteeContext.getExecutionContext(), TOKEN_ID);
     }
 
