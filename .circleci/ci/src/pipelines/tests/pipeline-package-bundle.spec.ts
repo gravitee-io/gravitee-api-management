@@ -37,7 +37,7 @@ describe('Package bundle workflow tests', () => {
     });
 
     const expected = fs.readFileSync(`./src/pipelines/tests/resources/package-bundle/${expectedFileName}`, 'utf-8');
-    expect(expected).toStrictEqual(result.stringify());
+    expect(result.stringify()).toStrictEqual(expected);
   });
 
   it('should throw an error when trying to generate package bundle config without graviteeio version', () => {

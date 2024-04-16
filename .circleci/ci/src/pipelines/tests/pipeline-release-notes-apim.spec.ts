@@ -37,7 +37,7 @@ describe('Release notes apim workflow tests', () => {
       });
 
       const expected = fs.readFileSync(`./src/pipelines/tests/resources/release-notes-apim/${expectedFileName}`, 'utf-8');
-      expect(expected).toStrictEqual(result.stringify());
+      expect(result.stringify()).toStrictEqual(expected);
     },
   );
 
