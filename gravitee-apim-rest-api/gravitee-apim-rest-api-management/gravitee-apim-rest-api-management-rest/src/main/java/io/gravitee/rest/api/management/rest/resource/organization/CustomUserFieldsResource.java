@@ -77,6 +77,8 @@ public class CustomUserFieldsResource extends AbstractResource {
     }
 
     @POST
+    @Consumes(io.gravitee.common.http.MediaType.APPLICATION_JSON)
+    @Produces(io.gravitee.common.http.MediaType.APPLICATION_JSON)
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_CUSTOM_USER_FIELDS, acls = CREATE))
     @Operation(
         summary = "Create a Custom User Field",
@@ -98,6 +100,8 @@ public class CustomUserFieldsResource extends AbstractResource {
     }
 
     @PUT
+    @Consumes(io.gravitee.common.http.MediaType.APPLICATION_JSON)
+    @Produces(io.gravitee.common.http.MediaType.APPLICATION_JSON)
     @Path("{key}")
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_CUSTOM_USER_FIELDS, acls = UPDATE))
     @Operation(
