@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { RouterModule } from '@angular/router';
 
 import { ApiCardComponent } from './api-card.component';
 import { ApiVM } from '../../app/catalog/catalog.component';
@@ -30,7 +31,7 @@ describe('CardComponent', () => {
   };
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ApiCardComponent],
+      imports: [ApiCardComponent, RouterModule.forRoot([])],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ApiCardComponent);

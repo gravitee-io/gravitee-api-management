@@ -16,13 +16,14 @@
 import { Component, Input } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { RouterModule } from '@angular/router';
 
 import { ApiPictureComponent } from '../api-picture/api-picture.component';
 
 @Component({
   selector: 'app-api-card',
   standalone: true,
-  imports: [MatCardModule, MatButtonModule, ApiPictureComponent],
+  imports: [MatCardModule, MatButtonModule, ApiPictureComponent, RouterModule],
   templateUrl: './api-card.component.html',
   styleUrl: './api-card.component.scss',
 })
@@ -31,6 +32,8 @@ export class ApiCardComponent {
   title!: string;
   @Input({ required: true })
   version!: string;
+  @Input({ required: true })
+  id!: string;
   @Input()
   picture: string | undefined;
   @Input()
