@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.rest.resource.organization;
 
 import static io.gravitee.common.http.MediaType.APPLICATION_JSON;
 
+import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.resource.AbstractResource;
 import io.gravitee.rest.api.management.rest.security.Permission;
 import io.gravitee.rest.api.management.rest.security.Permissions;
@@ -239,6 +240,7 @@ public class UserResource extends AbstractResource {
     }
 
     @PUT
+    @Consumes(io.gravitee.common.http.MediaType.APPLICATION_JSON)
     @Path("/roles")
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.UPDATE))
     public Response updateUserRoles(@NotNull UserReferenceRoleEntity userReferenceRoles) {
@@ -253,6 +255,7 @@ public class UserResource extends AbstractResource {
     }
 
     @POST
+    @Produces(MediaType.APPLICATION_JSON)
     @Path("/changePassword")
     @Operation(summary = "Change user password after a reset", description = "User registration must be enabled")
     @ApiResponse(
@@ -274,6 +277,7 @@ public class UserResource extends AbstractResource {
     }
 
     @POST
+    @Produces(MediaType.APPLICATION_JSON)
     @Path("/_process")
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_USERS, acls = RolePermissionAction.UPDATE))
     @Operation(summary = "Process a user registration by accepting or rejecting it")
