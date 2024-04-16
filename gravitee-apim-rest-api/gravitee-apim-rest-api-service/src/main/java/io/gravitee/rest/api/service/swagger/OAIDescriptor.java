@@ -15,16 +15,27 @@
  */
 package io.gravitee.rest.api.service.swagger;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import io.swagger.v3.core.util.Json;
+import io.swagger.v3.core.util.Json31;
+import io.swagger.v3.core.util.Yaml;
+import io.swagger.v3.core.util.Yaml31;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.SpecVersion;
 import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author GraviteeSource Team
  */
-public final class OAIDescriptor extends AbstractDescriptor<OpenAPI> {
+@Getter
+public final class OAIDescriptor implements SwaggerDescriptor<OpenAPI> {
 
     private final OpenAPI oai;
+
+    @Setter
     private List<String> messages;
 
     public OAIDescriptor(final OpenAPI oai) {
@@ -36,11 +47,21 @@ public final class OAIDescriptor extends AbstractDescriptor<OpenAPI> {
         return oai;
     }
 
-    public List<String> getMessages() {
-        return messages;
+    @Override
+    public String toYaml() throws JsonProcessingException {
+        if (SpecVersion.V31 == oai.getSpecVersion()) {
+            return Yaml31.pretty(oai);
+        } else {
+            return Yaml.pretty(oai);
+        }
     }
 
-    public void setMessages(List<String> messages) {
-        this.messages = messages;
+    @Override
+    public String toJson() throws JsonProcessingException {
+        if (SpecVersion.V31 == oai.getSpecVersion()) {
+            return Json31.pretty(oai);
+        } else {
+            return Json.pretty(oai);
+        }
     }
 }
