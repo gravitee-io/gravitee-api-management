@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.rest.resource.organization;
 
 import static io.gravitee.common.http.MediaType.APPLICATION_JSON;
 
+import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.NewExternalUserEntity;
 import io.gravitee.rest.api.model.RegisterUserEntity;
@@ -60,6 +61,8 @@ public class UsersRegistrationResource extends AbstractResource {
      * Generate a token and send it in an email to allow a user to create an account.
      */
     @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Register a user", description = "User registration must be enabled")
     @ApiResponse(
         responseCode = "200",
@@ -77,6 +80,8 @@ public class UsersRegistrationResource extends AbstractResource {
     }
 
     @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     @Path("/finalize")
     @Operation(summary = "Finalize user registration", description = "User registration must be enabled")
     @ApiResponse(

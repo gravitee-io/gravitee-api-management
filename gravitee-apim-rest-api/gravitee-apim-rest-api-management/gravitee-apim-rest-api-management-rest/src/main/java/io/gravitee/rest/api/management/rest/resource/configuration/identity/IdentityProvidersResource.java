@@ -96,6 +96,8 @@ public class IdentityProvidersResource extends AbstractResource {
     }
 
     @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.ORGANIZATION_IDENTITY_PROVIDER, acls = RolePermissionAction.CREATE) })
     @Operation(
         summary = "Create an identity provider",

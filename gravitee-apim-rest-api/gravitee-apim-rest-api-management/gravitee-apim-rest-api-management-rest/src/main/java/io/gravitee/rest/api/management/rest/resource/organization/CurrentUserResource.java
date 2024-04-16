@@ -252,6 +252,8 @@ public class CurrentUserResource extends AbstractResource {
     }
 
     @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Update the authenticated user")
     @ApiResponse(
         responseCode = "200",
