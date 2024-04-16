@@ -1,0 +1,210 @@
+/*
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { InteractivityChecker } from '@angular/cdk/a11y';
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { HttpTestingController, TestRequest } from '@angular/common/http/testing';
+import { BrowserAnimationsModule, NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { ActivatedRoute } from '@angular/router';
+import { MatErrorHarness } from '@angular/material/form-field/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatCardHarness } from '@angular/material/card/testing';
+import { GioConfirmDialogHarness, GioSaveBarHarness } from '@gravitee/ui-particles-angular';
+
+import { IntegrationConfigurationComponent } from './integration-configuration.component';
+import { IntegrationConfigurationHarness } from './integration-configuration.harness';
+
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
+import { IntegrationsModule } from '../integrations.module';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { GioTestingPermission, GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
+import { Integration } from '../integrations.model';
+import { fakeIntegration } from '../../../entities/integrations/integration.fixture';
+
+describe('IntegrationConfigurationComponent', (): void => {
+  let fixture: ComponentFixture<IntegrationConfigurationComponent>;
+  let componentHarness: IntegrationConfigurationHarness;
+  let httpTestingController: HttpTestingController;
+  const integrationId: string = '123TestID';
+
+  const fakeSnackBarService = {
+    error: jest.fn(),
+  };
+
+  const init = async (
+    permissions: GioTestingPermission = [
+      'environment-integration-u',
+      'environment-integration-d',
+      'environment-integration-c',
+      'environment-integration-r',
+    ],
+  ): Promise<void> => {
+    await TestBed.configureTestingModule({
+      declarations: [IntegrationConfigurationComponent],
+      imports: [GioTestingModule, IntegrationsModule, BrowserAnimationsModule, NoopAnimationsModule],
+      providers: [
+        {
+          provide: SnackBarService,
+          useValue: fakeSnackBarService,
+        },
+        {
+          provide: GioTestingPermissionProvider,
+          useValue: permissions,
+        },
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { params: { integrationId: integrationId } } },
+        },
+      ],
+    })
+      .overrideProvider(InteractivityChecker, {
+        useValue: {
+          isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
+          isTabbable: () => true, // This traps focus checks and so avoid warnings when dealing with
+        },
+      })
+      .compileComponents();
+    fixture = TestBed.createComponent(IntegrationConfigurationComponent);
+    httpTestingController = TestBed.inject(HttpTestingController);
+    componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, IntegrationConfigurationHarness);
+    fixture.detectChanges();
+  };
+
+  afterEach(() => {
+    init();
+    httpTestingController.verify();
+  });
+
+  describe('update integration details', () => {
+    beforeEach(() => {
+      init();
+    });
+
+    it('should show validation error when name is not valid', async () => {
+      expectIntegrationGetRequest(fakeIntegration());
+      await componentHarness.setName('');
+      await componentHarness.setDescription('Some description');
+      fixture.detectChanges();
+
+      const error: MatErrorHarness = await componentHarness.matErrorMessage();
+      expect(await error.getText()).toEqual('Integration name is required.');
+
+      await componentHarness.setName('test too long name 01234567890123456789012345678901234567890123456789');
+      await componentHarness.setDescription('Some description');
+      fixture.detectChanges();
+
+      const errorToLongName: MatErrorHarness = await componentHarness.matErrorMessage();
+      expect(await errorToLongName.getText()).toEqual('Integration name has to be less than 50 characters long.');
+    });
+
+    it('should not show submit bar when form not valid', async () => {
+      expectIntegrationGetRequest(fakeIntegration());
+      await componentHarness.setName('');
+      await componentHarness.setDescription('Some description');
+      fixture.detectChanges();
+
+      const submitBar: GioSaveBarHarness = await componentHarness.getSubmitButton();
+      expect(submitBar).toBeNull();
+
+      await componentHarness.setName('test too long name 01234567890123456789012345678901234567890123456789');
+      await componentHarness.setDescription('Some description');
+      fixture.detectChanges();
+
+      const submitBarTwo: GioSaveBarHarness = await componentHarness.getSubmitButton();
+      expect(submitBarTwo).toBeNull();
+    });
+
+    it('should send request PUT with payload', async () => {
+      expectIntegrationGetRequest(fakeIntegration());
+
+      await componentHarness.setName('Test Title');
+      await componentHarness.setDescription('Description');
+      fixture.detectChanges();
+
+      await componentHarness.clickOnSubmit();
+
+      expectIntegrationPutRequest(fakeIntegration(), {
+        description: 'Description',
+        name: 'Test Title',
+      });
+      expectIntegrationGetRequest(fakeIntegration());
+    });
+  });
+
+  describe('no delete permissions', () => {
+    beforeEach((): void => {
+      init([]);
+    });
+
+    it('should not display delete button', async () => {
+      expectIntegrationGetRequest(fakeIntegration());
+      const deleteButton: MatButtonHarness = await componentHarness.getDeleteIntegrationButton();
+      expect(deleteButton).toBeNull();
+    });
+  });
+
+  describe('no update permissions', () => {
+    beforeEach(() => {
+      init([]);
+    });
+
+    it('should not display update form', async () => {
+      expectIntegrationGetRequest(fakeIntegration());
+      const updateForm: MatCardHarness = await componentHarness.getUpdateSection();
+      expect(updateForm).toBeNull();
+    });
+  });
+
+  describe('danger zone', () => {
+    beforeEach((): void => {
+      init();
+    });
+
+    it('should send DELETE request with correct ID', async () => {
+      expectIntegrationGetRequest(fakeIntegration({ id: 'idToDelete123' }));
+
+      const deleteButton: MatButtonHarness = await componentHarness.getDeleteIntegrationButton();
+      await deleteButton.click();
+
+      fixture.detectChanges();
+
+      const dialogHarness: GioConfirmDialogHarness =
+        await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(GioConfirmDialogHarness);
+      await dialogHarness.confirm();
+
+      expectIntegrationDeleteRequest('idToDelete123');
+    });
+  });
+
+  function expectIntegrationDeleteRequest(id: string): void {
+    const req: TestRequest = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/integrations/${id}`);
+    expect(req.request.method).toEqual('DELETE');
+  }
+
+  function expectIntegrationGetRequest(integrationMock: Integration): void {
+    const req: TestRequest = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/integrations/${integrationId}`);
+    req.flush(integrationMock);
+    expect(req.request.method).toEqual('GET');
+  }
+
+  function expectIntegrationPutRequest(integrationMock: Integration, payload): void {
+    const req: TestRequest = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/integrations/${integrationId}`);
+    req.flush(integrationMock);
+    expect(req.request.method).toEqual('PUT');
+    expect(req.request.body).toEqual(payload);
+  }
+});

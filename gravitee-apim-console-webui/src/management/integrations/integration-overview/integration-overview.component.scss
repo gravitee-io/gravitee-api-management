@@ -34,6 +34,7 @@ $typography: map.get(gio.$mat-theme, typography);
 .page-header {
   &__page-title {
     @include mat.typography-level($typography, headline-6);
+    margin: 0 0 4px 0;
   }
 
   &__description {
@@ -156,4 +157,8 @@ gio-banner-error {
 .loadingTemplate {
   height: 50vh;
   display: flex;
+}
+
+.id-badge {
+  text-transform: none;
 }

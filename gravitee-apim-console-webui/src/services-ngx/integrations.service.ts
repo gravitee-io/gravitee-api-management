@@ -19,7 +19,12 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 
-import { CreateIntegrationPayload, Integration, IntegrationResponse } from '../management/integrations/integrations.model';
+import {
+  CreateIntegrationPayload,
+  Integration,
+  IntegrationResponse,
+  UpdateIntegrationPayload,
+} from '../management/integrations/integrations.model';
 import { Constants } from '../entities/Constants';
 
 @Injectable({
@@ -46,12 +51,20 @@ export class IntegrationsService {
     return this.httpClient.get<IntegrationResponse>(`${this.url}/?page=${page}&perPage=${size}`);
   }
 
+  public getIntegration(id: string): Observable<Integration> {
+    return this.httpClient.get<Integration>(`${this.url}/${id}`).pipe(tap((integration) => this.currentIntegration$.next(integration)));
+  }
+
   public createIntegration(payload: CreateIntegrationPayload): Observable<Integration> {
     return this.httpClient.post<Integration>(this.url, payload);
   }
 
-  public getIntegration(id: string): Observable<Integration> {
-    return this.httpClient.get<Integration>(`${this.url}/${id}`).pipe(tap((integration) => this.currentIntegration$.next(integration)));
+  public updateIntegration(payload: UpdateIntegrationPayload, id: string): Observable<Integration> {
+    return this.httpClient.put<Integration>(`${this.url}/${id}`, payload);
+  }
+
+  public deleteIntegration(id: string): Observable<Integration> {
+    return this.httpClient.delete<Integration>(`${this.url}/${id}`);
   }
 
   public ingestIntegration(id: string) {

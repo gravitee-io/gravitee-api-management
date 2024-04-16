@@ -13,38 +13,48 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
+
+import { Component, OnInit } from '@angular/core';
 
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
 import { IntegrationNavigationItem } from '../integrations.model';
+import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 
 @Component({
   selector: 'app-integrations-navigation',
   templateUrl: './integrations-navigation.component.html',
   styleUrls: ['./integrations-navigation.component.scss'],
 })
-export class IntegrationsNavigationComponent {
+export class IntegrationsNavigationComponent implements OnInit {
   public items: IntegrationNavigationItem[] = [
     {
       routerLink: `.`,
       displayName: 'Overview',
-      permissions: [],
+      permissions: ['environment-integration-r'],
       icon: 'info',
     },
-    // toDo: uncomment when pages are ready
     // {
     //   routerLink: `./agent`,
     //   displayName: 'Agent',
-    //   permissions: [],
+    //   permissions: ['environment-integration-r'],
     //   icon: 'server-connection',
     // },
-    // {
-    //   routerLink: `./settings`,
-    //   displayName: 'Settings',
-    //   permissions: [],
-    //   icon: 'settings',
-    // }
+    {
+      routerLink: `configuration`,
+      displayName: 'Configuration',
+      permissions: ['environment-integration-u', 'environment-integration-d'],
+      icon: 'settings',
+    },
   ];
 
-  constructor(public integrationsService: IntegrationsService) {}
+  public allowedItems: IntegrationNavigationItem[] = [];
+
+  constructor(
+    public integrationsService: IntegrationsService,
+    private permissionService: GioPermissionService,
+  ) {}
+
+  ngOnInit(): void {
+    this.allowedItems = this.items.filter((item: IntegrationNavigationItem) => this.permissionService.hasAnyMatching(item.permissions));
+  }
 }

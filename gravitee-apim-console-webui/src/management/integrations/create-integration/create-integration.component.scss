@@ -30,6 +30,7 @@ $typography: map.get(gio.$mat-theme, typography);
 
   &__page-title {
     @include mat.typography-level($typography, headline-6);
+    margin: 0 0 4px 0;
   }
 
   &__description {

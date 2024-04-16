@@ -36,8 +36,8 @@
           </div>
         </div>
 
-        <ng-container *ngFor="let item of items">
-          <a [routerLink]="item.routerLink" routerLinkActive #rla="routerLinkActive">
+        <ng-container *ngFor="let item of allowedItems">
+          <a [routerLink]="item.routerLink" routerLinkActive #rla="routerLinkActive" [routerLinkActiveOptions]="{ exact: true }">
             <gio-submenu-item tabIndex="1" [active]="rla.isActive">
               <div class="menu-item">
                 <mat-icon class="menu-item__icon" [svgIcon]="'gio:' + item.icon"> </mat-icon>

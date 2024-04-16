@@ -15,7 +15,7 @@
  */
 
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
 import { catchError, filter, switchMap, tap } from 'rxjs/operators';
@@ -38,7 +38,8 @@ export class IntegrationOverviewComponent implements OnInit {
   public isIngesting = false;
 
   constructor(
-    private route: ActivatedRoute,
+    private activatedRoute: ActivatedRoute,
+    private router: Router,
     private integrationsService: IntegrationsService,
     private snackBarService: SnackBarService,
     private matDialog: MatDialog,
@@ -49,12 +50,16 @@ export class IntegrationOverviewComponent implements OnInit {
   }
 
   private getIntegration(): void {
-    const id: string = this.route.snapshot.paramMap.get('integrationId');
+    const id: string = this.activatedRoute.snapshot.paramMap.get('integrationId');
     this.integrationsService
       .getIntegration(id)
       .pipe(
-        catchError((_) => {
-          this.snackBarService.error('Something went wrong!');
+        catchError(({ error }) => {
+          this.isLoading = false;
+          this.snackBarService.error(error.message);
+          this.router.navigate(['..'], {
+            relativeTo: this.activatedRoute,
+          });
           return EMPTY;
         }),
         takeUntilDestroyed(this.destroyRef),
