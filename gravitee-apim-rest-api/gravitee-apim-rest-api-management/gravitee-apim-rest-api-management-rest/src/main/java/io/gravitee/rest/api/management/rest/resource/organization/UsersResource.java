@@ -20,6 +20,7 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.CREATE
 import static io.gravitee.rest.api.model.permissions.RolePermissionAction.READ;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.rest.model.Pageable;
 import io.gravitee.rest.api.management.rest.model.wrapper.UserPageResult;
 import io.gravitee.rest.api.management.rest.resource.AbstractResource;
@@ -81,6 +82,8 @@ public class UsersResource extends AbstractResource {
     }
 
     @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     @Permissions(@Permission(value = RolePermission.ORGANIZATION_USERS, acls = CREATE))
     @Operation(summary = "Create a user", description = "User must have the ORGANIZATION_USERS[CREATE] permission to use this service")
     @ApiResponse(

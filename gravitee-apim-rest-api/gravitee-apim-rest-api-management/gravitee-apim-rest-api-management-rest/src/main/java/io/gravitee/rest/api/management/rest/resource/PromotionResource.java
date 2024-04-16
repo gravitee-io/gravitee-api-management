@@ -26,9 +26,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
@@ -52,6 +54,7 @@ public class PromotionResource extends AbstractResource {
 
     @POST
     @Path("/_process")
+    @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Process an API promotion by accepting or rejecting it")
     @ApiResponse(
         responseCode = "200",

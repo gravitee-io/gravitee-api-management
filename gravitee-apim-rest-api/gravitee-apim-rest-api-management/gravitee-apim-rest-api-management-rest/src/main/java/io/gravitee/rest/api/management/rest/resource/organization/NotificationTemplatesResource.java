@@ -83,6 +83,8 @@ public class NotificationTemplatesResource extends AbstractResource {
     }
 
     @POST
+    @Consumes(io.gravitee.common.http.MediaType.APPLICATION_JSON)
+    @Produces(io.gravitee.common.http.MediaType.APPLICATION_JSON)
     @Operation(
         summary = "Create a notification template",
         description = "User must have the NOTIFICATION_TEMPLATES[CREATE] permission to use this service"
@@ -132,6 +134,8 @@ public class NotificationTemplatesResource extends AbstractResource {
 
     @Path("{notificationTemplateId}")
     @PUT
+    @Consumes(io.gravitee.common.http.MediaType.APPLICATION_JSON)
+    @Produces(io.gravitee.common.http.MediaType.APPLICATION_JSON)
     @Operation(
         summary = "Update an existing notification template",
         description = "User must have the NOTIFICATION_TEMPLATES[UPDATE] permission to use this service"
