@@ -253,4 +253,9 @@ public class InMemoryConfiguration {
     public ApiCategoryQueryServiceInMemory apiCategoryQueryService() {
         return new ApiCategoryQueryServiceInMemory();
     }
+
+    @Bean
+    public PrimaryOwnerDomainServiceInMemory primaryOwnerDomainService() {
+        return new PrimaryOwnerDomainServiceInMemory();
+    }
 }

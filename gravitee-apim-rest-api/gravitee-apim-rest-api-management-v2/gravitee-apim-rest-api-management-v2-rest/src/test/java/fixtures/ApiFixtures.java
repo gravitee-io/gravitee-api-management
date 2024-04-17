@@ -31,6 +31,7 @@ import io.gravitee.rest.api.management.v2.rest.model.GenericApi;
 import io.gravitee.rest.api.management.v2.rest.model.Listener;
 import io.gravitee.rest.api.management.v2.rest.model.Proxy;
 import io.gravitee.rest.api.management.v2.rest.model.ResponseTemplate;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateApiFederated;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV2;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.Visibility;
@@ -134,6 +135,21 @@ public class ApiFixtures {
         .disableMembershipNotifications(true)
         .responseTemplates(Map.of("template-id", Map.of("application/json", new ResponseTemplate())));
 
+    private static final UpdateApiFederated.UpdateApiFederatedBuilder BASE_UPDATE_API_FEDERATED = UpdateApiFederated
+        .builder()
+        .apiVersion("1.0.0")
+        .definitionVersion(DefinitionVersion.FEDERATED)
+        .name("api-name")
+        .description("api-description")
+        .visibility(Visibility.PRIVATE)
+        .tags(List.of("tag1", "tag2"))
+        .groups(List.of("group1", "group2"))
+        .labels(List.of("label1", "label2"))
+        .categories(List.of("category1", "category2"))
+        .resources(List.of(ResourceFixtures.aResource()))
+        .properties(List.of(PropertyFixtures.aProperty()))
+        .lifecycleState(ApiLifecycleState.CREATED);
+
     public static ApiV4 anApiV4() {
         return BASE_API_V4.build();
     }
@@ -149,6 +165,10 @@ public class ApiFixtures {
 
     public static UpdateApiV2 anUpdateApiV2() {
         return BASE_UPDATE_API_V2.build();
+    }
+
+    public static UpdateApiFederated anUpdateApiFederated() {
+        return BASE_UPDATE_API_FEDERATED.build();
     }
 
     public static io.gravitee.rest.api.model.api.ApiEntity aModelApiV1() {

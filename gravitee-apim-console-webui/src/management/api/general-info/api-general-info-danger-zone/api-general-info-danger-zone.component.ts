@@ -119,7 +119,7 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy, 
 
         canChangeVisibilityToPublic: this.api.lifecycleState !== 'DEPRECATED' && this.api.visibility === 'PRIVATE',
         canChangeVisibilityToPrivate: this.api.lifecycleState !== 'DEPRECATED' && this.api.visibility === 'PUBLIC',
-        canDeprecate: this.api.lifecycleState !== 'DEPRECATED',
+        canDeprecate: this.api.lifecycleState !== 'DEPRECATED' && this.api.definitionVersion !== 'FEDERATED',
         canDelete: !(this.api.state === 'STARTED' || this.api.lifecycleState === 'PUBLISHED'),
       };
     }
@@ -205,7 +205,7 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy, 
         filter((confirm) => confirm === true),
         switchMap(() => this.apiService.get(this.api.id)),
         switchMap((api) => {
-          if (api.definitionVersion === 'V2' || api.definitionVersion === 'V4') {
+          if (api.definitionVersion === 'V2' || api.definitionVersion === 'V4' || api.definitionVersion === 'FEDERATED') {
             const apiToUpdate: UpdateApi = { ...api, lifecycleState: lifecycleState };
             return this.apiService.update(this.api.id, apiToUpdate);
           } else {
@@ -244,7 +244,7 @@ export class ApiGeneralInfoDangerZoneComponent implements OnChanges, OnDestroy, 
         filter((confirm) => confirm === true),
         switchMap(() => this.apiService.get(this.api.id)),
         switchMap((api) => {
-          if (api.definitionVersion === 'V2' || api.definitionVersion === 'V4') {
+          if (api.definitionVersion === 'V2' || api.definitionVersion === 'V4' || api.definitionVersion === 'FEDERATED') {
             return this.apiService.update(api.id, {
               ...api,
               visibility: visibility,

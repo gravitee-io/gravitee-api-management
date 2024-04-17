@@ -140,8 +140,7 @@ public class ApiDocumentTransformer implements DocumentTransformer<GenericApiEnt
                     Field.Store.NO
                 )
             );
-        } else {
-            io.gravitee.rest.api.model.v4.api.ApiEntity apiEntity = (io.gravitee.rest.api.model.v4.api.ApiEntity) api;
+        } else if (api instanceof io.gravitee.rest.api.model.v4.api.ApiEntity apiEntity) {
             if (apiEntity.getListeners() != null) {
                 final int[] pathIndex = { 0 };
                 apiEntity

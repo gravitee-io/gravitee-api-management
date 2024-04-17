@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { UpdateApiV2 } from './updateApiV2';
-import { UpdateApiV4 } from './updateApiV4';
-import { UpdateApiFederation } from './updateApiFederation';
+import { UpdateBaseApi } from './updateBaseApi';
 
-export type UpdateApi = UpdateApiV2 | UpdateApiV4 | UpdateApiFederation;
+export interface UpdateApiFederation extends UpdateBaseApi {}

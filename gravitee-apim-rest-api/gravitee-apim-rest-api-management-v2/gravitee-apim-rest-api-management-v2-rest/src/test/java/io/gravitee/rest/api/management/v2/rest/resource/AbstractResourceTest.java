@@ -18,8 +18,12 @@ package io.gravitee.rest.api.management.v2.rest.resource;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 
+import inmemory.ApiCrudServiceInMemory;
+import inmemory.GroupQueryServiceInMemory;
 import inmemory.InMemoryAlternative;
+import inmemory.MembershipQueryServiceInMemory;
 import inmemory.ParametersQueryServiceInMemory;
+import inmemory.PrimaryOwnerDomainServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
@@ -160,6 +164,18 @@ public abstract class AbstractResourceTest extends JerseySpringTest {
 
     @Autowired
     protected UserCrudServiceInMemory userCrudService;
+
+    @Autowired
+    protected ApiCrudServiceInMemory apiCrudService;
+
+    @Autowired
+    protected PrimaryOwnerDomainServiceInMemory primaryOwnerDomainService;
+
+    @Autowired
+    protected MembershipQueryServiceInMemory membershipQueryServiceInMemory;
+
+    @Autowired
+    protected GroupQueryServiceInMemory groupQueryServiceInMemory;
 
     @BeforeEach
     public void setUp() {

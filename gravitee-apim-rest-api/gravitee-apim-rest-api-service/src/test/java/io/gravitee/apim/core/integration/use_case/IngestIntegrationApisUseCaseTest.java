@@ -139,7 +139,7 @@ class IngestIntegrationApisUseCaseTest {
     IntegrationAgentInMemory integrationAgent = new IntegrationAgentInMemory();
     IndexerInMemory indexer = new IndexerInMemory();
 
-    ValidateFederatedApiDomainService validateFederatedApiDomainService = spy(new ValidateFederatedApiDomainService());
+    ValidateFederatedApiDomainService validateFederatedApiDomainService = spy(new ValidateFederatedApiDomainService(null));
     IngestIntegrationApisUseCase useCase;
 
     @BeforeAll
