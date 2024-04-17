@@ -13,18 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
 import { PageService } from './page.service';
 import { PageTreeNode } from '../components/page-tree/page-tree.component';
-import { fakePage } from '../entities/page/page.fixtures';
+import { fakePage, fakePagesResponse } from '../entities/page/page.fixtures';
+import { PagesResponse } from '../entities/page/pages-response';
+import { AppTestingModule, TESTING_BASE_URL } from '../testing/app-testing.module';
 
 describe('PageService', () => {
   let service: PageService;
+  let httpTestingController: HttpTestingController;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({
+      imports: [AppTestingModule],
+    });
+    httpTestingController = TestBed.inject(HttpTestingController);
     service = TestBed.inject(PageService);
+  });
+
+  afterEach(() => {
+    httpTestingController.verify();
   });
 
   describe('mapToPageTreeNode', () => {
@@ -112,6 +123,33 @@ describe('PageService', () => {
       ];
 
       expect(treeNodes).toEqual(expectedTreeNodes);
+    });
+  });
+  describe('listByApiId', () => {
+    it('should return pages with default query parameters', done => {
+      const pagesResponse: PagesResponse = fakePagesResponse();
+
+      service.listByApiId('api-id').subscribe(response => {
+        expect(response).toMatchObject(pagesResponse);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/api-id/pages?homepage=false&page=1&size=-1`);
+      expect(req.request.method).toEqual('GET');
+      req.flush(pagesResponse);
+    });
+
+    it('should return pages with custom query parameters', done => {
+      const pagesResponse: PagesResponse = fakePagesResponse();
+
+      service.listByApiId('api-id', true, 2, 1).subscribe(response => {
+        expect(response).toMatchObject(pagesResponse);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/api-id/pages?homepage=true&page=2&size=1`);
+      expect(req.request.method).toEqual('GET');
+      req.flush(pagesResponse);
     });
   });
 });

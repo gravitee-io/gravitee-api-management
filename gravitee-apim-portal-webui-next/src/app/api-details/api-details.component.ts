@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { AsyncPipe } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardActions, MatCardContent } from '@angular/material/card';
 import { MatIconModule, MatIconRegistry } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
 import { DomSanitizer } from '@angular/platform-browser';
+import { map, Observable, of } from 'rxjs';
 
 import { ApiTabDetailsComponent } from './api-tab-details/api-tab-details.component';
 import { ApiTabDocumentationComponent } from './api-tab-documentation/api-tab-documentation.component';
@@ -26,7 +28,9 @@ import { ApiCardComponent } from '../../components/api-card/api-card.component';
 import { ApiPictureComponent } from '../../components/api-picture/api-picture.component';
 import { BannerComponent } from '../../components/banner/banner.component';
 import { Api } from '../../entities/api/api';
+import { Page } from '../../entities/page/page';
 import { ApiService } from '../../services/api.service';
+import { PageService } from '../../services/page.service';
 
 @Component({
   selector: 'app-api-details',
@@ -43,16 +47,19 @@ import { ApiService } from '../../services/api.service';
     MatIconModule,
     ApiTabDetailsComponent,
     ApiTabDocumentationComponent,
+    AsyncPipe,
   ],
   templateUrl: './api-details.component.html',
   styleUrl: './api-details.component.scss',
 })
 export class ApiDetailsComponent implements OnInit {
   @Input() apiId!: string;
-  details!: Api;
+  details$: Observable<Api> = of();
+  pages$: Observable<Page[]> = of([]);
 
   constructor(
     private apiService: ApiService,
+    private pageService: PageService,
     private domSanitizer: DomSanitizer,
     private matIconRegistry: MatIconRegistry,
   ) {
@@ -60,8 +67,8 @@ export class ApiDetailsComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.apiService.details(this.apiId).subscribe(apiDetails => {
-      this.details = apiDetails;
-    });
+    this.details$ = this.apiService.details(this.apiId);
+
+    this.pages$ = this.pageService.listByApiId(this.apiId).pipe(map(response => response.data ?? []));
   }
 }

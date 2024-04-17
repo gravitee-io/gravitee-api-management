@@ -16,6 +16,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ApiTabDocumentationComponent } from './api-tab-documentation.component';
+import { AppTestingModule } from '../../../testing/app-testing.module';
 
 describe('ApiTabDocumentationComponent', () => {
   let component: ApiTabDocumentationComponent;
@@ -23,7 +24,7 @@ describe('ApiTabDocumentationComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ApiTabDocumentationComponent],
+      imports: [ApiTabDocumentationComponent, AppTestingModule],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ApiTabDocumentationComponent);

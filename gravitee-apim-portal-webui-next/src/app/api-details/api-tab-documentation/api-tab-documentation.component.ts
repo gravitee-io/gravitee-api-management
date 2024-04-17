@@ -13,13 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
+import { AsyncPipe } from '@angular/common';
+import { Component, Input, OnInit } from '@angular/core';
+
+import { PageTreeComponent, PageTreeNode } from '../../../components/page-tree/page-tree.component';
+import { Page } from '../../../entities/page/page';
+import { PageService } from '../../../services/page.service';
 
 @Component({
   selector: 'app-api-tab-documentation',
   standalone: true,
-  imports: [],
+  imports: [PageTreeComponent, AsyncPipe],
   templateUrl: './api-tab-documentation.component.html',
   styleUrl: './api-tab-documentation.component.scss',
 })
-export class ApiTabDocumentationComponent {}
+export class ApiTabDocumentationComponent implements OnInit {
+  @Input()
+  pages: Page[] = [];
+  pageNodes: PageTreeNode[] = [];
+  selectedPage: string = '';
+
+  constructor(private pageService: PageService) {}
+
+  ngOnInit(): void {
+    this.pageNodes = this.pageService.mapToPageTreeNode(undefined, this.pages);
+  }
+
+  showPage(pageId: string) {
+    this.selectedPage = pageId;
+  }
+}

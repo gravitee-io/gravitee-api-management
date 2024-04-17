@@ -17,35 +17,43 @@
 -->
 <mat-card class="api-details" appearance="outlined">
   <mat-card-content class="api-details__content">
-    <div class="api-details__header">
-      <app-api-picture [picture]="details._links?.picture" [name]="details.name" [version]="details.version" [size]="40" />
-      <div>
-        <div class="api-details__header-content-title">{{ details.name }}</div>
-        <div class="api-details__header-content-version">{{ details.version }}</div>
-      </div>
-      <button i18n="@@logInOrSignUpToSubscribe" mat-stroked-button disabled color="primary api-details__header-button">
-        Log in / Sign up to subscribe
-      </button>
-    </div>
-    @if (details.description) {
-      <app-banner class="api-details__banner">
-        <div class="api-details__banner-content">
-          <mat-icon svgIcon="light-bulb" aria-hidden="false" aria-label="Light-bulb icon"></mat-icon>
-          <p>{{ details.description }}</p>
+    @if (details$ | async; as details) {
+      <div class="api-details__header">
+        <app-api-picture [picture]="details._links?.picture" [name]="details.name" [version]="details.version" [size]="40" />
+        <div>
+          <div class="api-details__header-content-title">{{ details.name }}</div>
+          <div class="api-details__header-content-version">{{ details.version }}</div>
         </div>
-      </app-banner>
+        <button i18n="@@logInOrSignUpToSubscribe" mat-stroked-button disabled color="primary api-details__header-button">
+          Log in / Sign up to subscribe
+        </button>
+      </div>
+      @if (details.description) {
+        <app-banner class="api-details__banner">
+          <div class="api-details__banner-content">
+            <mat-icon svgIcon="light-bulb" aria-hidden="false" aria-label="Light-bulb icon"></mat-icon>
+            <p>{{ details.description }}</p>
+          </div>
+        </app-banner>
+      }
+      <mat-tab-group animationDuration="0ms">
+        <mat-tab label="Details">
+          <ng-template matTabContent>
+            <app-api-tab-details />
+          </ng-template>
+        </mat-tab>
+        @if (pages$ | async; as pages) {
+          <mat-tab label="Documentation" [disabled]="pages.length === 0">
+            <ng-template matTabContent>
+              <app-api-tab-documentation [pages]="pages" />
+            </ng-template>
+          </mat-tab>
+        } @else {
+          <mat-tab label="Documentation" disabled="true" />
+        }
+      </mat-tab-group>
+    } @else {
+      <div>TODO: Add skeleton here....</div>
     }
-    <mat-tab-group animationDuration="0ms">
-      <mat-tab label="Details">
-        <ng-template matTabContent>
-          <app-api-tab-details />
-        </ng-template>
-      </mat-tab>
-      <mat-tab label="Documentation">
-        <ng-template matTabContent>
-          <app-api-tab-documentation />
-        </ng-template>
-      </mat-tab>
-    </mat-tab-group>
   </mat-card-content>
 </mat-card>
