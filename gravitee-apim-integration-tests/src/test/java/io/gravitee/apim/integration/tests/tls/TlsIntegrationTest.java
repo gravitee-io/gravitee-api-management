@@ -63,6 +63,11 @@ public class TlsIntegrationTest {
         }
 
         @Override
+        public void configurePlaceHolderVariables(Map<String, String> variables) {
+            variables.put("WIREMOCK_PORT", "" + wiremock.port());
+        }
+
+        @Override
         protected void configureGateway(GatewayConfigurationBuilder config) {
             config.httpSecured(true).set("http.ssl.sni", true).configureTcpGateway(this.tcpPort());
         }

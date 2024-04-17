@@ -49,6 +49,7 @@ import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -77,7 +78,11 @@ public abstract class AbstractGatewayTest
 
     private static final ObjectMapper objectMapper = new GraviteeMapper();
     protected static final PlaceholderSymbols DEFAULT_PLACEHOLDER_SYMBOLS = new PlaceholderSymbols("${", "}");
+
+    @Getter
     private int wiremockHttpsPort;
+
+    @Getter
     private int wiremockPort;
 
     /**
@@ -94,7 +99,7 @@ public abstract class AbstractGatewayTest
     /**
      * The wiremock used by the deployed apis as a backend.
      */
-    protected WireMockServer wiremock;
+    protected static WireMockServer wiremock;
     private Consumer<ReactableApi<?>> apiDeployer;
     private Consumer<String> apiUndeployer;
 
@@ -180,9 +185,15 @@ public abstract class AbstractGatewayTest
 
     protected AbstractGatewayTest() {}
 
-    @BeforeAll
-    public static void init() {
+    public void init() {
         InternalLoggerFactory.setDefaultFactory(Slf4JLoggerFactory.INSTANCE);
+        prepareWireMock();
+    }
+
+    public void cleanUp() {
+        if (wiremock != null) {
+            wiremock.stop();
+        }
     }
 
     /**
@@ -198,14 +209,15 @@ public abstract class AbstractGatewayTest
     @BeforeEach
     public void setUp(Vertx vertx) throws Exception {
         resetAllMocks();
-        prepareWireMock();
-        updateEndpointsOnDeployedApisForClassIfNeeded();
-        updateEndpointsOnDeployedApisForTestIfNeeded();
         // Prepare something on a Vert.x event-loop thread
         // The thread changes with each test instance
     }
 
     private void resetAllMocks() throws Exception {
+        if (wiremock != null) {
+            wiremock.resetAll();
+        }
+
         for (String name : applicationContext.getBeanDefinitionNames()) {
             Object bean = applicationContext.getBean(name);
             if (AopUtils.isAopProxy(bean) && bean instanceof Advised advised) {
@@ -231,35 +243,6 @@ public abstract class AbstractGatewayTest
         wiremock.start();
         wiremockPort = wiremock.port();
         wiremockHttpsPort = wiremock.httpsPort();
-    }
-
-    /**
-     * Ensure the testContext is completed after a test, see <a href="io.gravitee.gateway.standalone.flow>Vertx documentation</a>"
-     */
-    @AfterEach
-    void cleanUp() {
-        // Clean things up on the same Vert.x event-loop thread
-        // that called prepare and foo
-        wiremock.stop();
-    }
-
-    /**
-     * HACK: To ease the developer life, we propose to configure {@link WireMockExtension} thanks to {@link RegisterExtension}.
-     * Currently, there is no way to indicate to junit5 that {@link RegisterExtension} should be registered before a {@link org.junit.jupiter.api.extension.ExtendWith} one.
-     * That said, our {@link GatewayTestingExtension} is registered before the wiremock server is configured, and apis for class levels are already deployed, but without the right wiremock port.
-     * Doing that only once during the first {@link BeforeEach}, we are able to update the endpoints of apis declared at class level with {@link DeployApi}
-     */
-    private void updateEndpointsOnDeployedApisForClassIfNeeded() {
-        if (!areClassApisPrepared && !deployedForTestClass.isEmpty()) {
-            deployedForTestClass.forEach((k, v) -> updateEndpoints(v));
-        }
-        this.areClassApisPrepared = true;
-    }
-
-    private void updateEndpointsOnDeployedApisForTestIfNeeded() {
-        if (!deployedApis.isEmpty()) {
-            deployedApis.forEach((k, v) -> updateEndpoints(v));
-        }
     }
 
     @Override
@@ -344,56 +327,6 @@ public abstract class AbstractGatewayTest
             technicalApiPort = getAvailablePort();
         }
         return technicalApiPort;
-    }
-
-    /**
-     * Override api endpoints to replace port by the configured wiremock port.
-     * @param reactableApi is the api to override
-     */
-
-    private void updateEndpoints(ReactableApi<?> reactableApi) {
-        if (reactableApi.getDefinition() instanceof Api) {
-            Api api = (Api) reactableApi.getDefinition();
-
-            // Define dynamically endpoint port
-            api
-                .getProxy()
-                .getGroups()
-                .iterator()
-                .next()
-                .getEndpoints()
-                .stream()
-                .filter(endpoint -> endpoint.getTarget().contains("8080"))
-                .forEach(endpoint -> {
-                    final int port = endpoint.getTarget().contains("https://") ? wiremockHttpsPort : wiremockPort;
-                    endpoint.setTarget(exchangePort(endpoint.getTarget(), port));
-                });
-        }
-
-        if (reactableApi.getDefinition() instanceof io.gravitee.definition.model.v4.Api) {
-            var api = (io.gravitee.definition.model.v4.Api) reactableApi.getDefinition();
-            var proxyEndpoints = api
-                .getEndpointGroups()
-                .stream()
-                .flatMap(eg -> eg.getEndpoints().stream())
-                .filter(endpoint -> endpoint.getType().equals("http-proxy") || endpoint.getType().equals("tcp-proxy"))
-                .toList();
-
-            proxyEndpoints.forEach(endpoint -> {
-                var port = endpoint.getConfiguration().contains("https://") ? wiremockHttpsPort : wiremockPort;
-                endpoint.setConfiguration(endpoint.getConfiguration().replace("8080", Integer.toString(port)));
-            });
-
-            if (!proxyEndpoints.isEmpty()) {
-                // Workaround to re-deploy the api to update endpoint config:
-                // For the V4 apis, endpoints are connectors, they are instantiated at deployment time, meaning the
-                // configuration cannot be changed after deployment.
-                var manager = applicationContext.getBean(ApiManager.class);
-                manager.unregister(reactableApi.getId());
-                manager.register(reactableApi);
-                log.info("Redeploy api '{}' after overriding http/tcp proxy endpoint port", api.getId());
-            }
-        }
     }
 
     /**

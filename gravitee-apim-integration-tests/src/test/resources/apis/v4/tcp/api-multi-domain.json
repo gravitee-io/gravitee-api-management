@@ -31,7 +31,7 @@
           "configuration": {
             "target": {
               "host": "localhost",
-              "port": 8080
+              "port": ${WIREMOCK_PORT}
             }
           },
           "sharedConfiguration": {
