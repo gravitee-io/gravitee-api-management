@@ -1,3 +1,10 @@
+# [5.2.0](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/5.1.3...5.2.0) (2024-04-17)
+
+
+### Features
+
+* report entrypoint id in v4 metrics index ([8aae560](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/8aae5606f9e09ebf6d9a45f828e9f5eee87d5c9f))
+
 ## [5.1.3](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/5.1.2...5.1.3) (2024-04-04)
 
 
