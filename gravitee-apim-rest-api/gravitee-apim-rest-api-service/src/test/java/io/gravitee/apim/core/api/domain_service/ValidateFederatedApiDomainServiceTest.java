@@ -19,16 +19,36 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
 import fixtures.core.model.ApiFixtures;
+import inmemory.GroupQueryServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.group.model.Group;
+import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.definition.model.DefinitionVersion;
+import java.util.List;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
 class ValidateFederatedApiDomainServiceTest {
 
-    ValidateFederatedApiDomainService service = new ValidateFederatedApiDomainService();
+    private final GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
+
+    ValidateFederatedApiDomainService service;
+
+    @BeforeEach
+    void setUp() {
+        var groupValidationService = new GroupValidationService(groupQueryService);
+        service = new ValidateFederatedApiDomainService(groupValidationService);
+        groupQueryService.initWith(List.of(Group.builder().id("group-1").name("group-1").build()));
+    }
+
+    @AfterEach
+    void tearDown() {
+        groupQueryService.reset();
+    }
 
     @Test
     void should_return_the_api_when_valid() {
@@ -56,5 +76,22 @@ class ValidateFederatedApiDomainServiceTest {
         var throwable = catchThrowable(() -> service.validateAndSanitizeForCreation(api));
 
         assertThat(throwable).isInstanceOf(ValidationDomainException.class);
+    }
+
+    @Test
+    void should_validate_and_sanitize_api_for_update() {
+        var existingApi = ApiFixtures.aFederatedApi();
+        var updateApi = ApiFixtures.aFederatedApi().toBuilder().apiLifecycleState(Api.ApiLifecycleState.UNPUBLISHED).build();
+        var primaryOwner = PrimaryOwnerEntity
+            .builder()
+            .id("primary-owner-id")
+            .displayName("primary-owner-displayName")
+            .email("primary-owner-email")
+            .type(PrimaryOwnerEntity.Type.USER)
+            .build();
+
+        var result = service.validateAndSanitizeForUpdate(updateApi, existingApi, primaryOwner);
+
+        assertThat(result).isEqualTo(updateApi);
     }
 }

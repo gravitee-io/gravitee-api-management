@@ -17,11 +17,13 @@ package io.gravitee.rest.api.management.v2.rest.resource.api;
 
 import static org.mockito.Mockito.doReturn;
 
+import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -68,6 +70,9 @@ public abstract class ApiResourceTest extends AbstractResourceTest {
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
+        givenExistingUsers(
+            List.of(BaseUserEntity.builder().id(USER_NAME).firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build())
+        );
     }
 
     @AfterEach

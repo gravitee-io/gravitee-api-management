@@ -30,6 +30,7 @@ import io.gravitee.rest.api.management.v2.rest.model.CreateApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion;
 import io.gravitee.rest.api.management.v2.rest.model.GenericApi;
 import io.gravitee.rest.api.management.v2.rest.model.PlanCRD;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateApiFederated;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV2;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV4;
 import io.gravitee.rest.api.management.v2.rest.utils.ManagementApiLinkHelper;
@@ -46,7 +47,9 @@ import java.util.Objects;
 import java.util.function.Function;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
 import org.mapstruct.Named;
+import org.mapstruct.ValueMapping;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -181,6 +184,15 @@ public interface ApiMapper {
     @Mapping(target = "listeners", qualifiedByName = "toListeners")
     @Mapping(target = "id", expression = "java(apiId)")
     UpdateApiEntity map(UpdateApiV4 updateApi, String apiId);
+
+    @Mapping(target = "id", expression = "java(apiId)")
+    UpdateApiEntity map(UpdateApiFederated updateApi, String apiId);
+
+    @Mapping(source = "updateApiFederated.lifecycleState", target = "apiLifecycleState")
+    @Mapping(source = "updateApiFederated.apiVersion", target = "version")
+    @Mapping(source = "apiId", target = "id")
+    @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
+    io.gravitee.apim.core.api.model.Api mapToApiCore(UpdateApiFederated updateApiFederated, String apiId);
 
     @Mapping(target = "version", source = "apiVersion")
     @Mapping(target = "graviteeDefinitionVersion", source = "definitionVersion", qualifiedByName = "mapFromDefinitionVersion")

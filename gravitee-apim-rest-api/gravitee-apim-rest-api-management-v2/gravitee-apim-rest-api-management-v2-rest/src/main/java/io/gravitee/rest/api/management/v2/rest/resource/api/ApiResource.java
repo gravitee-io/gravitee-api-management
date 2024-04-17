@@ -19,6 +19,10 @@ import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
+import io.gravitee.apim.core.api.use_case.UpdateFederatedApiUseCase;
+import io.gravitee.apim.core.audit.model.AuditActor;
+import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.common.component.Lifecycle;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
@@ -39,6 +43,7 @@ import io.gravitee.rest.api.management.v2.rest.model.DuplicateApiOptions;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
 import io.gravitee.rest.api.management.v2.rest.model.Pagination;
 import io.gravitee.rest.api.management.v2.rest.model.SubscribersResponse;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateApiFederated;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV2;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateGenericApi;
@@ -171,6 +176,9 @@ public class ApiResource extends AbstractResource {
     @Inject
     private ApiDuplicateService duplicateApiService;
 
+    @Inject
+    UpdateFederatedApiUseCase updateFederatedApiUseCase;
+
     @Context
     protected UriInfo uriInfo;
 
@@ -235,25 +243,54 @@ public class ApiResource extends AbstractResource {
         @PathParam("apiId") String apiId,
         @Valid @NotNull final UpdateGenericApi updateApi
     ) {
-        final GenericApiEntity currentEntity = getGenericApiEntityById(apiId, false);
-        evaluateIfMatch(headers, Long.toString(currentEntity.getUpdatedAt().getTime()));
-
         GenericApiEntity updatedApi;
         var definitionVersion = updateApi.getDefinitionVersion();
         if (definitionVersion == io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.V4) {
+            final GenericApiEntity currentEntity = getGenericApiEntityById(apiId, false);
+            evaluateIfMatch(headers, Long.toString(currentEntity.getUpdatedAt().getTime()));
             if (!(currentEntity instanceof ApiEntity)) {
                 return Response.status(Response.Status.BAD_REQUEST).entity(apiInvalid(apiId)).build();
             }
             updatedApi = updateApiV4(currentEntity, (UpdateApiV4) updateApi);
         } else if (definitionVersion == io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.V2) {
+            final GenericApiEntity currentEntity = getGenericApiEntityById(apiId, false);
+            evaluateIfMatch(headers, Long.toString(currentEntity.getUpdatedAt().getTime()));
             if (!(currentEntity instanceof io.gravitee.rest.api.model.api.ApiEntity)) {
                 return Response.status(Response.Status.BAD_REQUEST).entity(apiInvalid(apiId)).build();
             }
             updatedApi = updateApiV2(currentEntity, (UpdateApiV2) updateApi);
+        } else if (definitionVersion == io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion.FEDERATED) {
+            var executionContext = GraviteeContext.getExecutionContext();
+            var userDetails = getAuthenticatedUserDetails();
+
+            AuditInfo audit = AuditInfo
+                .builder()
+                .organizationId(executionContext.getOrganizationId())
+                .environmentId(executionContext.getEnvironmentId())
+                .actor(
+                    AuditActor
+                        .builder()
+                        .userId(userDetails.getUsername())
+                        .userSource(userDetails.getSource())
+                        .userSourceId(userDetails.getSourceId())
+                        .build()
+                )
+                .build();
+            var input = UpdateFederatedApiUseCase.Input
+                .builder()
+                .apiToUpdate(ApiMapper.INSTANCE.mapToApiCore((UpdateApiFederated) updateApi, apiId))
+                .auditInfo(audit)
+                .build();
+            var output = updateFederatedApiUseCase.execute(input);
+
+            updatedApi =
+                ApiAdapter.INSTANCE.toFederatedApiEntity(
+                    ApiAdapter.INSTANCE.toRepository(output.updatedApi()),
+                    output.primaryOwnerEntity()
+                );
         } else {
             throw new ApiDefinitionVersionNotSupportedException(definitionVersion.name());
         }
-
         return apiResponse(updatedApi);
     }
 

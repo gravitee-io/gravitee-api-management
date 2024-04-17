@@ -36,7 +36,7 @@ export class ApiFederatedMenuService implements ApiMenuService {
     subMenuItems: MenuItem[];
     groupItems: MenuGroupItem[];
   } {
-    const subMenuItems: MenuItem[] = [this.addConfigurationMenuEntry(), this.addConsumersMenuEntry()];
+    const subMenuItems: MenuItem[] = [this.addConfigurationMenuEntry(), this.addConsumersMenuEntry(), this.addDocumentationMenuEntry()];
 
     return { subMenuItems, groupItems: [] };
   }
@@ -100,6 +100,37 @@ export class ApiFederatedMenuService implements ApiMenuService {
       header: {
         title: 'Consumers',
         subtitle: 'Manage how your API is consumed',
+      },
+      tabs: tabs,
+    };
+  }
+
+  private addDocumentationMenuEntry(): MenuItem {
+    const tabs: MenuItem[] = [];
+
+    if (this.permissionService.hasAnyMatching(['api-documentation-r'])) {
+      tabs.push({
+        displayName: 'Pages',
+        routerLink: 'v4/documentation',
+        routerLinkActiveOptions: { exact: true },
+      });
+    }
+
+    if (this.permissionService.hasAnyMatching(['api-metadata-r'])) {
+      tabs.push({
+        displayName: 'Metadata',
+        routerLink: 'v4/documentation/metadata',
+        routerLinkActiveOptions: { exact: true },
+      });
+    }
+
+    return {
+      displayName: 'Documentation',
+      icon: 'book',
+      routerLink: '',
+      header: {
+        title: 'Documentation',
+        subtitle: 'Documentation pages appear in the Developer Portal and inform API consumers how to use your API',
       },
       tabs: tabs,
     };

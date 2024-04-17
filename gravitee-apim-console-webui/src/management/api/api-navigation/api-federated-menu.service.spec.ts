@@ -31,7 +31,7 @@ describe('ApiFederatedMenuService', () => {
         { provide: ApiFederatedMenuService },
         {
           provide: GioTestingPermissionProvider,
-          useValue: ['api-member-r', 'api-audit-r', 'api-plan-r'],
+          useValue: ['api-member-r', 'api-audit-r', 'api-documentation-r', 'api-metadata-r', 'api-plan-r'],
         },
         { provide: Constants, useValue: CONSTANTS_TESTING },
         { provide: 'LicenseConfiguration', useValue: LICENSE_CONFIGURATION_TESTING },
@@ -95,6 +95,27 @@ describe('ApiFederatedMenuService', () => {
               },
             ],
           },
+          {
+            displayName: 'Documentation',
+            header: {
+              title: 'Documentation',
+              subtitle: 'Documentation pages appear in the Developer Portal and inform API consumers how to use your API',
+            },
+            icon: 'book',
+            routerLink: '',
+            tabs: [
+              {
+                displayName: 'Pages',
+                routerLink: 'v4/documentation',
+                routerLinkActiveOptions: { exact: true },
+              },
+              {
+                displayName: 'Metadata',
+                routerLink: 'v4/documentation/metadata',
+                routerLinkActiveOptions: { exact: true },
+              },
+            ],
+          },
         ],
         groupItems: [],
       });
@@ -131,6 +152,16 @@ describe('ApiFederatedMenuService', () => {
               title: 'Consumers',
             },
             icon: 'cloud-consumers',
+            routerLink: '',
+            tabs: [],
+          },
+          {
+            displayName: 'Documentation',
+            header: {
+              subtitle: 'Documentation pages appear in the Developer Portal and inform API consumers how to use your API',
+              title: 'Documentation',
+            },
+            icon: 'book',
             routerLink: '',
             tabs: [],
           },

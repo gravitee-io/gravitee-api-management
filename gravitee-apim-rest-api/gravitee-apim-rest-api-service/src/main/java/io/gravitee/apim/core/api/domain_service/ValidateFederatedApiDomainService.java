@@ -18,11 +18,17 @@ package io.gravitee.apim.core.api.domain_service;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 
 @DomainService
 public class ValidateFederatedApiDomainService {
+
+    GroupValidationService groupValidationService;
+
+    public ValidateFederatedApiDomainService(GroupValidationService groupValidationService) {
+        this.groupValidationService = groupValidationService;
+    }
 
     public Api validateAndSanitizeForCreation(final Api api) {
         if (api.getDefinitionVersion() != DefinitionVersion.FEDERATED) {
@@ -33,5 +39,22 @@ public class ValidateFederatedApiDomainService {
         api.setLifecycleState(null);
 
         return api;
+    }
+
+    public Api validateAndSanitizeForUpdate(final Api updateApi, final Api existingApi, PrimaryOwnerEntity primaryOwnerEntity) {
+        var groupIds = groupValidationService.validateAndSanitize(
+            updateApi.getGroups(),
+            existingApi.getEnvironmentId(),
+            primaryOwnerEntity
+        );
+        updateApi.setGroups(groupIds);
+
+        var lifecycleState = ValidateApiLifecycleService.validateFederatedApiLifecycleState(
+            existingApi.getApiLifecycleState(),
+            updateApi.getApiLifecycleState()
+        );
+        updateApi.setApiLifecycleState(lifecycleState);
+
+        return updateApi;
     }
 }

@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api;
 
+import static assertions.MAPIAssertions.assertThat;
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
 import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
@@ -27,7 +28,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import fixtures.ApiFixtures;
+import io.gravitee.apim.core.group.model.Group;
+import io.gravitee.apim.core.membership.model.Membership;
+import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
+import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.rest.api.management.v2.rest.model.Api;
+import io.gravitee.rest.api.management.v2.rest.model.ApiFederated;
+import io.gravitee.rest.api.management.v2.rest.model.ApiLifecycleState;
 import io.gravitee.rest.api.management.v2.rest.model.ApiV2;
 import io.gravitee.rest.api.management.v2.rest.model.ApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
@@ -42,9 +51,16 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiNotFoundException;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 public class ApiResource_UpdateApiTest extends ApiResourceTest {
+
+    private static final Instant INSTANT_NOW = Instant.parse("2023-10-22T10:15:30Z");
 
     @Override
     protected String contextPath() {
@@ -189,5 +205,71 @@ public class ApiResource_UpdateApiTest extends ApiResourceTest {
         var error = response.readEntity(Error.class);
         assertEquals(BAD_REQUEST_400, (int) error.getHttpStatus());
         assertEquals("Api [" + API + "] is not valid.", error.getMessage());
+    }
+
+    @Test
+    public void should_update_federation_api() {
+        var updatedName = "updated-name";
+        var updatedDescription = "updated-description";
+        var updatedVersion = "2.0.0";
+        var updatedLifecycle = ApiLifecycleState.PUBLISHED;
+        TimeProvider.overrideClock(Clock.fixed(INSTANT_NOW, ZoneId.systemDefault()));
+        primaryOwnerInit();
+        var existingApi = fixtures.core.model.ApiFixtures.aFederatedApi();
+        apiCrudService.initWith(List.of(existingApi));
+
+        groupQueryServiceInMemory.initWith(
+            List.of(
+                Group
+                    .builder()
+                    .id("group1")
+                    .environmentId("environment-id")
+                    .eventRules(List.of(new Group.GroupEventRule(Group.GroupEvent.API_CREATE)))
+                    .build(),
+                Group.builder().id("group2").build()
+            )
+        );
+
+        var updateApiFederated = ApiFixtures
+            .anUpdateApiFederated()
+            .toBuilder()
+            .name(updatedName)
+            .description(updatedDescription)
+            .apiVersion(updatedVersion)
+            .lifecycleState(updatedLifecycle)
+            .build();
+
+        final Response response = rootTarget(API).request().put(Entity.json(updateApiFederated));
+
+        assertThat(response)
+            .hasStatus(HttpStatusCode.OK_200)
+            .asEntity(Api.class)
+            .extracting(Api::getApiFederated)
+            .extracting(ApiFederated::getName, ApiFederated::getDescription, ApiFederated::getApiVersion, ApiFederated::getLifecycleState)
+            .containsExactly(updatedName, updatedDescription, updatedVersion, updatedLifecycle);
+    }
+
+    void primaryOwnerInit() {
+        final var API_NAME = "my-api";
+        final var ROLE_ID = "api-po-id-fake-org";
+        Map.Entry<String, PrimaryOwnerEntity> entry = Map.entry(
+            API_NAME,
+            PrimaryOwnerEntity.builder().id(API_NAME).type(PrimaryOwnerEntity.Type.USER).build()
+        );
+
+        roleQueryService.resetSystemRoles(ORGANIZATION);
+        primaryOwnerDomainService.initWith(List.of(entry));
+        membershipQueryServiceInMemory.initWith(
+            List.of(
+                Membership
+                    .builder()
+                    .memberId(USER_NAME)
+                    .referenceId(API_NAME)
+                    .roleId(ROLE_ID)
+                    .referenceType(Membership.ReferenceType.API)
+                    .memberType(Membership.Type.USER)
+                    .build()
+            )
+        );
     }
 }
