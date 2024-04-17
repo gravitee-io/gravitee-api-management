@@ -86,7 +86,7 @@ export class ApplicationSubscriptionCreationDialogComponent {
     @Inject(MAT_DIALOG_DATA) dialogData: ApplicationSubscriptionCreationDialogData,
   ) {
     this.applicationService
-      .getById(dialogData.applicationId)
+      .getLastApplicationFetch(dialogData.applicationId)
       .pipe(
         tap((application) => {
           this.application = application;

@@ -135,9 +135,9 @@ describe('ApplicationSubscriptionCreationDialogComponent', () => {
 
     // init  subscriptions list component
     tick(800);
+    expectApplicationGetRequest(app);
     expectSubscriptionsGetRequest([API_KEY_SUBSCRIPTION]);
     expectApiGetRequest(fakeApiV2({ id: ANOTHER_API_ID }));
-    expectPlanGetRequest();
 
     // open subscription's creation dialog
     await harness.createSubscription();
@@ -427,6 +427,7 @@ describe('ApplicationSubscriptionCreationDialogComponent', () => {
     });
     req.flush({ id: 'subscription-id' });
     flush();
+    expectApplicationGetRequest(fakeApplication());
   };
 
   const expectSchemaGetRequest = (entrypoint: Partial<ConnectorPlugin>) => {

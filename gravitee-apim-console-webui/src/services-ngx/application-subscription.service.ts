@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 import { HttpClient } from '@angular/common/http';
-import { Inject, Injectable } from '@angular/core';
+import { inject, Inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
+
+import { ApplicationService } from './application.service';
 
 import { Constants } from '../entities/Constants';
 import { ApplicationSubscriptionApiKey } from '../entities/subscription/ApplicationSubscriptionApiKey';
@@ -26,6 +29,8 @@ import { NewSubscriptionEntity } from '../entities/application';
   providedIn: 'root',
 })
 export class ApplicationSubscriptionService {
+  private readonly applicationService = inject(ApplicationService);
+
   constructor(
     private readonly http: HttpClient,
     @Inject(Constants) private readonly constants: Constants,
@@ -35,20 +40,20 @@ export class ApplicationSubscriptionService {
     return this.http.get<Subscription>(`${this.constants.env.baseURL}/applications/${applicationId}/subscriptions/${subscriptionId}`);
   }
 
-  subscribe(applicationId: string, planId: string, subscription: NewSubscriptionEntity) {
-    return this.http.post<ApplicationSubscription>(
-      `${this.constants.env.baseURL}/applications/${applicationId}/subscriptions`,
-      subscription,
-      {
+  subscribe(applicationId: string, planId: string, subscription: NewSubscriptionEntity): Observable<ApplicationSubscription> {
+    return this.http
+      .post<ApplicationSubscription>(`${this.constants.env.baseURL}/applications/${applicationId}/subscriptions`, subscription, {
         params: {
           plan: planId,
         },
-      },
-    );
+      })
+      .pipe(tap(() => this.applicationService.refreshLastApplicationFetch()));
   }
 
   closeSubscription(applicationId: string, subscriptionId: string): Observable<void> {
-    return this.http.delete<void>(`${this.constants.env.baseURL}/applications/${applicationId}/subscriptions/${subscriptionId}`);
+    return this.http
+      .delete<void>(`${this.constants.env.baseURL}/applications/${applicationId}/subscriptions/${subscriptionId}`)
+      .pipe(tap(() => this.applicationService.refreshLastApplicationFetch()));
   }
 
   getApiKeys(applicationId: string, subscriptionId: string): Observable<ApplicationSubscriptionApiKey[]> {

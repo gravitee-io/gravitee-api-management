@@ -16,8 +16,8 @@
 
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, of } from 'rxjs';
-import { filter, shareReplay, switchMap, tap } from 'rxjs/operators';
+import { BehaviorSubject, Observable, Subject } from 'rxjs';
+import { filter, shareReplay, startWith, switchMap, tap } from 'rxjs/operators';
 
 import { Constants } from '../entities/Constants';
 import { PagedResult } from '../entities/pagedResult';
@@ -33,6 +33,7 @@ import { CreateApplication } from '../entities/application/CreateApplication';
 })
 export class ApplicationService {
   private lastApplicationFetch$: BehaviorSubject<Application | null> = new BehaviorSubject<Application | null>(null);
+  private refreshLastApplicationFetch$ = new Subject<void>();
 
   constructor(
     private readonly http: HttpClient,
@@ -139,15 +140,26 @@ export class ApplicationService {
   }
 
   getLastApplicationFetch(applicationId: string): Observable<Application> {
-    const start =
-      this.lastApplicationFetch$.value && this.lastApplicationFetch$.value.id === applicationId
-        ? of(this.lastApplicationFetch$.value)
-        : this.getById(applicationId);
-    return start.pipe(
-      switchMap(() => this.lastApplicationFetch$.asObservable()),
+    return this.refreshLastApplicationFetch$.pipe(
+      tap(() => {
+        // Remove last fetch to force a new fetch
+        this.lastApplicationFetch$.next(null);
+      }),
+      startWith({}),
+      switchMap(() =>
+        // If the last fetch is the same as the one we want, we return the last fetch
+        // Otherwise, we fetch the application and return the last fetch
+        this.lastApplicationFetch$.value && this.lastApplicationFetch$.value.id === applicationId
+          ? this.lastApplicationFetch$
+          : this.getById(applicationId).pipe(switchMap(() => this.lastApplicationFetch$)),
+      ),
       filter((application) => !!application),
       shareReplay({ bufferSize: 1, refCount: true }),
     );
+  }
+
+  refreshLastApplicationFetch(): void {
+    this.refreshLastApplicationFetch$.next();
   }
 
   getSubscribedAPIList(applicationId: string): Observable<SubscribedApi[]> {
