@@ -67,7 +67,7 @@ export class GioSideNavComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.activatedRoute.params
       .pipe(
-        map((p) => p.envId),
+        map((p) => p.envHrid),
         distinctUntilChanged(),
         takeUntil(this.unsubscribe$),
       )
