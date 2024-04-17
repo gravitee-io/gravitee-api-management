@@ -16,6 +16,7 @@
 import { CommonModule } from '@angular/common';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { Injectable, NgModule } from '@angular/core';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 import { ConfigService } from '../services/config.service';
 
@@ -30,7 +31,7 @@ export class ConfigServiceStub {
 
 @NgModule({
   declarations: [],
-  imports: [CommonModule, HttpClientTestingModule],
+  imports: [CommonModule, HttpClientTestingModule, NoopAnimationsModule],
   providers: [
     {
       provide: ConfigService,

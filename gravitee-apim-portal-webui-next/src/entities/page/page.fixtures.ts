@@ -16,6 +16,7 @@
 import { isFunction } from 'rxjs/internal/util/isFunction';
 
 import { Page } from './page';
+import { PagesResponse } from './pages-response';
 
 export function fakePage(modifier?: Partial<Page> | ((baseApi: Page) => Page)): Page {
   const base: Page = {
@@ -26,6 +27,23 @@ export function fakePage(modifier?: Partial<Page> | ((baseApi: Page) => Page)): 
     content: 'markdown content',
     updated_at: new Date(1642675655553),
     _links: {},
+  };
+
+  if (isFunction(modifier)) {
+    return modifier(base);
+  }
+
+  return {
+    ...base,
+    ...modifier,
+  };
+}
+
+export function fakePagesResponse(modifier?: Partial<PagesResponse> | ((baseApi: PagesResponse) => PagesResponse)): PagesResponse {
+  const base: PagesResponse = {
+    data: [fakePage()],
+    metadata: {},
+    links: {},
   };
 
   if (isFunction(modifier)) {

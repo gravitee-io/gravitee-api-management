@@ -13,16 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 
+import { ConfigService } from './config.service';
 import { PageTreeNode } from '../components/page-tree/page-tree.component';
 import { Page } from '../entities/page/page';
+import { PagesResponse } from '../entities/page/pages-response';
 
 @Injectable({
   providedIn: 'root',
 })
 export class PageService {
-  constructor() {}
+  constructor(
+    private readonly http: HttpClient,
+    private configService: ConfigService,
+  ) {}
+
+  listByApiId(apiId: string, homepage = false, page = 1, size = -1) {
+    return this.http.get<PagesResponse>(`${this.configService.baseURL}/apis/${apiId}/pages`, {
+      params: {
+        homepage,
+        page,
+        size,
+      },
+    });
+  }
 
   mapToPageTreeNode(root: string | undefined, pages: Page[]): PageTreeNode[] {
     return pages

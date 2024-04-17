@@ -13,12 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-:host {
-  display: flex;
-}
+import { Page } from './page';
+import { Links } from '../pagination/links';
 
-.api-tab-documentation {
-  &__side-bar {
-    width: 324px;
-  }
+export interface PagesResponse {
+  /**
+   * List of pages.
+   */
+  data?: Page[];
+  /**
+   * Map of Map of Object
+   */
+  metadata?: { [key: string]: { [key: string]: object } };
+  links?: Links;
 }
