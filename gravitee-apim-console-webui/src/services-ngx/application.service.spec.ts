@@ -276,6 +276,34 @@ describe('ApplicationService', () => {
 
       expect(done).toEqual(['first', 'second']);
     });
+
+    it('should refresh last application fetch', () => {
+      const mockApplication = fakeApplication({ id: 'my-app-id' });
+
+      const done: string[] = [];
+      applicationService.getLastApplicationFetch('my-app-id').subscribe((response) => {
+        expect(response).toMatchObject(mockApplication);
+        done.push('OK');
+      });
+
+      httpTestingController
+        .expectOne({
+          method: 'GET',
+          url: `${CONSTANTS_TESTING.env.baseURL}/applications/my-app-id`,
+        })
+        .flush(mockApplication);
+
+      applicationService.refreshLastApplicationFetch();
+
+      httpTestingController
+        .expectOne({
+          method: 'GET',
+          url: `${CONSTANTS_TESTING.env.baseURL}/applications/my-app-id`,
+        })
+        .flush(mockApplication);
+
+      expect(done).toEqual(['OK', 'OK']);
+    });
   });
 
   describe('getSubscriptionsPage', () => {
