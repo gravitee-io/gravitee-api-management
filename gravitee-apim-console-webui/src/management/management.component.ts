@@ -97,7 +97,7 @@ export class ManagementComponent {
     // Necessary to refresh view when envId changes
     this.activatedRoute.params
       .pipe(
-        map((p) => p.envId),
+        map((p) => p.envHrid),
         distinctUntilChanged(),
         takeUntil(this.unsubscribe$),
       )
