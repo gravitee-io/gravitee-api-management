@@ -204,6 +204,8 @@ public class GatewayRunner {
             // start Gateway
             vertxContainer = startServer(gatewayContainer);
             isRunning = true;
+
+            testInstance.init();
         } finally {
             removeTemporaryFolderIfNeeded();
         }
@@ -293,6 +295,7 @@ public class GatewayRunner {
         // unset system properties set by user to avoid conflict in tests
         configuredSystemProperties.forEach((k, v) -> System.clearProperty(k.toString()));
         stopServer(gatewayContainer, vertxContainer);
+        testInstance.cleanUp();
     }
 
     /**
@@ -434,13 +437,17 @@ public class GatewayRunner {
     }
 
     private ReactableApi<?> toReactableApi(String apiDefinitionPath) throws IOException {
-        final DefinitionVersion definitionVersion = extractApiDefinitionVersion(apiDefinitionPath);
+        final JsonNode apiAsJson = loadResource(apiDefinitionPath, JsonNode.class);
+        final DefinitionVersion definitionVersion = extractApiDefinitionVersion(apiAsJson);
         final ReactableApi<?> reactableApi;
         if (DefinitionVersion.V4.equals(definitionVersion)) {
-            final io.gravitee.definition.model.v4.Api api = loadApiDefinition(apiDefinitionPath, io.gravitee.definition.model.v4.Api.class);
+            final io.gravitee.definition.model.v4.Api api = graviteeMapper.treeToValue(
+                apiAsJson,
+                io.gravitee.definition.model.v4.Api.class
+            );
             reactableApi = apiDeploymentPreparers.get(definitionVersion).toReactable(api);
         } else {
-            final Api api = loadApiDefinition(apiDefinitionPath, Api.class);
+            final Api api = graviteeMapper.treeToValue(apiAsJson, Api.class);
             reactableApi = apiDeploymentPreparers.get(definitionVersion).toReactable(api);
         }
         return reactableApi;
@@ -693,10 +700,6 @@ public class GatewayRunner {
         endpoints.putIfAbsent("mock", EndpointBuilder.build("mock", MockEndpointConnectorFactory.class));
     }
 
-    private <T> T loadApiDefinition(String apiDefinitionPath, Class<T> toApiClass) throws IOException {
-        return loadResource(apiDefinitionPath, toApiClass);
-    }
-
     private ReactableOrganization loadOrganizationDefinition(String orgDefinitionPath) throws IOException {
         final io.gravitee.definition.model.Organization organization = loadResource(
             orgDefinitionPath,
@@ -722,6 +725,11 @@ public class GatewayRunner {
                         entry.getValue()
                     );
             }
+
+            definition =
+                definition
+                    .replaceAll("http://localhost:8080", "http://localhost:" + testInstance.getWiremockPort())
+                    .replaceAll("https://localhost:8080", "https://localhost:" + testInstance.getWiremockHttpsPort());
 
             return graviteeMapper.readValue(definition, toClass);
         } catch (URISyntaxException e) {
@@ -798,14 +806,10 @@ public class GatewayRunner {
      * First, check if `definitionVersion` field is present and use its value
      * Then, check if `gravitee` field is present and use its value
      * Default to V2.
-     * @param apiDefinitionPath is the path to the api definition to load
+     * @param apiAsJson the api definition as {@link JsonNode}
      * @return the definitionVersion found in definition
-     * @throws IOException
      */
-    private DefinitionVersion extractApiDefinitionVersion(String apiDefinitionPath) throws IOException {
-        final URL url = loadURL(apiDefinitionPath);
-        final JsonNode apiAsJson = graviteeMapper.readTree(url);
-
+    private DefinitionVersion extractApiDefinitionVersion(JsonNode apiAsJson) {
         if (apiAsJson.has("definitionVersion")) {
             return DefinitionVersion.valueOfLabel(apiAsJson.get("definitionVersion").asText());
         } else if (apiAsJson.has("gravitee")) {

@@ -62,6 +62,11 @@ public class MutualTLSIntegrationTest {
         }
 
         @Override
+        public void configurePlaceHolderVariables(Map<String, String> variables) {
+            variables.put("WIREMOCK_PORT", "" + wiremock.port());
+        }
+
+        @Override
         @SneakyThrows
         protected void configureGateway(GatewayConfigurationBuilder config) {
             /*
