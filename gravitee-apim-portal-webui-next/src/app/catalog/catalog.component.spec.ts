@@ -109,7 +109,6 @@ describe('CatalogComponent', () => {
       expect(allHarnesses.length).toEqual(2);
 
       const secondPageApi = await harnessLoader.getHarnessOrNull(ApiCardHarness.with({ selector: '[ng-reflect-id="second-page-api"]' }));
-      console.log(1, secondPageApi);
       expect(secondPageApi).toBeTruthy();
     });
 
