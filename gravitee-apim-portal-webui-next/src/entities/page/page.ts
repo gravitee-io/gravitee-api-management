@@ -31,7 +31,7 @@ export interface Page {
   /**
    * Type of documentation.
    */
-  type: TypeEnum;
+  type: PageTypeEnum;
   /**
    * Order of the documentation page in its folder.
    */
@@ -60,4 +60,4 @@ export interface Page {
   contentRevisionId?: PageRevisionId;
 }
 
-type TypeEnum = 'ASCIIDOC' | 'ASYNCAPI' | 'SWAGGER' | 'MARKDOWN' | 'FOLDER' | 'ROOT' | 'LINK';
+export type PageTypeEnum = 'ASCIIDOC' | 'ASYNCAPI' | 'SWAGGER' | 'MARKDOWN' | 'FOLDER' | 'ROOT' | 'LINK';

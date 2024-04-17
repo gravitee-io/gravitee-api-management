@@ -24,6 +24,7 @@ import { isEmpty } from 'lodash';
 export interface PageTreeNode {
   id: string;
   name: string;
+  order?: number;
   children?: PageTreeNode[];
 }
 
