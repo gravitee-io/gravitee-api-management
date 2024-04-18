@@ -924,7 +924,7 @@ describe('ApiSubscriptionListComponent', () => {
   function expectApiKeySubscriptionsGetRequest(applicationId: string, subscriptions: ApplicationSubscription[]) {
     httpTestingController
       .expectOne({
-        url: `${CONSTANTS_TESTING.env.baseURL}/applications/${applicationId}/subscriptions?page=1&size=20&security_types=API_KEY`,
+        url: `${CONSTANTS_TESTING.env.baseURL}/applications/${applicationId}/subscriptions?page=1&size=20&status=ACCEPTED,PENDING,PAUSED&security_types=API_KEY`,
         method: 'GET',
       })
       .flush(fakePagedResult(subscriptions));

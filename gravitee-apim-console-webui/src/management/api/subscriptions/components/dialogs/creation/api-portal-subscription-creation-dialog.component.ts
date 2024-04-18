@@ -229,7 +229,13 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
         switchMap((plan) => {
           const selectedAppId = this.form.get('selectedApplication').value?.id;
           if (selectedAppId != null) {
-            return combineLatest([this.applicationService.getSubscriptionsPage(selectedAppId, { security_types: ['API_KEY'] }), of(plan)]);
+            return combineLatest([
+              this.applicationService.getSubscriptionsPage(selectedAppId, {
+                status: ['ACCEPTED', 'PENDING', 'PAUSED'],
+                security_types: ['API_KEY'],
+              }),
+              of(plan),
+            ]);
           }
           return combineLatest([of(null), of(plan)]);
         }),
