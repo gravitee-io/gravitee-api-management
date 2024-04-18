@@ -48,6 +48,8 @@ describe('ApiDetailsComponent', () => {
 
   afterEach(() => {
     httpTestingController.match('assets/images/lightbulb_24px.svg');
+    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/api-id/pages?homepage=true&page=1&size=-1`);
+    expect(req.request.method).toEqual('GET');
     httpTestingController.verify();
   });
 
