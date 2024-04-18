@@ -241,10 +241,10 @@ public class SubscriptionQueryServiceImplTest {
     }
 
     @Nested
-    class FindByApplicationIdAndApiId {
+    class FindActiveByApplicationIdAndApiId {
 
         @Test
-        void should_return_subscription_for_given_api_and_application_() throws TechnicalException {
+        void should_return_active_subscription_for_given_api_and_application_() throws TechnicalException {
             // Given
             var id = "s1";
             var apiId = "api-id";
@@ -253,7 +253,7 @@ public class SubscriptionQueryServiceImplTest {
                 .thenAnswer(invocation -> List.of(aSubscription(id).api(apiId).application(appId).build()));
 
             // When
-            var result = service.findByApplicationIdAndApiId(appId, apiId);
+            var result = service.findActiveByApplicationIdAndApiId(appId, apiId);
 
             // Then
             assertThat(result)
@@ -269,7 +269,7 @@ public class SubscriptionQueryServiceImplTest {
             when(subscriptionRepository.search(any())).thenThrow(TechnicalException.class);
 
             // When
-            Throwable throwable = catchThrowable(() -> service.findByApplicationIdAndApiId("app-id", "api-id"));
+            Throwable throwable = catchThrowable(() -> service.findActiveByApplicationIdAndApiId("app-id", "api-id"));
 
             // Then
             assertThat(throwable)

@@ -303,8 +303,22 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
             when(planSearchService.search(eq(GraviteeContext.getExecutionContext()), eq(planQuery), eq(USER_NAME), eq(true)))
                 .thenReturn(List.of(plan1, plan2, plan3));
 
-            var subscription = SubscriptionEntity.builder().apiId(API).planId(plan2.getId()).applicationId(APPLICATION).build();
-            subscriptionQueryService.initWith(List.of(subscription));
+            var plan1Subscription = SubscriptionEntity
+                .builder()
+                .apiId(API)
+                .planId(plan2.getId())
+                .status(SubscriptionEntity.Status.CLOSED)
+                .applicationId(APPLICATION)
+                .build();
+            var plan2Subscription = SubscriptionEntity
+                .builder()
+                .apiId(API)
+                .planId(plan2.getId())
+                .status(SubscriptionEntity.Status.ACCEPTED)
+                .applicationId(APPLICATION)
+                .build();
+
+            subscriptionQueryService.initWith(List.of(plan1Subscription, plan2Subscription));
 
             target = target.queryParam("subscribableBy", APPLICATION);
             final Response response = target.request().get();
@@ -351,7 +365,13 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
             when(planSearchService.search(eq(GraviteeContext.getExecutionContext()), eq(planQuery), eq(USER_NAME), eq(true)))
                 .thenReturn(List.of(plan1, plan2));
 
-            var subscription = SubscriptionEntity.builder().apiId(API).planId(plan2.getId()).applicationId(APPLICATION).build();
+            var subscription = SubscriptionEntity
+                .builder()
+                .apiId(API)
+                .planId(plan2.getId())
+                .status(SubscriptionEntity.Status.ACCEPTED)
+                .applicationId(APPLICATION)
+                .build();
             subscriptionQueryService.initWith(List.of(subscription));
 
             target = target.queryParam("subscribableBy", APPLICATION);
@@ -387,11 +407,29 @@ public class ApiPlansResourceTest extends AbstractResourceTest {
                 .build();
             var plan3 = PlanFixtures.aPlanEntityV4().toBuilder().id("plan-3").apiId(API).build();
             var plan4 = PlanFixtures.aPlanEntityV4().toBuilder().id("plan-4").apiId(API).build();
+            var plan5 = PlanFixtures.aPlanEntityV4().toBuilder().id("plan-5").apiId(API).build();
             var planQuery = PlanQuery.builder().apiId(API).securityType(new ArrayList<>()).status(List.of(PlanStatus.PUBLISHED)).build();
             when(planSearchService.search(eq(GraviteeContext.getExecutionContext()), eq(planQuery), eq(USER_NAME), eq(true)))
-                .thenReturn(List.of(plan1, plan2, plan3, plan4));
+                .thenReturn(List.of(plan1, plan2, plan3, plan4, plan5));
 
-            subscriptionQueryService.initWith(Collections.emptyList());
+            subscriptionQueryService.initWith(
+                List.of(
+                    SubscriptionEntity
+                        .builder()
+                        .apiId(API)
+                        .planId(plan5.getId())
+                        .status(SubscriptionEntity.Status.ACCEPTED)
+                        .applicationId(APPLICATION)
+                        .build(),
+                    SubscriptionEntity
+                        .builder()
+                        .apiId(API)
+                        .planId(plan4.getId())
+                        .status(SubscriptionEntity.Status.CLOSED)
+                        .applicationId(APPLICATION)
+                        .build()
+                )
+            );
 
             target = target.queryParam("subscribableBy", APPLICATION);
             final Response response = target.request().get();
