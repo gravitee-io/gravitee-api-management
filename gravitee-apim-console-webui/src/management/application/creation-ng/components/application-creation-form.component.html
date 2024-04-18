@@ -86,7 +86,7 @@
         </mat-form-field>
 
         <mat-form-field *ngIf="applicationType.requiresRedirectUris">
-          <mat-label>Redirect URIs</mat-label>
+          <mat-label>Redirect URIs *</mat-label>
           <gio-form-tags-input formControlName="oauthRedirectUris" placeholder="Enter a redirect URI"> </gio-form-tags-input>
           <mat-hint align="start">URIs where the authorization server will send OAuth responses</mat-hint>
         </mat-form-field>

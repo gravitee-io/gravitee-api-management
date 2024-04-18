@@ -102,15 +102,22 @@ export class ApplicationCreationFormComponent implements OnInit {
         };
       }),
       tap((applicationType) => {
-        if (applicationType.isOauth) {
+        if (applicationType.isOauth && applicationType.allowedGrantTypesVM.length > 0) {
           this.applicationFormGroup.get('oauthGrantTypes')?.setValidators(Validators.required);
 
           const defaultGrantType = applicationType?.default_grant_types?.map((grantType) => grantType.type) ?? [];
           this.applicationFormGroup.get('oauthGrantTypes')?.setValue(defaultGrantType);
-          return;
+        } else {
+          this.applicationFormGroup.get('oauthGrantTypes')?.clearValidators();
+          this.applicationFormGroup.get('oauthGrantTypes')?.reset();
         }
-        this.applicationFormGroup.get('oauthGrantTypes')?.clearValidators();
-        this.applicationFormGroup.get('oauthGrantTypes')?.reset();
+
+        if (applicationType.requiresRedirectUris) {
+          this.applicationFormGroup.get('oauthRedirectUris')?.setValidators(Validators.required);
+        } else {
+          this.applicationFormGroup.get('oauthRedirectUris')?.clearValidators();
+          this.applicationFormGroup.get('oauthRedirectUris')?.reset();
+        }
       }),
       share(),
     );

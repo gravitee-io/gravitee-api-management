@@ -96,10 +96,8 @@ export class ApplicationCreationComponent {
       }),
     ),
     tap((types) => {
-      // If there is only one type available, select it by default
-      if (types.length === 1) {
-        this.applicationFormGroup.get('type').setValue(types[0].id.toUpperCase());
-      }
+      // Set the first type as default
+      this.applicationFormGroup.get('type').setValue(types[0].id.toUpperCase());
     }),
   );
 
@@ -112,6 +110,9 @@ export class ApplicationCreationComponent {
   ) {}
 
   onSubmit() {
+    if (this.applicationFormGroup.invalid) {
+      return;
+    }
     const applicationPayload = this.applicationFormGroup.value;
 
     this.applicationService
@@ -130,8 +131,8 @@ export class ApplicationCreationComponent {
             : {
                 oauth: {
                   application_type: applicationPayload.type,
-                  grant_types: applicationPayload.oauthGrantTypes,
-                  redirect_uris: applicationPayload.oauthRedirectUris,
+                  grant_types: applicationPayload.oauthGrantTypes ?? [],
+                  redirect_uris: applicationPayload.oauthRedirectUris ?? [],
                 },
               }),
         },
@@ -142,8 +143,8 @@ export class ApplicationCreationComponent {
           this.snackBarService.success('Application created');
           this.router.navigate(['../', application.id], { relativeTo: this.activatedRoute });
         },
-        error: () => {
-          this.snackBarService.error('An error occurred while creating the application!');
+        error: (error) => {
+          this.snackBarService.error(error?.error?.message ?? 'An error occurred while creating the application!');
         },
       });
   }
