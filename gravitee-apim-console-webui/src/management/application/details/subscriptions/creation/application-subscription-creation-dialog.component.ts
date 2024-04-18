@@ -97,7 +97,7 @@ export class ApplicationSubscriptionCreationDialogComponent {
       .subscribe();
 
     this.applicationService
-      .getSubscriptionsPage(dialogData.applicationId, { security_types: ['API_KEY'] })
+      .getSubscriptionsPage(dialogData.applicationId, { status: ['ACCEPTED', 'PAUSED', 'PENDING'], security_types: ['API_KEY'] })
       .pipe(
         tap((response) => (this.apiKeySubscriptions = response.data)),
         takeUntilDestroyed(this.destroyRef),

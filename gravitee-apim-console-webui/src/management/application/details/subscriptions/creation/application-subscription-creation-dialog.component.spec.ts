@@ -143,8 +143,7 @@ describe('ApplicationSubscriptionCreationDialogComponent', () => {
     await harness.createSubscription();
     dialogHarness = await rootLoader.getHarness(ApplicationSubscriptionCreationDialogHarness);
 
-    expectApplicationGetRequest(app);
-    expectSubscriptionsGetRequest([API_KEY_SUBSCRIPTION], '20', null, 'API_KEY');
+    expectSubscriptionsGetRequest([API_KEY_SUBSCRIPTION], '20', undefined, 'API_KEY');
     expectEntrypointListGet();
   };
 
