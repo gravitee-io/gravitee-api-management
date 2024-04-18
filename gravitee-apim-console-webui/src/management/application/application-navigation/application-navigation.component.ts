@@ -17,9 +17,9 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { GioMenuSearchService, GioMenuService, MenuSearchItem } from '@gravitee/ui-particles-angular';
 import { Subject } from 'rxjs';
-import { startWith, takeUntil } from 'rxjs/operators';
-import { castArray, flatMap } from 'lodash';
-import { ActivatedRoute, Router } from '@angular/router';
+import { filter, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { flatMap } from 'lodash';
+import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 
 import { cleanRouterLink, getPathFromRoot } from '../../../util/router-link.util';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
@@ -62,73 +62,100 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    this.applicationService
-      .getLastApplicationFetch(this.activatedRoute.snapshot.params.applicationId)
-      .pipe(takeUntil(this.unsubscribe$))
-      .subscribe({
-        next: (application) => (this.application = application),
-      });
-
     this.gioMenuService.reduced$.pipe(takeUntil(this.unsubscribe$)).subscribe((reduced) => {
       this.hasBreadcrumb = reduced;
     });
-    this.subMenuItems = this.filterMenuByPermission([
-      {
-        displayName: 'Global settings',
-        routerLink: 'general',
-        permissions: ['application-definition-r'],
-      },
-      {
-        displayName: 'User and group access',
-        permissions: ['application-member-r'],
-        routerLink: 'members',
-        tabs: [
-          {
-            displayName: 'Members',
-            routerLink: 'members',
-          },
-          {
-            displayName: 'Groups',
-            routerLink: 'groups',
-          },
-          {
-            displayName: 'Transfer ownership',
-            routerLink: 'transfer-ownership',
-          },
-        ],
-      },
-      {
-        displayName: 'Metadata',
-        routerLink: 'metadata',
-        permissions: ['application-metadata-r'],
-      },
-      {
-        displayName: 'Subscriptions',
-        routerLink: 'subscriptions',
-        permissions: ['application-subscription-r'],
-      },
-      {
-        displayName: 'Analytics',
-        routerLink: 'analytics',
-        permissions: ['application-analytics-r'],
-      },
-      {
-        displayName: 'Logs',
-        routerLink: 'logs',
-        permissions: ['application-log-r'],
-      },
-      {
-        displayName: 'Notification settings',
-        routerLink: 'notifications',
-        permissions: ['application-notification-r', 'application-alert-r'],
-      },
-    ]);
 
-    this.gioMenuSearchService.addMenuSearchItems(this.getApplicationNavigationSearchItems());
+    this.applicationService
+      .getLastApplicationFetch(this.activatedRoute.snapshot.params.applicationId)
+      .pipe(
+        tap((application) => {
+          this.application = application;
 
-    this.router.events.pipe(startWith({}), takeUntil(this.unsubscribe$)).subscribe(() => {
-      this.selectedItemWithTabs = this.subMenuItems.find((item) => item.tabs && this.isTabActive(item.tabs));
-    });
+          this.subMenuItems = this.filterMenuByPermission([
+            {
+              displayName: 'Global settings',
+              routerLink: 'general',
+              permissions: ['application-definition-r'],
+            },
+            {
+              displayName: 'User and group access',
+              permissions: ['application-member-r'],
+              routerLink: 'members',
+              tabs: [
+                {
+                  displayName: 'Members',
+                  routerLink: 'members',
+                },
+                {
+                  displayName: 'Groups',
+                  routerLink: 'groups',
+                },
+                {
+                  displayName: 'Transfer ownership',
+                  routerLink: 'transfer-ownership',
+                },
+              ],
+            },
+            {
+              displayName: 'Metadata',
+              routerLink: 'metadata',
+              permissions: ['application-metadata-r'],
+            },
+            ...(application.api_key_mode === 'SHARED'
+              ? [
+                  {
+                    displayName: 'Subscriptions',
+                    permissions: ['application-member-r'],
+                    routerLink: 'subscriptions',
+                    tabs: [
+                      {
+                        displayName: 'Subscriptions',
+                        routerLink: 'subscriptions',
+                      },
+                      {
+                        displayName: 'Shared API Keys',
+                        routerLink: 'shared-api-keys',
+                      },
+                    ],
+                  },
+                ]
+              : [
+                  {
+                    displayName: 'Subscriptions',
+                    routerLink: 'subscriptions',
+                    permissions: ['application-subscription-r'],
+                  },
+                ]),
+            {
+              displayName: 'Analytics',
+              routerLink: 'analytics',
+              permissions: ['application-analytics-r'],
+            },
+            {
+              displayName: 'Logs',
+              routerLink: 'logs',
+              permissions: ['application-log-r'],
+            },
+            {
+              displayName: 'Notification settings',
+              routerLink: 'notifications',
+              permissions: ['application-notification-r', 'application-alert-r'],
+            },
+          ]);
+
+          this.selectedItemWithTabs = this.subMenuItems.find((item) => item.tabs && this.isTabActive(item.tabs));
+
+          this.gioMenuSearchService.addMenuSearchItems(this.getApplicationNavigationSearchItems());
+        }),
+        switchMap(() => this.router.events),
+        filter((event) => event instanceof NavigationEnd),
+        tap(() => {
+          this.selectedItemWithTabs = this.subMenuItems.find((item) => item.tabs && this.isTabActive(item.tabs));
+        }),
+        takeUntil(this.unsubscribe$),
+      )
+      .subscribe();
   }
 
   ngOnDestroy(): void {
@@ -141,16 +168,12 @@ export class ApplicationNavigationComponent implements OnInit, OnDestroy {
     if (!item.routerLink) {
       return false;
     }
-    return [item.routerLink, ...castArray(item.routerLink)]
-      .filter((r) => !!r)
-      .some((routerLink) => {
-        return this.router.isActive(this.router.createUrlTree([routerLink], { relativeTo: this.activatedRoute }), {
-          paths: item.routerLinkActiveOptions?.exact ? 'exact' : 'subset',
-          queryParams: 'subset',
-          fragment: 'ignored',
-          matrixParams: 'ignored',
-        });
-      });
+    return this.router.isActive(this.router.createUrlTree([item.routerLink], { relativeTo: this.activatedRoute }), {
+      paths: item.routerLinkActiveOptions?.exact ? 'exact' : 'subset',
+      queryParams: 'subset',
+      fragment: 'ignored',
+      matrixParams: 'ignored',
+    });
   }
 
   computeBreadcrumbItems(): string[] {

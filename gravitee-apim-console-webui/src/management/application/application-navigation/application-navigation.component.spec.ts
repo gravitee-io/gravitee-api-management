@@ -17,23 +17,28 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { GioLicenseTestingModule, GioMenuSearchService } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { HttpTestingController } from '@angular/common/http/testing';
 
 import { ApplicationNavigationComponent } from './application-navigation.component';
 
-import { GioTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { GioPermissionService } from '../../../shared/components/gio-permission/gio-permission.service';
 import { ApiNavigationModule } from '../../api/api-navigation/api-navigation.module';
+import { Application } from '../../../entities/application/Application';
+import { fakeApplication } from '../../../entities/application/Application.fixture';
 
 describe('ApplicationNavigationComponent', () => {
   let fixture: ComponentFixture<ApplicationNavigationComponent>;
   let component: ApplicationNavigationComponent;
+  let httpTestingController: HttpTestingController;
   const applicationId = 'appId';
   const environmentId = 'envId';
   const menuSearchService = new GioMenuSearchService();
 
   function createComponent(hasAnyMatching: boolean) {
     TestBed.configureTestingModule({
-      imports: [NoopAnimationsModule, GioTestingModule, ApiNavigationModule, GioLicenseTestingModule],
+      imports: [NoopAnimationsModule, CommonModule, GioTestingModule, ApiNavigationModule, GioLicenseTestingModule],
       providers: [
         {
           provide: GioPermissionService,
@@ -52,13 +57,17 @@ describe('ApplicationNavigationComponent', () => {
       ],
     }).compileComponents();
 
+    httpTestingController = TestBed.inject(HttpTestingController);
+
     fixture = TestBed.createComponent(ApplicationNavigationComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
+    expectApplicationGetRequest(fakeApplication({ id: applicationId }));
   }
 
   afterEach(() => {
     jest.resetAllMocks();
+    httpTestingController.verify();
   });
 
   describe('with all permissions', () => {
@@ -118,4 +127,13 @@ describe('ApplicationNavigationComponent', () => {
       expect(component.subMenuItems).toHaveLength(0);
     });
   });
+
+  const expectApplicationGetRequest = (application: Application): void => {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/applications/${application.id}`,
+        method: 'GET',
+      })
+      .flush(application);
+  };
 });

@@ -20,7 +20,6 @@ import { Component } from '@angular/core';
 import { HarnessLoader } from '@angular/cdk/testing';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
-import { MatButtonHarness } from '@angular/material/button/testing';
 import { InteractivityChecker } from '@angular/cdk/a11y';
 import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 
@@ -36,15 +35,13 @@ import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../../shared/te
   template: ` <subscription-api-keys
     [applicationId]="applicationId"
     [subscriptionId]="subscriptionId"
-    [isSharedApiKeyMode]="isSharedApiKeyMode"
-    [subscriptionStatus]="subscriptionStatus"
+    [readonly]="readonly"
   ></subscription-api-keys>`,
 })
 class TestComponent {
   applicationId = 'applicationId';
   subscriptionId = 'subscriptionId';
-  isSharedApiKeyMode = false;
-  subscriptionStatus = 'ACCEPTED';
+  readonly = false;
 }
 
 describe('SubscriptionApiKeysComponent', () => {
@@ -136,8 +133,7 @@ describe('SubscriptionApiKeysComponent', () => {
   });
 
   it('should revoke API key', async () => {
-    const renewBtn = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to revoke an API Key"]' }));
-    await renewBtn.click();
+    await componentHarness.revokeApiKey();
 
     await rootLoader.getHarness(GioConfirmDialogHarness).then((dialog) => dialog.confirm());
 
@@ -148,8 +144,7 @@ describe('SubscriptionApiKeysComponent', () => {
   });
 
   it('should renew API key', async () => {
-    const renewBtn = await loader.getHarness(MatButtonHarness.with({ text: /Renew/ }));
-    await renewBtn.click();
+    await componentHarness.renewApiKey();
 
     await rootLoader.getHarness(GioConfirmDialogHarness).then((dialog) => dialog.confirm());
 

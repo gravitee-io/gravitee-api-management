@@ -27,6 +27,7 @@ import { ApplicationSubscription } from '../entities/subscription/subscription';
 import { ApplicationLog } from '../entities/application/ApplicationLog';
 import { MembershipListItem } from '../entities/role/membershipListItem';
 import { CreateApplication } from '../entities/application/CreateApplication';
+import { ApplicationSubscriptionApiKey } from '../entities/subscription/ApplicationSubscriptionApiKey';
 
 @Injectable({
   providedIn: 'root',
@@ -211,5 +212,17 @@ export class ApplicationService {
 
   create(application: CreateApplication): Observable<Application> {
     return this.http.post<Application>(`${this.constants.env.baseURL}/applications`, application);
+  }
+
+  getApiKeys(applicationId: string): Observable<ApplicationSubscriptionApiKey[]> {
+    return this.http.get<ApplicationSubscriptionApiKey[]>(`${this.constants.env.baseURL}/applications/${applicationId}/apikeys`);
+  }
+
+  renewApiKey(applicationId: string): Observable<void> {
+    return this.http.post<void>(`${this.constants.env.baseURL}/applications/${applicationId}/apikeys/_renew`, {});
+  }
+
+  revokeApiKey(applicationId: string, apiKeyId: string): Observable<void> {
+    return this.http.delete<void>(`${this.constants.env.baseURL}/applications/${applicationId}/apikeys/${apiKeyId}`);
   }
 }

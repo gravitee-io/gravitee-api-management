@@ -34,6 +34,7 @@ import { ApplicationNotificationComponent } from './details/notification/applica
 import { ApplicationSubscriptionListComponent } from './details/subscriptions/list/application-subscription-list.component';
 import { ApplicationCreationComponent } from './creation-ng/application-creation.component';
 import { ApplicationSubscriptionComponent } from './details/subscriptions/subscription/application-subscription.component';
+import { ApplicationSharedApiKeysComponent } from './details/subscriptions/shared-api-keys/application-shared-api-keys.component';
 
 import { PermissionGuard } from '../../shared/components/gio-permission/gio-permission.guard';
 
@@ -105,6 +106,15 @@ const applicationRoutes: Routes = [
       {
         path: 'subscriptions',
         component: ApplicationSubscriptionListComponent,
+        data: {
+          permissions: {
+            anyOf: ['application-subscription-r'],
+          },
+        },
+      },
+      {
+        path: 'shared-api-keys',
+        component: ApplicationSharedApiKeysComponent,
         data: {
           permissions: {
             anyOf: ['application-subscription-r'],
