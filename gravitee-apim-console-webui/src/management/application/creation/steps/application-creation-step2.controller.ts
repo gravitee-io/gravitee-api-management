@@ -45,6 +45,13 @@ class ApplicationCreationStep2Controller {
     }
   }
 
+  next() {
+    if (this.selectedType) {
+      this.selectType(this.selectedType);
+    }
+    this.parent.next();
+  }
+
   displaySimpleAppConfig() {
     return !this.selectedType.isOauth();
   }
