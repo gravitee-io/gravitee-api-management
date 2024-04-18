@@ -15,6 +15,7 @@
  */
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
 
 import { ConfigService } from './config.service';
 import { PageTreeNode } from '../components/page-tree/page-tree.component';
@@ -49,5 +50,9 @@ export class PageService {
         name: p.name,
         children: this.mapToPageTreeNode(p.id, pages),
       }));
+  }
+
+  content(apiId: string, detailsId: string): Observable<Page> {
+    return this.http.get<Page>(`${this.configService.baseURL}/apis/${apiId}/pages/${detailsId}?include=content`);
   }
 }

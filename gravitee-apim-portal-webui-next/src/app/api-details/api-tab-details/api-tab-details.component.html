@@ -1,13 +1,13 @@
 <!--
 
     Copyright (C) 2024 The Gravitee team (http://gravitee.io)
-    
+
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
-    
+
             http://www.apache.org/licenses/LICENSE-2.0
-    
+
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,25 +17,33 @@
 -->
 <div class="api-details__tab">
   <div class="api-details__tab-details-content">
-    <p>
-      Overview <br />
-      Welcome to the WeatherAPI documentation! WeatherAPI is a powerful and easy-to-use API that provides real-time weather information for
-      any location worldwide. Whether you're building a weather application, integrating weather data into your website, or conducting data
-      analysis, WeatherAPI has you covered. Key Features <br />
-      Global Coverage: Access real-time weather data for any location on Earth. <br />
-      Current Weather: Retrieve up-to-date information about the current weather conditions.
-    </p>
+    @if (content$ | async; as content) {
+      <div [innerHTML]="content"></div>
+    } @else {
+      <p i18n="@@noApiDetailsAvailable">Sorry, there are no available API details.</p>
+    }
   </div>
+
   <div class="api-details__tab-details-info">
-    <div class="info">
-      <div>Version</div>
-      <p>v.1.2</p>
-    </div>
+    @if (apiVersion) {
+      <div class="api-details__tab-details-info-details">
+        <p i18n="@@apiDetailsVersion" class="details-title">Version</p>
+        <p class="details-content">{{ apiVersion }}</p>
+      </div>
+    }
 
-    <div>Last updated</div>
-    <p>07/07/2023</p>
+    @if (apiLastUpdate) {
+      <div class="api-details__tab-details-info-details">
+        <p i18n="@@apiDetailsLastUpdated" class="details-title">Last updated</p>
+        <p class="details-content">{{ apiLastUpdate | date }}</p>
+      </div>
+    }
 
-    <div>Categories</div>
-    <p>Logistics</p>
+    @if (apiCategories?.length) {
+      <div class="api-details__tab-details-info-details">
+        <p i18n="@@apiDetailsCategories" class="details-title">Categories</p>
+        <p class="details-content">{{ apiCategories }}</p>
+      </div>
+    }
   </div>
 </div>

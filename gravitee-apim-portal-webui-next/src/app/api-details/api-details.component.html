@@ -39,7 +39,11 @@
       <mat-tab-group animationDuration="0ms">
         <mat-tab label="Details">
           <ng-template matTabContent>
-            <app-api-tab-details />
+            <app-api-tab-details
+              [apiId]="apiId"
+              [apiVersion]="details.version"
+              [apiLastUpdate]="details.updated_at"
+              [apiCategories]="details.categories" />
           </ng-template>
         </mat-tab>
         @if (pages$ | async; as pages) {

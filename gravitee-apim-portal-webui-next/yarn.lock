@@ -11452,11 +11452,15 @@ __metadata:
     eslint-plugin-import: "npm:2.29.1"
     eslint-plugin-prettier: "npm:5.1.3"
     eslint-plugin-storybook: "npm:0.8.0"
+    highlight.js: "npm:11.9.0"
     jdenticon: "npm:3.2.0"
     jest: "npm:29.7.0"
     jest-junit: "npm:16.0.0"
     jest-preset-angular: "npm:14.0.3"
     license-check-and-add: "npm:4.0.5"
+    marked: "npm:12.0.2"
+    marked-gfm-heading-id: "npm:3.1.3"
+    marked-highlight: "npm:2.1.1"
     ngx-infinite-scroll: "npm:17.0.0"
     prettier: "npm:3.2.5"
     prettier-eslint: "npm:16.3.0"
@@ -11618,6 +11622,13 @@ __metadata:
   bin:
     he: bin/he
   checksum: 10c0/a27d478befe3c8192f006cdd0639a66798979dfa6e2125c6ac582a19a5ebfec62ad83e8382e6036170d873f46e4536a7e795bf8b95bf7c247f4cc0825ccc8c17
+  languageName: node
+  linkType: hard
+
+"highlight.js@npm:11.9.0":
+  version: 11.9.0
+  resolution: "highlight.js@npm:11.9.0"
+  checksum: 10c0/27cfa8717dc9d200aecbdb383eb122d5f45ce715d2f468583785d36fbfe5076ce033abb02486dc13b407171721cda6f474ed3f3a5a8e8c3d91367fa5f51ee374
   languageName: node
   linkType: hard
 
@@ -13802,6 +13813,35 @@ __metadata:
   peerDependencies:
     react: ">= 0.14.0"
   checksum: 10c0/191b9a9defeed02e12dd340cebf279f577266dac7b34574fa44ce4d64ee8536f9967d455b8303c853f84413feb473118290a6160d8221eeaf3b9e4961b8980e3
+  languageName: node
+  linkType: hard
+
+"marked-gfm-heading-id@npm:3.1.3":
+  version: 3.1.3
+  resolution: "marked-gfm-heading-id@npm:3.1.3"
+  dependencies:
+    github-slugger: "npm:^2.0.0"
+  peerDependencies:
+    marked: ">=4 <13"
+  checksum: 10c0/675ea0847eb35b37f0b0b79270a511954afbca2a94b2b2d3b1dfd04f13e4bd18e8989dd1e4e82b407b2166e06d9af6aaf83ef2ba46b4c1fc665a06c83dd31469
+  languageName: node
+  linkType: hard
+
+"marked-highlight@npm:2.1.1":
+  version: 2.1.1
+  resolution: "marked-highlight@npm:2.1.1"
+  peerDependencies:
+    marked: ">=4 <13"
+  checksum: 10c0/8f169411695a19150f8f8cb4ca91f2e7e5b057c2f160a797889600c0cb6d8776d4a5c0be5ca4c9e0a03c494a65a777a7fb8f322f747debc100016ca86eb3aeaa
+  languageName: node
+  linkType: hard
+
+"marked@npm:12.0.2":
+  version: 12.0.2
+  resolution: "marked@npm:12.0.2"
+  bin:
+    marked: bin/marked.js
+  checksum: 10c0/45ae2e1e3f06b30a5b5f64efc6cde9830c81d1d024fd7668772a3217f1bc0f326e66a6b8970482d9783edf1f581fecac7023a7fa160f2c14dbcc16e064b4eafb
   languageName: node
   linkType: hard
 
