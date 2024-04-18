@@ -134,7 +134,7 @@ public class ApiPlansResource extends AbstractResource {
             .map(this::filterSensitiveData);
 
         if (subscribableBy != null) {
-            var subscriptions = subscriptionQueryService.findByApplicationIdAndApiId(subscribableBy, apiId);
+            var subscriptions = subscriptionQueryService.findActiveByApplicationIdAndApiId(subscribableBy, apiId);
             var subscribedPlans = subscriptions.stream().map(SubscriptionEntity::getPlanId).toList();
 
             plansStream =

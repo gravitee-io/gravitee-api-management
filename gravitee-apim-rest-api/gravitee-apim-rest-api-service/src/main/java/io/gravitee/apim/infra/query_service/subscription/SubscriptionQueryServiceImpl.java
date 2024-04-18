@@ -71,8 +71,13 @@ public class SubscriptionQueryServiceImpl implements SubscriptionQueryService {
     }
 
     @Override
-    public List<SubscriptionEntity> findByApplicationIdAndApiId(String applicationId, String apiId) {
-        var criteria = SubscriptionCriteria.builder().apis(List.of(apiId)).applications(List.of(applicationId)).build();
+    public List<SubscriptionEntity> findActiveByApplicationIdAndApiId(String applicationId, String apiId) {
+        var criteria = SubscriptionCriteria
+            .builder()
+            .statuses(List.of(SubscriptionStatus.ACCEPTED.name(), SubscriptionStatus.PENDING.name(), SubscriptionStatus.PAUSED.name()))
+            .apis(List.of(apiId))
+            .applications(List.of(applicationId))
+            .build();
 
         try {
             return subscriptionRepository.search(criteria).stream().map(subscriptionAdapter::toEntity).toList();
