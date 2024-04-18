@@ -21,6 +21,7 @@ import { SubscriptionApiKeysComponent } from './subscription-api-keys.component'
 import { fakeApplicationSubscriptionApiKey } from '../../../../../../entities/subscription/ApplicationSubscriptionApiKey.fixture';
 import { GioTestingPermissionProvider } from '../../../../../../shared/components/gio-permission/gio-permission.service';
 import { ApplicationSubscriptionService } from '../../../../../../services-ngx/application-subscription.service';
+import { ApplicationService } from '../../../../../../services-ngx/application.service';
 
 export default {
   title: 'Application / Subscription / Api keys',
@@ -32,8 +33,8 @@ export default {
         <subscription-api-keys
         [applicationId]="'applicationId'"
         [subscriptionId]="'subscriptionId'"
-        [isSharedApiKeyMode]="isSharedApiKeyMode"
-        [subscriptionStatus]="subscriptionStatus"
+        [readonly]="readonly"
+        [subtitleText]="subtitleText"
         ></subscription-api-keys>
       </div>
     `,
@@ -112,23 +113,68 @@ const WithApiKeysDecorator = [
     ],
   }),
 ];
-export const AcceptedSubscription: StoryObj = {};
-AcceptedSubscription.decorators = WithApiKeysDecorator;
-AcceptedSubscription.args = {
-  subscriptionStatus: 'ACCEPTED',
-  isSharedApiKeyMode: false,
-};
 
-export const AcceptedSharedSubscription: StoryObj = {};
-AcceptedSharedSubscription.decorators = WithApiKeysDecorator;
-AcceptedSharedSubscription.args = {
-  subscriptionStatus: 'ACCEPTED',
-  isSharedApiKeyMode: true,
+export const SharedSubscription: StoryObj = {};
+SharedSubscription.decorators = WithApiKeysDecorator;
+SharedSubscription.args = {
+  readonly: true,
+  subtitleText: 'This subscription uses a shared API Key. You can renew or revoke the shared API Key at the application level.',
 };
 
 export const PendingSubscription: StoryObj = {};
 PendingSubscription.decorators = WithApiKeysDecorator;
 PendingSubscription.args = {
-  subscriptionStatus: 'PENDING',
-  isSharedApiKeyMode: false,
+  readonly: false,
+};
+
+export const ForSubscriptionListPage: StoryObj = {
+  render: (args) => ({
+    template: `
+      <div style="width: 1000px">
+        <subscription-api-keys
+        [applicationId]="'applicationId'"
+        [readonly]="false"
+        [subtitleText]="subtitleText"
+        ></subscription-api-keys>
+      </div>
+    `,
+    props: args,
+  }),
+};
+ForSubscriptionListPage.decorators = [
+  applicationConfig({
+    providers: [
+      {
+        provide: ApplicationService,
+        useValue: {
+          getApiKeys: () =>
+            of([
+              fakeApplicationSubscriptionApiKey({
+                id: '1',
+                key: 'key1',
+              }),
+              fakeApplicationSubscriptionApiKey({
+                id: '2',
+                key: 'key2',
+                expired: true,
+                expire_at: 1712062118650,
+              }),
+              fakeApplicationSubscriptionApiKey({
+                id: '3',
+                key: 'key3',
+                revoked: true,
+                revoked_at: 1712062118650,
+              }),
+              fakeApplicationSubscriptionApiKey({
+                id: '4',
+                key: 'key4',
+              }),
+            ]),
+        },
+      },
+    ],
+  }),
+];
+ForSubscriptionListPage.args = {
+  subtitleText: 'These API keys are shared with all application subscriptions with an API_KEY plan.',
 };

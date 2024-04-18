@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 The Gravitee team (http://gravitee.io)
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { ComponentHarness } from '@angular/cdk/testing';
 
-@use '../../../../../scss/gio-layout' as gio-layout;
+import { SubscriptionApiKeysHarness } from '../components/subscription-api-keys/subscription-api-keys.harness';
 
-:host {
-  @include gio-layout.gio-responsive-content-container;
-}
+export class ApplicationSharedApiKeysHarness extends ComponentHarness {
+  static readonly hostSelector = 'application-shared-api-keys';
 
-.subscriptionDetailsCard {
-  margin-top: 8px;
-  margin-bottom: 16px;
+  public getSubscriptionApiKeysHarness = this.locatorForOptional(SubscriptionApiKeysHarness);
 }

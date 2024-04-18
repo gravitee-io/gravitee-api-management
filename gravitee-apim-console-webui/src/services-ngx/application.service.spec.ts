@@ -22,6 +22,7 @@ import { ApplicationService } from './application.service';
 import { CONSTANTS_TESTING, GioTestingModule } from '../shared/testing';
 import { fakeApplication, fakeApplicationType } from '../entities/application/Application.fixture';
 import { fakeApplicationSubscription } from '../entities/subscription/subscription.fixture';
+import { fakeApplicationSubscriptionApiKey } from '../entities/subscription/ApplicationSubscriptionApiKey.fixture';
 
 describe('ApplicationService', () => {
   let httpTestingController: HttpTestingController;
@@ -421,6 +422,52 @@ describe('ApplicationService', () => {
 
       expect(req.request.body).toEqual(mockApplication);
       req.flush({});
+    });
+  });
+
+  describe('getApiKeys', () => {
+    it('should call the API', (done) => {
+      applicationService.getApiKeys('applicationId').subscribe((apiKeys) => {
+        expect(apiKeys).toEqual([fakeApplicationSubscriptionApiKey()]);
+        done();
+      });
+
+      httpTestingController
+        .expectOne({
+          method: 'GET',
+          url: `${CONSTANTS_TESTING.env.baseURL}/applications/applicationId/apikeys`,
+        })
+        .flush([fakeApplicationSubscriptionApiKey()]);
+    });
+  });
+
+  describe('renewApiKey', () => {
+    it('should call the API', (done) => {
+      applicationService.renewApiKey('applicationId').subscribe(() => {
+        done();
+      });
+
+      httpTestingController
+        .expectOne({
+          method: 'POST',
+          url: `${CONSTANTS_TESTING.env.baseURL}/applications/applicationId/apikeys/_renew`,
+        })
+        .flush({});
+    });
+  });
+
+  describe('revokeApiKey', () => {
+    it('should call the API', (done) => {
+      applicationService.revokeApiKey('applicationId', 'apiKeyId').subscribe(() => {
+        done();
+      });
+
+      httpTestingController
+        .expectOne({
+          method: 'DELETE',
+          url: `${CONSTANTS_TESTING.env.baseURL}/applications/applicationId/apikeys/apiKeyId`,
+        })
+        .flush({});
     });
   });
 });

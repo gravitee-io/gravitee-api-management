@@ -23,6 +23,8 @@ export class SubscriptionApiKeysHarness extends ComponentHarness {
   static readonly hostSelector = 'subscription-api-keys';
 
   private getTable = this.locatorFor(MatTableHarness);
+  private revokeButton = this.locatorForOptional(MatButtonHarness.with({ selector: '[aria-label="Button to revoke an API Key"]' }));
+  private renewButton = this.locatorForOptional(MatButtonHarness.with({ text: /Renew/ }));
 
   async computeTableCells() {
     const table = await this.getTable();
@@ -58,5 +60,15 @@ export class SubscriptionApiKeysHarness extends ComponentHarness {
       }),
     );
     return { headerCells, rowCells };
+  }
+
+  public async renewApiKey(): Promise<void> {
+    const button = await this.renewButton();
+    return await button.click();
+  }
+
+  public async revokeApiKey(): Promise<void> {
+    const button = await this.revokeButton();
+    return await button.click();
   }
 }

@@ -361,15 +361,6 @@ describe('ApplicationSubscriptionCreationDialogComponent', () => {
       .flush(api);
   };
 
-  const expectPlanGetRequest = (plan: Plan = API_KEY_PLAN) => {
-    httpTestingController
-      .expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${plan.apiId}/plans/${plan.id}`,
-        method: 'GET',
-      })
-      .flush(plan);
-  };
-
   const expectApplicationGetRequest = (application: Application) => {
     httpTestingController
       .expectOne({

@@ -42,6 +42,7 @@ import { SnackBarService } from '../../../../../../services-ngx/snack-bar.servic
 import { GioPermissionModule } from '../../../../../../shared/components/gio-permission/gio-permission.module';
 import { GioTableWrapperFilters } from '../../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { GioTableWrapperModule } from '../../../../../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
+import { ApplicationService } from '../../../../../../services-ngx/application.service';
 
 type ApiKeyVM = {
   id: string;
@@ -78,18 +79,19 @@ export class SubscriptionApiKeysComponent implements OnChanges {
   private readonly matDialog = inject(MatDialog);
   private readonly snackBarService = inject(SnackBarService);
   private readonly applicationSubscriptionService = inject(ApplicationSubscriptionService);
-
-  @Input()
-  public subscriptionStatus: string;
+  private readonly applicationService = inject(ApplicationService);
 
   @Input({ required: true })
   applicationId!: string;
 
-  @Input({ required: true })
-  subscriptionId!: string;
+  @Input({ required: false })
+  subscriptionId: string;
 
   @Input()
-  public isSharedApiKeyMode = false;
+  public subtitleText?: string = undefined;
+
+  @Input()
+  public readonly = false;
 
   public displayedColumns = ['active-icon', 'key', 'createdAt', 'endDate', 'actions'];
 
@@ -121,12 +123,15 @@ export class SubscriptionApiKeysComponent implements OnChanges {
   }
 
   ngOnChanges() {
+    const defaultColumns = ['active-icon', 'key', 'createdAt', 'endDate'];
+    this.displayedColumns = this.readonly ? defaultColumns : [...defaultColumns, 'actions'];
+
+    const getApiKeys$ = this.subscriptionId
+      ? this.applicationSubscriptionService.getApiKeys(this.applicationId, this.subscriptionId)
+      : this.applicationService.getApiKeys(this.applicationId);
+
     this.pageVM$ = this.filters$.pipe(
-      switchMap((filters) =>
-        this.applicationSubscriptionService
-          .getApiKeys(this.applicationId, this.subscriptionId)
-          .pipe(map((apiKeys) => ({ apiKeys, filters }))),
-      ),
+      switchMap((filters) => getApiKeys$.pipe(map((apiKeys) => ({ apiKeys, filters })))),
       map(({ apiKeys, filters }) => {
         const filtered = gioTableFilterCollection(
           apiKeys.map((apiKey) => ({
@@ -155,6 +160,10 @@ export class SubscriptionApiKeysComponent implements OnChanges {
   }
 
   revokeApiKey(apiKeyVM: ApiKeyVM) {
+    const revokeApiKey$ = this.subscriptionId
+      ? this.applicationSubscriptionService.revokeApiKey(this.applicationId, this.subscriptionId, apiKeyVM.id)
+      : this.applicationService.revokeApiKey(this.applicationId, apiKeyVM.id);
+
     this.matDialog
       .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
         width: GIO_DIALOG_WIDTH.MEDIUM,
@@ -168,7 +177,7 @@ export class SubscriptionApiKeysComponent implements OnChanges {
       .afterClosed()
       .pipe(
         filter((result) => !!result),
-        switchMap(() => this.applicationSubscriptionService.revokeApiKey(this.applicationId, this.subscriptionId, apiKeyVM.id)),
+        switchMap(() => revokeApiKey$),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
@@ -181,6 +190,10 @@ export class SubscriptionApiKeysComponent implements OnChanges {
   }
 
   renewApiKey() {
+    const renewApiKey$ = this.subscriptionId
+      ? this.applicationSubscriptionService.renewApiKey(this.applicationId, this.subscriptionId)
+      : this.applicationService.renewApiKey(this.applicationId);
+
     this.matDialog
       .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
         width: GIO_DIALOG_WIDTH.MEDIUM,
@@ -194,7 +207,7 @@ export class SubscriptionApiKeysComponent implements OnChanges {
       .afterClosed()
       .pipe(
         filter((result) => !!result),
-        switchMap(() => this.applicationSubscriptionService.renewApiKey(this.applicationId, this.subscriptionId)),
+        switchMap(() => renewApiKey$),
         takeUntilDestroyed(this.destroyRef),
       )
 

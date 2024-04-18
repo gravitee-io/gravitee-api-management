@@ -68,7 +68,7 @@
         <dt>Created at</dt>
         <dd>{{ (pageVM.subscription.created_at | date: 'medium') || '-' }}</dd>
         <dt>Processed at</dt>
-        <dd>{{ (pageVM.subscription.processed_at || '-' | date: 'medium') || '-' }}</dd>
+        <dd>{{ (pageVM.subscription.processed_at | date: 'medium') || '-' }}</dd>
 
         @if ('REJECTED' !== pageVM.subscription.status) {
           <dt>Starting at</dt>
@@ -97,9 +97,15 @@
     <subscription-api-keys
       [applicationId]="pageVM.application.id"
       [subscriptionId]="pageVM.subscription.id"
-      [isSharedApiKeyMode]="pageVM.application.api_key_mode === 'SHARED'"
-      [subscriptionStatus]="pageVM.subscription.status"
-    ></subscription-api-keys>
+      [readonly]="pageVM.application.api_key_mode === 'SHARED' || pageVM.subscription.status !== 'ACCEPTED'"
+      [subtitleText]="
+        pageVM.application.api_key_mode === 'SHARED'
+          ? 'This subscription uses a shared API Key. You can renew or revoke the shared API Key at the application level.'
+          : undefined
+      "
+    >
+      ></subscription-api-keys
+    >
   }
 } @else {
   <mat-card>
