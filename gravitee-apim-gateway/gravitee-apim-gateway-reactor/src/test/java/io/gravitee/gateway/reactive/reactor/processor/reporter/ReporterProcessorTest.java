@@ -15,20 +15,20 @@
  */
 package io.gravitee.gateway.reactive.reactor.processor.reporter;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.definition.model.DefinitionVersion;
-import io.gravitee.definition.model.v4.Api;
-import io.gravitee.definition.model.v4.analytics.Analytics;
 import io.gravitee.gateway.api.http.HttpHeaders;
+import io.gravitee.gateway.reactive.api.connector.Connector;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.reactor.processor.AbstractProcessorTest;
 import io.gravitee.gateway.reactor.ReactableApi;
@@ -76,6 +76,9 @@ class ReporterProcessorTest extends AbstractProcessorTest {
             // Given
             when(reactableApi.getDefinitionVersion()).thenReturn(DefinitionVersion.V4);
             ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_REACTABLE_API, reactableApi);
+            final Connector mockConnector = mock(Connector.class);
+            when(mockConnector.id()).thenReturn("fake-connector");
+            ctx.setInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR, mockConnector);
 
             // When
             reporterProcessor.execute(ctx).test().assertResult();
@@ -83,6 +86,7 @@ class ReporterProcessorTest extends AbstractProcessorTest {
             // Then
             verify(reporterService).report(ctx.metrics());
             assertNull(ctx.metrics().getLog());
+            assertThat(ctx.metrics().getEntrypointId()).isEqualTo("fake-connector");
             verify(reporterService, never()).report(ctx.metrics().getLog());
         }
 
