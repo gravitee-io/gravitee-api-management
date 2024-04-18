@@ -15,26 +15,44 @@
     limitations under the License.
 
 -->
-<div class="subscriptions__header">
-  <div class="subscriptions__header__title">
-    <h2>Manage your subscriptions</h2>
-  </div>
-  <div *ngIf="subscriptionsTableDS && !isLoadingData" class="subscriptions__header__buttons">
-    <button
-      *gioPermission="{ anyOf: ['application-subscription-c'] }"
-      mat-raised-button
-      type="button"
-      color="primary"
-      aria-label="Create a subscription"
-      (click)="createSubscription()"
-    >
-      <mat-icon svgIcon="gio:plus"></mat-icon>Create a subscription
-    </button>
-  </div>
-</div>
 
 <mat-card class="subscriptions__filters" [formGroup]="filtersForm">
+  <mat-card-header>
+    <mat-card-title>Subscriptions</mat-card-title>
+    <mat-card-subtitle
+      >Retrieve all the registered subscriptions per API. Subscription represents the plans the application has subscribed
+      to.</mat-card-subtitle
+    >
+    <div *ngIf="subscriptionsTableDS && !isLoadingData" class="subscriptions__filters__header__button">
+      <button
+        *gioPermission="{ anyOf: ['application-subscription-c'] }"
+        mat-raised-button
+        type="button"
+        color="primary"
+        aria-label="Create a subscription"
+        (click)="createSubscription()"
+      >
+        <mat-icon svgIcon="gio:plus"></mat-icon>Create a subscription
+      </button>
+    </div>
+  </mat-card-header>
+
   <mat-card-content>
+    <gio-banner-info [collapsible]="true">
+      Subscription status details
+      <span gioBannerBody>
+        <ul>
+          <li>
+            <strong>Accepted</strong>: Subscription is valid and the application can use its API Key to perform operations of the API. The
+            subscription can be renewed, revoked or valid until its expiration date.
+          </li>
+          <li><strong>Pending</strong>: The application has asked access for the API and wait for the API owners approvals.</li>
+          <li><strong>Rejected</strong>: Subscription is rejected and the application cannot use the API.</li>
+          <li><strong>Closed</strong>: Subscription is closed and the application cannot use the API.</li>
+        </ul>
+      </span>
+    </gio-banner-info>
+
     <div class="subscriptions__filters__inputs">
       <mat-form-field class="subscriptions__filters__inputs__field">
         <mat-label>API</mat-label>
@@ -65,119 +83,131 @@
       </button>
     </div>
   </mat-card-content>
-</mat-card>
-
-<gio-table-wrapper
-  [disableSearchInput]="true"
-  [length]="subscriptionsCount"
-  [filters]="filtersStream.value.tableWrapper"
-  (filtersChange)="onFiltersChanged($event)"
->
-  <table
-    mat-table
-    [dataSource]="subscriptionsTableDS"
-    class="subscriptions__table"
-    id="subscriptionsTable"
-    aria-label="Subscriptions table"
+  <gio-table-wrapper
+    [disableSearchInput]="true"
+    [length]="subscriptionsCount"
+    [filters]="filtersStream.value.tableWrapper"
+    [paginationPageSizeOptions]="[10, 25, 50, 100]"
+    (filtersChange)="onFiltersChanged($event)"
   >
-    <!-- Display Plan Column -->
-    <ng-container matColumnDef="plan">
-      <th mat-header-cell *matHeaderCellDef id="name">Plan</th>
-      <td mat-cell *matCellDef="let element">
-        {{ element.plan$ | async }}
-      </td>
-    </ng-container>
+    <table
+      mat-table
+      [dataSource]="subscriptionsTableDS"
+      class="subscriptions__table"
+      id="subscriptionsTable"
+      aria-label="Subscriptions table"
+    >
+      <!-- Display Security Type Column -->
+      <ng-container matColumnDef="securityType">
+        <th mat-header-cell *matHeaderCellDef id="securityType">Security type</th>
+        <td mat-cell *matCellDef="let element">
+          {{ element.securityType }}
+          @if (element.isSharedApiKey) {
+            <span class="gio-badge-accent" matTooltip="Use shared API keys">Shared</span>
+          }
+        </td>
+      </ng-container>
 
-    <!-- Display Application Column -->
-    <ng-container matColumnDef="api">
-      <th mat-header-cell *matHeaderCellDef id="api">API</th>
-      <td mat-cell *matCellDef="let element">
-        {{ element.api$ | async }}
-      </td>
-    </ng-container>
+      <!-- Display Plan Column -->
+      <ng-container matColumnDef="plan">
+        <th mat-header-cell *matHeaderCellDef id="name">Plan</th>
+        <td mat-cell *matCellDef="let element">{{ element.planName }}</td>
+      </ng-container>
 
-    <!-- Display Created at Column -->
-    <ng-container matColumnDef="createdAt">
-      <th mat-header-cell *matHeaderCellDef id="createdAt">Created at</th>
-      <td mat-cell *matCellDef="let element">
-        {{ element.createdAt | date: 'yyyy-MM-dd HH:mm:ss' }}
-      </td>
-    </ng-container>
+      <!-- Display Application Column -->
+      <ng-container matColumnDef="api">
+        <th mat-header-cell *matHeaderCellDef id="api">API</th>
+        <td mat-cell *matCellDef="let element">
+          <span [matTooltip]="element.apiPo$ | async">{{ element.apiName }}</span>
+        </td>
+      </ng-container>
 
-    <!-- Display Processed at Column -->
-    <ng-container matColumnDef="processedAt">
-      <th mat-header-cell *matHeaderCellDef id="processedAt">Processed at</th>
-      <td mat-cell *matCellDef="let element">
-        {{ element.processedAt | date: 'yyyy-MM-dd HH:mm:ss' }}
-      </td>
-    </ng-container>
+      <!-- Display Created at Column -->
+      <ng-container matColumnDef="createdAt">
+        <th mat-header-cell *matHeaderCellDef id="createdAt">Created at</th>
+        <td mat-cell *matCellDef="let element">
+          {{ element.createdAt | date: 'medium' }}
+        </td>
+      </ng-container>
 
-    <!-- Display Start at Column -->
-    <ng-container matColumnDef="startingAt">
-      <th mat-header-cell *matHeaderCellDef id="startingAt">Started at</th>
-      <td mat-cell *matCellDef="let element">
-        {{ element.startingAt | date: 'yyyy-MM-dd HH:mm:ss' }}
-      </td>
-    </ng-container>
+      <!-- Display Processed at Column -->
+      <ng-container matColumnDef="processedAt">
+        <th mat-header-cell *matHeaderCellDef id="processedAt">Processed at</th>
+        <td mat-cell *matCellDef="let element">
+          {{ element.processedAt | date: 'medium' }}
+        </td>
+      </ng-container>
 
-    <!-- Display End at Column -->
-    <ng-container matColumnDef="endAt">
-      <th mat-header-cell *matHeaderCellDef id="endAt">Ended at</th>
-      <td mat-cell *matCellDef="let element">
-        {{ element.endAt | date: 'yyyy-MM-dd HH:mm:ss' }}
-      </td>
-    </ng-container>
+      <!-- Display Start at Column -->
+      <ng-container matColumnDef="startingAt">
+        <th mat-header-cell *matHeaderCellDef id="startingAt">Started at</th>
+        <td mat-cell *matCellDef="let element">
+          {{ element.startingAt | date: 'medium' }}
+        </td>
+      </ng-container>
 
-    <!-- Display Status Column -->
-    <ng-container matColumnDef="status">
-      <th mat-header-cell *matHeaderCellDef id="status">Status</th>
-      <td mat-cell *matCellDef="let element">
-        {{ element.status }}
-      </td>
-    </ng-container>
+      <!-- Display End at Column -->
+      <ng-container matColumnDef="endAt">
+        <th mat-header-cell *matHeaderCellDef id="endAt">Ended at</th>
+        <td mat-cell *matCellDef="let element">
+          {{ element.endAt | date: 'medium' }}
+        </td>
+      </ng-container>
 
-    <!-- TODO? add analytics preview Column -->
+      <!-- Display Status Column -->
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef id="status">Status</th>
+        <td mat-cell *matCellDef="let element">
+          <span [class]="'gio-badge-' + element.statusBadge">{{ element.status }}</span>
+        </td>
+      </ng-container>
 
-    <!-- Actions Column -->
-    <ng-container matColumnDef="actions">
-      <th mat-header-cell *matHeaderCellDef id="actions"></th>
-      <td mat-cell *matCellDef="let element">
-        <div class="subscriptions__table__actions">
-          <ng-container *ngIf="canUpdate; else readOnlyBlock">
-            <button mat-icon-button aria-label="Edit the subscription" matTooltip="Edit the subscription" [routerLink]="'./' + element.id">
-              <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
-            </button>
-          </ng-container>
-          <ng-template #readOnlyBlock>
+      <!-- TODO? add analytics preview Column -->
+
+      <!-- Actions Column -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef id="actions"></th>
+        <td mat-cell *matCellDef="let element">
+          <div class="subscriptions__table__actions">
             <a
-              *gioPermission="{ anyOf: ['application-subscription-r'] }"
-              mat-icon-button
-              aria-label="View the subscription details"
-              matTooltip="View the subscription details"
+              *gioPermission="{ anyOf: ['application-subscription-r', 'application-subscription-u'] }"
+              mat-button
+              aria-label="Subscription details"
+              matTooltip="Subscription details"
               [routerLink]="'./' + element.id"
             >
               <mat-icon svgIcon="gio:eye-empty"></mat-icon>
             </a>
-          </ng-template>
-        </div>
-      </td>
-    </ng-container>
 
-    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+            <button
+              *gioPermission="{ anyOf: ['application-subscription-d'] }"
+              mat-button
+              color="warn"
+              matTooltip="Close subscription"
+              (click)="closeSubscription(element)"
+            >
+              <mat-icon svgIcon="gio:x-circle"></mat-icon>
+            </button>
+          </div>
+        </td>
+      </ng-container>
 
-    <!-- Row shown when there is no data -->
-    <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
-      <td
-        *ngIf="!isLoadingData && subscriptionsTableDS.length === 0"
-        class="mat-mdc-cell mdc-data-table__cell"
-        [attr.colspan]="displayedColumns.length"
-      >
-        {{ 'There is no subscription (yet).' }}
-      </td>
-      <td *ngIf="isLoadingData" class="mat-mdc-cell mdc-data-table__cell loader" [attr.colspan]="displayedColumns.length">
-        <gio-loader></gio-loader>
-      </td>
-    </tr>
-  </table>
-</gio-table-wrapper>
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+
+      <!-- Row shown when there is no data -->
+      <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+        <td
+          *ngIf="!isLoadingData && subscriptionsTableDS.length === 0"
+          class="mat-mdc-cell mdc-data-table__cell"
+          [attr.colspan]="displayedColumns.length"
+        >
+          {{ 'There is no subscription (yet).' }}
+        </td>
+        <td *ngIf="isLoadingData" class="mat-mdc-cell mdc-data-table__cell loader" [attr.colspan]="displayedColumns.length">
+          <gio-loader></gio-loader>
+        </td>
+      </tr>
+    </table>
+  </gio-table-wrapper>
+</mat-card>

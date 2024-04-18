@@ -31,9 +31,10 @@ import { CONSTANTS_TESTING, GioTestingModule } from '../../../../../shared/testi
 import { fakeApplication } from '../../../../../entities/application/Application.fixture';
 import { ApplicationSubscription } from '../../../../../entities/subscription/subscription';
 import { fakePagedResult } from '../../../../../entities/pagedResult';
-import { Api, fakePlanV4, fakeProxyApiV4, Plan } from '../../../../../entities/management-api-v2';
+import { Api, fakeProxyApiV4 } from '../../../../../entities/management-api-v2';
 import { fakeApplicationSubscription } from '../../../../../entities/subscription/subscription.fixture';
 import { GioTestingPermissionProvider } from '../../../../../shared/components/gio-permission/gio-permission.service';
+import { Application } from '../../../../../entities/application/Application';
 
 @Component({
   template: ` <application-subscription-list #subscriptionListComponent></application-subscription-list> `,
@@ -48,7 +49,6 @@ describe('ApplicationSubscriptionListComponent', () => {
   const API_ID = 'api-id';
   const PLAN_ID = 'plan-id';
   const DEFAULT_PERMISSIONS = ['application-subscription-c', 'application-subscription-r'];
-  const DATE_PATTERN = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/;
 
   let fixture: ComponentFixture<TestComponent>;
   let loader: HarnessLoader;
@@ -148,6 +148,7 @@ describe('ApplicationSubscriptionListComponent', () => {
           api: 'API',
           createdAt: 'Created at',
           processedAt: 'Processed at',
+          securityType: 'Security type',
           startingAt: 'Started at',
           endAt: 'Ended at',
           status: 'Status',
@@ -169,6 +170,7 @@ describe('ApplicationSubscriptionListComponent', () => {
           api: 'API',
           createdAt: 'Created at',
           processedAt: 'Processed at',
+          securityType: 'Security type',
           startingAt: 'Started at',
           endAt: 'Ended at',
           status: 'Status',
@@ -176,18 +178,9 @@ describe('ApplicationSubscriptionListComponent', () => {
         },
       ]);
       expect(rowCells).toEqual([
-        [
-          'plan',
-          'api (PO)',
-          expect.stringMatching(DATE_PATTERN),
-          expect.stringMatching(DATE_PATTERN),
-          expect.stringMatching(DATE_PATTERN),
-          '',
-          'Accepted',
-          '',
-        ],
+        ['API_KEY', 'Plan Name', 'Api Name - 1', expect.any(String), expect.any(String), expect.any(String), '', 'Accepted', ''],
       ]);
-      expect(await harness.isEditButtonDisabled(0)).toEqual(false);
+      expectApiGetRequest(fakeProxyApiV4({ id: subscription.api, name: 'api', primaryOwner: { displayName: 'PO' } }));
     }));
 
     it('should search closed subscription', fakeAsync(async () => {
@@ -205,7 +198,6 @@ describe('ApplicationSubscriptionListComponent', () => {
       });
       expectSubscriptionsGetRequest([subscription], ['ACCEPTED', 'CLOSED', 'PAUSED', 'PENDING']);
       expectApiGetRequest(fakeProxyApiV4({ id: subscription.api, name: 'api', primaryOwner: { displayName: 'PO' } }));
-      expectPlanGetRequest(fakePlanV4({ id: subscription.plan, name: 'plan', security: { type: 'API_KEY' } }));
     }));
 
     it('should search with a specific api key', fakeAsync(async () => {
@@ -223,7 +215,6 @@ describe('ApplicationSubscriptionListComponent', () => {
       });
       expectSubscriptionsGetRequest([subscription], ['ACCEPTED', 'PAUSED', 'PENDING'], null, key);
       expectApiGetRequest(fakeProxyApiV4({ id: subscription.api, name: 'api', primaryOwner: { displayName: 'PO' } }));
-      expectPlanGetRequest(fakePlanV4({ id: subscription.plan, name: 'plan', security: { type: 'API_KEY' } }));
     }));
 
     it('should search with a specific api', fakeAsync(async () => {
@@ -250,7 +241,6 @@ describe('ApplicationSubscriptionListComponent', () => {
       });
       expectSubscriptionsGetRequest([subscription], ['ACCEPTED', 'PENDING'], [api.id]);
       expectApiGetRequest(fakeProxyApiV4({ id: subscription.api, name: api.name, primaryOwner: { displayName: 'PO' } }));
-      expectPlanGetRequest(fakePlanV4({ id: subscription.plan, name: 'plan', security: { type: 'API_KEY' } }));
     }));
   });
 
@@ -284,9 +274,9 @@ describe('ApplicationSubscriptionListComponent', () => {
     }
 
     expectSubscriptionsGetRequest(subscriptions, params?.status?.split(','), params?.apis?.split(','), params?.apiKey);
+    expectApplicationGetRequest(APP);
     subscriptions.forEach((subscription) => {
       expectApiGetRequest(fakeProxyApiV4({ id: subscription.api, name: 'api', primaryOwner: { displayName: 'PO' } }));
-      expectPlanGetRequest(fakePlanV4({ id: subscription.plan, name: 'plan', security: { type: 'API_KEY' } }));
     });
   }
 
@@ -303,7 +293,28 @@ describe('ApplicationSubscriptionListComponent', () => {
         }${apis ? `&api=${apis.join(',')}` : ''}${apiKey ? `&api_key=${apiKey}` : ''}`,
         method: 'GET',
       })
-      .flush(fakePagedResult(subscriptions));
+      .flush(
+        fakePagedResult(subscriptions, undefined, {
+          ...Object.fromEntries(
+            subscriptions?.map((subscription) => [
+              subscription.plan,
+              {
+                name: 'Plan Name',
+                securityType: 'API_KEY',
+              },
+            ]),
+          ),
+          ...Object.fromEntries(
+            subscriptions?.map((subscription) => [
+              subscription.api,
+              {
+                name: 'Api Name',
+                apiVersion: '1',
+              },
+            ]),
+          ),
+        }),
+      );
     fixture.detectChanges();
   };
 
@@ -317,15 +328,6 @@ describe('ApplicationSubscriptionListComponent', () => {
     });
   };
 
-  const expectPlanGetRequest = (plan: Plan) => {
-    httpTestingController
-      .expectOne({
-        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/plans/${plan.id}`,
-        method: 'GET',
-      })
-      .flush(plan);
-  };
-
   const expectSubscribedApis = (apis = []) => {
     const requests = httpTestingController.match({
       url: `${CONSTANTS_TESTING.env.baseURL}/applications/${APPLICATION_ID}/subscribed`,
@@ -334,5 +336,14 @@ describe('ApplicationSubscriptionListComponent', () => {
     requests.map((request) => {
       if (!request.cancelled) request.flush(apis);
     });
+  };
+
+  const expectApplicationGetRequest = (application: Application): void => {
+    httpTestingController
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.baseURL}/applications/${application.id}`,
+        method: 'GET',
+      })
+      .flush(application);
   };
 });

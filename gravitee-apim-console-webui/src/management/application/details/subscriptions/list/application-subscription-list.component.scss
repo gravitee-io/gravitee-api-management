@@ -8,23 +8,14 @@
 }
 
 .subscriptions {
-  &__header {
-    display: flex;
-    align-items: center;
-
-    &__buttons {
-      flex: 1;
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
-      margin-bottom: 16px;
-    }
-  }
-
   &__filters {
     display: flex;
     flex-direction: column;
     margin-bottom: 8px;
+
+    &__header__button {
+      margin-left: auto;
+    }
 
     &__inputs {
       display: flex;
@@ -50,6 +41,10 @@
       justify-content: flex-end;
     }
 
+    .mat-column-securityType {
+      white-space: nowrap;
+    }
+
     .mat-column-actions {
       width: 0;
     }
@@ -65,5 +60,10 @@
         margin: 0 auto;
       }
     }
+  }
+
+  &__apiKeys {
+    margin-top: 16px;
+    display: block;
   }
 }

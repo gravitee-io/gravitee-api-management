@@ -16,7 +16,7 @@
 
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { GioFormTagsInputModule, GioIconsModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
+import { GioBannerModule, GioFormTagsInputModule, GioIconsModule, GioLoaderModule } from '@gravitee/ui-particles-angular';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatInputModule } from '@angular/material/input';
@@ -44,6 +44,7 @@ import { ApplicationSubscriptionCreationDialogModule } from '../creation';
     GioPermissionModule,
     GioTableWrapperModule,
     GioFormTagsInputModule,
+    GioBannerModule,
     MatButtonModule,
     MatCardModule,
     MatInputModule,
