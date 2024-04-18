@@ -16,6 +16,7 @@
 package io.gravitee.gateway.reactive.reactor.processor.reporter;
 
 import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.gateway.reactive.api.connector.Connector;
 import io.gravitee.gateway.reactive.api.context.InternalContextAttributes;
 import io.gravitee.gateway.reactive.core.context.MutableExecutionContext;
 import io.gravitee.gateway.reactive.core.processor.Processor;
@@ -56,6 +57,7 @@ public class ReporterProcessor implements Processor {
                 Metrics metrics = ctx.metrics();
                 if (metrics != null && metrics.isEnabled()) {
                     metrics.setRequestEnded(true);
+                    setEntrypointId(ctx, metrics);
 
                     executeReportActions(metrics);
 
@@ -89,6 +91,13 @@ public class ReporterProcessor implements Processor {
             })
             .doOnError(throwable -> LOGGER.error("An error occurs while reporting metrics", throwable))
             .onErrorComplete();
+    }
+
+    private static void setEntrypointId(MutableExecutionContext ctx, Metrics metrics) {
+        final Connector connector = ctx.getInternalAttribute(InternalContextAttributes.ATTR_INTERNAL_ENTRYPOINT_CONNECTOR);
+        if (connector != null) {
+            metrics.setEntrypointId(connector.id());
+        }
     }
 
     private void executeReportActions(Metrics metrics) {
