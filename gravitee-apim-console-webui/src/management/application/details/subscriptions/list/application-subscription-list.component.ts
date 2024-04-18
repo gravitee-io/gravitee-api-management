@@ -15,10 +15,10 @@
  */
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, switchMap, takeUntil, tap } from 'rxjs/operators';
-import { BehaviorSubject, EMPTY, Observable, of, Subject } from 'rxjs';
-import { isEqual } from 'lodash';
+import { BehaviorSubject, EMPTY, Observable, of, Subject, combineLatest } from 'rxjs';
+import { get, isEqual } from 'lodash';
 import { FormControl, FormGroup } from '@angular/forms';
-import { AutocompleteOptions, GIO_DIALOG_WIDTH } from '@gravitee/ui-particles-angular';
+import { AutocompleteOptions, GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 
@@ -32,16 +32,21 @@ import { ApiPlanV2Service } from '../../../../../services-ngx/api-plan-v2.servic
 import { ApplicationSubscriptionCreationDialogComponent } from '../creation';
 import { NewSubscriptionEntity } from '../../../../../entities/application';
 import { ApplicationSubscriptionService } from '../../../../../services-ngx/application-subscription.service';
+import { PlanSecurityType } from '../../../../../entities/plan';
 
 type SubscriptionsTableDS = {
   id: string;
-  plan$: Observable<string>;
-  api$: Observable<string>;
+  planName: string;
+  securityType: string;
+  isSharedApiKey: boolean;
+  apiName: string;
+  apiPo$: Observable<string>;
   createdAt: Date;
   processedAt: Date;
   startingAt: Date;
   endAt: Date;
   status: string;
+  statusBadge: string;
 };
 
 type SubscriptionsTableFilters = {
@@ -71,7 +76,7 @@ export type ApplicationSubscriptionCreationDialogResult = {
 })
 export class ApplicationSubscriptionListComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
-  public displayedColumns = ['plan', 'api', 'createdAt', 'processedAt', 'startingAt', 'endAt', 'status', 'actions'];
+  public displayedColumns = ['securityType', 'plan', 'api', 'createdAt', 'processedAt', 'startingAt', 'endAt', 'status', 'actions'];
   public subscriptionsTableDS: SubscriptionsTableDS[] = [];
   public subscriptionsCount = 0;
   public filtersForm: FormGroup = new FormGroup({
@@ -79,13 +84,13 @@ export class ApplicationSubscriptionListComponent implements OnInit, OnDestroy {
     status: new FormControl(),
     apiKey: new FormControl(),
   });
-  public statuses: { id: SubscriptionStatus; name: string }[] = [
-    { id: 'ACCEPTED', name: 'Accepted' },
-    { id: 'CLOSED', name: 'Closed' },
-    { id: 'PAUSED', name: 'Paused' },
-    { id: 'PENDING', name: 'Pending' },
-    { id: 'REJECTED', name: 'Rejected' },
-    { id: 'RESUMED', name: 'Resumed' },
+  public statuses: { id: SubscriptionStatus; name: string; badge: string }[] = [
+    { id: 'ACCEPTED', name: 'Accepted', badge: 'success' },
+    { id: 'CLOSED', name: 'Closed', badge: 'neutral' },
+    { id: 'PAUSED', name: 'Paused', badge: 'accent' },
+    { id: 'PENDING', name: 'Pending', badge: 'warning' },
+    { id: 'REJECTED', name: 'Rejected', badge: 'warning' },
+    { id: 'RESUMED', name: 'Resumed', badge: 'neutral' },
   ];
 
   // Create filters stream
@@ -101,7 +106,6 @@ export class ApplicationSubscriptionListComponent implements OnInit, OnDestroy {
     },
   });
   public isLoadingData = true;
-  public canUpdate = this.permissionService.hasAnyMatching(['application-subscription-u']);
 
   constructor(
     private readonly router: Router,
@@ -155,16 +159,19 @@ export class ApplicationSubscriptionListComponent implements OnInit, OnDestroy {
           this.filtersForm.controls.apiKey.setValue(subscriptionsFilters.apiKey);
         }),
         switchMap(({ subscriptionsFilters, tableWrapper }) => {
-          return this.applicationService.getSubscriptionsPage(
-            this.activatedRoute.snapshot.params.applicationId,
-            {
-              apiKey: subscriptionsFilters.apiKey,
-              status: subscriptionsFilters.status,
-              apis: subscriptionsFilters.apis,
-            },
-            tableWrapper.pagination.index,
-            tableWrapper.pagination.size,
-          );
+          return combineLatest([
+            this.applicationService.getSubscriptionsPage(
+              this.activatedRoute.snapshot.params.applicationId,
+              {
+                apiKey: subscriptionsFilters.apiKey,
+                status: subscriptionsFilters.status,
+                apis: subscriptionsFilters.apis,
+              },
+              tableWrapper.pagination.index,
+              tableWrapper.pagination.size,
+            ),
+            this.applicationService.getLastApplicationFetch(this.activatedRoute.snapshot.params.applicationId),
+          ]);
         }),
         catchError(() => {
           this.snackBarService.error('Unable to get subscriptions, please try again');
@@ -172,18 +179,33 @@ export class ApplicationSubscriptionListComponent implements OnInit, OnDestroy {
         }),
         takeUntil(this.unsubscribe$),
       )
-      .subscribe((applicationSubscriptions) => {
+      .subscribe(([applicationSubscriptions, application]) => {
         this.subscriptionsCount = applicationSubscriptions.page.total_elements;
-        this.subscriptionsTableDS = (applicationSubscriptions.data ?? []).map((subscription) => ({
-          id: subscription.id,
-          api$: this.apiService.get(subscription.api).pipe(map((api) => `${api?.name} (${api?.primaryOwner?.displayName})`)),
-          createdAt: subscription.created_at,
-          endAt: subscription.ending_at,
-          plan$: this.planService.get(subscription.api, subscription.plan).pipe(map((plan) => plan.name)),
-          processedAt: subscription.processed_at,
-          startingAt: subscription.starting_at,
-          status: this.statuses.find((status) => status.id === subscription.status)?.name,
-        }));
+
+        this.subscriptionsTableDS = (applicationSubscriptions.data ?? []).map((subscription) => {
+          const status = this.statuses.find((status) => status.id === subscription.status);
+
+          const planMetadata = get(applicationSubscriptions.metadata, [subscription.plan], {});
+          const apiMetadata = get(applicationSubscriptions.metadata, [subscription.api], {});
+
+          return {
+            id: subscription.id,
+            apiName: apiMetadata['name'] ? `${apiMetadata['name']} - ${apiMetadata['apiVersion']}` : subscription.api,
+            apiPo$: this.apiService.get(subscription.api).pipe(
+              map((api) => api.primaryOwner?.displayName),
+              catchError(() => of("Unknown API's owner")),
+            ),
+            createdAt: subscription.created_at,
+            endAt: subscription.ending_at,
+            planName: planMetadata['name'] ?? subscription.plan,
+            securityType: planMetadata['planMode'] === 'PUSH' ? 'PUSH' : planMetadata['securityType'] ?? 'UNKNOWN',
+            isSharedApiKey: application.api_key_mode === 'SHARED' && planMetadata['securityType'] === PlanSecurityType.API_KEY,
+            processedAt: subscription.processed_at,
+            startingAt: subscription.starting_at,
+            status: status?.name,
+            statusBadge: status?.badge,
+          };
+        });
         this.isLoadingData = false;
       });
   }
@@ -195,6 +217,41 @@ export class ApplicationSubscriptionListComponent implements OnInit, OnDestroy {
 
   onFiltersChanged(filters: GioTableWrapperFilters) {
     this.filtersStream.next({ ...this.filtersStream.value, tableWrapper: filters });
+  }
+
+  public closeSubscription(subscription: SubscriptionsTableDS) {
+    const applicationId = this.activatedRoute.snapshot.params.applicationId;
+
+    let content =
+      'Are you sure you want to close this subscription? <br> <br> The application will not be able to consume this API anymore.';
+    if (subscription.securityType === PlanSecurityType.API_KEY && subscription.isSharedApiKey) {
+      content += '<br/>All Api-keys associated to this subscription will be closed and could not be used.';
+    }
+
+    return this.matDialog
+      .open<GioConfirmDialogComponent, GioConfirmDialogData>(GioConfirmDialogComponent, {
+        data: {
+          title: 'Close subscription',
+          content,
+        },
+        width: GIO_DIALOG_WIDTH.MEDIUM,
+      })
+      .afterClosed()
+      .pipe(
+        filter((result) => !!result),
+        switchMap(() => this.applicationSubscriptionService.closeSubscription(applicationId, subscription.id)),
+        takeUntil(this.unsubscribe$),
+      )
+
+      .subscribe({
+        next: () => {
+          this.snackBarService.success('The subscription has been closed');
+          this.ngOnInit();
+        },
+        error: () => {
+          this.snackBarService.error('An error occurred while closing the subscription!');
+        },
+      });
   }
 
   private initFilters() {

@@ -109,9 +109,6 @@ const applicationRoutes: Routes = [
           permissions: {
             anyOf: ['application-subscription-r'],
           },
-          docs: {
-            page: 'management-application-subscriptions',
-          },
         },
       },
       {
@@ -129,9 +126,6 @@ const applicationRoutes: Routes = [
         data: {
           permissions: {
             anyOf: ['application-subscription-r'],
-          },
-          docs: {
-            page: 'management-application-subscriptions',
           },
         },
       },

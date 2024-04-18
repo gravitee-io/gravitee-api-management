@@ -29,7 +29,7 @@ export class ApplicationSubscriptionListHarness extends ComponentHarness {
   public getApiKeyInput = this.locatorFor(MatInputHarness.with({ selector: '[formControlName="apiKey"]' }));
   public getResetFilterButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Reset filters"]' }));
   public getTable = this.locatorFor(MatTableHarness.with({ selector: '#subscriptionsTable' }));
-  public getEditButtons = this.locatorForAll(MatButtonHarness.with({ selector: '[aria-label="View the subscription details"]' }));
+  public getSubscriptionDetailButtons = this.locatorForAll(MatButtonHarness.with({ selector: '[aria-label="Subscription details"]' }));
   public getCreateButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Create a subscription"]' }));
 
   public async getApis(): Promise<string[]> {
@@ -44,10 +44,6 @@ export class ApplicationSubscriptionListHarness extends ComponentHarness {
     const rows = await table.getRows();
     const rowCells = await parallel(() => rows.map((row) => row.getCellTextByIndex()));
     return { headerCells, rowCells };
-  }
-
-  async isEditButtonDisabled(index: number) {
-    return this.getEditButton(index).then((btn) => btn.isDisabled());
   }
 
   async selectStatus(text: string) {
@@ -81,6 +77,6 @@ export class ApplicationSubscriptionListHarness extends ComponentHarness {
   }
 
   private async getEditButton(index: number) {
-    return this.getEditButtons().then((buttons) => buttons[index]);
+    return this.getSubscriptionDetailButtons().then((buttons) => buttons[index]);
   }
 }
