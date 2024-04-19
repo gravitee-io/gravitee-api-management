@@ -259,6 +259,26 @@ public class ApiDuplicatorServiceImplTest {
             .createOrUpdatePages(eq(GraviteeContext.getExecutionContext()), argThat(pageEntities -> pageEntities.size() == 2), eq(API_ID));
     }
 
+    @Test
+    public void shouldDeletePagesBeforeUpdateIfKubernetesOrigin() throws IOException {
+        var pagesNode = loadTestNode(IMPORT_FILES_FOLDER + "import-api.pages.kubernetes.json");
+        var deletedPageId = "not-in-the-import";
+        var existingPage = new PageEntity();
+
+        existingPage.setId(deletedPageId);
+
+        when(apiEntity.getId()).thenReturn(API_ID);
+
+        when(pageService.findByApi("DEFAULT", API_ID)).thenReturn(List.of(existingPage));
+
+        apiDuplicatorService.createOrUpdatePages(GraviteeContext.getExecutionContext(), apiEntity, pagesNode);
+
+        verify(pageService, times(1)).delete(GraviteeContext.getExecutionContext(), deletedPageId);
+
+        verify(pageService, times(1))
+            .createOrUpdatePages(eq(GraviteeContext.getExecutionContext()), argThat(pageEntities -> pageEntities.size() == 2), eq(API_ID));
+    }
+
     // Plans
     @Test
     public void shouldNotUpdatePlansIfNoPlan() throws IOException {
