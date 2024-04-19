@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { PageConfiguration } from './page-configuration';
 import { PageLinks } from './page-links';
 import { PageMedia } from './page-media';
 import { PageMetadata } from './page-metadata';
@@ -58,6 +59,7 @@ export interface Page {
    */
   content?: string;
   contentRevisionId?: PageRevisionId;
+  configuration?: PageConfiguration;
 }
 
 export type PageTypeEnum = 'ASCIIDOC' | 'ASYNCAPI' | 'SWAGGER' | 'MARKDOWN' | 'FOLDER' | 'ROOT' | 'LINK';
