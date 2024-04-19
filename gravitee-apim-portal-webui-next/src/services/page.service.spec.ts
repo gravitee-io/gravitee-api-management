@@ -152,4 +152,19 @@ describe('PageService', () => {
       req.flush(pagesResponse);
     });
   });
+
+  describe('getByApiIdAndId', () => {
+    it('should return page with specified api id and id', done => {
+      const page = fakePage({ id: 'page-id' });
+
+      service.getByApiIdAndId('api-id', page.id).subscribe(response => {
+        expect(response).toMatchObject(page);
+        done();
+      });
+
+      const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/api-id/pages/${page.id}`);
+      expect(req.request.method).toEqual('GET');
+      req.flush(page);
+    });
+  });
 });

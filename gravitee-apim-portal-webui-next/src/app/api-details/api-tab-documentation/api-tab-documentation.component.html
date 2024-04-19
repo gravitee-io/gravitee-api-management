@@ -20,5 +20,9 @@
 </div>
 
 <div class="api-tab-documentation__page-content">
-  {{ selectedPage }}
+  @if (selectedPage$ | async; as selectedPage) {
+    <app-page [page]="selectedPage"></app-page>
+  } @else {
+    <app-loader />
+  }
 </div>

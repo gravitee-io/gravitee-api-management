@@ -41,6 +41,10 @@ export class PageService {
     });
   }
 
+  getByApiIdAndId(apiId: string, pageId: string, withContent: boolean = false) {
+    return this.http.get<Page>(`${this.configService.baseURL}/apis/${apiId}/pages/${pageId}${withContent ? '?include=content' : ''}`);
+  }
+
   mapToPageTreeNode(root: string | undefined, pages: Page[]): PageTreeNode[] {
     return pages
       .filter(p => p.parent === root)
