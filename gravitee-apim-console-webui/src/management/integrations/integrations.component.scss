@@ -26,33 +26,24 @@ $typography: map.get(gio.$mat-theme, typography);
 }
 
 .page-header {
+  display: flex;
+  justify-content: space-between;
   margin-bottom: 24px;
 
-  &__page-title {
+  .page-title {
     @include mat.typography-level($typography, headline-6);
     margin: 0 0 4px 0;
   }
 
-  &__description {
+  .description {
     color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
     @include mat.typography-level($typography, body-2);
   }
-}
 
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  padding: 16px 16px 0 16px;
-
-  &__title {
-    @include mat.typography-level($typography, subtitle-1);
+  &__actions {
     display: flex;
     flex-direction: column;
     justify-content: center;
-
-    h3 {
-      margin: 0;
-    }
   }
 }
 
@@ -85,4 +76,8 @@ $typography: map.get(gio.$mat-theme, typography);
       text-align: center;
     }
   }
+}
+
+gio-table-wrapper {
+  margin-top: 0;
 }

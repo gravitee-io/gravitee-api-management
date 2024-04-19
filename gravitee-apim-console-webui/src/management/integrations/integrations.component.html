@@ -16,109 +16,105 @@
 
 -->
 
-<div>
+<div class="integrations-page">
   <div class="page-header">
-    <h1 class="page-header__page-title">Integrations</h1>
-    <span class="page-header__description"
-      >Connect to third-party API gateways and event brokers to create a unified control plane and API portal with Gravitee</span
-    >
-  </div>
-  <mat-card>
-    <div class="card-header">
-      <div class="card-header__title">
-        <h3>Integrations</h3>
-      </div>
-      <div class="card-header__actions">
-        <button
-          *gioPermission="{ anyOf: ['environment-integration-c'] }"
-          mat-raised-button
-          color="primary"
-          [disabled]="isLoading"
-          data-testid="create-integration-button"
-          routerLink="new"
-        >
-          Create Integration
-        </button>
-      </div>
+    <div>
+      <h1 class="page-title">Integrations</h1>
+      <span class="description"
+        >Connect to third-party API gateways and event brokers to create a unified control plane and API portal with Gravitee</span
+      >
     </div>
 
-    <ng-template #noIntegrations>
-      <div class="no-integrations">
-        <div class="no-integrations__img">
-          <img class="banner" src="/assets/integrations-banner.png" alt="Integrations banner" />
-        </div>
-        <div class="no-integrations__message">
-          <h2 class="header">No integrations yet</h2>
-          <p class="description">Create an integration to start importing APIs and event streams from a 3rd-party provider.</p>
-        </div>
-      </div>
-    </ng-template>
-
-    <ng-container *ngIf="integrations.length || isLoading; else noIntegrations">
-      <gio-table-wrapper
-        [disableSearchInput]="true"
-        [length]="nbTotalInstances"
-        [filters]="filters"
-        (filtersChange)="onFiltersChanged($event)"
+    <div class="page-header__actions">
+      <button
+        *gioPermission="{ anyOf: ['environment-integration-c'] }"
+        mat-raised-button
+        color="primary"
+        [disabled]="isLoading"
+        data-testid="create-integration-button"
+        routerLink="new"
       >
-        <table mat-table [dataSource]="integrations" aria-label="Integrations table">
-          <caption style="display: none">
-            Table with Integrations
-          </caption>
-          <ng-container matColumnDef="name">
-            <th mat-header-cell *matHeaderCellDef id="name">Name</th>
-            <td mat-cell *matCellDef="let integration">
-              <a [routerLink]="'./' + integration.id">
-                {{ integration.name }}
-              </a>
-            </td>
-          </ng-container>
+        Create Integration
+      </button>
+    </div>
+  </div>
 
-          <ng-container matColumnDef="owner">
-            <th mat-header-cell *matHeaderCellDef id="owner">Owner</th>
-            <!-- toDo: remove empty string when Backend Ready:           -->
-            <td mat-cell *matCellDef="let integration">{{ integration.owner || '' }}</td>
-          </ng-container>
+  <ng-template #noIntegrations>
+    <div class="no-integrations">
+      <div class="no-integrations__img">
+        <img class="banner" src="/assets/integrations-banner.png" alt="Integrations banner" />
+      </div>
+      <div class="no-integrations__message">
+        <h2 class="header">No integrations yet</h2>
+        <p class="description">Create an integration to start importing APIs and event streams from a 3rd-party provider.</p>
+      </div>
+    </div>
+  </ng-template>
 
-          <ng-container matColumnDef="provider">
-            <th mat-header-cell *matHeaderCellDef id="provider">Provider</th>
-            <td mat-cell *matCellDef="let integration">{{ integration.provider }}</td>
-          </ng-container>
+  <ng-container *ngIf="integrations.length || isLoading; else noIntegrations">
+    <gio-table-wrapper
+      [disableSearchInput]="true"
+      [length]="nbTotalInstances"
+      [filters]="filters"
+      (filtersChange)="onFiltersChanged($event)"
+    >
+      <table mat-table [dataSource]="integrations" aria-label="Integrations table">
+        <caption style="display: none">
+          Table with Integrations
+        </caption>
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef id="name">Name</th>
+          <td mat-cell *matCellDef="let integration">
+            <a [routerLink]="'./' + integration.id">
+              {{ integration.name }}
+            </a>
+          </td>
+        </ng-container>
 
-          <ng-container matColumnDef="agent">
-            <th mat-header-cell *matHeaderCellDef id="agent">Agent</th>
-            <!-- toDo: remove empty string when Backend Ready:           -->
-            <td mat-cell *matCellDef="let integration">{{ integration.agent || '' }}</td>
-          </ng-container>
+        <ng-container matColumnDef="owner">
+          <th mat-header-cell *matHeaderCellDef id="owner">Owner</th>
+          <!-- toDo: remove empty string when Backend Ready:           -->
+          <td mat-cell *matCellDef="let integration">{{ integration.owner || '' }}</td>
+        </ng-container>
 
-          <ng-container matColumnDef="action">
-            <th mat-header-cell *matHeaderCellDef id="action">
-              <ng-container *gioPermission="{ anyOf: ['environment-integration-u'] }">Action</ng-container>
-            </th>
-            <td mat-cell *matCellDef="let integration">
-              <button
-                *gioPermission="{ anyOf: ['environment-integration-u', 'environment-integration-d'] }"
-                [routerLink]="integration.id + '/configuration'"
-                mat-icon-button
-                aria-label="Configure integration button"
-                matTooltip="Configure integraion"
-              >
-                <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
-              </button>
-            </td>
-          </ng-container>
+        <ng-container matColumnDef="provider">
+          <th mat-header-cell *matHeaderCellDef id="provider">Provider</th>
+          <td mat-cell *matCellDef="let integration">{{ integration.provider }}</td>
+        </ng-container>
 
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        <ng-container matColumnDef="agent">
+          <th mat-header-cell *matHeaderCellDef id="agent">Agent</th>
+          <!-- toDo: remove empty string when Backend Ready:           -->
+          <td mat-cell *matCellDef="let integration">{{ integration.agent || '' }}</td>
+        </ng-container>
 
-          <!-- Row shown when there is no data -->
-          <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
-            <td *ngIf="isLoading" class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">
-              {{ 'Loading...' }}
-            </td>
-          </tr>
-        </table>
-      </gio-table-wrapper>
-    </ng-container>
-  </mat-card>
+        <ng-container matColumnDef="action">
+          <th mat-header-cell *matHeaderCellDef id="action">
+            <ng-container *gioPermission="{ anyOf: ['environment-integration-u'] }">Action</ng-container>
+          </th>
+          <td mat-cell *matCellDef="let integration">
+            <button
+              *gioPermission="{ anyOf: ['environment-integration-u', 'environment-integration-d'] }"
+              [routerLink]="integration.id + '/configuration'"
+              mat-icon-button
+              aria-label="Configure integration button"
+              matTooltip="Configure integraion"
+            >
+              <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+
+        <!-- Row shown when there is no data -->
+        <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+          <td *ngIf="isLoading" class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">
+            {{ 'Loading...' }}
+          </td>
+        </tr>
+      </table>
+    </gio-table-wrapper>
+  </ng-container>
 </div>
