@@ -1,0 +1,14 @@
+[*]
+charset = utf-8
+ij_formatter_off_tag = @formatter:off
+ij_formatter_on_tag = @formatter:on
+ij_formatter_tags_enabled = true
+ij_smart_tabs = false
+
+[*.java]
+ij_java_class_count_to_use_import_on_demand = 99
+ij_java_imports_layout = $*,|,*,javax.**,java.**,|
+ij_java_layout_static_imports_separately = true
+ij_java_names_count_to_use_import_on_demand = 99
+ij_java_packages_to_use_import_on_demand = java.awt.*,javax.swing.*
+ij_java_use_single_class_imports = true
