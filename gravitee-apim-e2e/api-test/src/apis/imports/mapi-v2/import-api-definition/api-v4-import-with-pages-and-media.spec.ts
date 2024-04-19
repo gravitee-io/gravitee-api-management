@@ -94,6 +94,7 @@ describe('API - V4 - Import - Gravitee Definition - With pages', () => {
         );
       });
     });
+
     describe('Create v4 API with one page with an ID', () => {
       const fixedApiId = faker.datatype.uuid();
       let importedApi: ApiV4;
@@ -160,6 +161,7 @@ describe('API - V4 - Import - Gravitee Definition - With pages', () => {
         );
       });
     });
+
     describe('Create v4 API with one page with a media', () => {
       const fixedApiId = faker.datatype.uuid();
       let importedApi: ApiV4;
@@ -252,6 +254,7 @@ describe('API - V4 - Import - Gravitee Definition - With pages', () => {
         );
       });
     });
+
     describe('Create v4 API with one pages tree', () => {
       let importedApi: ApiV4;
       let rootFolderRecalculatedId: string;

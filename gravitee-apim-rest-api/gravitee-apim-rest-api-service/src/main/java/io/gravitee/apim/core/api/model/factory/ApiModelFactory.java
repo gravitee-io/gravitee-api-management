@@ -18,6 +18,7 @@ package io.gravitee.apim.core.api.model.factory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.NewApi;
 import io.gravitee.apim.core.api.model.crd.ApiCRD;
+import io.gravitee.apim.core.api.model.import_definition.ApiExport;
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
 import io.gravitee.common.utils.TimeProvider;
@@ -54,6 +55,22 @@ public class ApiModelFactory {
             .updatedAt(now)
             .visibility(Api.Visibility.valueOf(crd.getVisibility()))
             .apiDefinitionV4(crd.toApiDefinitionBuilder().id(id).build())
+            .build();
+    }
+
+    public static Api fromApiExport(ApiExport api, String environmentId) {
+        var id = api.getId() != null ? api.getId() : UuidString.generateRandom();
+        var now = TimeProvider.now();
+        return api
+            .toApiBuilder()
+            .id(id)
+            .environmentId(environmentId)
+            .createdAt(now)
+            .updatedAt(now)
+            .lifecycleState(Api.LifecycleState.STOPPED)
+            .apiLifecycleState(Api.ApiLifecycleState.CREATED)
+            .visibility(api.getVisibility() == null ? Api.Visibility.PRIVATE : Api.Visibility.valueOf(api.getVisibility().name()))
+            .apiDefinitionV4(api.toApiDefinitionBuilder().id(id).build())
             .build();
     }
 

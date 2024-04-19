@@ -15,13 +15,17 @@
  */
 package io.gravitee.rest.api.service.v4;
 
+import io.gravitee.rest.api.model.MediaEntity;
+import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
-import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.util.List;
 import java.util.Set;
 
 public interface ApiImportExportService {
-    GenericApiEntity createFromExportedApi(final ExecutionContext executionContext, ExportApiEntity exportApiEntityV4, String userId);
+    void createPageAndMedia(final ExecutionContext executionContext, String apiId, List<MediaEntity> mediaEntities);
+
+    void createMembers(final ExecutionContext executionContext, String apiId, Set<MemberEntity> members);
 
     ExportApiEntity exportApi(final ExecutionContext executionContext, String apiId, String userId, Set<String> excludeAdditionalData);
 }

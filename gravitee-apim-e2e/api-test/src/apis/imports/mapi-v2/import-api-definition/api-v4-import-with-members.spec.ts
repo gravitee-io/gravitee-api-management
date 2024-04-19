@@ -13,15 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { test, describe, afterAll, expect } from '@jest/globals';
+import { afterAll, describe, expect, test } from '@jest/globals';
 import { APIsApi, ApiV4 } from '@gravitee/management-v2-webclient-sdk/src/lib';
-import {
-  forManagementAsAdminUser,
-  forManagementAsApiUser,
-  forManagementV2AsAdminUser,
-  forManagementV2AsApiUser,
-} from '@gravitee/utils/configuration';
-import { created, forbidden, noContent, succeed } from '@lib/jest-utils';
+import { forManagementAsAdminUser, forManagementV2AsAdminUser, forManagementV2AsApiUser } from '@gravitee/utils/configuration';
+import { created, noContent, succeed } from '@lib/jest-utils';
 import { RoleEntity, RoleScope, UserEntity } from '@gravitee/management-webclient-sdk/src/lib/models';
 import { APIsApi as v1APIsApi } from '@gravitee/management-webclient-sdk/src/lib/apis/APIsApi';
 import { UsersApi } from '@gravitee/management-webclient-sdk/src/lib/apis/UsersApi';
@@ -34,7 +29,6 @@ import { MAPIV2MembersFaker } from '@gravitee/fixtures/management/MAPIV2MembersF
 const orgId = 'DEFAULT';
 const envId = 'DEFAULT';
 
-const v1ApisResourceAsApiPublisher = new v1APIsApi(forManagementAsApiUser());
 const v1ApisResourceAsAdmin = new v1APIsApi(forManagementAsAdminUser());
 const v2ApisResourceAsApiPublisher = new APIsApi(forManagementV2AsApiUser());
 const v2ApisResourceAsAdmin = new APIsApi(forManagementV2AsAdminUser());
@@ -46,19 +40,10 @@ describe('API - V4 - Import - Gravitee Definition - With members', () => {
     const roleName = 'IMPORT_TEST_ROLE';
     let importedApi: ApiV4;
     let member: UserEntity;
-    let primaryOwner: UserEntity;
     let customRole: RoleEntity;
 
     test('should create member, primary owner and custom role', async () => {
       member = await succeed(
-        v1UsersResourceAsAdmin.createUserRaw({
-          orgId,
-          envId,
-          newPreRegisterUserEntity: UsersFaker.newNewPreRegisterUserEntity(),
-        }),
-      );
-
-      primaryOwner = await succeed(
         v1UsersResourceAsAdmin.createUserRaw({
           orgId,
           envId,
@@ -80,13 +65,7 @@ describe('API - V4 - Import - Gravitee Definition - With members', () => {
         v2ApisResourceAsApiPublisher.createApiWithImportDefinitionRaw({
           envId,
           exportApiV4: MAPIV2ApisFaker.apiImportV4({
-            api: MAPIV2ApisFaker.apiV4({
-              primaryOwner: {
-                id: primaryOwner.id,
-                type: 'USER',
-                email: primaryOwner.email,
-              },
-            }),
+            api: MAPIV2ApisFaker.apiV4(),
             members: [
               MAPIV2MembersFaker.member({
                 id: member.id,
@@ -106,14 +85,6 @@ describe('API - V4 - Import - Gravitee Definition - With members', () => {
     });
 
     test('should get API members, with a primary owner, and an additional member with custom role', async () => {
-      // API has been imported with a primary owner, so default API Publisher used to import should not be able to access it
-      await forbidden(
-        v1ApisResourceAsApiPublisher.getApiMembersRaw({
-          orgId,
-          envId,
-          api: importedApi.id,
-        }),
-      );
       // But should be able to access it as an admin
       const members = await succeed(
         v1ApisResourceAsAdmin.getApiMembersRaw({
@@ -127,7 +98,7 @@ describe('API - V4 - Import - Gravitee Definition - With members', () => {
       const memberResult = members.find((m) => m.displayName === member.displayName);
       expect(memberResult.id).toBeTruthy();
       expect(memberResult.role).toEqual(customRole.name);
-      const poMemberResult = members.find((m) => m.displayName === primaryOwner.displayName);
+      const poMemberResult = members.find((m) => m.displayName === process.env.API_USERNAME);
       expect(poMemberResult.id).toBeTruthy();
       expect(poMemberResult.role).toEqual('PRIMARY_OWNER');
     });
@@ -151,13 +122,6 @@ describe('API - V4 - Import - Gravitee Definition - With members', () => {
         v2ApisResourceAsAdmin.deleteApiRaw({
           envId,
           apiId: importedApi.id,
-        }),
-      );
-      await noContent(
-        v1UsersResourceAsAdmin.deleteUserRaw({
-          orgId,
-          envId,
-          userId: primaryOwner.id,
         }),
       );
     });

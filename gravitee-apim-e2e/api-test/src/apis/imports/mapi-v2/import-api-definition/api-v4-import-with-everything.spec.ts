@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { test, describe, expect } from '@jest/globals';
+import { test, describe, expect, afterAll } from '@jest/globals';
 import { APIsApi, APIPlansApi, ApiV4, PlanSecurityType, PlanV4 } from '@gravitee/management-v2-webclient-sdk/src/lib';
 import { forManagementAsAdminUser, forManagementAsApiUser, forManagementV2AsApiUser } from '@gravitee/utils/configuration';
 import { MAPIV2ApisFaker } from '@gravitee/fixtures/management/MAPIV2ApisFaker';
@@ -30,6 +30,7 @@ import { UsersFaker } from '@gravitee/fixtures/management/UsersFaker';
 import { RoleFaker } from '@gravitee/fixtures/management/RoleFaker';
 import { MAPIV2MembersFaker } from '@gravitee/fixtures/management/MAPIV2MembersFaker';
 import { ImagesUtils } from '@gravitee/utils/images';
+import faker from '@faker-js/faker';
 
 const envId = 'DEFAULT';
 const orgId = 'DEFAULT';
@@ -55,7 +56,7 @@ describe('API - V4 - Import - Gravitee Definition - With everything', () => {
       });
 
       // members
-      const roleName = 'IMPORT_TEST_ROLE';
+      const roleName = `IMPORT_TEST_ROLE-${faker.datatype.uuid()}`;
       let memberToImport: UserEntity;
       let customRole: RoleEntity;
 
@@ -64,7 +65,10 @@ describe('API - V4 - Import - Gravitee Definition - With everything', () => {
 
       // pages
       const pageToImport = MAPIV2PagesFaker.page();
-      const generalConditionsPageToImport = MAPIV2PagesFaker.page({ id: 'general-condition-id' });
+      const generalConditionsPageToImport = MAPIV2PagesFaker.page({
+        id: `general-condition-id-${faker.datatype.uuid()}`,
+        published: true,
+      });
       let importedPage: PageEntity;
       let importedGeneralConditionsPage: PageEntity;
 
@@ -242,7 +246,7 @@ describe('API - V4 - Import - Gravitee Definition - With everything', () => {
         expect(base64Image).toStrictEqual(ImagesUtils.fakeImage150x35);
       });
 
-      test('yann', async () => {
+      afterAll(async () => {
         // members
         await noContent(
           v1ConfigurationResourceAsAdmin.deleteRoleRaw({

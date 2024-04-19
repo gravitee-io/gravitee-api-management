@@ -13,38 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model.v4.api;
+package io.gravitee.apim.core.media.model;
 
-import io.gravitee.rest.api.model.ApiMetadataEntity;
-import io.gravitee.rest.api.model.MediaEntity;
-import io.gravitee.rest.api.model.MemberEntity;
-import io.gravitee.rest.api.model.PageEntity;
-import io.gravitee.rest.api.model.v4.plan.PlanEntity;
-import java.util.List;
-import java.util.Set;
+import java.util.Date;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * @author David BRASSELY (brasseld at gmail.com)
- */
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
-@Builder
-public class ExportApiEntity {
+@Builder(toBuilder = true)
+@NoArgsConstructor
+@AllArgsConstructor
+public class Media {
 
-    private ApiEntity apiEntity;
-
-    private Set<MemberEntity> members;
-
-    private Set<ApiMetadataEntity> metadata;
-
-    private List<PageEntity> pages;
-
-    private Set<PlanEntity> plans;
-
-    private List<MediaEntity> apiMedia;
+    private String id;
+    private String hash;
+    private String type;
+    private String subType;
+    private String fileName;
+    private Date createdAt;
+    private Long size;
+    private byte[] data;
 }

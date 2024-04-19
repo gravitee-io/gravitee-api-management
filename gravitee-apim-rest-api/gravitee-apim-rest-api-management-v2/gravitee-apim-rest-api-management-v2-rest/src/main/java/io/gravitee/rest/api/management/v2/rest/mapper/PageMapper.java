@@ -21,7 +21,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.use_case.ApiUpdateDocumentationPageUseCase;
 import io.gravitee.definition.jackson.datatype.GraviteeMapper;
-import io.gravitee.rest.api.management.v2.rest.model.*;
+import io.gravitee.rest.api.management.v2.rest.model.Breadcrumb;
+import io.gravitee.rest.api.management.v2.rest.model.Media;
+import io.gravitee.rest.api.management.v2.rest.model.Page;
+import io.gravitee.rest.api.management.v2.rest.model.PageMedia;
+import io.gravitee.rest.api.management.v2.rest.model.PageSource;
+import io.gravitee.rest.api.management.v2.rest.model.Revision;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateDocumentationAsyncApi;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateDocumentationFolder;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateDocumentationMarkdown;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateDocumentationSwagger;
 import io.gravitee.rest.api.model.MediaEntity;
 import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PageMediaEntity;
@@ -64,6 +73,15 @@ public interface PageMapper {
     @Mapping(target = "contentRevisionId", source = "contentRevision")
     @Mapping(target = "lastModificationDate", source = "updatedAt")
     PageEntity map(Page page);
+
+    io.gravitee.apim.core.documentation.model.Page toCorePage(Page page);
+
+    @Mapping(target = "configuration", qualifiedByName = "serializeConfiguration")
+    io.gravitee.apim.core.documentation.model.PageSource toCorePageSource(PageSource source);
+
+    @Mapping(target = "mediaName", source = "name")
+    @Mapping(target = "mediaHash", source = "hash")
+    io.gravitee.apim.core.documentation.model.PageMedia map(PageMedia pageMedia);
 
     @Mapping(target = "configuration", qualifiedByName = "deserializeJsonConfiguration")
     PageSourceEntity mapPageSource(PageSource source);

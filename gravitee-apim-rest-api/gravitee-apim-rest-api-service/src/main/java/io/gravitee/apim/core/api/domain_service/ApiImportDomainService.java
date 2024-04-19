@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.metadata.crud_service;
+package io.gravitee.apim.core.api.domain_service;
 
-import io.gravitee.apim.core.metadata.model.Metadata;
-import io.gravitee.apim.core.metadata.model.MetadataId;
-import java.util.Optional;
+import io.gravitee.apim.core.api.model.import_definition.ApiMember;
+import io.gravitee.apim.core.media.model.Media;
+import java.util.List;
+import java.util.Set;
 
-public interface MetadataCrudService {
-    Metadata create(Metadata metadata);
-    Optional<Metadata> findById(MetadataId id);
-    Metadata update(Metadata metadata);
+public interface ApiImportDomainService {
+    void createPageAndMedia(List<Media> mediaList, String apiId);
+
+    void createMembers(Set<ApiMember> members, String apiId);
 }

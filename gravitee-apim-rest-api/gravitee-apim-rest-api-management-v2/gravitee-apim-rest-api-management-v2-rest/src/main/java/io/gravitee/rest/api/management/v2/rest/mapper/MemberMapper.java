@@ -15,11 +15,11 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import io.gravitee.apim.core.api.model.import_definition.ApiMember;
 import io.gravitee.rest.api.management.v2.rest.model.Member;
 import io.gravitee.rest.api.model.MemberEntity;
 import java.util.Set;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 @Mapper(uses = { RoleMapper.class })
@@ -30,4 +30,7 @@ public interface MemberMapper {
     MemberEntity map(Member member);
 
     Set<Member> map(Set<MemberEntity> memberEntityCollection);
+
+    ApiMember toApiMember(Member member);
+    Set<ApiMember> toApiMembers(Set<Member> members);
 }

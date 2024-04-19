@@ -15,17 +15,17 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import io.gravitee.apim.core.api.model.import_definition.ApiExport;
+import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
 import io.gravitee.rest.api.management.v2.rest.model.ExportApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.Member;
 import io.gravitee.rest.api.management.v2.rest.model.Metadata;
 import io.gravitee.rest.api.management.v2.rest.model.PlanV4;
 import io.gravitee.rest.api.model.ApiMetadataEntity;
 import io.gravitee.rest.api.model.MemberEntity;
-import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -41,26 +41,19 @@ public interface ImportExportApiMapper {
     @Mapping(target = "plans", source = "plans", qualifiedByName = "toPlanV4Nullable")
     ExportApiV4 map(ExportApiEntity exportApiEntityV4);
 
-    @Mapping(target = "apiEntity", expression = "java(buildApiEntity(exportApiV4))")
-    @Mapping(target = "members", expression = "java(buildMembers(exportApiV4))")
-    @Mapping(target = "metadata", expression = "java(buildMetadata(exportApiV4))")
-    @Mapping(target = "plans", qualifiedByName = "toPlanEntity")
-    ExportApiEntity map(ExportApiV4 exportApiV4);
+    @Mapping(target = "apiExport", expression = "java(buildApiExport(exportApiV4))")
+    ImportDefinition toImportDefinition(ExportApiV4 exportApiV4);
 
     @Mapping(target = "type", constant = "USER")
     @Mapping(target = "referenceType", constant = "API")
     @Mapping(target = "referenceId", expression = "java(apiId)")
     MemberEntity map(Member member, String apiId);
 
-    default ApiEntity buildApiEntity(ExportApiV4 exportApiV4) {
-        final ApiEntity apiEntity = ApiMapper.INSTANCE.map(exportApiV4.getApi());
-        apiEntity.setPicture(exportApiV4.getApiPicture());
-        apiEntity.setBackground(exportApiV4.getApiBackground());
-        return apiEntity;
-    }
-
-    default Set<MemberEntity> buildMembers(ExportApiV4 exportApiV4) {
-        return exportApiV4.getMembers().stream().map(member -> map(member, exportApiV4.getApi().getId())).collect(Collectors.toSet());
+    default ApiExport buildApiExport(ExportApiV4 exportApiV4) {
+        final ApiExport apiExport = ApiMapper.INSTANCE.toApiExport(exportApiV4.getApi());
+        apiExport.setPicture(exportApiV4.getApiPicture());
+        apiExport.setBackground(exportApiV4.getApiBackground());
+        return apiExport;
     }
 
     @Named("toPlanV4Nullable")
@@ -73,8 +66,4 @@ public interface ImportExportApiMapper {
 
     @Mapping(target = "apiId", expression = "java(apiId)")
     ApiMetadataEntity map(Metadata metadata, String apiId);
-
-    default Set<ApiMetadataEntity> buildMetadata(ExportApiV4 exportApiV4) {
-        return exportApiV4.getMetadata().stream().map(metadata -> map(metadata, exportApiV4.getApi().getId())).collect(Collectors.toSet());
-    }
 }

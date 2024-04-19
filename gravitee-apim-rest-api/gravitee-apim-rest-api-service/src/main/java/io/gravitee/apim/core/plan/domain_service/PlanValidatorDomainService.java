@@ -81,7 +81,7 @@ public class PlanValidatorDomainService {
     }
 
     public void validateGeneralConditionsPageStatus(Plan plan) {
-        if (plan.getGeneralConditions() != null && (plan.isPublished() || plan.isDeprecated())) {
+        if (plan.getGeneralConditions() != null && !plan.getGeneralConditions().isEmpty() && (plan.isPublished() || plan.isDeprecated())) {
             var page = pageCrudService.findById(plan.getGeneralConditions());
             var isPublished = page.map(Page::isPublished).orElse(false);
             if (!isPublished) {

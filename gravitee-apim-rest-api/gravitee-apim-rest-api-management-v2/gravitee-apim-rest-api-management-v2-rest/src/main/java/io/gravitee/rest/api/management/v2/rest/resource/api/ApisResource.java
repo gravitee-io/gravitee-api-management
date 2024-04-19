@@ -21,7 +21,9 @@ import static io.gravitee.rest.api.service.impl.search.lucene.transformer.ApiDoc
 import com.google.common.base.Strings;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.exception.InvalidPathsException;
+import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
 import io.gravitee.apim.core.api.use_case.CreateV4ApiUseCase;
+import io.gravitee.apim.core.api.use_case.ImportApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.ImportCRDUseCase;
 import io.gravitee.apim.core.api.use_case.VerifyApiHostsUseCase;
 import io.gravitee.apim.core.api.use_case.VerifyApiPathsUseCase;
@@ -48,15 +50,12 @@ import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
-import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
-import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
 import io.gravitee.rest.api.security.utils.ImageUtils;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.search.query.QueryBuilder;
-import io.gravitee.rest.api.service.v4.ApiImportExportService;
 import io.gravitee.rest.api.service.v4.ApiStateService;
 import io.gravitee.rest.api.service.v4.exception.InvalidPathException;
 import jakarta.inject.Inject;
@@ -97,9 +96,6 @@ public class ApisResource extends AbstractResource {
     protected UriInfo uriInfo;
 
     @Inject
-    private ApiImportExportService apiImportExportService;
-
-    @Inject
     private ApiStateService apiStateService;
 
     @Inject
@@ -121,6 +117,9 @@ public class ApisResource extends AbstractResource {
 
     @Inject
     private ImportCRDUseCase importCRDUseCase;
+
+    @Inject
+    private ImportApiDefinitionUseCase importApiDefinitionUseCase;
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
@@ -224,20 +223,33 @@ public class ApisResource extends AbstractResource {
         verifyImage(apiToImport.getApiPicture(), "picture");
         verifyImage(apiToImport.getApiBackground(), "background");
 
-        ExportApiEntity exportApiEntity = ImportExportApiMapper.INSTANCE.map(apiToImport);
+        ImportDefinition importDefinition = ImportExportApiMapper.INSTANCE.toImportDefinition(apiToImport);
 
         try {
-            GenericApiEntity fromExportedApi = apiImportExportService.createFromExportedApi(
-                GraviteeContext.getExecutionContext(),
-                exportApiEntity,
-                getAuthenticatedUser()
+            var userDetails = getAuthenticatedUserDetails();
+            var executionContext = GraviteeContext.getExecutionContext();
+            var audit = AuditInfo
+                .builder()
+                .organizationId(executionContext.getOrganizationId())
+                .environmentId(executionContext.getEnvironmentId())
+                .actor(
+                    AuditActor
+                        .builder()
+                        .userId(userDetails.getUsername())
+                        .userSource(userDetails.getSource())
+                        .userSourceId(userDetails.getSourceId())
+                        .build()
+                )
+                .build();
+            ImportApiDefinitionUseCase.Output output = importApiDefinitionUseCase.execute(
+                new ImportApiDefinitionUseCase.Input(importDefinition, audit)
             );
 
-            boolean isSynchronized = apiStateService.isSynchronized(GraviteeContext.getExecutionContext(), fromExportedApi);
+            boolean isSynchronized = apiStateDomainService.isSynchronized(output.apiWithFlows(), audit);
 
             return Response
-                .created(this.getLocationHeader(fromExportedApi.getId()))
-                .entity(ApiMapper.INSTANCE.map(fromExportedApi, uriInfo, isSynchronized))
+                .created(this.getLocationHeader(output.apiWithFlows().getId()))
+                .entity(ApiMapper.INSTANCE.map(output.apiWithFlows(), uriInfo, isSynchronized))
                 .build();
         } catch (InvalidPathsException e) {
             throw new InvalidPathException("Cannot import API with invalid paths", e);

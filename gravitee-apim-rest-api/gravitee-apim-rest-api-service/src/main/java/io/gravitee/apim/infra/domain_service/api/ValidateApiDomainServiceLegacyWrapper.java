@@ -35,25 +35,31 @@ public class ValidateApiDomainServiceLegacyWrapper implements ValidateApiDomainS
 
     @Override
     public Api validateAndSanitizeForCreation(Api api, PrimaryOwnerEntity primaryOwner, String environmentId, String organizationId) {
-        var apiEntity = ApiAdapter.INSTANCE.toNewApiEntity(api);
+        var newApiEntity = ApiAdapter.INSTANCE.toNewApiEntity(api);
 
         apiValidationService.validateAndSanitizeNewApi(
             new ExecutionContext(organizationId, environmentId),
-            apiEntity,
+            newApiEntity,
             PrimaryOwnerAdapter.INSTANCE.toRestEntity(primaryOwner)
         );
 
-        api.setName(apiEntity.getName());
-        api.setVersion(apiEntity.getApiVersion());
-        api.setType(apiEntity.getType());
-        api.setDescription(apiEntity.getDescription());
-        api.setGroups(apiEntity.getGroups());
-        api.setTag(apiEntity.getTags());
-        api.getApiDefinitionV4().setListeners(apiEntity.getListeners());
-        api.getApiDefinitionV4().setEndpointGroups(apiEntity.getEndpointGroups());
-        api.getApiDefinitionV4().setAnalytics(apiEntity.getAnalytics());
-        api.getApiDefinitionV4().setFlowExecution(apiEntity.getFlowExecution());
-        api.getApiDefinitionV4().setFlows(apiEntity.getFlows());
+        apiValidationService.validateDynamicProperties(
+            api.getApiDefinitionV4().getServices() != null ? api.getApiDefinitionV4().getServices().getDynamicProperty() : null
+        );
+
+        api.setName(newApiEntity.getName());
+        api.setVersion(newApiEntity.getApiVersion());
+        api.setType(newApiEntity.getType());
+        api.setDescription(newApiEntity.getDescription());
+        api.setGroups(newApiEntity.getGroups());
+        api.setTag(newApiEntity.getTags());
+        api.getApiDefinitionV4().setListeners(newApiEntity.getListeners());
+        api.getApiDefinitionV4().setEndpointGroups(newApiEntity.getEndpointGroups());
+        api.getApiDefinitionV4().setAnalytics(newApiEntity.getAnalytics());
+        api.getApiDefinitionV4().setFlowExecution(newApiEntity.getFlowExecution());
+        api.getApiDefinitionV4().setFlows(newApiEntity.getFlows());
+        api.getApiDefinitionV4().setFailover(newApiEntity.getFailover());
+        api.getApiDefinitionV4().setResources(apiValidationService.validateAndSanitize(api.getApiDefinitionV4().getResources()));
 
         return api;
     }

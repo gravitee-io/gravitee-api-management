@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { test, describe, afterAll, expect } from '@jest/globals';
+import { afterAll, describe, expect, test } from '@jest/globals';
 import { APIsApi, ApiV4 } from '@gravitee/management-v2-webclient-sdk/src/lib';
 import { forManagementAsAdminUser, forManagementAsApiUser, forManagementV2AsApiUser } from '@gravitee/utils/configuration';
 import { created, noContent, succeed } from '@lib/jest-utils';
@@ -32,11 +32,22 @@ const v1MetadataResourceAsApiPublisher = new MetadataApi(forManagementAsAdminUse
 
 describe('API - V4 - Import - Gravitee Definition - With metadata', () => {
   describe('Create v4 API from import with metadata', () => {
-    let importedApiWithApimTeam, importedSecondApiWithApimTeam, importedApiWithAmTeam, importedApiWithCockpitTeam: ApiV4;
+    let importedApiWithApimTeam,
+      importedSecondApiWithApimTeam,
+      importedApiWithAmTeam,
+      importedApiWithCockpitTeam,
+      importedApiWithGlobalEmailMetadata: ApiV4;
 
     const apimTeamMetadata = MAPIV2MetadataFaker.metadata({ key: 'team', name: 'team', value: 'API Management' });
     const amTeamMetadata = MAPIV2MetadataFaker.metadata({ key: 'team', name: 'team', value: 'Access Management' });
     const cockpitTeamMetadata = MAPIV2MetadataFaker.metadata({ key: 'team', name: 'team', value: 'Cockpit' });
+    const globalEmailMetadata = MAPIV2MetadataFaker.metadata({
+      key: 'email-support',
+      name: 'email-support updated',
+      format: 'MAIL',
+      value: 'dummy-example@gio.com',
+      defaultValue: undefined,
+    });
 
     test('should create environment metadata', async () => {
       v1MetadataResourceAsApiPublisher.createMetadataRaw({
@@ -85,13 +96,23 @@ describe('API - V4 - Import - Gravitee Definition - With metadata', () => {
           envId,
           exportApiV4: MAPIV2ApisFaker.apiImportV4({
             metadata: [
-              // Api with medata having an undefined key at creation will be created with its name as a key
+              // Api with metadata having an undefined key at creation will be created with its name as a key
               { ...cockpitTeamMetadata, key: undefined },
             ],
           }),
         }),
       );
       expect(importedApiWithCockpitTeam).toBeTruthy();
+
+      importedApiWithGlobalEmailMetadata = await created(
+        v2ApisResourceAsApiPublisher.createApiWithImportDefinitionRaw({
+          envId,
+          exportApiV4: MAPIV2ApisFaker.apiImportV4({
+            metadata: [globalEmailMetadata],
+          }),
+        }),
+      );
+      expect(importedApiWithGlobalEmailMetadata).toBeTruthy();
     });
 
     // HACK:
@@ -117,6 +138,12 @@ describe('API - V4 - Import - Gravitee Definition - With metadata', () => {
       expectedMetadata.defaultValue = 'Cockpit-default';
 
       expect(metadata).toContainEqual({ apiId, ...expectedMetadata });
+    });
+
+    test('should get API email metadata with value and name overwritten', async () => {
+      const apiId = importedApiWithGlobalEmailMetadata.id;
+      const metadata = await succeed(v1ApisResourceAsApiPublisher.getApiMetadatasRaw({ orgId, envId, api: apiId }));
+      expect(metadata).toContainEqual({ ...globalEmailMetadata, apiId, defaultValue: 'support@change.me' });
     });
 
     afterAll(async () => {

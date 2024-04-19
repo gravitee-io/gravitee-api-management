@@ -160,4 +160,58 @@ class MetadataCrudServiceImplTest {
             assertThat(foundMetadata).isEmpty();
         }
     }
+
+    @Nested
+    class Update {
+
+        @Test
+        @SneakyThrows
+        void should_update_a_metadata() {
+            var metadata = MetadataFixtures.anApiMetadata("api-id");
+            service.update(metadata);
+
+            var captor = ArgumentCaptor.forClass(io.gravitee.repository.management.model.Metadata.class);
+            verify(metadataRepository).update(captor.capture());
+
+            assertThat(captor.getValue())
+                .usingRecursiveComparison()
+                .isEqualTo(
+                    io.gravitee.repository.management.model.Metadata
+                        .builder()
+                        .referenceType(io.gravitee.repository.management.model.MetadataReferenceType.API)
+                        .referenceId("api-id")
+                        .createdAt(Date.from(Instant.parse("2020-02-01T20:22:02.00Z")))
+                        .updatedAt(Date.from(Instant.parse("2020-02-02T20:22:02.00Z")))
+                        .key("my-key")
+                        .format(MetadataFormat.MAIL)
+                        .value("my-value")
+                        .build()
+                );
+        }
+
+        @Test
+        @SneakyThrows
+        void should_return_the_created_metadata() {
+            when(metadataRepository.create(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+            var toCreate = MetadataFixtures.anApiMetadata();
+            var result = service.create(toCreate);
+
+            assertThat(result).isEqualTo(toCreate);
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() throws TechnicalException {
+            // Given
+            when(metadataRepository.create(any())).thenThrow(TechnicalException.class);
+
+            // When
+            Throwable throwable = catchThrowable(() -> service.create(MetadataFixtures.anApiMetadata()));
+
+            // Then
+            assertThat(throwable)
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurs while trying to create the my-key metadata of [apiId=api-id]");
+        }
+    }
 }
