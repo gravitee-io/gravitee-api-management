@@ -17,12 +17,13 @@ import { Component } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { RouterLink } from '@angular/router';
 
+import { NavBarButtonComponent } from './nav-bar-button/nav-bar-button.component';
 import { CompanyTitleComponent } from '../company-title/company-title.component';
 
 @Component({
   selector: 'app-nav-bar',
   standalone: true,
-  imports: [MatButton, CompanyTitleComponent, RouterLink],
+  imports: [MatButton, CompanyTitleComponent, RouterLink, NavBarButtonComponent],
   templateUrl: './nav-bar.component.html',
   styleUrl: './nav-bar.component.scss',
 })
