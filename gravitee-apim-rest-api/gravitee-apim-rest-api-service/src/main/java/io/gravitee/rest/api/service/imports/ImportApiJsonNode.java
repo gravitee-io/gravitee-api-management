@@ -20,6 +20,7 @@ import static java.util.stream.Collectors.toList;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import io.gravitee.definition.model.DefinitionContext;
+import io.swagger.util.Json;
 import java.util.List;
 
 public class ImportApiJsonNode extends ImportJsonNodeWithIds {

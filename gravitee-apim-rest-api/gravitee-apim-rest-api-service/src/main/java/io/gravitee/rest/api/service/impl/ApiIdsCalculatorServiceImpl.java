@@ -85,7 +85,7 @@ public class ApiIdsCalculatorServiceImpl implements ApiIdsCalculatorService {
 
     private void recalculateIdsFromCrossId(ExecutionContext executionContext, ImportApiJsonNode apiJsonNode, ApiEntity api) {
         apiJsonNode.setId(api.getId());
-        Map<String, String> pagesIdsMap = recalculatePageIdsFromCrossIds(executionContext.getEnvironmentId(), api, apiJsonNode.getPages());
+        Map<String, String> pagesIdsMap = recalculatePageIdsFromCrossIds(executionContext.getEnvironmentId(), api, apiJsonNode);
         recalculatePlanIdsFromCrossIds(executionContext, api, apiJsonNode.getPlans(), pagesIdsMap);
     }
 
@@ -117,14 +117,11 @@ public class ApiIdsCalculatorServiceImpl implements ApiIdsCalculatorService {
      *
      * @param environmentId
      * @param api
-     * @param pagesNodes
+     * @param apiJsonNode
      * @return the map of old ID - new ID
      */
-    private Map<String, String> recalculatePageIdsFromCrossIds(
-        String environmentId,
-        ApiEntity api,
-        List<ImportJsonNodeWithIds> pagesNodes
-    ) {
+    private Map<String, String> recalculatePageIdsFromCrossIds(String environmentId, ApiEntity api, ImportApiJsonNode apiJsonNode) {
+        var pagesNodes = apiJsonNode.getPages();
         Map<String, String> idsMap = new HashMap<>();
 
         Map<String, PageEntity> pagesByCrossId = pageService
@@ -145,7 +142,7 @@ public class ApiIdsCalculatorServiceImpl implements ApiIdsCalculatorService {
                     page.setId(matchingPage.getId());
                     updatePagesHierarchy(pagesNodes, pageId, matchingPage.getId());
                 } else {
-                    String newPageId = UuidString.generateRandom();
+                    String newPageId = canRegenerateId(apiJsonNode) ? UuidString.generateRandom() : pageId;
                     idsMap.put(pageId, newPageId);
                     page.setId(newPageId);
                     updatePagesHierarchy(pagesNodes, pageId, newPageId);
@@ -216,7 +213,7 @@ public class ApiIdsCalculatorServiceImpl implements ApiIdsCalculatorService {
 
     private boolean canRegenerateId(ImportApiJsonNode apiJsonNode) {
         // If the definition is managed by kubernetes, do not try to recalculate ids because k8s is the source of truth.
-        return !DefinitionContext.ORIGIN_KUBERNETES.equalsIgnoreCase(apiJsonNode.getDefinitionContextOrigin());
+        return !apiJsonNode.isKubernetesOrigin();
     }
 
     private void updatePagesHierarchy(List<ImportJsonNodeWithIds> pagesNodes, String parentId, String newParentId) {
