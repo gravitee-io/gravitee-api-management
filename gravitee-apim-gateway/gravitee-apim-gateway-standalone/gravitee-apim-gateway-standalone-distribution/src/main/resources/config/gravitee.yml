@@ -266,6 +266,7 @@ ratelimit:
 #          port: 26379
 #    # SSL settings
 #    ssl: false
+#    hostnameVerificationAlgorithm: NONE # default value is NONE. Support NONE, HTTPS and LDAPS
 #    trustAll: true # default value is true to keep backward compatibility but you should set it to false and configure a truststore for security concerns
 #    tlsProtocols: # List of TLS protocols to allow comma separated i.e: TLSv1.2, TLSv1.3
 #    tlsCiphers: # List of TLS ciphers to allow comma separated i.e: TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384

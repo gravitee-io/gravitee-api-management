@@ -127,6 +127,17 @@ public class RedisConnectionFactory {
             options.getNetClientOptions().setSsl(true);
             options.getNetClientOptions().setTrustAll(trustAll);
 
+            String hostnameVerificationAlgorithm = readPropertyValue(
+                propertyPrefix + "hostnameVerificationAlgorithm",
+                String.class,
+                "NONE"
+            );
+            if ("NONE".equals(hostnameVerificationAlgorithm)) {
+                options.getNetClientOptions().setHostnameVerificationAlgorithm("");
+            } else {
+                options.getNetClientOptions().setHostnameVerificationAlgorithm(hostnameVerificationAlgorithm);
+            }
+
             // TLS Protocols
             options
                 .getNetClientOptions()

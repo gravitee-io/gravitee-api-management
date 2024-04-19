@@ -107,6 +107,7 @@ public class RedisConnectionFactoryTest {
         sentinelEndpoints.add("rediss://sent2:26379");
 
         assertThat(options).isNotNull();
+        assertThat(options.getNetClientOptions().getHostnameVerificationAlgorithm()).isEqualTo("");
         assertThat(options.getEndpoints()).containsAll(sentinelEndpoints);
     }
 
@@ -130,6 +131,7 @@ public class RedisConnectionFactoryTest {
         environment.setProperty(PROPERTY_PREFIX + ".redis.host", "redis");
         environment.setProperty(PROPERTY_PREFIX + ".redis.port", "6379");
         environment.setProperty(PROPERTY_PREFIX + ".redis.ssl", "true");
+        environment.setProperty(PROPERTY_PREFIX + ".redis.hostnameVerificationAlgorithm", "HTTPS");
         environment.setProperty(PROPERTY_PREFIX + ".redis.trustAll", "false");
         environment.setProperty(PROPERTY_PREFIX + ".redis.keystore.type", "pem");
         environment.setProperty(PROPERTY_PREFIX + ".redis.keystore.certificates[0].cert", keystoreCertPath);
@@ -148,6 +150,7 @@ public class RedisConnectionFactoryTest {
         pemTrustOptions.addCertPath(truststorePath);
 
         assertThat(options).isNotNull();
+        assertThat(options.getNetClientOptions().getHostnameVerificationAlgorithm()).isEqualTo("HTTPS");
         assertThat(options.getNetClientOptions().getPemKeyCertOptions()).usingRecursiveComparison().isEqualTo(pemKeyCertOptions);
         assertThat(options.getNetClientOptions().getPemTrustOptions()).usingRecursiveComparison().isEqualTo(pemTrustOptions);
     }
