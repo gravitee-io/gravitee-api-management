@@ -1,0 +1,29 @@
+import {Canvas, Meta, Story} from '@storybook/blocks';
+
+import * as NavBarButtonStories from "./nav-bar-button.stories";
+
+<Meta of={NavBarButtonStories} title="README" />
+
+
+The `app-nav-bar-button` allows a `path` to be passed that is used as the `[routerLink]` for the button.
+
+
+## Simple button
+
+You can pass the button label directly between the `app-nav-bar-button` tags.
+
+<Canvas of={NavBarButtonStories.Simple} />
+
+
+## Button with translation
+
+The `i18n` directive can be declared in the `app-nav-bar-button` tag.
+
+<Canvas of={NavBarButtonStories.WithTranslation} />
+
+
+## Active button
+
+When the current route matches the `path` specified on the input, then the button becomes active.
+
+<Canvas of={NavBarButtonStories.Active} />
