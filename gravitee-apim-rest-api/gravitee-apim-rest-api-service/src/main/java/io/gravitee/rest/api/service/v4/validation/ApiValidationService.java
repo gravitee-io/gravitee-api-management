@@ -15,11 +15,14 @@
  */
 package io.gravitee.rest.api.service.v4.validation;
 
+import io.gravitee.definition.model.v4.resource.Resource;
+import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.util.List;
 
 /**
  * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
@@ -46,4 +49,8 @@ public interface ApiValidationService {
     );
 
     boolean canDeploy(ExecutionContext executionContext, String apiId);
+
+    void validateDynamicProperties(Service dynamicProperties);
+
+    List<Resource> validateAndSanitize(List<Resource> resources);
 }

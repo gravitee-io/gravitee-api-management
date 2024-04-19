@@ -17,7 +17,6 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.rest.api.management.v2.rest.model.BasePlan;
-import io.gravitee.rest.api.management.v2.rest.model.CreateGenericPlan;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePlanV2;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePlanV4;
 import io.gravitee.rest.api.management.v2.rest.model.Plan;
@@ -106,6 +105,20 @@ public interface PlanMapper {
     @Mapping(target = "security.configuration", qualifiedByName = "serializeConfiguration")
     @Named("toPlanEntity")
     PlanEntity map(PlanV4 plan);
+
+    @Mapping(target = "definitionVersion", constant = "V4")
+    @Mapping(target = "type", constant = "API")
+    @Mapping(target = "planDefinitionV4", source = "plan", qualifiedByName = "mapPlanV4ToPlanDefinitionV4")
+    PlanWithFlows toPlanWithFlows(PlanV4 plan);
+
+    @Named("toPlansWithFlows")
+    Set<PlanWithFlows> toPlansWithFlows(Set<PlanV4> plans);
+
+    @Mapping(target = "security.type", qualifiedByName = "mapFromSecurityType")
+    @Mapping(target = "security.configuration", qualifiedByName = "serializeConfiguration")
+    @Mapping(target = "mode", defaultValue = "STANDARD")
+    @Named("mapPlanV4ToPlanDefinitionV4")
+    io.gravitee.definition.model.v4.plan.Plan mapPlanV4ToPlanDefinitionV4(PlanV4 planV4);
 
     @Mapping(target = "security", qualifiedByName = "mapToPlanSecurityV4")
     io.gravitee.apim.core.api.model.crd.PlanCRD fromPlanCRD(PlanCRD plan);

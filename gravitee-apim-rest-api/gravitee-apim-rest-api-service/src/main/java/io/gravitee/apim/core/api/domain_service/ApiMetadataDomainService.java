@@ -31,12 +31,14 @@ import io.gravitee.common.utils.IdGenerator;
 import io.gravitee.common.utils.TimeProvider;
 import java.util.List;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Antoine CORDIER (antoine.cordier at graviteesource.com)
  * @author GraviteeSource Team
  */
 @DomainService
+@Slf4j
 public class ApiMetadataDomainService {
 
     private final MetadataCrudService metadataCrudService;
@@ -72,7 +74,7 @@ public class ApiMetadataDomainService {
                 .updatedAt(now)
                 .build()
         );
-        createAuditLog(emailSupportMetadata, auditInfo);
+        createAuditLog(emailSupportMetadata, ApiAuditEvent.METADATA_CREATED, auditInfo);
     }
 
     public void saveApiMetadata(String apiId, List<ApiMetadata> metadata, AuditInfo auditInfo) {
@@ -84,7 +86,7 @@ public class ApiMetadataDomainService {
         var createdMetadata = metadataCrudService.create(
             Metadata
                 .builder()
-                .key(newApiMetadata.getKey())
+                .key(newApiMetadata.getKey() != null ? newApiMetadata.getKey() : IdGenerator.generate(newApiMetadata.getName()))
                 .format(newApiMetadata.getFormat())
                 .name(newApiMetadata.getName())
                 .value(newApiMetadata.getValue())
@@ -94,44 +96,50 @@ public class ApiMetadataDomainService {
                 .updatedAt(now)
                 .build()
         );
-        createAuditLog(createdMetadata, auditInfo);
-
-        var defaultValue =
-            this.metadataCrudService.findById(
-                    MetadataId
-                        .builder()
-                        .key(createdMetadata.getKey())
-                        .referenceId("_")
-                        .referenceType(Metadata.ReferenceType.DEFAULT)
-                        .build()
-                )
-                .map(Metadata::getValue)
-                .orElse(null);
-
-        return ApiMetadata
-            .builder()
-            .key(createdMetadata.getKey())
-            .format(createdMetadata.getFormat())
-            .name(createdMetadata.getName())
-            .value(createdMetadata.getValue())
-            .defaultValue(defaultValue)
-            .apiId(createdMetadata.getReferenceId())
-            .build();
+        createAuditLog(createdMetadata, ApiAuditEvent.METADATA_CREATED, auditInfo);
+        return toApiMetadata(createdMetadata);
     }
 
-    private void createAuditLog(Metadata created, AuditInfo auditInfo) {
+    public ApiMetadata update(Metadata metadata, AuditInfo auditInfo) {
+        log.info("Update metadata [{}] for API [{}]", metadata.getKey(), metadata.getReferenceId());
+        var updatedMetadata = metadataCrudService.update(metadata.toBuilder().updatedAt(TimeProvider.now()).build());
+        createAuditLog(updatedMetadata, ApiAuditEvent.METADATA_UPDATED, auditInfo);
+        return toApiMetadata(updatedMetadata);
+    }
+
+    private void createAuditLog(Metadata created, ApiAuditEvent apiAuditEvent, AuditInfo auditInfo) {
         auditService.createApiAuditLog(
             ApiAuditLogEntity
                 .builder()
                 .organizationId(auditInfo.organizationId())
                 .environmentId(auditInfo.environmentId())
                 .apiId(created.getReferenceId())
-                .event(ApiAuditEvent.METADATA_CREATED)
+                .event(apiAuditEvent)
                 .actor(auditInfo.actor())
                 .newValue(created)
                 .createdAt(created.getCreatedAt())
                 .properties(Map.of(AuditProperties.METADATA, created.getKey()))
                 .build()
         );
+    }
+
+    private String findDefaultValue(String key) {
+        return this.metadataCrudService.findById(
+                MetadataId.builder().key(key).referenceId("_").referenceType(Metadata.ReferenceType.DEFAULT).build()
+            )
+            .map(Metadata::getValue)
+            .orElse(null);
+    }
+
+    private ApiMetadata toApiMetadata(Metadata metadata) {
+        return ApiMetadata
+            .builder()
+            .key(metadata.getKey())
+            .format(metadata.getFormat())
+            .name(metadata.getName())
+            .value(metadata.getValue())
+            .defaultValue(findDefaultValue(metadata.getKey()))
+            .apiId(metadata.getReferenceId())
+            .build();
     }
 }

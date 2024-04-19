@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.metadata.crud_service;
+package fixtures.core.model;
 
-import io.gravitee.apim.core.metadata.model.Metadata;
-import io.gravitee.apim.core.metadata.model.MetadataId;
-import java.util.Optional;
+import io.gravitee.apim.core.documentation.model.Page;
+import java.util.function.Supplier;
 
-public interface MetadataCrudService {
-    Metadata create(Metadata metadata);
-    Optional<Metadata> findById(MetadataId id);
-    Metadata update(Metadata metadata);
+public class PageFixtures {
+
+    private static final Supplier<Page.PageBuilder> BASE = () ->
+        Page.builder().id("page-id").referenceType(Page.ReferenceType.API).referenceId("api-id").parentId("").name("parent");
+
+    public static Page aPage() {
+        return BASE.get().build();
+    }
 }

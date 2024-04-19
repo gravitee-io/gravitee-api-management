@@ -13,22 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.management.v2.rest.mapper;
+package io.gravitee.apim.infra.adapter;
 
+import io.gravitee.apim.core.api.model.import_definition.ApiMember;
 import io.gravitee.apim.core.api.model.import_definition.ApiMemberRole;
-import io.gravitee.rest.api.management.v2.rest.model.Role;
+import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.RoleEntity;
 import java.util.List;
+import java.util.Set;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
 @Mapper
-public interface RoleMapper {
-    RoleMapper INSTANCE = Mappers.getMapper(RoleMapper.class);
+public interface MemberAdapter {
+    MemberAdapter INSTANCE = Mappers.getMapper(MemberAdapter.class);
 
-    Role map(RoleEntity roleEntity);
-    RoleEntity map(Role role);
+    MemberEntity toEntity(ApiMember member);
+    Set<MemberEntity> toEntities(Set<ApiMember> members);
 
-    ApiMemberRole toApiMemberRole(Role role);
-    List<ApiMemberRole> toApiMemberRoles(List<Role> roles);
+    RoleEntity toEntity(ApiMemberRole role);
+    List<RoleEntity> toEntities(List<ApiMemberRole> roles);
 }

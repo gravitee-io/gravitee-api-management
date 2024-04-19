@@ -21,6 +21,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import fakes.spring.FakeConfiguration;
 import inmemory.spring.InMemoryConfiguration;
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
+import io.gravitee.apim.core.api.domain_service.ApiIdsCalculatorDomainService;
+import io.gravitee.apim.core.api.domain_service.ApiImportDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiPolicyValidatorDomainService;
@@ -607,5 +609,10 @@ public class ResourceContextConfiguration {
     @Bean
     public ValidateApiDomainService validateApiDomainService() {
         return mock(ValidateApiDomainService.class);
+    }
+
+    @Bean
+    public ApiImportDomainService apiImportDomainService() {
+        return mock(ApiImportDomainService.class);
     }
 }

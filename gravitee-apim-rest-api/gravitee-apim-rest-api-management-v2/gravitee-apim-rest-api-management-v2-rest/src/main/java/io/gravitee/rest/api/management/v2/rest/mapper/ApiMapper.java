@@ -19,6 +19,7 @@ import static java.util.stream.Collectors.toMap;
 
 import io.gravitee.apim.core.api.model.NewApi;
 import io.gravitee.apim.core.api.model.crd.ApiCRD;
+import io.gravitee.apim.core.api.model.import_definition.ApiExport;
 import io.gravitee.rest.api.management.v2.rest.model.Api;
 import io.gravitee.rest.api.management.v2.rest.model.ApiFederated;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLinks;
@@ -173,6 +174,9 @@ public interface ApiMapper {
 
     @Mapping(target = "listeners", qualifiedByName = "toListeners")
     ApiEntity map(ApiV4 api);
+
+    @Mapping(target = "listeners", qualifiedByName = "toListeners")
+    ApiExport toApiExport(ApiV4 api);
 
     @Mapping(target = "listeners", qualifiedByName = "toListeners")
     NewApi map(CreateApiV4 api);

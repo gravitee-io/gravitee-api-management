@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalInt;
 import org.springframework.stereotype.Service;
 
 public class MetadataCrudServiceInMemory implements MetadataCrudService, InMemoryAlternative<Metadata> {
@@ -44,6 +45,24 @@ public class MetadataCrudServiceInMemory implements MetadataCrudService, InMemor
                 m.getReferenceType().equals(id.getReferenceType())
             )
             .findFirst();
+    }
+
+    @Override
+    public Metadata update(Metadata metadata) {
+        OptionalInt index =
+            this.findIndex(
+                    this.storage,
+                    m ->
+                        m.getKey().equals(metadata.getKey()) &&
+                        m.getReferenceId().equals(metadata.getReferenceId()) &&
+                        m.getReferenceType().equals(metadata.getReferenceType())
+                );
+        if (index.isPresent()) {
+            storage.set(index.getAsInt(), metadata);
+            return metadata;
+        }
+
+        throw new IllegalStateException("Metadata not found");
     }
 
     @Override

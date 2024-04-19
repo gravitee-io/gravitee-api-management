@@ -13,28 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.service.v4.impl;
+package io.gravitee.apim.core.api.domain_service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
-import io.gravitee.definition.model.DefinitionContext;
-import io.gravitee.rest.api.model.PageEntity;
+import inmemory.ApiQueryServiceInMemory;
+import inmemory.PageQueryServiceInMemory;
+import inmemory.PlanQueryServiceInMemory;
+import io.gravitee.apim.core.api.model.Api;
+import io.gravitee.apim.core.api.model.import_definition.ApiExport;
+import io.gravitee.apim.core.api.model.import_definition.ImportDefinition;
+import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.apim.core.plan.model.PlanWithFlows;
 import io.gravitee.rest.api.model.context.KubernetesContext;
-import io.gravitee.rest.api.model.v4.api.ApiEntity;
-import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
-import io.gravitee.rest.api.model.v4.plan.PlanEntity;
-import io.gravitee.rest.api.service.PageService;
-import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.v4.ApiIdsCalculatorService;
-import io.gravitee.rest.api.service.v4.ApiService;
-import io.gravitee.rest.api.service.v4.PlanService;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -43,48 +37,46 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
-/**
- * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
- * @author GraviteeSource Team
- */
-@ExtendWith(MockitoExtension.class)
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
-class ApiIdsCalculatorServiceImplTest {
+class ApiIdsCalculatorDomainServiceTest {
 
-    public static final String API_DB_ID = "api-db-id";
-    private ApiIdsCalculatorService cut;
+    private static final String API_DB_ID = "api-db-id";
+    private static final String ENVIRONMENT_ID = "default";
+    public static final String API_CROSS_ID = "api-cross-id";
+    private static final Page PAGE_WITH_CHANGING_CROSS_ID = buildPage("another-page-id", "changing-cross-id");
+    private ApiIdsCalculatorDomainService cut;
 
-    @Mock
-    private ApiService apiService;
-
-    @Mock
-    private PageService pageService;
-
-    @Mock
-    private PlanService planService;
+    ApiQueryServiceInMemory apiQueryService = new ApiQueryServiceInMemory();
+    PageQueryServiceInMemory pageQueryServiceInMemory = new PageQueryServiceInMemory();
+    PlanQueryServiceInMemory planQueryServiceInMemory = new PlanQueryServiceInMemory();
 
     @BeforeEach
     void setUp() {
-        cut = new ApiIdsCalculatorServiceImpl(apiService, pageService, planService);
+        cut = new ApiIdsCalculatorDomainService(apiQueryService, pageQueryServiceInMemory, planQueryServiceInMemory);
+    }
+
+    @AfterEach
+    void tearDown() {
+        apiQueryService.reset();
+        pageQueryServiceInMemory.reset();
+        planQueryServiceInMemory.reset();
     }
 
     @Test
     void should_fail_if_no_api_entity() {
-        assertThatThrownBy(() -> cut.recalculateApiDefinitionIds(new ExecutionContext("default", "default"), new ExportApiEntity()))
+        assertThatThrownBy(() -> cut.recalculateApiDefinitionIds(ENVIRONMENT_ID, ImportDefinition.builder().build()))
             .isInstanceOf(NullPointerException.class)
-            .hasMessage("ApiEntity is mandatory");
+            .hasMessage("Api is mandatory");
     }
 
     @Nested
@@ -92,9 +84,9 @@ class ApiIdsCalculatorServiceImplTest {
 
         @ParameterizedTest
         @MethodSource("provideEmptyOrNullPlansAndPage")
-        void should_not_generate_ids_for_plans_and_pages_when_absent(Set<PlanEntity> plans, List<PageEntity> pages) {
-            final ExportApiEntity toRecalculate = buildExportApiEntity("api-id", plans, pages);
-            final ExportApiEntity result = cut.recalculateApiDefinitionIds(new ExecutionContext("default", "default"), toRecalculate);
+        void should_not_generate_ids_for_plans_and_pages_when_absent(Set<PlanWithFlows> plans, List<Page> pages) {
+            final ImportDefinition toRecalculate = buildImportDefinition("api-id", plans, pages);
+            final ImportDefinition result = cut.recalculateApiDefinitionIds(ENVIRONMENT_ID, toRecalculate);
             assertThat(result.getPlans()).isNullOrEmpty();
             assertThat(result.getPages()).isNullOrEmpty();
         }
@@ -105,9 +97,9 @@ class ApiIdsCalculatorServiceImplTest {
 
         @ParameterizedTest
         @MethodSource("providePlansAndPagesWithoutId")
-        void should_generate_ids_for_plans_and_pages_when_absent(Set<PlanEntity> plans, List<PageEntity> pages) {
-            final ExportApiEntity toRecalculate = buildExportApiEntity("api-id", plans, pages);
-            final ExportApiEntity result = cut.recalculateApiDefinitionIds(new ExecutionContext("default", "default"), toRecalculate);
+        void should_generate_ids_for_plans_and_pages_when_absent(Set<PlanWithFlows> plans, List<Page> pages) {
+            final ImportDefinition toRecalculate = buildImportDefinition("api-id", plans, pages);
+            final ImportDefinition result = cut.recalculateApiDefinitionIds(ENVIRONMENT_ID, toRecalculate);
             result
                 .getPlans()
                 .forEach(plan -> {
@@ -124,30 +116,27 @@ class ApiIdsCalculatorServiceImplTest {
 
         private static Stream<Arguments> providePlansAndPagesWithoutId() {
             return Stream.of(
-                arguments(Set.of(buildPlanEntity("", ""), buildPlanEntity(null, "")), List.of()),
-                arguments(Set.of(), List.of(buildPageEntity("", ""), buildPageEntity(null, ""))),
-                arguments(
-                    Set.of(buildPlanEntity("", ""), buildPlanEntity(null, "")),
-                    List.of(buildPageEntity("", ""), buildPageEntity(null, ""))
-                )
+                arguments(Set.of(buildPlanWithFlows("", ""), buildPlanWithFlows(null, "")), List.of()),
+                arguments(Set.of(), List.of(buildPage("", ""), buildPage(null, ""))),
+                arguments(Set.of(buildPlanWithFlows("", ""), buildPlanWithFlows(null, "")), List.of(buildPage("", ""), buildPage(null, "")))
             );
         }
 
         @ParameterizedTest
         @MethodSource("provideMixedPlansAndPagesWithAndWithoutIds")
-        void should_generate_ids_only_for_plans_and_pages_whitout_one(Set<PlanEntity> plans, List<PageEntity> pages) {
-            final ExportApiEntity toRecalculate = buildExportApiEntity("api-id", plans, pages);
+        void should_generate_ids_only_for_plans_and_pages_without_one(Set<PlanWithFlows> plans, List<Page> pages) {
+            final ImportDefinition toRecalculate = buildImportDefinition("api-id", plans, pages);
             // Save original id by entity name
             final Map<String, String> plansIdByName = plans
                 .stream()
                 .filter(plan -> plan.getId() != null && !plan.getId().isEmpty())
-                .collect(Collectors.toMap(PlanEntity::getName, PlanEntity::getId));
+                .collect(Collectors.toMap(PlanWithFlows::getName, PlanWithFlows::getId));
             final Map<String, String> pagesIdByName = pages
                 .stream()
                 .filter(page -> page.getId() != null && !page.getId().isEmpty())
-                .collect(Collectors.toMap(PageEntity::getName, PageEntity::getId));
+                .collect(Collectors.toMap(Page::getName, Page::getId));
 
-            final ExportApiEntity result = cut.recalculateApiDefinitionIds(new ExecutionContext("default", "default"), toRecalculate);
+            final ImportDefinition result = cut.recalculateApiDefinitionIds(ENVIRONMENT_ID, toRecalculate);
             result
                 .getPlans()
                 .forEach(plan -> {
@@ -176,17 +165,17 @@ class ApiIdsCalculatorServiceImplTest {
 
         private static Stream<Arguments> provideMixedPlansAndPagesWithAndWithoutIds() {
             return Stream.of(
-                arguments(Set.of(buildPlanEntity("keyless-plan-id", ""), buildPlanEntity(null, "")), List.of()),
-                arguments(Set.of(buildPlanEntity("keyless-plan-id", ""), buildPlanEntity("apikey-plan-id", "")), List.of()),
-                arguments(Set.of(), List.of(buildPageEntity("a-page-id", ""), buildPageEntity(null, ""))),
-                arguments(Set.of(), List.of(buildPageEntity("a-page-id", ""), buildPageEntity("another-page-id", ""))),
+                arguments(Set.of(buildPlanWithFlows("keyless-plan-id", ""), buildPlanWithFlows(null, "")), List.of()),
+                arguments(Set.of(buildPlanWithFlows("keyless-plan-id", ""), buildPlanWithFlows("apikey-plan-id", "")), List.of()),
+                arguments(Set.of(), List.of(buildPage("a-page-id", ""), buildPage(null, ""))),
+                arguments(Set.of(), List.of(buildPage("a-page-id", ""), buildPage("another-page-id", ""))),
                 arguments(
-                    Set.of(buildPlanEntity("", ""), buildPlanEntity(null, "")),
-                    List.of(buildPageEntity("", ""), buildPageEntity(null, ""))
+                    Set.of(buildPlanWithFlows("", ""), buildPlanWithFlows(null, "")),
+                    List.of(buildPage("", ""), buildPage(null, ""))
                 ),
                 arguments(
-                    Set.of(buildPlanEntity("keyless-plan-id", ""), buildPlanEntity(null, "")),
-                    List.of(buildPageEntity("a-page-id", ""), buildPageEntity("", ""))
+                    Set.of(buildPlanWithFlows("keyless-plan-id", ""), buildPlanWithFlows(null, "")),
+                    List.of(buildPage("a-page-id", ""), buildPage("", ""))
                 )
             );
         }
@@ -195,68 +184,69 @@ class ApiIdsCalculatorServiceImplTest {
     @Nested
     class ExistingApiForCrossId {
 
+        @BeforeEach
+        void setUp() {
+            apiQueryService.initWith(List.of(Api.builder().id(API_DB_ID).crossId(API_CROSS_ID).environmentId(ENVIRONMENT_ID).build()));
+            pageQueryServiceInMemory.initWith(
+                List.of(
+                    buildPage("a-page-id", "a-page-cross-id").toBuilder().referenceId(API_DB_ID).build(),
+                    PAGE_WITH_CHANGING_CROSS_ID.toBuilder().referenceId(API_DB_ID).build(),
+                    buildPage("a-child-id", "a-child-cross-id", "a-page-id").toBuilder().referenceId(API_DB_ID).build()
+                )
+            );
+            planQueryServiceInMemory.initWith(
+                List.of(
+                    buildPlanWithFlows("keyless-plan-id", "keyless-plan-cross-id").toBuilder().apiId(API_DB_ID).build(),
+                    buildPlanWithFlows("a-plan-id", "a-plan-cross-id").toBuilder().apiId(API_DB_ID).build()
+                )
+            );
+        }
+
         @Test
         void should_recalculate_ids_from_cross_id() {
-            final PlanEntity newPlanEntity = buildPlanEntity("new-plan-id", "new-plan-cross-id");
-            newPlanEntity.setGeneralConditions("another-page-id");
-            final Set<PlanEntity> plans = Set.of(
-                buildPlanEntity("keyless-plan-id", "keyless-plan-cross-id"),
-                buildPlanEntity("a-plan-id", "a-plan-cross-id"),
-                newPlanEntity
+            final PlanWithFlows newPlan = buildPlanWithFlows("new-plan-id", "new-plan-cross-id");
+            newPlan.setGeneralConditions("another-page-id");
+            final Set<PlanWithFlows> plans = Set.of(
+                buildPlanWithFlows("keyless-plan-id", "keyless-plan-cross-id"),
+                buildPlanWithFlows("a-plan-id", "a-plan-cross-id"),
+                newPlan
             );
-            final List<PageEntity> pages = List.of(
-                buildPageEntity("a-page-id", "a-page-cross-id"),
-                buildPageEntity("another-page-id", "another-cross-id"),
-                buildPageEntity("a-child-id", "a-child-cross-id", "a-page-id")
+            final List<Page> pages = List.of(
+                buildPage("a-page-id", "a-page-cross-id"),
+                buildPage("another-page-id", "another-cross-id"),
+                buildPage("a-child-id", "a-child-cross-id", "a-page-id")
             );
-            final ExportApiEntity toRecalculate = buildExportApiEntity("", plans, pages);
-            toRecalculate.getApiEntity().setCrossId("api-cross-id");
+            final ImportDefinition toRecalculate = buildImportDefinition("", plans, pages);
+            toRecalculate.getApiExport().setCrossId(API_CROSS_ID);
             // Save original id by entity name
             final Map<String, String> plansIdByName = plans
                 .stream()
                 .filter(plan -> plan.getId() != null && !plan.getId().isEmpty())
-                .collect(Collectors.toMap(PlanEntity::getName, PlanEntity::getId));
+                .collect(Collectors.toMap(PlanWithFlows::getName, PlanWithFlows::getId));
             final Map<String, String> pagesIdByName = pages
                 .stream()
                 .filter(page -> page.getId() != null && !page.getId().isEmpty())
-                .collect(Collectors.toMap(PageEntity::getName, PageEntity::getId));
+                .collect(Collectors.toMap(Page::getName, Page::getId));
 
-            final ExecutionContext executionContext = new ExecutionContext("default", "default");
-            when(apiService.findByEnvironmentIdAndCrossId(executionContext.getEnvironmentId(), toRecalculate.getApiEntity().getCrossId()))
-                .thenReturn(buildApiEntityDbResult());
-            final PageEntity pageWithChangingCrossId = buildPageEntity("another-page-id", "changing-cross-id");
-            when(pageService.findByApi(executionContext.getEnvironmentId(), API_DB_ID))
-                .thenReturn(
-                    List.of(
-                        buildPageEntity("a-page-id", "a-page-cross-id"),
-                        pageWithChangingCrossId,
-                        buildPageEntity("a-child-id", "a-child-cross-id", "a-page-id")
-                    )
-                );
-            when(planService.findByApi(executionContext, API_DB_ID))
-                .thenReturn(
-                    Set.of(buildPlanEntity("keyless-plan-id", "keyless-plan-cross-id"), buildPlanEntity("a-plan-id", "a-plan-cross-id"))
-                );
+            final ImportDefinition result = cut.recalculateApiDefinitionIds(ENVIRONMENT_ID, toRecalculate);
 
-            final ExportApiEntity result = cut.recalculateApiDefinitionIds(executionContext, toRecalculate);
+            assertThat(result.getApiExport().getId()).isEqualTo(API_DB_ID);
 
-            assertThat(result.getApiEntity().getId()).isEqualTo(API_DB_ID);
-
-            for (PageEntity page : result.getPages()) {
+            for (Page page : result.getPages()) {
                 assertThat(page.getId()).isNotEmpty();
-                if (pagesIdByName.containsKey(page.getName()) && page.getName().equals(pageWithChangingCrossId.getName())) {
+                if (pagesIdByName.containsKey(page.getName()) && page.getName().equals(PAGE_WITH_CHANGING_CROSS_ID.getName())) {
                     // If map contains page's name, then id must not have been recalculated
                     assertThat(page.getId()).isEqualTo(pagesIdByName.get(page.getName()));
-                } else if (page.getName().equals(pageWithChangingCrossId.getName())) {
+                } else if (page.getName().equals(PAGE_WITH_CHANGING_CROSS_ID.getName())) {
                     // else if the page is the one with another cross id, then page id should differ
-                    assertThat(page.getId()).isNotEqualTo(pagesIdByName.get(pageWithChangingCrossId.getName()));
+                    assertThat(page.getId()).isNotEqualTo(pagesIdByName.get(PAGE_WITH_CHANGING_CROSS_ID.getName()));
                 }
                 // one page of the data set has a parent id, verify the matching
                 if (page.getParentId() != null) {
                     pagesIdByName.forEach((key, value) -> {
                         if (value.equals("a-page-id")) {
                             String pageName = key;
-                            final Optional<PageEntity> parentPage = result
+                            final Optional<Page> parentPage = result
                                 .getPages()
                                 .stream()
                                 .filter(p -> p.getName().equals(pageName))
@@ -269,16 +259,16 @@ class ApiIdsCalculatorServiceImplTest {
             }
 
             // Verify ids has properly been recalculated when empty
-            for (PlanEntity plan : result.getPlans()) {
+            for (PlanWithFlows plan : result.getPlans()) {
                 assertThat(plan.getId()).isNotEmpty();
-                if (plansIdByName.containsKey(plan.getName()) && plan != newPlanEntity) {
+                if (plansIdByName.containsKey(plan.getName()) && plan != newPlan) {
                     // plan id should remain the same
                     assertThat(plan.getId()).isEqualTo(plansIdByName.get(plan.getName()));
                 }
                 // new plan entity should use the right page id for general conditions. Also, its id should be recalculated
-                if (plan.getName().equals(newPlanEntity.getName())) {
+                if (plan.getName().equals(newPlan.getName())) {
                     assertIsUuid(plan.getId());
-                    final Optional<PageEntity> pageCondition = result
+                    final Optional<Page> pageCondition = result
                         .getPages()
                         .stream()
                         .filter(p -> p.getCrossId().equals("another-cross-id"))
@@ -287,16 +277,6 @@ class ApiIdsCalculatorServiceImplTest {
                     assertThat(plan.getGeneralConditions()).isEqualTo(pageCondition.get().getId());
                 }
             }
-
-            verify(apiService).findByEnvironmentIdAndCrossId(any(), any());
-            verify(pageService).findByApi(executionContext.getEnvironmentId(), API_DB_ID);
-            verify(planService).findByApi(executionContext, API_DB_ID);
-        }
-
-        private Optional<ApiEntity> buildApiEntityDbResult() {
-            final ApiEntity apiEntity = new ApiEntity();
-            apiEntity.setId(API_DB_ID);
-            return Optional.of(apiEntity);
         }
     }
 
@@ -305,30 +285,22 @@ class ApiIdsCalculatorServiceImplTest {
 
         @Test
         void should_recalculate_ids_from_definition() {
-            final Set<PlanEntity> plans = Set.of(buildPlanEntity("keyless-plan-id", ""), buildPlanEntity("an-id", ""));
-            final List<PageEntity> pages = List.of(
-                buildPageEntity("a-page-id", ""),
-                buildPageEntity("", ""),
-                buildPageEntity("a-child-id", "", "a-page-id")
-            );
-            final ExportApiEntity toRecalculate = buildExportApiEntity("", plans, pages);
+            final Set<PlanWithFlows> plans = Set.of(buildPlanWithFlows("keyless-plan-id", ""), buildPlanWithFlows("an-id", ""));
+            final List<Page> pages = List.of(buildPage("a-page-id", ""), buildPage("", ""), buildPage("a-child-id", "", "a-page-id"));
+            final ImportDefinition toRecalculate = buildImportDefinition("", plans, pages);
             // Save original id by entity name
             final Map<String, String> plansIdByName = plans
                 .stream()
                 .filter(plan -> plan.getId() != null && !plan.getId().isEmpty())
-                .collect(Collectors.toMap(PlanEntity::getName, PlanEntity::getId));
+                .collect(Collectors.toMap(PlanWithFlows::getName, PlanWithFlows::getId));
             final Map<String, String> pagesIdByName = pages
                 .stream()
                 .filter(page -> page.getId() != null && !page.getId().isEmpty())
-                .collect(Collectors.toMap(PageEntity::getName, PageEntity::getId));
+                .collect(Collectors.toMap(Page::getName, Page::getId));
 
-            final ExecutionContext executionContext = new ExecutionContext("default", "default");
-            final ExportApiEntity result = cut.recalculateApiDefinitionIds(executionContext, toRecalculate);
+            final ImportDefinition result = cut.recalculateApiDefinitionIds(ENVIRONMENT_ID, toRecalculate);
 
-            // When no crossId, do not search for the api
-            verify(apiService, never()).findByEnvironmentIdAndCrossId(any(), any());
-
-            assertIsUuid(result.getApiEntity().getId());
+            assertIsUuid(result.getApiExport().getId());
 
             // Verify ids has properly been recalculated when empty
             result
@@ -354,7 +326,7 @@ class ApiIdsCalculatorServiceImplTest {
                         pagesIdByName.forEach((key, value) -> {
                             if (value.equals("a-page-id")) {
                                 String pageName = key;
-                                final Optional<PageEntity> parentPage = result
+                                final Optional<Page> parentPage = result
                                     .getPages()
                                     .stream()
                                     .filter(p -> p.getName().equals(pageName))
@@ -366,33 +338,25 @@ class ApiIdsCalculatorServiceImplTest {
                     }
                     assertIsUuid(page.getId());
                 });
-
-            // When recalculated from definition ids, no need to get pages and plans for the api
-            verify(pageService, never()).findByApi(any(), any());
-            verify(planService, never()).findByApi(any(), any());
         }
 
         @Test
         void should_not_recalculate_ids_from_definition_if_k8s_origin() {
-            final Set<PlanEntity> plans = Set.of(buildPlanEntity("keyless-plan-id", ""), buildPlanEntity("an-id", ""));
-            final List<PageEntity> pages = List.of(buildPageEntity("a-page-id", ""), buildPageEntity("", ""));
-            final ExportApiEntity toRecalculate = buildExportApiEntity("", plans, pages);
+            final Set<PlanWithFlows> plans = Set.of(buildPlanWithFlows("keyless-plan-id", ""), buildPlanWithFlows("an-id", ""));
+            final List<Page> pages = List.of(buildPage("a-page-id", ""), buildPage("", ""));
+            final ImportDefinition toRecalculate = buildImportDefinition("", plans, pages);
             // Save original id by entity name
             final Map<String, String> plansIdByName = plans
                 .stream()
                 .filter(plan -> plan.getId() != null && !plan.getId().isEmpty())
-                .collect(Collectors.toMap(PlanEntity::getName, PlanEntity::getId));
+                .collect(Collectors.toMap(PlanWithFlows::getName, PlanWithFlows::getId));
             final Map<String, String> pagesIdByName = pages
                 .stream()
                 .filter(page -> page.getId() != null && !page.getId().isEmpty())
-                .collect(Collectors.toMap(PageEntity::getName, PageEntity::getId));
+                .collect(Collectors.toMap(Page::getName, Page::getId));
 
-            toRecalculate.getApiEntity().setOriginContext(new KubernetesContext(KubernetesContext.Mode.FULLY_MANAGED));
-            final ExecutionContext executionContext = new ExecutionContext("default", "default");
-            final ExportApiEntity result = cut.recalculateApiDefinitionIds(executionContext, toRecalculate);
-
-            // When no crossId, do not search for the api
-            verify(apiService, never()).findByEnvironmentIdAndCrossId(any(), any());
+            toRecalculate.getApiExport().setOriginContext(new KubernetesContext(KubernetesContext.Mode.FULLY_MANAGED));
+            final ImportDefinition result = cut.recalculateApiDefinitionIds(ENVIRONMENT_ID, toRecalculate);
 
             // Verify ids has properly been recalculated when empty
             result
@@ -419,43 +383,23 @@ class ApiIdsCalculatorServiceImplTest {
                         assertIsUuid(page.getId());
                     }
                 });
-
-            // When recalculated from definition ids, no need to get pages and plans for the api
-            verify(pageService, never()).findByApi(any(), any());
-            verify(planService, never()).findByApi(any(), any());
         }
     }
 
-    private static ExportApiEntity buildExportApiEntity(String apiId, Set<PlanEntity> plans, List<PageEntity> pages) {
-        final ExportApiEntity exportApiEntity = new ExportApiEntity();
-        final ApiEntity apiEntity = new ApiEntity();
-        apiEntity.setId(apiId);
-        exportApiEntity.setApiEntity(apiEntity);
-        exportApiEntity.setPlans(plans);
-        exportApiEntity.setPages(pages);
-        return exportApiEntity;
+    private static ImportDefinition buildImportDefinition(String apiId, Set<PlanWithFlows> plans, List<Page> pages) {
+        return ImportDefinition.builder().apiExport(ApiExport.builder().id(apiId).build()).plans(plans).pages(pages).build();
     }
 
-    private static PlanEntity buildPlanEntity(String id, String crossId) {
-        final PlanEntity planEntity = new PlanEntity();
-        planEntity.setId(id);
-        planEntity.setName(generateRandomName());
-        planEntity.setCrossId(crossId);
-        return planEntity;
+    private static PlanWithFlows buildPlanWithFlows(String id, String crossId) {
+        return PlanWithFlows.builder().id(id).crossId(crossId).name(generateRandomName()).build();
     }
 
-    private static PageEntity buildPageEntity(String id, String crossId) {
-        final PageEntity pageEntity = new PageEntity();
-        pageEntity.setId(id);
-        pageEntity.setName(generateRandomName());
-        pageEntity.setCrossId(crossId);
-        return pageEntity;
+    private static Page buildPage(String id, String crossId) {
+        return Page.builder().id(id).crossId(crossId).name(generateRandomName()).build();
     }
 
-    private static PageEntity buildPageEntity(String id, String crossId, String parentId) {
-        final PageEntity pageEntity = buildPageEntity(id, crossId);
-        pageEntity.setParentId(parentId);
-        return pageEntity;
+    private static Page buildPage(String id, String crossId, String parentId) {
+        return Page.builder().id(id).crossId(crossId).parentId(parentId).name(generateRandomName()).build();
     }
 
     private static void assertIsUuid(String id) {

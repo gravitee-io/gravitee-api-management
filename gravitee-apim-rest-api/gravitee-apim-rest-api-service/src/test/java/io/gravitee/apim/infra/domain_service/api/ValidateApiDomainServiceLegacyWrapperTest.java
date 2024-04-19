@@ -29,6 +29,9 @@ import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.apim.infra.adapter.PrimaryOwnerAdapter;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
+import io.gravitee.definition.model.v4.resource.Resource;
+import io.gravitee.definition.model.v4.service.ApiServices;
+import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.v4.validation.ApiValidationService;
@@ -76,6 +79,20 @@ class ValidateApiDomainServiceLegacyWrapperTest {
 
     @Test
     void should_update_api_with_sanitized_value() {
+        var api = ApiFixtures
+            .aProxyApiV4()
+            .toBuilder()
+            .apiDefinitionV4(
+                ApiFixtures
+                    .aProxyApiV4()
+                    .getApiDefinitionV4()
+                    .toBuilder()
+                    .services(
+                        ApiServices.builder().dynamicProperty(Service.builder().configuration("configuration-to-sanitize").build()).build()
+                    )
+                    .build()
+            )
+            .build();
         doAnswer(invocation -> {
                 NewApiEntity entity = invocation.getArgument(1);
                 entity.setName("sanitized");
@@ -95,7 +112,15 @@ class ValidateApiDomainServiceLegacyWrapperTest {
             .when(apiValidationService)
             .validateAndSanitizeNewApi(any(), any(), any());
 
-        var result = service.validateAndSanitizeForCreation(ApiFixtures.aProxyApiV4(), PRIMARY_OWNER, ENVIRONMENT_ID, ORGANIZATION_ID);
+        doAnswer(invocation -> {
+                Service dynamicProperties = invocation.getArgument(0);
+                dynamicProperties.setConfiguration("sanitized");
+                return null;
+            })
+            .when(apiValidationService)
+            .validateDynamicProperties(any());
+
+        var result = service.validateAndSanitizeForCreation(api, PRIMARY_OWNER, ENVIRONMENT_ID, ORGANIZATION_ID);
 
         CoreAssertions
             .assertThat(result)
@@ -112,6 +137,7 @@ class ValidateApiDomainServiceLegacyWrapperTest {
             soft.assertThat(result.getApiDefinitionV4().getAnalytics()).isEqualTo(Analytics.builder().enabled(true).build());
             soft.assertThat(result.getApiDefinitionV4().getFlows()).isEmpty();
             soft.assertThat(result.getApiDefinitionV4().getFlowExecution()).isNull();
+            soft.assertThat(result.getApiDefinitionV4().getServices().getDynamicProperty().getConfiguration()).isEqualTo("sanitized");
         });
     }
 

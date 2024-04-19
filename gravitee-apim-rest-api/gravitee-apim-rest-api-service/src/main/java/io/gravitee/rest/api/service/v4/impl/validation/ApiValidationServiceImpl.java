@@ -25,6 +25,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.definition.model.v4.resource.Resource;
 import io.gravitee.definition.model.v4.service.Service;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.WorkflowState;
@@ -37,7 +38,6 @@ import io.gravitee.rest.api.sanitizer.HtmlSanitizer;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.exceptions.DefinitionVersionException;
 import io.gravitee.rest.api.service.exceptions.DynamicPropertiesInvalidException;
-import io.gravitee.rest.api.service.exceptions.HealthcheckInvalidException;
 import io.gravitee.rest.api.service.exceptions.InvalidDataException;
 import io.gravitee.rest.api.service.exceptions.LifecycleStateChangeNotAllowedException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
@@ -54,6 +54,7 @@ import io.gravitee.rest.api.service.v4.validation.PathParametersValidationServic
 import io.gravitee.rest.api.service.v4.validation.PlanValidationService;
 import io.gravitee.rest.api.service.v4.validation.ResourcesValidationService;
 import io.gravitee.rest.api.service.v4.validation.TagsValidationService;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
@@ -146,6 +147,8 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
             (newApiEntity.getFlows() != null ? newApiEntity.getFlows().stream() : Stream.empty()),
             Stream.empty()
         );
+
+        newApiEntity.setDescription(HtmlSanitizer.sanitize(newApiEntity.getDescription()));
     }
 
     @Override
@@ -205,7 +208,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         );
 
         // Validate and clean resources
-        updateApiEntity.setResources(resourcesValidationService.validateAndSanitize(updateApiEntity.getResources()));
+        updateApiEntity.setResources(validateAndSanitize(updateApiEntity.getResources()));
 
         this.validateDynamicProperties(updateApiEntity.getServices() != null ? updateApiEntity.getServices().getDynamicProperty() : null);
     }
@@ -252,7 +255,7 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
         );
 
         // Validate and clean resources
-        apiEntity.setResources(resourcesValidationService.validateAndSanitize(apiEntity.getResources()));
+        apiEntity.setResources(validateAndSanitize(apiEntity.getResources()));
 
         // Sanitize Description
         apiEntity.setDescription(HtmlSanitizer.sanitize(apiEntity.getDescription()));
@@ -268,6 +271,24 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
             .anyMatch(planEntity ->
                 PlanStatus.PUBLISHED.equals(planEntity.getPlanStatus()) || PlanStatus.DEPRECATED.equals(planEntity.getPlanStatus())
             );
+    }
+
+    public void validateDynamicProperties(Service dynamicProperties) {
+        if (dynamicProperties == null) {
+            return;
+        }
+        if (isBlank(dynamicProperties.getType())) {
+            log.debug("Dynamic properties requires a type");
+            throw new DynamicPropertiesInvalidException(dynamicProperties.getType());
+        }
+
+        dynamicProperties.setConfiguration(
+            this.apiServicePluginService.validateApiServiceConfiguration(dynamicProperties.getType(), dynamicProperties.getConfiguration())
+        );
+    }
+
+    public List<Resource> validateAndSanitize(List<Resource> resources) {
+        return resourcesValidationService.validateAndSanitize(resources);
     }
 
     private Stream<Flow> getPlansFlows(Set<PlanEntity> plans) {
@@ -314,19 +335,5 @@ public class ApiValidationServiceImpl extends TransactionalService implements Ap
             throw new LifecycleStateChangeNotAllowedException(updateApiEntity.getLifecycleState().name());
         }
         return updateApiEntity.getLifecycleState();
-    }
-
-    private void validateDynamicProperties(Service dynamicProperties) {
-        if (dynamicProperties == null) {
-            return;
-        }
-        if (isBlank(dynamicProperties.getType())) {
-            log.debug("Dynamic properties requires a type");
-            throw new DynamicPropertiesInvalidException(dynamicProperties.getType());
-        }
-
-        dynamicProperties.setConfiguration(
-            this.apiServicePluginService.validateApiServiceConfiguration(dynamicProperties.getType(), dynamicProperties.getConfiguration())
-        );
     }
 }

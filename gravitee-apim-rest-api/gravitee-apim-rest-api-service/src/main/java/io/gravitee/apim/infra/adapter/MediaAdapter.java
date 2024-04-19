@@ -13,14 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.metadata.crud_service;
+package io.gravitee.apim.infra.adapter;
 
-import io.gravitee.apim.core.metadata.model.Metadata;
-import io.gravitee.apim.core.metadata.model.MetadataId;
-import java.util.Optional;
+import io.gravitee.apim.core.media.model.Media;
+import io.gravitee.rest.api.model.MediaEntity;
+import java.util.List;
+import org.mapstruct.Mapper;
+import org.mapstruct.factory.Mappers;
 
-public interface MetadataCrudService {
-    Metadata create(Metadata metadata);
-    Optional<Metadata> findById(MetadataId id);
-    Metadata update(Metadata metadata);
+@Mapper
+public interface MediaAdapter {
+    MediaAdapter INSTANCE = Mappers.getMapper(MediaAdapter.class);
+
+    Media toCoreModel(MediaEntity mediaEntity);
+    List<Media> toCoreModels(List<MediaEntity> mediaEntities);
+
+    MediaEntity toEntity(Media media);
+    List<MediaEntity> toEntities(List<Media> mediaList);
 }

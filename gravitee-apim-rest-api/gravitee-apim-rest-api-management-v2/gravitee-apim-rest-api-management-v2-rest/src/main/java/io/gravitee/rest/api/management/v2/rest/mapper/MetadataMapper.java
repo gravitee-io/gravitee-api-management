@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.apim.core.api.model.ApiMetadata;
+import io.gravitee.apim.core.api.model.NewApiMetadata;
 import io.gravitee.rest.api.management.v2.rest.model.Metadata;
 import io.gravitee.rest.api.model.ApiMetadataEntity;
 import java.util.List;
@@ -33,4 +34,7 @@ public interface MetadataMapper {
     Set<Metadata> map(Set<ApiMetadataEntity> metadataEntityList);
     Metadata mapFromCore(ApiMetadata apiMetadata);
     List<Metadata> mapFromCore(List<ApiMetadata> apiMetadata);
+
+    NewApiMetadata toNewApiMetadata(Metadata metadata);
+    Set<NewApiMetadata> toNewApiMetadata(Set<Metadata> metadata);
 }

@@ -73,4 +73,22 @@ public class MetadataCrudServiceImpl implements MetadataCrudService {
             );
         }
     }
+
+    @Override
+    public Metadata update(Metadata metadata) {
+        try {
+            var result = metadataRepository.update(MetadataAdapter.INSTANCE.toRepository(metadata));
+            return MetadataAdapter.INSTANCE.toEntity(result);
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException(
+                String.format(
+                    "An error occurs while trying to update the %s metadata of [%sId=%s]",
+                    metadata.getKey(),
+                    metadata.getReferenceType().name().toLowerCase(),
+                    metadata.getReferenceId()
+                ),
+                e
+            );
+        }
+    }
 }

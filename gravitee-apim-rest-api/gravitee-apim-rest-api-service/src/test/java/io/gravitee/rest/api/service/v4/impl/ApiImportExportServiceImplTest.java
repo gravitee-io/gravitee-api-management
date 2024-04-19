@@ -131,9 +131,6 @@ public class ApiImportExportServiceImplTest {
     @Mock
     private RoleService roleService;
 
-    @Mock
-    private ApiIdsCalculatorService apiIdsCalculatorService;
-
     private ApiImportExportService cut;
 
     private static final String API_ID = "my-api";
@@ -145,15 +142,13 @@ public class ApiImportExportServiceImplTest {
         cut =
             new ApiImportExportServiceImpl(
                 apiMetadataService,
-                apiService,
                 apiSearchService,
                 mediaService,
                 membershipService,
                 pageService,
                 permissionService,
                 planService,
-                roleService,
-                apiIdsCalculatorService
+                roleService
             );
         reset(
             apiMetadataService,
@@ -317,144 +312,11 @@ public class ApiImportExportServiceImplTest {
             .hasPermission(GraviteeContext.getExecutionContext(), RolePermission.API_DOCUMENTATION, API_ID, RolePermissionAction.READ);
     }
 
-    @Test
-    public void should_not_import_v2_apis() {
-        assertThrows(
-            ApiDefinitionVersionNotSupportedException.class,
-            () -> cut.createFromExportedApi(GraviteeContext.getExecutionContext(), fakeExportApiEntityV2(), USER_ID)
-        );
-    }
-
-    @Test
-    public void should_import() {
-        ExportApiEntity exportApiEntityV4 = fakeExportApiEntity();
-
-        doReturn(exportApiEntityV4.getApiEntity())
-            .when(apiService)
-            .createWithImport(GraviteeContext.getExecutionContext(), exportApiEntityV4.getApiEntity(), USER_ID);
-
-        RoleEntity primaryOwnerRole = new RoleEntity();
-        primaryOwnerRole.setId(PRIMARY_OWNER);
-        primaryOwnerRole.setName(PRIMARY_OWNER);
-        doReturn(primaryOwnerRole)
-            .when(roleService)
-            .findPrimaryOwnerRoleByOrganization(GraviteeContext.getCurrentOrganization(), RoleScope.API);
-
-        RoleEntity ownerRole = new RoleEntity();
-        ownerRole.setId(OWNER);
-        ownerRole.setName(OWNER);
-        doReturn(Optional.of(ownerRole))
-            .when(roleService)
-            .findByScopeAndName(eq(RoleScope.API), eq(OWNER), eq(GraviteeContext.getDefaultOrganization()));
-
-        doReturn(emptyList()).when(pageService).search(any(), any());
-
-        when(apiIdsCalculatorService.recalculateApiDefinitionIds(any(), any())).then(AdditionalAnswers.returnsSecondArg());
-
-        GenericApiEntity fromExportedApi = cut.createFromExportedApi(GraviteeContext.getExecutionContext(), exportApiEntityV4, USER_ID);
-        assertEquals(exportApiEntityV4.getApiEntity(), fromExportedApi);
-
-        verify(apiService).createWithImport(GraviteeContext.getExecutionContext(), exportApiEntityV4.getApiEntity(), USER_ID);
-
-        verify(membershipService, times(0))
-            .addRoleToMemberOnReference(
-                GraviteeContext.getExecutionContext(),
-                MembershipReferenceType.API,
-                API_ID,
-                MembershipMemberType.USER,
-                PO_MEMBER_ID,
-                PRIMARY_OWNER
-            );
-
-        verify(membershipService)
-            .addRoleToMemberOnReference(
-                GraviteeContext.getExecutionContext(),
-                MembershipReferenceType.API,
-                API_ID,
-                MembershipMemberType.USER,
-                MEMBER_ID,
-                OWNER
-            );
-        verify(pageService).createOrUpdatePages(GraviteeContext.getExecutionContext(), exportApiEntityV4.getPages(), API_ID);
-
-        ArgumentCaptor<UpdateApiMetadataEntity> updateApiMetadataEntityArgumentCaptor = ArgumentCaptor.forClass(
-            UpdateApiMetadataEntity.class
-        );
-        verify(apiMetadataService, times(2))
-            .update(eq(GraviteeContext.getExecutionContext()), updateApiMetadataEntityArgumentCaptor.capture());
-        List<UpdateApiMetadataEntity> allValues = updateApiMetadataEntityArgumentCaptor.getAllValues();
-        assertEquals(2, allValues.size());
-        assertEquals(API_ID, allValues.get(0).getApiId());
-        assertEquals(API_ID, allValues.get(1).getApiId());
-
-        verify(mediaService).saveApiMedia(API_ID, fakeApiMedia().get(0));
-        verify(pageService).createAsideFolder(GraviteeContext.getExecutionContext(), API_ID);
-        verify(roleService).findByScopeAndName(RoleScope.API, OWNER, GraviteeContext.getDefaultOrganization());
-    }
-
-    @Test
-    public void should_not_find_role_to_import() {
-        ExportApiEntity exportApiEntityV4 = fakeExportApiEntity();
-
-        var dummyRole = new RoleEntity();
-        dummyRole.setId(DUMMY);
-        dummyRole.setName(DUMMY);
-        var dummyMember = new MemberEntity();
-        dummyMember.setId(MEMBER_ID);
-        dummyMember.setDisplayName("Dummy John Doe");
-        dummyMember.setRoles(List.of(dummyRole));
-        dummyMember.setType(MembershipMemberType.USER);
-        exportApiEntityV4.setMembers(Set.of(dummyMember));
-
-        doReturn(exportApiEntityV4.getApiEntity())
-            .when(apiService)
-            .createWithImport(GraviteeContext.getExecutionContext(), exportApiEntityV4.getApiEntity(), USER_ID);
-
-        RoleEntity primaryOwnerRole = new RoleEntity();
-        primaryOwnerRole.setId(PRIMARY_OWNER);
-        primaryOwnerRole.setName(PRIMARY_OWNER);
-        doReturn(primaryOwnerRole)
-            .when(roleService)
-            .findPrimaryOwnerRoleByOrganization(GraviteeContext.getCurrentOrganization(), RoleScope.API);
-        doReturn(Optional.empty())
-            .when(roleService)
-            .findByScopeAndName(eq(RoleScope.API), eq(DUMMY), eq(GraviteeContext.getDefaultOrganization()));
-
-        doReturn(emptyList()).when(pageService).search(any(), any());
-
-        when(apiIdsCalculatorService.recalculateApiDefinitionIds(any(), any())).then(AdditionalAnswers.returnsSecondArg());
-
-        cut.createFromExportedApi(GraviteeContext.getExecutionContext(), exportApiEntityV4, USER_ID);
-
-        verifyNoInteractions(membershipService);
-    }
-
     // Fakers
     private io.gravitee.rest.api.model.api.ApiEntity fakeApiEntityV2() {
         var apiEntity = new io.gravitee.rest.api.model.api.ApiEntity();
         apiEntity.setGraviteeDefinitionVersion(DefinitionVersion.V2.getLabel());
         return apiEntity;
-    }
-
-    private ExportApiEntity fakeExportApiEntityV2() {
-        var exportApiEntity = new ExportApiEntity();
-        ApiEntity apiEntity = fakeApiEntityV4();
-        apiEntity.setDefinitionVersion(DefinitionVersion.V2);
-        exportApiEntity.setApiEntity(apiEntity);
-
-        return exportApiEntity;
-    }
-
-    private ExportApiEntity fakeExportApiEntity() {
-        var exportApiEntity = new ExportApiEntity();
-        exportApiEntity.setApiEntity(fakeApiEntityV4());
-        exportApiEntity.setApiMedia(fakeApiMedia());
-        exportApiEntity.setMembers(fakeApiMembers());
-        exportApiEntity.setMetadata(fakeApiMetadata());
-        exportApiEntity.setPages(fakeApiPages());
-        exportApiEntity.setPlans(fakeApiPlans());
-
-        return exportApiEntity;
     }
 
     private ApiEntity fakeApiEntityV4() {

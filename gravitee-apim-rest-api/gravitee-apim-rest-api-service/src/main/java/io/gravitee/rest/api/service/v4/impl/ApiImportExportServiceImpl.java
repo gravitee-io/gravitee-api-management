@@ -25,14 +25,12 @@ import io.gravitee.rest.api.model.PageEntity;
 import io.gravitee.rest.api.model.PageType;
 import io.gravitee.rest.api.model.RoleEntity;
 import io.gravitee.rest.api.model.SystemFolderType;
-import io.gravitee.rest.api.model.UpdateApiMetadataEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.model.permissions.RoleScope;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
-import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import io.gravitee.rest.api.service.ApiMetadataService;
 import io.gravitee.rest.api.service.MediaService;
@@ -43,10 +41,8 @@ import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
-import io.gravitee.rest.api.service.v4.ApiIdsCalculatorService;
 import io.gravitee.rest.api.service.v4.ApiImportExportService;
 import io.gravitee.rest.api.service.v4.ApiSearchService;
-import io.gravitee.rest.api.service.v4.ApiService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import java.util.HashSet;
 import java.util.List;
@@ -62,7 +58,6 @@ import org.springframework.stereotype.Component;
 public class ApiImportExportServiceImpl implements ApiImportExportService {
 
     private final ApiMetadataService apiMetadataService;
-    private final ApiService apiServiceV4;
     private final ApiSearchService apiSearchService;
     private final MediaService mediaService;
     private final MembershipService membershipService;
@@ -71,22 +66,17 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
     private final PlanService planService;
     private final RoleService roleService;
 
-    private final ApiIdsCalculatorService apiIdsCalculatorService;
-
     public ApiImportExportServiceImpl(
         final ApiMetadataService apiMetadataService,
-        final ApiService apiServiceV4,
         final ApiSearchService apiSearchService,
         final MediaService mediaService,
         final MembershipService membershipService,
         final PageService pageService,
         final PermissionService permissionService,
         final PlanService planService,
-        final RoleService roleService,
-        final ApiIdsCalculatorService apiIdsCalculatorService
+        final RoleService roleService
     ) {
         this.apiMetadataService = apiMetadataService;
-        this.apiServiceV4 = apiServiceV4;
         this.apiSearchService = apiSearchService;
         this.mediaService = mediaService;
         this.membershipService = membershipService;
@@ -94,7 +84,6 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
         this.permissionService = permissionService;
         this.planService = planService;
         this.roleService = roleService;
-        this.apiIdsCalculatorService = apiIdsCalculatorService;
     }
 
     @Override
@@ -197,29 +186,7 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
     }
 
     @Override
-    public GenericApiEntity createFromExportedApi(final ExecutionContext executionContext, ExportApiEntity exportApiEntity, String userId) {
-        GenericApiEntity apiEntity = exportApiEntity.getApiEntity();
-        if (apiEntity.getDefinitionVersion() != DefinitionVersion.V4) {
-            throw new ApiDefinitionVersionNotSupportedException(apiEntity.getDefinitionVersion().getLabel());
-        }
-
-        final ExportApiEntity exportApiWithIdsRecalculated = apiIdsCalculatorService.recalculateApiDefinitionIds(
-            executionContext,
-            exportApiEntity
-        );
-
-        ApiEntity createdApiEntity = apiServiceV4.createWithImport(executionContext, exportApiWithIdsRecalculated.getApiEntity(), userId);
-
-        createMembers(executionContext, createdApiEntity, exportApiWithIdsRecalculated.getMembers());
-        createPages(executionContext, createdApiEntity, exportApiWithIdsRecalculated.getPages());
-        createPlans(executionContext, createdApiEntity, exportApiWithIdsRecalculated.getPlans());
-        createMetadata(executionContext, createdApiEntity, exportApiWithIdsRecalculated.getMetadata());
-        createPageAndMedia(executionContext, createdApiEntity, exportApiWithIdsRecalculated.getApiMedia());
-
-        return createdApiEntity;
-    }
-
-    protected void createMembers(final ExecutionContext executionContext, ApiEntity createdApiEntity, Set<MemberEntity> members) {
+    public void createMembers(final ExecutionContext executionContext, String apiId, Set<MemberEntity> members) {
         if (members.isEmpty()) {
             return;
         }
@@ -255,104 +222,37 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
                     membershipService.addRoleToMemberOnReference(
                         executionContext,
                         MembershipReferenceType.API,
-                        createdApiEntity.getId(),
+                        apiId,
                         MembershipMemberType.USER,
                         member.getId(),
                         role.getId()
                     );
                 } catch (Exception e) {
                     log.warn(
-                        "Unable to add role '{}[{}]' to member '{}[{}]' on API '{}[{}]' due to : {}",
+                        "Unable to add role '{}[{}]' to member '{}[{}]' on API '[{}]' due to : {}",
                         role.getName(),
                         role.getId(),
                         member.getDisplayName(),
                         member.getId(),
-                        createdApiEntity.getName(),
-                        createdApiEntity.getId(),
+                        apiId,
                         e.getMessage()
                     );
                 }
             });
         }
-        log.debug("Members successfully created for imported api {}", createdApiEntity.getId());
+        log.debug("Members successfully created for imported api {}", apiId);
     }
 
-    protected void createPages(final ExecutionContext executionContext, ApiEntity createdApiEntity, List<PageEntity> pages) {
-        if (pages.isEmpty()) {
-            return;
-        }
-
-        try {
-            pageService.createOrUpdatePages(executionContext, pages, createdApiEntity.getId());
-        } catch (Exception e) {
-            log.warn("Unable to create pages for imported API {}' due to : {}", createdApiEntity.getId(), e.getMessage());
-        }
-        log.debug("Pages successfully created for imported api {}", createdApiEntity.getId());
-    }
-
-    protected void createPlans(final ExecutionContext executionContext, ApiEntity createdApiEntity, Set<PlanEntity> plans) {
-        if (plans.isEmpty()) {
-            return;
-        }
-
-        plans.forEach(planEntity -> {
-            planEntity.setApiId(createdApiEntity.getId());
-            try {
-                planService.createOrUpdatePlan(executionContext, planEntity);
-            } catch (Exception e) {
-                log.warn(
-                    "Unable to create plan {} for imported API {}' due to : {}",
-                    planEntity.getName(),
-                    createdApiEntity.getId(),
-                    e.getMessage()
-                );
-            }
-        });
-        createdApiEntity.setPlans(plans);
-        log.debug("Plans successfully created for imported api {}", createdApiEntity.getId());
-    }
-
-    protected void createMetadata(final ExecutionContext executionContext, ApiEntity createdApiEntity, Set<ApiMetadataEntity> metadata) {
-        metadata
-            .stream()
-            .map(apiMetadataEntity -> {
-                UpdateApiMetadataEntity updateApiMetadataEntity = new UpdateApiMetadataEntity();
-                updateApiMetadataEntity.setApiId(createdApiEntity.getId());
-                updateApiMetadataEntity.setDefaultValue(apiMetadataEntity.getDefaultValue());
-                updateApiMetadataEntity.setFormat(apiMetadataEntity.getFormat());
-                updateApiMetadataEntity.setKey(apiMetadataEntity.getKey());
-                updateApiMetadataEntity.setName(apiMetadataEntity.getName());
-                updateApiMetadataEntity.setValue(apiMetadataEntity.getValue());
-                return updateApiMetadataEntity;
-            })
-            .forEach(metadataEntity -> {
-                try {
-                    apiMetadataService.update(executionContext, metadataEntity);
-                } catch (Exception e) {
-                    log.warn(
-                        "Unable to create metadata {} for imported API {}' due to : {}",
-                        metadataEntity.getName(),
-                        createdApiEntity.getId(),
-                        e.getMessage()
-                    );
-                }
-            });
-        log.debug("Metadata successfully created for imported api {}", createdApiEntity.getId());
-    }
-
-    protected void createPageAndMedia(
-        final ExecutionContext executionContext,
-        ApiEntity createdApiEntity,
-        List<MediaEntity> mediaEntities
-    ) {
+    @Override
+    public void createPageAndMedia(final ExecutionContext executionContext, String apiId, List<MediaEntity> mediaEntities) {
         mediaEntities.forEach(mediaEntity -> {
             try {
-                mediaService.saveApiMedia(createdApiEntity.getId(), mediaEntity);
+                mediaService.saveApiMedia(apiId, mediaEntity);
             } catch (Exception e) {
                 log.warn(
                     "Unable to create api media {} for imported API {}' due to : {}",
                     mediaEntity.getFileName(),
-                    createdApiEntity.getId(),
+                    apiId,
                     e.getMessage()
                 );
             }
@@ -360,16 +260,12 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
 
         List<PageEntity> search = pageService.search(
             executionContext.getEnvironmentId(),
-            new PageQuery.Builder()
-                .api(createdApiEntity.getId())
-                .name(SystemFolderType.ASIDE.folderName())
-                .type(PageType.SYSTEM_FOLDER)
-                .build()
+            new PageQuery.Builder().api(apiId).name(SystemFolderType.ASIDE.folderName()).type(PageType.SYSTEM_FOLDER).build()
         );
 
         if (search.isEmpty()) {
-            pageService.createAsideFolder(executionContext, createdApiEntity.getId());
+            pageService.createAsideFolder(executionContext, apiId);
         }
-        log.debug("Media successfully created for imported api {}", createdApiEntity.getId());
+        log.debug("Media successfully created for imported api {}", apiId);
     }
 }

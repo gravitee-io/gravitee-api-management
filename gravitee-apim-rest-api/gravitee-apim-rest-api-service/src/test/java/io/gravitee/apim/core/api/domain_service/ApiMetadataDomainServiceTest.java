@@ -22,6 +22,7 @@ import inmemory.AuditCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.MetadataCrudServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
+import io.gravitee.apim.core.api.model.NewApiMetadata;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -34,6 +35,7 @@ import io.gravitee.rest.api.service.impl.upgrade.initializer.DefaultMetadataInit
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Stream;
 import org.assertj.core.api.Assertions;
@@ -128,6 +130,74 @@ class ApiMetadataDomainServiceTest {
                         .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
                         .build()
                 );
+        }
+
+        @Test
+        void should_create_metadata_with_name_as_key() {
+            service.create(
+                NewApiMetadata
+                    .builder()
+                    .apiId(API_ID)
+                    .name("metadata-name")
+                    .format(Metadata.MetadataFormat.STRING)
+                    .value("metadata-value")
+                    .build(),
+                AUDIT_INFO
+            );
+
+            Assertions
+                .assertThat(metadataCrudService.storage())
+                .contains(
+                    Metadata
+                        .builder()
+                        .key("metadata-name")
+                        .format(Metadata.MetadataFormat.STRING)
+                        .name("metadata-name")
+                        .value("metadata-value")
+                        .referenceType(Metadata.ReferenceType.API)
+                        .referenceId(API_ID)
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .build()
+                );
+        }
+    }
+
+    @Nested
+    class Update {
+
+        @Test
+        void should_update_existing_metadata_value() {
+            metadataCrudService.initWith(
+                Collections.singletonList(
+                    Metadata
+                        .builder()
+                        .key("metadata-key")
+                        .format(Metadata.MetadataFormat.STRING)
+                        .name("metadata-name")
+                        .value("metadata-value")
+                        .referenceType(Metadata.ReferenceType.API)
+                        .referenceId(API_ID)
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .build()
+                )
+            );
+            var updatedMetadata = Metadata
+                .builder()
+                .key("metadata-key")
+                .format(Metadata.MetadataFormat.STRING)
+                .name("metadata-updated-name")
+                .value("metadata-updated-value")
+                .referenceType(Metadata.ReferenceType.API)
+                .referenceId(API_ID)
+                .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                .build();
+
+            service.update(updatedMetadata, AUDIT_INFO);
+
+            Assertions.assertThat(metadataCrudService.storage()).contains(updatedMetadata);
         }
     }
 }
