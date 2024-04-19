@@ -17,7 +17,9 @@ package io.gravitee.definition.model.kubernetes.v1alpha1;
 
 import static io.gravitee.kubernetes.mapper.GroupVersionKind.*;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.gravitee.kubernetes.mapper.CustomResource;
 import io.gravitee.kubernetes.mapper.ObjectMeta;
@@ -34,7 +36,6 @@ public class ApiDefinitionResource extends CustomResource<ObjectNode> {
         "primaryOwner",
         "groups",
         "members",
-        "pages",
         "createdAt",
         "updatedAt",
         "picture",
@@ -43,7 +44,21 @@ public class ApiDefinitionResource extends CustomResource<ObjectNode> {
 
     private static final List<String> UNSUPPORTED_PLAN_FIELDS = List.of("created_at", "updated_at", "published_at");
 
+    private static final List<String> UNSUPPORTED_PAGE_FIELDS = List.of(
+        "lastContributor",
+        "lastModificationDate",
+        "parentPath",
+        "excludedAccessControls",
+        "accessControls",
+        "attached_media",
+        "contentType"
+    );
+
     private static final String PLANS_FIELD = "plans";
+
+    private static final String PAGES_FIELD = "pages";
+
+    private static final String NAME_FIELD = "name";
 
     private static final String METADATA_FIELD = "metadata";
 
@@ -107,8 +122,20 @@ public class ApiDefinitionResource extends CustomResource<ObjectNode> {
             spec.get(PLANS_FIELD).forEach(plan -> ((ObjectNode) plan).remove(UNSUPPORTED_PLAN_FIELDS));
         }
 
+        if (spec.hasNonNull(PAGES_FIELD)) {
+            spec.replace(PAGES_FIELD, mapPages((ArrayNode) spec.get(PAGES_FIELD)));
+        }
+
         if (spec.hasNonNull(METADATA_FIELD)) {
             spec.get(METADATA_FIELD).forEach(meta -> ((ObjectNode) meta).remove(UNSUPPORTED_METADATA_FIELDS));
         }
+    }
+
+    private JsonNode mapPages(ArrayNode pages) {
+        var pagesMap = JsonNodeFactory.instance.objectNode();
+        for (var page : pages) {
+            pagesMap.set(page.get(NAME_FIELD).asText(), ((ObjectNode) page).remove(UNSUPPORTED_PAGE_FIELDS));
+        }
+        return pagesMap;
     }
 }
