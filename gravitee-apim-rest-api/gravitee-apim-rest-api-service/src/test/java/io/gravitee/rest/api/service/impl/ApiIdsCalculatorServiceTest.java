@@ -305,4 +305,33 @@ class ApiIdsCalculatorServiceTest {
         assertThat(newApiDefinition.getPages().get(1).getId()).isNotEmpty();
         assertThat(newApiDefinition.getPages().get(1).getJsonNode().get("name").asText()).isEqualTo("no-id");
     }
+
+    @Test
+    public void recalculateApiDefinitionIds_WithKubernetesOrigin_should_not_generate_ids() {
+        ObjectNode apiDefinition = mapper.createObjectNode().put("id", "api-id-1");
+
+        apiDefinition.set("definition_context", mapper.createObjectNode().put("origin", "kubernetes"));
+
+        apiDefinition.set(
+            "plans",
+            mapper.createArrayNode().add(mapper.createObjectNode().put("id", "plan-id-1")).add(mapper.createObjectNode().put("id", ""))
+        );
+
+        apiDefinition.set(
+            "pages",
+            mapper
+                .createArrayNode()
+                .add(mapper.createObjectNode().put("id", "page-id-1"))
+                .add(mapper.createObjectNode().put("name", "no-id"))
+        );
+
+        ImportApiJsonNode newApiDefinition = cut.recalculateApiDefinitionIds(
+            new ExecutionContext("default", "default"),
+            new ImportApiJsonNode(apiDefinition)
+        );
+
+        assertThat(newApiDefinition.getId()).isEqualTo("api-id-1");
+        assertThat(newApiDefinition.getPlans().get(0).getId()).isEqualTo("plan-id-1");
+        assertThat(newApiDefinition.getPages().get(0).getId()).isEqualTo("page-id-1");
+    }
 }
