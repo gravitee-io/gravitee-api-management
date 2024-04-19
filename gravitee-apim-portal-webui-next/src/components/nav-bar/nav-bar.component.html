@@ -17,9 +17,9 @@
 -->
 <app-company-title></app-company-title>
 <div class="menu-items">
-  <button [routerLink]="['']" mat-flat-button color="accent">Catalog</button>
+  <app-nav-bar-button i18n="@@catalog" [path]="['']">Catalog</app-nav-bar-button>
 </div>
 <div class="actions">
-  <button i18n="@@logIn" mat-stroked-button color="primary">Log in</button>
+  <app-nav-bar-button i18n="@@logIn" [path]="['login']">Log in</app-nav-bar-button>
   <button i18n="@@signUp" mat-flat-button color="primary">Sign up</button>
 </div>
