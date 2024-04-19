@@ -15,6 +15,9 @@
  */
 package io.gravitee.definition.model.kubernetes.v1alpha1;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -31,26 +34,25 @@ class ApiDefinitionResourceTest {
     void shouldRemoveUnsupportedFields() throws Exception {
         ApiDefinitionResource resource = new ApiDefinitionResource("api-definition", readDefinition());
 
-        Assertions.assertFalse(resource.getSpec().has("createdAt"));
-        Assertions.assertFalse(resource.getSpec().has("definition_context"));
-        Assertions.assertFalse(resource.getSpec().has("execution_context"));
-        Assertions.assertFalse(resource.getSpec().has("primaryOwner"));
-        Assertions.assertFalse(resource.getSpec().has("pages"));
-        Assertions.assertFalse(resource.getSpec().has("members"));
-        Assertions.assertFalse(resource.getSpec().has("picture"));
-        Assertions.assertFalse(resource.getSpec().has("apiMedia"));
+        assertFalse(resource.getSpec().has("createdAt"));
+        assertFalse(resource.getSpec().has("definition_context"));
+        assertFalse(resource.getSpec().has("execution_context"));
+        assertFalse(resource.getSpec().has("primaryOwner"));
+        assertFalse(resource.getSpec().has("members"));
+        assertFalse(resource.getSpec().has("picture"));
+        assertFalse(resource.getSpec().has("apiMedia"));
 
         ArrayNode plans = (ArrayNode) resource.getSpec().get("plans");
 
         JsonNode plan = plans.iterator().next();
-        Assertions.assertFalse(plan.has("created_at"));
-        Assertions.assertFalse(plan.has("updated_at"));
-        Assertions.assertFalse(resource.getSpec().has("published_at"));
+        assertFalse(plan.has("created_at"));
+        assertFalse(plan.has("updated_at"));
+        assertFalse(resource.getSpec().has("published_at"));
 
         ArrayNode metadata = (ArrayNode) resource.getSpec().get("metadata");
 
         JsonNode meta = metadata.iterator().next();
-        Assertions.assertFalse(meta.has("apiId"));
+        assertFalse(meta.has("apiId"));
     }
 
     @Test
@@ -59,16 +61,34 @@ class ApiDefinitionResourceTest {
 
         resource.removeIds();
 
-        Assertions.assertFalse(resource.getSpec().has("id"));
-        Assertions.assertFalse(resource.getSpec().has("crossId"));
+        assertFalse(resource.getSpec().has("id"));
+        assertFalse(resource.getSpec().has("crossId"));
 
         ArrayNode plans = (ArrayNode) resource.getSpec().get("plans");
 
         JsonNode plan = plans.iterator().next();
 
-        Assertions.assertFalse(plan.has("id"));
-        Assertions.assertFalse(plan.has("crossId"));
-        Assertions.assertFalse(plan.has("api"));
+        assertFalse(plan.has("id"));
+        assertFalse(plan.has("crossId"));
+        assertFalse(plan.has("api"));
+    }
+
+    @Test
+    public void shouldMapPages() throws Exception {
+        ApiDefinitionResource resource = new ApiDefinitionResource("api-definition", readDefinition());
+
+        ObjectNode pages = (ObjectNode) resource.getSpec().get("pages");
+        assertTrue(pages.has("Aside"));
+
+        var page = pages.get("Aside");
+        assertEquals("Aside", page.get("name").asText());
+        assertFalse(page.has("lastContributor"));
+        assertFalse(page.has("lastModificationDate"));
+        assertFalse(page.has("parentPath"));
+        assertFalse(page.has("excludedAccessControls"));
+        assertFalse(page.has("accessControls"));
+        assertFalse(page.has("attached_media"));
+        assertFalse(page.has("contentType"));
     }
 
     @Test
@@ -80,14 +100,14 @@ class ApiDefinitionResourceTest {
 
         resource.setContextRef(contextRefName, contextRefNamespace);
 
-        Assertions.assertTrue(resource.getSpec().has("contextRef"));
+        assertTrue(resource.getSpec().has("contextRef"));
 
         ObjectNode contextRef = ((ObjectNode) resource.getSpec().get("contextRef"));
 
-        Assertions.assertTrue(contextRef.has("name"));
-        Assertions.assertTrue(contextRef.has("namespace"));
-        Assertions.assertEquals(contextRefName, contextRef.get("name").asText());
-        Assertions.assertEquals(contextRefNamespace, contextRef.get("namespace").asText());
+        assertTrue(contextRef.has("name"));
+        assertTrue(contextRef.has("namespace"));
+        assertEquals(contextRefName, contextRef.get("name").asText());
+        assertEquals(contextRefNamespace, contextRef.get("namespace").asText());
     }
 
     @Test
@@ -98,16 +118,16 @@ class ApiDefinitionResourceTest {
 
         resource.setContextPath(contextPath);
 
-        Assertions.assertTrue(resource.getSpec().has("proxy"));
+        assertTrue(resource.getSpec().has("proxy"));
 
         ObjectNode proxy = (ObjectNode) resource.getSpec().get("proxy");
 
-        Assertions.assertTrue(proxy.has("virtual_hosts"));
+        assertTrue(proxy.has("virtual_hosts"));
 
         ArrayNode virtualHosts = (ArrayNode) proxy.get("virtual_hosts");
         ObjectNode virtualHost = (ObjectNode) virtualHosts.iterator().next();
 
-        Assertions.assertEquals(contextPath, virtualHost.get("path").asText());
+        assertEquals(contextPath, virtualHost.get("path").asText());
     }
 
     @Test
@@ -118,8 +138,8 @@ class ApiDefinitionResourceTest {
 
         resource.setVersion(version);
 
-        Assertions.assertTrue(resource.getSpec().has("version"));
-        Assertions.assertEquals(version, resource.getSpec().get("version").asText());
+        assertTrue(resource.getSpec().has("version"));
+        assertEquals(version, resource.getSpec().get("version").asText());
     }
 
     private ObjectNode readDefinition() throws Exception {
