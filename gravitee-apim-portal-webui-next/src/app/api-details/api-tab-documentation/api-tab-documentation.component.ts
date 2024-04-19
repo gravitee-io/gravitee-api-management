@@ -15,7 +15,11 @@
  */
 import { AsyncPipe } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
+import { RouterModule } from '@angular/router';
+import { Observable, of } from 'rxjs';
 
+import { LoaderComponent } from '../../../components/loader/loader.component';
+import { PageComponent } from '../../../components/page/page.component';
 import { PageTreeComponent, PageTreeNode } from '../../../components/page-tree/page-tree.component';
 import { Page } from '../../../entities/page/page';
 import { PageService } from '../../../services/page.service';
@@ -23,15 +27,16 @@ import { PageService } from '../../../services/page.service';
 @Component({
   selector: 'app-api-tab-documentation',
   standalone: true,
-  imports: [PageTreeComponent, AsyncPipe],
+  imports: [PageTreeComponent, AsyncPipe, PageComponent, RouterModule, LoaderComponent],
   templateUrl: './api-tab-documentation.component.html',
   styleUrl: './api-tab-documentation.component.scss',
 })
 export class ApiTabDocumentationComponent implements OnInit {
+  @Input() apiId!: string;
   @Input()
   pages: Page[] = [];
   pageNodes: PageTreeNode[] = [];
-  selectedPage: string = '';
+  selectedPage$: Observable<Page> = of();
 
   constructor(private pageService: PageService) {}
 
@@ -40,6 +45,6 @@ export class ApiTabDocumentationComponent implements OnInit {
   }
 
   showPage(pageId: string) {
-    this.selectedPage = pageId;
+    this.selectedPage$ = this.pageService.getByApiIdAndId(this.apiId, pageId, true);
   }
 }

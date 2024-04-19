@@ -49,7 +49,7 @@
         @if (pages$ | async; as pages) {
           <mat-tab label="Documentation" [disabled]="pages.length === 0">
             <ng-template matTabContent>
-              <app-api-tab-documentation [pages]="pages" />
+              <app-api-tab-documentation [apiId]="apiId" [pages]="pages" />
             </ng-template>
           </mat-tab>
         } @else {
