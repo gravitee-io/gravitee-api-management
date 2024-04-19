@@ -235,7 +235,7 @@ data:
         {{- end }}
       {{- end }}
     {{- end }}
-    
+
     ratelimit:
       type: {{ .Values.ratelimit.type | default "mongodb" }}
       {{- if or (eq .Values.ratelimit.type "mongodb") (kindIs "invalid" .Values.ratelimit.type) }}
@@ -286,6 +286,7 @@ data:
         {{- end }}
         {{- if .Values.gateway.ratelimit.redis.ssl }}
         ssl: {{ .Values.gateway.ratelimit.redis.ssl }}
+        hostnameVerificationAlgorithm: {{ .Values.gateway.ratelimit.redis.hostnameVerificationAlgorithm | default "NONE" }}
         {{- end }}
         {{- if (not (empty ((.Values.gateway.ratelimit.redis.sentinel).nodes))) }}
         sentinel:
@@ -300,17 +301,17 @@ data:
 
     # Sharding tags configuration
     # Allows to define inclusion/exclusion sharding tags to only deploy a part of APIs. To exclude just prefix the tag with '!'.
-    tags: {{ .Values.gateway.sharding_tags }}  
+    tags: {{ .Values.gateway.sharding_tags }}
 
     # Multi-tenant configuration
     # Allow only a single-value
-    tenant: {{ .Values.gateway.tenant }}  
+    tenant: {{ .Values.gateway.tenant }}
 
     {{- if .Values.gateway.system}}
     system:
 {{ toYaml .Values.gateway.system | indent 6 }}
     {{- end }}
-    
+
     # Reporters configuration (used to store reporting monitoring data, request metrics, healthchecks and others...
     # All reporters are enabled by default. To stop one of them, you have to add the property 'enabled: false'
     reporters:
@@ -366,7 +367,7 @@ data:
       {{- range $key, $value := .Values.gateway.reporters }}
       {{- if ne $key "elasticsearch"}}
       {{ $key }}:
-{{ toYaml $value | indent 8 }}      
+{{ toYaml $value | indent 8 }}
       {{- end }}
       {{- end }}
 
@@ -469,17 +470,17 @@ data:
     handlers:
 {{ toYaml .Values.gateway.handlers | indent 6 }}
     {{- end }}
-    
+
     {{- if .Values.gateway.policy }}
-    policy: 
-{{ toYaml .Values.gateway.policy | indent 6 }}   
+    policy:
+{{ toYaml .Values.gateway.policy | indent 6 }}
     {{ else }}
     policy:
       api-key:
         header: {{ .Values.gateway.apiKey.header }}
         param: {{ .Values.gateway.apiKey.param }}
     {{- end }}
-    
+
     # Alert Engine communication
     {{- if .Values.alerts.enabled }}
     alerts:

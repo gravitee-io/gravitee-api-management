@@ -81,6 +81,10 @@ All the specific configurations are located under the `ratelimit.redis` attribut
 |true
 |Default value is true for backward compatibility but keep in mind that this is not a good practice and you should set to false and configure a truststore
 
+|hostnameVerificationAlgorithm
+|NONE
+|Default value is NONE for backward compatibility, supports `NONE`, `HTTPS`, `LDAPS`
+
 |tlsProtocols
 |See https://vertx.io/docs/vertx-core/java/#_configuring_tls_protocol_versions[Vert.x doc]
 |List of TLS protocols to allow comma separated.
@@ -197,6 +201,7 @@ ratelimit:
     password: 'redis-password'
     # SSL settings
     ssl: true
+    hostnameVerificationAlgorithm: HTTPS
     trustAll: false
     tlsProtocols: TLSv1.2, TLSv1.3
     tlsCiphers: TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384

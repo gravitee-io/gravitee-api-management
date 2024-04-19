@@ -37,7 +37,30 @@ tests:
                      *  host: redis\n
                      *  port: 6379\n
                      *  password: mypassword\n
-                     *  ssl: true\n"
+                     *  ssl: true\n
+                     *  hostnameVerificationAlgorithm: NONE"
+  - it: Set host and port with password, ssl enabled and hostname verification algorithm to HTTPS
+    template: gateway/gateway-configmap.yaml
+    set:
+      ratelimit:
+        type: redis
+      gateway:
+        ratelimit:
+          redis:
+            host: redis
+            port: 6379
+            password: mypassword
+            ssl: true
+            hostnameVerificationAlgorithm: HTTPS
+    asserts:
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: " * redis:\n
+                     *  host: redis\n
+                     *  port: 6379\n
+                     *  password: mypassword\n
+                     *  ssl: true\n
+                     *  hostnameVerificationAlgorithm: HTTPS"
   - it: Set configuration with sentinels
     template: gateway/gateway-configmap.yaml
     set:
