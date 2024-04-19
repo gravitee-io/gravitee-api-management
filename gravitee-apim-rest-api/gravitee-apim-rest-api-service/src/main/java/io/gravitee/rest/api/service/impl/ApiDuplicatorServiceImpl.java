@@ -26,7 +26,9 @@ import static java.util.stream.Collectors.toSet;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
@@ -685,7 +687,29 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
             replacePagesGroupNameById(executionContext, pagesList);
 
+            if (apiJsonNode.isKubernetesOrigin()) {
+                deleteRemovedPages(executionContext, apiEntity, pagesList);
+            }
             pageService.createOrUpdatePages(executionContext, pagesList, apiEntity.getId());
+        }
+    }
+
+    private void deleteRemovedPages(ExecutionContext executionContext, ApiEntity apiEntity, List<PageEntity> givenPages) {
+        var givenPageIds = givenPages.stream().map(PageEntity::getId).collect(toSet());
+        var existingPageIds = pageService
+            .findByApi(executionContext.getEnvironmentId(), apiEntity.getId())
+            .stream()
+            .map(PageEntity::getId)
+            .collect(toSet());
+
+        existingPageIds.removeIf(givenPageIds::contains);
+
+        try {
+            for (var id : existingPageIds) {
+                pageService.delete(executionContext, id);
+            }
+        } catch (RuntimeException e) {
+            LOGGER.error("An error as occurred while trying to remove a page with kubernetes origin");
         }
     }
 
