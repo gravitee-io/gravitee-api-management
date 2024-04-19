@@ -47,7 +47,6 @@ import io.gravitee.rest.api.model.api.DuplicateApiEntity;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.ApiDuplicatorService;
 import io.gravitee.rest.api.service.ApiIdsCalculatorService;
 import io.gravitee.rest.api.service.ApiMetadataService;
@@ -64,7 +63,6 @@ import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.PlanConverter;
@@ -680,7 +678,29 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
             replacePagesGroupNameById(executionContext, pagesList);
 
+            if (apiJsonNode.isKubernetesOrigin()) {
+                deleteRemovedPages(executionContext, apiEntity, pagesList);
+            }
             pageService.createOrUpdatePages(executionContext, pagesList, apiEntity.getId());
+        }
+    }
+
+    private void deleteRemovedPages(ExecutionContext executionContext, ApiEntity apiEntity, List<PageEntity> givenPages) {
+        var givenPageIds = givenPages.stream().map(PageEntity::getId).collect(toSet());
+        var existingPageIds = pageService
+            .findByApi(executionContext.getEnvironmentId(), apiEntity.getId())
+            .stream()
+            .map(PageEntity::getId)
+            .collect(toSet());
+
+        existingPageIds.removeIf(givenPageIds::contains);
+
+        try {
+            for (var id : existingPageIds) {
+                pageService.delete(executionContext, id);
+            }
+        } catch (RuntimeException e) {
+            LOGGER.error("An error as occurred while trying to remove a page with kubernetes origin");
         }
     }
 
