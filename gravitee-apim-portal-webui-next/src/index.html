@@ -26,6 +26,10 @@
     <link
       href="https://fonts.googleapis.com/css?family=Material+Icons|Material+Icons+Outlined|Material+Icons+Two+Tone|Material+Icons+Round|Material+Icons+Sharp"
       rel="stylesheet" />
+    <!--    Define global when serving dev config with Vite for swagger-ui -->
+    <script type="application/javascript">
+      window.global ||= window;
+    </script>
   </head>
   <body>
     <app-root></app-root>
