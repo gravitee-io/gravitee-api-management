@@ -37,6 +37,15 @@ public class ApplicationCrudServiceInMemory implements ApplicationCrudService, I
     }
 
     @Override
+    public BaseApplicationEntity findById(String applicationId, String environmentId) {
+        return storage
+            .stream()
+            .filter(application -> applicationId.equals(application.getId()))
+            .findFirst()
+            .orElseThrow(() -> new ApplicationNotFoundException(applicationId));
+    }
+
+    @Override
     public void initWith(List<BaseApplicationEntity> items) {
         storage.clear();
         storage.addAll(items);

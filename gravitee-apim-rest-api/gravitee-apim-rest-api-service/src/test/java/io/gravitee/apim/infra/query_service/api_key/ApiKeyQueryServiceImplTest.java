@@ -110,6 +110,69 @@ public class ApiKeyQueryServiceImplTest {
     }
 
     @Nested
+    class FindByApplicationId {
+
+        @Test
+        void should_return_api_keys_and_adapt_them() throws TechnicalException {
+            // Given
+            var applicationId = "application-id";
+            when(apiKeyRepository.findByApplication(applicationId))
+                .thenAnswer(invocation -> List.of(anApiKeyForApplication(invocation.getArgument(0)).build()));
+
+            // When
+            var result = service.findByApplication(applicationId);
+
+            // Then
+            assertThat(result)
+                .containsExactly(
+                    ApiKeyEntity
+                        .builder()
+                        .id("api-key-id")
+                        .applicationId(applicationId)
+                        .subscriptions(List.of("subscription-id"))
+                        .key("c080f684-2c35-40a1-903c-627c219e0567")
+                        .applicationId("application-id")
+                        .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                        .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                        .expireAt(Instant.parse("2021-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                        .revokedAt(Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                        .revoked(true)
+                        .paused(true)
+                        .daysToExpirationOnLastNotification(310)
+                        .build()
+                );
+        }
+
+        @Test
+        void should_return_empty_stream_when_no_api_keys() throws TechnicalException {
+            // Given
+            String applicationId = "unknown";
+            when(apiKeyRepository.findByApplication(applicationId)).thenReturn(List.of());
+
+            // When
+            var result = service.findByApplication(applicationId);
+
+            // Then
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() throws TechnicalException {
+            // Given
+            String applicationId = "my-subscription";
+            when(apiKeyRepository.findByApplication(applicationId)).thenThrow(TechnicalException.class);
+
+            // When
+            Throwable throwable = catchThrowable(() -> service.findByApplication(applicationId));
+
+            // Then
+            assertThat(throwable)
+                .isInstanceOf(TechnicalManagementException.class)
+                .hasMessage("An error occurs while trying to find API keys by application id: " + applicationId);
+        }
+    }
+
+    @Nested
     class FindByKeyAndApiId {
 
         @Test
@@ -234,6 +297,10 @@ public class ApiKeyQueryServiceImplTest {
                 .isInstanceOf(TechnicalManagementException.class)
                 .hasMessage("An error occurs while trying to find API keys by subscription id: " + subscriptionId);
         }
+    }
+
+    private ApiKey.ApiKeyBuilder anApiKeyForApplication(String applicationId) {
+        return anApiKey().application(applicationId);
     }
 
     private ApiKey.ApiKeyBuilder anApiKeyForSubscription(String subscriptionId) {

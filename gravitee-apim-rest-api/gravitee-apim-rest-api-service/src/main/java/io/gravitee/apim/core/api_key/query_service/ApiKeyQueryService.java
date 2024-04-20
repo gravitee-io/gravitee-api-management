@@ -21,6 +21,7 @@ import java.util.stream.Stream;
 
 public interface ApiKeyQueryService {
     Optional<ApiKeyEntity> findById(String apiKeyId);
+    Stream<ApiKeyEntity> findByApplication(String applicationId);
     Optional<ApiKeyEntity> findByKeyAndApiId(String key, String apiId);
     Stream<ApiKeyEntity> findBySubscription(String subscriptionId);
 }

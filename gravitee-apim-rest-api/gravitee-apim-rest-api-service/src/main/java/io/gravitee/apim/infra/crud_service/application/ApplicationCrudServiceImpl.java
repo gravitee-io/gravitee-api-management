@@ -41,14 +41,18 @@ public class ApplicationCrudServiceImpl implements ApplicationCrudService {
 
     @Override
     public BaseApplicationEntity findById(final ExecutionContext executionContext, String applicationId) {
+        return findById(applicationId, executionContext.getEnvironmentId());
+    }
+
+    @Override
+    public BaseApplicationEntity findById(String applicationId, String environmentId) {
         try {
             log.debug("Find application by id: {}", applicationId);
 
             Optional<Application> applicationOptional = applicationRepository.findById(applicationId);
 
-            if (executionContext.hasEnvironmentId()) {
-                applicationOptional =
-                    applicationOptional.filter(result -> result.getEnvironmentId().equals(executionContext.getEnvironmentId()));
+            if (environmentId != null) {
+                applicationOptional = applicationOptional.filter(result -> result.getEnvironmentId().equals(environmentId));
             }
 
             return applicationOptional

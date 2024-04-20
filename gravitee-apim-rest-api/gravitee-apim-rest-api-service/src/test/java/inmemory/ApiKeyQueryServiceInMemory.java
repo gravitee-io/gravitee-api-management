@@ -41,6 +41,11 @@ public class ApiKeyQueryServiceInMemory implements ApiKeyQueryService, InMemoryA
     }
 
     @Override
+    public Stream<ApiKeyEntity> findByApplication(String applicationId) {
+        return storage.stream().filter(apiKey -> apiKey.getApplicationId().equals(applicationId));
+    }
+
+    @Override
     public Optional<ApiKeyEntity> findByKeyAndApiId(String key, String apiId) {
         return storage.stream().filter(apiKey -> apiKey.getKey().equals(key)).findFirst();
     }

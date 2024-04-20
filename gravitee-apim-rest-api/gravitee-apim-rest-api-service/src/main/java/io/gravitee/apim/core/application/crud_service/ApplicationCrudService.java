@@ -19,5 +19,11 @@ import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 
 public interface ApplicationCrudService {
+    /**
+     * @deprecated in favor of {@link ApplicationCrudService#findById(String, String)}
+     */
+    @Deprecated
     BaseApplicationEntity findById(final ExecutionContext executionContext, String applicationId);
+
+    BaseApplicationEntity findById(String applicationId, String environmentId);
 }
