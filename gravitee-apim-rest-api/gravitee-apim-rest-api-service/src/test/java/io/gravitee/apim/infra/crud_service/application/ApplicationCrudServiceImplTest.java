@@ -44,6 +44,8 @@ import org.junit.jupiter.api.Test;
 
 public class ApplicationCrudServiceImplTest {
 
+    private static final String ENVIRONMENT_ID = "environment-id";
+
     ApplicationRepository applicationRepository;
 
     ApplicationCrudService service;
@@ -71,7 +73,7 @@ public class ApplicationCrudServiceImplTest {
                 .thenAnswer(invocation -> Optional.of(anApplication().id(invocation.getArgument(0)).build()));
 
             // When
-            var result = service.findById(GraviteeContext.getExecutionContext(), applicationId);
+            var result = service.findById(applicationId, ENVIRONMENT_ID);
 
             // Then
             SoftAssertions.assertSoftly(soft -> {
@@ -96,12 +98,11 @@ public class ApplicationCrudServiceImplTest {
         void should_throw_when_environment_does_not_match_with_current_environment() throws TechnicalException {
             // Given
             String applicationId = "appId";
-            GraviteeContext.setCurrentEnvironment("OTHER");
             when(applicationRepository.findById(any()))
                 .thenAnswer(invocation -> Optional.of(anApplication().id(invocation.getArgument(0)).build()));
 
             // When
-            Throwable throwable = catchThrowable(() -> service.findById(GraviteeContext.getExecutionContext(), applicationId));
+            Throwable throwable = catchThrowable(() -> service.findById(applicationId, "OTHER"));
 
             // Then
             assertThat(throwable)
@@ -116,7 +117,7 @@ public class ApplicationCrudServiceImplTest {
             when(applicationRepository.findById(any())).thenReturn(Optional.empty());
 
             // When
-            Throwable throwable = catchThrowable(() -> service.findById(GraviteeContext.getExecutionContext(), applicationId));
+            Throwable throwable = catchThrowable(() -> service.findById(applicationId, ENVIRONMENT_ID));
 
             // Then
             assertThat(throwable)
@@ -131,7 +132,7 @@ public class ApplicationCrudServiceImplTest {
             when(applicationRepository.findById(any())).thenThrow(new TechnicalException());
 
             // When
-            Throwable throwable = catchThrowable(() -> service.findById(GraviteeContext.getExecutionContext(), applicationId));
+            Throwable throwable = catchThrowable(() -> service.findById(applicationId, ENVIRONMENT_ID));
 
             // Then
             assertThat(throwable).isInstanceOf(TechnicalManagementException.class);
@@ -147,7 +148,7 @@ public class ApplicationCrudServiceImplTest {
             .description("app-description")
             .disableMembershipNotifications(true)
             .domain("app-domain")
-            .environmentId("DEFAULT")
+            .environmentId(ENVIRONMENT_ID)
             .groups(Set.of("group1"))
             .metadata(Map.of("key1", "value1"))
             .name("app-name")
