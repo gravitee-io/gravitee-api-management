@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.subscription.model;
 
+import io.gravitee.common.utils.TimeProvider;
 import java.time.ZonedDateTime;
 import java.util.Map;
 import lombok.AllArgsConstructor;
@@ -117,8 +118,31 @@ public class SubscriptionEntity {
         throw new IllegalStateException("Cannot reject subscription");
     }
 
+    public SubscriptionEntity acceptBy(String userId, ZonedDateTime startingAt, ZonedDateTime endingAt, String reasonMessage) {
+        return switch (this.status) {
+            case PENDING -> {
+                final ZonedDateTime now = TimeProvider.now();
+                yield this.toBuilder()
+                    .processedBy(userId)
+                    .updatedAt(now)
+                    .startingAt(startingAt != null ? startingAt : now)
+                    .endingAt(endingAt)
+                    .processedAt(now)
+                    .status(Status.ACCEPTED)
+                    .reasonMessage(reasonMessage)
+                    .build();
+            }
+            case ACCEPTED -> this;
+            default -> throw new IllegalStateException("Cannot accept subscription");
+        };
+    }
+
     public SubscriptionEntity rejectBy(String userId) {
         return this.rejectBy(userId, "Subscription has been closed.");
+    }
+
+    public SubscriptionEntity acceptBy(String userId, ZonedDateTime startingAt, ZonedDateTime endingAt) {
+        return this.acceptBy(userId, startingAt, endingAt, null);
     }
 
     public boolean isAccepted() {
