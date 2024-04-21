@@ -185,6 +185,14 @@ public class Plan implements GenericPlanEntity {
         CATALOG,
     }
 
+    public boolean isApiKey() {
+        return switch (definitionVersion) {
+            case V4 -> planDefinitionV4.isApiKey();
+            case FEDERATED -> federatedPlanDefinition.isApiKey();
+            default -> planDefinitionV2.isApiKey();
+        };
+    }
+
     public boolean isClosed() {
         return getPlanStatus() == PlanStatus.CLOSED;
     }
