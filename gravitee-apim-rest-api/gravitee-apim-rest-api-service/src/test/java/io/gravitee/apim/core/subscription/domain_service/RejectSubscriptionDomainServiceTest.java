@@ -119,7 +119,7 @@ public class RejectSubscriptionDomainServiceTest {
 
         @Test
         void should_throw_when_null_subscription() {
-            assertThatThrownBy(() -> cut.rejectSubscription((SubscriptionEntity) null, AUDIT_INFO))
+            assertThatThrownBy(() -> reject(null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Subscription should not be null");
         }
@@ -127,7 +127,7 @@ public class RejectSubscriptionDomainServiceTest {
         @ParameterizedTest
         @EnumSource(value = SubscriptionEntity.Status.class, mode = EnumSource.Mode.EXCLUDE, names = "PENDING")
         void should_throw_when_status_not_pending(SubscriptionEntity.Status status) {
-            assertThatThrownBy(() -> cut.rejectSubscription(SubscriptionEntity.builder().status(status).build(), AUDIT_INFO))
+            assertThatThrownBy(() -> reject(SubscriptionEntity.builder().status(status).build()))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("Cannot reject subscription");
         }
@@ -135,10 +135,7 @@ public class RejectSubscriptionDomainServiceTest {
         @Test
         void should_throw_when_plan_is_closed() {
             assertThatThrownBy(() ->
-                    cut.rejectSubscription(
-                        SubscriptionEntity.builder().status(SubscriptionEntity.Status.PENDING).planId(PLAN_CLOSED).build(),
-                        AUDIT_INFO
-                    )
+                    reject(SubscriptionEntity.builder().status(SubscriptionEntity.Status.PENDING).planId(PLAN_CLOSED).build())
                 )
                 .isInstanceOf(PlanAlreadyClosedException.class)
                 .hasMessage("Plan " + PLAN_CLOSED + " is already closed !");
@@ -161,7 +158,7 @@ public class RejectSubscriptionDomainServiceTest {
             }
 
             // When
-            final SubscriptionEntity result = cut.rejectSubscription(subscription, AUDIT_INFO);
+            final SubscriptionEntity result = reject(subscription);
 
             // Then
             SoftAssertions.assertSoftly(softly -> {
@@ -229,7 +226,7 @@ public class RejectSubscriptionDomainServiceTest {
         @Test
         @SneakyThrows
         void should_throw_when_subscription_not_found() {
-            assertThatThrownBy(() -> cut.rejectSubscription("subscription-id", AUDIT_INFO))
+            assertThatThrownBy(() -> rejectById(SubscriptionFixtures.aSubscription()))
                 .isInstanceOf(SubscriptionNotFoundException.class)
                 .hasMessage("Subscription [subscription-id] cannot be found.");
         }
@@ -237,17 +234,17 @@ public class RejectSubscriptionDomainServiceTest {
         @ParameterizedTest
         @EnumSource(value = SubscriptionEntity.Status.class, mode = EnumSource.Mode.EXCLUDE, names = "PENDING")
         void should_throw_when_status_not_pending(SubscriptionEntity.Status status) {
-            givenExistingSubscription(
+            var subscription = givenExistingSubscription(
                 SubscriptionFixtures.aSubscription().toBuilder().subscribedBy("subscriber").planId(PLAN_PUBLISHED).status(status).build()
             );
-            assertThatThrownBy(() -> cut.rejectSubscription("subscription-id", AUDIT_INFO))
+            assertThatThrownBy(() -> rejectById(subscription))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("Cannot reject subscription");
         }
 
         @Test
         void should_throw_when_plan_is_closed() {
-            givenExistingSubscription(
+            var subscription = givenExistingSubscription(
                 SubscriptionFixtures
                     .aSubscription()
                     .toBuilder()
@@ -256,7 +253,7 @@ public class RejectSubscriptionDomainServiceTest {
                     .status(SubscriptionEntity.Status.PENDING)
                     .build()
             );
-            assertThatThrownBy(() -> cut.rejectSubscription("subscription-id", AUDIT_INFO))
+            assertThatThrownBy(() -> rejectById(subscription))
                 .isInstanceOf(PlanAlreadyClosedException.class)
                 .hasMessage("Plan " + PLAN_CLOSED + " is already closed !");
         }
@@ -265,7 +262,7 @@ public class RejectSubscriptionDomainServiceTest {
         @ValueSource(booleans = { true, false })
         void should_reject_subscription(boolean shouldTriggerEmailNotification) {
             // Given
-            givenExistingSubscription(
+            var subscription = givenExistingSubscription(
                 SubscriptionFixtures
                     .aSubscription()
                     .toBuilder()
@@ -279,7 +276,7 @@ public class RejectSubscriptionDomainServiceTest {
             }
 
             // When
-            final SubscriptionEntity result = cut.rejectSubscription("subscription-id", AUDIT_INFO);
+            final SubscriptionEntity result = rejectById(subscription);
 
             // Then
             SoftAssertions.assertSoftly(softly -> {
@@ -341,7 +338,16 @@ public class RejectSubscriptionDomainServiceTest {
         }
     }
 
-    private void givenExistingSubscription(SubscriptionEntity subscription) {
+    private SubscriptionEntity givenExistingSubscription(SubscriptionEntity subscription) {
         subscriptionCrudService.initWith(List.of(subscription));
+        return subscription;
+    }
+
+    private SubscriptionEntity reject(SubscriptionEntity subscription) {
+        return cut.reject(subscription, "reason", AUDIT_INFO);
+    }
+
+    private SubscriptionEntity rejectById(SubscriptionEntity subscription) {
+        return cut.reject(subscription.getId(), "reason", AUDIT_INFO);
     }
 }

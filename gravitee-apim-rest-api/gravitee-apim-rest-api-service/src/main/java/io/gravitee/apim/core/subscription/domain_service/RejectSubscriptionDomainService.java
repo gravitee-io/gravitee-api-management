@@ -61,20 +61,20 @@ public class RejectSubscriptionDomainService {
         this.userCrudService = userCrudService;
     }
 
-    public SubscriptionEntity rejectSubscription(String subscriptionId, AuditInfo auditInfo) {
+    public SubscriptionEntity reject(String subscriptionId, String reason, AuditInfo auditInfo) {
         log.debug("Close subscription {}", subscriptionId);
 
         final SubscriptionEntity subscriptionEntity = subscriptionRepository.get(subscriptionId);
-        return rejectSubscription(subscriptionEntity, auditInfo);
+        return reject(subscriptionEntity, reason, auditInfo);
     }
 
-    public SubscriptionEntity rejectSubscription(SubscriptionEntity subscriptionEntity, AuditInfo auditInfo) {
+    public SubscriptionEntity reject(SubscriptionEntity subscriptionEntity, String reason, AuditInfo auditInfo) {
         if (subscriptionEntity == null) {
             throw new IllegalArgumentException("Subscription should not be null");
         }
         checkSubscriptionStatus(subscriptionEntity);
         checkPlanStatus(subscriptionEntity);
-        var rejectedSubscriptionEntity = subscriptionEntity.rejectBy(auditInfo.actor().userId());
+        var rejectedSubscriptionEntity = subscriptionEntity.rejectBy(auditInfo.actor().userId(), reason);
 
         subscriptionRepository.update(rejectedSubscriptionEntity);
         triggerNotifications(auditInfo.organizationId(), rejectedSubscriptionEntity);
