@@ -137,10 +137,6 @@ public class SubscriptionEntity {
         };
     }
 
-    public SubscriptionEntity rejectBy(String userId) {
-        return this.rejectBy(userId, "Subscription has been closed.");
-    }
-
     public SubscriptionEntity acceptBy(String userId, ZonedDateTime startingAt, ZonedDateTime endingAt) {
         return this.acceptBy(userId, startingAt, endingAt, null);
     }
