@@ -25,7 +25,9 @@ import static io.gravitee.repository.management.model.Subscription.AuditEvent.SU
 import static io.gravitee.repository.management.model.Subscription.AuditEvent.SUBSCRIPTION_RESUMED_BY_CONSUMER;
 import static io.gravitee.repository.management.model.Subscription.AuditEvent.SUBSCRIPTION_UPDATED;
 import static io.gravitee.repository.management.model.Subscription.Status.PENDING;
-import static io.gravitee.rest.api.model.ApiKeyMode.*;
+import static io.gravitee.rest.api.model.ApiKeyMode.EXCLUSIVE;
+import static io.gravitee.rest.api.model.ApiKeyMode.SHARED;
+import static io.gravitee.rest.api.model.ApiKeyMode.UNSPECIFIED;
 import static io.gravitee.rest.api.model.v4.plan.PlanValidationType.MANUAL;
 import static java.lang.System.lineSeparator;
 import static java.util.stream.Collectors.groupingBy;
@@ -34,7 +36,10 @@ import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.gravitee.apim.core.notification.model.Recipient;
+import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.subscription.domain_service.AcceptSubscriptionDomainService;
+import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomainService;
+import io.gravitee.apim.infra.adapter.SubscriptionAdapter;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.listener.ListenerType;
@@ -50,7 +55,21 @@ import io.gravitee.repository.management.model.ApplicationStatus;
 import io.gravitee.repository.management.model.ApplicationType;
 import io.gravitee.repository.management.model.Audit;
 import io.gravitee.repository.management.model.Subscription;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.ApiKeyEntity;
+import io.gravitee.rest.api.model.ApiKeyMode;
+import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.NewSubscriptionEntity;
+import io.gravitee.rest.api.model.PageEntity;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
+import io.gravitee.rest.api.model.ProcessSubscriptionEntity;
+import io.gravitee.rest.api.model.SubscriptionConfigurationEntity;
+import io.gravitee.rest.api.model.SubscriptionConsumerStatus;
+import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.SubscriptionStatus;
+import io.gravitee.rest.api.model.TransferSubscriptionEntity;
+import io.gravitee.rest.api.model.UpdateSubscriptionConfigurationEntity;
+import io.gravitee.rest.api.model.UpdateSubscriptionEntity;
+import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.api.ApiEntrypointEntity;
 import io.gravitee.rest.api.model.application.ApplicationListItem;
 import io.gravitee.rest.api.model.common.Pageable;
@@ -87,7 +106,6 @@ import io.gravitee.rest.api.service.exceptions.PlanNotSubscribableWithSharedApiK
 import io.gravitee.rest.api.service.exceptions.PlanNotYetPublishedException;
 import io.gravitee.rest.api.service.exceptions.PlanOAuth2OrJWTAlreadySubscribedException;
 import io.gravitee.rest.api.service.exceptions.PlanRestrictedException;
-import io.gravitee.rest.api.service.exceptions.SubscriptionAlreadyProcessedException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionConsumerStatusNotUpdatableException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionFailureException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotClosedException;
@@ -97,7 +115,6 @@ import io.gravitee.rest.api.service.exceptions.SubscriptionNotPausedException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotUpdatableException;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.exceptions.TransferNotAllowedException;
-import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
 import io.gravitee.rest.api.service.notification.ApiHook;
 import io.gravitee.rest.api.service.notification.ApplicationHook;
 import io.gravitee.rest.api.service.notification.NotificationParamsBuilder;
@@ -107,6 +124,7 @@ import io.gravitee.rest.api.service.v4.ApiTemplateService;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import io.gravitee.rest.api.service.v4.validation.SubscriptionValidationService;
 import java.io.IOException;
+import java.time.ZoneId;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -188,6 +206,15 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
     @Autowired
     private SubscriptionValidationService subscriptionValidationService;
+
+    @Autowired
+    private AcceptSubscriptionDomainService acceptSubscriptionDomainService;
+
+    @Autowired
+    private RejectSubscriptionDomainService rejectSubscriptionDomainService;
+
+    @Autowired
+    private SubscriptionAdapter subscriptionAdapter;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -761,119 +788,35 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         ProcessSubscriptionEntity processSubscription,
         String userId
     ) {
-        try {
-            logger.debug("Subscription {} processed by {}", processSubscription.getId(), userId);
+        logger.debug("Subscription {} processed by {}", processSubscription.getId(), userId);
 
-            Subscription subscription = subscriptionRepository
-                .findById(processSubscription.getId())
-                .orElseThrow(() -> new SubscriptionNotFoundException(processSubscription.getId()));
+        var auditInfo = AuditInfo
+            .builder()
+            .organizationId(executionContext.getOrganizationId())
+            .environmentId(executionContext.getEnvironmentId())
+            .actor(getAuthenticatedUserAsAuditActor())
+            .build();
+        io.gravitee.apim.core.subscription.model.SubscriptionEntity result;
 
-            Subscription previousSubscription = new Subscription(subscription);
-
-            if (subscription.getStatus() != Subscription.Status.PENDING) {
-                throw new SubscriptionAlreadyProcessedException(subscription.getId());
-            }
-
-            GenericPlanEntity genericPlanEntity = planSearchService.findById(executionContext, subscription.getPlan());
-
-            if (genericPlanEntity.getPlanStatus() == PlanStatus.CLOSED) {
-                throw new PlanAlreadyClosedException(genericPlanEntity.getId());
-            }
-
-            subscription.setProcessedBy(userId);
-            Date now = new Date();
-            subscription.setProcessedAt(now);
-            subscription.setUpdatedAt(now);
-
-            if (processSubscription.isAccepted()) {
-                subscription.setStatus(Subscription.Status.ACCEPTED);
-                subscription.setStartingAt(
-                    (processSubscription.getStartingAt() != null) ? processSubscription.getStartingAt() : new Date()
+        if (processSubscription.isAccepted()) {
+            result =
+                acceptSubscriptionDomainService.accept(
+                    processSubscription.getId(),
+                    processSubscription.getStartingAt() != null
+                        ? processSubscription.getStartingAt().toInstant().atZone(ZoneId.systemDefault())
+                        : null,
+                    processSubscription.getEndingAt() != null
+                        ? processSubscription.getEndingAt().toInstant().atZone(ZoneId.systemDefault())
+                        : null,
+                    processSubscription.getReason(),
+                    processSubscription.getCustomApiKey(),
+                    auditInfo
                 );
-                subscription.setEndingAt(processSubscription.getEndingAt());
-                subscription.setReason(processSubscription.getReason());
-            } else {
-                subscription.setStatus(Subscription.Status.REJECTED);
-                subscription.setReason(processSubscription.getReason());
-                subscription.setClosedAt(new Date());
-            }
-
-            final String apiId = genericPlanEntity.getApiId();
-            final GenericApiModel genericApiModel = apiTemplateService.findByIdForTemplates(executionContext, apiId);
-
-            ApplicationEntity application = applicationService.findById(executionContext, subscription.getApplication());
-
-            SubscriptionEntity subscriptionEntity = convert(subscription);
-            PlanSecurity planSecurity = genericPlanEntity.getPlanSecurity();
-            if (
-                planSecurity != null &&
-                PlanSecurityType.API_KEY == PlanSecurityType.valueOfLabel(planSecurity.getType()) &&
-                subscriptionEntity.getStatus() == SubscriptionStatus.ACCEPTED
-            ) {
-                apiKeyService.generate(executionContext, application, subscriptionEntity, processSubscription.getCustomApiKey());
-            }
-            subscription = subscriptionRepository.update(subscription);
-
-            final PrimaryOwnerEntity owner = application.getPrimaryOwner();
-            createAudit(
-                executionContext,
-                apiId,
-                subscription.getApplication(),
-                SUBSCRIPTION_UPDATED,
-                subscription.getUpdatedAt(),
-                previousSubscription,
-                subscription
-            );
-
-            final Map<String, Object> params = new NotificationParamsBuilder()
-                .owner(owner)
-                .application(application)
-                .api(genericApiModel)
-                .plan(genericPlanEntity)
-                .subscription(subscriptionEntity)
-                .build();
-            if (subscription.getStatus() == Subscription.Status.ACCEPTED) {
-                notifierService.trigger(executionContext, ApiHook.SUBSCRIPTION_ACCEPTED, apiId, params);
-                notifierService.trigger(
-                    executionContext,
-                    ApplicationHook.SUBSCRIPTION_ACCEPTED,
-                    subscription.getApplication(),
-                    params,
-                    searchSubscriberEmail(executionContext, subscriptionEntity)
-                        .map(email -> List.of(new Recipient("EMAIL", email)))
-                        .orElse(Collections.emptyList())
-                );
-            } else {
-                notifierService.trigger(executionContext, ApiHook.SUBSCRIPTION_REJECTED, apiId, params);
-                notifierService.trigger(
-                    executionContext,
-                    ApplicationHook.SUBSCRIPTION_REJECTED,
-                    subscription.getApplication(),
-                    params,
-                    searchSubscriberEmail(executionContext, subscriptionEntity)
-                        .map(email -> List.of(new Recipient("EMAIL", email)))
-                        .orElse(Collections.emptyList())
-                );
-            }
-
-            return subscriptionEntity;
-        } catch (TechnicalException ex) {
-            logger.error("An error occurs while trying to process subscription {} by {}", processSubscription.getId(), userId, ex);
-            throw new TechnicalManagementException(
-                String.format("An error occurs while trying to process subscription %s by %s", processSubscription.getId(), userId),
-                ex
-            );
+        } else {
+            result = rejectSubscriptionDomainService.reject(processSubscription.getId(), processSubscription.getReason(), auditInfo);
         }
-    }
 
-    private Optional<String> searchSubscriberEmail(final ExecutionContext executionContext, SubscriptionEntity subscriptionEntity) {
-        try {
-            UserEntity subscriber = userService.findById(executionContext, subscriptionEntity.getSubscribedBy());
-            return Optional.ofNullable(subscriber.getEmail());
-        } catch (UserNotFoundException e) {
-            logger.warn("Subscriber '{}' not found, unable to retrieve email", subscriptionEntity.getSubscribedBy());
-            return Optional.empty();
-        }
+        return subscriptionAdapter.map(result);
     }
 
     @Override
