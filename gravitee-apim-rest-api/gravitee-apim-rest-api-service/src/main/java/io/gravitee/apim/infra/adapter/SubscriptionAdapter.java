@@ -75,6 +75,13 @@ public abstract class SubscriptionAdapter {
     @Mapping(target = "configuration", expression = "java(serializeConfiguration(subscription.getConfiguration()))")
     public abstract Subscription fromEntity(SubscriptionEntity subscription);
 
+    @Mapping(source = "apiId", target = "api")
+    @Mapping(source = "planId", target = "plan")
+    @Mapping(source = "applicationId", target = "application")
+    @Mapping(source = "requestMessage", target = "request")
+    @Mapping(source = "reasonMessage", target = "reason")
+    public abstract io.gravitee.rest.api.model.SubscriptionEntity map(SubscriptionEntity subscription);
+
     @Named("deserializeConfiguration")
     public SubscriptionConfiguration deserializeConfiguration(String configuration) {
         if (configuration == null) {
