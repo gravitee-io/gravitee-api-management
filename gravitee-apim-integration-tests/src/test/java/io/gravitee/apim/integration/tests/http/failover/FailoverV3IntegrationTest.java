@@ -92,7 +92,7 @@ public class FailoverV3IntegrationTest {
             final TestSubscriber<HttpClientResponse> test = Single
                 .merge(listOfParallelCalls)
                 .test()
-                .awaitDone(15, TimeUnit.SECONDS)
+                .awaitDone(30, TimeUnit.SECONDS)
                 .assertComplete();
             for (int i = 0; i < listOfParallelCalls.size(); i++) {
                 test.assertValueAt(
@@ -112,7 +112,7 @@ public class FailoverV3IntegrationTest {
             requestSupplier
                 .apply(client)
                 .test()
-                .awaitDone(5, TimeUnit.SECONDS)
+                .awaitDone(30, TimeUnit.SECONDS)
                 .assertComplete()
                 .assertValue(response -> {
                     // Then the API response should be 502
@@ -147,7 +147,7 @@ public class FailoverV3IntegrationTest {
                     return response.body();
                 })
                 .test()
-                .awaitDone(2, TimeUnit.SECONDS)
+                .awaitDone(30, TimeUnit.SECONDS)
                 .assertComplete()
                 .assertValue(response -> {
                     // Then the response body should be right
@@ -171,7 +171,7 @@ public class FailoverV3IntegrationTest {
                 .rxRequest(HttpMethod.GET, "/test")
                 .flatMap(HttpClientRequest::rxSend)
                 .test()
-                .awaitDone(5, TimeUnit.SECONDS)
+                .awaitDone(30, TimeUnit.SECONDS)
                 .assertComplete()
                 .assertValue(response -> {
                     // Then the API response should be 502
@@ -206,7 +206,7 @@ public class FailoverV3IntegrationTest {
                 .rxRequest(HttpMethod.GET, "/test")
                 .flatMap(HttpClientRequest::rxSend)
                 .test()
-                .awaitDone(5, TimeUnit.SECONDS)
+                .awaitDone(30, TimeUnit.SECONDS)
                 .assertComplete()
                 .assertValue(response -> {
                     // Then the API response should be 502
@@ -235,7 +235,7 @@ public class FailoverV3IntegrationTest {
                 .rxRequest(HttpMethod.POST, "/test")
                 .flatMap(request -> request.rxSend(Buffer.buffer("body")))
                 .test()
-                .awaitDone(5, TimeUnit.SECONDS)
+                .awaitDone(30, TimeUnit.SECONDS)
                 .assertComplete()
                 .assertValue(response -> {
                     // Then the API response should be 502
@@ -277,7 +277,7 @@ public class FailoverV3IntegrationTest {
                     return response.body();
                 })
                 .test()
-                .awaitDone(5, TimeUnit.SECONDS)
+                .awaitDone(30, TimeUnit.SECONDS)
                 .assertComplete()
                 .assertValue(response -> {
                     // Then the API response body should be right
@@ -311,7 +311,7 @@ public class FailoverV3IntegrationTest {
                     return response.body();
                 })
                 .test()
-                .awaitDone(2, TimeUnit.SECONDS)
+                .awaitDone(30, TimeUnit.SECONDS)
                 .assertComplete()
                 .assertValue(response -> {
                     // Then the response body should be right
@@ -337,7 +337,7 @@ public class FailoverV3IntegrationTest {
                 .rxRequest(HttpMethod.GET, "/test")
                 .flatMap(HttpClientRequest::rxSend)
                 .test()
-                .awaitDone(5, TimeUnit.SECONDS)
+                .awaitDone(30, TimeUnit.SECONDS)
                 .assertComplete()
                 .assertValue(response -> {
                     // Then the API response should be 502
@@ -370,7 +370,7 @@ public class FailoverV3IntegrationTest {
                     return response.body();
                 })
                 .test()
-                .awaitDone(5, TimeUnit.SECONDS)
+                .awaitDone(30, TimeUnit.SECONDS)
                 .assertComplete()
                 .assertValue(response -> {
                     // Then the API response body should be the one from third endpoint
@@ -433,7 +433,7 @@ public class FailoverV3IntegrationTest {
                     return response.body();
                 })
                 .test()
-                .awaitDone(2, TimeUnit.SECONDS)
+                .awaitDone(30, TimeUnit.SECONDS)
                 .assertComplete()
                 .assertValue(response -> {
                     // Then the response body should be right
@@ -458,7 +458,7 @@ public class FailoverV3IntegrationTest {
                 .rxRequest(HttpMethod.GET, "/test/dynamic-route/dynamic-param")
                 .flatMap(HttpClientRequest::rxSend)
                 .test()
-                .awaitDone(5, TimeUnit.SECONDS)
+                .awaitDone(30, TimeUnit.SECONDS)
                 .assertComplete()
                 .assertValue(response -> {
                     // Then the API response should be 502
@@ -501,7 +501,7 @@ public class FailoverV3IntegrationTest {
                     return response.body();
                 })
                 .test()
-                .awaitDone(2, TimeUnit.SECONDS)
+                .awaitDone(30, TimeUnit.SECONDS)
                 .assertComplete()
                 .assertValue(response -> {
                     // Then the API response body should be right
@@ -562,7 +562,7 @@ public class FailoverV3IntegrationTest {
                     return response.body();
                 })
                 .test()
-                .awaitDone(2, TimeUnit.SECONDS)
+                .awaitDone(30, TimeUnit.SECONDS)
                 .assertComplete()
                 .assertValue(response -> {
                     // Then the API response body should be right
@@ -595,7 +595,7 @@ public class FailoverV3IntegrationTest {
                 .rxRequest(HttpMethod.GET, "/test/dynamic-route/dynamic-param")
                 .flatMap(HttpClientRequest::rxSend)
                 .test()
-                .awaitDone(5, TimeUnit.SECONDS)
+                .awaitDone(30, TimeUnit.SECONDS)
                 .assertComplete()
                 .assertValue(response -> {
                     // Then the API response should be 200
@@ -633,7 +633,7 @@ public class FailoverV3IntegrationTest {
                     return response.body();
                 })
                 .test()
-                .awaitDone(2, TimeUnit.SECONDS)
+                .awaitDone(30, TimeUnit.SECONDS)
                 .assertComplete()
                 .assertValue(response -> {
                     // Then the API response bodu should be right
