@@ -18,8 +18,8 @@ import { Component, Input, OnInit } from '@angular/core';
 import { map, Observable, of, switchMap } from 'rxjs';
 
 import { MarkdownDescriptionPipe } from '../../../components/pipe/markdown-description.pipe';
-import { MarkdownService } from '../../../services/markdown.service';
 import { ConfigService } from '../../../services/config.service';
+import { MarkdownService } from '../../../services/markdown.service';
 import { PageService } from '../../../services/page.service';
 
 @Component({

@@ -64,7 +64,7 @@ export class MarkdownService {
         const parsedApisUrl = /\/#!\/apis\/(?:[\w-]+)\/documentation\/([\w-]+)/g.exec(href);
         const parsedRelativeDocApiUrl = /\/#!\/documentation\/api\/(.*)#([MARKDOWN|SWAGGER|OPENAPI|ASYNCAPI|ASCIIDOC]+)/g.exec(href);
 
-        let pageId: string;
+        let pageId: string | undefined;
 
         if (parsedSettingsUrl) {
           pageId = parsedSettingsUrl[1];
@@ -74,7 +74,6 @@ export class MarkdownService {
           pageId = pageIdFromParsedRelativeDocApiUrl(parsedRelativeDocApiUrl, pages);
         }
 
-        // @ts-ignore
         if (pageBaseUrl && pageId) {
           return `<a class="${INTERNAL_LINK_CLASSNAME}" href="${pageBaseUrl}?page=${pageId}">${text}</a>`;
         }
@@ -120,7 +119,6 @@ const pageIdFromParsedRelativeDocApiUrl = (parsedDocApiUrl: RegExpExecArray, pag
 
   const pageType = parsedDocApiUrl[2] === 'OPENAPI' ? 'SWAGGER' : parsedDocApiUrl[2];
 
-  // @ts-ignore
   const pageId = findPageId(pageType, undefined, 0, splitPath, pages);
   return pageId ?? pageName;
 };
@@ -134,8 +132,13 @@ const pageIdFromParsedRelativeDocApiUrl = (parsedDocApiUrl: RegExpExecArray, pag
  * @param path
  * @param pages
  */
-// @ts-ignore
-const findPageId = (finalChildPageType: string, parentId: string, index: number, path: string[], pages: Page[]) => {
+const findPageId = (
+  finalChildPageType: string,
+  parentId: string | undefined,
+  index: number,
+  path: string[],
+  pages: Page[],
+): string | undefined => {
   const findingFinalChildPage = index === path.length - 1;
   const typeToFind: string = findingFinalChildPage ? finalChildPageType : 'FOLDER';
 
