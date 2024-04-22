@@ -26,10 +26,10 @@ import {
   ApiPortalDetailsDuplicateDialogData,
 } from './api-general-info-duplicate-dialog/api-general-info-duplicate-dialog.component';
 import {
-  ApiGeneralInfoExportDialogComponent,
-  ApiPortalDetailsExportDialogData,
+  ApiGeneralInfoExportV2DialogComponent,
+  ApiPortalDetailsExportV2DialogData,
   buildFileName,
-} from './api-general-info-export-dialog/api-general-info-export-dialog.component';
+} from './api-general-info-export-v2-dialog/api-general-info-export-v2-dialog.component';
 import {
   ApiGeneralInfoPromoteDialogComponent,
   ApiPortalDetailsPromoteDialogData,
@@ -359,7 +359,7 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
         .subscribe();
     } else {
       this.matDialog
-        .open<ApiGeneralInfoExportDialogComponent, ApiPortalDetailsExportDialogData>(ApiGeneralInfoExportDialogComponent, {
+        .open<ApiGeneralInfoExportV2DialogComponent, ApiPortalDetailsExportV2DialogData>(ApiGeneralInfoExportV2DialogComponent, {
           data: {
             api: this.api,
           },
