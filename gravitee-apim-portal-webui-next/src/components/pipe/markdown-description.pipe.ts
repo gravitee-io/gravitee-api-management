@@ -16,9 +16,9 @@
 import { Pipe, PipeTransform, SecurityContext } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 
-import { MarkdownService } from '../../services/markdown.service';
 import { Api } from '../../entities/api/api';
 import { ConfigService } from '../../services/config.service';
+import { MarkdownService } from '../../services/markdown.service';
 
 @Pipe({
   name: 'markdownDescription',
