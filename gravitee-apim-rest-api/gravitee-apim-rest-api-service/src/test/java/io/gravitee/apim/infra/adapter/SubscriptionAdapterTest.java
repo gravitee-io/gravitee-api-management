@@ -142,7 +142,11 @@ class SubscriptionAdapterTest {
                         .builder()
                         .entrypointId("entrypoint-id")
                         .channel("my-channel")
-                        .entrypointConfiguration("{}")
+                        .entrypointConfiguration(
+                            """
+                            {"callback":"http://webhook.site"}
+                            """
+                        )
                         .build()
                 )
                 .build();
@@ -172,11 +176,13 @@ class SubscriptionAdapterTest {
                 soft.assertThat(subscription.getGeneralConditionsContentPageId()).isEqualTo("page-id");
                 soft.assertThat(subscription.getGeneralConditionsAccepted()).isTrue();
                 soft.assertThat(subscription.getDaysToExpirationOnLastNotification()).isEqualTo(310);
+
                 soft
                     .assertThat(subscription.getConfiguration())
                     .isEqualTo(
                         """
-                              {"entrypointId":"entrypoint-id","channel":"my-channel","entrypointConfiguration":"{}"}"""
+                              {"entrypointId":"entrypoint-id","channel":"my-channel","entrypointConfiguration":{"callback":"http://webhook.site"}
+                              }"""
                     );
                 soft.assertThat(subscription.getMetadata()).containsExactly(Map.entry("metadata1", "value1"));
                 soft.assertThat(subscription.getType()).isEqualTo(Subscription.Type.STANDARD);
