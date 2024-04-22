@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.infra.adapter;
 
+import com.fasterxml.jackson.annotation.JsonRawValue;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.apim.core.json.JsonDeserializer;
@@ -103,7 +104,7 @@ public abstract class SubscriptionAdapter {
         }
 
         try {
-            return jsonSerializer.serialize(configuration);
+            return jsonSerializer.serialize(new JacksonSubscriptionConfiguration(configuration));
         } catch (JsonProcessingException e) {
             LOGGER.error("Unexpected error while serializing Subscription configuration", e);
             return null;
@@ -119,6 +120,18 @@ public abstract class SubscriptionAdapter {
      * </p>
      */
     public static class JacksonSubscriptionConfiguration extends SubscriptionConfiguration {
+
+        // required for Jackson deserialization
+        public JacksonSubscriptionConfiguration() {}
+
+        public JacksonSubscriptionConfiguration(SubscriptionConfiguration configuration) {
+            super(configuration.getEntrypointId(), configuration.getChannel(), configuration.getEntrypointConfiguration());
+        }
+
+        @JsonRawValue
+        public String getEntrypointConfiguration() {
+            return super.getEntrypointConfiguration();
+        }
 
         @JsonSetter
         public void setEntrypointConfiguration(final JsonNode configuration) {
