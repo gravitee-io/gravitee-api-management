@@ -48,6 +48,7 @@ import { ApiGeneralInfoDangerZoneComponent } from './api-general-info-danger-zon
 import { ApiGeneralInfoDuplicateDialogComponent } from './api-general-info-duplicate-dialog/api-general-info-duplicate-dialog.component';
 import { ApiGeneralInfoExportV2DialogComponent } from './api-general-info-export-v2-dialog/api-general-info-export-v2-dialog.component';
 import { ApiGeneralInfoPromoteDialogComponent } from './api-general-info-promote-dialog/api-general-info-promote-dialog.component';
+import { ApiGeneralInfoExportV4DialogComponent } from './api-general-info-export-v4-dialog/api-general-info-export-v4-dialog.component';
 
 import { GioPermissionModule } from '../../../shared/components/gio-permission/gio-permission.module';
 import { GioCircularPercentageModule } from '../../../shared/components/gio-circular-percentage/gio-circular-percentage.module';
@@ -61,6 +62,7 @@ import { GioLicenseBannerModule } from '../../../shared/components/gio-license-b
     ApiGeneralInfoDangerZoneComponent,
     ApiGeneralInfoDuplicateDialogComponent,
     ApiGeneralInfoExportV2DialogComponent,
+    ApiGeneralInfoExportV4DialogComponent,
     ApiGeneralInfoPromoteDialogComponent,
   ],
   exports: [ApiGeneralInfoComponent],

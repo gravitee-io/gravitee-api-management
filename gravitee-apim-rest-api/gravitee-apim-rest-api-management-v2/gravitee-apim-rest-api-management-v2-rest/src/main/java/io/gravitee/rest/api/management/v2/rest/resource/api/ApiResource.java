@@ -385,11 +385,20 @@ public class ApiResource extends AbstractResource {
     @Path("/_export/definition")
     @Produces(MediaType.APPLICATION_JSON)
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ) })
-    public Response exportApiDefinition(@Context HttpHeaders headers, @PathParam("apiId") String apiId) {
+    public Response exportApiDefinition(
+        @Context HttpHeaders headers,
+        @PathParam("apiId") String apiId,
+        @QueryParam("excludeAdditionalData") Set<String> excludeAdditionalData
+    ) {
+        if (excludeAdditionalData == null) {
+            excludeAdditionalData = Set.of();
+        }
+
         ExportApiEntity exportApiEntity = apiImportExportService.exportApi(
             GraviteeContext.getExecutionContext(),
             apiId,
-            getAuthenticatedUser()
+            getAuthenticatedUser(),
+            excludeAdditionalData
         );
 
         return Response

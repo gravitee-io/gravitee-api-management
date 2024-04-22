@@ -28,12 +28,16 @@ import {
 import {
   ApiGeneralInfoExportV2DialogComponent,
   ApiPortalDetailsExportV2DialogData,
-  buildFileName,
 } from './api-general-info-export-v2-dialog/api-general-info-export-v2-dialog.component';
 import {
   ApiGeneralInfoPromoteDialogComponent,
   ApiPortalDetailsPromoteDialogData,
 } from './api-general-info-promote-dialog/api-general-info-promote-dialog.component';
+import {
+  ApiGeneralInfoExportV4DialogComponent,
+  ApiGeneralDetailsExportV4DialogData,
+  ApiGeneralDetailsExportV4DialogResult,
+} from './api-general-info-export-v4-dialog/api-general-info-export-v4-dialog.component';
 
 import { Category } from '../../../entities/category/Category';
 import { Constants } from '../../../entities/Constants';
@@ -344,32 +348,31 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
   }
 
   exportApi() {
-    if (this.api.definitionVersion === 'V4') {
-      this.apiService
-        .export(this.apiId)
-        .pipe(
-          tap((blob) => {
-            const anchor = document.createElement('a');
-            anchor.download = buildFileName(this.api);
-            anchor.href = (window.webkitURL || window.URL).createObjectURL(blob);
-            anchor.click();
-          }),
-          takeUntil(this.unsubscribe$),
-        )
-        .subscribe();
-    } else {
-      this.matDialog
-        .open<ApiGeneralInfoExportV2DialogComponent, ApiPortalDetailsExportV2DialogData>(ApiGeneralInfoExportV2DialogComponent, {
-          data: {
-            api: this.api,
-          },
-          role: 'alertdialog',
-          id: 'exportApiDialog',
-        })
-        .afterClosed()
-        .pipe(takeUntil(this.unsubscribe$))
-        .subscribe();
-    }
+    const exportDialog$ =
+      this.api.definitionVersion === 'V4'
+        ? this.matDialog
+            .open<ApiGeneralInfoExportV4DialogComponent, ApiGeneralDetailsExportV4DialogData, ApiGeneralDetailsExportV4DialogResult>(
+              ApiGeneralInfoExportV4DialogComponent,
+              {
+                data: {
+                  api: this.api,
+                },
+                role: 'alertdialog',
+                id: 'exportApiDialog',
+              },
+            )
+            .afterClosed()
+        : this.matDialog
+            .open<ApiGeneralInfoExportV2DialogComponent, ApiPortalDetailsExportV2DialogData>(ApiGeneralInfoExportV2DialogComponent, {
+              data: {
+                api: this.api,
+              },
+              role: 'alertdialog',
+              id: 'exportApiDialog',
+            })
+            .afterClosed();
+
+    exportDialog$.pipe(takeUntil(this.unsubscribe$)).subscribe();
   }
 
   promoteApi() {

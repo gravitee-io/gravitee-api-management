@@ -105,6 +105,8 @@ import org.junit.jupiter.api.Test;
  */
 public class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
 
+    private static final Set<String> EXCLUDE_ADDITIONAL_DATA = Set.of();
+
     @Override
     protected String contextPath() {
         return "/environments/" + ENVIRONMENT + "/apis/" + API + "/_export/definition";
@@ -123,14 +125,16 @@ public class ApiResource_ExportApiDefinitionTest extends ApiResourceTest {
     public void should_not_export_v2_apis() {
         doThrow(new ApiDefinitionVersionNotSupportedException("2.0.0"))
             .when(apiImportExportService)
-            .exportApi(GraviteeContext.getExecutionContext(), API, USER_NAME);
+            .exportApi(GraviteeContext.getExecutionContext(), API, USER_NAME, EXCLUDE_ADDITIONAL_DATA);
         Response response = rootTarget().request().get();
         assertEquals(BAD_REQUEST_400, response.getStatus());
     }
 
     @Test
     public void should_export() throws JsonProcessingException {
-        doReturn(this.fakeExportApiEntity()).when(apiImportExportService).exportApi(GraviteeContext.getExecutionContext(), API, USER_NAME);
+        doReturn(this.fakeExportApiEntity())
+            .when(apiImportExportService)
+            .exportApi(GraviteeContext.getExecutionContext(), API, USER_NAME, EXCLUDE_ADDITIONAL_DATA);
 
         Response response = rootTarget().request().get();
         assertEquals(OK_200, response.getStatus());
