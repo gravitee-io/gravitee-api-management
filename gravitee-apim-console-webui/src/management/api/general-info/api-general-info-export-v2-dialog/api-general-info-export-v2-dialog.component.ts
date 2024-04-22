@@ -24,16 +24,16 @@ import { Api } from '../../../../entities/management-api-v2';
 import { ApiService } from '../../../../services-ngx/api.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 
-export type ApiPortalDetailsExportDialogData = {
+export type ApiPortalDetailsExportV2DialogData = {
   api: Api;
 };
 
 @Component({
-  selector: 'api-general-info-export-dialog',
-  templateUrl: './api-general-info-export-dialog.component.html',
-  styleUrls: ['./api-general-info-export-dialog.component.scss'],
+  selector: 'api-general-info-export-v2-dialog',
+  templateUrl: './api-general-info-export-v2-dialog.component.html',
+  styleUrls: ['./api-general-info-export-v2-dialog.component.scss'],
 })
-export class ApiGeneralInfoExportDialogComponent implements OnDestroy {
+export class ApiGeneralInfoExportV2DialogComponent implements OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
 
   public jsonOptions = [{ id: 'default', label: 'Current version', isDeprecated: false }];
@@ -54,8 +54,8 @@ export class ApiGeneralInfoExportDialogComponent implements OnDestroy {
   public selectedTabIndex = 0; // 0: Json ; 1: CRD
 
   constructor(
-    private readonly dialogRef: MatDialogRef<ApiPortalDetailsExportDialogData>,
-    @Inject(MAT_DIALOG_DATA) dialogData: ApiPortalDetailsExportDialogData,
+    private readonly dialogRef: MatDialogRef<ApiPortalDetailsExportV2DialogData>,
+    @Inject(MAT_DIALOG_DATA) dialogData: ApiPortalDetailsExportV2DialogData,
     private readonly apiService: ApiService,
     private readonly snackBarService: SnackBarService,
   ) {
