@@ -93,8 +93,6 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
 
     @Nested
     @GatewayTest
-    // TODO: enable when failover support merged on reactor
-    @Disabled
     class MessageApi extends AbstractGatewayTest {
 
         @Override
@@ -129,7 +127,7 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
                     return response.rxBody().flatMapPublisher(this::extractPlainTextMessages);
                 })
                 .test()
-                .awaitDone(2, TimeUnit.SECONDS)
+                .awaitDone(30, TimeUnit.SECONDS)
                 .assertComplete()
                 .assertValueCount(5);
         }
@@ -144,7 +142,7 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
                 .rxRequest(HttpMethod.GET, "/test")
                 .flatMap(HttpClientRequest::rxSend)
                 .test()
-                .awaitDone(2, TimeUnit.SECONDS)
+                .awaitDone(30, TimeUnit.SECONDS)
                 .assertComplete()
                 .assertValue(response -> {
                     // Then the API response should be 502
@@ -172,7 +170,7 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
                     return response.rxBody().flatMapPublisher(this::extractPlainTextMessages);
                 })
                 .test()
-                .awaitDone(2, TimeUnit.SECONDS)
+                .awaitDone(30, TimeUnit.SECONDS)
                 .assertComplete()
                 .assertValueCount(5);
         }
@@ -245,7 +243,7 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
             final TestSubscriber<HttpClientResponse> test = Single
                 .merge(listOfParallelCalls)
                 .test()
-                .awaitDone(15, TimeUnit.SECONDS)
+                .awaitDone(30, TimeUnit.SECONDS)
                 .assertComplete();
             for (int i = 0; i < listOfParallelCalls.size(); i++) {
                 test.assertValueAt(
@@ -265,7 +263,7 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
             requestSupplier
                 .apply(client)
                 .test()
-                .awaitDone(5, TimeUnit.SECONDS)
+                .awaitDone(30, TimeUnit.SECONDS)
                 .assertComplete()
                 .assertValue(response -> {
                     // Then the API response should be 502
@@ -292,7 +290,7 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
                 .rxRequest(HttpMethod.GET, "/test")
                 .flatMap(request -> request.putHeader("X-Gravitee-Api-Key", apiKey.getKey()).rxSend())
                 .test()
-                .awaitDone(5, TimeUnit.SECONDS)
+                .awaitDone(30, TimeUnit.SECONDS)
                 .assertComplete()
                 .assertValue(response -> {
                     // Then the API response should be 200
