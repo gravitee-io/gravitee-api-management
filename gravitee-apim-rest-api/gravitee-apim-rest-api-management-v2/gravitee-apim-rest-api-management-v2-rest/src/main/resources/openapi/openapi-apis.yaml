@@ -468,6 +468,22 @@ paths:
             - $ref: "#/components/parameters/envIdParam"
             - $ref: "#/components/parameters/apiIdParam"
         get:
+            parameters:
+                - name: excludeAdditionalData
+                  in: query
+                  required: false
+                  description: Exclude additional data from the API definition export
+                  schema:
+                    type: array
+                    items:
+                      type: string
+                      enum:
+                        - groups
+                        - members
+                        - metadata
+                        - pages
+                        - plans
+                    default: [ 'groups', 'members', 'metadata', 'pages', 'plans' ]
             tags:
                 - APIs
             summary: Export an API
@@ -6427,6 +6443,7 @@ components:
             description: Id of an API Event.
             schema:
                 type: string
+
     responses:
         ApisResponse:
             description: Page of apis

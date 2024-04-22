@@ -21,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -88,7 +87,6 @@ import io.gravitee.rest.api.service.v4.ApiService;
 import io.gravitee.rest.api.service.v4.PlanService;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import org.apiguardian.api.API;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -140,6 +138,7 @@ public class ApiImportExportServiceImplTest {
 
     private static final String API_ID = "my-api";
     private static final String USER_ID = "my-user";
+    private static final Set<String> EXCLUDE_ADDITIONAL_DATA = Set.of();
 
     @BeforeEach
     public void setUp() {
@@ -174,7 +173,7 @@ public class ApiImportExportServiceImplTest {
         doReturn(this.fakeApiEntityV2()).when(apiSearchService).findGenericById(GraviteeContext.getExecutionContext(), API_ID);
         assertThrows(
             ApiDefinitionVersionNotSupportedException.class,
-            () -> cut.exportApi(GraviteeContext.getExecutionContext(), API_ID, USER_ID)
+            () -> cut.exportApi(GraviteeContext.getExecutionContext(), API_ID, USER_ID, EXCLUDE_ADDITIONAL_DATA)
         );
     }
 
@@ -183,7 +182,7 @@ public class ApiImportExportServiceImplTest {
         mockPermissions(false, false, false, false);
         doReturn(this.fakeApiEntityV4()).when(apiSearchService).findGenericById(GraviteeContext.getExecutionContext(), API_ID);
 
-        final ExportApiEntity export = cut.exportApi(GraviteeContext.getExecutionContext(), API_ID, USER_ID);
+        final ExportApiEntity export = cut.exportApi(GraviteeContext.getExecutionContext(), API_ID, USER_ID, EXCLUDE_ADDITIONAL_DATA);
         assertNull(export.getMembers());
         assertNull(export.getMetadata());
         assertNull(export.getPlans());
@@ -205,7 +204,7 @@ public class ApiImportExportServiceImplTest {
             .when(membershipService)
             .getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, API_ID);
 
-        final ExportApiEntity export = cut.exportApi(GraviteeContext.getExecutionContext(), API_ID, USER_ID);
+        final ExportApiEntity export = cut.exportApi(GraviteeContext.getExecutionContext(), API_ID, USER_ID, EXCLUDE_ADDITIONAL_DATA);
         assertNotNull(export.getMembers());
         assertNull(export.getMetadata());
         assertNull(export.getPlans());
@@ -226,7 +225,7 @@ public class ApiImportExportServiceImplTest {
         doReturn(this.fakeApiEntityV4()).when(apiSearchService).findGenericById(GraviteeContext.getExecutionContext(), API_ID);
         doReturn(new ArrayList<>(this.fakeApiMetadata())).when(apiMetadataService).findAllByApi(API_ID);
 
-        final ExportApiEntity export = cut.exportApi(GraviteeContext.getExecutionContext(), API_ID, USER_ID);
+        final ExportApiEntity export = cut.exportApi(GraviteeContext.getExecutionContext(), API_ID, USER_ID, EXCLUDE_ADDITIONAL_DATA);
         assertNull(export.getMembers());
         assertNotNull(export.getMetadata());
         assertNull(export.getPlans());
@@ -249,7 +248,7 @@ public class ApiImportExportServiceImplTest {
         doReturn(this.fakeApiEntityV4()).when(apiSearchService).findGenericById(GraviteeContext.getExecutionContext(), API_ID);
         doReturn(this.fakeApiPlans()).when(planService).findByApi(GraviteeContext.getExecutionContext(), API_ID);
 
-        final ExportApiEntity export = cut.exportApi(GraviteeContext.getExecutionContext(), API_ID, USER_ID);
+        final ExportApiEntity export = cut.exportApi(GraviteeContext.getExecutionContext(), API_ID, USER_ID, EXCLUDE_ADDITIONAL_DATA);
         assertNull(export.getMembers());
         assertNull(export.getMetadata());
         assertNotNull(export.getPlans());
@@ -273,7 +272,7 @@ public class ApiImportExportServiceImplTest {
         doReturn(this.fakeApiPages()).when(pageService).findByApi(GraviteeContext.getCurrentEnvironment(), API_ID);
         doReturn(this.fakeApiMedia()).when(mediaService).findAllByApiId(API_ID);
 
-        final ExportApiEntity export = cut.exportApi(GraviteeContext.getExecutionContext(), API_ID, USER_ID);
+        final ExportApiEntity export = cut.exportApi(GraviteeContext.getExecutionContext(), API_ID, USER_ID, EXCLUDE_ADDITIONAL_DATA);
         assertNull(export.getMembers());
         assertNull(export.getMetadata());
         assertNull(export.getPlans());
@@ -287,6 +286,20 @@ public class ApiImportExportServiceImplTest {
         verify(planService, never()).findByApi(GraviteeContext.getExecutionContext(), API_ID);
         verify(pageService).findByApi(GraviteeContext.getCurrentEnvironment(), API_ID);
         verify(mediaService).findAllByApiId(API_ID);
+    }
+
+    @Test
+    public void should_export_api_and_exclude_all_additional_data() throws JsonProcessingException {
+        doReturn(this.fakeApiEntityV4()).when(apiSearchService).findGenericById(GraviteeContext.getExecutionContext(), API_ID);
+
+        var EXCLUDE_ALL_ADDITIONAL_DATA = Set.of("members", "metadata", "plans", "pages", "groups");
+        final ExportApiEntity export = cut.exportApi(GraviteeContext.getExecutionContext(), API_ID, USER_ID, EXCLUDE_ALL_ADDITIONAL_DATA);
+        assertNull(export.getMembers());
+        assertNull(export.getMetadata());
+        assertNull(export.getPlans());
+        assertNull(export.getPages());
+        assertNotNull(export.getApiEntity());
+        assertNull(export.getApiEntity().getGroups());
     }
 
     private void mockPermissions(boolean member, boolean metadata, boolean plan, boolean documentation) {
@@ -450,6 +463,7 @@ public class ApiImportExportServiceImplTest {
         apiEntity.setId(API_ID);
         apiEntity.setName(API_ID);
         apiEntity.setApiVersion("v1.0");
+        apiEntity.setGroups(Set.of("group1", "group2"));
         HttpListener httpListener = new HttpListener();
         httpListener.setPaths(List.of(new Path("my.fake.host", "/test")));
         httpListener.setPathMappings(Set.of("/test"));

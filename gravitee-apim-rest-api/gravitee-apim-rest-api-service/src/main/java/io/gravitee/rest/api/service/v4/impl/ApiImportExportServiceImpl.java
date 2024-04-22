@@ -98,7 +98,7 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
     }
 
     @Override
-    public ExportApiEntity exportApi(ExecutionContext executionContext, String apiId, String userId) {
+    public ExportApiEntity exportApi(ExecutionContext executionContext, String apiId, String userId, Set<String> excludeAdditionalData) {
         final var apiEntity = apiSearchService.findGenericById(executionContext, apiId);
         if (apiEntity.getDefinitionVersion() != DefinitionVersion.V4) {
             throw new ApiDefinitionVersionNotSupportedException(apiEntity.getDefinitionVersion().getLabel());
@@ -107,46 +107,33 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
         final ExportApiEntity exportApi = new ExportApiEntity();
         exportApi.setApiEntity((ApiEntity) apiEntity);
 
-        if (
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.API_MEMBER,
-                apiId,
-                RolePermissionAction.READ
-            )
-        ) {
-            var members = membershipService
-                .getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, apiId)
-                .stream()
-                .filter(memberEntity -> memberEntity.getType() == MembershipMemberType.USER)
-                .collect(Collectors.toSet());
+        if (!excludeAdditionalData.contains("members")) {
+            var members = exportApiMembers(apiId);
             exportApi.setMembers(members);
         }
 
-        if (
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.API_METADATA,
-                apiId,
-                RolePermissionAction.READ
-            )
-        ) {
-            var metadataList = apiMetadataService.findAllByApi(apiId);
-            exportApi.setMetadata(new HashSet<>(metadataList));
+        if (!excludeAdditionalData.contains("metadata")) {
+            var metadata = exportApiMetadata(apiId);
+            exportApi.setMetadata(metadata);
         }
 
-        if (
-            permissionService.hasPermission(
-                GraviteeContext.getExecutionContext(),
-                RolePermission.API_PLAN,
-                apiId,
-                RolePermissionAction.READ
-            )
-        ) {
-            var plansSet = planService.findByApi(GraviteeContext.getExecutionContext(), apiId);
-            exportApi.setPlans(plansSet);
+        if (!excludeAdditionalData.contains("plans")) {
+            var plans = exportApiPlans(apiId);
+            exportApi.setPlans(plans);
         }
 
+        if (!excludeAdditionalData.contains("pages")) {
+            exportApiPagesAndMedia(apiId, exportApi);
+        }
+
+        if (excludeAdditionalData.contains("groups")) {
+            exportApi.getApiEntity().setGroups(null);
+        }
+
+        return exportApi;
+    }
+
+    private void exportApiPagesAndMedia(String apiId, ExportApiEntity exportApi) {
         if (
             permissionService.hasPermission(
                 GraviteeContext.getExecutionContext(),
@@ -161,8 +148,52 @@ public class ApiImportExportServiceImpl implements ApiImportExportService {
             var apiMediaList = mediaService.findAllByApiId(apiId);
             exportApi.setApiMedia(apiMediaList);
         }
+    }
 
-        return exportApi;
+    private Set<PlanEntity> exportApiPlans(String apiId) {
+        if (
+            permissionService.hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.API_PLAN,
+                apiId,
+                RolePermissionAction.READ
+            )
+        ) {
+            return planService.findByApi(GraviteeContext.getExecutionContext(), apiId);
+        }
+        return null;
+    }
+
+    private Set<ApiMetadataEntity> exportApiMetadata(String apiId) {
+        if (
+            permissionService.hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.API_METADATA,
+                apiId,
+                RolePermissionAction.READ
+            )
+        ) {
+            return new HashSet<>(apiMetadataService.findAllByApi(apiId));
+        }
+        return null;
+    }
+
+    private Set<MemberEntity> exportApiMembers(String apiId) {
+        if (
+            permissionService.hasPermission(
+                GraviteeContext.getExecutionContext(),
+                RolePermission.API_MEMBER,
+                apiId,
+                RolePermissionAction.READ
+            )
+        ) {
+            return membershipService
+                .getMembersByReference(GraviteeContext.getExecutionContext(), MembershipReferenceType.API, apiId)
+                .stream()
+                .filter(memberEntity -> memberEntity.getType() == MembershipMemberType.USER)
+                .collect(Collectors.toSet());
+        }
+        return null;
     }
 
     @Override

@@ -36,6 +36,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApiGeneralInfoModule } from './api-general-info.module';
 import { ApiGeneralInfoComponent } from './api-general-info.component';
+import { ApiGeneralInfoExportV4DialogHarness } from './api-general-info-export-v4-dialog/api-general-info-export-v4-dialog.harness';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { Category } from '../../../entities/category/Category';
@@ -596,14 +597,23 @@ describe('ApiGeneralInfoComponent', () => {
 
       // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
       await waitImageCheck();
+      fixture.detectChanges();
+      expectApiVerifyDeployment(api, true);
 
       const button = await loader.getHarness(MatButtonHarness.with({ text: /Export/ }));
       await button.click();
 
-      await waitImageCheck();
-      expectApiVerifyDeployment(api, true);
+      const apiGeneralInfoExportV4Dialog = await rootLoader.getHarness(ApiGeneralInfoExportV4DialogHarness);
 
-      await expectExportV4GetRequest(API_ID);
+      expect(await apiGeneralInfoExportV4Dialog.getExportOptions()).toEqual(['Groups', 'Members', 'Pages', 'Plans', 'Metadata']);
+
+      await apiGeneralInfoExportV4Dialog.setExportOptions({
+        groups: false,
+      });
+
+      await apiGeneralInfoExportV4Dialog.export();
+
+      expectExportV4GetRequest(API_ID, ['groups']);
     });
 
     it('should duplicate HTTP api', async () => {
@@ -716,9 +726,12 @@ describe('ApiGeneralInfoComponent', () => {
     fixture.detectChanges();
   }
 
-  function expectExportV4GetRequest(apiId: string) {
+  function expectExportV4GetRequest(apiId: string, excludeAdditionalData: string[] = []) {
     httpTestingController
-      .expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/_export/definition`, method: 'GET' })
+      .expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/_export/definition?excludeAdditionalData=${excludeAdditionalData.join(',')}`,
+        method: 'GET',
+      })
       .flush(new Blob(['a'], { type: 'text/json' }));
     fixture.detectChanges();
   }

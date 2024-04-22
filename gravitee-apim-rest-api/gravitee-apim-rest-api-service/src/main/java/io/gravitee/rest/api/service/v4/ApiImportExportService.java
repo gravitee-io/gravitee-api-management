@@ -18,9 +18,10 @@ package io.gravitee.rest.api.service.v4;
 import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import java.util.Set;
 
 public interface ApiImportExportService {
     GenericApiEntity createFromExportedApi(final ExecutionContext executionContext, ExportApiEntity exportApiEntityV4, String userId);
 
-    ExportApiEntity exportApi(final ExecutionContext executionContext, String apiId, String userId);
+    ExportApiEntity exportApi(final ExecutionContext executionContext, String apiId, String userId, Set<String> excludeAdditionalData);
 }

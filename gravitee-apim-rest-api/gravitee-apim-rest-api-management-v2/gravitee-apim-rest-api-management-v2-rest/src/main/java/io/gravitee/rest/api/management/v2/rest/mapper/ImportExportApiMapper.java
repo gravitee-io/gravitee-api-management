@@ -18,14 +18,17 @@ package io.gravitee.rest.api.management.v2.rest.mapper;
 import io.gravitee.rest.api.management.v2.rest.model.ExportApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.Member;
 import io.gravitee.rest.api.management.v2.rest.model.Metadata;
+import io.gravitee.rest.api.management.v2.rest.model.PlanV4;
 import io.gravitee.rest.api.model.ApiMetadataEntity;
 import io.gravitee.rest.api.model.MemberEntity;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.ExportApiEntity;
+import io.gravitee.rest.api.model.v4.plan.PlanEntity;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
 @Mapper(uses = { ApiMapper.class, DateMapper.class, MemberMapper.class, MetadataMapper.class, PageMapper.class, PlanMapper.class })
@@ -35,6 +38,7 @@ public interface ImportExportApiMapper {
     @Mapping(target = "apiPicture", source = "apiEntity.picture")
     @Mapping(target = "apiBackground", source = "apiEntity.background")
     @Mapping(target = "api", source = "apiEntity")
+    @Mapping(target = "plans", source = "plans", qualifiedByName = "toPlanV4Nullable")
     ExportApiV4 map(ExportApiEntity exportApiEntityV4);
 
     @Mapping(target = "apiEntity", expression = "java(buildApiEntity(exportApiV4))")
@@ -57,6 +61,14 @@ public interface ImportExportApiMapper {
 
     default Set<MemberEntity> buildMembers(ExportApiV4 exportApiV4) {
         return exportApiV4.getMembers().stream().map(member -> map(member, exportApiV4.getApi().getId())).collect(Collectors.toSet());
+    }
+
+    @Named("toPlanV4Nullable")
+    default Set<PlanV4> toPlanV4Nullable(Set<PlanEntity> plans) {
+        if (plans == null) {
+            return null;
+        }
+        return PlanMapper.INSTANCE.map(plans);
     }
 
     @Mapping(target = "apiId", expression = "java(apiId)")

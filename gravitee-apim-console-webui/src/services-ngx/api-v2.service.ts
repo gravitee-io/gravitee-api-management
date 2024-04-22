@@ -97,9 +97,17 @@ export class ApiV2Service {
     return this.http.post<Api>(`${this.constants.env.v2BaseURL}/apis/${apiId}/_duplicate`, options);
   }
 
-  export(apiId: string): Observable<Blob> {
+  export(
+    apiId: string,
+    options?: {
+      excludeAdditionalData?: string[];
+    },
+  ): Observable<Blob> {
     return this.http.get(`${this.constants.env.v2BaseURL}/apis/${apiId}/_export/definition`, {
       responseType: 'blob',
+      params: {
+        ...(options?.excludeAdditionalData ? { excludeAdditionalData: options.excludeAdditionalData.join(',') } : {}),
+      },
     });
   }
 
