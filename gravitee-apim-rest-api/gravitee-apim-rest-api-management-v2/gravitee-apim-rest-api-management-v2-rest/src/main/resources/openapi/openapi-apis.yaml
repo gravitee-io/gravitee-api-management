@@ -3454,6 +3454,8 @@ components:
                     example: 6c530064-0b2c-4004-9300-640b2ce0047b
                 security:
                     $ref: "#/components/schemas/PlanSecurity"
+                mode:
+                    $ref: "#/components/schemas/PlanMode"
         GenericPlan:
             type: object
             allOf:
@@ -3545,8 +3547,6 @@ components:
                           type: array
                           items:
                               $ref: "#/components/schemas/FlowV4"
-                      mode:
-                          $ref: "#/components/schemas/PlanMode"
         Plan:
             oneOf:
                 - $ref: "#/components/schemas/PlanV2"

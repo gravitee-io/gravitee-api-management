@@ -39,6 +39,8 @@ import { ApplicationService } from '../../../../services-ngx/application.service
 
 type SubscriptionsTableDS = {
   id: string;
+  securityType: string;
+  isSharedApiKey: boolean;
   plan: string;
   application: string;
   createdAt: Date;
@@ -46,6 +48,7 @@ type SubscriptionsTableDS = {
   startingAt: Date;
   endAt: Date;
   status: string;
+  statusBadge: string;
 };
 
 @Component({
@@ -54,20 +57,20 @@ type SubscriptionsTableDS = {
   styleUrls: ['./api-subscription-list.component.scss'],
 })
 export class ApiSubscriptionListComponent implements OnInit, OnDestroy {
-  public displayedColumns = ['plan', 'application', 'createdAt', 'processedAt', 'startingAt', 'endAt', 'status', 'actions'];
+  public displayedColumns = ['securityType', 'plan', 'application', 'createdAt', 'processedAt', 'startingAt', 'endAt', 'status', 'actions'];
   public subscriptionsTableDS: SubscriptionsTableDS[] = [];
   public nbTotalSubscriptions = 0;
 
   public filtersForm: UntypedFormGroup;
 
   public plans: Plan[] = [];
-  public statuses: { id: SubscriptionStatus; name: string }[] = [
-    { id: 'ACCEPTED', name: 'Accepted' },
-    { id: 'CLOSED', name: 'Closed' },
-    { id: 'PAUSED', name: 'Paused' },
-    { id: 'PENDING', name: 'Pending' },
-    { id: 'REJECTED', name: 'Rejected' },
-    { id: 'RESUMED', name: 'Resumed' },
+  public statuses: { id: SubscriptionStatus; name: string; badge: string }[] = [
+    { id: 'ACCEPTED', name: 'Accepted', badge: 'success' },
+    { id: 'CLOSED', name: 'Closed', badge: 'neutral' },
+    { id: 'PAUSED', name: 'Paused', badge: 'accent' },
+    { id: 'PENDING', name: 'Pending', badge: 'warning' },
+    { id: 'REJECTED', name: 'Rejected', badge: 'warning' },
+    { id: 'RESUMED', name: 'Resumed', badge: 'neutral' },
   ];
 
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
@@ -201,16 +204,22 @@ export class ApiSubscriptionListComponent implements OnInit, OnDestroy {
       )
       .subscribe((apiSubscriptionsResponse) => {
         this.nbTotalSubscriptions = apiSubscriptionsResponse.pagination.totalCount;
-        this.subscriptionsTableDS = (apiSubscriptionsResponse.data ?? []).map((subscription) => ({
-          id: subscription.id,
-          application: `${subscription.application?.name} (${subscription.application?.primaryOwner?.displayName})`,
-          createdAt: subscription.createdAt,
-          endAt: subscription.endingAt,
-          plan: subscription.plan?.name,
-          processedAt: subscription.processedAt,
-          startingAt: subscription.startingAt,
-          status: this.statuses.find((status) => status.id === subscription.status)?.name,
-        }));
+        this.subscriptionsTableDS = (apiSubscriptionsResponse.data ?? []).map((subscription) => {
+          const status = this.statuses.find((status) => status.id === subscription.status);
+          return {
+            id: subscription.id,
+            application: `${subscription.application?.name} (${subscription.application?.primaryOwner?.displayName})`,
+            createdAt: subscription.createdAt,
+            endAt: subscription.endingAt,
+            securityType: subscription.plan.mode === 'PUSH' ? 'PUSH' : subscription.plan?.security?.type ?? 'UNKNOWN',
+            isSharedApiKey: subscription.plan?.security?.type === 'API_KEY' && subscription.application?.apiKeyMode === 'SHARED',
+            plan: subscription.plan?.name,
+            processedAt: subscription.processedAt,
+            startingAt: subscription.startingAt,
+            status: status?.name,
+            statusBadge: status?.badge,
+          };
+        });
         this.isLoadingData = false;
       });
   }

@@ -47,6 +47,7 @@ import io.gravitee.rest.api.management.v2.rest.model.BasePlan;
 import io.gravitee.rest.api.management.v2.rest.model.HttpMethod;
 import io.gravitee.rest.api.management.v2.rest.model.Links;
 import io.gravitee.rest.api.management.v2.rest.model.Pagination;
+import io.gravitee.rest.api.management.v2.rest.model.PlanMode;
 import io.gravitee.rest.api.management.v2.rest.model.PlanSecurity;
 import io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType;
 import io.gravitee.rest.api.management.v2.rest.resource.api.log.param.SearchLogsParam;
@@ -173,6 +174,7 @@ public class ApiLogsResourceTest extends ApiResourceTest {
                                             .apiId(API)
                                             .description(PLAN_1.getDescription())
                                             .security(PlanSecurity.builder().type(PlanSecurityType.KEY_LESS).build())
+                                            .mode(PlanMode.STANDARD)
                                             .build()
                                     )
                                     .method(HttpMethod.GET)
@@ -312,6 +314,7 @@ public class ApiLogsResourceTest extends ApiResourceTest {
                         .apiId(API)
                         .description(PLAN_1.getDescription())
                         .security(PlanSecurity.builder().type(PlanSecurityType.KEY_LESS).build())
+                        .mode(PlanMode.STANDARD)
                         .build()
                 )
                 .method(HttpMethod.GET)
@@ -368,6 +371,7 @@ public class ApiLogsResourceTest extends ApiResourceTest {
                         .apiId(API)
                         .description(PLAN_1.getDescription())
                         .security(PlanSecurity.builder().type(PlanSecurityType.KEY_LESS).build())
+                        .mode(PlanMode.STANDARD)
                         .build()
                 )
                 .method(HttpMethod.GET)
@@ -414,6 +418,7 @@ public class ApiLogsResourceTest extends ApiResourceTest {
                         .apiId(API)
                         .description(PLAN_1.getDescription())
                         .security(PlanSecurity.builder().type(PlanSecurityType.KEY_LESS).build())
+                        .mode(PlanMode.STANDARD)
                         .build()
                 )
                 .method(HttpMethod.GET)
@@ -468,6 +473,7 @@ public class ApiLogsResourceTest extends ApiResourceTest {
                                             .apiId(API)
                                             .description(PLAN_1.getDescription())
                                             .security(PlanSecurity.builder().type(PlanSecurityType.KEY_LESS).build())
+                                            .mode(PlanMode.STANDARD)
                                             .build()
                                     )
                                     .method(HttpMethod.GET)
@@ -518,6 +524,7 @@ public class ApiLogsResourceTest extends ApiResourceTest {
                                             .apiId(API)
                                             .description(PLAN_1.getDescription())
                                             .security(PlanSecurity.builder().type(PlanSecurityType.KEY_LESS).build())
+                                            .mode(PlanMode.STANDARD)
                                             .build()
                                     )
                                     .method(HttpMethod.GET)

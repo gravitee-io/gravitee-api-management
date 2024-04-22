@@ -218,6 +218,7 @@ describe('ApiSubscriptionListComponent', () => {
       const { headerCells, rowCells } = await computeSubscriptionsTableCells();
       expect(headerCells).toEqual([
         {
+          securityType: 'Security type',
           plan: 'Plan',
           application: 'Application',
           createdAt: 'Created at',
@@ -238,6 +239,7 @@ describe('ApiSubscriptionListComponent', () => {
       const { headerCells, rowCells } = await computeSubscriptionsTableCells();
       expect(headerCells).toEqual([
         {
+          securityType: 'Security type',
           plan: 'Plan',
           application: 'Application',
           createdAt: 'Created at',
@@ -250,6 +252,7 @@ describe('ApiSubscriptionListComponent', () => {
       ]);
       expect(rowCells).toEqual([
         [
+          'API_KEY',
           'My Plan',
           'My Application (Primary Owner)',
           '2020-01-01 00:00:00',
@@ -278,6 +281,7 @@ describe('ApiSubscriptionListComponent', () => {
       const { headerCells, rowCells } = await computeSubscriptionsTableCells();
       expect(headerCells).toEqual([
         {
+          securityType: 'Security type',
           plan: 'Plan',
           application: 'Application',
           createdAt: 'Created at',
@@ -290,6 +294,7 @@ describe('ApiSubscriptionListComponent', () => {
       ]);
       expect(rowCells).toEqual([
         [
+          'API_KEY',
           'My Plan',
           'My Application (Primary Owner)',
           '2020-01-01 00:00:00',
@@ -314,6 +319,7 @@ describe('ApiSubscriptionListComponent', () => {
       const { headerCells, rowCells } = await computeSubscriptionsTableCells();
       expect(headerCells).toEqual([
         {
+          securityType: 'Security type',
           plan: 'Plan',
           application: 'Application',
           createdAt: 'Created at',
@@ -326,6 +332,7 @@ describe('ApiSubscriptionListComponent', () => {
       ]);
       expect(rowCells).toEqual([
         [
+          'API_KEY',
           'My Plan',
           'My Application (Primary Owner)',
           '2020-01-01 00:00:00',
@@ -356,6 +363,7 @@ describe('ApiSubscriptionListComponent', () => {
       const { rowCells } = await computeSubscriptionsTableCells();
       expect(rowCells).toEqual([
         [
+          'API_KEY',
           'My Plan',
           'My Application (Primary Owner)',
           '2020-01-01 00:00:00',

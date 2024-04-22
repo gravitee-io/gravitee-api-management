@@ -15,6 +15,7 @@
  */
 package fixtures;
 
+import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
@@ -52,6 +53,7 @@ public class PlanModelFixtures {
         .status(PlanStatus.PUBLISHED)
         .security(BASE_PLAN_SECURITY_V4.build())
         .type(PlanType.API)
+        .mode(PlanMode.STANDARD)
         .excludedGroups(List.of("excludedGroup1", "excludedGroup2"))
         .validation(PlanValidationType.AUTO)
         .selectionRule("{#request.attribute['selectionRule'] != null}")
