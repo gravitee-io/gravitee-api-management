@@ -135,8 +135,8 @@ public class ApiSubscriptionsResource_GetTest extends ApiSubscriptionsResourceTe
 
         when(subscriptionService.findById(SUBSCRIPTION)).thenReturn(subscriptionEntity);
 
-        when(planSearchService.findByIdIn(GraviteeContext.getExecutionContext(), Set.of(PLAN)))
-            .thenReturn(Set.of(PlanFixtures.aPlanEntityV4().toBuilder().id(PLAN).build()));
+        var planEntity = PlanFixtures.aPlanEntityV4().toBuilder().id(PLAN).build();
+        when(planSearchService.findByIdIn(GraviteeContext.getExecutionContext(), Set.of(PLAN))).thenReturn(Set.of(planEntity));
 
         when(
             applicationService.findByIds(
@@ -168,6 +168,7 @@ public class ApiSubscriptionsResource_GetTest extends ApiSubscriptionsResourceTe
         assertEquals(subscriptionEntity.getPlan(), subscription.getPlan().getId());
         assertNotNull(subscription.getPlan().getName());
         assertNotNull(subscription.getPlan().getDescription());
+        assertEquals(subscription.getPlan().getMode().name(), planEntity.getMode().name());
         assertEquals(subscriptionEntity.getApplication(), subscription.getApplication().getId());
         assertNotNull(subscription.getApplication().getName());
         assertNotNull(subscription.getApplication().getDescription());

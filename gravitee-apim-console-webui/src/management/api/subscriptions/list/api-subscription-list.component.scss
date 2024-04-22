@@ -72,6 +72,10 @@ $foreground: map.get(gio.$mat-theme, foreground);
       width: 30%;
     }
 
+    .mat-column-securityType {
+      white-space: nowrap;
+    }
+
     .loader {
       gio-loader {
         height: 50px;

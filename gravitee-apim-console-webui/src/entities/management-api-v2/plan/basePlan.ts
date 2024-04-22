@@ -17,6 +17,7 @@ import { PlanSecurity } from './planSecurity';
 import { PlanStatus } from './planStatus';
 import { PlanType } from './planType';
 import { PlanValidation } from './planValidation';
+import { PlanMode } from './v4';
 
 import { DefinitionVersion } from '../api';
 
@@ -93,6 +94,7 @@ export interface BasePlan {
    */
   tags?: string[];
   type?: PlanType;
+  mode?: PlanMode;
   /**
    * Format: date-time
    *

@@ -138,6 +138,7 @@ public interface PlanMapper {
     }
 
     @Mapping(source = "planSecurity.type", target = "security.type", qualifiedByName = "mapToPlanSecurityType")
+    @Mapping(target = "mode", source = "planMode")
     @Mapping(source = "planSecurity.configuration", target = "security.configuration", qualifiedByName = "deserializeConfiguration")
     BasePlan map(GenericPlanEntity plan);
 
