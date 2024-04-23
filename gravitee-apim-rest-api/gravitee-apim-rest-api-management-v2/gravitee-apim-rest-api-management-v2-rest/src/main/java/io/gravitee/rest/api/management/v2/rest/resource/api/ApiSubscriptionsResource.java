@@ -22,6 +22,7 @@ import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.CloseSubscriptionUseCase;
+import io.gravitee.apim.core.subscription.use_case.RejectSubscriptionUseCase;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApplicationMapper;
@@ -119,6 +120,9 @@ public class ApiSubscriptionsResource extends AbstractResource {
 
     @Inject
     private AcceptSubscriptionUseCase acceptSubscriptionUsecase;
+
+    @Inject
+    private RejectSubscriptionUseCase rejectSubscriptionUseCase;
 
     @Inject
     private RevokeApiSubscriptionApiKeyUseCase revokeApiSubscriptionApiKeyUsecase;
@@ -373,22 +377,8 @@ public class ApiSubscriptionsResource extends AbstractResource {
         @PathParam("subscriptionId") String subscriptionId,
         @Valid @NotNull RejectSubscription rejectSubscription
     ) {
-        final SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
-
-        if (!subscriptionEntity.getApi().equals(apiId)) {
-            return Response.status(Response.Status.NOT_FOUND).entity(subscriptionNotFoundError(subscriptionId)).build();
-        }
-
-        final ProcessSubscriptionEntity processSubscriptionEntity = subscriptionMapper.map(rejectSubscription, subscriptionId);
-
-        return Response
-            .ok()
-            .entity(
-                subscriptionMapper.map(
-                    subscriptionService.process(GraviteeContext.getExecutionContext(), processSubscriptionEntity, getAuthenticatedUser())
-                )
-            )
-            .build();
+        var input = new RejectSubscriptionUseCase.Input(apiId, subscriptionId, rejectSubscription.getReason(), getAuditInfo());
+        return Response.ok().entity(subscriptionMapper.map(rejectSubscriptionUseCase.execute(input).subscription())).build();
     }
 
     @POST
