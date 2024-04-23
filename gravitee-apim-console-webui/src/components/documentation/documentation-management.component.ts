@@ -29,6 +29,8 @@ export class DocumentationManagementComponent extends UpgradeComponent {
   @Input() pages;
   @Input() folders;
   @Input() systemFolders;
+  @Input() readOnly;
+
   constructor(elementRef: ElementRef, injector: Injector) {
     super('documentationManagementAjs', elementRef, injector);
   }
@@ -40,6 +42,7 @@ export class DocumentationManagementComponent extends UpgradeComponent {
       pages: new SimpleChange(null, this.pages, true),
       folders: new SimpleChange(null, this.folders, true),
       systemFolders: new SimpleChange(null, this.systemFolders, true),
+      readOnly: new SimpleChange(null, this.readOnly, true),
     });
 
     super.ngOnInit();

@@ -27,9 +27,12 @@ interface IDocumentationManagementScope extends IScope {
 }
 
 class DocumentationManagementComponentController implements IController {
+  [s: string]: any;
+
   pages: any[];
   folders: any[];
   systemFolders: any[];
+  readOnly: boolean;
 
   apiId: string;
   rootDir: string;
@@ -41,6 +44,7 @@ class DocumentationManagementComponentController implements IController {
   newFolderName: string;
   currentTranslation: any;
   fetchAllInProgress: boolean;
+
   constructor(
     private readonly NotificationService: NotificationService,
     private readonly DocumentationService: DocumentationService,
@@ -482,6 +486,7 @@ export const DocumentationManagementComponentAjs: ng.IComponentOptions = {
     pages: '<',
     folders: '<',
     systemFolders: '<',
+    readOnly: '<',
   },
   template: require('./documentation-management.html'),
   controller: DocumentationManagementComponentController,
