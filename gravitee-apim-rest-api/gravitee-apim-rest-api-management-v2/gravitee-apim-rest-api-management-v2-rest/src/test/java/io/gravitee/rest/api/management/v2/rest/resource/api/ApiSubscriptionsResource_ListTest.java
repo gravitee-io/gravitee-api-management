@@ -50,7 +50,7 @@ import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
-public class ApiSubscriptionsResource_ListTest extends ApiSubscriptionsResourceTest {
+public class ApiSubscriptionsResource_ListTest extends AbstractApiSubscriptionsResourceTest {
 
     @Override
     protected String contextPath() {

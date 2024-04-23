@@ -45,7 +45,7 @@ import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class ApiSubscriptionsResource_RenewApiKeysTest extends ApiSubscriptionsResourceTest {
+public class ApiSubscriptionsResource_RenewApiKeysTest extends AbstractApiSubscriptionsResourceTest {
 
     @Override
     protected String contextPath() {

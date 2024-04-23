@@ -46,7 +46,7 @@ import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.Test;
 
-public class ApiSubscriptionsResource_CreateTest extends ApiSubscriptionsResourceTest {
+public class ApiSubscriptionsResource_CreateTest extends AbstractApiSubscriptionsResourceTest {
 
     @Override
     protected String contextPath() {

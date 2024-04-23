@@ -45,7 +45,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class ApiSubscriptionsResource_RevokeApiKeyTest extends ApiSubscriptionsResourceTest {
+public class ApiSubscriptionsResource_RevokeApiKeyTest extends AbstractApiSubscriptionsResourceTest {
 
     private static final String API_KEY_ID = "my-api-key";
 

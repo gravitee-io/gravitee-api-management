@@ -42,7 +42,7 @@ import jakarta.ws.rs.core.Response;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
-public class ApiSubscriptionsResource_ReactivateApiKeyTest extends ApiSubscriptionsResourceTest {
+public class ApiSubscriptionsResource_ReactivateApiKeyTest extends AbstractApiSubscriptionsResourceTest {
 
     private static final String API_KEY_ID = "my-api-key";
 
