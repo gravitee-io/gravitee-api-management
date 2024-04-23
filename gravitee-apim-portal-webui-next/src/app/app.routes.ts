@@ -19,12 +19,14 @@ import { ApiDetailsComponent } from './api-details/api-details.component';
 import { ApiTabDetailsComponent } from './api-details/api-tab-details/api-tab-details.component';
 import { ApiTabDocumentationComponent } from './api-details/api-tab-documentation/api-tab-documentation.component';
 import { CatalogComponent } from './catalog/catalog.component';
+import { apiResolver } from '../resolvers/api.resolver';
 
 export const routes: Routes = [
   { path: '', component: CatalogComponent },
   {
     path: 'api/:apiId',
     component: ApiDetailsComponent,
+    resolve: { api: apiResolver },
     children: [
       {
         path: '',
