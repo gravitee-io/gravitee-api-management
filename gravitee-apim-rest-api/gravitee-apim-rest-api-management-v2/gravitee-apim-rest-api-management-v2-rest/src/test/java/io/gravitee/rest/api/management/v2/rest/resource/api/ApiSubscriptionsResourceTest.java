@@ -34,6 +34,7 @@ import static org.mockito.Mockito.when;
 
 import fixtures.SubscriptionFixtures;
 import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
+import io.gravitee.apim.core.subscription.use_case.RejectSubscriptionUseCase;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.management.v2.rest.model.ApiKeyMode;
@@ -98,6 +99,9 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
 
     @Autowired
     AcceptSubscriptionUseCase acceptSubscriptionUseCase;
+
+    @Autowired
+    RejectSubscriptionUseCase rejectSubscriptionUseCase;
 
     WebTarget target;
 
@@ -380,6 +384,85 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
                 .thenReturn(false);
 
             final Response response = target.request().post(Entity.json(SubscriptionFixtures.anAcceptSubscription()));
+            assertThat(response)
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
+        }
+    }
+
+    @Nested
+    class Reject {
+
+        @BeforeEach
+        void setUp() {
+            target = target.path(SUBSCRIPTION).path("_reject");
+        }
+
+        @Test
+        public void should_reject_subscription() {
+            final SubscriptionEntity subscriptionEntity = SubscriptionFixtures
+                .aSubscriptionEntity()
+                .toBuilder()
+                .id(SUBSCRIPTION)
+                .api(API)
+                .plan(PLAN)
+                .status(SubscriptionStatus.PENDING)
+                .build();
+            final var rejectPayload = SubscriptionFixtures.aRejectSubscription();
+
+            doReturn(
+                new RejectSubscriptionUseCase.Output(
+                    fixtures.core.model.SubscriptionFixtures
+                        .aSubscription()
+                        .toBuilder()
+                        .id(SUBSCRIPTION)
+                        .planId(PLAN)
+                        .applicationId(APPLICATION)
+                        .status(io.gravitee.apim.core.subscription.model.SubscriptionEntity.Status.REJECTED)
+                        .build()
+                )
+            )
+                .when(rejectSubscriptionUseCase)
+                .execute(any());
+
+            final Response response = target.request().post(Entity.json(rejectPayload));
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(Subscription.class)
+                .satisfies(subscription -> {
+                    SoftAssertions.assertSoftly(soft -> {
+                        soft.assertThat(subscription.getId()).isEqualTo(SUBSCRIPTION);
+                        soft
+                            .assertThat(subscription.getStatus())
+                            .isEqualTo(io.gravitee.rest.api.management.v2.rest.model.SubscriptionStatus.REJECTED);
+                    });
+                });
+
+            var captor = ArgumentCaptor.forClass(RejectSubscriptionUseCase.Input.class);
+            verify(rejectSubscriptionUseCase).execute(captor.capture());
+            SoftAssertions.assertSoftly(soft -> {
+                var input = captor.getValue();
+                soft.assertThat(input.subscriptionId()).isEqualTo(SUBSCRIPTION);
+                soft.assertThat(input.apiId()).isEqualTo(API);
+                soft.assertThat(input.reasonMessage()).isEqualTo(rejectPayload.getReason());
+            });
+        }
+
+        @Test
+        public void should_return_403_if_incorrect_permissions() {
+            when(
+                permissionService.hasPermission(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(RolePermission.API_SUBSCRIPTION),
+                    eq(API),
+                    eq(RolePermissionAction.UPDATE)
+                )
+            )
+                .thenReturn(false);
+
+            final Response response = target.request().post(Entity.json(SubscriptionFixtures.aRejectSubscription()));
             assertThat(response)
                 .hasStatus(FORBIDDEN_403)
                 .asError()
