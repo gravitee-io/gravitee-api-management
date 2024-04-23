@@ -47,6 +47,9 @@ export class PageTreeComponent implements OnInit {
   @Input({ required: true })
   pages!: PageTreeNode[];
 
+  @Input()
+  initialSelectedPage: string | undefined;
+
   @Output()
   openFile = new EventEmitter<string>();
   dataSource: MatTreeFlatDataSource<PageTreeNode, FlatNode>;
@@ -72,7 +75,10 @@ export class PageTreeComponent implements OnInit {
   ngOnInit() {
     this.dataSource.data = this.pages;
     this.treeControl.expandAll();
-    if (!isEmpty(this.pages)) {
+
+    if (this.initialSelectedPage) {
+      this.activeFile = this.initialSelectedPage;
+    } else if (!isEmpty(this.pages)) {
       this.activeFile = this.getFirstAvailablePage(this.pages[0]).id;
       this.openFile.emit(this.activeFile);
     }
