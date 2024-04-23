@@ -20,7 +20,8 @@ import { MatCard, MatCardActions, MatCardContent } from '@angular/material/card'
 import { MatIconModule, MatIconRegistry } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
 import { DomSanitizer } from '@angular/platform-browser';
-import { map, Observable, of } from 'rxjs';
+import { RouterModule } from '@angular/router';
+import { Observable, of } from 'rxjs';
 
 import { ApiTabDetailsComponent } from './api-tab-details/api-tab-details.component';
 import { ApiTabDocumentationComponent } from './api-tab-documentation/api-tab-documentation.component';
@@ -28,7 +29,6 @@ import { ApiCardComponent } from '../../components/api-card/api-card.component';
 import { ApiPictureComponent } from '../../components/api-picture/api-picture.component';
 import { BannerComponent } from '../../components/banner/banner.component';
 import { Api } from '../../entities/api/api';
-import { Page } from '../../entities/page/page';
 import { ApiService } from '../../services/api.service';
 import { PageService } from '../../services/page.service';
 
@@ -48,6 +48,7 @@ import { PageService } from '../../services/page.service';
     ApiTabDetailsComponent,
     ApiTabDocumentationComponent,
     AsyncPipe,
+    RouterModule,
   ],
   templateUrl: './api-details.component.html',
   styleUrl: './api-details.component.scss',
@@ -55,7 +56,6 @@ import { PageService } from '../../services/page.service';
 export class ApiDetailsComponent implements OnInit {
   @Input() apiId!: string;
   details$: Observable<Api> = of();
-  pages$: Observable<Page[]> = of([]);
 
   constructor(
     private apiService: ApiService,
@@ -68,7 +68,5 @@ export class ApiDetailsComponent implements OnInit {
 
   ngOnInit(): void {
     this.details$ = this.apiService.details(this.apiId);
-
-    this.pages$ = this.pageService.listByApiId(this.apiId).pipe(map(response => response.data ?? []));
   }
 }

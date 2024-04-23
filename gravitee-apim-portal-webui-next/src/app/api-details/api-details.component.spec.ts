@@ -13,23 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { HarnessLoader } from '@angular/cdk/testing';
-import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { MatTabHarness } from '@angular/material/tabs/testing';
 
 import { ApiDetailsComponent } from './api-details.component';
 import { fakeApi } from '../../entities/api/api.fixtures';
-import { fakePagesResponse } from '../../entities/page/page.fixtures';
-import { PagesResponse } from '../../entities/page/pages-response';
 import { AppTestingModule, TESTING_BASE_URL } from '../../testing/app-testing.module';
 
 describe('ApiDetailsComponent', () => {
   let component: ApiDetailsComponent;
   let fixture: ComponentFixture<ApiDetailsComponent>;
   let httpTestingController: HttpTestingController;
-  let harnessLoader: HarnessLoader;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -38,12 +32,10 @@ describe('ApiDetailsComponent', () => {
 
     fixture = TestBed.createComponent(ApiDetailsComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
-    harnessLoader = TestbedHarnessEnvironment.loader(fixture);
     component = fixture.componentInstance;
     component.apiId = 'api-id';
     fixture.detectChanges();
     httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/api-id`).flush(fakeApi({ id: 'api-id' }));
-    fixture.detectChanges();
   });
 
   afterEach(() => {
@@ -53,19 +45,7 @@ describe('ApiDetailsComponent', () => {
     httpTestingController.verify();
   });
 
-  it('should disable Documentation tab when pages empty', async () => {
-    expectPageList(fakePagesResponse({ data: [] }));
-    const documentationTab = await harnessLoader.getHarness(MatTabHarness.with({ label: 'Documentation' }));
-    expect(await documentationTab.isDisabled()).toEqual(true);
+  it('should create', () => {
+    expect(component).toBeTruthy();
   });
-
-  it('should have active Documentation tab if pages exist', async () => {
-    expectPageList(fakePagesResponse());
-    const documentationTab = await harnessLoader.getHarness(MatTabHarness.with({ label: 'Documentation' }));
-    expect(await documentationTab.isDisabled()).toEqual(false);
-  });
-
-  function expectPageList(pagesResponse: PagesResponse = fakePagesResponse()) {
-    httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/api-id/pages?homepage=false&page=1&size=-1`).flush(pagesResponse);
-  }
 });
