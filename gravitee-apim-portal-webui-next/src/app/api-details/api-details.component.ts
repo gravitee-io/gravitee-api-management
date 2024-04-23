@@ -14,23 +14,19 @@
  * limitations under the License.
  */
 import { AsyncPipe } from '@angular/common';
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardActions, MatCardContent } from '@angular/material/card';
 import { MatIconModule, MatIconRegistry } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
 import { DomSanitizer } from '@angular/platform-browser';
-import { RouterModule } from '@angular/router';
-import { Observable, of } from 'rxjs';
+import { ActivatedRoute, RouterModule } from '@angular/router';
+import { map, Observable, of } from 'rxjs';
 
-import { ApiTabDetailsComponent } from './api-tab-details/api-tab-details.component';
-import { ApiTabDocumentationComponent } from './api-tab-documentation/api-tab-documentation.component';
 import { ApiCardComponent } from '../../components/api-card/api-card.component';
 import { ApiPictureComponent } from '../../components/api-picture/api-picture.component';
 import { BannerComponent } from '../../components/banner/banner.component';
 import { Api } from '../../entities/api/api';
-import { ApiService } from '../../services/api.service';
-import { PageService } from '../../services/page.service';
 
 @Component({
   selector: 'app-api-details',
@@ -45,8 +41,6 @@ import { PageService } from '../../services/page.service';
     BannerComponent,
     MatTabsModule,
     MatIconModule,
-    ApiTabDetailsComponent,
-    ApiTabDocumentationComponent,
     AsyncPipe,
     RouterModule,
   ],
@@ -54,19 +48,17 @@ import { PageService } from '../../services/page.service';
   styleUrl: './api-details.component.scss',
 })
 export class ApiDetailsComponent implements OnInit {
-  @Input() apiId!: string;
   details$: Observable<Api> = of();
 
   constructor(
-    private apiService: ApiService,
-    private pageService: PageService,
     private domSanitizer: DomSanitizer,
     private matIconRegistry: MatIconRegistry,
+    private activatedRoute: ActivatedRoute,
   ) {
     this.matIconRegistry.addSvgIcon(`light-bulb`, this.domSanitizer.bypassSecurityTrustResourceUrl('assets/images/lightbulb_24px.svg'));
   }
 
   ngOnInit(): void {
-    this.details$ = this.apiService.details(this.apiId);
+    this.details$ = this.activatedRoute.data.pipe(map(({ api }) => api));
   }
 }

@@ -15,10 +15,12 @@
  */
 import { HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ActivatedRoute } from '@angular/router';
+import { of } from 'rxjs';
 
 import { ApiDetailsComponent } from './api-details.component';
 import { fakeApi } from '../../entities/api/api.fixtures';
-import { AppTestingModule, TESTING_BASE_URL } from '../../testing/app-testing.module';
+import { AppTestingModule } from '../../testing/app-testing.module';
 
 describe('ApiDetailsComponent', () => {
   let component: ApiDetailsComponent;
@@ -28,20 +30,22 @@ describe('ApiDetailsComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [ApiDetailsComponent, AppTestingModule],
+      providers: [
+        {
+          provide: ActivatedRoute,
+          useValue: { data: of(fakeApi({ id: 'api-id' })) },
+        },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ApiDetailsComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     component = fixture.componentInstance;
-    component.apiId = 'api-id';
     fixture.detectChanges();
-    httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/api-id`).flush(fakeApi({ id: 'api-id' }));
   });
 
   afterEach(() => {
     httpTestingController.match('assets/images/lightbulb_24px.svg');
-    const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/api-id/pages?homepage=true&page=1&size=-1`);
-    expect(req.request.method).toEqual('GET');
     httpTestingController.verify();
   });
 
