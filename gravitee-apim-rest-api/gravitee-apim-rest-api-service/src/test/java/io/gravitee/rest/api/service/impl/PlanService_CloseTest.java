@@ -19,7 +19,6 @@ import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.notNull;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -126,7 +125,6 @@ public class PlanService_CloseTest {
 
         verify(planRepository, times(1)).update(plan.toBuilder().status(Plan.Status.CLOSED).build());
         verify(closeSubscriptionDomainService, times(1)).closeSubscription(eq(SUBSCRIPTION_ID), notNull(AuditInfo.class));
-        verify(subscriptionService, never()).process(eq(GraviteeContext.getExecutionContext()), any(), any());
     }
 
     @Test
@@ -171,7 +169,6 @@ public class PlanService_CloseTest {
 
         verify(planRepository, times(1)).update(plan.toBuilder().status(Plan.Status.CLOSED).build());
         verify(closeSubscriptionDomainService, times(1)).closeSubscription(eq(SUBSCRIPTION_ID), notNull(AuditInfo.class));
-        verify(subscriptionService, never()).process(eq(GraviteeContext.getExecutionContext()), any(), any());
     }
 
     @Test
@@ -192,6 +189,5 @@ public class PlanService_CloseTest {
         planService.close(GraviteeContext.getExecutionContext(), PLAN_ID);
 
         verify(planRepository, times(1)).update(plan.toBuilder().status(Plan.Status.CLOSED).build());
-        verify(subscriptionService, never()).process(eq(GraviteeContext.getExecutionContext()), any(), any());
     }
 }
