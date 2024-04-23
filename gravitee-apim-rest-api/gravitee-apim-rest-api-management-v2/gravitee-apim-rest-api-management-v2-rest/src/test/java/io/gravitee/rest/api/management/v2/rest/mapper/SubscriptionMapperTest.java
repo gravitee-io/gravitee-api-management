@@ -99,19 +99,6 @@ public class SubscriptionMapperTest extends AbstractMapperTest {
     }
 
     @Test
-    void should_map_AcceptSubscription_to_ProcessSubscriptionEntity() {
-        final var acceptSubscription = SubscriptionFixtures.anAcceptSubscription();
-        final var processSubscriptionEntity = subscriptionMapper.map(acceptSubscription, "subscriptionId");
-
-        assertEquals("subscriptionId", processSubscriptionEntity.getId());
-        assertEquals(acceptSubscription.getReason(), processSubscriptionEntity.getReason());
-        assertEquals(acceptSubscription.getCustomApiKey(), processSubscriptionEntity.getCustomApiKey());
-        assertEquals(acceptSubscription.getStartingAt().toInstant().toEpochMilli(), processSubscriptionEntity.getStartingAt().getTime());
-        assertEquals(acceptSubscription.getEndingAt().toInstant().toEpochMilli(), processSubscriptionEntity.getEndingAt().getTime());
-        assertTrue(processSubscriptionEntity.isAccepted());
-    }
-
-    @Test
     void should_map_RejectSubscription_to_ProcessSubscriptionEntity() {
         final var rejectSubscription = SubscriptionFixtures.aRejectSubscription();
         final var processSubscriptionEntity = subscriptionMapper.map(rejectSubscription, "subscriptionId");

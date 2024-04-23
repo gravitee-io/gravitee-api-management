@@ -351,22 +351,17 @@ public class ApiSubscriptionsResource extends AbstractResource {
         @PathParam("subscriptionId") String subscriptionId,
         @Valid @NotNull AcceptSubscription acceptSubscription
     ) {
-        final SubscriptionEntity subscriptionEntity = subscriptionService.findById(subscriptionId);
+        var input = new AcceptSubscriptionUseCase.Input(
+            apiId,
+            subscriptionId,
+            acceptSubscription.getStartingAt() != null ? acceptSubscription.getStartingAt().toZonedDateTime() : null,
+            acceptSubscription.getEndingAt() != null ? acceptSubscription.getEndingAt().toZonedDateTime() : null,
+            acceptSubscription.getReason(),
+            acceptSubscription.getCustomApiKey(),
+            getAuditInfo()
+        );
 
-        if (!subscriptionEntity.getApi().equals(apiId)) {
-            return Response.status(Response.Status.NOT_FOUND).entity(subscriptionNotFoundError(subscriptionId)).build();
-        }
-
-        final ProcessSubscriptionEntity processSubscriptionEntity = subscriptionMapper.map(acceptSubscription, subscriptionId);
-
-        return Response
-            .ok()
-            .entity(
-                subscriptionMapper.map(
-                    subscriptionService.process(GraviteeContext.getExecutionContext(), processSubscriptionEntity, getAuthenticatedUser())
-                )
-            )
-            .build();
+        return Response.ok().entity(subscriptionMapper.map(acceptSubscriptionUsecase.execute(input).subscription())).build();
     }
 
     @POST
