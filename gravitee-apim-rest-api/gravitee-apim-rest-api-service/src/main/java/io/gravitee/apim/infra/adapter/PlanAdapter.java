@@ -80,7 +80,6 @@ public interface PlanAdapter {
 
     @Mapping(target = "security", source = "planSecurity")
     @Mapping(target = "mode", source = "planMode")
-    @Mapping(target = "displayName", source = "name")
     @Mapping(target = "selectionRule", expression = "java(serializeSelectionRule(source))")
     @Mapping(target = "status", source = "planStatus")
     @Mapping(target = "tags", expression = "java(serializeTags(source))")

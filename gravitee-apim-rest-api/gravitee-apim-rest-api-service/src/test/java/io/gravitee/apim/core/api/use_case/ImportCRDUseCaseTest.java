@@ -453,7 +453,7 @@ class ImportCRDUseCaseTest {
                                 PlanCRD
                                     .builder()
                                     .id(KEYLESS.getId())
-                                    .displayName(KEYLESS.getName())
+                                    .name(KEYLESS.getName())
                                     .security(KEYLESS.getPlanSecurity())
                                     .mode(KEYLESS.getPlanMode())
                                     .validation(KEYLESS.getValidation())
@@ -464,7 +464,7 @@ class ImportCRDUseCaseTest {
                                 "apikey-key",
                                 PlanCRD
                                     .builder()
-                                    .displayName("API Key")
+                                    .name("API Key")
                                     .security(PlanSecurity.builder().type("API_KEY").build())
                                     .mode(PlanMode.STANDARD)
                                     .validation(Plan.PlanValidationType.AUTO)
@@ -512,7 +512,7 @@ class ImportCRDUseCaseTest {
                                 PlanCRD
                                     .builder()
                                     .id(KEYLESS.getId())
-                                    .displayName(KEYLESS.getName())
+                                    .name(KEYLESS.getName())
                                     .security(KEYLESS.getPlanSecurity())
                                     .mode(KEYLESS.getPlanMode())
                                     .validation(KEYLESS.getValidation())
@@ -523,7 +523,7 @@ class ImportCRDUseCaseTest {
                                 "api-key",
                                 PlanCRD
                                     .builder()
-                                    .displayName("API Key")
+                                    .name("API Key")
                                     .security(PlanSecurity.builder().type("API_KEY").build())
                                     .mode(PlanMode.STANDARD)
                                     .validation(Plan.PlanValidationType.AUTO)
@@ -565,7 +565,7 @@ class ImportCRDUseCaseTest {
                                 PlanAdapter.INSTANCE
                                     .toCRD(KEYLESS)
                                     .toBuilder()
-                                    .displayName("Updated Keyless")
+                                    .name("Updated Keyless")
                                     .description("Updated description")
                                     .flows(List.of(FlowFixtures.aSimpleFlowV4().toBuilder().name("updated flow").build()))
                                     .build()
@@ -743,7 +743,7 @@ class ImportCRDUseCaseTest {
                     PlanCRD
                         .builder()
                         .id("keyless-id")
-                        .displayName("Keyless")
+                        .name("Keyless")
                         .security(PlanSecurity.builder().type("KEY_LESS").build())
                         .mode(PlanMode.STANDARD)
                         .validation(Plan.PlanValidationType.AUTO)

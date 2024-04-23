@@ -475,7 +475,7 @@ class PlanAdapterTest {
 
             assertThat(planEntity.getId()).isEqualTo(plan.getId());
             assertThat(planEntity.getCrossId()).isEqualTo(plan.getCrossId());
-            assertThat(planEntity.getDisplayName()).isEqualTo(plan.getName());
+            assertThat(planEntity.getName()).isEqualTo(plan.getName());
             assertThat(planEntity.getDescription()).isEqualTo(plan.getDescription());
             assertThat(planEntity.getSecurity()).isEqualTo(plan.getPlanSecurity());
             assertThat(planEntity.getCharacteristics()).isEqualTo(plan.getCharacteristics());
