@@ -15,16 +15,40 @@
  */
 package io.gravitee.rest.api.management.rest.resource;
 
+import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
+import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyBoolean;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
+import assertions.MAPIAssertions;
+import fixtures.core.model.SubscriptionFixtures;
+import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
 import io.gravitee.common.data.domain.Page;
-import io.gravitee.common.http.HttpHeaders;
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.rest.api.model.*;
+import io.gravitee.rest.api.model.ApiKeyMode;
+import io.gravitee.rest.api.model.ApplicationEntity;
+import io.gravitee.rest.api.model.NewSubscriptionConfigurationEntity;
+import io.gravitee.rest.api.model.NewSubscriptionEntity;
+import io.gravitee.rest.api.model.PlanEntity;
+import io.gravitee.rest.api.model.PrimaryOwnerEntity;
+import io.gravitee.rest.api.model.SubscriptionConfigurationEntity;
+import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.SubscriptionStatus;
+import io.gravitee.rest.api.model.UserEntity;
 import io.gravitee.rest.api.model.pagedresult.Metadata;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
@@ -34,11 +58,15 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.Response;
+import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Map;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -51,6 +79,9 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
     private static final String PLAN_NAME = "my-plan";
     private static final String FAKE_SUBSCRIPTION_ID = "subscriptionId";
     private final String API_KEY = "my-api-key-123546";
+
+    @Autowired
+    AcceptSubscriptionUseCase acceptSubscriptionUseCase;
 
     private SubscriptionEntity fakeSubscriptionEntity;
     private UserEntity fakeUserEntity;
@@ -102,6 +133,7 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
     @After
     public void tearDown() {
         GraviteeContext.cleanContext();
+        reset(acceptSubscriptionUseCase);
     }
 
     @Test
@@ -110,8 +142,13 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
 
         when(subscriptionService.create(eq(GraviteeContext.getExecutionContext()), any(NewSubscriptionEntity.class), any()))
             .thenReturn(fakeSubscriptionEntity);
-        when(subscriptionService.process(eq(GraviteeContext.getExecutionContext()), any(ProcessSubscriptionEntity.class), any()))
-            .thenReturn(fakeSubscriptionEntity);
+        doReturn(
+            new AcceptSubscriptionUseCase.Output(
+                SubscriptionFixtures.aSubscription().toBuilder().id(fakeSubscriptionEntity.getId()).build()
+            )
+        )
+            .when(acceptSubscriptionUseCase)
+            .execute(any());
         when(
             parameterService.findAsBoolean(
                 GraviteeContext.getExecutionContext(),
@@ -121,8 +158,6 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
         )
             .thenReturn(true);
 
-        ArgumentCaptor<String> customApiKeyCaptor = ArgumentCaptor.forClass(String.class);
-
         Response response = envTarget()
             .queryParam("application", APP_NAME)
             .queryParam("plan", PLAN_NAME)
@@ -131,31 +166,39 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
             .request()
             .post(null);
 
+        MAPIAssertions
+            .assertThat(response)
+            .hasStatus(CREATED_201)
+            .hasHeader(
+                Map.entry(
+                    "Location",
+                    envTarget()
+                        .path(FAKE_SUBSCRIPTION_ID)
+                        .queryParam("apiKeyMode", ApiKeyMode.EXCLUSIVE)
+                        .queryParam("customApiKey", customApiKey)
+                        .getUri()
+                        .toString()
+                )
+            );
+
         verify(subscriptionService, times(1))
-            .create(eq(GraviteeContext.getExecutionContext()), any(NewSubscriptionEntity.class), customApiKeyCaptor.capture());
-        verify(subscriptionService, times(1))
-            .process(eq(GraviteeContext.getExecutionContext()), any(ProcessSubscriptionEntity.class), any());
-        assertEquals(customApiKeyCaptor.getValue(), customApiKey);
-        assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
-        assertEquals(
-            envTarget()
-                .path(FAKE_SUBSCRIPTION_ID)
-                .queryParam("apiKeyMode", ApiKeyMode.EXCLUSIVE)
-                .queryParam("customApiKey", customApiKey)
-                .getUri()
-                .toString(),
-            response.getHeaders().getFirst(HttpHeaders.LOCATION)
-        );
+            .create(eq(GraviteeContext.getExecutionContext()), any(NewSubscriptionEntity.class), eq(customApiKey));
+
+        ArgumentCaptor<AcceptSubscriptionUseCase.Input> captor = ArgumentCaptor.forClass(AcceptSubscriptionUseCase.Input.class);
+        verify(acceptSubscriptionUseCase, times(1)).execute(captor.capture());
+        SoftAssertions.assertSoftly(soft -> {
+            var input = captor.getValue();
+            soft.assertThat(input.apiId()).isEqualTo(API_NAME);
+            soft.assertThat(input.subscriptionId()).isEqualTo(FAKE_SUBSCRIPTION_ID);
+            soft.assertThat(input.customKey()).isEqualTo(customApiKey);
+            soft.assertThat(input.startingAt()).isStrictlyBetween(ZonedDateTime.now().minusSeconds(5), ZonedDateTime.now().plusSeconds(5));
+        });
     }
 
     @Test
     public void shouldNotCreateSubscriptionAndProcessWithCustomApiKeyIfNotAllowed() {
         final String customApiKey = "atLeast10CharsButLessThan64";
 
-        when(subscriptionService.create(eq(GraviteeContext.getExecutionContext()), any(NewSubscriptionEntity.class)))
-            .thenReturn(fakeSubscriptionEntity);
-        when(subscriptionService.process(eq(GraviteeContext.getExecutionContext()), any(ProcessSubscriptionEntity.class), any()))
-            .thenReturn(fakeSubscriptionEntity);
         when(
             parameterService.findAsBoolean(
                 GraviteeContext.getExecutionContext(),
@@ -172,32 +215,43 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
             .request()
             .post(null);
 
-        verify(subscriptionService, times(0)).create(eq(GraviteeContext.getExecutionContext()), any(), any());
-        verify(subscriptionService, times(0))
-            .process(eq(GraviteeContext.getExecutionContext()), any(ProcessSubscriptionEntity.class), any());
-        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+        MAPIAssertions.assertThat(response).hasStatus(BAD_REQUEST_400);
+
+        verifyNoMoreInteractions(acceptSubscriptionUseCase, subscriptionService);
     }
 
     @Test
     public void shouldCreateSubscriptionAndProcessWithoutCustomApiKey() {
-        final String customApiKey = null;
-
         when(subscriptionService.create(eq(GraviteeContext.getExecutionContext()), any(NewSubscriptionEntity.class), any()))
             .thenReturn(fakeSubscriptionEntity);
-        when(subscriptionService.process(eq(GraviteeContext.getExecutionContext()), any(ProcessSubscriptionEntity.class), any()))
-            .thenReturn(fakeSubscriptionEntity);
+        doReturn(
+            new AcceptSubscriptionUseCase.Output(
+                SubscriptionFixtures.aSubscription().toBuilder().id(fakeSubscriptionEntity.getId()).build()
+            )
+        )
+            .when(acceptSubscriptionUseCase)
+            .execute(any());
 
         ArgumentCaptor<String> customApiKeyCaptor = ArgumentCaptor.forClass(String.class);
 
         Response response = envTarget().queryParam("application", APP_NAME).queryParam("plan", PLAN_NAME).request().post(null);
 
-        verify(subscriptionService, times(1))
-            .create(eq(GraviteeContext.getExecutionContext()), any(NewSubscriptionEntity.class), customApiKeyCaptor.capture());
-        verify(subscriptionService, times(1))
-            .process(eq(GraviteeContext.getExecutionContext()), any(ProcessSubscriptionEntity.class), any());
-        assertEquals(customApiKeyCaptor.getValue(), customApiKey);
-        assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
-        assertEquals(envTarget().path(FAKE_SUBSCRIPTION_ID).getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
+        MAPIAssertions
+            .assertThat(response)
+            .hasStatus(CREATED_201)
+            .hasHeader(Map.entry("Location", envTarget().path(FAKE_SUBSCRIPTION_ID).getUri().toString()));
+
+        verify(subscriptionService, times(1)).create(eq(GraviteeContext.getExecutionContext()), any(NewSubscriptionEntity.class), eq(null));
+
+        ArgumentCaptor<AcceptSubscriptionUseCase.Input> captor = ArgumentCaptor.forClass(AcceptSubscriptionUseCase.Input.class);
+        verify(acceptSubscriptionUseCase, times(1)).execute(captor.capture());
+        SoftAssertions.assertSoftly(soft -> {
+            var input = captor.getValue();
+            soft.assertThat(input.apiId()).isEqualTo(API_NAME);
+            soft.assertThat(input.subscriptionId()).isEqualTo(FAKE_SUBSCRIPTION_ID);
+            soft.assertThat(input.customKey()).isNull();
+            soft.assertThat(input.startingAt()).isStrictlyBetween(ZonedDateTime.now().minusSeconds(5), ZonedDateTime.now().plusSeconds(5));
+        });
     }
 
     @Test
@@ -211,8 +265,13 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
 
         when(subscriptionService.create(eq(GraviteeContext.getExecutionContext()), newSubscriptionEntityCaptor.capture(), any()))
             .thenReturn(fakeSubscriptionEntity);
-        when(subscriptionService.process(eq(GraviteeContext.getExecutionContext()), any(ProcessSubscriptionEntity.class), any()))
-            .thenReturn(fakeSubscriptionEntity);
+        doReturn(
+            new AcceptSubscriptionUseCase.Output(
+                SubscriptionFixtures.aSubscription().toBuilder().id(fakeSubscriptionEntity.getId()).build()
+            )
+        )
+            .when(acceptSubscriptionUseCase)
+            .execute(any());
 
         Response response = envTarget()
             .queryParam("application", APP_NAME)
@@ -220,13 +279,14 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
             .request()
             .post(Entity.json(configuration));
 
+        MAPIAssertions
+            .assertThat(response)
+            .hasStatus(CREATED_201)
+            .hasHeader(Map.entry("Location", envTarget().path(FAKE_SUBSCRIPTION_ID).getUri().toString()));
+
         verify(subscriptionService, times(1))
             .create(eq(GraviteeContext.getExecutionContext()), newSubscriptionEntityCaptor.capture(), any());
-        verify(subscriptionService, times(1))
-            .process(eq(GraviteeContext.getExecutionContext()), any(ProcessSubscriptionEntity.class), any());
-        assertEquals(newSubscriptionEntityCaptor.getValue().getConfiguration(), configurationEntity);
-        assertEquals(HttpStatusCode.CREATED_201, response.getStatus());
-        assertEquals(envTarget().path(FAKE_SUBSCRIPTION_ID).getUri().toString(), response.getHeaders().getFirst(HttpHeaders.LOCATION));
+        assertThat(newSubscriptionEntityCaptor.getValue().getConfiguration()).isEqualTo(configurationEntity);
     }
 
     @Test
@@ -234,7 +294,7 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
         Response response = envTarget("/_canCreate").queryParam("application", APP_NAME).request().get();
 
         verifyNoInteractions(apiKeyService);
-        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+        MAPIAssertions.assertThat(response).hasStatus(BAD_REQUEST_400);
     }
 
     @Test
@@ -242,7 +302,7 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
         Response response = envTarget("/_canCreate").queryParam("key", "short").queryParam("application", APP_NAME).request().get();
 
         verifyNoInteractions(apiKeyService);
-        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+        MAPIAssertions.assertThat(response).hasStatus(BAD_REQUEST_400);
     }
 
     @Test
@@ -250,7 +310,7 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
         Response response = envTarget("/_canCreate").queryParam("key", API_KEY).request().get();
 
         verifyNoInteractions(apiKeyService);
-        assertEquals(HttpStatusCode.BAD_REQUEST_400, response.getStatus());
+        MAPIAssertions.assertThat(response).hasStatus(BAD_REQUEST_400);
     }
 
     @Test
