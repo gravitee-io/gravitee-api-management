@@ -40,7 +40,7 @@ import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-public class ApiSubscriptionsResource_RejectTest extends ApiSubscriptionsResourceTest {
+public class ApiSubscriptionsResource_RejectTest extends AbstractApiSubscriptionsResourceTest {
 
     @Override
     protected String contextPath() {

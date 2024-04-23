@@ -33,7 +33,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public abstract class ApiSubscriptionsResourceTest extends AbstractResourceTest {
+public abstract class AbstractApiSubscriptionsResourceTest extends AbstractResourceTest {
 
     protected static final String API = "my-api";
     protected static final String PLAN = "my-plan";

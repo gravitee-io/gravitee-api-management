@@ -43,7 +43,7 @@ import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
-public class ApiSubscriptionsResource_GetTest extends ApiSubscriptionsResourceTest {
+public class ApiSubscriptionsResource_GetTest extends AbstractApiSubscriptionsResourceTest {
 
     @Override
     protected String contextPath() {

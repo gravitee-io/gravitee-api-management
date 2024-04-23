@@ -43,7 +43,7 @@ import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
-public class ApiSubscriptionsResource_ExportTest extends ApiSubscriptionsResourceTest {
+public class ApiSubscriptionsResource_ExportTest extends AbstractApiSubscriptionsResourceTest {
 
     protected static final String CSV_HEADERS = "Plan;Application;Creation date;Process date;Start date;End date date;Status";
     protected static final String CSV_CONTENT =

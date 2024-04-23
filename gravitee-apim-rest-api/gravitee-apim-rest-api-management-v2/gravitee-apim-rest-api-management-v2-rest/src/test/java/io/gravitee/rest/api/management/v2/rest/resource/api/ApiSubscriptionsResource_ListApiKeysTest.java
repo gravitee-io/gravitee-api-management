@@ -38,7 +38,7 @@ import jakarta.ws.rs.core.Response;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-public class ApiSubscriptionsResource_ListApiKeysTest extends ApiSubscriptionsResourceTest {
+public class ApiSubscriptionsResource_ListApiKeysTest extends AbstractApiSubscriptionsResourceTest {
 
     @Override
     protected String contextPath() {
