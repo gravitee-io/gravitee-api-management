@@ -15,14 +15,19 @@
  */
 import { AsyncPipe } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
-import { RouterModule } from '@angular/router';
-import { Observable, of } from 'rxjs';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { catchError, combineLatest, filter, map, Observable, of, switchMap } from 'rxjs';
 
 import { LoaderComponent } from '../../../components/loader/loader.component';
 import { PageComponent } from '../../../components/page/page.component';
 import { PageTreeComponent, PageTreeNode } from '../../../components/page-tree/page-tree.component';
 import { Page } from '../../../entities/page/page';
 import { PageService } from '../../../services/page.service';
+
+interface SelectedPageData {
+  result?: Page;
+  error?: unknown;
+}
 
 @Component({
   selector: 'app-api-tab-documentation',
@@ -32,19 +37,42 @@ import { PageService } from '../../../services/page.service';
   styleUrl: './api-tab-documentation.component.scss',
 })
 export class ApiTabDocumentationComponent implements OnInit {
-  @Input() apiId!: string;
   @Input()
-  pages: Page[] = [];
-  pageNodes: PageTreeNode[] = [];
-  selectedPage$: Observable<Page> = of();
+  page!: string;
+  pageNodes$: Observable<PageTreeNode[]> = of([]);
+  selectedPageData$: Observable<SelectedPageData> = of();
 
-  constructor(private pageService: PageService) {}
+  private apiId$: Observable<string>;
 
-  ngOnInit(): void {
-    this.pageNodes = this.pageService.mapToPageTreeNode(undefined, this.pages);
+  constructor(
+    private pageService: PageService,
+    private router: Router,
+    private activatedRoute: ActivatedRoute,
+  ) {
+    this.apiId$ = this.activatedRoute.parent ? this.activatedRoute.parent.params.pipe(map(params => params['apiId'])) : of();
   }
 
-  showPage(pageId: string) {
-    this.selectedPage$ = this.pageService.getByApiIdAndId(this.apiId, pageId, true);
+  ngOnInit(): void {
+    this.pageNodes$ = this.apiId$.pipe(
+      switchMap(apiId => this.pageService.listByApiId(apiId)),
+      map(resp => this.pageService.mapToPageTreeNode(undefined, resp.data ?? [])),
+    );
+
+    this.selectedPageData$ = combineLatest([this.apiId$, this.activatedRoute.queryParams]).pipe(
+      map(([apiId, params]) => ({ apiId, pageId: params['page'] })),
+      filter(res => !!res.pageId),
+      switchMap(({ apiId, pageId }) => this.getSelectedPage$(apiId, pageId)),
+    );
+  }
+
+  showPage(page: string) {
+    this.router.navigate(['.'], { queryParams: { page }, relativeTo: this.activatedRoute });
+  }
+
+  private getSelectedPage$(apiId: string, pageId: string): Observable<SelectedPageData> {
+    return this.pageService.getByApiIdAndId(apiId, pageId, true).pipe(
+      map(result => ({ result })),
+      catchError(error => of({ error })),
+    );
   }
 }

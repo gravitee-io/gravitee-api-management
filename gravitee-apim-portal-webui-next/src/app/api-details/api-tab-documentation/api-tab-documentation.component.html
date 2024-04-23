@@ -15,14 +15,27 @@
     limitations under the License.
 
 -->
-<div class="api-tab-documentation__side-bar">
-  <app-page-tree [pages]="pageNodes" (openFile)="showPage($event)" />
-</div>
+@if (pageNodes$ | async; as nodes) {
+  @if (nodes.length) {
+    <div class="api-tab-documentation__side-bar">
+      <app-page-tree [initialSelectedPage]="page" [pages]="nodes" (openFile)="showPage($event)" />
+    </div>
 
-<div class="api-tab-documentation__page-content">
-  @if (selectedPage$ | async; as selectedPage) {
-    <app-page [page]="selectedPage"></app-page>
+    <div class="api-tab-documentation__page-content">
+      @if (selectedPageData$ | async; as selectedPageData) {
+        @if (selectedPageData.result) {
+          <app-page [page]="selectedPageData.result"></app-page>
+        }
+        @if (selectedPageData.error) {
+          <div>TODO: Implement error message</div>
+        }
+      } @else {
+        <app-loader />
+      }
+    </div>
   } @else {
-    <app-loader />
+    <div i18n="@@apiDocumentationEmpty" class="api-tab-documentation__empty">Documentation for this API is missing.</div>
   }
-</div>
+} @else {
+  <div>TODO: Implement skeleton</div>
+}
