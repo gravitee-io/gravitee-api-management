@@ -28,6 +28,7 @@ class EditPageFetchersComponentController implements IController {
   page: any;
   title: string;
   withPublishOption: boolean;
+  readOnly: boolean;
 
   fetcherJsonSchemaForm: string[];
 
@@ -38,6 +39,9 @@ class EditPageFetchersComponentController implements IController {
     const fetcher = this.fetchers.find((f) => f.id === this.page?.source?.type);
     this.$scope.fetcherJsonSchema = angular.fromJson(fetcher?.schema) || emptyFetcher;
     this.fetcherJsonSchemaForm = ['*'];
+    if (this.readOnly) {
+      Object.values(this.$scope.fetcherJsonSchema.properties).forEach((prop) => (prop['readonly'] = true));
+    }
   }
 
   configureFetcher(fetcher: any) {
@@ -59,6 +63,7 @@ export const EditPageFetchersComponent: ng.IComponentOptions = {
     page: '=',
     title: '<',
     withPublishOption: '<',
+    readOnly: '<',
   },
   template: require('./edit-page-fetchers.html'),
   controller: EditPageFetchersComponentController,

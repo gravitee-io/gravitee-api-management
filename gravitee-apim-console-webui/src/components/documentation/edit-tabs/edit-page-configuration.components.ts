@@ -19,6 +19,7 @@ import { PageType } from '../../../services/documentation.service';
 
 class EditPageConfigurationComponentController implements IController {
   page: any;
+  readOnly: boolean;
 
   shouldShowOpenApiDocFormat = false;
   settings: any;
@@ -72,6 +73,7 @@ class EditPageConfigurationComponentController implements IController {
 export const EditPageConfigurationComponent: ng.IComponentOptions = {
   bindings: {
     page: '=',
+    readOnly: '<',
   },
   template: require('./edit-page-configuration.html'),
   controller: EditPageConfigurationComponentController,

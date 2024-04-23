@@ -20,6 +20,7 @@
     <div class="gio-metadata__header">
       <h2>{{ referenceType }} metadata</h2>
       <button
+        [disabled]="readOnly"
         *gioPermission="{ anyOf: [permissionPrefix + '-metadata-c'] }"
         (click)="onAddMetadataClick()"
         mat-raised-button
@@ -104,11 +105,12 @@
                   matTooltip="{{ element.defaultValue ? 'Override global metadata' : 'Update ' + referenceType + ' metadata' }}"
                   data-testid="api_metadata_edit_button"
                 >
-                  <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
+                  <mat-icon [svgIcon]="readOnly ? 'gio:eye-empty' : 'gio:edit-pencil'"></mat-icon>
                 </button>
               </div>
               <div *ngIf="element.isDeletable">
                 <button
+                  [disabled]="readOnly"
                   mat-icon-button
                   type="button"
                   class="delete-metadata"

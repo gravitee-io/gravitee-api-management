@@ -1,4 +1,5 @@
 /*
+/*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -93,11 +94,222 @@ function apisRouterConfig($stateProvider: StateProvider) {
             return response.data;
           });
         },
+<<<<<<< HEAD
         resolvedApiPermissions: (ApiService: ApiService, $stateParams: StateParams) =>
           ApiService.getPermissions($stateParams.apiId).catch((err) => {
             if (err && err.interceptorFuture) {
               err.interceptorFuture.cancel(); // avoid a duplicated notification with the same error
             }
+=======
+      },
+      {
+        token: 'folders',
+        deps: ['DocumentationService', '$stateParams'],
+        resolveFn: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+          const q = new DocumentationQuery();
+          q.type = 'FOLDER';
+          return DocumentationService.search(q, $stateParams.apiId).then((response) => response.data);
+        },
+      },
+      {
+        token: 'systemFolders',
+        deps: ['DocumentationService', '$stateParams'],
+        resolveFn: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+          const q = new DocumentationQuery();
+          q.type = 'SYSTEM_FOLDER';
+          return DocumentationService.search(q, $stateParams.apiId).then((response) => response.data);
+        },
+      },
+      {
+        token: 'readOnly',
+        deps: ['ApiService', '$stateParams'],
+        resolveFn: (ApiService: ApiService, $stateParams) => {
+          return ApiService.get($stateParams.apiId).then((res) => res.data?.definition_context?.origin === 'kubernetes');
+        },
+      },
+    ],
+    data: {
+      docs: {
+        page: 'management-api-documentation',
+      },
+      apiPermissions: {
+        only: ['api-documentation-r'],
+      },
+    },
+    params: {
+      parent: {
+        type: 'string',
+        value: '',
+      },
+    },
+  },
+  {
+    name: 'management.apis.documentationNew',
+    component: DocumentationNewPageComponent,
+    url: '/documentation/new?type&parent',
+    resolve: [
+      {
+        token: 'resolvedFetchers',
+        deps: ['FetcherService'],
+        resolveFn: (FetcherService: FetcherService) => {
+          return FetcherService.list().then((response) => {
+            return response.data;
+          });
+        },
+      },
+      {
+        token: 'folders',
+        deps: ['DocumentationService', '$stateParams'],
+        resolveFn: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+          const q = new DocumentationQuery();
+          q.type = 'FOLDER';
+          return DocumentationService.search(q, $stateParams.apiId).then((response) => response.data);
+        },
+      },
+      {
+        token: 'systemFolders',
+        deps: ['DocumentationService', '$stateParams'],
+        resolveFn: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+          const q = new DocumentationQuery();
+          q.type = 'SYSTEM_FOLDER';
+          return DocumentationService.search(q, $stateParams.apiId).then((response) => response.data);
+        },
+      },
+      {
+        token: 'pageResources',
+        deps: ['DocumentationService', '$stateParams'],
+        resolveFn: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+          if ($stateParams.type === 'LINK') {
+            const q = new DocumentationQuery();
+            return DocumentationService.search(q, $stateParams.apiId).then((response) => response.data);
+          }
+        },
+      },
+      {
+        token: 'categoryResources',
+        deps: ['CategoryService', '$stateParams'],
+        resolveFn: (CategoryService: CategoryService, $stateParams: StateParams) => {
+          if ($stateParams.type === 'LINK') {
+            return CategoryService.list().then((response) => response.data);
+          }
+        },
+      },
+      {
+        token: 'pagesToLink',
+        deps: ['DocumentationService', '$stateParams'],
+        resolveFn: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+          if ($stateParams.type === 'MARKDOWN' || $stateParams.type === 'MARKDOWN_TEMPLATE') {
+            const q = new DocumentationQuery();
+            q.homepage = false;
+            q.published = true;
+            return DocumentationService.search(q, $stateParams.apiId).then((response) =>
+              response.data.filter(
+                (page) =>
+                  page.type.toUpperCase() === 'MARKDOWN' ||
+                  page.type.toUpperCase() === 'SWAGGER' ||
+                  page.type.toUpperCase() === 'ASCIIDOC' ||
+                  page.type.toUpperCase() === 'ASYNCAPI',
+              ),
+            );
+          }
+        },
+      },
+    ],
+    data: {
+      docs: {
+        page: 'management-api-documentation',
+      },
+      apiPermissions: {
+        only: ['api-documentation-c'],
+      },
+    },
+    params: {
+      type: {
+        type: 'string',
+        value: '',
+        squash: false,
+      },
+      parent: {
+        type: 'string',
+        value: '',
+        squash: false,
+      },
+    },
+  },
+  {
+    name: 'management.apis.documentationImport',
+    component: DocumentationImportPagesComponent,
+    url: '/documentation/import',
+    resolve: [
+      {
+        token: 'resolvedFetchers',
+        deps: ['FetcherService'],
+        resolveFn: (FetcherService: FetcherService) => {
+          return FetcherService.list().then((response) => {
+            return response.data;
+          });
+        },
+      },
+      {
+        token: 'resolvedRootPage',
+        deps: ['DocumentationService', '$stateParams'],
+        resolveFn: (DocumentationService: DocumentationService, $stateParams: StateParams) => {
+          const q = new DocumentationQuery();
+          q.type = 'ROOT';
+          return DocumentationService.search(q, $stateParams.apiId).then((response) =>
+            response.data && response.data.length > 0 ? response.data[0] : null,
+          );
+        },
+      },
+    ],
+    data: {
+      docs: {
+        page: 'management-api-documentation',
+      },
+      apiPermissions: {
+        only: ['api-documentation-c'],
+      },
+    },
+    params: {
+      type: {
+        type: 'string',
+        value: '',
+        squash: false,
+      },
+      parent: {
+        type: 'string',
+        value: '',
+        squash: false,
+      },
+    },
+  },
+  {
+    name: 'management.apis.documentationEdit',
+    component: DocumentationEditPageComponent,
+    url: '/documentation/:pageId?:tab&type',
+    resolve: [
+      {
+        token: 'resolvedFetchers',
+        deps: ['FetcherService'],
+        resolveFn: (FetcherService: FetcherService) => {
+          return FetcherService.list().then((response) => {
+            return response.data;
+          });
+        },
+      },
+      {
+        token: 'resolvedPage',
+        deps: ['DocumentationService', '$stateParams'],
+        resolveFn: (DocumentationService: DocumentationService, $stateParams: StateParams) =>
+          DocumentationService.get($stateParams.apiId, $stateParams.pageId).then((response) => response.data),
+      },
+      {
+        token: 'resolvedGroups',
+        deps: ['GroupService'],
+        resolveFn: (GroupService: GroupService) =>
+          GroupService.list().then((response) => {
+            return response.data;
+>>>>>>> 2a74f294c0 (feat: set v2 doc pages to read only for kube origin)
           }),
         onEnter: function (UserService, resolvedApiPermissions) {
           UserService.currentUser.userApiPermissions = [];
@@ -152,6 +364,7 @@ function apisRouterConfig($stateProvider: StateProvider) {
           only: ['environment-api-c'],
         },
       },
+<<<<<<< HEAD
     })
     .state('management.apis.create-v4', {
       url: '/new/create/v4',
@@ -160,6 +373,255 @@ function apisRouterConfig($stateProvider: StateProvider) {
         useAngularMaterial: true,
         perms: {
           only: ['environment-api-c'],
+=======
+      {
+        token: 'readOnly',
+        deps: ['ApiService', '$stateParams'],
+        resolveFn: (ApiService: ApiService, $stateParams) => {
+          return ApiService.get($stateParams.apiId).then((res) => res.data?.definition_context?.origin === 'kubernetes');
+        },
+      },
+    ],
+    data: {
+      docs: {
+        page: 'management-api-documentation',
+      },
+      apiPermissions: {
+        only: ['api-documentation-c'],
+      },
+    },
+    params: {
+      type: {
+        type: 'string',
+        value: '',
+        squash: false,
+      },
+      parent: {
+        type: 'string',
+        value: '',
+        squash: false,
+      },
+    },
+  },
+  {
+    name: 'management.apis.metadata',
+    component: ApiPortalDocumentationMetadataComponent,
+    url: '/metadata',
+    data: {
+      apiPermissions: {
+        only: ['api-metadata-r'],
+      },
+      useAngularMaterial: true,
+    },
+  },
+  {
+    name: 'management.apis.members',
+    component: ApiGeneralMembersComponent,
+    url: '/members',
+    data: {
+      apiPermissions: {
+        only: ['api-member-r'],
+      },
+      docs: {
+        page: 'management-api-members',
+      },
+      useAngularMaterial: true,
+    },
+  },
+  {
+    name: 'management.apis.groups',
+    component: ApiGeneralGroupsComponent,
+    url: '/groups',
+    data: {
+      apiPermissions: {
+        only: ['api-member-r'],
+      },
+      docs: {
+        page: 'management-api-members',
+      },
+      useAngularMaterial: true,
+    },
+  },
+  {
+    name: 'management.apis.transferOwnership',
+    component: ApiGeneralTransferOwnershipComponent,
+    url: '/transfer-ownership',
+    data: {
+      apiPermissions: {
+        only: ['api-member-r'],
+      },
+      docs: {
+        page: 'management-api-members',
+      },
+      useAngularMaterial: true,
+    },
+  },
+  {
+    name: 'management.apis.cors',
+    component: ApiProxyCorsComponent,
+    url: '/cors',
+    data: {
+      apiPermissions: {
+        only: ['api-definition-r'],
+      },
+      docs: {
+        page: 'management-api-proxy',
+      },
+      useAngularMaterial: true,
+    },
+  },
+  {
+    name: 'management.apis.deployments',
+    component: ApiProxyDeploymentsComponent,
+    url: '/deployments',
+    data: {
+      apiPermissions: {
+        only: ['api-definition-r'],
+      },
+      docs: {
+        page: 'management-api-proxy',
+      },
+      useAngularMaterial: true,
+    },
+  },
+  {
+    name: 'management.apis.responseTemplates',
+    component: ApiProxyResponseTemplatesListComponent,
+    url: '/response-templates',
+    data: {
+      apiPermissions: {
+        only: ['api-response_templates-r'],
+      },
+      docs: {
+        page: 'management-api-proxy-response-templates',
+      },
+      useAngularMaterial: true,
+    },
+  },
+  {
+    name: 'management.apis.responseTemplateNew',
+    component: ApiProxyResponseTemplatesEditComponent,
+    url: '/response-template',
+    data: {
+      apiPermissions: {
+        only: ['api-definition-r'],
+      },
+      docs: {
+        only: ['api-response_templates-c', 'api-response_templates-r', 'api-response_templates-u'],
+      },
+      useAngularMaterial: true,
+    },
+  },
+  {
+    name: 'management.apis.responseTemplateEdit',
+    component: ApiProxyResponseTemplatesEditComponent,
+    url: '/response-template/:responseTemplateId',
+    data: {
+      apiPermissions: {
+        only: ['api-response_templates-c', 'api-response_templates-r', 'api-response_templates-u'],
+      },
+      docs: {
+        page: 'management-api-proxy-response-templates',
+      },
+      useAngularMaterial: true,
+    },
+  },
+  {
+    name: 'management.apis.audit',
+    component: ApiAuditComponent,
+    url: '/audit',
+    data: {
+      requireLicense: {
+        license: { feature: ApimFeature.APIM_AUDIT_TRAIL },
+        redirect: 'management.apis-list',
+      },
+      apiPermissions: {
+        only: ['api-audit-r'],
+      },
+      docs: {
+        page: 'management-api-audit',
+      },
+      useAngularMaterial: true,
+    },
+  },
+  {
+    name: 'management.apis.history',
+    component: ApiHistoryComponent,
+    url: '/history',
+    data: {
+      apiPermissions: {
+        only: ['api-event-r'],
+      },
+      docs: {
+        page: 'management-api-history',
+      },
+      useAngularMaterial: true,
+    },
+  },
+  {
+    name: 'management.apis.events',
+    component: ApiEventsComponent,
+    url: '/events',
+    data: {
+      apiPermissions: {
+        only: ['api-event-r'],
+      },
+      docs: {
+        page: 'management-api-events',
+      },
+      useAngularMaterial: true,
+    },
+  },
+  {
+    name: 'management.apis.notification-settings',
+    component: ApiNotificationSettingsListComponent,
+    url: '/notification-settings',
+    data: {
+      apiPermissions: {
+        only: ['api-notification-r'],
+      },
+      docs: {
+        page: 'management-api-notifications',
+      },
+      useAngularMaterial: true,
+    },
+  },
+  {
+    name: 'management.apis.notification-settings-details',
+    component: ApiNotificationSettingsDetailsComponent,
+    url: '/notification-settings/:notificationId',
+    data: {
+      apiPermissions: {
+        only: ['api-notification-r', 'api-notification-c', 'api-notification-u'],
+      },
+      docs: {
+        page: 'management-api-notifications',
+      },
+      useAngularMaterial: true,
+    },
+  },
+  {
+    name: 'management.apis.alerts',
+    component: GioEmptyComponent,
+    abstract: true,
+    url: '/alerts',
+    data: {
+      requireLicense: {
+        license: { feature: ApimFeature.ALERT_ENGINE },
+        redirect: 'management.apis-list',
+      },
+      apiPermissions: {
+        only: ['api-alert-r'],
+      },
+      useAngularMaterial: true,
+    },
+    resolve: [
+      {
+        token: 'status',
+        deps: ['AlertService', '$stateParams'],
+        resolveFn: (AlertService: AlertService, $stateParams) => {
+          return AlertService.getStatus(AlertScope.API, $stateParams.apiId).then((response) => response.data);
+>>>>>>> 2a74f294c0 (feat: set v2 doc pages to read only for kube origin)
         },
       },
     })
