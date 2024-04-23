@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.management.rest.spring;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import inmemory.spring.InMemoryConfiguration;
@@ -42,6 +43,7 @@ import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanSynchronizationService;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
+import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
 import io.gravitee.apim.infra.domain_service.api.ApiHostValidatorDomainServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonSpringConfiguration;
 import io.gravitee.apim.infra.sanitizer.SanitizerSpringConfiguration;
@@ -118,6 +120,7 @@ import io.gravitee.rest.api.service.v4.mapper.CategoryMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.PropertySource;
 
 @Configuration
@@ -592,5 +595,11 @@ public class ResourceContextConfiguration {
     @Bean
     public ValidateApiDomainService validateApiDomainService() {
         return mock(ValidateApiDomainService.class);
+    }
+
+    @Bean
+    @Primary
+    public AcceptSubscriptionUseCase spiedAcceptSubscriptionUseCase(AcceptSubscriptionUseCase usecase) {
+        return spy(usecase);
     }
 }
