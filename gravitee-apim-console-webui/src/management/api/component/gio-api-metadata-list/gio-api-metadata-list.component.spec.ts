@@ -68,6 +68,7 @@ describe('GioApiMetadataListComponent', () => {
     it('should load metadata list', async () => {
       const gioMetadata = await loader.getHarnessOrNull(GioMetadataHarness);
       expect(gioMetadata).toBeTruthy();
+      expectGetAPI();
     });
 
     it('should sort metadata', async () => {
@@ -81,6 +82,9 @@ describe('GioApiMetadataListComponent', () => {
 
       // Reverse direction on second click
       await gioMetadata.sortBy('name');
+
+      expectGetAPI();
+
       expectMetadataList({
         sortBy: '-name',
         page: 1,
@@ -91,6 +95,9 @@ describe('GioApiMetadataListComponent', () => {
     it('should filter metadata', async () => {
       const gioMetadata = await loader.getHarness(GioMetadataHarness);
       await gioMetadata.selectSource('API');
+
+      expectGetAPI();
+
       expectMetadataList({
         source: 'API',
         page: 1,
@@ -101,6 +108,9 @@ describe('GioApiMetadataListComponent', () => {
     it('should reset filter metadata', async () => {
       const gioMetadata = await loader.getHarness(GioMetadataHarness);
       await gioMetadata.selectSource('API');
+
+      expectGetAPI();
+
       expectMetadataList({
         source: 'API',
         page: 1,
@@ -129,6 +139,9 @@ describe('GioApiMetadataListComponent', () => {
     it('should reset sort when resetting filter metadata', async () => {
       const gioMetadata = await loader.getHarness(GioMetadataHarness);
       await gioMetadata.selectSource('API');
+
+      expectGetAPI();
+
       expectMetadataList({
         source: 'API',
         page: 1,
@@ -158,6 +171,9 @@ describe('GioApiMetadataListComponent', () => {
     it('should sort metadata and keep filter', async () => {
       const gioMetadata = await loader.getHarness(GioMetadataHarness);
       await gioMetadata.sortBy('name');
+
+      expectGetAPI();
+
       expectMetadataList({
         sortBy: 'name',
         page: 1,
@@ -177,12 +193,18 @@ describe('GioApiMetadataListComponent', () => {
 
     it('should load value to filter select', async () => {
       const gioMetadata = await loader.getHarness(GioMetadataHarness);
+
+      expectGetAPI();
+
       expect(await gioMetadata.sourceSelectedText()).toEqual('Global');
     });
 
     it('should filter metadata with new value', async () => {
       const gioMetadata = await loader.getHarness(GioMetadataHarness);
       await gioMetadata.selectSource('API');
+
+      expectGetAPI();
+
       expectMetadataList({
         source: 'API',
         page: 1,
@@ -190,6 +212,13 @@ describe('GioApiMetadataListComponent', () => {
       });
     });
   });
+
+  function expectGetAPI() {
+    httpTestingController.expectOne({
+      url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}`,
+      method: 'GET',
+    });
+  }
 
   function expectMetadataList(
     searchParams?: { page?: number; perPage?: number; source?: string; sortBy?: string },
@@ -208,6 +237,7 @@ describe('GioApiMetadataListComponent', () => {
         additionalParams += `&sortBy=${searchParams.sortBy}`;
       }
     }
+
     httpTestingController
       .expectOne({
         url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/metadata?page=${page}&perPage=${perPage}${additionalParams}`,

@@ -105,6 +105,9 @@ export class GioMetadataComponent implements OnInit, OnDestroy {
   @Input()
   description: string;
 
+  @Input()
+  readOnly: boolean;
+
   constructor(
     private matDialog: MatDialog,
     private readonly snackBarService: SnackBarService,
@@ -158,11 +161,13 @@ export class GioMetadataComponent implements OnInit, OnDestroy {
   }
 
   updateMetadata(element: MetadataVM): void {
+    const readOnly = this.readOnly;
     this.matDialog
       .open<GioMetadataDialogComponent, GioMetadataDialogData, GioMetadataDialogData>(GioMetadataDialogComponent, {
         data: {
           action: 'Update',
           referenceType: this.referenceType,
+          readOnly,
           ...element,
         },
       })
