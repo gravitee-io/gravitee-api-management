@@ -19,6 +19,7 @@ import { PageType } from '../../../services/documentation.service';
 
 class EditPageConfigurationComponentController implements IController {
   page: any;
+  readOnly: boolean;
 
   shouldShowOpenApiDocFormat = false;
   settings: any;
@@ -72,6 +73,7 @@ EditPageConfigurationComponentController.$inject = ['Constants'];
 export const EditPageConfigurationComponent: ng.IComponentOptions = {
   bindings: {
     page: '=',
+    readOnly: '<',
   },
   template: require('html-loader!./edit-page-configuration.html').default, // eslint-disable-line @typescript-eslint/no-var-requires
   controller: EditPageConfigurationComponentController,
