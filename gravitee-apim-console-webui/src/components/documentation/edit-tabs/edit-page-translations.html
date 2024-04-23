@@ -57,6 +57,7 @@
 
 <div style="text-align: right">
   <md-button
+    ng-disabled="$ctrl.readOnly"
     permission
     permission-only="['environment-documentation-u', 'api-documentation-u']"
     type="button"

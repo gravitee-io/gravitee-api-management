@@ -34,6 +34,7 @@ export class DocumentationEditPageComponent extends UpgradeComponent {
   @Input() pageResources;
   @Input() categoryResources;
   @Input() attachedResources;
+  @Input() readOnly;
 
   constructor(elementRef: ElementRef, injector: Injector) {
     super('documentationEditPageAjs', elementRef, injector);
@@ -52,6 +53,7 @@ export class DocumentationEditPageComponent extends UpgradeComponent {
       pageResources: new SimpleChange(null, this.pageResources, true),
       categoryResources: new SimpleChange(null, this.categoryResources, true),
       attachedResources: new SimpleChange(null, this.attachedResources, true),
+      readOnly: new SimpleChange(null, this.readOnly, true),
     });
 
     super.ngOnInit();

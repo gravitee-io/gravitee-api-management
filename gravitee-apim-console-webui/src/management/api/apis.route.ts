@@ -1,4 +1,5 @@
 /*
+/*
  * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -383,6 +384,13 @@ export const states: Ng2StateDeclaration[] = [
           return DocumentationService.search(q, $stateParams.apiId).then((response) => response.data);
         },
       },
+      {
+        token: 'readOnly',
+        deps: ['ApiService', '$stateParams'],
+        resolveFn: (ApiService: ApiService, $stateParams) => {
+          return ApiService.get($stateParams.apiId).then((res) => res.data?.definition_context?.origin === 'kubernetes');
+        },
+      },
     ],
     data: {
       docs: {
@@ -631,6 +639,13 @@ export const states: Ng2StateDeclaration[] = [
           if ($stateParams.type === 'MARKDOWN' || $stateParams.type === 'ASCIIDOC' || $stateParams.type === 'ASYNCAPI') {
             return DocumentationService.getMedia($stateParams.pageId, $stateParams.apiId).then((response) => response.data);
           }
+        },
+      },
+      {
+        token: 'readOnly',
+        deps: ['ApiService', '$stateParams'],
+        resolveFn: (ApiService: ApiService, $stateParams) => {
+          return ApiService.get($stateParams.apiId).then((res) => res.data?.definition_context?.origin === 'kubernetes');
         },
       },
     ],

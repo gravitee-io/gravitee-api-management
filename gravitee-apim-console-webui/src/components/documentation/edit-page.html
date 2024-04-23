@@ -31,6 +31,7 @@
       <md-button class="md-raised md-primary" type="button" ng-if="$ctrl.page.source" ng-click="$ctrl.fetch()"> Fetch </md-button>
       <md-button
         type="button"
+        ng-disabled="$ctrl.readOnly"
         class="md-raised md-primary"
         ng-click="$ctrl.toggleRename()"
         aria-label="Rename"
@@ -39,6 +40,7 @@
         Rename
       </md-button>
       <md-button
+        ng-disabled="$ctrl.readOnly"
         ng-if="$ctrl.page.metadata.edit_url"
         type="button"
         style="padding: 0 6px"
@@ -64,15 +66,17 @@
       <input type="text" ng-model="$ctrl.newName" autofocus />
     </div>
     <div>
-      <md-button type="button" class="md-raised md-primary" ng-click="$ctrl.rename()" aria-label="Edit"> Save </md-button>
-      <md-button class="md-raised" type="button" ng-click="$ctrl.toggleRename()"> Cancel </md-button>
+      <md-button ng-disabled="$ctrl.readOnly" type="button" class="md-raised md-primary" ng-click="$ctrl.rename()" aria-label="Edit">
+        Save
+      </md-button>
+      <md-button ng-disabled="$ctrl.readOnly" class="md-raised" type="button" ng-click="$ctrl.toggleRename()"> Cancel </md-button>
     </div>
   </div>
 
   <div class="gv-form" ng-if="!$ctrl.isFolder()">
     <h2></h2>
     <div class="gv-form-content" layout="column">
-      <div ng-if="editorReadonly && $ctrl.canUpdate" class="gv-page-draft-banner">
+      <div ng-if="!$ctrl.readOnly && editorReadonly && $ctrl.canUpdate" class="gv-page-draft-banner">
         <ng-md-icon icon="warning" class="gv-warning"></ng-md-icon>
         Page's content is retrieved from an external source. If you want to edit content manually,
         <a ng-click="$ctrl.goToExternalSource()">please change the configuration</a>.
@@ -91,12 +95,13 @@
 
               <gv-edit-page-content
                 ng-if="!$ctrl.isLink()"
-                can-update="$ctrl.canUpdate"
+                can-update="!$ctrl.readOnly && $ctrl.canUpdate"
                 page="$ctrl.page"
                 pages-to-link="$ctrl.pagesToLink"
               ></gv-edit-page-content>
               <gv-edit-link-content
                 ng-if="$ctrl.isLink()"
+                can-update="!$ctrl.readOnly"
                 category-resources="$ctrl.categoryResources"
                 folders-by-id="$ctrl.foldersById"
                 page="$ctrl.page"
@@ -113,6 +118,7 @@
           <md-tab-body>
             <gv-edit-page-translations
               api-id="$ctrl.apiId"
+              read-only="$ctrl.readOnly"
               can-update="$ctrl.canUpdate"
               current-translation="$ctrl.currentTranslation"
               page="$ctrl.page"
@@ -125,7 +131,7 @@
         <md-tab md-on-select="$ctrl.selectTab(2)" ng-if="$ctrl.canUpdate && !$ctrl.isLink()">
           <md-tab-label>Configuration</md-tab-label>
           <md-tab-body>
-            <gv-edit-page-configuration page="$ctrl.page"></gv-edit-page-configuration>
+            <gv-edit-page-configuration page="$ctrl.page" read-only="$ctrl.readOnly"></gv-edit-page-configuration>
           </md-tab-body>
         </md-tab>
 
@@ -133,12 +139,18 @@
         <md-tab md-on-select="$ctrl.selectTab(3)" ng-if="$ctrl.canUpdate && !$ctrl.isLink()">
           <md-tab-label>External Source</md-tab-label>
           <md-tab-body>
-            <gv-edit-page-fetchers fetchers="$ctrl.resolvedFetchers" page="$ctrl.page" title=""></gv-edit-page-fetchers>
+            <gv-edit-page-fetchers
+              read-only="$ctrl.readOnly"
+              fetchers="$ctrl.resolvedFetchers"
+              page="$ctrl.page"
+              title=""
+              can-update="!$ctrl.readOnly"
+            ></gv-edit-page-fetchers>
           </md-tab-body>
         </md-tab>
 
         <!-- access control -->
-        <md-tab md-on-select="$ctrl.selectTab(4)" ng-if="$ctrl.canUpdate">
+        <md-tab ng-if="!$ctrl.readOnly" md-on-select="$ctrl.selectTab(4)" ng-if="$ctrl.canUpdate">
           <md-tab-label>Access Control</md-tab-label>
           <md-tab-body>
             <gv-edit-page-acls page="$ctrl.page" groups="$ctrl.groups" roles="$ctrl.roles" is-api-page="!!$ctrl.apiId"></gv-edit-page-acls>
@@ -148,7 +160,7 @@
         <!-- Attached resources -->
         <md-tab
           md-on-select="$ctrl.selectTab(5)"
-          ng-if="$ctrl.canUpdate && ($ctrl.isMarkdown() || $ctrl.isAsciiDoc() || $ctrl.isAsyncApi())"
+          ng-if="!$ctrl.readOnly && $ctrl.canUpdate && ($ctrl.isMarkdown() || $ctrl.isAsciiDoc() || $ctrl.isAsyncApi())"
         >
           <md-tab-label>Attached resources</md-tab-label>
           <md-tab-body>
@@ -171,6 +183,7 @@
         ng-if="$ctrl.canUpdate && $ctrl.currentTab !== 'attached-resources'"
       >
         <md-button
+          ng-disabled="$ctrl.readOnly"
           class="md-raised md-primary"
           type="submit"
           ng-click="$ctrl.save()"
@@ -180,6 +193,7 @@
           Save
         </md-button>
         <md-button
+          ng-disabled="$ctrl.readOnly"
           permission
           permission-only="['environment-documentation-u', 'api-documentation-u']"
           type="button"
@@ -191,8 +205,14 @@
         >
           Save translation
         </md-button>
-        <md-button class="md-raised" type="button" ng-click="$ctrl.reset()"> Reset </md-button>
-        <md-button class="md-flat md-warn" type="button" ng-if="$ctrl.page.source" ng-click="$ctrl.removeFetcher()">
+        <md-button ng-disabled="$ctrl.readOnly" class="md-raised" type="button" ng-click="$ctrl.reset()"> Reset </md-button>
+        <md-button
+          ng-disabled="$ctrl.readOnly"
+          class="md-flat md-warn"
+          type="button"
+          ng-if="$ctrl.page.source"
+          ng-click="$ctrl.removeFetcher()"
+        >
           Remove External Source Configuration
         </md-button>
       </div>

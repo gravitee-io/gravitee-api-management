@@ -24,6 +24,7 @@ class EditPageTranslationsComponentController implements IController {
   currentTranslation: any;
   pagesToLink: any[];
   page: any;
+  readOnly: any;
 
   constructor(
     private readonly $mdDialog: angular.material.IDialogService,
@@ -132,6 +133,7 @@ export const EditPageTranslationsComponent: ng.IComponentOptions = {
     currentTranslation: '=',
     pagesToLink: '<',
     page: '<',
+    readOnly: '<',
   },
   template: require('./edit-page-translations.html'),
   controller: EditPageTranslationsComponentController,
