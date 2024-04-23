@@ -417,6 +417,7 @@ public class ApiResource extends AbstractResource {
     @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
     @GraviteeLicenseFeature("apim-debug-mode")
     public Response debugAPI(@Parameter(name = "request") @Valid final DebugApiEntity debugApiEntity) {
+        debugApiEntity.setId(api);
         return Response
             .ok(
                 debugApiUseCase
