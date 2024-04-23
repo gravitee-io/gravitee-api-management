@@ -29,6 +29,7 @@
       <div ng-if="$ctrl.breadcrumb.length > 1 && $ctrl.currentFolder.type != 'SYSTEM_FOLDER'">
         <md-button
           type="button"
+          ng-disabled="$ctrl.readOnly"
           class="md-raised md-primary"
           ng-click="$ctrl.changeFolderVisibility()"
           aria-label="visibility"
@@ -39,6 +40,7 @@
         >
         <md-button
           type="button"
+          ng-disabled="$ctrl.readOnly"
           class="md-raised md-primary"
           ng-click="$ctrl.toggleRenameFolder()"
           aria-label="Edit"
@@ -50,6 +52,7 @@
         >
         <md-button
           type="button"
+          ng-disabled="$ctrl.readOnly"
           class="md-raised md-primary"
           ng-click="$ctrl.toggleTranslateFolder()"
           aria-label="Translations"
@@ -61,11 +64,17 @@
       </div>
 
       <div>
-        <a permission permission-only="['environment-documentation-c', 'api-documentation-c']" ng-click="$ctrl.importPages()">
+        <a
+          ng-if="!$ctrl.readOnly"
+          permission
+          permission-only="['environment-documentation-c', 'api-documentation-c']"
+          ng-click="$ctrl.importPages()"
+        >
           Import multiple files
         </a>
         <md-button
           class="md-raised md-primary"
+          ng-disabled="$ctrl.readOnly"
           type="button"
           ng-if="$ctrl.hasExternalDoc()"
           ng-click="$ctrl.fetch()"
@@ -86,8 +95,16 @@
         </span>
       </h2>
       <div ng-if="$ctrl.breadcrumb.length > 1">
-        <md-button type="button" class="md-raised md-primary" ng-click="$ctrl.renameFolder()" aria-label="Edit"> Save</md-button>
-        <md-button class="md-raised" type="button" ng-click="$ctrl.toggleRenameFolder()"> Cancel </md-button>
+        <md-button
+          ng-disabled="$ctrl.readOnly"
+          type="button"
+          class="md-raised md-primary"
+          ng-click="$ctrl.renameFolder()"
+          aria-label="Edit"
+        >
+          Save</md-button
+        >
+        <md-button ng-disabled="$ctrl.readOnly" class="md-raised" type="button" ng-click="$ctrl.toggleRenameFolder()"> Cancel </md-button>
       </div>
     </div>
 
@@ -111,7 +128,7 @@
             <tr md-row ng-repeat="translation in $ctrl.currentFolder.translations">
               <td md-cell width="48px">
                 <span>
-                  <a ng-click="$ctrl.selectTranslation(translation)">{{translation.configuration.lang}}</a>
+                  <a ng-if="!$ctrl.readOnly" ng-click="$ctrl.selectTranslation(translation)">{{translation.configuration.lang}}</a>
                 </span>
               </td>
               <td md-cell>{{translation.name}}</td>
@@ -119,6 +136,7 @@
               <td md-cell width="48px">
                 <ng-md-icon
                   icon="delete"
+                  ng-if="!$ctrl.readOnly"
                   ng-click="$ctrl.remove(translation)"
                   style="font-size: 24px; height: 24px"
                   permission
@@ -134,6 +152,7 @@
 
       <div style="text-align: right">
         <md-button
+          ng-disabled="$ctrl.readOnly"
           permission
           permission-only="['environment-documentation-u', 'api-documentation-u']"
           type="button"
@@ -148,11 +167,11 @@
       <div class="gv-form-content" ng-if="$ctrl.currentTranslation">
         <md-input-container class="md-block">
           <label>Language (max. 2 characters)</label>
-          <input ng-model="$ctrl.currentTranslation.configuration.lang" maxlength="2" required />
+          <input ng-disabled="$ctrl.readOnly" ng-model="$ctrl.currentTranslation.configuration.lang" maxlength="2" required />
         </md-input-container>
         <md-input-container class="md-block">
           <label>Translated title</label>
-          <input type="text" ng-model="$ctrl.currentTranslation.name" required />
+          <input ng-disabled="$ctrl.readOnly" type="text" ng-model="$ctrl.currentTranslation.name" required />
         </md-input-container>
       </div>
 
@@ -164,7 +183,7 @@
           aria-label="Save translation"
           class="md-raised md-primary"
           ng-click="$ctrl.saveFolderTranslation()"
-          ng-disabled="!$ctrl.currentTranslation.configuration.lang || !$ctrl.currentTranslation.name"
+          ng-disabled="$ctrl.readOnly || !$ctrl.currentTranslation.configuration.lang || !$ctrl.currentTranslation.name"
         >
           Save translation
         </md-button>
@@ -251,7 +270,7 @@
                   icon="link"
                   ng-click="$ctrl.createShortCut(page)"
                   style="font-size: 24px; height: 24px"
-                  ng-if="$ctrl.canCreateShortCut(page.id, page.type)"
+                  ng-if="!$ctrl.readOnly &&  $ctrl.canCreateShortCut(page.id, page.type)"
                   permission
                   permission-only="['environment-documentation-u', 'api-documentation-u']"
                 >
@@ -262,8 +281,9 @@
                 <ng-md-icon
                   icon="archive"
                   ng-click="$ctrl.moveToFolder(page)"
+                  ng-disabled="true"
                   style="font-size: 24px; height: 24px"
-                  ng-if="page.type !== 'folder'"
+                  ng-if="!$ctrl.readOnly && page.type !== 'folder'"
                   permission
                   permission-only="['environment-documentation-u', 'api-documentation-u']"
                 >
@@ -272,7 +292,7 @@
               </td>
               <td md-cell width="48px">
                 <ng-md-icon
-                  ng-if="!page.published && !$ctrl.isLink(page.type)"
+                  ng-if="!$ctrl.readOnly && !page.published && !$ctrl.isLink(page.type)"
                   icon="{{$ctrl.isMarkdownTemplate(page.type) ? 'check_box_outline_blank' : 'cloud_queue'}}"
                   ng-click="$ctrl.togglePublish(page)"
                   style="font-size: 24px; height: 24px"
@@ -284,7 +304,7 @@
                   </md-tooltip>
                 </ng-md-icon>
                 <ng-md-icon
-                  ng-if="page.published && !$ctrl.isLink(page.type)"
+                  ng-if="!$ctrl.readOnly && page.published && !$ctrl.isLink(page.type)"
                   icon="{{$ctrl.isMarkdownTemplate(page.type) ? 'check_box' : 'cloud_done'}}"
                   ng-click="$ctrl.togglePublish(page)"
                   style="font-size: 24px; height: 24px"
@@ -298,7 +318,7 @@
               </td>
               <td md-cell width="76px" nowrap>
                 <ng-md-icon
-                  ng-if="!$first"
+                  ng-if="!$ctrl.readOnly && !$first"
                   icon="arrow_upwards"
                   ng-click="$ctrl.upward(page)"
                   permission
@@ -308,7 +328,7 @@
                 </ng-md-icon>
                 <span ng-if="$first" style="padding-right: 28px"></span>
                 <ng-md-icon
-                  ng-if="!$last"
+                  ng-if="!$ctrl.readOnly && !$last"
                   icon="arrow_downward"
                   ng-click="$ctrl.downward(page)"
                   permission
@@ -320,6 +340,7 @@
               <td md-cell width="1%" nowrap>{{page.lastModificationDate | date:'medium'}}</td>
               <td md-cell width="48px">
                 <ng-md-icon
+                  ng-if="!$ctrl.readOnly"
                   icon="delete"
                   ng-click="$ctrl.remove(page)"
                   style="font-size: 24px; height: 24px"
@@ -331,7 +352,7 @@
               </td>
               <td md-cell width="24px">
                 <ng-md-icon
-                  ng-if="$ctrl.isPage(page.type) || $ctrl.isFolder(page.type)"
+                  ng-if="!$ctrl.readOnly && $ctrl.isPage(page.type) || $ctrl.isFolder(page.type)"
                   icon="{{ page.visibility === 'PRIVATE' ? 'lock' : 'public' }}"
                   size="20"
                   style="fill: #cdcdcd"
@@ -361,6 +382,7 @@
       >
         <md-fab-trigger>
           <md-button
+            ng-disabled="$ctrl.readOnly"
             aria-label="menu"
             class="md-fab md-success"
             permission

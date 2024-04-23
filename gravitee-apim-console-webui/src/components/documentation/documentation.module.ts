@@ -23,6 +23,7 @@ import { DocumentationImportPagesComponent } from './import-pages.component';
 import { ajsDocumentationServiceProvider } from '../../services/documentation.service';
 import { ajsFetcherServiceProvider } from '../../services/fetcher.service';
 import { ajsCategoryServiceProvider } from '../../services/category.service';
+import { ajsApiServiceProvider } from '../../services-ngx/api.service';
 
 @NgModule({
   declarations: [
@@ -37,6 +38,6 @@ import { ajsCategoryServiceProvider } from '../../services/category.service';
     DocumentationEditPageComponent,
     DocumentationImportPagesComponent,
   ],
-  providers: [ajsDocumentationServiceProvider, ajsFetcherServiceProvider, ajsCategoryServiceProvider],
+  providers: [ajsDocumentationServiceProvider, ajsFetcherServiceProvider, ajsCategoryServiceProvider, ajsApiServiceProvider],
 })
 export class DocumentationModule {}

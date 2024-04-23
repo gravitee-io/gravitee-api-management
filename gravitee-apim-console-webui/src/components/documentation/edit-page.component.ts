@@ -22,6 +22,7 @@ import { DocumentationService } from '../../services/documentation.service';
 import FetcherService from '../../services/fetcher.service';
 import CategoryService from '../../services/category.service';
 import { GroupService } from '../../services-ngx/group.service';
+import { ApiService } from '../../services/api.service';
 
 @Component({
   template: '',
@@ -39,6 +40,7 @@ export class DocumentationEditPageComponent extends UpgradeComponent {
     @Inject('ajsDocumentationService') private readonly ajsDocumentationService: DocumentationService,
     @Inject('ajsFetcherService') private readonly ajsFetcherService: FetcherService,
     @Inject('ajsCategoryService') private readonly ajsCategoryService: CategoryService,
+    @Inject('ajsApiService') private readonly ajsApiService: ApiService,
   ) {
     super('documentationEditPageAjs', elementRef, injector);
   }
@@ -94,6 +96,7 @@ export class DocumentationEditPageComponent extends UpgradeComponent {
       type === 'MARKDOWN' || type === 'ASCIIDOC' || type === 'ASYNCAPI'
         ? this.ajsDocumentationService.getMedia(pageId, apiId).then((response) => response.data)
         : Promise.resolve(null),
+      this.ajsApiService.get(apiId).then((res) => res.data?.definition_context?.origin === 'kubernetes'),
     ]).then(
       ([
         resolvedFetchers,
@@ -105,6 +108,7 @@ export class DocumentationEditPageComponent extends UpgradeComponent {
         categoryResources,
         pagesToLink,
         attachedResources,
+        readOnly,
       ]) => {
         // Hack to Force the binding between Angular and AngularJS
         this.ngOnChanges({
@@ -118,6 +122,7 @@ export class DocumentationEditPageComponent extends UpgradeComponent {
           categoryResources: new SimpleChange(null, categoryResources, true),
           pagesToLink: new SimpleChange(null, pagesToLink, true),
           attachedResources: new SimpleChange(null, attachedResources, true),
+          readOnly: new SimpleChange(null, readOnly, true),
         });
 
         super.ngOnInit();

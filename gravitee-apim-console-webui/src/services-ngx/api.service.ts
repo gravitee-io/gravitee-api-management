@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { HttpClient } from '@angular/common/http';
-import { Inject, Injectable } from '@angular/core';
+import { Inject, Injectable, Injector } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { catchError, mapTo } from 'rxjs/operators';
 import { AbstractControl, AsyncValidatorFn, ValidationErrors } from '@angular/forms';
@@ -342,3 +342,9 @@ export class ApiService {
     return this.http.get<Event[]>(`${this.constants.env.baseURL}/apis/${apiId}/events?type=${eventTypes ? `${eventTypes.join(',')}` : ''}`);
   }
 }
+
+export const ajsApiServiceProvider = {
+  deps: ['$injector'],
+  provide: 'ajsApiService',
+  useFactory: (injector: Injector) => injector.get('ApiService'),
+};
