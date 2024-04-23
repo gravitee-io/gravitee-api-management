@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { map } from 'rxjs/operators';
+import { map, takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 
 import { MetadataSaveServices } from '../../../../components/gio-metadata/gio-metadata.component';
 import { ApiService } from '../../../../services-ngx/api.service';
@@ -27,9 +28,13 @@ import { Metadata } from '../../../../entities/metadata/metadata';
   templateUrl: './gio-api-metadata-list.component.html',
   styleUrls: ['./gio-api-metadata-list.component.scss'],
 })
-export class GioApiMetadataListComponent implements OnInit {
+export class GioApiMetadataListComponent implements OnInit, OnDestroy {
   metadataSaveServices: MetadataSaveServices;
   description: string;
+
+  readOnly = false;
+
+  private unsubscribe$ = new Subject<void>();
 
   constructor(
     private readonly apiService: ApiService,
@@ -53,5 +58,16 @@ export class GioApiMetadataListComponent implements OnInit {
       delete: (metadataKey) => this.apiService.deleteMetadata(this.activatedRoute.snapshot.params.apiId, metadataKey),
     };
     this.description = `Set metadata information on the API that can be easily accessed through Markdown templating`;
+    this.apiService
+      .get(this.activatedRoute.snapshot.params.apiId)
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe((api) => {
+        this.readOnly = api.definition_context?.origin === 'kubernetes';
+      });
+  }
+
+  ngOnDestroy() {
+    this.unsubscribe$.next();
+    this.unsubscribe$.complete();
   }
 }
