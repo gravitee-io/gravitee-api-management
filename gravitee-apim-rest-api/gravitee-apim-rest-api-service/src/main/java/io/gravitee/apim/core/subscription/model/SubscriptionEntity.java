@@ -112,7 +112,7 @@ public class SubscriptionEntity {
 
     public SubscriptionEntity rejectBy(String userId, String reason) {
         if (Status.PENDING.equals(this.status)) {
-            final ZonedDateTime now = ZonedDateTime.now();
+            final ZonedDateTime now = TimeProvider.now();
             return this.toBuilder().processedBy(userId).updatedAt(now).closedAt(now).status(Status.REJECTED).reasonMessage(reason).build();
         }
         throw new IllegalStateException("Cannot reject subscription");
