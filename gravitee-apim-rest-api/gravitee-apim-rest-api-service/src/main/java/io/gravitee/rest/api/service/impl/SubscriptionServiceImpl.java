@@ -782,12 +782,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         }
     }
 
-    @Override
-    public SubscriptionEntity process(
-        final ExecutionContext executionContext,
-        ProcessSubscriptionEntity processSubscription,
-        String userId
-    ) {
+    SubscriptionEntity process(final ExecutionContext executionContext, ProcessSubscriptionEntity processSubscription, String userId) {
         logger.debug("Subscription {} processed by {}", processSubscription.getId(), userId);
 
         var auditInfo = AuditInfo

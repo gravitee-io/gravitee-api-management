@@ -65,8 +65,6 @@ public interface SubscriptionService {
 
     SubscriptionEntity updateDaysToExpirationOnLastNotification(String subscriptionId, Integer value);
 
-    SubscriptionEntity process(ExecutionContext executionContext, ProcessSubscriptionEntity processSubscription, String userId);
-
     SubscriptionEntity pauseConsumer(ExecutionContext executionContext, String subscription);
     SubscriptionEntity pause(ExecutionContext executionContext, String subscription);
 

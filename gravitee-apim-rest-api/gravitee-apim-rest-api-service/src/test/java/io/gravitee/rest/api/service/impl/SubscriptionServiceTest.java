@@ -167,7 +167,7 @@ public class SubscriptionServiceTest {
     private static final String SUBSCRIBER_ID = "subscriber";
 
     @InjectMocks
-    private SubscriptionService subscriptionService = new SubscriptionServiceImpl();
+    private SubscriptionServiceImpl subscriptionService = new SubscriptionServiceImpl();
 
     @Mock
     private PlanSearchService planSearchService;
