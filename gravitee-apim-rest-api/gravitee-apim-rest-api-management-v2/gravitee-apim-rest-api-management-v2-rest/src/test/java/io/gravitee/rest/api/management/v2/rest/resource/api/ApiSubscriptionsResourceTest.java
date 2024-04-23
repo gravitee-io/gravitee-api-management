@@ -19,6 +19,8 @@ import static assertions.MAPIAssertions.assertThat;
 import static io.gravitee.common.http.HttpStatusCode.BAD_REQUEST_400;
 import static io.gravitee.common.http.HttpStatusCode.CREATED_201;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
+import static io.gravitee.common.http.HttpStatusCode.NOT_FOUND_404;
+import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -55,15 +57,19 @@ import io.gravitee.rest.api.service.ApplicationService;
 import io.gravitee.rest.api.service.SubscriptionService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
+import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 import io.gravitee.rest.api.service.v4.PlanSearchService;
 import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
+import java.util.Objects;
 import java.util.Optional;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -93,8 +99,12 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
     @Autowired
     AcceptSubscriptionUseCase acceptSubscriptionUseCase;
 
+    WebTarget target;
+
     @BeforeEach
     public void init() throws TechnicalException {
+        target = rootTarget();
+
         doReturn(Optional.of(Api.builder().id(API).environmentId(ENVIRONMENT).build())).when(apiRepository).findById(API);
 
         EnvironmentEntity environmentEntity = EnvironmentEntity.builder().id(ENVIRONMENT).organizationId(ORGANIZATION).build();
@@ -138,7 +148,7 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
                     SubscriptionFixtures.aSubscriptionEntity().toBuilder().id(SUBSCRIPTION).application(APPLICATION).plan(PLAN).build()
                 );
 
-            final Response response = rootTarget().request().post(Entity.json(createSubscription));
+            final Response response = target.request().post(Entity.json(createSubscription));
             assertThat(response)
                 .hasStatus(CREATED_201)
                 .asEntity(Subscription.class)
@@ -174,7 +184,7 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
             )
                 .thenReturn(false);
 
-            final Response response = rootTarget().request().post(Entity.json(SubscriptionFixtures.aCreateSubscription()));
+            final Response response = target.request().post(Entity.json(SubscriptionFixtures.aCreateSubscription()));
 
             assertThat(response)
                 .hasStatus(FORBIDDEN_403)
@@ -202,7 +212,7 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
             )
                 .thenReturn(false);
 
-            final Response response = rootTarget().request().post(Entity.json(createSubscription));
+            final Response response = target.request().post(Entity.json(createSubscription));
 
             assertThat(response)
                 .hasStatus(BAD_REQUEST_400)
@@ -241,7 +251,7 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
                         .build()
                 );
 
-            final Response response = rootTarget().request().post(Entity.json(createSubscription));
+            final Response response = target.request().post(Entity.json(createSubscription));
 
             assertThat(response).hasStatus(CREATED_201);
 
@@ -284,7 +294,7 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
                 .when(acceptSubscriptionUseCase)
                 .execute(any());
 
-            final Response response = rootTarget().request().post(Entity.json(createSubscription));
+            final Response response = target.request().post(Entity.json(createSubscription));
             assertThat(response)
                 .hasStatus(CREATED_201)
                 .asEntity(Subscription.class)
@@ -295,6 +305,86 @@ public class ApiSubscriptionsResourceTest extends AbstractResourceTest {
                         soft.assertThat(subscription.getApplication()).extracting(BaseApplication::getId).isEqualTo(APPLICATION);
                     });
                 });
+        }
+    }
+
+    @Nested
+    class Accept {
+
+        @BeforeEach
+        void setUp() {
+            target = target.path(SUBSCRIPTION).path("_accept");
+        }
+
+        @Test
+        public void should_accept_subscription() {
+            final SubscriptionEntity subscriptionEntity = SubscriptionFixtures
+                .aSubscriptionEntity()
+                .toBuilder()
+                .id(SUBSCRIPTION)
+                .api(API)
+                .plan(PLAN)
+                .status(SubscriptionStatus.PENDING)
+                .build();
+            final var acceptSubscription = SubscriptionFixtures.anAcceptSubscription();
+
+            doReturn(
+                new AcceptSubscriptionUseCase.Output(
+                    fixtures.core.model.SubscriptionFixtures
+                        .aSubscription()
+                        .toBuilder()
+                        .id(SUBSCRIPTION)
+                        .planId(PLAN)
+                        .applicationId(APPLICATION)
+                        .build()
+                )
+            )
+                .when(acceptSubscriptionUseCase)
+                .execute(any());
+
+            final Response response = target.request().post(Entity.json(acceptSubscription));
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(Subscription.class)
+                .satisfies(subscription -> {
+                    SoftAssertions.assertSoftly(soft -> {
+                        soft.assertThat(subscription.getId()).isEqualTo(SUBSCRIPTION);
+                        soft.assertThat(subscription.getPlan()).extracting(BasePlan::getId).isEqualTo(PLAN);
+                        soft.assertThat(subscription.getApplication()).extracting(BaseApplication::getId).isEqualTo(APPLICATION);
+                    });
+                });
+
+            var captor = ArgumentCaptor.forClass(AcceptSubscriptionUseCase.Input.class);
+            verify(acceptSubscriptionUseCase).execute(captor.capture());
+            SoftAssertions.assertSoftly(soft -> {
+                var input = captor.getValue();
+                soft.assertThat(input.subscriptionId()).isEqualTo(SUBSCRIPTION);
+                soft.assertThat(input.apiId()).isEqualTo(API);
+                soft.assertThat(input.startingAt()).isEqualTo(Objects.requireNonNull(acceptSubscription.getStartingAt()).toZonedDateTime());
+                soft.assertThat(input.endingAt()).isEqualTo(Objects.requireNonNull(acceptSubscription.getEndingAt()).toZonedDateTime());
+                soft.assertThat(input.reasonMessage()).isEqualTo(acceptSubscription.getReason());
+                soft.assertThat(input.customKey()).isEqualTo(acceptSubscription.getCustomApiKey());
+            });
+        }
+
+        @Test
+        public void should_return_403_if_incorrect_permissions() {
+            when(
+                permissionService.hasPermission(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(RolePermission.API_SUBSCRIPTION),
+                    eq(API),
+                    eq(RolePermissionAction.UPDATE)
+                )
+            )
+                .thenReturn(false);
+
+            final Response response = target.request().post(Entity.json(SubscriptionFixtures.anAcceptSubscription()));
+            assertThat(response)
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
         }
     }
 }

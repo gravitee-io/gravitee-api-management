@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
+import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
 import io.gravitee.rest.api.management.v2.rest.model.*;
 import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.SubscriptionStatus;
@@ -74,10 +75,6 @@ public interface SubscriptionMapper {
     @Mapping(target = "configuration", source = "updateSubscription.consumerConfiguration")
     @Mapping(target = "id", expression = "java(subscriptionId)")
     UpdateSubscriptionEntity map(UpdateSubscription updateSubscription, String subscriptionId);
-
-    @Mapping(target = "id", expression = "java(subscriptionId)")
-    @Mapping(target = "accepted", constant = "true")
-    ProcessSubscriptionEntity map(AcceptSubscription acceptSubscription, String subscriptionId);
 
     @Mapping(target = "id", expression = "java(subscriptionId)")
     @Mapping(target = "accepted", constant = "false")
