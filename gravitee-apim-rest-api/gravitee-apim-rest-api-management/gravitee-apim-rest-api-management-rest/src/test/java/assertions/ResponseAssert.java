@@ -15,8 +15,12 @@
  */
 package assertions;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import io.vertx.core.json.JsonObject;
 import jakarta.ws.rs.core.Response;
+import java.util.List;
+import java.util.Map;
 import org.assertj.core.api.AbstractObjectAssert;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.assertj.core.api.ObjectAssert;
@@ -32,6 +36,16 @@ public class ResponseAssert extends AbstractObjectAssert<ResponseAssert, Respons
         if (actual.getStatus() != status) {
             failWithMessage("Expected response status to be <%s> but was <%s>", status, actual.getStatus());
         }
+
+        return this;
+    }
+
+    public ResponseAssert hasHeader(Map.Entry<String, String> header) {
+        isNotNull();
+
+        assertThat(actual.getHeaders())
+            .describedAs("Expected response headers to contains <%s> but was <%s>", header, actual.getHeaders())
+            .containsEntry(header.getKey(), List.of(header.getValue()));
 
         return this;
     }

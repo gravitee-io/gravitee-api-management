@@ -17,8 +17,11 @@ package io.gravitee.rest.api.management.rest.resource;
 
 import static java.lang.String.format;
 
+import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.rest.api.management.rest.mapper.SubscriptionMapper;
 import io.gravitee.rest.api.management.rest.model.ExportPageable;
 import io.gravitee.rest.api.management.rest.model.Pageable;
 import io.gravitee.rest.api.management.rest.model.Subscription;
@@ -67,6 +70,9 @@ import org.apache.commons.lang3.StringUtils;
  */
 @Tag(name = "API Subscriptions")
 public class ApiSubscriptionsResource extends AbstractResource {
+
+    @Inject
+    private AcceptSubscriptionUseCase acceptSubscriptionUseCase;
 
     @Inject
     private SubscriptionService subscriptionService;
@@ -181,15 +187,15 @@ public class ApiSubscriptionsResource extends AbstractResource {
         }
 
         // Create subscription
-        SubscriptionEntity subscription = subscriptionService.create(executionContext, newSubscriptionEntity, customApiKey);
+        SubscriptionEntity created = subscriptionService.create(executionContext, newSubscriptionEntity, customApiKey);
+        Subscription subscription = convert(executionContext, created);
 
-        if (subscription.getStatus() == SubscriptionStatus.PENDING) {
-            ProcessSubscriptionEntity process = new ProcessSubscriptionEntity();
-            process.setId(subscription.getId());
-            process.setAccepted(true);
-            process.setStartingAt(new Date());
-            process.setCustomApiKey(customApiKey);
-            subscription = subscriptionService.process(executionContext, process, getAuthenticatedUser());
+        if (created.getStatus() == SubscriptionStatus.PENDING) {
+            var output = acceptSubscriptionUseCase.execute(
+                new AcceptSubscriptionUseCase.Input(api, created.getId(), TimeProvider.now(), null, null, customApiKey, getAuditInfo())
+            );
+
+            subscription = convert(executionContext, output.subscription());
         }
 
         return Response
@@ -200,7 +206,7 @@ public class ApiSubscriptionsResource extends AbstractResource {
                     .replaceQueryParam("plan", null)
                     .build()
             )
-            .entity(convert(executionContext, subscription))
+            .entity(subscription)
             .build();
     }
 
@@ -299,6 +305,17 @@ public class ApiSubscriptionsResource extends AbstractResource {
         subscription.setClosedAt(subscriptionEntity.getClosedAt());
 
         return subscription;
+    }
+
+    private Subscription convert(
+        final ExecutionContext executionContext,
+        io.gravitee.apim.core.subscription.model.SubscriptionEntity subscriptionEntity
+    ) {
+        var genericPlan = planSearchService.findById(executionContext, subscriptionEntity.getPlanId());
+        var application = applicationService.findById(executionContext, subscriptionEntity.getApplicationId());
+        var userDisplayName = userService.findById(executionContext, subscriptionEntity.getSubscribedBy()).getDisplayName();
+
+        return SubscriptionMapper.convert(subscriptionEntity, userDisplayName, genericPlan, application);
     }
 
     private static class SubscriptionParam {
