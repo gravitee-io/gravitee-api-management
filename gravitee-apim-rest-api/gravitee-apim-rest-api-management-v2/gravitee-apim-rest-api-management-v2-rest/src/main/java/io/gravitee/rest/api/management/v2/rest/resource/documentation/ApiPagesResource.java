@@ -15,25 +15,45 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.documentation;
 
-import io.gravitee.apim.core.audit.model.AuditActor;
-import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.model.Page;
-import io.gravitee.apim.core.documentation.use_case.*;
+import io.gravitee.apim.core.documentation.use_case.ApiCreateDocumentationPageUseCase;
+import io.gravitee.apim.core.documentation.use_case.ApiDeleteDocumentationPageUseCase;
+import io.gravitee.apim.core.documentation.use_case.ApiGetDocumentationPageUseCase;
+import io.gravitee.apim.core.documentation.use_case.ApiGetDocumentationPagesUseCase;
+import io.gravitee.apim.core.documentation.use_case.ApiPublishDocumentationPageUseCase;
+import io.gravitee.apim.core.documentation.use_case.ApiUnpublishDocumentationPageUseCase;
+import io.gravitee.apim.core.documentation.use_case.ApiUpdateDocumentationPageUseCase;
 import io.gravitee.apim.core.documentation.use_case.ApiUpdateDocumentationPageUseCase.Input;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.PageMapper;
-import io.gravitee.rest.api.management.v2.rest.model.*;
+import io.gravitee.rest.api.management.v2.rest.model.ApiDocumentationPagesResponse;
+import io.gravitee.rest.api.management.v2.rest.model.CreateDocumentation;
+import io.gravitee.rest.api.management.v2.rest.model.CreateDocumentationAsyncApi;
+import io.gravitee.rest.api.management.v2.rest.model.CreateDocumentationFolder;
+import io.gravitee.rest.api.management.v2.rest.model.CreateDocumentationMarkdown;
+import io.gravitee.rest.api.management.v2.rest.model.CreateDocumentationSwagger;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateDocumentation;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateDocumentationAsyncApi;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateDocumentationFolder;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateDocumentationMarkdown;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateDocumentationSwagger;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
 import io.gravitee.rest.api.rest.annotation.Permissions;
-import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
 import org.apache.commons.lang3.StringUtils;
 import org.mapstruct.factory.Mappers;
@@ -175,16 +195,5 @@ public class ApiPagesResource extends AbstractResource {
     public Response deleteDocumentationPage(@PathParam("apiId") String apiId, @PathParam("pageId") String pageId) {
         apiDeleteDocumentationPageUseCase.execute(new ApiDeleteDocumentationPageUseCase.Input(apiId, pageId, getAuditInfo()));
         return Response.noContent().build();
-    }
-
-    private AuditInfo getAuditInfo() {
-        var executionContext = GraviteeContext.getExecutionContext();
-        var user = getAuthenticatedUserDetails();
-        return AuditInfo
-            .builder()
-            .organizationId(executionContext.getOrganizationId())
-            .environmentId(executionContext.getEnvironmentId())
-            .actor(AuditActor.builder().userId(user.getUsername()).userSource(user.getSource()).userSourceId(user.getSourceId()).build())
-            .build();
     }
 }
