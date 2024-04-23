@@ -20,6 +20,7 @@ import static java.lang.String.format;
 import io.gravitee.apim.core.api_key.use_case.RevokeApiSubscriptionApiKeyUseCase;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.CloseSubscriptionUseCase;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.common.http.MediaType;
@@ -115,6 +116,9 @@ public class ApiSubscriptionsResource extends AbstractResource {
 
     @Inject
     private CloseSubscriptionUseCase closeSubscriptionUsecase;
+
+    @Inject
+    private AcceptSubscriptionUseCase acceptSubscriptionUsecase;
 
     @Inject
     private RevokeApiSubscriptionApiKeyUseCase revokeApiSubscriptionApiKeyUsecase;
@@ -239,22 +243,21 @@ public class ApiSubscriptionsResource extends AbstractResource {
         }
 
         final NewSubscriptionEntity newSubscriptionEntity = subscriptionMapper.map(createSubscription);
-        SubscriptionEntity subscription = subscriptionService.create(
+        SubscriptionEntity created = subscriptionService.create(
             executionContext,
             newSubscriptionEntity,
             createSubscription.getCustomApiKey()
         );
+        var subscription = subscriptionMapper.map(created);
 
-        if (subscription.getStatus() == io.gravitee.rest.api.model.SubscriptionStatus.PENDING) {
-            ProcessSubscriptionEntity process = new ProcessSubscriptionEntity();
-            process.setId(subscription.getId());
-            process.setAccepted(true);
-            process.setStartingAt(new Date());
-            process.setCustomApiKey(createSubscription.getCustomApiKey());
-            subscription = subscriptionService.process(executionContext, process, getAuthenticatedUser());
+        if (created.getStatus() == io.gravitee.rest.api.model.SubscriptionStatus.PENDING) {
+            var result = acceptSubscriptionUsecase.execute(
+                AcceptSubscriptionUseCase.Input.builder().subscriptionId(created.getId()).apiId(apiId).auditInfo(getAuditInfo()).build()
+            );
+            subscription = subscriptionMapper.map(result.subscription());
         }
 
-        return Response.created(this.getLocationHeader(subscription.getId())).entity(subscriptionMapper.map(subscription)).build();
+        return Response.created(this.getLocationHeader(created.getId())).entity(subscription).build();
     }
 
     @POST
