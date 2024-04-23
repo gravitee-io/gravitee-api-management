@@ -16,9 +16,29 @@
 import { Routes } from '@angular/router';
 
 import { ApiDetailsComponent } from './api-details/api-details.component';
+import { ApiTabDetailsComponent } from './api-details/api-tab-details/api-tab-details.component';
+import { ApiTabDocumentationComponent } from './api-details/api-tab-documentation/api-tab-documentation.component';
 import { CatalogComponent } from './catalog/catalog.component';
 
 export const routes: Routes = [
   { path: '', component: CatalogComponent },
-  { path: 'api/:apiId', component: ApiDetailsComponent },
+  {
+    path: 'api/:apiId',
+    component: ApiDetailsComponent,
+    children: [
+      {
+        path: '',
+        redirectTo: 'details',
+        pathMatch: 'full',
+      },
+      {
+        path: 'details',
+        component: ApiTabDetailsComponent,
+      },
+      {
+        path: 'documentation',
+        component: ApiTabDocumentationComponent,
+      },
+    ],
+  },
 ];
