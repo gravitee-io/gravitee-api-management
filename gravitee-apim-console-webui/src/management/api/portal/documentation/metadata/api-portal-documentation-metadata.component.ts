@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 import { Component, Inject, OnInit } from '@angular/core';
+import { takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 
 import { MetadataSaveServices } from '../../../../../components/gio-metadata/gio-metadata.component';
 import { ApiService } from '../../../../../services-ngx/api.service';
@@ -27,6 +29,9 @@ import { UIRouterStateParams } from '../../../../../ajs-upgraded-providers';
 export class ApiPortalDocumentationMetadataComponent implements OnInit {
   metadataSaveServices: MetadataSaveServices;
   description: string;
+  readOnly: boolean;
+
+  private unsubscribe$ = new Subject<void>();
 
   constructor(private readonly apiService: ApiService, @Inject(UIRouterStateParams) private readonly ajsStateParams) {}
 
@@ -39,5 +44,11 @@ export class ApiPortalDocumentationMetadataComponent implements OnInit {
       delete: (metadataKey) => this.apiService.deleteMetadata(this.ajsStateParams.apiId, metadataKey),
     };
     this.description = `Create API metadata to retrieve custom information about your API`;
+    this.apiService
+      .get(this.ajsStateParams.apiId)
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe((api) => {
+        this.readOnly = api.definition_context?.origin === 'kubernetes';
+      });
   }
 }

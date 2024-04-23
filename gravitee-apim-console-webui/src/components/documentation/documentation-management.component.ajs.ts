@@ -18,7 +18,6 @@ import { StateService } from '@uirouter/core';
 import { IController, IScope } from 'angular';
 import * as _ from 'lodash';
 
-<<<<<<< HEAD
 import { DocumentationQuery, DocumentationService, FolderSituation, PageType } from '../../services/documentation.service';
 import NotificationService from '../../services/notification.service';
 
@@ -28,9 +27,12 @@ interface IDocumentationManagementScope extends IScope {
 }
 
 class DocumentationManagementComponentController implements IController {
+  [s: string]: any;
+
   pages: any[];
   folders: any[];
   systemFolders: any[];
+  readOnly: boolean;
 
   apiId: string;
   rootDir: string;
@@ -42,7 +44,7 @@ class DocumentationManagementComponentController implements IController {
   newFolderName: string;
   currentTranslation: any;
   fetchAllInProgress: boolean;
-  /* @ngInject */
+
   constructor(
     private readonly NotificationService: NotificationService,
     private readonly DocumentationService: DocumentationService,
@@ -56,35 +58,6 @@ class DocumentationManagementComponentController implements IController {
   $onInit() {
     // remove the ROOT page
     this.pages = this.filterROOTAndSystemPages(this.pages);
-=======
-@Component({
-  template: '',
-  selector: 'ng-documentation-management',
-  host: {
-    class: 'bootstrap',
-  },
-  jit: true,
-})
-export class DocumentationManagementComponent extends UpgradeComponent {
-  @Input() pages;
-  @Input() folders;
-  @Input() systemFolders;
-  @Input() readOnly;
-
-  constructor(elementRef: ElementRef, injector: Injector) {
-    super('documentationManagementAjs', elementRef, injector);
-  }
-
-  ngOnInit() {
-    // Hack to Force the binding between Angular and AngularJS
-    // Don't know why, but the binding is not done automatically when resolver is used
-    this.ngOnChanges({
-      pages: new SimpleChange(null, this.pages, true),
-      folders: new SimpleChange(null, this.folders, true),
-      systemFolders: new SimpleChange(null, this.systemFolders, true),
-      readOnly: new SimpleChange(null, this.readOnly, true),
-    });
->>>>>>> 2a74f294c0 (feat: set v2 doc pages to read only for kube origin)
 
     this.rootDir = this.$state.params.parent;
     this.foldersById = _.keyBy(this.folders, 'id');
@@ -429,7 +402,7 @@ export class DocumentationManagementComponent extends UpgradeComponent {
 
   newPage(type: string) {
     if (this.apiId) {
-      this.$state.go('management.apis.detail.portal.newdocumentation', { type: type, parent: this.rootDir });
+      this.$state.go('management.apis.documentationNew', { type: type, parent: this.rootDir });
     } else {
       this.$state.go('management.settings.documentation.new', { type: type, parent: this.rootDir });
     }
@@ -438,13 +411,13 @@ export class DocumentationManagementComponent extends UpgradeComponent {
   openUrl(page: any) {
     if ('FOLDER' === page.type || 'SYSTEM_FOLDER' === page.type) {
       if (this.apiId) {
-        return this.$state.go('management.apis.detail.portal.documentation', { apiId: this.apiId, type: page.type, parent: page.id });
+        return this.$state.go('management.apis.documentation', { apiId: this.apiId, type: page.type, parent: page.id });
       } else {
         return this.$state.go('management.settings.documentation.list', { parent: page.id });
       }
     } else {
       if (this.apiId) {
-        return this.$state.go('management.apis.detail.portal.editdocumentation', { apiId: this.apiId, type: page.type, pageId: page.id });
+        return this.$state.go('management.apis.documentationEdit', { apiId: this.apiId, type: page.type, pageId: page.id });
       } else {
         return this.$state.go('management.settings.documentation.edit', { pageId: page.id, type: page.type, tab: 'content' });
       }
@@ -453,7 +426,7 @@ export class DocumentationManagementComponent extends UpgradeComponent {
 
   importPages() {
     if (this.apiId) {
-      this.$state.go('management.apis.detail.portal.importdocumentation', { apiId: this.apiId });
+      this.$state.go('management.apis.documentationImport', { apiId: this.apiId });
     } else {
       this.$state.go('management.settings.documentation.import');
     }
@@ -506,12 +479,14 @@ export class DocumentationManagementComponent extends UpgradeComponent {
     };
   }
 }
+DocumentationManagementComponentController.$inject = ['NotificationService', 'DocumentationService', '$state', '$scope', '$mdDialog'];
 
-export const DocumentationManagementComponent: ng.IComponentOptions = {
+export const DocumentationManagementComponentAjs: ng.IComponentOptions = {
   bindings: {
     pages: '<',
     folders: '<',
     systemFolders: '<',
+    readOnly: '<',
   },
   template: require('./documentation-management.html'),
   controller: DocumentationManagementComponentController,

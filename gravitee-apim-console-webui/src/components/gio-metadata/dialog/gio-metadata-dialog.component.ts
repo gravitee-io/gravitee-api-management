@@ -30,6 +30,8 @@ export interface GioMetadataDialogData {
   defaultValue?: string;
   referenceType: 'API' | 'Application' | 'Global';
   action: 'Update' | 'Create';
+  readOnly?: boolean;
+  isDeletable?: boolean;
 }
 
 @Component({
@@ -72,6 +74,10 @@ export class GioMetadataDialogComponent implements OnInit, AfterViewChecked {
       value: this.formBuilder.control(this.metadata?.value, [Validators.required]),
       defaultValue: this.formBuilder.control({ value: this.metadata?.defaultValue, disabled: true }),
     });
+
+    if (this.metadata.readOnly) {
+      this.form.disable({ emitEvent: false });
+    }
 
     const initialFormValue = this.form.value;
     this.form.valueChanges.pipe(takeUntil(this.unsubscribe$)).subscribe((value) => {

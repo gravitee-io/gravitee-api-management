@@ -18,7 +18,28 @@ import { StateService } from '@uirouter/core';
 import angular, { IController, IScope } from 'angular';
 import * as _ from 'lodash';
 
+<<<<<<< HEAD
 import { emptyFetcher } from './edit-tabs/edit-page-fetchers.component';
+=======
+@Component({
+  template: '',
+  selector: 'documentation-edit-page',
+  host: {
+    class: 'bootstrap',
+  },
+})
+export class DocumentationEditPageComponent extends UpgradeComponent {
+  @Input() resolvedPage;
+  @Input() resolvedGroups;
+  @Input() resolvedFetchers;
+  @Input() pagesToLink;
+  @Input() folders;
+  @Input() systemFolders;
+  @Input() pageResources;
+  @Input() categoryResources;
+  @Input() attachedResources;
+  @Input() readOnly;
+>>>>>>> 2a74f294c0 (feat: set v2 doc pages to read only for kube origin)
 
 import { DocumentationService, PageType } from '../../services/documentation.service';
 import NotificationService from '../../services/notification.service';
@@ -124,6 +145,7 @@ class EditPageComponentController implements IController {
     };
   }
 
+<<<<<<< HEAD
   $onInit() {
     this.page = this.resolvedPage;
     this.tabs = this.tabs.filter((tab) => !tab.isUnavailable());
@@ -137,6 +159,23 @@ class EditPageComponentController implements IController {
       };
     }
     this.groups = this.resolvedGroups;
+=======
+  ngOnInit() {
+    // Hack to Force the binding between Angular and AngularJS
+    // Don't know why, but the binding is not done automatically when resolver is used
+    this.ngOnChanges({
+      resolvedPage: new SimpleChange(null, this.resolvedPage, true),
+      resolvedGroups: new SimpleChange(null, this.resolvedGroups, true),
+      resolvedFetchers: new SimpleChange(null, this.resolvedFetchers, true),
+      pagesToLink: new SimpleChange(null, this.pagesToLink, true),
+      folders: new SimpleChange(null, this.folders, true),
+      systemFolders: new SimpleChange(null, this.systemFolders, true),
+      pageResources: new SimpleChange(null, this.pageResources, true),
+      categoryResources: new SimpleChange(null, this.categoryResources, true),
+      attachedResources: new SimpleChange(null, this.attachedResources, true),
+      readOnly: new SimpleChange(null, this.readOnly, true),
+    });
+>>>>>>> 2a74f294c0 (feat: set v2 doc pages to read only for kube origin)
 
     this.foldersById = _.keyBy(this.folders, 'id');
     this.systemFoldersById = _.keyBy(this.systemFolders, 'id');

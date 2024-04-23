@@ -75,7 +75,9 @@ describe('ApiPortalDocumentationMetadataComponent', () => {
   });
 
   it('should load metadata list', async () => {
+    expectGetApiRequest();
     expectMetadataList();
+
     const gioMetadata = await loader.getHarness(GioMetadataHarness);
 
     expect(await gioMetadata.countRows()).toEqual(2);
@@ -87,6 +89,7 @@ describe('ApiPortalDocumentationMetadataComponent', () => {
   });
 
   it('should create and reload metadata list', async () => {
+    expectGetApiRequest();
     expectMetadataList();
 
     const gioMetadata = await loader.getHarness(GioMetadataHarness);
@@ -117,6 +120,7 @@ describe('ApiPortalDocumentationMetadataComponent', () => {
   });
 
   it('should update metadata and reload metadata list', async () => {
+    expectGetApiRequest();
     expectMetadataList();
 
     const gioMetadata = await loader.getHarness(GioMetadataHarness);
@@ -149,6 +153,7 @@ describe('ApiPortalDocumentationMetadataComponent', () => {
   });
 
   it('should delete metadata and reload metadata list', async () => {
+    expectGetApiRequest();
     expectMetadataList();
 
     const gioMetadata = await loader.getHarness(GioMetadataHarness);
@@ -172,5 +177,9 @@ describe('ApiPortalDocumentationMetadataComponent', () => {
 
   function expectMetadataList(list: Metadata[] = [fakeMetadata({ key: 'key1' }), fakeMetadata({ key: 'key2' })]) {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}/metadata/`, method: 'GET' }).flush(list);
+  }
+
+  function expectGetApiRequest() {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}`, method: 'GET' }).flush(null);
   }
 });

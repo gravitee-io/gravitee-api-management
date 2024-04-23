@@ -25,6 +25,7 @@
   <h3>{{ $ctrl.title }}</h3>
   <div layout="row">
     <md-button
+      ng-disabled="$ctrl.readOnly"
       ng-repeat="fetcher in $ctrl.fetchers"
       ng-click="$ctrl.configureFetcher(fetcher)"
       ng-class="{'md-raised': fetcher.id === $ctrl.page.source.type}"
