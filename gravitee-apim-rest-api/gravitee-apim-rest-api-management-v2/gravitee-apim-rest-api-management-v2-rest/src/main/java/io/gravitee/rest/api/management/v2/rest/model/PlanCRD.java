@@ -36,7 +36,7 @@ public class PlanCRD {
 
     private String crossId;
 
-    private String displayName;
+    private String name;
 
     private String description;
 

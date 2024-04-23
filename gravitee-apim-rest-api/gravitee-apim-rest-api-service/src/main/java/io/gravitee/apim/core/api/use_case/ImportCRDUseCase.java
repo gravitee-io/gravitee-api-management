@@ -260,7 +260,7 @@ public class ImportCRDUseCase {
         return Plan
             .builder()
             .id(planCRD.getId())
-            .name(planCRD.getDisplayName())
+            .name(planCRD.getName())
             .description(planCRD.getDescription())
             .planDefinitionV4(
                 io.gravitee.definition.model.v4.plan.Plan
