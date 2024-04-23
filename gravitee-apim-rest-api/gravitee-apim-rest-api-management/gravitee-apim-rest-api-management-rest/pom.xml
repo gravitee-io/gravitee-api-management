@@ -168,6 +168,13 @@
 			<type>test-jar</type>
 			<scope>test</scope>
 		</dependency>
+        <dependency>
+            <groupId>io.gravitee.apim.definition</groupId>
+            <artifactId>gravitee-apim-definition-model</artifactId>
+            <version>${project.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
 
 		<!-- Json Path Find-->
 		<dependency>

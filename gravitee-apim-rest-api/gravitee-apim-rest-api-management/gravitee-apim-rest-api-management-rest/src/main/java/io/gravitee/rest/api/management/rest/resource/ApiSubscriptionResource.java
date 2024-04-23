@@ -22,13 +22,15 @@ import static io.gravitee.rest.api.model.permissions.RolePermissionAction.UPDATE
 
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.subscription.use_case.AcceptSubscriptionUseCase;
 import io.gravitee.apim.core.subscription.use_case.CloseSubscriptionUseCase;
+import io.gravitee.apim.core.subscription.use_case.RejectSubscriptionUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.definition.model.v4.plan.PlanMode;
+import io.gravitee.rest.api.management.rest.mapper.SubscriptionMapper;
 import io.gravitee.rest.api.management.rest.model.Subscription;
 import io.gravitee.rest.api.model.ApplicationEntity;
 import io.gravitee.rest.api.model.ProcessSubscriptionEntity;
-import io.gravitee.rest.api.model.SubscriptionConsumerStatus;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.TransferSubscriptionEntity;
@@ -67,6 +69,7 @@ import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 import java.sql.Date;
+import java.time.ZoneId;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -80,6 +83,12 @@ public class ApiSubscriptionResource extends AbstractResource {
 
     @Inject
     private CloseSubscriptionUseCase closeSubscriptionUsecase;
+
+    @Inject
+    private AcceptSubscriptionUseCase acceptSubscriptionUsecase;
+
+    @Inject
+    private RejectSubscriptionUseCase rejectSubscriptionUsecase;
 
     @Inject
     private SubscriptionService subscriptionService;
@@ -138,19 +147,43 @@ public class ApiSubscriptionResource extends AbstractResource {
                 .build();
         }
 
-        // Check subscription exists and belongs to API
-        checkSubscription(subscription);
+        var executionContext = GraviteeContext.getExecutionContext();
+        var user = getAuthenticatedUserDetails();
+        var auditInfo = AuditInfo
+            .builder()
+            .organizationId(executionContext.getOrganizationId())
+            .environmentId(executionContext.getEnvironmentId())
+            .actor(AuditActor.builder().userId(user.getUsername()).userSource(user.getSource()).userSourceId(user.getSourceId()).build())
+            .build();
+        io.gravitee.apim.core.subscription.model.SubscriptionEntity result;
 
-        // Force subscription ID
-        processSubscriptionEntity.setId(subscription);
+        if (processSubscriptionEntity.isAccepted()) {
+            result =
+                acceptSubscriptionUsecase
+                    .execute(
+                        new AcceptSubscriptionUseCase.Input(
+                            api,
+                            subscription,
+                            processSubscriptionEntity.getStartingAt() != null
+                                ? processSubscriptionEntity.getStartingAt().toInstant().atZone(ZoneId.systemDefault())
+                                : null,
+                            processSubscriptionEntity.getEndingAt() != null
+                                ? processSubscriptionEntity.getEndingAt().toInstant().atZone(ZoneId.systemDefault())
+                                : null,
+                            processSubscriptionEntity.getReason(),
+                            processSubscriptionEntity.getCustomApiKey(),
+                            auditInfo
+                        )
+                    )
+                    .subscription();
+        } else {
+            result =
+                rejectSubscriptionUsecase
+                    .execute(new RejectSubscriptionUseCase.Input(api, subscription, processSubscriptionEntity.getReason(), auditInfo))
+                    .subscription();
+        }
 
-        final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-        SubscriptionEntity subscriptionEntity = subscriptionService.process(
-            executionContext,
-            processSubscriptionEntity,
-            getAuthenticatedUser()
-        );
-        return Response.ok(convert(executionContext, subscriptionEntity)).build();
+        return Response.ok(convert(executionContext, result)).build();
     }
 
     @PUT
@@ -331,55 +364,11 @@ public class ApiSubscriptionResource extends AbstractResource {
         final ExecutionContext executionContext,
         io.gravitee.apim.core.subscription.model.SubscriptionEntity subscriptionEntity
     ) {
-        Subscription subscription = new Subscription();
+        var userDisplayName = userService.findById(executionContext, subscriptionEntity.getSubscribedBy(), true).getDisplayName();
+        var genericPlan = planSearchService.findById(executionContext, subscriptionEntity.getPlanId());
+        var application = applicationService.findById(executionContext, subscriptionEntity.getApplicationId());
 
-        subscription.setId(subscriptionEntity.getId());
-        subscription.setCreatedAt(Date.from(subscriptionEntity.getCreatedAt().toInstant()));
-        subscription.setUpdatedAt(Date.from(subscriptionEntity.getUpdatedAt().toInstant()));
-        subscription.setStartingAt(
-            subscriptionEntity.getStartingAt() != null ? Date.from(subscriptionEntity.getStartingAt().toInstant()) : null
-        );
-        subscription.setEndingAt(subscriptionEntity.getEndingAt() != null ? Date.from(subscriptionEntity.getEndingAt().toInstant()) : null);
-        subscription.setClosedAt(subscriptionEntity.getClosedAt() != null ? Date.from(subscriptionEntity.getClosedAt().toInstant()) : null);
-        subscription.setPausedAt(subscriptionEntity.getPausedAt() != null ? Date.from(subscriptionEntity.getPausedAt().toInstant()) : null);
-        subscription.setConsumerPausedAt(
-            subscriptionEntity.getConsumerPausedAt() != null ? Date.from(subscriptionEntity.getConsumerPausedAt().toInstant()) : null
-        );
-        subscription.setProcessedAt(
-            subscriptionEntity.getProcessedAt() != null ? Date.from(subscriptionEntity.getProcessedAt().toInstant()) : null
-        );
-        subscription.setProcessedBy(subscriptionEntity.getProcessedBy());
-        subscription.setRequest(subscriptionEntity.getRequestMessage());
-        subscription.setReason(subscriptionEntity.getReasonMessage());
-        subscription.setStatus(
-            switch (subscriptionEntity.getStatus()) {
-                case PENDING -> SubscriptionStatus.PENDING;
-                case REJECTED -> SubscriptionStatus.REJECTED;
-                case ACCEPTED -> SubscriptionStatus.ACCEPTED;
-                case CLOSED -> SubscriptionStatus.CLOSED;
-                case PAUSED -> SubscriptionStatus.PAUSED;
-            }
-        );
-        subscription.setConsumerStatus(
-            switch (subscriptionEntity.getConsumerStatus()) {
-                case STARTED -> SubscriptionConsumerStatus.STARTED;
-                case STOPPED -> SubscriptionConsumerStatus.STOPPED;
-                case FAILURE -> SubscriptionConsumerStatus.FAILURE;
-            }
-        );
-        subscription.setSubscribedBy(
-            new Subscription.User(
-                subscriptionEntity.getSubscribedBy(),
-                userService.findById(executionContext, subscriptionEntity.getSubscribedBy(), true).getDisplayName()
-            )
-        );
-        subscription.setClientId(subscriptionEntity.getClientId());
-        subscription.setMetadata(subscriptionEntity.getMetadata());
-
-        subscription.setPlan(fetchPlan(executionContext, subscriptionEntity.getPlanId()));
-        subscription.setApplication(fetchApplication(executionContext, subscriptionEntity.getApplicationId()));
-
-        return subscription;
+        return SubscriptionMapper.convert(subscriptionEntity, userDisplayName, genericPlan, application);
     }
 
     private Subscription.Plan fetchPlan(ExecutionContext executionContext, String planId) {
