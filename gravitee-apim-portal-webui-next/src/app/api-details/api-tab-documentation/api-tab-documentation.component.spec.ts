@@ -38,7 +38,7 @@ describe('ApiTabDocumentationComponent', () => {
       providers: [
         {
           provide: ActivatedRoute,
-          useValue: { parent: { params: of({ apiId: 'api-id' }) }, queryParams: of({ page: undefined }) },
+          useValue: { queryParams: of({ page: undefined }) },
         },
       ],
     }).compileComponents();
@@ -47,6 +47,7 @@ describe('ApiTabDocumentationComponent', () => {
     httpTestingController = TestBed.inject(HttpTestingController);
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
     component = fixture.componentInstance;
+    component.apiId = 'api-id';
     fixture.detectChanges();
   });
 

@@ -25,27 +25,25 @@
   </div>
 
   <div class="api-details__tab-details-info">
-    @if (api$ | async; as api) {
-      @if (api.version) {
-        <div class="api-details__tab-details-info-details">
-          <p i18n="@@apiDetailsVersion" class="details-title">Version</p>
-          <p class="details-content">{{ api.version }}</p>
-        </div>
-      }
+    @if (api.version) {
+      <div class="api-details__tab-details-info-details">
+        <p i18n="@@apiDetailsVersion" class="details-title">Version</p>
+        <p class="details-content">{{ api.version }}</p>
+      </div>
+    }
 
-      @if (api.updated_at) {
-        <div class="api-details__tab-details-info-details">
-          <p i18n="@@apiDetailsLastUpdated" class="details-title">Last updated</p>
-          <p class="details-content">{{ api.updated_at | date }}</p>
-        </div>
-      }
+    @if (api.updated_at) {
+      <div class="api-details__tab-details-info-details">
+        <p i18n="@@apiDetailsLastUpdated" class="details-title">Last updated</p>
+        <p class="details-content">{{ api.updated_at | date }}</p>
+      </div>
+    }
 
-      @if (api.categories?.length) {
-        <div class="api-details__tab-details-info-details">
-          <p i18n="@@apiDetailsCategories" class="details-title">Categories</p>
-          <p class="details-content">{{ api.categories }}</p>
-        </div>
-      }
+    @if (api.categories?.length) {
+      <div class="api-details__tab-details-info-details">
+        <p i18n="@@apiDetailsCategories" class="details-title">Categories</p>
+        <p class="details-content">{{ api.categories }}</p>
+      </div>
     }
   </div>
 </div>

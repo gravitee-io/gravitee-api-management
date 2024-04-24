@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 import { AsyncPipe, DatePipe } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { Component, Input, OnInit } from '@angular/core';
 import { map, Observable, of, switchMap } from 'rxjs';
 
 import { MarkdownDescriptionPipe } from '../../../components/pipe/markdown-description.pipe';
@@ -32,27 +31,21 @@ import { PageService } from '../../../services/page.service';
   styleUrl: './api-tab-details.component.scss',
 })
 export class ApiTabDetailsComponent implements OnInit {
-  api$!: Observable<Api>;
+  @Input()
+  api!: Api;
   content$!: Observable<string | unknown>;
 
   constructor(
     private pageService: PageService,
     private configurationService: ConfigService,
     private markdownService: MarkdownService,
-    private activatedRoute: ActivatedRoute,
-  ) {
-    this.api$ = this.activatedRoute.parent ? this.activatedRoute.parent.data.pipe(map(({ api }) => api)) : of();
-  }
+  ) {}
 
   ngOnInit(): void {
-    this.content$ = this.api$.pipe(switchMap(({ id }) => this.getHomepage$(id)));
-  }
-
-  private getHomepage$(apiId: string): Observable<string | unknown> {
-    return this.pageService.listByApiId(apiId, true).pipe(
+    this.content$ = this.pageService.listByApiId(this.api.id, true).pipe(
       switchMap(pageResponse => {
         if (pageResponse.data?.length) {
-          return this.pageService.content(apiId, pageResponse.data[0].id);
+          return this.pageService.content(this.api.id, pageResponse.data[0].id);
         } else {
           return of(null);
         }

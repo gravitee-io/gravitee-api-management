@@ -41,6 +41,7 @@ describe('ApiDetailsComponent', () => {
     fixture = TestBed.createComponent(ApiDetailsComponent);
     httpTestingController = TestBed.inject(HttpTestingController);
     component = fixture.componentInstance;
+    component.api = fakeApi();
     fixture.detectChanges();
   });
 

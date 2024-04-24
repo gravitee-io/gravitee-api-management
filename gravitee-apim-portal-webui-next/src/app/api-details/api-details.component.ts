@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 import { AsyncPipe } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardActions, MatCardContent } from '@angular/material/card';
 import { MatIconModule, MatIconRegistry } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
 import { DomSanitizer } from '@angular/platform-browser';
-import { ActivatedRoute, RouterModule } from '@angular/router';
-import { map, Observable, of } from 'rxjs';
+import { RouterModule } from '@angular/router';
 
 import { ApiCardComponent } from '../../components/api-card/api-card.component';
 import { ApiPictureComponent } from '../../components/api-picture/api-picture.component';
@@ -47,18 +46,13 @@ import { Api } from '../../entities/api/api';
   templateUrl: './api-details.component.html',
   styleUrl: './api-details.component.scss',
 })
-export class ApiDetailsComponent implements OnInit {
-  details$: Observable<Api> = of();
+export class ApiDetailsComponent {
+  @Input() api!: Api;
 
   constructor(
     private domSanitizer: DomSanitizer,
     private matIconRegistry: MatIconRegistry,
-    private activatedRoute: ActivatedRoute,
   ) {
     this.matIconRegistry.addSvgIcon(`light-bulb`, this.domSanitizer.bypassSecurityTrustResourceUrl('assets/images/lightbulb_24px.svg'));
-  }
-
-  ngOnInit(): void {
-    this.details$ = this.activatedRoute.data.pipe(map(({ api }) => api));
   }
 }

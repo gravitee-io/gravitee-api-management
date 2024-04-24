@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute } from '@angular/router';
-import { of } from 'rxjs';
 
 import { ApiTabDetailsComponent } from './api-tab-details.component';
 import { fakeApi } from '../../../entities/api/api.fixtures';
@@ -28,16 +26,11 @@ describe('ApiTabDetailsComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [ApiTabDetailsComponent, AppTestingModule],
-      providers: [
-        {
-          provide: ActivatedRoute,
-          useValue: { parent: { data: of(fakeApi({ id: 'api-id' })) } },
-        },
-      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ApiTabDetailsComponent);
     component = fixture.componentInstance;
+    component.api = fakeApi();
     fixture.detectChanges();
   });
 
