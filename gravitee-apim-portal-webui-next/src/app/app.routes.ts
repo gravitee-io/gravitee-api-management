@@ -21,6 +21,7 @@ import { ApiTabDocumentationComponent } from './api-details/api-tab-documentatio
 import { CatalogComponent } from './catalog/catalog.component';
 import { NotFoundComponent } from './not-found/not-found.component';
 import { apiResolver } from '../resolvers/api.resolver';
+import { pagesResolver } from '../resolvers/pages.resolver';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'catalog', pathMatch: 'full' },
@@ -31,7 +32,7 @@ export const routes: Routes = [
       {
         path: 'api/:apiId',
         component: ApiDetailsComponent,
-        resolve: { api: apiResolver },
+        resolve: { api: apiResolver, pages: pagesResolver },
         children: [
           {
             path: '',
