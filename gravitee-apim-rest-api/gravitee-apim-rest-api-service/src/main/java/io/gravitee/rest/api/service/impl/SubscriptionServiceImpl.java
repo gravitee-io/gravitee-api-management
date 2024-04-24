@@ -795,7 +795,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
 
         if (processSubscription.isAccepted()) {
             result =
-                acceptSubscriptionDomainService.accept(
+                acceptSubscriptionDomainService.autoAccept(
                     processSubscription.getId(),
                     processSubscription.getStartingAt() != null
                         ? processSubscription.getStartingAt().toInstant().atZone(ZoneId.systemDefault())

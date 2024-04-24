@@ -767,7 +767,7 @@ public class SubscriptionServiceTest {
                 }
             );
 
-        when(acceptSubscriptionDomainService.accept(any(String.class), any(), any(), any(), any(), any()))
+        when(acceptSubscriptionDomainService.autoAccept(any(String.class), any(), any(), any(), any(), any()))
             .thenReturn(
                 io.gravitee.apim.core.subscription.model.SubscriptionEntity
                     .builder()
@@ -784,7 +784,7 @@ public class SubscriptionServiceTest {
 
         // Verify
         verify(subscriptionRepository, times(1)).create(argThat(sub -> sub.getClientId() == null));
-        verify(acceptSubscriptionDomainService, times(1)).accept(eq(SUBSCRIPTION_ID), any(), eq(null), any(), eq(null), any());
+        verify(acceptSubscriptionDomainService, times(1)).autoAccept(eq(SUBSCRIPTION_ID), any(), eq(null), any(), eq(null), any());
         assertThat(subscriptionEntity.getId()).isNotNull();
         assertThat(subscriptionEntity.getApplication()).isNotNull();
     }
@@ -1136,7 +1136,7 @@ public class SubscriptionServiceTest {
         planEntity.setSecurity(PlanSecurityType.API_KEY);
 
         // Stub
-        when(acceptSubscriptionDomainService.accept(any(String.class), any(), any(), any(), any(), any()))
+        when(acceptSubscriptionDomainService.autoAccept(any(String.class), any(), any(), any(), any(), any()))
             .thenReturn(
                 io.gravitee.apim.core.subscription.model.SubscriptionEntity
                     .builder()
@@ -1154,7 +1154,8 @@ public class SubscriptionServiceTest {
         );
 
         // Verify
-        verify(acceptSubscriptionDomainService, times(1)).accept(eq(SUBSCRIPTION_ID), any(), eq(null), eq(null), eq(customApiKey), any());
+        verify(acceptSubscriptionDomainService, times(1))
+            .autoAccept(eq(SUBSCRIPTION_ID), any(), eq(null), eq(null), eq(customApiKey), any());
         assertThat(subscriptionEntity.getStatus()).isEqualTo(SubscriptionStatus.ACCEPTED);
         assertThat(subscriptionEntity.getProcessedBy()).isEqualTo(USER_ID);
     }
