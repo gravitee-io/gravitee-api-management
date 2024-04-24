@@ -17,8 +17,8 @@
 -->
 <div class="api-details__tab">
   <div class="api-details__tab-details-content">
-    @if (content$ | async; as content) {
-      <div [innerHTML]="content"></div>
+    @if (homepage$ | async; as homepage) {
+      <app-page [page]="homepage" [apiPages]="pages" [apiId]="api.id" />
     } @else {
       <p i18n="@@noApiDetailsAvailable">Sorry, there are no available API details.</p>
     }
