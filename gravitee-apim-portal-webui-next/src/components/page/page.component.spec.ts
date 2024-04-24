@@ -17,9 +17,11 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
+import { PageMarkdownHarness } from './page-markdown/page-markdown.harness';
 import { PageSwaggerHarness } from './page-swagger/page-swagger.harness';
 import { PageComponent } from './page.component';
 import { fakePage } from '../../entities/page/page.fixtures';
+import { AppTestingModule } from '../../testing/app-testing.module';
 
 describe('PageComponent', () => {
   let component: PageComponent;
@@ -28,12 +30,14 @@ describe('PageComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PageComponent],
+      imports: [PageComponent, AppTestingModule],
     }).compileComponents();
 
     fixture = TestBed.createComponent(PageComponent);
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
     component = fixture.componentInstance;
+    component.apiId = 'api-id';
+    component.apiPages = [];
   });
 
   describe('swagger', () => {
@@ -46,6 +50,19 @@ describe('PageComponent', () => {
       const swagger = await harnessLoader.getHarnessOrNull(PageSwaggerHarness);
       expect(swagger).toBeTruthy();
       expect(await swagger?.getSwagger()).toBeTruthy();
+    });
+  });
+
+  describe('markdown', () => {
+    beforeEach(() => {
+      component.page = fakePage({ type: 'MARKDOWN' });
+      fixture.detectChanges();
+    });
+
+    it('should show markdown content', async () => {
+      const markdown = await harnessLoader.getHarnessOrNull(PageMarkdownHarness);
+      expect(markdown).toBeTruthy();
+      expect(markdown?.getMarkdownHtml()).toContain(`<p>markdown content</p>`);
     });
   });
 });

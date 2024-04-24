@@ -13,24 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Input } from '@angular/core';
+import { ComponentHarness } from '@angular/cdk/testing';
 
-import { PageMarkdownComponent } from './page-markdown/page-markdown.component';
-import { PageSwaggerComponent } from './page-swagger/page-swagger.component';
-import { Page } from '../../entities/page/page';
+export class PageMarkdownHarness extends ComponentHarness {
+  public static hostSelector = 'app-page-markdown';
 
-@Component({
-  selector: 'app-page',
-  standalone: true,
-  imports: [PageSwaggerComponent, PageMarkdownComponent],
-  templateUrl: './page.component.html',
-  styleUrl: './page.component.scss',
-})
-export class PageComponent {
-  @Input()
-  page!: Page;
-  @Input()
-  apiPages: Page[] = []; // Used to create links in Markdown to an API's other pages
-  @Input()
-  apiId!: string;
+  public getMarkdownHtml(): string | undefined {
+    return document.getElementById('#markdown')?.innerHTML;
+  }
 }
