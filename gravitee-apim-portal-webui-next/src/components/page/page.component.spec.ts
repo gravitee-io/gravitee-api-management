@@ -18,6 +18,7 @@ import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { PageAsciidocHarness } from './page-asciidoc/page-asciidoc.harness';
+import { PageAsyncApiHarness } from './page-async-api/page-async-api.harness';
 import { PageMarkdownHarness } from './page-markdown/page-markdown.harness';
 import { PageSwaggerHarness } from './page-swagger/page-swagger.harness';
 import { PageComponent } from './page.component';
@@ -76,6 +77,19 @@ describe('PageComponent', () => {
     it('should show asciidoc content', async () => {
       const asciidoc = await harnessLoader.getHarnessOrNull(PageAsciidocHarness);
       expect(asciidoc).toBeTruthy();
+    });
+  });
+
+  describe('async api', () => {
+    beforeEach(() => {
+      component.page = fakePage({ type: 'ASYNCAPI' });
+      fixture.detectChanges();
+    });
+
+    it('should show async api content', async () => {
+      const asyncApi = await harnessLoader.getHarnessOrNull(PageAsyncApiHarness);
+      expect(asyncApi).toBeTruthy();
+      expect(asyncApi?.schemaIsShown()).toBeTruthy();
     });
   });
 });

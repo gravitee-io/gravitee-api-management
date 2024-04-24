@@ -16,6 +16,7 @@
 import { Component, Input } from '@angular/core';
 
 import { PageAsciidocComponent } from './page-asciidoc/page-asciidoc.component';
+import { PageAsyncApiComponent } from './page-async-api/page-async-api.component';
 import { PageMarkdownComponent } from './page-markdown/page-markdown.component';
 import { PageSwaggerComponent } from './page-swagger/page-swagger.component';
 import { Page } from '../../entities/page/page';
@@ -23,7 +24,7 @@ import { Page } from '../../entities/page/page';
 @Component({
   selector: 'app-page',
   standalone: true,
-  imports: [PageSwaggerComponent, PageMarkdownComponent, PageAsciidocComponent],
+  imports: [PageSwaggerComponent, PageMarkdownComponent, PageAsciidocComponent, PageAsyncApiComponent],
   templateUrl: './page.component.html',
   styleUrl: './page.component.scss',
 })

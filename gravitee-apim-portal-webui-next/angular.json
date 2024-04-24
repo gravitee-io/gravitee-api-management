@@ -34,9 +34,20 @@
                 "glob": "oauth2-redirect.html",
                 "input": "node_modules/swagger-ui/dist",
                 "output": "/"
+              },
+              {
+                "glob": "default.min.css",
+                "input": "node_modules/@asyncapi/web-component/node_modules/@asyncapi/react-component/styles",
+                "output": "assets/asyncapi"
               }
             ],
-            "scripts": [],
+            "scripts": [
+              {
+                "input": "node_modules/@asyncapi/web-component/lib/asyncapi-web-component.js",
+                "inject": true,
+                "bundleName": "asyncapi-web-component"
+              }
+            ],
             "styles": ["src/styles.scss", "node_modules/swagger-ui/dist/swagger-ui.css"],
             "i18nMissingTranslation": "warning"
           },
