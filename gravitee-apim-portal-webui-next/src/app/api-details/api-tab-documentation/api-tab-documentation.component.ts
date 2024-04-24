@@ -42,7 +42,9 @@ export class ApiTabDocumentationComponent implements OnInit {
   page!: string;
   @Input()
   apiId!: string;
-  pageNodes$: Observable<PageTreeNode[]> = of([]);
+  @Input()
+  pages!: Page[];
+  pageNodes: PageTreeNode[] = [];
   selectedPageData$: Observable<SelectedPageData> = of();
 
   constructor(
@@ -52,10 +54,7 @@ export class ApiTabDocumentationComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.pageNodes$ = this.pageService
-      .listByApiId(this.apiId)
-      .pipe(map(resp => this.pageService.mapToPageTreeNode(undefined, resp.data ?? [])));
-
+    this.pageNodes = this.pageService.mapToPageTreeNode(undefined, this.pages);
     this.selectedPageData$ = this.activatedRoute.queryParams.pipe(
       filter(queryParams => !!queryParams['page']),
       switchMap(({ page }) => this.getSelectedPage$(page)),
