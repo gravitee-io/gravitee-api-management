@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import { AsyncPipe } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, Input, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { catchError, filter, map, Observable, of, switchMap } from 'rxjs';
@@ -68,7 +69,12 @@ export class ApiTabDocumentationComponent implements OnInit {
   private getSelectedPage$(pageId: string): Observable<SelectedPageData> {
     return this.pageService.getByApiIdAndId(this.apiId, pageId, true).pipe(
       map(result => ({ result })),
-      catchError(error => of({ error })),
+      catchError((error: HttpErrorResponse) => {
+        if (error.status === 404) {
+          this.router.navigate(['404']);
+        }
+        return of({ error });
+      }),
     );
   }
 }

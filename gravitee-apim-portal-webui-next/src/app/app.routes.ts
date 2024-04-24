@@ -19,28 +19,41 @@ import { ApiDetailsComponent } from './api-details/api-details.component';
 import { ApiTabDetailsComponent } from './api-details/api-tab-details/api-tab-details.component';
 import { ApiTabDocumentationComponent } from './api-details/api-tab-documentation/api-tab-documentation.component';
 import { CatalogComponent } from './catalog/catalog.component';
+import { NotFoundComponent } from './not-found/not-found.component';
 import { apiResolver } from '../resolvers/api.resolver';
 
 export const routes: Routes = [
-  { path: '', component: CatalogComponent },
+  { path: '', redirectTo: 'catalog', pathMatch: 'full' },
   {
-    path: 'api/:apiId',
-    component: ApiDetailsComponent,
-    resolve: { api: apiResolver },
+    path: 'catalog',
     children: [
+      { path: '', component: CatalogComponent },
       {
-        path: '',
-        redirectTo: 'details',
-        pathMatch: 'full',
-      },
-      {
-        path: 'details',
-        component: ApiTabDetailsComponent,
-      },
-      {
-        path: 'documentation',
-        component: ApiTabDocumentationComponent,
+        path: 'api/:apiId',
+        component: ApiDetailsComponent,
+        resolve: { api: apiResolver },
+        children: [
+          {
+            path: '',
+            redirectTo: 'details',
+            pathMatch: 'full',
+          },
+          {
+            path: 'details',
+            component: ApiTabDetailsComponent,
+          },
+          {
+            path: 'documentation',
+            component: ApiTabDocumentationComponent,
+          },
+        ],
       },
     ],
+  },
+
+  { path: '404', component: NotFoundComponent },
+  {
+    path: '**',
+    component: NotFoundComponent,
   },
 ];

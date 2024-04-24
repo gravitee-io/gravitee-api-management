@@ -1,13 +1,13 @@
 <!--
 
     Copyright (C) 2024 The Gravitee team (http://gravitee.io)
-
+    
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
     You may obtain a copy of the License at
-
+    
             http://www.apache.org/licenses/LICENSE-2.0
-
+    
     Unless required by applicable law or agreed to in writing, software
     distributed under the License is distributed on an "AS IS" BASIS,
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,18 +15,15 @@
     limitations under the License.
 
 -->
-<mat-card class="api-card" appearance="outlined">
-  <mat-card-content class="api-card__content">
-    <div class="api-card__header">
-      <app-api-picture [picture]="picture" [name]="title" [version]="version" [size]="40" />
-      <div>
-        <div class="api-card__header-content-title">{{ title }}</div>
-        <div class="api-card__header-content-version">{{ version }}</div>
-      </div>
-    </div>
-    <p class="api-card__description">{{ content }}</p>
+<mat-card appearance="outlined" class="not-found__card">
+  <mat-card-header>
+    <mat-card-title i18n="@@notFoundTitle">404 error: page not found</mat-card-title>
+  </mat-card-header>
+  <mat-card-content i18n="@@notFoundMessage">
+    It looks like the page you're trying to reach doesn't exist or has been moved. Please check the URL for any typos or navigate back to
+    the homepage to continue exploring.
   </mat-card-content>
-  <mat-card-actions class="api-card__actions">
-    <button i18n="@@apiCardButton" mat-stroked-button color="primary" [routerLink]="['.', 'api', id]">Learn more</button>
-  </mat-card-actions>
+  <mat-card-actions
+    ><button mat-stroked-button color="primary" i18n="@@notFoundGoToHomepage" [routerLink]="['']">Back to home</button></mat-card-actions
+  >
 </mat-card>
