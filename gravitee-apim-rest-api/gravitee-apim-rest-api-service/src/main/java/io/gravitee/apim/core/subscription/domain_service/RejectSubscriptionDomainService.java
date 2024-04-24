@@ -31,8 +31,6 @@ import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
-import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
-import io.gravitee.rest.api.service.exceptions.PlanAlreadyClosedException;
 import java.util.Collections;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -72,8 +70,6 @@ public class RejectSubscriptionDomainService {
         if (subscriptionEntity == null) {
             throw new IllegalArgumentException("Subscription should not be null");
         }
-        checkSubscriptionStatus(subscriptionEntity);
-        checkPlanStatus(subscriptionEntity);
         var rejectedSubscriptionEntity = subscriptionEntity.rejectBy(auditInfo.actor().userId(), reason);
 
         subscriptionRepository.update(rejectedSubscriptionEntity);
@@ -113,12 +109,6 @@ public class RejectSubscriptionDomainService {
         );
     }
 
-    private static void checkSubscriptionStatus(SubscriptionEntity subscriptionEntity) {
-        if (!subscriptionEntity.isPending()) {
-            throw new IllegalStateException("Cannot reject subscription");
-        }
-    }
-
     private void createAudit(SubscriptionEntity subscriptionEntity, SubscriptionEntity rejectedSubscriptionEntity, AuditInfo auditInfo) {
         auditDomainService.createApiAuditLog(
             ApiAuditLogEntity
@@ -148,12 +138,5 @@ public class RejectSubscriptionDomainService {
                 .properties(Collections.singletonMap(AuditProperties.API, subscriptionEntity.getApiId()))
                 .build()
         );
-    }
-
-    private void checkPlanStatus(SubscriptionEntity subscriptionEntity) {
-        final GenericPlanEntity plan = planCrudService.findById(subscriptionEntity.getPlanId());
-        if (plan.isClosed()) {
-            throw new PlanAlreadyClosedException(plan.getId());
-        }
     }
 }

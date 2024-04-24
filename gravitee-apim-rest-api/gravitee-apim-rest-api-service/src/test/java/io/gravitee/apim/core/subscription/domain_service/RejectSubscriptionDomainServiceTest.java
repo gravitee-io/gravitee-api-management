@@ -40,7 +40,6 @@ import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.service.common.UuidString;
-import io.gravitee.rest.api.service.exceptions.PlanAlreadyClosedException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -56,7 +55,6 @@ import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
@@ -122,23 +120,6 @@ public class RejectSubscriptionDomainServiceTest {
             assertThatThrownBy(() -> reject(null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Subscription should not be null");
-        }
-
-        @ParameterizedTest
-        @EnumSource(value = SubscriptionEntity.Status.class, mode = EnumSource.Mode.EXCLUDE, names = "PENDING")
-        void should_throw_when_status_not_pending(SubscriptionEntity.Status status) {
-            assertThatThrownBy(() -> reject(SubscriptionEntity.builder().status(status).build()))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Cannot reject subscription");
-        }
-
-        @Test
-        void should_throw_when_plan_is_closed() {
-            assertThatThrownBy(() ->
-                    reject(SubscriptionEntity.builder().status(SubscriptionEntity.Status.PENDING).planId(PLAN_CLOSED).build())
-                )
-                .isInstanceOf(PlanAlreadyClosedException.class)
-                .hasMessage("Plan " + PLAN_CLOSED + " is already closed !");
         }
 
         @ParameterizedTest
@@ -229,33 +210,6 @@ public class RejectSubscriptionDomainServiceTest {
             assertThatThrownBy(() -> rejectById(SubscriptionFixtures.aSubscription()))
                 .isInstanceOf(SubscriptionNotFoundException.class)
                 .hasMessage("Subscription [subscription-id] cannot be found.");
-        }
-
-        @ParameterizedTest
-        @EnumSource(value = SubscriptionEntity.Status.class, mode = EnumSource.Mode.EXCLUDE, names = "PENDING")
-        void should_throw_when_status_not_pending(SubscriptionEntity.Status status) {
-            var subscription = givenExistingSubscription(
-                SubscriptionFixtures.aSubscription().toBuilder().subscribedBy("subscriber").planId(PLAN_PUBLISHED).status(status).build()
-            );
-            assertThatThrownBy(() -> rejectById(subscription))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Cannot reject subscription");
-        }
-
-        @Test
-        void should_throw_when_plan_is_closed() {
-            var subscription = givenExistingSubscription(
-                SubscriptionFixtures
-                    .aSubscription()
-                    .toBuilder()
-                    .subscribedBy("subscriber")
-                    .planId(PLAN_CLOSED)
-                    .status(SubscriptionEntity.Status.PENDING)
-                    .build()
-            );
-            assertThatThrownBy(() -> rejectById(subscription))
-                .isInstanceOf(PlanAlreadyClosedException.class)
-                .hasMessage("Plan " + PLAN_CLOSED + " is already closed !");
         }
 
         @ParameterizedTest

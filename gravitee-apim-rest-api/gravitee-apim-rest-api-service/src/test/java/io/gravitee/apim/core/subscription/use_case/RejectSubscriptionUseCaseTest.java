@@ -30,7 +30,6 @@ import inmemory.PlanCrudServiceInMemory;
 import inmemory.SubscriptionCrudServiceInMemory;
 import inmemory.TriggerNotificationDomainServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
-import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -45,7 +44,6 @@ import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
-import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyClosedException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
@@ -107,7 +105,7 @@ class RejectSubscriptionUseCaseTest {
             triggerNotificationService,
             userCrudService
         );
-        useCase = new RejectSubscriptionUseCase(subscriptionCrudService, rejectDomainService);
+        useCase = new RejectSubscriptionUseCase(subscriptionCrudService, planCrudService, rejectDomainService);
     }
 
     @AfterEach
