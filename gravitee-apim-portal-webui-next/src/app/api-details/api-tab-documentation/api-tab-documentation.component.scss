@@ -21,6 +21,11 @@
 .api-tab-documentation {
   &__side-bar {
     width: 324px;
+
+    &__tree {
+      position: sticky;
+      top: 96px;
+    }
   }
 
   &__page-content {
