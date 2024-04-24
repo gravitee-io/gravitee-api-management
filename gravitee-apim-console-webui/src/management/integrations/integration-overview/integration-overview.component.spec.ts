@@ -23,16 +23,19 @@ import { ActivatedRoute, convertToParamMap } from '@angular/router';
 import { TestElement } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
+import { MatTableHarness } from '@angular/material/table/testing';
+import { MatPaginatorHarness } from '@angular/material/paginator/testing';
 
 import { IntegrationOverviewComponent } from './integration-overview.component';
 import { IntegrationOverviewHarness } from './integration-overview.harness';
 
 import { IntegrationsModule } from '../integrations.module';
-import { Integration } from '../integrations.model';
+import { FederatedAPI, FederatedAPIsResponse, Integration } from '../integrations.model';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { fakeIntegration } from '../../../entities/integrations/integration.fixture';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { GioTestingPermission, GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
+import { fakeFederatedAPI } from '../../../entities/integrations/federatedAPI.fixture';
 
 describe('IntegrationOverviewComponent', () => {
   let fixture: ComponentFixture<IntegrationOverviewComponent>;
@@ -96,6 +99,7 @@ describe('IntegrationOverviewComponent', () => {
 
     it('button should be hidden without permissions', async () => {
       expectIntegrationGetRequest(fakeIntegration({ id: integrationId }));
+      expectFederatedAPIsGetRequest();
 
       const discoverBtn: MatButtonHarness = await componentHarness.getDiscoverButton();
       expect(discoverBtn).toBeNull();
@@ -109,6 +113,7 @@ describe('IntegrationOverviewComponent', () => {
 
     it('should call _ingest endpoint on confirm', async () => {
       expectIntegrationGetRequest(fakeIntegration({ id: integrationId }));
+      expectFederatedAPIsGetRequest();
 
       const discoverBtn: MatButtonHarness = await componentHarness.getDiscoverButton();
       await discoverBtn.click();
@@ -126,6 +131,7 @@ describe('IntegrationOverviewComponent', () => {
 
     it('should not call _ingest endpoint on cancel', async () => {
       expectIntegrationGetRequest(fakeIntegration({ id: integrationId }));
+      expectFederatedAPIsGetRequest();
 
       const discoverBtn: MatButtonHarness = await componentHarness.getDiscoverButton();
       await discoverBtn.click();
@@ -139,6 +145,7 @@ describe('IntegrationOverviewComponent', () => {
 
     it('should handle error with message', async () => {
       expectIntegrationGetRequest(fakeIntegration({ id: integrationId }));
+      expectFederatedAPIsGetRequest();
 
       const discoverBtn: MatButtonHarness = await componentHarness.getDiscoverButton();
       await discoverBtn.click();
@@ -164,10 +171,12 @@ describe('IntegrationOverviewComponent', () => {
     it('should call backend with proper integration id', () => {
       const integrationMock: Integration = fakeIntegration({ id: integrationId });
       expectIntegrationGetRequest(integrationMock);
+      expectFederatedAPIsGetRequest();
     });
 
     it('should display error badge', async (): Promise<void> => {
       expectIntegrationGetRequest(fakeIntegration({ id: integrationId, agentStatus: 'DISCONNECTED' }));
+      expectFederatedAPIsGetRequest();
 
       const errorBadge: TestElement = await componentHarness.getErrorBadge();
       expect(errorBadge).toBeTruthy();
@@ -180,6 +189,7 @@ describe('IntegrationOverviewComponent', () => {
 
     it('should display success badge', async (): Promise<void> => {
       expectIntegrationGetRequest(fakeIntegration({ id: integrationId, agentStatus: 'CONNECTED' }));
+      expectFederatedAPIsGetRequest();
 
       const successBadge: TestElement = await componentHarness.getSuccessBadge();
       expect(successBadge).toBeTruthy();
@@ -188,7 +198,62 @@ describe('IntegrationOverviewComponent', () => {
     });
   });
 
-  function expectIntegrationGetRequest(integrationMock: Integration): void {
+  describe('federated APIs table', () => {
+    beforeEach(() => {
+      init();
+    });
+
+    it('should disable Discover button when data is loading', async (): Promise<void> => {
+      expectIntegrationGetRequest();
+      expectFederatedAPIsGetRequest();
+
+      fixture.componentInstance.isLoadingFederatedAPI = true;
+      fixture.detectChanges();
+
+      const discoverButton = await componentHarness.getDiscoverButton();
+      expect(discoverButton.isDisabled()).toBeTruthy();
+    });
+
+    it('should not be in UI without data', async (): Promise<void> => {
+      expectIntegrationGetRequest();
+      expectFederatedAPIsGetRequest([]);
+
+      const table: MatTableHarness = await componentHarness.getTable();
+      expect(table).toBeNull();
+    });
+
+    it('should display correct number of rows', async (): Promise<void> => {
+      expectIntegrationGetRequest();
+      expectFederatedAPIsGetRequest([fakeFederatedAPI(), fakeFederatedAPI(), fakeFederatedAPI(), fakeFederatedAPI()]);
+
+      const rows: number = await componentHarness.rowsNumber();
+      expect(rows).toEqual(4);
+    });
+
+    it('pagination should request proper url', async () => {
+      expectIntegrationGetRequest();
+
+      expectFederatedAPIsGetRequest([fakeFederatedAPI()], 1, 10);
+
+      const pagination: MatPaginatorHarness = await componentHarness.getPagination();
+
+      await pagination.setPageSize(5);
+      expectFederatedAPIsGetRequest([fakeFederatedAPI()], 1, 5);
+
+      pagination.getPageSize().then((value) => {
+        expect(value).toEqual(5);
+      });
+
+      await pagination.setPageSize(25);
+      expectFederatedAPIsGetRequest([fakeFederatedAPI()], 1, 25);
+
+      pagination.getPageSize().then((value) => {
+        expect(value).toEqual(25);
+      });
+    });
+  });
+
+  function expectIntegrationGetRequest(integrationMock: Integration = fakeIntegration()): void {
     const req: TestRequest = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/integrations/${integrationId}`);
     req.flush(integrationMock);
     expect(req.request.method).toEqual('GET');
@@ -198,5 +263,25 @@ describe('IntegrationOverviewComponent', () => {
     const req: TestRequest = httpTestingController.expectOne(`${CONSTANTS_TESTING.env.v2BaseURL}/integrations/${integrationId}/_ingest`);
     req.flush(res);
     expect(req.request.method).toEqual('POST');
+  }
+
+  function expectFederatedAPIsGetRequest(
+    federatedAPIs: FederatedAPI[] = [fakeFederatedAPI(), fakeFederatedAPI()],
+    page = 1,
+    perPage = 10,
+  ): void {
+    const req: TestRequest = httpTestingController.expectOne(
+      `${CONSTANTS_TESTING.env.v2BaseURL}/integrations/${integrationId}/apis?page=${page}&perPage=${perPage}`,
+    );
+    const res: FederatedAPIsResponse = {
+      data: federatedAPIs,
+      pagination: {
+        page,
+        perPage,
+      },
+    };
+
+    req.flush(res);
+    expect(req.request.method).toEqual('GET');
   }
 });

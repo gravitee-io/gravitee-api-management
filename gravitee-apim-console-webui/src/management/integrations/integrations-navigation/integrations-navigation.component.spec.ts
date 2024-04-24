@@ -45,6 +45,7 @@ describe('IntegrationsNavigationComponent', () => {
           provide: IntegrationsService,
           useValue: {
             currentIntegration: () => of(fakeIntegration()),
+            resetCurrentIntegration: (): void => {},
           },
         },
         {

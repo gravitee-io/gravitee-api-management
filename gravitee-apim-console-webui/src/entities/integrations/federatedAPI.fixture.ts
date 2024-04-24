@@ -13,19 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { FederatedAPI } from '../../management/integrations/integrations.model';
 
-import { Integration } from '../../management/integrations/integrations.model';
-
-export function fakeIntegration(attribute?: Partial<Integration>): Integration {
-  const base: Integration = {
-    agentStatus: 'CONNECTED',
-    id: 'test_id',
-    name: 'test_name',
-    description: 'test_description',
-    provider: 'test_provider',
-    owner: 'test_owner',
-    status: 'test_status',
-    agent: 'test_agent',
+export function fakeFederatedAPI(attribute?: Partial<FederatedAPI>): FederatedAPI {
+  const base: FederatedAPI = {
+    name: 'FederatedAPIFake',
+    id: 'TestID987FederatedAPI',
   };
 
   return {

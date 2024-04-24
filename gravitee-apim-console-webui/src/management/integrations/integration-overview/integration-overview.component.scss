@@ -43,10 +43,9 @@ $typography: map.get(gio.$mat-theme, typography);
 }
 
 .card-header {
+  width: 100%;
   display: flex;
   justify-content: space-between;
-  padding: 16px 16px 16px 16px;
-  border-bottom: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker20');
 
   &__title {
     display: flex;
@@ -87,11 +86,6 @@ $typography: map.get(gio.$mat-theme, typography);
     margin-bottom: 8px;
   }
 
-  .separator {
-    width: 1px;
-    background-color: mat.get-color-from-palette(gio.$mat-dove-palette, 'darker20');
-  }
-
   .gio-badge-error,
   .gio-badge-neutral {
     margin-left: 0;
@@ -103,6 +97,11 @@ $typography: map.get(gio.$mat-theme, typography);
 
   .logo {
     margin-right: 8px;
+  }
+
+  .border-right {
+    padding-right: 20px;
+    border-right: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker20');
   }
 }
 
@@ -161,4 +160,19 @@ gio-banner-error {
 
 .id-badge {
   text-transform: none;
+}
+
+gio-table-wrapper {
+  margin-top: 0;
+}
+
+.mat-column-actions {
+  flex: none;
+  width: 132px;
+}
+
+.separator-hr {
+  margin-top: 16px;
+  height: 1px;
+  background-color: mat.get-color-from-palette(gio.$mat-dove-palette, 'darker20');
 }

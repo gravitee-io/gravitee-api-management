@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
 import { IntegrationNavigationItem } from '../integrations.model';
@@ -25,7 +25,7 @@ import { GioPermissionService } from '../../../shared/components/gio-permission/
   templateUrl: './integrations-navigation.component.html',
   styleUrls: ['./integrations-navigation.component.scss'],
 })
-export class IntegrationsNavigationComponent implements OnInit {
+export class IntegrationsNavigationComponent implements OnInit, OnDestroy {
   public items: IntegrationNavigationItem[] = [
     {
       routerLink: `.`,
@@ -53,6 +53,10 @@ export class IntegrationsNavigationComponent implements OnInit {
     public integrationsService: IntegrationsService,
     private permissionService: GioPermissionService,
   ) {}
+
+  ngOnDestroy() {
+    this.integrationsService.resetCurrentIntegration();
+  }
 
   ngOnInit(): void {
     this.allowedItems = this.items.filter((item: IntegrationNavigationItem) => this.permissionService.hasAnyMatching(item.permissions));

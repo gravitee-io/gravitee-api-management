@@ -55,3 +55,13 @@ export interface IntegrationProvider {
   icon: string;
   value: string;
 }
+
+export interface FederatedAPI {
+  id: string;
+  name: string;
+}
+
+export interface FederatedAPIsResponse {
+  data: FederatedAPI[];
+  pagination: Pagination;
+}

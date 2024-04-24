@@ -18,13 +18,15 @@ import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
-import { catchError, filter, switchMap, tap } from 'rxjs/operators';
-import { EMPTY } from 'rxjs';
+import { catchError, distinctUntilChanged, filter, switchMap, tap } from 'rxjs/operators';
+import { BehaviorSubject, EMPTY } from 'rxjs';
 import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
+import { isEqual } from 'lodash';
 
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
-import { Integration } from '../integrations.model';
+import { FederatedAPIsResponse, Integration } from '../integrations.model';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
+import { GioTableWrapperFilters } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 
 @Component({
   selector: 'app-integration-overview',
@@ -34,8 +36,19 @@ import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 export class IntegrationOverviewComponent implements OnInit {
   private destroyRef: DestroyRef = inject(DestroyRef);
   public integration: Integration;
-  public isLoading = true;
+  public isLoadingIntegration = true;
+  public isLoadingFederatedAPI = true;
   public isIngesting = false;
+
+  public federatedAPIs = [];
+
+  public displayedColumns: string[] = ['name', 'actions'];
+  public filters: GioTableWrapperFilters = {
+    pagination: { index: 1, size: 10 },
+    searchTerm: '',
+  };
+  public nbTotalInstances = this.federatedAPIs.length;
+  private filters$ = new BehaviorSubject<GioTableWrapperFilters>(this.filters);
 
   constructor(
     private activatedRoute: ActivatedRoute,
@@ -46,16 +59,39 @@ export class IntegrationOverviewComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.getIntegration();
+    const id: string = this.activatedRoute.snapshot.paramMap.get('integrationId');
+    this.getIntegration(id);
+    this.initFilters(id);
   }
 
-  private getIntegration(): void {
-    const id: string = this.activatedRoute.snapshot.paramMap.get('integrationId');
+  private initFilters(id: string): void {
+    this.filters$
+      .pipe(
+        distinctUntilChanged(isEqual),
+        switchMap((filters: GioTableWrapperFilters) => {
+          this.isLoadingFederatedAPI = true;
+          return this.integrationsService.getFederatedAPIs(id, filters.pagination.index, filters.pagination.size);
+        }),
+        catchError(({ error }) => {
+          this.isLoadingFederatedAPI = false;
+          this.snackBarService.error(`APIs list error: ${error.message}`);
+          return EMPTY;
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((response: FederatedAPIsResponse): void => {
+        this.nbTotalInstances = response.pagination.totalCount;
+        this.federatedAPIs = response.data;
+        this.isLoadingFederatedAPI = false;
+      });
+  }
+
+  private getIntegration(id: string): void {
     this.integrationsService
       .getIntegration(id)
       .pipe(
         catchError(({ error }) => {
-          this.isLoading = false;
+          this.isLoadingIntegration = false;
           this.snackBarService.error(error.message);
           this.router.navigate(['..'], {
             relativeTo: this.activatedRoute,
@@ -66,7 +102,7 @@ export class IntegrationOverviewComponent implements OnInit {
       )
       .subscribe((integration: Integration): void => {
         this.integration = integration;
-        this.isLoading = false;
+        this.isLoadingIntegration = false;
       });
   }
 
@@ -102,5 +138,10 @@ export class IntegrationOverviewComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
+  }
+
+  onFiltersChanged(filters: GioTableWrapperFilters): void {
+    this.filters = { ...this.filters, ...filters };
+    this.filters$.next(this.filters);
   }
 }
