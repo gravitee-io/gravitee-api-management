@@ -15,46 +15,37 @@
  */
 import { AsyncPipe, DatePipe } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
-import { map, Observable, of, switchMap } from 'rxjs';
+import { Observable, of, switchMap } from 'rxjs';
 
+import { PageComponent } from '../../../components/page/page.component';
 import { MarkdownDescriptionPipe } from '../../../components/pipe/markdown-description.pipe';
 import { Api } from '../../../entities/api/api';
-import { ConfigService } from '../../../services/config.service';
-import { MarkdownService } from '../../../services/markdown.service';
+import { Page } from '../../../entities/page/page';
 import { PageService } from '../../../services/page.service';
 
 @Component({
   selector: 'app-api-tab-details',
   standalone: true,
-  imports: [MarkdownDescriptionPipe, AsyncPipe, DatePipe],
+  imports: [MarkdownDescriptionPipe, AsyncPipe, DatePipe, PageComponent],
   templateUrl: './api-tab-details.component.html',
   styleUrl: './api-tab-details.component.scss',
 })
 export class ApiTabDetailsComponent implements OnInit {
   @Input()
   api!: Api;
-  content$!: Observable<string | unknown>;
+  @Input()
+  pages!: Page[];
+  homepage$: Observable<Page> = of();
 
-  constructor(
-    private pageService: PageService,
-    private configurationService: ConfigService,
-    private markdownService: MarkdownService,
-  ) {}
+  constructor(private pageService: PageService) {}
 
   ngOnInit(): void {
-    this.content$ = this.pageService.listByApiId(this.api.id, true).pipe(
+    this.homepage$ = this.pageService.listByApiId(this.api.id, true).pipe(
       switchMap(pageResponse => {
         if (pageResponse.data?.length) {
           return this.pageService.content(this.api.id, pageResponse.data[0].id);
         } else {
-          return of(null);
-        }
-      }),
-      map(pageWithContent => {
-        if (pageWithContent?.content) {
-          return this.markdownService.render(pageWithContent.content, this.configurationService.baseURL, 'documentation/:pageId', []);
-        } else {
-          return null;
+          return of();
         }
       }),
     );
