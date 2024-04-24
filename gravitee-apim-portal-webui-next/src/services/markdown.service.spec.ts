@@ -26,7 +26,7 @@ describe('MarkdownService', () => {
   let renderer: RendererObject;
 
   const BASE_URL = 'my-base-url';
-  const PAGE_BASE_URL = '/catalog/api/1234/doc';
+  const PAGE_BASE_URL = '/catalog/api/1234/documentation';
   const PAGES: Page[] = [
     {
       id: '123456789',
@@ -128,7 +128,7 @@ describe('MarkdownService', () => {
     const renderedLink = renderer.link('/#!/settings/pages/123456789', 'title', 'text');
 
     expect(renderedLink).not.toBeNull();
-    expect(renderedLink).toEqual('<a class="internal-link" href="/catalog/api/1234/doc?page=123456789">text</a>');
+    expect(renderedLink).toEqual('<a class="internal-link" href="/catalog/api/1234/documentation?page=123456789">text</a>');
   });
 
   it('should use a.internal-link for render an api page link', () => {
@@ -136,7 +136,7 @@ describe('MarkdownService', () => {
     const renderedLink = renderer.link('/#!/apis/1A2Z3E4R5T6Y/documentation/123456789', 'title', 'text');
 
     expect(renderedLink).not.toBeNull();
-    expect(renderedLink).toEqual('<a class="internal-link" href="/catalog/api/1234/doc?page=123456789">text</a>');
+    expect(renderedLink).toEqual('<a class="internal-link" href="/catalog/api/1234/documentation?page=123456789">text</a>');
   });
 
   it('should use a.anchor for render an anchor', () => {
@@ -154,7 +154,7 @@ describe('MarkdownService', () => {
         const renderedLink = renderer.link('/#!/documentation/api/myPage#MARKDOWN', 'title', 'text');
 
         expect(renderedLink).not.toBeNull();
-        expect(renderedLink).toEqual('<a class="internal-link" href="/catalog/api/1234/doc?page=123456789">text</a>');
+        expect(renderedLink).toEqual('<a class="internal-link" href="/catalog/api/1234/documentation?page=123456789">text</a>');
       });
 
       it('should find page by its name and file type', () => {
@@ -162,7 +162,7 @@ describe('MarkdownService', () => {
         const renderedLink = renderer.link('/#!/documentation/api/myPage#SWAGGER', 'title', 'text');
 
         expect(renderedLink).not.toBeNull();
-        expect(renderedLink).toEqual('<a class="internal-link" href="/catalog/api/1234/doc?page=22">text</a>');
+        expect(renderedLink).toEqual('<a class="internal-link" href="/catalog/api/1234/documentation?page=22">text</a>');
       });
 
       it('should find SWAGGER page by OPENAPI file reference', () => {
@@ -170,7 +170,7 @@ describe('MarkdownService', () => {
         const renderedLink = renderer.link('/#!/documentation/api/myPage#OPENAPI', 'title', 'text');
 
         expect(renderedLink).not.toBeNull();
-        expect(renderedLink).toEqual('<a class="internal-link" href="/catalog/api/1234/doc?page=22">text</a>');
+        expect(renderedLink).toEqual('<a class="internal-link" href="/catalog/api/1234/documentation?page=22">text</a>');
       });
 
       it('should find page by its name with spaces', () => {
@@ -178,7 +178,7 @@ describe('MarkdownService', () => {
         const renderedLink = renderer.link('/#!/documentation/api/my%20Page#MARKDOWN', 'title', 'text');
 
         expect(renderedLink).not.toBeNull();
-        expect(renderedLink).toEqual('<a class="internal-link" href="/catalog/api/1234/doc?page=33">text</a>');
+        expect(renderedLink).toEqual('<a class="internal-link" href="/catalog/api/1234/documentation?page=33">text</a>');
       });
 
       it('should find page by its name and path', () => {
@@ -186,7 +186,7 @@ describe('MarkdownService', () => {
         const renderedLink = renderer.link('/#!/documentation/api/parent/myPage#MARKDOWN', 'title', 'text');
 
         expect(renderedLink).not.toBeNull();
-        expect(renderedLink).toEqual('<a class="internal-link" href="/catalog/api/1234/doc?page=44">text</a>');
+        expect(renderedLink).toEqual('<a class="internal-link" href="/catalog/api/1234/documentation?page=44">text</a>');
       });
 
       it('should find page with multi layer path with spaces', () => {
@@ -194,7 +194,7 @@ describe('MarkdownService', () => {
         const renderedLink = renderer.link('/#!/documentation/api/grand%20parent/my%20parent/my%20page#MARKDOWN', 'title', 'text');
 
         expect(renderedLink).not.toBeNull();
-        expect(renderedLink).toEqual('<a class="internal-link" href="/catalog/api/1234/doc?page=55">text</a>');
+        expect(renderedLink).toEqual('<a class="internal-link" href="/catalog/api/1234/documentation?page=55">text</a>');
       });
 
       it('should find page with symbols its name', () => {
@@ -202,7 +202,7 @@ describe('MarkdownService', () => {
         const renderedLink = renderer.link('/#!/documentation/api/my#$%^&*(){}?>.\\|éàêcrazy@%20page#MARKDOWN', 'title', 'text');
 
         expect(renderedLink).not.toBeNull();
-        expect(renderedLink).toEqual('<a class="internal-link" href="/catalog/api/1234/doc?page=66">text</a>');
+        expect(renderedLink).toEqual('<a class="internal-link" href="/catalog/api/1234/documentation?page=66">text</a>');
       });
 
       it('should return link with file name even if not found', () => {
@@ -210,7 +210,7 @@ describe('MarkdownService', () => {
         const renderedLink = renderer.link('/#!/documentation/api/doesNotExist#MARKDOWN', 'title', 'text');
 
         expect(renderedLink).not.toBeNull();
-        expect(renderedLink).toEqual('<a class="internal-link" href="/catalog/api/1234/doc?page=doesNotExist">text</a>');
+        expect(renderedLink).toEqual('<a class="internal-link" href="/catalog/api/1234/documentation?page=doesNotExist">text</a>');
       });
 
       it('should return link with file name even if parent id invalid', () => {
@@ -218,7 +218,7 @@ describe('MarkdownService', () => {
         const renderedLink = renderer.link('/#!/documentation/api/doesNotExist/myPage#MARKDOWN', 'title', 'text');
 
         expect(renderedLink).not.toBeNull();
-        expect(renderedLink).toEqual('<a class="internal-link" href="/catalog/api/1234/doc?page=myPage">text</a>');
+        expect(renderedLink).toEqual('<a class="internal-link" href="/catalog/api/1234/documentation?page=myPage">text</a>');
       });
 
       it.each(['myPage#typeDoesNotExist', 'myPage', 'myPage#', '#MARKDOWN', '#', 'parent#FOLDER'])(
