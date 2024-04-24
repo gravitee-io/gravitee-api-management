@@ -17,9 +17,11 @@ package io.gravitee.apim.core.subscription.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.plan.crud_service.PlanCrudService;
 import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.domain_service.RejectSubscriptionDomainService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
+import io.gravitee.rest.api.service.exceptions.PlanAlreadyClosedException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
 import lombok.Builder;
 
@@ -27,13 +29,16 @@ import lombok.Builder;
 public class RejectSubscriptionUseCase {
 
     private final SubscriptionCrudService subscriptionCrudService;
+    private final PlanCrudService planCrudService;
     private final RejectSubscriptionDomainService rejectSubscriptionDomainService;
 
     public RejectSubscriptionUseCase(
         SubscriptionCrudService subscriptionCrudService,
+        PlanCrudService planCrudService,
         RejectSubscriptionDomainService rejectSubscriptionDomainService
     ) {
         this.subscriptionCrudService = subscriptionCrudService;
+        this.planCrudService = planCrudService;
         this.rejectSubscriptionDomainService = rejectSubscriptionDomainService;
     }
 
@@ -43,7 +48,23 @@ public class RejectSubscriptionUseCase {
             throw new SubscriptionNotFoundException(input.subscriptionId);
         }
 
+        checkSubscriptionStatus(subscription);
+        checkPlanStatus(subscription);
+
         return new Output(rejectSubscriptionDomainService.reject(subscription, input.reasonMessage, input.auditInfo));
+    }
+
+    private void checkSubscriptionStatus(SubscriptionEntity subscriptionEntity) {
+        if (!subscriptionEntity.isPending()) {
+            throw new IllegalStateException("Cannot reject subscription");
+        }
+    }
+
+    private void checkPlanStatus(SubscriptionEntity subscription) {
+        var plan = planCrudService.findById(subscription.getPlanId());
+        if (plan.isClosed()) {
+            throw new PlanAlreadyClosedException(plan.getId());
+        }
     }
 
     @Builder
