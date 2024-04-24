@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.plan.model;
 
+import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.plan.PlanMode;
@@ -207,6 +208,19 @@ public class Plan implements GenericPlanEntity {
 
     public boolean isPublished() {
         return getPlanStatus() == PlanStatus.PUBLISHED;
+    }
+
+    public Plan close() {
+        if (isClosed()) {
+            throw new ValidationDomainException("Plan " + id + " is already closed");
+        }
+        final ZonedDateTime closeDateTime = TimeProvider.now();
+        return toBuilder()
+            .closedAt(closeDateTime)
+            .updatedAt(closeDateTime)
+            .needRedeployAt(Date.from(closeDateTime.toInstant()))
+            .build()
+            .setPlanStatus(PlanStatus.CLOSED);
     }
 
     public Plan update(Plan updated) {
