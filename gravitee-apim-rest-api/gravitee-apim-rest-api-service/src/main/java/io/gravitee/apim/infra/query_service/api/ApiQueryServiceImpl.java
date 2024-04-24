@@ -24,9 +24,14 @@ import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.apim.infra.adapter.ApiFieldFilterAdapter;
 import io.gravitee.apim.infra.adapter.ApiSearchCriteriaAdapter;
 import io.gravitee.apim.infra.adapter.SortableAdapter;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.repository.management.api.search.ApiCriteria;
+import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
+import io.gravitee.rest.api.service.impl.AbstractService;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +40,7 @@ import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-public class ApiQueryServiceImpl implements ApiQueryService {
+public class ApiQueryServiceImpl extends AbstractService implements ApiQueryService {
 
     private final ApiRepository apiRepository;
 
@@ -61,5 +66,23 @@ public class ApiQueryServiceImpl implements ApiQueryService {
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(e);
         }
+    }
+
+    @Override
+    public Page<Api> findByIntegrationId(String integrationId, Pageable pageable) {
+        var searchCriteria = new ApiCriteria.Builder().integrationId(integrationId).build();
+        var sortable = SortableAdapter.INSTANCE.toSortableForRepository(
+            Sortable.builder().field("updatedAt").order(Sortable.Order.DESC).build()
+        );
+        var fieldFilter = new io.gravitee.repository.management.api.search.ApiFieldFilter.Builder()
+            .excludeDefinition()
+            .excludePicture()
+            .build();
+
+        var apiPage = apiRepository.search(searchCriteria, sortable, convert(pageable), fieldFilter);
+
+        List<Api> apis = apiPage.getContent().stream().map(ApiAdapter.INSTANCE::toCoreModel).toList();
+
+        return new Page<>(apis, apiPage.getPageNumber(), (int) apiPage.getPageElements(), apiPage.getTotalElements());
     }
 }

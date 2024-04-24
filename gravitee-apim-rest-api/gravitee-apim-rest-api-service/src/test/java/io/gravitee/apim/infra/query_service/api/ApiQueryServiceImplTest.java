@@ -27,8 +27,12 @@ import io.gravitee.apim.core.api.model.ApiSearchCriteria;
 import io.gravitee.apim.core.api.model.Sortable;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
 import io.gravitee.apim.infra.adapter.ApiAdapter;
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.management.api.ApiRepository;
+import io.gravitee.rest.api.model.common.PageableImpl;
+import java.util.List;
 import java.util.stream.Stream;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -60,5 +64,28 @@ class ApiQueryServiceImplTest {
 
     private Api anApi() {
         return ApiFixtures.aProxyApiV4();
+    }
+
+    @Test
+    void should_list_apis_matching_integration_id() {
+        //Given
+        var integrationId = "integration-id";
+        var pageable = new PageableImpl(1, 5);
+
+        var expectedApis = List.of(fixtures.repository.ApiFixtures.aFederatedApi());
+        var page = new Page<>(expectedApis, pageable.getPageNumber(), expectedApis.size(), expectedApis.size());
+        when(apiRepository.search(any(), any(), any(), any())).thenReturn(page);
+
+        //When
+        Page<Api> responsePage = service.findByIntegrationId(integrationId, pageable);
+
+        //Then
+        SoftAssertions.assertSoftly(softly -> {
+            softly.assertThat(responsePage).isNotNull();
+            softly.assertThat(responsePage.getPageNumber()).isEqualTo(1);
+            softly.assertThat(responsePage.getPageElements()).isEqualTo(1);
+            softly.assertThat(responsePage.getTotalElements()).isEqualTo(1);
+            softly.assertThat(responsePage.getContent().get(0).getId()).isEqualTo("api-id");
+        });
     }
 }

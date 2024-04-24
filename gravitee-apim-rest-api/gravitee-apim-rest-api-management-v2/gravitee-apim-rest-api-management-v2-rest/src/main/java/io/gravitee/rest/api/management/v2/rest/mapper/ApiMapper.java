@@ -29,6 +29,7 @@ import io.gravitee.rest.api.management.v2.rest.model.BaseApi;
 import io.gravitee.rest.api.management.v2.rest.model.CreateApiV4;
 import io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion;
 import io.gravitee.rest.api.management.v2.rest.model.GenericApi;
+import io.gravitee.rest.api.management.v2.rest.model.IngestedApi;
 import io.gravitee.rest.api.management.v2.rest.model.PlanCRD;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiFederated;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateApiV2;
@@ -239,4 +240,6 @@ public interface ApiMapper {
     BaseApi map(GenericApiEntity apiEntity);
 
     ReviewEntity map(ApiReview apiReview);
+
+    IngestedApi map(io.gravitee.apim.core.api.model.Api api);
 }
