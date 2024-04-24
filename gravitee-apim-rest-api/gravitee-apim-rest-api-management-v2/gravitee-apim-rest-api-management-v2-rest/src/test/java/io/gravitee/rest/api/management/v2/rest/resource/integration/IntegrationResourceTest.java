@@ -17,6 +17,7 @@ package io.gravitee.rest.api.management.v2.rest.resource.integration;
 
 import static assertions.MAPIAssertions.assertThat;
 import static io.gravitee.common.http.HttpStatusCode.FORBIDDEN_403;
+import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static io.gravitee.rest.api.management.v2.rest.resource.integration.IntegrationsResourceTest.INTEGRATION_PROVIDER;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
@@ -29,9 +30,13 @@ import inmemory.IntegrationCrudServiceInMemory;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.rest.api.management.v2.rest.model.IngestedApi;
+import io.gravitee.rest.api.management.v2.rest.model.IngestedApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.IngestionStatus;
 import io.gravitee.rest.api.management.v2.rest.model.Integration;
 import io.gravitee.rest.api.management.v2.rest.model.IntegrationIngestionResponse;
+import io.gravitee.rest.api.management.v2.rest.model.Links;
+import io.gravitee.rest.api.management.v2.rest.model.Pagination;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResourceTest;
 import io.gravitee.rest.api.model.EnvironmentEntity;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -41,7 +46,9 @@ import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
+import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -90,6 +97,7 @@ public class IntegrationResourceTest extends AbstractResourceTest {
     public void tearDown() {
         super.tearDown();
         integrationCrudServiceInMemory.reset();
+        apiCrudServiceInMemory.reset();
         GraviteeContext.cleanContext();
     }
 
@@ -362,6 +370,97 @@ public class IntegrationResourceTest extends AbstractResourceTest {
                 .thenReturn(false);
 
             Response response = target.request().delete();
+
+            assertThat(response).hasStatus(HttpStatusCode.FORBIDDEN_403);
+        }
+    }
+
+    @Nested
+    class GetIngestedApis {
+
+        @BeforeEach
+        void setUp() {
+            var federatedApis = IntStream.range(0, 15).mapToObj(i -> ApiFixtures.aFederatedApi()).toList();
+            apiCrudServiceInMemory.initWith(federatedApis);
+        }
+
+        @Test
+        public void should_return_list_of_ingested_apis_with_default_pagination() {
+            Response response = target.path("/apis").request().get();
+
+            assertThat(response)
+                .hasStatus(200)
+                .asEntity(IngestedApisResponse.class)
+                .extracting(IngestedApisResponse::getPagination)
+                .isEqualTo(Pagination.builder().page(1).perPage(10).pageItemsCount(10).pageCount(2).totalCount(15L).build());
+        }
+
+        @Test
+        public void should_return_second_page_of_ingested_apis() {
+            Response response = target.path("/apis").queryParam("page", 2).queryParam("perPage", 10).request().get();
+
+            assertThat(response)
+                .hasStatus(200)
+                .asEntity(IngestedApisResponse.class)
+                .extracting(IngestedApisResponse::getPagination)
+                .isEqualTo(Pagination.builder().page(2).perPage(10).pageItemsCount(10).pageCount(2).totalCount(15L).build());
+        }
+
+        @Test
+        public void should_return_sorted_pages_of_ingested_apis() {
+            var recentlyUpdatedApi = ApiFixtures
+                .aFederatedApi()
+                .toBuilder()
+                .updatedAt(ZonedDateTime.parse("2024-02-01T20:22:02.00Z"))
+                .name("recently-updated")
+                .build();
+            apiCrudServiceInMemory.create(recentlyUpdatedApi);
+
+            Response response = target.path("/apis").request().get();
+
+            assertThat(response)
+                .hasStatus(200)
+                .asEntity(IngestedApisResponse.class)
+                .extracting(IngestedApisResponse::getData)
+                .extracting(ingestedApis -> ingestedApis.get(0))
+                .extracting(IngestedApi::getName)
+                .isEqualTo(recentlyUpdatedApi.getName());
+        }
+
+        @Test
+        void should_compute_links() {
+            var webtarget = target.path("/apis");
+            Response response = webtarget.queryParam("page", 2).queryParam("perPage", 5).request().get();
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(IngestedApisResponse.class)
+                .extracting(IngestedApisResponse::getLinks)
+                .isEqualTo(
+                    Links
+                        .builder()
+                        .self(webtarget.queryParam("page", 2).queryParam("perPage", 5).getUri().toString())
+                        .first(webtarget.queryParam("page", 1).queryParam("perPage", 5).getUri().toString())
+                        .last(webtarget.queryParam("page", 3).queryParam("perPage", 5).getUri().toString())
+                        .previous(webtarget.queryParam("page", 1).queryParam("perPage", 5).getUri().toString())
+                        .next(webtarget.queryParam("page", 3).queryParam("perPage", 5).getUri().toString())
+                        .build()
+                );
+        }
+
+        @Test
+        public void should_return_403_when_incorrect_permission() {
+            when(
+                permissionService.hasPermission(
+                    eq(GraviteeContext.getExecutionContext()),
+                    eq(RolePermission.ENVIRONMENT_INTEGRATION),
+                    eq(ENVIRONMENT),
+                    eq(RolePermissionAction.READ)
+                )
+            )
+                .thenReturn(false);
+
+            Response response = target.path("/apis").request().get();
 
             assertThat(response).hasStatus(HttpStatusCode.FORBIDDEN_403);
         }

@@ -58,4 +58,9 @@ public class ApiFixtures {
             .definition(GRAVITEE_MAPPER.writeValueAsString(ApiDefinitionFixtures.anApiV4()))
             .build();
     }
+
+    @SneakyThrows
+    public static Api aFederatedApi() {
+        return BASE.definitionVersion(DefinitionVersion.FEDERATED).build();
+    }
 }

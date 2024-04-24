@@ -18,15 +18,21 @@ package io.gravitee.rest.api.management.v2.rest.resource.integration;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.integration.use_case.DeleteIntegrationUseCase;
+import io.gravitee.apim.core.integration.use_case.GetIngestedApisUseCase;
 import io.gravitee.apim.core.integration.use_case.GetIntegrationUseCase;
 import io.gravitee.apim.core.integration.use_case.IngestIntegrationApisUseCase;
 import io.gravitee.apim.core.integration.use_case.UpdateIntegrationUseCase;
 import io.gravitee.common.http.MediaType;
+import io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.IntegrationMapper;
+import io.gravitee.rest.api.management.v2.rest.model.IngestedApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.IngestionStatus;
 import io.gravitee.rest.api.management.v2.rest.model.IntegrationIngestionResponse;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateIntegration;
+import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
+import io.gravitee.rest.api.management.v2.rest.resource.param.PaginationParam;
+import io.gravitee.rest.api.model.common.PageableImpl;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
 import io.gravitee.rest.api.rest.annotation.Permission;
@@ -60,6 +66,9 @@ public class IntegrationResource extends AbstractResource {
 
     @Inject
     private DeleteIntegrationUseCase deleteIntegrationUseCase;
+
+    @Inject
+    private GetIngestedApisUseCase getIngestedApisUseCase;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -142,5 +151,27 @@ public class IntegrationResource extends AbstractResource {
                 () -> response.resume(IntegrationIngestionResponse.builder().status(IngestionStatus.SUCCESS).build()),
                 response::resume
             );
+    }
+
+    @GET
+    @Path("/apis")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.ENVIRONMENT_INTEGRATION, acls = { RolePermissionAction.READ }) })
+    public IngestedApisResponse getIngestedApis(
+        @PathParam("integrationId") String integrationId,
+        @BeanParam @Valid PaginationParam paginationParam
+    ) {
+        var pageable = new PageableImpl(paginationParam.getPage(), paginationParam.getPerPage());
+        var input = new GetIngestedApisUseCase.Input(integrationId, pageable);
+
+        var ingestedApis = getIngestedApisUseCase.execute(input).ingestedApis();
+
+        var totalElements = ingestedApis.getTotalElements();
+        return new IngestedApisResponse()
+            .data(ingestedApis.getContent().stream().map(ApiMapper.INSTANCE::map).toList())
+            .pagination(
+                PaginationInfo.computePaginationInfo(totalElements, Math.toIntExact(ingestedApis.getPageElements()), paginationParam)
+            )
+            .links(computePaginationLinks(totalElements, paginationParam));
     }
 }

@@ -1167,6 +1167,27 @@ paths:
                                 $ref: "#/components/schemas/IntegrationIngestionResponse"
                 default:
                     $ref: "#/components/responses/Error"
+    /environments/{envId}/integrations/{integrationId}/apis:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/integrationIdParam"
+        get:
+            parameters:
+                - $ref: "#/components/parameters/pageParam"
+                - $ref: "#/components/parameters/perPageParam"
+            tags:
+                - Integrations
+            summary: Get list of ingested APIs associated to integration
+            description: |
+                Get a list of all APIs that were ingested from 3rd party provider using this integration. 
+
+                User must have the ENVIRONMENT_INTEGRATION[READ] permission.
+            operationId: ingestedApis
+            responses:
+                "200":
+                    $ref: "#/components/responses/IngestedApisResponse"
+                default:
+                    $ref: "#/components/responses/Error"
 
     # API Subscriptions
     /environments/{envId}/apis/{apiId}/subscribers:
@@ -3082,7 +3103,17 @@ components:
                                 example: updateApi.properties[0].key
                             invalidValue:
                                 description: The invalid value.
-
+        IngestedApi:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: Ingested API uuid
+                    example: 4e6abbd2-c0c6-462d-be9e-6371209af34b
+                name:
+                    type: string
+                    description: Ingested API name
+                    example: My API
         FlowV4:
             type: object
             properties:
@@ -5834,7 +5865,6 @@ components:
                     description: If true, a circuit breaker breaker will be dedicated for each subscriber, else, one and only circuit breaker will be used for the API.
                     default: true
 
-
         CreateDocumentation:
             type: object
             properties:
@@ -6440,6 +6470,23 @@ components:
                                 type: array
                                 items:
                                     $ref: "#/components/schemas/Api"
+                            pagination:
+                                $ref: "#/components/schemas/Pagination"
+                            links:
+                                $ref: "#/components/schemas/Links"
+
+        IngestedApisResponse:
+            description: Page of Ingested APIs
+            content:
+                application/json:
+                    schema:
+                        title: "IngestedApisResponse"
+                        properties:
+                            data:
+                                description: List of Ingested APIs .
+                                type: array
+                                items:
+                                    $ref: "#/components/schemas/IngestedApi"
                             pagination:
                                 $ref: "#/components/schemas/Pagination"
                             links:

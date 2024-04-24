@@ -20,9 +20,12 @@ import io.gravitee.apim.core.api.model.ApiFieldFilter;
 import io.gravitee.apim.core.api.model.ApiSearchCriteria;
 import io.gravitee.apim.core.api.model.Sortable;
 import io.gravitee.apim.core.api.query_service.ApiQueryService;
+import io.gravitee.common.data.domain.Page;
+import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.model.context.IntegrationContext;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -60,6 +63,28 @@ public class ApiQueryServiceInMemory implements ApiQueryService, InMemoryAlterna
     @Override
     public Optional<Api> findByEnvironmentIdAndCrossId(String environmentId, String crossId) {
         return storage.stream().filter(api -> api.getEnvironmentId().equals(environmentId) && api.getCrossId().equals(crossId)).findFirst();
+    }
+
+    @Override
+    public Page<Api> findByIntegrationId(String integrationId, Pageable pageable) {
+        var pageNumber = pageable.getPageNumber();
+        var pageSize = pageable.getPageSize();
+
+        var matches = storage
+            .stream()
+            .filter(api -> {
+                var integrationContext = (IntegrationContext) api.getOriginContext();
+                var originIntegrationId = integrationContext.getIntegrationId();
+                return originIntegrationId.equals(integrationId);
+            })
+            .sorted(Comparator.comparing(Api::getUpdatedAt).reversed())
+            .toList();
+
+        var page = matches.size() <= pageSize
+            ? matches
+            : matches.subList((pageNumber - 1) * pageSize, Math.min(pageNumber * pageSize, matches.size()));
+
+        return new Page<>(page, pageNumber, pageSize, matches.size());
     }
 
     @Override
