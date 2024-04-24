@@ -16,7 +16,7 @@
 import { AsyncPipe } from '@angular/common';
 import { Component, Input, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { catchError, combineLatest, filter, map, Observable, of, switchMap } from 'rxjs';
+import { catchError, filter, map, Observable, of, switchMap } from 'rxjs';
 
 import { LoaderComponent } from '../../../components/loader/loader.component';
 import { PageComponent } from '../../../components/page/page.component';
@@ -39,29 +39,25 @@ interface SelectedPageData {
 export class ApiTabDocumentationComponent implements OnInit {
   @Input()
   page!: string;
+  @Input()
+  apiId!: string;
   pageNodes$: Observable<PageTreeNode[]> = of([]);
   selectedPageData$: Observable<SelectedPageData> = of();
-
-  private apiId$: Observable<string>;
 
   constructor(
     private pageService: PageService,
     private router: Router,
     private activatedRoute: ActivatedRoute,
-  ) {
-    this.apiId$ = this.activatedRoute.parent ? this.activatedRoute.parent.params.pipe(map(params => params['apiId'])) : of();
-  }
+  ) {}
 
   ngOnInit(): void {
-    this.pageNodes$ = this.apiId$.pipe(
-      switchMap(apiId => this.pageService.listByApiId(apiId)),
-      map(resp => this.pageService.mapToPageTreeNode(undefined, resp.data ?? [])),
-    );
+    this.pageNodes$ = this.pageService
+      .listByApiId(this.apiId)
+      .pipe(map(resp => this.pageService.mapToPageTreeNode(undefined, resp.data ?? [])));
 
-    this.selectedPageData$ = combineLatest([this.apiId$, this.activatedRoute.queryParams]).pipe(
-      map(([apiId, params]) => ({ apiId, pageId: params['page'] })),
-      filter(res => !!res.pageId),
-      switchMap(({ apiId, pageId }) => this.getSelectedPage$(apiId, pageId)),
+    this.selectedPageData$ = this.activatedRoute.queryParams.pipe(
+      filter(queryParams => !!queryParams['page']),
+      switchMap(({ page }) => this.getSelectedPage$(page)),
     );
   }
 
@@ -69,8 +65,8 @@ export class ApiTabDocumentationComponent implements OnInit {
     this.router.navigate(['.'], { queryParams: { page }, relativeTo: this.activatedRoute });
   }
 
-  private getSelectedPage$(apiId: string, pageId: string): Observable<SelectedPageData> {
-    return this.pageService.getByApiIdAndId(apiId, pageId, true).pipe(
+  private getSelectedPage$(pageId: string): Observable<SelectedPageData> {
+    return this.pageService.getByApiIdAndId(this.apiId, pageId, true).pipe(
       map(result => ({ result })),
       catchError(error => of({ error })),
     );

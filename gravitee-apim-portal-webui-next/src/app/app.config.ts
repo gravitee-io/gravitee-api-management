@@ -16,7 +16,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { APP_INITIALIZER, ApplicationConfig } from '@angular/core';
 import { provideAnimations } from '@angular/platform-browser/animations';
-import { provideRouter, withComponentInputBinding } from '@angular/router';
+import { provideRouter, withComponentInputBinding, withRouterConfig } from '@angular/router';
 import { Observable } from 'rxjs';
 
 import { routes } from './app.routes';
@@ -28,7 +28,7 @@ function initConfig(configService: ConfigService): () => Observable<string> {
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideRouter(routes, withComponentInputBinding()),
+    provideRouter(routes, withComponentInputBinding(), withRouterConfig({ paramsInheritanceStrategy: 'always' })),
     provideHttpClient(),
     provideAnimations(),
     {

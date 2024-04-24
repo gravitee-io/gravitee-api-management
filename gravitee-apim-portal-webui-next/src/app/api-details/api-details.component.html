@@ -17,52 +17,48 @@
 -->
 <mat-card appearance="outlined">
   <mat-card-content>
-    @if (details$ | async; as details) {
-      <div class="api-details__header">
-        <app-api-picture [picture]="details._links?.picture" [name]="details.name" [version]="details.version" [size]="40" />
-        <div>
-          <div>{{ details.name }}</div>
-          <div class="api-details__header-content-version">{{ details.version }}</div>
-        </div>
-        <button i18n="@@logInOrSignUpToSubscribe" mat-stroked-button disabled color="primary api-details__header-button">
-          Log in / Sign up to subscribe
-        </button>
+    <div class="api-details__header">
+      <app-api-picture [picture]="api._links?.picture" [name]="api.name" [version]="api.version" [size]="40" />
+      <div>
+        <div>{{ api.name }}</div>
+        <div class="api-details__header-content-version">{{ api.version }}</div>
       </div>
-      @if (details.description) {
-        <app-banner class="api-details__banner">
-          <div class="api-details__banner-content">
-            <mat-icon svgIcon="light-bulb" aria-hidden="false" aria-label="Light-bulb icon"></mat-icon>
-            <p>{{ details.description }}</p>
-          </div>
-        </app-banner>
-      }
-      <nav mat-tab-nav-bar [tabPanel]="tabPanel">
-        <a
-          mat-tab-link
-          [routerLink]="['.', 'details']"
-          routerLinkActive
-          #detailsActive="routerLinkActive"
-          [active]="detailsActive.isActive"
-          i18n="@@apiDetails"
-          >Details</a
-        >
-        <a
-          mat-tab-link
-          [routerLink]="['.', 'documentation']"
-          routerLinkActive
-          #docActive="routerLinkActive"
-          [active]="docActive.isActive"
-          i18n="@@apiDocumentation"
-          >Documentation</a
-        >
-      </nav>
-      <mat-tab-nav-panel #tabPanel>
-        <div class="api-details__content">
-          <router-outlet />
+      <button i18n="@@logInOrSignUpToSubscribe" mat-stroked-button disabled color="primary api-details__header-button">
+        Log in / Sign up to subscribe
+      </button>
+    </div>
+    @if (api.description) {
+      <app-banner class="api-details__banner">
+        <div class="api-details__banner-content">
+          <mat-icon svgIcon="light-bulb" aria-hidden="false" aria-label="Light-bulb icon"></mat-icon>
+          <p>{{ api.description }}</p>
         </div>
-      </mat-tab-nav-panel>
-    } @else {
-      <div>TODO: Add skeleton here....</div>
+      </app-banner>
     }
+    <nav mat-tab-nav-bar [tabPanel]="tabPanel">
+      <a
+        mat-tab-link
+        [routerLink]="['.', 'details']"
+        routerLinkActive
+        #detailsActive="routerLinkActive"
+        [active]="detailsActive.isActive"
+        i18n="@@apiDetails"
+        >Details</a
+      >
+      <a
+        mat-tab-link
+        [routerLink]="['.', 'documentation']"
+        routerLinkActive
+        #docActive="routerLinkActive"
+        [active]="docActive.isActive"
+        i18n="@@apiDocumentation"
+        >Documentation</a
+      >
+    </nav>
+    <mat-tab-nav-panel #tabPanel>
+      <div class="api-details__content">
+        <router-outlet />
+      </div>
+    </mat-tab-nav-panel>
   </mat-card-content>
 </mat-card>
