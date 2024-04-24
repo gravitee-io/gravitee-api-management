@@ -224,7 +224,7 @@ describe('MarkdownService', () => {
       it.each(['myPage#typeDoesNotExist', 'myPage', 'myPage#', '#MARKDOWN', '#', 'parent#FOLDER'])(
         'Bad format path: %s -- should return original link',
         async (path: string) => {
-          const link = `/#!/documentation/api/${path}`;
+          const link = `/documentation/api/${path}`;
           // @ts-expect-error possibly undefined
           const renderedLink = renderer.link(link, 'title', 'text');
 

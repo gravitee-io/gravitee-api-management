@@ -82,6 +82,11 @@ export class MarkdownService {
           return `<a class="${ANCHOR_CLASSNAME}" href="${href}">${text}</a>`;
         }
 
+        if (href?.startsWith('/#!/')) {
+          const trimmedHref = href.substring(3);
+          return defaultRenderer.link(trimmedHref, title, text);
+        }
+
         return defaultRenderer.link(href, title, text);
       },
     };
