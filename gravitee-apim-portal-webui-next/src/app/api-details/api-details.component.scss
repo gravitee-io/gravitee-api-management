@@ -13,10 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-:host {
-  --mdc-outlined-card-container-shape: 12px;
-}
-
 .api-details {
   &__header {
     display: flex;
@@ -37,8 +33,6 @@
   }
 
   &__banner {
-    --mdc-elevated-card-container-shape: 12px;
-
     display: block;
     margin: 16px 0;
   }
