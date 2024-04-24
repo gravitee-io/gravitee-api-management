@@ -15,6 +15,7 @@
  */
 :host {
   display: flex;
+  gap: 36px;
 }
 
 .api-tab-documentation {
@@ -24,6 +25,5 @@
 
   &__page-content {
     width: 100%;
-    padding-left: 36px;
   }
 }

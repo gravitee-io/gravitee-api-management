@@ -15,21 +15,18 @@
  */
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
-import { HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute } from '@angular/router';
 import { of } from 'rxjs';
 
 import { ApiTabDocumentationComponent } from './api-tab-documentation.component';
 import { PageTreeHarness } from '../../../components/page-tree/page-tree.harness';
-import { fakePage, fakePagesResponse } from '../../../entities/page/page.fixtures';
-import { PagesResponse } from '../../../entities/page/pages-response';
-import { AppTestingModule, TESTING_BASE_URL } from '../../../testing/app-testing.module';
+import { fakePage } from '../../../entities/page/page.fixtures';
+import { AppTestingModule } from '../../../testing/app-testing.module';
 
 describe('ApiTabDocumentationComponent', () => {
   let component: ApiTabDocumentationComponent;
   let fixture: ComponentFixture<ApiTabDocumentationComponent>;
-  let httpTestingController: HttpTestingController;
   let harnessLoader: HarnessLoader;
 
   beforeEach(async () => {
@@ -44,19 +41,14 @@ describe('ApiTabDocumentationComponent', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(ApiTabDocumentationComponent);
-    httpTestingController = TestBed.inject(HttpTestingController);
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
     component = fixture.componentInstance;
     component.apiId = 'api-id';
-    fixture.detectChanges();
-  });
-
-  afterEach(() => {
-    httpTestingController.verify();
   });
 
   it('should change shown page when different page clicked', async () => {
-    expectPageList(fakePagesResponse({ data: [fakePage({ id: 'page-1', name: 'Page 1' }), fakePage({ id: 'page-2', name: 'Page 2' })] }));
+    component.pages = [fakePage({ id: 'page-1', name: 'Page 1' }), fakePage({ id: 'page-2', name: 'Page 2' })];
+    fixture.detectChanges();
 
     const pageTree = await harnessLoader.getHarnessOrNull(PageTreeHarness);
     expect(pageTree).toBeTruthy();
@@ -71,8 +63,4 @@ describe('ApiTabDocumentationComponent', () => {
       expect(data.result?.id).toEqual('page-2');
     });
   });
-
-  function expectPageList(pagesResponse: PagesResponse = fakePagesResponse()) {
-    httpTestingController.expectOne(`${TESTING_BASE_URL}/apis/api-id/pages?homepage=false&page=1&size=-1`).flush(pagesResponse);
-  }
 });
