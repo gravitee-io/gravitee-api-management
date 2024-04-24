@@ -15,6 +15,8 @@
  */
 import { AsyncFactoryFn, ComponentHarness, TestElement } from '@angular/cdk/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
+import { MatRowHarness, MatTableHarness } from '@angular/material/table/testing';
+import { MatPaginatorHarness } from '@angular/material/paginator/testing';
 
 export class IntegrationOverviewHarness extends ComponentHarness {
   public static readonly hostSelector = 'app-integration-overview';
@@ -25,6 +27,9 @@ export class IntegrationOverviewHarness extends ComponentHarness {
     MatButtonHarness.with({ selector: '[data-testid=discover-button]' }),
   );
   private errorBannerLocator = this.locatorForOptional('gio-banner-error');
+
+  public getTable = this.locatorForOptional(MatTableHarness);
+  private getPaginationLocator = this.locatorForOptional(MatPaginatorHarness);
 
   public getErrorBadge = async (): Promise<TestElement> => {
     return this.badgeErrorLocator();
@@ -40,5 +45,15 @@ export class IntegrationOverviewHarness extends ComponentHarness {
 
   public getDiscoverButton = async (): Promise<MatButtonHarness> => {
     return this.discoverButtonLocator();
+  };
+
+  public rowsNumber = async (): Promise<number> => {
+    return this.getTable()
+      .then((table: MatTableHarness) => table.getRows())
+      .then((rows: MatRowHarness[]) => rows.length);
+  };
+
+  public getPagination = async (): Promise<MatPaginatorHarness> => {
+    return await this.getPaginationLocator();
   };
 }

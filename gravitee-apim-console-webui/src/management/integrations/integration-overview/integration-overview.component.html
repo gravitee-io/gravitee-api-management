@@ -22,28 +22,29 @@
     <span class="page-header__description body-strong">Monitor and manage your integration with the provider</span>
   </div>
 
-  <mat-card *ngIf="!isLoading && integration; else loadingTemplate">
-    <div class="card-header">
-      <div class="card-header__title">
-        <h3>{{ integration.name }}</h3>
-        <p *ngIf="integration.description.length" class="description">{{ integration.description }}</p>
+  <mat-card *ngIf="!isLoadingIntegration && integration; else loadingTemplate">
+    <mat-card-header>
+      <div class="card-header">
+        <div class="card-header__title">
+          <h3>{{ integration.name }}</h3>
+          <p *ngIf="integration.description.length" class="description">{{ integration.description }}</p>
+        </div>
       </div>
-    </div>
+    </mat-card-header>
+
+    <div class="separator-hr"></div>
 
     <div class="card-content">
       <mat-card>
         <div class="details-card">
-          <div class="details-card__item">
+          <div class="details-card__item border-right">
             <h5 class="title body-strong">Provider</h5>
             <div class="name">
               <img class="logo" [src]="'../../../assets/logos/' + integration.provider + '.svg'" alt="Integration provider logo" />
               <span class="body-strong">{{ integration.provider }}</span>
             </div>
           </div>
-
-          <div class="separator"></div>
-
-          <div class="details-card__item">
+          <div class="details-card__item border-right">
             <h5 class="title body-strong">Agent Connection</h5>
             <div class="status">
               <span *ngIf="integration.agentStatus === 'DISCONNECTED'; else connected" class="gio-badge-error">
@@ -59,7 +60,6 @@
               </ng-template>
             </div>
           </div>
-          <div class="separator"></div>
           <div class="details-card__item">
             <h5 class="title body-strong">Integration ID</h5>
             <div class="status">
@@ -78,25 +78,76 @@
     </div>
   </mat-card>
 
-  <mat-card *ngIf="!isLoading && integration">
-    <div class="card-header">
-      <div class="card-header__title">
-        <h3>APIs</h3>
+  <mat-card *ngIf="!isLoadingIntegration && integration">
+    <mat-card-header>
+      <div [class]="federatedAPIs.length ? 'card-header' : 'card-header no-federated-apis'">
+        <div class="card-header__title">
+          <h3>APIs</h3>
+        </div>
+        <div class="card-header__actions">
+          <button
+            mat-raised-button
+            color="primary"
+            [disabled]="isIngesting || isLoadingFederatedAPI"
+            data-testid="discover-button"
+            (click)="ingest()"
+            *gioPermission="{ anyOf: ['environment-integration-c'] }"
+          >
+            Discover
+          </button>
+        </div>
       </div>
-      <div class="card-header__actions">
-        <button
-          mat-raised-button
-          color="primary"
-          [disabled]="isIngesting"
-          data-testid="discover-button"
-          (click)="ingest()"
-          *gioPermission="{ anyOf: ['environment-integration-c'] }"
+    </mat-card-header>
+
+    @if (federatedAPIs.length || isLoadingFederatedAPI) {
+      <div class="card-table">
+        <gio-table-wrapper
+          [disableSearchInput]="true"
+          [length]="nbTotalInstances"
+          [filters]="filters"
+          (filtersChange)="onFiltersChanged($event)"
         >
-          Discover
-        </button>
+          <table mat-table [dataSource]="federatedAPIs" aria-label="Federated APIs table">
+            <caption style="display: none">
+              Table with federated APIs
+            </caption>
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef id="name">API Name</th>
+              <td mat-cell *matCellDef="let federatedAPI">
+                <a [routerLink]="'../../apis/' + federatedAPI.id">
+                  {{ federatedAPI.name }}
+                </a>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef id="actions">
+                <ng-container *gioPermission="{ anyOf: ['environment-integration-u'] }">Actions</ng-container>
+              </th>
+              <td mat-cell *matCellDef="let federatedAPI">
+                <button
+                  *gioPermission="{ anyOf: ['environment-integration-u', 'environment-integration-d'] }"
+                  [routerLink]="federatedAPI.id + '/configuration'"
+                  mat-icon-button
+                  aria-label="Configure federated API button"
+                  matTooltip="Configure federated API"
+                >
+                  <mat-icon svgIcon="gio:edit-pencil"></mat-icon>
+                </button>
+              </td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+            <!-- Row shown when there is no data -->
+            <tr class="mat-mdc-row mdc-data-table__row" *matNoDataRow>
+              <td *ngIf="isLoadingFederatedAPI" class="mat-mdc-cell mdc-data-table__cell" [attr.colspan]="displayedColumns.length">
+                {{ 'Loading...' }}
+              </td>
+            </tr>
+          </table>
+        </gio-table-wrapper>
       </div>
-    </div>
-    <mat-card>
+    } @else {
+      <div class="separator-hr"></div>
       <div class="card-content">
         <mat-card>
           <div class="no-integrations">
@@ -119,7 +170,7 @@
           </div>
         </mat-card>
       </div>
-    </mat-card>
+    }
   </mat-card>
 
   <ng-template #loadingTemplate>

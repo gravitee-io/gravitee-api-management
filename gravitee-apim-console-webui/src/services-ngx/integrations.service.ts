@@ -21,6 +21,7 @@ import { tap } from 'rxjs/operators';
 
 import {
   CreateIntegrationPayload,
+  FederatedAPIsResponse,
   Integration,
   IntegrationResponse,
   UpdateIntegrationPayload,
@@ -47,7 +48,7 @@ export class IntegrationsService {
     this.currentIntegration$.next(null);
   }
 
-  public getIntegrations(page, size): Observable<IntegrationResponse> {
+  public getIntegrations(page: number, size: number): Observable<IntegrationResponse> {
     return this.httpClient.get<IntegrationResponse>(`${this.url}/?page=${page}&perPage=${size}`);
   }
 
@@ -69,5 +70,9 @@ export class IntegrationsService {
 
   public ingestIntegration(id: string) {
     return this.httpClient.post(`${this.url}/${id}/_ingest`, null);
+  }
+
+  public getFederatedAPIs(id: string, page: number, size: number): Observable<FederatedAPIsResponse> {
+    return this.httpClient.get<FederatedAPIsResponse>(`${this.url}/${id}/apis?page=${page}&perPage=${size}`);
   }
 }
