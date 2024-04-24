@@ -40,13 +40,13 @@ import io.gravitee.apim.core.audit.model.event.SubscriptionAuditEvent;
 import io.gravitee.apim.core.notification.model.Recipient;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionAcceptedApiHookContext;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionAcceptedApplicationHookContext;
+import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.service.common.UuidString;
-import io.gravitee.rest.api.service.exceptions.PlanAlreadyClosedException;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -60,8 +60,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
 
 class AcceptSubscriptionDomainServiceTest {
 
@@ -69,9 +67,15 @@ class AcceptSubscriptionDomainServiceTest {
     private static final String ORGANIZATION_ID = "organization-id";
     private static final String ENVIRONMENT_ID = "environment-id";
     private static final String USER_ID = "user-id";
-    private static final String PLAN_CLOSED = "plan-closed";
-    private static final String PLAN_PUBLISHED = "plan-published";
-    private static final String PUSH_PLAN = "plan-push";
+
+    private static final Plan PLAN_CLOSED = PlanFixtures.aPlanV4().toBuilder().id("plan-closed").build().setPlanStatus(PlanStatus.CLOSED);
+    private static final Plan PLAN_PUBLISHED = PlanFixtures
+        .anApiKeyV4()
+        .toBuilder()
+        .id("plan-published")
+        .build()
+        .setPlanStatus(PlanStatus.PUBLISHED);
+    private static final Plan PUSH_PLAN = PlanFixtures.aPushPlan().toBuilder().id("plan-push").build().setPlanStatus(PlanStatus.PUBLISHED);
 
     private static final ZonedDateTime STARTING_AT = Instant.parse("2020-02-03T20:22:02.00Z").atZone(ZoneId.systemDefault());
     private static final ZonedDateTime ENDING_AT = Instant.parse("2024-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault());
@@ -118,13 +122,7 @@ class AcceptSubscriptionDomainServiceTest {
                 userCrudService
             );
 
-        planCrudService.initWith(
-            List.of(
-                PlanFixtures.aPlanV4().toBuilder().id(PLAN_CLOSED).build().setPlanStatus(PlanStatus.CLOSED),
-                PlanFixtures.anApiKeyV4().toBuilder().id(PLAN_PUBLISHED).build().setPlanStatus(PlanStatus.PUBLISHED),
-                PlanFixtures.aPushPlan().toBuilder().id(PUSH_PLAN).build().setPlanStatus(PlanStatus.PUBLISHED)
-            )
-        );
+        planCrudService.initWith(List.of(PLAN_CLOSED, PLAN_PUBLISHED, PUSH_PLAN));
 
         applicationCrudService.initWith(List.of(ApplicationModelFixtures.anApplicationEntity().toBuilder().id(APPLICATION_ID).build()));
     }
@@ -152,22 +150,9 @@ class AcceptSubscriptionDomainServiceTest {
 
     @Test
     void should_throw_when_null_subscription() {
-        assertThatThrownBy(() -> accept(null)).isInstanceOf(IllegalArgumentException.class).hasMessage("Subscription should not be null");
-    }
-
-    @ParameterizedTest
-    @EnumSource(value = SubscriptionEntity.Status.class, mode = EnumSource.Mode.EXCLUDE, names = "PENDING")
-    void should_throw_when_status_not_pending(SubscriptionEntity.Status status) {
-        assertThatThrownBy(() -> accept(SubscriptionEntity.builder().status(status).build()))
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessage("Cannot accept subscription");
-    }
-
-    @Test
-    void should_throw_when_plan_is_closed() {
-        assertThatThrownBy(() -> accept(SubscriptionEntity.builder().status(SubscriptionEntity.Status.PENDING).planId(PLAN_CLOSED).build()))
-            .isInstanceOf(PlanAlreadyClosedException.class)
-            .hasMessage("Plan " + PLAN_CLOSED + " is already closed !");
+        assertThatThrownBy(() -> accept(null, PLAN_PUBLISHED))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Subscription should not be null");
     }
 
     @Test
@@ -178,14 +163,14 @@ class AcceptSubscriptionDomainServiceTest {
                 .aSubscription()
                 .toBuilder()
                 .subscribedBy("subscriber")
-                .planId(PLAN_PUBLISHED)
+                .planId(PLAN_PUBLISHED.getId())
                 .applicationId(APPLICATION_ID)
                 .status(SubscriptionEntity.Status.PENDING)
                 .build()
         );
 
         // When
-        final SubscriptionEntity result = accept(subscription);
+        final SubscriptionEntity result = accept(subscription, PLAN_PUBLISHED);
 
         // Then
         SoftAssertions.assertSoftly(softly -> {
@@ -231,14 +216,14 @@ class AcceptSubscriptionDomainServiceTest {
                 .aSubscription()
                 .toBuilder()
                 .subscribedBy("subscriber")
-                .planId(PLAN_PUBLISHED)
+                .planId(PLAN_PUBLISHED.getId())
                 .applicationId(APPLICATION_ID)
                 .status(SubscriptionEntity.Status.PENDING)
                 .build()
         );
 
         // When
-        accept(subscription);
+        accept(subscription, PLAN_PUBLISHED);
 
         // Then
         assertThat(apiKeyCrudService.storage())
@@ -264,14 +249,14 @@ class AcceptSubscriptionDomainServiceTest {
                 .aSubscription()
                 .toBuilder()
                 .subscribedBy("subscriber")
-                .planId(PUSH_PLAN)
+                .planId(PUSH_PLAN.getId())
                 .applicationId(APPLICATION_ID)
                 .status(SubscriptionEntity.Status.PENDING)
                 .build()
         );
 
         // When
-        accept(subscription);
+        accept(subscription, PUSH_PLAN);
 
         // Then
         assertThat(apiKeyCrudService.storage()).isEmpty();
@@ -285,13 +270,13 @@ class AcceptSubscriptionDomainServiceTest {
                 .aSubscription()
                 .toBuilder()
                 .subscribedBy("subscriber")
-                .planId(PLAN_PUBLISHED)
+                .planId(PLAN_PUBLISHED.getId())
                 .status(SubscriptionEntity.Status.PENDING)
                 .build()
         );
 
         // When
-        accept(subscription);
+        accept(subscription, PLAN_PUBLISHED);
 
         // Then
         assertThat(triggerNotificationDomainService.getApiNotifications())
@@ -313,14 +298,14 @@ class AcceptSubscriptionDomainServiceTest {
                 .aSubscription()
                 .toBuilder()
                 .subscribedBy("subscriber")
-                .planId(PLAN_PUBLISHED)
+                .planId(PLAN_PUBLISHED.getId())
                 .status(SubscriptionEntity.Status.PENDING)
                 .build()
         );
         userCrudService.initWith(List.of(BaseUserEntity.builder().id("subscriber").email("subscriber@mail.fake").build()));
 
         // When
-        accept(subscription);
+        accept(subscription, PLAN_PUBLISHED);
 
         // Then
         assertThat(triggerNotificationDomainService.getApplicationNotifications())
@@ -337,7 +322,7 @@ class AcceptSubscriptionDomainServiceTest {
         return subscription;
     }
 
-    private SubscriptionEntity accept(SubscriptionEntity subscription) {
-        return cut.accept(subscription, STARTING_AT, ENDING_AT, REASON, "", AUDIT_INFO);
+    private SubscriptionEntity accept(SubscriptionEntity subscription, Plan plan) {
+        return cut.accept(subscription, plan, STARTING_AT, ENDING_AT, REASON, "", AUDIT_INFO);
     }
 }

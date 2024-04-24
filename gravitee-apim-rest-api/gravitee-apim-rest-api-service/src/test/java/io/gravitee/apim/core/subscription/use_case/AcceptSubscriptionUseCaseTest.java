@@ -116,7 +116,7 @@ class AcceptSubscriptionUseCaseTest {
             userCrudService
         );
 
-        useCase = new AcceptSubscriptionUseCase(subscriptionCrudService, acceptSubscriptionDomainService);
+        useCase = new AcceptSubscriptionUseCase(subscriptionCrudService, planCrudService, acceptSubscriptionDomainService);
     }
 
     @AfterEach

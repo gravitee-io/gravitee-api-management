@@ -33,12 +33,9 @@ import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.user.crud_service.UserCrudService;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
-import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
-import io.gravitee.rest.api.service.exceptions.PlanAlreadyClosedException;
 import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 
 @DomainService
@@ -68,7 +65,17 @@ public class AcceptSubscriptionDomainService {
         this.userCrudService = userCrudService;
     }
 
-    public SubscriptionEntity accept(
+    /**
+     * Auto accept a subscription when Plan is configured with AUTO validation.
+     * @param subscriptionId The subscription to accept.
+     * @param startingAt The starting date of the subscription.
+     * @param endingAt The ending date of the subscription. Can be null for non expiring subscription.
+     * @param reason The optional reason of accepting the subscription.
+     * @param customKey The optional custom key to use for API Key subscription.
+     * @param auditInfo Audit information about whom accepting the subscription.
+     * @return The accepted subscription.
+     */
+    public SubscriptionEntity autoAccept(
         String subscriptionId,
         ZonedDateTime startingAt,
         ZonedDateTime endingAt,
@@ -76,52 +83,49 @@ public class AcceptSubscriptionDomainService {
         String customKey,
         AuditInfo auditInfo
     ) {
-        log.debug("Accept subscription {}", subscriptionId);
+        log.debug("Auto accepting subscription {}", subscriptionId);
 
-        final SubscriptionEntity subscriptionEntity = subscriptionCrudService.get(subscriptionId);
-        return accept(subscriptionEntity, startingAt, endingAt, reason, customKey, auditInfo);
+        var subscription = subscriptionCrudService.get(subscriptionId);
+        var plan = planCrudService.findById(subscription.getPlanId());
+        return accept(subscription, plan, startingAt, endingAt, reason, customKey, auditInfo);
     }
 
+    /**
+     * Accept a subscription.
+     * @param subscription The subscription to accept.
+     * @param plan The subscribed plan.
+     * @param startingAt The starting date of the subscription.
+     * @param endingAt The ending date of the subscription. Can be null for non expiring subscription.
+     * @param reason The optional reason of accepting the subscription.
+     * @param customKey The optional custom key to use for API Key subscription.
+     * @param auditInfo Audit information about whom accepting the subscription.
+     * @return The accepted subscription.
+     */
     public SubscriptionEntity accept(
-        SubscriptionEntity subscriptionEntity,
+        SubscriptionEntity subscription,
+        Plan plan,
         ZonedDateTime startingAt,
         ZonedDateTime endingAt,
         String reason,
         String customKey,
         AuditInfo auditInfo
     ) {
-        if (subscriptionEntity == null) {
+        if (subscription == null) {
             throw new IllegalArgumentException("Subscription should not be null");
         }
-        checkSubscriptionStatus(subscriptionEntity);
-        var plan = checkPlanStatus(subscriptionEntity);
 
-        var acceptedSubscription = subscriptionEntity.acceptBy(auditInfo.actor().userId(), startingAt, endingAt, reason);
+        var acceptedSubscription = subscription.acceptBy(auditInfo.actor().userId(), startingAt, endingAt, reason);
 
         if (plan.isApiKey()) {
             generateApiKeyDomainService.generate(acceptedSubscription, auditInfo, customKey);
         }
         subscriptionCrudService.update(acceptedSubscription);
 
-        createAudit(subscriptionEntity, acceptedSubscription, auditInfo);
+        createAudit(subscription, acceptedSubscription, auditInfo);
 
         triggerNotifications(auditInfo.organizationId(), acceptedSubscription);
 
         return acceptedSubscription;
-    }
-
-    private void checkSubscriptionStatus(SubscriptionEntity subscriptionEntity) {
-        if (!subscriptionEntity.isPending()) {
-            throw new IllegalStateException("Cannot accept subscription");
-        }
-    }
-
-    private Plan checkPlanStatus(SubscriptionEntity subscriptionEntity) {
-        var plan = planCrudService.findById(subscriptionEntity.getPlanId());
-        if (plan.isClosed()) {
-            throw new PlanAlreadyClosedException(plan.getId());
-        }
-        return plan;
     }
 
     private void createAudit(SubscriptionEntity subscriptionEntity, SubscriptionEntity acceptedSubscriptionEntity, AuditInfo auditInfo) {
