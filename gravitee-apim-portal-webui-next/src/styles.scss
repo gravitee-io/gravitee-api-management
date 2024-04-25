@@ -44,4 +44,17 @@ body {
   p {
     color: $paragraph-color;
   }
+
+  .xng-breadcrumb-trail {
+    font-weight: 700;
+  }
+
+  .xng-breadcrumb-link {
+    color: color-mix(in srgb, $default-text-color 75%, transparent);
+    font-weight: 400;
+
+    :hover {
+      text-decoration: none;
+    }
+  }
 }

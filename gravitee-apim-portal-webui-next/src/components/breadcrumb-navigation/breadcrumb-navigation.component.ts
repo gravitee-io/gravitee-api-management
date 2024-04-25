@@ -13,39 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-.api-details {
-  margin-top: 34px;
+import { Component } from '@angular/core';
+import { MatIcon } from '@angular/material/icon';
+import { BreadcrumbComponent, BreadcrumbItemDirective } from 'xng-breadcrumb';
 
-  &__header {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-
-  &__header-content-version {
-    font-size: 14px;
-    font-weight: 400;
-    letter-spacing: 0.25px;
-  }
-
-  &__header-button {
-    margin-left: auto;
-
-    --mdc-outlined-button-container-height: 48px;
-  }
-
-  &__banner {
-    display: block;
-    margin: 16px 0;
-  }
-
-  &__banner-content {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-
-  &__content {
-    padding-top: 32px;
-  }
-}
+@Component({
+  selector: 'app-breadcrumb-navigation',
+  standalone: true,
+  imports: [BreadcrumbComponent, BreadcrumbItemDirective, MatIcon],
+  templateUrl: './breadcrumb-navigation.component.html',
+  styleUrl: './breadcrumb-navigation.component.scss',
+})
+export class BreadcrumbNavigationComponent {}

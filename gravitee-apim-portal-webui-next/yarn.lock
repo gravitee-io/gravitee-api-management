@@ -13017,6 +13017,7 @@ __metadata:
     swagger-ui: "npm:5.16.2"
     tslib: "npm:2.3.0"
     typescript: "npm:5.3.2"
+    xng-breadcrumb: "npm:11.0.0"
     zone.js: "npm:0.14.3"
   languageName: unknown
   linkType: soft
@@ -21882,6 +21883,20 @@ __metadata:
   version: 2.2.0
   resolution: "xmlchars@npm:2.2.0"
   checksum: 10c0/b64b535861a6f310c5d9bfa10834cf49127c71922c297da9d4d1b45eeaae40bf9b4363275876088fbe2667e5db028d2cd4f8ee72eed9bede840a67d57dab7593
+  languageName: node
+  linkType: hard
+
+"xng-breadcrumb@npm:11.0.0":
+  version: 11.0.0
+  resolution: "xng-breadcrumb@npm:11.0.0"
+  dependencies:
+    tslib: "npm:^2.3.0"
+  peerDependencies:
+    "@angular/common": ^17.2.0
+    "@angular/core": ^17.2.0
+    "@angular/router": ^17.2.0
+    rxjs: "*"
+  checksum: 10c0/43ca763b99cba8a690ad43f4fbdca8f46a13cd52d423ad79e43cd63192a1b35fd66222cb1e5d45141e1518f39d72bf4287b8ff16bcb09bb91d0a262d19317727
   languageName: node
   linkType: hard
 

@@ -17,11 +17,17 @@ import { CommonModule } from '@angular/common';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { Injectable, NgModule } from '@angular/core';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { ActivatedRoute } from '@angular/router';
+import { of } from 'rxjs/internal/observable/of';
 
 import { ConfigService } from '../services/config.service';
 
 export const TESTING_BASE_URL = 'http://localhost:8083/portal/environments/DEFAULT';
-
+export const TESTING_ACTIVATED_ROUTE = {
+  data: { breadcrumb: { alias: 'apiName' } },
+  snapshot: { data: { breadcrumb: { alias: 'apiName' } } },
+  params: of({ apiId: 'apiId' }),
+};
 @Injectable()
 export class ConfigServiceStub {
   get baseURL(): string {
@@ -36,6 +42,10 @@ export class ConfigServiceStub {
     {
       provide: ConfigService,
       useClass: ConfigServiceStub,
+    },
+    {
+      provide: ActivatedRoute,
+      useValue: TESTING_ACTIVATED_ROUTE,
     },
   ],
 })
