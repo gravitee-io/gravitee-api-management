@@ -519,7 +519,7 @@ export function fakeApiFederated(modifier?: Partial<ApiFederated> | ((baseApi: A
     name: 'myName',
     definitionVersion: 'FEDERATED',
     originContext: {
-      origin: 'MANAGEMENT',
+      origin: 'INTEGRATION',
       integrationId: 'integration-id',
     },
   };

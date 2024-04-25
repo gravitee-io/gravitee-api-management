@@ -70,7 +70,28 @@ public class ApiTemplateServiceImpl implements ApiTemplateService {
         final GenericApiEntity genericApiEntity = apiSearchService.findGenericById(executionContext, apiId);
 
         if (genericApiEntity.getDefinitionVersion() == DefinitionVersion.FEDERATED) {
-            return null;
+            final io.gravitee.rest.api.model.v4.api.ApiModel apiModelEntity = new io.gravitee.rest.api.model.v4.api.ApiModel();
+
+            apiModelEntity.setId(genericApiEntity.getId());
+            apiModelEntity.setDefinitionVersion(genericApiEntity.getDefinitionVersion());
+            apiModelEntity.setName(genericApiEntity.getName());
+            apiModelEntity.setDescription(genericApiEntity.getDescription());
+            apiModelEntity.setCreatedAt(genericApiEntity.getCreatedAt());
+            apiModelEntity.setDeployedAt(genericApiEntity.getDeployedAt());
+            apiModelEntity.setUpdatedAt(genericApiEntity.getUpdatedAt());
+            apiModelEntity.setGroups(genericApiEntity.getGroups());
+            apiModelEntity.setVisibility(genericApiEntity.getVisibility());
+            apiModelEntity.setCategories(genericApiEntity.getCategories());
+            apiModelEntity.setApiVersion(genericApiEntity.getApiVersion());
+            apiModelEntity.setState(genericApiEntity.getState());
+            apiModelEntity.setTags(genericApiEntity.getTags());
+            apiModelEntity.setPicture(genericApiEntity.getPicture());
+            apiModelEntity.setPrimaryOwner(genericApiEntity.getPrimaryOwner());
+            apiModelEntity.setLifecycleState(genericApiEntity.getLifecycleState());
+            apiModelEntity.setDisableMembershipNotifications(genericApiEntity.isDisableMembershipNotifications());
+
+            apiModelEntity.setMetadata(getApiMetadata(executionContext, apiId, decodeTemplate, apiModelEntity));
+            return apiModelEntity;
         }
 
         if (genericApiEntity.getDefinitionVersion() != DefinitionVersion.V4) {

@@ -107,11 +107,11 @@
         >
           <div class="subscription__footer" *gioPermission="{ anyOf: ['api-subscription-u'] }">
             <ng-container *ngIf="subscription.status === 'PAUSED' || subscription.status === 'ACCEPTED'; else pendingSubscription">
-              <button mat-stroked-button (click)="transferSubscription()">
+              <button mat-stroked-button (click)="transferSubscription()" *ngIf="!isFederatedApi">
                 <mat-icon svgIcon="gio:data-transfer-both"></mat-icon>
                 Transfer
               </button>
-              <button mat-stroked-button (click)="pauseSubscription()" *ngIf="subscription.status === 'ACCEPTED'">
+              <button mat-stroked-button (click)="pauseSubscription()" *ngIf="subscription.status === 'ACCEPTED' && !isFederatedApi">
                 <mat-icon svgIcon="gio:pause-circle"></mat-icon>
                 Pause
               </button>
@@ -119,7 +119,7 @@
                 <mat-icon svgIcon="gio:play-circle"></mat-icon>
                 Resume
               </button>
-              <button mat-stroked-button (click)="changeEndDate()">
+              <button mat-stroked-button (click)="changeEndDate()" *ngIf="!isFederatedApi">
                 <mat-icon svgIcon="gio:calendar"></mat-icon>
                 Change end date
               </button>
@@ -198,7 +198,7 @@
               <ng-container *ngIf="!hasSharedApiKeyMode && (subscription.status === 'ACCEPTED' || subscription.status === 'PENDING')">
                 <div *gioPermission="{ anyOf: ['api-subscription-u'] }" class="subscription__api-keys__actions">
                   <button
-                    *ngIf="apiKey.isValid && subscription.status === 'ACCEPTED'"
+                    *ngIf="apiKey.isValid && subscription.status === 'ACCEPTED' && !isFederatedApi"
                     (click)="revokeApiKey(apiKey)"
                     mat-button
                     aria-label="Button to revoke an API Key"
@@ -207,7 +207,7 @@
                     <mat-icon svgIcon="gio:x-circle"></mat-icon>
                   </button>
                   <button
-                    *ngIf="apiKey.isValid && subscription.status === 'ACCEPTED'"
+                    *ngIf="apiKey.isValid && subscription.status === 'ACCEPTED' && !isFederatedApi"
                     (click)="expireApiKey(apiKey)"
                     mat-button
                     aria-label="Button to expire an API Key"
@@ -238,7 +238,7 @@
         </table>
       </gio-table-wrapper>
     </div>
-    <ng-container *ngIf="!hasSharedApiKeyMode && subscription.status === 'ACCEPTED'">
+    <ng-container *ngIf="!hasSharedApiKeyMode && subscription.status === 'ACCEPTED' && !isFederatedApi">
       <mat-card-actions>
         <div class="subscription__api-keys__footer" *gioPermission="{ anyOf: ['api-subscription-u'] }">
           <button mat-stroked-button (click)="renewApiKey()">

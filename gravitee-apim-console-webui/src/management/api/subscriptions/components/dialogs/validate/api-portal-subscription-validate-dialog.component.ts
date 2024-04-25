@@ -22,6 +22,7 @@ export interface ApiPortalSubscriptionAcceptDialogData {
   applicationId: string;
   canUseCustomApiKey: boolean;
   sharedApiKeyMode: boolean;
+  isFederated: boolean;
 }
 export interface ApiPortalSubscriptionAcceptDialogResult {
   start: Date;
