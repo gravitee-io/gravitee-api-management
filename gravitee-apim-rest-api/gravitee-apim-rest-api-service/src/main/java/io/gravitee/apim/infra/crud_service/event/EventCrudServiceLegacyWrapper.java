@@ -52,4 +52,9 @@ public class EventCrudServiceLegacyWrapper implements EventCrudService {
             )
         );
     }
+
+    @Override
+    public Event get(String organizationId, String environmentId, String eventId) {
+        return EventAdapter.INSTANCE.fromEntity(eventService.findById(new ExecutionContext(organizationId, environmentId), eventId));
+    }
 }
