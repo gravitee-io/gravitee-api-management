@@ -77,10 +77,17 @@ public class ApiKeyEntity {
         return generateForSubscription(subscription, customApiKey, false);
     }
 
-    /*
+    /**
+     * Create an {@link ApiKeyEntity} for a federated {@link SubscriptionEntity}.
+     *
+     * @param subscription The subscription for which the API key is created.
+     * @param apiKey The API key value.
+     * @return The generated {@link ApiKeyEntity}.
+     * @throws IllegalArgumentException If the API key value is null.
+     */
     public static ApiKeyEntity generateForFederatedSubscription(SubscriptionEntity subscription, String apiKey) {
         if (apiKey == null) {
-            throw new IllegalArgumentException("Custom api key cannot be null");
+            throw new IllegalArgumentException("API Key cannot be null");
         }
 
         return generateForSubscription(subscription, apiKey, true);

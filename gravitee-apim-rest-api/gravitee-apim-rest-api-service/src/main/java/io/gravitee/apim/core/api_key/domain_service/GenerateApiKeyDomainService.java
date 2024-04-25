@@ -62,25 +62,31 @@ public class GenerateApiKeyDomainService {
 
     public ApiKeyEntity generate(SubscriptionEntity subscription, AuditInfo auditInfo, String customApiKey) {
         var app = applicationCrudService.findById(subscription.getApplicationId(), auditInfo.environmentId());
-        return generate(subscription, app, auditInfo, customApiKey);
+        return generate(subscription, app, auditInfo, customApiKey, false);
     }
 
-    public ApiKeyEntity generate(
+    public ApiKeyEntity generateForFederated(SubscriptionEntity subscription, AuditInfo auditInfo, String customApiKey) {
+        var app = applicationCrudService.findById(subscription.getApplicationId(), auditInfo.environmentId());
+        return generate(subscription, app, auditInfo, customApiKey, true);
+    }
+
+    private ApiKeyEntity generate(
         SubscriptionEntity subscription,
         BaseApplicationEntity application,
         AuditInfo auditInfo,
-        String customApiKey
+        String apiKeyValue,
+        boolean federated
     ) {
         if (!application.hasApiKeySharedMode()) {
-            return generate(auditInfo, subscription, customApiKey);
+            return generate(auditInfo, subscription, apiKeyValue, federated);
         }
-        return findOrGenerate(auditInfo, application, subscription, customApiKey);
+        return findOrGenerate(auditInfo, application, subscription, apiKeyValue, federated);
     }
 
-    private ApiKeyEntity generate(AuditInfo auditInfo, SubscriptionEntity subscription, String customApiKey) {
+    private ApiKeyEntity generate(AuditInfo auditInfo, SubscriptionEntity subscription, String apiKeyValue, boolean federated) {
         log.debug("Generate an API Key for subscription {}", subscription);
 
-        ApiKeyEntity apiKey = generateForSubscription(subscription, customApiKey);
+        ApiKeyEntity apiKey = generateForSubscription(subscription, apiKeyValue, federated);
         apiKeyCrudService.create(apiKey);
 
         // Audit
@@ -94,14 +100,19 @@ public class GenerateApiKeyDomainService {
      *
      * @param subscription The subscription
      * @param customApiKey The custom key to use
+     * @param federated Flag indicating that we handle a federated subscription
      * @return An API Key
      */
-    private ApiKeyEntity generateForSubscription(SubscriptionEntity subscription, String customApiKey) {
+    private ApiKeyEntity generateForSubscription(SubscriptionEntity subscription, String customApiKey, boolean federated) {
+        if (federated) {
+            return ApiKeyEntity.generateForFederatedSubscription(subscription, customApiKey);
+        }
+
         if (Objects.nonNull(customApiKey) && !customApiKey.isEmpty()) {
             if (!isKeyExistFor(customApiKey, subscription)) {
                 throw new ApiKeyAlreadyExistingException();
             }
-            return ApiKeyEntity.generateForSubscription(subscription, customApiKey, false);
+            return ApiKeyEntity.generateForSubscription(subscription, customApiKey);
         }
 
         return ApiKeyEntity.generateForSubscription(subscription);
@@ -118,13 +129,14 @@ public class GenerateApiKeyDomainService {
         AuditInfo auditInfo,
         BaseApplicationEntity application,
         SubscriptionEntity subscription,
-        String customApiKey
+        String customApiKey,
+        boolean federated
     ) {
         return apiKeyQueryService
             .findByApplication(application.getId())
             .peek(apiKey -> addSubscription(apiKey, subscription))
             .max(comparing(ApiKeyEntity::isRevoked, reverseOrder()).thenComparing(ApiKeyEntity::getExpireAt, nullsLast(naturalOrder())))
-            .orElseGet(() -> generate(auditInfo, subscription, customApiKey));
+            .orElseGet(() -> generate(auditInfo, subscription, customApiKey, federated));
     }
 
     private void addSubscription(ApiKeyEntity apiKey, SubscriptionEntity subscription) {

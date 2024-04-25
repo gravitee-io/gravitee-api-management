@@ -19,6 +19,7 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
+import io.gravitee.definition.model.federation.FederatedApi;
 import io.gravitee.definition.model.v4.Api;
 import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.analytics.Analytics;
@@ -105,5 +106,9 @@ public class ApiDefinitionFixtures {
 
     public static io.gravitee.definition.model.Api anApiV1() {
         return BASE_V2.get().definitionVersion(DefinitionVersion.V1).build();
+    }
+
+    public static FederatedApi aFederatedApi() {
+        return FederatedApi.builder().name("federated-api").providerId("api-provider-id").build();
     }
 }
