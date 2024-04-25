@@ -22,6 +22,7 @@ import { MetadataSaveServices } from '../../../../components/gio-metadata/gio-me
 import { ApiService } from '../../../../services-ngx/api.service';
 import { ApiMetadataV2Service } from '../../../../services-ngx/api-metadata-v2.service';
 import { Metadata } from '../../../../entities/metadata/metadata';
+import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 
 @Component({
   selector: 'gio-api-metadata-list',
@@ -38,6 +39,7 @@ export class GioApiMetadataListComponent implements OnInit, OnDestroy {
 
   constructor(
     private readonly apiService: ApiService,
+    private readonly apiV2Service: ApiV2Service,
     private readonly apiMetadataV2Service: ApiMetadataV2Service,
     private readonly activatedRoute: ActivatedRoute,
   ) {}
@@ -58,11 +60,11 @@ export class GioApiMetadataListComponent implements OnInit, OnDestroy {
       delete: (metadataKey) => this.apiService.deleteMetadata(this.activatedRoute.snapshot.params.apiId, metadataKey),
     };
     this.description = `Set metadata information on the API that can be easily accessed through Markdown templating`;
-    this.apiService
+    this.apiV2Service
       .get(this.activatedRoute.snapshot.params.apiId)
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe((api) => {
-        this.readOnly = api.definition_context?.origin === 'kubernetes';
+        this.readOnly = api.definitionContext?.origin === 'KUBERNETES';
       });
   }
 

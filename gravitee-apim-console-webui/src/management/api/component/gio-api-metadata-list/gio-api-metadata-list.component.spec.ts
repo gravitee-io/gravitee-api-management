@@ -215,7 +215,7 @@ describe('GioApiMetadataListComponent', () => {
 
   function expectGetAPI() {
     httpTestingController.expectOne({
-      url: `${CONSTANTS_TESTING.env.baseURL}/apis/${API_ID}`,
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}`,
       method: 'GET',
     });
   }
