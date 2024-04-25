@@ -37,6 +37,8 @@ import io.gravitee.integration.api.command.subscribe.SubscribeCommand;
 import io.gravitee.integration.api.command.subscribe.SubscribeCommandPayload;
 import io.gravitee.integration.api.command.subscribe.SubscribeReply;
 import io.gravitee.integration.api.command.subscribe.SubscribeReplyPayload;
+import io.gravitee.integration.api.model.Page;
+import io.gravitee.integration.api.model.PageType;
 import io.gravitee.integration.api.model.Plan;
 import io.gravitee.integration.api.model.PlanSecurityType;
 import io.gravitee.integration.api.model.Subscription;
@@ -107,7 +109,8 @@ class IntegrationAgentImplTest {
                         "asset-description-1",
                         "asset-version-1",
                         Map.of("url", "https://example.com/1"),
-                        List.of(new IntegrationApi.Plan("plan-id-1", "Gold 1", "Gold description 1", IntegrationApi.PlanType.API_KEY))
+                        List.of(new IntegrationApi.Plan("plan-id-1", "Gold 1", "Gold description 1", IntegrationApi.PlanType.API_KEY)),
+                        List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "swaggerDoc"))
                     ),
                     new IntegrationApi(
                         INTEGRATION_ID,
@@ -117,7 +120,8 @@ class IntegrationAgentImplTest {
                         "asset-description-2",
                         "asset-version-2",
                         Map.of("url", "https://example.com/2"),
-                        List.of(new IntegrationApi.Plan("plan-id-2", "Gold 2", "Gold description 2", IntegrationApi.PlanType.API_KEY))
+                        List.of(new IntegrationApi.Plan("plan-id-2", "Gold 2", "Gold description 2", IntegrationApi.PlanType.API_KEY)),
+                        List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "swaggerDoc"))
                     )
                 );
         }
@@ -253,6 +257,7 @@ class IntegrationAgentImplTest {
                         .build()
                 )
             )
+            .pages(List.of(new Page(PageType.SWAGGER, "swaggerDoc")))
             .build();
     }
 }

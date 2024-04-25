@@ -22,6 +22,8 @@ import io.gravitee.apim.core.api.domain_service.ValidateFederatedApiDomainServic
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api.model.factory.ApiModelFactory;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
+import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
 import io.gravitee.apim.core.integration.exception.IntegrationNotFoundException;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
@@ -38,9 +40,10 @@ import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
-import java.time.ZonedDateTime;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 
 @UseCase
@@ -54,6 +57,7 @@ public class IngestIntegrationApisUseCase {
     private final CreateApiDomainService createApiDomainService;
     private final CreatePlanDomainService createPlanDomainService;
     private final IntegrationAgent integrationAgent;
+    private final CreateApiDocumentationDomainService createApiDocumentationDomainService;
 
     public IngestIntegrationApisUseCase(
         IntegrationCrudService integrationCrudService,
@@ -62,7 +66,8 @@ public class IngestIntegrationApisUseCase {
         ApiCrudService apiCrudService,
         CreateApiDomainService createApiDomainService,
         CreatePlanDomainService createPlanDomainService,
-        IntegrationAgent integrationAgent
+        IntegrationAgent integrationAgent,
+        CreateApiDocumentationDomainService createApiDocumentationDomainService
     ) {
         this.integrationCrudService = integrationCrudService;
         this.apiPrimaryOwnerFactory = apiPrimaryOwnerFactory;
@@ -71,6 +76,7 @@ public class IngestIntegrationApisUseCase {
         this.createApiDomainService = createApiDomainService;
         this.createPlanDomainService = createPlanDomainService;
         this.integrationAgent = integrationAgent;
+        this.createApiDocumentationDomainService = createApiDocumentationDomainService;
     }
 
     public Completable execute(Input input) {
@@ -103,9 +109,41 @@ public class IngestIntegrationApisUseCase {
                         if (api.plans() != null) {
                             createPlans(api.plans(), federatedApi, auditInfo);
                         }
+
+                        if (api.pages() != null) {
+                            createDocumentation(api, federatedApi.getId(), auditInfo);
+                        }
                     });
             })
             .ignoreElements();
+    }
+
+    private void createDocumentation(IntegrationApi integrationApi, String referenceId, AuditInfo auditInfo) {
+        integrationApi
+            .pages()
+            .stream()
+            .filter(page -> page.pageType() == IntegrationApi.PageType.SWAGGER)
+            .map(page -> buildSwaggerPage(integrationApi.name(), referenceId, page.content()))
+            .forEach(page -> createApiDocumentationDomainService.createPage(page, auditInfo));
+    }
+
+    private Page buildSwaggerPage(String name, String referenceId, String content) {
+        var now = Date.from(TimeProvider.instantNow());
+        return Page
+            .builder()
+            .id(UuidString.generateRandom())
+            .name(name.concat("-oas.yml"))
+            .content(content)
+            .type(Page.Type.valueOf(IntegrationApi.PageType.SWAGGER.name()))
+            .referenceId(referenceId)
+            .referenceType(Page.ReferenceType.API)
+            .published(true)
+            .visibility(Page.Visibility.PRIVATE)
+            .homepage(true)
+            .configuration(Map.of("tryIt", "true", "viewer", "Swagger"))
+            .createdAt(now)
+            .updatedAt(now)
+            .build();
     }
 
     private void createApi(Api federatedApi, PrimaryOwnerEntity primaryOwner, AuditInfo auditInfo) {
