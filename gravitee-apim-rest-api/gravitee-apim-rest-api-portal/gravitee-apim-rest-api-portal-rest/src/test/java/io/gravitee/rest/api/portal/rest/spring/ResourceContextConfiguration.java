@@ -18,6 +18,7 @@ package io.gravitee.rest.api.portal.rest.spring;
 import static org.mockito.Mockito.mock;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fakes.spring.FakeConfiguration;
 import inmemory.spring.InMemoryConfiguration;
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
@@ -126,7 +127,13 @@ import org.springframework.context.annotation.PropertySource;
 
 @Configuration
 @Import(
-    { UsecaseSpringConfiguration.class, InMemoryConfiguration.class, JacksonSpringConfiguration.class, SanitizerSpringConfiguration.class }
+    {
+        UsecaseSpringConfiguration.class,
+        FakeConfiguration.class,
+        InMemoryConfiguration.class,
+        JacksonSpringConfiguration.class,
+        SanitizerSpringConfiguration.class,
+    }
 )
 @PropertySource("classpath:/io/gravitee/rest/api/portal/rest/resource/jwt.properties")
 public class ResourceContextConfiguration {

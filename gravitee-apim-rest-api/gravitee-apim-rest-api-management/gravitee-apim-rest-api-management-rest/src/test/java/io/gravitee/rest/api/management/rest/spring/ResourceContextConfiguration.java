@@ -19,6 +19,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import fakes.spring.FakeConfiguration;
 import inmemory.spring.InMemoryConfiguration;
 import io.gravitee.apim.core.access_point.query_service.AccessPointQueryService;
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDecoderDomainService;
@@ -127,6 +128,7 @@ import org.springframework.context.annotation.PropertySource;
 @Import(
     {
         InMemoryConfiguration.class,
+        FakeConfiguration.class,
         CoreServiceSpringConfiguration.class,
         UsecaseSpringConfiguration.class,
         JacksonSpringConfiguration.class,
