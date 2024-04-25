@@ -1756,6 +1756,25 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+    # Analytics
+    /environments/{envId}/apis/{apiId}/analytics/requests-count:
+      parameters:
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/apiIdParam"
+      get:
+        tags:
+          - Analytics - Requests count
+        summary: Get API Analytics requests count
+        description: |-
+          Get API analytics request count.
+          
+          User must have the API_ANALYTICS[READ] permission.
+        operationId: getApiAnalyticsRequestCount
+        responses:
+          "200":
+            $ref: "#/components/responses/ApiAnalyticsRequestsCountResponse"
+          default:
+            $ref: "#/components/responses/Error"
     # Analytics - Logs
     /environments/{envId}/apis/{apiId}/logs:
         parameters:
@@ -6694,7 +6713,27 @@ components:
                                 type: string
                                 description: An optional reason giving details about the result.
 
-        # Analytics - Logs
+        # Analytics
+        ApiAnalyticsRequestsCountResponse:
+          description: Analytics for requests count by entrypoint
+          content:
+            application/json:
+              schema:
+                title: "ApiAnalyticsRequestsCountResponse"
+                description: API Analytics for requests count by entrypoint.
+                properties:
+                  total:
+                    type: integer
+                    format: int64
+                    description: The id of the api.
+                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                  countsByEntrypoint:
+                    type: object
+                    additionalProperties:
+                      description: A map of metrics by entrypoint
+                      type: number
+
+      # Analytics - Logs
         ApiLogsResponse:
             description: Page of API Logs
             content:

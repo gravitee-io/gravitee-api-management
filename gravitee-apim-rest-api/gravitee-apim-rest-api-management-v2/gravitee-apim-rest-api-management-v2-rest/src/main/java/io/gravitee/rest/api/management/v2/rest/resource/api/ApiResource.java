@@ -50,6 +50,7 @@ import io.gravitee.rest.api.management.v2.rest.model.UpdateGenericApi;
 import io.gravitee.rest.api.management.v2.rest.model.VerifyApiDeploymentResponse;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
+import io.gravitee.rest.api.management.v2.rest.resource.api.analytics.ApiAnalyticsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.audit.ApiAuditsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.event.ApiEventsResource;
 import io.gravitee.rest.api.management.v2.rest.resource.api.log.ApiLogsResource;
@@ -200,6 +201,11 @@ public class ApiResource extends AbstractResource {
     @Path("/logs")
     public ApiLogsResource getApiLogsResource() {
         return resourceContext.getResource(ApiLogsResource.class);
+    }
+
+    @Path("/analytics")
+    public ApiAnalyticsResource getApiAnalyticsResource() {
+        return resourceContext.getResource(ApiAnalyticsResource.class);
     }
 
     @Path("/audits")
