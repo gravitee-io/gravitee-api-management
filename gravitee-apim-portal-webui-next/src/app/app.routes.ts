@@ -28,11 +28,12 @@ export const routes: Routes = [
   {
     path: 'catalog',
     children: [
-      { path: '', component: CatalogComponent },
+      { path: '', component: CatalogComponent, data: { breadcrumb: 'Catalog' } },
       {
         path: 'api/:apiId',
         component: ApiDetailsComponent,
         resolve: { api: apiResolver, pages: pagesResolver },
+        data: { breadcrumb: { alias: 'apiName' } },
         children: [
           {
             path: '',
@@ -42,10 +43,12 @@ export const routes: Routes = [
           {
             path: 'details',
             component: ApiTabDetailsComponent,
+            data: { breadcrumb: 'Details' },
           },
           {
             path: 'documentation',
             component: ApiTabDocumentationComponent,
+            data: { breadcrumb: 'Documentation' },
           },
         ],
       },

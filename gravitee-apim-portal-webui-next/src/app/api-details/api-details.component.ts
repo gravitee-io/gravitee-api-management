@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 import { AsyncPipe } from '@angular/common';
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { MatCard, MatCardActions, MatCardContent } from '@angular/material/card';
-import { MatIconModule, MatIconRegistry } from '@angular/material/icon';
+import { MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
-import { DomSanitizer } from '@angular/platform-browser';
 import { RouterModule } from '@angular/router';
+import { BreadcrumbService } from 'xng-breadcrumb';
 
 import { ApiCardComponent } from '../../components/api-card/api-card.component';
 import { ApiPictureComponent } from '../../components/api-picture/api-picture.component';
 import { BannerComponent } from '../../components/banner/banner.component';
+import { BreadcrumbNavigationComponent } from '../../components/breadcrumb-navigation/breadcrumb-navigation.component';
 import { Api } from '../../entities/api/api';
 
 @Component({
@@ -42,17 +43,17 @@ import { Api } from '../../entities/api/api';
     MatIconModule,
     AsyncPipe,
     RouterModule,
+    BreadcrumbNavigationComponent,
   ],
   templateUrl: './api-details.component.html',
   styleUrl: './api-details.component.scss',
 })
-export class ApiDetailsComponent {
+export class ApiDetailsComponent implements OnInit {
   @Input() api!: Api;
 
-  constructor(
-    private domSanitizer: DomSanitizer,
-    private matIconRegistry: MatIconRegistry,
-  ) {
-    this.matIconRegistry.addSvgIcon(`light-bulb`, this.domSanitizer.bypassSecurityTrustResourceUrl('assets/images/lightbulb_24px.svg'));
+  constructor(private breadcrumbService: BreadcrumbService) {}
+
+  ngOnInit(): void {
+    this.breadcrumbService.set('@apiName', this.api.name);
   }
 }
