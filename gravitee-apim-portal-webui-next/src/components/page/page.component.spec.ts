@@ -17,6 +17,7 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
+import { PageAsciidocHarness } from './page-asciidoc/page-asciidoc.harness';
 import { PageMarkdownHarness } from './page-markdown/page-markdown.harness';
 import { PageSwaggerHarness } from './page-swagger/page-swagger.harness';
 import { PageComponent } from './page.component';
@@ -63,6 +64,18 @@ describe('PageComponent', () => {
       const markdown = await harnessLoader.getHarnessOrNull(PageMarkdownHarness);
       expect(markdown).toBeTruthy();
       expect(markdown?.getMarkdownHtml()).toContain(`<p>markdown content</p>`);
+    });
+  });
+
+  describe('asciidoc', () => {
+    beforeEach(() => {
+      component.page = fakePage({ type: 'ASCIIDOC' });
+      fixture.detectChanges();
+    });
+
+    it('should show asciidoc content', async () => {
+      const asciidoc = await harnessLoader.getHarnessOrNull(PageAsciidocHarness);
+      expect(asciidoc).toBeTruthy();
     });
   });
 });
