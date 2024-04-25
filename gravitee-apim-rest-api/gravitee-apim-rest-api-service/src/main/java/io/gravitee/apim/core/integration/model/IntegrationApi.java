@@ -29,11 +29,21 @@ public record IntegrationApi(
     String description,
     String version,
     Map<String, String> connectionDetails,
-    List<Plan> plans
+    List<Plan> plans,
+    List<Page> pages
 ) {
     public record Plan(String id, String name, String description, PlanType type) {}
     public enum PlanType {
         API_KEY,
+    }
+
+    public record Page(PageType pageType, String content) {}
+    public enum PageType {
+        ASCIIDOC,
+        ASYNCAPI,
+        MARKDOWN,
+        MARKDOWN_TEMPLATE,
+        SWAGGER,
     }
 
     public FederatedApi.FederatedApiBuilder toFederatedApiDefinitionBuilder() {
