@@ -30,4 +30,6 @@ public interface EventCrudService {
         Object content,
         Map<Event.EventProperties, String> properties
     );
+
+    Event get(String organizationId, String environmentId, String eventId);
 }
