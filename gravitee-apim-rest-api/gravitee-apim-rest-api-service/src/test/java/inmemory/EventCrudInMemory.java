@@ -19,7 +19,7 @@ import io.gravitee.apim.core.event.crud_service.EventCrudService;
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
 import io.gravitee.rest.api.model.EventType;
-import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.exceptions.EventNotFoundException;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
@@ -50,6 +50,16 @@ public class EventCrudInMemory implements EventCrudService, InMemoryAlternative<
             .build();
         storage.add(event);
         return event;
+    }
+
+    @SneakyThrows
+    @Override
+    public Event get(String organizationId, String environmentId, String eventId) {
+        return storage
+            .stream()
+            .filter(event -> event.getId().equals(eventId))
+            .findFirst()
+            .orElseThrow(() -> new EventNotFoundException(eventId));
     }
 
     @Override
