@@ -93,6 +93,13 @@ export class ApiFederatedMenuService implements ApiMenuService {
       });
     }
 
+    if (this.permissionService.hasAnyMatching(['api-subscription-r'])) {
+      tabs.push({
+        displayName: 'Subscriptions',
+        routerLink: 'subscriptions',
+      });
+    }
+
     return {
       displayName: 'Consumers',
       icon: 'cloud-consumers',

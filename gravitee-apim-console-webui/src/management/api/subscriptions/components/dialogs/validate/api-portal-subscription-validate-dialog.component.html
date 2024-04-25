@@ -19,7 +19,7 @@
 <form [formGroup]="form" (ngSubmit)="onClose()">
   <mat-dialog-content>
     <div class="validate-subscription__content">
-      <div class="validate-subscription__content__row">
+      <div class="validate-subscription__content__row" *ngIf="!data.isFederated">
         <mat-form-field>
           <mat-label>Validation period (optional)</mat-label>
           <input

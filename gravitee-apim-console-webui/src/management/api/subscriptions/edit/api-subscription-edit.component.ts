@@ -35,9 +35,9 @@ import {
   ApiPortalSubscriptionChangeEndDateDialogResult,
 } from '../components/dialogs/change-end-date/api-portal-subscription-change-end-date-dialog.component';
 import {
-  ApiPortalSubscriptionValidateDialogComponent,
   ApiPortalSubscriptionAcceptDialogData,
   ApiPortalSubscriptionAcceptDialogResult,
+  ApiPortalSubscriptionValidateDialogComponent,
 } from '../components/dialogs/validate/api-portal-subscription-validate-dialog.component';
 import { Constants } from '../../../../entities/Constants';
 import {
@@ -52,10 +52,11 @@ import {
 import { GioTableWrapperFilters } from '../../../../shared/components/gio-table-wrapper/gio-table-wrapper.component';
 import { SubscriptionApiKeysResponse } from '../../../../entities/management-api-v2/api-key';
 import {
+  ApiPortalSubscriptionExpireApiKeyDialogComponent,
   ApiPortalSubscriptionExpireApiKeyDialogData,
   ApiPortalSubscriptionExpireApiKeyDialogResult,
-  ApiPortalSubscriptionExpireApiKeyDialogComponent,
 } from '../components/dialogs/expire-api-key/api-portal-subscription-expire-api-key-dialog.component';
+import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 
 interface SubscriptionDetailVM {
   id: string;
@@ -106,6 +107,7 @@ export class ApiSubscriptionEditComponent implements OnInit {
   };
   displayedColumns: string[];
   hasSharedApiKeyMode: boolean;
+  isFederatedApi: boolean;
   private apiId: string;
   private canUseCustomApiKey: boolean;
 
@@ -113,6 +115,7 @@ export class ApiSubscriptionEditComponent implements OnInit {
     private readonly router: Router,
     private readonly activatedRoute: ActivatedRoute,
     @Inject(Constants) private readonly constants: Constants,
+    private readonly apiService: ApiV2Service,
     private readonly apiSubscriptionService: ApiSubscriptionV2Service,
     private datePipe: DatePipe,
     private readonly matDialog: MatDialog,
@@ -126,6 +129,13 @@ export class ApiSubscriptionEditComponent implements OnInit {
     this.apiKeys = [];
     this.apiKeysTotalCount = 0;
     this.hasSharedApiKeyMode = false;
+
+    this.apiService
+      .get(this.apiId)
+      .pipe(takeUntil(this.unsubscribe$))
+      .subscribe((api) => {
+        this.isFederatedApi = api.definitionVersion === 'FEDERATED';
+      });
 
     this.apiSubscriptionService
       .getById(this.apiId, this.activatedRoute.snapshot.params.subscriptionId, ['plan', 'application', 'subscribedBy'])
@@ -197,6 +207,7 @@ export class ApiSubscriptionEditComponent implements OnInit {
             applicationId: this.subscription.application.id,
             canUseCustomApiKey: this.canUseCustomApiKey,
             sharedApiKeyMode: this.hasSharedApiKeyMode,
+            isFederated: this.isFederatedApi,
           },
           role: 'alertdialog',
           id: 'validateSubscriptionDialog',
