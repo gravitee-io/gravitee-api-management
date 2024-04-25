@@ -16,10 +16,8 @@
 package io.gravitee.apim.core.api.model;
 
 import io.gravitee.common.utils.TimeProvider;
-import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
-import io.gravitee.definition.model.v4.listener.Listener;
 import io.gravitee.definition.model.v4.property.Property;
 import io.gravitee.rest.api.model.context.ManagementContext;
 import io.gravitee.rest.api.model.context.OriginContext;
@@ -227,6 +225,15 @@ public class Api {
         setUpdatedAt(TimeProvider.now());
 
         return properties.needToUpdate();
+    }
+
+    /**
+     * Verify if the API belongs to the environment of the request
+     * @param envId the environment id of the request
+     * @return true if the current API belongs to the environment passed as parameter
+     */
+    public boolean belongsToEnvironment(String envId) {
+        return this.environmentId != null && this.environmentId.equals(envId);
     }
 
     public abstract static class ApiBuilder<C extends Api, B extends ApiBuilder<C, B>> {

@@ -375,6 +375,7 @@
 						</goals>
 						<configuration>
 							<includes>
+								<include>fakes/**</include>
 								<include>inmemory/**</include>
 								<include>fixtures/**</include>
 							</includes>
