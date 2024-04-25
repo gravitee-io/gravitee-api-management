@@ -185,6 +185,10 @@ public class Plan implements GenericPlanEntity {
         CATALOG,
     }
 
+    public boolean isFederated() {
+        return this.definitionVersion == DefinitionVersion.FEDERATED;
+    }
+
     public boolean isApiKey() {
         return switch (definitionVersion) {
             case V4 -> planDefinitionV4.isApiKey();

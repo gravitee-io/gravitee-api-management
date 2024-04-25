@@ -16,18 +16,28 @@
 package io.gravitee.apim.infra.integration;
 
 import io.gravitee.apim.core.integration.exception.IntegrationIngestionException;
+import io.gravitee.apim.core.integration.exception.IntegrationSubscriptionException;
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
+import io.gravitee.apim.core.integration.model.IntegrationSubscription;
 import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
 import io.gravitee.apim.infra.adapter.IntegrationAdapter;
+import io.gravitee.definition.model.federation.FederatedApi;
+import io.gravitee.definition.model.federation.FederatedPlan;
 import io.gravitee.exchange.api.command.CommandStatus;
 import io.gravitee.exchange.api.controller.ExchangeController;
 import io.gravitee.integration.api.command.ingest.IngestCommand;
 import io.gravitee.integration.api.command.ingest.IngestCommandPayload;
 import io.gravitee.integration.api.command.ingest.IngestReply;
+import io.gravitee.integration.api.command.subscribe.SubscribeCommand;
+import io.gravitee.integration.api.command.subscribe.SubscribeCommandPayload;
+import io.gravitee.integration.api.command.subscribe.SubscribeReply;
+import io.gravitee.integration.api.model.Subscription;
+import io.gravitee.integration.api.model.SubscriptionType;
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Single;
 import java.util.List;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -61,10 +71,51 @@ public class IntegrationAgentImpl implements IntegrationAgent {
             });
     }
 
+    @Override
+    public Single<IntegrationSubscription> subscribe(
+        String integrationId,
+        FederatedApi api,
+        FederatedPlan plan,
+        String subscriptionId,
+        String applicationName
+    ) {
+        var payload = new SubscribeCommandPayload(
+            api.getProviderId(),
+            Subscription
+                .builder()
+                .graviteeSubscriptionId(subscriptionId)
+                .graviteeApplicationName(applicationName)
+                .type(SubscriptionType.API_KEY) // Handle from SubscriptionEntity
+                .metadata(Map.of(Subscription.METADATA_PLAN_ID, plan.getProviderId()))
+                .build()
+        );
+
+        return sendSubscribeCommand(new SubscribeCommand(payload), integrationId)
+            .flatMap(reply -> {
+                if (reply.getCommandStatus() == CommandStatus.ERROR) {
+                    return Single.error(new IntegrationSubscriptionException(reply.getErrorDetails()));
+                }
+                return Single.just(
+                    new IntegrationSubscription(
+                        integrationId,
+                        IntegrationSubscription.Type.API_KEY,
+                        reply.getPayload().subscription().apiKey()
+                    )
+                );
+            });
+    }
+
     private Single<IngestReply> sendIngestCommand(IngestCommand fetchCommand, String integrationId) {
         return exchangeController
             .sendCommand(fetchCommand, integrationId)
             .cast(IngestReply.class)
             .onErrorReturn(throwable -> new IngestReply(fetchCommand.getId(), throwable.getMessage()));
+    }
+
+    private Single<SubscribeReply> sendSubscribeCommand(SubscribeCommand subscribeCommand, String integrationId) {
+        return exchangeController
+            .sendCommand(subscribeCommand, integrationId)
+            .cast(SubscribeReply.class)
+            .onErrorReturn(throwable -> new SubscribeReply(subscribeCommand.getId(), throwable.getMessage()));
     }
 }
