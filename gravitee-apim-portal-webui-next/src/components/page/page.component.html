@@ -22,6 +22,9 @@
   @case ('MARKDOWN') {
     <app-page-markdown [apiPages]="apiPages" [content]="page.content" [apiId]="apiId" />
   }
+  @case ('ASCIIDOC') {
+    <app-page-asciidoc [content]="page.content" />
+  }
   @default {
     <div>Not yet implemented</div>
   }
