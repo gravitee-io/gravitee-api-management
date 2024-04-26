@@ -16,7 +16,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Inject, Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, of } from 'rxjs';
-import { filter, shareReplay, switchMap, tap } from 'rxjs/operators';
+import { filter, map, shareReplay, switchMap, tap } from 'rxjs/operators';
 
 import { Constants } from '../entities/Constants';
 import {
@@ -175,5 +175,12 @@ export class ApiV2Service {
 
   verifyHosts(apiId: string, hosts: string[]): Observable<VerifyApiHostsResponse> {
     return this.http.post<VerifyApiHostsResponse>(`${this.constants.env.v2BaseURL}/apis/_verify/hosts`, { apiId, hosts });
+  }
+
+  rollback(apiId: string, eventId: string): Observable<void> {
+    return this.http.post<void>(`${this.constants.env.v2BaseURL}/apis/${apiId}/_rollback`, { eventId }).pipe(
+      switchMap(() => this.get(apiId)),
+      map(() => {}),
+    );
   }
 }

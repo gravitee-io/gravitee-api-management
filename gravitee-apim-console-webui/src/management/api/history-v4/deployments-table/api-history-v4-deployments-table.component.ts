@@ -39,6 +39,9 @@ export class ApiHistoryV4DeploymentsTableComponent {
   @Output()
   public paginationChange = new EventEmitter<Pagination>();
 
+  @Output()
+  public rollback = new EventEmitter<string>();
+
   protected tableWrapperPaginationChange(event: GioTableWrapperFilters) {
     this.paginationChange.emit({
       page: event.pagination.index,

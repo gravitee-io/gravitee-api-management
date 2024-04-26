@@ -19,8 +19,8 @@
   <mat-card-content>
     <div class="history">
       <div class="history__header">
-        <h3 class="history__header__title">API version history</h3>
-        <p>Keep track of every API's changes per deployment</p>
+        <h3 class="history__header__title">API deployment history</h3>
+        <p>View all API deployment changes. The history concerns the API definition with details known by the gateway</p>
       </div>
     </div>
   </mat-card-content>
@@ -29,6 +29,7 @@
       [deployments]="apiDeployments.data"
       [pagination]="apiDeployments.pagination"
       (paginationChange)="paginationChange($event)"
+      (rollback)="rollback($event)"
     >
     </api-deployments-table>
   </ng-container>
