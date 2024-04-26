@@ -619,6 +619,31 @@ paths:
                 default:
                     $ref: "#/components/responses/Error"
 
+    /environments/{envId}/apis/{apiId}/_rollback:
+      parameters:
+          - $ref: "#/components/parameters/envIdParam"
+          - $ref: "#/components/parameters/apiIdParam"
+      post:
+          tags:
+              - APIs
+          summary: Rollback an API
+          description: |-
+              Rollback an API to a previous version.
+
+              User must have the API_DEFINITION[UPDATE] permission.
+          operationId: rollbackApi
+          requestBody:
+              content:
+                application/json:
+                  schema:
+                    $ref: "#/components/schemas/ApiRollback"
+              required: true
+          responses:
+              "204":
+                description: API successfully rollbacked
+              default:
+                $ref: "#/components/responses/Error"
+
     # API Reviews
     /environments/{envId}/apis/{apiId}/reviews/_ask:
         parameters:
@@ -2426,6 +2451,12 @@ components:
                 poRole:
                     type: string
                     description: The name of the role that will be assigned to the current primary owner after the transfer.
+        ApiRollback:
+              type: object
+              properties:
+                 eventId:
+                    type: string
+                    description: The event ID to rollback to.
 
         CreateApi:
             oneOf:
