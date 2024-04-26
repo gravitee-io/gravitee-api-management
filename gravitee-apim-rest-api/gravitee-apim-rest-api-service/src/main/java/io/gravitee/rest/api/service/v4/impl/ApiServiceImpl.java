@@ -422,7 +422,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             }
 
             // encrypt API properties
-            updateApiEntity.setProperties(this.propertiesService.encryptProperties(updateApiEntity.getProperties()));
+            if (updateApiEntity.getProperties() != null) {
+                updateApiEntity.setProperties(this.propertiesService.encryptProperties(updateApiEntity.getProperties()));
+            }
 
             if (io.gravitee.rest.api.model.api.ApiLifecycleState.DEPRECATED == updateApiEntity.getLifecycleState()) {
                 planSearchService

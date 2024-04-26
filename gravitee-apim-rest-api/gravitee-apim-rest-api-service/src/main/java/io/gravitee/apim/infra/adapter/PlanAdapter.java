@@ -85,6 +85,10 @@ public interface PlanAdapter {
     @Mapping(target = "tags", expression = "java(serializeTags(source))")
     PlanCRD toCRD(Plan source);
 
+    @Mapping(target = "planDefinitionV4", expression = "java(source)")
+    @Mapping(target = "definitionVersion", constant = "V4")
+    Plan fromPlanV4(io.gravitee.definition.model.v4.plan.Plan source);
+
     PlanEntity toEntityV4(PlanCRD source);
     io.gravitee.definition.model.v4.plan.Plan toApiDefinition(PlanCRD source);
 

@@ -314,6 +314,33 @@ class PlanAdapterTest {
             });
         }
 
+        @Test
+        void should_convert_v4_api_definition_model() {
+            var planDefinition = fixtures.definition.PlanFixtures.anApiKeyV4();
+
+            var plan = PlanAdapter.INSTANCE.fromPlanV4(planDefinition);
+
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(plan.getId()).isEqualTo(planDefinition.getId());
+                soft.assertThat(plan.getName()).isEqualTo(planDefinition.getName());
+                soft.assertThat(plan.getPlanSecurity().getType()).isEqualTo(planDefinition.getSecurity().getType());
+                soft.assertThat(plan.getPlanSecurity().getConfiguration()).isEqualTo(planDefinition.getSecurity().getConfiguration());
+                soft.assertThat(plan.getPlanMode()).isEqualTo(planDefinition.getMode());
+
+                var planDefinitionV4 = plan.getPlanDefinitionV4();
+                soft.assertThat(planDefinitionV4.getSelectionRule()).isEqualTo(planDefinition.getSelectionRule());
+                soft.assertThat(planDefinitionV4.getStatus()).isEqualTo(planDefinition.getStatus());
+                soft.assertThat(planDefinitionV4.getTags()).isEqualTo(planDefinition.getTags());
+                soft.assertThat(planDefinitionV4.getFlows()).isEqualTo(planDefinition.getFlows());
+
+                // not mapped as not set in the plan definition
+                soft.assertThat(plan.getApiId()).isEqualTo(null);
+                soft.assertThat(plan.getDescription()).isEqualTo(null);
+                soft.assertThat(plan.getValidation()).isEqualTo(null);
+                soft.assertThat(plan.getGeneralConditions()).isEqualTo(null);
+            });
+        }
+
         private Plan.PlanBuilder planV4() {
             return Plan
                 .builder()

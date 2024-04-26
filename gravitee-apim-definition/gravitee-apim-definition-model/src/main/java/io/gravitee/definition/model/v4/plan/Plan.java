@@ -69,6 +69,7 @@ public class Plan implements Serializable {
     @NotNull
     private PlanStatus status;
 
+    @JsonIgnore
     public final boolean isSubscribable() {
         return (
             (
@@ -80,14 +81,17 @@ public class Plan implements Serializable {
         );
     }
 
+    @JsonIgnore
     public final boolean usePushMode() {
         return this.getMode() != null && this.getMode() == PlanMode.PUSH;
     }
 
+    @JsonIgnore
     public final boolean useStandardMode() {
         return this.getMode() != null && this.getMode() == PlanMode.STANDARD;
     }
 
+    @JsonIgnore
     public final boolean isApiKey() {
         return (
             this.getSecurity() != null &&

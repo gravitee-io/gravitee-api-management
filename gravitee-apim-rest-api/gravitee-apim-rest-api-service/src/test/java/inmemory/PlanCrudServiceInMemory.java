@@ -67,7 +67,7 @@ public class PlanCrudServiceInMemory implements PlanCrudService, InMemoryAlterna
 
     @Override
     public void initWith(List<Plan> items) {
-        storage.addAll(items);
+        storage.addAll(items.stream().map(Plan::copy).toList());
     }
 
     @Override

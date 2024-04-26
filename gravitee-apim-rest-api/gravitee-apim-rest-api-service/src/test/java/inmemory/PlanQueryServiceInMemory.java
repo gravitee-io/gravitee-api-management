@@ -55,7 +55,7 @@ public class PlanQueryServiceInMemory implements PlanQueryService, InMemoryAlter
 
     @Override
     public void initWith(List<Plan> items) {
-        storage.addAll(items);
+        storage.addAll(items.stream().map(Plan::copy).toList());
     }
 
     @Override

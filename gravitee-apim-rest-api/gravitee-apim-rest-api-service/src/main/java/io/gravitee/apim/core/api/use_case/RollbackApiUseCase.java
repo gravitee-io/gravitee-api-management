@@ -13,22 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.audit.model.event;
+package io.gravitee.apim.core.api.use_case;
 
-/**
- * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
- * @author GraviteeSource Team
- */
-public enum ApiAuditEvent implements AuditEvent {
-    API_CREATED,
-    API_UPDATED,
-    API_DELETED,
-    API_ROLLBACKED,
-    API_LOGGING_ENABLED,
-    API_LOGGING_DISABLED,
-    API_LOGGING_UPDATED,
-    METADATA_DELETED,
-    METADATA_CREATED,
-    METADATA_UPDATED,
-    PUBLISH_API,
+import io.gravitee.apim.core.UseCase;
+import io.gravitee.apim.core.api.domain_service.RollbackApiDomainService;
+import io.gravitee.apim.core.audit.model.AuditInfo;
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
+@UseCase
+public class RollbackApiUseCase {
+
+    private final RollbackApiDomainService rollbackApiDomainService;
+
+    public void execute(Input input) {
+        rollbackApiDomainService.rollback(input.eventId(), input.auditInfo);
+    }
+
+    public record Input(String eventId, AuditInfo auditInfo) {}
+
+    public record Output() {}
 }
