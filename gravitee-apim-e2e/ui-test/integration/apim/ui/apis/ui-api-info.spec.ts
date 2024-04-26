@@ -144,6 +144,8 @@ describe('API Info Page functionality', () => {
   it('Export API and verify json download (v4)', () => {
     cy.visit(`/#!/DEFAULT/apis/${v4infoApi.id}`);
     cy.getByDataTestId('api_info_export_menu').click();
+    cy.getByDataTestId('api_info_export_api').click();
+
     const downloadsFolder = Cypress.config('downloadsFolder');
     cy.readFile(path.join(downloadsFolder, `${apiFileName}.json`)).should((file) => {
       expect(file.api.name).to.equal(apiName);
