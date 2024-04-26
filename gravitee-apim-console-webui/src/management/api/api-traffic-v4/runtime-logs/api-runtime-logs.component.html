@@ -22,6 +22,7 @@
       [loading]="loading"
       [initialValues]="initialValues"
       [plans]="apiPlans$ | async"
+      [entrypoints]="entrypoints$ | async"
       (refresh)="refresh()"
     ></api-runtime-logs-quick-filters>
 

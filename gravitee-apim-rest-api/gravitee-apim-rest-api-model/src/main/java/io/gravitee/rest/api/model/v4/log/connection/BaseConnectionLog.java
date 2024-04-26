@@ -37,4 +37,5 @@ public class BaseConnectionLog {
     private HttpMethod method;
     private int status;
     private boolean requestEnded;
+    private String entrypointId;
 }

@@ -29,6 +29,7 @@ import { ApiLogsParam, ApiLogsResponse, ApiV4 } from '../../../../entities/manag
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { ApplicationService } from '../../../../services-ngx/application.service';
 import { ApiPlanV2Service } from '../../../../services-ngx/api-plan-v2.service';
+import { ConnectorPluginsV2Service } from '../../../../services-ngx/connector-plugins-v2.service';
 
 @Component({
   selector: 'api-runtime-logs',
@@ -47,6 +48,13 @@ export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
       map((plans) => plans.data),
       shareReplay(1),
     );
+  entrypoints$ = this.connectorPluginsService.listEntrypointPlugins().pipe(
+    map((plugins) => {
+      return plugins.map((plugin) => {
+        return { id: plugin.id, name: plugin.name };
+      });
+    }),
+  );
   initialValues: LogFiltersInitialValues;
   loading = true;
 
@@ -58,6 +66,7 @@ export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
     private readonly applicationService: ApplicationService,
     private readonly planService: ApiPlanV2Service,
     private readonly quickFilterStore: QuickFiltersStoreService,
+    private readonly connectorPluginsService: ConnectorPluginsV2Service,
   ) {}
 
   ngOnInit(): void {
@@ -154,6 +163,7 @@ export class ApiRuntimeLogsComponent implements OnInit, OnDestroy {
             to: this.activatedRoute.snapshot.queryParams?.to ? moment(this.activatedRoute.snapshot.queryParams.to) : undefined,
             methods: this.activatedRoute.snapshot.queryParams?.methods?.split(',') ?? undefined,
             statuses: statuses?.size > 0 ? statuses : undefined,
+            entrypoints: this.activatedRoute.snapshot.queryParams?.entrypointIds?.split(',') ?? undefined,
           };
         }),
       )

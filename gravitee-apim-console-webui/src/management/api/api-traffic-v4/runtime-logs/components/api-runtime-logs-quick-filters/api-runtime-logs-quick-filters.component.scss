@@ -31,7 +31,8 @@ $typography: map.get(gio.$mat-theme, typography);
   }
 
   &__period,
-  &__methods {
+  &__methods,
+  &__entrypoints {
     display: inline;
     width: 132px;
     padding: 0;

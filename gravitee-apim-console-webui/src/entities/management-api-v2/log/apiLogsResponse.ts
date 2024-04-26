@@ -24,6 +24,7 @@ export interface ApiLogsParam {
   perPage?: number;
   from?: number;
   to?: number;
+  entrypointIds?: string;
   applicationIds?: string;
   planIds?: string;
   methods?: string;

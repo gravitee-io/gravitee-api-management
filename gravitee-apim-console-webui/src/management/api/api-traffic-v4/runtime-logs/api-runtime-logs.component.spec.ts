@@ -33,6 +33,7 @@ import {
   ApiLogsParam,
   ApiV4,
   ConnectionLog,
+  ConnectorPlugin,
   fakeApiLogsResponse,
   fakeApiV4,
   fakeConnectionLog,
@@ -51,6 +52,27 @@ type ComponentInitData = {
   plans?: PlanV4[] | undefined;
   areLogsEnabled?: boolean;
 };
+
+const ENTRYPOINT_LIST: ConnectorPlugin[] = [
+  {
+    id: 'webhook',
+    name: 'Webhook',
+    description: 'Webhook entrypoint',
+    icon: 'webhook-icon',
+    deployed: true,
+    supportedApiType: 'MESSAGE',
+    availableFeatures: ['DLQ'],
+  },
+  {
+    id: 'http-get',
+    name: 'HTTP Get',
+    description: 'HTTP Get entrypoint',
+    icon: 'http-get-icon',
+    deployed: true,
+    supportedApiType: 'MESSAGE',
+    availableFeatures: [],
+  },
+];
 
 describe('ApiRuntimeLogsComponent', () => {
   let fixture: ComponentFixture<ApiRuntimeLogsComponent>;
@@ -100,6 +122,7 @@ describe('ApiRuntimeLogsComponent', () => {
     hasLogs ? expectApiWithLogs(total) : expectApiWithNoLog();
     areLogsEnabled ? expectApiWithLogEnabled() : expectApiWithLogDisabled();
     expectRouterUrlChange(1, { page: 1, perPage: perPage ?? 10 });
+    expectEntrypointListGet();
   };
 
   afterEach(() => {
@@ -116,6 +139,7 @@ describe('ApiRuntimeLogsComponent', () => {
 
       expectApiWithNoLog();
       expectApiWithLogEnabled();
+      expectEntrypointListGet();
 
       expect(await componentHarness.loader()).toBeNull();
     });
@@ -668,6 +692,7 @@ describe('ApiRuntimeLogsComponent', () => {
         await componentHarness.removePlanChip();
         // removing a chip should not impact on the application chip computed from the cache
         expect(await componentHarness.getApplicationsChipText()).toStrictEqual(expectedApplicationChip);
+        expectEntrypointListGet();
         expectApiWithLogs(10, { page: 1, perPage: 10, applicationIds: '1,2' });
       });
 
@@ -682,6 +707,7 @@ describe('ApiRuntimeLogsComponent', () => {
         expectApplicationFindById(anotherApplication);
 
         await componentHarness.quickFiltersHarness().then((harness) => harness.clickResetFilters());
+        expectEntrypointListGet();
         expect(await componentHarness.getSelectedPlans()).toEqual('');
         expectApiWithLogs(10, { page: 1, perPage: 10 });
 
@@ -729,6 +755,7 @@ describe('ApiRuntimeLogsComponent', () => {
         expect(await componentHarness.getFromChipText()).toEqual(`from:${fromDate}`);
         expect(await componentHarness.getToInputValue()).toEqual(toDate);
         expect(await componentHarness.getToChipText()).toEqual(`to:${toDate}`);
+        expectEntrypointListGet();
       });
     });
 
@@ -750,6 +777,7 @@ describe('ApiRuntimeLogsComponent', () => {
         expectPlanList();
         expectApiWithLogs(10, { page: 1, perPage: 10, methods: 'POST' });
         expectApiWithLogEnabled();
+        expectEntrypointListGet();
 
         expect(await componentHarness.getSelectedMethods()).toEqual('POST');
         expect(await componentHarness.getMethodsChipText()).toStrictEqual('methods: POST');
@@ -776,6 +804,7 @@ describe('ApiRuntimeLogsComponent', () => {
       it('should init the form with filters preselected', async () => {
         expectApiWithLogs(10, { page: 2, perPage: 10 });
         expectApiWithLogEnabled();
+        expectEntrypointListGet();
         expectRouterUrlChange(1, { page: 2, perPage: 10 });
       });
     });
@@ -798,6 +827,7 @@ describe('ApiRuntimeLogsComponent', () => {
         expectPlanList();
         expectApiWithLogs(10, { page: 1, perPage: 10, statuses: '200,202' });
         expectApiWithLogEnabled();
+        expectEntrypointListGet();
         expect(await componentHarness.getStatusChip()).toStrictEqual('statuses: 200, 202');
 
         await componentHarness.moreFiltersButtonClick();
@@ -941,7 +971,22 @@ describe('ApiRuntimeLogsComponent', () => {
   function expectRouterUrlChange(nthCall: number, queryParams) {
     expect(routerNavigateSpy).toHaveBeenNthCalledWith(nthCall, ['.'], {
       relativeTo: expect.anything(),
-      queryParams: { applicationIds: null, planIds: null, methods: null, statuses: null, from: null, to: null, ...queryParams },
+      queryParams: {
+        applicationIds: null,
+        entrypointIds: null,
+        planIds: null,
+        methods: null,
+        statuses: null,
+        from: null,
+        to: null,
+        ...queryParams,
+      },
     });
+  }
+
+  function expectEntrypointListGet(): void {
+    httpTestingController
+      .expectOne({ url: `${CONSTANTS_TESTING.org.v2BaseURL}/plugins/entrypoints`, method: 'GET' })
+      .flush(ENTRYPOINT_LIST);
   }
 });

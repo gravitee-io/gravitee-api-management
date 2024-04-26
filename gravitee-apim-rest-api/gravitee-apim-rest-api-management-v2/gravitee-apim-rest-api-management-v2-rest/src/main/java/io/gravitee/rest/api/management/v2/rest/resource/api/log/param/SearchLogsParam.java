@@ -33,6 +33,7 @@ public class SearchLogsParam implements TimeInterval {
     public static final String PLAN_IDS_QUERY_PARAM_NAME = "planIds";
     public static final String METHODS_QUERY_PARAM_NAME = "methods";
     public static final String STATUSES_QUERY_PARAM_NAME = "statuses";
+    public static final String ENTRYPOINT_IDS_QUERY_PARAM_NAME = "entrypointIds";
 
     @QueryParam(FROM_QUERY_PARAM_NAME)
     @Min(0)
@@ -53,4 +54,7 @@ public class SearchLogsParam implements TimeInterval {
 
     @QueryParam(STATUSES_QUERY_PARAM_NAME)
     Set<Integer> statuses;
+
+    @QueryParam(ENTRYPOINT_IDS_QUERY_PARAM_NAME)
+    Set<String> entrypointIds;
 }

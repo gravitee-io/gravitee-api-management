@@ -44,7 +44,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class SearchConnectionLogsUseCaseTest {
+class SearchConnectionLogsUseCaseTest {
 
     private static final String API_ID = "f1608475-dd77-4603-a084-75dd775603e9";
     private static final Plan PLAN_1 = PlanFixtures.aPlanV4().toBuilder().id("plan1").name("1st plan").build();
@@ -343,6 +343,25 @@ public class SearchConnectionLogsUseCaseTest {
                 .assertThat(result.data())
                 .extracting(ConnectionLogModel::getRequestId, ConnectionLogModel::getTimestamp)
                 .containsExactly(tuple("req2", "2020-02-02T20:00:00.00Z"), tuple("req1", "2020-02-01T20:00:00.00Z"));
+        });
+    }
+
+    @Test
+    void should_return_api_connection_logs_for_entrypoint() {
+        logStorageService.initWithConnectionLogs(
+            List.of(
+                connectionLogFixtures.aConnectionLog("req1").toBuilder().entrypointId("http-get").build(),
+                connectionLogFixtures.aConnectionLog("req2").toBuilder().entrypointId("http-post").build()
+            )
+        );
+        var result = usecase.execute(
+            GraviteeContext.getExecutionContext(),
+            new Input(API_ID, SearchLogsFilters.builder().entrypointIds(Set.of("http-get")).build())
+        );
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(result.total()).isEqualTo(1);
+            soft.assertThat(result.data()).extracting(ConnectionLogModel::getRequestId).containsExactly("req1");
         });
     }
 }
