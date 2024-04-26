@@ -85,6 +85,7 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
   public canDisplayV4EmulationEngineToggle = false;
 
   public isQualityEnabled = false;
+  public isQualitySupported = false;
 
   public isReadOnly = false;
   public isKubernetesOrigin = false;
@@ -217,6 +218,7 @@ export class ApiGeneralInfoComponent implements OnInit, OnDestroy {
           });
 
           this.initialApiDetailsFormValue = this.parentForm.getRawValue();
+          this.isQualitySupported = this.api.definitionVersion === 'V2' || this.api.definitionVersion === 'V1';
         }),
         takeUntil(this.unsubscribe$),
       )
