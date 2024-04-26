@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { RouterLink } from '@angular/router';
 
 import { NavBarButtonComponent } from './nav-bar-button/nav-bar-button.component';
+import { CurrentUserService } from '../../services/current-user.service';
 import { CompanyTitleComponent } from '../company-title/company-title.component';
 
 @Component({
@@ -27,4 +28,6 @@ import { CompanyTitleComponent } from '../company-title/company-title.component'
   templateUrl: './nav-bar.component.html',
   styleUrl: './nav-bar.component.scss',
 })
-export class NavBarComponent {}
+export class NavBarComponent {
+  currentUser = inject(CurrentUserService).user;
+}
