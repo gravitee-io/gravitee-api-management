@@ -17,7 +17,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { Injectable, NgModule } from '@angular/core';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs/internal/observable/of';
 
 import { ConfigService } from '../services/config.service';
@@ -35,9 +35,17 @@ export class ConfigServiceStub {
   }
 }
 
+/**
+ * To avoid error during unit tests that navigation happens outside the ngZone
+ */
+@NgModule()
+export class TestRouterModule {
+  constructor(_router: Router) {}
+}
+
 @NgModule({
   declarations: [],
-  imports: [CommonModule, HttpClientTestingModule, NoopAnimationsModule],
+  imports: [CommonModule, HttpClientTestingModule, NoopAnimationsModule, TestRouterModule],
   providers: [
     {
       provide: ConfigService,

@@ -1,0 +1,53 @@
+<!--
+
+    Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+            http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<form [formGroup]="logInForm" (ngSubmit)="logIn()">
+  <mat-card appearance="outlined" class="log-in">
+    <mat-card-header>
+      <mat-card-title i18n="@@logInTitle">Log in</mat-card-title>
+    </mat-card-header>
+    <mat-card-content class="log-in__form">
+      <mat-form-field class="log-in__form__input">
+        <mat-label i18n="@@logInUsername">Username</mat-label>
+        <input matInput formControlName="username" appearance="outlined" />
+        @if (logInForm.controls['username'].hasError('required')) {
+          <mat-error i18n="@@logInUsernameErrorRequired">Username is required</mat-error>
+        }
+      </mat-form-field>
+      <mat-form-field class="log-in__form__input">
+        <mat-label i18n="@@logInPassword">Password</mat-label>
+        <input type="password" matInput formControlName="password" />
+        @if (logInForm.controls['password'].hasError('required')) {
+          <mat-error i18n="@@logInPasswordErrorRequired">Password is required</mat-error>
+        }
+      </mat-form-field>
+    </mat-card-content>
+    <mat-card-footer>
+      <mat-card-actions>
+        <button
+          [disabled]="logInForm.invalid"
+          type="submit"
+          mat-flat-button
+          color="primary"
+          i18n="@@logInAction"
+          class="log-in__form__submit">
+          Log in
+        </button>
+      </mat-card-actions>
+    </mat-card-footer>
+  </mat-card>
+</form>
