@@ -1025,9 +1025,6 @@ const apisRoutes: Routes = [
           permissions: {
             anyOf: ['api-event-r'],
           },
-          docs: {
-            page: 'management-api-history',
-          },
         },
       },
       {
@@ -1036,9 +1033,6 @@ const apisRoutes: Routes = [
         data: {
           permissions: {
             anyOf: ['api-event-r'],
-          },
-          docs: {
-            page: 'management-api-history',
           },
         },
       },

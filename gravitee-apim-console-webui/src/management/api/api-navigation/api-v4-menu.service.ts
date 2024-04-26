@@ -253,7 +253,7 @@ export class ApiV4MenuService implements ApiMenuService {
 
     if (this.permissionService.hasAnyMatching(['api-event-r'])) {
       tabs.push({
-        displayName: 'Version History',
+        displayName: 'Deployment History',
         routerLink: 'v4/history',
       });
     }

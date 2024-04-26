@@ -20,9 +20,13 @@ import { distinctUntilChanged, map, takeUntil } from 'rxjs/operators';
 import { isEqual } from 'lodash';
 import { MonacoEditorLanguageConfig } from '@gravitee/ui-particles-angular';
 import { UntypedFormControl } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
 
 import { Event } from '../../../../entities/management-api-v2';
 import { ApiEventsV2Service } from '../../../../services-ngx/api-events-v2.service';
+import { openRollbackDialog } from '../rollback-dialog';
+import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
+import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 
 @Component({
   selector: 'api-deployment-info',
@@ -38,9 +42,9 @@ export class ApiHistoryV4DeploymentInfoComponent implements OnDestroy {
   DEPLOYMENT_NUMBER_PROPERTY = 'DEPLOYMENT_NUMBER';
   LABEL_PROPERTY = 'DEPLOYMENT_LABEL';
   private apiId = this.activatedRoute.snapshot.params.apiId;
-  private apiVersionId = this.activatedRoute.snapshot.params.apiVersionId;
+  private eventId = this.activatedRoute.snapshot.params.apiVersionId;
 
-  protected deploymentEventWithFormControl$ = this.eventsService.findById(this.apiId, this.apiVersionId).pipe(
+  protected deploymentEventWithFormControl$ = this.eventsService.findById(this.apiId, this.eventId).pipe(
     distinctUntilChanged(isEqual),
     map((deploymentEvent: Event) => ({
       control: new UntypedFormControl({
@@ -54,7 +58,10 @@ export class ApiHistoryV4DeploymentInfoComponent implements OnDestroy {
 
   constructor(
     private readonly eventsService: ApiEventsV2Service,
+    private readonly apiService: ApiV2Service,
     private readonly activatedRoute: ActivatedRoute,
+    private readonly matDialog: MatDialog,
+    private readonly snackBarService: SnackBarService,
   ) {}
 
   ngOnDestroy(): void {
@@ -66,5 +73,9 @@ export class ApiHistoryV4DeploymentInfoComponent implements OnDestroy {
     const payload = JSON.parse(event.payload);
     const definition = JSON.parse(payload.definition);
     return JSON.stringify(definition, null, 2);
+  }
+
+  rollback() {
+    openRollbackDialog(this.matDialog, this.snackBarService, this.apiService, this.apiId, this.eventId);
   }
 }

@@ -21,33 +21,51 @@ import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ActivatedRoute } from '@angular/router';
 import { MatTableHarness } from '@angular/material/table/testing';
+import { MatButtonHarness } from '@angular/material/button/testing';
+import { InteractivityChecker } from '@angular/cdk/a11y';
+import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
 
 import { ApiHistoryV4Component } from './api-history-v4.component';
 import { ApiHistoryV4DeploymentsTableComponent } from './deployments-table/api-history-v4-deployments-table.component';
 import { ApiHistoryV4Module } from './api-history-v4.module';
 
-import { fakeEvent, fakeEventsResponse, Pagination, SearchApiEventParam } from '../../../entities/management-api-v2';
+import { Api, fakeApiV4, fakeEvent, fakeEventsResponse, Pagination, SearchApiEventParam } from '../../../entities/management-api-v2';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { GioTableWrapperHarness } from '../../../shared/components/gio-table-wrapper/gio-table-wrapper.harness';
+import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 
 describe('ApiHistoryV4Component', () => {
   const API_ID = 'an-api-id';
 
   let fixture: ComponentFixture<ApiHistoryV4Component>;
   let loader: HarnessLoader;
+  let rootLoader: HarnessLoader;
   let httpTestingController: HttpTestingController;
 
   beforeEach(async () => {
     TestBed.configureTestingModule({
       imports: [ApiHistoryV4Module, NoopAnimationsModule, MatIconTestingModule, GioTestingModule],
-      providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } }],
+      providers: [
+        { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID } } } },
+        {
+          provide: GioTestingPermissionProvider,
+          useValue: ['api-definition-u'],
+        },
+      ],
       declarations: [ApiHistoryV4Component, ApiHistoryV4DeploymentsTableComponent],
+    }).overrideProvider(InteractivityChecker, {
+      useValue: {
+        isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
+        isTabbable: () => true, // This traps focus checks and so avoid warnings when dealing with
+      },
     });
 
     fixture = TestBed.createComponent(ApiHistoryV4Component);
     loader = TestbedHarnessEnvironment.loader(fixture);
+    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
+    expectApiGetRequest(fakeApiV4({ id: API_ID }));
   });
 
   afterEach(() => {
@@ -135,7 +153,35 @@ describe('ApiHistoryV4Component', () => {
         expect(await paginator.isPreviousPageDisabled()).toEqual(false);
       });
     });
+
+    describe('rollback', () => {
+      it('should rollback an API', async () => {
+        expectApiEventsListRequest(
+          undefined,
+          undefined,
+          fakeEventsResponse({
+            data: [fakeEvent({ type: 'PUBLISH_API' })],
+          }),
+        );
+        fixture.detectChanges();
+
+        const rollbackButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to rollback"]' }));
+        await rollbackButton.click();
+
+        const confirmDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
+        await confirmDialog.confirm();
+
+        httpTestingController.expectOne({
+          method: 'POST',
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/_rollback`,
+        });
+      });
+    });
   });
+
+  function expectApiGetRequest(api: Api) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}`, method: 'GET' }).flush(api);
+  }
 
   function expectApiEventsListRequest(
     filters: SearchApiEventParam = { types: 'PUBLISH_API' },
@@ -147,6 +193,6 @@ describe('ApiHistoryV4Component', () => {
         filters.from ? '&from=' + filters.from : ''
       }${filters.to ? '&to=' + filters.to : ''}${filters.types ? '&types=' + filters.types : ''}`,
     );
-    if (!req.cancelled) req.flush(response);
+    req.flush(response);
   }
 });

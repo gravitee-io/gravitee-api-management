@@ -47,4 +47,15 @@
       </div>
     </ng-container>
   </mat-card-content>
+  <mat-card-actions>
+    <button
+      *gioPermission="{ anyOf: ['api-definition-u'] }"
+      mat-stroked-button
+      aria-label="Button to rollback"
+      matTooltip="Rollback"
+      (click)="rollback()"
+    >
+      <mat-icon svgIcon="gio:rotate-ccw"></mat-icon> Rollback
+    </button>
+  </mat-card-actions>
 </mat-card>
