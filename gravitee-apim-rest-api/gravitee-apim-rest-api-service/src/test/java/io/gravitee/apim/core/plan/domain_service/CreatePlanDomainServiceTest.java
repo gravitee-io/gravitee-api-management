@@ -43,6 +43,7 @@ import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.PlanAuditEvent;
+import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.plan.exception.PlanInvalidException;
@@ -257,6 +258,9 @@ class CreatePlanDomainServiceTest {
             Plan plan,
             List<Flow> flows
         ) {
+            // Given
+            pageCrudService.initWith(List.of(Page.builder().id("page-id").published(false).build()));
+
             // When
             var throwable = Assertions.catchThrowable(() ->
                 service.create(
@@ -334,6 +338,19 @@ class CreatePlanDomainServiceTest {
         void should_create_plan_with_publishedAt_filled_when_creating_a_published_plan(Api api, Plan plan, List<Flow> flows) {
             // Given
             var publishedPlan = plan.toBuilder().generalConditions(null).build().setPlanStatus(PlanStatus.PUBLISHED);
+
+            // When
+            var result = service.create(publishedPlan, flows, api, AUDIT_INFO);
+
+            // Then
+            assertThat(result).extracting(Plan::getPublishedAt).isEqualTo(INSTANT_NOW.atZone(ZoneId.systemDefault()));
+        }
+
+        @ParameterizedTest
+        @MethodSource("plans")
+        void should_create_plan_with_general_condition_and_no_page_linked(Api api, Plan plan, List<Flow> flows) {
+            // Given
+            var publishedPlan = plan.toBuilder().generalConditions("page-not-found-id").build().setPlanStatus(PlanStatus.PUBLISHED);
 
             // When
             var result = service.create(publishedPlan, flows, api, AUDIT_INFO);

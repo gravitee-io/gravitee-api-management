@@ -42,6 +42,7 @@ import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.PlanAuditEvent;
+import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.plan.exception.UnauthorizedPlanSecurityTypeException;
@@ -268,6 +269,7 @@ class UpdatePlanDomainServiceTest {
         ) {
             // Given
             var publishedPlan = givenExistingPlan(plan.toBuilder().build().setPlanStatus(PlanStatus.PUBLISHED));
+            pageCrudService.initWith(List.of(Page.builder().id("page-id").published(false).build()));
 
             // When
             var throwable = Assertions.catchThrowable(() ->
