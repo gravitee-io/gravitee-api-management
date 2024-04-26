@@ -28,6 +28,7 @@ import io.gravitee.apim.core.api.domain_service.ApiPolicyValidatorDomainService;
 import io.gravitee.apim.core.api.domain_service.ApiStateDomainService;
 import io.gravitee.apim.core.api.domain_service.CreateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.DeployApiDomainService;
+import io.gravitee.apim.core.api.domain_service.RollbackApiDomainService;
 import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
@@ -603,5 +604,10 @@ public class ResourceContextConfiguration {
     @Primary
     public AcceptSubscriptionUseCase spiedAcceptSubscriptionUseCase(AcceptSubscriptionUseCase usecase) {
         return spy(usecase);
+    }
+
+    @Bean
+    public RollbackApiDomainService rollbackApiDomainService() {
+        return mock(RollbackApiDomainService.class);
     }
 }

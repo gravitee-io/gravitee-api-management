@@ -19,6 +19,7 @@ import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
+import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.api.use_case.UpdateFederatedApiUseCase;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -38,6 +39,7 @@ import io.gravitee.rest.api.management.v2.rest.mapper.ApplicationMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.DuplicateApiMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.ImportExportApiMapper;
 import io.gravitee.rest.api.management.v2.rest.model.ApiReview;
+import io.gravitee.rest.api.management.v2.rest.model.ApiRollback;
 import io.gravitee.rest.api.management.v2.rest.model.ApiTransferOwnership;
 import io.gravitee.rest.api.management.v2.rest.model.DuplicateApiOptions;
 import io.gravitee.rest.api.management.v2.rest.model.Error;
@@ -179,6 +181,9 @@ public class ApiResource extends AbstractResource {
 
     @Inject
     UpdateFederatedApiUseCase updateFederatedApiUseCase;
+
+    @Inject
+    private RollbackApiUseCase rollbackApiUseCase;
 
     @Context
     protected UriInfo uriInfo;
@@ -695,6 +700,40 @@ public class ApiResource extends AbstractResource {
         );
 
         return Response.noContent().tag(Long.toString(updatedApi.getUpdatedAt().getTime())).lastModified(updatedApi.getUpdatedAt()).build();
+    }
+
+    @POST
+    @Path("/_rollback")
+    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.UPDATE) })
+    public Response rollback(ApiRollback apiRollback) {
+        if (apiRollback.getEventId() == null) {
+            log.warn("Event ID is required");
+            throw new BadRequestException("Event ID is required");
+        }
+
+        var executionContext = GraviteeContext.getExecutionContext();
+        var userDetails = getAuthenticatedUserDetails();
+
+        this.rollbackApiUseCase.execute(
+                new RollbackApiUseCase.Input(
+                    apiRollback.getEventId(),
+                    AuditInfo
+                        .builder()
+                        .organizationId(executionContext.getOrganizationId())
+                        .environmentId(executionContext.getEnvironmentId())
+                        .actor(
+                            AuditActor
+                                .builder()
+                                .userId(userDetails.getUsername())
+                                .userSource(userDetails.getSource())
+                                .userSourceId(userDetails.getSourceId())
+                                .build()
+                        )
+                        .build()
+                )
+            );
+
+        return Response.noContent().build();
     }
 
     private GenericApiEntity getGenericApiEntityById(String apiId, boolean prepareData) {
