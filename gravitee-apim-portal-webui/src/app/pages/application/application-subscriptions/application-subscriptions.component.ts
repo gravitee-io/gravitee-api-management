@@ -66,6 +66,7 @@ export class ApplicationSubscriptionsComponent implements OnInit {
   metadata: any;
   selectedSubscriptions: Array<string>;
   selectedSubscription: Subscription;
+  selectedSubscriptionFederated: boolean;
   displayExpiredApiKeys: boolean;
   canDelete: boolean;
   canUpdate: boolean;
@@ -352,11 +353,13 @@ export class ApplicationSubscriptionsComponent implements OnInit {
     this.router.navigate([], { queryParams: { subscription: subscription ? subscription.id : null }, fragment: 's' });
     if (subscription) {
       this.selectedSubscription = subscription;
+      this.selectedSubscriptionFederated = this.metadata[subscription.api].definitionVersion === 'FEDERATED';
       if (!this.selectedSubscription.keys || !this.selectedSubscription.keys[0]) {
         this.loadSubscriptionKeys(subscription.id);
       }
     } else {
       delete this.selectedSubscription;
+      delete this.selectedSubscriptionFederated;
     }
   }
 

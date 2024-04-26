@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.portal.rest.mapper;
 
 import io.gravitee.rest.api.model.SubscriptionEntity;
+import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.portal.rest.model.Subscription;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
