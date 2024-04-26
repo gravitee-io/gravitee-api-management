@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import { PlatformLocation } from '@angular/common';
-import { Component, inject, Input, OnInit } from '@angular/core';
+import { Component, inject, Input, OnChanges } from '@angular/core';
 import SwaggerUI, { SwaggerUIOptions, SwaggerUIPlugin } from 'swagger-ui';
 
 import { readYaml } from '../../../app/helpers/yaml-parser';
@@ -26,13 +26,13 @@ import { CurrentUserService } from '../../../services/current-user.service';
   standalone: true,
   template: `<div id="swagger"></div>`,
 })
-export class PageSwaggerComponent implements OnInit {
+export class PageSwaggerComponent implements OnChanges {
   @Input() page!: Page;
   private platformLocation: PlatformLocation = inject(PlatformLocation);
 
   constructor(private currentUser: CurrentUserService) {}
 
-  ngOnInit() {
+  ngOnChanges() {
     SwaggerUI({
       domNode: document.getElementById('swagger'),
       spec: this.readSpec() ?? '',
