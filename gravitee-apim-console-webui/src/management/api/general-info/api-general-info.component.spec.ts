@@ -775,6 +775,22 @@ describe('ApiGeneralInfoComponent', () => {
       const apiQualityInfo = await loader.getHarnessOrNull(ApiGeneralInfoQualityHarness);
       expect(apiQualityInfo).toBeNull();
     });
+
+    it('should not display api action buttons', async () => {
+      fixture.componentInstance.isQualityEnabled = true;
+      const api = fakeApiFederated({
+        id: API_ID,
+      });
+      expectApiGetRequest(api);
+      expectCategoriesGetRequest();
+
+      await Promise.all(
+        [/Import/, /Export/, /Duplicate/, /Promote/].map(async (btnText) => {
+          const button = await loader.getHarnessOrNull(MatButtonHarness.with({ text: btnText }));
+          expect(button).toBeNull();
+        }),
+      );
+    });
   });
 
   function expectApiGetRequest(api: Api) {
