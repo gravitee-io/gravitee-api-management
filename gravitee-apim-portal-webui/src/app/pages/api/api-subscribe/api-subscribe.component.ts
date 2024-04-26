@@ -531,6 +531,12 @@ export class ApiSubscribeComponent implements OnInit {
               include: ['keys'],
             })
             .toPromise();
+
+          if (subscription.status == 'PENDING') {
+            this.apiSample = null;
+            return;
+          }
+
           const currentPlan = this.getCurrentPlan();
           if (currentPlan.security?.toUpperCase() === Plan.SecurityEnum.APIKEY) {
             const apikeyHeader = this.configurationService.get('portal.apikeyHeader');

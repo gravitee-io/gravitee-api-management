@@ -202,7 +202,7 @@
           <gv-relative-time [datetime]="endAt(apiKey)"></gv-relative-time>
         </div>
 
-        <div class="confirm__right">
+        <div class="confirm__right" *ngIf="!selectedSubscriptionFederated">
           <gv-confirm
             *ngIf="canRenewApiKey(selectedSubscription) && !endAt(apiKey)"
             [message]="'application.subscriptions.renew.message' | translate"
