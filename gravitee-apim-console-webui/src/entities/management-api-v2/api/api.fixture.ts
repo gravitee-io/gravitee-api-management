@@ -15,7 +15,7 @@
  */
 import { isFunction } from 'lodash';
 
-import { BaseApi, ApiV2, ApiV4, ApiV1, ManagementContext, GenericApi } from '.';
+import { BaseApi, ApiV2, ApiV4, ApiV1, ManagementContext, GenericApi, ApiFederated } from '.';
 
 export function fakeBaseApi(modifier?: Partial<BaseApi> | ((baseApi: BaseApi) => BaseApi)): BaseApi {
   const base: BaseApi = {
@@ -500,6 +500,28 @@ export function fakeProxyTcpApiV4(modifier?: Partial<ApiV4> | ((baseApi: ApiV4) 
         enabled: true,
       },
     ],
+  };
+
+  if (isFunction(modifier)) {
+    return modifier(base);
+  }
+
+  return {
+    ...base,
+    ...modifier,
+  };
+}
+
+export function fakeApiFederated(modifier?: Partial<ApiFederated> | ((baseApi: ApiFederated) => ApiFederated)): ApiFederated {
+  const base: ApiFederated = {
+    apiVersion: '1.0.0',
+    id: 'myId',
+    name: 'myName',
+    definitionVersion: 'FEDERATED',
+    originContext: {
+      origin: 'MANAGEMENT',
+      integrationId: 'integration-id',
+    },
   };
 
   if (isFunction(modifier)) {

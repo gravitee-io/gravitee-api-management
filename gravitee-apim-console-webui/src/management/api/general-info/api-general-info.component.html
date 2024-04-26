@@ -161,7 +161,7 @@
   </mat-card>
 
   <api-general-info-quality
-    *ngIf="isQualityEnabled && apiId && api.definitionVersion !== 'V4'"
+    *ngIf="isQualityEnabled && isQualitySupported && apiId"
     class="api-quality"
     [apiId]="apiId"
   ></api-general-info-quality>

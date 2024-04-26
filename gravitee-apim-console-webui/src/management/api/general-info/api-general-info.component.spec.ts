@@ -37,10 +37,19 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ApiGeneralInfoModule } from './api-general-info.module';
 import { ApiGeneralInfoComponent } from './api-general-info.component';
 import { ApiGeneralInfoExportV4DialogHarness } from './api-general-info-export-v4-dialog/api-general-info-export-v4-dialog.harness';
+import { ApiGeneralInfoQualityHarness } from './api-general-info-quality/api-general-info-quality.harness';
 
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { Category } from '../../../entities/category/Category';
-import { Api, DefinitionVersion, fakeApiV1, fakeApiV2, fakeApiV4, fakeProxyTcpApiV4 } from '../../../entities/management-api-v2';
+import {
+  Api,
+  DefinitionVersion,
+  fakeApiV1,
+  fakeApiV2,
+  fakeApiV4,
+  fakeProxyTcpApiV4,
+  fakeApiFederated,
+} from '../../../entities/management-api-v2';
 import { GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
 import { Constants } from '../../../entities/Constants';
 
@@ -176,6 +185,33 @@ describe('ApiGeneralInfoComponent', () => {
           expect(await button.isDisabled()).toEqual(true);
         }),
       );
+    });
+
+    it('should display quality info when enabled', async () => {
+      fixture.componentInstance.isQualityEnabled = true;
+      const api = fakeApiV1({
+        id: API_ID,
+        name: '👴🏻 Old API',
+        apiVersion: '1.0.0',
+        labels: ['label1', 'label2'],
+        categories: ['category1'],
+      });
+
+      expectApiGetRequest(api);
+      expectCategoriesGetRequest([
+        { id: 'category1', name: 'Category 1', key: 'category1' },
+        { id: 'category2', name: 'Category 2', key: 'category2' },
+      ]);
+
+      // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
+      await waitImageCheck();
+      fixture.detectChanges();
+
+      expectQualityRulesRequest();
+      expectQualityRequest(api.id);
+
+      const apiQualityInfo = await loader.getHarness(ApiGeneralInfoQualityHarness);
+      expect(apiQualityInfo).toBeTruthy();
     });
   });
 
@@ -398,6 +434,25 @@ describe('ApiGeneralInfoComponent', () => {
         await expectDuplicatePostRequest(API_ID);
 
         expect(routerNavigateSpy).toHaveBeenCalledWith(['../', 'newApiId'], expect.anything());
+      });
+
+      it('should display quality info when enabled', async () => {
+        fixture.componentInstance.isQualityEnabled = true;
+        const api = fakeApiV2({
+          id: API_ID,
+        });
+        expectApiGetRequest(api);
+        expectCategoriesGetRequest();
+
+        // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
+        await waitImageCheck();
+        fixture.detectChanges();
+
+        await expectQualityRulesRequest();
+        await expectQualityRequest(api.id);
+
+        const apiQualityInfo = await loader.getHarness(ApiGeneralInfoQualityHarness);
+        expect(apiQualityInfo).toBeTruthy();
       });
     });
 
@@ -686,6 +741,40 @@ describe('ApiGeneralInfoComponent', () => {
 
       expect(routerNavigateSpy).toHaveBeenCalledWith(['../', 'newApiId'], expect.anything());
     });
+
+    it('should not display quality info when enabled', async () => {
+      fixture.componentInstance.isQualityEnabled = true;
+      const api = fakeApiV4({
+        id: API_ID,
+      });
+      expectApiGetRequest(api);
+      expectCategoriesGetRequest();
+
+      // Wait image to be loaded (fakeAsync is not working with getBase64 🤷‍♂️)
+      await waitImageCheck();
+      fixture.detectChanges();
+
+      expectApiVerifyDeployment(api, true);
+
+      const apiQualityInfo = await loader.getHarnessOrNull(ApiGeneralInfoQualityHarness);
+      expect(apiQualityInfo).toBeNull();
+    });
+  });
+
+  describe('API FEDERATED', () => {
+    beforeEach(() => initComponent());
+
+    it('should not display quality info when enabled', async () => {
+      fixture.componentInstance.isQualityEnabled = true;
+      const api = fakeApiFederated({
+        id: API_ID,
+      });
+      expectApiGetRequest(api);
+      expectCategoriesGetRequest();
+
+      const apiQualityInfo = await loader.getHarnessOrNull(ApiGeneralInfoQualityHarness);
+      expect(apiQualityInfo).toBeNull();
+    });
   });
 
   function expectApiGetRequest(api: Api) {
@@ -740,6 +829,16 @@ describe('ApiGeneralInfoComponent', () => {
     httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${api.id}/deployments/_verify`, method: 'GET' }).flush({
       ok,
     });
+  }
+
+  function expectQualityRequest(apiId: string) {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/apis/${apiId}/quality`, method: 'GET' });
+    fixture.detectChanges();
+  }
+
+  function expectQualityRulesRequest() {
+    httpTestingController.expectOne({ url: `${CONSTANTS_TESTING.env.baseURL}/configuration/quality-rules`, method: 'GET' });
+    fixture.detectChanges();
   }
 });
 
