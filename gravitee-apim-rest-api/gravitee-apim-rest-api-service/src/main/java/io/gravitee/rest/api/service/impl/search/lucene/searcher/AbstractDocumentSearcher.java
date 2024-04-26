@@ -99,7 +99,7 @@ public abstract class AbstractDocumentSearcher implements DocumentSearcher {
                 results.add(reference);
             }
 
-            return new SearchResult(results, results.size());
+            return new SearchResult(results, topDocs.totalHits.value);
         } catch (IOException ioe) {
             logger.error("An error occurs while getting documents from search result", ioe);
             throw new TechnicalException("An error occurs while getting documents from search result", ioe);
