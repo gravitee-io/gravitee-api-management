@@ -36,6 +36,7 @@ export class ApiLogsV2Service {
 
     if (queryParam?.from) params = params.append('from', queryParam.from);
     if (queryParam?.to) params = params.append('to', queryParam.to);
+    if (queryParam?.entrypointIds) params = params.append('entrypointIds', queryParam.entrypointIds);
     if (queryParam?.applicationIds) params = params.append('applicationIds', queryParam.applicationIds);
     if (queryParam?.planIds) params = params.append('planIds', queryParam.planIds);
     if (queryParam?.methods) params = params.append('methods', queryParam.methods);

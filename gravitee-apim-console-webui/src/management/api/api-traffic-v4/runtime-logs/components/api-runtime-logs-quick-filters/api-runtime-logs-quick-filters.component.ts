@@ -45,6 +45,7 @@ export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
 
   @Input() initialValues: LogFiltersInitialValues;
   @Input() plans: Plan[];
+  @Input() entrypoints: { id: string; name: string }[];
   @Output() refresh = new EventEmitter<void>();
   @Output() resetFilters = new EventEmitter<void>();
 
@@ -69,7 +70,7 @@ export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
     };
     this.quickFiltersForm = new UntypedFormGroup({
       period: new UntypedFormControl({ value: DEFAULT_PERIOD, disabled: true }),
-
+      entrypoints: new UntypedFormControl({ value: this.initialValues.entrypoints, disabled: true }),
       plans: new UntypedFormControl({
         value: this.initialValues.plans?.map((plan) => plan.value) ?? DEFAULT_FILTERS.plans,
         disabled: true,
@@ -147,9 +148,10 @@ export class ApiRuntimeLogsQuickFiltersComponent implements OnInit, OnDestroy {
     };
   }
 
-  private mapQuickFiltersFormValues({ period, plans, methods }: LogFiltersForm) {
+  private mapQuickFiltersFormValues({ period, entrypoints, plans, methods }: LogFiltersForm) {
     return {
       period,
+      entrypoints,
       plans: this.plansFromValues(plans),
       methods: methods?.length > 0 ? methods : undefined,
     };

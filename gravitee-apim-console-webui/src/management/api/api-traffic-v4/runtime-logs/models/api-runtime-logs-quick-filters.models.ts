@@ -28,13 +28,14 @@ export type LogFilters = {
   from?: number;
   to?: number;
   period?: SimpleFilter;
+  entrypoints?: string[];
   applications?: MultiFilter;
   plans?: MultiFilter;
   methods?: string[];
   statuses?: Set<number>;
 };
 
-export type LogFiltersForm = { period: SimpleFilter; plans: string[]; methods: string[] };
+export type LogFiltersForm = { period: SimpleFilter; entrypoints: string[]; plans: string[]; methods: string[] };
 
 export type MoreFiltersForm = { period: SimpleFilter; from: Moment; to: Moment; statuses: Set<number>; applications?: MultiFilter };
 
@@ -43,6 +44,7 @@ export type LogFiltersInitialValues = {
   plans?: MultiFilter;
   from: Moment;
   to: Moment;
+  entrypoints: string[];
   methods: string[];
   statuses: Set<number>;
 };
@@ -64,6 +66,7 @@ export const PERIODS = [
 
 export const DEFAULT_FILTERS: LogFilters = {
   period: DEFAULT_PERIOD,
+  entrypoints: undefined,
   applications: undefined,
   plans: undefined,
   from: undefined,

@@ -25,6 +25,13 @@
         </mat-select>
       </mat-form-field>
 
+      <mat-form-field class="quick-filters__entrypoints">
+        <mat-label>Entrypoints</mat-label>
+        <mat-select formControlName="entrypoints" aria-label="Entrypoints selection" [multiple]="true">
+          <mat-option *ngFor="let entrypoint of entrypoints" [value]="entrypoint.id">{{ entrypoint.name }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
       <mat-form-field class="quick-filters__methods">
         <mat-label>HTTP methods</mat-label>
         <mat-select formControlName="methods" aria-label="Methods selection" [multiple]="true">

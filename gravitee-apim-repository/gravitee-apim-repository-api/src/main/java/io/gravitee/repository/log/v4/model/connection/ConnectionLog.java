@@ -33,4 +33,5 @@ public class ConnectionLog {
     private HttpMethod method;
     private int status;
     private boolean requestEnded;
+    private String entrypointId;
 }

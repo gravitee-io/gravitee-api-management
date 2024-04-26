@@ -79,6 +79,10 @@ public class SearchConnectionLogQueryAdapter {
             terms.add(JsonObject.of("terms", JsonObject.of("status", filter.getStatuses())));
         }
 
+        if (!CollectionUtils.isEmpty(filter.getEntrypointIds())) {
+            terms.add(JsonObject.of("terms", JsonObject.of("entrypoint-id", filter.getEntrypointIds())));
+        }
+
         if (!terms.isEmpty()) {
             return JsonObject.of("bool", JsonObject.of("must", JsonArray.of(terms.toArray())));
         }

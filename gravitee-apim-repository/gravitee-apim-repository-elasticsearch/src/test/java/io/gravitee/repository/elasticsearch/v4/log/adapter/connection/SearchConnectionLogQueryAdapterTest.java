@@ -388,6 +388,31 @@ class SearchConnectionLogQueryAdapterTest {
                                          }
                                       }
                                      """
+            ),
+            Arguments.of(
+                ConnectionLogQuery.Filter.builder().entrypointIds(Set.of("http-post", "http-get")).build(),
+                """
+                                     {
+                                         "from": 0,
+                                         "size": 20,
+                                         "query": {
+                                             "bool": {
+                                                 "must": [
+                                                     {
+                                                         "terms": {
+                                                             "entrypoint-id": ["http-post", "http-get"]
+                                                         }
+                                                     }
+                                                 ]
+                                             }
+                                         },
+                                         "sort": {
+                                             "@timestamp": {
+                                                 "order": "desc"
+                                             }
+                                         }
+                                      }
+            """
             )
         );
     }

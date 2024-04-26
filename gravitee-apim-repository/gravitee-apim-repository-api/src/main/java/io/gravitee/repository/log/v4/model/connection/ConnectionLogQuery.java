@@ -43,5 +43,6 @@ public class ConnectionLogQuery {
         private Set<String> planIds;
         private Set<HttpMethod> methods;
         private Set<Integer> statuses;
+        private Set<String> entrypointIds;
     }
 }

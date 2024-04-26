@@ -22,11 +22,9 @@ import static io.gravitee.repository.elasticsearch.utils.JsonNodeUtils.asTextOrN
 import com.fasterxml.jackson.databind.JsonNode;
 import io.gravitee.common.http.HttpMethod;
 import io.gravitee.elasticsearch.model.SearchResponse;
-import io.gravitee.repository.elasticsearch.utils.JsonNodeUtils;
 import io.gravitee.repository.log.v4.model.LogResponse;
 import io.gravitee.repository.log.v4.model.connection.ConnectionLog;
 import java.util.List;
-import java.util.Optional;
 
 public class SearchConnectionLogResponseAdapter {
 
@@ -57,6 +55,7 @@ public class SearchConnectionLogResponseAdapter {
             .method(HttpMethod.get(asIntOr(json.get("http-method"), 0)))
             .status(asIntOr(json.get("status"), 0))
             .requestEnded(asBooleanOrFalse(json.get("request-ended")))
+            .entrypointId(asTextOrNull(json.get("entrypoint-id")))
             .build();
     }
 }

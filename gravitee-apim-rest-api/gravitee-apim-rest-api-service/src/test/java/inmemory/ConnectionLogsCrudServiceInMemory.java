@@ -58,6 +58,10 @@ public class ConnectionLogsCrudServiceInMemory implements ConnectionLogsCrudServ
             predicate = predicate.and(connectionLog -> logsFilters.statuses().contains(connectionLog.getStatus()));
         }
 
+        if (!CollectionUtils.isEmpty(logsFilters.entrypointIds())) {
+            predicate = predicate.and(connectionLog -> logsFilters.entrypointIds().contains(connectionLog.getEntrypointId()));
+        }
+
         var pageNumber = pageable.getPageNumber();
         var pageSize = pageable.getPageSize();
 
