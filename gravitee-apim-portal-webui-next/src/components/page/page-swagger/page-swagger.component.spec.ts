@@ -17,6 +17,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { PageSwaggerComponent } from './page-swagger.component';
 import { fakePage } from '../../../entities/page/page.fixtures';
+import { AppTestingModule } from '../../../testing/app-testing.module';
 
 describe('PageSwaggerComponent', () => {
   let component: PageSwaggerComponent;
@@ -24,7 +25,7 @@ describe('PageSwaggerComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PageSwaggerComponent],
+      imports: [PageSwaggerComponent, AppTestingModule],
     }).compileComponents();
 
     fixture = TestBed.createComponent(PageSwaggerComponent);
