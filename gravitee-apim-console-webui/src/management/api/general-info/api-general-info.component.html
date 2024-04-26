@@ -118,7 +118,7 @@
         </div>
       </div>
     </mat-card-content>
-    <mat-card-actions class="details-card__actions">
+    <mat-card-actions class="details-card__actions" *ngIf="api.definitionVersion !== 'FEDERATED'">
       <button
         *gioPermission="{ anyOf: ['api-definition-r'] }"
         mat-button
