@@ -17,10 +17,16 @@
 -->
 <div class="api-details__tab">
   <div class="api-details__tab-details-content">
-    @if (homepage$ | async; as homepage) {
-      <app-page [page]="homepage" [apiPages]="pages" [apiId]="api.id" />
+    @if (homepageData$ | async; as homepageData) {
+      @if (homepageData.result) {
+        <app-page [page]="homepageData.result" [apiPages]="pages" [apiId]="api.id" />
+      } @else if (homepageData.error) {
+        <div>TODO: Implement error message</div>
+      } @else {
+        <p i18n="@@noApiDetailsAvailable">Sorry, there are no available API details.</p>
+      }
     } @else {
-      <p i18n="@@noApiDetailsAvailable">Sorry, there are no available API details.</p>
+      <app-loader />
     }
   </div>
 
