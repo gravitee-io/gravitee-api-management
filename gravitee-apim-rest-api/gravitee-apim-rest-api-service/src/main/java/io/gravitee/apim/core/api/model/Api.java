@@ -236,6 +236,33 @@ public class Api {
         return this.environmentId != null && this.environmentId.equals(envId);
     }
 
+    public Api rollbackTo(io.gravitee.definition.model.v4.Api source) {
+        final io.gravitee.definition.model.v4.Api currentDefinition = getApiDefinitionV4();
+        return toBuilder()
+            .name(source.getName())
+            .version(source.getApiVersion())
+            .apiDefinitionV4(
+                currentDefinition
+                    .toBuilder()
+                    .tags(source.getTags())
+                    .listeners(source.getListeners())
+                    .endpointGroups(source.getEndpointGroups())
+                    .analytics(source.getAnalytics())
+                    .properties(source.getProperties())
+                    .resources(source.getResources())
+                    .failover(source.getFailover())
+                    .flowExecution(source.getFlowExecution())
+                    .flows(source.getFlows())
+                    .responseTemplates(source.getResponseTemplates())
+                    .services(source.getServices())
+                    // Ignore plans from definition for API rollback
+                    .plans(null)
+                    .build()
+            )
+            .build()
+            .setTag(source.getTags());
+    }
+
     public abstract static class ApiBuilder<C extends Api, B extends ApiBuilder<C, B>> {
 
         public B apiDefinition(io.gravitee.definition.model.Api apiDefinition) {

@@ -16,7 +16,6 @@
 package io.gravitee.apim.infra.adapter;
 
 import static assertions.CoreAssertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThat;
 
 import fixtures.core.model.ApiFixtures;
 import io.gravitee.definition.model.DefinitionVersion;
@@ -353,6 +352,44 @@ class ApiAdapterTest {
             SoftAssertions.assertSoftly(soft -> {
                 soft.assertThat(apiWithKubernetesContext.getOrigin()).isEqualTo("kubernetes");
                 soft.assertThat(apiWithKubernetesContext.getMode()).isEqualTo("fully_managed");
+            });
+        }
+    }
+
+    @Nested
+    class ModelToApiEntity {
+
+        @Test
+        void should_convert_v4_api_to_UpdateApiEntity() {
+            var model = ApiFixtures
+                .aProxyApiV4()
+                .toBuilder()
+                .apiLifecycleState(io.gravitee.apim.core.api.model.Api.ApiLifecycleState.PUBLISHED)
+                .build();
+
+            var updateApiEntity = ApiAdapter.INSTANCE.toUpdateApiEntity(model, model.getApiDefinitionV4());
+
+            SoftAssertions.assertSoftly(soft -> {
+                soft.assertThat(updateApiEntity.getId()).isEqualTo("my-api");
+                soft.assertThat(updateApiEntity.getCrossId()).isEqualTo("my-api-crossId");
+                soft.assertThat(updateApiEntity.getName()).isEqualTo("My Api");
+                soft.assertThat(updateApiEntity.getDescription()).isEqualTo("api-description");
+                soft.assertThat(updateApiEntity.getApiVersion()).isEqualTo("1.0.0");
+                soft.assertThat(updateApiEntity.getVisibility().name()).isEqualTo(Visibility.PUBLIC.name());
+                soft.assertThat(updateApiEntity.getLifecycleState().name()).isEqualTo(ApiLifecycleState.PUBLISHED.name());
+                soft.assertThat(updateApiEntity.getPicture()).isEqualTo("api-picture");
+                soft.assertThat(updateApiEntity.getGroups()).containsExactly("group-1");
+                soft.assertThat(updateApiEntity.getCategories()).containsExactly("category-1");
+                soft.assertThat(updateApiEntity.getTags()).containsExactly("tag1");
+                soft.assertThat(updateApiEntity.getLabels()).containsExactly("label-1");
+                soft.assertThat(updateApiEntity.isDisableMembershipNotifications()).isTrue();
+                soft.assertThat(updateApiEntity.getBackground()).isEqualTo("api-background");
+                soft.assertThat(updateApiEntity.getEndpointGroups()).hasSize(1);
+                soft
+                    .assertThat(updateApiEntity.getEndpointGroups().get(0))
+                    .isEqualTo(model.getApiDefinitionV4().getEndpointGroups().get(0));
+                soft.assertThat(updateApiEntity.getListeners()).hasSize(1);
+                soft.assertThat(updateApiEntity.getListeners().get(0)).isEqualTo(model.getApiDefinitionV4().getListeners().get(0));
             });
         }
     }

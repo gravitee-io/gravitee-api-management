@@ -15,8 +15,11 @@
  */
 package inmemory;
 
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.apim.core.event.query_service.EventQueryService;
+import io.gravitee.apim.infra.query_service.event.EventQueryServiceImpl;
+import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.common.Pageable;
 import java.util.*;
 
@@ -61,6 +64,15 @@ public class EventQueryServiceInMemory implements EventQueryService, InMemoryAlt
                 apiId.equalsIgnoreCase(event.getProperties().get(Event.EventProperties.API_ID))
             )
             .findFirst();
+    }
+
+    @Override
+    public Optional<Api> findApiFromPublishApiEvent(String eventId) {
+        return storage()
+            .stream()
+            .filter(event -> event.getId().equals(eventId) && event.getType() == EventType.PUBLISH_API && event.getPayload() != null)
+            .findFirst()
+            .map(EventQueryServiceImpl::extractApiFromEvent);
     }
 
     @Override

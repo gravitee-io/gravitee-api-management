@@ -25,4 +25,6 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
  */
 public interface UpdateApiDomainService {
     Api update(String apiId, ApiCRD crd, AuditInfo auditInfo);
+
+    Api updateV4(Api api, AuditInfo auditInfo);
 }

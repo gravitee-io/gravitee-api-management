@@ -21,7 +21,6 @@ import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
-import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -93,6 +92,18 @@ public class Plan implements GenericPlanEntity {
     private io.gravitee.definition.model.v4.plan.Plan planDefinitionV4;
     private io.gravitee.definition.model.Plan planDefinitionV2;
     private io.gravitee.definition.model.federation.FederatedPlan federatedPlanDefinition;
+
+    public Plan(String apiId, io.gravitee.definition.model.v4.plan.Plan planDefinitionV4) {
+        this.setDefinitionVersion(DefinitionVersion.V4);
+        this.setPlanDefinitionV4(planDefinitionV4);
+        this.setId(planDefinitionV4.getId());
+        this.setName(planDefinitionV4.getName());
+        this.setPlanMode(planDefinitionV4.getMode());
+        this.setPlanStatus(planDefinitionV4.getStatus());
+        this.setPlanTags(planDefinitionV4.getTags());
+        this.setType(io.gravitee.apim.core.plan.model.Plan.PlanType.API);
+        this.setApiId(apiId);
+    }
 
     @Override
     public io.gravitee.rest.api.model.v4.plan.PlanType getPlanType() {
@@ -259,6 +270,27 @@ public class Plan implements GenericPlanEntity {
             case V1, V2 -> toBuilder().planDefinitionV2(planDefinitionV2.toBuilder().build()).build();
             case FEDERATED -> toBuilder().federatedPlanDefinition(federatedPlanDefinition.toBuilder().build()).build();
         };
+    }
+
+    public Plan rollbackTo(io.gravitee.definition.model.v4.plan.Plan planDefinitionV4) {
+        var existingPlanDefinitionV4 = this.getPlanDefinitionV4();
+
+        // Update plan properties from API definition
+        existingPlanDefinitionV4.setName(planDefinitionV4.getName());
+        this.setName(planDefinitionV4.getName());
+        existingPlanDefinitionV4.setTags(planDefinitionV4.getTags());
+        existingPlanDefinitionV4.setSecurity(planDefinitionV4.getSecurity());
+        existingPlanDefinitionV4.setFlows(planDefinitionV4.getFlows());
+        existingPlanDefinitionV4.setSelectionRule(planDefinitionV4.getSelectionRule());
+
+        // Special case if plan are closed or deprecated we restore status from API definition
+        if (this.getPlanStatus() != planDefinitionV4.getStatus()) {
+            existingPlanDefinitionV4.setStatus(planDefinitionV4.getStatus());
+            this.setClosedAt(null);
+            this.setUpdatedAt(TimeProvider.now());
+            this.setNeedRedeployAt(Date.from(this.getUpdatedAt().toInstant()));
+        }
+        return this;
     }
 
     public abstract static class PlanBuilder<C extends Plan, B extends PlanBuilder<C, B>> {

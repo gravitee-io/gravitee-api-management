@@ -28,10 +28,12 @@ import io.gravitee.rest.api.model.v4.api.NewApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
 import java.io.IOException;
 import java.util.stream.Stream;
+import org.mapstruct.Condition;
 import org.mapstruct.DecoratedWith;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
+import org.mapstruct.Named;
 import org.mapstruct.ValueMapping;
 import org.mapstruct.factory.Mappers;
 import org.slf4j.Logger;
@@ -70,6 +72,16 @@ public interface ApiAdapter {
     @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
     @Mapping(source = "version", target = "apiVersion")
     UpdateApiEntity toUpdateApiEntity(ApiCRD api);
+
+    @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
+    @Mapping(target = "id", source = "api.id")
+    @Mapping(target = "name", source = "api.name")
+    @Mapping(target = "definitionVersion", source = "api.definitionVersion")
+    @Mapping(target = "type", source = "api.type")
+    @Mapping(target = "tags", source = "api.tags")
+    @Mapping(target = "apiVersion", source = "api.version")
+    @Mapping(target = "lifecycleState", source = "api.apiLifecycleState")
+    UpdateApiEntity toUpdateApiEntity(Api api, io.gravitee.definition.model.v4.Api apiDefinitionV4);
 
     @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
     @Mapping(source = "version", target = "apiVersion")
