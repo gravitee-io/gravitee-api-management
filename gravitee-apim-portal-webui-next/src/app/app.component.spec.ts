@@ -16,10 +16,10 @@
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
 
 import { AppComponent } from './app.component';
 import { CompanyTitleHarness } from '../components/company-title/company-title.harness';
+import { AppTestingModule } from '../testing/app-testing.module';
 
 describe('AppComponent', () => {
   let fixture: ComponentFixture<AppComponent>;
@@ -27,8 +27,7 @@ describe('AppComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AppComponent],
-      providers: [provideRouter([])],
+      imports: [AppComponent, AppTestingModule],
     }).compileComponents();
     fixture = TestBed.createComponent(AppComponent);
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);

@@ -19,6 +19,7 @@ import { ApiDetailsComponent } from './api-details/api-details.component';
 import { ApiTabDetailsComponent } from './api-details/api-tab-details/api-tab-details.component';
 import { ApiTabDocumentationComponent } from './api-details/api-tab-documentation/api-tab-documentation.component';
 import { CatalogComponent } from './catalog/catalog.component';
+import { LogInComponent } from './log-in/log-in.component';
 import { NotFoundComponent } from './not-found/not-found.component';
 import { apiResolver } from '../resolvers/api.resolver';
 import { pagesResolver } from '../resolvers/pages.resolver';
@@ -54,7 +55,7 @@ export const routes: Routes = [
       },
     ],
   },
-
+  { path: 'log-in', component: LogInComponent },
   { path: '404', component: NotFoundComponent },
   {
     path: '**',
