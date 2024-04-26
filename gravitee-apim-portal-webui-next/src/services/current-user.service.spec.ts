@@ -13,19 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 
 import { CurrentUserService } from './current-user.service';
+import { fakeUser } from '../entities/user/user.fixtures';
+import { AppTestingModule, TESTING_BASE_URL } from '../testing/app-testing.module';
 
 describe('CurrentUserService', () => {
   let service: CurrentUserService;
+  let httpTestingController: HttpTestingController;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({
+      imports: [AppTestingModule],
+    });
     service = TestBed.inject(CurrentUserService);
+    httpTestingController = TestBed.inject(HttpTestingController);
   });
 
-  it('should be created', () => {
-    expect(service).toBeTruthy();
+  it('should load user', done => {
+    expect(service.user()).toEqual(null);
+    const user = fakeUser();
+    service.loadUser().subscribe(() => {
+      expect(service.user()).toEqual(user);
+      done();
+    });
+
+    httpTestingController.expectOne(`${TESTING_BASE_URL}/user`).flush(user);
   });
 });

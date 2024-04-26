@@ -13,19 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Injectable, signal, WritableSignal } from '@angular/core';
+import { Observable, tap } from 'rxjs';
+
+import { ConfigService } from './config.service';
+import { User } from '../entities/user/user';
 
 @Injectable({
   providedIn: 'root',
 })
 export class CurrentUserService {
-  private _details: string | null = null;
+  public user: WritableSignal<User | null> = signal(null);
 
-  public get details(): string | null {
-    return this._details;
-  }
+  constructor(
+    private http: HttpClient,
+    private configuration: ConfigService,
+  ) {}
 
   public isAuthenticated(): boolean {
-    return this.details !== null;
+    return this.user() !== null;
+  }
+
+  public loadUser(): Observable<unknown> {
+    return this.http.get<User>(`${this.configuration.baseURL}/user`).pipe(
+      tap(resp => {
+        this.user.set(resp);
+      }),
+    );
   }
 }
