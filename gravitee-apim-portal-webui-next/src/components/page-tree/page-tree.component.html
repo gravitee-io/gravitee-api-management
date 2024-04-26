@@ -20,7 +20,7 @@
   <mat-tree-node
     class="file-tree__node clickable"
     *matTreeNodeDef="let node"
-    [ngClass]="{ active: node.id === activeFile }"
+    [ngClass]="{ active: node.id === selectedNode }"
     matTreeNodePadding
     (click)="fileSelected(node.id)">
     <div class="file-tree__node__container">
@@ -31,7 +31,7 @@
   <mat-tree-node
     class="file-tree__node"
     *matTreeNodeDef="let node; when: hasChild"
-    [ngClass]="{ active: node.id === activeFile }"
+    [ngClass]="{ active: node.id === selectedNode }"
     matTreeNodePadding>
     <div class="file-tree__node__container">
       {{ node.name }}

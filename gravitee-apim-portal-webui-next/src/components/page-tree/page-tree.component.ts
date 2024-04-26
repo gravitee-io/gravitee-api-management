@@ -15,7 +15,7 @@
  */
 import { FlatTreeControl } from '@angular/cdk/tree';
 import { NgClass } from '@angular/common';
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTreeFlatDataSource, MatTreeFlattener, MatTreeModule } from '@angular/material/tree';
@@ -43,18 +43,18 @@ interface FlatNode {
   templateUrl: './page-tree.component.html',
   styleUrl: './page-tree.component.scss',
 })
-export class PageTreeComponent implements OnInit {
+export class PageTreeComponent implements OnInit, OnChanges {
   @Input({ required: true })
   pages!: PageTreeNode[];
 
   @Input()
-  initialSelectedPage: string | undefined;
+  activePage: string | undefined;
 
   @Output()
   openFile = new EventEmitter<string>();
   dataSource: MatTreeFlatDataSource<PageTreeNode, FlatNode>;
   treeControl: FlatTreeControl<FlatNode>;
-  activeFile: string = '';
+  selectedNode: string = '';
 
   private readonly treeFlattener: MatTreeFlattener<PageTreeNode, FlatNode>;
 
@@ -75,19 +75,23 @@ export class PageTreeComponent implements OnInit {
   ngOnInit() {
     this.dataSource.data = this.pages;
     this.treeControl.expandAll();
+  }
 
-    if (this.initialSelectedPage) {
-      this.activeFile = this.initialSelectedPage;
-    } else if (!isEmpty(this.pages)) {
-      this.activeFile = this.getFirstAvailablePage(this.pages[0]).id;
-      this.openFile.emit(this.activeFile);
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['activePage']) {
+      const activePage = changes['activePage'].currentValue;
+      if (activePage) {
+        this.selectedNode = activePage;
+      } else if (!isEmpty(this.pages)) {
+        this.fileSelected(this.getFirstAvailablePage(this.pages[0]).id);
+      }
     }
   }
 
   hasChild = (_: number, node: FlatNode) => node.expandable;
 
   fileSelected(id: string) {
-    this.activeFile = id;
+    this.selectedNode = id;
     this.openFile.emit(id);
   }
 
