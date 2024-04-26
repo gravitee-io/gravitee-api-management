@@ -20,6 +20,10 @@
   <app-nav-bar-button i18n="@@catalog" [path]="['catalog']">Catalog</app-nav-bar-button>
 </div>
 <div class="actions">
-  <app-nav-bar-button i18n="@@logIn" [path]="['log-in']">Log in</app-nav-bar-button>
-  <button i18n="@@signUp" mat-flat-button color="primary">Sign up</button>
+  @if (currentUser()) {
+    <div>{{ currentUser()?.display_name }}'s avatar goes here</div>
+  } @else {
+    <app-nav-bar-button i18n="@@logIn" [path]="['log-in']">Log in</app-nav-bar-button>
+    <button i18n="@@signUp" mat-flat-button color="primary">Sign up</button>
+  }
 </div>
