@@ -18,9 +18,14 @@ import { ActivatedRoute } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
 import { distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { isEqual } from 'lodash';
+import { MatDialog } from '@angular/material/dialog';
+
+import { openRollbackDialog } from './rollback-dialog';
 
 import { SearchApiEventParam } from '../../../entities/management-api-v2';
 import { ApiEventsV2Service } from '../../../services-ngx/api-events-v2.service';
+import { ApiV2Service } from '../../../services-ngx/api-v2.service';
+import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
 const INITIAL_SEARCH_PARAM: SearchApiEventParam = {
   page: 1,
@@ -38,7 +43,8 @@ export class ApiHistoryV4Component {
 
   protected filter$ = new BehaviorSubject<SearchApiEventParam>(INITIAL_SEARCH_PARAM);
 
-  protected apiEvents$ = this.filter$.pipe(
+  protected apiEvents$ = this.apiService.getLastApiFetch(this.apiId).pipe(
+    switchMap(() => this.filter$),
     distinctUntilChanged(isEqual),
     switchMap(({ page, perPage }) => {
       return this.eventsService.searchApiEvents(this.apiId, { page: page, perPage: perPage, types: 'PUBLISH_API' });
@@ -47,10 +53,17 @@ export class ApiHistoryV4Component {
 
   constructor(
     private readonly eventsService: ApiEventsV2Service,
+    private readonly apiService: ApiV2Service,
     private readonly activatedRoute: ActivatedRoute,
+    private readonly matDialog: MatDialog,
+    private readonly snackBarService: SnackBarService,
   ) {}
 
   protected paginationChange(searchParam: SearchApiEventParam) {
     this.filter$.next({ ...this.filter$.getValue(), page: searchParam.page, perPage: searchParam.perPage });
+  }
+
+  protected rollback(eventId: string) {
+    openRollbackDialog(this.matDialog, this.snackBarService, this.apiService, this.apiId, eventId);
   }
 }

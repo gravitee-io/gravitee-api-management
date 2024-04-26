@@ -497,4 +497,30 @@ describe('ApiV2Service', () => {
       expect(done).toEqual(['first', 'second']);
     });
   });
+
+  describe('rollback', () => {
+    it('should call the API', (done) => {
+      const apiId = 'apiId';
+      const eventId = 'eventId';
+
+      apiV2Service.rollback(apiId, eventId).subscribe(() => {
+        done();
+      });
+
+      const req = httpTestingController.expectOne({
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}/_rollback`,
+        method: 'POST',
+      });
+      expect(req.request.body).toEqual({ eventId });
+      req.flush(null);
+
+      // Refresh the API
+      httpTestingController
+        .expectOne({
+          url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${apiId}`,
+          method: 'GET',
+        })
+        .flush(fakeApiV4());
+    });
+  });
 });

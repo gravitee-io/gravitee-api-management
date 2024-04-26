@@ -17,12 +17,18 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpTestingController } from '@angular/common/http/testing';
 import { ActivatedRoute } from '@angular/router';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { MatButtonHarness } from '@angular/material/button/testing';
+import { GioConfirmDialogHarness } from '@gravitee/ui-particles-angular';
+import { HarnessLoader } from '@angular/cdk/testing';
+import { InteractivityChecker } from '@angular/cdk/a11y';
 
 import { ApiHistoryV4DeploymentInfoComponent } from './api-history-v4-deployment-info.component';
 
 import { fakeEvent } from '../../../../entities/management-api-v2';
 import { CONSTANTS_TESTING, GioTestingModule } from '../../../../shared/testing';
 import { ApiHistoryV4Module } from '../api-history-v4.module';
+import { GioTestingPermissionProvider } from '../../../../shared/components/gio-permission/gio-permission.service';
 
 describe('DeploymentInfoComponent', () => {
   const API_ID = 'an-api-id';
@@ -31,17 +37,34 @@ describe('DeploymentInfoComponent', () => {
   let component: ApiHistoryV4DeploymentInfoComponent;
   let fixture: ComponentFixture<ApiHistoryV4DeploymentInfoComponent>;
   let httpTestingController: HttpTestingController;
+  let loader: HarnessLoader;
+  let rootLoader: HarnessLoader;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [ApiHistoryV4Module, NoopAnimationsModule, GioTestingModule],
       declarations: [ApiHistoryV4DeploymentInfoComponent],
-      providers: [{ provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID, apiVersionId: API_VERSION_ID } } } }],
-    }).compileComponents();
+      providers: [
+        { provide: ActivatedRoute, useValue: { snapshot: { params: { apiId: API_ID, apiVersionId: API_VERSION_ID } } } },
+        {
+          provide: GioTestingPermissionProvider,
+          useValue: ['api-definition-u'],
+        },
+      ],
+    })
+      .overrideProvider(InteractivityChecker, {
+        useValue: {
+          isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
+          isTabbable: () => true, // This traps focus checks and so avoid warnings when dealing with
+        },
+      })
+      .compileComponents();
 
     fixture = TestBed.createComponent(ApiHistoryV4DeploymentInfoComponent);
     component = fixture.componentInstance;
     httpTestingController = TestBed.inject(HttpTestingController);
+    loader = TestbedHarnessEnvironment.loader(fixture);
+    rootLoader = TestbedHarnessEnvironment.documentRootLoader(fixture);
     fixture.detectChanges();
 
     expectApiEventRequest();
@@ -59,6 +82,21 @@ describe('DeploymentInfoComponent', () => {
     expect(getDate()).toEqual('Date: Jan 1, 2021, 12:00:00 AM');
     expect(getUser()).toEqual('User: John Doe');
     expect(getLabel()).toEqual('Label: sample-label');
+  });
+
+  describe('rollback', () => {
+    it('should rollback an API', async () => {
+      const rollbackButton = await loader.getHarness(MatButtonHarness.with({ selector: '[aria-label="Button to rollback"]' }));
+      await rollbackButton.click();
+
+      const confirmDialog = await rootLoader.getHarness(GioConfirmDialogHarness);
+      await confirmDialog.confirm();
+
+      httpTestingController.expectOne({
+        method: 'POST',
+        url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/${API_ID}/_rollback`,
+      });
+    });
   });
 
   function expectApiEventRequest(response = fakeEvent()) {
