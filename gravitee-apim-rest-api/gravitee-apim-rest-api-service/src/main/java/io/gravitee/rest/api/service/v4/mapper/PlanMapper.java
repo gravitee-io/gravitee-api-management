@@ -95,6 +95,7 @@ public class PlanMapper {
         plan.setDefinitionVersion(DefinitionVersion.V4);
         plan.setId(newPlanEntity.getId());
         plan.setCrossId(newPlanEntity.getCrossId());
+        plan.setDefinitionVersion(DefinitionVersion.V4);
         plan.setApi(newPlanEntity.getApiId());
         plan.setName(newPlanEntity.getName());
         plan.setDescription(newPlanEntity.getDescription());

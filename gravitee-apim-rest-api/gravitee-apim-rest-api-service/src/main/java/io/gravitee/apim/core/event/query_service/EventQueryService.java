@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.event.query_service;
 
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.event.model.Event;
 import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.common.Pageable;
@@ -38,4 +39,6 @@ public interface EventQueryService {
     ) {}
 
     record SearchResponse(long total, List<Event> events) {}
+
+    Optional<Api> findApiFromPublishApiEvent(String eventId);
 }

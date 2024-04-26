@@ -15,8 +15,12 @@
  */
 package io.gravitee.apim.infra.query_service.event;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.event.query_service.EventQueryService;
+import io.gravitee.apim.infra.adapter.ApiAdapter;
 import io.gravitee.apim.infra.adapter.EventAdapter;
+import io.gravitee.apim.infra.adapter.GraviteeJacksonMapper;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.EventRepository;
 import io.gravitee.repository.management.api.search.EventCriteria;
@@ -26,6 +30,7 @@ import io.gravitee.repository.management.model.EventType;
 import io.gravitee.rest.api.model.common.Pageable;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import java.util.Optional;
+import lombok.SneakyThrows;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -73,5 +78,33 @@ public class EventQueryServiceImpl implements EventQueryService {
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error occurs while trying to find API event by id: " + eventId, e);
         }
+    }
+
+    @SneakyThrows
+    @Override
+    public Optional<io.gravitee.apim.core.api.model.Api> findApiFromPublishApiEvent(String eventId) {
+        try {
+            return eventRepository
+                .findById(eventId)
+                .map(EventAdapter.INSTANCE::map)
+                .filter(e -> e.getType().equals(io.gravitee.rest.api.model.EventType.PUBLISH_API) && e.getPayload() != null)
+                .map(EventQueryServiceImpl::extractApiFromEvent);
+        } catch (TechnicalException e) {
+            throw new TechnicalManagementException("An error occurs while trying to find API event by id: " + eventId, e);
+        }
+    }
+
+    public static Api extractApiFromEvent(io.gravitee.apim.core.event.model.Event event) {
+        try {
+            var apiRepositoryModel = toApiRepositoryModel(event);
+            return ApiAdapter.INSTANCE.toCoreModel(apiRepositoryModel);
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Cannot read API definition from event" + event.getId(), e);
+        }
+    }
+
+    private static io.gravitee.repository.management.model.Api toApiRepositoryModel(io.gravitee.apim.core.event.model.Event event)
+        throws JsonProcessingException {
+        return GraviteeJacksonMapper.getInstance().readValue(event.getPayload(), io.gravitee.repository.management.model.Api.class);
     }
 }
