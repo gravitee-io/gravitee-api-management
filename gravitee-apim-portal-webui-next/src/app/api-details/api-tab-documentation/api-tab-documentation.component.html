@@ -17,11 +17,7 @@
 -->
 @if (pages.length) {
   <div class="api-tab-documentation__side-bar">
-    <app-page-tree
-      class="api-tab-documentation__side-bar__tree"
-      [initialSelectedPage]="page"
-      [pages]="pageNodes"
-      (openFile)="showPage($event)" />
+    <app-page-tree class="api-tab-documentation__side-bar__tree" [activePage]="page" [pages]="pageNodes" (openFile)="showPage($event)" />
   </div>
 
   <div class="api-tab-documentation__page-content">

@@ -16,8 +16,6 @@
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute } from '@angular/router';
-import { of } from 'rxjs';
 
 import { ApiTabDocumentationComponent } from './api-tab-documentation.component';
 import { PageTreeHarness } from '../../../components/page-tree/page-tree.harness';
@@ -32,12 +30,6 @@ describe('ApiTabDocumentationComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [ApiTabDocumentationComponent, AppTestingModule],
-      providers: [
-        {
-          provide: ActivatedRoute,
-          useValue: { queryParams: of({ page: undefined }) },
-        },
-      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ApiTabDocumentationComponent);
