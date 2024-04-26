@@ -15,9 +15,9 @@
  */
 import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { catchError, filter, map, Observable, of, switchMap } from 'rxjs';
+import { catchError, map, Observable, of } from 'rxjs';
 
 import { LoaderComponent } from '../../../components/loader/loader.component';
 import { PageComponent } from '../../../components/page/page.component';
@@ -37,7 +37,7 @@ interface SelectedPageData {
   templateUrl: './api-tab-documentation.component.html',
   styleUrl: './api-tab-documentation.component.scss',
 })
-export class ApiTabDocumentationComponent implements OnInit {
+export class ApiTabDocumentationComponent implements OnInit, OnChanges {
   @Input()
   page!: string;
   @Input()
@@ -53,12 +53,14 @@ export class ApiTabDocumentationComponent implements OnInit {
     private activatedRoute: ActivatedRoute,
   ) {}
 
-  ngOnInit(): void {
+  ngOnInit() {
     this.pageNodes = this.pageService.mapToPageTreeNode(undefined, this.pages);
-    this.selectedPageData$ = this.activatedRoute.queryParams.pipe(
-      filter(queryParams => !!queryParams['page']),
-      switchMap(({ page }) => this.getSelectedPage$(page)),
-    );
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['page'] && !!changes['page'].currentValue) {
+      this.selectedPageData$ = this.getSelectedPage$(changes['page'].currentValue);
+    }
   }
 
   showPage(page: string) {
