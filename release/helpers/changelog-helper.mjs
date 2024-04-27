@@ -2,7 +2,7 @@ export const ComponentTypes = ['Gateway', 'Management API', 'Console', 'Portal',
 export const ChangelogSections = [
   {
     ticketType: 'Public Bug',
-    title: 'BugFixes',
+    title: 'Bug Fixes',
   },
   {
     ticketType: 'Public Improvement',
@@ -30,10 +30,11 @@ export function getChangelogFor(issues) {
     .map((issue) => {
       if (issue.githubIssue && issue.githubIssue !== '') {
         const githubLink = `https://github.com/gravitee-io/issues/issues/${issue.githubIssue}`;
-        return `* ${issue.summary} [#${issue.githubIssue}](${githubLink})`;
+        // Must escape '[' to avoid being considered as a link in GitBook
+        return `* ${issue.summary.replaceAll('[', '\\[')} [#${issue.githubIssue}](${githubLink})`;
       }
 
-      return `* ${issue.summary}`;
+      return `* ${issue.summary.replaceAll('[', '\\[')}`;
     })
     .join('\n');
 }
