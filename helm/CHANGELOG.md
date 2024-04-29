@@ -3,6 +3,10 @@
 
 This file documents all notable changes to [Gravitee.io API Management 3.x](https://github.com/gravitee-io/helm-charts/tree/master/apim/3.x) Helm Chart. The release numbering uses [semantic versioning](http://semver.org).
 
+### 4.2.10
+
+- BREAKING CHANGE: In gateway ingress controller, change ssl-redirect option from "false" to default. More info [here](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#server-side-https-enforcement-through-redirect)
+
 ### 4.2.9
 
 - Improve redis ratelimit configuration [issues/9726](https://github.com/gravitee-io/issues/issues/9726). Thanks [@gh0stsrc](https://github.com/gh0stsrc)
