@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, DestroyRef, inject } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
@@ -38,6 +39,7 @@ export class LogInComponent {
     username: new FormControl('', [Validators.required]),
     password: new FormControl('', [Validators.required]),
   });
+  error = signal(200);
 
   private destroyRef = inject(DestroyRef);
   constructor(
@@ -55,7 +57,9 @@ export class LogInComponent {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        error: err => console.log(err), // TODO: Handle error
+        error: (err: HttpErrorResponse) => {
+          this.error.set(err.status);
+        },
       });
   }
 }
