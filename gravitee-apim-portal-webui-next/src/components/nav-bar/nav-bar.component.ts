@@ -16,18 +16,21 @@
 import { Component, inject } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { RouterLink } from '@angular/router';
+import { isEmpty } from 'lodash';
 
 import { NavBarButtonComponent } from './nav-bar-button/nav-bar-button.component';
 import { CurrentUserService } from '../../services/current-user.service';
 import { CompanyTitleComponent } from '../company-title/company-title.component';
+import { UserAvatarComponent } from '../user-avatar/user-avatar.component';
 
 @Component({
   selector: 'app-nav-bar',
   standalone: true,
-  imports: [MatButton, CompanyTitleComponent, RouterLink, NavBarButtonComponent],
+  imports: [MatButton, CompanyTitleComponent, RouterLink, NavBarButtonComponent, UserAvatarComponent],
   templateUrl: './nav-bar.component.html',
   styleUrl: './nav-bar.component.scss',
 })
 export class NavBarComponent {
   currentUser = inject(CurrentUserService).user;
+  protected readonly isEmpty = isEmpty;
 }
