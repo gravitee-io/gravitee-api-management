@@ -12,7 +12,8 @@
   "connector-type": "entrypoint",
   "connector-id": "http-get",
   "content-length": 4,
-  "count": 1,
+  "count": 21,
+  "count-increment": 10,
   "gateway-latency-ms": 0,
   "custom": {
     "zone": "europe-west10-a"

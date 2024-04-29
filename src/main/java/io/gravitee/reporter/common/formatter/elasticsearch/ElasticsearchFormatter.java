@@ -377,6 +377,16 @@ public class ElasticsearchFormatter<T extends Reportable>
       metrics.getErrorCount() >= 0 ? metrics.getErrorCount() : null
     );
     data.put(
+      "countIncrement",
+      metrics.getCountIncrement() >= 0 ? metrics.getCountIncrement() : null
+    );
+    data.put(
+      "errorCountIncrement",
+      metrics.getErrorCountIncrement() >= 0
+        ? metrics.getErrorCountIncrement()
+        : null
+    );
+    data.put(
       "gatewayLatencyMs",
       metrics.getGatewayLatencyMs() >= 0 ? metrics.getGatewayLatencyMs() : null
     );

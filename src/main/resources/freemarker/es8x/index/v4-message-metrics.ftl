@@ -38,6 +38,12 @@
   <#if errorCount??>
   ,"error-count":"${errorCount}"
   </#if>
+  <#if countIncrement??>
+    ,"count-increment":${countIncrement}
+  </#if>
+  <#if errorCountIncrement??>
+    ,"error-count-increment":"${errorCountIncrement}"
+  </#if>
   <#if metrics.isError()>
   ,"error":"${metrics.isError()?c}"
   </#if>

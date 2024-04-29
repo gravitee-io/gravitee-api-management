@@ -55,6 +55,8 @@ public class MessageMetricsFormatter
     appendLong(buffer, metrics.getContentLength());
     appendLong(buffer, metrics.getCount());
     appendLong(buffer, metrics.getErrorCount());
+    appendLong(buffer, metrics.getCountIncrement());
+    appendLong(buffer, metrics.getErrorCountIncrement());
     appendBoolean(buffer, metrics.isError());
     appendLong(buffer, metrics.getGatewayLatencyMs());
 

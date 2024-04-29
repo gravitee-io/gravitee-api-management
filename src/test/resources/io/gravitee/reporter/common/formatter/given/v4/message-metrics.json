@@ -9,8 +9,10 @@
   "connectorType": "ENTRYPOINT",
   "connectorId": "http-get",
   "contentLength": 4,
-  "count": 1,
+  "count": 21,
   "errorCount": -1,
+  "countIncrement": 10,
+  "errorCountIncrement": -1,
   "error": false,
   "gatewayLatencyMs": 0,
   "customMetrics": {
