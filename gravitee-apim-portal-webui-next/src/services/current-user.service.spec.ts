@@ -42,4 +42,15 @@ describe('CurrentUserService', () => {
 
     httpTestingController.expectOne(`${TESTING_BASE_URL}/user`).flush(user);
   });
+
+  it('should reset user on error', done => {
+    service.user.set(fakeUser());
+
+    service.loadUser().subscribe(() => {
+      expect(service.user()).toEqual(null);
+      done();
+    });
+
+    httpTestingController.expectOne(`${TESTING_BASE_URL}/user`).flush('', { status: 401, statusText: 'Unauthorized' });
+  });
 });
