@@ -36,6 +36,9 @@ import io.gravitee.apim.gateway.tests.sdk.annotations.DeployApi;
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.apim.gateway.tests.sdk.connector.EndpointBuilder;
 import io.gravitee.apim.gateway.tests.sdk.connector.EntrypointBuilder;
+import io.gravitee.apim.gateway.tests.sdk.connector.fakes.ConnectionErrorHttpProxyEndpointConnectorFactory;
+import io.gravitee.apim.gateway.tests.sdk.connector.fakes.ConnectionErrorMockEndpointConnector;
+import io.gravitee.apim.gateway.tests.sdk.connector.fakes.ConnectionErrorMockEndpointConnectorFactory;
 import io.gravitee.apim.gateway.tests.sdk.connector.fakes.ConnectionLatencyMockEndpointConnector;
 import io.gravitee.apim.gateway.tests.sdk.connector.fakes.ConnectionLatencyMockEndpointConnectorFactory;
 import io.gravitee.apim.gateway.tests.sdk.policy.PolicyBuilder;
@@ -77,7 +80,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Nested;
@@ -93,7 +95,198 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
 
     @Nested
     @GatewayTest
-    class MessageApi extends AbstractGatewayTest {
+    class ProxyApiErrorOnConnection extends AbstractGatewayTest {
+
+        @Override
+        public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
+            entrypoints.putIfAbsent("http-proxy", EntrypointBuilder.build("http-proxy", HttpProxyEntrypointConnectorFactory.class));
+        }
+
+        @Override
+        public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
+            endpoints.putIfAbsent(
+                "http-proxy",
+                EndpointBuilder.build("http-proxy", ConnectionErrorHttpProxyEndpointConnectorFactory.class)
+            );
+        }
+
+        @Test
+        @DeployApi("/apis/v4/http/failover/connectionfailure/api-proxy-only-one-endpoint-no-fail-connect.json")
+        void should_not_retry_on_fast_call(HttpClient client) {
+            // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of 5 before opening the circuit breaker
+            // and only one group with one endpoint
+            // And Given the backend answers immediately with no connection error
+            wiremock.stubFor(get("/endpoint").willReturn(ok(RESPONSE_FROM_BACKEND)));
+
+            // When requesting the API
+            client
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMap(response -> {
+                    // Then the API response should be 200
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    // Then the connection has been attempted once
+                    assertThat(response.getHeader(ConnectionLatencyMockEndpointConnector.MOCK_CONNECTION_ATTEMPTS)).isEqualTo("1");
+                    return response.body();
+                })
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(response -> {
+                    // Then the response body should be right
+                    assertThat(response).hasToString(RESPONSE_FROM_BACKEND);
+                    return true;
+                });
+            // Then the backend should have been called 1 time
+            wiremock.verify(getRequestedFor(urlPathEqualTo("/endpoint")));
+        }
+
+        @Test
+        @DeployApi("/apis/v4/http/failover/connectionfailure/api-proxy-only-one-endpoint-fail-each-connect.json")
+        void should_retry_and_fail_on_error_connection(HttpClient client) {
+            // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of 5 before opening the circuit breaker
+            // and only one group with one endpoint
+            // And Given the endpoint systematically fail to connect to the backend
+            wiremock.stubFor(get("/endpoint").willReturn(ok(RESPONSE_FROM_BACKEND)));
+
+            // When requesting the API
+            client
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMap(response -> {
+                    // Then the API response should be 200
+                    assertThat(response.statusCode()).isEqualTo(502);
+                    // Then the connection should have been attempted three times
+                    assertThat(response.getHeader(ConnectionLatencyMockEndpointConnector.MOCK_CONNECTION_ATTEMPTS)).isEqualTo("3");
+                    return response.body();
+                })
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertComplete();
+            // Then the backend should have not been called
+            wiremock.verify(0, getRequestedFor(urlPathEqualTo("/endpoint")));
+        }
+
+        @Test
+        @DeployApi("/apis/v4/http/failover/connectionfailure/api-proxy-only-one-endpoint-fail-first-connect.json")
+        void should_success_on_first_retry(HttpClient client) {
+            // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of 5 before opening the circuit breaker
+            // and only one group with one endpoint
+            // And Given the endpoint systematically fail to connect to the backend
+            wiremock.stubFor(get("/endpoint").willReturn(ok(RESPONSE_FROM_BACKEND)));
+
+            // When requesting the API
+            client
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMap(response -> {
+                    // Then the API response should be 200
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    // Then the connection should have been attempted twice
+                    assertThat(response.getHeader(ConnectionLatencyMockEndpointConnector.MOCK_CONNECTION_ATTEMPTS)).isEqualTo("2");
+                    return response.body();
+                })
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(response -> {
+                    // Then the response body should be right
+                    assertThat(response).hasToString(RESPONSE_FROM_BACKEND);
+                    return true;
+                });
+            // Then the backend should have been called once
+            wiremock.verify(1, getRequestedFor(urlPathEqualTo("/endpoint")));
+        }
+    }
+
+    @Nested
+    @GatewayTest
+    class MessageApiErrorOnConnection extends AbstractGatewayTest {
+
+        @Override
+        public void configureReactors(Set<ReactorPlugin<? extends ReactorFactory<?>>> reactors) {
+            reactors.add(ReactorBuilder.build(MessageApiReactorFactory.class));
+        }
+
+        @Override
+        public void configureEntrypoints(Map<String, EntrypointConnectorPlugin<?, ?>> entrypoints) {
+            entrypoints.putIfAbsent("http-get", EntrypointBuilder.build("http-get", HttpGetEntrypointConnectorFactory.class));
+        }
+
+        @Override
+        public void configureEndpoints(Map<String, EndpointConnectorPlugin<?, ?>> endpoints) {
+            endpoints.putIfAbsent("mock", EndpointBuilder.build("mock", ConnectionErrorMockEndpointConnectorFactory.class));
+        }
+
+        @Test
+        @DeployApi("/apis/v4/http/failover/connectionfailure/api-message-only-one-endpoint-no-fail-connect.json")
+        void should_not_retry_on_fast_call(HttpClient client) {
+            // Given a Message API, with no latency on endpoint connection
+            // and with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of 2
+            // When requesting the API
+            client
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMapPublisher(response -> {
+                    // Then the API response should be 200
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    // Then the connection must have been tried once
+                    assertThat(response.getHeader(ConnectionLatencyMockEndpointConnector.MOCK_CONNECTION_ATTEMPTS)).isEqualTo("1");
+                    return response.rxBody().flatMapPublisher(FailoverV4IntegrationTest::extractPlainTextMessages);
+                })
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValueCount(5);
+        }
+
+        @Test
+        @DeployApi("/apis/v4/http/failover/connectionfailure/api-message-only-one-endpoint-fail-each-connect.json")
+        void should_retry_and_fail_on_error_connection(HttpClient client) {
+            // Given a Message API, with latency of 750ms on each endpoint connection
+            // and with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of 2
+            // When requesting the API
+            client
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(HttpClientRequest::rxSend)
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValue(response -> {
+                    // Then the API response should be 502
+                    assertThat(response.statusCode()).isEqualTo(502);
+                    // Then the connection must have been tried 3 times
+                    assertThat(response.getHeader(ConnectionErrorMockEndpointConnector.MOCK_CONNECTION_ATTEMPTS)).isEqualTo("3");
+                    return true;
+                });
+        }
+
+        @Test
+        @DeployApi("/apis/v4/http/failover/connectionfailure/api-message-only-one-endpoint-fail-first-connect.json")
+        void should_success_on_first_retry(HttpClient client) {
+            // Given a Message API, with latency of 750ms on first endpoint connection
+            // and with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of 2
+            // When requesting the API
+            client
+                .rxRequest(HttpMethod.GET, "/test")
+                .flatMap(HttpClientRequest::rxSend)
+                .flatMapPublisher(response -> {
+                    // Then the API response should be 200
+                    assertThat(response.statusCode()).isEqualTo(200);
+                    // Then the connection must have been tried twice
+                    assertThat(response.getHeader(ConnectionErrorMockEndpointConnector.MOCK_CONNECTION_ATTEMPTS)).isEqualTo("2");
+                    return response.rxBody().flatMapPublisher(FailoverV4IntegrationTest::extractPlainTextMessages);
+                })
+                .test()
+                .awaitDone(30, TimeUnit.SECONDS)
+                .assertComplete()
+                .assertValueCount(5);
+        }
+    }
+
+    @Nested
+    @GatewayTest
+    class MessageApiLatencyOnConnection extends AbstractGatewayTest {
 
         @Override
         public void configureReactors(Set<ReactorPlugin<? extends ReactorFactory<?>>> reactors) {
@@ -111,7 +304,7 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
         }
 
         @Test
-        @DeployApi("/apis/v4/http/failover/api-message-only-one-endpoint-no-latency.json")
+        @DeployApi("/apis/v4/http/failover/connectionfailure/api-message-only-one-endpoint-no-latency.json")
         void should_not_retry_on_fast_call(HttpClient client) {
             // Given a Message API, with no latency on endpoint connection
             // and with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of 2
@@ -122,9 +315,9 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
                 .flatMapPublisher(response -> {
                     // Then the API response should be 200
                     assertThat(response.statusCode()).isEqualTo(200);
-                    // Then the connection must have been tried 1 time
+                    // Then the connection must have been tried once
                     assertThat(response.getHeader(ConnectionLatencyMockEndpointConnector.MOCK_CONNECTION_ATTEMPTS)).isEqualTo("1");
-                    return response.rxBody().flatMapPublisher(this::extractPlainTextMessages);
+                    return response.rxBody().flatMapPublisher(FailoverV4IntegrationTest::extractPlainTextMessages);
                 })
                 .test()
                 .awaitDone(30, TimeUnit.SECONDS)
@@ -133,7 +326,7 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
         }
 
         @Test
-        @DeployApi("/apis/v4/http/failover/api-message-only-one-endpoint-latency-each-connect.json")
+        @DeployApi("/apis/v4/http/failover/connectionfailure/api-message-only-one-endpoint-latency-each-connect.json")
         void should_retry_and_fail_on_slow_call(HttpClient client) {
             // Given a Message API, with latency of 750ms on each endpoint connection
             // and with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of 2
@@ -154,7 +347,7 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
         }
 
         @Test
-        @DeployApi("/apis/v4/http/failover/api-message-only-one-endpoint-latency-first-connect.json")
+        @DeployApi("/apis/v4/http/failover/connectionfailure/api-message-only-one-endpoint-latency-first-connect.json")
         void should_success_on_first_retry(HttpClient client) {
             // Given a Message API, with latency of 750ms on first endpoint connection
             // and with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of 2
@@ -165,36 +358,14 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
                 .flatMapPublisher(response -> {
                     // Then the API response should be 200
                     assertThat(response.statusCode()).isEqualTo(200);
-                    // Then the connection must have been tried 2 time
+                    // Then the connection must have been tried twice
                     assertThat(response.getHeader(ConnectionLatencyMockEndpointConnector.MOCK_CONNECTION_ATTEMPTS)).isEqualTo("2");
-                    return response.rxBody().flatMapPublisher(this::extractPlainTextMessages);
+                    return response.rxBody().flatMapPublisher(FailoverV4IntegrationTest::extractPlainTextMessages);
                 })
                 .test()
                 .awaitDone(30, TimeUnit.SECONDS)
                 .assertComplete()
                 .assertValueCount(5);
-        }
-
-        @NonNull
-        private Flowable<JsonObject> extractPlainTextMessages(Buffer body) {
-            final List<JsonObject> messages = new ArrayList<>();
-
-            final String[] lines = body.toString().split("\n");
-
-            JsonObject jsonObject = new JsonObject();
-
-            for (String line : lines) {
-                if (line.equals("item")) {
-                    jsonObject = new JsonObject();
-                    messages.add(jsonObject);
-                } else if (line.startsWith("id:")) {
-                    jsonObject.put("id", Integer.parseInt(line.replace("id: ", "")));
-                } else if (line.startsWith("content:")) {
-                    jsonObject.put("content", line.replace("content: ", ""));
-                }
-            }
-
-            return Flowable.fromIterable(messages);
         }
     }
 
@@ -555,5 +726,27 @@ public class FailoverV4IntegrationTest extends FailoverV4EmulationIntegrationTes
         void should_success_on_second_retry(HttpClient client) {
             super.should_success_on_second_retry(client);
         }
+    }
+
+    @NonNull
+    private static Flowable<JsonObject> extractPlainTextMessages(Buffer body) {
+        final List<JsonObject> messages = new ArrayList<>();
+
+        final String[] lines = body.toString().split("\n");
+
+        JsonObject jsonObject = new JsonObject();
+
+        for (String line : lines) {
+            if (line.equals("item")) {
+                jsonObject = new JsonObject();
+                messages.add(jsonObject);
+            } else if (line.startsWith("id:")) {
+                jsonObject.put("id", Integer.parseInt(line.replace("id: ", "")));
+            } else if (line.startsWith("content:")) {
+                jsonObject.put("content", line.replace("content: ", ""));
+            }
+        }
+
+        return Flowable.fromIterable(messages);
     }
 }

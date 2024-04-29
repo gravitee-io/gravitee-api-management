@@ -1,0 +1,66 @@
+{
+  "id": "my-api",
+  "name": "my-api",
+  "apiVersion": "1.0",
+  "definitionVersion": "4.0.0",
+  "type": "proxy",
+  "listeners": [
+    {
+      "type": "http",
+      "paths": [
+        {
+          "path": "/test"
+        }
+      ],
+      "entrypoints": [
+        {
+          "type": "http-proxy"
+        }
+      ]
+    }
+  ],
+  "endpointGroups": [
+    {
+      "name": "default-group",
+      "type": "http-proxy",
+      "endpoints": [
+        {
+          "name": "default",
+          "type": "http-proxy",
+          "weight": 1,
+          "inheritConfiguration": false,
+          "configuration": {
+            "target": "http://localhost:8080/endpoint"
+          },
+          "sharedConfigurationOverride": {
+            "http": {
+              "connectTimeout": 3000,
+              "readTimeout": 60000
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "failover": {
+    "enabled": true,
+    "maxRetries": 2,
+    "slowCallDuration": 500,
+    "maxFailures": 2,
+    "perSubscription": false
+  },
+  "flows": [
+    {
+      "name": "flow-1",
+      "enabled": true,
+      "request": [],
+      "response": [],
+      "subscribe": [],
+      "publish": [
+      ]
+    }
+  ],
+  "analytics": {
+    "enabled": false
+  }
+}
