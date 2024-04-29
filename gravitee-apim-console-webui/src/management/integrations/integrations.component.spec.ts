@@ -172,7 +172,7 @@ describe('IntegrationsComponent', () => {
     };
 
     const req: TestRequest = httpTestingController.expectOne(
-      `${CONSTANTS_TESTING.env.v2BaseURL}/integrations/?page=${page}&perPage=${size}`,
+      `${CONSTANTS_TESTING.env.v2BaseURL}/integrations?page=${page}&perPage=${size}`,
     );
     req.flush(fakeIntegrationResponse);
     expect(req.request.method).toEqual('GET');
