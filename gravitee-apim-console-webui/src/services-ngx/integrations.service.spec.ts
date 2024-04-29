@@ -49,7 +49,7 @@ describe('IntegrationsService', () => {
         expect(res).toMatchObject(fakeData);
       });
 
-      httpTestingController.expectOne({ method: 'GET', url: url + '/?page=1&perPage=10' }).flush(fakeData);
+      httpTestingController.expectOne({ method: 'GET', url: url + '?page=1&perPage=10' }).flush(fakeData);
     });
   });
 

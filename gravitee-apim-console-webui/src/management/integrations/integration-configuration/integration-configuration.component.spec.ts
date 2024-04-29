@@ -32,8 +32,9 @@ import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
 import { IntegrationsModule } from '../integrations.module';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 import { GioTestingPermission, GioTestingPermissionProvider } from '../../../shared/components/gio-permission/gio-permission.service';
-import { Integration } from '../integrations.model';
+import { FederatedAPI, FederatedAPIsResponse, Integration } from '../integrations.model';
 import { fakeIntegration } from '../../../entities/integrations/integration.fixture';
+import { fakeFederatedAPI } from '../../../entities/integrations/federatedAPI.fixture';
 
 describe('IntegrationConfigurationComponent', (): void => {
   let fixture: ComponentFixture<IntegrationConfigurationComponent>;
@@ -96,6 +97,8 @@ describe('IntegrationConfigurationComponent', (): void => {
 
     it('should show validation error when name is not valid', async () => {
       expectIntegrationGetRequest(fakeIntegration());
+      expectFederatedAPIsGetRequest();
+
       await componentHarness.setName('');
       await componentHarness.setDescription('Some description');
       fixture.detectChanges();
@@ -113,6 +116,8 @@ describe('IntegrationConfigurationComponent', (): void => {
 
     it('should not show submit bar when form not valid', async () => {
       expectIntegrationGetRequest(fakeIntegration());
+      expectFederatedAPIsGetRequest();
+
       await componentHarness.setName('');
       await componentHarness.setDescription('Some description');
       fixture.detectChanges();
@@ -130,6 +135,7 @@ describe('IntegrationConfigurationComponent', (): void => {
 
     it('should send request PUT with payload', async () => {
       expectIntegrationGetRequest(fakeIntegration());
+      expectFederatedAPIsGetRequest();
 
       await componentHarness.setName('Test Title');
       await componentHarness.setDescription('Description');
@@ -152,6 +158,7 @@ describe('IntegrationConfigurationComponent', (): void => {
 
     it('should not display delete button', async () => {
       expectIntegrationGetRequest(fakeIntegration());
+      expectFederatedAPIsGetRequest();
       const deleteButton: MatButtonHarness = await componentHarness.getDeleteIntegrationButton();
       expect(deleteButton).toBeNull();
     });
@@ -164,6 +171,7 @@ describe('IntegrationConfigurationComponent', (): void => {
 
     it('should not display update form', async () => {
       expectIntegrationGetRequest(fakeIntegration());
+      expectFederatedAPIsGetRequest();
       const updateForm: MatCardHarness = await componentHarness.getUpdateSection();
       expect(updateForm).toBeNull();
     });
@@ -176,6 +184,7 @@ describe('IntegrationConfigurationComponent', (): void => {
 
     it('should send DELETE request with correct ID', async () => {
       expectIntegrationGetRequest(fakeIntegration({ id: 'idToDelete123' }));
+      expectFederatedAPIsGetRequest([]);
 
       const deleteButton: MatButtonHarness = await componentHarness.getDeleteIntegrationButton();
       await deleteButton.click();
@@ -187,6 +196,29 @@ describe('IntegrationConfigurationComponent', (): void => {
       await dialogHarness.confirm();
 
       expectIntegrationDeleteRequest('idToDelete123');
+    });
+  });
+
+  describe('delete button', () => {
+    beforeEach((): void => {
+      init();
+    });
+
+    it('should be disabled when federated APIS are present', async (): Promise<void> => {
+      expectIntegrationGetRequest(fakeIntegration({ id: 'idToDelete123' }));
+      expectFederatedAPIsGetRequest([fakeFederatedAPI(), fakeFederatedAPI(), fakeFederatedAPI()]);
+
+      const deleteButton: MatButtonHarness = await componentHarness.getDeleteIntegrationButton();
+      expect(await deleteButton.isDisabled()).toBeTruthy();
+    });
+
+    it('should be enabled when federated APIs are not present', async (): Promise<void> => {
+      expectIntegrationGetRequest(fakeIntegration({ id: 'idToDelete123' }));
+      expectFederatedAPIsGetRequest([]);
+
+      const deleteButton: MatButtonHarness = await componentHarness.getDeleteIntegrationButton();
+      expect(fixture.componentInstance.hasFederatedAPIs).toBeFalsy();
+      expect(await deleteButton.isDisabled()).toBeFalsy();
     });
   });
 
@@ -206,5 +238,21 @@ describe('IntegrationConfigurationComponent', (): void => {
     req.flush(integrationMock);
     expect(req.request.method).toEqual('PUT');
     expect(req.request.body).toEqual(payload);
+  }
+
+  function expectFederatedAPIsGetRequest(federatedAPIs: FederatedAPI[] = [fakeFederatedAPI()], page = 1, perPage = 10): void {
+    const req: TestRequest = httpTestingController.expectOne(
+      `${CONSTANTS_TESTING.env.v2BaseURL}/integrations/${integrationId}/apis?page=${page}&perPage=${perPage}`,
+    );
+    const res: FederatedAPIsResponse = {
+      data: federatedAPIs,
+      pagination: {
+        page,
+        perPage,
+      },
+    };
+
+    req.flush(res);
+    expect(req.request.method).toEqual('GET');
   }
 });

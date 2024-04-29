@@ -49,7 +49,7 @@ export class IntegrationsService {
   }
 
   public getIntegrations(page: number, size: number): Observable<IntegrationResponse> {
-    return this.httpClient.get<IntegrationResponse>(`${this.url}/?page=${page}&perPage=${size}`);
+    return this.httpClient.get<IntegrationResponse>(`${this.url}?page=${page}&perPage=${size}`);
   }
 
   public getIntegration(id: string): Observable<Integration> {
@@ -72,7 +72,7 @@ export class IntegrationsService {
     return this.httpClient.post(`${this.url}/${id}/_ingest`, null);
   }
 
-  public getFederatedAPIs(id: string, page: number, size: number): Observable<FederatedAPIsResponse> {
+  public getFederatedAPIs(id: string, page: number = 1, size: number = 10): Observable<FederatedAPIsResponse> {
     return this.httpClient.get<FederatedAPIsResponse>(`${this.url}/${id}/apis?page=${page}&perPage=${size}`);
   }
 }

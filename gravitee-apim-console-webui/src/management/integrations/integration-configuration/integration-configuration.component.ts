@@ -20,10 +20,10 @@ import { FormBuilder, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatDialog } from '@angular/material/dialog';
 import { EMPTY } from 'rxjs';
-import { catchError, filter, switchMap, tap } from 'rxjs/operators';
+import { catchError, filter, map, switchMap, tap } from 'rxjs/operators';
 import { GIO_DIALOG_WIDTH, GioConfirmDialogComponent, GioConfirmDialogData } from '@gravitee/ui-particles-angular';
 
-import { Integration } from '../integrations.model';
+import { FederatedAPIsResponse, Integration } from '../integrations.model';
 import { IntegrationsService } from '../../../services-ngx/integrations.service';
 import { SnackBarService } from '../../../services-ngx/snack-bar.service';
 
@@ -36,6 +36,7 @@ export class IntegrationConfigurationComponent implements OnInit {
   private destroyRef: DestroyRef = inject(DestroyRef);
   public isLoading = true;
   public integration: Integration;
+  public hasFederatedAPIs: boolean = false;
 
   public generalInformationForm = this.formBuilder.group({
     name: ['', [Validators.required, Validators.maxLength(50), Validators.minLength(1)]],
@@ -53,6 +54,13 @@ export class IntegrationConfigurationComponent implements OnInit {
 
   ngOnInit(): void {
     this.getIntegration();
+    this.integrationsService
+      .getFederatedAPIs(this.activatedRoute.snapshot.params.integrationId)
+      .pipe(
+        map((res: FederatedAPIsResponse) => !!res.data.length),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((hasFederatedAPIs: boolean) => (this.hasFederatedAPIs = hasFederatedAPIs));
   }
 
   private getIntegration(): void {

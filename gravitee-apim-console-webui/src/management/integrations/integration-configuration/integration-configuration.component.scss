@@ -91,7 +91,7 @@ $typography: map.get(gio.$mat-theme, typography);
     display: flex;
     flex-direction: column;
 
-    &__action {
+    .danger-action {
       display: flex;
       align-items: center;
       flex-direction: row;

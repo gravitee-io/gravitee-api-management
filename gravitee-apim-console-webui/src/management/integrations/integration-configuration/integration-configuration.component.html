@@ -65,17 +65,23 @@
       <mat-card-content>
         <h3 class="danger-card__title">Danger Zone</h3>
         <div class="danger-card__actions">
-          <div class="danger-card__actions__action">
+          <div class="danger-action">
             <span>Delete this integration.</span>
-            <button
-              mat-button
-              color="warn"
-              (click)="deleteIntegration()"
-              data-testid="delete-integration-button"
-              *gioPermission="{ anyOf: ['environment-integration-d'] }"
+            <span
+              [matTooltipDisabled]="!hasFederatedAPIs"
+              matTooltip="This Integration cannot be deleted because there are Federated APIs linked to it"
             >
-              Delete
-            </button>
+              <button
+                mat-button
+                color="warn"
+                (click)="deleteIntegration()"
+                data-testid="delete-integration-button"
+                *gioPermission="{ anyOf: ['environment-integration-d'] }"
+                [disabled]="hasFederatedAPIs"
+              >
+                Delete
+              </button>
+            </span>
           </div>
         </div>
       </mat-card-content>
