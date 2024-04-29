@@ -50,6 +50,12 @@
             "error-count": {
                 "type": "integer"
             },
+            "count-increment": {
+                "type": "integer"
+            },
+            "error-count-increment": {
+                "type": "integer"
+            },
             "error": {
                 "type": "boolean"
             },
