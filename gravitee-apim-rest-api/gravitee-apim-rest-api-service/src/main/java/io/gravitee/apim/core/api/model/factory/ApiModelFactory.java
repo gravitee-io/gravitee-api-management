@@ -52,6 +52,7 @@ public class ApiModelFactory {
             .environmentId(environmentId)
             .createdAt(now)
             .updatedAt(now)
+            .visibility(Api.Visibility.valueOf(crd.getVisibility()))
             .apiDefinitionV4(crd.toApiDefinitionBuilder().id(id).build())
             .build();
     }
