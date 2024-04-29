@@ -24,6 +24,7 @@ import io.gravitee.repository.management.api.FlowRepository;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
 import io.gravitee.rest.api.service.impl.TransactionalService;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -53,6 +54,26 @@ public class FlowCrudServiceImpl extends TransactionalService implements FlowCru
     @Override
     public List<Flow> saveApiFlows(String apiId, List<Flow> flows) {
         return save(FlowReferenceType.API, apiId, flows);
+    }
+
+    @Override
+    public List<Flow> getApiV4Flows(String apiId) {
+        return getV4(FlowReferenceType.API, apiId);
+    }
+
+    @Override
+    public List<Flow> getPlanV4Flows(String planId) {
+        return getV4(FlowReferenceType.PLAN, planId);
+    }
+
+    @Override
+    public List<io.gravitee.definition.model.flow.Flow> getApiV2Flows(String apiId) {
+        return getV2(FlowReferenceType.API, apiId);
+    }
+
+    @Override
+    public List<io.gravitee.definition.model.flow.Flow> getPlanV2Flows(String planId) {
+        return getV2(FlowReferenceType.PLAN, planId);
     }
 
     private List<Flow> save(FlowReferenceType flowReferenceType, String referenceId, List<Flow> flows) {
@@ -92,6 +113,38 @@ public class FlowCrudServiceImpl extends TransactionalService implements FlowCru
             return savedFlows;
         } catch (TechnicalException ex) {
             final String error = "An error occurs while trying to save flows for " + flowReferenceType + ": " + referenceId;
+            log.error(error, ex);
+            throw new TechnicalDomainException(error, ex);
+        }
+    }
+
+    private List<io.gravitee.definition.model.flow.Flow> getV2(FlowReferenceType flowReferenceType, String referenceId) {
+        try {
+            log.debug("Get flows for reference {},{}", flowReferenceType, flowReferenceType);
+            return flowRepository
+                .findByReference(flowReferenceType, referenceId)
+                .stream()
+                .sorted(Comparator.comparing(io.gravitee.repository.management.model.flow.Flow::getOrder))
+                .map(FlowAdapter.INSTANCE::toFlowV2)
+                .collect(Collectors.toList());
+        } catch (TechnicalException ex) {
+            final String error = "An error occurs while trying to get flows for " + flowReferenceType + ": " + referenceId;
+            log.error(error, ex);
+            throw new TechnicalDomainException(error, ex);
+        }
+    }
+
+    private List<Flow> getV4(FlowReferenceType flowReferenceType, String referenceId) {
+        try {
+            log.debug("Get flows for reference {},{}", flowReferenceType, flowReferenceType);
+            return flowRepository
+                .findByReference(flowReferenceType, referenceId)
+                .stream()
+                .sorted(Comparator.comparing(io.gravitee.repository.management.model.flow.Flow::getOrder))
+                .map(FlowAdapter.INSTANCE::toFlowV4)
+                .collect(Collectors.toList());
+        } catch (TechnicalException ex) {
+            final String error = "An error occurs while trying to get flows for " + flowReferenceType + ": " + referenceId;
             log.error(error, ex);
             throw new TechnicalDomainException(error, ex);
         }

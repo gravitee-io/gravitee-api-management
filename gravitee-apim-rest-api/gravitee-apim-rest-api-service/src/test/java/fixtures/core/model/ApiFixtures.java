@@ -36,6 +36,7 @@ import io.gravitee.rest.api.model.context.IntegrationContext;
 import io.gravitee.rest.api.model.context.ManagementContext;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -160,7 +161,7 @@ public class ApiFixtures {
                             )
                             .build()
                     )
-                    .plans(Map.of())
+                    .plans(new HashMap<>())
                     .build()
             )
             .build();

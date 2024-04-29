@@ -364,6 +364,28 @@ paths:
                     description: API deployment request received
                 default:
                     $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/deployments/current:
+        parameters:
+            - $ref: "#/components/parameters/envIdParam"
+            - $ref: "#/components/parameters/apiIdParam"
+        get:
+            tags:
+                - APIs
+            summary: Get the current deployment of an API
+            description: |-
+                Get the current deployment of an API.
+
+                User must have the API_DEFINITION[READ] permission.
+            operationId: getCurrentApiDeployment
+            responses:
+                "200":
+                    description: Current API deployment found
+                    content:
+                        application/json:
+                            schema:
+                              type: object
+                default:
+                    $ref: "#/components/responses/Error"
     /environments/{envId}/apis/{apiId}/deployments/_verify:
         parameters:
             - $ref: "#/components/parameters/envIdParam"

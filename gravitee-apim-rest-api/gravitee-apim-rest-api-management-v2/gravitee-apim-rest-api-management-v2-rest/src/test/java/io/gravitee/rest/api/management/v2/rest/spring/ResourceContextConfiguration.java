@@ -31,6 +31,7 @@ import io.gravitee.apim.core.api.domain_service.UpdateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.ValidateApiDomainService;
 import io.gravitee.apim.core.api.domain_service.VerifyApiPathDomainService;
 import io.gravitee.apim.core.api.query_service.ApiEventQueryService;
+import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.audit.domain_service.SearchAuditDomainService;
 import io.gravitee.apim.core.audit.query_service.AuditMetadataQueryService;
@@ -359,5 +360,10 @@ public class ResourceContextConfiguration {
     @Bean
     public RollbackApiUseCase rollbackApiUseCase() {
         return mock(RollbackApiUseCase.class);
+    }
+
+    @Bean
+    public GetApiDefinitionUseCase getApiDefinitionUseCase() {
+        return mock(GetApiDefinitionUseCase.class);
     }
 }
