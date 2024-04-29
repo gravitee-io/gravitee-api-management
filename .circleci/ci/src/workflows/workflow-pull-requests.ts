@@ -301,6 +301,13 @@ export class PullRequestsWorkflow {
           working_directory: config.dockerImages.portal.project,
           cache_type: 'frontend',
         }),
+        new workflow.WorkflowJob(sonarCloudAnalysisJob, {
+          name: 'Sonar - gravitee-apim-portal-webui-next',
+          context: config.jobContext,
+          requires: ['Lint & test APIM Portal Next'],
+          working_directory: config.dockerImages.portal.next.project,
+          cache_type: 'frontend',
+        }),
       );
 
       requires.push('Lint & test APIM Portal', 'Lint & test APIM Portal Next', 'Build APIM Portal and publish image');
