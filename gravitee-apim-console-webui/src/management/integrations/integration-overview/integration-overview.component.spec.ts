@@ -127,6 +127,7 @@ describe('IntegrationOverviewComponent', () => {
         message: 'Integration APIs have been ingested successfully',
       });
       expect(fakeSnackBarService.success).toHaveBeenCalledWith('APIs successfully created and ready for use!');
+      expectFederatedAPIsGetRequest();
     });
 
     it('should not call _ingest endpoint on cancel', async () => {

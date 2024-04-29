@@ -59,18 +59,22 @@ export class IntegrationOverviewComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    const id: string = this.activatedRoute.snapshot.paramMap.get('integrationId');
-    this.getIntegration(id);
-    this.initFilters(id);
+    this.getIntegration();
+    this.initFederatedAPIsList();
   }
 
-  private initFilters(id: string): void {
+  private initFederatedAPIsList(): void {
+    this.isLoadingFederatedAPI = true;
     this.filters$
       .pipe(
         distinctUntilChanged(isEqual),
         switchMap((filters: GioTableWrapperFilters) => {
           this.isLoadingFederatedAPI = true;
-          return this.integrationsService.getFederatedAPIs(id, filters.pagination.index, filters.pagination.size);
+          return this.integrationsService.getFederatedAPIs(
+            this.activatedRoute.snapshot.paramMap.get('integrationId'),
+            filters.pagination.index,
+            filters.pagination.size,
+          );
         }),
         catchError(({ error }) => {
           this.isLoadingFederatedAPI = false;
@@ -86,9 +90,10 @@ export class IntegrationOverviewComponent implements OnInit {
       });
   }
 
-  private getIntegration(id: string): void {
+  private getIntegration(): void {
+    this.isLoadingIntegration = true;
     this.integrationsService
-      .getIntegration(id)
+      .getIntegration(this.activatedRoute.snapshot.paramMap.get('integrationId'))
       .pipe(
         catchError(({ error }) => {
           this.isLoadingIntegration = false;
@@ -129,6 +134,7 @@ export class IntegrationOverviewComponent implements OnInit {
         tap(() => {
           this.isIngesting = false;
           this.snackBarService.success('APIs successfully created and ready for use!');
+          this.initFederatedAPIsList();
         }),
         catchError(() => {
           this.isIngesting = false;
