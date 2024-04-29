@@ -7,6 +7,8 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 
 - Add support for multi-server installation
 - Improve redis ratelimit configuration [issues/9726](https://github.com/gravitee-io/issues/issues/9726). Thanks [@gh0stsrc](https://github.com/gh0stsrc)
+- BREAKING CHANGE: In gateway ingress controller, change ssl-redirect option from "false" to default. More info [here](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#server-side-https-enforcement-through-redirect)
+
 
 ### 4.3.4
 
