@@ -8,7 +8,7 @@ orbs:
     artifactory-orb: jfrog/artifactory-orb@1.0.1
     aws-s3: circleci/aws-s3@3.1.1
     helm: circleci/helm@2.0.1
-    snyk: snyk/snyk@1.7.0
+    snyk: snyk/snyk@1.7.2
 
 executors:
     ubuntu:
