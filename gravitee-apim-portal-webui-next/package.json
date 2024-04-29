@@ -76,7 +76,7 @@
     "@storybook/blocks": "8.0.5",
     "@storybook/test": "8.0.5",
     "@types/jest": "29.5.12",
-    "@types/js-yaml": "4",
+    "@types/js-yaml": "4.0.9",
     "@typescript-eslint/eslint-plugin": "7.2.0",
     "@typescript-eslint/parser": "7.2.0",
     "eslint": "8.57.0",
