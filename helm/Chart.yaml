@@ -27,3 +27,4 @@ annotations:
     - 'fix helm backward compatibility during helm upgrade without `common` field'
     - 'Added default preStop command on ui and portal'
     - 'BREAKING CHANGE: deprecated api|gateway|ui|portal.securityContext has been removed'
+    - 'BREAKING CHANGE: In gateway ingress controller, change ssl-redirect option from "false" to default. More info here: https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#server-side-https-enforcement-through-redirect'
