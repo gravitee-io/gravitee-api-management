@@ -42,12 +42,10 @@ describe('ConfigService', () => {
         environmentId: 'DEFAULT',
       };
 
-      service
-        .initBaseURL()()
-        .subscribe(baseUrl => {
-          expect(baseUrl).toEqual('http://localhost:8083/portal/environments/DEFAULT');
-          done();
-        });
+      service.initBaseURL().subscribe(baseUrl => {
+        expect(baseUrl).toEqual('http://localhost:8083/portal/environments/DEFAULT');
+        done();
+      });
 
       httpTestingController.expectOne('./assets/config.json').flush(configJson);
       httpTestingController.expectOne('http://localhost:8083/portal/ui/bootstrap').flush(configBootstrap);
@@ -63,12 +61,10 @@ describe('ConfigService', () => {
         environmentId: 'DEFAULT',
       };
 
-      service
-        .initBaseURL()()
-        .subscribe(baseUrl => {
-          expect(baseUrl).toEqual('http://localhost:8083/portal/environments/DEFAULT');
-          done();
-        });
+      service.initBaseURL().subscribe(baseUrl => {
+        expect(baseUrl).toEqual('http://localhost:8083/portal/environments/DEFAULT');
+        done();
+      });
 
       httpTestingController.expectOne('./assets/config.json').flush(configJson);
       httpTestingController.expectOne('http://localhost:8083/portal/ui/bootstrap?environmentId=DEFAULT').flush(configBootstrap);
@@ -85,12 +81,10 @@ describe('ConfigService', () => {
         environmentId: 'DEFAULT',
       };
 
-      service
-        .initBaseURL()()
-        .subscribe(baseUrl => {
-          expect(baseUrl).toEqual('http://localhost:8083/portal/environments/DEFAULT');
-          done();
-        });
+      service.initBaseURL().subscribe(baseUrl => {
+        expect(baseUrl).toEqual('http://localhost:8083/portal/environments/DEFAULT');
+        done();
+      });
 
       httpTestingController.expectOne('./assets/config.json').flush(configJson);
       httpTestingController.expectOne('http://localhost:8083/portal/ui/bootstrap?environmentId=DEFAULT').flush(configBootstrap);

@@ -41,21 +41,20 @@ export class ConfigService {
     this._baseURL = baseURL;
   }
 
-  public initBaseURL(): () => Observable<string> {
-    return () =>
-      this.httpClient.get<Config>('./assets/config.json').pipe(
-        switchMap(configJson => {
-          const baseURL = this._sanitizeBaseURLs(configJson);
-          const enforcedEnvironmentId = this._getEnforcedEnvironmentId(configJson);
-          const bootstrapUrl = `${baseURL}/ui/bootstrap${enforcedEnvironmentId ? `?environmentId=${enforcedEnvironmentId}` : ''}`;
+  public initBaseURL(): Observable<string> {
+    return this.httpClient.get<Config>('./assets/config.json').pipe(
+      switchMap(configJson => {
+        const baseURL = this._sanitizeBaseURLs(configJson);
+        const enforcedEnvironmentId = this._getEnforcedEnvironmentId(configJson);
+        const bootstrapUrl = `${baseURL}/ui/bootstrap${enforcedEnvironmentId ? `?environmentId=${enforcedEnvironmentId}` : ''}`;
 
-          return this.httpClient.get<Config>(bootstrapUrl);
-        }),
-        map((bootstrapConfig: Config) => {
-          this.baseURL = `${bootstrapConfig.baseURL}/environments/${bootstrapConfig.environmentId}`;
-          return this.baseURL;
-        }),
-      );
+        return this.httpClient.get<Config>(bootstrapUrl);
+      }),
+      map((bootstrapConfig: Config) => {
+        this.baseURL = `${bootstrapConfig.baseURL}/environments/${bootstrapConfig.environmentId}`;
+        return this.baseURL;
+      }),
+    );
   }
 
   private _sanitizeBaseURLs(config: Config): string {

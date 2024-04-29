@@ -17,14 +17,15 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { APP_INITIALIZER, ApplicationConfig } from '@angular/core';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideRouter, withComponentInputBinding, withRouterConfig } from '@angular/router';
-import { Observable } from 'rxjs';
+import { Observable, switchMap } from 'rxjs';
 
 import { routes } from './app.routes';
 import { httpRequestInterceptor } from '../interceptors/http-request.interceptor';
 import { ConfigService } from '../services/config.service';
+import { CurrentUserService } from '../services/current-user.service';
 
-function initConfig(configService: ConfigService): () => Observable<string> {
-  return configService.initBaseURL();
+function initApp(configService: ConfigService, currentUserService: CurrentUserService): () => Observable<unknown> {
+  return () => configService.initBaseURL().pipe(switchMap(_ => currentUserService.loadUser()));
 }
 
 export const appConfig: ApplicationConfig = {
@@ -34,8 +35,8 @@ export const appConfig: ApplicationConfig = {
     provideAnimations(),
     {
       provide: APP_INITIALIZER,
-      useFactory: initConfig,
-      deps: [ConfigService],
+      useFactory: initApp,
+      deps: [ConfigService, CurrentUserService],
       multi: true,
     },
   ],

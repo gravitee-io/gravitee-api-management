@@ -15,7 +15,8 @@
  */
 import { HttpClient } from '@angular/common/http';
 import { Injectable, signal, WritableSignal } from '@angular/core';
-import { Observable, tap } from 'rxjs';
+import { catchError, Observable, tap } from 'rxjs';
+import { of } from 'rxjs/internal/observable/of';
 
 import { ConfigService } from './config.service';
 import { User } from '../entities/user/user';
@@ -39,6 +40,10 @@ export class CurrentUserService {
     return this.http.get<User>(`${this.configuration.baseURL}/user`).pipe(
       tap(resp => {
         this.user.set(resp);
+      }),
+      catchError(_ => {
+        this.user.set(null);
+        return of({});
       }),
     );
   }
