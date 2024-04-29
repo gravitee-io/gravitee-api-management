@@ -21,6 +21,7 @@ import { ApiTabDocumentationComponent } from './api-details/api-tab-documentatio
 import { CatalogComponent } from './catalog/catalog.component';
 import { LogInComponent } from './log-in/log-in.component';
 import { NotFoundComponent } from './not-found/not-found.component';
+import { anonymousGuard } from '../guards/anonymous.guard';
 import { apiResolver } from '../resolvers/api.resolver';
 import { pagesResolver } from '../resolvers/pages.resolver';
 
@@ -55,7 +56,7 @@ export const routes: Routes = [
       },
     ],
   },
-  { path: 'log-in', component: LogInComponent },
+  { path: 'log-in', component: LogInComponent, canActivate: [anonymousGuard] },
   { path: '404', component: NotFoundComponent },
   {
     path: '**',
