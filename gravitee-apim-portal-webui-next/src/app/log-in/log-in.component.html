@@ -35,6 +35,9 @@
           <mat-error i18n="@@logInPasswordErrorRequired">Password is required</mat-error>
         }
       </mat-form-field>
+      @if (error() === 401) {
+        <mat-error i18n="@@logInError401">The username or password you entered is incorrect, please try again.</mat-error>
+      }
     </mat-card-content>
     <mat-card-footer>
       <mat-card-actions>
