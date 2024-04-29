@@ -29,6 +29,9 @@ public class FlowCrudServiceInMemory implements FlowCrudService, InMemoryAlterna
     final Map<String, List<Flow>> apiFlows = new HashMap<>();
     final Map<String, List<Flow>> planFlows = new HashMap<>();
 
+    final Map<String, List<io.gravitee.definition.model.flow.Flow>> apiFlowsV2 = new HashMap<>();
+    final Map<String, List<io.gravitee.definition.model.flow.Flow>> planFlowsV2 = new HashMap<>();
+
     @Override
     public List<Flow> savePlanFlows(String planId, List<Flow> flows) {
         planFlows.put(planId, flows);
@@ -37,8 +40,28 @@ public class FlowCrudServiceInMemory implements FlowCrudService, InMemoryAlterna
 
     @Override
     public List<Flow> saveApiFlows(String apiId, List<Flow> flows) {
-        planFlows.put(apiId, flows);
+        apiFlows.put(apiId, flows);
         return flows;
+    }
+
+    @Override
+    public List<Flow> getApiV4Flows(String apiId) {
+        return apiFlows.getOrDefault(apiId, new ArrayList<>());
+    }
+
+    @Override
+    public List<Flow> getPlanV4Flows(String planId) {
+        return planFlows.getOrDefault(planId, new ArrayList<>());
+    }
+
+    @Override
+    public List<io.gravitee.definition.model.flow.Flow> getApiV2Flows(String apiId) {
+        return apiFlowsV2.getOrDefault(apiId, new ArrayList<>());
+    }
+
+    @Override
+    public List<io.gravitee.definition.model.flow.Flow> getPlanV2Flows(String planId) {
+        return planFlowsV2.getOrDefault(planId, new ArrayList<>());
     }
 
     @Override
@@ -64,5 +87,15 @@ public class FlowCrudServiceInMemory implements FlowCrudService, InMemoryAlterna
                     }
                 )
         );
+    }
+
+    public List<io.gravitee.definition.model.flow.Flow> savePlanFlowsV2(String planId, List<io.gravitee.definition.model.flow.Flow> flows) {
+        planFlowsV2.put(planId, flows);
+        return flows;
+    }
+
+    public List<io.gravitee.definition.model.flow.Flow> saveApiFlowsV2(String apiId, List<io.gravitee.definition.model.flow.Flow> flows) {
+        apiFlowsV2.put(apiId, flows);
+        return flows;
     }
 }

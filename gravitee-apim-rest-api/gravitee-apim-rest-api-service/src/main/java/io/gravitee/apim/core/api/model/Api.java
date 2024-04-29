@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.core.api.model;
 
+import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.ApiType;
@@ -25,6 +26,7 @@ import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -204,6 +206,17 @@ public class Api {
     public Api setFederatedApiDefinition(io.gravitee.definition.model.federation.FederatedApi federatedApiDefinition) {
         this.federatedApiDefinition = federatedApiDefinition;
         this.definitionVersion = federatedApiDefinition.getDefinitionVersion();
+        return this;
+    }
+
+    public Api setPlans(List<Plan> plans) {
+        switch (definitionVersion) {
+            case V4 -> apiDefinitionV4.setPlans(plans.stream().map(Plan::getPlanDefinitionV4).collect(Collectors.toList()));
+            case V1, V2 -> apiDefinition.setPlans(plans.stream().map(Plan::getPlanDefinitionV2).collect(Collectors.toList()));
+            case FEDERATED -> {
+                // do nothing
+            }
+        }
         return this;
     }
 

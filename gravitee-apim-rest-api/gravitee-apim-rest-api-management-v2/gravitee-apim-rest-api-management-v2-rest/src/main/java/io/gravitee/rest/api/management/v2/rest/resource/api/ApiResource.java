@@ -19,6 +19,7 @@ import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
+import io.gravitee.apim.core.api.use_case.GetApiDefinitionUseCase;
 import io.gravitee.apim.core.api.use_case.RollbackApiUseCase;
 import io.gravitee.apim.core.api.use_case.UpdateFederatedApiUseCase;
 import io.gravitee.apim.core.audit.model.AuditActor;
@@ -184,6 +185,9 @@ public class ApiResource extends AbstractResource {
 
     @Inject
     private RollbackApiUseCase rollbackApiUseCase;
+
+    @Inject
+    private GetApiDefinitionUseCase getApiDefinitionUseCase;
 
     @Context
     protected UriInfo uriInfo;
@@ -375,6 +379,30 @@ public class ApiResource extends AbstractResource {
         apiLicenseService.checkLicense(executionContext, apiId);
         GenericApiEntity apiEntity = apiStateService.deploy(executionContext, apiId, getAuthenticatedUser(), apiDeploymentEntity);
         return Response.accepted().tag(Long.toString(apiEntity.getUpdatedAt().getTime())).lastModified(apiEntity.getUpdatedAt()).build();
+    }
+
+    @GET
+    @Path("/deployments/current")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_DEFINITION, acls = RolePermissionAction.READ) })
+    public Response getApiDeployments(@PathParam("apiId") String apiId) {
+        ExecutionContext executionContext = GraviteeContext.getExecutionContext();
+        apiLicenseService.checkLicense(executionContext, apiId);
+
+        var output = getApiDefinitionUseCase.execute(new GetApiDefinitionUseCase.Input(apiId));
+        return switch (output.definitionVersion()) {
+            case V4 -> Response.ok(output.apiDefinitionV4()).build();
+            case V2 -> Response.ok(output.apiDefinition()).build();
+            default -> Response
+                .status(Response.Status.BAD_REQUEST)
+                .entity(
+                    new Error()
+                        .httpStatus(Response.Status.BAD_REQUEST.getStatusCode())
+                        .message("Get current deployment for FEDERATED API is not supported")
+                        .technicalCode("api.deployment.federated")
+                )
+                .build();
+        };
     }
 
     @GET

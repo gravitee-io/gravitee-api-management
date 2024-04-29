@@ -22,4 +22,12 @@ public interface FlowCrudService {
     List<Flow> savePlanFlows(String planId, List<Flow> flows);
 
     List<Flow> saveApiFlows(String apiId, List<Flow> flows);
+
+    List<Flow> getApiV4Flows(String apiId);
+
+    List<Flow> getPlanV4Flows(String planId);
+
+    List<io.gravitee.definition.model.flow.Flow> getApiV2Flows(String apiId);
+
+    List<io.gravitee.definition.model.flow.Flow> getPlanV2Flows(String planId);
 }
