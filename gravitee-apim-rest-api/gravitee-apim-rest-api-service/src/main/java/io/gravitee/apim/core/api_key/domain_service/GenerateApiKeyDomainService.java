@@ -101,7 +101,7 @@ public class GenerateApiKeyDomainService {
             if (!isKeyExistFor(customApiKey, subscription)) {
                 throw new ApiKeyAlreadyExistingException();
             }
-            return ApiKeyEntity.generateForSubscription(subscription, customApiKey);
+            return ApiKeyEntity.generateForSubscription(subscription, customApiKey, false);
         }
 
         return ApiKeyEntity.generateForSubscription(subscription);

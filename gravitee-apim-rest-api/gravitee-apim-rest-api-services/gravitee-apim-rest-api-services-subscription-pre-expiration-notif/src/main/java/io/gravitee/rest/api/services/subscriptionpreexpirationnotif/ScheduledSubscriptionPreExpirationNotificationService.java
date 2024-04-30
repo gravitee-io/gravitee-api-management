@@ -223,6 +223,7 @@ public class ScheduledSubscriptionPreExpirationNotificationService extends Abstr
 
         ApiKeyQuery query = new ApiKeyQuery();
         query.setIncludeRevoked(false);
+        query.setIncludeFederated(true);
         query.setExpireAfter(expirationStartingTime);
         query.setExpireBefore(expirationStartingTime + cronPeriodInMs);
 

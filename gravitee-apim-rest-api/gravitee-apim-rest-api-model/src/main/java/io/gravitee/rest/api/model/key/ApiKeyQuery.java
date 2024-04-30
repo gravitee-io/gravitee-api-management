@@ -31,6 +31,7 @@ public class ApiKeyQuery {
     private long to = -1;
 
     private boolean includeRevoked;
+    private boolean includeFederated;
 
     private long expireAfter = -1;
     private long expireBefore = -1;

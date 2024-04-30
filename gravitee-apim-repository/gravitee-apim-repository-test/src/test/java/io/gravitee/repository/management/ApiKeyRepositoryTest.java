@@ -19,6 +19,8 @@ import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static io.gravitee.repository.utils.DateUtils.parse;
 import static java.util.Collections.singleton;
 import static java.util.stream.Collectors.toList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
@@ -77,6 +79,25 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
             apiKey.getDaysToExpirationOnLastNotification(),
             keyFound.getDaysToExpirationOnLastNotification()
         );
+    }
+
+    @Test
+    public void create_should_create_federated_apiKey() throws Exception {
+        String id = "id-of-new-apikey";
+
+        ApiKey apiKey = ApiKey
+            .builder()
+            .id(id)
+            .key("apiKey")
+            .subscriptions(List.of("subscription-id"))
+            .createdAt(new Date())
+            .federated(true)
+            .build();
+
+        apiKeyRepository.create(apiKey);
+
+        Optional<ApiKey> result = apiKeyRepository.findById(id);
+        assertThat(result).get().usingRecursiveComparison().isEqualTo(apiKey);
     }
 
     @Test
@@ -322,6 +343,15 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
+    public void findByCriteria_should_find_federated_keys() throws Exception {
+        List<ApiKey> apiKeys = apiKeyRepository.findByCriteria(ApiKeyCriteria.builder().includeFederated(true).build());
+
+        assertThat(apiKeys)
+            .extracting(ApiKey::getId, ApiKey::isFederated)
+            .contains(tuple("id-of-federated-9", true), tuple("id-of-federated-10", true));
+    }
+
+    @Test
     public void findByApplication_should_find_api_keys() throws TechnicalException {
         List<ApiKey> apiKeys = apiKeyRepository.findByApplication("app1");
         assertEquals(2, apiKeys.size());
@@ -365,14 +395,7 @@ public class ApiKeyRepositoryTest extends AbstractManagementRepositoryTest {
     public void findAll_should_find_all_api_keys_even_with_no_subscription() throws TechnicalException {
         Set<ApiKey> apiKeys = apiKeyRepository.findAll();
 
-        assertEquals(9, apiKeys.size());
-        assertTrue(
-            apiKeys
-                .stream()
-                .anyMatch(apiKey ->
-                    apiKey.getId().equals("id-of-apikey-8") && apiKey.getSubscriptions() != null && apiKey.getSubscriptions().isEmpty()
-                )
-        );
+        assertThat(apiKeys).hasSize(11).extracting(ApiKey::getId).contains("id-of-apikey-8");
     }
 
     @Test

@@ -43,6 +43,7 @@ public class ApiKeyCriteria {
     private final long to = -1;
 
     private final boolean includeRevoked;
+    private final boolean includeFederated;
 
     @Builder.Default
     private final long expireAfter = -1;

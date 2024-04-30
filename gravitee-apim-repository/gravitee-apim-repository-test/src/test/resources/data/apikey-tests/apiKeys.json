@@ -1,87 +1,106 @@
 [
-	{
-		"id": "id-of-apikey-0",
-		"key": "d449098d-8c31-4275-ad59-8dd707865999",
-		"revoked": true,
-		"expireAt": 29919401755,
-		"subscriptions": ["subscription2"],
-		"createdAt": 1439022010883
-	},
-	{
-		"id": "id-of-apikey-1",
-		"key": "d449098d-8c31-4275-ad59-8dd707865a34",
-		"revoked": true,
-		"expireAt": 1439022010883,
-		"subscription": "bc-subscription1",
-		"api": "bc-api1",
-		"subscriptions": ["subscription1"],
-		"createdAt": 1439022010883,
-		"paused": true,
-		"daysToExpirationOnLastNotification": 30
-	},
-	{
-		"id": "id-of-apikey-2",
-		"key": "d449098d-8c31-4275-ad59-8dd707865a34",
-		"revoked": false,
-		"expireAt": 1439022010883,
-		"subscriptions": ["subscription2", "subscriptionX"],
-		"createdAt": 1439022010883,
-		"updatedAt": 1439022010000
-	},
-	{
-		"id": "id-of-apikey-3",
-		"key": "d449098d-8c31-4275-ad59-8dd707865a35",
-		"revoked": false,
-		"expireAt": 1439022010883,
-		"subscriptions": ["subscription1"],
-		"createdAt": 1439022010883,
-		"updatedAt": 1439022000000
-	},
-	{
-		"id": "id-of-apikey-4",
-		"key": "findByCriteria1",
-		"subscriptions": ["sub3"],
-		"application": "app1",
-		"expireAt": 29919401755,
-		"createdAt": 1486771200000,
-		"updatedAt": 1486771200000,
-		"revoked": false
-	},
-	{
-		"id": "id-of-apikey-5",
-		"key": "findByCriteria1Revoked",
-		"subscriptions": ["sub3"],
-		"application": "app1",
-		"expireAt": 29919401755,
-		"createdAt": 1486771200000,
-		"updatedAt": 1486771400000,
-		"revoked": true
-	},
-	{
-		"id": "id-of-apikey-6",
-		"key": "findByCriteria2",
-		"subscriptions": ["sub3"],
-		"application": "app2",
-		"expireAt": 29919401755,
-		"createdAt": 1486771200000,
-		"updatedAt": 1486771600000,
-		"revoked": false
-	},
-	{
-		"id": "id-of-apikey-7",
-		"key": "the-key-of-api-key-7",
-		"subscriptions": ["sub4", "sub5", "sub6"],
-		"createdAt": 1486771200000,
-		"updatedAt": 1486771600000,
-		"application": "app4"
-	},
-	{
-		"id": "id-of-apikey-8",
-		"key": "the-key-of-api-key-8",
-		"createdAt": 1486771200000,
-		"updatedAt": 1486771600000,
-		"subscriptions": [],
-		"application": "app4"
-	}
+    {
+        "id": "id-of-apikey-0",
+        "key": "d449098d-8c31-4275-ad59-8dd707865999",
+        "revoked": true,
+        "expireAt": 29919401755,
+        "subscriptions": ["subscription2"],
+        "createdAt": 1439022010883
+    },
+    {
+        "id": "id-of-apikey-1",
+        "key": "d449098d-8c31-4275-ad59-8dd707865a34",
+        "revoked": true,
+        "expireAt": 1439022010883,
+        "subscription": "bc-subscription1",
+        "api": "bc-api1",
+        "subscriptions": ["subscription1"],
+        "createdAt": 1439022010883,
+        "paused": true,
+        "daysToExpirationOnLastNotification": 30
+    },
+    {
+        "id": "id-of-apikey-2",
+        "key": "d449098d-8c31-4275-ad59-8dd707865a34",
+        "revoked": false,
+        "expireAt": 1439022010883,
+        "subscriptions": ["subscription2", "subscriptionX"],
+        "createdAt": 1439022010883,
+        "updatedAt": 1439022010000
+    },
+    {
+        "id": "id-of-apikey-3",
+        "key": "d449098d-8c31-4275-ad59-8dd707865a35",
+        "revoked": false,
+        "expireAt": 1439022010883,
+        "subscriptions": ["subscription1"],
+        "createdAt": 1439022010883,
+        "updatedAt": 1439022000000
+    },
+    {
+        "id": "id-of-apikey-4",
+        "key": "findByCriteria1",
+        "subscriptions": ["sub3"],
+        "application": "app1",
+        "expireAt": 29919401755,
+        "createdAt": 1486771200000,
+        "updatedAt": 1486771200000,
+        "revoked": false
+    },
+    {
+        "id": "id-of-apikey-5",
+        "key": "findByCriteria1Revoked",
+        "subscriptions": ["sub3"],
+        "application": "app1",
+        "expireAt": 29919401755,
+        "createdAt": 1486771200000,
+        "updatedAt": 1486771400000,
+        "revoked": true
+    },
+    {
+        "id": "id-of-apikey-6",
+        "key": "findByCriteria2",
+        "subscriptions": ["sub3"],
+        "application": "app2",
+        "expireAt": 29919401755,
+        "createdAt": 1486771200000,
+        "updatedAt": 1486771600000,
+        "revoked": false
+    },
+    {
+        "id": "id-of-apikey-7",
+        "key": "the-key-of-api-key-7",
+        "subscriptions": ["sub4", "sub5", "sub6"],
+        "createdAt": 1486771200000,
+        "updatedAt": 1486771600000,
+        "application": "app4"
+    },
+    {
+        "id": "id-of-apikey-8",
+        "key": "the-key-of-api-key-8",
+        "createdAt": 1486771200000,
+        "updatedAt": 1486771600000,
+        "subscriptions": [],
+        "application": "app4"
+    },
+    {
+        "id": "id-of-federated-9",
+        "key": "the-key-of-federated-9",
+        "createdAt": 1486771200000,
+        "updatedAt": 1486771600000,
+        "subscriptions": ["sub133"],
+        "application": "app4",
+        "federated": true
+    },
+    {
+        "id": "id-of-federated-10",
+        "key": "the-key-of-federated-10",
+        "subscriptions": ["sub3"],
+        "application": "app2",
+        "expireAt": 29919401755,
+        "createdAt": 1486771200000,
+        "updatedAt": 1486771600000,
+        "revoked": false,
+        "federated": true
+    }
 ]
-
