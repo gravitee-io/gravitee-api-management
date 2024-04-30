@@ -208,7 +208,9 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
                 .ifPresent(q -> apiQuery.add(new BoostQuery(q, 4.0f), BooleanClause.Occur.SHOULD));
             this.buildWildcardQuery(executionContext, query, baseFilterQuery).ifPresent(q -> apiQuery.add(q, BooleanClause.Occur.SHOULD));
             this.buildIdsQuery(executionContext, query).ifPresent(q -> apiQuery.add(q, BooleanClause.Occur.SHOULD));
-            increaseMaxClauseCountIfNecessary(query.getIds().size());
+            if (query.getIds() != null) {
+                increaseMaxClauseCountIfNecessary(query.getIds().size());
+            }
             return this.search(apiQuery.build(), query.getSort());
         } catch (ParseException pe) {
             logger.error("Invalid query to search for API documents", pe);
