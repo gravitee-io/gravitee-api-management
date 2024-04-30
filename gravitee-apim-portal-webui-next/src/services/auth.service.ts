@@ -15,6 +15,7 @@
  */
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
 
 import { ConfigService } from './config.service';
 
@@ -42,5 +43,9 @@ export class AuthService {
         },
       },
     );
+  }
+
+  logout(): Observable<unknown> {
+    return this.http.post<Token>(`${this.configuration.baseURL}/auth/logout`, {});
   }
 }

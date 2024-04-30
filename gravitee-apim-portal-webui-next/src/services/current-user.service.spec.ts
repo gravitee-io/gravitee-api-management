@@ -33,7 +33,7 @@ describe('CurrentUserService', () => {
   });
 
   it('should load user', done => {
-    expect(service.user()).toEqual(null);
+    expect(service.user()).toEqual({});
     const user = fakeUser();
     service.loadUser().subscribe(() => {
       expect(service.user()).toEqual(user);
@@ -47,10 +47,16 @@ describe('CurrentUserService', () => {
     service.user.set(fakeUser());
 
     service.loadUser().subscribe(() => {
-      expect(service.user()).toEqual(null);
+      expect(service.user()).toEqual({});
       done();
     });
 
     httpTestingController.expectOne(`${TESTING_BASE_URL}/user`).flush('', { status: 401, statusText: 'Unauthorized' });
+  });
+
+  it('should clear user', () => {
+    service.user.set(fakeUser());
+    service.clear();
+    expect(service.user()).toEqual({});
   });
 });
