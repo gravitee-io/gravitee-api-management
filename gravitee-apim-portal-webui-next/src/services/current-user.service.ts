@@ -15,6 +15,7 @@
  */
 import { HttpClient } from '@angular/common/http';
 import { Injectable, signal, WritableSignal } from '@angular/core';
+import { isEmpty } from 'lodash';
 import { catchError, Observable, tap } from 'rxjs';
 import { of } from 'rxjs/internal/observable/of';
 
@@ -25,7 +26,7 @@ import { User } from '../entities/user/user';
   providedIn: 'root',
 })
 export class CurrentUserService {
-  public user: WritableSignal<User | null> = signal(null);
+  public user: WritableSignal<User> = signal({});
 
   constructor(
     private http: HttpClient,
@@ -33,7 +34,7 @@ export class CurrentUserService {
   ) {}
 
   public isAuthenticated(): boolean {
-    return this.user() !== null;
+    return !isEmpty(this.user());
   }
 
   public loadUser(): Observable<unknown> {
@@ -42,9 +43,13 @@ export class CurrentUserService {
         this.user.set(resp);
       }),
       catchError(_ => {
-        this.user.set(null);
+        this.user.set({});
         return of({});
       }),
     );
+  }
+
+  public clear(): void {
+    this.user.set({});
   }
 }

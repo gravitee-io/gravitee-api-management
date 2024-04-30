@@ -20,8 +20,10 @@ import { ApiTabDetailsComponent } from './api-details/api-tab-details/api-tab-de
 import { ApiTabDocumentationComponent } from './api-details/api-tab-documentation/api-tab-documentation.component';
 import { CatalogComponent } from './catalog/catalog.component';
 import { LogInComponent } from './log-in/log-in.component';
+import { LogOutComponent } from './log-out/log-out.component';
 import { NotFoundComponent } from './not-found/not-found.component';
 import { anonymousGuard } from '../guards/anonymous.guard';
+import { authGuard } from '../guards/auth.guard';
 import { apiResolver } from '../resolvers/api.resolver';
 import { pagesResolver } from '../resolvers/pages.resolver';
 
@@ -57,6 +59,7 @@ export const routes: Routes = [
     ],
   },
   { path: 'log-in', component: LogInComponent, canActivate: [anonymousGuard] },
+  { path: 'log-out', component: LogOutComponent, canActivate: [authGuard] },
   { path: '404', component: NotFoundComponent },
   {
     path: '**',

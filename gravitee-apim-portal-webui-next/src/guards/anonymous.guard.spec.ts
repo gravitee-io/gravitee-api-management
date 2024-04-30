@@ -37,7 +37,7 @@ describe('anonymousGuard', () => {
   });
 
   it('should allow anonymous user', () => {
-    currentUserService.user.set(null);
+    currentUserService.user.set({});
     jest.spyOn(router, 'navigate');
 
     expect(executeGuard(activatedRoute.snapshot, { url: '', root: activatedRoute.snapshot })).toBeTruthy();
