@@ -1,0 +1,121 @@
+/*
+ * Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
+These classes are to override current fonts to match Material 3 typography.
+After migrating to Material 3, these classes can be deleted.
+ */
+
+// Typography
+
+.m3-display-large {
+  font-size: 57px;
+  font-weight: 400;
+  letter-spacing: -0.25px;
+  line-height: 64px;
+}
+
+.m3-display-medium {
+  font-size: 45px;
+  font-weight: 400;
+  line-height: 52px;
+}
+
+.m3-display-small {
+  font-size: 36px;
+  font-weight: 400;
+  line-height: 44px;
+}
+
+.m3-headline-large {
+  font-size: 32px;
+  font-weight: 400;
+  line-height: 40px;
+}
+
+.m3-headline-medium {
+  font-size: 28px;
+  font-weight: 400;
+  line-height: 36px;
+}
+
+.m3-headline-small {
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 32px;
+}
+
+.m3-title-large {
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 28px;
+}
+
+.m3-title-medium {
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: 0.15px;
+  line-height: 24px;
+}
+
+.m3-title-small {
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.1px;
+  line-height: 20px;
+}
+
+.m3-body-large {
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: 0.5px;
+  line-height: 24px;
+}
+
+.m3-body-medium {
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 0.25px;
+  line-height: 20px;
+}
+
+.m3-body-small {
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.4px;
+  line-height: 16px;
+}
+
+.m3-label-large {
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.1px;
+  line-height: 20px;
+}
+
+.m3-label-medium {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  line-height: 16px;
+}
+
+.m3-label-small {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  line-height: 16px;
+}
