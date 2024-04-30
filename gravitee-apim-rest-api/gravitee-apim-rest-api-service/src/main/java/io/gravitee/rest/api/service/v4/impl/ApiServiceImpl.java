@@ -446,6 +446,9 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             api.setDeployedAt(apiToUpdate.getDeployedAt());
             api.setCreatedAt(apiToUpdate.getCreatedAt());
             api.setLifecycleState(apiToUpdate.getLifecycleState());
+            api.setOrigin(apiToUpdate.getOrigin());
+            api.setMode(apiToUpdate.getMode());
+
             if (updateApiEntity.getCrossId() == null) {
                 api.setCrossId(apiToUpdate.getCrossId());
             }
