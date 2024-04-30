@@ -64,6 +64,9 @@ public class ApiKeyMongoRepositoryImpl implements ApiKeyMongoRepositoryCustom {
         if (!filter.isIncludeRevoked()) {
             pipeline.add(match(eq("revoked", false)));
         }
+        if (!filter.isIncludeFederated()) {
+            pipeline.add(match(eq("federated", false)));
+        }
 
         // set range query
         if (filter.getFrom() > 0 && filter.getTo() > 0) {

@@ -18,17 +18,13 @@ package io.gravitee.apim.core.api_key.model;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.service.common.UuidString;
-import io.gravitee.rest.api.service.exceptions.ApiKeyAlreadyExistingException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionClosedException;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Data
@@ -57,36 +53,41 @@ public class ApiKeyEntity {
 
     private boolean paused;
 
+    private boolean federated;
+
     /**
      * Number of days before the expiration of this API Key when the last pre-expiration notification was sent
      */
     private Integer daysToExpirationOnLastNotification;
 
+    /**
+     * Generates an {@link ApiKeyEntity} for a given {@link SubscriptionEntity} and custom API key.
+     *
+     * @param subscription The subscription for which the API key is generated.
+     * @param customApiKey The custom API key to be assigned to the generated entity.
+     * @return The generated {@link ApiKeyEntity}.
+     * @throws IllegalArgumentException      If the custom API key is null.
+     * @throws SubscriptionClosedException     If the subscription has already ended.
+     */
     public static ApiKeyEntity generateForSubscription(SubscriptionEntity subscription, String customApiKey) {
         if (customApiKey == null) {
             throw new IllegalArgumentException("Custom api key cannot be null");
         }
 
-        var now = TimeProvider.now();
-        if (subscription.getEndingAt() != null && subscription.getEndingAt().isBefore(now)) {
-            throw new SubscriptionClosedException(subscription.getId());
+        return generateForSubscription(subscription, customApiKey, false);
+    }
+
+    /*
+    public static ApiKeyEntity generateForFederatedSubscription(SubscriptionEntity subscription, String apiKey) {
+        if (apiKey == null) {
+            throw new IllegalArgumentException("Custom api key cannot be null");
         }
 
-        return ApiKeyEntity
-            .builder()
-            .id(UuidString.generateRandom())
-            .applicationId(subscription.getApplicationId())
-            .createdAt(now)
-            .updatedAt(now)
-            .key(customApiKey)
-            .subscriptions(List.of(subscription.getId()))
-            // By default, the API Key will expire when subscription is closed
-            .expireAt(subscription.getEndingAt())
-            .build();
+        return generateForSubscription(subscription, apiKey, true);
     }
 
     public static ApiKeyEntity generateForSubscription(SubscriptionEntity subscription) {
-        return generateForSubscription(subscription, UuidString.generateRandom());
+        return generateForSubscription(subscription, UuidString.generateRandom(), false);
     }
 
     public ApiKeyEntity addSubscription(String subscriptionId) {
@@ -110,5 +111,25 @@ public class ApiKeyEntity {
 
     public boolean hasSubscription(String subscriptionId) {
         return subscriptions.contains(subscriptionId);
+    }
+
+    private static ApiKeyEntity generateForSubscription(SubscriptionEntity subscription, String customApiKey, boolean federated) {
+        var now = TimeProvider.now();
+        if (subscription.getEndingAt() != null && subscription.getEndingAt().isBefore(now)) {
+            throw new SubscriptionClosedException(subscription.getId());
+        }
+
+        return ApiKeyEntity
+            .builder()
+            .id(UuidString.generateRandom())
+            .applicationId(subscription.getApplicationId())
+            .createdAt(now)
+            .updatedAt(now)
+            .key(customApiKey)
+            .subscriptions(List.of(subscription.getId()))
+            // By default, the API Key will expire when subscription is closed
+            .expireAt(subscription.getEndingAt())
+            .federated(federated)
+            .build();
     }
 }

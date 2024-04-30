@@ -22,7 +22,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -31,6 +33,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder(toBuilder = true)
+@Getter
+@Setter
 public class ApiKeyEntity {
 
     private String id;
@@ -61,105 +65,17 @@ public class ApiKeyEntity {
     private boolean expired;
 
     /**
+     * Indicates the API Key is coming from external provider.
+     * <p>
+     *     It should not be synchronized on the Gateway.
+     * </p>
+     * */
+    private boolean federated;
+
+    /**
      * Number of days before the expiration of this API Key when the last pre-expiration notification was sent
      */
     private Integer daysToExpirationOnLastNotification;
-
-    public String getKey() {
-        return key;
-    }
-
-    public void setKey(String key) {
-        this.key = key;
-    }
-
-    public Date getExpireAt() {
-        return expireAt;
-    }
-
-    public void setExpireAt(Date expireAt) {
-        this.expireAt = expireAt;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Date getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public boolean isRevoked() {
-        return revoked;
-    }
-
-    public void setRevoked(boolean revoked) {
-        this.revoked = revoked;
-    }
-
-    public Date getRevokedAt() {
-        return revokedAt;
-    }
-
-    public void setRevokedAt(Date revokedAt) {
-        this.revokedAt = revokedAt;
-    }
-
-    public boolean isPaused() {
-        return paused;
-    }
-
-    public void setPaused(boolean paused) {
-        this.paused = paused;
-    }
-
-    public boolean isExpired() {
-        return expired;
-    }
-
-    public void setExpired(boolean expired) {
-        this.expired = expired;
-    }
-
-    public Integer getDaysToExpirationOnLastNotification() {
-        return daysToExpirationOnLastNotification;
-    }
-
-    public void setDaysToExpirationOnLastNotification(Integer daysToExpirationOnLastNotification) {
-        this.daysToExpirationOnLastNotification = daysToExpirationOnLastNotification;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public Set<SubscriptionEntity> getSubscriptions() {
-        return subscriptions;
-    }
-
-    public void setSubscriptions(Set<SubscriptionEntity> subscriptions) {
-        this.subscriptions = subscriptions;
-    }
-
-    public ApplicationEntity getApplication() {
-        return application;
-    }
-
-    public void setApplication(ApplicationEntity application) {
-        this.application = application;
-    }
 
     @JsonIgnore
     public List<String> getSubscriptionIds() {
