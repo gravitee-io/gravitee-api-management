@@ -15,6 +15,8 @@
  */
 package io.gravitee.rest.api.service.v4.impl;
 
+import static io.gravitee.definition.model.DefinitionContext.MODE_FULLY_MANAGED;
+import static io.gravitee.definition.model.DefinitionContext.ORIGIN_KUBERNETES;
 import static io.gravitee.definition.model.DefinitionContext.ORIGIN_MANAGEMENT;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.CREATED;
 import static io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED;
@@ -839,6 +841,21 @@ public class ApiServiceImplTest {
 
         ApiEntity apiEntity = apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, true, USER_NAME);
         verify(apiNotificationService, times(1)).triggerUpdateNotification(eq(GraviteeContext.getExecutionContext()), eq(apiEntity));
+    }
+
+    @Test
+    public void shouldUpdateKeepingKubernetesOrigin() throws TechnicalException {
+        prepareUpdate();
+
+        api.setOrigin(ORIGIN_KUBERNETES);
+        api.setMode(Api.MODE_FULLY_MANAGED);
+
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+
+        apiService.update(GraviteeContext.getExecutionContext(), API_ID, updateApiEntity, true, USER_NAME);
+
+        verify(apiRepository, times(1))
+            .update(argThat(api -> ORIGIN_KUBERNETES.equals(api.getOrigin()) && MODE_FULLY_MANAGED.equals(api.getMode())));
     }
 
     // TODO FCY: should be moved into right test class once healthcheck is moved to HTTP endpoint plugin
