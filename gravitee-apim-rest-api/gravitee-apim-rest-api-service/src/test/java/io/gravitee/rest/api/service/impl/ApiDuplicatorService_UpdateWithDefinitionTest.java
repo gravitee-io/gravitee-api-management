@@ -309,6 +309,8 @@ public class ApiDuplicatorService_UpdateWithDefinitionTest {
 
         when(userService.findBySource(GraviteeContext.getCurrentOrganization(), user.getSource(), user.getSourceId(), false))
             .thenReturn(user);
+        when(userService.findById(GraviteeContext.getExecutionContext(), admin.getId())).thenReturn(admin);
+        when(userService.findById(GraviteeContext.getExecutionContext(), owner.getId())).thenReturn(user);
 
         return apiEntity;
     }
