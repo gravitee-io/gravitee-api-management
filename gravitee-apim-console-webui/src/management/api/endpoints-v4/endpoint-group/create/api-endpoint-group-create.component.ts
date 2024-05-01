@@ -86,9 +86,9 @@ export class ApiEndpointGroupCreateComponent implements OnInit {
           this.generalForm.get('name').addValidators([isEndpointNameUnique(apiV4)]);
           this.apiType = apiV4.type;
           this.requiredQos = apiV4.listeners.flatMap((listener) => listener.entrypoints).flatMap((entrypoint) => entrypoint.qos);
-          if (this.apiType === 'PROXY') {
-            this.endpointGroupTypeForm.get('endpointGroupType').setValue('http-proxy');
-          }
+          //if (this.apiType === 'PROXY') {
+          //  this.endpointGroupTypeForm.get('endpointGroupType').setValue('http-proxy');
+          //}
           this.changeDetectorRef.detectChanges();
         },
       });

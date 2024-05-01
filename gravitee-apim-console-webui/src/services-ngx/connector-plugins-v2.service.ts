@@ -104,6 +104,7 @@ export class ConnectorPluginsV2Service {
     }
     return selectedIds
       .map((id) => connectorPlugins.find((connectorPlugin) => connectorPlugin.id === id))
+      .filter((endpoint) => !!endpoint)
       .some((connectorPlugin) => !connectorPlugin.deployed);
   }
 }

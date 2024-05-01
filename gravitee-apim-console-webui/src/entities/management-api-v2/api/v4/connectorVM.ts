@@ -52,7 +52,8 @@ export function mapAndFilterBySupportedQos(endpointPlugins: ConnectorPlugin[], r
     return mapped;
   }
 
-  return mapped.filter((endpoint) => {
-    return endpoint.supportedQos !== undefined && endpoint.supportedQos.some((qos) => requiredQoS.includes(qos));
-  });
+  return mapped;
+  //return mapped.filter((endpoint) => {
+  //  return endpoint.supportedQos !== undefined && endpoint.supportedQos.some((qos) => requiredQoS.includes(qos));
+  //});
 }

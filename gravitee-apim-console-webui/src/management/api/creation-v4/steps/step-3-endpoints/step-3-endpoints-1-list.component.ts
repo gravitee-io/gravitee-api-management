@@ -76,7 +76,7 @@ export class Step3Endpoints1ListComponent implements OnInit, OnDestroy {
     });
 
     this.connectorPluginsV2Service
-      .listEndpointPluginsByApiType('MESSAGE')
+      .listEndpointPluginsByApiType('PROXY')
       .pipe(takeUntil(this.unsubscribe$))
       .subscribe((endpointPlugins) => {
         const requiredQoS = this.stepService.payload.selectedEntrypoints.map((e) => e.selectedQos);

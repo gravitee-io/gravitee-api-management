@@ -1,0 +1,55 @@
+{
+  "$schema":"http://json-schema.org/draft-07/schema#",
+  "type":"object",
+  "definitions": {
+    "connectionString": {
+      "title":"Connection String",
+      "description":"The JDBC connection string to connect to the database",
+      "type":"string"
+    },
+    "username": {
+      "title":"Username",
+      "description":"Username to connect to the database",
+      "type":"string"
+    },
+    "password": {
+      "title":"Password",
+      "description":"Password to connect to the database",
+      "type":"string"
+    },
+    "database": {
+      "title":"Database",
+      "description":"Which database name to connect to",
+      "type":"string"
+    },
+    "table": {
+      "title":"Table",
+      "description":"Which table name to connect to",
+      "type":"string"
+    }
+  },
+  "properties":{
+    "connectionString":{
+      "$ref":"#/definitions/connectionString"
+    },
+    "username":{
+      "$ref":"#/definitions/username"
+    },
+    "password":{
+      "$ref":"#/definitions/password"
+    },
+    "database":{
+      "$ref":"#/definitions/database"
+    },
+    "table":{
+      "$ref":"#/definitions/table"
+    }
+  },
+  "required": [
+    "connectionString",
+    "username",
+    "password",
+    "database",
+    "table"
+  ]
+}
