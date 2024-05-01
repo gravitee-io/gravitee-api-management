@@ -15,13 +15,18 @@
  */
 package io.gravitee.repository.jdbc.management;
 
+import io.gravitee.common.data.domain.Page;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.AccessPointRepository;
+import io.gravitee.repository.management.api.search.AccessPointCriteria;
+import io.gravitee.repository.management.api.search.Pageable;
 import io.gravitee.repository.management.model.AccessPoint;
 import io.gravitee.repository.management.model.AccessPointReferenceType;
 import io.gravitee.repository.management.model.AccessPointTarget;
 import java.sql.Types;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -97,6 +102,50 @@ public class JdbcAccessPointRepository extends JdbcAbstractCrudRepository<Access
     }
 
     @Override
+    public Page<AccessPoint> findByCriteria(AccessPointCriteria criteria, Pageable pageable) throws TechnicalException {
+        try {
+            List<Object> args = new ArrayList<>();
+            StringBuilder query = new StringBuilder(getOrm().getSelectAllSql());
+            boolean first = true;
+
+            if (criteria.getFrom() > 0) {
+                first = addClause(first, query);
+                query.append("updated_at >= ?");
+                args.add(new Date(criteria.getFrom()));
+            }
+
+            if (criteria.getTo() > 0) {
+                first = addClause(first, query);
+                query.append("updated_at <= ?");
+                args.add(new Date(criteria.getTo()));
+            }
+
+            if (criteria.getReferenceType() != null) {
+                first = addClause(first, query);
+                query.append("reference_type = ?");
+                args.add(criteria.getReferenceType().name());
+            }
+
+            if (criteria.getTarget() != null) {
+                first = addClause(first, query);
+                query.append("target = ?");
+                args.add(criteria.getTarget().name());
+            }
+
+            if (criteria.getEnvironments() != null) {
+                first = addClause(first, query);
+                query.append("reference_id in ?");
+                args.add("(" + getOrm().buildInClause(criteria.getEnvironments()) + ")");
+            }
+
+            List<AccessPoint> accessPoints = jdbcTemplate.query(query.toString(), getRowMapper(), args.toArray());
+            return getResultAsPage(pageable, accessPoints);
+        } catch (final Exception ex) {
+            throw new TechnicalException("Failed to find access point by criteria", ex);
+        }
+    }
+
+    @Override
     public List<AccessPoint> deleteByReference(final AccessPointReferenceType referenceType, final String referenceId)
         throws TechnicalException {
         try {
@@ -115,5 +164,14 @@ public class JdbcAccessPointRepository extends JdbcAbstractCrudRepository<Access
         } catch (final Exception ex) {
             throw new TechnicalException("Failed to delete access points by reference", ex);
         }
+    }
+
+    private boolean addClause(boolean first, StringBuilder query) {
+        if (first) {
+            query.append(" where ");
+        } else {
+            query.append(" and ");
+        }
+        return false;
     }
 }

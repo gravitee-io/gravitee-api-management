@@ -29,6 +29,7 @@ import io.gravitee.gateway.api.service.ApiKey;
 import io.gravitee.gateway.api.service.Subscription;
 import io.gravitee.gateway.platform.organization.ReactableOrganization;
 import io.gravitee.gateway.services.sync.process.common.model.SyncException;
+import io.gravitee.gateway.services.sync.process.distributed.mapper.AccessPointMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiKeyMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.DictionaryMapper;
@@ -106,7 +107,8 @@ class DefaultDistributedSyncServiceTest {
                 apiKeyMapper,
                 new OrganizationMapper(objectMapper),
                 new DictionaryMapper(objectMapper),
-                new LicenseMapper()
+                new LicenseMapper(),
+                new AccessPointMapper(objectMapper)
             );
     }
 
@@ -134,6 +136,7 @@ class DefaultDistributedSyncServiceTest {
                     null,
                     distributedEventRepository,
                     distributedSyncStateRepository,
+                    null,
                     null,
                     null,
                     null,

@@ -13,30 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.model;
+package io.gravitee.repository.management.api.search;
 
-import java.util.Date;
-import lombok.AllArgsConstructor;
+import io.gravitee.repository.management.model.AccessPointReferenceType;
+import io.gravitee.repository.management.model.AccessPointTarget;
+import java.util.List;
 import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-/**
- * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
- * @author GraviteeSource Team
- */
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
-@Data
-public class AccessPoint {
+@Getter
+@RequiredArgsConstructor
+@EqualsAndHashCode
+public class AccessPointCriteria {
 
-    private String id;
-    private AccessPointReferenceType referenceType;
-    private String referenceId;
-    private AccessPointTarget target;
-    private String host;
-    private boolean secured;
-    private boolean overriding;
-    private Date updatedAt;
+    @Builder.Default
+    private final long from = -1;
+
+    @Builder.Default
+    private final long to = -1;
+
+    private final AccessPointReferenceType referenceType;
+
+    private final AccessPointTarget target;
+
+    private final List<String> environments;
 }

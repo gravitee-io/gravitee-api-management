@@ -20,6 +20,7 @@ import static io.gravitee.gateway.services.sync.SyncConfiguration.DEFAULT_BULK_I
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.services.sync.process.common.deployer.DeployerFactory;
 import io.gravitee.gateway.services.sync.process.distributed.fetcher.DistributedEventFetcher;
+import io.gravitee.gateway.services.sync.process.distributed.mapper.AccessPointMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiKeyMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.ApiMapper;
 import io.gravitee.gateway.services.sync.process.distributed.mapper.DictionaryMapper;
@@ -76,6 +77,11 @@ public class DistributedSyncConfiguration {
     @Bean
     public OrganizationMapper distributedOrganizationMapper(ObjectMapper objectMapper) {
         return new OrganizationMapper(objectMapper);
+    }
+
+    @Bean
+    public AccessPointMapper distributedAccessPointMapper(ObjectMapper objectMapper) {
+        return new AccessPointMapper(objectMapper);
     }
 
     @Bean
@@ -205,7 +211,8 @@ public class DistributedSyncConfiguration {
         final ApiKeyMapper apiKeyMapper,
         final OrganizationMapper organizationMapper,
         final DictionaryMapper dictionaryMapper,
-        final LicenseMapper licenseMapper
+        final LicenseMapper licenseMapper,
+        final AccessPointMapper accessPointMapper
     ) {
         return new DefaultDistributedSyncService(
             node,
@@ -218,7 +225,8 @@ public class DistributedSyncConfiguration {
             apiKeyMapper,
             organizationMapper,
             dictionaryMapper,
-            licenseMapper
+            licenseMapper,
+            accessPointMapper
         );
     }
 }
