@@ -13,18 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.management.model;
+package io.gravitee.gateway.handlers.accesspoint.model;
 
+import io.gravitee.repository.management.model.AccessPointReferenceType;
+import io.gravitee.repository.management.model.AccessPointTarget;
 import java.util.Date;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * @author Guillaume LAMIRAND (guillaume.lamirand at graviteesource.com)
- * @author GraviteeSource Team
- */
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

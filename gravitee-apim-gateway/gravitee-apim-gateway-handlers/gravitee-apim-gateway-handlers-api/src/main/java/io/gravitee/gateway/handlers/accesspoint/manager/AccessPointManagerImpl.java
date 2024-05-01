@@ -13,14 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.distributedsync.model;
+package io.gravitee.gateway.handlers.accesspoint.manager;
 
-public enum DistributedEventType {
-    API,
-    DICTIONARY,
-    ORGANIZATION,
-    SUBSCRIPTION,
-    API_KEY,
-    LICENSE,
-    ACCESS_POINT,
+import io.gravitee.gateway.handlers.accesspoint.model.AccessPoint;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
+public class AccessPointManagerImpl implements AccessPointManager {
+
+    private final Map<String, AccessPoint> accessPoints = new ConcurrentHashMap<>();
+
+    @Override
+    public void register(AccessPoint accessPoint) {
+        accessPoints.put(accessPoint.getReferenceId(), accessPoint);
+    }
 }
