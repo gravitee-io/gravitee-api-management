@@ -348,20 +348,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular/animations@npm:17.3.3":
-  version: 17.3.3
-  resolution: "@angular/animations@npm:17.3.3"
+"@angular/animations@npm:17.3.6":
+  version: 17.3.6
+  resolution: "@angular/animations@npm:17.3.6"
   dependencies:
     tslib: "npm:^2.3.0"
   peerDependencies:
-    "@angular/core": 17.3.3
-  checksum: 10c0/d5da07330cdc0771c52ee6412d9fca25503dec1c14c77d0b0bef14b0930f990fbcbced675556fec39b42e9fdffb244fe86966c521d1dc5569c7e932b0583cf19
+    "@angular/core": 17.3.6
+  checksum: 10c0/097617316945809936aa759d85b8c226052f43d3de98221bebbe6173eb6796684ba1df11276624f5597f90b99b927d8654945fb1fd3046951904e34b61854ec9
   languageName: node
   linkType: hard
 
-"@angular/cdk@npm:17.3.3":
-  version: 17.3.3
-  resolution: "@angular/cdk@npm:17.3.3"
+"@angular/cdk@npm:17.3.6":
+  version: 17.3.6
+  resolution: "@angular/cdk@npm:17.3.6"
   dependencies:
     parse5: "npm:^7.1.2"
     tslib: "npm:^2.3.0"
@@ -372,7 +372,7 @@ __metadata:
   dependenciesMeta:
     parse5:
       optional: true
-  checksum: 10c0/a120b81040cc4fb2728e6a2d61252052e6e347af6682047c5b88f17e1588c133a20ac8e42b95795ff968a4d360524f14bf7d12242f494e1c56a2711aab690b63
+  checksum: 10c0/91ae0078ff29ebc5082708c60d86f2a4e7dcb247b1d7256c66ef33cf2c57feb774f6df72f8dd4628f63512acc1f056764015f53cc94e423dc64b3bf4573e9847
   languageName: node
   linkType: hard
 
@@ -404,15 +404,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular/common@npm:17.3.3":
-  version: 17.3.3
-  resolution: "@angular/common@npm:17.3.3"
+"@angular/common@npm:17.3.6":
+  version: 17.3.6
+  resolution: "@angular/common@npm:17.3.6"
   dependencies:
     tslib: "npm:^2.3.0"
   peerDependencies:
-    "@angular/core": 17.3.3
+    "@angular/core": 17.3.6
     rxjs: ^6.5.3 || ^7.4.0
-  checksum: 10c0/5b32b1f6417c343f25708318c0029cb7a2a48288c99dee754fea0aa943301e7f6e0afa93b1816e49fd6783fd467e5bcc7d0b5a07af470c0a01a1a67338f82d48
+  checksum: 10c0/3506e063f841078f0532b50b61d8db72e74ff1dcb6b0438614074f24164cd78ac80d71dc5ff0c5ee18fe3fd407351121f7791bdf042737fab3804fdbc6729d58
   languageName: node
   linkType: hard
 
@@ -439,68 +439,68 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@angular/compiler@npm:17.3.3":
-  version: 17.3.3
-  resolution: "@angular/compiler@npm:17.3.3"
+"@angular/compiler@npm:17.3.6":
+  version: 17.3.6
+  resolution: "@angular/compiler@npm:17.3.6"
   dependencies:
     tslib: "npm:^2.3.0"
   peerDependencies:
-    "@angular/core": 17.3.3
+    "@angular/core": 17.3.6
   peerDependenciesMeta:
     "@angular/core":
       optional: true
-  checksum: 10c0/ae62426afa26601e38a2a579e704ee13ab18150d3610bf6a964023e16019e71deca21894ae83c55adcbf3f2ae1036086f609021ea58c9d5c59036bfd4b03fdbd
+  checksum: 10c0/70cdfbd8e3f5d8892d718166c54bd3702eaedf8c1a049463e97772915b043c7b8d87469bf39a4e072db84a0461d69b63521f4b630bd367dac828d834e4fbb148
   languageName: node
   linkType: hard
 
-"@angular/core@npm:17.3.3":
-  version: 17.3.3
-  resolution: "@angular/core@npm:17.3.3"
+"@angular/core@npm:17.3.6":
+  version: 17.3.6
+  resolution: "@angular/core@npm:17.3.6"
   dependencies:
     tslib: "npm:^2.3.0"
   peerDependencies:
     rxjs: ^6.5.3 || ^7.4.0
     zone.js: ~0.14.0
-  checksum: 10c0/a4e7a90718c5d0ef5fa044b5f3af111665aa5f170299882ab91e7075711b5a3a9b7b88a541e291025713194b5548a842c4d5993d112823e1a25ca293f746808e
+  checksum: 10c0/37838ff6f310273052279b86e3c7840edad26df5e0092d6d225c01eafb674b5d7c759b736c64a45ed250a44b83293b1ca26df963c52b9e8ad7e67c19f742d796
   languageName: node
   linkType: hard
 
-"@angular/forms@npm:17.3.3":
-  version: 17.3.3
-  resolution: "@angular/forms@npm:17.3.3"
+"@angular/forms@npm:17.3.6":
+  version: 17.3.6
+  resolution: "@angular/forms@npm:17.3.6"
   dependencies:
     tslib: "npm:^2.3.0"
   peerDependencies:
-    "@angular/common": 17.3.3
-    "@angular/core": 17.3.3
-    "@angular/platform-browser": 17.3.3
+    "@angular/common": 17.3.6
+    "@angular/core": 17.3.6
+    "@angular/platform-browser": 17.3.6
     rxjs: ^6.5.3 || ^7.4.0
-  checksum: 10c0/6d5ab9f8b82d97f34af8627b386c8712f6ab60cbee5e941d367a4c00640e95b42cde9d18588d1af60faf6d0265b9395be90d6b2826b741570252709685ed69f6
+  checksum: 10c0/318d7add3d3889366f1c072f492f2c326c66b3ec83d741d05530996ed96adca94704478b4bea657576d1b329b88273c481b4e825f89d2e22b467ddd477b8c95a
   languageName: node
   linkType: hard
 
-"@angular/localize@npm:17.3.3":
-  version: 17.3.3
-  resolution: "@angular/localize@npm:17.3.3"
+"@angular/localize@npm:17.3.6":
+  version: 17.3.6
+  resolution: "@angular/localize@npm:17.3.6"
   dependencies:
     "@babel/core": "npm:7.23.9"
     "@types/babel__core": "npm:7.20.5"
     fast-glob: "npm:3.3.2"
     yargs: "npm:^17.2.1"
   peerDependencies:
-    "@angular/compiler": 17.3.3
-    "@angular/compiler-cli": 17.3.3
+    "@angular/compiler": 17.3.6
+    "@angular/compiler-cli": 17.3.6
   bin:
     localize-extract: tools/bundles/src/extract/cli.js
     localize-migrate: tools/bundles/src/migrate/cli.js
     localize-translate: tools/bundles/src/translate/cli.js
-  checksum: 10c0/68818c0dee398fb8d5194757fd8c95907da1826e7ad3647cf3a76f6762ae4b19af15194548650d4a476ce081c33ffa99c76fd49cc064aa8d45fb5133fc86d3b0
+  checksum: 10c0/82f0118c1d401f78bf1c7a2f10f4aa2484e1707362e157d625bc2401d94cd897f76aea0827c48ca00b507648ff50e6de6cbc6f3ee8f6ae6e0239b8b31ee5e1bb
   languageName: node
   linkType: hard
 
-"@angular/material@npm:17.3.3":
-  version: 17.3.3
-  resolution: "@angular/material@npm:17.3.3"
+"@angular/material-experimental@npm:17.3.6":
+  version: 17.3.6
+  resolution: "@angular/material-experimental@npm:17.3.6"
   dependencies:
     "@material/animation": "npm:15.0.0-canary.7f224ddd4.0"
     "@material/auto-init": "npm:15.0.0-canary.7f224ddd4.0"
@@ -552,57 +552,121 @@ __metadata:
     tslib: "npm:^2.3.0"
   peerDependencies:
     "@angular/animations": ^17.0.0 || ^18.0.0
-    "@angular/cdk": 17.3.3
+    "@angular/cdk": 17.3.6
+    "@angular/common": ^17.0.0 || ^18.0.0
+    "@angular/core": ^17.0.0 || ^18.0.0
+    "@angular/forms": ^17.0.0 || ^18.0.0
+    "@angular/material": 17.3.6
+    "@angular/platform-browser": ^17.0.0 || ^18.0.0
+  checksum: 10c0/4645b09fa5f8170c3b99e7cbe9dd5069171f554fdf8f46a3ac69ce1b83cf29f968fdb44caa6a07b5040ef358e61e26cface68c723e752a04b1f001ef81d5d02d
+  languageName: node
+  linkType: hard
+
+"@angular/material@npm:17.3.6":
+  version: 17.3.6
+  resolution: "@angular/material@npm:17.3.6"
+  dependencies:
+    "@material/animation": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/auto-init": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/banner": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/base": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/button": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/card": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/checkbox": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/chips": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/circular-progress": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/data-table": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/density": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/dialog": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/dom": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/drawer": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/elevation": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/fab": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/feature-targeting": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/floating-label": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/form-field": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/icon-button": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/image-list": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/layout-grid": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/line-ripple": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/linear-progress": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/list": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/menu": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/menu-surface": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/notched-outline": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/radio": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/ripple": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/rtl": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/segmented-button": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/select": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/shape": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/slider": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/snackbar": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/switch": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/tab": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/tab-bar": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/tab-indicator": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/tab-scroller": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/textfield": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/theme": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/tooltip": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/top-app-bar": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/touch-target": "npm:15.0.0-canary.7f224ddd4.0"
+    "@material/typography": "npm:15.0.0-canary.7f224ddd4.0"
+    tslib: "npm:^2.3.0"
+  peerDependencies:
+    "@angular/animations": ^17.0.0 || ^18.0.0
+    "@angular/cdk": 17.3.6
     "@angular/common": ^17.0.0 || ^18.0.0
     "@angular/core": ^17.0.0 || ^18.0.0
     "@angular/forms": ^17.0.0 || ^18.0.0
     "@angular/platform-browser": ^17.0.0 || ^18.0.0
     rxjs: ^6.5.3 || ^7.4.0
-  checksum: 10c0/68a14ed8321d628ee97fbb387f3b1ee5b38466211138ebbbacf2ad52fc3a43f58b1313e5c62d3f6191a1eb0c10ee01ff009e7464a4e5ccff500e200a4179471f
+  checksum: 10c0/b09ea87e71aa865767cb5333a5191500d1f71d784c1585cc668c1343329e7f94931d015e544df1f902d474b4734a38979b03725de5843eefb2480356d5f2fa4e
   languageName: node
   linkType: hard
 
-"@angular/platform-browser-dynamic@npm:17.3.3":
-  version: 17.3.3
-  resolution: "@angular/platform-browser-dynamic@npm:17.3.3"
+"@angular/platform-browser-dynamic@npm:17.3.6":
+  version: 17.3.6
+  resolution: "@angular/platform-browser-dynamic@npm:17.3.6"
   dependencies:
     tslib: "npm:^2.3.0"
   peerDependencies:
-    "@angular/common": 17.3.3
-    "@angular/compiler": 17.3.3
-    "@angular/core": 17.3.3
-    "@angular/platform-browser": 17.3.3
-  checksum: 10c0/5e73e619d0eae5c2f38bc8051e4f025051effa550e4f25583cdceb3cf961eac5f556eb19ecf345b83b67cfbe5c22332b733769cb76152f8bdd961b993316b426
+    "@angular/common": 17.3.6
+    "@angular/compiler": 17.3.6
+    "@angular/core": 17.3.6
+    "@angular/platform-browser": 17.3.6
+  checksum: 10c0/eff1dcf97743f041e856813fd71c56533c48e852d18bb6e40b32659910977f1f168fb531a13dcba64c4e425e7ed0b7e991fdaf85a4b849aeb0d90b2e0147f678
   languageName: node
   linkType: hard
 
-"@angular/platform-browser@npm:17.3.3":
-  version: 17.3.3
-  resolution: "@angular/platform-browser@npm:17.3.3"
+"@angular/platform-browser@npm:17.3.6":
+  version: 17.3.6
+  resolution: "@angular/platform-browser@npm:17.3.6"
   dependencies:
     tslib: "npm:^2.3.0"
   peerDependencies:
-    "@angular/animations": 17.3.3
-    "@angular/common": 17.3.3
-    "@angular/core": 17.3.3
+    "@angular/animations": 17.3.6
+    "@angular/common": 17.3.6
+    "@angular/core": 17.3.6
   peerDependenciesMeta:
     "@angular/animations":
       optional: true
-  checksum: 10c0/43794f1805a91ea3fecc8efa8a1da6eb522fd1261b113eff7adfab9d41ff961b5ab4747f36ed2209038911be87011c15e321f17e5474f3e024b46799906157e6
+  checksum: 10c0/f47dbdf68dc8f8111f4933708921ec64877596cdc659cb6187bca98a1c260022e27fff778b3a2e666a18af051b22d8885cb6c05f802bacff58afaafa213351bf
   languageName: node
   linkType: hard
 
-"@angular/router@npm:17.3.3":
-  version: 17.3.3
-  resolution: "@angular/router@npm:17.3.3"
+"@angular/router@npm:17.3.6":
+  version: 17.3.6
+  resolution: "@angular/router@npm:17.3.6"
   dependencies:
     tslib: "npm:^2.3.0"
   peerDependencies:
-    "@angular/common": 17.3.3
-    "@angular/core": 17.3.3
-    "@angular/platform-browser": 17.3.3
+    "@angular/common": 17.3.6
+    "@angular/core": 17.3.6
+    "@angular/platform-browser": 17.3.6
     rxjs: ^6.5.3 || ^7.4.0
-  checksum: 10c0/0823f354130d42b8a589cde7becb5be9e30e39e40522a6de1cda2438063b2ac4f16049179c31c8ebee56293974a8683910fb264c1794a4926d9bebdb9b62bb81
+  checksum: 10c0/a7fa1246c9cef151dce9f8e95378ae9afd88c91e0119c42efbef7a2fa8a76e9616e7a8bdeae5f973e7eb91516a054b4b973170483bc8a4ffd4575ee24020c048
   languageName: node
   linkType: hard
 
@@ -12960,19 +13024,20 @@ __metadata:
     "@angular-eslint/eslint-plugin-template": "npm:17.3.0"
     "@angular-eslint/schematics": "npm:17.3.0"
     "@angular-eslint/template-parser": "npm:17.3.0"
-    "@angular/animations": "npm:17.3.3"
-    "@angular/cdk": "npm:17.3.3"
+    "@angular/animations": "npm:17.3.6"
+    "@angular/cdk": "npm:17.3.6"
     "@angular/cli": "npm:17.3.3"
-    "@angular/common": "npm:17.3.3"
-    "@angular/compiler": "npm:17.3.3"
+    "@angular/common": "npm:17.3.6"
+    "@angular/compiler": "npm:17.3.6"
     "@angular/compiler-cli": "npm:17.3.3"
-    "@angular/core": "npm:17.3.3"
-    "@angular/forms": "npm:17.3.3"
-    "@angular/localize": "npm:17.3.3"
-    "@angular/material": "npm:17.3.3"
-    "@angular/platform-browser": "npm:17.3.3"
-    "@angular/platform-browser-dynamic": "npm:17.3.3"
-    "@angular/router": "npm:17.3.3"
+    "@angular/core": "npm:17.3.6"
+    "@angular/forms": "npm:17.3.6"
+    "@angular/localize": "npm:17.3.6"
+    "@angular/material": "npm:17.3.6"
+    "@angular/material-experimental": "npm:17.3.6"
+    "@angular/platform-browser": "npm:17.3.6"
+    "@angular/platform-browser-dynamic": "npm:17.3.6"
+    "@angular/router": "npm:17.3.6"
     "@asciidoctor/core": "npm:3.0.4"
     "@asyncapi/web-component": "npm:1.4.9"
     "@chromatic-com/storybook": "npm:1.2.26"
