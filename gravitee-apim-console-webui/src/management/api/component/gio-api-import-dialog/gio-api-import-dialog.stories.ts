@@ -59,7 +59,7 @@ class ApiImportDialogStoryComponent {
 }
 
 export default {
-  title: 'Shared / Api import dialog',
+  title: 'Api / Import / V2 Dialog',
   component: GioApiImportDialogComponent,
   decorators: [
     moduleMetadata({

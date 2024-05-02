@@ -1,0 +1,16 @@
+@use 'sass:map';
+@use '../../../scss/gio-layout' as gio-layout;
+
+:host {
+  @include gio-layout.gio-responsive-margin-container;
+}
+
+.import {
+  &__row {
+    margin-top: 24px;
+  }
+
+  &__save-button {
+    margin-right: 8px;
+  }
+}
