@@ -16,7 +16,6 @@
 package io.gravitee.rest.api.model.v4.api;
 
 import io.gravitee.common.component.Lifecycle;
-import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.model.PrimaryOwnerEntity;
 import io.gravitee.rest.api.model.Visibility;

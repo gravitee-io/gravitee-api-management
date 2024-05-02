@@ -142,9 +142,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class ApiServiceImpl extends AbstractService implements ApiService {
 
-    public static final String API_DEFINITION_CONTET_FIELD = "definition_context";
+    public static final String API_DEFINITION_CONTEXT_FIELD = "definition_context";
     public static final String API_DEFINITION_CONTEXT_FIELD_ORIGIN = "origin";
     public static final String API_DEFINITION_CONTEXT_FIELD_MODE = "mode";
+    public static final String API_DEFINITION_CONTEXT_FIELD_SYNC_FROM = "syncFrom";
     private static final Logger LOGGER = LoggerFactory.getLogger(ApiServiceImpl.class);
     private static final String ENDPOINTS_DELIMITER = "\n";
 
@@ -491,14 +492,16 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
 
             // Set definition context
             DefinitionContext definitionContext = new DefinitionContext();
-            if (apiDefinition != null && apiDefinition.hasNonNull(API_DEFINITION_CONTET_FIELD)) {
-                JsonNode definitionContextNode = apiDefinition.get(API_DEFINITION_CONTET_FIELD);
+            if (apiDefinition != null && apiDefinition.hasNonNull(API_DEFINITION_CONTEXT_FIELD)) {
+                JsonNode definitionContextNode = apiDefinition.get(API_DEFINITION_CONTEXT_FIELD);
                 String origin = definitionContextNode.get(API_DEFINITION_CONTEXT_FIELD_ORIGIN).asText();
                 String mode = definitionContextNode.get(API_DEFINITION_CONTEXT_FIELD_MODE).asText();
-                definitionContext = new DefinitionContext(origin, mode);
+                String syncFrom = definitionContextNode.get(API_DEFINITION_CONTEXT_FIELD_SYNC_FROM).asText();
+                definitionContext = new DefinitionContext(origin, mode, syncFrom);
             }
             repoApi.setOrigin(definitionContext.getOrigin());
             repoApi.setMode(definitionContext.getMode());
+            repoApi.setSyncFrom(definitionContext.getSyncFrom().toUpperCase());
 
             if (DefinitionContext.isKubernetes(repoApi.getOrigin())) {
                 // Be sure that api is always marked as STARTED when managed by k8s.
@@ -1484,13 +1487,16 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             if (getAuthenticatedUser() != null) {
                 properties.put(Event.EventProperties.USER.getValue(), getAuthenticatedUser().getUsername());
             }
-            eventService.createApiEvent(
-                executionContext,
-                singleton(executionContext.getEnvironmentId()),
-                EventType.UNPUBLISH_API,
-                apiId,
-                properties
-            );
+
+            if (!Origin.KUBERNETES.name().equalsIgnoreCase(api.getSyncFrom())) {
+                eventService.createApiEvent(
+                    executionContext,
+                    singleton(executionContext.getEnvironmentId()),
+                    EventType.UNPUBLISH_API,
+                    apiId,
+                    properties
+                );
+            }
 
             // Delete pages
             pageService.deleteAllByApi(executionContext, apiId);
@@ -2450,6 +2456,12 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
         api.setCrossId(updateApiEntity.getCrossId());
         if (updateApiEntity.getVisibility() != null) {
             api.setVisibility(Visibility.valueOf(updateApiEntity.getVisibility().toString()));
+        }
+
+        if (updateApiEntity.getDefinitionContext() != null) {
+            api.setOrigin(updateApiEntity.getDefinitionContext().getOrigin());
+            api.setMode(updateApiEntity.getDefinitionContext().getMode());
+            api.setSyncFrom(updateApiEntity.getDefinitionContext().getSyncFrom());
         }
 
         api.setVersion(updateApiEntity.getVersion().trim());

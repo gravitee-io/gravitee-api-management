@@ -95,6 +95,12 @@ public class Api {
      * The origin of the api (management, kubernetes, ...). Default is {@link Api#ORIGIN_MANAGEMENT}.
      */
     private String origin = ORIGIN_MANAGEMENT;
+
+    /**
+     * If origin is kubernetes but syncFrom is management, the API will be deployed using a classic db sync
+     * instead of a config map.
+     */
+    private String syncFrom = ORIGIN_MANAGEMENT.toUpperCase();
     /**
      * How the api is managed by the origin (fully, api_definition_only, ...).
      */

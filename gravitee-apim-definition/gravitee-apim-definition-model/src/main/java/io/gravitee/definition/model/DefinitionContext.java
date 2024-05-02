@@ -71,7 +71,7 @@ public class DefinitionContext implements Serializable {
     public DefinitionContext(String origin, String mode, String syncFrom) {
         this.origin = origin != null ? origin : ORIGIN_MANAGEMENT;
         this.mode = mode != null ? mode : MODE_FULLY_MANAGED;
-        this.syncFrom = syncFrom == null ? ORIGIN_MANAGEMENT : syncFrom;
+        this.syncFrom = syncFrom == null ? ORIGIN_MANAGEMENT : syncFrom.toUpperCase();
     }
 
     public DefinitionContext(String origin, String mode) {

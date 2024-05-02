@@ -27,11 +27,13 @@ import io.gravitee.repository.management.api.ApiQualityRuleRepository;
 import io.gravitee.repository.management.api.ApiRepository;
 import io.gravitee.repository.management.model.*;
 import io.gravitee.repository.management.model.flow.FlowReferenceType;
+import io.gravitee.rest.api.model.EventType;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.PlanEntity;
 import io.gravitee.rest.api.model.PlanStatus;
 import io.gravitee.rest.api.model.SubscriptionEntity;
 import io.gravitee.rest.api.service.*;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.configuration.flow.FlowService;
 import io.gravitee.rest.api.service.converter.ApiConverter;
@@ -257,5 +259,34 @@ public class ApiService_DeleteTest {
         verify(subscriptionService).findByApi(eq(GraviteeContext.getExecutionContext()), eq(API_ID));
         verify(subscriptionService).delete(eq(GraviteeContext.getExecutionContext()), eq(SUBSCRIPTION_ID));
         verify(apiRepository).delete(eq(API_ID));
+    }
+
+    @Test
+    public void shouldWriteUnPublishEvent() throws Exception {
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+
+        SubscriptionEntity subscription = new SubscriptionEntity();
+        subscription.setId(SUBSCRIPTION_ID);
+        when(subscriptionService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Collections.singleton(subscription));
+
+        apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
+
+        verify(eventService, times(1))
+            .createApiEvent(any(ExecutionContext.class), anySet(), eq(EventType.UNPUBLISH_API), eq(API_ID), anyMap());
+    }
+
+    @Test
+    public void shouldNotWriteUnpublishedEventWhenSyncedFromKubernetes() throws Exception {
+        api.setSyncFrom(Api.ORIGIN_KUBERNETES);
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+
+        SubscriptionEntity subscription = new SubscriptionEntity();
+        subscription.setId(SUBSCRIPTION_ID);
+        when(subscriptionService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Collections.singleton(subscription));
+
+        apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
+
+        verify(eventService, never())
+            .createApiEvent(any(ExecutionContext.class), anySet(), eq(EventType.UNPUBLISH_API), eq(API_ID), anyMap());
     }
 }

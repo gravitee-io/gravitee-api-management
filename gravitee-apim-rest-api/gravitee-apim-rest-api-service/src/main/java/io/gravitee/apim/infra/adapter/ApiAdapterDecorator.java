@@ -42,6 +42,7 @@ public abstract class ApiAdapterDecorator implements ApiAdapter {
             case KUBERNETES -> {
                 api.setOrigin(OriginContext.Origin.KUBERNETES.name().toLowerCase());
                 api.setMode(((KubernetesContext) source.getOriginContext()).getMode().name().toLowerCase());
+                api.setSyncFrom(((KubernetesContext) source.getOriginContext()).getSyncFrom());
             }
             case INTEGRATION -> {
                 api.setOrigin(OriginContext.Origin.INTEGRATION.name().toLowerCase());

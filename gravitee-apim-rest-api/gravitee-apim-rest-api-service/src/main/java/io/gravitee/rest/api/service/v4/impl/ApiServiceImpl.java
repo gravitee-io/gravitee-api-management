@@ -28,6 +28,7 @@ import static java.util.stream.Collectors.toSet;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.common.data.domain.Page;
 import io.gravitee.definition.model.DefinitionContext;
+import io.gravitee.definition.model.Origin;
 import io.gravitee.definition.model.v4.analytics.logging.Logging;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -579,13 +580,16 @@ public class ApiServiceImpl extends AbstractService implements ApiService {
             if (getAuthenticatedUser() != null) {
                 properties.put(Event.EventProperties.USER.getValue(), getAuthenticatedUser().getUsername());
             }
-            eventService.createApiEvent(
-                executionContext,
-                singleton(executionContext.getEnvironmentId()),
-                EventType.UNPUBLISH_API,
-                apiId,
-                properties
-            );
+
+            if (!Origin.KUBERNETES.name().equalsIgnoreCase(api.getSyncFrom())) {
+                eventService.createApiEvent(
+                    executionContext,
+                    singleton(executionContext.getEnvironmentId()),
+                    EventType.UNPUBLISH_API,
+                    apiId,
+                    properties
+                );
+            }
 
             // Delete pages
             pageService.deleteAllByApi(executionContext, apiId);

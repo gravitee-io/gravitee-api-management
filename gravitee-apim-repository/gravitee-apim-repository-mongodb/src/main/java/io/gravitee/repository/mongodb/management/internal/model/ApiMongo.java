@@ -52,6 +52,11 @@ public class ApiMongo extends Auditable {
      */
     private String mode;
 
+    /**
+     * Source of sync for the API definition (either kubernetes or management)
+     */
+    private String syncFrom;
+
     /** The integration id for Federated API */
     private String integrationId;
 
@@ -312,5 +317,13 @@ public class ApiMongo extends Auditable {
 
     public void setMode(String mode) {
         this.mode = mode;
+    }
+
+    public String getSyncFrom() {
+        return syncFrom;
+    }
+
+    public void setSyncFrom(String syncFrom) {
+        this.syncFrom = syncFrom;
     }
 }

@@ -99,7 +99,7 @@ public class ApiConverter {
         apiEntity.setReferenceType(ReferenceContext.Type.ENVIRONMENT.name());
         apiEntity.setReferenceId(api.getEnvironmentId());
         apiEntity.setCategories(api.getCategories());
-        apiEntity.setDefinitionContext(new DefinitionContext(api.getOrigin(), api.getMode()));
+        apiEntity.setDefinitionContext(new DefinitionContext(api.getOrigin(), api.getMode(), api.getSyncFrom()));
 
         if (api.getDefinition() != null) {
             try {
@@ -174,7 +174,9 @@ public class ApiConverter {
         ApiEntity apiEntity = toApiEntity(api, primaryOwner);
         if (apiEntity.getDefinitionContext() == null) {
             // Set context to management for backward compatibility.
-            apiEntity.setDefinitionContext(new DefinitionContext(Api.ORIGIN_MANAGEMENT, Api.MODE_FULLY_MANAGED));
+            apiEntity.setDefinitionContext(
+                new DefinitionContext(Api.ORIGIN_MANAGEMENT, Api.MODE_FULLY_MANAGED, Api.ORIGIN_MANAGEMENT.toUpperCase())
+            );
         }
 
         Set<PlanEntity> plans = planService.findByApi(executionContext, api.getId());

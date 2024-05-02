@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import io.gravitee.common.component.Lifecycle;
+import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.ExecutionMode;
 import io.gravitee.definition.model.FlowMode;
 import io.gravitee.definition.model.Proxy;
@@ -172,6 +173,9 @@ public class UpdateApiEntity {
 
     @Schema(hidden = true, description = "The API's lifecycle state has been added for the kubernetes operator only.")
     private Lifecycle.State state;
+
+    @JsonProperty("definition_context")
+    private DefinitionContext definitionContext;
 
     public void setName(String name) {
         this.name = HtmlSanitizer.sanitize(name);
