@@ -82,6 +82,7 @@ import { ApiDocumentationV4MetadataComponent } from './documentation-v4/document
 import { ApiHistoryV4Component } from './history-v4/api-history-v4.component';
 import { ApiHistoryV4DeploymentInfoComponent } from './history-v4/deployment-info/api-history-v4-deployment-info.component';
 import { ApiFailoverV4Component } from './failover-v4/api-failover-v4.component';
+import { ApiImportV4Component } from './import-v4/api-import-v4.component';
 
 import { DocumentationManagementComponent } from '../../components/documentation/documentation-management.component';
 import { DocumentationNewPageComponent } from '../../components/documentation/new-page.component';
@@ -152,6 +153,12 @@ const apisRoutes: Routes = [
         page: 'management-apis-create',
       },
     },
+  },
+  {
+    path: 'import/v4',
+    component: ApiImportV4Component,
+    canActivate: [PermissionGuard.checkRouteDataPermissions],
+    data: { permissions: { anyOf: ['environment-api-c'] } },
   },
 
   /**
