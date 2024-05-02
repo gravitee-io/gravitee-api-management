@@ -93,6 +93,10 @@ describe('ApiFederatedMenuService', () => {
                 displayName: 'Plans',
                 routerLink: 'plans',
               },
+              {
+                displayName: 'Broadcasts',
+                routerLink: 'messages',
+              },
             ],
           },
           {
@@ -153,7 +157,12 @@ describe('ApiFederatedMenuService', () => {
             },
             icon: 'cloud-consumers',
             routerLink: '',
-            tabs: [],
+            tabs: [
+              {
+                displayName: 'Broadcasts',
+                routerLink: 'messages',
+              },
+            ],
           },
           {
             displayName: 'Documentation',
