@@ -18,7 +18,7 @@ import { Meta, StoryObj } from '@storybook/angular';
 import { ApplicationSubscriptionComponent } from './application-subscription.component';
 
 export default {
-  title: 'ApplicationSubscriptionComponent story',
+  title: 'Application / Subscription / Details',
   component: ApplicationSubscriptionComponent,
   argTypes: {},
   render: (args) => ({
