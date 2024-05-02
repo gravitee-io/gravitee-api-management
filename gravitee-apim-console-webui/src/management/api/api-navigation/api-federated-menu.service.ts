@@ -108,7 +108,7 @@ export class ApiFederatedMenuService implements ApiMenuService {
         title: 'Consumers',
         subtitle: 'Manage how your API is consumed',
       },
-      tabs: tabs,
+      tabs: [...tabs, { displayName: 'Broadcasts', routerLink: 'messages' }],
     };
   }
 
