@@ -178,7 +178,7 @@ public class ImportCRDUseCase {
                     .originContext(
                         new KubernetesContext(
                             KubernetesContext.Mode.valueOf(input.crd().getDefinitionContext().getMode().toUpperCase()),
-                            input.crd().getDefinitionContext().getSyncFrom()
+                            input.crd().getDefinitionContext().getSyncFrom().toUpperCase()
                         )
                     )
                     .lifecycleState(Api.LifecycleState.valueOf(input.crd().getState()))

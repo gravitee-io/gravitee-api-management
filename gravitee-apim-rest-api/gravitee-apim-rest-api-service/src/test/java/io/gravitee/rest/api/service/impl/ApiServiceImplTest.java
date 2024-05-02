@@ -21,6 +21,7 @@ import static org.mockito.Mockito.*;
 import io.gravitee.common.util.DataEncryptor;
 import io.gravitee.rest.api.model.MembershipReferenceType;
 import io.gravitee.rest.api.model.PropertyEntity;
+import io.gravitee.rest.api.service.EventService;
 import io.gravitee.rest.api.service.MembershipService;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.PrimaryOwnerNotFoundException;

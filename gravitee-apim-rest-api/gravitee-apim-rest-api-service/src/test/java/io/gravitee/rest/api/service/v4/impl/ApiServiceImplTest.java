@@ -34,6 +34,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -566,6 +568,35 @@ public class ApiServiceImplTest {
         verify(subscriptionService).findByApi(eq(GraviteeContext.getExecutionContext()), eq(API_ID));
         verify(subscriptionService).delete(eq(GraviteeContext.getExecutionContext()), eq(SUBSCRIPTION_ID));
         verify(apiRepository).delete(eq(API_ID));
+    }
+
+    @Test
+    public void shouldDeleteAndWriteEvent() throws Exception {
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+
+        SubscriptionEntity subscription = new SubscriptionEntity();
+        subscription.setId(SUBSCRIPTION_ID);
+        when(subscriptionService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Collections.singleton(subscription));
+
+        apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
+
+        verify(eventService, times(1))
+            .createApiEvent(any(ExecutionContext.class), anySet(), eq(EventType.UNPUBLISH_API), eq(API_ID), anyMap());
+    }
+
+    @Test
+    public void shouldDeleteWithoutWritingEventWhenSyncedFromKubernetes() throws Exception {
+        api.setSyncFrom(Api.ORIGIN_KUBERNETES);
+        when(apiRepository.findById(API_ID)).thenReturn(Optional.of(api));
+
+        SubscriptionEntity subscription = new SubscriptionEntity();
+        subscription.setId(SUBSCRIPTION_ID);
+        when(subscriptionService.findByApi(GraviteeContext.getExecutionContext(), API_ID)).thenReturn(Collections.singleton(subscription));
+
+        apiService.delete(GraviteeContext.getExecutionContext(), API_ID, false);
+
+        verify(eventService, never())
+            .createApiEvent(any(ExecutionContext.class), anySet(), eq(EventType.UNPUBLISH_API), eq(API_ID), anyMap());
     }
 
     /*

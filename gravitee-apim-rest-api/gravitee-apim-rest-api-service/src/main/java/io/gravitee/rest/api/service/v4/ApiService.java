@@ -16,7 +16,9 @@
 package io.gravitee.rest.api.service.v4;
 
 import io.gravitee.common.data.domain.Page;
+import io.gravitee.repository.management.model.Api;
 import io.gravitee.rest.api.model.common.Pageable;
+import io.gravitee.rest.api.model.context.OriginContext;
 import io.gravitee.rest.api.model.v4.api.ApiEntity;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
 import io.gravitee.rest.api.model.v4.api.UpdateApiEntity;
