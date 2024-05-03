@@ -19,31 +19,24 @@
 @forward './scss/material-design-overrides';
 @forward 'scss/m3-adapter';
 @use '@angular/material' as mat;
-@import './scss/theme/theme';
+@use '@angular/material-experimental' as matx;
+@use './scss/theme';
 
-@include mat.core;
+@include mat.core();
+@include matx.color-variants-back-compat(theme.$light-theme);
 
-$light-theme: mat.define-light-theme(
-  (
-    color: (
-      primary: $theme-primary,
-      accent: $theme-accent,
-      warn: $theme-warn,
-    ),
-    typography: $theme-typography,
-  )
-);
-@include mat.all-component-themes($light-theme);
+html {
+  @include mat.all-component-themes(theme.$light-theme);
+}
 
 body {
   margin: 0;
-  background-color: $background-color;
-  color: $default-text-color;
-  font-family: 'Golos UI', Roboto, 'Helvetica Neue', sans-serif;
+  background-color: theme.$background-color;
+  font-family: theme.$font-family;
   overflow-y: scroll;
 
   p {
-    color: $paragraph-color;
+    color: theme.$paragraph-color;
   }
 
   .xng-breadcrumb-trail {
@@ -51,7 +44,7 @@ body {
   }
 
   .xng-breadcrumb-link {
-    color: color-mix(in srgb, $default-text-color 75%, transparent);
+    color: color-mix(in srgb, theme.$default-text-color 75%, transparent);
     font-weight: 400;
 
     :hover {

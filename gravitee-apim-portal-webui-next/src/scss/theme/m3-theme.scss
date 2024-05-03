@@ -1,0 +1,151 @@
+/*
+ * Copyright (C) 2024 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@use 'sass:map';
+@use '@angular/material-experimental' as matx;
+@import './variables';
+
+/**
+NOTE: This file is to be deleted once material 3 has an easier way to create palettes from simple inputs
+ */
+
+@function -generate-palette-hsl($h, $s, $l) {
+  @return (
+    0: hsl($h, $s, 0%),
+    10: hsl($h, $s, calc($l * 0.2)),
+    20: hsl($h, $s, calc($l * 0.4)),
+    25: hsl($h, $s, calc($l * 0.5)),
+    30: hsl($h, $s, calc($l * 0.6)),
+    35: hsl($h, $s, calc($l * 0.7)),
+    40: hsl($h, $s, calc($l * 0.8)),
+    50: hsl($h, $s, $l),
+    60: hsl($h, $s, calc($l + (100 - l) * 0.2)),
+    70: hsl($h, $s, calc($l + (100 - l) * 0.4)),
+    80: hsl($h, $s, calc($l + (100 - l) * 0.6)),
+    90: hsl($h, $s, calc($l + (100 - l) * 0.8)),
+    95: hsl($h, $s, calc($l + (100 - l) * 0.9)),
+    98: hsl($h, $s, calc($l + (100 - l) * 0.96)),
+    99: hsl($h, $s, calc($l + (100 - l) * 0.98)),
+    100: hsl($h, $s, 100%)
+  );
+}
+
+@function -config() {
+  $primary-main-color-h: var(--gio-app-primary-main-color-h);
+  $primary-main-color-s: var(--gio-app-primary-main-color-s);
+  $primary-main-color-l: var(--gio-app-primary-main-color-l);
+  $secondary-main-color-h: var(--gio-app-secondary-main-color-h);
+  $secondary-main-color-s: var(--gio-app-secondary-main-color-s);
+  $secondary-main-color-l: var(--gio-app-secondary-main-color-l);
+  $tertiary-main-color-h: var(--gio-app-tertiary-main-color-h);
+  $tertiary-main-color-s: var(--gio-app-tertiary-main-color-s);
+  $tertiary-main-color-l: var(--gio-app-tertiary-main-color-l);
+  $error-main-color-h: var(--gio-app-error-main-color-h);
+  $error-main-color-s: var(--gio-app-error-main-color-s);
+  $error-main-color-l: var(--gio-app-error-main-color-l);
+  $_palettes: (
+    primary: -generate-palette-hsl($primary-main-color-h, $primary-main-color-s, $primary-main-color-l),
+    secondary: -generate-palette-hsl($secondary-main-color-h, $secondary-main-color-s, $secondary-main-color-l),
+    tertiary: -generate-palette-hsl($tertiary-main-color-h, $tertiary-main-color-s, $tertiary-main-color-l),
+    neutral: (
+      0: #000,
+      10: #1c1b1e,
+      20: #313033,
+      25: #3c3b3f,
+      30: #48464a,
+      35: #545256,
+      40: #605d62,
+      50: #79767a,
+      60: #939094,
+      70: #aeaaaf,
+      80: #c9c5ca,
+      90: #e6e1e6,
+      95: #f4eff4,
+      98: #fdf8fd,
+      99: #fffbff,
+      100: #fff,
+      4: #0f0e11,
+      6: #141316,
+      12: #201f23,
+      17: #2b292d,
+      22: #363438,
+      24: #3a383c,
+      87: #ddd9dd,
+      92: #ebe7ec,
+      94: #f1ecf1,
+      96: #f7f2f7,
+    ),
+    neutral-variant: (
+      0: #000,
+      10: #1c1a22,
+      20: #312f38,
+      25: #3c3a43,
+      30: #48454e,
+      35: #54515a,
+      40: #605d66,
+      50: #79757f,
+      60: #938f99,
+      70: #aea9b4,
+      80: #c9c4d0,
+      90: #e6e0ec,
+      95: #f4effa,
+      98: #fdf8ff,
+      99: #fffbff,
+      100: #fff,
+    ),
+    error: -generate-palette-hsl($error-main-color-h, $error-main-color-s, $error-main-color-l),
+  );
+  $_rest: (
+    secondary: map.get($_palettes, secondary),
+    neutral: map.get($_palettes, neutral),
+    neutral-variant: map.get($_palettes, neutral-variant),
+    error: map.get($_palettes, error),
+  );
+  $_primary: map.merge(map.get($_palettes, primary), $_rest);
+  $_tertiary: map.merge(map.get($_palettes, tertiary), $_rest);
+  @return (primary: $_primary, tertiary: $_tertiary);
+}
+
+@function generate-m3-light-theme() {
+  $config: -config();
+  @return matx.define-theme(
+    (
+      color: (
+        theme-type: light,
+        primary: map.get($config, primary),
+        tertiary: map.get($config, tertiary),
+      ),
+      typography: (
+        plain-family: $font-family,
+      ),
+    )
+  );
+}
+
+@function generate-m3-dark-theme() {
+  $config: -config();
+  @return matx.define-theme(
+    (
+      color: (
+        theme-type: dark,
+        primary: map.get($config, primary),
+        tertiary: map.get($config, tertiary),
+      ),
+      typography: (
+        plain-family: $font-family,
+      ),
+    )
+  );
+}
