@@ -3782,12 +3782,13 @@ components:
             oneOf:
                 - $ref: "#/components/schemas/UpdatePlanV2"
                 - $ref: "#/components/schemas/UpdatePlanV4"
-                - $ref: "#/components/schemas/UpdatePlanV4"
+                - $ref: "#/components/schemas/UpdatePlanFederated"
             discriminator:
                 propertyName: definitionVersion
                 mapping:
                     V2: UpdatePlanV2
                     V4: UpdatePlanV4
+                    FEDERATED: UpdatePlanFederated
         UpdateGenericPlan:
             type: object
             properties:
@@ -3837,17 +3838,6 @@ components:
                     properties:
                         configuration:
                             type: object
-                selectionRule:
-                    type: string
-                    description: An optional EL expression that will be evaluated at request time to select this plan.
-                tags:
-                    type: array
-                    description: The list of sharding tags associated with this plan.
-                    example:
-                        - public
-                        - private
-                    items:
-                        type: string
                 validation:
                     $ref: "#/components/schemas/PlanValidation"
             discriminator:
@@ -3855,6 +3845,7 @@ components:
                 mapping:
                     V2: UpdatePlanV2
                     V4: UpdatePlanV4
+                    FEDERATED: UpdatePlanFederated
             required:
                 - definitionVersion
         UpdatePlanV2:
@@ -3863,6 +3854,17 @@ components:
             allOf:
                 - $ref: "#/components/schemas/UpdateGenericPlan"
                 - properties:
+                      selectionRule:
+                          type: string
+                          description: An optional EL expression that will be evaluated at request time to select this plan.
+                      tags:
+                          type: array
+                          description: The list of sharding tags associated with this plan.
+                          example:
+                              - public
+                              - private
+                          items:
+                              type: string
                       flows:
                           type: array
                           items:
@@ -3880,10 +3882,27 @@ components:
             allOf:
                 - $ref: "#/components/schemas/UpdateGenericPlan"
                 - properties:
+                      selectionRule:
+                          type: string
+                          description: An optional EL expression that will be evaluated at request time to select this plan.
+                      tags:
+                          type: array
+                          description: The list of sharding tags associated with this plan.
+                          example:
+                              - public
+                              - private
+                          items:
+                              type: string
                       flows:
                           type: array
                           items:
                               $ref: "#/components/schemas/FlowV4"
+
+        UpdatePlanFederated:
+            type: object
+            title: "UpdatePlanFederated"
+            allOf:
+                - $ref: "#/components/schemas/UpdateGenericPlan"
 
         BaseSubscription:
             type: object
@@ -6724,25 +6743,25 @@ components:
 
         # Analytics
         ApiAnalyticsRequestsCountResponse:
-          description: Analytics for requests count by entrypoint
-          content:
-            application/json:
-              schema:
-                title: "ApiAnalyticsRequestsCountResponse"
-                description: API Analytics for requests count by entrypoint.
-                properties:
-                  total:
-                    type: integer
-                    format: int64
-                    description: The id of the api.
-                    example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
-                  countsByEntrypoint:
-                    type: object
-                    additionalProperties:
-                      description: A map of metrics by entrypoint
-                      type: number
+            description: Analytics for requests count by entrypoint
+            content:
+                application/json:
+                    schema:
+                        title: "ApiAnalyticsRequestsCountResponse"
+                        description: API Analytics for requests count by entrypoint.
+                        properties:
+                            total:
+                                type: integer
+                                format: int64
+                                description: The id of the api.
+                                example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
+                            countsByEntrypoint:
+                                type: object
+                                additionalProperties:
+                                    description: A map of metrics by entrypoint
+                                    type: number
 
-      # Analytics - Logs
+        # Analytics - Logs
         ApiLogsResponse:
             description: Page of API Logs
             content:

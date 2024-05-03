@@ -27,6 +27,7 @@ import io.gravitee.rest.api.management.v2.rest.model.PlanSecurity;
 import io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType;
 import io.gravitee.rest.api.management.v2.rest.model.PlanV2;
 import io.gravitee.rest.api.management.v2.rest.model.PlanV4;
+import io.gravitee.rest.api.management.v2.rest.model.UpdatePlanFederated;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePlanV2;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePlanV4;
 import io.gravitee.rest.api.model.v4.plan.GenericPlanEntity;
@@ -71,6 +72,11 @@ public interface PlanMapper {
     @Mapping(target = "mode", source = "planDefinitionV4.mode")
     @Mapping(target = "definitionVersion", constant = "V4")
     PlanV4 map(PlanWithFlows source);
+
+    @Mapping(target = "status", source = "federatedPlanDefinition.status")
+    @Mapping(target = "mode", source = "federatedPlanDefinition.mode")
+    @Mapping(target = "definitionVersion", constant = "FEDERATED")
+    PlanFederated mapFederated(io.gravitee.apim.core.plan.model.Plan source);
 
     Set<PlanV4> map(Set<PlanEntity> planEntityList);
 
@@ -120,6 +126,9 @@ public interface PlanMapper {
     @Mapping(target = "security.configuration", qualifiedByName = "serializeConfiguration")
     UpdatePlanEntity map(UpdatePlanV4 plan);
 
+    @Mapping(target = "federatedPlanDefinition", source = "source", qualifiedByName = "mapToPlanDefinitionFederated")
+    io.gravitee.apim.core.plan.model.Plan map(UpdatePlanFederated source);
+
     @Mapping(target = "securityDefinition", source = "security.configuration", qualifiedByName = "serializeConfiguration")
     io.gravitee.rest.api.model.UpdatePlanEntity map(UpdatePlanV2 plan);
 
@@ -156,4 +165,8 @@ public interface PlanMapper {
     @Mapping(target = "security.configuration", qualifiedByName = "serializeConfiguration")
     @Mapping(target = "mode", defaultValue = "STANDARD")
     io.gravitee.definition.model.v4.plan.Plan mapToPlanDefinitionV4(CreatePlanV4 source);
+
+    @Named("mapToPlanDefinitionFederated")
+    @Mapping(target = "security.configuration", qualifiedByName = "serializeConfiguration")
+    io.gravitee.definition.model.federation.FederatedPlan mapToPlanDefinitionFederated(UpdatePlanFederated source);
 }
