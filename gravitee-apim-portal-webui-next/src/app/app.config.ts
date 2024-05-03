@@ -15,17 +15,23 @@
  */
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { APP_INITIALIZER, ApplicationConfig } from '@angular/core';
+import { MAT_RIPPLE_GLOBAL_OPTIONS } from '@angular/material/core';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideRouter, withComponentInputBinding, withRouterConfig } from '@angular/router';
-import { Observable, switchMap } from 'rxjs';
+import { combineLatest, Observable, switchMap } from 'rxjs';
 
 import { routes } from './app.routes';
 import { httpRequestInterceptor } from '../interceptors/http-request.interceptor';
 import { ConfigService } from '../services/config.service';
 import { CurrentUserService } from '../services/current-user.service';
+import { ThemeService } from '../services/theme.service';
 
-function initApp(configService: ConfigService, currentUserService: CurrentUserService): () => Observable<unknown> {
-  return () => configService.initBaseURL().pipe(switchMap(_ => currentUserService.loadUser()));
+function initApp(
+  configService: ConfigService,
+  themeService: ThemeService,
+  currentUserService: CurrentUserService,
+): () => Observable<unknown> {
+  return () => configService.initBaseURL().pipe(switchMap(_ => combineLatest([themeService.loadTheme(), currentUserService.loadUser()])));
 }
 
 export const appConfig: ApplicationConfig = {
@@ -36,8 +42,15 @@ export const appConfig: ApplicationConfig = {
     {
       provide: APP_INITIALIZER,
       useFactory: initApp,
-      deps: [ConfigService, CurrentUserService],
+      deps: [ConfigService, ThemeService, CurrentUserService],
       multi: true,
+    },
+    // Ripple does not work with hsl mixing
+    {
+      provide: MAT_RIPPLE_GLOBAL_OPTIONS,
+      useValue: {
+        disabled: true,
+      },
     },
   ],
 };
