@@ -691,6 +691,8 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 deleteRemovedPages(executionContext, apiEntity, pagesList);
             }
             pageService.createOrUpdatePages(executionContext, pagesList, apiEntity.getId());
+        } else if (apiJsonNode.isKubernetesOrigin()) {
+            pageService.deleteAllByApi(executionContext, apiEntity.getId());
         }
     }
 

@@ -260,7 +260,7 @@ public class ApiDuplicatorServiceImplTest {
     }
 
     @Test
-    public void shouldDeletePagesBeforeUpdateIfKubernetesOrigin() throws IOException {
+    public void shouldDeleteExistingPagesBeforeUpdateIfKubernetesOrigin() throws IOException {
         var pagesNode = loadTestNode(IMPORT_FILES_FOLDER + "import-api.pages.kubernetes.json");
         var deletedPageId = "not-in-the-import";
         var existingPage = new PageEntity();
@@ -277,6 +277,17 @@ public class ApiDuplicatorServiceImplTest {
 
         verify(pageService, times(1))
             .createOrUpdatePages(eq(GraviteeContext.getExecutionContext()), argThat(pageEntities -> pageEntities.size() == 2), eq(API_ID));
+    }
+
+    @Test
+    public void shouldDeleteAllPagesBeforeUpdateIfKubernetesOrigin() throws IOException {
+        var pagesNode = loadTestNode(IMPORT_FILES_FOLDER + "import-api.pages.empty.kubernetes.json");
+
+        when(apiEntity.getId()).thenReturn(API_ID);
+
+        apiDuplicatorService.createOrUpdatePages(GraviteeContext.getExecutionContext(), apiEntity, pagesNode);
+
+        verify(pageService, times(1)).deleteAllByApi(GraviteeContext.getExecutionContext(), API_ID);
     }
 
     // Plans
