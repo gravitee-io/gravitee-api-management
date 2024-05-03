@@ -15,7 +15,7 @@
  */
 
 import { ComponentHarness } from '@angular/cdk/testing';
-import { GioFormSelectionInlineHarness } from '@gravitee/ui-particles-angular';
+import { GioFormFilePickerInputHarness, GioFormSelectionInlineHarness } from '@gravitee/ui-particles-angular';
 import { MatButtonHarness } from '@angular/material/button/testing';
 
 export class ApiImportV4Harness extends ComponentHarness {
@@ -23,6 +23,7 @@ export class ApiImportV4Harness extends ComponentHarness {
 
   private getFormatSelectGroup = this.locatorFor(GioFormSelectionInlineHarness.with({ selector: '[formControlName="format"]' }));
   private getSourceSelectGroup = this.locatorFor(GioFormSelectionInlineHarness.with({ selector: '[formControlName="source"]' }));
+  private getFilePicker = this.locatorFor(GioFormFilePickerInputHarness);
   private getSaveButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Import API"]' }));
   private getCancelButton = this.locatorFor(MatButtonHarness.with({ selector: '[aria-label="Cancel"]' }));
 
@@ -44,5 +45,9 @@ export class ApiImportV4Harness extends ComponentHarness {
 
   public async selectSource(source: string) {
     return this.getSourceSelectGroup().then((group) => group.select(source));
+  }
+
+  public async pickFiles(files: File[]) {
+    return this.getFilePicker().then((filePicker) => filePicker.dropFiles(files));
   }
 }
