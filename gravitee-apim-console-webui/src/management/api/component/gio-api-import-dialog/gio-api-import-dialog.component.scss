@@ -29,11 +29,9 @@ $typography: map.get(gio.$mat-theme, typography);
       }
 
       &__add-btn {
-        width: 400px;
-        height: 200px;
-
         &__wrapper {
           display: flex;
+          width: 400px;
           height: 200px;
           flex-direction: column;
           justify-content: center;

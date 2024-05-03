@@ -15,9 +15,8 @@
  */
 import { Component, Inject, OnDestroy } from '@angular/core';
 import { FormGroup, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatTabChangeEvent } from '@angular/material/tabs';
-import { NewFile } from '@gravitee/ui-particles-angular';
 import { EMPTY, Observable, Subject } from 'rxjs';
 import { catchError, startWith, takeUntil, tap } from 'rxjs/operators';
 
@@ -27,12 +26,6 @@ import { ApiService } from '../../../../services-ngx/api.service';
 import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import { ApiV2Service } from '../../../../services-ngx/api-v2.service';
 import { ApiV4 } from '../../../../entities/management-api-v2';
-
-const allowedFileExtensions = ['yml', 'yaml', 'json', 'wsdl', 'xml'] as const;
-const importType = ['WSDL', 'SWAGGER', 'GRAVITEE', 'MAPI_V2'] as const;
-
-type FileExtension = (typeof allowedFileExtensions)[number];
-type ImportType = (typeof importType)[number];
 
 export type GioApiImportDialogData = {
   policies?: PolicyListItem[];
@@ -51,22 +44,15 @@ export class GioApiImportDialogComponent implements OnDestroy {
     ApiDefinition: 'API definition',
     WSDL: 'WSDL',
   };
-
-  importType: ImportType;
-
-  displayImportConfig = false;
-
+  importType: string;
   policies = [];
   isUpdateMode = false;
   updateModeApiId?: string;
-
-  filePickerValue = [];
   importFile: File;
   importFileContent: string;
-
   descriptorUrlForm = new UntypedFormControl();
-
   configsForm: UntypedFormGroup;
+  selectedTabIndex = 0;
 
   public get isImportValid(): boolean {
     return !!this.importType && (!!this.importFile || !!this.descriptorUrlForm?.value);
@@ -125,54 +111,10 @@ export class GioApiImportDialogComponent implements OnDestroy {
     this.unsubscribe$.unsubscribe();
   }
 
-  async onImportFile(event: (NewFile | string)[] | undefined) {
-    if (!event || event.length !== 1) {
-      this.resetImportFile();
-      return;
-    }
-    const file = event[0];
-
-    if (!(file instanceof NewFile)) {
-      return;
-    }
-
-    const extension = file.name.split('.').pop().toLowerCase() as FileExtension;
-    if (!allowedFileExtensions.includes(extension)) {
-      this.resetImportFile('Invalid file format. Supported file formats: ' + allowedFileExtensions.join(', '));
-      return;
-    }
-    const fileContent = await getFileContent(file.file);
-
-    // Find import type with extension and file content for json format
-    switch (extension) {
-      case 'wsdl':
-      case 'xml':
-        this.importType = 'WSDL';
-        break;
-
-      case 'json':
-        try {
-          const json: any = JSON.parse(fileContent);
-          this.importType = determineImportType(json);
-        } catch (error) {
-          this.resetImportFile('Invalid JSON file.');
-        }
-        break;
-
-      case 'yml':
-      case 'yaml':
-        this.importType = 'SWAGGER';
-        break;
-
-      default:
-        this.resetImportFile('Invalid file format.');
-        return;
-    }
-
-    if (this.importType) {
-      this.importFile = file.file;
-      this.importFileContent = fileContent;
-    }
+  onImportFile({ importFile, importFileContent, importType }: { importFile: File; importFileContent: string; importType: string }) {
+    this.importType = importType;
+    this.importFile = importFile;
+    this.importFileContent = importFileContent;
   }
 
   onSelectedTab(event: MatTabChangeEvent) {
@@ -204,13 +146,6 @@ export class GioApiImportDialogComponent implements OnDestroy {
         initUrlDescriptor();
         break;
     }
-  }
-
-  hasSomeConfigPolicies() {
-    const importPolicies = this.configsForm.value.importPolicies;
-    const importPolicyPaths = this.configsForm.value.importPolicyPaths;
-    const nbPoliciesChecked = Object.keys(importPolicies).filter((policyId) => importPolicies[policyId]).length;
-    return nbPoliciesChecked < this.policies.length && importPolicyPaths;
   }
 
   async onImport() {
@@ -290,37 +225,5 @@ export class GioApiImportDialogComponent implements OnDestroy {
     }
     this.importFile = undefined;
     this.importType = undefined;
-    this.filePickerValue = [];
   }
 }
-
-const getFileContent = (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      resolve(reader.result as string);
-    };
-    reader.onerror = reject;
-    reader.readAsText(file);
-  });
-};
-
-const isSwaggerJsonContent = (fileContent: unknown): boolean => {
-  return (
-    fileContent instanceof Object &&
-    (Object.prototype.hasOwnProperty.call(fileContent, 'swagger') ||
-      Object.prototype.hasOwnProperty.call(fileContent, 'swaggerVersion') ||
-      Object.prototype.hasOwnProperty.call(fileContent, 'openapi'))
-  );
-};
-
-const determineImportType = (jsonNode: any): ImportType => {
-  // Check if it's a swagger. if not consider is gravitee api definition
-  if (isSwaggerJsonContent(jsonNode)) {
-    return 'SWAGGER';
-  }
-  if (jsonNode.api?.definitionVersion === 'V4') {
-    return 'MAPI_V2';
-  }
-  return 'GRAVITEE';
-};
