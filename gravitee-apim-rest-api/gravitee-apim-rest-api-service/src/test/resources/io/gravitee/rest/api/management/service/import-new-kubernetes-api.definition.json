@@ -3,7 +3,8 @@
   "crossId": "ffffffff-ffff-ffff-ffff-ffffffffffff",
   "definition_context": {
     "origin": "kubernetes",
-    "mode": "fully_managed"
+    "mode": "fully_managed",
+    "syncFrom": "kubernetes"
   },
   "name": "test kubernetes",
   "version": "1",
