@@ -103,13 +103,12 @@ class HttpDynamicPropertiesServiceTest {
     static WireMockExtension wiremock = WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).build();
 
     private GenericApplicationContext applicationContext;
-    Vertx vertx = Vertx.vertx();
     private EventManager eventManager;
     private ObjectMapper objectMapper;
     private TestScheduler testScheduler;
 
     @BeforeEach
-    void setUp() {
+    void setUp(io.vertx.core.Vertx vertx) {
         // Prepare real EventManager and ApplicationContext
         eventManager = new EventManagerImpl();
         objectMapper = new ObjectMapper();
@@ -119,7 +118,7 @@ class HttpDynamicPropertiesServiceTest {
         final ConfigurableListableBeanFactory beanFactory = configurableApplicationContext.getBeanFactory();
         beanFactory.registerSingleton("eventManager", eventManager);
         beanFactory.registerSingleton("pluginConfigurationHelper", pluginConfigurationHelper);
-        beanFactory.registerSingleton("vertx", vertx);
+        beanFactory.registerSingleton("vertx", Vertx.newInstance(vertx));
         beanFactory.registerSingleton("configuration", Fixtures.emptyNodeConfiguration());
         applicationContext.refresh();
 
