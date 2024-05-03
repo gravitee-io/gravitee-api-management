@@ -16,12 +16,13 @@
 package io.gravitee.rest.api.management.v2.rest.mapper;
 
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.rest.api.management.v2.rest.model.BasePlan;
-import io.gravitee.rest.api.management.v2.rest.model.CreateGenericPlan;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePlanV2;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePlanV4;
 import io.gravitee.rest.api.management.v2.rest.model.Plan;
 import io.gravitee.rest.api.management.v2.rest.model.PlanCRD;
+import io.gravitee.rest.api.management.v2.rest.model.PlanFederated;
 import io.gravitee.rest.api.management.v2.rest.model.PlanSecurity;
 import io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType;
 import io.gravitee.rest.api.management.v2.rest.model.PlanV2;
@@ -52,8 +53,11 @@ public interface PlanMapper {
 
     @Mapping(target = "security.type", qualifiedByName = "mapToPlanSecurityType")
     @Mapping(target = "security.configuration", qualifiedByName = "deserializeConfiguration")
-    @Mapping(constant = "V4", target = "definitionVersion")
     PlanV4 map(PlanEntity planEntity);
+
+    @Mapping(target = "security.type", qualifiedByName = "mapToPlanSecurityType")
+    @Mapping(target = "security.configuration", qualifiedByName = "deserializeConfiguration")
+    PlanFederated mapFederated(PlanEntity planEntity);
 
     @Mapping(target = "security.type", source = "planDefinitionV4.security.type", qualifiedByName = "mapToPlanSecurityType")
     @Mapping(
@@ -87,7 +91,10 @@ public interface PlanMapper {
 
     default Plan mapGenericPlan(GenericPlanEntity entity) {
         if (entity instanceof PlanEntity) {
-            return new Plan(this.map((PlanEntity) entity));
+            if (entity.getDefinitionVersion() == DefinitionVersion.V4) {
+                return new Plan(this.map((PlanEntity) entity));
+            }
+            return new Plan(this.mapFederated((PlanEntity) entity));
         } else {
             return new Plan(this.map((io.gravitee.rest.api.model.PlanEntity) entity));
         }

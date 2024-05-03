@@ -45,6 +45,7 @@ public class PlanMapper {
         PlanEntity entity = new PlanEntity();
 
         entity.setId(plan.getId());
+        entity.setDefinitionVersion(plan.getDefinitionVersion());
         entity.setCrossId(plan.getCrossId());
         entity.setName(plan.getName());
         entity.setDescription(plan.getDescription());
