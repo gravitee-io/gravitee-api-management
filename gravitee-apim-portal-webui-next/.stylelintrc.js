@@ -10,5 +10,6 @@ module.exports = {
         ignorePseudoElements: ['ng-deep'],
       },
     ],
+    'scss/at-mixin-argumentless-call-parentheses': 'always',
   },
 };
