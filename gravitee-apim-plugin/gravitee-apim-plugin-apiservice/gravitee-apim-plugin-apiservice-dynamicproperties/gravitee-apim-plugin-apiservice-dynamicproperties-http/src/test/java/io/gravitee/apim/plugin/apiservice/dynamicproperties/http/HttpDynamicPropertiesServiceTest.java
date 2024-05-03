@@ -412,13 +412,13 @@ class HttpDynamicPropertiesServiceTest {
             // Start the service
             cut.start().test().assertComplete().assertNoErrors();
 
-            // Wait for the first http call
-            advanceTimeBy(5_000, cut, configuration);
-
             final TestObserver<Event<ManagementApiServiceEvent, DynamicPropertiesEvent>> eventObs = TestEventListener
                 .with(eventManager)
                 .completeAfter(4)
                 .test();
+
+            // Wait for the first http call
+            advanceTimeBy(5_000, cut, configuration);
 
             // Ensure first event has been published
             eventObs.awaitCount(1);
