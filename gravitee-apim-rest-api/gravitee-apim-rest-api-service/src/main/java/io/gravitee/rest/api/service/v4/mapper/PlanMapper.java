@@ -15,6 +15,7 @@
  */
 package io.gravitee.rest.api.service.v4.mapper;
 
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
@@ -45,6 +46,7 @@ public class PlanMapper {
         PlanEntity entity = new PlanEntity();
 
         entity.setId(plan.getId());
+        entity.setDefinitionVersion(plan.getDefinitionVersion());
         entity.setCrossId(plan.getCrossId());
         entity.setName(plan.getName());
         entity.setDescription(plan.getDescription());
@@ -90,6 +92,7 @@ public class PlanMapper {
 
     public Plan toRepository(final NewPlanEntity newPlanEntity) {
         Plan plan = new Plan();
+        plan.setDefinitionVersion(DefinitionVersion.V4);
         plan.setId(newPlanEntity.getId());
         plan.setCrossId(newPlanEntity.getCrossId());
         plan.setApi(newPlanEntity.getApiId());

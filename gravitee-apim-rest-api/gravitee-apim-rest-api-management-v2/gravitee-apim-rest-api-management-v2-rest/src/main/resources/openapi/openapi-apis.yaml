@@ -3603,6 +3603,7 @@ components:
                 mapping:
                     V2: PlanV2
                     V4: PlanV4
+                    FEDERATED: PlanFederated
         PlanV4:
             type: object
             title: "PlanV4"
@@ -3613,15 +3614,22 @@ components:
                           type: array
                           items:
                               $ref: "#/components/schemas/FlowV4"
+        PlanFederated:
+            type: object
+            title: "PlanFederated"
+            allOf:
+                - $ref: "#/components/schemas/GenericPlan"
         Plan:
             oneOf:
                 - $ref: "#/components/schemas/PlanV2"
                 - $ref: "#/components/schemas/PlanV4"
+                - $ref: "#/components/schemas/PlanFederated"
             discriminator:
                 propertyName: definitionVersion
                 mapping:
                     V2: PlanV2
                     V4: PlanV4
+                    FEDERATED: PlanFederated
         PlanSecurity:
             type: object
             properties:
@@ -3773,6 +3781,7 @@ components:
         UpdatePlan:
             oneOf:
                 - $ref: "#/components/schemas/UpdatePlanV2"
+                - $ref: "#/components/schemas/UpdatePlanV4"
                 - $ref: "#/components/schemas/UpdatePlanV4"
             discriminator:
                 propertyName: definitionVersion
