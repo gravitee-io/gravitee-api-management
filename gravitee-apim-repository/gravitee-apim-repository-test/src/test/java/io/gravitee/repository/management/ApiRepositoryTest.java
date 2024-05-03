@@ -124,6 +124,7 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
             .categories(Set.of())
             .groups(Set.of())
             .apiLifecycleState(CREATED)
+            .syncFrom("MANAGEMENT")
             .build();
         apiRepository.create(api);
 
