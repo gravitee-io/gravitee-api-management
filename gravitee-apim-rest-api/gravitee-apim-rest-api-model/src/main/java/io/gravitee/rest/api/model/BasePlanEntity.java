@@ -17,6 +17,7 @@ package io.gravitee.rest.api.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Rule;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
@@ -28,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -50,6 +52,9 @@ import lombok.experimental.SuperBuilder;
 public class BasePlanEntity implements GenericPlanEntity {
 
     private String id;
+
+    @Builder.Default
+    private DefinitionVersion definitionVersion = DefinitionVersion.V2;
 
     /**
      * The plan crossId uniquely identifies a plan across environments.

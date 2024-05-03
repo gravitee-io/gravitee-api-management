@@ -42,7 +42,7 @@ public class ApiDefinitionResource extends CustomResource<ObjectNode> {
         "apiMedia"
     );
 
-    private static final List<String> UNSUPPORTED_PLAN_FIELDS = List.of("created_at", "updated_at", "published_at");
+    private static final List<String> UNSUPPORTED_PLAN_FIELDS = List.of("created_at", "updated_at", "published_at", "definitionVersion");
 
     private static final List<String> UNSUPPORTED_PAGE_FIELDS = List.of(
         "lastContributor",
