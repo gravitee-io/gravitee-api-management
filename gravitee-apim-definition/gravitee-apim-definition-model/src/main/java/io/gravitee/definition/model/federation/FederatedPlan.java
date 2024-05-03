@@ -79,4 +79,12 @@ public class FederatedPlan implements Serializable {
             ("API_KEY".equalsIgnoreCase(this.getSecurity().getType()) || "api-key".equalsIgnoreCase(this.getSecurity().getType()))
         );
     }
+
+    public FederatedPlan update(FederatedPlan plan) {
+        return toBuilder()
+            .mode(plan.getMode())
+            .status(plan.getStatus())
+            .security(security.toBuilder().configuration(plan.getSecurity().getConfiguration()).build())
+            .build();
+    }
 }
