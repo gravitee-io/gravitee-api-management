@@ -27,6 +27,8 @@ import { GioFormFilePickerModule } from '@gravitee/ui-particles-angular';
 
 import { GioApiImportDialogComponent } from './gio-api-import-dialog.component';
 
+import { ApiImportFilePickerComponent } from '../api-import-file-picker/api-import-file-picker.component';
+
 @NgModule({
   imports: [
     CommonModule,
@@ -40,6 +42,7 @@ import { GioApiImportDialogComponent } from './gio-api-import-dialog.component';
     MatFormFieldModule,
     MatInputModule,
     GioFormFilePickerModule,
+    ApiImportFilePickerComponent,
   ],
   declarations: [GioApiImportDialogComponent],
   exports: [GioApiImportDialogComponent],
