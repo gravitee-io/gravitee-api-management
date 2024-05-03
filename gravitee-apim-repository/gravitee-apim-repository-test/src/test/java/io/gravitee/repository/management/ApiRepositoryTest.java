@@ -97,6 +97,46 @@ public class ApiRepositoryTest extends AbstractManagementRepositoryTest {
     }
 
     @Test
+<<<<<<< HEAD
+=======
+    public void createAndDeleteFederatedApiTest() throws Exception {
+        String apiId = "newApi-Id";
+
+        var api = Api
+            .builder()
+            .id(apiId)
+            .environmentId("DEFAULT")
+            .origin("integration")
+            .integrationId("integration-id")
+            .name("A Federated API")
+            .description("federated-api-description")
+            .definition("{}")
+            .version("1.0")
+            .visibility(PRIVATE)
+            .createdAt(parse("11/02/2024"))
+            .updatedAt(parse("11/02/2024"))
+            .lifecycleState(null)
+            .mode(null)
+            .labels(List.of())
+            .categories(Set.of())
+            .groups(Set.of())
+            .apiLifecycleState(CREATED)
+            .syncFrom("MANAGEMENT")
+            .build();
+        apiRepository.create(api);
+
+        assertThat(apiRepository.findById(apiId))
+            .isPresent()
+            .get()
+            .satisfies(result -> assertThat(result).usingRecursiveComparison().isEqualTo(api));
+
+        // test delete
+        apiRepository.delete(apiId);
+        assertThat(apiRepository.findById(apiId)).isEmpty();
+    }
+
+    @Test
+>>>>>>> 73eab884f1 (test: fix failing tests due to the new syncFrom property)
     public void shouldUpdate() throws Exception {
         Optional<Api> optional = apiRepository.findById("api-to-update");
         assertTrue("API to update not found", optional.isPresent());
