@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 @use 'sass:map';
-@import '../../scss/theme/theme';
+@use '../../scss/theme';
 
 .banner {
-  --mdc-elevated-card-container-color: #{$banner-background-color};
+  --mdc-elevated-card-container-color: #{theme.$banner-background-color};
 
-  color: $banner-text-color;
+  color: theme.$banner-text-color;
 }

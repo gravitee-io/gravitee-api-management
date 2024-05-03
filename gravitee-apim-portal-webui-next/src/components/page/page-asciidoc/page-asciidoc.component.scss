@@ -16,9 +16,7 @@
 @use 'sass:map';
 @use '@angular/material' as mat;
 
-@import '../../../scss/theme/theme';
-
-$primary-default: map.get($mat-primary, main);
+@use '../../../scss/theme';
 
 // Default Asciidoctor CSS
 @import '../../../../node_modules/@asciidoctor/core/dist/css/asciidoctor.css';
@@ -33,8 +31,8 @@ h5,
 h6,
 .title,
 .subheader {
-  color: $primary-default;
-  font-family: map.get($theme-typography, font-family);
+  color: theme.$primary-main-color;
+  font-family: theme.$font-family;
 }
 
 a {
@@ -58,16 +56,16 @@ a {
 .ulist > .title,
 .qlist > .title,
 .hdlist > .title {
-  color: $default-text-color;
+  color: theme.$default-text-color;
 }
 
 .listingblock > .title,
 table.tableblock > .title,
 .sidebarblock > .content > .title {
-  color: $primary-default;
-  font-family: map.get($theme-typography, font-family);
+  color: theme.$primary-main-color;
+  font-family: theme.$font-family;
 }
 
 .admonitionblock td.content > .title {
-  color: $default-text-color;
+  color: theme.$default-text-color;
 }
