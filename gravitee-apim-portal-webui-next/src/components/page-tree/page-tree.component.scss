@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 @use 'sass:map';
-@import '../../scss/theme/theme';
+@use '../../scss/theme';
 
 :host {
   --mat-tree-container-background-color: none;
@@ -27,7 +27,7 @@
     transition: 0.1s;
 
     &:hover {
-      background-color: map.get($theme-accent, main);
+      background-color: theme.$secondary-main-color;
     }
 
     &__container {
@@ -45,5 +45,5 @@
 }
 
 .active {
-  background-color: map.get($theme-accent, main);
+  background-color: theme.$secondary-main-color;
 }
