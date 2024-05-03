@@ -257,6 +257,8 @@ class HttpDynamicPropertiesServiceTest {
                     )
             );
 
+            var eventObs = TestEventListener.with(eventManager).completeAfter(1).test();
+
             // Start the service
             cut.start().test().assertComplete().assertNoErrors();
 
@@ -265,10 +267,7 @@ class HttpDynamicPropertiesServiceTest {
 
             ScheduledJobAssertions.assertScheduledJobIsRunning(cut.scheduledJob);
 
-            TestEventListener
-                .with(eventManager)
-                .completeAfter(1)
-                .test()
+            eventObs
                 .awaitDone(10, TimeUnit.SECONDS)
                 .assertValueCount(1)
                 .assertValue(propertyEvent -> {
@@ -409,13 +408,13 @@ class HttpDynamicPropertiesServiceTest {
                     .willSetStateTo("fourthCall")
             );
 
-            // Start the service
-            cut.start().test().assertComplete().assertNoErrors();
-
             final TestObserver<Event<ManagementApiServiceEvent, DynamicPropertiesEvent>> eventObs = TestEventListener
                 .with(eventManager)
                 .completeAfter(4)
                 .test();
+
+            // Start the service
+            cut.start().test().assertComplete().assertNoErrors();
 
             // Wait for the first http call
             advanceTimeBy(5_000, cut, configuration);
@@ -435,7 +434,7 @@ class HttpDynamicPropertiesServiceTest {
 
             // Wait for the fourth http call
             advanceTimeBy(5_000, cut, configuration);
-            // Ensure third event has been published
+            // Ensure fourth event has been published
             eventObs.awaitCount(4);
 
             ScheduledJobAssertions.assertScheduledJobIsRunning(cut.scheduledJob);
@@ -530,6 +529,8 @@ class HttpDynamicPropertiesServiceTest {
                     )
             );
 
+            var eventObs = TestEventListener.with(eventManager).completeAfter(1).test();
+
             // Start the service
             cut.update(api).test().assertComplete().assertNoErrors();
 
@@ -538,10 +539,7 @@ class HttpDynamicPropertiesServiceTest {
 
             ScheduledJobAssertions.assertScheduledJobIsRunning(cut.scheduledJob);
 
-            TestEventListener
-                .with(eventManager)
-                .completeAfter(1)
-                .test()
+            eventObs
                 .awaitDone(10, TimeUnit.SECONDS)
                 .assertValueCount(1)
                 .assertValue(propertyEvent -> {
@@ -613,16 +611,16 @@ class HttpDynamicPropertiesServiceTest {
                     .willSetStateTo("secondCall")
             );
 
+            final TestObserver<Event<ManagementApiServiceEvent, DynamicPropertiesEvent>> eventObs = TestEventListener
+                .with(eventManager)
+                .completeAfter(2)
+                .test();
+
             // Start the service
             cut.start().test().assertComplete().assertNoErrors();
 
             // Wait for the first http call
             advanceTimeBy(5_000, cut, configuration);
-
-            final TestObserver<Event<ManagementApiServiceEvent, DynamicPropertiesEvent>> eventObs = TestEventListener
-                .with(eventManager)
-                .completeAfter(2)
-                .test();
 
             // Ensure first event has been published
             eventObs.awaitCount(1);
@@ -716,16 +714,16 @@ class HttpDynamicPropertiesServiceTest {
                     .willSetStateTo("firstCall")
             );
 
+            final TestObserver<Event<ManagementApiServiceEvent, DynamicPropertiesEvent>> eventObs = TestEventListener
+                .with(eventManager)
+                .completeAfter(1)
+                .test();
+
             // Start the service
             cut.start().test().assertComplete().assertNoErrors();
 
             // Wait for the first http call
             advanceTimeBy(5_000, cut, configuration);
-
-            final TestObserver<Event<ManagementApiServiceEvent, DynamicPropertiesEvent>> eventObs = TestEventListener
-                .with(eventManager)
-                .completeAfter(1)
-                .test();
 
             // Ensure first event has been published
             eventObs.awaitCount(1);
