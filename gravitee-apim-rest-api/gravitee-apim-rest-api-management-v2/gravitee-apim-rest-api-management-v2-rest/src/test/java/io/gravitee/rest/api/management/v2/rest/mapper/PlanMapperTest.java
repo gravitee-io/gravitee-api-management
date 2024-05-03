@@ -21,11 +21,20 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fixtures.PlanFixtures;
+import io.gravitee.apim.core.plan.model.Plan;
+import io.gravitee.definition.model.federation.FederatedPlan;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
+import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.rest.api.management.v2.rest.model.DefinitionVersion;
+import io.gravitee.rest.api.management.v2.rest.model.PlanValidation;
+import io.gravitee.rest.api.management.v2.rest.model.UpdateGenericPlanSecurity;
+import io.gravitee.rest.api.management.v2.rest.model.UpdatePlanFederated;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.model.v4.plan.PlanValidationType;
 import java.util.HashSet;
+import java.util.List;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AssertionFailureBuilder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -222,6 +231,35 @@ public class PlanMapperTest {
         assertEquals(planWithFlows.getGeneralConditions(), plan.getGeneralConditions());
 
         assertEquals(planWithFlows.getFlows().size(), plan.getFlows().size());
+    }
+
+    @Test
+    void should_map_UpdatePlanFederated_to_Plan() {
+        final var source = PlanFixtures.anUpdatePlanFederated();
+        final var target = planMapper.map(source);
+
+        SoftAssertions.assertSoftly(soft -> {
+            soft.assertThat(target.getName()).isEqualTo(source.getName());
+            soft.assertThat(target.getDefinitionVersion()).isEqualTo(source.getDefinitionVersion());
+            soft.assertThat(target.getDescription()).isEqualTo(source.getDescription());
+            soft.assertThat(target.getCharacteristics()).isEqualTo(source.getCharacteristics());
+            soft.assertThat(target.getCommentMessage()).isEqualTo(source.getCommentMessage());
+            soft.assertThat(target.isCommentRequired()).isEqualTo(source.getCommentRequired());
+            soft.assertThat(target.getExcludedGroups()).isEqualTo(source.getExcludedGroups());
+            soft.assertThat(target.getGeneralConditions()).isEqualTo(source.getGeneralConditions());
+            soft.assertThat(target.getOrder()).isEqualTo(source.getOrder());
+            soft.assertThat(target.getValidation()).isEqualTo(Plan.PlanValidationType.AUTO);
+            soft
+                .assertThat(target.getFederatedPlanDefinition())
+                .isEqualTo(
+                    FederatedPlan
+                        .builder()
+                        .status(PlanStatus.PUBLISHED)
+                        .mode(PlanMode.STANDARD)
+                        .security(PlanSecurity.builder().configuration("{\"nice\": \"config\"}").build())
+                        .build()
+                );
+        });
     }
 
     private void assertSecurityV4Equals(
