@@ -55,10 +55,24 @@
 
       <div class="import__row">
         <h3>File</h3>
+        <api-import-file-picker [allowedFileExtensions]="['json']" (onFilePicked)="onImportFile($event)">
+          <div class="import__file-picker">
+            <mat-icon svgIcon="gio:upload"></mat-icon>
+            <p class="mat-body-strong">Drag and drop a file</p>
+            <p class="mat-body">Supported file formats: json</p>
+          </div>
+        </api-import-file-picker>
       </div>
 
       <div class="import__row">
-        <button mat-button mat-raised-button class="import__save-button" aria-label="Import API" [disabled]="form.invalid">
+        <button
+          mat-raised-button
+          color="primary"
+          class="import__save-button"
+          aria-label="Import API"
+          [disabled]="form.invalid || !this.importType"
+          (click)="import()"
+        >
           Import API
         </button>
         <a mat-button mat-raised-button routerLink="../.." aria-label="Cancel">Cancel</a>

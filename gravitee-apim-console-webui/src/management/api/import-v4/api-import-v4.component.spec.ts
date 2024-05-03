@@ -16,15 +16,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { HttpTestingController } from '@angular/common/http/testing';
 
 import { ApiImportV4Component } from './api-import-v4.component';
 import { ApiImportV4Harness } from './api-import-v4.harness';
 
-import { GioTestingModule } from '../../../shared/testing';
+import { CONSTANTS_TESTING, GioTestingModule } from '../../../shared/testing';
+import { fakeApiV4 } from '../../../entities/management-api-v2';
 
 describe('ImportV4Component', () => {
   let fixture: ComponentFixture<ApiImportV4Component>;
   let componentHarness: ApiImportV4Harness;
+  let httpTestingController: HttpTestingController;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -33,10 +36,32 @@ describe('ImportV4Component', () => {
 
     fixture = TestBed.createComponent(ApiImportV4Component);
     componentHarness = await TestbedHarnessEnvironment.harnessForFixture(fixture, ApiImportV4Harness);
+    httpTestingController = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
   });
 
   it('should not be able to save when form is invalid', async () => {
     expect(await componentHarness.isSaveDisabled()).toBeTruthy();
+  });
+
+  it('should import an API V4', async () => {
+    const apiV4 = fakeApiV4({ definitionVersion: 'V4' });
+    const importDefinition = JSON.stringify({ api: apiV4 });
+
+    await componentHarness.selectFormat('gravitee');
+    expect(await componentHarness.isSaveDisabled()).toBeTruthy();
+    await componentHarness.selectSource('local');
+    expect(await componentHarness.isSaveDisabled()).toBeTruthy();
+
+    await componentHarness.pickFiles([new File([importDefinition], 'gravitee-api-definition.json', { type: 'application/json' })]);
+    expect(await componentHarness.isSaveDisabled()).toBeFalsy();
+
+    await componentHarness.save();
+    const req = httpTestingController.expectOne({
+      method: 'POST',
+      url: `${CONSTANTS_TESTING.env.v2BaseURL}/apis/_import/definition`,
+    });
+
+    expect(req.request.body).toEqual(importDefinition);
   });
 });

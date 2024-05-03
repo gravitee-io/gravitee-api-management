@@ -13,4 +13,14 @@
   &__save-button {
     margin-right: 8px;
   }
+
+  &__file-picker {
+    width: 600px;
+    margin: 14px 0;
+
+    mat-icon {
+      width: 48px;
+      height: 48px;
+    }
+  }
 }
