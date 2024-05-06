@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.1.0...1.2.0) (2024-05-06)
+
+
+### Features
+
+* add count increments to v4 message metrics ([b145251](https://github.com/gravitee-io/gravitee-reporter-common/commit/b145251f9f038613c16c028cb7406e740c6cf274))
+
 # [1.1.0](https://github.com/gravitee-io/gravitee-reporter-common/compare/1.0.6...1.1.0) (2024-04-16)
 
 
