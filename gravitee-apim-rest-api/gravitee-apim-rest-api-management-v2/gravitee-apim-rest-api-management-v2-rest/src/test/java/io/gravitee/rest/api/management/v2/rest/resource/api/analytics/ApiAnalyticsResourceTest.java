@@ -25,10 +25,12 @@ import assertions.MAPIAssertions;
 import fakes.FakeAnalyticsQueryService;
 import fixtures.core.model.ApiFixtures;
 import inmemory.ApiCrudServiceInMemory;
+import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageMessagesPerRequestResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsRequestsCountResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.api.ApiResourceTest;
 import io.gravitee.rest.api.model.permissions.RolePermission;
 import io.gravitee.rest.api.model.permissions.RolePermissionAction;
+import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
 import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.client.WebTarget;
@@ -51,6 +53,7 @@ import org.junit.jupiter.api.Test;
 class ApiAnalyticsResourceTest extends ApiResourceTest {
 
     WebTarget requestsCountTarget;
+    WebTarget averageMessagesPerRequestTarget;
 
     @Inject
     FakeAnalyticsQueryService fakeAnalyticsQueryService;
@@ -65,8 +68,6 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
 
     @BeforeEach
     public void setup() {
-        requestsCountTarget = rootTarget().path("requests-count");
-
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
     }
@@ -83,14 +84,19 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
     @Nested
     class RequestsCountAnalytics {
 
+        @BeforeEach
+        public void prepareTarget() {
+            requestsCountTarget = rootTarget().path("requests-count");
+        }
+
         @Test
         void should_return_403_if_incorrect_permissions() {
             when(
                 permissionService.hasPermission(
-                    eq(GraviteeContext.getExecutionContext()),
-                    eq(RolePermission.API_ANALYTICS),
-                    eq(API),
-                    eq(RolePermissionAction.READ)
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.API_ANALYTICS,
+                    API,
+                    RolePermissionAction.READ
                 )
             )
                 .thenReturn(false);
@@ -120,6 +126,59 @@ class ApiAnalyticsResourceTest extends ApiResourceTest {
                 .satisfies(r -> {
                     assertThat(r.getTotal()).isEqualTo(11L);
                     assertThat(r.getCountsByEntrypoint()).containsAllEntriesOf(Map.of("http-get", 10, "sse", 1));
+                });
+        }
+    }
+
+    @Nested
+    class AverageMessagesPerRequestAnalytics {
+
+        @BeforeEach
+        public void prepareTarget() {
+            averageMessagesPerRequestTarget = rootTarget().path("average-messages-per-request");
+        }
+
+        @Test
+        void should_return_403_if_incorrect_permissions() {
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.API_ANALYTICS,
+                    API,
+                    RolePermissionAction.READ
+                )
+            )
+                .thenReturn(false);
+
+            final Response response = averageMessagesPerRequestTarget.request().get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(FORBIDDEN_403)
+                .asError()
+                .hasHttpStatus(FORBIDDEN_403)
+                .hasMessage("You do not have sufficient rights to access this resource");
+        }
+
+        @Test
+        void should_return_average_messages_per_request() {
+            apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aMessageApiV4().toBuilder().environmentId(ENVIRONMENT).build()));
+            fakeAnalyticsQueryService.averageMessagesPerRequest =
+                AverageMessagesPerRequest
+                    .builder()
+                    .globalAverage(55.0)
+                    .averagesByEntrypoint(Map.of("http-get", 10.0, "sse", 100.0))
+                    .build();
+
+            final Response response = averageMessagesPerRequestTarget.request().get();
+
+            MAPIAssertions
+                .assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(ApiAnalyticsAverageMessagesPerRequestResponse.class)
+                .satisfies(r -> {
+                    assertThat(r.getAverage()).isEqualTo(55.0);
+                    assertThat(r.getAveragesByEntrypoint()).containsAllEntriesOf(Map.of("http-get", 10.0, "sse", 100.0));
                 });
         }
     }
