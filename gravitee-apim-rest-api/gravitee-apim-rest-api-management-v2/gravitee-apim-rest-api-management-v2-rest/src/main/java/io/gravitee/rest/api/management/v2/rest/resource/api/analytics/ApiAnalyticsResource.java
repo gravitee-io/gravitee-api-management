@@ -15,8 +15,10 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.api.analytics;
 
+import io.gravitee.apim.core.analytics.use_case.SearchAverageMessagesPerRequestAnalyticsUseCase;
 import io.gravitee.apim.core.analytics.use_case.SearchRequestsCountAnalyticsUseCase;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiAnalyticsMapper;
+import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsAverageMessagesPerRequestResponse;
 import io.gravitee.rest.api.management.v2.rest.model.ApiAnalyticsRequestsCountResponse;
 import io.gravitee.rest.api.management.v2.rest.resource.AbstractResource;
 import io.gravitee.rest.api.model.permissions.RolePermission;
@@ -40,6 +42,9 @@ public class ApiAnalyticsResource extends AbstractResource {
     @Inject
     private SearchRequestsCountAnalyticsUseCase searchRequestsCountAnalyticsUseCase;
 
+    @Inject
+    private SearchAverageMessagesPerRequestAnalyticsUseCase searchAverageMessagesPerRequestAnalyticsUseCase;
+
     @Path("/requests-count")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -52,5 +57,19 @@ public class ApiAnalyticsResource extends AbstractResource {
             .requestsCount()
             .map(ApiAnalyticsMapper.INSTANCE::map)
             .orElseThrow(() -> new NotFoundException("No requests count found for api: " + apiId));
+    }
+
+    @Path("/average-messages-per-request")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Permissions({ @Permission(value = RolePermission.API_ANALYTICS, acls = { RolePermissionAction.READ }) })
+    public ApiAnalyticsAverageMessagesPerRequestResponse getAverageMessagesPerRequest() {
+        var request = new SearchAverageMessagesPerRequestAnalyticsUseCase.Input(apiId, GraviteeContext.getCurrentEnvironment());
+
+        return searchAverageMessagesPerRequestAnalyticsUseCase
+            .execute(request)
+            .averageMessagesPerRequest()
+            .map(ApiAnalyticsMapper.INSTANCE::map)
+            .orElseThrow(() -> new NotFoundException("No average message per request found for api: " + apiId));
     }
 }

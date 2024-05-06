@@ -1775,6 +1775,24 @@ paths:
             $ref: "#/components/responses/ApiAnalyticsRequestsCountResponse"
           default:
             $ref: "#/components/responses/Error"
+    /environments/{envId}/apis/{apiId}/analytics/average-messages-per-request:
+      parameters:
+        - $ref: "#/components/parameters/envIdParam"
+        - $ref: "#/components/parameters/apiIdParam"
+      get:
+        tags:
+          - Analytics - Average messages per request
+        summary: Get API Analytics average messages per request
+        description: |-
+          Get API analytics average messages per request.
+
+          User must have the API_ANALYTICS[READ] permission.
+        operationId: getAverageMessagesPerRequest
+        responses:
+          "200":
+            $ref: "#/components/responses/ApiAnalyticsAverageMessagesPerRequestResponse"
+          default:
+            $ref: "#/components/responses/Error"
     # Analytics - Logs
     /environments/{envId}/apis/{apiId}/logs:
         parameters:
@@ -6743,23 +6761,41 @@ components:
 
         # Analytics
         ApiAnalyticsRequestsCountResponse:
-            description: Analytics for requests count by entrypoint
-            content:
-                application/json:
-                    schema:
-                        title: "ApiAnalyticsRequestsCountResponse"
-                        description: API Analytics for requests count by entrypoint.
-                        properties:
-                            total:
-                                type: integer
-                                format: int64
-                                description: The id of the api.
-                                example: 00f8c9e7-78fc-4907-b8c9-e778fc790750
-                            countsByEntrypoint:
-                                type: object
-                                additionalProperties:
-                                    description: A map of metrics by entrypoint
-                                    type: number
+          description: Analytics for requests count by entrypoint
+          content:
+            application/json:
+              schema:
+                title: "ApiAnalyticsRequestsCountResponse"
+                description: API Analytics for requests count by entrypoint.
+                properties:
+                  total:
+                    type: integer
+                    format: int64
+                    description: The total count of requests
+                    example: 100
+                  countsByEntrypoint:
+                    type: object
+                    additionalProperties:
+                      description: A map of metrics by entrypoint
+                      type: number
+        ApiAnalyticsAverageMessagesPerRequestResponse:
+          description: Analytics for average messages per request by entrypoint
+          content:
+            application/json:
+              schema:
+                title: "ApiAnalyticsAverageMessagesPerRequestResponse"
+                description: API Analytics for average messages per request by entrypoint.
+                properties:
+                  average:
+                    type: number
+                    format: double
+                    description: The rounded global average of messages per request
+                    example: 1000
+                  averagesByEntrypoint:
+                    type: object
+                    additionalProperties:
+                      description: A map of rounded average messages request by entrypoint
+                      type: number
 
         # Analytics - Logs
         ApiLogsResponse:
