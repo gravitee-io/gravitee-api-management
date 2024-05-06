@@ -19,6 +19,7 @@ import { provideRouter } from '@angular/router';
 import { applicationConfig, Meta, moduleMetadata, StoryObj } from '@storybook/angular';
 
 import { NavBarButtonComponent } from './nav-bar-button.component';
+import { resetTheme } from '../../../stories/theme/theme.util';
 
 export default {
   title: 'Nav Bar Button',
@@ -40,14 +41,17 @@ export default {
 } as Meta;
 
 export const Simple: StoryObj = {
-  render: () => ({
-    template: `
+  render: () => {
+    resetTheme();
+    return {
+      template: `
         <div style="display: flex; gap: 24px;">
           <app-nav-bar-button [path]="['inactive']">Simple label of inactive page</app-nav-bar-button>
         </div>
         `,
-    styles: [],
-  }),
+      styles: [],
+    };
+  },
 };
 
 export const WithTranslation: StoryObj = {

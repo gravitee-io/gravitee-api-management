@@ -17,6 +17,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { Meta, moduleMetadata, StoryObj } from '@storybook/angular';
 
+import { resetTheme } from '../../stories/theme/theme.util';
+
 export default {
   title: 'Buttons',
   decorators: [
@@ -28,8 +30,10 @@ export default {
 } as Meta;
 
 export const MatButtonMDC: StoryObj = {
-  render: () => ({
-    template: `
+  render: () => {
+    resetTheme();
+    return {
+      template: `
         <div>
           <div>
               <div>
@@ -67,8 +71,8 @@ export const MatButtonMDC: StoryObj = {
           </div>
         </div>
         `,
-    styles: [
-      `
+      styles: [
+        `
             .button-container {
                 display: flex;
                 flex-direction: row;
@@ -77,6 +81,7 @@ export const MatButtonMDC: StoryObj = {
                 margin-bottom: 16px;
             }
        `,
-    ],
-  }),
+      ],
+    };
+  },
 };

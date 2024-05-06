@@ -19,6 +19,7 @@ import { action } from '@storybook/addon-actions';
 import { applicationConfig, Meta, moduleMetadata, StoryObj } from '@storybook/angular';
 
 import { PageTreeComponent, PageTreeNode } from './page-tree.component';
+import { resetTheme } from '../../stories/theme/theme.util';
 
 const PAGE_DATA: PageTreeNode[] = [
   {
@@ -68,18 +69,21 @@ export default {
 } as Meta;
 
 export const PageTree: StoryObj = {
-  render: () => ({
-    template: `
+  render: () => {
+    resetTheme();
+    return {
+      template: `
         <div style="width: 300px">
           <app-page-tree [pages]="pages" (openFile)="onOpenFile($event)"/>
         </div>
         `,
-    styles: [``],
-    props: {
-      pages: PAGE_DATA,
-      onOpenFile: (id: string) => action('File selected')(id),
-    },
-  }),
+      styles: [``],
+      props: {
+        pages: PAGE_DATA,
+        onOpenFile: (id: string) => action('File selected')(id),
+      },
+    };
+  },
 };
 
 const PAGE_DATA_LONG_NAMES: PageTreeNode[] = [
