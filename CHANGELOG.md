@@ -1,3 +1,10 @@
+# [3.2.0](https://github.com/gravitee-io/gravitee-reporter-file/compare/3.1.0...3.2.0) (2024-05-06)
+
+
+### Features
+
+* report count increments in v4 message metrics index ([0414ed1](https://github.com/gravitee-io/gravitee-reporter-file/commit/0414ed108abe67de52e44dad074e9a6f43eeea27))
+
 # [3.1.0](https://github.com/gravitee-io/gravitee-reporter-file/compare/3.0.3...3.1.0) (2024-04-17)
 
 
