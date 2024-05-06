@@ -16,38 +16,17 @@
 package io.gravitee.rest.api.service.impl;
 
 import static java.util.Collections.singleton;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.argThat;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;
-import io.gravitee.rest.api.model.MemberEntity;
-import io.gravitee.rest.api.model.MembershipMemberType;
-import io.gravitee.rest.api.model.MembershipReferenceType;
-import io.gravitee.rest.api.model.PageEntity;
-import io.gravitee.rest.api.model.PlanEntity;
-import io.gravitee.rest.api.model.RoleEntity;
-import io.gravitee.rest.api.model.UpdateApiMetadataEntity;
-import io.gravitee.rest.api.model.UserEntity;
+import io.gravitee.rest.api.model.*;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.permissions.RoleScope;
-import io.gravitee.rest.api.service.ApiMetadataService;
-import io.gravitee.rest.api.service.MembershipService;
-import io.gravitee.rest.api.service.PageService;
-import io.gravitee.rest.api.service.PlanService;
-import io.gravitee.rest.api.service.RoleService;
-import io.gravitee.rest.api.service.UserService;
+import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.imports.ImportApiJsonNode;
@@ -58,7 +37,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -144,7 +122,7 @@ public class ApiDuplicatorServiceImplTest {
         final ApiDuplicatorServiceImpl.MemberToImport memberToImport = apiCurrentMembers.iterator().next();
         assertEquals("user-source", memberToImport.getSource());
         assertEquals("user-source-id", memberToImport.getSourceId());
-        assertNotNull(memberToImport.getRoles());
+        assertNull(memberToImport.getRole());
         assertEquals(1, memberToImport.getRoles().size());
     }
 
@@ -187,7 +165,7 @@ public class ApiDuplicatorServiceImplTest {
     @Test
     public void shouldGetRolesToImport_fromRoles() {
         RoleEntity userRoleEntity = new RoleEntity();
-        userRoleEntity.setId(UUID.randomUUID().toString());
+        userRoleEntity.setId("user-role");
 
         ApiDuplicatorServiceImpl.MemberToImport memberToImport = new ApiDuplicatorServiceImpl.MemberToImport();
         memberToImport.setSource("user-source");
@@ -198,7 +176,7 @@ public class ApiDuplicatorServiceImplTest {
 
         assertNotNull(rolesToImport);
         assertEquals(1, rolesToImport.size());
-        assertEquals(userRoleEntity.getId(), rolesToImport.get(0));
+        assertEquals("user-role", rolesToImport.get(0));
     }
 
     @Test
@@ -209,7 +187,7 @@ public class ApiDuplicatorServiceImplTest {
         ApiDuplicatorServiceImpl.MemberToImport memberToImport = new ApiDuplicatorServiceImpl.MemberToImport();
         memberToImport.setSource("user-source");
         memberToImport.setSourceId("user-sourceId");
-        memberToImport.setRoles(List.of(userRoleEntity.getId()));
+        memberToImport.setRole(userRoleEntity.getId());
 
         when(roleService.findByScopeAndName(RoleScope.API, "user-role", GraviteeContext.getExecutionContext().getOrganizationId()))
             .thenReturn(Optional.of(userRoleEntity));
@@ -227,7 +205,7 @@ public class ApiDuplicatorServiceImplTest {
         userRoleEntity1.setId("user-role-1-id");
         userRoleEntity1.setName("user-role-1-name");
         RoleEntity userRoleEntity2 = new RoleEntity();
-        userRoleEntity2.setId(UUID.randomUUID().toString());
+        userRoleEntity2.setId("user-role-2-id");
         userRoleEntity2.setName("user-role-2-name");
 
         when(roleService.findByScopeAndName(RoleScope.API, "user-role-1-name", GraviteeContext.getExecutionContext().getOrganizationId()))
@@ -236,14 +214,15 @@ public class ApiDuplicatorServiceImplTest {
         ApiDuplicatorServiceImpl.MemberToImport memberToImport = new ApiDuplicatorServiceImpl.MemberToImport();
         memberToImport.setSource("user-source");
         memberToImport.setSourceId("user-sourceId");
-        memberToImport.setRoles(List.of(userRoleEntity2.getId(), userRoleEntity1.getName(), "unexisting_role"));
+        memberToImport.setRoles(List.of(userRoleEntity2.getId(), "unexisting_role"));
+        memberToImport.setRole(userRoleEntity1.getName());
 
         final List<String> rolesToImport = apiDuplicatorService.getRoleIdsToImport(GraviteeContext.getExecutionContext(), memberToImport);
 
         assertNotNull(rolesToImport);
         assertEquals(3, rolesToImport.size());
         assertTrue(rolesToImport.contains("user-role-1-id"));
-        assertTrue(rolesToImport.contains(userRoleEntity2.getId()));
+        assertTrue(rolesToImport.contains("user-role-2-id"));
         // The check on role existence will occur when creating the membership. So this method returns every roleId available in the definition.
         assertTrue(rolesToImport.contains("unexisting_role"));
     }
