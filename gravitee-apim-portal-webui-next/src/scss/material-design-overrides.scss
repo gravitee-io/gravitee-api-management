@@ -17,6 +17,10 @@
 @use '@angular/material' as mat;
 @use '../scss/theme';
 
+.secondary-button {
+  @include mat.button-color(theme.$light-theme, $color-variant: secondary);
+}
+
 mat-card {
   --mdc-elevated-card-container-elevation: 0;
   --mdc-outlined-card-container-color: #fff;
