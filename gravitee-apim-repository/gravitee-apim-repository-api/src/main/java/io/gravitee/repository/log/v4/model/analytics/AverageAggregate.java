@@ -13,16 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.repository.log.v4.api;
+package io.gravitee.repository.log.v4.model.analytics;
 
-import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
-import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
-import io.gravitee.repository.log.v4.model.analytics.CountAggregate;
-import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
-import java.util.Optional;
+import java.util.Map;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
-public interface AnalyticsRepository {
-    Optional<CountAggregate> searchRequestsCount(RequestsCountQuery requestsCountQuery);
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@SuperBuilder(toBuilder = true)
+public class AverageAggregate {
 
-    Optional<AverageAggregate> searchAverageMessagesPerRequest(AverageMessagesPerRequestQuery query);
+    double average;
+    Map<String, Double> averageBy;
 }
