@@ -15,6 +15,8 @@
  */
 package io.gravitee.apim.core.plan.use_case;
 
+import static fixtures.core.model.PlanFixtures.aKeylessV4;
+import static fixtures.core.model.PlanFixtures.anApiKeyV4;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.mock;
 
@@ -35,9 +37,11 @@ import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
 import io.gravitee.apim.core.plan.domain_service.PlanValidatorDomainService;
+import io.gravitee.apim.core.plan.exception.PlanInvalidException;
 import io.gravitee.apim.core.plan.exception.UnauthorizedPlanSecurityTypeException;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
+import io.gravitee.apim.core.plan.use_case.CreatePlanUseCase.Input;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.definition.model.v4.plan.PlanMode;
@@ -59,8 +63,7 @@ import org.junit.jupiter.api.Test;
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
 class CreatePlanUseCaseTest {
 
-    private static final String API_ID = "api-id";
-    private static final Api API = ApiFixtures.aTcpApiV4().toBuilder().id(API_ID).build();
+    private static final Api API = ApiFixtures.aProxyApiV4();
     private static final String ORGANIZATION_ID = "organization-id";
     private static final String ENVIRONMENT_ID = "environment-id";
     private static final String USER_ID = "user-id";
@@ -110,7 +113,6 @@ class CreatePlanUseCaseTest {
 
     @BeforeEach
     void setUp() {
-        apiCrudService.initWith(List.of(API));
         parametersQueryService.initWith(
             List.of(new Parameter(Key.PLAN_SECURITY_KEYLESS_ENABLED.key(), ENVIRONMENT_ID, ParameterReferenceType.ENVIRONMENT, "true"))
         );
@@ -125,11 +127,12 @@ class CreatePlanUseCaseTest {
     @Test
     void should_create_plan_with_default_values() {
         // Given
-        var plan = PlanFixtures.aKeylessV4().toBuilder().id(null).build();
-        var input = new CreatePlanUseCase.Input(API_ID, plan, Collections.emptyList(), AUDIT_INFO);
+        var api = givenExistingApi(API);
 
         // When
-        var result = createPlanUseCase.execute(input);
+        var result = createPlanUseCase.execute(
+            new Input(api.getId(), aKeylessV4().toBuilder().id(null).build(), Collections.emptyList(), AUDIT_INFO)
+        );
 
         // Then
         assertThat(result).isNotNull();
@@ -140,19 +143,40 @@ class CreatePlanUseCaseTest {
                 createdPlan -> createdPlan.getPlanType().name(),
                 createdPlan -> createdPlan.getPlanMode().name()
             )
-            .containsExactly(API_ID, Plan.PlanType.API.name(), PlanMode.STANDARD.name());
+            .containsExactly(api.getId(), Plan.PlanType.API.name(), PlanMode.STANDARD.name());
     }
 
     @Test
     void should_not_allow_to_create_secured_plan() {
         // Given
-        var plan = PlanFixtures.anApiKeyV4().toBuilder().id(null).build();
-        var input = new CreatePlanUseCase.Input(API_ID, plan, Collections.emptyList(), AUDIT_INFO);
+        var api = givenExistingApi(API);
+        var input = new Input(api.getId(), anApiKeyV4().toBuilder().id(null).build(), Collections.emptyList(), AUDIT_INFO);
 
         // When
         var throwable = Assertions.catchThrowable(() -> createPlanUseCase.execute(input));
 
         // Then
         Assertions.assertThat(throwable).isInstanceOf(UnauthorizedPlanSecurityTypeException.class);
+    }
+
+    @Test
+    void should_throw_when_create_a_federated_plan() {
+        // Given
+        var api = givenExistingApi(ApiFixtures.aFederatedApi());
+
+        // When
+        var throwable = Assertions.catchThrowable(() ->
+            createPlanUseCase.execute(
+                new Input(api.getId(), anApiKeyV4().toBuilder().id(null).build(), Collections.emptyList(), AUDIT_INFO)
+            )
+        );
+
+        // Then
+        Assertions.assertThat(throwable).isInstanceOf(PlanInvalidException.class).hasMessage("Can't manually create Federated Plan");
+    }
+
+    private Api givenExistingApi(Api api) {
+        apiCrudService.initWith(List.of(api));
+        return api;
     }
 }

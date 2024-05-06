@@ -17,10 +17,13 @@ package io.gravitee.apim.core.plan.use_case;
 
 import io.gravitee.apim.core.UseCase;
 import io.gravitee.apim.core.api.crud_service.ApiCrudService;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
+import io.gravitee.apim.core.plan.exception.PlanInvalidException;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.plan.model.PlanWithFlows;
+import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import java.util.List;
@@ -34,6 +37,11 @@ public class CreatePlanUseCase {
     private final ApiCrudService apiCrudService;
 
     public Output execute(Input input) {
+        var api = apiCrudService.get(input.apiId());
+        if (api.getDefinitionVersion() == DefinitionVersion.FEDERATED) {
+            throw new PlanInvalidException("Can't manually create Federated Plan");
+        }
+
         var plan = input.plan;
         plan.setApiId(input.apiId);
         plan.setType(Plan.PlanType.API);
@@ -45,7 +53,7 @@ public class CreatePlanUseCase {
         PlanWithFlows createdPlan = createPlanDomainService.create(
             input.plan,
             input.flows == null ? List.of() : input.flows,
-            apiCrudService.get(input.apiId()),
+            api,
             input.auditInfo
         );
 
