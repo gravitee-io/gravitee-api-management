@@ -16,23 +16,19 @@
 package io.gravitee.repository.elasticsearch.v4.analytics;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.offset;
 
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepositoryTest;
-import io.gravitee.repository.elasticsearch.v4.log.LogElasticsearchRepository;
+import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
-import io.gravitee.repository.log.v4.model.connection.ConnectionLogQuery;
-import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
 
 /**
@@ -48,15 +44,37 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
     @Autowired
     private AnalyticsElasticsearchRepository cut;
 
-    @Test
-    void should_return_all_the_requests_count_by_entrypoint_for_a_given_api() {
-        var result = cut.searchRequestsCount(RequestsCountQuery.builder().apiId("f1608475-dd77-4603-a084-75dd775603e9").build());
+    @Nested
+    class RequestsCount {
 
-        assertThat(result)
-            .hasValueSatisfying(countAggregate -> {
-                assertThat(countAggregate.getTotal()).isEqualTo(7);
-                assertThat(countAggregate.getCountBy())
-                    .containsAllEntriesOf(Map.of("http-post", 3L, "http-get", 1L, "websocket", 2L, "sse", 1L));
-            });
+        @Test
+        void should_return_all_the_requests_count_by_entrypoint_for_a_given_api() {
+            var result = cut.searchRequestsCount(RequestsCountQuery.builder().apiId("f1608475-dd77-4603-a084-75dd775603e9").build());
+
+            assertThat(result)
+                .hasValueSatisfying(countAggregate -> {
+                    assertThat(countAggregate.getTotal()).isEqualTo(7);
+                    assertThat(countAggregate.getCountBy())
+                        .containsAllEntriesOf(Map.of("http-post", 3L, "http-get", 1L, "websocket", 2L, "sse", 1L));
+                });
+        }
+    }
+
+    @Nested
+    class AverageMessagesPerRequest {
+
+        @Test
+        void should_return_average_messages_per_request_by_entrypoint_for_a_given_api() {
+            var result = cut.searchAverageMessagesPerRequest(
+                AverageMessagesPerRequestQuery.builder().apiId("f1608475-dd77-4603-a084-75dd775603e9").build()
+            );
+
+            assertThat(result)
+                .hasValueSatisfying(averageAggregate -> {
+                    assertThat(averageAggregate.getAverage()).isCloseTo(45.7, offset(0.1d));
+                    assertThat(averageAggregate.getAverageBy())
+                        .containsAllEntriesOf(Map.of("http-get", 9.8, "websocket", 27.5, "sse", 100.0));
+                });
+        }
     }
 }
