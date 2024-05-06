@@ -22,6 +22,10 @@ networks:
   storage:
     name: storage
 
+volumes:
+  data-elasticsearch:
+  data-pg:
+
 services:
   pg_database:
     container_name: apim-qs-psql-db
@@ -33,7 +37,7 @@ services:
       POSTGRES_PASSWORD: password
       PGDATA: /var/lib/postgresql/data
     volumes:
-      - ./.data/db-postgres:/var/lib/postgresql/data
+      - data-pg:/var/lib/postgresql/data
     ports:
       - "0.0.0.0:5455:5432"
     networks:
@@ -56,7 +60,7 @@ services:
     container_name: apim-qs-psql-elasticsearch
     restart: always
     volumes:
-      - ./.data/data-elasticsearch:/usr/share/elasticsearch/data
+      - data-elasticsearch:/usr/share/elasticsearch/data
     environment:
       - http.host=0.0.0.0
       - transport.host=0.0.0.0
