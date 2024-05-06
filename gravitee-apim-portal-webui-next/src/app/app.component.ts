@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
 import { FooterComponent } from '../components/footer/footer.component';
 import { NavBarComponent } from '../components/nav-bar/nav-bar.component';
+import { CurrentUserService } from '../services/current-user.service';
 
 @Component({
   selector: 'app-root',
@@ -28,4 +29,5 @@ import { NavBarComponent } from '../components/nav-bar/nav-bar.component';
 })
 export class AppComponent {
   // TODO: Implement service to get title
+  currentUser = inject(CurrentUserService).user;
 }

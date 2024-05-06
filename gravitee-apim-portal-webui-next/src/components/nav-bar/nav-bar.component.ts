@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, inject } from '@angular/core';
+import { Component, input, InputSignal } from '@angular/core';
 import { MatButton } from '@angular/material/button';
 import { RouterLink } from '@angular/router';
 import { isEmpty } from 'lodash';
 
 import { NavBarButtonComponent } from './nav-bar-button/nav-bar-button.component';
-import { CurrentUserService } from '../../services/current-user.service';
+import { User } from '../../entities/user/user';
 import { CompanyTitleComponent } from '../company-title/company-title.component';
 import { UserAvatarComponent } from '../user-avatar/user-avatar.component';
 
@@ -31,6 +31,6 @@ import { UserAvatarComponent } from '../user-avatar/user-avatar.component';
   styleUrl: './nav-bar.component.scss',
 })
 export class NavBarComponent {
-  currentUser = inject(CurrentUserService).user;
+  currentUser: InputSignal<User> = input({});
   protected readonly isEmpty = isEmpty;
 }

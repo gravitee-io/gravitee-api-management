@@ -16,18 +16,18 @@
 
 import { HarnessLoader } from '@angular/cdk/testing';
 import { TestbedHarnessEnvironment } from '@angular/cdk/testing/testbed';
+import { ComponentRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatButtonHarness } from '@angular/material/button/testing';
 
 import { NavBarComponent } from './nav-bar.component';
 import { fakeUser } from '../../entities/user/user.fixtures';
-import { CurrentUserService } from '../../services/current-user.service';
 import { AppTestingModule } from '../../testing/app-testing.module';
 
 describe('NavBarComponent', () => {
   let fixture: ComponentFixture<NavBarComponent>;
   let harnessLoader: HarnessLoader;
-  let currentUserService: CurrentUserService;
+  let componentRef: ComponentRef<NavBarComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -35,15 +35,15 @@ describe('NavBarComponent', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(NavBarComponent);
+    componentRef = fixture.componentRef;
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
-    currentUserService = TestBed.inject(CurrentUserService);
     fixture.detectChanges();
   });
 
   it('should show login button if user not connected', async () => {
     let logInButton = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: 'Log in' }));
     expect(logInButton).toBeTruthy();
-    currentUserService.user.set(fakeUser());
+    componentRef.setInput('currentUser', fakeUser());
     logInButton = await harnessLoader.getHarnessOrNull(MatButtonHarness.with({ text: 'Log in' }));
     expect(logInButton).toBeFalsy();
   });
