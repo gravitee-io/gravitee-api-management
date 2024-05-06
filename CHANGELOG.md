@@ -1,3 +1,10 @@
+# [5.3.0](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/5.2.0...5.3.0) (2024-05-06)
+
+
+### Features
+
+* report count increments in v4 messages metrics index ([a18d8a7](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/commit/a18d8a7c5e959e3b0a5fe464d195066b3b58a724))
+
 # [5.2.0](https://github.com/gravitee-io/gravitee-reporter-elasticsearch/compare/5.1.3...5.2.0) (2024-04-17)
 
 
