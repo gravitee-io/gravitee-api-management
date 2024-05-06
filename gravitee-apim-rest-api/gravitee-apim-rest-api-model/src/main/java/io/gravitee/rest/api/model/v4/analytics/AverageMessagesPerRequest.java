@@ -13,14 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.analytics.query_service;
+package io.gravitee.rest.api.model.v4.analytics;
 
-import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
-import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
-import java.util.Optional;
+import java.util.Map;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
-public interface AnalyticsQueryService {
-    Optional<RequestsCount> searchRequestsCount(String apiId);
+/**
+ * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
+ * @author GraviteeSource Team
+ */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@SuperBuilder(toBuilder = true)
+public class AverageMessagesPerRequest {
 
-    Optional<AverageMessagesPerRequest> searchAverageMessagesPerRequest(String apiId);
+    double globalAverage;
+    Map<String, Double> averagesByEntrypoint;
 }
