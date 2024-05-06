@@ -13,14 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.analytics.query_service;
+package io.gravitee.apim.core.api.exception;
 
-import io.gravitee.rest.api.model.v4.analytics.AverageMessagesPerRequest;
-import io.gravitee.rest.api.model.v4.analytics.RequestsCount;
-import java.util.Optional;
+import io.gravitee.apim.core.exception.ValidationDomainException;
+import io.gravitee.definition.model.v4.ApiType;
+import java.util.Map;
 
-public interface AnalyticsQueryService {
-    Optional<RequestsCount> searchRequestsCount(String apiId);
+/**
+ * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
+ * @author GraviteeSource Team
+ */
+public class ApiInvalidTypeException extends ValidationDomainException {
 
-    Optional<AverageMessagesPerRequest> searchAverageMessagesPerRequest(String apiId);
+    public ApiInvalidTypeException(String apiId, ApiType expectedType) {
+        super("Only V4 " + expectedType.name() + " API definition is supported", Map.of("apiId", apiId));
+    }
 }
