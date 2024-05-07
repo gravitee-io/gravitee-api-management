@@ -19,7 +19,7 @@ import static java.util.stream.Collectors.toList;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import io.swagger.util.Json;
+import io.gravitee.definition.model.DefinitionContext;
 import java.util.List;
 
 public class ImportApiJsonNode extends ImportJsonNodeWithIds {
@@ -60,6 +60,10 @@ public class ImportApiJsonNode extends ImportJsonNodeWithIds {
 
     public String getDefinitionContextOrigin() {
         return getJsonNode().findPath(DEFINITION_CONTEXT).findPath(DEFINITION_CONTEXT_ORIGIN).asText();
+    }
+
+    public boolean isKubernetesOrigin() {
+        return DefinitionContext.ORIGIN_KUBERNETES.equalsIgnoreCase(getDefinitionContextOrigin());
     }
 
     public List<ImportJsonNodeWithIds> getPages() {
