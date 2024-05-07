@@ -16,6 +16,7 @@
 package io.gravitee.rest.api.portal.rest.mapper;
 
 import io.gravitee.rest.api.model.theme.portal.ThemeEntity;
+import io.gravitee.rest.api.model.theme.portal.ThemeType;
 import io.gravitee.rest.api.portal.rest.model.ThemeLinks;
 import io.gravitee.rest.api.portal.rest.model.ThemeResponse;
 import org.springframework.stereotype.Component;
@@ -30,6 +31,7 @@ public class ThemeMapper {
     public ThemeResponse convert(ThemeEntity themeEntity, String basePath) {
         final ThemeResponse themeResponse = new ThemeResponse();
         themeResponse.setDefinition(themeEntity.getDefinition());
+        themeResponse.setType(ThemeResponse.TypeEnum.valueOf(themeEntity.getType().name()));
         themeResponse.setLinks(computeLinks(themeEntity, basePath));
         return themeResponse;
     }

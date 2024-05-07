@@ -16,6 +16,18 @@ export interface ThemeResponse {
      * The definition of custom theme.
      */
     definition?: object;
+    /**
+     * The type of the theme.
+     */
+    type?: ThemeResponse.TypeEnum;
     _links?: ThemeLinks;
 }
+export namespace ThemeResponse {
+    export type TypeEnum = 'PORTAL' | 'PORTAL_NEXT';
+    export const TypeEnum = {
+        PORTAL: 'PORTAL' as TypeEnum,
+        PORTALNEXT: 'PORTAL_NEXT' as TypeEnum
+    };
+}
+
 

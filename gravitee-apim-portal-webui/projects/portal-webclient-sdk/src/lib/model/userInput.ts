@@ -28,10 +28,6 @@ export interface UserInput {
      */
     last_name?: string;
     /**
-     * Email of the user.
-     */
-    email?: string;
-    /**
      * Values for CustomUserFields
      */
     customFields?: { [key: string]: object; };
