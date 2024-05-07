@@ -15,5 +15,6 @@
  */
 import { UpdatePlanV4 } from './v4';
 import { UpdatePlanV2 } from './v2';
+import { UpdatePlanFederated } from './federated';
 
-export type UpdatePlan = UpdatePlanV4 | UpdatePlanV2;
+export type UpdatePlan = UpdatePlanV4 | UpdatePlanV2 | UpdatePlanFederated;

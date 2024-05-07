@@ -18,6 +18,16 @@ import { UpdateBasePlan } from '../updateBasePlan';
 
 export interface UpdatePlanV2 extends UpdateBasePlan {
   definitionVersion: 'V2';
+  /** @description An optional EL expression that will be evaluated at request time to select this plan. */
+  selectionRule?: string;
+  /**
+   * @description The list of sharding tags associated with this plan.
+   * @example [
+   *   "public",
+   *   "private"
+   * ]
+   */
+  tags?: string[];
   flows?: FlowV2[];
   paths?: Record<string, Rule[] | undefined>;
 }

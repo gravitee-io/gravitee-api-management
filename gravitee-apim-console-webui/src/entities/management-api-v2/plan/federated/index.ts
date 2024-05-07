@@ -14,8 +14,5 @@
  * limitations under the License.
  */
 
-import { PlanV4 } from './v4';
-import { PlanV2 } from './v2';
-import { PlanFederated } from './federated';
-
-export type Plan = PlanV4 | PlanV2 | PlanFederated;
+export * from './planFederated';
+export * from './updatePlanFederated';

@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { BasePlan } from '../basePlan';
 
-import { PlanV4 } from './v4';
-import { PlanV2 } from './v2';
-import { PlanFederated } from './federated';
-
-export type Plan = PlanV4 | PlanV2 | PlanFederated;
+export interface PlanFederated extends BasePlan {
+  definitionVersion: 'FEDERATED';
+  flows: [];
+}
