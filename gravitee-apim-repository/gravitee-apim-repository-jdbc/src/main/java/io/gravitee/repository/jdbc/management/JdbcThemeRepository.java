@@ -21,6 +21,7 @@ import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.jdbc.orm.JdbcObjectMapper;
 import io.gravitee.repository.management.api.ThemeRepository;
 import io.gravitee.repository.management.model.Theme;
+import io.gravitee.repository.management.model.ThemeType;
 import java.sql.Types;
 import java.util.*;
 import org.slf4j.Logger;
@@ -47,6 +48,7 @@ public class JdbcThemeRepository extends JdbcAbstractCrudRepository<Theme, Strin
             .builder(Theme.class, this.tableName, "id")
             .addColumn("id", Types.NVARCHAR, String.class)
             .addColumn("name", Types.NVARCHAR, String.class)
+            .addColumn("type", Types.NVARCHAR, ThemeType.class)
             .addColumn("reference_id", Types.NVARCHAR, String.class)
             .addColumn("reference_type", Types.NVARCHAR, String.class)
             .addColumn("enabled", Types.BIT, boolean.class)

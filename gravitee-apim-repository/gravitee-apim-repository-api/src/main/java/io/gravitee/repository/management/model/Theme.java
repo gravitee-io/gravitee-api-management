@@ -17,11 +17,15 @@ package io.gravitee.repository.management.model;
 
 import java.util.Date;
 import java.util.Objects;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Setter
+@Getter
 public class Theme {
 
     public Theme() {}
@@ -29,6 +33,7 @@ public class Theme {
     public Theme(Theme cloned) {
         this.id = cloned.getId();
         this.name = cloned.getName();
+        this.type = cloned.getType();
         this.referenceId = cloned.getReferenceId();
         this.referenceType = cloned.getReferenceType();
         this.createdAt = cloned.getCreatedAt();
@@ -56,6 +61,8 @@ public class Theme {
 
     private String name;
 
+    private ThemeType type;
+
     private Date createdAt;
 
     private Date updatedAt;
@@ -71,102 +78,6 @@ public class Theme {
     private String optionalLogo;
 
     private String favicon;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Date getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
-
-    public String getDefinition() {
-        return definition;
-    }
-
-    public void setDefinition(String definition) {
-        this.definition = definition;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getReferenceType() {
-        return referenceType;
-    }
-
-    public void setReferenceType(String referenceType) {
-        this.referenceType = referenceType;
-    }
-
-    public String getReferenceId() {
-        return referenceId;
-    }
-
-    public void setReferenceId(String referenceId) {
-        this.referenceId = referenceId;
-    }
-
-    public String getLogo() {
-        return logo;
-    }
-
-    public void setLogo(String logo) {
-        this.logo = logo;
-    }
-
-    public String getBackgroundImage() {
-        return backgroundImage;
-    }
-
-    public void setBackgroundImage(String backgroundImage) {
-        this.backgroundImage = backgroundImage;
-    }
-
-    public String getOptionalLogo() {
-        return optionalLogo;
-    }
-
-    public void setOptionalLogo(String optionalLogo) {
-        this.optionalLogo = optionalLogo;
-    }
-
-    public String getFavicon() {
-        return favicon;
-    }
-
-    public void setFavicon(String favicon) {
-        this.favicon = favicon;
-    }
 
     @Override
     public boolean equals(Object o) {

@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: 4.4.0_add_theme_type
+      author: GraviteeSource Team
+      changes:
+        - addColumn:
+            tableName: ${gravitee_prefix}themes
+            columns:
+              - column: { name: type, type: nvarchar(64), constraints: { nullable: false }, defaultValue: PORTAL }

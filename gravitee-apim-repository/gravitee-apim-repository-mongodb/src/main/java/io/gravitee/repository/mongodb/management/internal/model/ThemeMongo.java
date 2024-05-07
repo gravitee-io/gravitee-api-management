@@ -17,6 +17,8 @@ package io.gravitee.repository.mongodb.management.internal.model;
 
 import java.util.Date;
 import java.util.Objects;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -24,6 +26,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Setter
+@Getter
 @Document(collection = "#{@environment.getProperty('management.mongodb.prefix')}themes")
 public class ThemeMongo {
 
@@ -32,25 +36,11 @@ public class ThemeMongo {
 
     private String referenceType;
 
-    public String getReferenceType() {
-        return referenceType;
-    }
-
-    public void setReferenceType(String referenceType) {
-        this.referenceType = referenceType;
-    }
-
-    public String getReferenceId() {
-        return referenceId;
-    }
-
-    public void setReferenceId(String referenceId) {
-        this.referenceId = referenceId;
-    }
-
     private String referenceId;
 
     private String name;
+
+    private String type;
 
     private Date createdAt;
 
@@ -69,94 +59,6 @@ public class ThemeMongo {
     private String loader;
 
     private String favicon;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Date getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
-
-    public String getDefinition() {
-        return definition;
-    }
-
-    public void setDefinition(String definition) {
-        this.definition = definition;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getLogo() {
-        return logo;
-    }
-
-    public void setLogo(String logo) {
-        this.logo = logo;
-    }
-
-    public String getLoader() {
-        return loader;
-    }
-
-    public void setLoader(String loader) {
-        this.loader = loader;
-    }
-
-    public String getBackgroundImage() {
-        return backgroundImage;
-    }
-
-    public void setBackgroundImage(String backgroundImage) {
-        this.backgroundImage = backgroundImage;
-    }
-
-    public String getOptionalLogo() {
-        return optionalLogo;
-    }
-
-    public void setOptionalLogo(String optionalLogo) {
-        this.optionalLogo = optionalLogo;
-    }
-
-    public String getFavicon() {
-        return favicon;
-    }
-
-    public void setFavicon(String favicon) {
-        this.favicon = favicon;
-    }
 
     @Override
     public boolean equals(Object o) {

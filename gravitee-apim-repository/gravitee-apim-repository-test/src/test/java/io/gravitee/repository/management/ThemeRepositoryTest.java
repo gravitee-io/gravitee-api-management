@@ -19,6 +19,7 @@ import static io.gravitee.repository.utils.DateUtils.compareDate;
 import static org.junit.Assert.*;
 
 import io.gravitee.repository.management.model.Theme;
+import io.gravitee.repository.management.model.ThemeType;
 import java.util.*;
 import org.junit.Test;
 
@@ -37,6 +38,7 @@ public class ThemeRepositoryTest extends AbstractManagementRepositoryTest {
         assertEquals(3, themes.size());
         final Theme themeSimple = themes.stream().filter(theme -> "simple".equals(theme.getId())).findAny().get();
         assertEquals("Theme simple", themeSimple.getName());
+        assertEquals("PORTAL", themeSimple.getType().name());
         assertEquals("backgroundImage", themeSimple.getBackgroundImage());
         assertEquals("{\"def\": \"value\"}", themeSimple.getDefinition());
         assertEquals("logo", themeSimple.getLogo());
@@ -65,6 +67,7 @@ public class ThemeRepositoryTest extends AbstractManagementRepositoryTest {
         final Theme theme = new Theme();
         theme.setId("new-theme");
         theme.setName("Theme dark");
+        theme.setType(ThemeType.PORTAL);
         theme.setCreatedAt(new Date(1000000000000L));
         theme.setUpdatedAt(new Date(1111111111111L));
         theme.setReferenceId("DEFAULT");
@@ -87,6 +90,7 @@ public class ThemeRepositoryTest extends AbstractManagementRepositoryTest {
 
         final Theme themeSaved = optional.get();
         assertEquals("Invalid saved theme name.", theme.getName(), themeSaved.getName());
+        assertEquals("PORTAL", theme.getType().name());
         assertEquals("backgroundImage", themeSaved.getBackgroundImage());
         assertEquals("{\"def\": \"value\"}", themeSaved.getDefinition());
         assertEquals("logo", themeSaved.getLogo());
