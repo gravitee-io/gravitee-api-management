@@ -287,7 +287,45 @@ data:
         {{- if .Values.gateway.ratelimit.redis.ssl }}
         ssl: {{ .Values.gateway.ratelimit.redis.ssl }}
         hostnameVerificationAlgorithm: {{ .Values.gateway.ratelimit.redis.hostnameVerificationAlgorithm | default "NONE" }}
+        trustAll: {{.Values.gateway.ratelimit.redis.trustAll | default true }}
+        tlsProtocols: {{ .Values.gateway.ratelimit.redis.tlsProtocols | default "TLSv1.2" }}
+        {{- if .Values.gateway.ratelimit.redis.tlsCiphers }}
+        tlsCiphers: {{ .Values.gateway.ratelimit.redis.tlsCiphers | quote }}
         {{- end }}
+        alpn:  {{ .Values.gateway.ratelimit.redis.alpn | default false }}
+        openssl: {{ .Values.gateway.ratelimit.redis.openssl | default false }}
+        {{/* end of ssl block */}}
+        {{- end }}
+        {{- if .Values.gateway.ratelimit.redis.keystore }}
+        keystore:
+          type: {{ .Values.gateway.ratelimit.redis.keystore.type | default "pem" }}
+          path: {{ .Values.gateway.ratelimit.redis.keystore.path | default "${gravitee.home}/security/redis-keystore.jks" }}
+          password: {{ required "The password required to access the keystore must be provided (i.e.kubernetes://{{NAMESPACE}}/secrets/{{SECRET_NAME}}/{{KEY_NAME}})" .Values.gateway.ratelimit.redis.keystore.password }}
+          {{- if .Values.gateway.ratelimit.redis.keystore.keyPassword }}
+          keyPassword: {{ .Values.gateway.ratelimit.redis.keystore.keyPassword | quote }}
+          {{- end }}
+          {{- if .Values.gateway.ratelimit.redis.keystore.alias }}
+          alias: {{ .Values.gateway.ratelimit.redis.keystore.alias }}
+          {{- end }}
+          {{/* guard clause for pem mTLS requirements */}}
+          {{- if and ( eq .Values.gateway.ratelimit.redis.keystore.type "pem" ) ( empty .Values.gateway.ratelimit.redis.keystore.certificates ) }}
+            {{ fail "When configuring Gravitee to use a keystore for mTLS, your certificates must be provided!" }}
+          {{- end }}
+          certificates:
+            {{- range .Values.gateway.ratelimit.redis.keystore.certificates }}
+            - cert: {{ .cert }}
+              key: {{ .key }}
+            {{- end }}
+        {{- end}}
+        {{- if .Values.gateway.ratelimit.redis.truststore }}
+        truststore:
+          type: {{ .Values.gateway.ratelimit.redis.truststore.type | default "pem" }}
+          path: {{ .Values.gateway.ratelimit.redis.truststore.path | default "${gravitee.home}/security/redis-truststore.jks" }}
+          password: {{ required "The password required to access the truststore must be provided! (i.e.kubernetes://{{NAMESPACE}}/secrets/{{SECRET_NAME}}/{{KEY_NAME}})" .Values.gateway.ratelimit.redis.keystore.password }}
+          {{- if .Values.gateway.ratelimit.redis.truststore.alias }}
+          alias: {{ .Values.gateway.ratelimit.redis.keystore.alias }}
+          {{- end }}
+        {{- end }}        
         {{- if (not (empty ((.Values.gateway.ratelimit.redis.sentinel).nodes))) }}
         sentinel:
           master: {{ .Values.gateway.ratelimit.redis.sentinel.master }}
