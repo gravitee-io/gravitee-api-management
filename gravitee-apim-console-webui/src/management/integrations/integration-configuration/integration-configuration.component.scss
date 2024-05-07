@@ -56,6 +56,7 @@ $typography: map.get(gio.$mat-theme, typography);
 }
 
 .form {
+  grid-column-start: 2;
   margin: 16px 0;
 
   .form-field {

@@ -1,0 +1,211 @@
+/*
+ * Copyright (C) 2015 The Gravitee team (http://gravitee.io)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '@gravitee/ui-particles-angular' as gio;
+@use '../../../scss/gio-layout' as gio-layout;
+
+$typography: map.get(gio.$mat-theme, typography);
+
+:host {
+  @include gio-layout.gio-responsive-content-container;
+}
+
+.body-strong {
+  @include mat.typography-level($typography, body-1);
+}
+
+.integration-agent,
+.page-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.page-header {
+  &__page-title {
+    @include mat.typography-level($typography, headline-6);
+    margin: 0 0 4px 0;
+  }
+
+  &__description {
+    color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+  }
+}
+
+.card-header {
+  padding: 16px;
+  border-bottom: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker20');
+
+  &__title {
+    h3 {
+      @include mat.typography-level($typography, subtitle-1);
+      margin: 0;
+    }
+  }
+}
+
+.status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.gio-badge-error,
+.gio-badge-neutral {
+  margin-left: 0;
+}
+
+gio-banner-error {
+  margin: 0;
+  width: 100%;
+}
+
+.icon-left {
+  margin-right: 4px;
+}
+
+.mat-card-content {
+  padding-top: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.separator {
+  height: 1px;
+  align-self: stretch;
+  background: mat.get-color-from-palette(gio.$mat-dove-palette, 'darker20');
+}
+
+.form {
+  margin-top: 20px;
+  grid-column-start: 2;
+  grid-row-start: 2;
+
+  .form-field {
+    width: 100%;
+    margin-bottom: 20px;
+  }
+
+  .hint {
+    color: mat.get-color-from-palette(gio.$mat-space-palette, 'lighter40');
+  }
+}
+
+.accordion {
+  display: block;
+  width: 100%;
+
+  .header {
+    display: flex;
+    align-content: center;
+    justify-content: space-between;
+    cursor: pointer;
+  }
+}
+
+.wizard {
+  margin-top: 20px;
+
+  &__item {
+    display: grid;
+    grid-template-columns: 45px 1fr;
+    grid-template-rows: auto;
+
+    .order {
+      height: 32px;
+      width: 32px;
+      border: 1px solid mat.get-color-from-palette(gio.$mat-dove-palette, 'darker10');
+      border-radius: 50%;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .content {
+      &__title {
+        line-height: 32px;
+      }
+
+      &__desc {
+        color: mat.get-color-from-palette(gio.$mat-dove-palette, 'darker40');
+        margin-bottom: 0;
+      }
+    }
+  }
+}
+
+code {
+  background-color: inherit;
+  margin: 0;
+}
+
+.code-area {
+  background-color: mat.get-color-from-palette(gio.$mat-dove-palette, 'default');
+  color: mat.get-color-from-palette(gio.$mat-space-palette, 'default');
+  border-radius: 8px;
+  font-size: 12px;
+
+  .mat-icon {
+    font-size: 18px;
+  }
+}
+
+.editor {
+  padding: 0 16px 16px 4px;
+
+  &__copy-to-clipboard {
+    display: flex;
+    justify-content: end;
+    position: relative;
+    top: 18px;
+    font-size: 16px; // sets icon size
+  }
+
+  .line {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: 30px auto;
+    color: mat.get-color-from-palette(gio.$mat-space-palette, 'default');
+    @include gio.code-typography();
+
+    &__number {
+      display: flex;
+      justify-content: end;
+    }
+  }
+}
+
+.command {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 16px;
+  font-size: 16px; // sets icon size
+
+  &__text {
+    @include gio.code-typography();
+  }
+}
+
+.loadingTemplate {
+  height: 50vh;
+  display: flex;
+}

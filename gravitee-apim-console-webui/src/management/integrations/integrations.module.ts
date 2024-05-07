@@ -34,6 +34,7 @@ import {
   GioSubmenuModule,
   GioSaveBarModule,
 } from '@gravitee/ui-particles-angular';
+import { CdkAccordion, CdkAccordionItem } from '@angular/cdk/accordion';
 import { MatStep, MatStepLabel, MatStepper, MatStepperIcon, MatStepperNext, MatStepperPrevious } from '@angular/material/stepper';
 
 import { IntegrationsComponent } from './integrations.component';
@@ -42,6 +43,7 @@ import { IntegrationsRoutingModule } from './integrations-routing.module';
 import { IntegrationOverviewComponent } from './integration-overview/integration-overview.component';
 import { IntegrationsNavigationComponent } from './integrations-navigation/integrations-navigation.component';
 import { IntegrationConfigurationComponent } from './integration-configuration/integration-configuration.component';
+import { IntegrationAgentComponent } from './integration-agent/integration-agent.component';
 
 import { GioTableWrapperModule } from '../../shared/components/gio-table-wrapper/gio-table-wrapper.module';
 import { GioPermissionModule } from '../../shared/components/gio-permission/gio-permission.module';
@@ -53,6 +55,7 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
     IntegrationOverviewComponent,
     IntegrationsNavigationComponent,
     IntegrationConfigurationComponent,
+    IntegrationAgentComponent,
   ],
   imports: [
     CommonModule,
@@ -92,6 +95,8 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
     GioPermissionModule,
     GioFormSelectionInlineModule,
     GioSaveBarModule,
+    CdkAccordion,
+    CdkAccordionItem,
   ],
 })
 export class IntegrationsModule {}
