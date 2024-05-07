@@ -77,6 +77,22 @@ describe('CreateIntegrationComponent', () => {
   });
 
   describe('choose provider', () => {
+    it('should set solace value', async (): Promise<void> => {
+      fixture.componentInstance.integrationProviders = {
+        active: [
+          { name: 'AWS API Gateway', icon: 'aws-api-gateway', value: 'aws-api-gateway' },
+          { name: 'Solace', icon: 'solace', value: 'solace' },
+        ],
+      };
+
+      const radioButtonsGroup: GioFormSelectionInlineHarness = await componentHarness.getRadioButtonsGroup();
+      expect(await radioButtonsGroup.getSelectedValue()).toBeUndefined();
+      await radioButtonsGroup.select('solace');
+      fixture.detectChanges();
+
+      expect(await radioButtonsGroup.getSelectedValue()).toStrictEqual('solace');
+    });
+
     it('should set correct value', async (): Promise<void> => {
       fixture.componentInstance.integrationProviders = {
         active: [{ name: 'AWS', icon: 'aws.svg', value: 'test_my_value' }],
