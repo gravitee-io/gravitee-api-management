@@ -139,7 +139,12 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
     }
 
     @Override
-    public Set<String> findAccessibleApiIdsForUser(final ExecutionContext executionContext, final String userId, ApiQuery apiQuery, String categoryId) {
+    public Set<String> findAccessibleApiIdsForUser(
+        final ExecutionContext executionContext,
+        final String userId,
+        ApiQuery apiQuery,
+        String categoryId
+    ) {
         if (apiQuery == null) {
             apiQuery = new ApiQuery();
         }

@@ -51,11 +51,16 @@ public interface ApiAuthorizationService {
         return findAccessibleApiIdsForUser(executionContext, userId, apiQuery, null);
     }
 
-    default Set<String> findAccessibleApiIdsForUser(final ExecutionContext executionContext, final String userId, final ApiQuery apiQuery){
+    default Set<String> findAccessibleApiIdsForUser(final ExecutionContext executionContext, final String userId, final ApiQuery apiQuery) {
         return findAccessibleApiIdsForUser(executionContext, userId, apiQuery, null);
     }
 
-    Set<String> findAccessibleApiIdsForUser(final ExecutionContext executionContext, final String userId, final ApiQuery apiQuery, final String categoryId);
+    Set<String> findAccessibleApiIdsForUser(
+        final ExecutionContext executionContext,
+        final String userId,
+        final ApiQuery apiQuery,
+        final String categoryId
+    );
 
     default Set<String> findIdsByUser(final ExecutionContext executionContext, final String userId, final boolean manageOnly) {
         return this.findIdsByUser(executionContext, userId, new ApiQuery(), null, manageOnly);
@@ -86,7 +91,7 @@ public interface ApiAuthorizationService {
         final ApiQuery apiQuery,
         final Sortable sortable,
         final boolean manageOnly
-    ){
+    ) {
         return this.findIdsByUser(executionContext, userId, apiQuery, sortable, manageOnly, null);
     }
 
