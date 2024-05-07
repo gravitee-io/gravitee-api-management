@@ -386,7 +386,7 @@ export class UserService {
 
     /**
      * Modify current user information.
-     * Modify current user information.  Only the current user can modify his/her information. 
+     * Modify current user information.  Only the current user can modify his/her information. The user email is not modifiable. 
      * @param requestParameters
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
