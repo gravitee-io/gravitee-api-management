@@ -13,35 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model.theme;
+package io.gravitee.rest.api.model.theme.portal;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import java.util.Date;
 import java.util.Objects;
 
 /**
  * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class ThemeEntity {
+public class UpdateThemeEntity {
 
     private String id;
 
     @NotNull
-    @Size(min = 1)
+    @Size(min = 1, max = 64)
     private String name;
 
-    @JsonProperty("created_at")
-    private Date createdAt;
-
-    @JsonProperty("updated_at")
-    private Date updatedAt;
+    @NotNull
+    private ThemeDefinition definition;
 
     private boolean enabled;
-
-    private ThemeDefinition definition;
 
     private String logo;
 
@@ -61,22 +54,6 @@ public class ThemeEntity {
 
     public String getName() {
         return name;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Date getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
     }
 
     public boolean isEnabled() {
@@ -123,11 +100,19 @@ public class ThemeEntity {
         this.optionalLogo = optionalLogo;
     }
 
+    public String getFavicon() {
+        return favicon;
+    }
+
+    public void setFavicon(String favicon) {
+        this.favicon = favicon;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ThemeEntity theme = (ThemeEntity) o;
+        UpdateThemeEntity theme = (UpdateThemeEntity) o;
         return Objects.equals(id, theme.id);
     }
 
@@ -139,18 +124,12 @@ public class ThemeEntity {
     @Override
     public String toString() {
         return (
-            "ThemeEntity{" +
+            "UpdateThemeEntity{" +
             "id='" +
             id +
             '\'' +
             ", name='" +
             name +
-            '\'' +
-            ", createdAt='" +
-            createdAt +
-            '\'' +
-            ", updatedAt='" +
-            updatedAt +
             '\'' +
             ", enabled='" +
             enabled +
@@ -160,13 +139,5 @@ public class ThemeEntity {
             '\'' +
             '}'
         );
-    }
-
-    public String getFavicon() {
-        return favicon;
-    }
-
-    public void setFavicon(String favicon) {
-        this.favicon = favicon;
     }
 }
