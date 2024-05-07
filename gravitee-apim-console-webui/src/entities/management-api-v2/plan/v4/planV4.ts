@@ -20,6 +20,15 @@ import { BasePlan } from '../basePlan';
 
 export interface PlanV4 extends BasePlan {
   definitionVersion: 'V4';
+  selectionRule?: string;
+  /**
+   * @description The list of sharding tags associated with this plan.
+   * @example [
+   *   "public",
+   *   "private"
+   * ]
+   */
+  tags?: string[];
   flows?: FlowV4[];
   mode: PlanMode;
 }

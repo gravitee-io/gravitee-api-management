@@ -83,16 +83,7 @@ export interface BasePlan {
    */
   publishedAt?: string;
   security?: PlanSecurity;
-  selectionRule?: string;
   status?: PlanStatus;
-  /**
-   * @description The list of sharding tags associated with this plan.
-   * @example [
-   *   "public",
-   *   "private"
-   * ]
-   */
-  tags?: string[];
   type?: PlanType;
   mode?: PlanMode;
   /**

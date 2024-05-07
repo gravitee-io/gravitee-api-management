@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { UpdateBasePlan } from '../updateBasePlan';
 
-import { PlanV4 } from './v4';
-import { PlanV2 } from './v2';
-import { PlanFederated } from './federated';
-
-export type Plan = PlanV4 | PlanV2 | PlanFederated;
+export interface UpdatePlanFederated extends UpdateBasePlan {
+  definitionVersion: 'FEDERATED';
+}

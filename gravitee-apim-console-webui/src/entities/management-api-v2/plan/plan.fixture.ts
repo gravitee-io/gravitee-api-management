@@ -15,7 +15,7 @@
  */
 import { isFunction } from 'lodash';
 
-import { PlanV2, PlanV4, UpdatePlanV2, UpdatePlanV4 } from '.';
+import { PlanFederated, PlanV2, PlanV4, UpdatePlanV2, UpdatePlanV4 } from '.';
 
 import { BasePlan } from './basePlan';
 import { UpdateBasePlan } from './updateBasePlan';
@@ -29,7 +29,6 @@ export function fakeBasePlan(modifier?: Partial<BasePlan> | ((base: BasePlan) =>
     characteristics: [],
     status: 'PUBLISHED',
     validation: 'AUTO',
-    tags: ['tag1'],
     commentMessage: 'comment message',
     commentRequired: true,
     generalConditions: 'general conditions',
@@ -53,6 +52,7 @@ export function fakePlanV2(modifier?: Partial<PlanV2> | ((base: PlanV2) => PlanV
   const base: PlanV2 = {
     ...fakeBasePlan(modifier),
     definitionVersion: 'V2',
+    tags: ['tag1'],
     flows: [
       {
         name: '',
@@ -92,6 +92,7 @@ export function fakePlanV4(modifier?: Partial<PlanV4> | ((base: PlanV4) => PlanV
   const base: PlanV4 = {
     ...fakeBasePlan({ ...modifier }),
     definitionVersion: 'V4',
+    tags: ['tag1'],
     flows: [
       {
         name: '',
@@ -117,6 +118,24 @@ export function fakePlanV4(modifier?: Partial<PlanV4> | ((base: PlanV4) => PlanV
         enabled: true,
       },
     ],
+    mode: 'STANDARD',
+  };
+
+  if (isFunction(modifier)) {
+    return modifier(base);
+  }
+
+  return {
+    ...base,
+    ...modifier,
+  };
+}
+
+export function fakePlanFederated(modifier?: Partial<PlanFederated> | ((base: PlanFederated) => PlanFederated)): PlanFederated {
+  const base: PlanFederated = {
+    ...fakeBasePlan({ ...modifier }),
+    definitionVersion: 'FEDERATED',
+    flows: [],
     mode: 'STANDARD',
   };
 

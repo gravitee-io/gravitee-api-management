@@ -19,6 +19,15 @@ import { FlowV2 } from '../../api/v2';
 
 export interface PlanV2 extends BasePlan {
   definitionVersion: 'V2';
+  selectionRule?: string;
+  /**
+   * @description The list of sharding tags associated with this plan.
+   * @example [
+   *   "public",
+   *   "private"
+   * ]
+   */
+  tags?: string[];
   flows?: FlowV2[];
   paths?: Record<string, Rule[] | undefined>;
 }
