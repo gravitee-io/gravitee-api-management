@@ -104,6 +104,7 @@
   "plans": [
     {
       "id": "plan-id",
+      "definitionVersion": "2.0.0",
       "description": "free plan",
       "validation": "AUTO",
       "security": "API_KEY",

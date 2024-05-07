@@ -13,26 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model.key;
+package io.gravitee.apim.core.integration.model;
 
-import java.util.Collection;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Builder;
 
-@Getter
-@Setter
-@EqualsAndHashCode
-public class ApiKeyQuery {
-
-    private Collection<String> subscriptions;
-
-    private long from = -1;
-    private long to = -1;
-
-    private boolean includeRevoked;
-    private boolean includeFederated;
-
-    private long expireAfter = -1;
-    private long expireBefore = -1;
+@Builder(toBuilder = true)
+public record IntegrationSubscription(String integrationId, Type type, String apiKey) {
+    public enum Type {
+        API_KEY,
+    }
 }

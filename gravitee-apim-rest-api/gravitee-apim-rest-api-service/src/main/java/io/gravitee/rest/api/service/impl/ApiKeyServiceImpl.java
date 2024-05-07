@@ -643,6 +643,7 @@ public class ApiKeyServiceImpl extends TransactionalService implements ApiKeySer
         ApiKeyCriteria.ApiKeyCriteriaBuilder apiKeyCriteriaBuilder = ApiKeyCriteria
             .builder()
             .includeRevoked(query.isIncludeRevoked())
+            .includeFederated(query.isIncludeFederated())
             .from(query.getFrom())
             .to(query.getTo())
             .expireAfter(query.getExpireAfter())

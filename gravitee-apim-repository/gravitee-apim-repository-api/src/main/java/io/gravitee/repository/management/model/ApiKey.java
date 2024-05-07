@@ -24,6 +24,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.ToString;
 
 /**
@@ -47,18 +48,21 @@ public class ApiKey implements Serializable {
     /**
      * API Key's unique id
      */
+    @Setter
     @Getter
     private String id;
 
     /**
      * API Key
      */
+    @Setter
     @Getter
     private String key;
 
     /**
      * The subscriptions for which the API Key is generated
      */
+    @Setter
     @Getter
     private List<String> subscriptions = new ArrayList<>();
 
@@ -92,48 +96,66 @@ public class ApiKey implements Serializable {
     /**
      * The application used to make the subscription
      */
+    @Setter
     @Getter
     private String application;
 
     /**
      * Expiration date (end date) of the API Key
      */
+    @Setter
     @Getter
     private Date expireAt;
 
     /**
      * API Key creation date
      */
+    @Setter
     @Getter
     private Date createdAt;
 
     /**
      * API Key updated date
      */
+    @Setter
     @Getter
     private Date updatedAt;
 
     /**
      * Flag to indicate if the API Key is revoked ?
      */
+    @Setter
     @Getter
     private boolean revoked;
 
     /**
      * Flag to indicate if the API Key is paused ?
      */
+    @Setter
     @Getter
     private boolean paused;
 
     /**
      * If the key is revoked, the revocation date
      */
+    @Setter
     @Getter
     private Date revokedAt;
 
     /**
+     * Indicates the API Key is coming from external provider.
+     * <p>
+     *     It should not be synchronized on the Gateway.
+     * </p>
+     * */
+    @Getter
+    @Setter
+    private boolean federated;
+
+    /**
      * Number of days before the expiration of this API Key when the last pre-expiration notification was sent
      */
+    @Setter
     @Getter
     private Integer daysToExpirationOnLastNotification;
 
@@ -141,6 +163,7 @@ public class ApiKey implements Serializable {
         this.id = cloned.id;
         this.key = cloned.key;
         this.subscriptions = cloned.subscriptions;
+        this.subscription = cloned.subscription;
         this.application = cloned.application;
         this.plan = cloned.plan;
         this.expireAt = cloned.expireAt;
@@ -149,6 +172,7 @@ public class ApiKey implements Serializable {
         this.revoked = cloned.revoked;
         this.revokedAt = cloned.revokedAt;
         this.paused = cloned.paused;
+        this.federated = cloned.federated;
         this.daysToExpirationOnLastNotification = cloned.daysToExpirationOnLastNotification;
         this.api = cloned.api;
     }
@@ -160,50 +184,6 @@ public class ApiKey implements Serializable {
         revokedApiKey.setUpdatedAt(now);
         revokedApiKey.setRevokedAt(now);
         return revokedApiKey;
-    }
-
-    public void setRevoked(boolean revoked) {
-        this.revoked = revoked;
-    }
-
-    public void setKey(String key) {
-        this.key = key;
-    }
-
-    public void setApplication(String application) {
-        this.application = application;
-    }
-
-    public void setExpireAt(Date expireAt) {
-        this.expireAt = expireAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public void setRevokedAt(Date revokedAt) {
-        this.revokedAt = revokedAt;
-    }
-
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public void setSubscriptions(List<String> subscriptions) {
-        this.subscriptions = subscriptions;
-    }
-
-    public void setPaused(boolean paused) {
-        this.paused = paused;
-    }
-
-    public void setDaysToExpirationOnLastNotification(Integer daysToExpirationOnLastNotification) {
-        this.daysToExpirationOnLastNotification = daysToExpirationOnLastNotification;
-    }
-
-    public void setId(String id) {
-        this.id = id;
     }
 
     /**

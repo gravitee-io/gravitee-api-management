@@ -17,19 +17,53 @@ package inmemory;
 
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
+import io.gravitee.apim.core.integration.model.IntegrationSubscription;
 import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
+import io.gravitee.definition.model.federation.FederatedApi;
+import io.gravitee.definition.model.federation.FederatedPlan;
 import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Single;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class IntegrationAgentInMemory implements IntegrationAgent, InMemoryAlternative<IntegrationApi> {
 
     List<IntegrationApi> storage = new ArrayList<>();
+    Map<String, List<String>> subscriptions = new HashMap<>();
 
     @Override
     public Flowable<IntegrationApi> fetchAllApis(Integration integration) {
         return Flowable.fromIterable(storage).filter(asset -> asset.integrationId().equals(integration.getId()));
+    }
+
+    @Override
+    public Single<IntegrationSubscription> subscribe(
+        String integrationId,
+        FederatedApi api,
+        FederatedPlan plan,
+        String subscriptionId,
+        String applicationName
+    ) {
+        subscriptions.compute(
+            integrationId,
+            (integration, subscriptionIds) -> {
+                if (subscriptionIds == null) {
+                    subscriptionIds = new ArrayList<>();
+                }
+                subscriptionIds.add(subscriptionId);
+                return subscriptionIds;
+            }
+        );
+        return Single.just(
+            new IntegrationSubscription(
+                integrationId,
+                IntegrationSubscription.Type.API_KEY,
+                "api-key-" + subscriptionId + "-" + applicationName
+            )
+        );
     }
 
     @Override

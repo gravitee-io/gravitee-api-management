@@ -89,6 +89,7 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
             .addColumn("revoked", Types.BOOLEAN, boolean.class)
             .addColumn("paused", Types.BOOLEAN, boolean.class)
             .addColumn("revoked_at", Types.TIMESTAMP, Date.class)
+            .addColumn("federated", Types.BOOLEAN, boolean.class)
             .addColumn("days_to_expiration_on_last_notification", Types.INTEGER, Integer.class)
             .build();
     }
@@ -167,6 +168,12 @@ public class JdbcApiKeyRepository extends JdbcAbstractCrudRepository<ApiKey, Str
             if (!criteria.isIncludeRevoked()) {
                 first = addClause(first, query);
                 query.append(" ( k.revoked = ? ) ");
+                args.add(false);
+            }
+
+            if (!criteria.isIncludeFederated()) {
+                first = addClause(first, query);
+                query.append(" ( k.federated = ? ) ");
                 args.add(false);
             }
 

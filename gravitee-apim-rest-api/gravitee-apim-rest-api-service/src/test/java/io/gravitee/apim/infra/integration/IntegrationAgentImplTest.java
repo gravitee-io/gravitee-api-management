@@ -16,22 +16,31 @@
 package io.gravitee.apim.infra.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.in;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.IntegrationFixture;
+import fixtures.definition.ApiDefinitionFixtures;
+import fixtures.definition.PlanFixtures;
 import io.gravitee.apim.core.integration.exception.IntegrationIngestionException;
+import io.gravitee.apim.core.integration.exception.IntegrationSubscriptionException;
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
+import io.gravitee.apim.core.integration.model.IntegrationSubscription;
 import io.gravitee.exchange.api.command.Command;
 import io.gravitee.exchange.api.controller.ExchangeController;
 import io.gravitee.integration.api.command.ingest.IngestCommand;
 import io.gravitee.integration.api.command.ingest.IngestCommandPayload;
 import io.gravitee.integration.api.command.ingest.IngestReply;
 import io.gravitee.integration.api.command.ingest.IngestReplyPayload;
+import io.gravitee.integration.api.command.subscribe.SubscribeCommand;
+import io.gravitee.integration.api.command.subscribe.SubscribeCommandPayload;
+import io.gravitee.integration.api.command.subscribe.SubscribeReply;
+import io.gravitee.integration.api.command.subscribe.SubscribeReplyPayload;
 import io.gravitee.integration.api.model.Plan;
 import io.gravitee.integration.api.model.PlanSecurityType;
+import io.gravitee.integration.api.model.Subscription;
+import io.gravitee.integration.api.model.SubscriptionType;
 import io.reactivex.rxjava3.core.Single;
 import java.util.List;
 import java.util.Map;
@@ -133,6 +142,91 @@ class IntegrationAgentImplTest {
                 .awaitDone(10, TimeUnit.SECONDS)
                 .assertError(error -> {
                     assertThat(error).isInstanceOf(IntegrationIngestionException.class).hasMessage("Fail to fetch assets");
+                    return true;
+                });
+        }
+    }
+
+    @Nested
+    class Subscribe {
+
+        @BeforeEach
+        void setUp() {
+            when(controller.sendCommand(any(), any()))
+                .thenReturn(
+                    Single.just(
+                        new SubscribeReply("command-id", new SubscribeReplyPayload(Subscription.builder().apiKey("my-api-key").build()))
+                    )
+                );
+        }
+
+        @Test
+        void should_send_command_to_subscribe() {
+            agent
+                .subscribe(
+                    INTEGRATION_ID,
+                    ApiDefinitionFixtures.aFederatedApi().toBuilder().id("gravitee-api-id").providerId("api-provider-id").build(),
+                    PlanFixtures.aFederatedPlan().toBuilder().providerId("plan-provider-id").build(),
+                    "subscription-id",
+                    "application-name"
+                )
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS);
+
+            var captor = ArgumentCaptor.forClass(Command.class);
+            Mockito.verify(controller).sendCommand(captor.capture(), Mockito.eq(INTEGRATION_ID));
+            assertThat(captor.getValue())
+                .isInstanceOf(SubscribeCommand.class)
+                .extracting(Command::getPayload)
+                .isEqualTo(
+                    new SubscribeCommandPayload(
+                        "api-provider-id",
+                        new Subscription(
+                            "subscription-id",
+                            "application-name",
+                            SubscriptionType.API_KEY,
+                            Map.of(Subscription.METADATA_PLAN_ID, "plan-provider-id"),
+                            null
+                        )
+                    )
+                );
+        }
+
+        @Test
+        void should_return_the_API_Key() {
+            var result = agent
+                .subscribe(
+                    INTEGRATION_ID,
+                    ApiDefinitionFixtures.aFederatedApi(),
+                    PlanFixtures.aFederatedPlan(),
+                    "subscription-id",
+                    "application-name"
+                )
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .values();
+
+            assertThat(result)
+                .hasSize(1)
+                .containsExactly(new IntegrationSubscription(INTEGRATION_ID, IntegrationSubscription.Type.API_KEY, "my-api-key"));
+        }
+
+        @Test
+        void should_throw_when_command_fails() {
+            when(controller.sendCommand(any(), any())).thenReturn(Single.just(new SubscribeReply("command-id", "Fail to subscribe")));
+
+            agent
+                .subscribe(
+                    INTEGRATION_ID,
+                    ApiDefinitionFixtures.aFederatedApi(),
+                    PlanFixtures.aFederatedPlan(),
+                    "subscription-id",
+                    "application-name"
+                )
+                .test()
+                .awaitDone(10, TimeUnit.SECONDS)
+                .assertError(error -> {
+                    assertThat(error).isInstanceOf(IntegrationSubscriptionException.class).hasMessage("Fail to subscribe");
                     return true;
                 });
         }

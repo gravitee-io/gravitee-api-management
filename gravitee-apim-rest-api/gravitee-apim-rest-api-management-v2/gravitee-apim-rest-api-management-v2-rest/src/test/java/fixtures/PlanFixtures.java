@@ -24,6 +24,7 @@ import io.gravitee.rest.api.management.v2.rest.model.CreatePlanV2;
 import io.gravitee.rest.api.management.v2.rest.model.CreatePlanV4;
 import io.gravitee.rest.api.management.v2.rest.model.PlanValidation;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateGenericPlanSecurity;
+import io.gravitee.rest.api.management.v2.rest.model.UpdatePlanFederated;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePlanV2;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePlanV4;
 import io.gravitee.rest.api.model.v4.plan.PlanEntity;
@@ -99,6 +100,20 @@ public class PlanFixtures {
         .security(BASE_UPDATE_PLAN_SECURITY.build())
         .flows(List.of(FlowFixtures.aFlowV4()));
 
+    private static final UpdatePlanFederated.UpdatePlanFederatedBuilder BASE_UPDATE_PLAN_FEDERATED = UpdatePlanFederated
+        .builder()
+        .name("My plan")
+        .description("Description")
+        .order(1)
+        .characteristics(List.of("characteristic1", "characteristic2"))
+        .commentMessage("Comment message")
+        .crossId("my-plan-crossId")
+        .generalConditions("General conditions")
+        .excludedGroups(List.of("excludedGroup1", "excludedGroup2"))
+        .validation(PlanValidation.AUTO)
+        .commentRequired(false)
+        .security(BASE_UPDATE_PLAN_SECURITY.build());
+
     private static final UpdatePlanV2.UpdatePlanV2Builder BASE_UPDATE_PLAN_V2 = UpdatePlanV2
         .builder()
         .name("My plan")
@@ -151,6 +166,10 @@ public class PlanFixtures {
 
     public static UpdatePlanV2 anUpdatePlanV2() {
         return BASE_UPDATE_PLAN_V2.build();
+    }
+
+    public static UpdatePlanFederated anUpdatePlanFederated() {
+        return BASE_UPDATE_PLAN_FEDERATED.build();
     }
 
     public static PlanEntity aPlanEntityV4() {

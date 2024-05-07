@@ -22,11 +22,13 @@ import fixtures.ApplicationModelFixtures;
 import fixtures.core.model.AuditInfoFixtures;
 import fixtures.core.model.PlanFixtures;
 import fixtures.core.model.SubscriptionFixtures;
+import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiKeyCrudServiceInMemory;
 import inmemory.ApiKeyQueryServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
+import inmemory.IntegrationAgentInMemory;
 import inmemory.PlanCrudServiceInMemory;
 import inmemory.SubscriptionCrudServiceInMemory;
 import inmemory.TriggerNotificationDomainServiceInMemory;
@@ -88,11 +90,13 @@ class AcceptSubscriptionDomainServiceTest {
     SubscriptionCrudServiceInMemory subscriptionCrudService = new SubscriptionCrudServiceInMemory();
 
     AuditCrudServiceInMemory auditCrudServiceInMemory = new AuditCrudServiceInMemory();
+    ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
     TriggerNotificationDomainServiceInMemory triggerNotificationDomainService = new TriggerNotificationDomainServiceInMemory();
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     ApiKeyCrudServiceInMemory apiKeyCrudService = new ApiKeyCrudServiceInMemory();
     ApplicationCrudServiceInMemory applicationCrudService = new ApplicationCrudServiceInMemory();
+    IntegrationAgentInMemory integrationAgent = new IntegrationAgentInMemory();
     AcceptSubscriptionDomainService cut;
 
     @BeforeAll
@@ -116,8 +120,11 @@ class AcceptSubscriptionDomainServiceTest {
             new AcceptSubscriptionDomainService(
                 subscriptionCrudService,
                 auditDomainService,
+                apiCrudService,
+                applicationCrudService,
                 planCrudService,
                 generateApiKeyDomainService,
+                integrationAgent,
                 triggerNotificationDomainService,
                 userCrudService
             );
@@ -131,9 +138,11 @@ class AcceptSubscriptionDomainServiceTest {
     void tearDown() {
         Stream
             .of(
+                apiCrudService,
                 apiKeyCrudService,
                 applicationCrudService,
                 auditCrudServiceInMemory,
+                integrationAgent,
                 planCrudService,
                 subscriptionCrudService,
                 userCrudService

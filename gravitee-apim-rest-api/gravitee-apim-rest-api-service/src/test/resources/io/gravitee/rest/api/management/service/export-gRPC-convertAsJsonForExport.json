@@ -107,6 +107,7 @@
   "plans": [
     {
       "id": "plan-id",
+      "definitionVersion": "2.0.0",
       "crossId": "test-plan-cross-id",
       "description": "free plan",
       "validation": "AUTO",

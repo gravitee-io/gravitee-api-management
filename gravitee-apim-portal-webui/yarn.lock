@@ -526,6 +526,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@asciidoctor/core@npm:3.0.4":
+  version: 3.0.4
+  resolution: "@asciidoctor/core@npm:3.0.4"
+  dependencies:
+    "@asciidoctor/opal-runtime": "npm:3.0.1"
+    unxhr: "npm:1.2.0"
+  checksum: 10c0/9a4f9b9db10e17953374166648c5680b10c40ea2280e3ec37f26c8787b64248b41a1db36936b5358f418966f5167c1ce50386970572eeb09201ba2ac40381553
+  languageName: node
+  linkType: hard
+
 "@asciidoctor/opal-runtime@npm:3.0.1":
   version: 3.0.1
   resolution: "@asciidoctor/opal-runtime@npm:3.0.1"
@@ -3667,7 +3677,7 @@ __metadata:
     "@angular/platform-browser": "npm:17.0.5"
     "@angular/platform-browser-dynamic": "npm:17.0.5"
     "@angular/router": "npm:17.0.5"
-    "@asciidoctor/core": "npm:3.0.2"
+    "@asciidoctor/core": "npm:3.0.4"
     "@asyncapi/web-component": "npm:1.2.23"
     "@babel/preset-env": "npm:7.16.11"
     "@fontsource/ibm-plex-sans": "npm:4.5.5"

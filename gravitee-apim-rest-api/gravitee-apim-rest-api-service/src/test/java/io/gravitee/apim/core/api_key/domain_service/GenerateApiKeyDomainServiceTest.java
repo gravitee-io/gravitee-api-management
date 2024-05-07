@@ -28,13 +28,11 @@ import inmemory.AuditCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.UserCrudServiceInMemory;
 import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
-import io.gravitee.apim.core.application.crud_service.ApplicationCrudService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.ApiKeyAuditEvent;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
-import io.gravitee.apim.infra.crud_service.application.ApplicationCrudServiceImpl;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
 import io.gravitee.rest.api.model.ApiKeyMode;
@@ -68,14 +66,14 @@ class GenerateApiKeyDomainServiceTest {
     private static final String SUBSCRIPTION_ID_2 = "subscription2";
     private static final String API_ID_1 = "api1";
     private static final String PLAN_ID_1 = "plan1";
-    private static final String APPLICATION_ID_1 = "app1";
+    private static final String APPLICATION_ID = "app1";
 
-    private static final BaseApplicationEntity APPLICATION_1 = BaseApplicationEntity.builder().id(APPLICATION_ID_1).build();
+    private static final BaseApplicationEntity APPLICATION_1 = BaseApplicationEntity.builder().id(APPLICATION_ID).build();
     private static final SubscriptionEntity SUBSCRIPTION_1 = SubscriptionFixtures
         .aSubscription()
         .toBuilder()
         .id(SUBSCRIPTION_ID_1)
-        .applicationId(APPLICATION_ID_1)
+        .applicationId(APPLICATION_ID)
         .planId(PLAN_ID_1)
         .apiId(API_ID_1)
         .endingAt(Instant.parse("2024-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
@@ -131,7 +129,7 @@ class GenerateApiKeyDomainServiceTest {
                 ApiKeyEntity
                     .builder()
                     .id("generated-id")
-                    .applicationId(APPLICATION_ID_1)
+                    .applicationId(APPLICATION_ID)
                     .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
                     .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
                     .key("generated-id")
@@ -152,7 +150,7 @@ class GenerateApiKeyDomainServiceTest {
                 ApiKeyEntity
                     .builder()
                     .id("generated-id")
-                    .applicationId(APPLICATION_ID_1)
+                    .applicationId(APPLICATION_ID)
                     .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
                     .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
                     .key("custom-key")
@@ -178,7 +176,7 @@ class GenerateApiKeyDomainServiceTest {
                     AuditEntity.AuditReferenceType.API,
                     API_ID_1,
                     USER_ID,
-                    Map.of("API_KEY", result.getKey(), "API", API_ID_1, "APPLICATION", APPLICATION_ID_1),
+                    Map.of("API_KEY", result.getKey(), "API", API_ID_1, "APPLICATION", APPLICATION_ID),
                     ApiKeyAuditEvent.APIKEY_CREATED.name(),
                     result.getCreatedAt(),
                     ""
@@ -191,19 +189,25 @@ class GenerateApiKeyDomainServiceTest {
 
         private static final BaseApplicationEntity APPLICATION_SHARED = BaseApplicationEntity
             .builder()
-            .id(APPLICATION_ID_1)
+            .id(APPLICATION_ID)
             .apiKeyMode(ApiKeyMode.SHARED)
             .build();
+
+        @BeforeEach
+        void setUp() {
+            applicationCrudService.initWith(List.of(APPLICATION_SHARED));
+        }
 
         @Test
         void add_subscription_to_existing_api_keys() {
             // Given
+            var subscription = SUBSCRIPTION_1.toBuilder().applicationId(APPLICATION_SHARED.getId()).build();
             var keys = givenApiKeys(
                 ApiKeyFixtures
                     .anApiKey()
                     .toBuilder()
                     .id("key1")
-                    .applicationId(APPLICATION_ID_1)
+                    .applicationId(APPLICATION_ID)
                     .subscriptions(List.of(SUBSCRIPTION_ID_2))
                     .key("existing-key-1")
                     .build(),
@@ -211,14 +215,14 @@ class GenerateApiKeyDomainServiceTest {
                     .anApiKey()
                     .toBuilder()
                     .id("key2")
-                    .applicationId(APPLICATION_ID_1)
+                    .applicationId(APPLICATION_ID)
                     .subscriptions(List.of(SUBSCRIPTION_ID_2))
                     .key("existing-key-2")
                     .build()
             );
 
             // When
-            service.generate(SUBSCRIPTION_1, APPLICATION_SHARED, AUDIT_INFO, null);
+            service.generate(subscription, AUDIT_INFO, null);
 
             // Then
             assertThat(apiKeyCrudService.storage())
@@ -240,8 +244,11 @@ class GenerateApiKeyDomainServiceTest {
 
         @Test
         void generate_new_key_when_no_key_exists() {
+            // Given
+            var subscription = SUBSCRIPTION_1.toBuilder().applicationId(APPLICATION_SHARED.getId()).build();
+
             // When
-            service.generate(SUBSCRIPTION_1, APPLICATION_SHARED, AUDIT_INFO, "custom-key");
+            service.generate(subscription, AUDIT_INFO, "custom-key");
 
             // Then
             assertThat(apiKeyCrudService.storage())
@@ -249,7 +256,7 @@ class GenerateApiKeyDomainServiceTest {
                     ApiKeyEntity
                         .builder()
                         .id("generated-id")
-                        .applicationId(APPLICATION_ID_1)
+                        .applicationId(APPLICATION_ID)
                         .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
                         .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
                         .key("custom-key")
@@ -267,14 +274,14 @@ class GenerateApiKeyDomainServiceTest {
             ApiKeyFixtures
                 .anApiKey()
                 .toBuilder()
-                .applicationId(APPLICATION_ID_1)
+                .applicationId(APPLICATION_ID)
                 .subscriptions(List.of(SUBSCRIPTION_ID_1))
                 .key("existing-key")
                 .build()
         );
 
         // When
-        var throwable = catchThrowable(() -> service.generate(SUBSCRIPTION_1, APPLICATION_1, AUDIT_INFO, "existing-key"));
+        var throwable = catchThrowable(() -> service.generate(SUBSCRIPTION_1, AUDIT_INFO, "existing-key"));
 
         // Then
         assertThat(throwable).isInstanceOf(ApiKeyAlreadyExistingException.class);

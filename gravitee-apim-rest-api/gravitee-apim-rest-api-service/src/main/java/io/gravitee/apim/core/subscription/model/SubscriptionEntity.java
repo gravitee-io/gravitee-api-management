@@ -113,7 +113,14 @@ public class SubscriptionEntity {
     public SubscriptionEntity rejectBy(String userId, String reason) {
         if (Status.PENDING.equals(this.status)) {
             final ZonedDateTime now = TimeProvider.now();
-            return this.toBuilder().processedBy(userId).updatedAt(now).closedAt(now).status(Status.REJECTED).reasonMessage(reason).build();
+            return this.toBuilder()
+                .processedBy(userId)
+                .processedAt(now)
+                .updatedAt(now)
+                .closedAt(now)
+                .status(Status.REJECTED)
+                .reasonMessage(reason)
+                .build();
         }
         throw new IllegalStateException("Cannot reject subscription");
     }
@@ -135,10 +142,6 @@ public class SubscriptionEntity {
             case ACCEPTED -> this;
             default -> throw new IllegalStateException("Cannot accept subscription");
         };
-    }
-
-    public SubscriptionEntity acceptBy(String userId, ZonedDateTime startingAt, ZonedDateTime endingAt) {
-        return this.acceptBy(userId, startingAt, endingAt, null);
     }
 
     public boolean isAccepted() {

@@ -13,26 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model.key;
+package io.gravitee.apim.core.integration.exception;
 
-import java.util.Collection;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+public class IntegrationSubscriptionException extends RuntimeException {
 
-@Getter
-@Setter
-@EqualsAndHashCode
-public class ApiKeyQuery {
-
-    private Collection<String> subscriptions;
-
-    private long from = -1;
-    private long to = -1;
-
-    private boolean includeRevoked;
-    private boolean includeFederated;
-
-    private long expireAfter = -1;
-    private long expireBefore = -1;
+    public IntegrationSubscriptionException(String message) {
+        super(message);
+    }
 }

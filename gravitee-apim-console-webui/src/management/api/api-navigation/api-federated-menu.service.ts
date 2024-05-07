@@ -93,6 +93,13 @@ export class ApiFederatedMenuService implements ApiMenuService {
       });
     }
 
+    if (this.permissionService.hasAnyMatching(['api-subscription-r'])) {
+      tabs.push({
+        displayName: 'Subscriptions',
+        routerLink: 'subscriptions',
+      });
+    }
+
     return {
       displayName: 'Consumers',
       icon: 'cloud-consumers',
@@ -101,7 +108,7 @@ export class ApiFederatedMenuService implements ApiMenuService {
         title: 'Consumers',
         subtitle: 'Manage how your API is consumed',
       },
-      tabs: tabs,
+      tabs: [...tabs, { displayName: 'Broadcasts', routerLink: 'messages' }],
     };
   }
 

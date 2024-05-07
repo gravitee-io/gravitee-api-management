@@ -1573,6 +1573,7 @@ public class SubscriptionServiceImpl extends AbstractService implements Subscrip
         if (apis.containsKey(subscription.getApi())) {
             GenericApiEntity api = apis.get(subscription.getApi());
             metadata.put(api.getId(), "name", api.getName());
+            metadata.put(api.getId(), "definitionVersion", api.getDefinitionVersion());
             metadata.put(api.getId(), "apiVersion", api.getApiVersion());
             if (query.hasDetails()) {
                 metadata.put(api.getId(), "state", api.getLifecycleState());

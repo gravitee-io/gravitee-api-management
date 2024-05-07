@@ -26,7 +26,9 @@ import static java.util.stream.Collectors.toSet;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.common.http.HttpMethod;
+import io.gravitee.definition.model.DefinitionContext;
 import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.Proxy;
 import io.gravitee.definition.model.VirtualHost;
@@ -47,6 +49,7 @@ import io.gravitee.rest.api.model.api.DuplicateApiEntity;
 import io.gravitee.rest.api.model.api.UpdateApiEntity;
 import io.gravitee.rest.api.model.documentation.PageQuery;
 import io.gravitee.rest.api.model.permissions.RoleScope;
+import io.gravitee.rest.api.model.permissions.SystemRole;
 import io.gravitee.rest.api.service.ApiDuplicatorService;
 import io.gravitee.rest.api.service.ApiIdsCalculatorService;
 import io.gravitee.rest.api.service.ApiMetadataService;
@@ -63,14 +66,11 @@ import io.gravitee.rest.api.service.PlanService;
 import io.gravitee.rest.api.service.RoleService;
 import io.gravitee.rest.api.service.UserService;
 import io.gravitee.rest.api.service.common.ExecutionContext;
+import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.converter.ApiConverter;
 import io.gravitee.rest.api.service.converter.PlanConverter;
-import io.gravitee.rest.api.service.exceptions.ApiDefinitionVersionNotSupportedException;
-import io.gravitee.rest.api.service.exceptions.ApiImportException;
-import io.gravitee.rest.api.service.exceptions.ForbiddenAccessException;
-import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
-import io.gravitee.rest.api.service.exceptions.UserNotFoundException;
+import io.gravitee.rest.api.service.exceptions.*;
 import io.gravitee.rest.api.service.imports.ImportApiJsonNode;
 import io.gravitee.rest.api.service.imports.ImportJsonNode;
 import io.gravitee.rest.api.service.imports.ImportJsonNodeWithIds;
@@ -78,18 +78,7 @@ import io.gravitee.rest.api.service.sanitizer.UrlSanitizerUtils;
 import io.gravitee.rest.api.service.spring.ImportConfiguration;
 import io.vertx.core.buffer.Buffer;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -99,6 +88,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 /**
  * @author Gaëtan MAISSE (gaetan.maisse at graviteesource.com)
@@ -428,11 +418,9 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             );
             for (final ImportJsonNode memberNode : apiJsonNode.getMembers()) {
                 MemberToImport memberToImport = objectMapper.readValue(memberNode.toString(), MemberToImport.class);
-                memberToImport.setRoles(getRoleIdsToImport(executionContext, memberToImport));
                 boolean presentWithSameRole = isPresentWithSameRole(membersAlreadyPresent, memberToImport);
 
-                List<String> roleIdsToImport = memberToImport
-                    .getRoles()
+                List<String> roleIdsToImport = getRoleIdsToImport(executionContext, memberToImport)
                     .stream()
                     .filter(roleId -> {
                         var role = roleService.findByIdAndOrganizationId(roleId, executionContext.getOrganizationId());
@@ -474,38 +462,10 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 if (roleIdsToImport.contains(poRoleId)) {
                     futurePo = memberToImport;
                 }
-
-                // by removing the member, we will eventually end up with a clean list of
-                // Members that can be removed from this API
-                membersAlreadyPresent.remove(memberToImport);
-            }
-
-            // delete members that no longer referenced inside this API
-            for (MemberToImport memberToDelete : membersAlreadyPresent) {
-                if (!memberToDelete.getRoles().contains(poRoleId)) {
-                    deleteMembers(executionContext, apiEntity.getId(), memberToDelete);
-                }
             }
 
             // transfer the ownership
             transferOwnership(executionContext, apiEntity.getId(), currentPo, roleUsedInTransfert, futurePo);
-        } else {
-            // Remove all members if exist except the PO
-            // get current members of the api
-            Set<MemberToImport> membersAlreadyPresent = getAPICurrentMembers(executionContext, apiEntity.getId());
-            if (!membersAlreadyPresent.isEmpty()) {
-                // get the current PO
-                RoleEntity poRole = roleService.findPrimaryOwnerRoleByOrganization(executionContext.getOrganizationId(), RoleScope.API);
-                assert (poRole != null);
-                String poRoleId = poRole.getId();
-
-                // delete members that no longer referenced inside this API
-                for (MemberToImport memberToDelete : membersAlreadyPresent) {
-                    if (!memberToDelete.getRoles().contains(poRoleId)) {
-                        deleteMembers(executionContext, apiEntity.getId(), memberToDelete);
-                    }
-                }
-            }
         }
     }
 
@@ -520,7 +480,8 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                 return new MemberToImport(
                     userEntity.getSource(),
                     userEntity.getSourceId(),
-                    member.getRoles().stream().map(RoleEntity::getId).collect(toList())
+                    member.getRoles().stream().map(RoleEntity::getId).collect(toList()),
+                    null
                 );
             })
             .collect(toSet());
@@ -549,30 +510,23 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
             roleIdsToImport = new ArrayList<>();
             memberToImport.setRoles(roleIdsToImport);
         } else {
-            var roleIds = new ArrayList<String>();
-            for (var roleIdOrName : memberToImport.getRoles()) {
-                try {
-                    UUID.fromString(roleIdOrName);
-                    roleIds.add(roleIdOrName);
-                } catch (IllegalArgumentException e) {
-                    Optional<RoleEntity> optionalRole = roleService.findByScopeAndName(
-                        RoleScope.API,
-                        roleIdOrName,
-                        executionContext.getOrganizationId()
-                    );
-                    if (optionalRole.isPresent()) {
-                        roleIds.add(optionalRole.get().getId());
-                    } else {
-                        LOGGER.warn("Role {} does not exist in 'API' scope", roleIdOrName);
-                        // We still add this to the list
-                        roleIds.add(roleIdOrName);
-                    }
-                }
-            }
-
-            roleIdsToImport = roleIds;
+            roleIdsToImport = new ArrayList<>(roleIdsToImport);
         }
 
+        // Before v3, only one role per member could be imported and it was a role name.
+        String roleNameToAdd = memberToImport.getRole();
+        if (roleNameToAdd != null && !roleNameToAdd.isEmpty()) {
+            Optional<RoleEntity> optRoleToAddEntity = roleService.findByScopeAndName(
+                RoleScope.API,
+                roleNameToAdd,
+                executionContext.getOrganizationId()
+            );
+            if (optRoleToAddEntity.isPresent()) {
+                roleIdsToImport.add(optRoleToAddEntity.get().getId());
+            } else {
+                LOGGER.warn("Role {} does not exist", roleNameToAdd);
+            }
+        }
         roleIdsToImport.sort(Comparator.naturalOrder());
 
         return roleIdsToImport;
@@ -625,21 +579,6 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
                     }
                 });
             } catch (UserNotFoundException unfe) {}
-        }
-    }
-
-    protected void deleteMembers(ExecutionContext executionContext, String apiId, MemberToImport memberToImport) {
-        try {
-            UserEntity userEntity = userService.findBySource(
-                executionContext.getOrganizationId(),
-                memberToImport.getSource(),
-                memberToImport.getSourceId(),
-                false
-            );
-
-            membershipService.deleteMemberForApi(executionContext, apiId, userEntity.getId());
-        } catch (UserNotFoundException unfe) {} catch (Exception e) {
-            LOGGER.warn("Unable to delete membership from API '{}' due to : {}", apiId, e.getMessage());
         }
     }
 
@@ -819,15 +758,18 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
     protected static class MemberToImport {
 
         private String source;
+
         private String sourceId;
         private List<String> roles; // After v3
+        private String role; // Before v3
 
         public MemberToImport() {}
 
-        public MemberToImport(String source, String sourceId, List<String> roles) {
+        public MemberToImport(String source, String sourceId, List<String> roles, String role) {
             this.source = source;
             this.sourceId = sourceId;
             this.roles = roles;
+            this.role = role;
         }
 
         public String getSource() {
@@ -852,6 +794,14 @@ public class ApiDuplicatorServiceImpl extends AbstractService implements ApiDupl
 
         public void setRoles(List<String> roles) {
             this.roles = roles;
+        }
+
+        public String getRole() {
+            return role;
+        }
+
+        public void setRole(String role) {
+            this.role = role;
         }
 
         @Override

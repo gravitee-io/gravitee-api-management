@@ -20,6 +20,7 @@ import static java.util.Comparator.comparingInt;
 import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.plan.use_case.CreatePlanUseCase;
+import io.gravitee.apim.core.plan.use_case.UpdateFederatedPlanUseCase;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.subscription.query_service.SubscriptionQueryService;
 import io.gravitee.common.http.MediaType;
@@ -35,6 +36,7 @@ import io.gravitee.rest.api.management.v2.rest.model.PlanSecurityType;
 import io.gravitee.rest.api.management.v2.rest.model.PlanStatus;
 import io.gravitee.rest.api.management.v2.rest.model.PlansResponse;
 import io.gravitee.rest.api.management.v2.rest.model.UpdateGenericPlan;
+import io.gravitee.rest.api.management.v2.rest.model.UpdatePlanFederated;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePlanV2;
 import io.gravitee.rest.api.management.v2.rest.model.UpdatePlanV4;
 import io.gravitee.rest.api.management.v2.rest.pagination.PaginationInfo;
@@ -96,6 +98,9 @@ public class ApiPlansResource extends AbstractResource {
 
     @Inject
     private SubscriptionQueryService subscriptionQueryService;
+
+    @Inject
+    private UpdateFederatedPlanUseCase updateFederatedPlanUseCase;
 
     @PathParam("apiId")
     private String apiId;
@@ -235,27 +240,37 @@ public class ApiPlansResource extends AbstractResource {
             return Response.status(Response.Status.NOT_FOUND).entity(planNotFoundError(planId)).build();
         }
 
-        if (updatePlan.getDefinitionVersion() == DefinitionVersion.V4) {
-            if (!(planEntity instanceof PlanEntity)) {
-                return Response.status(Response.Status.BAD_REQUEST).entity(planInvalid(planId)).build();
+        return switch (updatePlan.getDefinitionVersion()) {
+            case V4 -> {
+                if (planEntity instanceof PlanEntity) {
+                    final UpdatePlanEntity updatePlanEntity = planMapper.map((UpdatePlanV4) updatePlan);
+                    updatePlanEntity.setId(planId);
+                    PlanEntity responseEntity = planServiceV4.update(executionContext, updatePlanEntity);
+                    yield Response.ok(planMapper.map(responseEntity)).build();
+                } else {
+                    yield Response.status(Response.Status.BAD_REQUEST).entity(planInvalid(planId)).build();
+                }
             }
+            case FEDERATED -> {
+                var toUpdate = planMapper.map((UpdatePlanFederated) updatePlan);
+                toUpdate.setId(planId);
 
-            final UpdatePlanEntity updatePlanEntity = planMapper.map((UpdatePlanV4) updatePlan);
-            updatePlanEntity.setId(planId);
-            PlanEntity responseEntity = planServiceV4.update(executionContext, updatePlanEntity);
-            return Response.ok(planMapper.map(responseEntity)).build();
-        } else if (updatePlan.getDefinitionVersion() == DefinitionVersion.V2) {
-            if (!(planEntity instanceof io.gravitee.rest.api.model.PlanEntity)) {
-                return Response.status(Response.Status.BAD_REQUEST).entity(planInvalid(planId)).build();
+                var result = updateFederatedPlanUseCase.execute(new UpdateFederatedPlanUseCase.Input(toUpdate, getAuditInfo()));
+
+                yield Response.ok(planMapper.mapFederated(result.updated())).build();
             }
-
-            final io.gravitee.rest.api.model.UpdatePlanEntity updatePlanEntity = planMapper.map((UpdatePlanV2) updatePlan);
-            updatePlanEntity.setId(planId);
-            io.gravitee.rest.api.model.PlanEntity responseEntity = planServiceV2.update(executionContext, updatePlanEntity);
-            return Response.ok(planMapper.map(responseEntity)).build();
-        }
-
-        return Response.status(Response.Status.BAD_REQUEST).entity(planInvalid(planId)).build();
+            case V2 -> {
+                if (planEntity instanceof io.gravitee.rest.api.model.PlanEntity) {
+                    final io.gravitee.rest.api.model.UpdatePlanEntity updatePlanEntity = planMapper.map((UpdatePlanV2) updatePlan);
+                    updatePlanEntity.setId(planId);
+                    io.gravitee.rest.api.model.PlanEntity responseEntity = planServiceV2.update(executionContext, updatePlanEntity);
+                    yield Response.ok(planMapper.map(responseEntity)).build();
+                } else {
+                    yield Response.status(Response.Status.BAD_REQUEST).entity(planInvalid(planId)).build();
+                }
+            }
+            default -> Response.status(Response.Status.BAD_REQUEST).entity(planInvalid(planId)).build();
+        };
     }
 
     @DELETE

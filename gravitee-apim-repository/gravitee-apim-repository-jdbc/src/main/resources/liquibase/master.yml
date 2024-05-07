@@ -175,3 +175,5 @@ databaseChangeLog:
       - file: liquibase/changelogs/v4_4_0/01_store_federated_apis.yml
   - include:
       - file: liquibase/changelogs/v4_4_0/02_store_sync_from.yml
+  - include:
+      - file: liquibase/changelogs/v4_4_0/02_federated_apikeys.yml

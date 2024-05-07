@@ -16,27 +16,37 @@
 package io.gravitee.apim.core.subscription.use_case;
 
 import static fixtures.ApplicationModelFixtures.anApplicationEntity;
+import static io.gravitee.apim.core.subscription.domain_service.AcceptSubscriptionDomainService.REJECT_BY_TECHNICAL_ERROR_MESSAGE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
 
+import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.AuditInfoFixtures;
 import fixtures.core.model.PlanFixtures;
 import fixtures.core.model.SubscriptionFixtures;
+import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiKeyCrudServiceInMemory;
 import inmemory.ApiKeyQueryServiceInMemory;
 import inmemory.ApplicationCrudServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
+import inmemory.IntegrationAgentInMemory;
 import inmemory.PlanCrudServiceInMemory;
 import inmemory.SubscriptionCrudServiceInMemory;
 import inmemory.TriggerNotificationDomainServiceInMemory;
 import inmemory.UserCrudServiceInMemory;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.api_key.domain_service.GenerateApiKeyDomainService;
 import io.gravitee.apim.core.api_key.model.ApiKeyEntity;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.SubscriptionAuditEvent;
+import io.gravitee.apim.core.integration.exception.IntegrationSubscriptionException;
 import io.gravitee.apim.core.notification.model.Recipient;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionAcceptedApiHookContext;
 import io.gravitee.apim.core.notification.model.hook.SubscriptionAcceptedApplicationHookContext;
@@ -46,11 +56,14 @@ import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.definition.model.DefinitionVersion;
+import io.gravitee.definition.model.v4.ApiType;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.BaseApplicationEntity;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.PlanAlreadyClosedException;
 import io.gravitee.rest.api.service.exceptions.SubscriptionNotFoundException;
+import io.reactivex.rxjava3.core.Single;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -64,6 +77,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
 
 class AcceptSubscriptionUseCaseTest {
@@ -83,11 +97,13 @@ class AcceptSubscriptionUseCaseTest {
     SubscriptionCrudServiceInMemory subscriptionCrudService = new SubscriptionCrudServiceInMemory();
 
     AuditCrudServiceInMemory auditCrudServiceInMemory = new AuditCrudServiceInMemory();
+    ApiCrudServiceInMemory apiCrudService = new ApiCrudServiceInMemory();
     PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
     TriggerNotificationDomainServiceInMemory triggerNotificationDomainService = new TriggerNotificationDomainServiceInMemory();
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     ApiKeyCrudServiceInMemory apiKeyCrudService = new ApiKeyCrudServiceInMemory();
     ApplicationCrudServiceInMemory applicationCrudService = new ApplicationCrudServiceInMemory();
+    IntegrationAgentInMemory integrationAgent = spy(new IntegrationAgentInMemory());
     AcceptSubscriptionUseCase useCase;
 
     @BeforeAll
@@ -110,8 +126,11 @@ class AcceptSubscriptionUseCaseTest {
         var acceptSubscriptionDomainService = new AcceptSubscriptionDomainService(
             subscriptionCrudService,
             auditDomainService,
+            apiCrudService,
+            applicationCrudService,
             planCrudService,
             generateApiKeyDomainService,
+            integrationAgent,
             triggerNotificationDomainService,
             userCrudService
         );
@@ -123,9 +142,11 @@ class AcceptSubscriptionUseCaseTest {
     void tearDown() {
         Stream
             .of(
+                apiCrudService,
                 apiKeyCrudService,
                 applicationCrudService,
                 auditCrudServiceInMemory,
+                integrationAgent,
                 planCrudService,
                 subscriptionCrudService,
                 userCrudService
@@ -143,18 +164,10 @@ class AcceptSubscriptionUseCaseTest {
     @Test
     void should_accept_subscription() {
         // Given
-        var application = givenExistingApplication(anApplicationEntity());
+        var api = givenExistingApi(ApiFixtures.aProxyApiV4().setId(API_ID));
         var plan = givenExistingPlan(PlanFixtures.anApiKeyV4().setPlanStatus(PlanStatus.PUBLISHED));
-        var subscription = givenExistingSubscription(
-            SubscriptionFixtures
-                .aSubscription()
-                .toBuilder()
-                .subscribedBy("subscriber")
-                .planId(plan.getId())
-                .applicationId(application.getId())
-                .status(SubscriptionEntity.Status.PENDING)
-                .build()
-        );
+        var application = givenExistingApplication();
+        var subscription = givenExistingPendingSubscriptionFor(api, plan, application);
 
         // When
         var result = accept(subscription.getId());
@@ -174,18 +187,10 @@ class AcceptSubscriptionUseCaseTest {
     @Test
     void should_accept_subscription_without_validity_period() {
         // Given
-        var application = givenExistingApplication(anApplicationEntity());
+        var api = givenExistingApi(ApiFixtures.aProxyApiV4().setId(API_ID));
         var plan = givenExistingPlan(PlanFixtures.anApiKeyV4().setPlanStatus(PlanStatus.PUBLISHED));
-        var subscription = givenExistingSubscription(
-            SubscriptionFixtures
-                .aSubscription()
-                .toBuilder()
-                .subscribedBy("subscriber")
-                .planId(plan.getId())
-                .applicationId(application.getId())
-                .status(SubscriptionEntity.Status.PENDING)
-                .build()
-        );
+        var application = givenExistingApplication();
+        var subscription = givenExistingPendingSubscriptionFor(api, plan, application);
 
         // When
         var result = accept(subscription.getId(), null, null);
@@ -205,18 +210,10 @@ class AcceptSubscriptionUseCaseTest {
     @Test
     void should_accept_subscription_with_custom_key() {
         // Given
-        var application = givenExistingApplication(anApplicationEntity());
+        var api = givenExistingApi(ApiFixtures.aProxyApiV4().setId(API_ID));
         var plan = givenExistingPlan(PlanFixtures.anApiKeyV4().setPlanStatus(PlanStatus.PUBLISHED));
-        var subscription = givenExistingSubscription(
-            SubscriptionFixtures
-                .aSubscription()
-                .toBuilder()
-                .subscribedBy("subscriber")
-                .planId(plan.getId())
-                .applicationId(application.getId())
-                .status(SubscriptionEntity.Status.PENDING)
-                .build()
-        );
+        var application = givenExistingApplication();
+        var subscription = givenExistingPendingSubscriptionFor(api, plan, application);
 
         // When
         accept(subscription.getId(), STARTING_AT, ENDING_AT, "custom_key");
@@ -238,20 +235,46 @@ class AcceptSubscriptionUseCaseTest {
     }
 
     @Test
-    void should_create_audits() {
+    void should_reject_subscription_when_integration_processing_fails_on_federated_api() {
         // Given
-        var application = givenExistingApplication(anApplicationEntity());
-        var plan = givenExistingPlan(PlanFixtures.anApiKeyV4().setPlanStatus(PlanStatus.PUBLISHED));
-        var subscription = givenExistingSubscription(
-            SubscriptionFixtures
-                .aSubscription()
-                .toBuilder()
-                .subscribedBy("subscriber")
-                .planId(plan.getId())
-                .applicationId(application.getId())
-                .status(SubscriptionEntity.Status.PENDING)
-                .build()
-        );
+        var api = givenExistingApi(ApiFixtures.aFederatedApi().setId(API_ID));
+        var plan = givenExistingPlan(PlanFixtures.aFederatedPlan().setPlanStatus(PlanStatus.PUBLISHED));
+        var application = givenExistingApplication();
+        var subscription = givenExistingPendingSubscriptionFor(api, plan, application);
+
+        doReturn(Single.error(new IntegrationSubscriptionException("fail to subscribe")))
+            .when(integrationAgent)
+            .subscribe(any(), any(), any(), any(), any());
+
+        // When
+        accept(subscription.getId());
+
+        // Then
+        assertThat(subscriptionCrudService.storage())
+            .extracting(
+                SubscriptionEntity::getId,
+                SubscriptionEntity::getStatus,
+                SubscriptionEntity::getReasonMessage,
+                SubscriptionEntity::getClosedAt
+            )
+            .contains(
+                tuple(
+                    subscription.getId(),
+                    SubscriptionEntity.Status.REJECTED,
+                    REJECT_BY_TECHNICAL_ERROR_MESSAGE,
+                    INSTANT_NOW.atZone(ZoneId.systemDefault())
+                )
+            );
+    }
+
+    @ParameterizedTest
+    @CsvSource({ "V4, PROXY", "V4, MESSAGE", "V2, PROXY", "FEDERATED, PROXY" })
+    void should_create_audits(DefinitionVersion definitionVersion, ApiType apiType) {
+        // Given
+        var api = givenExistingApiOf(definitionVersion, apiType);
+        var plan = givenExistingPublishedPlanFor(api);
+        var application = givenExistingApplication();
+        var subscription = givenExistingPendingSubscriptionFor(api, plan, application);
 
         // When
         accept(subscription.getId());
@@ -290,18 +313,10 @@ class AcceptSubscriptionUseCaseTest {
     @Test
     void should_generated_key_for_API_Key_plan() {
         // Given
-        var application = givenExistingApplication(anApplicationEntity());
+        var api = givenExistingApi(ApiFixtures.aProxyApiV4().setId(API_ID));
         var plan = givenExistingPlan(PlanFixtures.anApiKeyV4().setPlanStatus(PlanStatus.PUBLISHED));
-        var subscription = givenExistingSubscription(
-            SubscriptionFixtures
-                .aSubscription()
-                .toBuilder()
-                .subscribedBy("subscriber")
-                .planId(plan.getId())
-                .applicationId(application.getId())
-                .status(SubscriptionEntity.Status.PENDING)
-                .build()
-        );
+        var application = givenExistingApplication();
+        var subscription = givenExistingPendingSubscriptionFor(api, plan, application);
 
         // When
         accept(subscription.getId());
@@ -323,20 +338,40 @@ class AcceptSubscriptionUseCaseTest {
     }
 
     @Test
+    void should_create_API_key_from_integration_when_federated_api() {
+        // Given
+        var api = givenExistingApi(ApiFixtures.aFederatedApi().setId(API_ID));
+        var plan = givenExistingPlan(PlanFixtures.aFederatedPlan().setPlanStatus(PlanStatus.PUBLISHED));
+        var application = givenExistingApplication();
+        var subscription = givenExistingPendingSubscriptionFor(api, plan, application);
+
+        // When
+        accept(subscription.getId());
+
+        // Then
+        assertThat(apiKeyCrudService.storage())
+            .containsOnly(
+                ApiKeyEntity
+                    .builder()
+                    .id("generated-id")
+                    .applicationId(subscription.getApplicationId())
+                    .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                    .updatedAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                    .key("api-key-" + subscription.getId() + "-" + application.getName())
+                    .subscriptions(List.of(subscription.getId()))
+                    .expireAt(null)
+                    .federated(true)
+                    .build()
+            );
+    }
+
+    @Test
     void should_not_generated_key_for_not_API_Key_plan() {
         // Given
-        var application = givenExistingApplication(anApplicationEntity());
+        var api = givenExistingApi(ApiFixtures.aProxyApiV4().setId(API_ID));
         var plan = givenExistingPlan(PlanFixtures.aPushPlan().setPlanStatus(PlanStatus.PUBLISHED));
-        var subscription = givenExistingSubscription(
-            SubscriptionFixtures
-                .aSubscription()
-                .toBuilder()
-                .subscribedBy("subscriber")
-                .planId(plan.getId())
-                .applicationId(application.getId())
-                .status(SubscriptionEntity.Status.PENDING)
-                .build()
-        );
+        var application = givenExistingApplication();
+        var subscription = givenExistingPendingSubscriptionFor(api, plan, application);
 
         // When
         accept(subscription.getId());
@@ -345,21 +380,14 @@ class AcceptSubscriptionUseCaseTest {
         assertThat(apiKeyCrudService.storage()).isEmpty();
     }
 
-    @Test
-    void should_trigger_notifications_for_API_and_Application_owners() {
+    @ParameterizedTest
+    @CsvSource({ "V4, PROXY", "V4, MESSAGE", "V2, PROXY", "FEDERATED, PROXY" })
+    void should_trigger_notifications_for_API_and_Application_owners(DefinitionVersion definitionVersion, ApiType apiType) {
         // Given
-        var application = givenExistingApplication(anApplicationEntity());
-        var plan = givenExistingPlan(PlanFixtures.anApiKeyV4().setPlanStatus(PlanStatus.PUBLISHED));
-        var subscription = givenExistingSubscription(
-            SubscriptionFixtures
-                .aSubscription()
-                .toBuilder()
-                .subscribedBy("subscriber")
-                .planId(plan.getId())
-                .applicationId(application.getId())
-                .status(SubscriptionEntity.Status.PENDING)
-                .build()
-        );
+        var application = givenExistingApplication();
+        var api = givenExistingApiOf(definitionVersion, apiType);
+        var plan = givenExistingPublishedPlanFor(api);
+        var subscription = givenExistingPendingSubscriptionFor(api, plan, application);
 
         // When
         accept(subscription.getId());
@@ -376,17 +404,20 @@ class AcceptSubscriptionUseCaseTest {
             );
     }
 
-    @Test
-    void should_trigger_notifications_for_subscriber_when_it_has_email() {
+    @ParameterizedTest
+    @CsvSource({ "V4, PROXY", "V4, MESSAGE", "V2, PROXY", "FEDERATED, PROXY" })
+    void should_trigger_notifications_for_subscriber_when_it_has_email(DefinitionVersion definitionVersion, ApiType apiType) {
         // Given
-        var application = givenExistingApplication(anApplicationEntity());
-        var plan = givenExistingPlan(PlanFixtures.anApiKeyV4().setPlanStatus(PlanStatus.PUBLISHED));
+        var api = givenExistingApiOf(definitionVersion, apiType);
+        var plan = givenExistingPublishedPlanFor(api);
+        var application = givenExistingApplication();
         var subscriber = givenExistingUser(BaseUserEntity.builder().id("subscriber").email("subscriber@mail.fake").build());
         var subscription = givenExistingSubscription(
             SubscriptionFixtures
                 .aSubscription()
                 .toBuilder()
                 .subscribedBy(subscriber.getId())
+                .apiId(api.getId())
                 .planId(plan.getId())
                 .applicationId(application.getId())
                 .status(SubscriptionEntity.Status.PENDING)
@@ -431,7 +462,7 @@ class AcceptSubscriptionUseCaseTest {
     @EnumSource(value = SubscriptionEntity.Status.class, mode = EnumSource.Mode.EXCLUDE, names = "PENDING")
     void should_throw_when_status_not_pending(SubscriptionEntity.Status status) {
         // Given
-        var application = givenExistingApplication(anApplicationEntity());
+        var application = givenExistingApplication();
         var plan = givenExistingPlan(PlanFixtures.anApiKeyV4().setPlanStatus(PlanStatus.PUBLISHED));
         var subscription = givenExistingSubscription(
             SubscriptionFixtures.aSubscription().toBuilder().planId(plan.getId()).applicationId(application.getId()).status(status).build()
@@ -447,7 +478,7 @@ class AcceptSubscriptionUseCaseTest {
     @Test
     void should_throw_when_plan_is_closed() {
         // Given
-        var application = givenExistingApplication(anApplicationEntity());
+        var application = givenExistingApplication();
         var plan = givenExistingPlan(PlanFixtures.anApiKeyV4().setPlanStatus(PlanStatus.CLOSED));
         var subscription = givenExistingSubscription(
             SubscriptionFixtures
@@ -466,9 +497,32 @@ class AcceptSubscriptionUseCaseTest {
         assertThat(throwable).isInstanceOf(PlanAlreadyClosedException.class);
     }
 
-    private BaseApplicationEntity givenExistingApplication(BaseApplicationEntity application) {
+    private BaseApplicationEntity givenExistingApplication() {
+        var application = anApplicationEntity();
         applicationCrudService.initWith(List.of(application));
         return application;
+    }
+
+    private Api givenExistingApi(Api api) {
+        apiCrudService.initWith(List.of(api));
+        return api;
+    }
+
+    private Api givenExistingApiOf(DefinitionVersion definitionVersion, ApiType apiType) {
+        var api = anApi(definitionVersion, apiType);
+        apiCrudService.initWith(List.of(api));
+        return api;
+    }
+
+    private Api anApi(DefinitionVersion definitionVersion, ApiType apiType) {
+        return switch (definitionVersion) {
+            case V1, V2 -> ApiFixtures.aProxyApiV2().setId(API_ID);
+            case V4 -> switch (apiType) {
+                case PROXY -> ApiFixtures.aProxyApiV4().setId(API_ID);
+                case MESSAGE -> ApiFixtures.aMessageApiV4().setId(API_ID);
+            };
+            case FEDERATED -> ApiFixtures.aFederatedApi().setId(API_ID);
+        };
     }
 
     private Plan givenExistingPlan(Plan plan) {
@@ -476,9 +530,40 @@ class AcceptSubscriptionUseCaseTest {
         return plan;
     }
 
+    private Plan givenExistingPublishedPlanFor(Api api) {
+        var plan = aPublishedPlan(api);
+        planCrudService.initWith(List.of(plan));
+        return plan;
+    }
+
+    private Plan aPublishedPlan(Api api) {
+        return switch (api.getDefinitionVersion()) {
+            case V1, V2 -> PlanFixtures.aPlanV2().setPlanStatus(PlanStatus.PUBLISHED);
+            case V4 -> switch (api.getType()) {
+                case PROXY -> PlanFixtures.anApiKeyV4().setPlanStatus(PlanStatus.PUBLISHED);
+                case MESSAGE -> PlanFixtures.aPushPlan().setPlanStatus(PlanStatus.PUBLISHED);
+            };
+            case FEDERATED -> PlanFixtures.aFederatedPlan().setPlanStatus(PlanStatus.PUBLISHED);
+        };
+    }
+
     private BaseUserEntity givenExistingUser(BaseUserEntity user) {
         userCrudService.initWith(List.of(user));
         return user;
+    }
+
+    private SubscriptionEntity givenExistingPendingSubscriptionFor(Api api, Plan plan, BaseApplicationEntity application) {
+        var subscription = SubscriptionFixtures
+            .aSubscription()
+            .toBuilder()
+            .subscribedBy("subscriber")
+            .apiId(api.getId())
+            .planId(plan.getId())
+            .applicationId(application.getId())
+            .status(SubscriptionEntity.Status.PENDING)
+            .build();
+        subscriptionCrudService.initWith(List.of(subscription));
+        return subscription;
     }
 
     private SubscriptionEntity givenExistingSubscription(SubscriptionEntity subscription) {

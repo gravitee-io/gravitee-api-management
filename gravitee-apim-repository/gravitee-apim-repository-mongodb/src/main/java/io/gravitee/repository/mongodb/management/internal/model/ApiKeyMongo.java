@@ -19,6 +19,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -35,12 +37,16 @@ public class ApiKeyMongo {
     /**
      * API Key's unique id
      */
+    @Setter
+    @Getter
     @Id
     private String id;
 
     /**
      * API Key
      */
+    @Setter
+    @Getter
     private String key;
 
     /**
@@ -51,6 +57,8 @@ public class ApiKeyMongo {
      *
      * @see io.gravitee.repository.management.model.ApiKeyMode
      */
+    @Setter
+    @Getter
     private Set<String> subscriptions = new HashSet<>();
 
     /**
@@ -83,130 +91,68 @@ public class ApiKeyMongo {
     /**
      * The application used to make the subscription
      */
+    @Setter
+    @Getter
     private String application;
 
     /**
      * Expiration date (end date) of the API Key
      */
+    @Setter
+    @Getter
     private Date expireAt;
 
     /**
      * API Key creation date
      */
+    @Setter
+    @Getter
     private Date createdAt;
 
     /**
      * API Key updated date
      */
+    @Setter
+    @Getter
     private Date updatedAt;
 
     /**
      * Flag to indicate if the API Key is revoked ?
      */
+    @Setter
+    @Getter
     private boolean revoked;
 
     /**
      * Flag to indicate if the API Key is paused ?
      */
+    @Setter
+    @Getter
     private boolean paused;
 
     /**
      * If the key is revoked, the revocation date
      */
+    @Setter
+    @Getter
     private Date revokedAt;
+
+    /**
+     * Indicates the API Key is coming from external provider.
+     * <p>
+     *     It should not be synchronized on the Gateway.
+     * </p>
+     */
+    @Setter
+    @Getter
+    private boolean federated;
 
     /**
      * Number of days before the expiration of this API Key when the last pre-expiration notification was sent
      */
+    @Setter
+    @Getter
     private Integer daysToExpirationOnLastNotification;
-
-    public String getKey() {
-        return key;
-    }
-
-    public void setKey(String key) {
-        this.key = key;
-    }
-
-    public Set<String> getSubscriptions() {
-        return subscriptions;
-    }
-
-    public void setSubscriptions(Set<String> subscriptions) {
-        this.subscriptions = subscriptions;
-    }
-
-    public String getApplication() {
-        return application;
-    }
-
-    public void setApplication(String application) {
-        this.application = application;
-    }
-
-    public Date getExpireAt() {
-        return expireAt;
-    }
-
-    public void setExpireAt(Date expireAt) {
-        this.expireAt = expireAt;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Date getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public boolean isRevoked() {
-        return revoked;
-    }
-
-    public void setRevoked(boolean revoked) {
-        this.revoked = revoked;
-    }
-
-    public Date getRevokedAt() {
-        return revokedAt;
-    }
-
-    public void setRevokedAt(Date revokedAt) {
-        this.revokedAt = revokedAt;
-    }
-
-    public boolean isPaused() {
-        return paused;
-    }
-
-    public void setPaused(boolean paused) {
-        this.paused = paused;
-    }
-
-    public Integer getDaysToExpirationOnLastNotification() {
-        return daysToExpirationOnLastNotification;
-    }
-
-    public void setDaysToExpirationOnLastNotification(Integer daysToExpirationOnLastNotification) {
-        this.daysToExpirationOnLastNotification = daysToExpirationOnLastNotification;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
 
     /**
      * @deprecated

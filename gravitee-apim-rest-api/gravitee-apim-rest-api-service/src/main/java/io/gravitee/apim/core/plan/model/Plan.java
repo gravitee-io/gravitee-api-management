@@ -185,6 +185,10 @@ public class Plan implements GenericPlanEntity {
         CATALOG,
     }
 
+    public boolean isFederated() {
+        return this.definitionVersion == DefinitionVersion.FEDERATED;
+    }
+
     public boolean isApiKey() {
         return switch (definitionVersion) {
             case V4 -> planDefinitionV4.isApiKey();
@@ -213,13 +217,18 @@ public class Plan implements GenericPlanEntity {
             .updatedAt(TimeProvider.now())
             .planDefinitionV4(updated.planDefinitionV4)
             .planDefinitionV2(updated.planDefinitionV2)
-            .federatedPlanDefinition(updated.federatedPlanDefinition)
+            .federatedPlanDefinition(
+                updated.federatedPlanDefinition != null
+                    ? federatedPlanDefinition.update(updated.federatedPlanDefinition)
+                    : federatedPlanDefinition
+            )
             .commentRequired(updated.commentRequired)
             .commentMessage(updated.commentMessage)
             .generalConditions(updated.generalConditions)
             .excludedGroups(updated.excludedGroups)
             .characteristics(updated.characteristics)
             .crossId(updated.crossId == null ? crossId : updated.crossId)
+            .validation(updated.validation)
             .build();
     }
 
