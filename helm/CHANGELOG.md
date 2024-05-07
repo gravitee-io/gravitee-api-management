@@ -3,6 +3,10 @@
 
 This file documents all notable changes to [Gravitee.io API Management 3.x](https://github.com/gravitee-io/helm-charts/tree/master/apim/3.x) Helm Chart. The release numbering uses [semantic versioning](http://semver.org).
 
+### 4.2.9
+
+- Improve redis ratelimit configuration [issues/9726](https://github.com/gravitee-io/issues/issues/9726). Thanks [@gh0stsrc](https://github.com/gh0stsrc)
+
 ### 4.2.2
 
 - BREAKING CHANGE: deprecated api|gateway|ui|portal.securityContext has been removed
@@ -21,6 +25,10 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 - 'fix AE system mail notification without keystore'
 - Add support for Secret Manager's configuration
 
+### 4.1.15
+
+- Improve redis ratelimit configuration [issues/9726](https://github.com/gravitee-io/issues/issues/9726). Thanks [@gh0stsrc](https://github.com/gh0stsrc)
+
 ### 4.1.4
 
 - "fix 'gravitee.yml' > 'services.metrics' definition from helm `values.yaml`"
@@ -36,6 +44,10 @@ This file documents all notable changes to [Gravitee.io API Management 3.x](http
 - Remove smtp default example values
 - Allow wildcard in ingress host
 - Add unknownExpireAfter in management-api configuration
+
+### 4.0.24
+
+- Improve redis ratelimit configuration [issues/9726](https://github.com/gravitee-io/issues/issues/9726). Thanks [@gh0stsrc](https://github.com/gh0stsrc)
 
 ### 4.0.13
 
