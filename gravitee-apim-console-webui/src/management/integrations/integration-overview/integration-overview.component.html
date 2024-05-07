@@ -125,8 +125,8 @@
               </th>
               <td mat-cell *matCellDef="let federatedAPI">
                 <button
-                  *gioPermission="{ anyOf: ['environment-integration-u', 'environment-integration-d'] }"
-                  [routerLink]="federatedAPI.id + '/configuration'"
+                  *gioPermission="{ anyOf: ['environment-integration-u'] }"
+                  [routerLink]="'../../apis/' + federatedAPI.id"
                   mat-icon-button
                   aria-label="Configure federated API button"
                   matTooltip="Configure federated API"

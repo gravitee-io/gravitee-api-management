@@ -10,7 +10,7 @@
     "downlevelIteration": true,
     "forceConsistentCasingInFileNames": true,
     "incremental": true,
-    "lib": ["dom", "es2020"],
+    "lib": ["dom", "es2020", "es2022"],
     "noImplicitAny": false,
     "noImplicitOverride": true,
     "outDir": "dist-tsc",

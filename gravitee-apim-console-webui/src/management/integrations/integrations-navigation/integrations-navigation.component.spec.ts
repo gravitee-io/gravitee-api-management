@@ -120,11 +120,24 @@ describe('IntegrationsNavigationComponent', () => {
           permissions: [''],
           icon: 'info',
         },
+        {
+          routerLink: `/boo2`,
+          displayName: 'test12',
+          permissions: [''],
+          icon: 'info',
+        },
+        {
+          routerLink: `/bla3`,
+          displayName: 'test23',
+          permissions: [''],
+          icon: 'info',
+        },
       ];
       fixture.detectChanges();
+      fixture.componentInstance.ngOnInit();
 
       const menuItems: TestElement[] = await componentHarness.getMenuItems();
-      expect(menuItems.length).toEqual(2);
+      expect(menuItems.length).toEqual(4);
     });
   });
 });
