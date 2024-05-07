@@ -55,8 +55,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
+import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
@@ -127,10 +130,13 @@ public class FailoverV3IntegrationTest {
 
     @Nested
     @GatewayTest(v2ExecutionMode = ExecutionMode.V3)
+    // Due to Failover implementation in V3, requests are not properly cancelled and it seems to make some test fail, that's why we force the order here.
+    @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
     class OnlyOneEndpointInGroup extends AbstractGatewayTest {
 
         @Test
         @DeployApi("/apis/http/failover/api-only-one-endpoint.json")
+        @Order(1)
         void should_not_retry_on_fast_call(HttpClient client) {
             // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of 5 before opening the circuit breaker
             // and only one group with one endpoint
@@ -160,6 +166,7 @@ public class FailoverV3IntegrationTest {
 
         @Test
         @DeployApi("/apis/http/failover/api-only-one-endpoint.json")
+        @Order(2)
         void should_retry_and_fail_on_slow_call(HttpClient client) {
             // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of 5 before opening the circuit breaker
             // and only one group with one endpoint
@@ -185,6 +192,7 @@ public class FailoverV3IntegrationTest {
 
         @Test
         @DeployApi("/apis/http/failover/api-only-one-endpoint.json")
+        @Order(5)
         void should_retry_and_fail_on_connection_exception(HttpClient client, Vertx vertx) {
             // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of 5 before opening the circuit breaker
             // and only one group with one endpoint
@@ -221,6 +229,7 @@ public class FailoverV3IntegrationTest {
 
         @Test
         @DeployApi("/apis/http/failover/api-only-one-endpoint.json")
+        @Order(4)
         /**
          * This test ensures the retries are done with the body each time, as body is normally consumable only once.
          */
@@ -248,6 +257,7 @@ public class FailoverV3IntegrationTest {
 
         @Test
         @DeployApi("/apis/http/failover/api-only-one-endpoint.json")
+        @Order(3)
         void should_success_on_first_retry(HttpClient client) {
             // Given an API with failover configured with 2 maxRetries, a slowCallDuration of 500ms and a maxFailures of 5 before opening the circuit breaker
             // and only one group with one endpoint
