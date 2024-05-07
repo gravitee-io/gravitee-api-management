@@ -34,7 +34,11 @@ public interface ApiAuthorizationService {
     boolean canConsumeApi(ExecutionContext executionContext, String userId, GenericApiEntity apiEntity);
 
     default Set<String> findAccessibleApiIdsForUser(final ExecutionContext executionContext, final String userId) {
-        return findAccessibleApiIdsForUser(executionContext, userId, new ApiQuery());
+        return findAccessibleApiIdsForUser(executionContext, userId, new ApiQuery(), null);
+    }
+
+    default Set<String> findAccessibleApiIdsForUser(final ExecutionContext executionContext, final String userId, final String categoryId) {
+        return findAccessibleApiIdsForUser(executionContext, userId, new ApiQuery(), categoryId);
     }
 
     default Set<String> findAccessibleApiIdsForUser(
@@ -44,10 +48,14 @@ public interface ApiAuthorizationService {
     ) {
         ApiQuery apiQuery = new ApiQuery();
         apiQuery.setIds(apiIds);
-        return findAccessibleApiIdsForUser(executionContext, userId, apiQuery);
+        return findAccessibleApiIdsForUser(executionContext, userId, apiQuery, null);
     }
 
-    Set<String> findAccessibleApiIdsForUser(final ExecutionContext executionContext, final String userId, final ApiQuery apiQuery);
+    default Set<String> findAccessibleApiIdsForUser(final ExecutionContext executionContext, final String userId, final ApiQuery apiQuery){
+        return findAccessibleApiIdsForUser(executionContext, userId, apiQuery, null);
+    }
+
+    Set<String> findAccessibleApiIdsForUser(final ExecutionContext executionContext, final String userId, final ApiQuery apiQuery, final String categoryId);
 
     default Set<String> findIdsByUser(final ExecutionContext executionContext, final String userId, final boolean manageOnly) {
         return this.findIdsByUser(executionContext, userId, new ApiQuery(), null, manageOnly);
@@ -62,12 +70,33 @@ public interface ApiAuthorizationService {
         return this.findIdsByUser(executionContext, userId, apiQuery, null, manageOnly);
     }
 
-    Set<String> findIdsByUser(
+    default Set<String> findIdsByUser(
+        final ExecutionContext executionContext,
+        final String userId,
+        final ApiQuery apiQuery,
+        final boolean manageOnly,
+        final String categoryId
+    ) {
+        return this.findIdsByUser(executionContext, userId, apiQuery, null, manageOnly, categoryId);
+    }
+
+    default Set<String> findIdsByUser(
         final ExecutionContext executionContext,
         final String userId,
         final ApiQuery apiQuery,
         final Sortable sortable,
         final boolean manageOnly
+    ){
+        return this.findIdsByUser(executionContext, userId, apiQuery, sortable, manageOnly, null);
+    }
+
+    Set<String> findIdsByUser(
+        final ExecutionContext executionContext,
+        final String userId,
+        final ApiQuery apiQuery,
+        final Sortable sortable,
+        final boolean manageOnly,
+        final String categoryId
     );
 
     Set<String> findApiIdsByUserId(ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean manageOnly);

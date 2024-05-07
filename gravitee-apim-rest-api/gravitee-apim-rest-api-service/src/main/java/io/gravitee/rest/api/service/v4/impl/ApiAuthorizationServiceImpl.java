@@ -139,12 +139,17 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
     }
 
     @Override
-    public Set<String> findAccessibleApiIdsForUser(final ExecutionContext executionContext, final String userId, ApiQuery apiQuery) {
+    public Set<String> findAccessibleApiIdsForUser(final ExecutionContext executionContext, final String userId, ApiQuery apiQuery, String categoryId) {
         if (apiQuery == null) {
             apiQuery = new ApiQuery();
         }
         apiQuery.setLifecycleStates(singletonList(io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED));
-        return findIdsByUser(executionContext, userId, apiQuery, false);
+        return findIdsByUser(executionContext, userId, apiQuery, false, categoryId);
+    }
+
+    @Override
+    public Set<String> findIdsByUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery, Sortable sortable, boolean manageOnly) {
+        return Set.of();
     }
 
     @Override
@@ -153,7 +158,8 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
         String userId,
         ApiQuery apiQuery,
         Sortable sortable,
-        boolean manageOnly
+        boolean manageOnly,
+        String categoryId
     ) {
         Optional<Collection<String>> optionalTargetIds = this.searchInDefinition(executionContext, apiQuery);
 
@@ -164,6 +170,8 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
             }
             apiQuery.setIds(targetIds);
         }
+
+        apiQuery.setCategory(categoryId);
 
         List<ApiCriteria> apiCriteriaList = computeApiCriteriaForUser(executionContext, userId, apiQuery, manageOnly);
 
@@ -311,6 +319,11 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
             // add dedicated criteria for groups apis
             if (!userGroupApiIds.isEmpty()) {
                 apiCriteriaList.add(queryToCriteria(executionContext, apiQuery).ids(userGroupApiIds).build());
+            }
+
+            if (!isBlank(apiQuery.getCategory())) {
+                var categoryName = categoryService.findById(apiQuery.getCategory(), executionContext.getEnvironmentId()).getKey();
+                apiCriteriaList.add(queryToCriteria(executionContext, apiQuery).category(categoryName).build());
             }
 
             // get user subscribed apis, useful when an API becomes private and an app owner is not anymore in members.
@@ -566,7 +579,7 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
         }
 
         if (!isBlank(query.getCategory())) {
-            builder.category(categoryService.findById(query.getCategory(), executionContext.getEnvironmentId()).getId());
+            builder.category(categoryService.findById(query.getCategory(), executionContext.getEnvironmentId()).getKey());
         }
         if (query.getGroups() != null && !query.getGroups().isEmpty()) {
             builder.groups(query.getGroups());
