@@ -13,19 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model.theme;
+package io.gravitee.rest.api.model.theme.portal;
 
-import java.util.List;
-
-public class ThemeDefinition {
-
-    private List<ThemeComponentDefinition> data;
-
-    public List<ThemeComponentDefinition> getData() {
-        return data;
-    }
-
-    public void setData(List<ThemeComponentDefinition> data) {
-        this.data = data;
-    }
+public enum ThemeType {
+    PORTAL,
+    PORTAL_NEXT,
 }

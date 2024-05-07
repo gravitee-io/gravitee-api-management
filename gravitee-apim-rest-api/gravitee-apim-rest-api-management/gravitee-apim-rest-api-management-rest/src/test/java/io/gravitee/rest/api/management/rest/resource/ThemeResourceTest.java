@@ -21,9 +21,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.*;
 
-import io.gravitee.rest.api.model.theme.ThemeDefinition;
-import io.gravitee.rest.api.model.theme.ThemeEntity;
-import io.gravitee.rest.api.model.theme.UpdateThemeEntity;
+import io.gravitee.rest.api.model.theme.portal.ThemeDefinition;
+import io.gravitee.rest.api.model.theme.portal.ThemeEntity;
+import io.gravitee.rest.api.model.theme.portal.UpdateThemeEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import io.gravitee.rest.api.service.exceptions.ThemeNotFoundException;
 import jakarta.ws.rs.core.Response;

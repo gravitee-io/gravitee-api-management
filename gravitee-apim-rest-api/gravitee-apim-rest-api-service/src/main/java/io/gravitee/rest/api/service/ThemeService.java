@@ -16,9 +16,9 @@
 package io.gravitee.rest.api.service;
 
 import io.gravitee.rest.api.model.PictureEntity;
-import io.gravitee.rest.api.model.theme.NewThemeEntity;
-import io.gravitee.rest.api.model.theme.ThemeEntity;
-import io.gravitee.rest.api.model.theme.UpdateThemeEntity;
+import io.gravitee.rest.api.model.theme.portal.NewThemeEntity;
+import io.gravitee.rest.api.model.theme.portal.ThemeEntity;
+import io.gravitee.rest.api.model.theme.portal.UpdateThemeEntity;
 import io.gravitee.rest.api.service.common.ExecutionContext;
 import java.util.Set;
 

@@ -13,28 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model.theme;
+package io.gravitee.rest.api.model.theme.portal;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.util.Objects;
 
 /**
- * @author Guillaume CUSNIEUX (guillaume.cusnieux at graviteesource.com)
+ * @author Guillaume CUSNIEUX (azize at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class UpdateThemeEntity {
-
-    private String id;
+public class NewThemeEntity {
 
     @NotNull
     @Size(min = 1, max = 64)
     private String name;
 
-    @NotNull
-    private ThemeDefinition definition;
-
     private boolean enabled;
+
+    private ThemeDefinition definition;
 
     private String logo;
 
@@ -43,14 +40,6 @@ public class UpdateThemeEntity {
     private String optionalLogo;
 
     private String favicon;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
 
     public String getName() {
         return name;
@@ -112,32 +101,17 @@ public class UpdateThemeEntity {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        UpdateThemeEntity theme = (UpdateThemeEntity) o;
-        return Objects.equals(id, theme.id);
+        NewThemeEntity theme = (NewThemeEntity) o;
+        return Objects.equals(name, theme.name) && Objects.equals(enabled, theme.enabled) && Objects.equals(definition, theme.definition);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(name, enabled, definition);
     }
 
     @Override
     public String toString() {
-        return (
-            "UpdateThemeEntity{" +
-            "id='" +
-            id +
-            '\'' +
-            ", name='" +
-            name +
-            '\'' +
-            ", enabled='" +
-            enabled +
-            '\'' +
-            ", definition='" +
-            definition +
-            '\'' +
-            '}'
-        );
+        return "NewThemeEntity{" + "name='" + name + '\'' + ", enabled='" + enabled + '\'' + ", definition='" + definition + '\'' + '}';
     }
 }

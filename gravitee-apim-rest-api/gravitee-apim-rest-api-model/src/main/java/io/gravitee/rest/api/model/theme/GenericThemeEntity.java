@@ -15,26 +15,17 @@
  */
 package io.gravitee.rest.api.model.theme;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonValue;
-import io.swagger.v3.oas.annotations.media.Schema;
+import io.gravitee.rest.api.model.theme.portal.ThemeType;
+import java.util.Date;
 
-@JsonFormat(shape = JsonFormat.Shape.OBJECT)
-@Schema(enumAsRef = true)
-public enum ThemeCssType {
-    COLOR("color"),
-    LENGTH("length"),
-    STRING("string"),
-    IMAGE("image");
-
-    private final String type;
-
-    ThemeCssType(String type) {
-        this.type = type;
-    }
-
-    @JsonValue
-    public String getType() {
-        return type;
-    }
+public interface GenericThemeEntity {
+    String getId();
+    String getName();
+    ThemeType getType();
+    Date getCreatedAt();
+    Date getUpdatedAt();
+    boolean isEnabled();
+    String getLogo();
+    String getOptionalLogo();
+    String getFavicon();
 }

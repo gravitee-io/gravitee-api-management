@@ -21,8 +21,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.*;
 
-import io.gravitee.rest.api.model.theme.NewThemeEntity;
-import io.gravitee.rest.api.model.theme.ThemeEntity;
+import io.gravitee.rest.api.model.theme.portal.NewThemeEntity;
+import io.gravitee.rest.api.model.theme.portal.ThemeEntity;
 import io.gravitee.rest.api.service.common.GraviteeContext;
 import jakarta.ws.rs.core.Response;
 import org.junit.Before;

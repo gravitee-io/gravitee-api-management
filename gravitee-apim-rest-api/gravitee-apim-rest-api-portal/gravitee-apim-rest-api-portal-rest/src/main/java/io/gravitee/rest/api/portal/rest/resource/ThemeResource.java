@@ -19,7 +19,7 @@ import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.model.InlinePictureEntity;
 import io.gravitee.rest.api.model.PictureEntity;
 import io.gravitee.rest.api.model.UrlPictureEntity;
-import io.gravitee.rest.api.model.theme.ThemeEntity;
+import io.gravitee.rest.api.model.theme.portal.ThemeEntity;
 import io.gravitee.rest.api.portal.rest.mapper.ThemeMapper;
 import io.gravitee.rest.api.portal.rest.utils.PortalApiLinkHelper;
 import io.gravitee.rest.api.service.ThemeService;

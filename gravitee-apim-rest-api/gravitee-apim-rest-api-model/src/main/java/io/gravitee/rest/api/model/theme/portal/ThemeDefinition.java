@@ -13,29 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.rest.api.model.theme;
+package io.gravitee.rest.api.model.theme.portal;
 
 import java.util.List;
+import lombok.Data;
 
-public class ThemeComponentDefinition {
+@Data
+public class ThemeDefinition {
 
-    private String name;
-
-    private List<ThemeCssDefinition> css;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public List<ThemeCssDefinition> getCss() {
-        return css;
-    }
-
-    public void setCss(List<ThemeCssDefinition> css) {
-        this.css = css;
-    }
+    private List<ThemeComponentDefinition> data;
 }
