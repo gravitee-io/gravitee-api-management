@@ -148,11 +148,6 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
     }
 
     @Override
-    public Set<String> findIdsByUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery, Sortable sortable, boolean manageOnly) {
-        return Set.of();
-    }
-
-    @Override
     public Set<String> findIdsByUser(
         ExecutionContext executionContext,
         String userId,
