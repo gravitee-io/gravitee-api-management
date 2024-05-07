@@ -165,9 +165,7 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
             }
             apiQuery.setIds(targetIds);
         }
-
         apiQuery.setCategory(categoryId);
-
         List<ApiCriteria> apiCriteriaList = computeApiCriteriaForUser(executionContext, userId, apiQuery, manageOnly);
 
         if (apiCriteriaList.isEmpty()) {
