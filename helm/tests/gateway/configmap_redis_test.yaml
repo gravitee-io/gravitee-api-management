@@ -68,3 +68,70 @@ tests:
                      *      port: 26379\n
                      *    - host: sent2\n
                      *      port: 26379\n"
+  - it: Set full SSL configuration
+    template: gateway/gateway-configmap.yaml
+    set:
+      ratelimit:
+        type: redis
+      gateway:
+        ratelimit:
+          redis:
+            host: redis
+            port: 6379
+            password: mypassword
+            ssl: true
+            hostnameVerificationAlgorithm: NONE
+            trustAll: "false"
+            tlsProtocols: TLSv1.2, TLSv1.3
+            tlsCiphers: TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384
+            alpn: true
+            openssl: true
+            keystore:
+              type: jks
+              path: ${gravitee.home}/security/redis-keystore.jks
+              password: secret
+              keyPassword: secretKey
+              alias: myAlias
+              certificates:
+                - cert: ${gravitee.home}/security/redis-mycompany.org.pem
+                  key: ${gravitee.home}/security/redis-mycompany.org.key
+                - cert: ${gravitee.home}/security/redis-mycompany.com.pem
+                  key: ${gravitee.home}/security/redis-mycompany.com.key
+            truststore:
+              type: jks
+              path: ${gravitee.home}/security/redis-truststore.jks
+              password: secret
+              alias: anotheralias
+
+    asserts:
+      - matchRegex:
+          path: data.[gravitee.yml]
+          pattern: " * redis:\n
+                     *   host: redis\n
+                     *   port: 6379\n
+                     *   password: mypassword\n
+                     *   ssl: true\n
+                     *   hostnameVerificationAlgorithm: NONE\n
+                     *   trustAll: false\n
+                     *   tlsProtocols: TLSv1.2, TLSv1.3\n
+                     *   tlsCiphers: \"TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384, TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384\"\n
+                     *   alpn: true\n
+                     *   openssl: true\n
+                     *   \n
+                     *   keystore:\n
+                     *     type: jks\n
+                     *     path: \\${gravitee.home}/security/redis-keystore.jks\n
+                     *     password: secret\n
+                     *     keyPassword: \"secretKey\"\n
+                     *     alias: myAlias\n
+                     *   \n
+                     *     certificates:\n
+                     *       - cert: \\${gravitee.home}/security/redis-mycompany.org.pem\n
+                     *         key: \\${gravitee.home}/security/redis-mycompany.org.key\n
+                     *     - cert: \\${gravitee.home}/security/redis-mycompany.com.pem\n
+                     *       key: \\${gravitee.home}/security/redis-mycompany.com.key\n
+                     *   truststore:\n
+                     *     type: jks\n
+                     *     path: \\${gravitee.home}/security/redis-truststore.jks\n
+                     *     password: secret\n
+                     *     alias: anotheralias\n"
