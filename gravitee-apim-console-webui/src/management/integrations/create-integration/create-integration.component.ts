@@ -36,9 +36,11 @@ export class CreateIntegrationComponent {
 
   // hardcoded list of providers for time when backend is not ready, icon not needed in future stick to value
   public integrationProviders: { active?: IntegrationProvider[]; comingSoon?: IntegrationProvider[] } = {
-    active: [{ name: 'AWS API Gateway', icon: 'aws-api-gateway', value: 'aws-api-gateway' }],
-    comingSoon: [
+    active: [
+      { name: 'AWS API Gateway', icon: 'aws-api-gateway', value: 'aws-api-gateway' },
       { name: 'Solace', icon: 'solace', value: 'solace' },
+    ],
+    comingSoon: [
       { name: 'Apigee', icon: 'apigee', value: 'apigee' },
       { name: 'Confluent', icon: 'confluent', value: 'confluent' },
       { name: 'Azure', icon: 'azure', value: 'azure' },
