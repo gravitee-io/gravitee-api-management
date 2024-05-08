@@ -45,6 +45,7 @@ import inmemory.MembershipQueryServiceInMemory;
 import inmemory.MetadataCrudServiceInMemory;
 import inmemory.NotificationConfigCrudServiceInMemory;
 import inmemory.PageCrudServiceInMemory;
+import inmemory.PageRevisionCrudServiceInMemory;
 import inmemory.ParametersQueryServiceInMemory;
 import inmemory.PlanCrudServiceInMemory;
 import inmemory.RoleQueryServiceInMemory;
@@ -61,6 +62,9 @@ import io.gravitee.apim.core.audit.model.AuditEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.audit.model.event.ApiAuditEvent;
 import io.gravitee.apim.core.audit.model.event.MembershipAuditEvent;
+import io.gravitee.apim.core.audit.model.event.PageAuditEvent;
+import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
+import io.gravitee.apim.core.documentation.model.Page;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.integration.exception.IntegrationNotFoundException;
@@ -75,6 +79,7 @@ import io.gravitee.apim.core.plan.domain_service.PlanValidatorDomainService;
 import io.gravitee.apim.core.plan.model.Plan;
 import io.gravitee.apim.core.policy.domain_service.PolicyValidationDomainService;
 import io.gravitee.apim.core.search.model.IndexableApi;
+import io.gravitee.apim.core.search.model.IndexablePage;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.apim.infra.json.jackson.JacksonJsonDiffProcessor;
 import io.gravitee.apim.infra.template.FreemarkerTemplateProcessor;
@@ -96,6 +101,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -138,6 +144,8 @@ class IngestIntegrationApisUseCaseTest {
 
     IntegrationAgentInMemory integrationAgent = new IntegrationAgentInMemory();
     IndexerInMemory indexer = new IndexerInMemory();
+    PageCrudServiceInMemory pageCrudService = new PageCrudServiceInMemory();
+    PageRevisionCrudServiceInMemory pageRevisionCrudService = new PageRevisionCrudServiceInMemory();
 
     ValidateFederatedApiDomainService validateFederatedApiDomainService = spy(new ValidateFederatedApiDomainService(null));
     IngestIntegrationApisUseCase useCase;
@@ -209,6 +217,13 @@ class IngestIntegrationApisUseCaseTest {
             auditDomainService
         );
 
+        var createApiDocumentationPage = new CreateApiDocumentationDomainService(
+            pageCrudService,
+            pageRevisionCrudService,
+            auditDomainService,
+            indexer
+        );
+
         useCase =
             new IngestIntegrationApisUseCase(
                 integrationCrudService,
@@ -217,7 +232,8 @@ class IngestIntegrationApisUseCaseTest {
                 apiCrudService,
                 createApiDomainService,
                 createPlanDomainService,
-                integrationAgent
+                integrationAgent,
+                createApiDocumentationPage
             );
 
         enableApiPrimaryOwnerMode(ApiPrimaryOwnerMode.USER);
@@ -504,6 +520,153 @@ class IngestIntegrationApisUseCaseTest {
                             .build()
                     );
             });
+        }
+    }
+
+    @Nested
+    class DocumentationCreation {
+
+        @BeforeEach
+        void setUp() {
+            givenAnIntegration(IntegrationFixture.anIntegration(ENVIRONMENT_ID).withId(INTEGRATION_ID));
+        }
+
+        @Test
+        void should_create_swagger_documentation() {
+            // Given
+            givenIntegrationApis(
+                IntegrationApiFixtures
+                    .anIntegrationApiForIntegration(INTEGRATION_ID)
+                    .toBuilder()
+                    .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "someSwaggerDoc")))
+                    .build()
+            );
+
+            // When
+            useCase.execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().awaitDone(10, TimeUnit.SECONDS);
+
+            var expectedPage = Page
+                .builder()
+                .id("generated-id")
+                .name("An alien API-oas.yml")
+                .referenceId("environment-idintegration-idasset-uid")
+                .referenceType(Page.ReferenceType.API)
+                .type(Page.Type.SWAGGER)
+                .visibility(Page.Visibility.PRIVATE)
+                .createdAt(Date.from(INSTANT_NOW))
+                .updatedAt(Date.from(INSTANT_NOW))
+                .content("someSwaggerDoc")
+                .homepage(true)
+                .published(true)
+                .configuration(Map.of("tryIt", "true", "viewer", "Swagger"))
+                .build();
+
+            //Then
+            assertThat(pageCrudService.storage()).isNotEmpty().contains(expectedPage);
+        }
+
+        @Test
+        void should_create_api_audit_log() {
+            //Given
+            givenIntegrationApis(
+                IntegrationApiFixtures
+                    .anIntegrationApiForIntegration(INTEGRATION_ID)
+                    .toBuilder()
+                    .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "someSwaggerDoc")))
+                    .build()
+            );
+
+            // When
+            useCase.execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().awaitDone(10, TimeUnit.SECONDS);
+
+            assertThat(auditCrudService.storage())
+                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
+                .contains(
+                    // Page Audit
+                    AuditEntity
+                        .builder()
+                        .id("generated-id")
+                        .organizationId(ORGANIZATION_ID)
+                        .environmentId(ENVIRONMENT_ID)
+                        .referenceType(AuditEntity.AuditReferenceType.API)
+                        .referenceId("environment-idintegration-idasset-uid")
+                        .user(USER_ID)
+                        .properties(Map.of("PAGE", "generated-id"))
+                        .event(PageAuditEvent.PAGE_CREATED.name())
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.of("UTC")))
+                        .build()
+                );
+        }
+
+        @Test
+        void should_create_and_index_a_federated_page() {
+            //Given
+            givenIntegrationApis(
+                IntegrationApiFixtures
+                    .anIntegrationApiForIntegration(INTEGRATION_ID)
+                    .toBuilder()
+                    .pages(List.of(new IntegrationApi.Page(IntegrationApi.PageType.SWAGGER, "someSwaggerDoc")))
+                    .build()
+            );
+
+            // When
+            useCase.execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().awaitDone(10, TimeUnit.SECONDS);
+
+            var expectedPage = Page
+                .builder()
+                .id("generated-id")
+                .name("An alien API-oas.yml")
+                .referenceId("environment-idintegration-idasset-uid")
+                .referenceType(Page.ReferenceType.API)
+                .type(Page.Type.SWAGGER)
+                .visibility(Page.Visibility.PRIVATE)
+                .createdAt(Date.from(INSTANT_NOW))
+                .updatedAt(Date.from(INSTANT_NOW))
+                .content("someSwaggerDoc")
+                .homepage(true)
+                .published(true)
+                .configuration(Map.of("tryIt", "true", "viewer", "Swagger"))
+                .build();
+
+            // Then
+            assertThat(indexer.storage()).contains(new IndexablePage(expectedPage));
+        }
+
+        @Test
+        void should_not_create_documentation_if_pages_list_is_null() {
+            //Given
+            var nullPagesIntegrationApi = IntegrationApiFixtures
+                .anIntegrationApiForIntegration(INTEGRATION_ID)
+                .toBuilder()
+                .pages(null)
+                .build();
+
+            givenIntegrationApis(nullPagesIntegrationApi);
+
+            // When
+            useCase.execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().awaitDone(10, TimeUnit.SECONDS);
+
+            //Then
+            assertThat(pageCrudService.storage()).isEmpty();
+        }
+
+        @ParameterizedTest
+        @EnumSource(value = IntegrationApi.PageType.class, mode = EnumSource.Mode.EXCLUDE, names = { "SWAGGER" })
+        void should_not_create_documentation_if_pageType_is_other_than_SWAGGER(IntegrationApi.PageType pageType) {
+            //Given
+            var unsupportedPageTypeIntegrationApi = IntegrationApiFixtures
+                .anIntegrationApiForIntegration(INTEGRATION_ID)
+                .toBuilder()
+                .pages(List.of(new IntegrationApi.Page(pageType, "somePageTypeContent")))
+                .build();
+
+            givenIntegrationApis(unsupportedPageTypeIntegrationApi);
+
+            // When
+            useCase.execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO)).test().awaitDone(10, TimeUnit.SECONDS);
+
+            //Then
+            assertThat(pageCrudService.storage()).isEmpty();
         }
     }
 

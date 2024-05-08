@@ -16,7 +16,6 @@
 package fixtures.core.model;
 
 import io.gravitee.apim.core.integration.model.IntegrationApi;
-import java.util.Collections;
 import java.util.function.Supplier;
 
 public class IntegrationApiFixtures {

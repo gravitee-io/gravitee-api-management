@@ -45,4 +45,6 @@ public interface IntegrationAdapter {
     @ValueMapping(source = "JWT", target = MappingConstants.NULL)
     @ValueMapping(source = "OAUTH", target = MappingConstants.NULL)
     IntegrationApi.PlanType map(PlanSecurityType source);
+
+    IntegrationApi.Page map(io.gravitee.integration.api.model.Page source);
 }
