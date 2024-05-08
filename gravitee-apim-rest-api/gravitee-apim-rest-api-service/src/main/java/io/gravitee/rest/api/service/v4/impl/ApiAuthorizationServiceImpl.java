@@ -143,13 +143,13 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
         final ExecutionContext executionContext,
         final String userId,
         ApiQuery apiQuery,
-        String categoryId
+        String category
     ) {
         if (apiQuery == null) {
             apiQuery = new ApiQuery();
         }
         apiQuery.setLifecycleStates(singletonList(io.gravitee.rest.api.model.api.ApiLifecycleState.PUBLISHED));
-        return findIdsByUser(executionContext, userId, apiQuery, false, categoryId);
+        return findIdsByUser(executionContext, userId, apiQuery, false, category);
     }
 
     @Override
@@ -159,7 +159,7 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
         ApiQuery apiQuery,
         Sortable sortable,
         boolean manageOnly,
-        String categoryId
+        String category
     ) {
         Optional<Collection<String>> optionalTargetIds = this.searchInDefinition(executionContext, apiQuery);
 
@@ -170,7 +170,9 @@ public class ApiAuthorizationServiceImpl extends AbstractService implements ApiA
             }
             apiQuery.setIds(targetIds);
         }
-        apiQuery.setCategory(categoryId);
+        if (!isBlank(category) && apiQuery.getCategory() == null) {
+            apiQuery.setCategory(category);
+        }
         List<ApiCriteria> apiCriteriaList = computeApiCriteriaForUser(executionContext, userId, apiQuery, manageOnly);
 
         if (apiCriteriaList.isEmpty()) {
