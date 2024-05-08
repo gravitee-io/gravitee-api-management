@@ -316,9 +316,29 @@ public class ApisResourceTest extends AbstractResourceTest {
 
     @Test
     public void shouldSearchApis() throws TechnicalException {
-        doReturn(new HashSet<>(List.of("3"))).when(filteringService).searchApis(eq(GraviteeContext.getExecutionContext()), any(), any());
+        doReturn(new HashSet<>(List.of("3")))
+            .when(filteringService)
+            .searchApis(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
 
         final Response response = target("/_search").queryParam("q", "3").request().post(Entity.json(null));
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        ApisResponse apiResponse = response.readEntity(ApisResponse.class);
+        assertEquals(1, apiResponse.getData().size());
+        assertTrue(getmaxLabelsListSize(apiResponse) > 0);
+    }
+
+    @Test
+    public void shouldSearchApisWithCategory() throws TechnicalException {
+        doReturn(new HashSet<>(List.of("3")))
+            .when(filteringService)
+            .searchApis(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
+
+        final Response response = target("/_search")
+            .queryParam("q", "3")
+            .queryParam("categoryId", "12345")
+            .request()
+            .post(Entity.json(null));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ApisResponse apiResponse = response.readEntity(ApisResponse.class);
@@ -337,7 +357,9 @@ public class ApisResourceTest extends AbstractResourceTest {
         )
             .thenReturn(false);
 
-        doReturn(new HashSet<>(List.of("3"))).when(filteringService).searchApis(eq(GraviteeContext.getExecutionContext()), any(), any());
+        doReturn(new HashSet<>(List.of("3")))
+            .when(filteringService)
+            .searchApis(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
         final Response response = target("/_search").queryParam("q", "3").request().post(Entity.json(null));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
