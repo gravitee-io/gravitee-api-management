@@ -48,7 +48,7 @@ public interface FilteringService {
         return searchApis(executionContext, userId, query, null);
     }
 
-    Collection<String> searchApis(ExecutionContext executionContext, final String userId, final String query, final String categoryId)
+    Collection<String> searchApis(ExecutionContext executionContext, final String userId, final String query, final String category)
         throws TechnicalException;
 
     Set<CategoryEntity> listCategories(
