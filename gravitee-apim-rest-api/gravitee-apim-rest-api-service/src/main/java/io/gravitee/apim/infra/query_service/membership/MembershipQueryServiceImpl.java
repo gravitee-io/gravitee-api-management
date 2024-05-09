@@ -68,6 +68,11 @@ public class MembershipQueryServiceImpl implements MembershipQueryService {
     }
 
     @Override
+    public Collection<Membership> findByReference(Membership.ReferenceType referenceType, String referenceId) {
+        return findByReferenceAndRoleId(referenceType, referenceId, null);
+    }
+
+    @Override
     public Collection<Membership> findGroupsThatUserBelongsTo(String memberId) {
         try {
             return membershipRepository

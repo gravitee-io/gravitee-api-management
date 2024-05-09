@@ -134,6 +134,7 @@ class IngestIntegrationApisUseCaseTest {
     IntegrationCrudServiceInMemory integrationCrudService = new IntegrationCrudServiceInMemory();
     MembershipCrudServiceInMemory membershipCrudService = new MembershipCrudServiceInMemory();
     MetadataCrudServiceInMemory metadataCrudService = new MetadataCrudServiceInMemory();
+    ApiMetadataQueryServiceInMemory apiMetadataQueryServiceInMemory = new ApiMetadataQueryServiceInMemory(metadataCrudService);
     NotificationConfigCrudServiceInMemory notificationConfigCrudService = new NotificationConfigCrudServiceInMemory();
     ParametersQueryServiceInMemory parametersQueryService = new ParametersQueryServiceInMemory();
     RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
@@ -192,7 +193,7 @@ class IngestIntegrationApisUseCaseTest {
                 new ApiCategoryQueryServiceInMemory(),
                 indexer
             ),
-            new ApiMetadataDomainService(metadataCrudService, auditDomainService),
+            new ApiMetadataDomainService(metadataCrudService, apiMetadataQueryServiceInMemory, auditDomainService),
             apiPrimaryOwnerDomainService,
             new FlowCrudServiceInMemory(),
             notificationConfigCrudService,

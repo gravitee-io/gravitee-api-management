@@ -17,6 +17,7 @@ package io.gravitee.apim.infra.domain_service.api;
 
 import io.gravitee.apim.core.api.domain_service.ApiMetadataDomainService;
 import io.gravitee.apim.core.api.model.ApiMetadata;
+import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.metadata.crud_service.MetadataCrudService;
@@ -41,9 +42,10 @@ public class ApiMetadataDomainServiceLegacyWrapper extends ApiMetadataDomainServ
     public ApiMetadataDomainServiceLegacyWrapper(
         ApiMetadataService metadataService,
         AuditDomainService auditDomainService,
-        MetadataCrudService metadataCrudService
+        MetadataCrudService metadataCrudService,
+        ApiMetadataQueryService apiMetadataQueryService
     ) {
-        super(metadataCrudService, auditDomainService);
+        super(metadataCrudService, apiMetadataQueryService, auditDomainService);
         this.metadataService = metadataService;
     }
 

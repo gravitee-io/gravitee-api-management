@@ -112,6 +112,7 @@ class CreateV4ApiUseCaseTest {
     NotificationConfigCrudServiceInMemory notificationConfigCrudService = new NotificationConfigCrudServiceInMemory();
     ParametersQueryServiceInMemory parametersQueryService = new ParametersQueryServiceInMemory();
     MetadataCrudServiceInMemory metadataCrudService = new MetadataCrudServiceInMemory();
+    ApiMetadataQueryServiceInMemory apiMetadataQueryService = new ApiMetadataQueryServiceInMemory(metadataCrudService);
     RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     WorkflowCrudServiceInMemory workflowCrudService = new WorkflowCrudServiceInMemory();
@@ -162,7 +163,7 @@ class CreateV4ApiUseCaseTest {
                 new ApiCategoryQueryServiceInMemory(),
                 indexer
             ),
-            new ApiMetadataDomainService(metadataCrudService, auditService),
+            new ApiMetadataDomainService(metadataCrudService, apiMetadataQueryService, auditService),
             apiPrimaryOwnerDomainService,
             flowCrudService,
             notificationConfigCrudService,

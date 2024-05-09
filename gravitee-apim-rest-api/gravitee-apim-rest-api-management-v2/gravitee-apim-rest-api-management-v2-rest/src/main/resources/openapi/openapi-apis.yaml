@@ -1204,6 +1204,21 @@ paths:
                     $ref: "#/components/responses/IngestedApisResponse"
                 default:
                     $ref: "#/components/responses/Error"
+        delete:
+            tags:
+                - Integrations
+            summary: Delete ingested APIs associated to integration
+            description: |-
+                Delete APIs that were ingested from 3rd party provider using this integration. 
+
+                To delete APIs user must have ENVIRONMENT_API[DELETE] permission.
+                Only unpublished APIs will deleted. APIs that are published will be omitted!
+            operationId: deleteIngestedApis
+            responses:
+                "200":
+                    description: APIs deleted
+                default:
+                    $ref: "#/components/responses/Error"
 
     # API Subscriptions
     /environments/{envId}/apis/{apiId}/subscribers:

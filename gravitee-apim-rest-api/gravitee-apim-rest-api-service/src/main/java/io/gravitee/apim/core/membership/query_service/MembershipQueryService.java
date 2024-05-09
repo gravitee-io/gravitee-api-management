@@ -22,6 +22,7 @@ import java.util.List;
 public interface MembershipQueryService {
     Collection<Membership> findByReferenceAndRoleId(Membership.ReferenceType referenceType, String referenceId, String roleId);
     Collection<Membership> findByReferencesAndRoleId(Membership.ReferenceType referenceType, List<String> referenceIds, String roleId);
+    Collection<Membership> findByReference(Membership.ReferenceType referenceType, String referenceId);
 
     Collection<Membership> findGroupsThatUserBelongsTo(String userId);
 }

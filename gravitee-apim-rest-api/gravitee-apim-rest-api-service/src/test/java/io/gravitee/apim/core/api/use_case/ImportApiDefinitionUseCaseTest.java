@@ -144,6 +144,7 @@ class ImportApiDefinitionUseCaseTest {
     GroupQueryServiceInMemory groupQueryService = new GroupQueryServiceInMemory();
     IndexerInMemory indexer = new IndexerInMemory();
     MetadataCrudServiceInMemory metadataCrudService = new MetadataCrudServiceInMemory();
+    ApiMetadataQueryServiceInMemory apiMetadataQueryServiceInMemory = new ApiMetadataQueryServiceInMemory(metadataCrudService);
     MembershipCrudServiceInMemory membershipCrudService = new MembershipCrudServiceInMemory();
     NotificationConfigCrudServiceInMemory notificationConfigCrudService = new NotificationConfigCrudServiceInMemory();
     PageCrudServiceInMemory pageCrudService = new PageCrudServiceInMemory();
@@ -192,6 +193,11 @@ class ImportApiDefinitionUseCaseTest {
             roleQueryService,
             userCrudService
         );
+        var apiMetadataDomainService = new ApiMetadataDomainService(
+            metadataCrudService,
+            apiMetadataQueryServiceInMemory,
+            auditDomainService
+        );
         var createApiDomainService = new CreateApiDomainService(
             apiCrudService,
             auditDomainService,
@@ -201,14 +207,13 @@ class ImportApiDefinitionUseCaseTest {
                 new ApiCategoryQueryServiceInMemory(),
                 indexer
             ),
-            new ApiMetadataDomainService(metadataCrudService, auditDomainService),
+            apiMetadataDomainService,
             apiPrimaryOwnerDomainService,
             flowCrudService,
             notificationConfigCrudService,
             parametersQueryService,
             workflowCrudService
         );
-        var apiMetadataDomainService = new ApiMetadataDomainService(metadataCrudService, auditDomainService);
 
         var planValidatorService = new PlanValidatorDomainService(parametersQueryService, policyValidationDomainService, pageCrudService);
         var flowValidationDomainService = new FlowValidationDomainService(

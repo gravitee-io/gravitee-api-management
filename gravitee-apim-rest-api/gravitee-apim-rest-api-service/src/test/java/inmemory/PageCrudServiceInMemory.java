@@ -60,7 +60,6 @@ public class PageCrudServiceInMemory implements InMemoryAlternative<Page>, PageC
 
     @Override
     public void initWith(List<Page> items) {
-        this.reset();
         this.pages.addAll(items);
     }
 

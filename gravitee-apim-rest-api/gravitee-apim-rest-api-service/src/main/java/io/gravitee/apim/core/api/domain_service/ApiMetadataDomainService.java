@@ -18,6 +18,7 @@ package io.gravitee.apim.core.api.domain_service;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.api.model.ApiMetadata;
 import io.gravitee.apim.core.api.model.NewApiMetadata;
+import io.gravitee.apim.core.api.query_service.ApiMetadataQueryService;
 import io.gravitee.apim.core.audit.domain_service.AuditDomainService;
 import io.gravitee.apim.core.audit.model.ApiAuditLogEntity;
 import io.gravitee.apim.core.audit.model.AuditInfo;
@@ -42,10 +43,16 @@ import lombok.extern.slf4j.Slf4j;
 public class ApiMetadataDomainService {
 
     private final MetadataCrudService metadataCrudService;
+    private final ApiMetadataQueryService apiMetadataQueryService;
     private final AuditDomainService auditService;
 
-    public ApiMetadataDomainService(MetadataCrudService metadataCrudService, AuditDomainService auditService) {
+    public ApiMetadataDomainService(
+        MetadataCrudService metadataCrudService,
+        ApiMetadataQueryService apiMetadataQueryService,
+        AuditDomainService auditService
+    ) {
         this.metadataCrudService = metadataCrudService;
+        this.apiMetadataQueryService = apiMetadataQueryService;
         this.auditService = auditService;
     }
 
@@ -141,5 +148,38 @@ public class ApiMetadataDomainService {
             .defaultValue(findDefaultValue(metadata.getKey()))
             .apiId(metadata.getReferenceId())
             .build();
+    }
+
+    public void deleteApiMetadata(String apiId, AuditInfo auditInfo) {
+        var metadataToDelete = apiMetadataQueryService.findApiMetadata(apiId);
+        metadataToDelete.forEach((keyId, apiMetadata) -> {
+            metadataCrudService.delete(toMetadataId(apiMetadata));
+            createMetadataDeletedAuditLog(apiMetadata, auditInfo);
+        });
+    }
+
+    private MetadataId toMetadataId(ApiMetadata apiMetadata) {
+        return MetadataId
+            .builder()
+            .key(apiMetadata.getKey())
+            .referenceId(apiMetadata.getApiId())
+            .referenceType(Metadata.ReferenceType.API)
+            .build();
+    }
+
+    private void createMetadataDeletedAuditLog(ApiMetadata apiMetadata, AuditInfo auditInfo) {
+        auditService.createApiAuditLog(
+            ApiAuditLogEntity
+                .builder()
+                .organizationId(auditInfo.organizationId())
+                .environmentId(auditInfo.environmentId())
+                .apiId(apiMetadata.getApiId())
+                .event(ApiAuditEvent.METADATA_DELETED)
+                .actor(auditInfo.actor())
+                .oldValue(apiMetadata)
+                .createdAt(TimeProvider.now())
+                .properties(Map.of(AuditProperties.METADATA, apiMetadata.getKey()))
+                .build()
+        );
     }
 }

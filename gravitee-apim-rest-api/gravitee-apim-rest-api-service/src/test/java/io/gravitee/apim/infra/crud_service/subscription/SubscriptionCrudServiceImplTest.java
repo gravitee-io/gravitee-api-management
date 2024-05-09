@@ -16,13 +16,16 @@
 package io.gravitee.apim.infra.crud_service.subscription;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.SubscriptionFixtures;
+import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.subscription.model.SubscriptionConfiguration;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapter;
@@ -186,6 +189,25 @@ public class SubscriptionCrudServiceImplTest {
             assertThat(throwable)
                 .isInstanceOf(TechnicalManagementException.class)
                 .hasMessage("An error occurs while trying to update the subscription: subscription-id");
+        }
+    }
+
+    @Nested
+    class Delete {
+
+        @Test
+        void should_delete_membership() throws TechnicalException {
+            service.delete("subscription-id");
+            verify(subscriptionRepository).delete("subscription-id");
+        }
+
+        @Test
+        void should_throw_if_deletion_problem_occurs() throws TechnicalException {
+            doThrow(new TechnicalException("exception")).when(subscriptionRepository).delete("subscription-id");
+            assertThatThrownBy(() -> service.delete("subscription-id"))
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurs while trying to delete the subscription with id: subscription-id");
+            verify(subscriptionRepository).delete("subscription-id");
         }
     }
 

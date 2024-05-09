@@ -42,4 +42,13 @@ public class MembershipCrudServiceImpl implements MembershipCrudService {
             throw new TechnicalDomainException("An error occurs while trying to create the membership: " + membership.getId(), e);
         }
     }
+
+    @Override
+    public void delete(String id) {
+        try {
+            membershipRepository.delete(id);
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("An error occurs while trying to delete the membership: " + id, e);
+        }
+    }
 }

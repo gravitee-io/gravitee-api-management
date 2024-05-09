@@ -56,6 +56,17 @@ public class SubscriptionQueryServiceImpl implements SubscriptionQueryService {
     }
 
     @Override
+    public List<SubscriptionEntity> findSubscriptionsByPlan(String planId) {
+        SubscriptionCriteria criteria = SubscriptionCriteria.builder().plans(List.of(planId)).build();
+
+        try {
+            return subscriptionRepository.search(criteria).stream().map(subscriptionAdapter::toEntity).toList();
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("An error occurs while trying to find plan's subscription", e);
+        }
+    }
+
+    @Override
     public List<SubscriptionEntity> findActiveSubscriptionsByPlan(String planId) {
         SubscriptionCriteria criteria = SubscriptionCriteria
             .builder()

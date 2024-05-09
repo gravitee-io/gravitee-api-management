@@ -91,4 +91,16 @@ public class MetadataCrudServiceImpl implements MetadataCrudService {
             );
         }
     }
+
+    @Override
+    public void delete(MetadataId id) {
+        try {
+            metadataRepository.delete(id.getKey(), id.getReferenceId(), MetadataReferenceType.valueOf(id.getReferenceType().name()));
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException(
+                String.format("An error occurs while trying to delete the metadata with key: %s", id.getKey()),
+                e
+            );
+        }
+    }
 }

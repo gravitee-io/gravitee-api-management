@@ -15,8 +15,8 @@
  */
 package io.gravitee.rest.api.management.v2.rest.resource.integration;
 
-import io.gravitee.apim.core.audit.model.AuditActor;
 import io.gravitee.apim.core.audit.model.AuditInfo;
+import io.gravitee.apim.core.integration.use_case.DeleteIngestedApisUseCase;
 import io.gravitee.apim.core.integration.use_case.DeleteIntegrationUseCase;
 import io.gravitee.apim.core.integration.use_case.GetIngestedApisUseCase;
 import io.gravitee.apim.core.integration.use_case.GetIntegrationUseCase;
@@ -69,6 +69,9 @@ public class IntegrationResource extends AbstractResource {
 
     @Inject
     private GetIngestedApisUseCase getIngestedApisUseCase;
+
+    @Inject
+    DeleteIngestedApisUseCase deleteIngestedApisUseCase;
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -129,21 +132,7 @@ public class IntegrationResource extends AbstractResource {
             throw new ForbiddenAccessException();
         }
 
-        var userDetails = getAuthenticatedUserDetails();
-
-        AuditInfo audit = AuditInfo
-            .builder()
-            .organizationId(executionContext.getOrganizationId())
-            .environmentId(executionContext.getEnvironmentId())
-            .actor(
-                AuditActor
-                    .builder()
-                    .userId(userDetails.getUsername())
-                    .userSource(userDetails.getSource())
-                    .userSourceId(userDetails.getSourceId())
-                    .build()
-            )
-            .build();
+        AuditInfo audit = getAuditInfo();
 
         ingestIntegrationApisUseCase
             .execute(new IngestIntegrationApisUseCase.Input(integrationId, audit))
@@ -173,5 +162,40 @@ public class IntegrationResource extends AbstractResource {
                 PaginationInfo.computePaginationInfo(totalElements, Math.toIntExact(ingestedApis.getPageElements()), paginationParam)
             )
             .links(computePaginationLinks(totalElements, paginationParam));
+    }
+
+    @DELETE
+    @Path("/apis")
+    @Permissions(
+        {
+            @Permission(value = RolePermission.ENVIRONMENT_INTEGRATION, acls = { RolePermissionAction.READ }),
+            @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.DELETE }),
+        }
+    )
+    public Response deleteIngestedApis(@PathParam("integrationId") String integrationId) {
+        var executionContext = GraviteeContext.getExecutionContext();
+        if (
+            !hasPermission(
+                executionContext,
+                RolePermission.ENVIRONMENT_INTEGRATION,
+                GraviteeContext.getCurrentEnvironment(),
+                RolePermissionAction.READ
+            ) ||
+            !hasPermission(
+                executionContext,
+                RolePermission.ENVIRONMENT_API,
+                GraviteeContext.getCurrentEnvironment(),
+                RolePermissionAction.DELETE
+            )
+        ) {
+            throw new ForbiddenAccessException();
+        }
+
+        AuditInfo audit = getAuditInfo();
+
+        var input = DeleteIngestedApisUseCase.Input.builder().integrationId(integrationId).auditInfo(audit).build();
+        deleteIngestedApisUseCase.execute(input);
+
+        return Response.noContent().status(Response.Status.OK).build();
     }
 }

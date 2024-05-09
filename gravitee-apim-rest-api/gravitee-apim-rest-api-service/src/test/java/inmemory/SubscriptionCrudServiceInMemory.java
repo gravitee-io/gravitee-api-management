@@ -48,6 +48,11 @@ public class SubscriptionCrudServiceInMemory implements SubscriptionCrudService,
     }
 
     @Override
+    public void delete(String subscriptionId) {
+        storage.removeIf(subscription -> subscriptionId.equals(subscription.getId()));
+    }
+
+    @Override
     public void initWith(List<SubscriptionEntity> items) {
         storage.clear();
         storage.addAll(items);

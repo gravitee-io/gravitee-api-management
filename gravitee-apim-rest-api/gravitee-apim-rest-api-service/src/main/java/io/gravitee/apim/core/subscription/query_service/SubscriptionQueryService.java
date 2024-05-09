@@ -21,6 +21,8 @@ import java.util.List;
 public interface SubscriptionQueryService {
     List<SubscriptionEntity> findExpiredSubscriptions();
 
+    List<SubscriptionEntity> findSubscriptionsByPlan(String planId);
+
     List<SubscriptionEntity> findActiveSubscriptionsByPlan(String planId);
 
     List<SubscriptionEntity> findActiveByApplicationIdAndApiId(String applicationId, String apiId);

@@ -278,6 +278,63 @@ public class SubscriptionQueryServiceImplTest {
         }
     }
 
+    @Nested
+    class FindSubscriptionsByPlan {
+
+        @Test
+        void should_return_subscription_for_specific_plan() throws TechnicalException {
+            // Given
+            when(subscriptionRepository.search(any())).thenAnswer(invocation -> List.of(aSubscription("subscription-id").build()));
+
+            // When
+            var result = service.findActiveSubscriptionsByPlan("plan-id");
+
+            // Then
+            assertThat(result)
+                .containsExactly(
+                    SubscriptionEntity
+                        .builder()
+                        .id("subscription-id")
+                        .apiId("api-id")
+                        .planId("plan-id")
+                        .applicationId("application-id")
+                        .status(SubscriptionEntity.Status.ACCEPTED)
+                        .consumerStatus(SubscriptionEntity.ConsumerStatus.STARTED)
+                        .type(SubscriptionEntity.Type.STANDARD)
+                        .createdAt(Instant.parse("2020-02-01T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                        .endingAt(Instant.parse("2021-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                        .updatedAt(Instant.parse("2020-02-02T20:22:02.00Z").atZone(ZoneId.systemDefault()))
+                        .build()
+                );
+        }
+
+        @Test
+        void should_return_empty_stream_when_no_subscriptions_found() throws TechnicalException {
+            // Given
+            when(subscriptionRepository.search(any())).thenReturn(List.of());
+
+            // When
+            var result = service.findSubscriptionsByPlan("plan-id");
+
+            // Then
+            assertThat(result).isEmpty();
+        }
+
+        @Test
+        void should_throw_when_technical_exception_occurs() throws TechnicalException {
+            // Given
+            when(subscriptionRepository.search(any())).thenThrow(TechnicalException.class);
+
+            // When
+            Throwable throwable = catchThrowable(() -> service.findSubscriptionsByPlan("plan-id"));
+
+            // Then
+            assertThat(throwable)
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurs while trying to find plan's subscription");
+        }
+    }
+
     private Subscription.SubscriptionBuilder aSubscription(String subscriptionId) {
         return Subscription
             .builder()

@@ -16,8 +16,10 @@
 package io.gravitee.apim.infra.crud_service.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -391,6 +393,25 @@ public class ApiCrudServiceImplTest {
             assertThat(throwable)
                 .isInstanceOf(TechnicalDomainException.class)
                 .hasMessage("An error occurs while trying to update the api: my-api");
+        }
+    }
+
+    @Nested
+    class Delete {
+
+        @Test
+        void should_delete_an_api() throws TechnicalException {
+            service.delete("api-id");
+            verify(apiRepository).delete("api-id");
+        }
+
+        @Test
+        void should_throw_if_deletion_problem_occurs() throws TechnicalException {
+            doThrow(new TechnicalException("exception")).when(apiRepository).delete("api-id");
+            assertThatThrownBy(() -> service.delete("api-id"))
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurs while trying to delete the api: api-id");
+            verify(apiRepository).delete("api-id");
         }
     }
 }

@@ -13,11 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.apim.core.membership.crud_service;
+package fixtures.core.model;
 
-import io.gravitee.apim.core.membership.model.Membership;
+import io.gravitee.apim.core.documentation.model.Page;
+import java.util.function.Supplier;
 
-public interface MembershipCrudService {
-    Membership create(Membership membership);
-    void delete(String id);
+public class PageFixture {
+
+    private PageFixture() {}
+
+    public static final Supplier<Page.PageBuilder> BASE = () ->
+        Page
+            .builder()
+            .id("page-id")
+            .name("page-name")
+            .type(Page.Type.SWAGGER)
+            .content("someSwaggerPageContent")
+            .referenceId("my-api")
+            .referenceType(Page.ReferenceType.API);
+
+    public static Page aPage() {
+        return BASE.get().build();
+    }
 }

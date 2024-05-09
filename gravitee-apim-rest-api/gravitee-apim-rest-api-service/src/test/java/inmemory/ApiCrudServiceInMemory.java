@@ -56,6 +56,11 @@ public class ApiCrudServiceInMemory implements ApiCrudService, InMemoryAlternati
     }
 
     @Override
+    public void delete(String id) {
+        storage.removeIf(api -> id.equals(api.getId()));
+    }
+
+    @Override
     public void initWith(List<Api> items) {
         storage.clear();
         storage.addAll(items);

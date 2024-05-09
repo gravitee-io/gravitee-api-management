@@ -15,6 +15,7 @@
  */
 package io.gravitee.apim.infra.crud_service.subscription;
 
+import io.gravitee.apim.core.exception.TechnicalDomainException;
 import io.gravitee.apim.core.subscription.crud_service.SubscriptionCrudService;
 import io.gravitee.apim.core.subscription.model.SubscriptionEntity;
 import io.gravitee.apim.infra.adapter.SubscriptionAdapter;
@@ -56,6 +57,18 @@ public class SubscriptionCrudServiceImpl implements SubscriptionCrudService {
         } catch (TechnicalException e) {
             throw new TechnicalManagementException(
                 "An error occurs while trying to update the subscription: " + subscriptionEntity.getId(),
+                e
+            );
+        }
+    }
+
+    @Override
+    public void delete(String subscriptionId) {
+        try {
+            subscriptionRepository.delete(subscriptionId);
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException(
+                String.format("An error occurs while trying to delete the subscription with id: %s", subscriptionId),
                 e
             );
         }
