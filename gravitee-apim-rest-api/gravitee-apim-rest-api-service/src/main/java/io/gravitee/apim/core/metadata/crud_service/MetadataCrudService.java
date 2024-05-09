@@ -23,4 +23,5 @@ public interface MetadataCrudService {
     Metadata create(Metadata metadata);
     Optional<Metadata> findById(MetadataId id);
     Metadata update(Metadata metadata);
+    void delete(MetadataId metadataId);
 }

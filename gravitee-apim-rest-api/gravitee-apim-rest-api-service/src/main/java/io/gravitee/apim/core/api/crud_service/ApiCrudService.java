@@ -22,4 +22,5 @@ public interface ApiCrudService {
     boolean existsById(String id);
     Api create(Api api);
     Api update(Api api);
+    void delete(String id);
 }

@@ -91,7 +91,11 @@ public class CreateApiMetadataUseCaseTest {
             ),
             apiMetadataDecoderDomainService
         );
-        var apiMetadataDomainService = new ApiMetadataDomainService(metadataCrudServiceInMemory, auditDomainService);
+        var apiMetadataDomainService = new ApiMetadataDomainService(
+            metadataCrudServiceInMemory,
+            apiMetadataQueryService,
+            auditDomainService
+        );
         createApiMetadataUseCase = new CreateApiMetadataUseCase(validateApiMetadataDomainService, apiMetadataDomainService, apiCrudService);
 
         apiCrudService.initWith(List.of(API));

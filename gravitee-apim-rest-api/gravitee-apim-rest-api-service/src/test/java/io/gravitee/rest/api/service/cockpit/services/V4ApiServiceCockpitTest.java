@@ -107,6 +107,7 @@ public class V4ApiServiceCockpitTest {
     NotificationConfigCrudServiceInMemory notificationConfigCrudService = new NotificationConfigCrudServiceInMemory();
     ParametersQueryServiceInMemory parametersQueryService = new ParametersQueryServiceInMemory();
     MetadataCrudServiceInMemory metadataCrudService = new MetadataCrudServiceInMemory();
+    ApiMetadataQueryServiceInMemory apiMetadataQueryService = new ApiMetadataQueryServiceInMemory();
     RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     WorkflowCrudServiceInMemory workflowCrudService = new WorkflowCrudServiceInMemory();
@@ -166,7 +167,7 @@ public class V4ApiServiceCockpitTest {
                 new ApiCategoryQueryServiceInMemory(),
                 indexer
             ),
-            new ApiMetadataDomainService(metadataCrudService, auditService),
+            new ApiMetadataDomainService(metadataCrudService, apiMetadataQueryService, auditService),
             apiPrimaryOwnerDomainService,
             flowCrudService,
             notificationConfigCrudService,

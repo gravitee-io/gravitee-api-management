@@ -18,6 +18,7 @@ package io.gravitee.apim.core.api.domain_service;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import fixtures.core.model.AuditInfoFixtures;
+import inmemory.ApiMetadataQueryServiceInMemory;
 import inmemory.AuditCrudServiceInMemory;
 import inmemory.InMemoryAlternative;
 import inmemory.MetadataCrudServiceInMemory;
@@ -57,7 +58,7 @@ class ApiMetadataDomainServiceTest {
 
     AuditCrudServiceInMemory auditCrudService = new AuditCrudServiceInMemory();
     MetadataCrudServiceInMemory metadataCrudService = new MetadataCrudServiceInMemory();
-
+    ApiMetadataQueryServiceInMemory apiMetadataQueryServiceInMemory = new ApiMetadataQueryServiceInMemory(metadataCrudService);
     ApiMetadataDomainService service;
 
     @BeforeAll
@@ -77,13 +78,14 @@ class ApiMetadataDomainServiceTest {
         service =
             new ApiMetadataDomainService(
                 metadataCrudService,
+                apiMetadataQueryServiceInMemory,
                 new AuditDomainService(auditCrudService, new UserCrudServiceInMemory(), new JacksonJsonDiffProcessor())
             );
     }
 
     @AfterEach
     void tearDown() {
-        Stream.of(metadataCrudService).forEach(InMemoryAlternative::reset);
+        Stream.of(metadataCrudService, apiMetadataQueryServiceInMemory).forEach(InMemoryAlternative::reset);
     }
 
     @Nested
@@ -198,6 +200,44 @@ class ApiMetadataDomainServiceTest {
             service.update(updatedMetadata, AUDIT_INFO);
 
             Assertions.assertThat(metadataCrudService.storage()).contains(updatedMetadata);
+        }
+    }
+
+    @Nested
+    class DeleteApiMetadata {
+
+        @BeforeEach
+        void setUp() {
+            service.createDefaultApiMetadata(API_ID, AUDIT_INFO);
+        }
+
+        @Test
+        void should_delete_api_metadata() {
+            service.deleteApiMetadata(API_ID, AUDIT_INFO);
+
+            assertThat(metadataCrudService.storage()).isNotNull().isEmpty();
+        }
+
+        @Test
+        void should_create_delete_metadata_audit_log() {
+            service.deleteApiMetadata(API_ID, AUDIT_INFO);
+
+            assertThat(auditCrudService.storage())
+                .usingRecursiveFieldByFieldElementComparatorIgnoringFields("patch")
+                .contains(
+                    AuditEntity
+                        .builder()
+                        .id("generated-id")
+                        .organizationId(ORGANIZATION_ID)
+                        .environmentId(ENVIRONMENT_ID)
+                        .referenceType(AuditEntity.AuditReferenceType.API)
+                        .referenceId(API_ID)
+                        .user(USER_ID)
+                        .properties(Map.of("METADATA", "email-support"))
+                        .event(ApiAuditEvent.METADATA_DELETED.name())
+                        .createdAt(INSTANT_NOW.atZone(ZoneId.systemDefault()))
+                        .build()
+                );
         }
     }
 }

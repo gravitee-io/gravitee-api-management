@@ -16,8 +16,10 @@
 package io.gravitee.apim.infra.crud_service.metadata;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -212,6 +214,39 @@ class MetadataCrudServiceImplTest {
             assertThat(throwable)
                 .isInstanceOf(TechnicalDomainException.class)
                 .hasMessage("An error occurs while trying to create the my-key metadata of [apiId=api-id]");
+        }
+    }
+
+    @Nested
+    class Delete {
+
+        @Test
+        void should_delete_metadata() throws TechnicalException {
+            var id = MetadataId
+                .builder()
+                .key("metadata-key")
+                .referenceId("api-id")
+                .referenceType(io.gravitee.apim.core.metadata.model.Metadata.ReferenceType.API)
+                .build();
+            service.delete(id);
+            verify(metadataRepository).delete(id.getKey(), id.getReferenceId(), MetadataReferenceType.API);
+        }
+
+        @Test
+        void should_throw_if_deletion_problem_occurs() throws TechnicalException {
+            var id = MetadataId
+                .builder()
+                .key("metadata-key")
+                .referenceId("api-id")
+                .referenceType(io.gravitee.apim.core.metadata.model.Metadata.ReferenceType.API)
+                .build();
+            doThrow(new TechnicalException("exception"))
+                .when(metadataRepository)
+                .delete(id.getKey(), id.getReferenceId(), MetadataReferenceType.API);
+            assertThatThrownBy(() -> service.delete(id))
+                .isInstanceOf(TechnicalDomainException.class)
+                .hasMessage("An error occurs while trying to delete the metadata with key: " + id.getKey());
+            verify(metadataRepository).delete(id.getKey(), id.getReferenceId(), MetadataReferenceType.API);
         }
     }
 }

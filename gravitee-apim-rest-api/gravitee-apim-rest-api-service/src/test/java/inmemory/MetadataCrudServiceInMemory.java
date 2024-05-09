@@ -23,7 +23,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
-import org.springframework.stereotype.Service;
 
 public class MetadataCrudServiceInMemory implements MetadataCrudService, InMemoryAlternative<Metadata> {
 
@@ -63,6 +62,15 @@ public class MetadataCrudServiceInMemory implements MetadataCrudService, InMemor
         }
 
         throw new IllegalStateException("Metadata not found");
+    }
+
+    @Override
+    public void delete(MetadataId metadataId) {
+        storage.removeIf(m ->
+            m.getReferenceId().equals(metadataId.getReferenceId()) &&
+            m.getReferenceType().equals(metadataId.getReferenceType()) &&
+            m.getKey().equals(metadataId.getKey())
+        );
     }
 
     @Override

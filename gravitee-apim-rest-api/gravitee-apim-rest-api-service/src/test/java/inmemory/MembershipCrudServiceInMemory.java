@@ -32,6 +32,11 @@ public class MembershipCrudServiceInMemory implements MembershipCrudService, InM
     }
 
     @Override
+    public void delete(String id) {
+        storage.removeIf(s -> s.getId().equals(id));
+    }
+
+    @Override
     public void initWith(List<Membership> items) {
         storage.addAll(items);
     }

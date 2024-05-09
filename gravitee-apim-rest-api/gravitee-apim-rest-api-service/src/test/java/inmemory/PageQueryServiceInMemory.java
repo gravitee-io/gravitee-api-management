@@ -25,7 +25,15 @@ import java.util.Optional;
 
 public class PageQueryServiceInMemory implements InMemoryAlternative<Page>, PageQueryService {
 
-    List<Page> pages = new ArrayList<>();
+    List<Page> pages;
+
+    public PageQueryServiceInMemory() {
+        this.pages = new ArrayList<>();
+    }
+
+    public PageQueryServiceInMemory(PageCrudServiceInMemory pageCrudServiceInMemory) {
+        pages = pageCrudServiceInMemory.pages;
+    }
 
     @Override
     public List<Page> searchByApiId(String apiId) {

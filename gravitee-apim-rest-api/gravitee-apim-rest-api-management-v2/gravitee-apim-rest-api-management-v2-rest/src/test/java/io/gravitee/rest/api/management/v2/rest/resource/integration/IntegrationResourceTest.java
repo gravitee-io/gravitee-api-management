@@ -27,6 +27,7 @@ import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.IntegrationFixture;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.IntegrationCrudServiceInMemory;
+import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -55,6 +56,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class IntegrationResourceTest extends AbstractResourceTest {
@@ -463,6 +465,76 @@ public class IntegrationResourceTest extends AbstractResourceTest {
             Response response = target.path("/apis").request().get();
 
             assertThat(response).hasStatus(HttpStatusCode.FORBIDDEN_403);
+        }
+    }
+
+    @Nested
+    class DeleteIngestedApis {
+
+        @ParameterizedTest
+        @EnumSource(value = Api.ApiLifecycleState.class, mode = EnumSource.Mode.EXCLUDE, names = { "PUBLISHED" })
+        public void should_delete_all_ingested_apis_except_published_ones(Api.ApiLifecycleState apiLifecycleState) {
+            apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aFederatedApi().toBuilder().apiLifecycleState(apiLifecycleState).build()));
+
+            Response response = target.path("/apis").request().delete();
+
+            assertThat(response).hasStatus(OK_200);
+            assertThat(apiCrudServiceInMemory.storage()).isEmpty();
+        }
+
+        @Test
+        public void should_not_delete_published_api() {
+            apiCrudServiceInMemory.initWith(
+                List.of(ApiFixtures.aFederatedApi().toBuilder().apiLifecycleState(Api.ApiLifecycleState.PUBLISHED).build())
+            );
+
+            Response response = target.path("/apis").request().delete();
+
+            assertThat(response).hasStatus(OK_200);
+            assertThat(apiCrudServiceInMemory.storage())
+                .isNotEmpty()
+                .hasSize(1)
+                .extracting(Api::getApiLifecycleState)
+                .containsExactly(Api.ApiLifecycleState.PUBLISHED);
+        }
+
+        @ParameterizedTest(name = "[{index}] {arguments}")
+        @CsvSource(
+            delimiterString = "|",
+            useHeadersInDisplayName = true,
+            textBlock = """
+        ENVIRONMENT_INTEGRATION[READ] |  ENVIRONMENT_API[DELETE]
+        false                  |  false
+        true                   |  false
+        false                  |  true
+     """
+        )
+        public void should_get_error_if_user_does_not_have_correct_permissions(
+            boolean environmentIntegrationRead,
+            boolean environmentApiCreate
+        ) {
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.ENVIRONMENT_INTEGRATION,
+                    ENVIRONMENT,
+                    RolePermissionAction.READ
+                )
+            )
+                .thenReturn(environmentIntegrationRead);
+            when(
+                permissionService.hasPermission(
+                    GraviteeContext.getExecutionContext(),
+                    RolePermission.ENVIRONMENT_API,
+                    ENVIRONMENT,
+                    RolePermissionAction.DELETE
+                )
+            )
+                .thenReturn(environmentApiCreate);
+
+            final Response response = target.path("/apis").request().delete();
+
+            assertThat(response).hasStatus(FORBIDDEN_403);
         }
     }
 }

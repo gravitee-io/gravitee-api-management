@@ -162,6 +162,7 @@ class ImportCRDUseCaseTest {
     MembershipCrudServiceInMemory membershipCrudService = new MembershipCrudServiceInMemory();
     NotificationConfigCrudServiceInMemory notificationConfigCrudService = new NotificationConfigCrudServiceInMemory();
     MetadataCrudServiceInMemory metadataCrudService = new MetadataCrudServiceInMemory();
+    ApiMetadataQueryServiceInMemory apiMetadataQueryService = new ApiMetadataQueryServiceInMemory(metadataCrudService);
     RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     WorkflowCrudServiceInMemory workflowCrudService = new WorkflowCrudServiceInMemory();
@@ -261,7 +262,7 @@ class ImportCRDUseCaseTest {
                 new ApiCategoryQueryServiceInMemory(),
                 indexer
             ),
-            new ApiMetadataDomainService(metadataCrudService, auditDomainService),
+            new ApiMetadataDomainService(metadataCrudService, apiMetadataQueryService, auditDomainService),
             apiPrimaryOwnerDomainService,
             flowCrudService,
             notificationConfigCrudService,

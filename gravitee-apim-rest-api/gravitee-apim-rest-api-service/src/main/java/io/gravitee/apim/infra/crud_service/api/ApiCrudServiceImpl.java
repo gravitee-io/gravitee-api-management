@@ -77,4 +77,13 @@ public class ApiCrudServiceImpl implements ApiCrudService {
             throw new TechnicalDomainException("An error occurs while trying to update the api: " + api.getId(), e);
         }
     }
+
+    @Override
+    public void delete(String id) {
+        try {
+            apiRepository.delete(id);
+        } catch (TechnicalException e) {
+            throw new TechnicalDomainException("An error occurs while trying to delete the api: " + id, e);
+        }
+    }
 }

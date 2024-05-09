@@ -53,6 +53,10 @@ public class ApiIndexerDomainService {
         indexer.index(context, toIndexableApi(apiToIndex, primaryOwner));
     }
 
+    public void delete(Indexer.IndexationContext context, Api apiToDelete) {
+        indexer.delete(context, toIndexableApi(context, apiToDelete));
+    }
+
     /**
      * Build an {@link IndexableApi} from an {@link Api}.
      * @param context The indexation context.

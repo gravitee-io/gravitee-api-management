@@ -21,4 +21,6 @@ public interface SubscriptionCrudService {
     SubscriptionEntity get(String subscriptionId);
 
     SubscriptionEntity update(SubscriptionEntity subscriptionEntity);
+
+    void delete(String subscriptionId);
 }
