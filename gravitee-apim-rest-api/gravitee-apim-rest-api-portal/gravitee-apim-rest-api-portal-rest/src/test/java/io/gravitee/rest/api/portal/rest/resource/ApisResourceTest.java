@@ -334,11 +334,7 @@ public class ApisResourceTest extends AbstractResourceTest {
             .when(filteringService)
             .searchApis(eq(GraviteeContext.getExecutionContext()), any(), any(), any());
 
-        final Response response = target("/_search")
-            .queryParam("q", "3")
-            .queryParam("categoryId", "12345")
-            .request()
-            .post(Entity.json(null));
+        final Response response = target("/_search").queryParam("q", "3").queryParam("category", "12345").request().post(Entity.json(null));
         assertEquals(HttpStatusCode.OK_200, response.getStatus());
 
         ApisResponse apiResponse = response.readEntity(ApisResponse.class);
