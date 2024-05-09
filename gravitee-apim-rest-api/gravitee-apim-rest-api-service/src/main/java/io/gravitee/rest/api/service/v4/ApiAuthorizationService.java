@@ -37,8 +37,8 @@ public interface ApiAuthorizationService {
         return findAccessibleApiIdsForUser(executionContext, userId, new ApiQuery(), null);
     }
 
-    default Set<String> findAccessibleApiIdsForUser(final ExecutionContext executionContext, final String userId, final String categoryId) {
-        return findAccessibleApiIdsForUser(executionContext, userId, new ApiQuery(), categoryId);
+    default Set<String> findAccessibleApiIdsForUser(final ExecutionContext executionContext, final String userId, final String category) {
+        return findAccessibleApiIdsForUser(executionContext, userId, new ApiQuery(), category);
     }
 
     default Set<String> findAccessibleApiIdsForUser(
@@ -59,7 +59,7 @@ public interface ApiAuthorizationService {
         final ExecutionContext executionContext,
         final String userId,
         final ApiQuery apiQuery,
-        final String categoryId
+        final String category
     );
 
     default Set<String> findIdsByUser(final ExecutionContext executionContext, final String userId, final boolean manageOnly) {
@@ -80,9 +80,9 @@ public interface ApiAuthorizationService {
         final String userId,
         final ApiQuery apiQuery,
         final boolean manageOnly,
-        final String categoryId
+        final String category
     ) {
-        return this.findIdsByUser(executionContext, userId, apiQuery, null, manageOnly, categoryId);
+        return this.findIdsByUser(executionContext, userId, apiQuery, null, manageOnly, category);
     }
 
     default Set<String> findIdsByUser(
@@ -101,10 +101,12 @@ public interface ApiAuthorizationService {
         final ApiQuery apiQuery,
         final Sortable sortable,
         final boolean manageOnly,
-        final String categoryId
+        final String category
     );
 
     Set<String> findApiIdsByUserId(ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean manageOnly);
+
     Set<String> findIdsByEnvironment(final String environmentId);
+
     List<ApiCriteria> computeApiCriteriaForUser(ExecutionContext executionContext, String userId, ApiQuery apiQuery, boolean manageOnly);
 }

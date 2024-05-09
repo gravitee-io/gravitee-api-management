@@ -21,7 +21,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.*;
 
 import com.google.common.collect.ImmutableMap;
@@ -581,6 +580,103 @@ public class ApiAuthorizationServiceImplTest {
 
         assertThat(result).hasSize(2);
         verify(subscriptionService).search(any(), argThat(argument -> argument.getExcludedApis().contains(apiId)));
+    }
+
+    @Test
+    public void shouldAddCategoryCriteriaWhenCategoryIsNotBlank() {
+        String apiId = "apiId";
+        String applicationId = "applicationId";
+        ApiQuery apiQuery = new ApiQuery();
+        apiQuery.setIds(Set.of(apiId));
+        String categoryKey = "category-Key";
+        apiQuery.setCategory(categoryKey);
+
+        var categoryEntity = new CategoryEntity();
+        categoryEntity.setKey(categoryKey);
+
+        Map<String, char[]> userPermissions = ImmutableMap.of("MEMBER", "CRUD".toCharArray());
+        RoleEntity userRole = new RoleEntity();
+        userRole.setId("USER_ROLE_ID");
+        userRole.setPermissions(userPermissions);
+        userRole.setScope(RoleScope.API);
+
+        RoleEntity poRole = new RoleEntity();
+        poRole.setId("PO_ROLE_ID");
+        poRole.setScope(RoleScope.API);
+        poRole.setName(SystemRole.PRIMARY_OWNER.name());
+
+        when(categoryService.findById(categoryKey, GraviteeContext.getExecutionContext().getEnvironmentId())).thenReturn(categoryEntity);
+
+        when(roleService.findByScope(RoleScope.API, GraviteeContext.getCurrentOrganization())).thenReturn(List.of(poRole, userRole));
+
+        when(applicationService.findUserApplicationsIds(GraviteeContext.getExecutionContext(), USER_NAME, ApplicationStatus.ACTIVE))
+            .thenReturn(Set.of(applicationId));
+
+        SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
+        subscriptionEntity.setId("subscriptionId");
+        subscriptionEntity.setApi("anotherApi");
+        when(subscriptionService.search(any(), any())).thenReturn(List.of(subscriptionEntity));
+
+        List<ApiCriteria> result = apiAuthorizationService.computeApiCriteriaForUser(
+            GraviteeContext.getExecutionContext(),
+            USER_NAME,
+            apiQuery,
+            false
+        );
+
+        verify(subscriptionService).search(any(), argThat(argument -> argument.getExcludedApis().contains(apiId)));
+        assertThat(result).hasSize(3);
+        result
+            .stream()
+            .filter(i -> i.getCategory() != null)
+            .filter(i -> i.getIds().contains(categoryKey))
+            .forEach(i -> assertThat(i.getCategory()).isEqualTo(categoryKey));
+    }
+
+    @Test
+    public void shouldAddCategoryCriteriaWhenCategoryIsBlank() {
+        String apiId = "apiId";
+        String applicationId = "applicationId";
+        ApiQuery apiQuery = new ApiQuery();
+        apiQuery.setIds(Set.of(apiId));
+        String categoryKey = "";
+        apiQuery.setCategory(categoryKey);
+
+        var categoryEntity = new CategoryEntity();
+        categoryEntity.setKey(categoryKey);
+
+        Map<String, char[]> userPermissions = ImmutableMap.of("MEMBER", "CRUD".toCharArray());
+        RoleEntity userRole = new RoleEntity();
+        userRole.setId("USER_ROLE_ID");
+        userRole.setPermissions(userPermissions);
+        userRole.setScope(RoleScope.API);
+
+        RoleEntity poRole = new RoleEntity();
+        poRole.setId("PO_ROLE_ID");
+        poRole.setScope(RoleScope.API);
+        poRole.setName(SystemRole.PRIMARY_OWNER.name());
+
+        when(roleService.findByScope(RoleScope.API, GraviteeContext.getCurrentOrganization())).thenReturn(List.of(poRole, userRole));
+
+        when(applicationService.findUserApplicationsIds(GraviteeContext.getExecutionContext(), USER_NAME, ApplicationStatus.ACTIVE))
+            .thenReturn(Set.of(applicationId));
+
+        SubscriptionEntity subscriptionEntity = new SubscriptionEntity();
+        subscriptionEntity.setId("subscriptionId");
+        subscriptionEntity.setApi("anotherApi");
+        when(subscriptionService.search(any(), any())).thenReturn(List.of(subscriptionEntity));
+
+        List<ApiCriteria> result = apiAuthorizationService.computeApiCriteriaForUser(
+            GraviteeContext.getExecutionContext(),
+            USER_NAME,
+            apiQuery,
+            false
+        );
+
+        verify(subscriptionService).search(any(), argThat(argument -> argument.getExcludedApis().contains(apiId)));
+        assertThat(result).hasSize(2);
+        var nonNullCategoryResult = result.stream().filter(i -> i.getCategory() != null).count();
+        assertThat(nonNullCategoryResult).isZero();
     }
 
     @Test

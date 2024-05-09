@@ -165,9 +165,9 @@ public class FilteringServiceImpl extends AbstractService implements FilteringSe
     }
 
     @Override
-    public Collection<String> searchApis(ExecutionContext executionContext, String userId, String query, String categoryId)
+    public Collection<String> searchApis(ExecutionContext executionContext, String userId, String query, String category)
         throws TechnicalException {
-        Set<String> apis = apiAuthorizationService.findAccessibleApiIdsForUser(executionContext, userId, categoryId);
+        Set<String> apis = apiAuthorizationService.findAccessibleApiIdsForUser(executionContext, userId, category);
 
         Map<String, Object> filters = new HashMap<>();
         filters.put("api", apis);
