@@ -21,7 +21,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.*;
 
 import com.google.common.collect.ImmutableMap;
@@ -656,8 +655,6 @@ public class ApiAuthorizationServiceImplTest {
         poRole.setId("PO_ROLE_ID");
         poRole.setScope(RoleScope.API);
         poRole.setName(SystemRole.PRIMARY_OWNER.name());
-
-        when(categoryService.findById(categoryKey, GraviteeContext.getExecutionContext().getEnvironmentId())).thenReturn(categoryEntity);
 
         when(roleService.findByScope(RoleScope.API, GraviteeContext.getCurrentOrganization())).thenReturn(List.of(poRole, userRole));
 
