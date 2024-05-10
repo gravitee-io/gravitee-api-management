@@ -45,6 +45,7 @@ import org.apache.lucene.queryparser.classic.QueryParserBase;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.BoostQuery;
+import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.PhraseQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
@@ -137,10 +138,7 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
         io.gravitee.rest.api.service.search.query.Query<?> query
     ) {
         if (!isBlank(query.getQuery()) && query.getIds() != null && !query.getIds().isEmpty()) {
-            increaseMaxClauseCountIfNecessary(query.getIds().size());
-
             BooleanQuery.Builder mainQuery = new BooleanQuery.Builder();
-
             query
                 .getIds()
                 .forEach(id -> {
@@ -198,22 +196,45 @@ public class ApiDocumentSearcher extends AbstractDocumentSearcher {
     @Override
     public SearchResult search(ExecutionContext executionContext, io.gravitee.rest.api.service.search.query.Query<?> query)
         throws TechnicalException {
+        BooleanQuery.Builder apiQuery = new BooleanQuery.Builder();
+
         try {
             final Optional<Query> baseFilterQuery = this.buildFilterQuery(FIELD_ID, query.getFilters());
-
-            BooleanQuery.Builder apiQuery = new BooleanQuery.Builder();
             this.buildExcludedFilters(query.getExcludedFilters()).ifPresent(q -> apiQuery.add(q, BooleanClause.Occur.MUST_NOT));
             this.buildExplicitQuery(executionContext, query, baseFilterQuery).ifPresent(q -> apiQuery.add(q, BooleanClause.Occur.MUST));
             this.buildExactMatchQuery(executionContext, query, baseFilterQuery)
                 .ifPresent(q -> apiQuery.add(new BoostQuery(q, 4.0f), BooleanClause.Occur.SHOULD));
             this.buildWildcardQuery(executionContext, query, baseFilterQuery).ifPresent(q -> apiQuery.add(q, BooleanClause.Occur.SHOULD));
             this.buildIdsQuery(executionContext, query).ifPresent(q -> apiQuery.add(q, BooleanClause.Occur.SHOULD));
-
-            return this.search(apiQuery.build(), query.getSort());
         } catch (ParseException pe) {
             logger.error("Invalid query to search for API documents", pe);
             throw new TechnicalException("Invalid query to search for API documents", pe);
         }
+
+        BooleanQuery finalQuery = apiQuery.build();
+
+        try {
+            return this.search(finalQuery, query.getSort());
+        } catch (IndexSearcher.TooManyClauses tooManyClauses) {
+            int maxClauseCount = getClauseCount(finalQuery);
+            increaseMaxClauseCountIfNecessary(maxClauseCount);
+            return this.search(finalQuery, query.getSort());
+        }
+    }
+
+    private int getClauseCount(Query query) {
+        int result = 0;
+        if (query instanceof BooleanQuery) {
+            List<BooleanClause> clauses = ((BooleanQuery) query).clauses();
+            result = clauses.size();
+            for (BooleanClause clause : clauses) {
+                result += getClauseCount(clause.getQuery());
+            }
+        } else if (query instanceof BoostQuery) {
+            result += getClauseCount(((BoostQuery) query).getQuery());
+        }
+
+        return result;
     }
 
     private Optional<BooleanQuery> buildExcludedFilters(Map<String, Collection<String>> excludedFilters) {
