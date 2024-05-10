@@ -46,8 +46,8 @@ public abstract class AbstractDocumentSearcher implements DocumentSearcher {
     protected static final String FIELD_API_TYPE_VALUE = "api";
 
     protected static void increaseMaxClauseCountIfNecessary(int size) {
-        if (size > BooleanQuery.getMaxClauseCount()) {
-            BooleanQuery.setMaxClauseCount(size);
+        if (size > IndexSearcher.getMaxClauseCount()) {
+            IndexSearcher.setMaxClauseCount(size);
         }
     }
 
