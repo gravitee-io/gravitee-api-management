@@ -42,7 +42,7 @@ import { ApiPlanV2Service } from '../../../../services-ngx/api-plan-v2.service';
 })
 export class ApiPlanListComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
-  private api: Api;
+  public api: Api;
   public displayedColumns = ['name', 'type', 'status', 'deploy-on', 'actions'];
   public plansTableDS: Plan[] = [];
   public isLoadingData = true;
