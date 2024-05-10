@@ -38,8 +38,10 @@ import { SnackBarService } from '../../../../services-ngx/snack-bar.service';
 import {
   Api,
   ApiPlansResponse,
+  fakeApiFederated,
   fakeApiV2,
   fakeApiV4,
+  fakePlanFederated,
   fakePlanV2,
   fakePlanV4,
   fakeProxyApiV4,
@@ -511,6 +513,55 @@ describe('ApiPlanListComponent', () => {
           expect(availablePlans).toStrictEqual(expectedPlans);
         }),
       );
+    });
+  });
+
+  describe('With a Federated API', () => {
+    const federatedApi = fakeApiFederated({ id: API_ID });
+
+    describe('plansTable tests', () => {
+      it('should display an empty table', fakeAsync(async () => {
+        await initComponent([], federatedApi);
+
+        const { headerCells, rowCells } = await computePlansTableCells();
+        expect(headerCells).toEqual([
+          {
+            'drag-icon': '',
+            name: 'Name',
+            status: 'Status',
+            'deploy-on': 'Deploy on',
+            type: 'Type',
+            actions: '',
+          },
+        ]);
+        expect(rowCells).toEqual([['There is no plan (yet).']]);
+      }));
+
+      it('should display a table with plans', fakeAsync(async () => {
+        const plan = fakePlanFederated();
+        await initComponent([plan], federatedApi);
+
+        const { headerCells, rowCells } = await computePlansTableCells();
+        expect(headerCells).toEqual([
+          {
+            'drag-icon': '',
+            name: 'Name',
+            status: 'Status',
+            'deploy-on': 'Deploy on',
+            type: 'Type',
+            actions: '',
+          },
+        ]);
+        expect(rowCells).toEqual([['', 'Default plan', 'API_KEY', 'PUBLISHED', '', '']]);
+      }));
+
+      it('should hide create plan button', fakeAsync(async () => {
+        const plan = fakePlanFederated();
+        await initComponent([plan], federatedApi);
+
+        const newPlanButton = await loader.getHarnessOrNull(MatButtonHarness.with({ selector: '[aria-label="Add new plan"]' }));
+        expect(newPlanButton).toBeNull();
+      }));
     });
   });
 
