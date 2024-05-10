@@ -85,7 +85,7 @@
     </mat-form-field>
   </ng-container>
 
-  <ng-container *ngIf="api$ | async">
+  <ng-container *ngIf="!isFederated && (api$ | async)">
     <h2>Deployment</h2>
 
     <mat-form-field>

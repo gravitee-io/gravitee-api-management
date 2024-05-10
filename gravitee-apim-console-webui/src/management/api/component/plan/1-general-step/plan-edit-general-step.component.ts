@@ -19,7 +19,7 @@ import { includes } from 'lodash';
 import { combineLatest, of, ReplaySubject, Subject } from 'rxjs';
 import { map, startWith, switchMap, takeUntil } from 'rxjs/operators';
 
-import { ApiV2, ApiV4, PlanStatus } from '../../../../../entities/management-api-v2';
+import { ApiFederated, ApiV2, ApiV4, PlanStatus } from '../../../../../entities/management-api-v2';
 import { CurrentUserService } from '../../../../../services-ngx/current-user.service';
 import { DocumentationService } from '../../../../../services-ngx/documentation.service';
 import { GroupService } from '../../../../../services-ngx/group.service';
@@ -32,12 +32,12 @@ import { TagService } from '../../../../../services-ngx/tag.service';
 })
 export class PlanEditGeneralStepComponent implements OnInit, OnDestroy {
   private unsubscribe$: Subject<boolean> = new Subject<boolean>();
-  public api$ = new ReplaySubject<ApiV2 | ApiV4>(1);
+  public api$ = new ReplaySubject<ApiV2 | ApiV4 | ApiFederated>(1);
 
   public generalForm: UntypedFormGroup;
 
   @Input()
-  public set api(api: ApiV2 | ApiV4) {
+  public set api(api: ApiV2 | ApiV4 | ApiFederated) {
     if (api) {
       this.api$.next(api);
     }
@@ -52,6 +52,9 @@ export class PlanEditGeneralStepComponent implements OnInit, OnDestroy {
 
   @Input()
   planStatus?: PlanStatus;
+
+  @Input()
+  isFederated = false;
 
   conditionPages$ = this.api$.pipe(
     switchMap((api) =>

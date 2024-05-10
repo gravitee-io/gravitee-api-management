@@ -59,6 +59,7 @@ import {
   PlanMode,
   ApiType,
   PlanStatus,
+  ApiFederated,
 } from '../../../../entities/management-api-v2';
 import { isApiV2FromMAPIV2 } from '../../../../util';
 import { PlanFormType, PlanMenuItemVM } from '../../../../services-ngx/constants.service';
@@ -96,15 +97,12 @@ export type PlanFormValue = Pick<
   | 'description'
   | 'characteristics'
   | 'generalConditions'
-  | 'tags'
   | 'commentRequired'
   | 'commentMessage'
   | 'validation'
   | 'excludedGroups'
   | 'security'
-  | 'selectionRule'
-  | 'flows'
-> & { mode?: PlanMode };
+> & { mode?: PlanMode; selectionRule?: string; tags?: string[]; flows?: Array<FlowV2 | FlowV4> };
 
 @Component({
   selector: 'api-plan-form',
@@ -124,7 +122,10 @@ export class ApiPlanFormComponent implements OnInit, AfterViewInit, OnDestroy, C
   private gioFormFocusInvalidIgnore = true;
 
   @Input()
-  api?: ApiV2 | ApiV4;
+  api?: ApiV2 | ApiV4 | ApiFederated;
+
+  @Input()
+  isFederated = false;
 
   @Input()
   apiType?: ApiType;

@@ -28,6 +28,7 @@
       formControlName="plan"
       [mode]="mode"
       [api]="$any(api)"
+      [isFederated]="api.definitionVersion === 'FEDERATED'"
       [planMenuItem]="planMenuItem"
       [planStatus]="currentPlanStatus"
     ></api-plan-form>
