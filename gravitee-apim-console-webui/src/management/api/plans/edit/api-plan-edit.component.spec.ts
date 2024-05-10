@@ -23,6 +23,7 @@ import { set } from 'lodash';
 import { GioSaveBarHarness } from '@gravitee/ui-particles-angular';
 import { MatButtonHarness } from '@angular/material/button/testing';
 import { ActivatedRoute, Router } from '@angular/router';
+import { MatStepperHarness } from '@angular/material/stepper/testing';
 
 import { ApiPlanEditComponent } from './api-plan-edit.component';
 
@@ -34,9 +35,11 @@ import { ApiPlanFormHarness } from '../../component/plan/api-plan-form.harness';
 import {
   Api,
   CreatePlanV2,
+  fakeApiFederated,
   fakeApiV1,
   fakeApiV2,
   fakeApiV4,
+  fakePlanFederated,
   fakePlanV2,
   fakePlanV4,
   Plan,
@@ -446,6 +449,41 @@ describe('ApiPlanEditComponent', () => {
         const nameInput = await planForm.getNameInput();
         expect(await nameInput.isDisabled()).toEqual(true);
       });
+    });
+  });
+
+  describe('With a Federated API', () => {
+    const PLAN = fakePlanFederated({ apiId: API_ID });
+
+    beforeEach(async () => {
+      configureTestingModule(PLAN.id);
+      fixture.detectChanges();
+      expectApiGetRequest(fakeApiFederated({ id: API_ID }));
+      expectPlanGetRequest(API_ID, PLAN);
+    });
+
+    it('should only display allowed attributes', async () => {
+      const saveBar = await loader.getHarness(GioSaveBarHarness);
+      expect(await saveBar.isVisible()).toBe(false);
+
+      const planForm = await loader.getHarness(ApiPlanFormHarness);
+      planForm.httpRequest(httpTestingController).expectGroupListRequest([
+        fakeGroup({
+          id: 'group-a',
+          name: 'Group A',
+        }),
+      ]);
+      planForm.httpRequest(httpTestingController).expectDocumentationSearchRequest(API_ID, [
+        {
+          id: 'doc-1',
+          name: 'Doc 1',
+        },
+      ]);
+      expect(await planForm.getShardingTagsInput()).toBeNull();
+
+      const stepper = await loader.getHarness(MatStepperHarness);
+      const stepLabels = await stepper.getSteps().then((steps) => Promise.all(steps.map((s) => s.getLabel())));
+      expect(stepLabels).toEqual(['General']);
     });
   });
 

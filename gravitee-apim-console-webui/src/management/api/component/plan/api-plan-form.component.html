@@ -24,13 +24,18 @@
     <plan-edit-general-step
       matStepContent
       [api]="api"
+      [isFederated]="isFederated"
       [mode]="mode"
       [displaySubscriptionsSection]="displaySubscriptionsSection"
       [planStatus]="planStatus"
     ></plan-edit-general-step>
   </mat-step>
 
-  <mat-step *ngIf="!['KEY_LESS', 'PUSH'].includes(planMenuItem.planFormType)" state="secure" [stepControl]="planForm.get('secure')">
+  <mat-step
+    *ngIf="!isFederated && !['KEY_LESS', 'PUSH'].includes(planMenuItem.planFormType)"
+    state="secure"
+    [stepControl]="planForm.get('secure')"
+  >
     <ng-template matStepperIcon="secure">
       <mat-icon svgIcon="gio:lock"></mat-icon>
     </ng-template>
