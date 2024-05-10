@@ -619,7 +619,7 @@ describe('ApiSubscriptionEditComponent', () => {
     });
 
     it('should validate a federated Subscription', async () => {
-      await initComponent({ subscription: pendingSubscription, api: fakeApiFederated({ id: API_ID }) });
+      await initComponent({ subscription: pendingSubscription, api: fakeApiFederated({ id: API_ID }), canUseCustomApiKey: true });
       expectApiKeyListGet();
 
       const harness = await loader.getHarness(ApiSubscriptionEditHarness);
@@ -628,10 +628,12 @@ describe('ApiSubscriptionEditComponent', () => {
       await harness.openValidateDialog();
 
       const validateDialog = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
-        MatDialogHarness.with({ selector: '#validateSubscriptionDialog' }),
+        ApiPortalSubscriptionValidateDialogHarness,
       );
       const datePicker = await validateDialog.getHarnessOrNull(MatInputHarness.with({ selector: '[formControlName="dateTimeRange"]' }));
       expect(datePicker).toBeNull(); // no validation period for federated subscription
+
+      expect(await validateDialog.isCustomApiKeyInputDisplayed()).toBeFalsy(); // no custom API Key for federated subscription
 
       const validateBtn = await validateDialog.getHarness(MatButtonHarness.with({ text: 'Validate' }));
       await validateBtn.click();
