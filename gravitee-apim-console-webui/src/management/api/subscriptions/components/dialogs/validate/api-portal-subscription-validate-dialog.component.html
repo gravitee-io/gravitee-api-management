@@ -43,7 +43,7 @@
           <mat-label>Message (optional)</mat-label>
         </mat-form-field>
       </div>
-      <div class="validate-subscription__content__row" *ngIf="data.canUseCustomApiKey && !data.sharedApiKeyMode">
+      <div class="validate-subscription__content__row" *ngIf="!data.isFederated && data.canUseCustomApiKey && !data.sharedApiKeyMode">
         <div class="mat-body-2">This plan allows custom API Keys. You can provide it here.</div>
         <api-key-validation formControlName="apiKey" [applicationId]="data.applicationId" [apiId]="data.apiId"></api-key-validation>
       </div>
