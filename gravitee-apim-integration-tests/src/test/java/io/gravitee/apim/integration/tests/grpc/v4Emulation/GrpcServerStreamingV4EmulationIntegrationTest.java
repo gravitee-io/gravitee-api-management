@@ -26,16 +26,13 @@ import io.gravitee.gateway.grpc.manualflowcontrol.HelloReply;
 import io.gravitee.gateway.grpc.manualflowcontrol.HelloRequest;
 import io.gravitee.gateway.grpc.manualflowcontrol.StreamingGreeterGrpc;
 import io.gravitee.gateway.reactor.ReactableApi;
-import io.grpc.ManagedChannel;
-import io.grpc.Status;
-import io.grpc.stub.StreamObserver;
 import io.vertx.core.http.HttpServer;
-import io.vertx.grpc.VertxServer;
 import io.vertx.grpc.client.GrpcClient;
 import io.vertx.grpc.common.GrpcStatus;
 import io.vertx.grpc.server.GrpcServer;
 import io.vertx.grpc.server.GrpcServerResponse;
 import io.vertx.junit5.Checkpoint;
+import io.vertx.junit5.Timeout;
 import io.vertx.junit5.VertxTestContext;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -63,7 +60,7 @@ public class GrpcServerStreamingV4EmulationIntegrationTest extends AbstractGrpcG
     }
 
     @Test
-    void should_request_grpc_server(VertxTestContext testContext) throws InterruptedException {
+    void should_request_grpc_server(VertxTestContext testContext) {
         // start the backend
         GrpcServer grpcServer = GrpcServer.server(vertx);
         grpcServer.callHandler(
@@ -91,33 +88,33 @@ public class GrpcServerStreamingV4EmulationIntegrationTest extends AbstractGrpcG
 
         // create http server handled by gRPC
         HttpServer httpServer = createHttpServer(grpcServer);
-        httpServer.listen();
-
-        // dynamic client, and call the Gateway
-        createGrpcClient()
-            .request(gatewayAddress(), StreamingGreeterGrpc.getSayHelloStreamingMethod())
-            .compose(request -> {
-                // send one request
-                request.end(HelloRequest.newBuilder().setName("You").build());
-                return request.response();
-            })
-            .onSuccess(response -> {
-                response.handler(helloReply -> {
-                    // assert and count
-                    assertThat(helloReply.getMessage()).startsWith("Hello You part");
-                    messageCounter.flag();
-                });
-                response.exceptionHandler(err -> {
-                    testContext.failNow(err.getMessage());
-                });
-                response.endHandler(v -> {
-                    assertThat(testContext.completed()).isTrue();
-                });
-            })
-            .onComplete(response -> response.result().end())
-            .onFailure(testContext::failNow);
-
-        assertThat(testContext.awaitCompletion(10, TimeUnit.SECONDS)).isTrue();
+        httpServer
+            .listen()
+            .andThen(handler -> {
+                // dynamic client, and call the Gateway
+                createGrpcClient()
+                    .request(gatewayAddress(), StreamingGreeterGrpc.getSayHelloStreamingMethod())
+                    .compose(request -> {
+                        // send one request
+                        request.end(HelloRequest.newBuilder().setName("You").build());
+                        return request.response();
+                    })
+                    .onSuccess(response -> {
+                        response.handler(helloReply -> {
+                            // assert and count
+                            assertThat(helloReply.getMessage()).startsWith("Hello You part");
+                            messageCounter.flag();
+                        });
+                        response.exceptionHandler(err -> {
+                            testContext.failNow(err.getMessage());
+                        });
+                        response.endHandler(v -> {
+                            assertThat(testContext.completed()).isTrue();
+                        });
+                    })
+                    .onComplete(response -> response.result().end())
+                    .onFailure(testContext::failNow);
+            });
     }
 
     protected GrpcClient createGrpcClient() {

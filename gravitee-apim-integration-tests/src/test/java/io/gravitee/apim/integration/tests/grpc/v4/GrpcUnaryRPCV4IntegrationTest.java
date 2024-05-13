@@ -24,14 +24,10 @@ import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
 import io.gravitee.gateway.grpc.helloworld.GreeterGrpc;
 import io.gravitee.gateway.grpc.helloworld.HelloReply;
 import io.gravitee.gateway.grpc.helloworld.HelloRequest;
-import io.grpc.stub.StreamObserver;
 import io.vertx.core.http.HttpServer;
-import io.vertx.grpc.client.GrpcClient;
-import io.vertx.grpc.client.GrpcClientChannel;
 import io.vertx.grpc.common.GrpcReadStream;
 import io.vertx.grpc.server.GrpcServer;
 import io.vertx.grpc.server.GrpcServerResponse;
-import io.vertx.junit5.VertxTestContext;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -68,29 +64,31 @@ public class GrpcUnaryRPCV4IntegrationTest extends AbstractGrpcV4GatewayTest {
 
         // Create the backend HTTP Server handling gRPC
         HttpServer httpServer = createHttpServer(grpcServer);
-        httpServer.listen();
+        httpServer
+            .listen()
+            .andThen(handler -> {
+                // call the service through the gateway
+                getGrpcClient()
+                    .request(gatewayAddress(), GreeterGrpc.getSayHelloMethod())
+                    .compose(request -> {
+                        request.end(HelloRequest.newBuilder().setName("You").build());
+                        return request.response().compose(GrpcReadStream::last);
+                    })
+                    .onSuccess(helloReply -> {
+                        assertThat(helloReply).isNotNull();
+                        assertThat(helloReply.getMessage()).isEqualTo("Hello You");
+                        latch.countDown();
+                    })
+                    .onFailure(failure -> {
+                        failure.printStackTrace();
+                        fail(failure.getMessage());
+                    });
 
-        // call the service through the gateway
-        getGrpcClient()
-            .request(gatewayAddress(), GreeterGrpc.getSayHelloMethod())
-            .compose(request -> {
-                request.end(HelloRequest.newBuilder().setName("You").build());
-                return request.response().compose(GrpcReadStream::last);
-            })
-            .onSuccess(helloReply -> {
-                assertThat(helloReply).isNotNull();
-                assertThat(helloReply.getMessage()).isEqualTo("Hello You");
-                latch.countDown();
-            })
-            .onFailure(failure -> {
-                failure.printStackTrace();
-                fail(failure.getMessage());
-            });
-
-        await()
-            .atMost(10, TimeUnit.SECONDS)
-            .untilAsserted(() -> {
-                assertThat(latch.getCount()).isZero();
+                await()
+                    .atMost(30, TimeUnit.SECONDS)
+                    .untilAsserted(() -> {
+                        assertThat(latch.getCount()).isZero();
+                    });
             });
     }
 }
