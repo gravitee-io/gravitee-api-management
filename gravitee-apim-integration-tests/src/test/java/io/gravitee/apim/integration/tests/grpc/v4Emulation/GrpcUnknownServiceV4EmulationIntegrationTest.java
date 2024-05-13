@@ -29,7 +29,6 @@ import io.gravitee.gateway.reactor.ReactableApi;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
-import io.vertx.grpc.client.GrpcClient;
 import io.vertx.grpc.client.GrpcClientChannel;
 import io.vertx.junit5.VertxTestContext;
 import java.util.concurrent.TimeUnit;
