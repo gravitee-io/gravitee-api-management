@@ -24,7 +24,12 @@ import io.gravitee.rest.api.model.api.ApiLifecycleState;
 import io.gravitee.rest.api.model.parameters.Key;
 import io.gravitee.rest.api.model.parameters.ParameterReferenceType;
 import io.gravitee.rest.api.model.v4.api.GenericApiEntity;
-import io.gravitee.rest.api.portal.rest.model.*;
+import io.gravitee.rest.api.portal.rest.model.Api;
+import io.gravitee.rest.api.portal.rest.model.ApiLinks;
+import io.gravitee.rest.api.portal.rest.model.DefinitionVersion;
+import io.gravitee.rest.api.portal.rest.model.ListenerType;
+import io.gravitee.rest.api.portal.rest.model.RatingSummary;
+import io.gravitee.rest.api.portal.rest.model.User;
 import io.gravitee.rest.api.service.CategoryService;
 import io.gravitee.rest.api.service.ParameterService;
 import io.gravitee.rest.api.service.RatingService;
@@ -61,6 +66,9 @@ public class ApiMapper {
 
     public Api convert(ExecutionContext executionContext, GenericApiEntity api) {
         final Api apiItem = new Api();
+        if (api.getDefinitionVersion() != null) {
+            apiItem.setDefinitionVersion(DefinitionVersion.valueOf(api.getDefinitionVersion().name()));
+        }
         apiItem.setDescription(api.getDescription());
 
         List<ApiEntrypointEntity> apiEntrypoints = apiEntrypointService.getApiEntrypoints(executionContext, api);

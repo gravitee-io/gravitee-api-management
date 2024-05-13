@@ -3780,6 +3780,8 @@ components:
         id:
           description: Unique identifier of an API.
           type: string
+        definitionVersion:
+          $ref: '#/components/schemas/DefinitionVersion'
         name:
           description: Name of the API.
           type: string
@@ -3852,6 +3854,15 @@ components:
           items:
             $ref: '#/components/schemas/Plan'
 
+    DefinitionVersion:
+      type: string
+      description: API's gravitee definition version.
+      example: V4
+      enum:
+        - V1
+        - V2
+        - V4
+        - FEDERATED
     ListenerType:
       description: Listener of the API entrypoints.
       type: string
