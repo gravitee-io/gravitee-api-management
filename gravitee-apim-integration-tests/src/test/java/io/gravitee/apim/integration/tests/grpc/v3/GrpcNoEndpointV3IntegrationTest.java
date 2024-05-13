@@ -16,11 +16,8 @@
 package io.gravitee.apim.integration.tests.grpc.v3;
 
 import io.gravitee.apim.gateway.tests.sdk.annotations.GatewayTest;
-import io.gravitee.apim.gateway.tests.sdk.configuration.GatewayMode;
 import io.gravitee.apim.integration.tests.grpc.v4Emulation.GrpcNoEndpointV4EmulationIntegrationTest;
-import io.gravitee.definition.model.Api;
 import io.gravitee.definition.model.ExecutionMode;
-import io.gravitee.gateway.reactor.ReactableApi;
 
 /**
  * @author Yann TAVERNIER (yann.tavernier at graviteesource.com)
