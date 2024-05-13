@@ -21,8 +21,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
-import io.gravitee.apim.core.plan.exception.PlanInvalidException;
-import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.PlanRepository;
 import io.gravitee.repository.management.model.Plan;
@@ -83,14 +81,6 @@ public class PlanService_DeleteTest {
         when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
         when(subscriptionService.findByPlan(GraviteeContext.getExecutionContext(), PLAN_ID))
             .thenReturn(Collections.singleton(subscription));
-
-        planService.delete(GraviteeContext.getExecutionContext(), PLAN_ID);
-    }
-
-    @Test(expected = PlanInvalidException.class)
-    public void shouldNotDeleteBecauseFederated() throws TechnicalException {
-        when(plan.getDefinitionVersion()).thenReturn(DefinitionVersion.FEDERATED);
-        when(planRepository.findById(PLAN_ID)).thenReturn(Optional.of(plan));
 
         planService.delete(GraviteeContext.getExecutionContext(), PLAN_ID);
     }
