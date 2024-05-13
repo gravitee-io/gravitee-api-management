@@ -13,25 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.gravitee.gateway.handlers.accesspoint.manager;
+package io.gravitee.gateway.services.sync.process.repository.mapper;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.gateway.handlers.accesspoint.model.AccessPoint;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import io.gravitee.repository.management.model.Event;
+import io.reactivex.rxjava3.core.Maybe;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @RequiredArgsConstructor
-public class AccessPointManagerImpl implements AccessPointManager {
+@Slf4j
+public class AccessPointMapper {
 
-    private final Map<String, AccessPoint> accessPoints = new ConcurrentHashMap<>();
+    private final ObjectMapper objectMapper;
 
-    @Override
-    public void register(AccessPoint accessPoint) {
-        accessPoints.put(accessPoint.getReferenceId(), accessPoint);
-    }
-
-    @Override
-    public void unregister(AccessPoint accessPoint) {
-        accessPoints.remove(accessPoint.getReferenceId(), accessPoint);
+    public Maybe<AccessPoint> to(Event accessPointEvent) {
+        return Maybe.fromCallable(() -> {
+            try {
+                return objectMapper.readValue(accessPointEvent.getPayload(), AccessPoint.class);
+            } catch (Exception e) {
+                log.warn("Error while determining deployed access points from events payload", e);
+                return null;
+            }
+        });
     }
 }

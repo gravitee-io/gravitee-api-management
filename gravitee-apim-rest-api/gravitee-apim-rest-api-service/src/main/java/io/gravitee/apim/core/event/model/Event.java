@@ -65,7 +65,8 @@ public class Event {
         API_DEBUG_STATUS("api_debug_status"),
         GATEWAY_ID("gateway_id"),
         ENVIRONMENTS_HRIDS_PROPERTY("environments_hrids"),
-        ORGANIZATIONS_HRIDS_PROPERTY("organizations_hrids");
+        ORGANIZATIONS_HRIDS_PROPERTY("organizations_hrids"),
+        ACCESS_POINT_ID("access_point_id");
 
         private static final Map<String, EventProperties> LABELS_MAP;
 
