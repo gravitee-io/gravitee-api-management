@@ -672,6 +672,47 @@ describe('ApiSubscriptionListComponent', () => {
       expect(await createSubBtn).toBeDefined();
       expect(await createSubBtn.isDisabled()).toEqual(true);
     }));
+
+    it('should not display custom api key nor API Key mode for federated API', fakeAsync(async () => {
+      await init({
+        customApiKey: { enabled: true },
+        sharedApiKey: { enabled: true },
+      });
+      const planV4 = fakePlanV4({ generalConditions: undefined });
+      const application = fakeApplication({ api_key_mode: ApplicationApiKeyMode.SHARED });
+
+      await initComponent([], fakeApiV4({ id: API_ID, listeners: [] }), [planV4]);
+      const harness = await loader.getHarness(ApiSubscriptionListHarness);
+
+      const createSubBtn = await harness.getCreateSubscriptionButton();
+      expect(await createSubBtn).toBeDefined();
+      expect(await createSubBtn.isDisabled()).toEqual(false);
+
+      await createSubBtn.click();
+
+      const creationDialogHarness = await TestbedHarnessEnvironment.documentRootLoader(fixture).getHarness(
+        ApiPortalSubscriptionCreationDialogHarness,
+      );
+      expect(await creationDialogHarness.getTitleText()).toEqual('Create a subscription');
+
+      await creationDialogHarness.searchApplication('application');
+      tick(400);
+      expectApplicationsSearch('application', [application]);
+      tick();
+      await creationDialogHarness.selectApplication('application');
+      tick(400);
+      const apiKeySubscription = {
+        security: PlanSecurityType.API_KEY,
+        api: 'another-plan-id',
+      };
+      expectSubscriptionsForApplication(application.id, [apiKeySubscription]);
+      await creationDialogHarness.choosePlan(planV4.name);
+
+      expectApiKeySubscriptionsGetRequest(application.id, [apiKeySubscription]);
+      expect(await creationDialogHarness.isApiKeyModeRadioGroupDisplayed()).toBeFalsy();
+      expect(await creationDialogHarness.isCustomApiKeyInputDisplayed()).toBeFalsy();
+      flush();
+    }));
   });
 
   describe('export subscriptions', () => {

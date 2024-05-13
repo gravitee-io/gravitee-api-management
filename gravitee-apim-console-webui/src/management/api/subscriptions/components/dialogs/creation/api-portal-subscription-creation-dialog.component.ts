@@ -35,6 +35,7 @@ import { ApplicationSubscription } from '../../../../../../entities/subscription
 export type ApiPortalSubscriptionCreationDialogData = {
   availableSubscriptionEntrypoints?: Entrypoint[];
   plans: Plan[];
+  isFederatedApi?: boolean;
 };
 
 export type ApiPortalSubscriptionCreationDialogResult = {
@@ -76,8 +77,8 @@ export class ApiPortalSubscriptionCreationDialogComponent implements OnInit, OnD
   ) {
     this.plans = dialogData.plans.filter((plan) => plan.security?.type !== 'KEY_LESS');
     this.availableSubscriptionEntrypoints = dialogData.availableSubscriptionEntrypoints.map((entrypoint) => ({ type: entrypoint.type }));
-    this.canUseCustomApiKey = this.constants.env?.settings?.plan?.security?.customApiKey?.enabled;
-    this.canUseSharedApiKeys = this.constants.env?.settings?.plan?.security?.sharedApiKey?.enabled;
+    this.canUseCustomApiKey = !dialogData.isFederatedApi && this.constants.env?.settings?.plan?.security?.customApiKey?.enabled;
+    this.canUseSharedApiKeys = !dialogData.isFederatedApi && this.constants.env?.settings?.plan?.security?.sharedApiKey?.enabled;
   }
 
   ngOnInit(): void {

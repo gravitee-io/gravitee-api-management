@@ -269,6 +269,7 @@ export class ApiSubscriptionListComponent implements OnInit, OnDestroy {
         role: 'alertdialog',
         id: 'createSubscriptionDialog',
         data: {
+          isFederatedApi: this.api.definitionVersion === 'FEDERATED',
           availableSubscriptionEntrypoints: this.getApiSubscriptionEntrypoints(this.api),
           plans: this.plans.filter((plan) => plan.status),
         },
