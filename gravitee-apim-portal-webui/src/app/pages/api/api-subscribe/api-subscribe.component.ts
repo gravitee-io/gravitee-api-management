@@ -727,6 +727,7 @@ export class ApiSubscribeComponent implements OnInit {
 
   canDisplayApiKeyModeStep() {
     return (
+      this.api.definitionVersion != 'FEDERATED' &&
       this.canConfigureSharedApiKey() &&
       this.isApiKey() &&
       this.getSelectedApplication()?.api_key_mode === ApiKeyModeEnum.UNSPECIFIED &&

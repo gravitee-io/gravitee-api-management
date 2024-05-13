@@ -8,6 +8,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { DefinitionVersion } from './definitionVersion';
 import { RatingSummary } from './ratingSummary';
 import { User } from './user';
 import { ListenerType } from './listenerType';
@@ -24,6 +25,7 @@ export interface Api {
      * Unique identifier of an API.
      */
     id: string;
+    definitionVersion?: DefinitionVersion;
     /**
      * Name of the API.
      */

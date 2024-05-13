@@ -47,6 +47,7 @@ export * from './countAnalytics';
 export * from './customUserFields';
 export * from './dashboard';
 export * from './dateHistoAnalytics';
+export * from './definitionVersion';
 export * from './enabled';
 export * from './entrypoint';
 export * from './errorResponse';
