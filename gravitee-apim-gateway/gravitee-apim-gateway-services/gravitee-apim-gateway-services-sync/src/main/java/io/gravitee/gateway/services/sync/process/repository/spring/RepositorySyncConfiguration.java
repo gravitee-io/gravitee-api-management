@@ -26,12 +26,12 @@ import io.gravitee.gateway.services.sync.process.distributed.DistributedSynchron
 import io.gravitee.gateway.services.sync.process.distributed.service.DistributedSyncService;
 import io.gravitee.gateway.services.sync.process.repository.DefaultSyncManager;
 import io.gravitee.gateway.services.sync.process.repository.RepositorySynchronizer;
-import io.gravitee.gateway.services.sync.process.repository.fetcher.AccessPointFetcher;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.ApiKeyFetcher;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.DebugEventFetcher;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.LatestEventFetcher;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.LicenseFetcher;
 import io.gravitee.gateway.services.sync.process.repository.fetcher.SubscriptionFetcher;
+import io.gravitee.gateway.services.sync.process.repository.mapper.AccessPointMapper;
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiKeyMapper;
 import io.gravitee.gateway.services.sync.process.repository.mapper.ApiMapper;
 import io.gravitee.gateway.services.sync.process.repository.mapper.DebugMapper;
@@ -95,6 +95,11 @@ public class RepositorySyncConfiguration {
     }
 
     @Bean
+    public AccessPointMapper accessPointMapper(ObjectMapper objectMapper) {
+        return new AccessPointMapper(objectMapper);
+    }
+
+    @Bean
     public LatestEventFetcher eventFetcher(
         EventLatestRepository eventLatestRepository,
         @Value("${services.sync.bulk_items:" + DEFAULT_BULK_ITEMS + "}") int bulkItems
@@ -123,14 +128,6 @@ public class RepositorySyncConfiguration {
         @Value("${services.sync.bulk_items:" + DEFAULT_BULK_ITEMS + "}") int bulkItems
     ) {
         return new LicenseFetcher(licenseRepository, bulkItems);
-    }
-
-    @Bean
-    public AccessPointFetcher accessPointFetcher(
-        AccessPointRepository accessPointRepository,
-        @Value("${services.sync.bulk_items:" + DEFAULT_BULK_ITEMS + "}") int bulkItems
-    ) {
-        return new AccessPointFetcher(accessPointRepository, bulkItems);
     }
 
     @Bean
@@ -254,12 +251,19 @@ public class RepositorySyncConfiguration {
 
     @Bean
     public AccessPointSynchronizer accessPointSynchronizer(
-        AccessPointFetcher accessPointFetcher,
+        LatestEventFetcher latestEventFetcher,
+        AccessPointMapper accessPointMapper,
         DeployerFactory deployerFactory,
         @Qualifier("syncFetcherExecutor") ThreadPoolExecutor syncFetcherExecutor,
         @Qualifier("syncDeployerExecutor") ThreadPoolExecutor syncDeployerExecutor
     ) {
-        return new AccessPointSynchronizer(accessPointFetcher, deployerFactory, syncFetcherExecutor, syncDeployerExecutor);
+        return new AccessPointSynchronizer(
+            latestEventFetcher,
+            accessPointMapper,
+            deployerFactory,
+            syncFetcherExecutor,
+            syncDeployerExecutor
+        );
     }
 
     @Bean

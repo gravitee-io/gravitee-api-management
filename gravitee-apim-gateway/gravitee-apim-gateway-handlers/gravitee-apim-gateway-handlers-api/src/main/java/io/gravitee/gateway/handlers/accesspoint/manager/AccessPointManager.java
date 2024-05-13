@@ -19,4 +19,6 @@ import io.gravitee.gateway.handlers.accesspoint.model.AccessPoint;
 
 public interface AccessPointManager {
     void register(AccessPoint accessPoint);
+
+    void unregister(AccessPoint accessPoint);
 }

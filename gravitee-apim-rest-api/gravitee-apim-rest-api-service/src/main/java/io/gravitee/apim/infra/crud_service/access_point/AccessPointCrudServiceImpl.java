@@ -23,9 +23,14 @@ import io.gravitee.common.event.EventManager;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.repository.management.api.AccessPointRepository;
 import io.gravitee.repository.management.model.AccessPointReferenceType;
+import io.gravitee.repository.management.model.AccessPointTarget;
+import io.gravitee.rest.api.model.EventType;
+import io.gravitee.rest.api.service.EventService;
+import io.gravitee.rest.api.service.common.ExecutionContext;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.gravitee.rest.api.service.exceptions.TechnicalManagementException;
 import io.gravitee.rest.api.service.impl.TransactionalService;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import org.springframework.context.annotation.Lazy;
@@ -36,10 +41,16 @@ public class AccessPointCrudServiceImpl extends TransactionalService implements 
 
     private final AccessPointRepository accessPointRepository;
     private EventManager eventManager;
+    private EventService eventService;
 
-    public AccessPointCrudServiceImpl(@Lazy AccessPointRepository accessPointRepository, EventManager eventManager) {
+    public AccessPointCrudServiceImpl(
+        @Lazy AccessPointRepository accessPointRepository,
+        EventManager eventManager,
+        EventService eventService
+    ) {
         this.accessPointRepository = accessPointRepository;
         this.eventManager = eventManager;
+        this.eventService = eventService;
     }
 
     @Override
@@ -59,6 +70,17 @@ public class AccessPointCrudServiceImpl extends TransactionalService implements 
                 ap.setUpdatedAt(new Date());
                 io.gravitee.repository.management.model.AccessPoint createdAccessPoint = accessPointRepository.create(ap);
                 eventManager.publishEvent(AccessPointEvent.CREATED, AccessPointAdapter.INSTANCE.toEntity(createdAccessPoint));
+
+                if (
+                    ap.getTarget().equals(AccessPointTarget.GATEWAY) && ap.getReferenceType().equals(AccessPointReferenceType.ENVIRONMENT)
+                ) {
+                    eventService.createAccessPointGatewayEvent(
+                        new ExecutionContext(null, ap.getReferenceId()),
+                        Collections.singleton(ap.getReferenceId()),
+                        EventType.PUBLISH_ACCESS_POINT,
+                        createdAccessPoint
+                    );
+                }
             }
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error occurs while creating access points", e);
@@ -73,14 +95,22 @@ public class AccessPointCrudServiceImpl extends TransactionalService implements 
                 referenceId
             );
 
-            //TODO: add to repo with deleted status for synchronization and then handle add/remove on deployer?
-            //TODO: Or use event service for update and delete access points events and use this in the synchronizer
-
             if (deleteAccessPoints != null) {
-                deleteAccessPoints
-                    .stream()
-                    .map(AccessPointAdapter.INSTANCE::toEntity)
-                    .forEach(accessPoint -> eventManager.publishEvent(AccessPointEvent.DELETED, accessPoint));
+                for (io.gravitee.repository.management.model.AccessPoint accessPoint : deleteAccessPoints) {
+                    eventManager.publishEvent(AccessPointEvent.DELETED, AccessPointAdapter.INSTANCE.toEntity(accessPoint));
+
+                    if (
+                        accessPoint.getTarget().equals(AccessPointTarget.GATEWAY) &&
+                        accessPoint.getReferenceType().equals(AccessPointReferenceType.ENVIRONMENT)
+                    ) {
+                        eventService.createAccessPointGatewayEvent(
+                            new ExecutionContext(null, accessPoint.getReferenceId()),
+                            Collections.singleton(accessPoint.getReferenceId()),
+                            EventType.UNPUBLISH_ACCESS_POINT,
+                            accessPoint
+                        );
+                    }
+                }
             }
         } catch (TechnicalException e) {
             throw new TechnicalManagementException("An error occurs while deleting access points", e);
