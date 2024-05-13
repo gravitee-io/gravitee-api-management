@@ -18,29 +18,18 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { ConfigService } from './config.service';
-import { Api } from '../entities/api/api';
-import { ApisResponse } from '../entities/api/apis-response';
+import { Categories } from '../entities/categories/categories';
 
 @Injectable({
   providedIn: 'root',
 })
-export class ApiService {
+export class CategoriesService {
   constructor(
     private readonly http: HttpClient,
-    private configService: ConfigService,
+    private readonly configService: ConfigService,
   ) {}
 
-  list(page = 1, category: string = 'all', size = 9): Observable<ApisResponse> {
-    return this.http.get<ApisResponse>(`${this.configService.baseURL}/apis`, {
-      params: {
-        page,
-        category: category !== 'all' && category !== undefined ? category : '',
-        size,
-      },
-    });
-  }
-
-  details(apiId: string): Observable<Api> {
-    return this.http.get<Api>(`${this.configService.baseURL}/apis/${apiId}`);
+  categories(): Observable<Categories> {
+    return this.http.get<Categories>(`${this.configService.baseURL}/categories?size=-1`);
   }
 }

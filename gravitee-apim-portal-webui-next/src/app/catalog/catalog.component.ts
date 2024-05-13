@@ -18,12 +18,16 @@ import { AsyncPipe } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { MatCard, MatCardContent } from '@angular/material/card';
 import { InfiniteScrollModule } from 'ngx-infinite-scroll';
-import { BehaviorSubject, map, Observable, scan, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, catchError, map, Observable, scan, switchMap, tap } from 'rxjs';
+import { of } from 'rxjs/internal/observable/of';
 
 import { ApiCardComponent } from '../../components/api-card/api-card.component';
+import { ApiFilterComponent } from '../../components/api-filter/api-filter.component';
 import { BannerComponent } from '../../components/banner/banner.component';
 import { LoaderComponent } from '../../components/loader/loader.component';
+import { Category } from '../../entities/categories/categories';
 import { ApiService } from '../../services/api.service';
+import { CategoriesService } from '../../services/categories.service';
 
 export interface ApiVM {
   id: string;
@@ -42,23 +46,36 @@ export interface ApiPaginatorVM {
 @Component({
   selector: 'app-catalog',
   standalone: true,
-  imports: [BannerComponent, MatCard, MatCardContent, ApiCardComponent, AsyncPipe, InfiniteScrollModule, LoaderComponent],
+  imports: [
+    BannerComponent,
+    MatCard,
+    MatCardContent,
+    ApiCardComponent,
+    AsyncPipe,
+    InfiniteScrollModule,
+    LoaderComponent,
+    ApiFilterComponent,
+  ],
   templateUrl: './catalog.component.html',
   styleUrl: './catalog.component.scss',
 })
 export class CatalogComponent {
   apiPaginator$: Observable<ApiPaginatorVM>;
+  filterList$: Observable<Category[]> = of([]);
   loadingPage$ = new BehaviorSubject(true);
 
   // TODO: Get banner title + subtitle from configuration
   bannerTitle: string = 'Welcome to Gravitee Developer Portal!';
   bannerSubtitle: string = 'Discover powerful APIs to supercharge your projects.';
+  selectedFilter: string = 'all';
 
   private apiService = inject(ApiService);
+  private categoriesService = inject(CategoriesService);
   private page$ = new BehaviorSubject(1);
 
   constructor() {
     this.apiPaginator$ = this.loadApis$();
+    this.filterList$ = this.loadCategories$();
   }
 
   loadMoreApis(paginator: ApiPaginatorVM) {
@@ -69,10 +86,15 @@ export class CatalogComponent {
     this.page$.next(paginator.page + 1);
   }
 
+  public onFilterSelection(event: string) {
+    this.selectedFilter = event;
+    this.page$.next(1);
+  }
+
   private loadApis$(): Observable<ApiPaginatorVM> {
     return this.page$.pipe(
       tap(_ => this.loadingPage$.next(true)),
-      switchMap(currentPage => this.apiService.list(currentPage)),
+      switchMap(currentPage => this.apiService.list(currentPage, this.selectedFilter)),
       map(resp => {
         const data = resp.data
           ? resp.data.map(api => ({
@@ -94,6 +116,19 @@ export class CatalogComponent {
       }),
       scan(this.updatePaginator, { data: [], page: 1, hasNextPage: true }),
       tap(_ => this.loadingPage$.next(false)),
+    );
+  }
+
+  private loadCategories$(): Observable<Category[]> {
+    return this.categoriesService.categories().pipe(
+      map(response => {
+        if (response) {
+          return response.data.sort((a, b) => a.name!.localeCompare(b.name!));
+        } else {
+          return [];
+        }
+      }),
+      catchError(_ => of([])),
     );
   }
 
