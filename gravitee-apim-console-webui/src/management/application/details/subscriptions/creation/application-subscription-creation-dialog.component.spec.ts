@@ -37,8 +37,10 @@ import { ApplicationSubscriptionListModule } from '../list/application-subscript
 import {
   Api,
   ConnectorPlugin,
+  fakeApiFederated,
   fakeApiV2,
   fakeApiV4,
+  fakePlanFederated,
   fakePlanV2,
   fakePlanV4,
   getEntrypointConnectorSchema,
@@ -205,6 +207,31 @@ describe('ApplicationSubscriptionCreationDialogComponent', () => {
 
         const subscription = fakeNewSubscriptionEntity({ apiKeyMode: ApiKeyMode.SHARED });
         expectApiSubscriptionsPostRequest(subscription, API_KEY_PLAN.id, ApiKeyMode.SHARED);
+        expect(routerNavigateSpy).toHaveBeenCalledWith(['.', expect.anything()], expect.anything());
+      }));
+
+      it('should create a subscription for Federated API', fakeAsync(async () => {
+        await init(APP, {
+          plan: {
+            security: {
+              ...DEFAULT_ENV_SETTINGS.plan.security,
+              sharedApiKey: { enabled: true },
+            },
+          },
+        });
+
+        await dialogHarness.searchApi(API_NAME);
+        tick(100);
+        expectApiSearchPost(fakeApiFederated({ id: API_ID, name: API_NAME }));
+
+        await dialogHarness.selectApi(API_NAME);
+        expectSubscribableApiPlansGet([API_KEY_PLAN, fakePlanFederated({ apiId: API_ID, security: { type: 'JWT' } })]);
+
+        await dialogHarness.selectPlan(API_KEY_PLAN.name);
+        await dialogHarness.createSubscription();
+
+        const subscription = fakeNewSubscriptionEntity({ apiKeyMode: ApiKeyMode.UNSPECIFIED });
+        expectApiSubscriptionsPostRequest(subscription, API_KEY_PLAN.id);
         expect(routerNavigateSpy).toHaveBeenCalledWith(['.', expect.anything()], expect.anything());
       }));
     });

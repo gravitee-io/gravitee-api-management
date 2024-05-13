@@ -55,6 +55,7 @@ type SubscriptionCreationForm = FormGroup<{
 export class ApplicationSubscriptionCreationDialogComponent {
   private destroyRef = inject(DestroyRef);
   private canUseSharedApiKeys = this.environmentSettingsService.getSnapshot().plan?.security?.sharedApiKey?.enabled;
+  private isFederatedApi = false;
   private apiKeySubscriptions: ApplicationSubscription[];
   private entrypointsMap = new Map<string, { icon: string; name: string }>();
   protected availableSubscriptionEntrypoints: { type: string; name?: string; icon?: string }[] = [];
@@ -141,6 +142,7 @@ export class ApplicationSubscriptionCreationDialogComponent {
       share(),
       takeUntilDestroyed(this.destroyRef),
     );
+    this.isFederatedApi = selectedApi.definitionVersion === 'FEDERATED';
     if (selectedApi.definitionVersion === 'V4') {
       this.availableSubscriptionEntrypoints = selectedApi.listeners
         .filter((listener) => listener.type === 'SUBSCRIPTION')
@@ -195,7 +197,8 @@ export class ApplicationSubscriptionCreationDialogComponent {
         filter((plan) => plan?.security?.type === 'API_KEY'),
         switchMap((plan) =>
           of(
-            this.canUseSharedApiKeys &&
+            !this.isFederatedApi &&
+              this.canUseSharedApiKeys &&
               this.application.api_key_mode === ApiKeyMode.UNSPECIFIED &&
               this.apiKeySubscriptions.some((subscription) => subscription?.api !== plan.apiId),
           ),

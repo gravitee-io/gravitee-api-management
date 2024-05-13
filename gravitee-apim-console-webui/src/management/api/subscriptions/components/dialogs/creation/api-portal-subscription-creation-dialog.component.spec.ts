@@ -42,6 +42,7 @@ import {
   Entrypoint,
   entrypointsGetResponse,
   fakeApiV4,
+  fakePlanFederated,
   fakePlanV4,
   Plan,
   VerifySubscription,
@@ -60,6 +61,7 @@ import { Constants } from '../../../../../../entities/Constants';
 })
 class TestComponent {
   public plans?: Plan[];
+  public isFederatedApi?: boolean;
   public availableSubscriptionEntrypoints?: Entrypoint[];
   public subscriptionToCreate: CreateSubscription;
   public dialog: MatDialogRef<ApiPortalSubscriptionCreationDialogComponent>;
@@ -74,6 +76,7 @@ class TestComponent {
       data: {
         plans: this.plans,
         availableSubscriptionEntrypoints: this.availableSubscriptionEntrypoints,
+        isFederatedApi: this.isFederatedApi,
       },
       role: 'alertdialog',
       id: 'testDialog',
@@ -503,6 +506,80 @@ describe('Subscription creation dialog', () => {
 
         await harness.chooseApiKeyMode('Shared API Key');
 
+        expect(await harness.isCustomApiKeyInputDisplayed()).toBeFalsy();
+      });
+    });
+    describe('With custom API Key enabled and shared apiKey enabled and API is Federated', () => {
+      beforeEach(() => {
+        TestBed.configureTestingModule({
+          declarations: [TestComponent],
+          imports: [ApiSubscriptionsModule, NoopAnimationsModule, GioTestingModule, MatIconTestingModule],
+          providers: [
+            { provide: SubscriptionService },
+            {
+              provide: InteractivityChecker,
+              useValue: {
+                isFocusable: () => true, // This traps focus checks and so avoid warnings when dealing with
+                isTabbable: () => true, // This traps tabbable checks and so avoid warnings when dealing with
+              },
+            },
+            {
+              provide: Constants,
+              useFactory: () => {
+                const constants = CONSTANTS_TESTING;
+                set(constants, 'env.settings.plan.security', {
+                  customApiKey: { enabled: true },
+                  sharedApiKey: { enabled: true },
+                });
+                return constants;
+              },
+            },
+          ],
+        });
+        fixture = TestBed.createComponent(TestComponent);
+        httpTestingController = TestBed.inject(HttpTestingController);
+        fixture.detectChanges();
+        component = fixture.componentInstance;
+        loader = TestbedHarnessEnvironment.documentRootLoader(fixture);
+      });
+
+      afterEach(() => {
+        jest.clearAllMocks();
+        httpTestingController.verify();
+      });
+
+      it('should not be able to select API Key mode nor Custom Key', async () => {
+        const applicationWithClientId = fakeApplication({
+          id: 'my-app',
+          name: 'withClientId',
+          settings: { app: { client_id: 'clientId' } },
+          api_key_mode: ApiKeyMode.UNSPECIFIED,
+        });
+        const plan = fakePlanFederated({ apiId: 'my-api', mode: 'STANDARD', security: { type: 'API_KEY' }, generalConditions: undefined });
+        component.isFederatedApi = true;
+        component.plans = [plan];
+        component.availableSubscriptionEntrypoints = [];
+
+        await componentTestingOpenDialog();
+
+        const harness = await loader.getHarness(ApiPortalSubscriptionCreationDialogHarness);
+        expect(await harness.isPlanRadioGroupEnabled()).toBeFalsy();
+
+        await harness.searchApplication('withClientId');
+        expectApplicationsSearch('withClientId', [applicationWithClientId]);
+        await harness.selectApplication(applicationWithClientId.name);
+
+        const apikeySubscription = {
+          security: PlanSecurityType.API_KEY,
+          api: 'another-plan-id',
+        };
+        expectSubscriptionsForApplication(applicationWithClientId.id, [apikeySubscription]);
+
+        expect(await harness.isPlanRadioGroupEnabled()).toBeTruthy();
+        await harness.choosePlan(plan.name);
+
+        expectApiKeySubscriptionsGetRequest(applicationWithClientId.id, [apikeySubscription]);
+        expect(await harness.isApiKeyModeRadioGroupDisplayed()).toBeFalsy();
         expect(await harness.isCustomApiKeyInputDisplayed()).toBeFalsy();
       });
     });
