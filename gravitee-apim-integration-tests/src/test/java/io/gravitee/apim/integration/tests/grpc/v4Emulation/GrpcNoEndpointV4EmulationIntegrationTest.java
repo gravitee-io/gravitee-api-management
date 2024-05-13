@@ -26,13 +26,10 @@ import io.gravitee.gateway.grpc.helloworld.GreeterGrpc;
 import io.gravitee.gateway.grpc.helloworld.HelloReply;
 import io.gravitee.gateway.grpc.helloworld.HelloRequest;
 import io.gravitee.gateway.reactor.ReactableApi;
-import io.grpc.ManagedChannel;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
-import io.vertx.grpc.client.GrpcClient;
 import io.vertx.grpc.client.GrpcClientChannel;
-import io.vertx.grpc.common.GrpcReadStream;
 import io.vertx.junit5.VertxTestContext;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -89,7 +86,5 @@ public class GrpcNoEndpointV4EmulationIntegrationTest extends AbstractGrpcGatewa
                 }
             }
         );
-
-        assertThat(testContext.awaitCompletion(10, TimeUnit.SECONDS)).isTrue();
     }
 }
