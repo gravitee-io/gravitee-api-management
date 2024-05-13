@@ -27,7 +27,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.flow.crud_service.FlowCrudService;
 import io.gravitee.apim.core.subscription.domain_service.CloseSubscriptionDomainService;
-import io.gravitee.definition.model.DefinitionVersion;
 import io.gravitee.definition.model.v4.flow.Flow;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.repository.exceptions.TechnicalException;
@@ -498,10 +497,6 @@ public class PlanServiceImpl extends AbstractService implements PlanService {
             logger.debug("Delete plan {}", planId);
 
             Plan plan = planRepository.findById(planId).orElseThrow(() -> new PlanNotFoundException(planId));
-
-            if (plan.getDefinitionVersion() == DefinitionVersion.FEDERATED) {
-                throw new io.gravitee.apim.core.plan.exception.PlanInvalidException("Cannot delete federated plan");
-            }
 
             if (plan.getSecurity() != Plan.PlanSecurityType.KEY_LESS) {
                 int subscriptions = subscriptionService.findByPlan(executionContext, planId).size();
