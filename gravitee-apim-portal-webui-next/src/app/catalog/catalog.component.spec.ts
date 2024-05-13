@@ -24,6 +24,7 @@ import { CatalogComponent } from './catalog.component';
 import { ApiCardHarness } from '../../components/api-card/api-card.harness';
 import { fakeApi, fakeApisResponse } from '../../entities/api/api.fixtures';
 import { ApisResponse } from '../../entities/api/apis-response';
+import { fakeCategoriesResponse } from '../../entities/categories/categories.fixture';
 import { AppTestingModule, TESTING_BASE_URL } from '../../testing/app-testing.module';
 
 describe('CatalogComponent', () => {
@@ -40,6 +41,7 @@ describe('CatalogComponent', () => {
     httpTestingController = TestBed.inject(HttpTestingController);
     harnessLoader = TestbedHarnessEnvironment.loader(fixture);
 
+    fixture.componentInstance.selectedFilter = 'all';
     fixture.detectChanges();
   });
 
@@ -83,6 +85,7 @@ describe('CatalogComponent', () => {
         'Get real-time weather updates, forecasts, and historical data to enhance your applications with accurate weather information.',
       );
       expect(await apiCard.getVersion()).toEqual('v.1.2');
+      expectCategoriesList(fakeCategoriesResponse());
     });
     it('should call second page after scrolled event', async () => {
       const apiCard = await harnessLoader.getAllHarnesses(ApiCardHarness);
@@ -104,6 +107,7 @@ describe('CatalogComponent', () => {
         2,
       );
       fixture.detectChanges();
+      expectCategoriesList(fakeCategoriesResponse());
 
       const allHarnesses = await harnessLoader.getAllHarnesses(ApiCardHarness);
       expect(allHarnesses.length).toEqual(2);
@@ -130,6 +134,7 @@ describe('CatalogComponent', () => {
         2,
       );
       fixture.detectChanges();
+      expectCategoriesList(fakeCategoriesResponse());
 
       const allHarnesses = await harnessLoader.getAllHarnesses(ApiCardHarness);
       expect(allHarnesses.length).toEqual(2);
@@ -145,10 +150,15 @@ describe('CatalogComponent', () => {
       const noApiCard = await harnessLoader.getHarness(MatCardHarness.with({ selector: '#no-apis' }));
       expect(noApiCard).toBeTruthy();
       expect(await noApiCard.getText()).toContain('Sorry, there are no APIs listed yet.');
+      expectCategoriesList(fakeCategoriesResponse());
     });
   });
 
   function expectApiList(apisResponse: ApisResponse = fakeApisResponse(), page: number = 1, size: number = 9) {
-    httpTestingController.expectOne(`${TESTING_BASE_URL}/apis?page=${page}&size=${size}`).flush(apisResponse);
+    httpTestingController.expectOne(`${TESTING_BASE_URL}/apis?page=${page}&category=&size=${size}`).flush(apisResponse);
+  }
+
+  function expectCategoriesList(categoriesResponse = fakeCategoriesResponse()) {
+    httpTestingController.expectOne(`${TESTING_BASE_URL}/categories?size=-1`).flush(categoriesResponse);
   }
 });

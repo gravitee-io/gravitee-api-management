@@ -41,12 +41,12 @@ describe('ApiService', () => {
     it('should return apis response with default page and size', done => {
       const apisResponse: ApisResponse = fakeApisResponse();
 
-      service.list().subscribe(response => {
+      service.list(1, 'ALL').subscribe(response => {
         expect(response).toMatchObject(apisResponse);
         done();
       });
 
-      const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/apis?page=1&size=9`);
+      const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/apis?page=1&category=ALL&size=9`);
       expect(req.request.method).toEqual('GET');
 
       req.flush(apisResponse);
@@ -55,12 +55,12 @@ describe('ApiService', () => {
     it('should return apis response with specified page and size', done => {
       const apisResponse: ApisResponse = fakeApisResponse();
 
-      service.list(2, 99).subscribe(response => {
+      service.list(2, 'ALL', 99).subscribe(response => {
         expect(response).toMatchObject(apisResponse);
         done();
       });
 
-      const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/apis?page=2&size=99`);
+      const req = httpTestingController.expectOne(`${TESTING_BASE_URL}/apis?page=2&category=ALL&size=99`);
       expect(req.request.method).toEqual('GET');
 
       req.flush(apisResponse);

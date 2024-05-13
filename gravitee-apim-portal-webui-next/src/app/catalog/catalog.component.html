@@ -23,6 +23,9 @@
 </app-banner>
 
 @if (apiPaginator$ | async; as apis) {
+  @if (filterList$ | async; as filterList) {
+    <app-api-filter (selectedFilter)="onFilterSelection($event)" [filterList]="filterList"></app-api-filter>
+  }
   @if (apis.data.length === 0) {
     <mat-card id="no-apis" appearance="outlined">
       <mat-card-content>
