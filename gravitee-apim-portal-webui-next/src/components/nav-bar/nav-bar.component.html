@@ -15,15 +15,17 @@
     limitations under the License.
 
 -->
-<app-company-title></app-company-title>
-<div class="menu-items">
-  <app-nav-bar-button i18n="@@catalog" [path]="['catalog']">Catalog</app-nav-bar-button>
-</div>
-<div class="actions">
-  @if (!isEmpty(currentUser())) {
-    <app-user-avatar [user]="currentUser()" />
-  } @else {
-    <app-nav-bar-button i18n="@@logIn" [path]="['log-in']">Log in</app-nav-bar-button>
-    <button i18n="@@signUp" mat-flat-button color="primary">Sign up</button>
-  }
+<div class="nav-bar__container">
+  <app-company-title></app-company-title>
+  <div class="menu-items">
+    <app-nav-bar-button i18n="@@catalog" [path]="['catalog']">Catalog</app-nav-bar-button>
+  </div>
+  <div class="actions">
+    @if (!isEmpty(currentUser())) {
+      <app-user-avatar [user]="currentUser()" />
+    } @else {
+      <app-nav-bar-button i18n="@@logIn" [path]="['log-in']">Log in</app-nav-bar-button>
+      <button i18n="@@signUp" mat-flat-button color="primary">Sign up</button>
+    }
+  </div>
 </div>

@@ -15,7 +15,6 @@
  */
 :host {
   display: flex;
-  max-width: 1040px;
   min-height: 95vh;
   flex-flow: column;
   margin: auto;
@@ -23,5 +22,7 @@
 }
 
 .content {
+  width: 1040px;
   flex: 1 1 100%;
+  margin: auto;
 }
