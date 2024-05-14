@@ -120,10 +120,14 @@ public class ApisResource extends AbstractResource<Api, String> {
     @Path("_search")
     @Produces(MediaType.APPLICATION_JSON)
     @RequirePortalAuth
-    public Response searchApis(@QueryParam("q") String query, @BeanParam PaginationParam paginationParam) {
+    public Response searchApis(
+        @QueryParam("q") String query,
+        @QueryParam("category") String category,
+        @BeanParam PaginationParam paginationParam
+    ) {
         try {
             final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
-            Collection<String> apisList = filteringService.searchApis(executionContext, getAuthenticatedUserOrNull(), query);
+            Collection<String> apisList = filteringService.searchApis(executionContext, getAuthenticatedUserOrNull(), query, category);
             return createListResponse(executionContext, new ArrayList<>(apisList), paginationParam);
         } catch (TechnicalException e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e).build();
