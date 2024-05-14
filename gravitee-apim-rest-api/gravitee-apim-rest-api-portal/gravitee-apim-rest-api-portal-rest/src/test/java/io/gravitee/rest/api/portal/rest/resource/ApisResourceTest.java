@@ -327,6 +327,30 @@ public class ApisResourceTest extends AbstractResourceTest {
     }
 
     @Test
+    public void shouldSearchApisWithEmptyQ() throws TechnicalException {
+        doReturn(new HashSet<>(List.of("3"))).when(filteringService).searchApis(eq(GraviteeContext.getExecutionContext()), any(), any());
+
+        final Response response = target("/_search").queryParam("q", "").request().post(Entity.json(null));
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        ApisResponse apiResponse = response.readEntity(ApisResponse.class);
+        assertEquals(1, apiResponse.getData().size());
+        assertTrue(getmaxLabelsListSize(apiResponse) > 0);
+    }
+
+    @Test
+    public void shouldSearchApisWithNoQParameter() throws TechnicalException {
+        doReturn(new HashSet<>(List.of("3"))).when(filteringService).searchApis(eq(GraviteeContext.getExecutionContext()), any(), any());
+
+        final Response response = target("/_search").request().post(Entity.json(null));
+        assertEquals(HttpStatusCode.OK_200, response.getStatus());
+
+        ApisResponse apiResponse = response.readEntity(ApisResponse.class);
+        assertEquals(1, apiResponse.getData().size());
+        assertTrue(getmaxLabelsListSize(apiResponse) > 0);
+    }
+
+    @Test
     public void shouldSearchApisWithoutLabel() throws TechnicalException {
         when(
             parameterService.findAsBoolean(

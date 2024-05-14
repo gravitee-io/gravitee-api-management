@@ -419,11 +419,13 @@ public class ApiSearchServiceImpl extends AbstractService implements ApiSearchSe
     ) {
         QueryBuilder<GenericApiEntity> searchEngineQueryBuilder = QueryBuilder
             .create(GenericApiEntity.class)
-            .setQuery(query)
             .setSort(sortable)
             .setFilters(filters);
         if (excludeV4Definition) {
             searchEngineQueryBuilder.setExcludedFilters(Map.of(FIELD_DEFINITION_VERSION, List.of(DefinitionVersion.V4.getLabel())));
+        }
+        if (!isBlank(query)) {
+            searchEngineQueryBuilder.setQuery(query);
         }
         SearchResult searchResult = searchEngineService.search(executionContext, searchEngineQueryBuilder.build());
         return searchResult.getDocuments();

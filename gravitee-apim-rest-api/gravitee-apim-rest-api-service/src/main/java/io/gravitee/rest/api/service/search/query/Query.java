@@ -21,6 +21,7 @@ import io.gravitee.rest.api.model.search.Indexable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -30,6 +31,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
+@EqualsAndHashCode
 public class Query<T extends Indexable> {
 
     private String query;

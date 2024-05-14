@@ -120,10 +120,7 @@ public class ApisResource extends AbstractResource<Api, String> {
     @Path("_search")
     @Produces(MediaType.APPLICATION_JSON)
     @RequirePortalAuth
-    public Response searchApis(
-        @NotNull(message = "Input must not be null.") @QueryParam("q") String query,
-        @BeanParam PaginationParam paginationParam
-    ) {
+    public Response searchApis(@QueryParam("q") String query, @BeanParam PaginationParam paginationParam) {
         try {
             final ExecutionContext executionContext = GraviteeContext.getExecutionContext();
             Collection<String> apisList = filteringService.searchApis(executionContext, getAuthenticatedUserOrNull(), query);
