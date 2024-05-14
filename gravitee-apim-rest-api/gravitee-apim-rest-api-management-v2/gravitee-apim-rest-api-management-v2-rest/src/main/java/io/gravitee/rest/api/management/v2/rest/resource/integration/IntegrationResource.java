@@ -25,6 +25,7 @@ import io.gravitee.apim.core.integration.use_case.UpdateIntegrationUseCase;
 import io.gravitee.common.http.MediaType;
 import io.gravitee.rest.api.management.v2.rest.mapper.ApiMapper;
 import io.gravitee.rest.api.management.v2.rest.mapper.IntegrationMapper;
+import io.gravitee.rest.api.management.v2.rest.model.DeletedIngestedApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.IngestedApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.IngestionStatus;
 import io.gravitee.rest.api.management.v2.rest.model.IntegrationIngestionResponse;
@@ -166,13 +167,14 @@ public class IntegrationResource extends AbstractResource {
 
     @DELETE
     @Path("/apis")
+    @Produces(MediaType.APPLICATION_JSON)
     @Permissions(
         {
             @Permission(value = RolePermission.ENVIRONMENT_INTEGRATION, acls = { RolePermissionAction.READ }),
             @Permission(value = RolePermission.ENVIRONMENT_API, acls = { RolePermissionAction.DELETE }),
         }
     )
-    public Response deleteIngestedApis(@PathParam("integrationId") String integrationId) {
+    public DeletedIngestedApisResponse deleteIngestedApis(@PathParam("integrationId") String integrationId) {
         var executionContext = GraviteeContext.getExecutionContext();
         if (
             !hasPermission(
@@ -194,8 +196,8 @@ public class IntegrationResource extends AbstractResource {
         AuditInfo audit = getAuditInfo();
 
         var input = DeleteIngestedApisUseCase.Input.builder().integrationId(integrationId).auditInfo(audit).build();
-        deleteIngestedApisUseCase.execute(input);
+        var output = deleteIngestedApisUseCase.execute(input);
 
-        return Response.noContent().status(Response.Status.OK).build();
+        return new DeletedIngestedApisResponse().deleted(output.deleted()).skipped(output.skipped()).errors(output.errors());
     }
 }

@@ -31,6 +31,7 @@ import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.repository.exceptions.TechnicalException;
+import io.gravitee.rest.api.management.v2.rest.model.DeletedIngestedApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.IngestedApi;
 import io.gravitee.rest.api.management.v2.rest.model.IngestedApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.IngestionStatus;
@@ -473,29 +474,41 @@ public class IntegrationResourceTest extends AbstractResourceTest {
 
         @ParameterizedTest
         @EnumSource(value = Api.ApiLifecycleState.class, mode = EnumSource.Mode.EXCLUDE, names = { "PUBLISHED" })
-        public void should_delete_all_ingested_apis_except_published_ones(Api.ApiLifecycleState apiLifecycleState) {
+        public void should_return_deleted_apis(Api.ApiLifecycleState apiLifecycleState) {
             apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aFederatedApi().toBuilder().apiLifecycleState(apiLifecycleState).build()));
 
             Response response = target.path("/apis").request().delete();
 
-            assertThat(response).hasStatus(OK_200);
-            assertThat(apiCrudServiceInMemory.storage()).isEmpty();
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(DeletedIngestedApisResponse.class)
+                .isEqualTo(new DeletedIngestedApisResponse().deleted(1).skipped(0).errors(0));
         }
 
         @Test
-        public void should_not_delete_published_api() {
+        public void should_return_skipped_apis() {
             apiCrudServiceInMemory.initWith(
                 List.of(ApiFixtures.aFederatedApi().toBuilder().apiLifecycleState(Api.ApiLifecycleState.PUBLISHED).build())
             );
 
             Response response = target.path("/apis").request().delete();
 
-            assertThat(response).hasStatus(OK_200);
-            assertThat(apiCrudServiceInMemory.storage())
-                .isNotEmpty()
-                .hasSize(1)
-                .extracting(Api::getApiLifecycleState)
-                .containsExactly(Api.ApiLifecycleState.PUBLISHED);
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(DeletedIngestedApisResponse.class)
+                .isEqualTo(new DeletedIngestedApisResponse().deleted(0).skipped(1).errors(0));
+        }
+
+        @Test
+        public void should_return_errors() {
+            apiCrudServiceInMemory.initWith(List.of(ApiFixtures.aFederatedApi().toBuilder().apiLifecycleState(null).build()));
+
+            Response response = target.path("/apis").request().delete();
+
+            assertThat(response)
+                .hasStatus(OK_200)
+                .asEntity(DeletedIngestedApisResponse.class)
+                .isEqualTo(new DeletedIngestedApisResponse().deleted(0).skipped(0).errors(1));
         }
 
         @ParameterizedTest(name = "[{index}] {arguments}")
