@@ -21,15 +21,20 @@ import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static io.gravitee.rest.api.management.v2.rest.resource.integration.IntegrationsResourceTest.INTEGRATION_PROVIDER;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.IntegrationFixture;
+import fixtures.core.model.LicenseFixtures;
 import inmemory.ApiCrudServiceInMemory;
+import inmemory.InMemoryAlternative;
 import inmemory.IntegrationCrudServiceInMemory;
+import inmemory.LicenseCrudServiceInMemory;
 import io.gravitee.apim.core.api.model.Api;
 import io.gravitee.apim.core.user.model.BaseUserEntity;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.management.v2.rest.model.DeletedIngestedApisResponse;
 import io.gravitee.rest.api.management.v2.rest.model.IngestedApi;
@@ -51,6 +56,7 @@ import jakarta.ws.rs.core.Response;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -67,6 +73,9 @@ public class IntegrationResourceTest extends AbstractResourceTest {
 
     @Autowired
     ApiCrudServiceInMemory apiCrudServiceInMemory;
+
+    @Autowired
+    LicenseManager licenseManager;
 
     static final String ENVIRONMENT = "my-env";
     static final String INTEGRATION_ID = "integration-id";
@@ -94,14 +103,16 @@ public class IntegrationResourceTest extends AbstractResourceTest {
         givenExistingUsers(
             List.of(BaseUserEntity.builder().id(USER_NAME).firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build())
         );
+
+        when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION)).thenReturn(LicenseFixtures.anEnterpriseLicense());
     }
 
     @AfterEach
     public void tearDown() {
         super.tearDown();
-        integrationCrudServiceInMemory.reset();
-        apiCrudServiceInMemory.reset();
+        Stream.of(apiCrudServiceInMemory, integrationCrudServiceInMemory).forEach(InMemoryAlternative::reset);
         GraviteeContext.cleanContext();
+        reset(licenseManager);
     }
 
     @Nested

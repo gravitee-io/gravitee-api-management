@@ -24,10 +24,12 @@ import io.gravitee.apim.core.api.model.factory.ApiModelFactory;
 import io.gravitee.apim.core.audit.model.AuditInfo;
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.apim.core.exception.NotAllowedDomainException;
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
 import io.gravitee.apim.core.integration.exception.IntegrationNotFoundException;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
 import io.gravitee.apim.core.integration.service_provider.IntegrationAgent;
+import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
 import io.gravitee.apim.core.membership.model.PrimaryOwnerEntity;
 import io.gravitee.apim.core.plan.domain_service.CreatePlanDomainService;
@@ -39,6 +41,7 @@ import io.gravitee.definition.model.v4.plan.PlanStatus;
 import io.gravitee.rest.api.model.v4.plan.PlanSecurityType;
 import io.gravitee.rest.api.service.common.UuidString;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
 import java.util.Collections;
 import java.util.Date;
@@ -61,12 +64,17 @@ public class IngestIntegrationApisUseCase {
     private final CreatePlanDomainService createPlanDomainService;
     private final IntegrationAgent integrationAgent;
     private final CreateApiDocumentationDomainService createApiDocumentationDomainService;
+    private final LicenseDomainService licenseDomainService;
 
     public Completable execute(Input input) {
         var integrationId = input.integrationId;
         var auditInfo = input.auditInfo;
         var organizationId = auditInfo.organizationId();
         var environmentId = auditInfo.environmentId();
+
+        if (!licenseDomainService.isFederationFeatureAllowed(organizationId)) {
+            return Completable.error(NotAllowedDomainException.noLicenseForFederation());
+        }
 
         return Single
             .fromCallable(() ->
