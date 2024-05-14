@@ -41,7 +41,7 @@ describe('API List feature', { defaultCommandTimeout: 10000 }, () => {
     it("should load API creation page when 'Add API' button is clicked", function () {
       cy.getByDataTestId('api_list_addApi_button').click();
       cy.url().should('include', '/apis/new');
-      cy.get('h1').contains('Get started building your API').should('be.visible');
+      cy.get('h1').contains('Choose API creation method').should('be.visible');
     });
 
     it('should have correct table header', function () {
