@@ -19,12 +19,17 @@
   position: sticky;
   z-index: 99;
   top: 0;
+  backdrop-filter: blur(10px);
+  background-color: color-mix(in srgb, theme.$background-color, transparent 20%);
+}
+
+.nav-bar__container {
   display: flex;
+  width: 1040px;
   flex-flow: row;
   align-items: center;
   padding: 18px 0;
-  backdrop-filter: blur(10px);
-  background-color: color-mix(in srgb, theme.$background-color, transparent 20%);
+  margin: auto;
   gap: 40px;
 }
 
