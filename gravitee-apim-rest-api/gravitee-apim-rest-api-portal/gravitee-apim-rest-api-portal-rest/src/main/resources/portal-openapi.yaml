@@ -3166,7 +3166,6 @@ components:
     apiQueryParam:
       name: q
       in: query
-      required: true
       description: query string to be used in the search engine
       schema:
         type: string

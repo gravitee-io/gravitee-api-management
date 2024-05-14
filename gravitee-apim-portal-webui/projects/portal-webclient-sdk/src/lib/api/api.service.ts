@@ -193,12 +193,12 @@ export interface ListCategoriesRequestParams {
 }
 
 export interface SearchApisRequestParams {
-    /** query string to be used in the search engine */
-    q: string;
     /** The page number for pagination. */
     page?: number;
     /** The number of items per page for pagination. If the size is 0, the response contains only metadata and returns the values as for a non-paged resource. If the size is -1, the response contains all datas.  */
     size?: number;
+    /** query string to be used in the search engine */
+    q?: string;
 }
 
 export interface UpdateApiRatingRequestParams {
@@ -1518,12 +1518,9 @@ export class ApiService {
     public searchApis(requestParameters: SearchApisRequestParams, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpResponse<ApisResponse>>;
     public searchApis(requestParameters: SearchApisRequestParams, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json'}): Observable<HttpEvent<ApisResponse>>;
     public searchApis(requestParameters: SearchApisRequestParams, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json'}): Observable<any> {
-        const q = requestParameters.q;
-        if (q === null || q === undefined) {
-            throw new Error('Required parameter q was null or undefined when calling searchApis.');
-        }
         const page = requestParameters.page;
         const size = requestParameters.size;
+        const q = requestParameters.q;
 
         let queryParameters = new HttpParams({encoder: this.encoder});
         if (page !== undefined && page !== null) {
