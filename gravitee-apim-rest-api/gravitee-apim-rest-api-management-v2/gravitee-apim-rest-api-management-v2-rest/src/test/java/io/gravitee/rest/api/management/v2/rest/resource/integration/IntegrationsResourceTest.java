@@ -19,11 +19,16 @@ import static assertions.MAPIAssertions.assertThat;
 import static io.gravitee.common.http.HttpStatusCode.OK_200;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.IntegrationFixture;
+import fixtures.core.model.LicenseFixtures;
+import inmemory.InMemoryAlternative;
 import inmemory.IntegrationCrudServiceInMemory;
+import inmemory.LicenseCrudServiceInMemory;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLogsResponse;
 import io.gravitee.rest.api.management.v2.rest.model.CreateIntegration;
@@ -42,6 +47,7 @@ import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
 import java.time.ZonedDateTime;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -60,6 +66,9 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
 
     @Autowired
     IntegrationCrudServiceInMemory integrationCrudServiceInMemory;
+
+    @Autowired
+    LicenseManager licenseManager;
 
     WebTarget target;
 
@@ -88,12 +97,15 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
+
+        when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION)).thenReturn(LicenseFixtures.anEnterpriseLicense());
     }
 
     @AfterEach
     public void tearDown() {
         super.tearDown();
-        integrationCrudServiceInMemory.reset();
+        Stream.of(integrationCrudServiceInMemory).forEach(InMemoryAlternative::reset);
+        reset(licenseManager);
         GraviteeContext.cleanContext();
     }
 
