@@ -31,6 +31,7 @@ import io.gravitee.rest.api.model.SubscriptionStatus;
 import io.gravitee.rest.api.model.TopApiEntity;
 import io.gravitee.rest.api.model.api.ApiEntity;
 import io.gravitee.rest.api.model.api.ApiLifecycleState;
+import io.gravitee.rest.api.model.api.ApiQuery;
 import io.gravitee.rest.api.model.subscription.SubscriptionQuery;
 import io.gravitee.rest.api.service.*;
 import io.gravitee.rest.api.service.common.GraviteeContext;
@@ -370,7 +371,7 @@ public class FilteringServiceTest {
 
         doReturn(Set.of("api-#1", "api-#2", "api-#3"))
             .when(apiAuthorizationService)
-            .findAccessibleApiIdsForUser(eq(GraviteeContext.getExecutionContext()), eq("user-#1"));
+            .findAccessibleApiIdsForUser(eq(GraviteeContext.getExecutionContext()), eq("user-#1"), nullable(ApiQuery.class));
         doReturn(Set.of("api-#3"))
             .when(apiSearchService)
             .searchIds(
@@ -381,6 +382,31 @@ public class FilteringServiceTest {
             );
 
         Collection<String> searchItems = filteringService.searchApis(GraviteeContext.getExecutionContext(), "user-#1", aQuery);
+
+        assertThat(searchItems).singleElement().isEqualTo("api-#3");
+    }
+
+    @Test
+    public void shouldSearchApisWithCategory() throws TechnicalException {
+        String aQuery = "a Query";
+        String category = "category-key";
+
+        var apiQuery = new ApiQuery();
+        apiQuery.setCategory(category);
+
+        doReturn(Set.of("api-#1", "api-#2", "api-#3"))
+            .when(apiAuthorizationService)
+            .findAccessibleApiIdsForUser(eq(GraviteeContext.getExecutionContext()), eq("user-#1"), eq(apiQuery));
+        doReturn(Set.of("api-#3"))
+            .when(apiSearchService)
+            .searchIds(
+                eq(GraviteeContext.getExecutionContext()),
+                eq(aQuery),
+                eq(Map.of("api", Set.of("api-#1", "api-#2", "api-#3"))),
+                isNull()
+            );
+
+        Collection<String> searchItems = filteringService.searchApis(GraviteeContext.getExecutionContext(), "user-#1", aQuery, category);
 
         assertThat(searchItems).singleElement().isEqualTo("api-#3");
     }
