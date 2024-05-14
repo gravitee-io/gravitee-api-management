@@ -126,7 +126,7 @@ public abstract class AbstractMqtt5EndpointIntegrationTest extends AbstractGatew
     }
 
     @Container
-    protected static final HiveMQContainer mqtt5 = new HiveMQContainer(DockerImageName.parse("hivemq/hivemq-ce").withTag("2023.3"))
+    protected static final HiveMQContainer mqtt5 = new HiveMQContainer(DockerImageName.parse("hivemq/hivemq-ce").withTag("2024.4"))
         .withTmpFs(null);
 
     @Override

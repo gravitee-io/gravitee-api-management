@@ -74,7 +74,7 @@ import org.testcontainers.utility.DockerImageName;
 public abstract class AbstractKafkaEndpointIntegrationTest extends AbstractGatewayTest {
 
     @Container
-    protected static final KafkaContainer kafka = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:6.2.1"));
+    protected static final KafkaContainer kafka = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.6.1"));
 
     protected Vertx vertx = Vertx.vertx();
 
