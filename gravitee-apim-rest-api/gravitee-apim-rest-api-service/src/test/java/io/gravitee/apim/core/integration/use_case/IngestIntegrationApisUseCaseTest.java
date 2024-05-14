@@ -29,6 +29,7 @@ import fixtures.core.model.ApiFixtures;
 import fixtures.core.model.AuditInfoFixtures;
 import fixtures.core.model.IntegrationApiFixtures;
 import fixtures.core.model.IntegrationFixture;
+import fixtures.core.model.LicenseFixtures;
 import inmemory.ApiCategoryQueryServiceInMemory;
 import inmemory.ApiCrudServiceInMemory;
 import inmemory.ApiMetadataQueryServiceInMemory;
@@ -40,6 +41,7 @@ import inmemory.InMemoryAlternative;
 import inmemory.IndexerInMemory;
 import inmemory.IntegrationAgentInMemory;
 import inmemory.IntegrationCrudServiceInMemory;
+import inmemory.LicenseCrudServiceInMemory;
 import inmemory.MembershipCrudServiceInMemory;
 import inmemory.MembershipQueryServiceInMemory;
 import inmemory.MetadataCrudServiceInMemory;
@@ -65,11 +67,13 @@ import io.gravitee.apim.core.audit.model.event.MembershipAuditEvent;
 import io.gravitee.apim.core.audit.model.event.PageAuditEvent;
 import io.gravitee.apim.core.documentation.domain_service.CreateApiDocumentationDomainService;
 import io.gravitee.apim.core.documentation.model.Page;
+import io.gravitee.apim.core.exception.NotAllowedDomainException;
 import io.gravitee.apim.core.exception.ValidationDomainException;
 import io.gravitee.apim.core.flow.domain_service.FlowValidationDomainService;
 import io.gravitee.apim.core.integration.exception.IntegrationNotFoundException;
 import io.gravitee.apim.core.integration.model.Integration;
 import io.gravitee.apim.core.integration.model.IntegrationApi;
+import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerDomainService;
 import io.gravitee.apim.core.membership.domain_service.ApiPrimaryOwnerFactory;
 import io.gravitee.apim.core.membership.model.Membership;
@@ -90,6 +94,7 @@ import io.gravitee.definition.model.federation.FederatedPlan;
 import io.gravitee.definition.model.v4.plan.PlanMode;
 import io.gravitee.definition.model.v4.plan.PlanSecurity;
 import io.gravitee.definition.model.v4.plan.PlanStatus;
+import io.gravitee.node.api.license.LicenseManager;
 import io.gravitee.repository.management.model.Parameter;
 import io.gravitee.repository.management.model.ParameterReferenceType;
 import io.gravitee.rest.api.model.context.IntegrationContext;
@@ -107,6 +112,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import org.assertj.core.api.Assertions;
+import org.assertj.core.api.AssertionsForClassTypes;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -140,6 +146,7 @@ class IngestIntegrationApisUseCaseTest {
     RoleQueryServiceInMemory roleQueryService = new RoleQueryServiceInMemory();
     UserCrudServiceInMemory userCrudService = new UserCrudServiceInMemory();
     WorkflowCrudServiceInMemory workflowCrudService = new WorkflowCrudServiceInMemory();
+    LicenseManager licenseManager = mock(LicenseManager.class);
 
     PlanCrudServiceInMemory planCrudService = new PlanCrudServiceInMemory();
 
@@ -234,7 +241,8 @@ class IngestIntegrationApisUseCaseTest {
                 createApiDomainService,
                 createPlanDomainService,
                 integrationAgent,
-                createApiDocumentationPage
+                createApiDocumentationPage,
+                new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager)
             );
 
         enableApiPrimaryOwnerMode(ApiPrimaryOwnerMode.USER);
@@ -245,6 +253,8 @@ class IngestIntegrationApisUseCaseTest {
         givenExistingUsers(
             List.of(BaseUserEntity.builder().id(USER_ID).firstname("Jane").lastname("Doe").email("jane.doe@gravitee.io").build())
         );
+
+        when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID)).thenReturn(LicenseFixtures.anEnterpriseLicense());
     }
 
     @AfterEach
@@ -262,6 +272,7 @@ class IngestIntegrationApisUseCaseTest {
             )
             .forEach(InMemoryAlternative::reset);
         reset(validateFederatedApiDomainService);
+        reset(licenseManager);
     }
 
     @Nested
@@ -702,6 +713,16 @@ class IngestIntegrationApisUseCaseTest {
             //Then
             assertThat(pageCrudService.storage()).isEmpty();
         }
+    }
+
+    @Test
+    void should_throw_when_no_license_found() {
+        when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID)).thenReturn(LicenseFixtures.anOssLicense());
+
+        useCase
+            .execute(new IngestIntegrationApisUseCase.Input(INTEGRATION_ID, AUDIT_INFO))
+            .test()
+            .assertError(NotAllowedDomainException.class);
     }
 
     @Test
