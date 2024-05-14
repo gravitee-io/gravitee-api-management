@@ -19,12 +19,15 @@ import io.gravitee.elasticsearch.utils.Type;
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepository;
 import io.gravitee.repository.elasticsearch.configuration.RepositoryConfiguration;
 import io.gravitee.repository.elasticsearch.utils.ClusterUtils;
+import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchAverageConnectionDurationQueryAdapter;
+import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchAverageConnectionDurationResponseAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchAverageMessagesPerRequestQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchAverageMessagesPerRequestResponseAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchRequestsCountQueryAdapter;
 import io.gravitee.repository.elasticsearch.v4.analytics.adapter.SearchRequestsCountResponseAdapter;
 import io.gravitee.repository.log.v4.api.AnalyticsRepository;
 import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
+import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
 import io.gravitee.repository.log.v4.model.analytics.CountAggregate;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
@@ -52,6 +55,14 @@ public class AnalyticsElasticsearchRepository extends AbstractElasticsearchRepos
         var index = this.indexNameGenerator.getWildcardIndexName(Type.V4_MESSAGE_METRICS, clusters);
         return this.client.search(index, null, SearchAverageMessagesPerRequestQueryAdapter.adapt(query))
             .map(SearchAverageMessagesPerRequestResponseAdapter::adapt)
+            .blockingGet();
+    }
+
+    @Override
+    public Optional<AverageAggregate> searchAverageConnectionDuration(AverageConnectionDurationQuery query) {
+        var index = this.indexNameGenerator.getWildcardIndexName(Type.V4_METRICS, clusters);
+        return this.client.search(index, null, SearchAverageConnectionDurationQueryAdapter.adapt(query))
+            .map(SearchAverageConnectionDurationResponseAdapter::adapt)
             .blockingGet();
     }
 }

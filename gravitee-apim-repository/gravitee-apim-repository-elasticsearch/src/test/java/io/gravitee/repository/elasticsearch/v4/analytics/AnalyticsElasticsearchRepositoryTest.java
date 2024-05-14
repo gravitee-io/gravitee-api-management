@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.offset;
 
 import io.gravitee.repository.elasticsearch.AbstractElasticsearchRepositoryTest;
+import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
 import java.time.ZoneId;
@@ -53,9 +54,9 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
 
             assertThat(result)
                 .hasValueSatisfying(countAggregate -> {
-                    assertThat(countAggregate.getTotal()).isEqualTo(7);
+                    assertThat(countAggregate.getTotal()).isEqualTo(10);
                     assertThat(countAggregate.getCountBy())
-                        .containsAllEntriesOf(Map.of("http-post", 3L, "http-get", 1L, "websocket", 2L, "sse", 1L));
+                        .containsAllEntriesOf(Map.of("http-post", 3L, "http-get", 1L, "websocket", 3L, "sse", 2L, "webhook", 1L));
                 });
         }
     }
@@ -74,6 +75,24 @@ class AnalyticsElasticsearchRepositoryTest extends AbstractElasticsearchReposito
                     assertThat(averageAggregate.getAverage()).isCloseTo(45.7, offset(0.1d));
                     assertThat(averageAggregate.getAverageBy())
                         .containsAllEntriesOf(Map.of("http-get", 9.8, "websocket", 27.5, "sse", 100.0));
+                });
+        }
+    }
+
+    @Nested
+    class AverageConnectionDuration {
+
+        @Test
+        void should_return_average_connection_duration_by_entrypoint_for_a_given_api() {
+            var result = cut.searchAverageConnectionDuration(
+                AverageConnectionDurationQuery.builder().apiId("f1608475-dd77-4603-a084-75dd775603e9").build()
+            );
+
+            assertThat(result)
+                .hasValueSatisfying(averageAggregate -> {
+                    assertThat(averageAggregate.getAverage()).isCloseTo(20261.25, offset(0.1d));
+                    assertThat(averageAggregate.getAverageBy())
+                        .containsAllEntriesOf(Map.of("http-get", 30_000.0, "websocket", 50_000.0, "sse", 645.0, "http-post", 400.0));
                 });
         }
     }
