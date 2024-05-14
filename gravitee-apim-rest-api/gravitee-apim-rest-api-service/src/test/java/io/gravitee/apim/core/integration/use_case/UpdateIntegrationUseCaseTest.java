@@ -17,23 +17,40 @@ package io.gravitee.apim.core.integration.use_case;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import fixtures.core.model.IntegrationFixture;
+import fixtures.core.model.LicenseFixtures;
+import inmemory.InMemoryAlternative;
 import inmemory.IntegrationCrudServiceInMemory;
+import inmemory.LicenseCrudServiceInMemory;
+import io.gravitee.apim.core.exception.NotAllowedDomainException;
 import io.gravitee.apim.core.integration.crud_service.IntegrationCrudService;
 import io.gravitee.apim.core.integration.exception.IntegrationNotFoundException;
 import io.gravitee.apim.core.integration.model.Integration;
+import io.gravitee.apim.core.integration.use_case.UpdateIntegrationUseCase.Input;
+import io.gravitee.apim.core.license.domain_service.LicenseDomainService;
 import io.gravitee.common.utils.TimeProvider;
+import io.gravitee.node.api.license.LicenseManager;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
-import org.junit.jupiter.api.*;
+import java.util.stream.Stream;
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 public class UpdateIntegrationUseCaseTest {
 
     private static final String INTEGRATION_ID = "integration-id";
+    private static final String ORGANIZATION_ID = "organization-id";
     private static final Instant INSTANT_NOW = Instant.parse("2023-10-22T10:15:30Z");
     private static final String PROVIDER = "test-provider";
     private static final String ENV_ID = "my-env";
@@ -41,6 +58,7 @@ public class UpdateIntegrationUseCaseTest {
     private static final Integration.AgentStatus AGENT_STATUS = Integration.AgentStatus.DISCONNECTED;
 
     IntegrationCrudServiceInMemory integrationCrudServiceInMemory = new IntegrationCrudServiceInMemory();
+    LicenseManager licenseManager = mock(LicenseManager.class);
 
     UpdateIntegrationUseCase usecase;
 
@@ -54,7 +72,13 @@ public class UpdateIntegrationUseCaseTest {
         IntegrationCrudService integrationCrudService = integrationCrudServiceInMemory;
         integrationCrudServiceInMemory.initWith(List.of(IntegrationFixture.anIntegration()));
 
-        usecase = new UpdateIntegrationUseCase(integrationCrudService);
+        usecase =
+            new UpdateIntegrationUseCase(
+                integrationCrudService,
+                new LicenseDomainService(new LicenseCrudServiceInMemory(), licenseManager)
+            );
+
+        when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID)).thenReturn(LicenseFixtures.anEnterpriseLicense());
     }
 
     @AfterAll
@@ -64,7 +88,7 @@ public class UpdateIntegrationUseCaseTest {
 
     @AfterEach
     void tearDownEach() {
-        integrationCrudServiceInMemory.reset();
+        Stream.of(integrationCrudServiceInMemory).forEach(InMemoryAlternative::reset);
     }
 
     @Test
@@ -77,10 +101,8 @@ public class UpdateIntegrationUseCaseTest {
             .description("updated-description")
             .build();
 
-        var input = UpdateIntegrationUseCase.Input.builder().integration(updateIntegration).build();
-
         //When
-        var output = usecase.execute(input);
+        var output = usecase.execute(new Input(updateIntegration, ORGANIZATION_ID));
 
         //Then
         assertThat(output.integration()).isNotNull();
@@ -110,10 +132,22 @@ public class UpdateIntegrationUseCaseTest {
             .description("updated-description")
             .build();
 
-        var input = UpdateIntegrationUseCase.Input.builder().integration(updateIntegration).build();
-
         assertThatExceptionOfType(IntegrationNotFoundException.class)
-            .isThrownBy(() -> usecase.execute(input))
+            .isThrownBy(() -> usecase.execute(new Input(updateIntegration, ORGANIZATION_ID)))
             .withMessage("Integration not found.");
+    }
+
+    @Test
+    void should_throw_when_no_enterprise_license_found() {
+        // Given
+        when(licenseManager.getOrganizationLicenseOrPlatform(ORGANIZATION_ID)).thenReturn(LicenseFixtures.anOssLicense());
+
+        // When
+        var throwable = Assertions.catchThrowable(() ->
+            usecase.execute(new Input(Integration.builder().id(INTEGRATION_ID).build(), ORGANIZATION_ID))
+        );
+
+        // Then
+        assertThat(throwable).isInstanceOf(NotAllowedDomainException.class);
     }
 }
