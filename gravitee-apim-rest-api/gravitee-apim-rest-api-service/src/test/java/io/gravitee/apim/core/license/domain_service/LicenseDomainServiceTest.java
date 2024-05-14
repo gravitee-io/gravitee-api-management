@@ -30,7 +30,7 @@ class LicenseDomainServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new LicenseDomainService(licenseCrudService);
+        service = new LicenseDomainService(licenseCrudService, null);
     }
 
     @AfterEach

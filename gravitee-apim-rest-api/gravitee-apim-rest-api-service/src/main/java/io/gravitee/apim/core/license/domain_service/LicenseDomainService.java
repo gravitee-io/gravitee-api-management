@@ -18,6 +18,7 @@ package io.gravitee.apim.core.license.domain_service;
 import io.gravitee.apim.core.DomainService;
 import io.gravitee.apim.core.license.crud_service.LicenseCrudService;
 import io.gravitee.apim.core.license.model.License;
+import io.gravitee.node.api.license.LicenseManager;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -25,9 +26,23 @@ import java.util.Optional;
 public class LicenseDomainService {
 
     private final LicenseCrudService licenseCrudService;
+    private final LicenseManager licenseManager;
 
-    public LicenseDomainService(LicenseCrudService licenseCrudService) {
+    public LicenseDomainService(LicenseCrudService licenseCrudService, LicenseManager licenseManager) {
         this.licenseCrudService = licenseCrudService;
+        this.licenseManager = licenseManager;
+    }
+
+    /**
+     * Check that the Federation Feature is authorized by the License.
+     * @param organizationId The organization id
+     * @return <code>true</code> when the Federation Feature can be used.
+     */
+    public boolean isFederationFeatureAllowed(String organizationId) {
+        var license = licenseManager.getOrganizationLicenseOrPlatform(organizationId);
+
+        // For now federation feature is allowed for any enterprise license
+        return !Objects.equals(license.getTier(), "oss");
     }
 
     /**
