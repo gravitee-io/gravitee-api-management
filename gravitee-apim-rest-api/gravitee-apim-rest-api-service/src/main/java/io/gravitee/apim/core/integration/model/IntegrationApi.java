@@ -35,6 +35,7 @@ public record IntegrationApi(
     public record Plan(String id, String name, String description, PlanType type) {}
     public enum PlanType {
         API_KEY,
+        OAUTH2,
     }
 
     public record Page(PageType pageType, String content) {}
