@@ -111,7 +111,7 @@ describe('IntegrationConfigurationComponent', (): void => {
       fixture.detectChanges();
 
       const errorToLongName: MatErrorHarness = await componentHarness.matErrorMessage();
-      expect(await errorToLongName.getText()).toEqual('Integration name has to be less than 50 characters long.');
+      expect(await errorToLongName.getText()).toEqual('Integration name can not exceed 50 characters.');
     });
 
     it('should not show submit bar when form not valid', async () => {

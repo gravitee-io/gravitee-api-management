@@ -37,7 +37,7 @@
             <mat-label>Name</mat-label>
             <mat-error *ngIf="generalInformationForm.get('name').hasError('required')">Integration name is required. </mat-error>
             <mat-error *ngIf="generalInformationForm.get('name').hasError('maxlength')"
-              >Integration name has to be less than 50 characters long.
+              >Integration name can not exceed 50 characters.
             </mat-error>
             <mat-error *ngIf="generalInformationForm.get('name').hasError('minlength')"
               >Integration name has to be at least 1 characters long.
