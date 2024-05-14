@@ -36,6 +36,7 @@ import {
 } from '@gravitee/ui-particles-angular';
 import { CdkAccordion, CdkAccordionItem } from '@angular/cdk/accordion';
 import { MatStep, MatStepLabel, MatStepper, MatStepperIcon, MatStepperNext, MatStepperPrevious } from '@angular/material/stepper';
+import { ErrorStateMatcher, ShowOnDirtyErrorStateMatcher } from '@angular/material/core';
 
 import { IntegrationsComponent } from './integrations.component';
 import { CreateIntegrationComponent } from './create-integration/create-integration.component';
@@ -98,5 +99,6 @@ import { GioPermissionModule } from '../../shared/components/gio-permission/gio-
     CdkAccordion,
     CdkAccordionItem,
   ],
+  providers: [{ provide: ErrorStateMatcher, useClass: ShowOnDirtyErrorStateMatcher }],
 })
 export class IntegrationsModule {}

@@ -157,7 +157,7 @@ describe('CreateIntegrationComponent', () => {
       fixture.detectChanges();
 
       const error: MatErrorHarness = await componentHarness.matErrorMessage();
-      expect(await error.getText()).toEqual('Integration name has to be less than 50 characters long.');
+      expect(await error.getText()).toEqual('Integration name can not exceed 50 characters.');
 
       await componentHarness.clickOnSubmit();
       httpTestingController.expectNone(`${CONSTANTS_TESTING.env.v2BaseURL}/integrations`);
