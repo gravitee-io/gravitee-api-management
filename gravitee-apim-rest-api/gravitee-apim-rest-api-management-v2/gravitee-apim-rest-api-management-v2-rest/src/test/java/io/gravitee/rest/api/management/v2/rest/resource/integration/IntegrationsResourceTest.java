@@ -22,7 +22,9 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 import fixtures.core.model.IntegrationFixture;
+import inmemory.InMemoryAlternative;
 import inmemory.IntegrationCrudServiceInMemory;
+import inmemory.LicenseCrudServiceInMemory;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.repository.exceptions.TechnicalException;
 import io.gravitee.rest.api.management.v2.rest.model.ApiLogsResponse;
@@ -42,6 +44,7 @@ import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.Response;
 import java.time.ZonedDateTime;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -60,6 +63,9 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
 
     @Autowired
     IntegrationCrudServiceInMemory integrationCrudServiceInMemory;
+
+    @Autowired
+    LicenseCrudServiceInMemory licenseCrudService;
 
     WebTarget target;
 
@@ -88,12 +94,14 @@ public class IntegrationsResourceTest extends AbstractResourceTest {
 
         GraviteeContext.setCurrentEnvironment(ENVIRONMENT);
         GraviteeContext.setCurrentOrganization(ORGANIZATION);
+
+        licenseCrudService.createOrganizationLicense(ORGANIZATION, "license-base64");
     }
 
     @AfterEach
     public void tearDown() {
         super.tearDown();
-        integrationCrudServiceInMemory.reset();
+        Stream.of(integrationCrudServiceInMemory, licenseCrudService).forEach(InMemoryAlternative::reset);
         GraviteeContext.cleanContext();
     }
 
