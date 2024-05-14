@@ -16,6 +16,7 @@
 package io.gravitee.repository.log.v4.api;
 
 import io.gravitee.repository.log.v4.model.analytics.AverageAggregate;
+import io.gravitee.repository.log.v4.model.analytics.AverageConnectionDurationQuery;
 import io.gravitee.repository.log.v4.model.analytics.AverageMessagesPerRequestQuery;
 import io.gravitee.repository.log.v4.model.analytics.CountAggregate;
 import io.gravitee.repository.log.v4.model.analytics.RequestsCountQuery;
@@ -25,4 +26,6 @@ public interface AnalyticsRepository {
     Optional<CountAggregate> searchRequestsCount(RequestsCountQuery requestsCountQuery);
 
     Optional<AverageAggregate> searchAverageMessagesPerRequest(AverageMessagesPerRequestQuery query);
+
+    Optional<AverageAggregate> searchAverageConnectionDuration(AverageConnectionDurationQuery query);
 }
