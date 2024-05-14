@@ -24,4 +24,8 @@ public class NotAllowedDomainException extends AbstractDomainException {
     public NotAllowedDomainException(String message, Throwable cause) {
         super(message, cause);
     }
+
+    public static NotAllowedDomainException noLicenseForFederation() {
+        return new NotAllowedDomainException("The organization does not have a license allowing Federation feature");
+    }
 }
